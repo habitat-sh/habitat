@@ -4,13 +4,15 @@ NO_CACHE = false
 
 .PHONY: container test run shell clean
 
+all: volumes container packages redis
+
 baseimage:
 	docker-compose run package bash -c 'cd /src/bldr-build; make baseimage_root'
 
 packages:
 	docker-compose run package bash -c 'cd /src/bldr-build; make world'
 
-volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume
+volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume src-cache-volume
 
 installed-cache-volume:
 	docker create -v /opt/bldr/pkgs --name bldr-installed-cache tianon/true /bin/true
@@ -34,7 +36,7 @@ key-cache-clean:
 	docker rm bldr-key-cache
 
 cargo-volume:
-	docker create -v /bldr-cargo-cache --name bldr-cargo-cache busybox /bin/true
+	docker create -v /bldr-cargo-cache --name bldr-cargo-cache tianon/true /bin/true
 
 container:
 	docker build -t chef/bldr --no-cache=${NO_CACHE} .

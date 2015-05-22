@@ -14,13 +14,30 @@ First, make sure you have the following things installed:
 
 Make sure you can `boot2docker status` and get a good result.
 
-Then, create the data volumes you will need:
+## The fast way
+
+```bash
+$ make all
+```
+
+This does everything the slow way does, but tells you less about
+how things work under the hood.
+
+## The slow way
+
+Create the data volumes you will need:
 
 ```bash
 $ make volumes
 ```
 
-Then create some bldr packages:
+Create the base container for bldr development:
+
+```bash
+$ make container
+```
+
+Create the bldr packages:
 
 ```bash
 $ make packages
@@ -32,7 +49,55 @@ Then test bldr out:
 $ make redis
 ```
 
-This will start a container, compile bldr, then start the redis service. Hit ctrl-c to exit.
+Hit ctrl-c to exit.
+
+## Development
+
+Hack around. If you want to do a build and run tests:
+
+```bash
+$ make test
+```
+
+Will build and run the test suite in a container.
+
+Two shells are available for your development pleasure. The first is for
+making packages:
+
+```bash
+$ make pkg-shell
+```
+
+Will drop you into a shell with everythihng set to run bldr-build, and drops
+packages off in the right location.
+
+The second is for bldr development:
+
+```
+$ make shell
+```
+
+Which isn't all the fancy things you need for package development.
+
+You can also build directly with cargo on OSX, but I doubt that package
+development will work correctly.
+
+## Making packages
+
+You can make packages by entering the package shell, going to bldr-build, and doing:
+
+```bash
+$ gpg --import chef-private.gpg
+$ ./bldr-build FILE
+```
+
+You can also build all the packages in one go with:
+
+```bash
+$ make world
+```
+
+From the bldr-build directory.
 
 # Headline
 
