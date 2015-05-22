@@ -1,8 +1,42 @@
 # Bldr
 
+# Try it
+
+Below is a lot of rambling thoughts, some of which are now completely wrong,
+but they were nice thoughts when I had them. If you want to try things out
+right now, here is what you should try.
+
+First, make sure you have the following things installed:
+
+* docker
+* boot2docker
+* docker-compose
+
+Make sure you can `boot2docker status` and get a good result.
+
+Then, create the data volumes you will need:
+
+```bash
+$ make volumes
+```
+
+Then create some bldr packages:
+
+```bash
+$ make packages
+```
+
+Then test bldr out:
+
+```bash
+$ make redis
+```
+
+This will start a container, compile bldr, then start the redis service. Hit ctrl-c to exit.
+
 # Headline
 
-Packaging for applications
+Packaging for applications -< this is a bad headline!
 
 # Thesis
 

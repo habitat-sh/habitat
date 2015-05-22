@@ -53,3 +53,6 @@ pkg-shell:
 
 clean:
 	docker images -q -f dangling=true | xargs docker rmi
+
+redis:
+	docker-compose run bldr cargo run -- start redis
