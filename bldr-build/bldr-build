@@ -1,0 +1,437 @@
+#!/bin/bash -e
+#
+# Copyright:: Copyright (c) 2015 Chef Software, Inc.
+# License:: Apache License, Version 2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+if [ -n "$DEBUG" ]; then
+	set -x
+fi
+
+BLDR_VERSION=0.0.1
+BLDR_SRC_CACHE=/opt/bldr/cache/src
+BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
+BLDR_FILE=$1
+pkg_derivation=bldr
+pkg_rel=$(date -u +%Y%m%d%H%M%S)
+pkg_deps=()
+pkg_format=(bldr)
+pkg_lib_dirs=()
+pkg_include_dirs=()
+
+###
+# Utility Functions
+###
+
+# Check that the command exists, 0 if it does, 1 if it does not.
+exists() {
+  if command -v $1 >/dev/null 2>&1
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+build_line() {
+  echo "   ${pkg_name}: $1"
+  return 0
+}
+
+debug() {
+	if [ -n "$DEBUG" ]; then
+		echo "DEBUG: $1"
+	fi
+	return 0
+}
+
+exit_with() {
+  echo "ERROR: $1"
+  exit $2
+}
+
+# Thanks to these guys:
+# http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable
+trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+    echo "$var"
+}
+
+latest_package() {
+	latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
+	case $(trim $latest_package_flags) in
+		"3")
+			echo "/opt/bldr/pkgs/$1" ;;
+		"2")
+			echo $(find /opt/bldr/pkgs/${1} -maxdepth 1 -type d | sort --version-sort -r | head -n 1) ;;
+		"1")
+			echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
+	esac
+}
+
+###
+# Build Phases
+###
+# Stub build phases, in the order they are executed
+bldr_begin() {
+	return 0
+}
+
+download() {
+	set -e
+	if [ -f $BLDR_SRC_CACHE/$pkg_filename ]; then
+		if verify; then
+			build_line "Using cached $pkg_filename"
+		fi
+	else
+		pushd $BLDR_SRC_CACHE
+		wget $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
+		popd
+		build_line "Downloaded";
+	fi
+  return 0
+}
+
+verify() {
+	if exists gsha256sum; then
+		verify_output=$(gsha256sum $BLDR_SRC_CACHE/$pkg_filename)
+	else
+		verify_output=$(sha256sum $BLDR_SRC_CACHE/$pkg_filename)
+	fi
+	if [ "$pkg_shasum  $BLDR_SRC_CACHE/$pkg_filename" = "$verify_output" ]; then
+		build_line "Checksum verified"
+	else
+		build_line "Checksum invalid; looking for $pkg_shasum. Got:\n$verify_output"
+		return 1
+	fi
+	return 0
+}
+
+clean_cache() {
+	rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
+	return 0
+}
+
+unpack() {
+	# basename with a suffix returns without it if it matches
+	unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
+# Thanks http://stackoverflow.com/questions/17420994/bash-regex-match-string
+  if [ -f $unpack_file ] ; then
+			pushd $BLDR_SRC_CACHE > /dev/null
+      case $unpack_file in
+          *.tar.bz2)   tar xjf $unpack_file    ;;
+          *.tar.gz)    tar xzf $unpack_file    ;;
+          *.bz2)       bunzip2 $unpack_file     ;;
+          *.rar)       rar x $unpack_file       ;;
+          *.gz)        gunzip $unpack_file      ;;
+          *.tar)       tar xvf $unpack_file     ;;
+          *.tbz2)      tar xvjf $unpack_file    ;;
+          *.tgz)       tar xvzf $unpack_file    ;;
+          *.zip)       unzip $unpack_file       ;;
+          *.Z)         uncompress $unpack_file  ;;
+          *.7z)        7z x $unpack_file        ;;
+          *)           echo "don't know '$1'..."; return 1 ;;
+      esac
+  else
+      echo "'$1' is not a valid file!"
+			return 1
+  fi
+	popd > /dev/null
+	return 0
+}
+
+build_environment() {
+	for dep in "${pkg_deps[@]}"; do
+		if echo $dep | grep '\^'; then
+			dep_deriv=$(echo $dep | cut -d "^" -f 1)
+			dep_rest=$(echo $dep | cut -d "^" -f 2)
+			dep_path=$(latest_package "$dep_deriv/$dep_rest")
+		else
+			dep_path=$(latest_package "bldr/$dep")
+		fi
+		if [ -f "$dep_path/LD_RUN_PATH" ]; then
+			local data=$(cat $dep_path/LD_RUN_PATH)
+			local trimmed=$(trim $data)
+			export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
+		fi
+		if [ -f "$dep_path/CFLAGS" ]; then
+			local data=$(cat $dep_path/CFLAGS)
+			local trimmed=$(trim $data)
+			export CFLAGS="$CFLAGS $trimmed"
+		fi
+		if [ -f "$dep_path/LDFLAGS" ]; then
+			local data=$(cat $dep_path/LDFLAGS)
+			local trimmed=$(trim $data)
+			export LDFLAGS="$LDFLAGS $trimmed"
+		fi
+		if [ -f "$dep_path/PATH" ]; then
+			local data=$(cat $dep_path/PATH)
+			local trimmed=$(trim $data)
+			export PATH="$PATH:$trimmed"
+		fi
+	done
+	export PREFIX=$pkg_path
+	debug "Setting PREFIX=$PREFIX"
+	debug "Setting LD_RUN_PATH=$LD_RUN_PATH"
+	debug "Setting CFLAGS=$CFLAGS"
+	debug "Setting LDFLAGS=$LDFLAGS"
+	return 0
+}
+
+prepare() {
+	return 0
+}
+
+build_wrapper() {
+	pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+	build
+	popd > /dev/null
+}
+
+build() {
+	./configure --prefix=$pkg_prefix
+	make
+}
+
+install_wrapper() {
+	pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+	install
+	popd > /dev/null
+}
+
+install() {
+	make install
+}
+
+link_libraries() {
+	local ld_run_path_part=""
+	local ld_lib_part=""
+	local cflags_part=""
+	local path_part=""
+	for lib in "${pkg_lib_dirs[@]}"; do
+		ld_run_path_part="$ld_run_path_part:${pkg_path}/$lib"
+		ld_lib_part="$ld_lib_part -L${pkg_path}/$lib"
+	done
+	for inc in "${pkg_include_dirs[@]}"; do
+		cflags_part="$cflags_part -I${pkg_path}/${inc}"
+	done
+	for bin in "${pkg_binary_path[@]}"; do
+		path_part="$path_part:${pkg_path}/${bin}";
+	done
+	if [ -n "${ld_run_path_part}" ]; then
+		echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
+	fi
+	if [ -n "${ld_lib_part}" ]; then
+		echo $ld_lib_part > $pkg_path/LDFLAGS
+	fi
+	if [ -n "${cflags_part}" ]; then
+		echo $cflags_part > $pkg_path/CFLAGS
+	fi
+	if [ -n "${path_part}" ]; then
+		echo $path_part > $pkg_path/PATH
+	fi
+	return 0
+}
+
+config() {
+	if [ -d $BUILD_SRC_CACHE/$pkg_dirname/config ]; then
+		cp -r $BUILD_SRC_CACHE/$pkg_dirname/config $pkg_path
+	fi
+	return 0
+}
+
+strip_binaries() {
+	local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | cut -d ":" -f 1)
+	if [ -n "$binaries" ]; then
+		echo $binaries | xargs strip
+	fi
+}
+
+manifest() {
+cat <<EOT >> $pkg_path/MANIFEST
+# $pkg_derivation $pkg_name
+
+Version: $pkg_version
+Release: $pkg_rel
+License: $(printf "%s " ${pkg_license[@]})
+Source: [$pkg_source]($pkg_source)
+SHA: $pkg_shasum
+Path: $pkg_path
+Dependencies: $(printf "%s " ${pkg_deps[@]})
+
+## Bldrfile
+
+### Flags
+
+CFLAGS: $CFLAGS
+LDFLAGS: $LDFLAGS
+LD_RUN_PATH: $LD_RUN_PATH
+
+\`\`\`bash
+$(cat $BLDR_FILE)
+\`\`\`
+
+## Files
+$(find $pkg_path -type f | xargs sha256sum)
+EOT
+	return 0
+}
+
+package() {
+	mkdir -p $BLDR_PKG_CACHE
+	gpg-zip -u $pkg_gpg_key --tar-args '-cj --absolute-names' --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --sign $pkg_path
+	return 0
+}
+
+bldr_end() {
+	return 0
+}
+
+##
+# Main body
+##
+echo "Loading $1"
+
+## Load the Bldrfile
+if source $1; then
+  build_line "Bldrfile loaded"
+else
+  ret=$?
+  exit_with "Failed to load Bldrfile" $ret
+fi
+
+if [ -z "${pkg_dirname+xxx}" ]; then
+	pkg_dirname="${pkg_name}-${pkg_version}"
+fi
+
+if [ -z "${pkg_path+xxx}" ]; then
+	pkg_path=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+fi
+
+if [ -z "${pkg_prefix+xxx}" ]; then
+	pkg_prefix=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+fi
+
+mkdir -p $pkg_path
+
+# Start the build
+build_line "Begin build"
+if bldr_begin; then
+	true
+else
+	ret=$?
+	exit_with "Bldr begin phase failed" $ret;
+fi
+
+# Download the source
+build_line "Downloading $pkg_source"
+mkdir -p $BLDR_SRC_CACHE
+if ! download; then
+	ret=$?
+	exit_with "Download phase failed" $ret;
+fi
+
+# Verify the source
+build_line "Verifying $pkg_filename"
+if ! verify; then
+	ret=$?
+	exit_with "Verify phase failed" $ret;
+fi
+
+# Clean the cache
+build_line "Clean the cache"
+if ! clean_cache; then
+	ret=$?
+	exit_with "Cache cleaning failed" $ret;
+fi
+
+# Unpack the source
+build_line "Unpacking $pkg_filename"
+if ! unpack; then
+	ret=$?
+	exit_with "Unpacking failed" $ret;
+fi
+
+# Set up the build environment
+build_line "Setting build environment"
+if ! build_environment; then
+	ret=$?
+	exit_with "Preparing failed" $ret;
+fi
+
+# Prepare the source
+build_line "Preparing to build"
+if ! prepare; then
+	ret=$?
+	exit_with "Preparing failed" $ret;
+fi
+
+# Build the source
+build_line "Building"
+if ! build_wrapper; then
+	ret=$?
+	exit_with "Building failed" $ret;
+fi
+
+# Install the source
+build_line "Installing"
+if ! install_wrapper; then
+	ret=$?
+	exit_with "Install failed" $ret;
+fi
+
+build_line "Rendering link options for dependent packages"
+if ! link_libraries; then
+	ret=$?
+	exit_with "Link libraries failed" $ret;
+fi
+
+build_line "Writing configuration"
+if ! config; then
+	ret=$?
+	exit_with "Config failed" $ret;
+fi
+
+build_line "Stripping binaries"
+if ! strip_binaries; then
+	ret=$?
+	exit_with "Strip failed" $ret;
+fi
+
+build_line "Creating manifest"
+if ! manifest; then
+	ret=$?
+	exit_with "Manifest creation failed" $ret;
+fi
+
+build_line "Writing package"
+if ! package; then
+	ret=$?
+	exit_with "Package creation failed" $ret;
+fi
+
+build_line "Bldr cleanup"
+if ! bldr_end; then
+	ret=$?
+	exit_with "Bldr cleanup failed" $ret;
+fi
+
+build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
+build_line "Installed: $pkg_path"
+build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+
+exit 0

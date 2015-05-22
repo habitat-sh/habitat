@@ -1,0 +1,27 @@
+[package]
+name = "bldr"
+version = "0.1.0"
+authors = ["Adam Jacob <adam@chef.io>"]
+
+[lib]
+name = "bldr"
+path = "src/bldr/lib.rs"
+
+[[bin]]
+name = "bldr"
+doc = false
+
+[[test]]
+name = "bldr-test"
+
+[dependencies]
+docopt = "*"
+rustc-serialize = "*"
+log = "*"
+env_logger = "*"
+ansi_term = "*"
+hyper = "*"
+tempdir = "*"
+mustache = "*"
+toml = "*"
+regex = "*"
