@@ -16,6 +16,7 @@ clean:
 	rm -rf /opt/bldr/pkgs/*
 
 baseimage_root:
+	pushd / && \
 	tar jcvf /src/bldr-base/bldr-base.tar.bz2 \
 		/opt/bldr/pkgs/bldr/glibc \
 		/opt/bldr/pkgs/bldr/libgcc \
@@ -24,4 +25,6 @@ baseimage_root:
 		/opt/bldr/pkgs/bldr/busybox \
 		/opt/bldr/pkgs/bldr/gnupg \
 		/opt/bldr/pkgs/bldr/openssl \
-		/opt/bldr/pkgs/bldr/bldr
+		/opt/bldr/pkgs/bldr/bldr \
+		&& \
+	popd

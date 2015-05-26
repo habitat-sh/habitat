@@ -2,12 +2,15 @@ pwd = $(shell pwd)
 container_prefix = bldr
 NO_CACHE = false
 
-.PHONY: container test run shell clean
+.PHONY: container test run shell clean bldr-base package-clean
 
-all: volumes container packages redis
+all: volumes container packages bldr-base redis
 
 baseimage:
 	docker-compose run package bash -c 'cd /src/bldr-build; make baseimage_root'
+
+package-clean:
+	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
 
 packages:
 	docker-compose run package bash -c 'cd /src/bldr-build; make world'
@@ -52,6 +55,13 @@ shell:
 
 pkg-shell:
 	docker-compose run package bash
+
+bldr-base: package-clean packages
+	docker-compose run package bash -c 'cd /src/bldr-base; ./mkimage.sh'
+	docker-compose build base
+
+base-shell:
+	docker-compose run base sh
 
 clean:
 	docker images -q -f dangling=true | xargs docker rmi

@@ -30,9 +30,10 @@ pub fn verify(package: &str, file: &str) -> BldrResult<()> {
 }
 
 pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
+    try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
     let output = try!(Command::new("sh")
         .arg("-c")
-        .arg(format!("gpg --homedir /opt/bldr/cache/gpg --decrypt {} | tar jxP", file))
+        .arg(format!("gpg --homedir /opt/bldr/cache/gpg --decrypt {} | tar x", file))
         .output());
     match output.status.success() {
         true => println!("   {}: Installed", package),

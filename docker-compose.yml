@@ -30,7 +30,7 @@ package:
     - "bldr-installed-cache"
 
 base:
-  image: bldr/base
+  build: ./bldr-base
   links:
     - repo
   command: ["install", "redis"]
