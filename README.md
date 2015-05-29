@@ -1,5 +1,48 @@
 # Bldr
 
+# Demo
+
+## Problem statement
+
+How do we build, run, and manage our applications in a way that provides:
+
+* Repeatable builds
+* Single, immutable assets
+* Runtime configuration for multiple deployment scenarios
+* Agnostic to operating enviornment (works on bare metal, virtualiation, containers, PaaS)
+* Idempotent behavior (the same inputs to the same asset provides the same outcome)
+* Convergent behavior (each service makes progress towards the correct behavior in the face of failure)
+* Exposes promises to those who rely on it
+* Low barrier to entry
+* Language agnostic
+
+## Application artifact as closure
+
+Historically, we build our applications as a conglomeration of upstream artifacts. We have the operating
+system we used, which provides all of our build (and often run) time dependencies. We then layer in the
+specific application (either one we wrote ourselves, or a version of someone elses software), and then we
+layer in the details of how to configure and manage that application within its environment (with something
+like Chef). Much of the complexity in the configuration layer comes from dealing with the large variety
+in the upstream - with no consistent way to express what it means to be well managed, we are forced to
+provide one.
+
+What Bldr provides is the ability to have the application artifact as a closure of all of this behavior -
+from how it is built to how it is configured and run. It takes a build description (which includes
+dependencies,) an exhaustive set of configuration options, and a hosting platform for the service - wraps
+them into a single, encrypted or signed artifact, and enables it to be configured dynamically when the
+services are started.
+
+The side effect is that the boundary for idempotency, convergence, and promises shifts from the invidual
+details of the application stack to the artifact itself. Given the same input data (regardless of source)
+we will run the application the same way everywhere, the artifact itself handles making best progress
+towards its goal, and exposes consistent interfaces for health and monitoring.
+
+## Hello world container
+
+Let's contrast Bldr's approach with a similar style of work, the Dockerfile. The "hello world" of the
+container ecosystem is Redis - a simple key/value store. Here is the dockerfile:
+
+
 # Try it
 
 Below is a lot of rambling thoughts, some of which are now completely wrong,
@@ -196,7 +239,7 @@ Meanwhile, the bldr built container has a tree like the following:
 /opt/bldr/redis/config
 
 When the container starts, it passes any configuration files in config (other
-than default.yaml) through a [mustache parser](http://mustache.github.io/), and
+than DEFAULT.toml) through a [mustache parser](http://mustache.github.io/), and
 renders them into /opt/bldr/srvc/redis/config. The service automatically starts with
 those configuration files.
 
@@ -210,9 +253,25 @@ to feed to the configuration from there, overriding any values in default.yaml.
 Depending on the backend, it will either dynamically update the configuration
 on change (for example consul and etc with watches) or peridoically (chef).
 
-If there is no BLDR_CONFIG_SERVICE passed, then we will parse any passed
-environment variables and pass them to mustache, and overlay them on the
-defaults. BLDR_REDIS_TIMEOUT=...
+Finally, we will look for an environment variable that maps to BLDR_(service).
+The value of this variable should be well-formatted TOML data, and it will be
+used to override any other value passed to the service. For example, to set
+the redis loglevel to debug from the environment:
+
+```bash
+$ BLDR_redis='loglevel = "debug"' bldr start redis
+```
+
+If you want to pass many options, you can use the shell to feed it well formed
+toml from a file:
+
+```bash
+# toml in /tmp/config.toml
+loglevel = "debug"
+tcpbacklog = 121
+# 
+$ BLDR_redis=$(cat /tmp/config.toml) bldr start redis
+```
 
 In addition, bldr start runs a sidecar application in the container. It exposes
 the current container configuration as HTML and JSON via HTTP, protected with

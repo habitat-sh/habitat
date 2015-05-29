@@ -17,7 +17,6 @@
 
 use error::{BldrResult};
 use std::process::Command;
-use command::config;
 
 pub fn package(package: &str) -> BldrResult<()> {
     println!("   {}: Starting", package);

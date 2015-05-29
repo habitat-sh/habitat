@@ -18,8 +18,10 @@
 use error::{BldrResult, BldrError};
 use std::process::Command;
 use util::{http, gpg};
+use std::fs;
 
 pub fn from_url(package: &str, url: &str) -> BldrResult<String> {
+    try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
     let filename = try!(http::download(package, url, "/opt/bldr/cache/pkgs"));
     Ok(filename)
 }
@@ -30,7 +32,6 @@ pub fn verify(package: &str, file: &str) -> BldrResult<()> {
 }
 
 pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
-    try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
     let output = try!(Command::new("sh")
         .arg("-c")
         .arg(format!("gpg --homedir /opt/bldr/cache/gpg --decrypt {} | tar x", file))

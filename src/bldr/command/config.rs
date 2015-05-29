@@ -16,7 +16,7 @@
 //
 
 use std::io::prelude::*;
-use std::fs::{self, File};
+use std::fs::File;
 use std::collections::{HashMap, BTreeMap};
 use mustache;
 use rustc_serialize::json::Json;
@@ -24,6 +24,8 @@ use error::{BldrResult, BldrError};
 use toml;
 use ansi_term::Colour::Purple;
 use pkg;
+use std::env;
+use discovery;
 
 pub fn package(pkg: &str) -> BldrResult<()> {
     let package = try!(pkg::latest(pkg));
@@ -33,13 +35,26 @@ pub fn package(pkg: &str) -> BldrResult<()> {
     println!("   {}: Copying START", pkg);
     try!(package.copy_start());
 
-    println!("   {}: Configuring using default data", pkg);
+    println!("   {}: Loading default data", pkg);
     let mut default_toml_file = try!(File::open(package.join_path("config/DEFAULT.toml")));
     let mut toml_data = String::new();
     try!(default_toml_file.read_to_string(&mut toml_data));
     let mut toml_parser = toml::Parser::new(&toml_data);
-    let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
-    let data = toml_table_to_mustache(toml_value);
+    let default_toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+
+    let discovery_toml = match discovery::etcd::get_config(pkg) {
+        Some(discovery_toml_value) => {
+            toml_merge(default_toml_value, discovery_toml_value)
+        },
+        None => default_toml_value
+    };
+
+    println!("   {}: Overlaying environment configuration", pkg);
+    let env_toml = try!(env_to_toml(pkg));
+    let final_data = match env_toml {
+        Some(env_toml_value) => toml_table_to_mustache(toml_merge(discovery_toml, env_toml_value)),
+        None => toml_table_to_mustache(discovery_toml)
+    };
 
     println!("   {}: Writing out configuration files", pkg);
     let config_files = try!(package.config_files());
@@ -47,10 +62,40 @@ pub fn package(pkg: &str) -> BldrResult<()> {
         let template = try!(mustache::compile_path(package.join_path(&format!("config/{}", config))));
         println!("   {}: Rendering {}", pkg, Purple.bold().paint(&config));
         let mut config_file = try!(File::create(package.srvc_join_path(&format!("config/{}", config))));
-        template.render_data(&mut config_file, &data);
+        template.render_data(&mut config_file, &final_data);
     }
     println!("   {}: Configured", pkg);
     Ok(())
+}
+
+fn env_to_toml(pkg: &str) -> BldrResult<Option<BTreeMap<String, toml::Value>>> {
+    let toml_data = match env::var(&format!("BLDR_{}", pkg)) {
+        Ok(val) => val,
+        Err(e) => {
+            debug!("Looking up environment variable BLDR_{} failed: {:?}", pkg, e);
+            return Ok(None)
+        }
+    };
+    let mut toml_parser = toml::Parser::new(&toml_data);
+    let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+    Ok(Some(toml_value))
+}
+
+/// A completely shallow merge of two Toml tables. For v0 of Bldr, if you set any nested key,
+/// you must set *all* the keys in that nesting, or your out of luck. Someday, this will need
+/// to become a legitimate deep merge.
+///
+/// We use toml as the middle language because its implementation in rust lends itself to easy
+/// cloning of even the deep data.
+fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml::Value>) -> BTreeMap<String, toml::Value> {
+    let mut final_map = BTreeMap::new();
+    for (left_key, left_value) in left.iter() {
+        match right.get(left_key) {
+            Some(right_value) => { final_map.insert(left_key.clone(), right_value.clone()); },
+            None => { final_map.insert(left_key.clone(), left_value.clone()); },
+        }
+    }
+    final_map
 }
 
 pub fn toml_table_to_mustache(toml: BTreeMap<String, toml::Value>) -> mustache::Data {

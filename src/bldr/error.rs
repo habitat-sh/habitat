@@ -45,6 +45,7 @@ pub enum BldrError {
     ParseIntError(num::ParseIntError),
     FileNameError,
     PackageNotFound,
+    MustacheMergeOnlyMaps,
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -72,6 +73,7 @@ impl fmt::Display for BldrError {
             BldrError::ParseIntError(ref e) => e.fmt(f),
             BldrError::FileNameError => write!(f, "Failed to extract a filename"),
             BldrError::PackageNotFound => write!(f, "Cannot find a package"),
+            BldrError::MustacheMergeOnlyMaps => write!(f, "Can only merge two Mustache::Data::Maps"),
         }
     }
 }
@@ -97,6 +99,7 @@ impl Error for BldrError {
             BldrError::ParseIntError(_) => "Failed to parse an integer from a string!",
             BldrError::FileNameError => "Failed to extract a filename from a path",
             BldrError::PackageNotFound => "Cannot find a package",
+            BldrError::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
         }
     }
 }

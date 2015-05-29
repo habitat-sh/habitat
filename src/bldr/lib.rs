@@ -11,3 +11,4 @@ pub mod error;
 pub mod command;
 pub mod util;
 pub mod pkg;
+pub mod discovery;

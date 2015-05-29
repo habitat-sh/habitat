@@ -8,6 +8,7 @@ bldr:
     - "bldr-installed-cache"
   links:
     - repo
+    - etcd
 
 repo:
   image: nginx
@@ -33,4 +34,12 @@ base:
   build: ./bldr-base
   links:
     - repo
+    - etcd
   command: ["install", "redis"]
+
+etcd:
+  image: quay.io/coreos/etcd:latest
+  ports:
+    - "4001:4001"
+    - "7001:7001"
+  command: "-cors='*'"

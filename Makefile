@@ -6,9 +6,6 @@ NO_CACHE = false
 
 all: volumes container packages bldr-base redis
 
-baseimage:
-	docker-compose run package bash -c 'cd /src/bldr-build; make baseimage_root'
-
 package-clean:
 	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
 
