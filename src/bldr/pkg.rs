@@ -149,6 +149,8 @@ impl Package {
         println!("   {}: Creating srvc paths", &self.name);
         try!(fs::create_dir_all(self.srvc_join_path("config")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
+        try!(util::perm::set_owner(&self.srvc_join_path("data"), "bldr:bldr"));
+        try!(util::perm::set_permissions(&self.srvc_join_path("data"), "0700"));
         Ok(())
     }
 

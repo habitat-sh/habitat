@@ -18,6 +18,19 @@
 use error::{BldrResult, BldrError};
 use std::process::Command;
 
+pub fn set_owner(path: &str, owner: &str) -> BldrResult<()> {
+    let output = try!(Command::new("chown")
+        .arg(owner)
+        .arg(path)
+        .output());
+    match output.status.success() {
+        true => Ok(()),
+        false => {
+            Err(BldrError::PermissionFailed)
+        },
+    }
+}
+
 // When Rust stabilizes this interface, we can move to the cross
 // platform abstraction. Until then, if we move to Windows or some
 // other platform, this code will need to become platform specific.

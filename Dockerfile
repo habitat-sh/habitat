@@ -6,5 +6,7 @@ RUN apt-get update \
 ENV SHELL /bin/bash
 RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y
 ENV CARGO_HOME /bldr-cargo-cache
+RUN adduser --system bldr
+RUN addgroup --system bldr
 WORKDIR /src
 CMD ["bash"]

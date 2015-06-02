@@ -7,6 +7,7 @@ pkg_shasum=0e21be5d7c5e6ab6adcbed257619897db59be9e1ded7ef6fd1582d0cdb5e5bb7
 pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
 pkg_deps=(glibc)
+pkg_service_run="redis-server /opt/bldr/srvc/redis/config/redis.config"
 
 build() {
 	make
@@ -1009,11 +1010,6 @@ hz 10
 # in order to commit the file to the disk more incrementally and avoid
 # big latency spikes.
 aof-rewrite-incremental-fsync yes
-EOT
-	cat <<EOT >> $pkg_path/run
-#!$(latest_package bldr/busybox)/bin/sh
-
-exec $pkg_path/bin/redis-server /opt/bldr/srvc/redis/config/redis.config 2>&1
 EOT
 }
 

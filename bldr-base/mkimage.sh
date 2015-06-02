@@ -49,7 +49,9 @@ rpc:        files
 services:   files
 EOT
 echo root:x:0:0:root:/:/bin/sh > etc/passwd
+echo bldr:x:42:42:root:/:/bin/sh > etc/passwd
 echo root:x:0: > etc/group
+echo bldr:x:42:bldr > etc/group
 ln -s lib lib64
 cp -r /opt/bldr/pkgs opt/bldr
 for x in $($BUSYBOX_ROOT/bin/busybox --list); do

@@ -42,6 +42,21 @@ towards its goal, and exposes consistent interfaces for health and monitoring.
 Let's contrast Bldr's approach with a similar style of work, the Dockerfile. The "hello world" of the
 container ecosystem is Redis - a simple key/value store. Here is the dockerfile:
 
+## What Bldr does for you
+
+* Automatically build a minimal environment for your application
+* Include dependencies as binary artifacts
+* Specify all the configurable options for the application
+* Configure them from a file, the environment, or a service discovery framework (etc/consul/chef) - in real time
+* Ensure privilege seperation (supervisor de-privileges the service on your behalf)
+* Integrates logging cleanly
+* Provides pluggable interfaces for critical side-car behavior:
+  * Health checks
+  * Smoke testing
+  * Monitoring
+  * Backups
+
+With the same amount of effort required to put your applicatin in a Dockerfile. Or less.
 
 # Try it
 
