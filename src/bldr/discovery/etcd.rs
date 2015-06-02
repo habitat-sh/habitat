@@ -21,6 +21,7 @@ use rustc_serialize::json::Json;
 use std::env;
 use std::collections::BTreeMap;
 use std::io::Read;
+use ansi_term::Colour::{White};
 
 pub fn enabled() -> Option<String> {
     match env::var("BLDR_CONFIG_ETCD") {
@@ -33,16 +34,25 @@ pub fn enabled() -> Option<String> {
 }
 
 pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
+    let pkg_print = if wait {
+        format!("{}({})", pkg, White.bold().paint("C"))
+    } else {
+        pkg.to_string()
+    };
     let base_url = match enabled() {
         Some(url) => url,
         None => return None
     };
-    println!("   {}: Overlaying etcd configuration", pkg);
+    if wait {
+        println!("   {}: Waiting to overlay etcd configuration", pkg_print);
+    } else {
+        println!("   {}: Overlaying etcd configuration", pkg_print);
+    }
     let mut client = Client::new();
     let mut res = match client.get(&format!("{}/v2/keys/bldr/{}/config?wait={}", base_url, pkg, wait)).send() {
         Ok(res) => res,
         Err(e) => {
-            println!("   {}: Invalid request to etcd for config: {:?}", pkg, e);
+            println!("   {}: Invalid request to etcd for config: {:?}", pkg_print, e);
             return None;
         }
     };
@@ -51,14 +61,14 @@ pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>
     match res.read_to_string(&mut response_body) {
         Ok(_) => {},
         Err(e) => {
-            println!("   {}: Failed to read request body from etcd request: {:?}", pkg, e);
+            println!("   {}: Failed to read request body from etcd request: {:?}", pkg_print, e);
             return None;
         }
     }
     let body_as_json = match Json::from_str(&response_body) {
         Ok(body) => body,
         Err(e) => {
-            println!("   {}: Failed to parse request body as json: {:?}", pkg, e);
+            println!("   {}: Failed to parse request body as json: {:?}", pkg_print, e);
             return None;
         }
     };
@@ -67,13 +77,13 @@ pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>
             match json_value.as_string() {
                 Some(json_value_string) => json_value_string,
                 None => {
-                    println!("   {}: Invalid json value for etc node/value - not a string!", pkg);
+                    println!("   {}: Invalid json value for etc node/value - not a string!", pkg_print);
                     return None;
                 }
             }
         },
         None => {
-            println!("   {}: No node/value present in etcd response json", pkg);
+            println!("   {}: No node/value present in etcd response json", pkg_print);
             return None;
         }
     };
@@ -81,7 +91,7 @@ pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>
     match toml_parser.parse() {
         Some(toml_value) => return Some(toml_value),
         None => {
-            println!("   {}: Invalid toml from etcd: {:?}", pkg, toml_parser.errors);
+            println!("   {}: Invalid toml from etcd: {:?}", pkg_print, toml_parser.errors);
             return None
         }
     }

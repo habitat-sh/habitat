@@ -42,4 +42,4 @@ etcd:
   ports:
     - "4001:4001"
     - "7001:7001"
-  command: "-cors='*'"
+  command: "-cors='*' -vv"

@@ -54,20 +54,22 @@ pub fn package(package: &str) -> BldrResult<()> {
     let mut child = try!(
         Command::new(busybox_pkg.join_path("bin/runsv"))
         .arg(&format!("/opt/bldr/srvc/{}", package))
-        .stdin(Stdio::piped())
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
     );
-    drop(child.stdin.take());
 
     let pkg_name = package.to_string();
+
     match discovery::etcd::enabled() {
         Some(_) => {
             thread::spawn(move || -> BldrResult<()> {
                 let package = try!(pkg::latest(&pkg_name));
                 loop {
                     try!(package.config_data(true));
+                    println!("   {}({}): Waiting 30 seconds before reconfiguring", pkg_name, White.bold().paint("C"));
+                    thread::sleep_ms(30000);
                 }
             });
         },
@@ -123,7 +125,7 @@ pub fn package(package: &str) -> BldrResult<()> {
                                 Err(_) => println!("   {}: Supervisor has an error", package),
                             }
                         },
-                        Err(e) => println!("I paniced"),
+                        Err(e) => println!("Supervisor thread paniced: {:?}", e),
                     }
                     break;
                 },
@@ -139,7 +141,15 @@ pub fn package(package: &str) -> BldrResult<()> {
                     println!("   {}: Sending 'force-shutdown' on SIGTERM", package);
                     try!(current_pkg.signal(Signal::ForceShutdown));
                     println!("   {}: Waiting for supervisor to finish", package);
-                    supervisor_thread.join();
+                    match supervisor_thread.join() {
+                        Ok(result) => {
+                            match result {
+                                Ok(()) => println!("   {}: Supervisor has finished", package),
+                                Err(_) => println!("   {}: Supervisor has an error", package),
+                            }
+                        },
+                        Err(e) => println!("Supervisor thread paniced: {:?}", e),
+                    }
                     break;
                 },
                 30 => { //    SIGUSR1      terminate process    User defined signal 1

@@ -100,7 +100,7 @@ impl Package {
             Signal::ForceShutdown => "force-shutdown",
             Signal::TryRestart => "try-restart",
         };
-        let mut output = try!(
+        let output = try!(
             Command::new(busybox_pkg.join_path("bin/sv"))
             .arg(signal_arg)
             .arg(&format!("/opt/bldr/srvc/{}", self.name))
@@ -185,41 +185,50 @@ impl Package {
     /// we can configure. Then we layer in any service discovery frameworks (etcd, consul,
     /// zookeeper, chef). Then we layer in environment configuration.
     pub fn config_data(&self, wait: bool) -> BldrResult<()> {
-        let pkg = if wait {
+        let pkg_print = if wait {
             format!("{}({})", self.name, White.bold().paint("C"))
         } else {
             self.name.clone()
         };
-        println!("   {}: Loading default data", pkg);
+        println!("   {}: Loading default data", pkg_print);
         let mut default_toml_file = try!(File::open(self.join_path("config/DEFAULT.toml")));
         let mut toml_data = String::new();
         try!(default_toml_file.read_to_string(&mut toml_data));
         let mut toml_parser = toml::Parser::new(&toml_data);
         let default_toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
 
-        let discovery_toml = match discovery::etcd::get_config(&pkg, wait) {
+        let discovery_toml = match discovery::etcd::get_config(&self.name, wait) {
             Some(discovery_toml_value) => {
                 toml_merge(default_toml_value, discovery_toml_value)
             },
-            None => default_toml_value
+            None => if wait {
+                println!("   {}: No data returned from discovery service", pkg_print);
+                return Ok(())
+            } else {
+                default_toml_value
+            }
         };
 
-        println!("   {}: Overlaying environment configuration", pkg);
+        println!("   {}: Overlaying environment configuration", pkg_print);
         let env_toml = try!(self.env_to_toml());
         let final_data = match env_toml {
             Some(env_toml_value) => toml_table_to_mustache(toml_merge(discovery_toml, env_toml_value)),
             None => toml_table_to_mustache(discovery_toml)
         };
 
-        println!("   {}: Writing out configuration files", pkg);
+        println!("   {}: Writing out configuration files", pkg_print);
         let config_files = try!(self.config_files());
         for config in config_files {
             let template = try!(mustache::compile_path(self.join_path(&format!("config/{}", config))));
-            println!("   {}: Rendering {}", pkg, Purple.bold().paint(&config));
+            println!("   {}: Rendering {}", pkg_print, Purple.bold().paint(&config));
             let mut config_file = try!(File::create(self.srvc_join_path(&format!("config/{}", config))));
             template.render_data(&mut config_file, &final_data);
         }
-        println!("   {}: Configured", pkg);
+        println!("   {}: Configured", pkg_print);
+        if wait {
+            println!("   {}: Restarting on configuration change", pkg_print);
+            try!(self.signal(Signal::Restart));
+        }
         Ok(())
     }
 
