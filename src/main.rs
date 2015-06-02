@@ -27,6 +27,8 @@ use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
 use std::process;
 use ansi_term::Colour::{Red, Green, Yellow};
+use std::thread;
+use bldr::pkg;
 
 #[allow(dead_code)]
 static VERSION: &'static str = "0.0.1";
@@ -34,12 +36,13 @@ static VERSION: &'static str = "0.0.1";
 #[allow(dead_code)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url>
-       bldr config <package>
+       bldr config <package> [--wait]
        bldr start <package>
        bldr key -u <url>
 
 Options:
     -u, --url=<url>       Use a specific url for fetching the package
+    -w, --wait            Wait for new configuration data
 ";
 
 #[derive(RustcDecodable, Debug)]
@@ -49,7 +52,8 @@ struct Args {
     cmd_start: bool,
     cmd_key: bool,
     arg_package: String,
-    flag_url: String
+    flag_url: String,
+    flag_wait: bool,
 }
 
 #[allow(dead_code)]
@@ -70,8 +74,9 @@ fn main() {
         Args {
             cmd_config: true,
             arg_package: package,
+            flag_wait: wait,
             ..
-        } => config(&package),
+        } => config(&package, wait),
         Args {
             cmd_start: true,
             arg_package: package,
@@ -106,10 +111,27 @@ fn install(package: &str, url: &str) -> BldrResult<()> {
 }
 
 #[allow(dead_code)]
-fn config(package: &str) -> BldrResult<()> {
-    banner();
-    println!("Configuring {}", Yellow.bold().paint(package));
-    try!(config::package(package));
+fn config(package: &str, wait: bool) -> BldrResult<()> {
+    match wait {
+        true => {
+            let pkg = try!(pkg::latest(package));
+            loop {
+                println!("   {}: Waiting for configuration changes", package);
+                match pkg.config_data(wait) {
+                    Ok(_) => {},
+                    Err(e) => {
+                        println!("   {}: Had an error reconfiguring - {:?}", package, e)
+                    }
+                }
+                thread::sleep_ms(1000);
+            }
+        },
+        false => {
+            banner();
+            println!("Configuring {}", Yellow.bold().paint(package));
+            try!(config::package(package, wait));
+        }
+    }
     Ok(())
 }
 
@@ -117,8 +139,9 @@ fn config(package: &str) -> BldrResult<()> {
 fn start(package: &str) -> BldrResult<()> {
     banner();
     println!("Starting {}", Yellow.bold().paint(package));
-    try!(config::package(package));
+    try!(config::package(package, false));
     try!(start::package(package));
+    println!("Finished with {}", Yellow.bold().paint(package));
     Ok(())
 }
 

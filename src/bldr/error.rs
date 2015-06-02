@@ -24,6 +24,7 @@ use toml;
 use mustache;
 use regex;
 use std::num;
+use std::string;
 
 #[derive(Debug)]
 pub enum BldrError {
@@ -46,6 +47,9 @@ pub enum BldrError {
     FileNameError,
     PackageNotFound,
     MustacheMergeOnlyMaps,
+    SupervisorSignalFailed,
+    StringFromUtf8Error(string::FromUtf8Error),
+    SupervisorDied,
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -74,6 +78,9 @@ impl fmt::Display for BldrError {
             BldrError::FileNameError => write!(f, "Failed to extract a filename"),
             BldrError::PackageNotFound => write!(f, "Cannot find a package"),
             BldrError::MustacheMergeOnlyMaps => write!(f, "Can only merge two Mustache::Data::Maps"),
+            BldrError::SupervisorSignalFailed => write!(f, "Failed to send a signal to the process supervisor"),
+            BldrError::StringFromUtf8Error(ref e) => e.fmt(f),
+            BldrError::SupervisorDied => write!(f, "The supervisor died"),
         }
     }
 }
@@ -100,6 +107,9 @@ impl Error for BldrError {
             BldrError::FileNameError => "Failed to extract a filename from a path",
             BldrError::PackageNotFound => "Cannot find a package",
             BldrError::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
+            BldrError::SupervisorSignalFailed => "Failed to send a signal to the process supervisor",
+            BldrError::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            BldrError::SupervisorDied => "The supervisor died",
         }
     }
 }
@@ -140,6 +150,12 @@ impl From<regex::Error> for BldrError {
 impl From<num::ParseIntError> for BldrError {
     fn from(err: num::ParseIntError) -> BldrError {
         BldrError::ParseIntError(err)
+    }
+}
+
+impl From<string::FromUtf8Error> for BldrError {
+    fn from(err: string::FromUtf8Error) -> BldrError {
+        BldrError::StringFromUtf8Error(err)
     }
 }
 

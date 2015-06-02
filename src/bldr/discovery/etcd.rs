@@ -22,17 +22,24 @@ use std::env;
 use std::collections::BTreeMap;
 use std::io::Read;
 
-pub fn get_config(pkg: &str) -> Option<BTreeMap<String, toml::Value>> {
-    let base_url = match env::var("BLDR_CONFIG_ETCD") {
-        Ok(val) => val,
+pub fn enabled() -> Option<String> {
+    match env::var("BLDR_CONFIG_ETCD") {
+        Ok(val) => Some(val),
         Err(_) => {
             debug!("No BLDR_CONFIG_ETCD, so not checking etcd for configuration values");
             return None;
         }
+    }
+}
+
+pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
+    let base_url = match enabled() {
+        Some(url) => url,
+        None => return None
     };
     println!("   {}: Overlaying etcd configuration", pkg);
     let mut client = Client::new();
-    let mut res = match client.get(&format!("{}/v2/keys/bldr/{}/config", base_url, pkg)).send() {
+    let mut res = match client.get(&format!("{}/v2/keys/bldr/{}/config?wait={}", base_url, pkg, wait)).send() {
         Ok(res) => res,
         Err(e) => {
             println!("   {}: Invalid request to etcd for config: {:?}", pkg, e);

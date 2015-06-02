@@ -24,6 +24,16 @@ use std::path::PathBuf;
 use std::io;
 use util;
 
+use std::io::prelude::*;
+use std::fs::File;
+use std::collections::{HashMap, BTreeMap};
+use mustache;
+use toml;
+use ansi_term::Colour::{Purple, White};
+use std::env;
+use std::process::Command;
+use discovery;
+
 #[derive(Debug, Clone, Eq)]
 pub struct Package {
     pub derivation: String,
@@ -32,7 +42,88 @@ pub struct Package {
     pub release: String
 }
 
+pub enum Signal {
+    Status,
+    Up,
+    Down,
+    Once,
+    Pause,
+    Cont,
+    Hup,
+    Alarm,
+    Interrupt,
+    Quit,
+    One,
+    Two,
+    Term,
+    Kill,
+    Exit,
+    Start,
+    Stop,
+    Reload,
+    Restart,
+    Shutdown,
+    ForceStop,
+    ForceReload,
+    ForceRestart,
+    ForceShutdown,
+    TryRestart
+}
+
 impl Package {
+    pub fn signal(&self, signal: Signal) -> BldrResult<()> {
+        let busybox_pkg = try!(latest("busybox"));
+        let signal_arg = match signal {
+            Signal::Status => "status",
+            Signal::Up => "up",
+            Signal::Down => "down",
+            Signal::Once => "once",
+            Signal::Pause => "pause",
+            Signal::Cont => "cont",
+            Signal::Hup => "hup",
+            Signal::Alarm => "alarm",
+            Signal::Interrupt => "interrupt",
+            Signal::Quit => "quit",
+            Signal::One => "1",
+            Signal::Two => "2",
+            Signal::Term => "term",
+            Signal::Kill => "kill",
+            Signal::Exit => "exit",
+            Signal::Start => "start",
+            Signal::Stop => "stop",
+            Signal::Reload => "reload",
+            Signal::Restart => "restart",
+            Signal::Shutdown => "shutdown",
+            Signal::ForceStop => "force-stop",
+            Signal::ForceReload => "force-reload",
+            Signal::ForceRestart => "force-restart",
+            Signal::ForceShutdown => "force-shutdown",
+            Signal::TryRestart => "try-restart",
+        };
+        let mut output = try!(
+            Command::new(busybox_pkg.join_path("bin/sv"))
+            .arg(signal_arg)
+            .arg(&format!("/opt/bldr/srvc/{}", self.name))
+            .output()
+            );
+        match output.status.success() {
+            true => return Ok(()),
+            false => {
+                match signal {
+                    Signal::ForceShutdown => return Ok(()),
+                    _ => {},
+                }
+                println!("   {}: Failed to send signal to the process supervisor", self.name);
+                let outstr = try!(String::from_utf8(output.stdout));
+                let errstr = try!(String::from_utf8(output.stderr));
+                println!("   {}(O): {}", self.name, outstr);
+                println!("   {}(E): {}", self.name, errstr);
+                println!("   {}: Code {:?}", self.name, output.status.code());
+                return Err(BldrError::SupervisorSignalFailed)
+            }
+        }
+    }
+
     /// The path to the package on disk.
     pub fn path(&self) -> String {
         format!("/opt/bldr/pkgs/{}/{}/{}/{}", self.derivation, self.name, self.version, self.release)
@@ -55,15 +146,17 @@ impl Package {
 
     /// Create the service path for this package.
     pub fn create_srvc_path(&self) -> BldrResult<()> {
+        println!("   {}: Creating srvc paths", &self.name);
         try!(fs::create_dir_all(self.srvc_join_path("config")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
         Ok(())
     }
 
-    /// Copy the "START" file to the srvc path.
-    pub fn copy_start(&self) -> BldrResult<()> {
-        try!(fs::copy(self.join_path("START"), self.srvc_join_path("START")));
-        try!(util::perm::set_permissions(&self.srvc_join_path("START"), "0755"));
+    /// Copy the "run" file to the srvc path.
+    pub fn copy_run(&self) -> BldrResult<()> {
+        println!("   {}: Copying the run file", &self.name);
+        try!(fs::copy(self.join_path("run"), self.srvc_join_path("run")));
+        try!(util::perm::set_permissions(&self.srvc_join_path("run"), "0755"));
         Ok(())
     }
 
@@ -85,6 +178,109 @@ impl Package {
         }
         Ok(files)
     }
+
+    /// Configure the actual configuration files, from various data sources.
+    ///
+    /// First we use DEFAULT.toml, which is the mandatory specification for everything
+    /// we can configure. Then we layer in any service discovery frameworks (etcd, consul,
+    /// zookeeper, chef). Then we layer in environment configuration.
+    pub fn config_data(&self, wait: bool) -> BldrResult<()> {
+        let pkg = if wait {
+            format!("{}({})", self.name, White.bold().paint("C"))
+        } else {
+            self.name.clone()
+        };
+        println!("   {}: Loading default data", pkg);
+        let mut default_toml_file = try!(File::open(self.join_path("config/DEFAULT.toml")));
+        let mut toml_data = String::new();
+        try!(default_toml_file.read_to_string(&mut toml_data));
+        let mut toml_parser = toml::Parser::new(&toml_data);
+        let default_toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+
+        let discovery_toml = match discovery::etcd::get_config(&pkg, wait) {
+            Some(discovery_toml_value) => {
+                toml_merge(default_toml_value, discovery_toml_value)
+            },
+            None => default_toml_value
+        };
+
+        println!("   {}: Overlaying environment configuration", pkg);
+        let env_toml = try!(self.env_to_toml());
+        let final_data = match env_toml {
+            Some(env_toml_value) => toml_table_to_mustache(toml_merge(discovery_toml, env_toml_value)),
+            None => toml_table_to_mustache(discovery_toml)
+        };
+
+        println!("   {}: Writing out configuration files", pkg);
+        let config_files = try!(self.config_files());
+        for config in config_files {
+            let template = try!(mustache::compile_path(self.join_path(&format!("config/{}", config))));
+            println!("   {}: Rendering {}", pkg, Purple.bold().paint(&config));
+            let mut config_file = try!(File::create(self.srvc_join_path(&format!("config/{}", config))));
+            template.render_data(&mut config_file, &final_data);
+        }
+        println!("   {}: Configured", pkg);
+        Ok(())
+    }
+
+    fn env_to_toml(&self) -> BldrResult<Option<BTreeMap<String, toml::Value>>> {
+        let pkg = &self.name;
+        let toml_data = match env::var(&format!("BLDR_{}", pkg)) {
+            Ok(val) => val,
+            Err(e) => {
+                debug!("Looking up environment variable BLDR_{} failed: {:?}", pkg, e);
+                return Ok(None)
+            }
+        };
+        let mut toml_parser = toml::Parser::new(&toml_data);
+        let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+        Ok(Some(toml_value))
+    }
+}
+
+/// A completely shallow merge of two Toml tables. For v0 of Bldr, if you set any nested key,
+/// you must set *all* the keys in that nesting, or your out of luck. Someday, this will need
+/// to become a legitimate deep merge.
+///
+/// We use toml as the middle language because its implementation in rust lends itself to easy
+/// cloning of even the deep data.
+fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml::Value>) -> BTreeMap<String, toml::Value> {
+    let mut final_map = BTreeMap::new();
+    for (left_key, left_value) in left.iter() {
+        match right.get(left_key) {
+            Some(right_value) => { final_map.insert(left_key.clone(), right_value.clone()); },
+            None => { final_map.insert(left_key.clone(), left_value.clone()); },
+        }
+    }
+    final_map
+}
+
+fn toml_table_to_mustache(toml: BTreeMap<String, toml::Value>) -> mustache::Data {
+    let mut hashmap = HashMap::new();
+    for (key, value) in toml.iter() {
+        hashmap.insert(format!("{}", key), toml_to_mustache(value.clone()));
+    }
+    mustache::Data::Map(hashmap)
+}
+
+fn toml_to_mustache(value: toml::Value) -> mustache::Data {
+    match value {
+        toml::Value::String(s) => mustache::Data::StrVal(format!("{}", s)),
+        toml::Value::Integer(i) => mustache::Data::StrVal(format!("{}", i)),
+        toml::Value::Float(i) => mustache::Data::StrVal(format!("{}", i)),
+        toml::Value::Boolean(b) => mustache::Data::Bool(b),
+        toml::Value::Datetime(s) => mustache::Data::StrVal(format!("{}", s)),
+        toml::Value::Array(a) => toml_vec_to_mustache(a),
+        toml::Value::Table(t) => toml_table_to_mustache(t),
+    }
+}
+
+fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
+    let mut mvec = vec![];
+    for x in toml.iter() {
+        mvec.push(toml_to_mustache(x.clone()))
+    }
+    mustache::Data::VecVal(mvec)
 }
 
 pub fn latest(pkg: &str) -> BldrResult<Package> {
@@ -293,9 +489,11 @@ impl PartialOrd for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{Package, split_version, version_sort};
+    use super::{Package, split_version, version_sort, toml_table_to_mustache};
     use std::cmp::Ordering;
     use std::cmp::PartialOrd;
+    use toml;
+    use mustache;
 
     #[test]
     fn package_partial_eq() {
@@ -450,4 +648,24 @@ mod tests {
             Err(e) => panic!("{:?}", e)
         }
     }
+
+    #[test]
+    fn toml_data_is_rendered_to_mustache() {
+        let toml = r#"
+                daemonize = "no"
+                slaveof = "127.0.0.1 6380"
+
+                [winks]
+                left = "yes"
+                right = "no"
+                wiggle = [ "snooze", "looze" ]
+            "#;
+        let toml_value = toml::Parser::new(toml).parse().unwrap();
+        let template = mustache::compile_str("hello {{daemonize}} for {{slaveof}} {{winks.right}} {{winks.left}} {{# winks.wiggle}} {{.}} {{/winks.wiggle}}");
+        let mut bytes = vec![];
+        let data = toml_table_to_mustache(toml_value);
+        template.render_data(&mut bytes, &data);
+        assert_eq!(String::from_utf8(bytes).unwrap(), "hello no for 127.0.0.1 6380 no yes  snooze  looze ".to_string());
+    }
+
 }

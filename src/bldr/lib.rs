@@ -6,6 +6,7 @@ extern crate rustc_serialize;
 extern crate toml;
 extern crate ansi_term;
 extern crate regex;
+extern crate libc;
 
 pub mod error;
 pub mod command;

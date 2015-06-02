@@ -20,6 +20,8 @@ download() {
 }
 
 build() {
+  env OPENSSL_LIB_DIR=$(latest_package openssl)/lib \
+      OPENSSL_INCLUDE_DIR=$(latest_package openssl)/include \
 	cargo build --release
 }
 

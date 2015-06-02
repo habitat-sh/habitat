@@ -1010,7 +1010,7 @@ hz 10
 # big latency spikes.
 aof-rewrite-incremental-fsync yes
 EOT
-	cat <<EOT >> $pkg_path/START
+	cat <<EOT >> $pkg_path/run
 #!$(latest_package bldr/busybox)/bin/sh
 
 exec $pkg_path/bin/redis-server /opt/bldr/srvc/redis/config/redis.config 2>&1
