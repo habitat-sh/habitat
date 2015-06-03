@@ -38,6 +38,18 @@ extern fn handle_signal(sig: u32) {
     WHICH_SIGNAL.store(sig as usize, Ordering::SeqCst);
 }
 
+/// Starts the given package.
+///
+/// * Registers signal handlers
+/// * Starts runsv with the "run" script
+/// * If discovery is enabled, spawn a thread and block on configuring
+/// * Spawn a thread that launches the supervisor, then reads stdout
+///   into a (very small) buffer, and prints the output
+/// * Loop checking the CAUGHT_SIGNAL boolean. If we catch a signal,
+///   take the appropriate action. If that involves shutting down
+///   the supervisor, block on joining that thread, and shut down.
+///   Then wait for your child (we should have exactly 1) to return.
+/// * Return ()
 pub fn package(package: &str) -> BldrResult<()> {
     // Set up all the signal handlers
     unsafe {
