@@ -249,8 +249,11 @@ link_libraries() {
 }
 
 config() {
-  if [ -d $BUILD_SRC_CACHE/$pkg_dirname/config ]; then
-    cp -r $BUILD_SRC_CACHE/$pkg_dirname/config $pkg_path
+  if [ -d ./config ]; then
+    cp -r ./config $pkg_path
+  fi
+  if [ -f ./default.toml ]; then
+    cp ./default.toml $pkg_path
   fi
   return 0
 }

@@ -1,15 +1,15 @@
 world:
 	- gpg --import chef-public.gpg
 	- gpg --import chef-private.gpg
-	./bldr-build glibc-Bldrfile
-	./bldr-build libgcc-Bldrfile
-	./bldr-build zlib-Bldrfile
-	./bldr-build cacerts-Bldrfile
-	./bldr-build busybox-Bldrfile
-	./bldr-build gnupg-Bldrfile
-	./bldr-build openssl-Bldrfile
-	./bldr-build redis-Bldrfile
-	./bldr-build bldr-Bldrfile
+	cd glibc && ../bldr-build Bldrfile
+	cd libgcc && ../bldr-build Bldrfile
+	cd zlib && ../bldr-build Bldrfile
+	cd cacerts && ../bldr-build Bldrfile
+	cd busybox && ../bldr-build Bldrfile
+	cd gnupg && ../bldr-build Bldrfile
+	cd openssl && ../bldr-build Bldrfile
+	cd redis && ../bldr-build Bldrfile
+	cd bldr && ../bldr-build Bldrfile
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 clean:

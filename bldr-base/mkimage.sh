@@ -32,7 +32,7 @@ ROOTFS=${TMPDIR:-/var/tmp}/rootfs-busybox-$$-$RANDOM
 mkdir $ROOTFS
 cd $ROOTFS
 
-mkdir -p bin sbin etc dev dev/pts lib proc sys tmp opt/bldr
+mkdir -p bin sbin etc dev dev/pts lib proc sys tmp opt/bldr/pkgs/bldr
 cat <<EOT >> etc/resolv.conf
 nameserver 8.8.8.8
 nameserver 8.8.4.4
@@ -49,11 +49,19 @@ rpc:        files
 services:   files
 EOT
 echo root:x:0:0:root:/:/bin/sh > etc/passwd
-echo bldr:x:42:42:root:/:/bin/sh > etc/passwd
+echo bldr:x:42:42:root:/:/bin/sh >> etc/passwd
 echo root:x:0: > etc/group
-echo bldr:x:42:bldr > etc/group
+echo bldr:x:42:bldr >> etc/group
 ln -s lib lib64
-cp -r /opt/bldr/pkgs opt/bldr
+cp -r /opt/bldr/pkgs/bldr/bldr opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/busybox opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/cacerts opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/glibc opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/gnupg opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/libgcc opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/openssl opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/zlib opt/bldr/pkgs/bldr
+
 for x in $($BUSYBOX_ROOT/bin/busybox --list); do
 	ln -s $BUSYBOX_ROOT/bin/busybox bin/$x
 done

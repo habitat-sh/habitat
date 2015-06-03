@@ -172,7 +172,6 @@ impl Package {
             let config = try!(extract_direntry(config_r));
             match config.path().file_name() {
                 Some(filename) => {
-                    if filename == "DEFAULT.toml" { continue };
                     files.push(filename.to_string_lossy().into_owned().to_string());
                 },
                 None => unreachable!()
@@ -183,7 +182,7 @@ impl Package {
 
     /// Configure the actual configuration files, from various data sources.
     ///
-    /// First we use DEFAULT.toml, which is the mandatory specification for everything
+    /// First we use default.toml, which is the mandatory specification for everything
     /// we can configure. Then we layer in any service discovery frameworks (etcd, consul,
     /// zookeeper, chef). Then we layer in environment configuration.
     pub fn config_data(&self, wait: bool) -> BldrResult<()> {
@@ -192,8 +191,8 @@ impl Package {
         } else {
             self.name.clone()
         };
-        println!("   {}: Loading default data", pkg_print);
-        let mut default_toml_file = try!(File::open(self.join_path("config/DEFAULT.toml")));
+        println!("   {}: Loading data from default.toml", pkg_print);
+        let mut default_toml_file = try!(File::open(self.join_path("default.toml")));
         let mut toml_data = String::new();
         try!(default_toml_file.read_to_string(&mut toml_data));
         let mut toml_parser = toml::Parser::new(&toml_data);

@@ -2,7 +2,7 @@ pwd = $(shell pwd)
 container_prefix = bldr
 NO_CACHE = false
 
-.PHONY: container test run shell clean bldr-base package-clean
+.PHONY: container test run shell clean bldr-base package-clean packages
 
 all: volumes container packages bldr-base redis
 
@@ -10,7 +10,7 @@ package-clean:
 	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
 
 packages:
-	docker-compose run package bash -c 'cd /src/bldr-build; make world'
+	docker-compose run package bash -c 'cd /src/packages; make world'
 
 volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume src-cache-volume
 

@@ -51,6 +51,7 @@ container ecosystem is Redis - a simple key/value store. Here is the dockerfile:
 * Ensure privilege seperation (supervisor de-privileges the service on your behalf)
 * Integrates logging cleanly
 * Provides pluggable interfaces for critical side-car behavior:
+  * Status (up/down/etc)
   * Health checks
   * Smoke testing
   * Monitoring

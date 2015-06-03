@@ -1,0 +1,45 @@
+daemonize = "no"
+port = 6379
+tcp-backlog = 511
+bind = []
+unixsocket = false
+unixsocketperm = false
+timeout = 0
+tcp-keepalive = 0
+loglevel = "notice"
+logfile = "\"\""
+syslog-enabled = ["no"]
+syslog-ident = ["redis"]
+syslog-facility = ["local0"]
+databases = 16
+stop-writes-on-bgsave-error = "yes"
+rbcompression = "yes"
+rbchecksum = "yes"
+dbfilename = "dump.rdb"
+slaveof = []
+masterauth = []
+slave-serve-stale-data = "yes"
+slave-read-only = "yes"
+repl-diskless-sync = "no"
+repl-diskless-synx-delay = 5
+repl-ping-slave-period = 10
+repl-timeout = 60
+repl-disable-tcp-nodelay = "no"
+repl-backlog-size = ["1mb"]
+repl-backlog-ttl = ["3600"]
+slave-priority = "100"
+min-slaves-to-write = false
+min-slaves-max-lag = false
+requirepass = []
+
+[[save]]
+sec = 900
+keys = 1
+
+[[save]]
+sec = 300
+keys = 10
+
+[[save]]
+sec = 60
+keys = 10000
