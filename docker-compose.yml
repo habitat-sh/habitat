@@ -36,11 +36,10 @@ package:
     - "bldr-installed-cache"
 
 base:
-  build: ./bldr-base
+  image: bldr
   links:
     - repo
     - etcd
-  command: ["install", "redis"]
 
 etcd:
   image: quay.io/coreos/etcd:latest

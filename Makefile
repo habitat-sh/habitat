@@ -55,11 +55,9 @@ pkg-shell:
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash
 
 bldr-base: package-clean packages
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash -c 'cd /src/bldr-base; ./mkimage.sh'
-	docker-compose build base
 
 base-shell:
-	docker-compose run base sh
+	docker-compose run base
 
 clean:
 	docker images -q -f dangling=true | xargs docker rmi
