@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-if [ -n "$DEBUG" ]; then
+if [[ -n "$DEBUG" ]]; then
   set -x
 fi
 
@@ -31,6 +31,8 @@ pkg_format=(bldr)
 pkg_lib_dirs=()
 pkg_include_dirs=()
 pkg_service_run=''
+pkg_docker_build=false
+pkg_docker_expose=()
 
 ###
 # Utility Functions
@@ -52,7 +54,7 @@ build_line() {
 }
 
 debug() {
-  if [ -n "$DEBUG" ]; then
+  if [[ -n "$DEBUG" ]]; then
     echo "DEBUG: $1"
   fi
   return 0
@@ -94,7 +96,7 @@ bldr_begin() {
 
 download() {
   set -e
-  if [ -f $BLDR_SRC_CACHE/$pkg_filename ]; then
+  if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
     if verify; then
       build_line "Using cached $pkg_filename"
     fi
@@ -113,7 +115,7 @@ verify() {
   else
     verify_output=$(sha256sum $BLDR_SRC_CACHE/$pkg_filename)
   fi
-  if [ "$pkg_shasum  $BLDR_SRC_CACHE/$pkg_filename" = "$verify_output" ]; then
+  if [[ "$pkg_shasum  $BLDR_SRC_CACHE/$pkg_filename" = "$verify_output" ]]; then
     build_line "Checksum verified"
   else
     build_line "Checksum invalid; looking for $pkg_shasum. Got:\n$verify_output"
@@ -131,7 +133,7 @@ unpack() {
   # basename with a suffix returns without it if it matches
   unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
 # Thanks http://stackoverflow.com/questions/17420994/bash-regex-match-string
-  if [ -f $unpack_file ] ; then
+  if [[ -f $unpack_file ]]; then
       pushd $BLDR_SRC_CACHE > /dev/null
       case $unpack_file in
           *.tar.bz2)   tar xjf $unpack_file    ;;
@@ -164,22 +166,22 @@ build_environment() {
     else
       dep_path=$(latest_package "bldr/$dep")
     fi
-    if [ -f "$dep_path/LD_RUN_PATH" ]; then
+    if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
       local trimmed=$(trim $data)
       export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
     fi
-    if [ -f "$dep_path/CFLAGS" ]; then
+    if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
       local trimmed=$(trim $data)
       export CFLAGS="$CFLAGS $trimmed"
     fi
-    if [ -f "$dep_path/LDFLAGS" ]; then
+    if [[ -f "$dep_path/LDFLAGS" ]]; then
       local data=$(cat $dep_path/LDFLAGS)
       local trimmed=$(trim $data)
       export LDFLAGS="$LDFLAGS $trimmed"
     fi
-    if [ -f "$dep_path/PATH" ]; then
+    if [[ -f "$dep_path/PATH" ]]; then
       local data=$(cat $dep_path/PATH)
       local trimmed=$(trim $data)
       export PATH="$PATH:$trimmed"
@@ -233,36 +235,36 @@ link_libraries() {
   for bin in "${pkg_binary_path[@]}"; do
     path_part="$path_part:${pkg_path}/${bin}";
   done
-  if [ -n "${ld_run_path_part}" ]; then
+  if [[ -n "${ld_run_path_part}" ]]; then
     echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
   fi
-  if [ -n "${ld_lib_part}" ]; then
+  if [[ -n "${ld_lib_part}" ]]; then
     echo $ld_lib_part > $pkg_path/LDFLAGS
   fi
-  if [ -n "${cflags_part}" ]; then
+  if [[ -n "${cflags_part}" ]]; then
     echo $cflags_part > $pkg_path/CFLAGS
   fi
-  if [ -n "${path_part}" ]; then
+  if [[ -n "${path_part}" ]]; then
     echo $path_part > $pkg_path/PATH
   fi
   return 0
 }
 
 config() {
-  if [ -d ./config ]; then
+  if [[ -d ./config ]]; then
     cp -r ./config $pkg_path
   fi
-  if [ -f ./default.toml ]; then
+  if [[ -f ./default.toml ]]; then
     cp ./default.toml $pkg_path
   fi
   return 0
 }
 
 service() {
-  if [ -d $BUILD_SRC_CACHE/$pkg_dirname/run ]; then
+  if [[ -d $BUILD_SRC_CACHE/$pkg_dirname/run ]]; then
     cp $BUILD_SRC_CACHE/$pkg_dirname/run $pkg_path
   else
-    if [ -n "${pkg_service_run}" ]; then
+    if [[ -n "${pkg_service_run}" ]]; then
       cat <<EOT >> $pkg_path/run
 #!$(latest_package bldr/busybox)/bin/sh
 cd /opt/bldr/srvc/$pkg_name
@@ -283,7 +285,7 @@ EOT
 
 strip_binaries() {
   local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | cut -d ":" -f 1)
-  if [ -n "$binaries" ]; then
+  if [[ -n "$binaries" ]]; then
     echo $binaries | xargs strip
   fi
 }
@@ -292,6 +294,7 @@ manifest() {
 cat <<EOT >> $pkg_path/MANIFEST
 # $pkg_derivation $pkg_name
 
+Maintainer: $pkg_maintainer
 Version: $pkg_version
 Release: $pkg_rel
 License: $(printf "%s " ${pkg_license[@]})
@@ -324,6 +327,41 @@ package() {
   return 0
 }
 
+dockerfile() {
+  if [[ $pkg_docker_build = "auto" ]]; then
+    rm -rf ./${pkg_name}-cache
+    mkdir ./${pkg_name}-cache
+    cp -r $pkg_path/* ./${pkg_name}-cache
+    cat <<EOT > ./Dockerfile
+FROM bldr_base
+MAINTAINER $pkg_maintainer
+WORKDIR /
+COPY ${pkg_name}-cache/ $pkg_path/
+EOT
+    for dep in "${pkg_deps[@]}"; do
+      rm -rf ./${dep}-cache
+      mkdir ./${dep}-cache
+      cp -r $pkg_path/* ./${dep}-cache
+      if echo $dep | grep '\^'; then
+        dep_deriv=$(echo $dep | cut -d "^" -f 1)
+        dep_rest=$(echo $dep | cut -d "^" -f 2)
+        dep_path=$(latest_package "$dep_deriv/$dep_rest")
+      else
+        dep_path=$(latest_package "bldr/$dep")
+      fi
+      echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
+    done
+    cat <<EOT >> ./Dockerfile
+VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
+EXPOSE ${pkg_docker_expose[@]}
+CMD ["bldr", "start", "$pkg_name"]
+EOT
+  fi
+  if [[ -f "./Dockerfile" ]]; then
+    docker build -t "$pkg_derivation/$pkg_name:latest" .
+  fi
+}
+
 bldr_end() {
   return 0
 }
@@ -341,15 +379,15 @@ else
   exit_with "Failed to load Bldrfile" $ret
 fi
 
-if [ -z "${pkg_dirname+xxx}" ]; then
+if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
 fi
 
-if [ -z "${pkg_path+xxx}" ]; then
+if [[ -z "${pkg_path+xxx}" ]]; then
   pkg_path=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
-if [ -z "${pkg_prefix+xxx}" ]; then
+if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
@@ -455,6 +493,12 @@ build_line "Writing package"
 if ! package; then
   ret=$?
   exit_with "Package creation failed" $ret;
+fi
+
+build_line "Writing Dockerfile"
+if ! dockerfile; then
+  ret=$?
+  exit_with "Dockerfile creation failed" $ret;
 fi
 
 build_line "Bldr cleanup"
