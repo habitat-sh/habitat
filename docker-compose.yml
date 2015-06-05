@@ -23,12 +23,11 @@ package:
   image: chef/bldr
   privileged: true
   environment:
-    DOCKER_HOST: "tcp://192.168.59.103:2376"
     DOCKER_CERT_PATH: "/docker-certs"
     DOCKER_TLS_VERIFY: 1
   volumes:
     - .:/src
-    - "/Users/adam/.boot2docker/certs/boot2docker-vm:/docker-certs"
+    - "~/.boot2docker/certs/boot2docker-vm:/docker-certs"
   volumes_from:
     - "bldr-cargo-cache"
     - "bldr-pkg-cache"

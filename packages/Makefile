@@ -8,8 +8,8 @@ world:
 	cd busybox && ../bldr-build Bldrfile
 	cd gnupg && ../bldr-build Bldrfile
 	cd openssl && ../bldr-build Bldrfile
-	cd redis && ../bldr-build Bldrfile
 	cd bldr && ../bldr-build Bldrfile
+	cd redis && ../bldr-build Bldrfile
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 clean:

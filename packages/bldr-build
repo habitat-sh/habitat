@@ -333,7 +333,7 @@ dockerfile() {
     mkdir ./${pkg_name}-cache
     cp -r $pkg_path/* ./${pkg_name}-cache
     cat <<EOT > ./Dockerfile
-FROM bldr_base
+FROM bldr
 MAINTAINER $pkg_maintainer
 WORKDIR /
 COPY ${pkg_name}-cache/ $pkg_path/

@@ -7,10 +7,11 @@ NO_CACHE = false
 all: volumes container packages bldr-base redis
 
 package-clean:
+	docker-compose run package bash -c 'rm -rf /opt/bldr/cache/pkgs/*'
 	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
 
 packages:
-	docker-compose run package bash -c 'cd /src/packages; make world'
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash -c 'cd /src/packages; make world'
 
 volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume src-cache-volume
 
@@ -51,10 +52,10 @@ shell:
 	docker-compose run bldr bash
 
 pkg-shell:
-	docker-compose run package bash
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash
 
 bldr-base: package-clean packages
-	docker-compose run package bash -c 'cd /src/bldr-base; ./mkimage.sh'
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash -c 'cd /src/bldr-base; ./mkimage.sh'
 	docker-compose build base
 
 base-shell:

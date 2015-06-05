@@ -77,4 +77,4 @@ do
     cp -a /dev/$X dev
 done
 
-tar --numeric-owner -cjf /src/bldr-base/bldr-base.tar.bz2 .
+tar --numeric-owner -cjf /src/packages/bldr/bldr-base.tar.bz2 .
