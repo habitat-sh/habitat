@@ -33,5 +33,6 @@ install() {
 
 dockerfile() {
   ./mkimage.sh
-  docker build -t "bldr:latest" .
+  docker build -t "bldr/base:${pkg_version}-${pkg_rel}" .
+  docker tag -f bldr/base:${pkg_version}-${pkg_rel} bldr/base:latest
 }

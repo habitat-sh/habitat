@@ -333,7 +333,7 @@ dockerfile() {
     mkdir ./${pkg_name}-cache
     cp -r $pkg_path/* ./${pkg_name}-cache
     cat <<EOT > ./Dockerfile
-FROM bldr
+FROM bldr/base
 MAINTAINER $pkg_maintainer
 WORKDIR /
 COPY ${pkg_name}-cache/ $pkg_path/
@@ -358,7 +358,8 @@ CMD ["bldr", "start", "$pkg_name"]
 EOT
   fi
   if [[ -f "./Dockerfile" ]]; then
-    docker build -t "$pkg_derivation/$pkg_name:latest" .
+    docker build -t "${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}" .
+    docker tag -f "${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}" "${pkg_derivation}/${pkg_name}:latest"
   fi
 }
 

@@ -10,7 +10,7 @@ package-clean:
 	docker-compose run package bash -c 'rm -rf /opt/bldr/cache/pkgs/*'
 	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
 
-packages:
+packages: package-clean
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash -c 'cd /src/packages; make world'
 
 volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume src-cache-volume
@@ -54,7 +54,7 @@ shell:
 pkg-shell:
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash
 
-bldr-base: package-clean packages
+bldr-base: packages
 
 base-shell:
 	docker-compose run base
@@ -64,3 +64,9 @@ clean:
 
 redis:
 	docker-compose run bldr cargo run -- start redis
+
+publish:
+	for x in `docker images | egrep '^bldr/base' | awk '{print $2}'`; do \
+		docker tag -f bldr/base:$x quay.io/bldr/base:$x ; \
+	done
+	docker push quay.io/bldr/base
