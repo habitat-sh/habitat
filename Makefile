@@ -4,7 +4,7 @@ NO_CACHE = false
 
 .PHONY: container test run shell clean bldr-base package-clean packages
 
-all: volumes container packages bldr-base redis
+all: volumes container packages
 
 package-clean:
 	docker-compose run package bash -c 'rm -rf /opt/bldr/cache/pkgs/*'
@@ -60,6 +60,7 @@ base-shell:
 	docker-compose run base
 
 clean:
+	docker rm $(docker ps -q -f status=exited)
 	docker images -q -f dangling=true | xargs docker rmi
 
 redis:
