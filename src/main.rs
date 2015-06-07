@@ -21,6 +21,7 @@ extern crate docopt;
 #[macro_use] extern crate log;
 extern crate env_logger;
 extern crate ansi_term;
+extern crate libc;
 
 use docopt::Docopt;
 use bldr::error::{BldrResult, BldrError};
@@ -29,6 +30,9 @@ use std::process;
 use ansi_term::Colour::{Red, Green, Yellow};
 use std::thread;
 use bldr::pkg;
+use libc::funcs::posix88::unistd::execvp;
+use std::ffi::{CString, CStr};
+use std::ptr;
 
 #[allow(dead_code)]
 static VERSION: &'static str = "0.0.1";
@@ -38,6 +42,8 @@ static USAGE: &'static str = "
 Usage: bldr install <package> -u <url>
        bldr config <package> [--wait]
        bldr start <package>
+       bldr sh
+       bldr bash
        bldr key -u <url>
 
 Options:
@@ -51,6 +57,8 @@ struct Args {
     cmd_config: bool,
     cmd_start: bool,
     cmd_key: bool,
+    cmd_sh: bool,
+    cmd_bash: bool,
     arg_package: String,
     flag_url: String,
     flag_wait: bool,
@@ -87,6 +95,14 @@ fn main() {
             flag_url: url,
             ..
         } => key(&url),
+        Args {
+            cmd_sh: true,
+            ..
+        } => shell(),
+        Args {
+            cmd_bash: true,
+            ..
+        } => shell(),
         _ => Err(BldrError::CommandNotImplemented)
     };
     match result {
@@ -98,6 +114,19 @@ fn main() {
 #[allow(dead_code)]
 fn banner() {
     println!("{} version {}", Green.bold().paint("bldr"), VERSION);
+}
+
+#[allow(dead_code)]
+fn shell() -> BldrResult<()> {
+    banner();
+    let shell_arg = try!(CString::new("sh"));
+    let mut argv = [ shell_arg.clone().as_ptr(), ptr::null() ];
+    unsafe {
+        execvp(shell_arg.as_ptr(), argv.as_mut_ptr());
+    }
+    // Yeah, you don't know any better.. but we aren't coming back from
+    // what happens next.
+    Ok(())
 }
 
 #[allow(dead_code)]

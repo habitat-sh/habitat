@@ -25,6 +25,7 @@ use mustache;
 use regex;
 use std::num;
 use std::string;
+use std::ffi;
 
 #[derive(Debug)]
 pub enum BldrError {
@@ -50,6 +51,7 @@ pub enum BldrError {
     SupervisorSignalFailed,
     StringFromUtf8Error(string::FromUtf8Error),
     SupervisorDied,
+    NulError(ffi::NulError),
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -81,6 +83,7 @@ impl fmt::Display for BldrError {
             BldrError::SupervisorSignalFailed => write!(f, "Failed to send a signal to the process supervisor"),
             BldrError::StringFromUtf8Error(ref e) => e.fmt(f),
             BldrError::SupervisorDied => write!(f, "The supervisor died"),
+            BldrError::NulError(ref e) => e.fmt(f),
         }
     }
 }
@@ -110,6 +113,7 @@ impl Error for BldrError {
             BldrError::SupervisorSignalFailed => "Failed to send a signal to the process supervisor",
             BldrError::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             BldrError::SupervisorDied => "The supervisor died",
+            BldrError::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
         }
     }
 }
@@ -121,6 +125,12 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str("\n");
     }
     return errors
+}
+
+impl From<ffi::NulError> for BldrError {
+    fn from(err: ffi::NulError) -> BldrError {
+        BldrError::NulError(err)
+    }
 }
 
 impl From<mustache::encoder::Error> for BldrError {
