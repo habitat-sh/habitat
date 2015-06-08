@@ -31,7 +31,7 @@ use ansi_term::Colour::{Red, Green, Yellow};
 use std::thread;
 use bldr::pkg;
 use libc::funcs::posix88::unistd::execvp;
-use std::ffi::{CString, CStr};
+use std::ffi::CString;
 use std::ptr;
 
 #[allow(dead_code)]
@@ -120,7 +120,7 @@ fn banner() {
 fn shell() -> BldrResult<()> {
     banner();
     let shell_arg = try!(CString::new("sh"));
-    let mut argv = [ shell_arg.clone().as_ptr(), ptr::null() ];
+    let mut argv = [ shell_arg.as_ptr(), ptr::null() ];
     unsafe {
         execvp(shell_arg.as_ptr(), argv.as_mut_ptr());
     }

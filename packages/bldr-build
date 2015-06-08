@@ -158,6 +158,15 @@ unpack() {
 }
 
 build_environment() {
+  local ld_run_path_part=""
+  for lib in "${pkg_lib_dirs[@]}"; do
+    if [[ -z $ld_run_path_part ]]; then
+      ld_run_path_part="$pkg_path/$lib"
+    else
+      ld_run_path_part="$ld_run_path_part:$pkg_path/$lib"
+    fi
+  done
+  export LD_RUN_PATH=$ld_run_path_part
   for dep in "${pkg_deps[@]}"; do
     if echo $dep | grep '\^'; then
       dep_deriv=$(echo $dep | cut -d "^" -f 1)
@@ -174,12 +183,20 @@ build_environment() {
     if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
       local trimmed=$(trim $data)
-      export CFLAGS="$CFLAGS $trimmed"
+      if [[ -n "$CFLAGS" ]]; then
+        export CFLAGS="$CFLAGS $trimmed"
+      else
+        export CFLAGS="$trimmed"
+      fi
     fi
     if [[ -f "$dep_path/LDFLAGS" ]]; then
       local data=$(cat $dep_path/LDFLAGS)
       local trimmed=$(trim $data)
-      export LDFLAGS="$LDFLAGS $trimmed"
+      if [[ -n "$LDFLAGS" ]]; then
+        export LDFLAGS="$LDFLAGS $trimmed"
+      else
+        export LDFLAGS="$trimmed"
+      fi
     fi
     if [[ -f "$dep_path/PATH" ]]; then
       local data=$(cat $dep_path/PATH)
@@ -226,14 +243,30 @@ link_libraries() {
   local cflags_part=""
   local path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
-    ld_run_path_part="$ld_run_path_part:${pkg_path}/$lib"
-    ld_lib_part="$ld_lib_part -L${pkg_path}/$lib"
+    if [[ -z "$ld_run_path_part" ]]; then
+      ld_run_path_part="${pkg_path}/$lib"
+    else
+      ld_run_path_part="$ld_run_path_part:${pkg_path}/$lib"
+    fi
+    if [[ -z "$ld_lib_part" ]]; then
+      ld_lib_part="-L${pkg_path}/$lib"
+    else
+      ld_lib_part="$ld_lib_part -L${pkg_path}/$lib"
+    fi
   done
   for inc in "${pkg_include_dirs[@]}"; do
-    cflags_part="$cflags_part -I${pkg_path}/${inc}"
+    if [[ -z "$cflags_part" ]]; then
+      cflags_part="-I${pkg_path}/${inc}"
+    else
+      cflags_part="$cflags_part -I${pkg_path}/${inc}"
+    fi
   done
   for bin in "${pkg_binary_path[@]}"; do
-    path_part="$path_part:${pkg_path}/${bin}";
+    if [[ -z "$path_part" ]]; then
+      path_part="${pkg_path}/${bin}";
+    else
+      path_part="$path_part:${pkg_path}/${bin}";
+    fi
   done
   if [[ -n "${ld_run_path_part}" ]]; then
     echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
@@ -341,7 +374,6 @@ EOT
     for dep in "${pkg_deps[@]}"; do
       rm -rf ./${dep}-cache
       mkdir ./${dep}-cache
-      cp -r $pkg_path/* ./${dep}-cache
       if echo $dep | grep '\^'; then
         dep_deriv=$(echo $dep | cut -d "^" -f 1)
         dep_rest=$(echo $dep | cut -d "^" -f 2)
@@ -349,6 +381,7 @@ EOT
       else
         dep_path=$(latest_package "bldr/$dep")
       fi
+      cp -r $dep_path/* ./${dep}-cache
       echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
     done
     cat <<EOT >> ./Dockerfile

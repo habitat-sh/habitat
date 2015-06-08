@@ -385,4 +385,77 @@ $ bldr install redis -u http://localhost/935616d14513262cd6bf76f0a29e5fc216b0aca
 
 Dependencies are installed automatically.
 
+# Creating new bldr packages
 
+The best way to learn to create a new bldr package is by creating one. Lets port ncurses to bldr.
+
+```bash
+$ mkdir -p packages/ncurses
+```
+
+## Create the Bldrfile
+
+A good first step is to download the source directly. Make a sha256sum of it. Then write the `packages/ncurses/Bldrfile` as follows:
+
+```bash
+pkg_name=ncurses
+pkg_version=5.9
+pkg_license=('ncurses')
+pkg_source=http://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz
+pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+pkg_shasum=9046298fb440324c9d4135ecea7879ffed8546dd1b58e59430ea07a4633f563b
+pkg_gpg_key=3853DA6B
+pkg_deps=(glibc)
+pkg_lib_dirs=(lib)
+pkg_include_dirs=(include)
+```
+
+If you were to stop here, we would download ncurses, verify the shasum, then run:
+
+```bash
+./configure --prefix=$pkg_prefix
+make
+make install
+```
+
+Since ncurses is a little more complex than that, we are going to override two
+of the steps performed by bldr - `build()` and `install()`.
+
+```bash
+build() {
+  ./configure --prefix=$pkg_prefix \
+    --with-shared \
+    --with-termlib \
+    --with-cxx-binding \
+    --with-cxx-shared \
+    --without-ada \
+    --enable-sigwinch \
+    --enable-pc-files \
+    --enable-symlinks \
+    --enable-widec \
+    --without-debug \
+    --without-normal \
+    --enable-overwrite
+  make
+}
+```
+
+The above configures ncurses appropriately, and calls 'make'
+
+```bash
+install() {
+  make install
+  for x in libform libmenu libncurses libtinfo libpanel; do
+    ln -s $pkg_prefix/lib/${x}w.so $pkg_prefix/lib/${x}.so
+    ln -s $pkg_prefix/lib/${x}w.so $pkg_prefix/lib/${x}.so.5
+    ln -s $pkg_prefix/lib/${x}w.so $pkg_prefix/lib/${x}.so.5.9
+  done
+}
+```
+
+Then we want to actually install ncurses. Since we want every
+library to have wide character support no matter what, we need to
+link the libraries we have built with the "non wide character"
+location (this is SOP).
+
+Viola! Software ported.
