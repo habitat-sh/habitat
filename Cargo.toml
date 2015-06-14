@@ -2,6 +2,7 @@
 name = "bldr"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>"]
+exclude = ["packages/**/*"]
 
 [lib]
 name = "bldr"
@@ -22,7 +23,10 @@ env_logger = "*"
 ansi_term = "*"
 hyper = "*"
 tempdir = "*"
-mustache = "*"
 toml = "*"
 regex = "*"
 libc = "*"
+
+[dependencies.mustache]
+git = "https://github.com/adamhjk/rust-mustache"
+branch = "fallback_on_missing_extension"

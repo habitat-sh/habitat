@@ -149,8 +149,11 @@ impl Package {
         println!("   {}: Creating srvc paths", &self.name);
         try!(fs::create_dir_all(self.srvc_join_path("config")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
+        try!(fs::create_dir_all(self.srvc_join_path("var")));
         try!(util::perm::set_owner(&self.srvc_join_path("data"), "bldr:bldr"));
         try!(util::perm::set_permissions(&self.srvc_join_path("data"), "0700"));
+        try!(util::perm::set_owner(&self.srvc_join_path("var"), "bldr:bldr"));
+        try!(util::perm::set_permissions(&self.srvc_join_path("var"), "0700"));
         Ok(())
     }
 
@@ -220,6 +223,8 @@ impl Package {
         println!("   {}: Writing out configuration files", pkg_print);
         let config_files = try!(self.config_files());
         for config in config_files {
+            let tmpl_path = self.join_path(&format!("config/{}", config));
+            println!("   {}: Processing {}", pkg_print, tmpl_path);
             let template = try!(mustache::compile_path(self.join_path(&format!("config/{}", config))));
             println!("   {}: Rendering {}", pkg_print, Purple.bold().paint(&config));
             let mut config_file = try!(File::create(self.srvc_join_path(&format!("config/{}", config))));

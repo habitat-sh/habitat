@@ -71,7 +71,12 @@ impl fmt::Display for BldrError {
             BldrError::TomlParser(ref errs) => {
                 write!(f, "Failed to parse toml:\n{}", toml_parser_string(errs))
             },
-            BldrError::MustacheEncoderError(ref me) => write!(f, "Mustache encoder error: {:?}", me),
+            BldrError::MustacheEncoderError(ref me) => {
+                match *me {
+                    mustache::encoder::Error::IoError(ref e) => e.fmt(f),
+                    _ => write!(f, "Mustache encoder error: {:?}", me),
+                }
+            },
             BldrError::GPGImportFailed => write!(f, "Failed to import a GPG key"),
             BldrError::PermissionFailed => write!(f, "Failed to set permissions"),
             BldrError::BadVersion => write!(f, "Failed to parse a version number"),

@@ -10,6 +10,11 @@ world:
 	cd openssl && ../bldr-build Bldrfile
 	cd bldr && ../bldr-build Bldrfile
 	cd redis && ../bldr-build Bldrfile
+	cd ncurses && ../bldr-build Bldrfile
+	cd libedit && ../bldr-build Bldrfile
+	cd bzip2 && ../bldr-build Bldrfile
+	cd pcre && ../bldr-build Bldrfile
+	cd nginx && ../bldr-build Bldrfile
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 clean:
