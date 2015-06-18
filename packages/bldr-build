@@ -32,7 +32,7 @@ pkg_lib_dirs=()
 pkg_include_dirs=()
 pkg_service_run=''
 pkg_docker_build=false
-pkg_docker_expose=()
+pkg_expose=()
 pkg_service_user=bldr
 
 ###
@@ -241,8 +241,6 @@ install() {
 link_libraries() {
   local ld_run_path_part=""
   local ld_lib_part=""
-  local cflags_part=""
-  local path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
     if [[ -z "$ld_run_path_part" ]]; then
       ld_run_path_part="${pkg_path}/$lib"
@@ -255,6 +253,14 @@ link_libraries() {
       ld_lib_part="$ld_lib_part -L${pkg_path}/$lib"
     fi
   done
+  if [[ -n "${ld_run_path_part}" ]]; then
+    echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
+  fi
+  if [[ -n "${ld_lib_part}" ]]; then
+    echo $ld_lib_part > $pkg_path/LDFLAGS
+  fi
+
+  local cflags_part=""
   for inc in "${pkg_include_dirs[@]}"; do
     if [[ -z "$cflags_part" ]]; then
       cflags_part="-I${pkg_path}/${inc}"
@@ -262,6 +268,11 @@ link_libraries() {
       cflags_part="$cflags_part -I${pkg_path}/${inc}"
     fi
   done
+  if [[ -n "${cflags_part}" ]]; then
+    echo $cflags_part > $pkg_path/CFLAGS
+  fi
+
+  local path_part=""
   for bin in "${pkg_binary_path[@]}"; do
     if [[ -z "$path_part" ]]; then
       path_part="${pkg_path}/${bin}";
@@ -269,18 +280,22 @@ link_libraries() {
       path_part="$path_part:${pkg_path}/${bin}";
     fi
   done
-  if [[ -n "${ld_run_path_part}" ]]; then
-    echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
-  fi
-  if [[ -n "${ld_lib_part}" ]]; then
-    echo $ld_lib_part > $pkg_path/LDFLAGS
-  fi
-  if [[ -n "${cflags_part}" ]]; then
-    echo $cflags_part > $pkg_path/CFLAGS
-  fi
   if [[ -n "${path_part}" ]]; then
     echo $path_part > $pkg_path/PATH
   fi
+
+  local port_part=""
+  for port in "${pkg_expose[@]}"; do
+    if [[ -z "$port_part" ]]; then
+      port_part="$port";
+    else
+      port_part="$port_part $port";
+    fi
+  done
+  if [[ -n "${port_part}" ]]; then
+    echo $port_part > $pkg_path/EXPOSES
+  fi
+
   return 0
 }
 
@@ -396,7 +411,7 @@ EOT
     done
     cat <<EOT >> ./Dockerfile
 VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
-EXPOSE ${pkg_docker_expose[@]}
+EXPOSE ${pkg_expose[@]}
 CMD ["start", "$pkg_name"]
 EOT
   fi

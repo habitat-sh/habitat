@@ -52,6 +52,8 @@ pub enum BldrError {
     StringFromUtf8Error(string::FromUtf8Error),
     SupervisorDied,
     NulError(ffi::NulError),
+    IPFailed,
+    HostnameFailed,
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -89,6 +91,8 @@ impl fmt::Display for BldrError {
             BldrError::StringFromUtf8Error(ref e) => e.fmt(f),
             BldrError::SupervisorDied => write!(f, "The supervisor died"),
             BldrError::NulError(ref e) => e.fmt(f),
+            BldrError::IPFailed => write!(f, "Failed to discover this hosts outbound IP address"),
+            BldrError::HostnameFailed => write!(f, "Failed to discover this hosts hostname"),
         }
     }
 }
@@ -119,6 +123,8 @@ impl Error for BldrError {
             BldrError::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             BldrError::SupervisorDied => "The supervisor died",
             BldrError::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            BldrError::IPFailed => "Failed to discover the outbound IP address",
+            BldrError::HostnameFailed => "Failed to discover this hosts hostname",
         }
     }
 }

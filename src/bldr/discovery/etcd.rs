@@ -15,13 +15,18 @@
 // limitations under the License.
 //
 
+use hyper::header::ContentType;
 use hyper::client::Client;
+use hyper::status::StatusCode;
+use url;
 use toml;
 use rustc_serialize::json::Json;
 use std::env;
 use std::collections::BTreeMap;
 use std::io::Read;
 use ansi_term::Colour::{White};
+
+use error::BldrResult;
 
 pub fn enabled() -> Option<String> {
     match env::var("BLDR_CONFIG_ETCD") {
@@ -32,6 +37,79 @@ pub fn enabled() -> Option<String> {
         }
     }
 }
+
+// pub enum SetOption {
+//     PrevValue(String),
+//     PrevIndex(String),
+//     PrevExist(bool),
+//     Ttl(i64),
+// }
+
+// fn encode_options(options: &[SetOption]) -> String {
+//     let mut encoded_opts = Vec::new();
+//     for x in options {
+//         match x {
+//             SetOption::PrevValue(s) => encoded_opts.push(("prevValue", &s)),
+//             SetOption::PrevIndex(s) => encoded_opts.push(("prevIndex", &s)),
+//             SetOption::PrevExist(bool) => encoded_opts.push(("prevExist", if bool { "true" } else { "false" })),
+//             SetOption::Ttl(time) => encoded_opts.push(("ttl", &format!("{}", time))),
+//         }
+//     }
+//     url::form_urlencoded::serialize(encoded_opts)
+// }
+
+pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, String)> {
+    let base_url = match enabled() {
+        Some(url) => url,
+        None => unreachable!()
+    };
+    let mut client = Client::new();
+    let url = format!("{}/v2/keys/bldr/{}", base_url, key);
+    debug!("Requesting {}", url);
+    let req_body = url::form_urlencoded::serialize(options);
+    debug!("Requesting body {}", req_body);
+    let request = client.put(&url)
+        .header(ContentType::form_url_encoded())
+        .body(&req_body);
+    let mut res = try!(request.send());
+    debug!("Response: {:?}", res);
+    let mut response_body = String::new();
+    try!(res.read_to_string(&mut response_body));
+    debug!("Response body: {:?}", response_body);
+    Ok((res.status, response_body))
+}
+
+// pub fn get(key: &str, wait: bool) -> BldrResult<(StatusCode, BTreeMap<String, toml::Value>)> {
+//     let base_url = match enabled() {
+//         Some(url) => url,
+//         None => unreachable!()
+//     };
+//     let mut client = Client::new();
+//     let url = format!("{}/v2/keys/bldr/{}?wait={}", base_url, key, wait);
+//     let mut res = try!(client.get(&url).send());
+//     debug!("Response: {:?}", res);
+//     let mut response_body = String::new();
+//     try!(res.read_to_string(&mut response_body));
+//     let body_as_json = try!(Json::from_str(&response_body));
+//     let toml_config_value = match body_as_json.find_path(&["node", "value"]) {
+//         Some(json_value) => {
+//             match json_value.as_string() {
+//                 Some(json_value_string) => json_value_string,
+//                 None => {
+//                     debug!("Invalid json value for etc node/value - not a string!");
+//                     return None;
+//                 }
+//             }
+//         },
+//         None => {
+//             debug!("No node/value present in etcd response json");
+//             return None;
+//         }
+//     };
+//     let mut toml_parser = toml::Parser::new(&toml_config_value);
+//     let toml_value = try!(toml_parser.parse());
+//     Ok((res.status, toml_value))
+// }
 
 pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
     let pkg_print = if wait {
@@ -96,3 +174,4 @@ pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>
         }
     }
 }
+

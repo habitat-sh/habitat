@@ -22,8 +22,6 @@ use regex::Regex;
 use std::fs::{self, DirEntry};
 use std::path::PathBuf;
 use std::io;
-use util;
-
 use std::io::prelude::*;
 use std::fs::File;
 use std::collections::{HashMap, BTreeMap};
@@ -32,7 +30,9 @@ use toml;
 use ansi_term::Colour::{Purple, White};
 use std::env;
 use std::process::Command;
+
 use discovery;
+use util;
 
 #[derive(Debug, Clone, Eq)]
 pub struct Package {
@@ -124,6 +124,22 @@ impl Package {
         }
     }
 
+    pub fn exposes(&self) -> Vec<String> {
+        match fs::metadata(self.join_path("EXPOSES")) {
+            Ok(_) => {
+                let mut exposed_file = File::open(self.join_path("EXPOSES")).unwrap();
+                let mut exposed_string = String::new();
+                exposed_file.read_to_string(&mut exposed_string).unwrap();
+                let v: Vec<String> = exposed_string.split(' ').map(|x| String::from(x)).collect();
+                return v
+            },
+            Err(_) => {
+                let v: Vec<String> = Vec::new();
+                return v
+            }
+        }
+    }
+
     /// The path to the package on disk.
     pub fn path(&self) -> String {
         format!("/opt/bldr/pkgs/{}/{}/{}/{}", self.derivation, self.name, self.version, self.release)
@@ -165,6 +181,10 @@ impl Package {
         Ok(())
     }
 
+    pub fn topology_leader() -> BldrResult<()> {
+        Ok(())
+    }
+
     /// Return an iterator of the configuration file names to render.
     ///
     /// This does not return the full path, for convenience with the path
@@ -187,7 +207,9 @@ impl Package {
     ///
     /// First we use default.toml, which is the mandatory specification for everything
     /// we can configure. Then we layer in any service discovery frameworks (etcd, consul,
-    /// zookeeper, chef). Then we layer in environment configuration.
+    /// zookeeper, chef). Then we layer in environment configuration. Then we layer in
+    /// data from the bldr package itself, and last we layer in system data (such as
+    /// IP address).
     pub fn config_data(&self, wait: bool) -> BldrResult<()> {
         let pkg_print = if wait {
             format!("{}({})", self.name, White.bold().paint("C"))
@@ -215,10 +237,35 @@ impl Package {
 
         println!("   {}: Overlaying environment configuration", pkg_print);
         let env_toml = try!(self.env_to_toml());
-        let final_data = match env_toml {
-            Some(env_toml_value) => toml_table_to_mustache(toml_merge(discovery_toml, env_toml_value)),
-            None => toml_table_to_mustache(discovery_toml)
+        let mut env_data = match env_toml {
+            Some(env_toml_value) => toml_merge(discovery_toml, env_toml_value),
+            None => discovery_toml
         };
+
+        println!("   {}: Adding sys variables", pkg_print);
+        let node_toml = try!(util::sys::to_toml());
+        env_data.insert(String::from("sys"), toml::Value::Table(node_toml));
+
+        println!("   {}: Adding bldr variables", pkg_print);
+        let mut bldr_toml_string = String::new();
+        bldr_toml_string.push_str(&format!("derivation = \"{}\"", self.derivation));
+        bldr_toml_string.push_str(&format!("name = \"{}\"", self.name));
+        bldr_toml_string.push_str(&format!("version = \"{}\"", self.version));
+        bldr_toml_string.push_str(&format!("release = \"{}\"", self.release));
+        let mut expose_string = String::new();
+        bldr_toml_string.push_str(&format!("expose = [{}]", self.exposes().iter().fold(expose_string, |acc, p| format!("{},", p))));
+        let mut bldr_toml_parser = toml::Parser::new(&bldr_toml_string);
+        let bldr_toml = try!(bldr_toml_parser.parse().ok_or(BldrError::TomlParser(bldr_toml_parser.errors)));
+        env_data.insert(String::from("bldr"), toml::Value::Table(bldr_toml));
+
+        println!("   {}: Writing variables to running.toml", pkg_print);
+        // RAII will close the file when this scope ends
+        {
+            let mut running_toml = try!(File::create(self.srvc_join_path("running.toml")));
+            try!(write!(&mut running_toml, "{}", toml::encode_str(&env_data)));
+        }
+
+        let final_data = toml_table_to_mustache(env_data);
 
         println!("   {}: Writing out configuration files", pkg_print);
         let config_files = try!(self.config_files());

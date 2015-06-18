@@ -459,3 +459,36 @@ link the libraries we have built with the "non wide character"
 location (this is SOP).
 
 Viola! Software ported.
+
+# Topologies
+
+Out of the box, bldr supports several different automated deployment
+topologies.
+
+## Leader/Follower
+
+This topology is used when you have a "leader" and many "followers" -
+an example would be PostgreSQL/MySQL async replication, Redis HA (not
+sentinel), etc.
+
+https://www.compose.io/articles/high-availability-for-postgresql-batteries-not-included/
+
+The way this works is thorugh taking a couple of events and implementing
+them:
+
+* At boot, we attempt to set bldr/redis/leader/init?prevExist=false to
+  our ipaddress. This node is now the only one that will race to set the
+  leader key *initially*. It means that there is not, and has never been,
+  any real data in the system.
+* If the system has not been initialized, and we set the key for init, we
+  make a call to bldr/redis/leader/leader?prevValue and a ttl of 30 seconds.
+* If we set the init key, then we get to set the leader value.
+* Once we are all running, we check to set the leader key. If we can't get it,
+  we call the "follow" event with the leaders data.
+* We then emit the "status" event, writing its output to bldr/redis/leader/nodes/IP:PORT/status with a TTL of 90 seconds
+* We are all racing for the leader. When it goes away, we look at the value of status. Whichever
+  node has the status closest to the previous leader is the new leader, and goes ahead and tries to take over.
+* If the leader key changes, and we aren't it, we update ourselves to be a follower by emitting the "follow"
+  event with the leaders data.
+
+

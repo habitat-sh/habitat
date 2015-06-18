@@ -7,9 +7,12 @@ extern crate toml;
 extern crate ansi_term;
 extern crate regex;
 extern crate libc;
+extern crate url;
 
 pub mod error;
 pub mod command;
 pub mod util;
 pub mod pkg;
 pub mod discovery;
+pub mod topology;
+pub mod state_machine;

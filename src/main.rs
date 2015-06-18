@@ -41,14 +41,15 @@ static VERSION: &'static str = "0.0.1";
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url>
        bldr config <package> [--wait]
-       bldr start <package>
+       bldr start <package> [--topology=<topology>]
        bldr sh
        bldr bash
        bldr key -u <url>
 
 Options:
-    -u, --url=<url>       Use a specific url for fetching the package
-    -w, --wait            Wait for new configuration data
+    -u, --url=<url>            Use a specific url for fetching the package
+    -w, --wait                 Wait for new configuration data
+    -t, --topology=<topology>  Specify a service topology [default: standalone]
 ";
 
 #[derive(RustcDecodable, Debug)]
@@ -62,6 +63,7 @@ struct Args {
     arg_package: String,
     flag_url: String,
     flag_wait: bool,
+    flag_topology: String,
 }
 
 #[allow(dead_code)]
@@ -88,8 +90,9 @@ fn main() {
         Args {
             cmd_start: true,
             arg_package: package,
+            flag_topology: topo,
             ..
-        } => start(&package),
+        } => start(&package, &topo),
         Args {
             cmd_key: true,
             flag_url: url,
@@ -165,11 +168,11 @@ fn config(package: &str, wait: bool) -> BldrResult<()> {
 }
 
 #[allow(dead_code)]
-fn start(package: &str) -> BldrResult<()> {
+fn start(package: &str, topo: &str) -> BldrResult<()> {
     banner();
     println!("Starting {}", Yellow.bold().paint(package));
-    try!(config::package(package, false));
-    try!(start::package(package));
+    //try!(config::package(package, false));
+    try!(start::package(package, topo));
     println!("Finished with {}", Yellow.bold().paint(package));
     Ok(())
 }

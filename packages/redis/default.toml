@@ -23,7 +23,6 @@ tcp-backlog = 511
 # bind = [] - listen on all interfaces
 bind = []
 
-
 unixsocket = false
 unixsocketperm = false
 timeout = 0

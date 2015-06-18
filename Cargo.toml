@@ -2,7 +2,6 @@
 name = "bldr"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>"]
-exclude = ["packages/**/*"]
 
 [lib]
 name = "bldr"
@@ -26,6 +25,7 @@ tempdir = "*"
 toml = "*"
 regex = "*"
 libc = "*"
+url = "*"
 
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"
