@@ -30,6 +30,9 @@ use toml;
 use ansi_term::Colour::{Purple, White};
 use std::env;
 use std::process::Command;
+use inotify::INotify;
+use inotify::ffi::*;
+use std::path::Path;
 
 use discovery;
 use util;
@@ -130,7 +133,7 @@ impl Package {
                 let mut exposed_file = File::open(self.join_path("EXPOSES")).unwrap();
                 let mut exposed_string = String::new();
                 exposed_file.read_to_string(&mut exposed_string).unwrap();
-                let v: Vec<String> = exposed_string.split(' ').map(|x| String::from(x)).collect();
+                let v: Vec<String> = exposed_string.split(' ').map(|x| String::from(x.trim_right_matches('\n'))).collect();
                 return v
             },
             Err(_) => {
@@ -162,10 +165,13 @@ impl Package {
 
     /// Create the service path for this package.
     pub fn create_srvc_path(&self) -> BldrResult<()> {
-        println!("   {}: Creating srvc paths", &self.name);
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        println!("   {}: Creating srvc paths", pkg_print);
         try!(fs::create_dir_all(self.srvc_join_path("config")));
+        try!(fs::create_dir_all(self.srvc_join_path("toml")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
         try!(fs::create_dir_all(self.srvc_join_path("var")));
+        try!(util::perm::set_permissions(&self.srvc_join_path("toml"), "0700"));
         try!(util::perm::set_owner(&self.srvc_join_path("data"), "bldr:bldr"));
         try!(util::perm::set_permissions(&self.srvc_join_path("data"), "0700"));
         try!(util::perm::set_owner(&self.srvc_join_path("var"), "bldr:bldr"));
@@ -175,7 +181,8 @@ impl Package {
 
     /// Copy the "run" file to the srvc path.
     pub fn copy_run(&self) -> BldrResult<()> {
-        println!("   {}: Copying the run file", &self.name);
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        println!("   {}: Copying the run file", pkg_print);
         try!(fs::copy(self.join_path("run"), self.srvc_join_path("run")));
         try!(util::perm::set_permissions(&self.srvc_join_path("run"), "0755"));
         Ok(())
@@ -203,69 +210,55 @@ impl Package {
         Ok(files)
     }
 
-    /// Configure the actual configuration files, from various data sources.
-    ///
-    /// First we use default.toml, which is the mandatory specification for everything
-    /// we can configure. Then we layer in any service discovery frameworks (etcd, consul,
-    /// zookeeper, chef). Then we layer in environment configuration. Then we layer in
-    /// data from the bldr package itself, and last we layer in system data (such as
-    /// IP address).
-    pub fn config_data(&self, wait: bool) -> BldrResult<()> {
-        let pkg_print = if wait {
-            format!("{}({})", self.name, White.bold().paint("C"))
-        } else {
-            self.name.clone()
-        };
-        println!("   {}: Loading data from default.toml", pkg_print);
-        let mut default_toml_file = try!(File::open(self.join_path("default.toml")));
-        let mut toml_data = String::new();
-        try!(default_toml_file.read_to_string(&mut toml_data));
-        let mut toml_parser = toml::Parser::new(&toml_data);
-        let default_toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+    pub fn write_toml(&self, source: &str, toml: BTreeMap<String, toml::Value>) -> BldrResult<()> {
+        debug!("Writing configuration data to toml/{}", source);
+        // RAII will close the file when this scope ends
+        {
+            let mut toml_file = try!(File::create(self.srvc_join_path(&format!("toml/{}", source))));
+            try!(write!(&mut toml_file, "{}", toml::encode_str(&toml)));
+        }
+        Ok(())
+    }
 
-        let discovery_toml = match discovery::etcd::get_config(&self.name, wait) {
-            Some(discovery_toml_value) => {
-                toml_merge(default_toml_value, discovery_toml_value)
-            },
-            None => if wait {
-                println!("   {}: No data returned from discovery service", pkg_print);
-                return Ok(())
+    pub fn configure(&self) -> BldrResult<()> {
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        let mut base_toml: Option<BTreeMap<String, toml::Value>> = None;
+
+        let mut toml_files: Vec<String> = Vec::new();
+        for toml_r in try!(fs::read_dir(self.srvc_join_path("toml"))) {
+            let config = try!(extract_direntry(toml_r));
+            toml_files.push(config.path().to_string_lossy().into_owned().to_string());
+        }
+
+        toml_files.sort();
+
+        for config in toml_files {
+            debug!("Reading toml from {:?}", config);
+            let mut toml_file = try!(File::open(config));
+            let mut toml_data = String::new();
+            try!(toml_file.read_to_string(&mut toml_data));
+            let mut toml_parser = toml::Parser::new(&toml_data);
+            let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+            if let Some(base) = base_toml {
+                base_toml = Some(toml_merge(base, toml_value));
             } else {
-                default_toml_value
+                base_toml = Some(toml_value);
             }
+        }
+
+        let final_toml = match base_toml {
+            Some(toml) => toml,
+            None => return Err(BldrError::NoConfiguration)
         };
 
-        println!("   {}: Overlaying environment configuration", pkg_print);
-        let env_toml = try!(self.env_to_toml());
-        let mut env_data = match env_toml {
-            Some(env_toml_value) => toml_merge(discovery_toml, env_toml_value),
-            None => discovery_toml
-        };
-
-        println!("   {}: Adding sys variables", pkg_print);
-        let node_toml = try!(util::sys::to_toml());
-        env_data.insert(String::from("sys"), toml::Value::Table(node_toml));
-
-        println!("   {}: Adding bldr variables", pkg_print);
-        let mut bldr_toml_string = String::new();
-        bldr_toml_string.push_str(&format!("derivation = \"{}\"", self.derivation));
-        bldr_toml_string.push_str(&format!("name = \"{}\"", self.name));
-        bldr_toml_string.push_str(&format!("version = \"{}\"", self.version));
-        bldr_toml_string.push_str(&format!("release = \"{}\"", self.release));
-        let mut expose_string = String::new();
-        bldr_toml_string.push_str(&format!("expose = [{}]", self.exposes().iter().fold(expose_string, |acc, p| format!("{},", p))));
-        let mut bldr_toml_parser = toml::Parser::new(&bldr_toml_string);
-        let bldr_toml = try!(bldr_toml_parser.parse().ok_or(BldrError::TomlParser(bldr_toml_parser.errors)));
-        env_data.insert(String::from("bldr"), toml::Value::Table(bldr_toml));
-
-        println!("   {}: Writing variables to running.toml", pkg_print);
+        println!("   {}: Writing final variables to running.toml", pkg_print);
         // RAII will close the file when this scope ends
         {
             let mut running_toml = try!(File::create(self.srvc_join_path("running.toml")));
-            try!(write!(&mut running_toml, "{}", toml::encode_str(&env_data)));
+            try!(write!(&mut running_toml, "{}", toml::encode_str(&final_toml)));
         }
 
-        let final_data = toml_table_to_mustache(env_data);
+        let final_data = toml_table_to_mustache(final_toml);
 
         println!("   {}: Writing out configuration files", pkg_print);
         let config_files = try!(self.config_files());
@@ -278,7 +271,84 @@ impl Package {
             template.render_data(&mut config_file, &final_data);
         }
         println!("   {}: Configured", pkg_print);
-        if wait {
+        Ok(())
+    }
+
+    pub fn write_default_data(&self) -> BldrResult<()> {
+       let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+       println!("   {}: Loading data from default.toml", pkg_print);
+       try!(fs::copy(self.join_path("default.toml"), self.srvc_join_path("toml/000_default.toml")));
+       Ok(())
+    }
+
+    pub fn write_discovery_data(&self, key: &str, filename: &str, wait: bool) -> BldrResult<()> {
+       let pkg_print = format!("{}({})", self.name, White.bold().paint("D"));
+        if discovery::etcd::enabled().is_some() {
+            let discovery_toml = match discovery::etcd::get_config(&self.name, key, wait) {
+                Some(discovery_toml_value) => {
+                    println!("   {}: Adding data from discovery service", pkg_print);
+
+                    try!(self.write_toml(filename, discovery_toml_value))
+                },
+                None => {
+                    println!("   {}: No data returned from discovery service", pkg_print);
+                }
+            };
+        }
+        Ok(())
+    }
+
+    pub fn write_environment_data(&self) -> BldrResult<()> {
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        println!("   {}: Overlaying environment configuration", pkg_print);
+        let some_env_toml = try!(self.env_to_toml());
+        if let Some(env_toml) = some_env_toml {
+            try!(self.write_toml("300_environment.toml", env_toml));
+        }
+        Ok(())
+    }
+
+    pub fn write_sys_data(&self) -> BldrResult<()> {
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        println!("   {}: Adding sys variables", pkg_print);
+        let sys_toml = try!(util::sys::to_toml());
+        try!(self.write_toml("400_sys.toml", sys_toml));
+        Ok(())
+    }
+
+    pub fn write_bldr_data(&self) -> BldrResult<()> {
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        println!("   {}: Adding bldr variables", pkg_print);
+        let mut bldr_toml_string = String::from("[bldr]\n");
+        bldr_toml_string.push_str(&format!("derivation = \"{}\"", self.derivation));
+        bldr_toml_string.push_str(&format!("name = \"{}\"", self.name));
+        bldr_toml_string.push_str(&format!("version = \"{}\"", self.version));
+        bldr_toml_string.push_str(&format!("release = \"{}\"", self.release));
+        let mut expose_string = String::new();
+        bldr_toml_string.push_str(&format!("expose = [{}]", self.exposes().iter().fold(expose_string, |acc, p| format!("{},", p))));
+        let mut bldr_toml_parser = toml::Parser::new(&bldr_toml_string);
+        let bldr_toml = try!(bldr_toml_parser.parse().ok_or(BldrError::TomlParser(bldr_toml_parser.errors)));
+        try!(self.write_toml("500_bldr.toml", bldr_toml));
+        Ok(())
+    }
+
+    pub fn watch_configuration(&self) -> BldrResult<()> {
+        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
+        let mut ino = try!(INotify::init());
+        try!(ino.add_watch(Path::new(&self.srvc_join_path("toml")), IN_MODIFY | IN_CREATE | IN_DELETE));
+        loop {
+            let events = try!(ino.wait_for_events());
+
+            for event in events.iter() {
+                if event.is_create() {
+                    println!("   {}: The file \"{}\" was created.", pkg_print, event.name);
+                } else if event.is_delete() {
+                    println!("   {}: The file \"{}\" was deleted.", pkg_print, event.name);
+                } else if event.is_modify() {
+                    println!("   {}: The file \"{}\" was modified.", pkg_print, event.name);
+                }
+            }
+            try!(self.configure());
             println!("   {}: Restarting on configuration change", pkg_print);
             try!(self.signal(Signal::Restart));
         }
@@ -312,6 +382,11 @@ fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml:
         match right.get(left_key) {
             Some(right_value) => { final_map.insert(left_key.clone(), right_value.clone()); },
             None => { final_map.insert(left_key.clone(), left_value.clone()); },
+        }
+    }
+    for (right_key, right_value) in right.iter() {
+        if ! final_map.contains_key(right_key) {
+            final_map.insert(right_key.clone(), right_value.clone());
         }
     }
     final_map

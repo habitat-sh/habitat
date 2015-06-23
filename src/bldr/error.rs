@@ -54,6 +54,8 @@ pub enum BldrError {
     NulError(ffi::NulError),
     IPFailed,
     HostnameFailed,
+    UnknownTopology(String),
+    NoConfiguration,
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -93,6 +95,8 @@ impl fmt::Display for BldrError {
             BldrError::NulError(ref e) => e.fmt(f),
             BldrError::IPFailed => write!(f, "Failed to discover this hosts outbound IP address"),
             BldrError::HostnameFailed => write!(f, "Failed to discover this hosts hostname"),
+            BldrError::UnknownTopology(ref t) => write!(f, "Unknown topology {}!", t),
+            BldrError::NoConfiguration => write!(f, "No configuration data - cannot continue"),
         }
     }
 }
@@ -125,6 +129,8 @@ impl Error for BldrError {
             BldrError::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             BldrError::IPFailed => "Failed to discover the outbound IP address",
             BldrError::HostnameFailed => "Failed to discover this hosts hostname",
+            BldrError::UnknownTopology(_) => "Unknown topology",
+            BldrError::NoConfiguration => "No configuration data available"
         }
     }
 }

@@ -26,6 +26,7 @@ toml = "*"
 regex = "*"
 libc = "*"
 url = "*"
+inotify = "*"
 
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"

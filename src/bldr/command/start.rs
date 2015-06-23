@@ -24,7 +24,9 @@ pub fn package(pkg: &str, topo: &str) -> BldrResult<()> {
     match topo {
         "standalone" => try!(topology::standalone::run(package)),
         "leader" => try!(topology::leader::run(package)),
-        _ => unreachable!()
+        t => {
+            return Err(BldrError::UnknownTopology(String::from(t)))
+        }
     }
     Ok(())
 }

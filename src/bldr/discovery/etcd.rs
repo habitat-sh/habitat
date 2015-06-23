@@ -111,7 +111,7 @@ pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, Strin
 //     Ok((res.status, toml_value))
 // }
 
-pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
+pub fn get_config(pkg: &str, key: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
     let pkg_print = if wait {
         format!("{}({})", pkg, White.bold().paint("C"))
     } else {
@@ -121,13 +121,8 @@ pub fn get_config(pkg: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>
         Some(url) => url,
         None => return None
     };
-    if wait {
-        println!("   {}: Waiting to overlay etcd configuration", pkg_print);
-    } else {
-        println!("   {}: Overlaying etcd configuration", pkg_print);
-    }
     let mut client = Client::new();
-    let mut res = match client.get(&format!("{}/v2/keys/bldr/{}/config?wait={}", base_url, pkg, wait)).send() {
+    let mut res = match client.get(&format!("{}/v2/keys/bldr/{}/{}?wait={}", base_url, pkg, key, wait)).send() {
         Ok(res) => res,
         Err(e) => {
             println!("   {}: Invalid request to etcd for config: {:?}", pkg_print, e);

@@ -27,7 +27,7 @@ use state_machine::StateMachine;
 use topology::{self, State, Worker};
 
 pub fn run(package: Package) -> BldrResult<()> {
-    let mut worker = Worker::new(package);
+    let mut worker = Worker::new(package, String::from("standalone"));
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::Configure, state_configure);
@@ -45,18 +45,29 @@ pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 }
 
 pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    try!(worker.package.config_data(false));
+    try!(worker.package.write_default_data());
+    try!(worker.package.write_discovery_data("config", "100_discovery.toml", false));
+    try!(worker.package.write_environment_data());
+    try!(worker.package.write_sys_data());
+    try!(worker.package.write_bldr_data());
+    try!(worker.package.configure());
+
     if let Some(_) = discovery::etcd::enabled() {
         let package = try!(pkg::latest(&worker.package.name));
         let config_join = thread::spawn(move || -> BldrResult<()> {
              loop {
-                 try!(package.config_data(true));
-                 println!("   {}({}): Waiting 30 seconds before reconfiguring", package.name, White.bold().paint("C"));
+                 try!(package.write_discovery_data("config", "100_discovery.toml", true));
+                 println!("   {}({}): Waiting 30 seconds before reconnecting", package.name, White.bold().paint("D"));
                  thread::sleep_ms(30000);
              }
         });
         worker.configuration_thread = Some(config_join);
     };
+    let watch_package = try!(pkg::latest(&worker.package.name));
+    thread::spawn(move || -> BldrResult<()> {
+        try!(watch_package.watch_configuration());
+        Ok(())
+    });
     Ok((State::Starting, 0))
 }
 

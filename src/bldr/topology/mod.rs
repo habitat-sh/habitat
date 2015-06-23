@@ -70,6 +70,7 @@ pub enum State {
 
 pub struct Worker {
     pub package: Package,
+    pub topology: String,
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
     pub configuration_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
 }
@@ -139,9 +140,10 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
 }
 
 impl Worker {
-    pub fn new(package: Package) -> Worker {
+    pub fn new(package: Package, topology: String) -> Worker {
         Worker{
             package: package,
+            topology: topology,
             supervisor_thread: None,
             configuration_thread: None,
         }

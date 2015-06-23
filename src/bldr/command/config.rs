@@ -22,6 +22,11 @@ pub fn package(pkg: &str, wait: bool) -> BldrResult<()> {
     let package = try!(pkg::latest(pkg));
     try!(package.create_srvc_path());
     try!(package.copy_run());
-    try!(package.config_data(wait));
+    try!(package.write_default_data());
+    try!(package.write_discovery_data("config", "100_discovery.toml", false));
+    try!(package.write_environment_data());
+    try!(package.write_sys_data());
+    try!(package.write_bldr_data());
+    try!(package.configure());
     Ok(())
 }

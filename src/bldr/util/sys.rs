@@ -59,7 +59,7 @@ pub fn hostname() -> BldrResult<String> {
 }
 
 pub fn to_toml() -> BldrResult<BTreeMap<String, toml::Value>> {
-    let mut toml_string = String::new();
+    let mut toml_string = String::from("[sys]\n");
     let ip = try!(ip());
     toml_string.push_str(&format!("ip = \"{}\"\n", ip));
     let hostname = try!(hostname());

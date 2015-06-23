@@ -8,6 +8,7 @@ extern crate ansi_term;
 extern crate regex;
 extern crate libc;
 extern crate url;
+extern crate inotify;
 
 pub mod error;
 pub mod command;

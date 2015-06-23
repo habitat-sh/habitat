@@ -28,8 +28,6 @@ use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
 use std::process;
 use ansi_term::Colour::{Red, Green, Yellow};
-use std::thread;
-use bldr::pkg;
 use libc::funcs::posix88::unistd::execvp;
 use std::ffi::CString;
 use std::ptr;
@@ -144,26 +142,9 @@ fn install(package: &str, url: &str) -> BldrResult<()> {
 
 #[allow(dead_code)]
 fn config(package: &str, wait: bool) -> BldrResult<()> {
-    match wait {
-        true => {
-            let pkg = try!(pkg::latest(package));
-            loop {
-                println!("   {}: Waiting for configuration changes", package);
-                match pkg.config_data(wait) {
-                    Ok(_) => {},
-                    Err(e) => {
-                        println!("   {}: Had an error reconfiguring - {:?}", package, e)
-                    }
-                }
-                thread::sleep_ms(1000);
-            }
-        },
-        false => {
-            banner();
-            println!("Configuring {}", Yellow.bold().paint(package));
-            try!(config::package(package, wait));
-        }
-    }
+    banner();
+    println!("Configuring {}", Yellow.bold().paint(package));
+    try!(config::package(package, wait));
     Ok(())
 }
 
@@ -171,7 +152,6 @@ fn config(package: &str, wait: bool) -> BldrResult<()> {
 fn start(package: &str, topo: &str) -> BldrResult<()> {
     banner();
     println!("Starting {}", Yellow.bold().paint(package));
-    //try!(config::package(package, false));
     try!(start::package(package, topo));
     println!("Finished with {}", Yellow.bold().paint(package));
     Ok(())
