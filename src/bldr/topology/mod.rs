@@ -18,15 +18,14 @@
 pub mod standalone;
 pub mod leader;
 
+use ansi_term::Colour::White;
+use std::thread;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 use libc::{pid_t, c_int};
-use ansi_term::Colour::White;
-use std::process::{Command, Stdio, Child};
-use std::io::prelude::*;
-use std::thread;
 
+use state_machine::StateMachine;
+use pkg::{Package, Signal};
 use error::{BldrResult, BldrError};
-use pkg::{self, Signal, Package};
 
 static CAUGHT_SIGNAL: AtomicBool = ATOMIC_BOOL_INIT;
 static WHICH_SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -41,8 +40,7 @@ extern fn handle_signal(sig: u32) {
     WHICH_SIGNAL.store(sig as usize, Ordering::SeqCst);
 }
 
-
-pub fn set_signal_handlers() {
+fn set_signal_handlers() {
     unsafe {
         signal(1, handle_signal);  //    SIGHUP       terminate process    terminal line hangup
         signal(2, handle_signal);  //    SIGINT       terminate process    interrupt program
@@ -54,36 +52,106 @@ pub fn set_signal_handlers() {
     }
 }
 
-pub struct Statemachine<'a, T> {
-    state: T,
-    delay: Option<u32>,
-    package: Package,
-    supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
-    dispatch: 'a ||
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
+pub enum State {
+    Init,
+    CreateDataset,
+    RestoreDataset,
+    DetermineViability,
+    BecomeLeader,
+    BecomeFollower,
+    Leader,
+    Follower,
+    Configure,
+    Starting,
+    Running,
+    Finished,
 }
 
-trait Topology {
-    fn dispatch(&mut self) -> BldrResult<()>;
+pub struct Worker {
+    pub package: Package,
+    pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
+    pub configuration_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
+}
 
-    fn next(&mut self) -> BldrResult<()> {
-        if let Some(interval) = self.delay {
-           thread::sleep_ms(interval);
+fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Worker) -> BldrResult<()> {
+    loop {
+        if CAUGHT_SIGNAL.load(Ordering::SeqCst) {
+            match WHICH_SIGNAL.load(Ordering::SeqCst) {
+                1 => { // SIGHUP
+                    println!("   {}: Sending SIGHUP", worker.preamble());
+                    try!(worker.package.signal(Signal::Hup));
+                },
+                2 => { // SIGINT
+                    println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
+                    try!(worker.package.signal(Signal::ForceShutdown));
+                    worker.join_supervisor();
+                    break;
+                },
+                3 => { // SIGQUIT
+                    try!(worker.package.signal(Signal::Quit));
+                    println!("   {}: Sending SIGQUIT", worker.preamble());
+                },
+                14 => { // SIGALRM
+                    try!(worker.package.signal(Signal::Alarm));
+                    println!("   {}: Sending SIGALRM", worker.preamble());
+                },
+                15 => { // SIGTERM
+                    println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
+                    try!(worker.package.signal(Signal::ForceShutdown));
+                    worker.join_supervisor();
+                    break;
+                },
+                30 => { //    SIGUSR1      terminate process    User defined signal 1
+                    println!("   {}: Sending SIGUSR1", worker.preamble());
+                    try!(worker.package.signal(Signal::One));
+                },
+                31 => { //    SIGUSR2      terminate process    User defined signal 25
+                    println!("   {}: Sending SIGUSR1", worker.preamble());
+                    try!(worker.package.signal(Signal::Two));
+                },
+                _ => unreachable!()
+            }
+            // Reset the signal handler flags
+            CAUGHT_SIGNAL.store(false, Ordering::SeqCst);
+            WHICH_SIGNAL.store(0 as usize, Ordering::SeqCst);
         }
+        match sm.state {
+            State::Running => {
+                unsafe {
+                    let mut status: c_int = 0;
+                    match waitpid(-1 as pid_t, &mut status, 1 as c_int) {
+                        0 => {}, // There is nothing to do, nobody has returned
+                          _ => { // We don't care why it died - just that it did. It's the only child
+                              // we have directly, and it won't leak children unless something has
+                              // gone very, very, wrong.
+                              println!("   {}: The supervisor died - terminating", worker.preamble());
+                              return Err(BldrError::SupervisorDied);
+                          }
+                    }
+                }
+            },
+            _ => {}
+        }
+        try!(sm.next(worker));
+    }
+    Ok(())
+}
 
-        let result = try!(self.dispatch());
-        result
+impl Worker {
+    pub fn new(package: Package) -> Worker {
+        Worker{
+            package: package,
+            supervisor_thread: None,
+            configuration_thread: None,
+        }
     }
 
-    fn set_state<T: TopoState>(&mut self, state: T, delay: Option<u32>) {
-        self.state = state;
-        self.delay = delay;
+    pub fn preamble(&mut self) -> String {
+        format!("{}({})", self.package.name, White.bold().paint("T"))
     }
 
-    fn preamble(&mut self) -> String {
-        format!("{}({} {:?})", self.package.name, White.bold().paint("T"), self.state)
-    }
-
-    fn join_supervisor(&mut self) -> BldrResult<()> {
+    pub fn join_supervisor(&mut self) -> BldrResult<()> {
         let preamble = self.preamble();
         if self.supervisor_thread.is_some() {
             println!("   {}: Waiting for supervisor to finish", preamble);
@@ -98,121 +166,6 @@ trait Topology {
                 Err(e) => println!("Supervisor thread paniced: {:?}", e),
             }
         }
-        Ok(())
-    }
-
-    fn run(&mut self) -> BldrResult<()> {
-        loop {
-            if CAUGHT_SIGNAL.load(Ordering::SeqCst) {
-                match WHICH_SIGNAL.load(Ordering::SeqCst) {
-                    1 => { // SIGHUP
-                        println!("   {}: Sending SIGHUP", self.preamble());
-                        try!(self.package.signal(Signal::Hup));
-                    },
-                    2 => { // SIGINT
-                        println!("   {}: Sending 'force-shutdown' on SIGINT", self.preamble());
-                        try!(self.package.signal(Signal::ForceShutdown));
-                        self.join_supervisor();
-                        break;
-                    },
-                    3 => { // SIGQUIT
-                        try!(self.package.signal(Signal::Quit));
-                        println!("   {}: Sending SIGQUIT", self.preamble());
-                    },
-                    14 => { // SIGALRM
-                        try!(self.package.signal(Signal::Alarm));
-                        println!("   {}: Sending SIGALRM", self.preamble());
-                    },
-                    15 => { // SIGTERM
-                        println!("   {}: Sending 'force-shutdown' on SIGTERM", self.preamble());
-                        try!(self.package.signal(Signal::ForceShutdown));
-                        self.join_supervisor();
-                        break;
-                    },
-                    30 => { //    SIGUSR1      terminate process    User defined signal 1
-                        println!("   {}: Sending SIGUSR1", self.preamble());
-                        try!(self.package.signal(Signal::One));
-                    },
-                    31 => { //    SIGUSR2      terminate process    User defined signal 25
-                        println!("   {}: Sending SIGUSR1", self.preamble());
-                        try!(self.package.signal(Signal::Two));
-                    },
-                    _ => unreachable!()
-                }
-                // Reset the signal handler flags
-                CAUGHT_SIGNAL.store(false, Ordering::SeqCst);
-                WHICH_SIGNAL.store(0 as usize, Ordering::SeqCst);
-            }
-            match self.state {
-                State::Running => {
-                    unsafe {
-                        let mut status: c_int = 0;
-                        match waitpid(-1 as pid_t, &mut status, 1 as c_int) {
-                            0 => {}, // There is nothing to do, nobody has returned
-                              _ => { // We don't care why it died - just that it did. It's the only child
-                                  // we have directly, and it won't leak children unless something has
-                                  // gone very, very, wrong.
-                                  println!("   {}: The supervisor died - terminating", self.preamble());
-                                  return Err(BldrError::SupervisorDied);
-                              }
-                        }
-                    }
-                },
-                _ => {}
-            }
-            try!(self.next());
-        }
-        Ok(())
-    }
-
-    fn state_starting(&mut self) -> BldrResult<()> {
-        println!("   {}: Starting", self.preamble());
-        let busybox_pkg = try!(pkg::latest("busybox"));
-        let mut child = try!(
-            Command::new(busybox_pkg.join_path("bin/runsv"))
-            .arg(&format!("/opt/bldr/srvc/{}", self.package.name))
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()
-        );
-        let pkg = self.package.name.clone();
-        let supervisor_thread = thread::spawn(move|| -> BldrResult<()> {
-            {
-                let mut c_stdout = match child.stdout {
-                    Some(ref mut s) => s,
-                    None => return Err(BldrError::UnpackFailed)
-                };
-
-                let mut line = format!("   {}({}): ", pkg, White.bold().paint("O"));
-                loop {
-                    let mut buf = [0u8; 1]; // Our byte buffer
-                    let len = try!(c_stdout.read(&mut buf));
-                    match len {
-                        0 => { // 0 == EOF, so stop writing and finish progress
-                            break;
-                        },
-                        _ => { // Write the buffer to the BufWriter on the Heap
-                            let buf_vec = buf[0 .. len].to_vec();
-                            let buf_string = String::from_utf8(buf_vec).unwrap();
-                            line.push_str(&buf_string);
-                            if line.contains("\n") {
-                                print!("{}", line);
-                                line = format!("   {}({}): ", pkg, White.bold().paint("O"));
-                            }
-                        }
-                    }
-                }
-            }
-            Ok(())
-        });
-        self.supervisor_thread = Some(supervisor_thread);
-        self.set_state(State::Running, None);
-        Ok(())
-    }
-
-    fn state_running(&mut self) -> BldrResult<()> {
-        self.set_state(State::Running, None);
         Ok(())
     }
 }

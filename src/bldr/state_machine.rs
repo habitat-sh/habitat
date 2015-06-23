@@ -21,9 +21,10 @@ use std::thread;
 use std::fmt;
 
 pub struct StateMachine<T, X, E> {
-    state: T,
-    delay: u32,
-    dispatch: HashMap<T, fn(&mut X)-> Result<(T, u32), E>>,
+    pub state: T,
+    pub delay: u32,
+    pub dispatch: HashMap<T, fn(&mut X)-> Result<(T, u32), E>>,
+    pub run: Option<fn(&mut StateMachine<T, X, E>, &mut X) -> Result<(), E>>
 }
 
 impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
@@ -32,7 +33,12 @@ impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
             state: state,
             delay: 0,
             dispatch: HashMap::new(),
+            run: None
         }
+    }
+
+    pub fn add_run(&mut self, funk: fn(&mut StateMachine<T, X, E>, &mut X) -> Result<(), E>) {
+        self.run = Some(funk);
     }
 
     pub fn add_dispatch(&mut self, state: T, funk: fn(&mut X) -> Result<(T, u32), E>) {
@@ -51,6 +57,13 @@ impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
             self.set_state(next_state, delay);
         } else {
             panic!("Cannot dispatch to {:?} - perhaps you need to call add_dispatch?", self.state);
+        }
+        Ok(())
+    }
+
+    pub fn run(&mut self, worker: &mut X) -> Result<(), E> {
+        if self.run.is_some() {
+            try!(self.run.unwrap()(self, worker));
         }
         Ok(())
     }
