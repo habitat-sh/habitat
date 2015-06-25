@@ -53,7 +53,7 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.configure());
 
     if let Some(_) = discovery::etcd::enabled() {
-        let package = try!(pkg::latest(&worker.package.name));
+        let mut package = try!(pkg::latest(&worker.package.name));
         let config_join = thread::spawn(move || -> BldrResult<()> {
              loop {
                  try!(package.write_discovery_data("config", "100_discovery.toml", true));

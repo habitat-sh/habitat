@@ -18,6 +18,8 @@
 use ansi_term::Colour::White;
 
 use std::thread;
+use std::sync::mpsc::channel;
+
 use hyper::status::StatusCode;
 use toml;
 
@@ -157,6 +159,9 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
             unreachable!()
         },
     };
+
+    try!(worker.package.write_toml_string("102_role.toml", &format!("topology-leader = true")));
+
     Ok((State::Leader, 0))
 }
 
@@ -199,6 +204,9 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
             unreachable!()
         },
     };
+
+    try!(worker.package.write_toml_string("102_role.toml", &format!("topology-follower = true")));
+
     Ok((State::Follower, 0))
 }
 
@@ -216,6 +224,14 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     };
     if worker.configuration_thread.is_none() {
         try!(standalone::state_configure(worker));
+        let mut package = try!(pkg::latest(&worker.package.name));
+        let config_join = thread::spawn(move || -> BldrResult<()> {
+             loop {
+                 try!(package.write_discovery_data("topology/leader/government/leader", "101_leader.toml", true));
+                 println!("   {}({}): Waiting 30 seconds before reconnecting", package.name, White.bold().paint("D"));
+                 thread::sleep_ms(30000);
+             }
+        });
     }
     if worker.supervisor_thread.is_none() {
         try!(standalone::state_starting(worker));
@@ -239,7 +255,7 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     try!(worker.package.write_discovery_data("topology/leader/government/leader", "101_leader.toml", false));
     if worker.configuration_thread.is_none() {
         try!(standalone::state_configure(worker));
-        let package = try!(pkg::latest(&worker.package.name));
+        let mut package = try!(pkg::latest(&worker.package.name));
         let config_join = thread::spawn(move || -> BldrResult<()> {
              loop {
                  try!(package.write_discovery_data("topology/leader/government/leader", "101_leader.toml", true));
@@ -251,5 +267,9 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     if worker.supervisor_thread.is_none() {
         try!(standalone::state_starting(worker));
     }
-    Ok((State::Follower, 20000))
+    if let None = etcd::get_config(&worker.package.name, "topology/leader/government/leader", false) {
+        println!("   {}: Lost the leader - moving into an election", worker.preamble());
+        return Ok((State::DetermineViability, 0))
+    }
+    Ok((State::Follower, 10000))
 }

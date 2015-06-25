@@ -9,6 +9,9 @@ extern crate regex;
 extern crate libc;
 extern crate url;
 extern crate inotify;
+extern crate fnv;
+extern crate iron;
+extern crate router;
 
 pub mod error;
 pub mod command;
@@ -17,3 +20,4 @@ pub mod pkg;
 pub mod discovery;
 pub mod topology;
 pub mod state_machine;
+pub mod sidecar;

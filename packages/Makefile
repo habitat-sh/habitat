@@ -15,6 +15,7 @@ world:
 	cd bzip2 && ../bldr-build Bldrfile
 	cd pcre && ../bldr-build Bldrfile
 	cd nginx && ../bldr-build Bldrfile
+	cd haproxy && ../bldr-build Bldrfile
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 clean:

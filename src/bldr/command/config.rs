@@ -19,7 +19,7 @@ use error::BldrResult;
 use pkg;
 
 pub fn package(pkg: &str, wait: bool) -> BldrResult<()> {
-    let package = try!(pkg::latest(pkg));
+    let mut package = try!(pkg::latest(pkg));
     try!(package.create_srvc_path());
     try!(package.copy_run());
     try!(package.write_default_data());

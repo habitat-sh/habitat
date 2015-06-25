@@ -411,7 +411,7 @@ EOT
     done
     cat <<EOT >> ./Dockerfile
 VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
-EXPOSE ${pkg_expose[@]}
+EXPOSE ${pkg_expose[@]} 9631
 CMD ["start", "$pkg_name"]
 EOT
   fi

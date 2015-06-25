@@ -31,6 +31,7 @@ use ansi_term::Colour::{Red, Green, Yellow};
 use libc::funcs::posix88::unistd::execvp;
 use std::ffi::CString;
 use std::ptr;
+use bldr::sidecar;
 
 #[allow(dead_code)]
 static VERSION: &'static str = "0.0.1";
@@ -152,6 +153,7 @@ fn config(package: &str, wait: bool) -> BldrResult<()> {
 fn start(package: &str, topo: &str) -> BldrResult<()> {
     banner();
     println!("Starting {}", Yellow.bold().paint(package));
+    sidecar::run(package);
     try!(start::package(package, topo));
     println!("Finished with {}", Yellow.bold().paint(package));
     Ok(())

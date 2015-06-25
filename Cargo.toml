@@ -27,6 +27,9 @@ regex = "*"
 libc = "*"
 url = "*"
 inotify = "*"
+fnv = "*"
+iron = "*"
+router = "*"
 
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"

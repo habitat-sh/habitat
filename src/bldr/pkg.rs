@@ -33,6 +33,8 @@ use std::process::Command;
 use inotify::INotify;
 use inotify::ffi::*;
 use std::path::Path;
+use std::hash::Hasher;
+use fnv::FnvHasher;
 
 use discovery;
 use util;
@@ -42,7 +44,8 @@ pub struct Package {
     pub derivation: String,
     pub name: String,
     pub version: String,
-    pub release: String
+    pub release: String,
+    config_fnv: HashMap<String, u64>
 }
 
 pub enum Signal {
@@ -74,7 +77,7 @@ pub enum Signal {
 }
 
 impl Package {
-    pub fn signal(&self, signal: Signal) -> BldrResult<()> {
+    pub fn signal(&self, signal: Signal) -> BldrResult<String> {
         let busybox_pkg = try!(latest("busybox"));
         let signal_arg = match signal {
             Signal::Status => "status",
@@ -110,10 +113,16 @@ impl Package {
             .output()
             );
         match output.status.success() {
-            true => return Ok(()),
+            true => {
+                let stdout = try!(String::from_utf8(output.stdout));
+                return Ok(stdout)
+            },
             false => {
                 match signal {
-                    Signal::ForceShutdown => return Ok(()),
+                    Signal::ForceShutdown => {
+                        let outstr = try!(String::from_utf8(output.stdout));
+                        return Ok(outstr)
+                    },
                     _ => {},
                 }
                 println!("   {}: Failed to send signal to the process supervisor", self.name);
@@ -210,14 +219,39 @@ impl Package {
         Ok(files)
     }
 
-    pub fn write_toml(&self, source: &str, toml: BTreeMap<String, toml::Value>) -> BldrResult<()> {
+    pub fn write_toml_string(&mut self, source: &str, toml_string: &str) -> BldrResult<bool> {
+        let mut toml_parser = toml::Parser::new(&toml_string);
+        let toml = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+        self.write_toml(source, toml)
+    }
+
+    pub fn write_toml(&mut self, source: &str, toml: BTreeMap<String, toml::Value>) -> BldrResult<bool> {
         debug!("Writing configuration data to toml/{}", source);
+        let toml_string = toml::encode_str(&toml);
+        let mut hasher = FnvHasher::default();
+        hasher.write(&toml_string.into_bytes());
+        let current_fnv = hasher.finish();
+        let mut should_write = false;
+
+        if self.config_fnv.contains_key(&String::from(source)) {
+            let last_fnv = self.config_fnv.get(&String::from(source)).unwrap().clone();
+            if last_fnv == current_fnv {
+                should_write = false;
+            } else {
+                self.config_fnv.insert(String::from(source), current_fnv);
+                should_write = true;
+            }
+        } else {
+            self.config_fnv.insert(String::from(source), current_fnv);
+            should_write = true;
+        }
+
         // RAII will close the file when this scope ends
-        {
+        if should_write {
             let mut toml_file = try!(File::create(self.srvc_join_path(&format!("toml/{}", source))));
             try!(write!(&mut toml_file, "{}", toml::encode_str(&toml)));
         }
-        Ok(())
+        Ok(should_write)
     }
 
     pub fn configure(&self) -> BldrResult<()> {
@@ -251,11 +285,11 @@ impl Package {
             None => return Err(BldrError::NoConfiguration)
         };
 
-        println!("   {}: Writing final variables to running.toml", pkg_print);
+        println!("   {}: Writing final variables to last-data.toml", pkg_print);
         // RAII will close the file when this scope ends
         {
-            let mut running_toml = try!(File::create(self.srvc_join_path("running.toml")));
-            try!(write!(&mut running_toml, "{}", toml::encode_str(&final_toml)));
+            let mut last_toml = try!(File::create(self.srvc_join_path("last.toml")));
+            try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
 
         let final_data = toml_table_to_mustache(final_toml);
@@ -274,21 +308,21 @@ impl Package {
         Ok(())
     }
 
-    pub fn write_default_data(&self) -> BldrResult<()> {
+    pub fn write_default_data(&mut self) -> BldrResult<()> {
        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
        println!("   {}: Loading data from default.toml", pkg_print);
        try!(fs::copy(self.join_path("default.toml"), self.srvc_join_path("toml/000_default.toml")));
        Ok(())
     }
 
-    pub fn write_discovery_data(&self, key: &str, filename: &str, wait: bool) -> BldrResult<()> {
+    pub fn write_discovery_data(&mut self, key: &str, filename: &str, wait: bool) -> BldrResult<()> {
        let pkg_print = format!("{}({})", self.name, White.bold().paint("D"));
         if discovery::etcd::enabled().is_some() {
             let discovery_toml = match discovery::etcd::get_config(&self.name, key, wait) {
                 Some(discovery_toml_value) => {
-                    println!("   {}: Adding data from discovery service", pkg_print);
-
-                    try!(self.write_toml(filename, discovery_toml_value))
+                    if try!(self.write_toml(filename, discovery_toml_value)) {
+                        println!("   {}: Adding data from discovery service", pkg_print);
+                    }
                 },
                 None => {
                     println!("   {}: No data returned from discovery service", pkg_print);
@@ -298,7 +332,7 @@ impl Package {
         Ok(())
     }
 
-    pub fn write_environment_data(&self) -> BldrResult<()> {
+    pub fn write_environment_data(&mut self) -> BldrResult<()> {
         let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
         println!("   {}: Overlaying environment configuration", pkg_print);
         let some_env_toml = try!(self.env_to_toml());
@@ -308,7 +342,7 @@ impl Package {
         Ok(())
     }
 
-    pub fn write_sys_data(&self) -> BldrResult<()> {
+    pub fn write_sys_data(&mut self) -> BldrResult<()> {
         let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
         println!("   {}: Adding sys variables", pkg_print);
         let sys_toml = try!(util::sys::to_toml());
@@ -316,7 +350,7 @@ impl Package {
         Ok(())
     }
 
-    pub fn write_bldr_data(&self) -> BldrResult<()> {
+    pub fn write_bldr_data(&mut self) -> BldrResult<()> {
         let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
         println!("   {}: Adding bldr variables", pkg_print);
         let mut bldr_toml_string = String::from("[bldr]\n");
@@ -476,7 +510,8 @@ pub fn package_list() -> BldrResult<Vec<Package>> {
                         derivation: d,
                         name: n,
                         version: v,
-                        release: r
+                        release: r,
+                        config_fnv: HashMap::new()
                     };
                     package_list.push(package);
                 }

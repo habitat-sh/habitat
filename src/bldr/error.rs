@@ -130,7 +130,7 @@ impl Error for BldrError {
             BldrError::IPFailed => "Failed to discover the outbound IP address",
             BldrError::HostnameFailed => "Failed to discover this hosts hostname",
             BldrError::UnknownTopology(_) => "Unknown topology",
-            BldrError::NoConfiguration => "No configuration data available"
+            BldrError::NoConfiguration => "No configuration data available",
         }
     }
 }
