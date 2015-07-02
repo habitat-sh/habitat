@@ -87,6 +87,7 @@ pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, Strin
 //         Ok((res.status, response_body))
 //     });
 // }
+//
 
 pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
     let key = String::from(key);
