@@ -51,7 +51,6 @@ impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
     }
 
     pub fn next(&mut self, worker: &mut X) -> Result<(), E> {
-        thread::sleep_ms(self.delay);
         if self.dispatch.contains_key(&self.state) {
             let (next_state, delay) = try!(self.dispatch.get(&self.state).unwrap()(worker));
             self.set_state(next_state, delay);

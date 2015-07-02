@@ -28,7 +28,7 @@ use state_machine::StateMachine;
 use error::{BldrResult, BldrError};
 use util;
 use pkg::{self, Package};
-use discovery::etcd;
+use discovery::{etcd, DiscoveryWatcher, DiscoveryResponse};
 use topology::standalone;
 
 pub fn run(package: Package) -> BldrResult<()> {
@@ -162,6 +162,21 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     try!(worker.package.write_toml_string("102_role.toml", &format!("topology-leader = true")));
 
+    if worker.configuration_thread.is_none() {
+        try!(worker.package.write_default_data());
+        try!(worker.package.write_environment_data());
+        try!(worker.package.write_sys_data());
+        try!(worker.package.write_bldr_data());
+        let mut package = try!(pkg::latest(&worker.package.name));
+        let key = format!("{}/topology/leader/government/leader", package.name);
+        let mut watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1000, true);
+        worker.discovery.watch(watcher);
+        let mut package2 = try!(pkg::latest(&worker.package.name));
+        let ckey = format!("{}/config", package2.name);
+        let mut cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1000, true);
+        worker.discovery.watch(cwatcher);
+    }
+
     Ok((State::Leader, 0))
 }
 
@@ -207,6 +222,21 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     try!(worker.package.write_toml_string("102_role.toml", &format!("topology-follower = true")));
 
+    if worker.configuration_thread.is_none() {
+        try!(worker.package.write_default_data());
+        try!(worker.package.write_environment_data());
+        try!(worker.package.write_sys_data());
+        try!(worker.package.write_bldr_data());
+        let mut package = try!(pkg::latest(&worker.package.name));
+        let key = format!("{}/topology/leader/government/leader", package.name);
+        let mut watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1000, true);
+        worker.discovery.watch(watcher);
+        let mut package2 = try!(pkg::latest(&worker.package.name));
+        let ckey = format!("{}/config", package2.name);
+        let mut cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1000, true);
+        worker.discovery.watch(cwatcher);
+    }
+
     Ok((State::Follower, 0))
 }
 
@@ -222,21 +252,20 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
             return Ok((State::DetermineViability, 0))
         },
     };
-    if worker.configuration_thread.is_none() {
-        try!(standalone::state_configure(worker));
-        let mut package = try!(pkg::latest(&worker.package.name));
-        let config_join = thread::spawn(move || -> BldrResult<()> {
-             loop {
-                 try!(package.write_discovery_data("topology/leader/government/leader", "101_leader.toml", true));
-                 println!("   {}({}): Waiting 30 seconds before reconnecting", package.name, White.bold().paint("D"));
-                 thread::sleep_ms(30000);
-             }
-        });
-    }
+
     if worker.supervisor_thread.is_none() {
+        try!(worker.package.configure());
         try!(standalone::state_starting(worker));
+        let name = worker.package.name.clone();
+        let configuration_thread = thread::spawn(move || -> BldrResult<()> {
+            let watch_package = try!(pkg::latest(&name));
+            try!(watch_package.watch_configuration());
+            Ok(())
+        });
+        worker.configuration_thread = Some(configuration_thread);
     }
-    Ok((State::Leader, 20000))
+
+    Ok((State::Leader, 0))
 }
 
 fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
@@ -252,24 +281,32 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
             return Ok((State::DetermineViability, 0))
         },
     };
-    try!(worker.package.write_discovery_data("topology/leader/government/leader", "101_leader.toml", false));
-    if worker.configuration_thread.is_none() {
-        try!(standalone::state_configure(worker));
-        let mut package = try!(pkg::latest(&worker.package.name));
-        let config_join = thread::spawn(move || -> BldrResult<()> {
-             loop {
-                 try!(package.write_discovery_data("topology/leader/government/leader", "101_leader.toml", true));
-                 println!("   {}({}): Waiting 30 seconds before reconnecting", package.name, White.bold().paint("D"));
-                 thread::sleep_ms(30000);
-             }
-        });
+    loop {
+        match worker.discovery.status(&format!("{}/topology/leader/government/leader", worker.package.name)) {
+            Some(leader) => {
+                if let &DiscoveryResponse{value: None, ..} = leader {
+                    println!("Determining my viability because the leader left {:?}", worker.discovery);
+                    return Ok((State::DetermineViability, 0));
+                } else {
+                    debug!("I still have a leader");
+                    break;
+                }
+            },
+            None => {
+                return Ok((State::Follower, 0));
+            }
+        }
     }
     if worker.supervisor_thread.is_none() {
+        try!(worker.package.configure());
         try!(standalone::state_starting(worker));
+        let name = worker.package.name.clone();
+        let configuration_thread = thread::spawn(move || -> BldrResult<()> {
+            let watch_package = try!(pkg::latest(&name));
+            try!(watch_package.watch_configuration());
+            Ok(())
+        });
+        worker.configuration_thread = Some(configuration_thread);
     }
-    if let None = etcd::get_config(&worker.package.name, "topology/leader/government/leader", false) {
-        println!("   {}: Lost the leader - moving into an election", worker.preamble());
-        return Ok((State::DetermineViability, 0))
-    }
-    Ok((State::Follower, 10000))
+    Ok((State::Follower, 0))
 }

@@ -12,6 +12,7 @@ extern crate inotify;
 extern crate fnv;
 extern crate iron;
 extern crate router;
+extern crate time;
 
 pub mod error;
 pub mod command;
@@ -21,3 +22,6 @@ pub mod discovery;
 pub mod topology;
 pub mod state_machine;
 pub mod sidecar;
+pub mod health_check;
+pub mod config;
+pub mod context;

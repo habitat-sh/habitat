@@ -153,7 +153,7 @@ fn config(package: &str, wait: bool) -> BldrResult<()> {
 fn start(package: &str, topo: &str) -> BldrResult<()> {
     banner();
     println!("Starting {}", Yellow.bold().paint(package));
-    sidecar::run(package);
+    try!(sidecar::run(package));
     try!(start::package(package, topo));
     println!("Finished with {}", Yellow.bold().paint(package));
     Ok(())

@@ -26,6 +26,7 @@ use regex;
 use std::num;
 use std::string;
 use std::ffi;
+use std::sync::mpsc;
 
 #[derive(Debug)]
 pub enum BldrError {
@@ -56,6 +57,8 @@ pub enum BldrError {
     HostnameFailed,
     UnknownTopology(String),
     NoConfiguration,
+    HealthCheck(String),
+    TryRecvError(mpsc::TryRecvError),
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -97,6 +100,8 @@ impl fmt::Display for BldrError {
             BldrError::HostnameFailed => write!(f, "Failed to discover this hosts hostname"),
             BldrError::UnknownTopology(ref t) => write!(f, "Unknown topology {}!", t),
             BldrError::NoConfiguration => write!(f, "No configuration data - cannot continue"),
+            BldrError::HealthCheck(ref e) => write!(f, "Health Check failed: {}", e),
+            BldrError::TryRecvError(ref err) => err.fmt(f),
         }
     }
 }
@@ -131,6 +136,8 @@ impl Error for BldrError {
             BldrError::HostnameFailed => "Failed to discover this hosts hostname",
             BldrError::UnknownTopology(_) => "Unknown topology",
             BldrError::NoConfiguration => "No configuration data available",
+            BldrError::HealthCheck(_) => "Health Check returned an unknown status code",
+            BldrError::TryRecvError(_) => "A channel failed to recieve a response",
         }
     }
 }
@@ -185,4 +192,11 @@ impl From<string::FromUtf8Error> for BldrError {
         BldrError::StringFromUtf8Error(err)
     }
 }
+
+impl From<mpsc::TryRecvError> for BldrError {
+    fn from(err: mpsc::TryRecvError) -> BldrError {
+        BldrError::TryRecvError(err)
+    }
+}
+
 

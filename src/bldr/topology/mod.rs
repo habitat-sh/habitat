@@ -17,6 +17,7 @@
 
 pub mod standalone;
 pub mod leader;
+pub mod watcher;
 
 use ansi_term::Colour::White;
 use std::thread;
@@ -24,6 +25,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, AT
 use libc::{pid_t, c_int};
 
 use state_machine::StateMachine;
+use discovery;
 use pkg::{Package, Signal};
 use error::{BldrResult, BldrError};
 
@@ -71,6 +73,7 @@ pub enum State {
 pub struct Worker {
     pub package: Package,
     pub topology: String,
+    pub discovery: discovery::Discovery,
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
     pub configuration_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
 }
@@ -86,6 +89,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
                 2 => { // SIGINT
                     println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
                     try!(worker.package.signal(Signal::ForceShutdown));
+                    worker.discovery.stop();
                     worker.join_supervisor();
                     break;
                 },
@@ -100,6 +104,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
                 15 => { // SIGTERM
                     println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
                     try!(worker.package.signal(Signal::ForceShutdown));
+                    worker.discovery.stop();
                     worker.join_supervisor();
                     break;
                 },
@@ -127,6 +132,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
                               // we have directly, and it won't leak children unless something has
                               // gone very, very, wrong.
                               println!("   {}: The supervisor died - terminating", worker.preamble());
+                              worker.discovery.stop();
                               return Err(BldrError::SupervisorDied);
                           }
                     }
@@ -134,7 +140,9 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
             },
             _ => {}
         }
+        try!(worker.discovery.next());
         try!(sm.next(worker));
+        thread::sleep_ms(100);
     }
     Ok(())
 }
@@ -144,6 +152,7 @@ impl Worker {
         Worker{
             package: package,
             topology: topology,
+            discovery: discovery::Discovery::new(discovery::Backend::Etcd),
             supervisor_thread: None,
             configuration_thread: None,
         }

@@ -38,6 +38,7 @@ use fnv::FnvHasher;
 
 use discovery;
 use util;
+use health_check::{self, CheckResult};
 
 #[derive(Debug, Clone, Eq)]
 pub struct Package {
@@ -402,6 +403,27 @@ impl Package {
         let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
         Ok(Some(toml_value))
     }
+
+    pub fn health_check(&self) -> BldrResult<CheckResult> {
+        match fs::metadata(&self.srvc_join_path("health")) {
+            Ok(_) => {
+                let result = try!(health_check::run(&self.srvc_join_path("health")));
+                Ok(result)
+            },
+            Err(_) => {
+                let status_output = try!(self.signal(Signal::Status));
+                let last_config = try!(self.last_config());
+                Ok(health_check::CheckResult{status: health_check::Status::Ok, output: format!("{}\n{}", status_output, last_config)})
+            }
+        }
+    }
+
+    pub fn last_config(&self) -> BldrResult<String> {
+        let mut file = try!(File::open(self.srvc_join_path("last.toml")));
+        let mut result = String::new();
+        try!(file.read_to_string(&mut result));
+        Ok(result)
+    }
 }
 
 /// A completely shallow merge of two Toml tables. For v0 of Bldr, if you set any nested key,
@@ -662,6 +684,7 @@ impl PartialOrd for Package {
 #[cfg(test)]
 mod tests {
     use super::{Package, split_version, version_sort, toml_table_to_mustache};
+    use std::collections::HashMap;
     use std::cmp::Ordering;
     use std::cmp::PartialOrd;
     use toml;
@@ -673,13 +696,15 @@ mod tests {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         assert_eq!(a, b);
     }
@@ -690,13 +715,15 @@ mod tests {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.1".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
@@ -710,13 +737,15 @@ mod tests {
             derivation: "bldr".to_string(),
             name: "snoopy".to_string(),
             version: "1.0.1".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
@@ -730,13 +759,15 @@ mod tests {
             derivation: "adam".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
@@ -750,13 +781,15 @@ mod tests {
             derivation: "adam".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131556".to_string()
+            release: "20150521131556".to_string(),
+            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
-            release: "20150521131555".to_string()
+            release: "20150521131555".to_string(),
+            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),

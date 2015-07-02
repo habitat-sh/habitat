@@ -30,6 +30,7 @@ inotify = "*"
 fnv = "*"
 iron = "*"
 router = "*"
+time = "*"
 
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"

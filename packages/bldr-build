@@ -338,6 +338,10 @@ EOT
       fi
     fi
   fi
+  if [[ -f $BUILD_SRC_CACHE/$pkg_dirname/health ]]; then
+    cp $BUILD_SRC_CACHE/$pkg_dirname/health $pkg_path
+    chmod 755 $pkg_path/health
+  fi
   return 0
 }
 

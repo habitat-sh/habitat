@@ -15,17 +15,10 @@
 // limitations under the License.
 //
 
-pub mod http;
-pub mod gpg;
-pub mod perm;
-pub mod sys;
-
-use time;
-
-pub fn stop_time(duration: i64) -> time::Timespec {
-    let current_time = time::now_utc().to_timespec();
-    let wait_duration = time::Duration::milliseconds(duration as i64);
-    let stop_time = current_time + wait_duration;
-    stop_time
-}
-
+// use config::Config;
+// use discovery::Discovery;
+// 
+// pub struct Context {
+//     pub config: Config,
+//     pub discovery: Option<Discovery>
+// }
