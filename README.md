@@ -491,4 +491,4 @@ them:
 * If the leader key changes, and we aren't it, we update ourselves to be a follower by emitting the "follow"
   event with the leaders data.
 
-
+Hrm
