@@ -142,7 +142,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
         }
         try!(worker.discovery.next());
         try!(sm.next(worker));
-        thread::sleep_ms(100);
+        thread::sleep_ms(1000);
     }
     Ok(())
 }

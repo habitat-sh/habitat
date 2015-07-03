@@ -63,30 +63,118 @@ pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, Strin
     Ok((res.status, response_body))
 }
 
-// pub fn write(key: &str, options: &[(&str, &str)], watcher_tx: Sender<Option<String>>) {
-//     let key = String::from(key);
-//     thread::builder::new().name(format!("etcd-write:{}", key)).spawn(move || {
-//         let base_url = match enabled() {
-//             Some(url) => url,
-//             None => unreachable!()
-//         };
-//         let preamble = format!("etcd-write:{}", key);
-//         let mut client = Client::new();
-//         let url = format!("{}/v2/keys/bldr/{}", base_url, key);
-//         debug!("Requesting {}", url);
-//         let req_body = url::form_urlencoded::serialize(options);
-//         debug!("Requesting body {}", req_body);
-//         let request = client.put(&url)
-//             .header(ContentType::form_url_encoded())
-//             .body(&req_body);
-//         let mut res = try!(request.send());
-//         debug!("Response: {:?}", res);
-//         let mut response_body = String::new();
-//         try!(res.read_to_string(&mut response_body));
-//         debug!("Response body: {:?}", response_body);
-//         Ok((res.status, response_body))
-//     });
-// }
+pub struct EtcdWrite {
+    pub key: String,
+    pub value: Option<String>,
+    pub ttl: Option<u32>,
+    pub dir: Option<bool>,
+    pub prevExist: Option<bool>,
+    pub prevIndex: Option<u64>,
+    pub prevValue: Option<String>
+}
+
+pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watcher_rx: Receiver<bool>) {
+    thread::Builder::new().name(format!("etcd-write:{}", options.key)).spawn(move || {
+        let mut client = Client::new();
+
+        let ttl_string = match options.ttl {
+            Some(v) => format!("{}", v),
+            None => String::new(),
+        };
+        let dir_string = match options.dir {
+            Some(v) => format!("{}", v),
+            None => String::new()
+        };
+        let pe_string = match options.prevExist {
+            Some(v) => format!("{}", v),
+            None => String::new()
+        };
+        let pi_string = match options.prevIndex {
+            Some(v) => format!("{}", v),
+            None => String::new()
+        };
+
+        let mut req_options = Vec::new();
+
+        if let Some(ref value) = options.value {
+            req_options.push(("value", value));
+        }
+        if let Some(ref value) = options.prevValue {
+            req_options.push(("prevValue", value));
+        }
+        if ! ttl_string.is_empty() {
+            req_options.push(("ttl", &ttl_string))
+        }
+        if ! dir_string.is_empty() {
+            req_options.push(("dir", &dir_string))
+        }
+        if ! pe_string.is_empty() {
+            req_options.push(("prevExist", &pe_string))
+        }
+        if ! pi_string.is_empty() {
+            req_options.push(("prevIndex", &pi_string))
+        }
+
+        let base_url = match enabled() {
+            Some(url) => url,
+            None => unreachable!()
+        };
+        let preamble = format!("etcd-write:{}", options.key);
+        let url = format!("{}/v2/keys/bldr/{}", base_url, options.key);
+        let req_body = url::form_urlencoded::serialize(&req_options);
+
+        loop {
+            debug!("{}: Requesting {}", preamble, url);
+            debug!("{}: Requesting body {}", preamble, req_body);
+            let request = client.put(&url)
+                .header(ContentType::form_url_encoded())
+                .body(&req_body);
+            let mut res = match request.send() {
+                Ok(res) => res,
+                Err(e) => {
+                    debug!("{}: Cannot send request: {:?}", preamble, e);
+                    continue;
+                }
+            };
+            debug!("{}: Response: {:?}", preamble, res);
+            let mut response_body = String::new();
+            match res.read_to_string(&mut response_body) {
+                Ok(_) => {},
+                Err(e) => {
+                    debug!("{}: Cannot read response body: {:?}", preamble, e);
+                    continue;
+                }
+            }
+            debug!("{}: Response body: {:?}", preamble, response_body);
+            watcher_tx.send((res.status, response_body)).unwrap();
+
+            let sleepy_time = options.ttl.unwrap() as i64;
+            // We get the jump on the TTL by 5 seconds. Lets hope
+            // that's enough.
+            let stop_time = util::stop_time(sleepy_time - 5);
+
+            loop {
+                match watcher_rx.try_recv() {
+                    Ok(stop) => {
+                        debug!("   {}: Watch exiting", preamble);
+                        return;
+                    },
+                    Err(TryRecvError::Empty) => {},
+                    Err(e) => {
+                        debug!("   {}: Watch exiting - watcher disappeared", preamble);
+                        return;
+                    }
+                }
+                let time = time::now_utc().to_timespec();
+                if time > stop_time {
+                    break;
+                } else {
+                    thread::sleep_ms(1000);
+                }
+            }
+        }
+    });
+}
 //
 
 pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
@@ -158,7 +246,7 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<
                         debug!("   {}: Watch exiting", preamble);
                         return;
                     },
-                    Err(TryRecvError::Empty) => continue,
+                    Err(TryRecvError::Empty) => {},
                     Err(e) => {
                         debug!("   {}: Watch exiting - watcher disappeared", preamble);
                         return;

@@ -22,9 +22,10 @@ pub mod sys;
 
 use time;
 
+/// Gives us a time to stop for in seconds.
 pub fn stop_time(duration: i64) -> time::Timespec {
     let current_time = time::now_utc().to_timespec();
-    let wait_duration = time::Duration::milliseconds(duration as i64);
+    let wait_duration = time::Duration::seconds(duration as i64);
     let stop_time = current_time + wait_duration;
     stop_time
 }

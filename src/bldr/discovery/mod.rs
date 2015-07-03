@@ -5,6 +5,7 @@ use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use std::thread;
 use std::fmt::{self, Debug};
 use ansi_term::Colour::{White};
+use hyper::status::StatusCode;
 
 use pkg::Package;
 use error::{BldrResult, BldrError};
@@ -24,6 +25,7 @@ pub struct Discovery {
     watchers: Vec<DiscoveryWatcher>,
     writers: Vec<DiscoveryWriter>,
     status: HashMap<String, DiscoveryResponse>,
+    write_status: HashMap<String, DiscoveryWriteResponse>,
     backend: Backend
 }
 
@@ -38,6 +40,7 @@ impl Discovery {
             watchers: Vec::new(),
             writers: Vec::new(),
             status: HashMap::new(),
+            write_status: HashMap::new(),
             backend: backend
         }
     }
@@ -48,16 +51,38 @@ impl Discovery {
         self.watchers.push(dw);
     }
 
+    pub fn write(&mut self, mut dw: DiscoveryWriter) {
+        dw.backend(self.backend);
+        dw.start();
+        self.writers.push(dw);
+    }
+
+    pub fn clear(&mut self) {
+        self.watchers.clear();
+        self.writers.clear();
+    }
+
     pub fn status(&self, key: &str) -> Option<&DiscoveryResponse> {
         self.status.get(&String::from(key))
     }
 
+    pub fn write_status(&self, key: &str) -> Option<&DiscoveryWriteResponse> {
+        self.write_status.get(&String::from(key))
+    }
+
     pub fn next(&mut self) -> BldrResult<()> {
         // Writers should come first, then watchers - but baby steps
+        for writer in self.writers.iter_mut() {
+            let result = try!(writer.try_recv());
+            if let Some(msg) = result {
+                debug!("Write response {:?}: {:?}", writer, msg);
+                self.write_status.insert(msg.key.clone(), msg);
+            }
+        }
         for watch in self.watchers.iter_mut() {
             let result = try!(watch.try_recv());
             if let Some(msg) = result {
-                println!("I received a {:?}", msg);
+                debug!("Watch response {:?}: {:?}", watch, msg);
                 self.status.insert(msg.key.clone(), msg);
             }
         }
@@ -65,6 +90,10 @@ impl Discovery {
     }
 
     pub fn stop(&mut self) -> BldrResult<()> {
+        for writer in self.writers.iter_mut() {
+            writer.stop();
+        }
+
         for watch in self.watchers.iter_mut() {
             watch.stop();
         }
@@ -143,13 +172,13 @@ impl DiscoveryWatcher {
     }
 }
 
-struct DiscoveryWriter {
+pub struct DiscoveryWriter {
     package: Package,
     key: String,
     value: Option<String>,
     ttl: Option<u32>,
     backend: Option<Backend>,
-    rx: Option<Receiver<Option<String>>>,
+    rx: Option<Receiver<(StatusCode, String)>>,
     tx: Option<Sender<bool>>,
 }
 
@@ -177,6 +206,47 @@ impl DiscoveryWriter {
     fn backend(&mut self, backend: Backend) {
         self.backend = Some(backend)
     }
+
+    fn start(&mut self) {
+        let preamble = format!("{}({})", self.package.name, White.bold().paint("D"));
+        match self.ttl {
+            Some(ttl) => println!("   {}: Writing {} every {}", preamble, self.key, ttl),
+            None => println!("   {}: Writing {}", preamble, self.key)
+        }
+        let (b_tx, b_rx) = channel();
+        let (w_tx, w_rx) = channel();
+        self.tx = Some(w_tx);
+        self.rx = Some(b_rx);
+        match self.backend {
+            ref Etcd => {
+                let options = etcd::EtcdWrite{
+                    key: self.key.clone(),
+                    value: self.value.clone(),
+                    ttl: self.ttl,
+                    dir: Some(true),
+                    prevExist: Some(true),
+                    prevIndex: None,
+                    prevValue: None,
+                };
+                etcd::write(options, b_tx, w_rx);
+            }
+        }
+    }
+
+    fn stop(&mut self) {
+        let tx = self.tx.as_ref().unwrap();
+        tx.send(true).unwrap();
+    }
+
+    fn try_recv(&mut self) -> BldrResult<Option<DiscoveryWriteResponse>> {
+        let rx = self.rx.as_ref().unwrap();
+        let (status_code, response_body) = match rx.try_recv() {
+            Ok(result) => result,
+            Err(TryRecvError::Empty) => return Ok(None),
+            Err(e) => return Err(BldrError::from(e))
+        };
+        Ok(Some(DiscoveryWriteResponse{key: self.key.clone(), status: status_code, body: Some(String::from(response_body))}))
+    }
 }
 
 #[derive(Debug)]
@@ -188,6 +258,7 @@ pub struct DiscoveryResponse {
 #[derive(Debug)]
 pub struct DiscoveryWriteResponse {
     pub key: String,
-    pub value: Option<String>,
+    pub body: Option<String>,
+    pub status: StatusCode,
 }
 
