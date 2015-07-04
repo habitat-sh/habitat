@@ -90,7 +90,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
                     println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
                     try!(worker.package.signal(Signal::ForceShutdown));
                     worker.discovery.stop();
-                    worker.join_supervisor();
+                    try!(worker.join_supervisor());
                     break;
                 },
                 3 => { // SIGQUIT
@@ -105,7 +105,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
                     println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
                     try!(worker.package.signal(Signal::ForceShutdown));
                     worker.discovery.stop();
-                    worker.join_supervisor();
+                    try!(worker.join_supervisor());
                     break;
                 },
                 30 => { //    SIGUSR1      terminate process    User defined signal 1
@@ -142,7 +142,7 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
         }
         try!(worker.discovery.next());
         try!(sm.next(worker));
-        thread::sleep_ms(1000);
+        thread::sleep_ms(100);
     }
     Ok(())
 }
@@ -158,7 +158,7 @@ impl Worker {
         }
     }
 
-    pub fn preamble(&mut self) -> String {
+    pub fn preamble(&self) -> String {
         format!("{}({})", self.package.name, White.bold().paint("T"))
     }
 

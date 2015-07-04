@@ -17,7 +17,6 @@
 
 use std::collections::HashMap;
 use std::hash::Hash;
-use std::thread;
 use std::fmt;
 
 pub struct StateMachine<T, X, E> {

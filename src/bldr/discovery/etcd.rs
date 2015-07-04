@@ -63,6 +63,7 @@ pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, Strin
     Ok((res.status, response_body))
 }
 
+#[allow(non_snake_case)]
 pub struct EtcdWrite {
     pub key: String,
     pub value: Option<String>,
@@ -74,7 +75,7 @@ pub struct EtcdWrite {
 }
 
 pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watcher_rx: Receiver<bool>) {
-    thread::Builder::new().name(format!("etcd-write:{}", options.key)).spawn(move || {
+    let _join = thread::Builder::new().name(format!("etcd-write:{}", options.key)).spawn(move || {
         let mut client = Client::new();
 
         let ttl_string = match options.ttl {
@@ -155,13 +156,13 @@ pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watch
 
             loop {
                 match watcher_rx.try_recv() {
-                    Ok(stop) => {
+                    Ok(_stop) => {
                         debug!("   {}: Watch exiting", preamble);
                         return;
                     },
                     Err(TryRecvError::Empty) => {},
                     Err(e) => {
-                        debug!("   {}: Watch exiting - watcher disappeared", preamble);
+                        debug!("   {}: Watch exiting - watcher disappeared: {:?}", preamble, e);
                         return;
                     }
                 }
@@ -179,7 +180,7 @@ pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watch
 
 pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
     let key = String::from(key);
-    thread::Builder::new().name(format!("etcd:{}", key)).spawn(move || {
+    let _newthread = thread::Builder::new().name(format!("etcd:{}", key)).spawn(move || {
         let mut first_run = true;
         let preamble = format!("etcd:{}", key);
         let base_url = match enabled() {
@@ -217,7 +218,7 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<
                     continue;
                 }
             };
-            let toml_config_value = match body_as_json.find_path(&["node", "value"]) {
+            match body_as_json.find_path(&["node", "value"]) {
                 Some(json_value) => {
                     match json_value.as_string() {
                         Some(json_value_string) => {
@@ -236,19 +237,19 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<
                     watcher_tx.send(None).unwrap();
                     continue;
                 }
-            };
+            }
 
             let stop_time = util::stop_time(reconnect_interval as i64);
 
             loop {
                 match watcher_rx.try_recv() {
-                    Ok(stop) => {
+                    Ok(_stop) => {
                         debug!("   {}: Watch exiting", preamble);
                         return;
                     },
                     Err(TryRecvError::Empty) => {},
                     Err(e) => {
-                        debug!("   {}: Watch exiting - watcher disappeared", preamble);
+                        debug!("   {}: Watch exiting - watcher disappeared - {:?}", preamble, e);
                         return;
                     }
                 }

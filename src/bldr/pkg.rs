@@ -232,7 +232,7 @@ impl Package {
         let mut hasher = FnvHasher::default();
         hasher.write(&toml_string.into_bytes());
         let current_fnv = hasher.finish();
-        let mut should_write = false;
+        let mut should_write;
 
         if self.config_fnv.contains_key(&String::from(source)) {
             let last_fnv = self.config_fnv.get(&String::from(source)).unwrap().clone();
@@ -319,7 +319,7 @@ impl Package {
     pub fn write_discovery_data(&mut self, key: &str, filename: &str, wait: bool) -> BldrResult<()> {
        let pkg_print = format!("{}({})", self.name, White.bold().paint("D"));
         if discovery::etcd::enabled().is_some() {
-            let discovery_toml = match discovery::etcd::get_config(&self.name, key, wait) {
+            match discovery::etcd::get_config(&self.name, key, wait) {
                 Some(discovery_toml_value) => {
                     if try!(self.write_toml(filename, discovery_toml_value)) {
                         println!("   {}: Adding data from discovery service", pkg_print);
@@ -359,8 +359,8 @@ impl Package {
         bldr_toml_string.push_str(&format!("name = \"{}\"", self.name));
         bldr_toml_string.push_str(&format!("version = \"{}\"", self.version));
         bldr_toml_string.push_str(&format!("release = \"{}\"", self.release));
-        let mut expose_string = String::new();
-        bldr_toml_string.push_str(&format!("expose = [{}]", self.exposes().iter().fold(expose_string, |acc, p| format!("{},", p))));
+        let expose_string = String::new();
+        bldr_toml_string.push_str(&format!("expose = [{}]", self.exposes().iter().fold(expose_string, |acc, p| format!("{}{},", acc, p))));
         let mut bldr_toml_parser = toml::Parser::new(&bldr_toml_string);
         let bldr_toml = try!(bldr_toml_parser.parse().ok_or(BldrError::TomlParser(bldr_toml_parser.errors)));
         try!(self.write_toml("500_bldr.toml", bldr_toml));
@@ -387,7 +387,6 @@ impl Package {
             println!("   {}: Restarting on configuration change", pkg_print);
             try!(self.signal(Signal::Restart));
         }
-        Ok(())
     }
 
     fn env_to_toml(&self) -> BldrResult<Option<BTreeMap<String, toml::Value>>> {

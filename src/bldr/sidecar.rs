@@ -1,9 +1,6 @@
 use iron::prelude::*;
 use iron::status;
 use router::Router;
-use std::io;
-use std::io::prelude::*;
-use std::fs::File;
 use std::sync::Arc;
 use std::thread;
 

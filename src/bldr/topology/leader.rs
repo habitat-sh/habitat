@@ -15,13 +15,8 @@
 // limitations under the License.
 //
 
-use ansi_term::Colour::White;
-
 use std::thread;
-use std::sync::mpsc::channel;
-
 use hyper::status::StatusCode;
-use toml;
 
 use topology::{self, State, Worker};
 use state_machine::StateMachine;
@@ -70,7 +65,7 @@ fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
         },
         StatusCode::PreconditionFailed => {
             // If it aready exists, see if we are the initializer
-            let (statuscode, response) =
+            let (statuscode, _response) =
                 etcd::set(&key, &[("value", &status), ("prevValue", &status)]).unwrap();
             match statuscode {
                 StatusCode::Ok => {
@@ -106,7 +101,7 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Becoming the leader", worker.preamble());
     println!("   {}: Forming the government", worker.preamble());
     let govkey = format!("{}/topology/leader/government", worker.package.name);
-    let (gov_statuscode, gov_response) =
+    let (gov_statuscode, _gov_response) =
         etcd::set(&govkey, &[("dir", "true"), ("ttl", "30")]).unwrap();
     match gov_statuscode {
         StatusCode::Created => {
@@ -175,19 +170,19 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     worker.discovery.clear();
 
     let hostname = util::sys::hostname().unwrap();
-    let mut package = try!(pkg::latest(&worker.package.name));
+    let package = try!(pkg::latest(&worker.package.name));
     let key = format!("{}/topology/leader/government/leader", package.name);
-    let mut watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
+    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
     worker.discovery.watch(watcher);
-    let mut package2 = try!(pkg::latest(&worker.package.name));
+    let package2 = try!(pkg::latest(&worker.package.name));
     let ckey = format!("{}/config", package2.name);
-    let mut cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
+    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
     worker.discovery.watch(cwatcher);
-    let mut package3 = try!(pkg::latest(&worker.package.name));
+    let package3 = try!(pkg::latest(&worker.package.name));
     let census_key = format!("{}/topology/leader/census/{}", package3.name, hostname);
     let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
-    let mut package4 = try!(pkg::latest(&worker.package.name));
+    let package4 = try!(pkg::latest(&worker.package.name));
     let gvmt_key = format!("{}/topology/leader/government", package4.name);
     let gvmt_writer = DiscoveryWriter::new(package4, gvmt_key, None, Some(30));
     worker.discovery.write(gvmt_writer);
@@ -199,7 +194,7 @@ fn write_census(worker: &mut Worker)  {
     println!("   {}: Creating my entry in the the census", worker.preamble());
     let hostname = util::sys::hostname().unwrap();
     let census_key = format!("{}/topology/leader/census/{}", worker.package.name, hostname);
-    let (census_statuscode, census_response) =
+    let (census_statuscode, _census_response) =
         etcd::set(&census_key, &[("dir", "true"), ("ttl", "30")]).unwrap();
     match census_statuscode {
         StatusCode::Created => {
@@ -237,7 +232,6 @@ fn write_census(worker: &mut Worker)  {
 
 fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Becoming a follower", worker.preamble());
-    println!("   {}: Creating my entry in the the census", worker.preamble());
 
     write_census(worker);
 
@@ -254,15 +248,15 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     worker.discovery.clear();
 
     let hostname = util::sys::hostname().unwrap();
-    let mut package = try!(pkg::latest(&worker.package.name));
+    let package = try!(pkg::latest(&worker.package.name));
     let key = format!("{}/topology/leader/government/leader", package.name);
-    let mut watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
+    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
     worker.discovery.watch(watcher);
-    let mut package2 = try!(pkg::latest(&worker.package.name));
+    let package2 = try!(pkg::latest(&worker.package.name));
     let ckey = format!("{}/config", package2.name);
-    let mut cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
+    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
     worker.discovery.watch(cwatcher);
-    let mut package3 = try!(pkg::latest(&worker.package.name));
+    let package3 = try!(pkg::latest(&worker.package.name));
     let census_key = format!("{}/topology/leader/census/{}", package3.name, hostname);
     let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
@@ -307,7 +301,8 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
         match worker.discovery.status(&format!("{}/topology/leader/government/leader", worker.package.name)) {
             Some(leader) => {
                 if let &DiscoveryResponse{value: None, ..} = leader {
-                    println!("Determining my viability because the leader left {:?}", worker.discovery);
+                    println!("   {}: Determining my viability as a candidate because the leader has left", worker.preamble());
+                    debug!("Discovery state: {:?}", worker.discovery);
                     return Ok((State::DetermineViability, 0));
                 } else {
                     debug!("I still have a leader");

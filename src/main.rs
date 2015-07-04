@@ -47,7 +47,6 @@ Usage: bldr install <package> -u <url>
 
 Options:
     -u, --url=<url>            Use a specific url for fetching the package
-    -w, --wait                 Wait for new configuration data
     -t, --topology=<topology>  Specify a service topology [default: standalone]
 ";
 
@@ -61,7 +60,6 @@ struct Args {
     cmd_bash: bool,
     arg_package: String,
     flag_url: String,
-    flag_wait: bool,
     flag_topology: String,
 }
 
@@ -83,9 +81,8 @@ fn main() {
         Args {
             cmd_config: true,
             arg_package: package,
-            flag_wait: wait,
             ..
-        } => config(&package, wait),
+        } => config(&package),
         Args {
             cmd_start: true,
             arg_package: package,
@@ -142,10 +139,10 @@ fn install(package: &str, url: &str) -> BldrResult<()> {
 }
 
 #[allow(dead_code)]
-fn config(package: &str, wait: bool) -> BldrResult<()> {
+fn config(package: &str) -> BldrResult<()> {
     banner();
     println!("Configuring {}", Yellow.bold().paint(package));
-    try!(config::package(package, wait));
+    try!(config::package(package));
     Ok(())
 }
 

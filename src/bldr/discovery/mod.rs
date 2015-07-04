@@ -2,7 +2,6 @@ pub mod etcd;
 
 use std::collections::HashMap;
 use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
-use std::thread;
 use std::fmt::{self, Debug};
 use ansi_term::Colour::{White};
 use hyper::status::StatusCode;
@@ -89,7 +88,7 @@ impl Discovery {
         Ok(())
     }
 
-    pub fn stop(&mut self) -> BldrResult<()> {
+    pub fn stop(&mut self) {
         for writer in self.writers.iter_mut() {
             writer.stop();
         }
@@ -97,7 +96,6 @@ impl Discovery {
         for watch in self.watchers.iter_mut() {
             watch.stop();
         }
-        Ok(())
     }
 }
 
@@ -146,7 +144,8 @@ impl DiscoveryWatcher {
         self.tx = Some(w_tx);
         self.rx = Some(b_rx);
         match self.backend {
-            ref Etcd => etcd::watch(&self.key, self.reconnect_interval, self.wait, b_tx, w_rx)
+            Some(Backend::Etcd) => etcd::watch(&self.key, self.reconnect_interval, self.wait, b_tx, w_rx),
+            None => panic!("I don't have a discovery backend - so I can't start your watcher")
         }
     }
 
@@ -218,7 +217,7 @@ impl DiscoveryWriter {
         self.tx = Some(w_tx);
         self.rx = Some(b_rx);
         match self.backend {
-            ref Etcd => {
+            Some(Backend::Etcd) => {
                 let options = etcd::EtcdWrite{
                     key: self.key.clone(),
                     value: self.value.clone(),
@@ -229,7 +228,8 @@ impl DiscoveryWriter {
                     prevValue: None,
                 };
                 etcd::write(options, b_tx, w_rx);
-            }
+            },
+            None => panic!("I cannot start your writer without a backend")
         }
     }
 
