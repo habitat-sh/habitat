@@ -16,12 +16,13 @@
 //
 
 use error::{BldrResult, BldrError};
+use config::Config;
 use pkg;
 use topology;
 
-pub fn package(pkg: &str, topo: &str) -> BldrResult<()> {
-    let package = try!(pkg::latest(pkg));
-    match topo {
+pub fn package(config: &Config) -> BldrResult<()> {
+    let package = try!(pkg::latest(config.package()));
+    match config.topology() {
         "standalone" => try!(topology::standalone::run(package)),
         "leader" => try!(topology::leader::run(package)),
         t => {

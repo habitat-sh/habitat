@@ -21,26 +21,26 @@ pub enum Command {
     Config,
     Start,
     Key,
-    Sh,
-    Bash,
+    Shell,
 }
 
 impl Default for Command {
-    fn default() -> Command { Command::Install }
+    fn default() -> Command {
+        Command::Install
+    }
 }
 
 #[derive(Default)]
 pub struct Config {
     command: Command,
-    package: Option<String>,
-    url: Option<String>,
-    wait: bool,
-    topology: Option<String>,
+    package: String,
+    url: String,
+    topology: String,
 }
 
 impl Config {
-    pub fn new(command: Command) -> Config {
-        Config{ command: command, ..Default::default() }
+    pub fn new() -> Config {
+        Config::default()
     }
 
     pub fn set_command(&mut self, command: Command) -> &mut Config {
@@ -52,51 +52,32 @@ impl Config {
         self.command.clone()
     }
 
-    pub fn set_package(&mut self, package: &str) -> &mut Config {
-        self.package = Some(String::from(package));
+    pub fn set_package(&mut self, package: String) -> &mut Config {
+        self.package = package;
         self
     }
 
-    pub fn package(&self) -> Option<&str> {
-        match self.package {
-            Some(ref value) => Some(value),
-            None => None
-        }
+    pub fn package(&self) -> &str {
+        &self.package
     }
 
-    pub fn set_url(&mut self, url: &str) -> &mut Config {
-        self.url = Some(String::from(url));
+    pub fn set_url(&mut self, url: String) -> &mut Config {
+        self.url = url;
         self
     }
 
-    pub fn url(&self) -> Option<&str> {
-        match self.url {
-            Some(ref value) => Some(value),
-            None => None
-        }
+    pub fn url(&self) -> &str {
+        &self.url
     }
 
-    pub fn set_wait(&mut self, wait: bool) -> &mut Config {
-        self.wait = wait;
+    pub fn set_topology(&mut self, topology: String) -> &mut Config {
+        self.topology = topology;
         self
     }
 
-    pub fn wait(&self) -> bool {
-        self.wait
+    pub fn topology(&self) -> &str {
+        &self.topology
     }
-
-    pub fn set_topology(&mut self, topology: &str) -> &mut Config {
-        self.topology = Some(String::from(topology));
-        self
-    }
-
-    pub fn topology(&self) -> Option<&str> {
-        match self.topology {
-            Some(ref value) => Some(value),
-            None => None
-        }
-    }
-
 }
 
 #[cfg(test)]
@@ -105,42 +86,35 @@ mod tests {
 
     #[test]
     fn new() {
-        let c = Config::new(Command::Start);
-        assert_eq!(c.command(), Command::Start);
+        let c = Config::new();
+        assert_eq!(c.topology(), String::new());
     }
 
     #[test]
     fn command() {
-        let mut c = Config::new(Command::Start);
-        c.set_command(Command::Bash);
-        assert_eq!(c.command(), Command::Bash);
+        let mut c = Config::new();
+        c.set_command(Command::Install);
+        assert_eq!(c.command(), Command::Install);
     }
 
     #[test]
     fn package() {
-        let mut c = Config::new(Command::Start);
-        c.set_package("foolio");
-        assert_eq!(c.package(), Some("foolio"));
+        let mut c = Config::new();
+        c.set_package(String::from("foolio"));
+        assert_eq!(c.package(), "foolio");
     }
 
     #[test]
     fn url() {
-        let mut c = Config::new(Command::Start);
-        c.set_url("http://foolio.com");
-        assert_eq!(c.url(), Some("http://foolio.com"));
-    }
-
-    #[test]
-    fn wait() {
-        let mut c = Config::new(Command::Start);
-        c.set_wait(true);
-        assert_eq!(c.wait(), true);
+        let mut c = Config::new();
+        c.set_url(String::from("http://foolio.com"));
+        assert_eq!(c.url(), "http://foolio.com");
     }
 
     #[test]
     fn topology() {
-        let mut c = Config::new(Command::Start);
-        c.set_topology("leader");
-        assert_eq!(c.topology(), Some("leader"));
+        let mut c = Config::new();
+        c.set_topology(String::from("leader"));
+        assert_eq!(c.topology(), "leader");
     }
 }

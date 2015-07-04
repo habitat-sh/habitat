@@ -24,14 +24,16 @@ extern crate ansi_term;
 extern crate libc;
 
 use docopt::Docopt;
-use bldr::error::{BldrResult, BldrError};
-use bldr::command::*;
 use std::process;
 use ansi_term::Colour::{Red, Green, Yellow};
 use libc::funcs::posix88::unistd::execvp;
 use std::ffi::CString;
 use std::ptr;
+
+use bldr::config::{Command, Config};
 use bldr::sidecar;
+use bldr::error::{BldrResult, BldrError};
+use bldr::command::*;
 
 #[allow(dead_code)]
 static VERSION: &'static str = "0.0.1";
@@ -39,7 +41,6 @@ static VERSION: &'static str = "0.0.1";
 #[allow(dead_code)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url>
-       bldr config <package> [--wait]
        bldr start <package> [--topology=<topology>]
        bldr sh
        bldr bash
@@ -53,7 +54,6 @@ Options:
 #[derive(RustcDecodable, Debug)]
 struct Args {
     cmd_install: bool,
-    cmd_config: bool,
     cmd_start: bool,
     cmd_key: bool,
     cmd_sh: bool,
@@ -61,6 +61,15 @@ struct Args {
     arg_package: String,
     flag_url: String,
     flag_topology: String,
+}
+
+fn config_from_args(args: &Args, command: Command) -> Config {
+    let mut config = Config::new();
+    config.set_command(command);
+    config.set_package(args.arg_package.clone());
+    config.set_url(args.flag_url.clone());
+    config.set_topology(args.flag_topology.clone());
+    config
 }
 
 #[allow(dead_code)]
@@ -72,38 +81,29 @@ fn main() {
                             .unwrap_or_else(|e| e.exit());
     debug!("Docopt Args: {:?}", args);
     let result = match args {
-        Args {
-            cmd_install: true,
-            arg_package: package,
-            flag_url: url,
-            ..
-        } => install(&package, &url),
-        Args {
-            cmd_config: true,
-            arg_package: package,
-            ..
-        } => config(&package),
-        Args {
-            cmd_start: true,
-            arg_package: package,
-            flag_topology: topo,
-            ..
-        } => start(&package, &topo),
-        Args {
-            cmd_key: true,
-            flag_url: url,
-            ..
-        } => key(&url),
-        Args {
-            cmd_sh: true,
-            ..
-        } => shell(),
-        Args {
-            cmd_bash: true,
-            ..
-        } => shell(),
-        _ => Err(BldrError::CommandNotImplemented)
+        Args{cmd_install: true, ..} => {
+            let config = config_from_args(&args, Command::Install);
+            install(&config)
+        },
+        Args{cmd_start: true, ..} => {
+            let config = config_from_args(&args, Command::Start);
+            start(&config)
+        },
+        Args{cmd_key: true, ..} => {
+            let config = config_from_args(&args, Command::Key);
+            key(&config)
+        },
+        Args{cmd_sh: true, ..} => {
+            let config = config_from_args(&args, Command::Shell);
+            shell(&config)
+        },
+        Args{cmd_bash: true, ..} => {
+            let config = config_from_args(&args, Command::Shell);
+            shell(&config)
+        },
+        _ => Err(BldrError::CommandNotImplemented),
     };
+
     match result {
         Ok(_) => {},
         Err(e) => exit_with(e, 1)
@@ -116,7 +116,7 @@ fn banner() {
 }
 
 #[allow(dead_code)]
-fn shell() -> BldrResult<()> {
+fn shell(_config: &Config) -> BldrResult<()> {
     banner();
     let shell_arg = try!(CString::new("sh"));
     let mut argv = [ shell_arg.as_ptr(), ptr::null() ];
@@ -129,38 +129,30 @@ fn shell() -> BldrResult<()> {
 }
 
 #[allow(dead_code)]
-fn install(package: &str, url: &str) -> BldrResult<()> {
+fn install(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Installing {}", Yellow.bold().paint(package));
-    let pkg_file = try!(install::from_url(package, &url));
-    try!(install::verify(package, &pkg_file));
-    try!(install::unpack(package, &pkg_file));
+    println!("Installing {}", Yellow.bold().paint(config.package()));
+    let pkg_file = try!(install::from_url(config.package(), config.url()));
+    try!(install::verify(config.package(), &pkg_file));
+    try!(install::unpack(config.package(), &pkg_file));
     Ok(())
 }
 
 #[allow(dead_code)]
-fn config(package: &str) -> BldrResult<()> {
+fn start(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Configuring {}", Yellow.bold().paint(package));
-    try!(config::package(package));
+    println!("Starting {}", Yellow.bold().paint(config.package()));
+    try!(sidecar::run(config.package()));
+    try!(start::package(config));
+    println!("Finished with {}", Yellow.bold().paint(config.package()));
     Ok(())
 }
 
 #[allow(dead_code)]
-fn start(package: &str, topo: &str) -> BldrResult<()> {
+fn key(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Starting {}", Yellow.bold().paint(package));
-    try!(sidecar::run(package));
-    try!(start::package(package, topo));
-    println!("Finished with {}", Yellow.bold().paint(package));
-    Ok(())
-}
-
-#[allow(dead_code)]
-fn key(url: &str) -> BldrResult<()> {
-    banner();
-    println!("Installing key {}", Yellow.bold().paint(url));
-    try!(key::install(url));
+    println!("Installing key {}", Yellow.bold().paint(config.url()));
+    try!(key::install(config.url()));
     Ok(())
 }
 

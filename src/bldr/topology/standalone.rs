@@ -54,12 +54,12 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.configure());
 
     if let Some(_) = discovery::etcd::enabled() {
-        let package = try!(pkg::latest(&worker.package.name));
+        let package = worker.package.clone();
         let key = format!("{}/config", package.name);
         let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1000, true);
         worker.discovery.watch(watcher);
     };
-    let watch_package = try!(pkg::latest(&worker.package.name));
+    let watch_package = worker.package.clone();
     let configuration_thread = thread::spawn(move || -> BldrResult<()> {
         try!(watch_package.watch_configuration());
         Ok(())

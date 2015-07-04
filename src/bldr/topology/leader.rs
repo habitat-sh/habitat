@@ -22,7 +22,7 @@ use topology::{self, State, Worker};
 use state_machine::StateMachine;
 use error::{BldrResult, BldrError};
 use util;
-use pkg::{self, Package};
+use pkg::Package;
 use discovery::{etcd, DiscoveryWatcher, DiscoveryWriter, DiscoveryResponse, DiscoveryWriteResponse};
 use topology::standalone;
 
@@ -170,19 +170,19 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     worker.discovery.clear();
 
     let hostname = util::sys::hostname().unwrap();
-    let package = try!(pkg::latest(&worker.package.name));
+    let package = worker.package.clone();
     let key = format!("{}/topology/leader/government/leader", package.name);
     let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
     worker.discovery.watch(watcher);
-    let package2 = try!(pkg::latest(&worker.package.name));
+    let package2 = worker.package.clone();
     let ckey = format!("{}/config", package2.name);
     let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
     worker.discovery.watch(cwatcher);
-    let package3 = try!(pkg::latest(&worker.package.name));
+    let package3 = worker.package.clone();
     let census_key = format!("{}/topology/leader/census/{}", package3.name, hostname);
     let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
-    let package4 = try!(pkg::latest(&worker.package.name));
+    let package4 = worker.package.clone();
     let gvmt_key = format!("{}/topology/leader/government", package4.name);
     let gvmt_writer = DiscoveryWriter::new(package4, gvmt_key, None, Some(30));
     worker.discovery.write(gvmt_writer);
@@ -248,15 +248,15 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     worker.discovery.clear();
 
     let hostname = util::sys::hostname().unwrap();
-    let package = try!(pkg::latest(&worker.package.name));
+    let package = worker.package.clone();
     let key = format!("{}/topology/leader/government/leader", package.name);
     let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
     worker.discovery.watch(watcher);
-    let package2 = try!(pkg::latest(&worker.package.name));
+    let package2 = worker.package.clone();
     let ckey = format!("{}/config", package2.name);
     let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
     worker.discovery.watch(cwatcher);
-    let package3 = try!(pkg::latest(&worker.package.name));
+    let package3 = worker.package.clone();
     let census_key = format!("{}/topology/leader/census/{}", package3.name, hostname);
     let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
@@ -284,9 +284,8 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     if worker.supervisor_thread.is_none() {
         try!(worker.package.configure());
         try!(standalone::state_starting(worker));
-        let name = worker.package.name.clone();
+        let watch_package = worker.package.clone();
         let configuration_thread = thread::spawn(move || -> BldrResult<()> {
-            let watch_package = try!(pkg::latest(&name));
             try!(watch_package.watch_configuration());
             Ok(())
         });
@@ -317,9 +316,8 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     if worker.supervisor_thread.is_none() {
         try!(worker.package.configure());
         try!(standalone::state_starting(worker));
-        let name = worker.package.name.clone();
+        let watch_package = worker.package.clone();
         let configuration_thread = thread::spawn(move || -> BldrResult<()> {
-            let watch_package = try!(pkg::latest(&name));
             try!(watch_package.watch_configuration());
             Ok(())
         });
