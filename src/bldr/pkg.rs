@@ -36,7 +36,6 @@ use std::path::Path;
 use std::hash::Hasher;
 use fnv::FnvHasher;
 
-use discovery;
 use util;
 use health_check::{self, CheckResult};
 
@@ -314,23 +313,6 @@ impl Package {
        println!("   {}: Loading data from default.toml", pkg_print);
        try!(fs::copy(self.join_path("default.toml"), self.srvc_join_path("toml/000_default.toml")));
        Ok(())
-    }
-
-    pub fn write_discovery_data(&mut self, key: &str, filename: &str, wait: bool) -> BldrResult<()> {
-       let pkg_print = format!("{}({})", self.name, White.bold().paint("D"));
-        if discovery::etcd::enabled().is_some() {
-            match discovery::etcd::get_config(&self.name, key, wait) {
-                Some(discovery_toml_value) => {
-                    if try!(self.write_toml(filename, discovery_toml_value)) {
-                        println!("   {}: Adding data from discovery service", pkg_print);
-                    }
-                },
-                None => {
-                    println!("   {}: No data returned from discovery service", pkg_print);
-                }
-            };
-        }
-        Ok(())
     }
 
     pub fn write_environment_data(&mut self) -> BldrResult<()> {

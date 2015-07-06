@@ -36,6 +36,7 @@ pub struct Config {
     package: String,
     url: String,
     topology: String,
+    group: String,
 }
 
 impl Config {
@@ -59,6 +60,15 @@ impl Config {
 
     pub fn package(&self) -> &str {
         &self.package
+    }
+
+    pub fn set_group(&mut self, group: String) -> &mut Config {
+        self.group = group;
+        self
+    }
+
+    pub fn group(&self) -> &str {
+        &self.group
     }
 
     pub fn set_url(&mut self, url: String) -> &mut Config {

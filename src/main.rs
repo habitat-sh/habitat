@@ -62,6 +62,7 @@ struct Args {
     arg_package: String,
     flag_url: String,
     flag_topology: String,
+    flag_group: String,
 }
 
 fn config_from_args(args: &Args, command: Command) -> Config {
@@ -70,6 +71,7 @@ fn config_from_args(args: &Args, command: Command) -> Config {
     config.set_package(args.arg_package.clone());
     config.set_url(args.flag_url.clone());
     config.set_topology(args.flag_topology.clone());
+    config.set_group(args.flag_group.clone());
     config
 }
 

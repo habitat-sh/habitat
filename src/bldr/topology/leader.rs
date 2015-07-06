@@ -52,7 +52,7 @@ fn status_value(status_type: &str, worker: &mut Worker) -> String {
 fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(standalone::state_init(worker));
     println!("   {}: Attempting to initialize the data set", worker.preamble());
-    let key = format!("{}/topology/leader/init", worker.package.name);
+    let key = format!("{}/{}/topology/leader/init", worker.package.name, worker.config.group());
     let ip = util::sys::ip().unwrap();
     let port = worker.package.exposes().pop().unwrap_or(String::from("0"));
     let status = format!("ip = '{}'\nport = '{}'", ip, port);
@@ -101,7 +101,7 @@ fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u32)> {
 fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Becoming the leader", worker.preamble());
     println!("   {}: Forming the government", worker.preamble());
-    let govkey = format!("{}/topology/leader/government", worker.package.name);
+    let govkey = format!("{}/{}/topology/leader/government", worker.package.name, worker.config.group());
     let (gov_statuscode, _gov_response) =
         etcd::set(&govkey, &[("dir", "true"), ("ttl", "30")]).unwrap();
     match gov_statuscode {
@@ -120,7 +120,7 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
         },
     };
 
-    let key = format!("{}/topology/leader/government/leader", worker.package.name);
+    let key = format!("{}/{}/topology/leader/government/leader", worker.package.name, worker.config.group());
     let (statuscode, response) =
         etcd::set(&key, &[("value", &status_value("[topology.leader]", worker)), ("prevExist", "false")]).unwrap();
     debug!("Response is {:?} {}", statuscode, response);
@@ -172,19 +172,19 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     let hostname = util::sys::hostname().unwrap();
     let package = worker.package.clone();
-    let key = format!("{}/topology/leader/government/leader", package.name);
+    let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
     let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
     worker.discovery.watch(watcher);
     let package2 = worker.package.clone();
-    let ckey = format!("{}/config", package2.name);
+    let ckey = format!("{}/{}/config", package2.name, worker.config.group());
     let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
     worker.discovery.watch(cwatcher);
     let package3 = worker.package.clone();
-    let census_key = format!("{}/topology/leader/census/{}", package3.name, hostname);
+    let census_key = format!("{}/{}/topology/leader/census/{}", package3.name, worker.config.group(), hostname);
     let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
     let package4 = worker.package.clone();
-    let gvmt_key = format!("{}/topology/leader/government", package4.name);
+    let gvmt_key = format!("{}/{}/topology/leader/government", package4.name, worker.config.group());
     let gvmt_writer = DiscoveryWriter::new(package4, gvmt_key, None, Some(30));
     worker.discovery.write(gvmt_writer);
 
@@ -194,7 +194,7 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 fn write_census(worker: &mut Worker)  {
     println!("   {}: Creating my entry in the the census", worker.preamble());
     let hostname = util::sys::hostname().unwrap();
-    let census_key = format!("{}/topology/leader/census/{}", worker.package.name, hostname);
+    let census_key = format!("{}/{}/topology/leader/census/{}", worker.package.name, worker.config.group(), hostname);
     let (census_statuscode, _census_response) =
         etcd::set(&census_key, &[("dir", "true"), ("ttl", "30")]).unwrap();
     match census_statuscode {
@@ -213,7 +213,7 @@ fn write_census(worker: &mut Worker)  {
         },
     };
 
-    let key = format!("{}/topology/leader/census/{}/data", worker.package.name, hostname);
+    let key = format!("{}/{}/topology/leader/census/{}/data", worker.package.name, worker.config.group(), hostname);
     let (statuscode, response) =
         etcd::set(&key, &[("value", &status_value("[[topology.follower]]", worker))]).unwrap();
     debug!("Response is {:?} {}", statuscode, response);
@@ -250,15 +250,15 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     let hostname = util::sys::hostname().unwrap();
     let package = worker.package.clone();
-    let key = format!("{}/topology/leader/government/leader", package.name);
+    let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
     let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
     worker.discovery.watch(watcher);
     let package2 = worker.package.clone();
-    let ckey = format!("{}/config", package2.name);
+    let ckey = format!("{}/{}/config", package2.name, worker.config.group());
     let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
     worker.discovery.watch(cwatcher);
     let package3 = worker.package.clone();
-    let census_key = format!("{}/topology/leader/census/{}", package3.name, hostname);
+    let census_key = format!("{}/{}/topology/leader/census/{}", package3.name, worker.config.group(), hostname);
     let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
 
@@ -267,7 +267,7 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
 fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     loop {
-        match worker.discovery.write_status(&format!("{}/topology/leader/government", worker.package.name)) {
+        match worker.discovery.write_status(&format!("{}/{}/topology/leader/government", worker.package.name, worker.config.group())) {
             Some(leader) => {
                 match leader {
                     &DiscoveryWriteResponse{status: StatusCode::Created, ..} => break,
@@ -298,7 +298,7 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
 fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     loop {
-        match worker.discovery.status(&format!("{}/topology/leader/government/leader", worker.package.name)) {
+        match worker.discovery.status(&format!("{}/{}/topology/leader/government/leader", worker.package.name, worker.config.group())) {
             Some(leader) => {
                 if let &DiscoveryResponse{value: None, ..} = leader {
                     println!("   {}: Determining my viability as a candidate because the leader has left", worker.preamble());

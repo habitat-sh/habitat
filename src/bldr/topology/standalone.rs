@@ -48,18 +48,17 @@ pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 
 pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.write_default_data());
-    try!(worker.package.write_discovery_data("config", "100_discovery.toml", false));
     try!(worker.package.write_environment_data());
     try!(worker.package.write_sys_data());
     try!(worker.package.write_bldr_data());
-    try!(worker.package.configure());
 
     if let Some(_) = discovery::etcd::enabled() {
         let package = worker.package.clone();
-        let key = format!("{}/config", package.name);
+        let key = format!("{}/{}/config", package.name, worker.config.group());
         let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1000, true);
         worker.discovery.watch(watcher);
     };
+    try!(worker.package.configure());
     let watch_package = worker.package.clone();
     let configuration_thread = thread::spawn(move || -> BldrResult<()> {
         try!(watch_package.watch_configuration());
