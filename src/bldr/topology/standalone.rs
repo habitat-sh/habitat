@@ -26,9 +26,10 @@ use pkg::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
 use discovery::DiscoveryWatcher;
+use config::Config;
 
-pub fn run(package: Package) -> BldrResult<()> {
-    let mut worker = Worker::new(package, String::from("standalone"));
+pub fn run(package: Package, config: &Config) -> BldrResult<()> {
+    let mut worker = Worker::new(package, String::from("standalone"), config);
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::Configure, state_configure);

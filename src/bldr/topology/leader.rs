@@ -25,9 +25,10 @@ use util;
 use pkg::Package;
 use discovery::{etcd, DiscoveryWatcher, DiscoveryWriter, DiscoveryResponse, DiscoveryWriteResponse};
 use topology::standalone;
+use config::Config;
 
-pub fn run(package: Package) -> BldrResult<()> {
-    let mut worker = Worker::new(package, String::from("leader"));
+pub fn run(package: Package, config: &Config) -> BldrResult<()> {
+    let mut worker = Worker::new(package, String::from("leader"), config);
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::CreateDataset, state_create_dataset);

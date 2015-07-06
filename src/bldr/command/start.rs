@@ -23,8 +23,8 @@ use topology;
 pub fn package(config: &Config) -> BldrResult<()> {
     let package = try!(pkg::latest(config.package()));
     match config.topology() {
-        "standalone" => try!(topology::standalone::run(package)),
-        "leader" => try!(topology::leader::run(package)),
+        "standalone" => try!(topology::standalone::run(package, config)),
+        "leader" => try!(topology::leader::run(package, config)),
         t => {
             return Err(BldrError::UnknownTopology(String::from(t)))
         }

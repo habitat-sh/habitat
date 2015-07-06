@@ -28,6 +28,7 @@ use state_machine::StateMachine;
 use discovery;
 use pkg::{Package, Signal};
 use error::{BldrResult, BldrError};
+use config::Config;
 
 static CAUGHT_SIGNAL: AtomicBool = ATOMIC_BOOL_INIT;
 static WHICH_SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -70,15 +71,16 @@ pub enum State {
     Finished,
 }
 
-pub struct Worker {
+pub struct Worker<'a> {
     pub package: Package,
+    pub config: &'a Config,
     pub topology: String,
     pub discovery: discovery::Discovery,
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
     pub configuration_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
 }
 
-fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Worker) -> BldrResult<()> {
+fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
     loop {
         if CAUGHT_SIGNAL.load(Ordering::SeqCst) {
             match WHICH_SIGNAL.load(Ordering::SeqCst) {
@@ -147,11 +149,12 @@ fn run_internal(sm: &mut StateMachine<State, Worker, BldrError>, worker: &mut Wo
     Ok(())
 }
 
-impl Worker {
-    pub fn new(package: Package, topology: String) -> Worker {
+impl<'a> Worker<'a> {
+    pub fn new(package: Package, topology: String, config: &'a Config) -> Worker<'a> {
         Worker{
             package: package,
             topology: topology,
+            config: config,
             discovery: discovery::Discovery::new(discovery::Backend::Etcd),
             supervisor_thread: None,
             configuration_thread: None,

@@ -41,13 +41,14 @@ static VERSION: &'static str = "0.0.1";
 #[allow(dead_code)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url>
-       bldr start <package> [--topology=<topology>]
+       bldr start <package> [--group=<group>] [--topology=<topology>]
        bldr sh
        bldr bash
        bldr key -u <url>
 
 Options:
-    -u, --url=<url>            Use a specific url for fetching the package
+    -g, --group=<group>        The deployment group; shared config and topology [default: default]
+    -u, --url=<url>            Use a specific url for fetching a file
     -t, --topology=<topology>  Specify a service topology [default: standalone]
 ";
 
