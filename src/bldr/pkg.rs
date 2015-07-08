@@ -301,6 +301,7 @@ impl Package {
             println!("   {}: Processing {}", pkg_print, tmpl_path);
             let template = try!(mustache::compile_path(self.join_path(&format!("config/{}", config))));
             println!("   {}: Rendering {}", pkg_print, Purple.bold().paint(&config));
+            debug!("{:?}", final_data);
             let mut config_file = try!(File::create(self.srvc_join_path(&format!("config/{}", config))));
             template.render_data(&mut config_file, &final_data);
         }

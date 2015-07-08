@@ -22,7 +22,6 @@ extern crate docopt;
 extern crate env_logger;
 extern crate ansi_term;
 extern crate libc;
-
 use docopt::Docopt;
 use std::process;
 use ansi_term::Colour::{Red, Green, Yellow};
@@ -41,15 +40,16 @@ static VERSION: &'static str = "0.0.1";
 #[allow(dead_code)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url>
-       bldr start <package> [--group=<group>] [--topology=<topology>]
+       bldr start <package> [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
        bldr sh
        bldr bash
        bldr key -u <url>
 
 Options:
-    -g, --group=<group>        The deployment group; shared config and topology [default: default]
-    -u, --url=<url>            Use a specific url for fetching a file
+    -g, --group=<group>        The service group; shared config and topology [default: default]
     -t, --topology=<topology>  Specify a service topology [default: standalone]
+    -u, --url=<url>            Use a specific url for fetching a file
+    -w, --watch=<watch>        One or more service groups to watch for updates
 ";
 
 #[derive(RustcDecodable, Debug)]
@@ -63,6 +63,7 @@ struct Args {
     flag_url: String,
     flag_topology: String,
     flag_group: String,
+    flag_watch: Vec<String>
 }
 
 fn config_from_args(args: &Args, command: Command) -> Config {
@@ -72,6 +73,7 @@ fn config_from_args(args: &Args, command: Command) -> Config {
     config.set_url(args.flag_url.clone());
     config.set_topology(args.flag_topology.clone());
     config.set_group(args.flag_group.clone());
+    config.set_watch(args.flag_watch.clone());
     config
 }
 

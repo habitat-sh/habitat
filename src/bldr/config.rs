@@ -37,6 +37,7 @@ pub struct Config {
     url: String,
     topology: String,
     group: String,
+    watch: Vec<String>,
 }
 
 impl Config {
@@ -69,6 +70,15 @@ impl Config {
 
     pub fn group(&self) -> &str {
         &self.group
+    }
+
+    pub fn set_watch(&mut self, watch: Vec<String>) -> &mut Config {
+        self.watch = watch;
+        self
+    }
+
+    pub fn watch(&self) -> &[String] {
+        &self.watch
     }
 
     pub fn set_url(&mut self, url: String) -> &mut Config {

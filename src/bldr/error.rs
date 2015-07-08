@@ -59,6 +59,7 @@ pub enum BldrError {
     NoConfiguration,
     HealthCheck(String),
     TryRecvError(mpsc::TryRecvError),
+    BadWatch(String),
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -102,6 +103,7 @@ impl fmt::Display for BldrError {
             BldrError::NoConfiguration => write!(f, "No configuration data - cannot continue"),
             BldrError::HealthCheck(ref e) => write!(f, "Health Check failed: {}", e),
             BldrError::TryRecvError(ref err) => err.fmt(f),
+            BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
         }
     }
 }
@@ -138,6 +140,7 @@ impl Error for BldrError {
             BldrError::NoConfiguration => "No configuration data available",
             BldrError::HealthCheck(_) => "Health Check returned an unknown status code",
             BldrError::TryRecvError(_) => "A channel failed to recieve a response",
+            BldrError::BadWatch(_) => "An invalid watch was specified",
         }
     }
 }

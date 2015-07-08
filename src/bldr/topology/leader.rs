@@ -53,9 +53,7 @@ fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(standalone::state_init(worker));
     println!("   {}: Attempting to initialize the data set", worker.preamble());
     let key = format!("{}/{}/topology/leader/init", worker.package.name, worker.config.group());
-    let ip = util::sys::ip().unwrap();
-    let port = worker.package.exposes().pop().unwrap_or(String::from("0"));
-    let status = format!("ip = '{}'\nport = '{}'", ip, port);
+    let status = status_value("[topology.init]", worker);
     let (statuscode, response) =
         etcd::set(&key, &[("value", &status), ("prevExist", "false")]).unwrap();
     debug!("Response is {:?} {}", statuscode, response);
@@ -173,11 +171,11 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     let hostname = util::sys::hostname().unwrap();
     let package = worker.package.clone();
     let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
-    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
+    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true, false);
     worker.discovery.watch(watcher);
     let package2 = worker.package.clone();
     let ckey = format!("{}/{}/config", package2.name, worker.config.group());
-    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
+    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true, false);
     worker.discovery.watch(cwatcher);
     let package3 = worker.package.clone();
     let census_key = format!("{}/{}/topology/leader/census/{}", package3.name, worker.config.group(), hostname);
@@ -215,7 +213,7 @@ fn write_census(worker: &mut Worker)  {
 
     let key = format!("{}/{}/topology/leader/census/{}/data", worker.package.name, worker.config.group(), hostname);
     let (statuscode, response) =
-        etcd::set(&key, &[("value", &status_value("[[topology.follower]]", worker))]).unwrap();
+        etcd::set(&key, &[("value", &status_value("[[topology.census]]", worker))]).unwrap();
     debug!("Response is {:?} {}", statuscode, response);
     match statuscode {
         StatusCode::Created => {
@@ -251,11 +249,11 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     let hostname = util::sys::hostname().unwrap();
     let package = worker.package.clone();
     let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
-    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true);
+    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true, false);
     worker.discovery.watch(watcher);
     let package2 = worker.package.clone();
     let ckey = format!("{}/{}/config", package2.name, worker.config.group());
-    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true);
+    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true, false);
     worker.discovery.watch(cwatcher);
     let package3 = worker.package.clone();
     let census_key = format!("{}/{}/topology/leader/census/{}", package3.name, worker.config.group(), hostname);

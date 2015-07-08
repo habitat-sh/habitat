@@ -1,2 +1,6 @@
-# I don't have a lot yet
-doeet = true
+bind = '0.0.0.0:80'
+tcp-enable = false
+[tcp]
+connect = '4s'
+server = '30s'
+client = '30s'

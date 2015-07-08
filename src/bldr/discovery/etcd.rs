@@ -28,6 +28,7 @@ use ansi_term::Colour::{White};
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver, TryRecvError};
 use time;
+use std::mem;
 
 use error::BldrResult;
 use util;
@@ -178,7 +179,7 @@ pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watch
 }
 //
 
-pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
+pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
     let key = String::from(key);
     let _newthread = thread::Builder::new().name(format!("etcd:{}", key)).spawn(move || {
         let mut first_run = true;
@@ -192,7 +193,7 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<
             // If it is the first time we've asked, just ask - we want to seed the right data
             // quickly
             let really_wait = if first_run { first_run = false; false } else { wait };
-            let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}", base_url, key, really_wait)).send() {
+            let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}&recursive={}", base_url, key, really_wait, recursive)).send() {
                 Ok(res) => res,
                 Err(e) => {
                     debug!("   {}: Invalid request for config: {:?}", preamble, e);
@@ -218,24 +219,21 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<
                     continue;
                 }
             };
-            match body_as_json.find_path(&["node", "value"]) {
+            match body_as_json.find("node") {
                 Some(json_value) => {
-                    match json_value.as_string() {
-                        Some(json_value_string) => {
-                            debug!("Sending back a value");
-                            watcher_tx.send(Some(String::from(json_value_string))).unwrap()
-                        },
-                        None => {
-                            debug!("   {}: Invalid json value for node/value - not a string!", preamble);
-                            watcher_tx.send(None).unwrap();
-                            continue;
-                        }
+                    let mut results = String::new();
+                    get_json_values_recursively(json_value, &mut results);
+                    if results.is_empty() {
+                        debug!("   {}: Invalid json value for node/values!", preamble);
+                        watcher_tx.send(None).unwrap();
+                    } else {
+                        debug!("Sending back a value");
+                        watcher_tx.send(Some(String::from(results))).unwrap()
                     }
                 },
                 None => {
                     debug!("   {}: No node/value present in response json", preamble);
                     watcher_tx.send(None).unwrap();
-                    continue;
                 }
             }
 
@@ -262,6 +260,41 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, watcher_tx: Sender<
             }
         }
     });
+}
+
+// Given an etcd 'node', it will recursively accumulate all the values
+// underneath it into a single string. Since we simply write TOML strings
+// out, this should make it easy to grab a bunch of things in one go.
+fn get_json_values_recursively(json: &Json, result_acc: &mut String) {
+    match json.find("nodes") {
+        Some(nodes_list) => {
+            for node in nodes_list.as_array().unwrap().iter() {
+                get_json_values_recursively(node, result_acc);
+            }
+        },
+        None => {
+            match json.find("value") {
+                Some(json_value) => {
+                    match json_value.as_string() {
+                        Some(value) => {
+                            if value.starts_with("[") {
+                                result_acc.push_str(&format!("{}\n", value))
+                            } else {
+                                let new_string = if result_acc.is_empty() {
+                                    String::from(value)
+                                } else {
+                                    format!("{}\n{}", value, result_acc)
+                                };
+                                mem::replace(result_acc, new_string);
+                            }
+                        },
+                        None => debug!("node.value should be a string - I have no idea whats up")
+                    }
+                },
+                None => {}
+            }
+        }
+    }
 }
 
 pub fn get_config(pkg: &str, key: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
@@ -328,3 +361,137 @@ pub fn get_config(pkg: &str, key: &str, wait: bool) -> Option<BTreeMap<String, t
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::get_json_values_recursively as get_json_values_recursively_etcd;
+    use rustc_serialize::json::Json;
+
+    #[test]
+    fn get_json_values_recursively() {
+        let json_string = r#"
+{
+  "action": "get",
+  "node": {
+    "key": "/bldr/redis/default",
+    "dir": true,
+    "nodes": [
+      {
+        "key": "/bldr/redis/default/topology",
+        "dir": true,
+        "nodes": [
+          {
+            "key": "/bldr/redis/default/topology/leader",
+            "dir": true,
+            "nodes": [
+              {
+                "key": "/bldr/redis/default/topology/leader/init",
+                "value": "[topology.init]\nip = '172.17.0.1'\nport = '6379'",
+                "modifiedIndex": 186683,
+                "createdIndex": 186476
+              },
+              {
+                "key": "/bldr/redis/default/topology/leader/government",
+                "dir": true,
+                "expiration": "2015-07-06T23:14:31.187124534Z",
+                "ttl": 10,
+                "nodes": [
+                  {
+                    "key": "/bldr/redis/default/topology/leader/government/leader",
+                    "value": "[topology.leader]\nhostname = 'd48611215f82'\nip = '172.17.0.1'\nport = '6379'",
+                    "modifiedIndex": 186685,
+                    "createdIndex": 186685
+                  }
+                ],
+                "modifiedIndex": 186684,
+                "createdIndex": 186684
+              },
+              {
+                "key": "/bldr/redis/default/topology/leader/census",
+                "dir": true,
+                "nodes": [
+                  {
+                    "key": "/bldr/redis/default/topology/leader/census/d48611215f82",
+                    "dir": true,
+                    "expiration": "2015-07-06T23:14:31.181055623Z",
+                    "ttl": 10,
+                    "nodes": [
+                      {
+                        "key": "/bldr/redis/default/topology/leader/census/d48611215f82/data",
+                        "value": "[[topology.follower]]\nhostname = 'd48611215f82'\nip = '172.17.0.1'\nport = '6379'",
+                        "modifiedIndex": 186687,
+                        "createdIndex": 186687
+                      }
+                    ],
+                    "modifiedIndex": 186686,
+                    "createdIndex": 186686
+                  },
+                  {
+                    "key": "/bldr/redis/default/topology/leader/census/437b1d502710",
+                    "dir": true,
+                    "expiration": "2015-07-06T23:14:39.690122089Z",
+                    "ttl": 19,
+                    "nodes": [
+                      {
+                        "key": "/bldr/redis/default/topology/leader/census/437b1d502710/data",
+                        "value": "[[topology.follower]]\nhostname = '437b1d502710'\nip = '172.17.0.4'\nport = '6379'",
+                        "modifiedIndex": 186691,
+                        "createdIndex": 186691
+                      }
+                    ],
+                    "modifiedIndex": 186690,
+                    "createdIndex": 186690
+                  }
+                ],
+                "modifiedIndex": 186479,
+                "createdIndex": 186479
+              }
+            ],
+            "modifiedIndex": 186476,
+            "createdIndex": 186476
+          }
+        ],
+        "modifiedIndex": 186476,
+        "createdIndex": 186476
+      },
+      {
+        "key": "/bldr/redis/default/config",
+        "value": "loglevel = 'debug'\ntcp-backlog = 128",
+        "modifiedIndex": 186699,
+        "createdIndex": 186699
+      }
+    ],
+    "modifiedIndex": 186476,
+    "createdIndex": 186476
+  }
+}"#;
+        let json_top = match Json::from_str(json_string) {
+            Ok(json_top) => json_top,
+            Err(e) => panic!("{}", e)
+        };
+        let nodes_list = match json_top.find_path(&["node"]) {
+            Some(nl) => nl,
+            None => panic!("No node/nodes path found")
+        };
+        let mut results = String::new();
+        get_json_values_recursively_etcd(nodes_list, &mut results);
+        let match_string = r#"loglevel = 'debug'
+tcp-backlog = 128
+[topology.init]
+ip = '172.17.0.1'
+port = '6379'
+[topology.leader]
+hostname = 'd48611215f82'
+ip = '172.17.0.1'
+port = '6379'
+[[topology.follower]]
+hostname = 'd48611215f82'
+ip = '172.17.0.1'
+port = '6379'
+[[topology.follower]]
+hostname = '437b1d502710'
+ip = '172.17.0.4'
+port = '6379'
+"#;
+        assert_eq!(match_string, &results);
+    }
+}

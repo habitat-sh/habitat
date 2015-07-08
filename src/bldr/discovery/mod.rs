@@ -1,6 +1,7 @@
 pub mod etcd;
 
-use std::collections::HashMap;
+use toml;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use std::fmt::{self, Debug};
 use ansi_term::Colour::{White};
@@ -104,8 +105,11 @@ pub struct DiscoveryWatcher {
     key: String,
     filename: String,
     wait: bool,
+    recursive: bool,
     reconnect_interval: u32,
     backend: Option<Backend>,
+    service: Option<String>,
+    group: Option<String>,
     rx: Option<Receiver<Option<String>>>,
     tx: Option<Sender<bool>>,
 }
@@ -119,13 +123,16 @@ impl Debug for DiscoveryWatcher {
 }
 
 impl DiscoveryWatcher {
-    pub fn new(package: Package, key: String, filename: String, reconnect_interval: u32, wait: bool) -> DiscoveryWatcher {
+    pub fn new(package: Package, key: String, filename: String, reconnect_interval: u32, wait: bool, recursive: bool) -> DiscoveryWatcher {
         DiscoveryWatcher{
             package: package,
             key: key,
             filename: filename,
             wait: wait,
+            recursive: recursive,
             reconnect_interval: reconnect_interval,
+            service: None,
+            group: None,
             backend: None,
             tx: None,
             rx: None,
@@ -136,6 +143,14 @@ impl DiscoveryWatcher {
         self.backend = Some(backend)
     }
 
+    pub fn service(&mut self, service: String) {
+        self.service = Some(service)
+    }
+
+    pub fn group(&mut self, group: String) {
+        self.group = Some(group)
+    }
+
     fn start(&mut self) {
         let preamble = format!("{}({})", self.package.name, White.bold().paint("D"));
         println!("   {}: Watching {}", preamble, self.key);
@@ -144,7 +159,7 @@ impl DiscoveryWatcher {
         self.tx = Some(w_tx);
         self.rx = Some(b_rx);
         match self.backend {
-            Some(Backend::Etcd) => etcd::watch(&self.key, self.reconnect_interval, self.wait, b_tx, w_rx),
+            Some(Backend::Etcd) => etcd::watch(&self.key, self.reconnect_interval, self.wait, self.recursive, b_tx, w_rx),
             None => panic!("I don't have a discovery backend - so I can't start your watcher")
         }
     }
@@ -163,8 +178,33 @@ impl DiscoveryWatcher {
         };
         match result {
             Some(s) => {
-                try!(self.package.write_toml_string(&self.filename, &s));
-                Ok(Some(DiscoveryResponse{key: self.key.clone(), value: Some(String::from(s))}))
+                if self.service.is_some() && self.group.is_some() {
+                    {
+                        let mut toml_parser = toml::Parser::new(&s);
+                        let discovery_toml = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+                        let mut base_toml: toml::Table = BTreeMap::new();
+                        let mut service_toml: toml::Table = BTreeMap::new();
+                        let mut group_toml: toml::Table = BTreeMap::new();
+
+                        let service = self.service.as_ref().unwrap().clone();
+                        let group = self.group.as_ref().unwrap().clone();
+                        group_toml.insert(String::from("config"), toml::Value::Table(discovery_toml));
+                        group_toml.insert(String::from("group-name"), toml::Value::String(group));
+                        let mut group_list: toml::Array = Vec::new();
+                        group_list.push(toml::Value::Table(group_toml));
+                        service_toml.insert(String::from("groups"), toml::Value::Array(group_list));
+                        service_toml.insert(String::from("service-name"), toml::Value::String(service));
+                        let mut service_list: toml::Array = Vec::new();
+                        service_list.push(toml::Value::Table(service_toml));
+                        base_toml.insert(String::from("watch"), toml::Value::Array(service_list));
+
+                        try!(self.package.write_toml(&self.filename, base_toml));
+                    }
+                    Ok(Some(DiscoveryResponse{key: self.key.clone(), value: Some(String::from(s))}))
+                } else {
+                    try!(self.package.write_toml_string(&self.filename, &s));
+                    Ok(Some(DiscoveryResponse{key: self.key.clone(), value: Some(String::from(s))}))
+                }
             },
             None => Ok(Some(DiscoveryResponse{key: self.key.clone(), value: None}))
         }
