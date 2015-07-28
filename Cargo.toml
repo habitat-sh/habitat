@@ -35,3 +35,6 @@ time = "*"
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
+
+[profile.release]
+lto = true

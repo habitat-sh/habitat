@@ -46,7 +46,8 @@ fn status_value(status_type: &str, worker: &mut Worker) -> String {
     let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
     let ip = util::sys::ip().unwrap_or(String::from("127.0.0.1"));
     let port = worker.package.exposes().pop().unwrap_or(String::from("0"));
-    format!("{}\nhostname = '{}'\nip = '{}'\nport = '{}'", status_type, hostname, ip, port)
+
+    format!("{}\nhostname = '{}'\nip = '{}'\nport = '{}'\nexpose = [{}]", status_type, hostname, ip, port, worker.package.exposes().iter().fold(String::new(), |acc, p| format!("{}{},", acc, p)))
 }
 
 fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
