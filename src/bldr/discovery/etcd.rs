@@ -148,7 +148,11 @@ pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watch
                 }
             }
             debug!("{}: Response body: {:?}", preamble, response_body);
-            watcher_tx.send((res.status, response_body)).unwrap();
+
+            if let Err(_e) = watcher_tx.send((res.status, response_body)) {
+                debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                return;
+            }
 
             let sleepy_time = options.ttl.unwrap() as i64;
             // We get the jump on the TTL by 5 seconds. Lets hope
@@ -197,7 +201,10 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                 Ok(res) => res,
                 Err(e) => {
                     debug!("   {}: Invalid request for config: {:?}", preamble, e);
-                    watcher_tx.send(None).unwrap();
+                    if let Err(_e) = watcher_tx.send(None) {
+                        debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                        return;
+                    }
                     continue;
                 }
             };
@@ -207,7 +214,11 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                 Ok(_) => {},
                 Err(e) => {
                     debug!("   {}: Failed to read request body: {:?}", preamble, e);
-                    watcher_tx.send(None).unwrap();
+                    if let Err(_e) = watcher_tx.send(None) {
+                        debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                        return;
+                    }
+
                     continue;
                 }
             }
@@ -215,7 +226,10 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                 Ok(body) => body,
                 Err(e) => {
                     debug!("   {}: Failed to parse request body as json: {:?}", preamble, e);
-                    watcher_tx.send(None).unwrap();
+                    if let Err(_e) = watcher_tx.send(None) {
+                        debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                        return;
+                    }
                     continue;
                 }
             };
@@ -225,15 +239,24 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                     get_json_values_recursively(json_value, &mut results);
                     if results.is_empty() {
                         debug!("   {}: Invalid json value for node/values!", preamble);
-                        watcher_tx.send(None).unwrap();
+                        if let Err(_e) = watcher_tx.send(None) {
+                            debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                            return;
+                        }
                     } else {
                         debug!("Sending back a value");
-                        watcher_tx.send(Some(String::from(results))).unwrap()
+                        if let Err(_e) = watcher_tx.send(Some(String::from(results))) {
+                            debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                            return;
+                        }
                     }
                 },
                 None => {
                     debug!("   {}: No node/value present in response json", preamble);
-                    watcher_tx.send(None).unwrap();
+                    if let Err(_e) = watcher_tx.send(None) {
+                        debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                        return;
+                    }
                 }
             }
 

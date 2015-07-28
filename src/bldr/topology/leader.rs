@@ -304,7 +304,6 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
                     debug!("Discovery state: {:?}", worker.discovery);
                     return Ok((State::DetermineViability, 0));
                 } else {
-                    debug!("I still have a leader");
                     break;
                 }
             },
