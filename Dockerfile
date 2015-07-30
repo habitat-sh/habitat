@@ -8,6 +8,6 @@ RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y
 ENV CARGO_HOME /bldr-cargo-cache
 RUN adduser --system bldr
 RUN addgroup --system bldr
-RUN curl https://get.docker.io | sh
+RUN curl -sSL https://get.docker.io | sh
 WORKDIR /src
 CMD ["bash"]

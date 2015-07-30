@@ -45,6 +45,12 @@ container:
 test:
 	docker-compose run bldr cargo test
 
+unit:
+	docker-compose run bldr cargo test --lib
+
+functional:
+	docker-compose run bldr cargo test --test functional
+
 cargo-clean:
 	docker-compose run bldr cargo clean
 

@@ -1,7 +1,11 @@
 bldr:
   image: chef/bldr
+  environment:
+    DOCKER_CERT_PATH: "/docker-certs"
+    DOCKER_TLS_VERIFY: 1
   volumes:
     - .:/src
+    - "~/.boot2docker/certs/boot2docker-vm:/docker-certs"
   volumes_from:
     - "bldr-cargo-cache"
     - "bldr-keys-cache"
@@ -34,6 +38,8 @@ package:
     - "bldr-keys-cache"
     - "bldr-src-cache"
     - "bldr-installed-cache"
+  links:
+    - etcd
 
 base:
   image: bldr
