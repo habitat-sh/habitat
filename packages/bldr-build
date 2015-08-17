@@ -35,6 +35,8 @@ pkg_docker_build=false
 pkg_expose=()
 pkg_service_user=bldr
 
+umask 0022
+
 ###
 # Utility Functions
 ###
@@ -302,6 +304,7 @@ link_libraries() {
 config() {
   if [[ -d ./config ]]; then
     cp -r ./config $pkg_path
+    chmod 755 $pkg_path/config
   fi
   if [[ -f ./default.toml ]]; then
     cp ./default.toml $pkg_path
@@ -391,9 +394,8 @@ package() {
 
 dockerfile() {
   if [[ $pkg_docker_build = "auto" ]]; then
-    rm -rf ./${pkg_name}-cache
     mkdir ./${pkg_name}-cache
-    rsync -aP $pkg_path/* ./${pkg_name}-cache
+    rsync -av --delete $pkg_path/* ./${pkg_name}-cache
     cat <<EOT > ./Dockerfile
 FROM bldr/base
 MAINTAINER $pkg_maintainer
@@ -413,6 +415,11 @@ EOT
       rsync -aP $dep_path/* ./${dep}-cache
       echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
     done
+    if [[ -n "$BLDR_FROM" ]]; then
+      cp $BLDR_FROM ./bldr-debug
+      echo "COPY bldr /bin/bldr" >> ./Dockerfile
+      echo "COPY bldr-debug /bin/bldr-debug" >> ./Dockerfile
+    fi
     cat <<EOT >> ./Dockerfile
 VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
 EXPOSE ${pkg_expose[@]} 9631

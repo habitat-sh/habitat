@@ -192,12 +192,13 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
             Some(url) => url,
             None => panic!("How did you get to a watch without being enabled?")
         };
+        let mut modified_index = 0u64;
         loop {
             let mut client = Client::new();
             // If it is the first time we've asked, just ask - we want to seed the right data
             // quickly
             let really_wait = if first_run { first_run = false; false } else { wait };
-            let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}&recursive={}", base_url, key, really_wait, recursive)).send() {
+            let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}&recursive={}&waitIndex={}", base_url, key, really_wait, recursive, modified_index)).send() {
                 Ok(res) => res,
                 Err(e) => {
                     debug!("   {}: Invalid request for config: {:?}", preamble, e);
@@ -236,6 +237,9 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
             match body_as_json.find("node") {
                 Some(json_value) => {
                     let mut results = String::new();
+                    let current_modified_index = json_value.find("modifiedIndex").unwrap().as_u64().unwrap();
+                    modified_index = current_modified_index + 1;
+
                     get_json_values_recursively(json_value, &mut results);
                     if results.is_empty() {
                         debug!("   {}: Invalid json value for node/values!", preamble);

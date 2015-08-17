@@ -78,7 +78,7 @@ pub enum Signal {
 
 impl Package {
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let busybox_pkg = try!(latest("busybox"));
+        let runit_pkg = try!(latest("runit"));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -107,7 +107,7 @@ impl Package {
             Signal::TryRestart => "try-restart",
         };
         let output = try!(
-            Command::new(busybox_pkg.join_path("bin/sv"))
+            Command::new(runit_pkg.join_path("bin/sv"))
             .arg(signal_arg)
             .arg(&format!("/opt/bldr/srvc/{}", self.name))
             .output()
@@ -350,6 +350,14 @@ impl Package {
         Ok(())
     }
 
+    pub fn supervisor_running(&self) -> bool {
+        let res = self.signal(Signal::Status);
+        match res {
+            Ok(_) => return true,
+            Err(_) => return false,
+        }
+    }
+
     pub fn watch_configuration(&self) -> BldrResult<()> {
         let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
         let mut ino = try!(INotify::init());
@@ -367,8 +375,12 @@ impl Package {
                 }
             }
             try!(self.configure());
-            println!("   {}: Restarting on configuration change", pkg_print);
-            try!(self.signal(Signal::Restart));
+            if self.supervisor_running() {
+                println!("   {}: Restarting on configuration change", pkg_print);
+                try!(self.signal(Signal::Restart));
+            } else {
+                println!("   {}: Supervisor has not started; no need to restart", pkg_print);
+            }
         }
     }
 
