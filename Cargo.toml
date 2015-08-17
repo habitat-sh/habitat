@@ -2,6 +2,7 @@
 name = "bldr"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>"]
+exclude = ["packages/**/*"]
 
 [lib]
 name = "bldr"
@@ -12,7 +13,7 @@ name = "bldr"
 doc = false
 
 [[test]]
-name = "bldr-test"
+name = "functional"
 
 [dependencies]
 docopt = "*"
@@ -30,6 +31,8 @@ inotify = "*"
 fnv = "*"
 iron = "*"
 router = "*"
+mount = "*"
+staticfile = "*"
 time = "*"
 
 [dependencies.mustache]

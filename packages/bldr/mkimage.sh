@@ -26,6 +26,7 @@ latest_package() {
 BUSYBOX_ROOT=$(latest_package bldr/busybox)
 BLDR_ROOT=$(latest_package bldr/bldr)
 GPG_ROOT=$(latest_package bldr/gnupg)
+RUNIT_ROOT=$(latest_package bldr/runit)
 
 set -e
 ROOTFS=${TMPDIR:-/var/tmp}/rootfs-busybox-$$-$RANDOM
@@ -61,6 +62,7 @@ cp -r /opt/bldr/pkgs/bldr/gnupg opt/bldr/pkgs/bldr
 cp -r /opt/bldr/pkgs/bldr/libgcc opt/bldr/pkgs/bldr
 cp -r /opt/bldr/pkgs/bldr/openssl opt/bldr/pkgs/bldr
 cp -r /opt/bldr/pkgs/bldr/zlib opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/bldr/runit opt/bldr/pkgs/bldr
 
 for x in $($BUSYBOX_ROOT/bin/busybox --list); do
 	ln -s $BUSYBOX_ROOT/bin/busybox bin/$x
@@ -71,6 +73,16 @@ ln -s $GPG_ROOT/bin/gpg bin/gpg
 ln -s $GPG_ROOT/bin/gpg-zip bin/gpg-zip
 ln -s $GPG_ROOT/bin/gpgsplit bin/gpgsplit
 ln -s $GPG_ROOT/bin/gpgv bin/gpgv
+ln -sf $RUNIT_ROOT/bin/chpst bin/chpst
+ln -sf $RUNIT_ROOT/bin/runit bin/runit
+ln -sf $RUNIT_ROOT/bin/runit-init bin/runit-init
+ln -sf $RUNIT_ROOT/bin/runsv bin/runsv
+ln -sf $RUNIT_ROOT/bin/runsvchdir bin/runsvchdir
+ln -sf $RUNIT_ROOT/bin/runsvdir bin/runsvdir
+ln -sf $RUNIT_ROOT/bin/sv bin/sv
+ln -sf $RUNIT_ROOT/bin/svlogd bin/svlogd
+ln -sf $RUNIT_ROOT/bin/utmpset bin/utmpset
+
 cp /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 lib
 for X in console null ptmx random stdin stdout stderr tty urandom zero
 do

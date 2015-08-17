@@ -78,7 +78,7 @@ pub enum Signal {
 
 impl Package {
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let busybox_pkg = try!(latest("busybox"));
+        let runit_pkg = try!(latest("runit", None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -107,7 +107,7 @@ impl Package {
             Signal::TryRestart => "try-restart",
         };
         let output = try!(
-            Command::new(busybox_pkg.join_path("bin/sv"))
+            Command::new(runit_pkg.join_path("bin/sv"))
             .arg(signal_arg)
             .arg(&format!("/opt/bldr/srvc/{}", self.name))
             .output()
@@ -350,6 +350,14 @@ impl Package {
         Ok(())
     }
 
+    pub fn supervisor_running(&self) -> bool {
+        let res = self.signal(Signal::Status);
+        match res {
+            Ok(_) => return true,
+            Err(_) => return false,
+        }
+    }
+
     pub fn watch_configuration(&self) -> BldrResult<()> {
         let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
         let mut ino = try!(INotify::init());
@@ -367,8 +375,12 @@ impl Package {
                 }
             }
             try!(self.configure());
-            println!("   {}: Restarting on configuration change", pkg_print);
-            try!(self.signal(Signal::Restart));
+            if self.supervisor_running() {
+                println!("   {}: Restarting on configuration change", pkg_print);
+                try!(self.signal(Signal::Restart));
+            } else {
+                println!("   {}: Supervisor has not started; no need to restart", pkg_print);
+            }
         }
     }
 
@@ -398,6 +410,10 @@ impl Package {
                 Ok(health_check::CheckResult{status: health_check::Status::Ok, output: format!("{}\n{}", status_output, last_config)})
             }
         }
+    }
+
+    pub fn cache_file(&self) -> PathBuf {
+        PathBuf::from(format!("/opt/bldr/cache/pkgs/{}-{}-{}-{}.bldr", self.derivation, self.name, self.version, self.release))
     }
 
     pub fn last_config(&self) -> BldrResult<String> {
@@ -458,8 +474,19 @@ fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
     mustache::Data::VecVal(mvec)
 }
 
-pub fn latest(pkg: &str) -> BldrResult<Package> {
-    let pl = try!(package_list());
+pub fn new(d: &str, n: &str, p: &str, v: &str, r: &str) -> Package {
+    Package{
+        derivation: String::from(d),
+        name: String::from(n),
+        version: String::from(v),
+        release: String::from(r),
+        config_fnv: HashMap::new()
+    }
+}
+
+pub fn latest(pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
+    let path = if opt_path.is_some() { opt_path.unwrap() } else { "/opt/bldr/pkgs" };
+    let pl = try!(package_list(path));
     let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg)
         .fold(None, |winner, b| {
             match winner {
@@ -496,9 +523,9 @@ fn extract_filename(direntry: PathBuf) -> BldrResult<String> {
 /// The result is pretty simple - we are going to throw a failure if you
 /// put anything in any of the interstitial directories in /opt/bldr/pkgs
 /// that isn't a directory. Fun times.
-pub fn package_list() -> BldrResult<Vec<Package>> {
+pub fn package_list(path: &str) -> BldrResult<Vec<Package>> {
     let mut package_list: Vec<Package> = Vec::new();
-    for derivation_r in try!(fs::read_dir("/opt/bldr/pkgs")) {
+    for derivation_r in try!(fs::read_dir(path)) {
         let derivation = try!(extract_direntry(derivation_r));
         for name_r in try!(fs::read_dir(derivation.path())) {
             let name = try!(extract_direntry(name_r));

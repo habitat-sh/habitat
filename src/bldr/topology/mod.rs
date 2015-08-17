@@ -29,6 +29,9 @@ use discovery;
 use pkg::{Package, Signal};
 use error::{BldrResult, BldrError};
 use config::Config;
+use regex::Regex;
+
+use std::process::Command;
 
 static CAUGHT_SIGNAL: AtomicBool = ATOMIC_BOOL_INIT;
 static WHICH_SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -36,6 +39,54 @@ static WHICH_SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 extern "C" {
     fn signal(sig: u32, cb: extern fn(u32)) -> fn(u32);
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
+}
+
+#[allow(non_camel_case_types)]
+pub type idtype_t = c_int;
+pub const P_ALL:  idtype_t = 0;
+pub const P_PID:  idtype_t = 1;
+pub const P_PGID: idtype_t = 2;
+
+pub const WCONTINUED: c_int = 8;
+pub const WNOHANG:    c_int = 1;
+pub const WUNTRACED:  c_int = 2;
+pub const WEXITED:    c_int = 4;
+pub const WNOWAIT:    c_int = 16777216;
+pub const WSTOPPED:   c_int = 2;
+
+#[allow(non_snake_case)]
+pub fn WEXITSTATUS(status: c_int) -> c_int {
+    (status & 0xff00) >> 8
+}
+
+#[allow(non_snake_case)]
+pub fn WIFCONTINUED(status: c_int) -> bool {
+    status == 0xffff
+}
+
+#[allow(non_snake_case)]
+pub fn WIFEXITED(status: c_int) -> bool {
+    WTERMSIG(status) == 0
+}
+
+#[allow(non_snake_case)]
+pub fn WIFSIGNALED(status: c_int) -> bool {
+    ((((status) & 0x7f) + 1) as i8 >> 1) > 0
+}
+
+#[allow(non_snake_case)]
+pub fn WIFSTOPPED(status: c_int) -> bool {
+    (status & 0xff) == 0x7f
+}
+
+#[allow(non_snake_case)]
+pub fn WSTOPSIG(status: c_int) -> c_int {
+    WEXITSTATUS(status)
+}
+
+#[allow(non_snake_case)]
+pub fn WTERMSIG(status: c_int) -> c_int {
+    status & 0x7f
 }
 
 extern fn handle_signal(sig: u32) {
@@ -128,15 +179,32 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
             State::Running => {
                 unsafe {
                     let mut status: c_int = 0;
-                    match waitpid(-1 as pid_t, &mut status, 1 as c_int) {
+                    // As soon as we can get the pid of the child we spawned, we
+                    // really want this to be a specific wait. Right now, a badly
+                    // behaved daemon will trigger a race for the reaping, and we
+                    // will likely exit inappropriately.
+                    match waitpid(0 as pid_t, &mut status, 1 as c_int) {
                         0 => {}, // There is nothing to do, nobody has returned
-                          _ => { // We don't care why it died - just that it did. It's the only child
+                        pid => { // We don't care why it died - just that it did. It's the only child
                               // we have directly, and it won't leak children unless something has
                               // gone very, very, wrong.
-                              println!("   {}: The supervisor died - terminating", worker.preamble());
-                              worker.discovery.stop();
-                              return Err(BldrError::SupervisorDied);
-                          }
+                              let output = try!(Command::new("ps").arg("wl").output());
+                              let re = Regex::new(r"runsv").unwrap();
+                              let stdout = String::from_utf8_lossy(&output.stdout);
+                              if ! re.is_match(&stdout) {
+                                  if WIFEXITED(status) {
+                                      let exit_code = WEXITSTATUS(status);
+                                      println!("   {}: The supervisor died - terminating {} with exit code {}", worker.preamble(), pid, exit_code);
+                                  } else if WIFSIGNALED(status) {
+                                      let exit_signal = WTERMSIG(status);
+                                      println!("   {}: The supervisor died - terminating {} with signal {}", worker.preamble(), pid, exit_signal);
+                                  } else {
+                                      println!("   {}: The supervisor over {} died, but I don't know how.", worker.preamble(), pid);
+                                  }
+                                  worker.discovery.stop();
+                                  return Err(BldrError::SupervisorDied);
+                              }
+                          },
                     }
                 }
             },

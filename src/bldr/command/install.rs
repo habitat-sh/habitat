@@ -22,7 +22,7 @@ use std::fs;
 
 pub fn from_url(package: &str, url: &str) -> BldrResult<String> {
     try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
-    let filename = try!(http::download(package, url, "/opt/bldr/cache/pkgs"));
+    let filename = try!(http::download_package(package, url, "/opt/bldr/cache/pkgs"));
     Ok(filename)
 }
 

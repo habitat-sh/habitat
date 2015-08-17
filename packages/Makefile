@@ -8,6 +8,7 @@ world:
 	cd busybox && ../bldr-build Bldrfile
 	cd gnupg && ../bldr-build Bldrfile
 	cd openssl && ../bldr-build Bldrfile
+	cd runit && ../bldr-build Bldrfile
 	cd bldr && ../bldr-build Bldrfile
 	cd redis && ../bldr-build Bldrfile
 	cd ncurses && ../bldr-build Bldrfile

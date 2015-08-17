@@ -55,9 +55,10 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     if let Some(_) = discovery::etcd::enabled() {
         let package = worker.package.clone();
         let key = format!("{}/{}/config", package.name, worker.config.group());
-        let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1000, true, false);
+        let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1, true, false);
         worker.discovery.watch(watcher);
 
+        // Configure watches!
         for watch in worker.config.watch().iter() {
             let watch_parts: Vec<&str> = watch.split('.').collect();
             let (service, group) = match watch_parts.len() {
@@ -73,7 +74,7 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
             };
             let package = worker.package.clone();
             let key = format!("{}/{}", service, group);
-            let mut watcher = DiscoveryWatcher::new(package, key, format!("300_watch_{}_{}.toml", service, group), 1000, true, true);
+            let mut watcher = DiscoveryWatcher::new(package, key, format!("300_watch_{}_{}.toml", service, group), 1, true, true);
             watcher.service(service);
             watcher.group(group);
             worker.discovery.watch(watcher);
@@ -91,9 +92,9 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     println!("   {}: Starting", worker.preamble());
-    let busybox_pkg = try!(pkg::latest("busybox"));
+    let runit_pkg = try!(pkg::latest("runit", None));
     let mut child = try!(
-        Command::new(busybox_pkg.join_path("bin/runsv"))
+        Command::new(runit_pkg.join_path("bin/runsv"))
         .arg(&format!("/opt/bldr/srvc/{}", worker.package.name))
         .stdin(Stdio::null())
         .stdout(Stdio::piped())

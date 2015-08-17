@@ -15,15 +15,19 @@
 // limitations under the License.
 //
 
-use std::fs;
-use util::http;
-use util::gpg;
+use error::{BldrResult, BldrError};
 use config::Config;
-use error::{BldrResult};
+use std::fs::File;
 
-pub fn install(config: &Config) -> BldrResult<()> {
-    try!(fs::create_dir_all("/opt/bldr/cache/keys"));
-    let filename = try!(http::download_key(&config.key(), &config.url(), "/opt/bldr/cache/keys"));
-    try!(gpg::import("key", &filename));
+use pkg;
+use util::http;
+
+pub fn package(config: &Config) -> BldrResult<()> {
+    let package = try!(pkg::latest(config.package(), None));
+    println!("   {}: uploading {}", config.package(), package.cache_file().to_string_lossy());
+    let mut file = try!(File::open(package.cache_file()));
+    try!(http::upload(&format!("{}/pkgs/{}/{}/{}/{}", config.url(), package.derivation, package.name, package.version, package.release), &mut file));
+
+    println!("   {}: complete", config.package());
     Ok(())
 }

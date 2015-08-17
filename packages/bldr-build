@@ -35,6 +35,8 @@ pkg_docker_build=false
 pkg_expose=()
 pkg_service_user=bldr
 
+umask 0022
+
 ###
 # Utility Functions
 ###
@@ -296,12 +298,26 @@ link_libraries() {
     echo $port_part > $pkg_path/EXPOSES
   fi
 
+  local deps_part=""
+  for dep in "${pkg_deps[@]}"; do
+    if echo $dep | grep '\^'; then
+      dep_deriv=$(echo $dep | cut -d "^" -f 1)
+      dep_rest=$(echo $dep | cut -d "^" -f 2)
+      dep_path=$(latest_package "$dep_deriv/$dep_rest")
+    else
+      dep_path=$(latest_package "bldr/$dep")
+    fi
+    dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 $6 $7 $8 }')
+    echo $dep_pkg_name >> $pkg_path/DEPS
+  done
+
   return 0
 }
 
 config() {
   if [[ -d ./config ]]; then
     cp -r ./config $pkg_path
+    chmod 755 $pkg_path/config
   fi
   if [[ -f ./default.toml ]]; then
     cp ./default.toml $pkg_path
@@ -391,9 +407,8 @@ package() {
 
 dockerfile() {
   if [[ $pkg_docker_build = "auto" ]]; then
-    rm -rf ./${pkg_name}-cache
     mkdir ./${pkg_name}-cache
-    rsync -aP $pkg_path/* ./${pkg_name}-cache
+    rsync -av --delete $pkg_path/* ./${pkg_name}-cache
     cat <<EOT > ./Dockerfile
 FROM bldr/base
 MAINTAINER $pkg_maintainer
@@ -413,6 +428,11 @@ EOT
       rsync -aP $dep_path/* ./${dep}-cache
       echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
     done
+    if [[ -n "$BLDR_FROM" ]]; then
+      cp $BLDR_FROM ./bldr-debug
+      echo "COPY bldr /bin/bldr" >> ./Dockerfile
+      echo "COPY bldr-debug /bin/bldr-debug" >> ./Dockerfile
+    fi
     cat <<EOT >> ./Dockerfile
 VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
 EXPOSE ${pkg_expose[@]} 9631

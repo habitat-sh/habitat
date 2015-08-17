@@ -33,22 +33,30 @@ use bldr::config::{Command, Config};
 use bldr::sidecar;
 use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
+use bldr::repo;
 
 #[allow(dead_code)]
 static VERSION: &'static str = "0.0.1";
 
 #[allow(dead_code)]
 static USAGE: &'static str = "
-Usage: bldr install <package> -u <url>
+Usage: bldr install <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
        bldr start <package> [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
        bldr sh
        bldr bash
-       bldr key -u <url>
+       bldr repo [-p <path>]
+       bldr upload <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
+       bldr key <key> -u <url>
+       bldr key-upload <key> -u <url>
 
 Options:
+    -d, --deriv=<deriv>        A package derivative
     -g, --group=<group>        The service group; shared config and topology [default: default]
+    -r, --release=<release>    A package release
     -t, --topology=<topology>  Specify a service topology [default: standalone]
-    -u, --url=<url>            Use a specific url for fetching a file
+    -p, --path=<path>          The path to use for a repository [default: /opt/bldr/srvc/bldr/data]
+    -u, --url=<url>            Use the specified package repository url
+    -v, --version=<version>    A package version
     -w, --watch=<watch>        One or more service groups to watch for updates
 ";
 
@@ -59,7 +67,15 @@ struct Args {
     cmd_key: bool,
     cmd_sh: bool,
     cmd_bash: bool,
+    cmd_repo: bool,
+    cmd_upload: bool,
+    cmd_key_upload: bool,
     arg_package: String,
+    arg_key: String,
+    flag_path: String,
+    flag_deriv: String,
+    flag_version: String,
+    flag_release: String,
     flag_url: String,
     flag_topology: String,
     flag_group: String,
@@ -74,6 +90,11 @@ fn config_from_args(args: &Args, command: Command) -> Config {
     config.set_topology(args.flag_topology.clone());
     config.set_group(args.flag_group.clone());
     config.set_watch(args.flag_watch.clone());
+    config.set_path(args.flag_path.clone());
+    config.set_version(args.flag_version.clone());
+    config.set_deriv(args.flag_deriv.clone());
+    config.set_release(args.flag_release.clone());
+    config.set_key(args.arg_key.clone());
     config
 }
 
@@ -98,6 +119,10 @@ fn main() {
             let config = config_from_args(&args, Command::Key);
             key(&config)
         },
+        Args{cmd_key_upload: true, ..} => {
+            let config = config_from_args(&args, Command::KeyUpload);
+            key_upload(&config)
+        },
         Args{cmd_sh: true, ..} => {
             let config = config_from_args(&args, Command::Shell);
             shell(&config)
@@ -105,6 +130,14 @@ fn main() {
         Args{cmd_bash: true, ..} => {
             let config = config_from_args(&args, Command::Shell);
             shell(&config)
+        },
+        Args{cmd_repo: true, ..} => {
+            let config = config_from_args(&args, Command::Repo);
+            repo(&config)
+        },
+        Args{cmd_upload: true, ..} => {
+            let config = config_from_args(&args, Command::Upload);
+            upload(&config)
         },
         _ => Err(BldrError::CommandNotImplemented),
     };
@@ -154,10 +187,37 @@ fn start(config: &Config) -> BldrResult<()> {
 }
 
 #[allow(dead_code)]
+fn repo(config: &Config) -> BldrResult<()> {
+    banner();
+    println!("Starting Bldr Repository at {}", Yellow.bold().paint(config.path()));
+    try!(repo::run(&config));
+    println!("Finished with {}", Yellow.bold().paint(config.package()));
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn upload(config: &Config) -> BldrResult<()> {
+    banner();
+    println!("Upload Bldr Package {}", Yellow.bold().paint(config.package()));
+    try!(upload::package(&config));
+    println!("Finished with {}", Yellow.bold().paint(config.package()));
+    Ok(())
+}
+
+#[allow(dead_code)]
 fn key(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Installing key {}", Yellow.bold().paint(config.url()));
-    try!(key::install(config.url()));
+    println!("Installing key {}", Yellow.bold().paint(config.key()));
+    try!(key::install(&config));
+    Ok(())
+}
+
+#[allow(dead_code)]
+fn key_upload(config: &Config) -> BldrResult<()> {
+    banner();
+    println!("Upload Bldr key {}", Yellow.bold().paint(config.key()));
+    try!(key_upload::key(&config));
+    println!("Finished with {}", Yellow.bold().paint(config.key()));
     Ok(())
 }
 

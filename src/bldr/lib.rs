@@ -1,4 +1,4 @@
-extern crate hyper;
+#[macro_use] extern crate hyper;
 #[macro_use] extern crate log;
 extern crate tempdir;
 extern crate mustache;
@@ -12,6 +12,8 @@ extern crate inotify;
 extern crate fnv;
 extern crate iron;
 extern crate router;
+extern crate mount;
+extern crate staticfile;
 extern crate time;
 
 pub mod error;
@@ -25,3 +27,4 @@ pub mod sidecar;
 pub mod health_check;
 pub mod config;
 pub mod context;
+pub mod repo;
