@@ -5,23 +5,13 @@ bldr:
     DOCKER_TLS_VERIFY: 1
   volumes:
     - .:/src
-    - "~/.boot2docker/certs/boot2docker-vm:/docker-certs"
+    - "~/.docker/machine/certs:/docker-certs"
   volumes_from:
     - "bldr-cargo-cache"
     - "bldr-keys-cache"
     - "bldr-installed-cache"
   links:
-    - repo
     - etcd
-
-repo:
-  image: nginx
-  ports:
-    - "8080:80"
-  volumes_from:
-    - "bldr-pkg-cache"
-    - "bldr-keys-cache"
-  command: bash -c 'rm -rf /usr/share/nginx/html; ln -s /opt/bldr/cache /usr/share/nginx/html; exec nginx -g "daemon off;"'
 
 package:
   image: chef/bldr
@@ -31,7 +21,7 @@ package:
     DOCKER_TLS_VERIFY: 1
   volumes:
     - .:/src
-    - "~/.boot2docker/certs/boot2docker-vm:/docker-certs"
+    - "~/.docker/machine/certs:/docker-certs"
   volumes_from:
     - "bldr-cargo-cache"
     - "bldr-pkg-cache"
@@ -44,7 +34,6 @@ package:
 base:
   image: bldr
   links:
-    - repo
     - etcd
 
 etcd:
@@ -52,4 +41,4 @@ etcd:
   ports:
     - "4001:4001"
     - "7001:7001"
-  command: "-cors='*' -vv"
+  command: "-cors='*' -listen-client-urls='http://0.0.0.0:2379,http://0.0.0.0:4001' -advertise-client-urls='http://0.0.0.0:2379,http://0.0.0.0:4001'"
