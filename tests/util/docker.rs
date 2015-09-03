@@ -31,6 +31,10 @@ pub fn run(image: &str) -> Docker {
     docker_cmd(&["run", "-d", image])
 }
 
+pub fn repo(image: &str) -> Docker {
+    docker_cmd(&["run", "-d", "--expose=9632", image, "repo"])
+}
+
 pub fn run_with_env(image: &str, env: &str) -> Docker {
     docker_cmd(&["run", "-d", &format!("-e={}", env), image])
 }
@@ -48,6 +52,14 @@ pub fn run_with_etcd_topology(image: &str, topology: &str) -> Docker {
 }
 
 impl Docker {
+    pub fn ipaddress(&self) -> String {
+        let mut cmd = command::run("sh", &["-c", &format!(r#"docker inspect {} | grep \"IPAddress\" | awk 'BEGIN {{ FS = "\"" }}; {{ print $4 }}'"#, &self.container_id)]).unwrap_or_else(|x| panic!("{:?}", x));
+        cmd.wait_with_output();
+        let ipaddress = String::from(cmd.stdout());
+        println!("I have ipaddress of {}", &cmd.stdout());
+        ipaddress
+    }
+
     pub fn logs(&self) -> String {
         loop {
             // Because docker sometimes returns you a container, but the log endpoint fails.

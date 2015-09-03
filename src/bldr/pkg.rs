@@ -78,7 +78,7 @@ pub enum Signal {
 
 impl Package {
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(latest("runit"));
+        let runit_pkg = try!(latest("runit", None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -412,6 +412,10 @@ impl Package {
         }
     }
 
+    pub fn cache_file(&self) -> PathBuf {
+        PathBuf::from(format!("/opt/bldr/cache/pkgs/{}-{}-{}-{}.bldr", self.derivation, self.name, self.version, self.release))
+    }
+
     pub fn last_config(&self) -> BldrResult<String> {
         let mut file = try!(File::open(self.srvc_join_path("last.toml")));
         let mut result = String::new();
@@ -470,8 +474,19 @@ fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
     mustache::Data::VecVal(mvec)
 }
 
-pub fn latest(pkg: &str) -> BldrResult<Package> {
-    let pl = try!(package_list());
+pub fn new(d: &str, n: &str, p: &str, v: &str, r: &str) -> Package {
+    Package{
+        derivation: String::from(d),
+        name: String::from(n),
+        version: String::from(v),
+        release: String::from(r),
+        config_fnv: HashMap::new()
+    }
+}
+
+pub fn latest(pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
+    let path = if opt_path.is_some() { opt_path.unwrap() } else { "/opt/bldr/pkgs" };
+    let pl = try!(package_list(path));
     let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg)
         .fold(None, |winner, b| {
             match winner {
@@ -508,9 +523,9 @@ fn extract_filename(direntry: PathBuf) -> BldrResult<String> {
 /// The result is pretty simple - we are going to throw a failure if you
 /// put anything in any of the interstitial directories in /opt/bldr/pkgs
 /// that isn't a directory. Fun times.
-pub fn package_list() -> BldrResult<Vec<Package>> {
+pub fn package_list(path: &str) -> BldrResult<Vec<Package>> {
     let mut package_list: Vec<Package> = Vec::new();
-    for derivation_r in try!(fs::read_dir("/opt/bldr/pkgs")) {
+    for derivation_r in try!(fs::read_dir(path)) {
         let derivation = try!(extract_direntry(derivation_r));
         for name_r in try!(fs::read_dir(derivation.path())) {
             let name = try!(extract_direntry(name_r));

@@ -21,7 +21,7 @@ use pkg;
 use topology;
 
 pub fn package(config: &Config) -> BldrResult<()> {
-    let package = try!(pkg::latest(config.package()));
+    let package = try!(pkg::latest(config.package(), None));
     match config.topology() {
         "standalone" => try!(topology::standalone::run(package, config)),
         "leader" => try!(topology::leader::run(package, config)),

@@ -31,6 +31,8 @@ inotify = "*"
 fnv = "*"
 iron = "*"
 router = "*"
+mount = "*"
+staticfile = "*"
 time = "*"
 
 [dependencies.mustache]

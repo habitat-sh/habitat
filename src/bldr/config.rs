@@ -21,7 +21,10 @@ pub enum Command {
     Config,
     Start,
     Key,
+    KeyUpload,
     Shell,
+    Repo,
+    Upload,
 }
 
 impl Default for Command {
@@ -37,7 +40,12 @@ pub struct Config {
     url: String,
     topology: String,
     group: String,
+    path: String,
+    deriv: String,
+    version: String,
+    release: String,
     watch: Vec<String>,
+    key: String,
 }
 
 impl Config {
@@ -54,6 +62,16 @@ impl Config {
         self.command.clone()
     }
 
+    pub fn set_key(&mut self, key: String) -> &mut Config {
+        self.key = key;
+        self
+    }
+
+    pub fn key(&self) -> &str {
+        &self.key
+    }
+
+
     pub fn set_package(&mut self, package: String) -> &mut Config {
         self.package = package;
         self
@@ -61,6 +79,42 @@ impl Config {
 
     pub fn package(&self) -> &str {
         &self.package
+    }
+
+    pub fn set_deriv(&mut self, deriv: String) -> &mut Config {
+        self.deriv = deriv;
+        self
+    }
+
+    pub fn deriv(&self) -> &str {
+        &self.deriv
+    }
+
+    pub fn set_version(&mut self, version: String) -> &mut Config {
+        self.version = version;
+        self
+    }
+
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    pub fn set_release(&mut self, release: String) -> &mut Config {
+        self.release = release;
+        self
+    }
+
+    pub fn release(&self) -> &str {
+        &self.release
+    }
+
+    pub fn set_path(&mut self, path: String) -> &mut Config {
+        self.path = path;
+        self
+    }
+
+    pub fn path(&self) -> &str {
+        &self.path
     }
 
     pub fn set_group(&mut self, group: String) -> &mut Config {
@@ -118,10 +172,24 @@ mod tests {
     }
 
     #[test]
+    fn key() {
+        let mut c = Config::new();
+        c.set_key(String::from("foolio"));
+        assert_eq!(c.key(), "foolio");
+    }
+
+    #[test]
     fn package() {
         let mut c = Config::new();
         c.set_package(String::from("foolio"));
         assert_eq!(c.package(), "foolio");
+    }
+
+    #[test]
+    fn path() {
+        let mut c = Config::new();
+        c.set_path(String::from("foolio"));
+        assert_eq!(c.path(), "foolio");
     }
 
     #[test]

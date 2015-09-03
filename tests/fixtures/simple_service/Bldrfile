@@ -27,6 +27,7 @@ build() {
 install() {
 	cp -r $BLDR_SRC_CACHE/$pkg_dirname/bin $pkg_prefix
 	chmod 755 $pkg_path/bin
+  chmod 755 $pkg_path/bin/*
 	return 0
 }
 

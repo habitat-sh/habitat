@@ -309,6 +309,19 @@ link_libraries() {
     echo $port_part > $pkg_path/EXPOSES
   fi
 
+  local deps_part=""
+  for dep in "${pkg_deps[@]}"; do
+    if echo $dep | grep '\^'; then
+      dep_deriv=$(echo $dep | cut -d "^" -f 1)
+      dep_rest=$(echo $dep | cut -d "^" -f 2)
+      dep_path=$(latest_package "$dep_deriv/$dep_rest")
+    else
+      dep_path=$(latest_package "bldr/$dep")
+    fi
+    dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 $6 $7 $8 }')
+    echo $dep_pkg_name >> $pkg_path/DEPS
+  done
+
   return 0
 }
 

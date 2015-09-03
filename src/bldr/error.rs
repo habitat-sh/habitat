@@ -60,6 +60,7 @@ pub enum BldrError {
     HealthCheck(String),
     TryRecvError(mpsc::TryRecvError),
     BadWatch(String),
+    NoXFilename,
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -104,6 +105,7 @@ impl fmt::Display for BldrError {
             BldrError::HealthCheck(ref e) => write!(f, "Health Check failed: {}", e),
             BldrError::TryRecvError(ref err) => err.fmt(f),
             BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
+            BldrError::NoXFilename => write!(f, "Invalid download from a repository - missing X-Filename header"),
         }
     }
 }
@@ -141,6 +143,7 @@ impl Error for BldrError {
             BldrError::HealthCheck(_) => "Health Check returned an unknown status code",
             BldrError::TryRecvError(_) => "A channel failed to recieve a response",
             BldrError::BadWatch(_) => "An invalid watch was specified",
+            BldrError::NoXFilename => "Invalid download from a repository - missing X-Filename header",
         }
     }
 }

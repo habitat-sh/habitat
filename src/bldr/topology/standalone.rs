@@ -92,7 +92,7 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     println!("   {}: Starting", worker.preamble());
-    let runit_pkg = try!(pkg::latest("runit"));
+    let runit_pkg = try!(pkg::latest("runit", None));
     let mut child = try!(
         Command::new(runit_pkg.join_path("bin/runsv"))
         .arg(&format!("/opt/bldr/srvc/{}", worker.package.name))

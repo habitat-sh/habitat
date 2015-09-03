@@ -3,6 +3,7 @@ use iron::status;
 use router::Router;
 use std::sync::Arc;
 use std::thread;
+use std::io;
 
 use error::{BldrError, BldrResult};
 
@@ -15,7 +16,7 @@ struct Sidecar {
 
 impl Sidecar {
     fn new(pkg: &str) -> BldrResult<Arc<Sidecar>> {
-        let package = try!(pkg::latest(pkg));
+        let package = try!(pkg::latest(pkg, None));
         Ok(Arc::new(Sidecar{package: package}))
     }
 }
@@ -71,6 +72,7 @@ pub fn run(pkg: &str) -> BldrResult<()> {
 
 impl From<BldrError> for IronError {
     fn from(err: BldrError) -> IronError {
-        IronError{error: Box::new(err), response: Response::with((status::InternalServerError, ""))}
+        IronError{error: Box::new(err), response: Response::with((status::InternalServerError, "Internal bldr error"))}
     }
 }
+
