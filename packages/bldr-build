@@ -16,6 +16,9 @@
 # limitations under the License.
 #
 
+set -e
+set -E
+
 if [[ -n "$DEBUG" ]]; then
   set -x
 fi
@@ -34,12 +37,21 @@ pkg_service_run=''
 pkg_docker_build=false
 pkg_expose=()
 pkg_service_user=bldr
+graceful_exit=true
 
 umask 0022
 
 ###
 # Utility Functions
 ###
+
+on_exit() {
+  local exit_status=${1:-$?}
+  echo "Exiting on error"
+  exit $exit_status
+}
+
+trap on_exit 1 2 3 15 ERR
 
 # Check that the command exists, 0 if it does, 1 if it does not.
 exists() {
@@ -98,7 +110,6 @@ bldr_begin() {
 }
 
 download() {
-  set -e
   if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
     if verify; then
       build_line "Using cached $pkg_filename"
@@ -394,7 +405,7 @@ package() {
 
 dockerfile() {
   if [[ $pkg_docker_build = "auto" ]]; then
-    mkdir ./${pkg_name}-cache
+    mkdir -p ./${pkg_name}-cache
     rsync -av --delete $pkg_path/* ./${pkg_name}-cache
     cat <<EOT > ./Dockerfile
 FROM bldr/base
@@ -468,119 +479,64 @@ pkg_srvc_config="/opt/bldr/srvc/$pkg_name/config"
 
 mkdir -p $pkg_path
 
-# Start the build
-build_line "Begin build"
-if bldr_begin; then
-  true
-else
-  ret=$?
-  exit_with "Bldr begin phase failed" $ret;
-fi
+bldr_begin
 
 # Download the source
 build_line "Downloading $pkg_source"
 mkdir -p $BLDR_SRC_CACHE
-if ! download; then
-  ret=$?
-  exit_with "Download phase failed" $ret;
-fi
+download
 
 # Verify the source
 build_line "Verifying $pkg_filename"
-if ! verify; then
-  ret=$?
-  exit_with "Verify phase failed" $ret;
-fi
+verify
 
 # Clean the cache
 build_line "Clean the cache"
-if ! clean_cache; then
-  ret=$?
-  exit_with "Cache cleaning failed" $ret;
-fi
+clean_cache
 
 # Unpack the source
 build_line "Unpacking $pkg_filename"
-if ! unpack; then
-  ret=$?
-  exit_with "Unpacking failed" $ret;
-fi
+unpack
 
 # Set up the build environment
 build_line "Setting build environment"
-if ! build_environment; then
-  ret=$?
-  exit_with "Preparing failed" $ret;
-fi
+build_environment
 
 # Prepare the source
 build_line "Preparing to build"
-if ! prepare; then
-  ret=$?
-  exit_with "Preparing failed" $ret;
-fi
+prepare
 
 # Build the source
 build_line "Building"
-if ! build_wrapper; then
-  ret=$?
-  exit_with "Building failed" $ret;
-fi
+build_wrapper
 
 # Install the source
 build_line "Installing"
-if ! install_wrapper; then
-  ret=$?
-  exit_with "Install failed" $ret;
-fi
+install_wrapper
 
 build_line "Rendering link options for dependent packages"
-if ! link_libraries; then
-  ret=$?
-  exit_with "Link libraries failed" $ret;
-fi
+link_libraries
 
 build_line "Writing configuration"
-if ! config; then
-  ret=$?
-  exit_with "Config failed" $ret;
-fi
+config
 
 build_line "Writing service management scripts"
-if ! service; then
-  ret=$?
-  exit_with "Service failed" $ret;
-fi
+service
 
 build_line "Stripping binaries"
-if ! strip_binaries; then
-  ret=$?
-  exit_with "Strip failed" $ret;
-fi
+strip_binaries
 
 build_line "Creating manifest"
-if ! manifest; then
-  ret=$?
-  exit_with "Manifest creation failed" $ret;
-fi
+manifest
 
 build_line "Writing package"
-if ! package; then
-  ret=$?
-  exit_with "Package creation failed" $ret;
-fi
+package
 
 build_line "Writing Dockerfile"
-if ! dockerfile; then
-  ret=$?
-  exit_with "Dockerfile creation failed" $ret;
-fi
+dockerfile
 
 build_line "Bldr cleanup"
-if ! bldr_end; then
-  ret=$?
-  exit_with "Bldr cleanup failed" $ret;
-fi
+bldr_end
 
 build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
 build_line "Installed: $pkg_path"
