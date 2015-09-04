@@ -16,24 +16,23 @@
 //
 
 use setup;
-use util::{command, docker};
+use util::{self, command, docker};
 
 #[test]
-fn upload_a_package_and_then_install_it() {
+fn upload_a_key_and_install_it() {
     setup::gpg_import();
-    setup::key_install();
     setup::simple_service();
 
     let d = docker::repo("bldr/simple_service");
     let ipaddress = d.ipaddress();
 
-    let mut upload = command::bldr(&["upload", "simple_service", "-u", &format!("http://{}:9632", ipaddress)]).unwrap();
+    let mut upload = command::bldr(&["key-upload", &util::path::fixture_as_string("chef-public"), "-u", &format!("http://{}:9632", ipaddress)]).unwrap();
     upload.wait_with_output();
     assert_cmd_exit_code!(upload, [0]);
-    assert_regex!(upload.stdout(), r"Upload Bldr Package (.+)");
-    assert_regex!(upload.stdout(), r"simple_service: uploading (.+)");
-    assert_regex!(upload.stdout(), r"simple_service: complete");
-    let mut install = command::bldr(&["install", "simple_service", "-u", &format!("http://{}:9632", ipaddress)]).unwrap();
+    assert_regex!(upload.stdout(), r"Upload Bldr key (.+)");
+
+    let mut install = command::bldr(&["key", "chef-public", "-u", &format!("http://{}:9632", ipaddress)]).unwrap();
     install.wait_with_output();
     assert_cmd_exit_code!(install, [0]);
 }
+

@@ -21,7 +21,6 @@ use std::process::{Command, Child, Stdio, ExitStatus};
 use std::fmt;
 use std::error::Error;
 use std::result;
-use std::ffi::OsStr;
 use std::path::Path;
 use std::thread;
 
@@ -142,7 +141,7 @@ pub fn bldr_build<P: AsRef<Path>>(cwd: P) -> CmdResult<Cmd> {
 
 pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {
     let bldr = util::path::bldr();
-    let mut command = command(&bldr, args);
+    let command = command(&bldr, args);
     spawn(command)
 }
 

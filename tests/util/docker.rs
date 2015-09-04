@@ -53,7 +53,7 @@ pub fn run_with_etcd_topology(image: &str, topology: &str) -> Docker {
 
 impl Docker {
     pub fn ipaddress(&self) -> String {
-        let mut cmd = command::run("sh", &["-c", &format!(r#"docker inspect {} | grep \"IPAddress\" | awk 'BEGIN {{ FS = "\"" }}; {{ print $4 }}'"#, &self.container_id)]).unwrap_or_else(|x| panic!("{:?}", x));
+        let mut cmd = command::run("sh", &["-c", &format!(r#"docker inspect {} | grep \"IPAddress\" | awk 'BEGIN {{ FS = "\"" }}; {{ printf $4 }}'"#, &self.container_id)]).unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         let ipaddress = String::from(cmd.stdout());
         println!("I have ipaddress of {}", &cmd.stdout());

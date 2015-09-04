@@ -23,10 +23,6 @@ extern crate url;
 
 pub mod util;
 
-use std::collections::HashMap;
-
-use regex::Regex;
-
 mod setup {
     use std::sync::{Once, ONCE_INIT};
     use tempdir::TempDir;
@@ -74,6 +70,17 @@ mod setup {
                 Err(e) => panic!("{:?}", e)
             };
             simple_service.wait_with_output();
+        });
+    }
+
+    pub fn key_install() {
+        static ONCE: Once = ONCE_INIT;
+        ONCE.call_once(|| {
+            let mut cmd = match util::command::bldr(&["key", &util::path::fixture_as_string("chef-public.asc")]) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e)
+            };
+            cmd.wait_with_output();
         });
     }
 }

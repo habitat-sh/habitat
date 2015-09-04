@@ -3,7 +3,7 @@ pkg_version=
 pkg_license=('MPL1.1 GPLv2.0 LGPLv2.1')
 pkg_source=http://curl.haxx.se/ca/cacert.pem
 pkg_filename=cacert.pem
-pkg_shasum=ccde89388cac12c5d3c8e68b9458add7e22b849371818dfdd240c994d6193641
+pkg_shasum=6d45a0555cc3006bb5340f7d9da02e7ae22f910b4824b281042805966e703cfe
 pkg_gpg_key=3853DA6B
 
 unpack() {

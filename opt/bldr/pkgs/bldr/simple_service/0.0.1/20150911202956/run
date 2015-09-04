@@ -1,0 +1,11 @@
+#!/opt/bldr/pkgs/bldr/busybox/1.23.2/20150911201557/bin/sh
+cd /opt/bldr/srvc/simple_service
+
+if [ "$(whoami)" = "root" ]; then
+  exec /opt/bldr/pkgs/bldr/busybox/1.23.2/20150911201557/bin/chpst \
+    -U bldr:bldr \
+    -u bldr:bldr \
+    /opt/bldr/pkgs/bldr/simple_service/0.0.1/20150911202956/bin/simple_service 2>&1
+else
+  exec /opt/bldr/pkgs/bldr/simple_service/0.0.1/20150911202956/bin/simple_service 2>&1
+fi
