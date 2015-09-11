@@ -1,9 +1,17 @@
 {
   "version": "2",
   "build_cookbook": {
-    "path": "<relative path from project root>",
-    "name": "<your build cookbook name>"
+    "path": "cookbooks/bldr",
+    "name": "bldr"
   },
-  "skip_phases": [],
+  "skip_phases": [
+    "deploy",
+    "provision",
+    "publish",
+    "quality",
+    "security",
+    "smoke",
+    "syntax"
+  ],
   "build_nodes": {}
 }
