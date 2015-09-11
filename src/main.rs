@@ -35,9 +35,12 @@ use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
 use bldr::repo;
 
+/// The version number
 #[allow(dead_code)]
 static VERSION: &'static str = "0.0.1";
 
+/// The [docopts](http://burntsushi.net/rustdoc/docopt/index.html) usage
+/// string. Determines what options are accepted.
 #[allow(dead_code)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
@@ -46,7 +49,7 @@ Usage: bldr install <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>
        bldr bash
        bldr repo [-p <path>]
        bldr upload <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
-       bldr key <key> -u <url>
+       bldr key <key> [-u <url>]
        bldr key-upload <key> -u <url>
 
 Options:
@@ -60,6 +63,8 @@ Options:
     -w, --watch=<watch>        One or more service groups to watch for updates
 ";
 
+/// The struct that docopts renders options
+/// into.
 #[derive(RustcDecodable, Debug)]
 struct Args {
     cmd_install: bool,
@@ -82,6 +87,8 @@ struct Args {
     flag_watch: Vec<String>
 }
 
+/// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
+/// struct.
 fn config_from_args(args: &Args, command: Command) -> Config {
     let mut config = Config::new();
     config.set_command(command);
@@ -98,6 +105,12 @@ fn config_from_args(args: &Args, command: Command) -> Config {
     config
 }
 
+/// The primary loop for bldr.
+///
+/// * Set up the logger
+/// * Pull in the arguments from the Command Line, push through Docopts
+/// * Dispatch to a function that handles that action called
+/// * Exit cleanly, or if we return an `Error`, call `exit_with(E, 1)`
 #[allow(dead_code)]
 fn main() {
     env_logger::init().unwrap();
@@ -148,11 +161,13 @@ fn main() {
     }
 }
 
+/// Print the banner
 #[allow(dead_code)]
 fn banner() {
     println!("{} version {}", Green.bold().paint("bldr"), VERSION);
 }
 
+/// Start a shell
 #[allow(dead_code)]
 fn shell(_config: &Config) -> BldrResult<()> {
     banner();
@@ -166,6 +181,7 @@ fn shell(_config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Install a package
 #[allow(dead_code)]
 fn install(config: &Config) -> BldrResult<()> {
     banner();
@@ -176,6 +192,7 @@ fn install(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Start a service
 #[allow(dead_code)]
 fn start(config: &Config) -> BldrResult<()> {
     banner();
@@ -186,6 +203,7 @@ fn start(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Run a package repo
 #[allow(dead_code)]
 fn repo(config: &Config) -> BldrResult<()> {
     banner();
@@ -195,6 +213,7 @@ fn repo(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Upload a package
 #[allow(dead_code)]
 fn upload(config: &Config) -> BldrResult<()> {
     banner();
@@ -204,6 +223,7 @@ fn upload(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Download/install a key
 #[allow(dead_code)]
 fn key(config: &Config) -> BldrResult<()> {
     banner();
@@ -212,6 +232,7 @@ fn key(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Upload a key
 #[allow(dead_code)]
 fn key_upload(config: &Config) -> BldrResult<()> {
     banner();
@@ -221,6 +242,7 @@ fn key_upload(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+/// Exit with an error message and the right status code
 #[allow(dead_code)]
 fn exit_with(e: BldrError, code: i32) {
     println!("{}", Red.bold().paint(&format!("{}", e)));

@@ -21,9 +21,24 @@ use util::gpg;
 use config::Config;
 use error::{BldrResult};
 
+/// Install a GPG key. If `config.url()` is empty, we assume the value
+/// of `config.key()` is a path to the key. Otherwise, we download the
+/// key from the repo at `config.url()`, drop it in `/opt/bldr/cache/keys`,
+/// and then import it into GPG.
+///
+/// # Failures
+///
+/// * If the directory `/opt/bldr/cache/keys` cannot be created
+/// * If the we fail to download the key from the repo
+/// * If the GPG import process fails
 pub fn install(config: &Config) -> BldrResult<()> {
-    try!(fs::create_dir_all("/opt/bldr/cache/keys"));
-    let filename = try!(http::download_key(&config.key(), &config.url(), "/opt/bldr/cache/keys"));
-    try!(gpg::import("key", &filename));
+    if config.url().is_empty() {
+        try!(gpg::import("key", &config.key()));
+    } else {
+        println!("url: {}", config.url());
+        try!(fs::create_dir_all("/opt/bldr/cache/keys"));
+        let filename = try!(http::download_key(&config.key(), &config.url(), "/opt/bldr/cache/keys"));
+        try!(gpg::import("key", &filename));
+    }
     Ok(())
 }

@@ -1,5 +1,3 @@
-set -e
-
 pkg_name=redis
 pkg_version=3.0.1
 pkg_license=('BSD')

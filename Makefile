@@ -43,16 +43,23 @@ container:
 	docker build -t chef/bldr --no-cache=${NO_CACHE} .
 
 test:
-	docker-compose run bldr cargo test
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo test
 
 unit:
-	docker-compose run bldr cargo test --lib
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo test --lib
 
 functional:
-	docker-compose run bldr cargo test --test functional
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo test --test functional
 
 cargo-clean:
-	docker-compose run bldr cargo clean
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo clean
+
+doc:
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo doc
+	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package rustdoc --crate-name bldr README.md -o ./target/doc/bldr
+
+doc-serve:
+	ruby -run -ehttpd ./target/doc -p 9633
 
 shell:
 	docker-compose run bldr bash

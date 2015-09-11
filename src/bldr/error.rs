@@ -61,6 +61,7 @@ pub enum BldrError {
     TryRecvError(mpsc::TryRecvError),
     BadWatch(String),
     NoXFilename,
+    NoFilePart,
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -106,6 +107,7 @@ impl fmt::Display for BldrError {
             BldrError::TryRecvError(ref err) => err.fmt(f),
             BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
             BldrError::NoXFilename => write!(f, "Invalid download from a repository - missing X-Filename header"),
+            BldrError::NoFilePart => write!(f, "An invalid path was passed - we needed a filename, and this path does not have one"),
         }
     }
 }
@@ -144,6 +146,7 @@ impl Error for BldrError {
             BldrError::TryRecvError(_) => "A channel failed to recieve a response",
             BldrError::BadWatch(_) => "An invalid watch was specified",
             BldrError::NoXFilename => "Invalid download from a repository - missing X-Filename header",
+            BldrError::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
         }
     }
 }

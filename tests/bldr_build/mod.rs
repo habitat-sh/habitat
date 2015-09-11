@@ -15,7 +15,6 @@
 // limitations under the License.
 //
 
-use std::thread;
 use std::process::Command;
 
 use regex::Regex;

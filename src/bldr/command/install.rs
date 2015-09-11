@@ -20,17 +20,36 @@ use std::process::Command;
 use util::{http, gpg};
 use std::fs;
 
+/// Given a package name and a base url, downloads the package
+/// to `/opt/bldr/cache/pkgs`. Returns the filename in the cache as a String
+///
+/// # Failures
+///
+/// * Fails if it cannot create `/opt/bldr/cache/pkgs`
+/// * Fails if it cannot download the package from the upstream
 pub fn from_url(package: &str, url: &str) -> BldrResult<String> {
     try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
     let filename = try!(http::download_package(package, url, "/opt/bldr/cache/pkgs"));
     Ok(filename)
 }
 
+/// Given a package name and a path to a file as an `&str`, verify
+/// the files gpg signature.
+///
+/// # Failures
+///
+/// * Fails if it cannot verify the GPG signature for any reason
 pub fn verify(package: &str, file: &str) -> BldrResult<()> {
     try!(gpg::verify(package, file));
     Ok(())
 }
 
+/// Given a package name and a path to a file as an `&str`, unpack
+/// the package.
+///
+/// # Failures
+///
+/// * If the package cannot be unpacked via gpg
 pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
     let output = try!(Command::new("sh")
         .arg("-c")

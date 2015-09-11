@@ -18,15 +18,23 @@
 use error::{BldrResult, BldrError};
 use config::Config;
 use std::fs::File;
+use std::path::Path;
 
 use pkg;
 use util::http;
 
 pub fn key(config: &Config) -> BldrResult<()> {
-    println!("   {}: uploading {}.asc", config.key(), config.key());
-    let mut file = try!(File::open(&format!("/opt/bldr/cache/keys/{}.asc", config.key())));
-    try!(http::upload(&format!("{}/keys/{}", config.url(), config.key()), &mut file));
-
+    if let Some('/') = config.key().chars().nth(0) {
+        println!("   {}: uploading {}.asc", config.key(), config.key());
+        let mut file = try!(File::open(&format!("{}.asc", config.key())));
+        let path = Path::new(config.key());
+        let file_name = try!(path.file_name().ok_or(BldrError::NoFilePart));
+        try!(http::upload(&format!("{}/keys/{}", config.url(), file_name.to_string_lossy()), &mut file));
+    } else {
+        println!("   {}: uploading {}.asc", config.key(), config.key());
+        let mut file = try!(File::open(&format!("/opt/bldr/cache/keys/{}.asc", config.key())));
+        try!(http::upload(&format!("{}/keys/{}", config.url(), config.key()), &mut file));
+    }
     println!("   {}: complete", config.key());
     Ok(())
 }

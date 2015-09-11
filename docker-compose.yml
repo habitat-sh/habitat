@@ -1,5 +1,6 @@
 bldr:
   image: chef/bldr
+  privileged: true
   environment:
     DOCKER_CERT_PATH: "/docker-certs"
     DOCKER_TLS_VERIFY: 1
