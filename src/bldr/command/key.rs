@@ -15,6 +15,22 @@
 // limitations under the License.
 //
 
+//! Installs a gpg key from a [repo](../repo) or a local file.
+//!
+//! # Examples
+//!
+//! ```bash
+//! $ bldr key chef-public -u http://localhost:9633
+//! ```
+//!
+//! Will download the `chef-public` gpg key from the specified repo.
+//!
+//! ```bash
+//! $ bldr key /tmp/chef-public.asc
+//! ```
+//!
+//! Will install the key found in `/tmp/chef-public.asc`.
+
 use std::fs;
 use util::http;
 use util::gpg;

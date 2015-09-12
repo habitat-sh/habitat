@@ -15,14 +15,40 @@
 // limitations under the License.
 //
 
+//! Uploads a gpg key to a [repo](../repo).
+//!
+//! # Examples
+//!
+//! ```bash
+//! $ bldr key-upload chef-public -u http://localhost:9633
+//! ```
+//!
+//! Will upload the `chef-public` key from the local key cache to the repo url.
+//!
+//! ```bash
+//! $ bldr key-upload /tmp/chef-public -u http://localhost:9633
+//! ```
+//!
+//! Will upload the key at `/tmp/chef-public.asc` to the repo url.
+//!
+
 use error::{BldrResult, BldrError};
 use config::Config;
 use std::fs::File;
 use std::path::Path;
 
-use pkg;
 use util::http;
 
+/// Upload a key to a repository.
+///
+/// If the key starts with a `/`, we treat it as a path to a specific file; otherwise, it's a key
+/// to grab from the cache in `/opt/bldr/cache/keys`. Either way, we read the file and upload it to
+/// the repository.
+///
+/// # Failures
+///
+/// * If the file fails to exist, or if we can't read it
+/// * If the http upload fails
 pub fn key(config: &Config) -> BldrResult<()> {
     if let Some('/') = config.key().chars().nth(0) {
         println!("   {}: uploading {}.asc", config.key(), config.key());

@@ -11,6 +11,20 @@
 //!
 //! # bldr-build
 //!
+//! The documentation for bldr-build is generated automatically from the script itself, [and can be
+//! found here](bldr-build/bldr-build.html). You can find it in the source tree at
+//! `packages/bldr-build`.
+//!
+//! # bldr
+//!
+//! Bldr is primarily utilized through the `bldr` command; it can also be used from within Rust as
+//! a library. This documentation covers both uses; it explains how things are used from the
+//! command line in close proximity to the documentation of the library itself. A few useful
+//! starting points:
+//!
+//! * [The bldr Command Line Reference](command)
+//! * [The bldr Sidecar; http interface to promises](sidecar)
+//! * [The bldr Repo; http based package repository](repo)
 //!
 #[macro_use] extern crate hyper;
 #[macro_use] extern crate log;
@@ -30,26 +44,15 @@ extern crate mount;
 extern crate staticfile;
 extern crate time;
 
-/// All the Errors we expect
 pub mod error;
-/// All the Commands you can run from the CLI.
 pub mod command;
-/// Utility functions; gpg, http, permissions and system info
 pub mod util;
-/// The representation of a bldr package
 pub mod pkg;
-/// Interaction with service discovery; etcd
 pub mod discovery;
-/// Service topologies are implemented here
 pub mod topology;
-/// A generic state machine implementation, used by the topologies
 pub mod state_machine;
-/// The HTTP sidecar, for exposing promises
 pub mod sidecar;
-/// Our nagios compliant health check implementation, exposed through the sidecar
 pub mod health_check;
-/// Configuration - currently only from the CLI options
 pub mod config;
-/// The HTTP package repository
 pub mod repo;
 

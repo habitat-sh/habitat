@@ -231,7 +231,7 @@ impl Package {
         let mut hasher = FnvHasher::default();
         hasher.write(&toml_string.into_bytes());
         let current_fnv = hasher.finish();
-        let mut should_write;
+        let should_write: bool;
 
         if self.config_fnv.contains_key(&String::from(source)) {
             let last_fnv = self.config_fnv.get(&String::from(source)).unwrap().clone();
@@ -474,12 +474,12 @@ fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
     mustache::Data::VecVal(mvec)
 }
 
-pub fn new(d: &str, n: &str, p: &str, v: &str, r: &str) -> Package {
+pub fn new(deriv: &str, name: &str, version: &str, release: &str) -> Package {
     Package{
-        derivation: String::from(d),
-        name: String::from(n),
-        version: String::from(v),
-        release: String::from(r),
+        derivation: String::from(deriv),
+        name: String::from(name),
+        version: String::from(version),
+        release: String::from(release),
         config_fnv: HashMap::new()
     }
 }

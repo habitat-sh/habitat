@@ -3,7 +3,6 @@ use iron::status;
 use router::Router;
 use std::sync::Arc;
 use std::thread;
-use std::io;
 
 use error::{BldrError, BldrResult};
 

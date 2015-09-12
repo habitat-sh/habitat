@@ -33,7 +33,6 @@ use bldr::config::{Command, Config};
 use bldr::sidecar;
 use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
-use bldr::repo;
 
 /// The version number
 #[allow(dead_code)]
@@ -51,6 +50,7 @@ Usage: bldr install <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>
        bldr upload <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
        bldr key <key> [-u <url>]
        bldr key-upload <key> -u <url>
+       bldr config <package>
 
 Options:
     -d, --deriv=<deriv>        A package derivative
@@ -75,6 +75,7 @@ struct Args {
     cmd_repo: bool,
     cmd_upload: bool,
     cmd_key_upload: bool,
+    cmd_config: bool,
     arg_package: String,
     arg_key: String,
     flag_path: String,
@@ -152,6 +153,10 @@ fn main() {
             let config = config_from_args(&args, Command::Upload);
             upload(&config)
         },
+        Args{cmd_config: true, ..} => {
+            let config = config_from_args(&args, Command::Configuration);
+            configure(&config)
+        },
         _ => Err(BldrError::CommandNotImplemented),
     };
 
@@ -178,6 +183,16 @@ fn shell(_config: &Config) -> BldrResult<()> {
     }
     // Yeah, you don't know any better.. but we aren't coming back from
     // what happens next.
+    Ok(())
+}
+
+/// Show the configuration options for a service
+#[allow(dead_code)]
+fn configure(config: &Config) -> BldrResult<()> {
+    banner();
+    println!("Displaying config for {}", Yellow.bold().paint(config.package()));
+    println!("");
+    try!(configure::display(config));
     Ok(())
 }
 
@@ -208,7 +223,7 @@ fn start(config: &Config) -> BldrResult<()> {
 fn repo(config: &Config) -> BldrResult<()> {
     banner();
     println!("Starting Bldr Repository at {}", Yellow.bold().paint(config.path()));
-    try!(repo::run(&config));
+    try!(repo::start(&config));
     println!("Finished with {}", Yellow.bold().paint(config.package()));
     Ok(())
 }

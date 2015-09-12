@@ -54,9 +54,11 @@ functional:
 cargo-clean:
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo clean
 
-doc:
+docs:
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo doc
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package rustdoc --crate-name bldr README.md -o ./target/doc/bldr
+	docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build
+	cp -r images ./target/doc/bldr
 
 doc-serve:
 	ruby -run -ehttpd ./target/doc -p 9633

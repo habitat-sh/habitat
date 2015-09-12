@@ -16,7 +16,6 @@
 //
 
 use hyper;
-use hyper::header::Headers;
 use hyper::client::{Client, Body};
 use std::io::{Read, Write, BufWriter};
 use std::fs::{self, File};
@@ -28,7 +27,7 @@ pub fn upload(url: &str, file: &mut File) -> BldrResult<()> {
     let mut client = Client::new();
     debug!("Uploading to {}", url);
     let metadata = try!(file.metadata());
-    let mut res = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
+    let res = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
     debug!("Response {:?}", res);
     Ok(())
 }
@@ -99,11 +98,6 @@ pub fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     Ok(finalfile)
 }
 
-fn file_name(url: &str) -> BldrResult<&str> {
-    let result = try!(url.split("/").last().ok_or(BldrError::CannotParseFileName));
-    Ok(result)
-}
-
 fn progress(status: &str, written: i64, length: &str, finished: bool) {
     let progress = format!("   {}: {}/{}", status, written, length);
     print!("{}", from_char(progress.len(), '\x08'));
@@ -131,20 +125,7 @@ fn from_char(length: usize, ch: char) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{file_name, from_char};
-
-    #[test]
-    fn file_name_returns_filename_from_url() {
-        assert_eq!(
-            "rise.bldr".to_string(),
-            file_name("http://example.com/done_asking/rise.bldr").unwrap()
-        );
-    }
-
-    #[test]
-    fn file_name_returns_filename_from_just_name() {
-        assert_eq!("rise.bldr", file_name("rise.bldr").unwrap());
-    }
+    use super::from_char;
 
     #[test]
     fn from_char_returns_the_correct_string() {

@@ -50,7 +50,7 @@ towards its goal, and exposes consistent interfaces for health and monitoring.
   * Health checks
   * Smoke testing
   * Monitoring
-  * Backups
+  * Backup)
 
 With the same amount of effort required to put your applicatin in a Dockerfile. Or less.
 
@@ -87,6 +87,8 @@ by having a convention cover it. When we do need to configure things, we set san
 1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. [Install Stable Rust](https://www.rust-lang.org/install.html) `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
+1. [Install the delivery-cli](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)
+1. [Install docco](http://jashkenas.github.io/docco/)
 1. Run `make`
 1. Run `make test`
 
@@ -105,9 +107,118 @@ read the docs at `http://localhost:9633/bldr` (with working javscript-based sear
 1. Open a terminal and run `make pkg-shell`
 1. Build with `cargo build` or `cargo test`
 1. You can use `cargo run -- foobar` to pass options to the built binary
-1. Commit
+1. Commit your change
+1. `delivery review`
 
 # Demo commands
+
+Start with the upstream docker redis container.
+
+```bash
+$ docker run -it redis
+```
+
+This is awesome because:
+
+1. If you don't have redis, it downloads it
+1. It runs the service, and returns the output to you directly
+1. You don't know anything about, and don't care, what the "operating system" is
+
+But things are not quite all as awesome as that first experience is. Right off
+the bat, you configuration errors - and to fix it, you're told to update a
+configuration file; but how?
+
+The answer is you have to open up the Dockerfile, look at how it's constructed,
+then fire up an instance of the redis container with a shell in it. Figure out
+where the config file is, figure out the syntax, tweak it, then, make a choice:
+
+1. Create a new Dockerfile that inherits FROM the upstream. Congratulations!
+   You are the new maintainer!
+1. Put your configuration file in a data-only container and cross-mount it.
+
+But what would we want if we could have everything the way we were promised?
+
+1. We would be able to ask the container what was configurable.
+1. It would be 12 factor - we could configure anything we need to configure
+   from the environment.
+
+First, lets show a basic redis container - essentially exactly like the `redis`
+container above.
+
+```bash
+$ docker run -it bldr/redis
+```
+
+Notice it has the same errors the 'default' container has. Lets see what
+we can configure about it.
+
+```bash
+$ docker run -it bldr/redis config redis
+```
+
+What you see is a [toml](https://github.com/toml-lang/toml) file, which
+documents every configurable option of our container. One error we see is the
+`tcp-backlog` setting is wrong. Lets tweak that in the style of a 12 factor
+app:
+
+```bash
+$ docker run -e BLDR_redis="tcp-backlog = 128" -it bldr/redis
+```
+
+Notice the error has gone away - we've gone from an opaque container we can't
+manage to one that we can. Yay!
+
+But we want to use this container not just in development, or one off - we want
+to have it in production, and it has different tunings from the one we use in
+development. Going back to the promise of having all of our tools in the
+cloud, we want to use service discovery to solve this problem - centrally
+store the configuration for our service, and then have it automatically
+configure the container at runtime.
+
+```
+$ docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis
+```
+
+This links us up to an `etcd` instance for service discovery. Open another
+terminal window, and lets write our new configuration:
+
+```toml
+# Put this in /tmp/redis.toml
+tcp-backlog = 128
+loglevel = debug
+```
+
+To put this into etcd:
+
+```bash
+foo=$(cat /tmp/redis.toml); curl -L http://192.168.99.100:4001/v2/keys/bldr/redis/default/config -XPUT -d value="${foo}"
+```
+
+You'll notice that your redis instance sees the configuration has changed, and
+automatically reconfigures iteslf. Neat!
+
+But you don't want just one redis instance. You need a cluster.
+
+Now, open three more terminal windows. (If you're using iterm, go ahead an put all
+three in one split window, and then link their inputs things.)
+
+Now run:
+
+```bash
+docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis start redis -t leader
+```
+
+This will start 3 instances of redis, elect one as a leader, and the others
+will automatcially become followers.
+
+```bash
 foo=$(cat /tmp/redis.toml); curl -L http://192.168.99.100:4001/v2/keys/bldr/redis/default -XPUT -d value="${foo}"
-docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis
-docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/haproxy start haproxy -w redis.default
+```
+
+Then you can load balance them with a generic tcp proxy:
+
+```bash
+docker run --expose 6379 --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/haproxy start haproxy -w redis.default
+```
+
+
