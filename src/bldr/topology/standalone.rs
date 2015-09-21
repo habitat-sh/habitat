@@ -76,7 +76,19 @@ pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 
 /// Configure the service.
 ///
-/// 
+/// 1. Write the default data from the package to the srvc directory
+/// 1. Write out any environment settings
+/// 1. Write out our system information (IP, Port, Hostname)
+/// 1. Write out the bldr package data
+/// 1. If Discovery is enabled, start the watch for our configuration, and fire up the discovery
+///    thread
+/// 1. Configure the package itself
+/// 1. Watch the configuration with inotify
+///
+/// # Failures
+///
+/// * If we can't write any files
+/// * If we can't watch the configuration parts
 pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.write_default_data());
     try!(worker.package.write_environment_data());
@@ -121,6 +133,16 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     Ok((State::Starting, 0))
 }
 
+/// Start the service.
+///
+/// 1. Finds the package
+/// 1. Starts runit for the `run` script
+/// 1. Spawns the supervisor thread
+///
+/// # Failures
+///
+/// * If we cannot find the package
+/// * If we cannot start the supervisor
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     println!("   {}: Starting", worker.preamble());
     let runit_pkg = try!(pkg::latest("runit", None));
