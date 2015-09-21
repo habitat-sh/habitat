@@ -219,7 +219,6 @@ impl<'a> Worker<'a> {
 ///
 /// * We fail to send a signal to the supervisor
 /// * We fail to join the supervisor thread
-/// * We cannot call `ps wl`, to verify it was the supervisor that died when we called waitpid
 /// * The supervisor dies unexpectedly
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
