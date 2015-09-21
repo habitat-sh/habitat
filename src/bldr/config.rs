@@ -15,7 +15,16 @@
 // limitations under the License.
 //
 
+//! Configuration for bldr.
+//!
+//! This module is populated from the CLI options in `main.rs`, and then passed through to the
+//! [command](../command) modules. Check out the `config_from_args(..)` function there for more
+//! details.
+//!
+//! See the [Config](struct.Config.html) struct for the specific options available.
+
 #[derive(Debug, Clone, PartialEq, Eq)]
+/// An enum with the various CLI commands. Used to keep track of what command was called.
 pub enum Command {
     Install,
     Config,
@@ -25,14 +34,17 @@ pub enum Command {
     Shell,
     Repo,
     Upload,
+    Configuration
 }
 
+// We provide a default command primarily so the Config struct can have sane defaults.
 impl Default for Command {
     fn default() -> Command {
         Command::Install
     }
 }
 
+/// Holds our configuration options.
 #[derive(Default)]
 pub struct Config {
     command: Command,
@@ -49,106 +61,128 @@ pub struct Config {
 }
 
 impl Config {
+    /// Create a default `Config`
     pub fn new() -> Config {
         Config::default()
     }
 
+    /// Set the `Command` we used
     pub fn set_command(&mut self, command: Command) -> &mut Config {
         self.command = command;
         self
     }
 
+    /// Return the command we used
     pub fn command(&self) -> Command {
         self.command.clone()
     }
 
+    /// Set the key
     pub fn set_key(&mut self, key: String) -> &mut Config {
         self.key = key;
         self
     }
 
+    /// Return the key
     pub fn key(&self) -> &str {
         &self.key
     }
 
-
+    /// Set the package name
     pub fn set_package(&mut self, package: String) -> &mut Config {
         self.package = package;
         self
     }
 
+    /// Return the package name
     pub fn package(&self) -> &str {
         &self.package
     }
 
+    /// Set the derivation
     pub fn set_deriv(&mut self, deriv: String) -> &mut Config {
         self.deriv = deriv;
         self
     }
 
+    /// Return the derivation
     pub fn deriv(&self) -> &str {
         &self.deriv
     }
 
+    /// Set the version
     pub fn set_version(&mut self, version: String) -> &mut Config {
         self.version = version;
         self
     }
 
+    /// Return the version
     pub fn version(&self) -> &str {
         &self.version
     }
 
+    /// Set the release
     pub fn set_release(&mut self, release: String) -> &mut Config {
         self.release = release;
         self
     }
 
+    /// Return the release
     pub fn release(&self) -> &str {
         &self.release
     }
 
+    /// Set the path
     pub fn set_path(&mut self, path: String) -> &mut Config {
         self.path = path;
         self
     }
 
+    /// Return the path
     pub fn path(&self) -> &str {
         &self.path
     }
 
+    /// Set the group
     pub fn set_group(&mut self, group: String) -> &mut Config {
         self.group = group;
         self
     }
 
+    /// Return the group
     pub fn group(&self) -> &str {
         &self.group
     }
 
+    /// Set the watch
     pub fn set_watch(&mut self, watch: Vec<String>) -> &mut Config {
         self.watch = watch;
         self
     }
 
+    /// Return the watch
     pub fn watch(&self) -> &[String] {
         &self.watch
     }
 
+    /// Set the url
     pub fn set_url(&mut self, url: String) -> &mut Config {
         self.url = url;
         self
     }
 
+    /// Return the url
     pub fn url(&self) -> &str {
         &self.url
     }
 
+    /// Set the topology
     pub fn set_topology(&mut self, topology: String) -> &mut Config {
         self.topology = topology;
         self
     }
 
+    /// Return the topology
     pub fn topology(&self) -> &str {
         &self.topology
     }

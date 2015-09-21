@@ -2,12 +2,9 @@ use iron::prelude::*;
 use iron::status;
 use iron::request::Body;
 use iron::headers;
-use mount::Mount;
 use router::Router;
-use staticfile::Static;
 
 use std::sync::Arc;
-use std::thread;
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::{Path, PathBuf};
@@ -15,8 +12,7 @@ use std::path::{Path, PathBuf};
 use error::{BldrError, BldrResult};
 use config::Config;
 
-use pkg::{self, Package, Signal};
-use health_check;
+use pkg;
 use util::http::XFileName;
 
 struct Repo {
@@ -137,7 +133,7 @@ fn download_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     println!("Download Latest {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
-    let deriv = rext.find("deriv").unwrap();
+    let _deriv = rext.find("deriv").unwrap();
     let pkg = rext.find("pkg").unwrap();
 
     // Hahaha - you thought deriv would work. Not so much.

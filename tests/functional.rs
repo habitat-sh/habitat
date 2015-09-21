@@ -63,8 +63,6 @@ mod setup {
                 .spawn().unwrap();
             copy_cmd.wait().unwrap();
 
-            bldr_release();
-
             let mut simple_service = match util::command::bldr_build(tempdir.path().join("simple_service")) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e)

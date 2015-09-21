@@ -1,7 +1,233 @@
 #!/bin/bash
 #
-# Copyright:: Copyright (c) 2015 Chef Software, Inc.
-# License:: Apache License, Version 2.0
+# # Usage
+#
+# ```
+# $ bldr-build ./Bldrfile
+# ```
+#
+# # Synopsis
+#
+# `bldr-build` handles creating bldr packages, and optionally creating
+# docker images to go with them.
+#
+# # Bldrfile
+#
+# The heart of `bldr-build` is the `Bldrfile`. This file is a shell
+# script which defines how you download, configure, make, install,
+# and run software. Think of it as a cross between an rpm `spec` file
+# and a `Dockerfile`.
+#
+# Here is an example `Bldrfile` for [zlib](http://www.zlib.net/) - it
+# also happens to be the smallest possible `Bldrfile`:
+#
+# ```sh
+# pkg_name=zlib
+# pkg_version=1.2.8
+# pkg_license=('zlib')
+# pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
+# pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+# pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
+# pkg_gpg_key=3853DA6B
+# pkg_deps=(glibc)
+# pkg_lib_dirs=(lib)
+# pkg_include_dirs=(include)
+# ```
+#
+# It has the name of the software, the version, where to download it, a checksum to verify the
+# contents are what we expect, a gpg key to sign the resulting package with, a single dependency
+# on glibc, and it has the resulting libaries in `lib` and header files in `include`.
+#
+# When executed, bldr will:
+#
+# 1. Download the software
+# 1. Validate the checksum
+# 1. Uncompress it
+# 1. Set the build environment to depend on the `glibc` bldr package
+# 1. Run `./configure && make`
+# 1. Run `make install`
+# 1. Write out the data other packages need to depend on `zlib`
+# 1. Create a gpg signed tarball of the results
+#
+# ## Bldrfile Options
+#
+# ### pkg_name
+# Sets the name of the package.
+# ```
+# pkg_name=zlib
+# ```
+#
+# ### pkg_maintainer
+# The name and email address of the package maintainer.
+# ```
+# pkg_maintainer="Adam Jacob <adam@chef.io>"
+# ```
+#
+# ### pkg_version
+# Sets the version of the package.
+# ```
+# pkg_version=1.2.8
+# ```
+#
+# ### pkg_license
+# An array of software license that relate to this package. Used in the MANIFEST.
+# ```
+# pkg_license=('zlib')
+# ```
+#
+# ### pkg_source
+# Where to download the source from. Any valid `wget` url will work.
+# ```
+# pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
+# ```
+#
+# ### pkg_filename
+# The resulting filename for the download.
+# ```
+# pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+# ```
+#
+# ### pkg_shasum
+# The sha256 sum of the downloaded `$pkg_source`. You can easily generate by downloading the source and using `sha256sum` or `gsha256sum`.
+# ```
+# pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
+# ```
+#
+# ### pkg_gpg_key
+# The gpg key to sign the package with.
+# ```
+# pkg_gpg_key=3853DA6B
+# ```
+#
+# ### pkg_deps
+# An array of dependencies the package has.
+# ```
+# pkg_deps=(glibc pcre openssl zlib)
+# ```
+#
+# ### pkg_lib_dirs
+# An array of paths, relative to the final install of the software, where libaries can be found. Used to
+# populate `LD_FLAGS` and `LD_RUN_PATH` for software that depends on your package.
+# ```
+# pkg_lib_dirs=(lib)
+# ```
+#
+# ### pkg_include_dirs
+# An array of paths, relative to the final install of the software, where headers can be found. Used to
+# populate `CFLAGS` for software that depends on your package.
+# ```
+# pkg_include_dirs=(include)
+# ```
+#
+# ### pkg_binary_path
+# An array of paths, relative to the final install of the software, where binaries can be found. Used to
+# populate `PATH` for software that depends on your package.
+# ```
+# pkg_binary_path=(bin)
+# ```
+#
+# ### pkg_service_run
+# The command to start the service, if needed. Should not fork!
+# ```
+# pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
+# ```
+#
+# ### pkg_docker_build
+# If set to `auto`, we will automatically generate a `Dockerfile` with this package,
+# its dependencies, and busybox. If undefined or set to `false`, we will only build
+# a docker image if a `Dockerfile` is present.
+# ```
+# pkg_docker_build="auto"
+# ```
+#
+# ### pkg_expose
+# An array of ports this service exposes to the world.
+# ```
+# pkg_expose=(80 443)
+# ```
+#
+# ### pkg_derivation
+# A string to use for the derivation. Defaults to bldr. The derivation
+# is used to denote a particular upstream of a package; when we resolve
+# dependencies, we consider a version of a package to be equal regardless
+# of its derivation - but you can specify what you prefer to use.
+# ```
+# pkg_derivation=bldr
+# ```
+#
+# ## Bldrfile variables
+#
+# `bldr-build` sets a few useful variables for you, in addition to
+# the ones you define above. They are:
+#
+# * `$pkg_prefix`: This variable is the final path for your package.
+# * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
+# * `$pkg_srvc`: Where the running service is; `/opt/bldr/srvc/$pkg_name`
+# * `$pkg_srvc_data`: Service data; `/opt/bldr/srvc/$pkg_name/data`
+# * `$pkg_srvc_var`: Variable state; `/opt/bldr/srvc/$pkg_name/var`
+# * `$pkg_srvc_config`: Configuration; `/opt/bldr/srvc/$pkg_name/config`
+# * `$BLDR_SRC_CACHE`: The path to all the package sources
+# * `$BLDR_PKG_CACHE`: The path to all generated packages
+# * `$CFLAGS`: C compiler options
+# * `$LDFLAGS`: C linker options
+# * `$PREFIX`: Where to install the software; same as $pkg_prefix
+# * `$LD_RUN_PATH`: Where to find binaries at run time
+#
+# ## Bldrfile Callbacks
+#
+# `bldr-build` allows you to alter its behavior by defining callbacks within
+# the `Bldrfile`. While `zlib` is awesome and requires no callbacks, most
+# software isn't quite so simple to build. To define a callback, simply
+# create a shell function with its name - then write out your script.
+#
+# Most likely, you simply need to redefine two steps:
+#
+# 1. build - this step runs './configure --prefix=$pkg_prefix && make`.
+# 1. install - this step runs `make install`.
+#
+# Here is an example `Bldrfile` for `haproxy`, which overrides both:
+#
+# ```sh
+# # -@- mode: shell -*-
+# # vi: set ft=sh :
+#
+# pkg_name=haproxy
+# pkg_version=1.5.12
+# pkg_license=('BSD')
+# pkg_maintainer="Adam Jacob <adam@chef.io>"
+# pkg_source=http://www.haproxy.org/download/1.5/src/${pkg_name}-${pkg_version}.tar.gz
+# pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+# pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
+# pkg_gpg_key=3853DA6B
+# pkg_binary_path=(bin)
+# pkg_deps=(glibc pcre openssl zlib)
+# pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
+# pkg_docker_build="auto"
+# pkg_expose=(80 443)
+#
+# build() {
+#   make USE_PCRE=1 \
+#     USE_PCRE_JIT=1 \
+#     CPU=x86_64 \
+#     TARGET=linux2628 \
+#     USE_OPENSSL=1 \
+#     USE_ZLIB=1 \
+#     ADDINC="$CFLAGS" \
+#     ADDLIB="$LDFLAGS"
+# }
+#
+# install() {
+#   mkdir -p $pkg_prefix/bin
+#   cp haproxy $pkg_prefix/bin
+# }
+# ```
+#
+# [A complete list of callbacks, their description, and attendant source code, is but a click away.](#build-phases)
+#
+# # License and Copyright
+# ```
+# Copyright: Copyright (c) 2015 Chef Software, Inc.
+# License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,46 +240,102 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# ```
+#
 #
 
+# # Internals
+
+# Fail when commands return a non-zero return code.
 set -e
 set -E
 
+# If the variable `$DEBUG` is set, then print all the
+# shell commands as we execute.
 if [[ -n "$DEBUG" ]]; then
   set -x
 fi
 
+# ## Default variables
+
+# The current version of bldr
 BLDR_VERSION=0.0.1
+# Where the source cache is
 BLDR_SRC_CACHE=/opt/bldr/cache/src
+# Where the resulting packages are
 BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
+# The first argument to the script is a Bldrfile
 BLDR_FILE=$1
+# The default derivation is `bldr`
 pkg_derivation=bldr
+# Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_rel=$(date -u +%Y%m%d%H%M%S)
+# The default deps setting - an empty array
 pkg_deps=()
+# A legacy option; defines you want bldr style packages
 pkg_format=(bldr)
+# The path inside a package that contains libraries - used in `LD_RUN_PATH` and
+# `LD_FLAGS`.
 pkg_lib_dirs=()
+# The path inside a package that contains header files - used in `CFLAGS`
 pkg_include_dirs=()
+# The command to run the service - must not fork or return
 pkg_service_run=''
+# Has two values: `false`, `auto`. False will skip making a docker
+# container unless a Dockerfile is present. Auto will create the
+# Dockerfile, overwriting any that may be present.
 pkg_docker_build=false
+# An array of ports to expose.
 pkg_expose=()
+# The user to run the service as
 pkg_service_user=bldr
+# Used to handle if we received a signal, or failed based on a bad status code.
 graceful_exit=true
 
+# We want everything to be build as `rwx-r-x-r-x`
 umask 0022
 
-###
-# Utility Functions
-###
+# ## Helper functions
 
+# Handles exiting the program on signals. Takes either an argument
+# with the status code, or uses the last commands status code.
+#
+# For example, the below would exit with a status of 1.
+#
+# ```bash
+# on_exit 1
+# ```
+#
+# Or:
+#
+# ```bash
+# false
+# on_exit
+# ```
+#
+# Would also exit 1.
 on_exit() {
   local exit_status=${1:-$?}
   echo "Exiting on error"
   exit $exit_status
 }
 
+# Call the `on_exit` function above on:
+# * HUP (1)
+# * INT (2)
+# * QUIT (3)
+# * TERM (15)
+# * ERR - when a shell command raises an error. Useful for `set -e; set -E`
+#   above.
 trap on_exit 1 2 3 15 ERR
 
 # Check that the command exists, 0 if it does, 1 if it does not.
+#
+# ```sh
+# exists gsha256sum
+# ```
+#
+# Would return 0 if gsha256sum exists, 1 if it does not.
 exists() {
   if command -v $1 >/dev/null 2>&1
   then
@@ -63,11 +345,27 @@ exists() {
   fi
 }
 
+# Print a line of build output. Takes the rest of the line
+# as its only argument.
+#
+# ```sh
+# build_line "Checksum verified - ${pkg_shasum}"
+# ```
 build_line() {
   echo "   ${pkg_name}: $1"
   return 0
 }
 
+# Prints a line only if the `$DEBUG` environment value is set.
+#
+# ```sh
+# DEBUG=1
+# debug "Only if things are set"
+# # "DEBUG: Only if things are set"
+# DEBUG=0
+# debug "Not so much anymore"
+# ```
+#
 debug() {
   if [[ -n "$DEBUG" ]]; then
     echo "DEBUG: $1"
@@ -75,13 +373,24 @@ debug() {
   return 0
 }
 
+# Exit the program with an error message and a status code.
+#
+# ```
+# exit_with "Something bad went down" 55
+# ```
 exit_with() {
   echo "ERROR: $1"
   exit $2
 }
 
-# Thanks to these guys:
-# http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable
+# Trim leading and trailing whitespace.
+# [Thanks to these guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
+# for the tip.
+#
+# ```sh
+# local data=$(cat /tmp/somefile)
+# local trimmed=$(trim $data)
+# ```
 trim() {
     local var="$*"
     var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
@@ -89,7 +398,19 @@ trim() {
     echo "$var"
 }
 
+# Return the path to the latest release of a package.
+#
+# ```
+# latest_package bldr/nginx
+# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# latest_package bldr/nginx/1.8.0
+# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# latest_package bldr/nginx/1.8.0/20150911120000
+# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# ```
 latest_package() {
+  # Count the number of slashes, and use it to make a choice
+  # about what to return as the latest package.
   latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
   case $(trim $latest_package_flags) in
     "3")
@@ -101,14 +422,20 @@ latest_package() {
   esac
 }
 
-###
-# Build Phases
-###
-# Stub build phases, in the order they are executed
+# ## Build Phases
+#
+# Stub build phases, in the order they are executed. These can be
+# overriden by the `Bldrfile` if needed.
+
+# Used to execute arbitrary commands before anything else happens.
 bldr_begin() {
   return 0
 }
 
+# Download the software from `$pkg_source` and place it in
+# `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already
+# exists in the cache, verify that the checksum is what
+# we expect, and skip the download.
 download() {
   if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
     if verify; then
@@ -123,6 +450,8 @@ download() {
   return 0
 }
 
+# Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename`
+# has the `$pkg_shasum` we expect.
 verify() {
   if exists gsha256sum; then
     verify_output=$(gsha256sum $BLDR_SRC_CACHE/$pkg_filename)
@@ -138,13 +467,19 @@ verify() {
   return 0
 }
 
+# Clean up the remnants of any previous build job, ensuring it can't
+# pollute out new output.
 clean_cache() {
   rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
   return 0
 }
 
+# Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and
+# unpacks it. We use shell globbing and a case statement to see if it
+# matches a file type we know how to uncompress, and then uncompress it.
+#
+# This takes place in teh $BLDR_SRC_CACHE directory.
 unpack() {
-  # basename with a suffix returns without it if it matches
   unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
 # Thanks http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
@@ -171,6 +506,11 @@ unpack() {
   return 0
 }
 
+# Set up our build environment. First, add any library paths defined in
+# `$pkg_lib_dirs` to `LD_RUN_PATH`. Then, for each dependency in `$pkg_deps`,
+# find the latest package, then add it's `LD_RUN_PATH`, `CFLAGS`, `LDFLAGS`,
+# and `PATH` to ours. Also, set `PREFIX=$pkg_path`, ensuring that most
+# software will install into the correct location.
 build_environment() {
   local ld_run_path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
@@ -226,31 +566,48 @@ build_environment() {
   return 0
 }
 
+# A step that exists to be overriden. We have the software downloaded, unpacked, and the
+# build environment variables set. Do what you need to do before we actually run the build
+# steps.
 prepare() {
   return 0
 }
 
+# Since `build` is one of the most overriden functions, this wrapper makes sure that
+# no matter how it is changed, our `$cwd` is `$BLDR_SRC_CACHE/$pkg_dirname`.
 build_wrapper() {
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   build
   popd > /dev/null
 }
 
+# Build the software; assumes the GNU pattern.
 build() {
   ./configure --prefix=$pkg_prefix
   make
 }
 
+# Identical to the `build_wrapper` function above; simply makes sure the
+# working directory for the install step is correct.
 install_wrapper() {
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   install
   popd > /dev/null
 }
 
+# Install the software.
 install() {
   make install
 }
 
+# Write out the package data to files:
+#
+# * `$pkg_path/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
+# * `$pkg_path/LDFLAGS` - Any LDFLAGS for things that link against us
+# * `$pkg_path/CFLAGS` - Any CFLAGS for things that link against us
+# * `$pkg_path/PATH` - Any PATH entries for things that link against us
+# * `$pkg_path/EXPOSES` - Any ports we expose
+# * `$pkg_path/DEPS` - Any depencies we used during the build
 link_libraries() {
   local ld_run_path_part=""
   local ld_lib_part=""
@@ -325,6 +682,8 @@ link_libraries() {
   return 0
 }
 
+# Copy the `./config` directory, relative to the `Bldrfile`,
+# to `$pkg_path/config`. Do the same with `default.toml`.
 config() {
   if [[ -d ./config ]]; then
     cp -r ./config $pkg_path
@@ -336,6 +695,16 @@ config() {
   return 0
 }
 
+# Write out the `$pkg_path/run` file. If a file named
+# `run` exists, we will copy it. Otherwise, we look for
+# `$pkg_service_run`, and use that.
+#
+# If the `$pkg_service_user` is set to `bldr`, we
+# change the service to be run under the `bldr` user
+# before we start it.
+#
+# Also, if there is a `health` script, we copy it to
+# `$pkg_path/health`.
 service() {
   if [[ -d $BUILD_SRC_CACHE/$pkg_dirname/run ]]; then
     cp $BUILD_SRC_CACHE/$pkg_dirname/run $pkg_path
@@ -372,6 +741,7 @@ EOT
   return 0
 }
 
+# Strip any binaries, decreasing our total size.
 strip_binaries() {
   local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | cut -d ":" -f 1)
   if [[ -n "$binaries" ]]; then
@@ -379,9 +749,11 @@ strip_binaries() {
   fi
 }
 
+# Write the `$pkg_path/MANIFEST`.
 manifest() {
-cat <<EOT >> $pkg_path/MANIFEST
-# $pkg_derivation $pkg_name
+cat <<-EOT >> $pkg_path/MANIFEST
+$pkg_derivation $pkg_name
+=========================
 
 Maintainer: $pkg_maintainer
 Version: $pkg_version
@@ -392,9 +764,11 @@ SHA: $pkg_shasum
 Path: $pkg_path
 Dependencies: $(printf "%s " ${pkg_deps[@]})
 
-## Bldrfile
+Bldrfile
+========
 
-### Flags
+Flags
+-----
 
 CFLAGS: $CFLAGS
 LDFLAGS: $LDFLAGS
@@ -404,18 +778,25 @@ LD_RUN_PATH: $LD_RUN_PATH
 $(cat $BLDR_FILE)
 \`\`\`
 
-## Files
+Files
+-----
 $(find $pkg_path -type f | xargs sha256sum)
 EOT
   return 0
 }
 
+# Create the bldr package with `gpg-zip`, and sign it with `$pkg_gpg_key`.
 package() {
   mkdir -p $BLDR_PKG_CACHE
   gpg-zip -u $pkg_gpg_key --tar-args '-cj --absolute-names' --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --sign $pkg_path
   return 0
 }
 
+# Build the docker container. If `$pkg_docker_build` is set to `auto`,
+# create the Dockerfile first.
+#
+# We build and tag the resulting image with `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
+# `$pkg_derivation/$pkg_name:latest`.
 dockerfile() {
   if [[ $pkg_docker_build = "auto" ]]; then
     mkdir -p ./${pkg_name}-cache
@@ -456,16 +837,15 @@ EOT
   fi
 }
 
+# A function for cleaning up after yourself.
 bldr_end() {
   return 0
 }
 
-##
-# Main body
-##
+## Main Flow
 echo "Loading $1"
 
-## Load the Bldrfile
+# Load the Bldrfile
 if source $1; then
   build_line "Bldrfile loaded"
 else
@@ -473,25 +853,31 @@ else
   exit_with "Failed to load Bldrfile" $ret
 fi
 
+# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not already set by the `Bldrfile`.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
 fi
 
+# Set `$pkg_path` if it is not already set by the `Bldrfile`.
 if [[ -z "${pkg_path+xxx}" ]]; then
   pkg_path=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
+# Set `$pkg_prefix` if not already set by the `Bldrfile`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
+# Set $pkg_srvc variables.
 pkg_srvc="/opt/bldr/srvc/$pkg_name"
 pkg_srvc_data="/opt/bldr/srvc/$pkg_name/data"
 pkg_srvc_var="/opt/bldr/srvc/$pkg_name/var"
 pkg_srvc_config="/opt/bldr/srvc/$pkg_name/config"
 
+# Create the `$pkg_path`
 mkdir -p $pkg_path
 
+# Run `bldr_begin`
 bldr_begin
 
 # Download the source
@@ -527,32 +913,42 @@ build_wrapper
 build_line "Installing"
 install_wrapper
 
+# Render the linking and dependency files
 build_line "Rendering link options for dependent packages"
 link_libraries
 
+# Copy the configuration
 build_line "Writing configuration"
 config
 
+# Copy the service management scripts
 build_line "Writing service management scripts"
 service
 
+# Strip the binaries
 build_line "Stripping binaries"
 strip_binaries
 
+# Write the manifest
 build_line "Creating manifest"
 manifest
 
+# Write the package
 build_line "Writing package"
 package
 
-build_line "Writing Dockerfile"
+# Build the Docker images
+build_line "Creating Docker images"
 dockerfile
 
+# Cleanup
 build_line "Bldr cleanup"
 bldr_end
 
+# Print the results
 build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
 build_line "Installed: $pkg_path"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
+# Exit cleanly
 exit 0

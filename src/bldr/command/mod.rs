@@ -1,10 +1,11 @@
-/// Install packages.
+//! The CLI commands.
+//!
+//! Bldr's command line actions are defined here; one module per command. Their names map 1:1 to
+//! the actual command line arguments, with one exception - `_` is translated to `-` on the CLI.
 pub mod install;
-/// Start services.
 pub mod start;
-/// Install gpg keys.
 pub mod key;
-/// Upload a gpg key to a repository.
 pub mod key_upload;
-/// Upload a package to a repository.
 pub mod upload;
+pub mod repo;
+pub mod configure;

@@ -15,16 +15,22 @@
 // limitations under the License.
 //
 
+//! Etcd backend for service discovery.
+//!
+//! The functions in this module are typically used through the [discovery](../discovery) module's
+//! [DiscoveryWatcher](struct.DiscoveryWatcher.html) and
+//! [DiscoveryWriter](struct.DiscoveryWriter.html), which are in turn accessed through a particular
+//! [topology](../topology).
+//!
+//! We do not implement the fullness of the [etcd api](http://...).
+
 use hyper::header::ContentType;
 use hyper::client::Client;
 use hyper::status::StatusCode;
 use url;
-use toml;
 use rustc_serialize::json::Json;
 use std::env;
-use std::collections::BTreeMap;
 use std::io::Read;
-use ansi_term::Colour::{White};
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver, TryRecvError};
 use time;
@@ -33,6 +39,7 @@ use std::mem;
 use error::BldrResult;
 use util;
 
+/// If the environment variable `$BLDR_CONFIG_ETCD` is set, returns the URL that it contains.
 pub fn enabled() -> Option<String> {
     match env::var("BLDR_CONFIG_ETCD") {
         Ok(val) => Some(val),
@@ -43,6 +50,29 @@ pub fn enabled() -> Option<String> {
     }
 }
 
+/// Set a value in etcd.
+///
+/// Given a key and an array of option tuples (`[("recursive", "true)]`), sets the key to the given
+/// value in etcd.
+///
+/// Valid option tuples [correspond directly to the etcd api](https://coreos.com/etcd/docs/latest/api.html).
+///
+/// # Examples
+///
+/// ```ignore
+/// use discovery::etcd;
+///
+/// // Compare and set
+/// etcd::set("/foo", &[("value", &status), ("prevValue", &status)]).unwrap();
+/// // A directory with a ttl
+/// etcd::set("/bar", &[("dir", "true"), ("ttl", "30")]).unwrap();
+/// // Set a key unless it already exists
+/// etcd::set(&key, &[("value", "[topology.leader]"), ("prevExist", "false")]).unwrap();
+/// ```
+///
+/// # Failures
+///
+/// * If the request fails to send for any reason
 pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, String)> {
     let base_url = match enabled() {
         Some(url) => url,
@@ -64,17 +94,40 @@ pub fn set(key: &str, options: &[(&str, &str)]) -> BldrResult<(StatusCode, Strin
     Ok((res.status, response_body))
 }
 
+/// The options for an EtcdWrite call.
+///
+/// Valid options [correspond directly to the etcd api](https://coreos.com/etcd/docs/latest/api.html).
 #[allow(non_snake_case)]
 pub struct EtcdWrite {
+    /// The key to write to
     pub key: String,
+    /// An optional value to write
     pub value: Option<String>,
+    /// An optional ttl to set
     pub ttl: Option<u32>,
+    /// Are we a directory?
     pub dir: Option<bool>,
+    /// Check for previous existence of a key?
     pub prevExist: Option<bool>,
+    /// Check for previous index number?
     pub prevIndex: Option<u64>,
+    /// Check for previous value?
     pub prevValue: Option<String>
 }
 
+/// Write a value to etcd, in a new thread. Used by the
+/// [DiscoveryWriter](../struct.DiscoveryWriter.html)
+///
+/// 1. Spawn a new thread named `etc-write:$options.key`
+/// 1. Parse the options from the `EtcdWrite` options
+/// 1. Loop forever
+/// 1. Send an HTTP PUT request to etcd with the correct options
+/// 1. Send the response status and body back to the `DiscoveryWriter`
+/// 1. Calculate the time we should wait to write again based on the TTL in the `EtcdWrite`
+/// 1. Loop
+/// 1. Check for a stop signal from the `DiscoveryWriter`
+/// 1. Check if the timer has elapsed
+/// 1. Sleep or go back to the top of the outer loop.
 pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watcher_rx: Receiver<bool>) {
     let _join = thread::Builder::new().name(format!("etcd-write:{}", options.key)).spawn(move || {
         let mut client = Client::new();
@@ -181,8 +234,22 @@ pub fn write(options: EtcdWrite, watcher_tx: Sender<(StatusCode, String)>, watch
         }
     });
 }
-//
 
+/// Watch a value for changes in etcd, in a new thread. Used by the
+/// [DiscoveryWatcher](../struct.DiscoveryWatcher.html).
+///
+/// 1. Spawns a new thread named `etcd:key`
+/// 1. Loop forever
+/// 1. If this is the first time we have run, make a direct call for the data rather than a watch.
+///    Otherwise, watch the key for changes.
+/// 1. If the watch returns data, decode the json
+/// 1. Lookup the values returned in the etcd nodes (optionally recursively)
+/// 1. Send the value back to the `DiscovertyWatcher`
+/// 1. Calculate the time we will wait to reconnect to etcd
+/// 1. Loop
+/// 1. Watch for the stop signal
+/// 1. Sleep or break to the outer loop when time has elapsed
+///
 pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
     let key = String::from(key);
     let _newthread = thread::Builder::new().name(format!("etcd:{}", key)).spawn(move || {
@@ -320,70 +387,6 @@ fn get_json_values_recursively(json: &Json, result_acc: &mut String) {
                 },
                 None => {}
             }
-        }
-    }
-}
-
-pub fn get_config(pkg: &str, key: &str, wait: bool) -> Option<BTreeMap<String, toml::Value>> {
-    let pkg_print = if wait {
-        format!("{}({})", pkg, White.bold().paint("C"))
-    } else {
-        pkg.to_string()
-    };
-    let base_url = match enabled() {
-        Some(url) => url,
-        None => return None
-    };
-    if wait {
-        println!("   {}: Waiting to overlay etcd configuration", pkg_print);
-    } else {
-        println!("   {}: Overlaying etcd configuration", pkg_print);
-    }
-    let mut client = Client::new();
-    let mut res = match client.get(&format!("{}/v2/keys/bldr/{}/{}?wait={}", base_url, pkg, key, wait)).send() {
-        Ok(res) => res,
-        Err(e) => {
-            println!("   {}: Invalid request to etcd for config: {:?}", pkg_print, e);
-            return None;
-        }
-    };
-    debug!("Response: {:?}", res);
-    let mut response_body = String::new();
-    match res.read_to_string(&mut response_body) {
-        Ok(_) => {},
-        Err(e) => {
-            println!("   {}: Failed to read request body from etcd request: {:?}", pkg_print, e);
-            return None;
-        }
-    }
-    let body_as_json = match Json::from_str(&response_body) {
-        Ok(body) => body,
-        Err(e) => {
-            println!("   {}: Failed to parse request body as json: {:?}", pkg_print, e);
-            return None;
-        }
-    };
-    let toml_config_value = match body_as_json.find_path(&["node", "value"]) {
-        Some(json_value) => {
-            match json_value.as_string() {
-                Some(json_value_string) => json_value_string,
-                None => {
-                    println!("   {}: Invalid json value for etc node/value - not a string!", pkg_print);
-                    return None;
-                }
-            }
-        },
-        None => {
-            println!("   {}: No node/value present in etcd response json", pkg_print);
-            return None;
-        }
-    };
-    let mut toml_parser = toml::Parser::new(&toml_config_value);
-    match toml_parser.parse() {
-        Some(toml_value) => return Some(toml_value),
-        None => {
-            println!("   {}: Invalid toml from etcd: {:?}", pkg_print, toml_parser.errors);
-            return None
         }
     }
 }

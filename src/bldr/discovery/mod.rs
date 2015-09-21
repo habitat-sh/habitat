@@ -1,3 +1,41 @@
+//
+// Copyright:: Copyright (c) 2015 Chef Software, Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+//! Service discovery support.
+//!
+//! This module defines the basics of our discovery support:
+//!
+//! * The [Discovery](struct.Discovery.html) Struct, which holds our writers, watchers, status, and
+//! a reference to the backend
+//! * The [DiscoveryWatcher](struct.DiscoveryWatcher.html) Struct, which sets up and manages a
+//! particular watch
+//! * The [DiscoveryWriter](struct.DiscoveryWriter.html) Struct, which sets up and manages writing
+//! to a particular key
+//!
+//! The short version of what happens:
+//!
+//! 1. A [toplogy Worker](../topology/struct.Worker.html) creates a new `Discovery` with an
+//!    appropriate backend.
+//! 1. The selected topology adds `DiscoveryWriters` and `DiscoverWatchers` to the `Discovery`
+//!    struct.
+//! 1. Each pass of the topology Workers state machine, we check to see if we need to write or read
+//!    from a watch.
+//! 1. Responses are stored in the `DiscoveryWatcher`, and retrieved as-needed by the topology.
+//!
 pub mod etcd;
 
 use toml;
@@ -10,31 +48,29 @@ use hyper::status::StatusCode;
 use pkg::Package;
 use error::{BldrResult, BldrError};
 
-// 1. Watch a key for changes with a reconnect timer
-// 2. Write values to a key
-// 3. Write values to a key with a TTL, and keep it alive
-// 4. Check for the absence of a key
-//
-// worker.discovery.watch("/foo/bar/baz", "101_leader", reconnect);
-// worker.discovery.write("/foo/bar/baz", "101_leader", toml_string, Some(ttl));
-// # Returns the last value we got for the watch location - none indicates the key is absent
-// worker.discovery.status("/foo/bar/baz") -> Some(data)
-
-#[derive(Debug)]
-pub struct Discovery {
-    watchers: Vec<DiscoveryWatcher>,
-    writers: Vec<DiscoveryWriter>,
-    status: HashMap<String, DiscoveryResponse>,
-    write_status: HashMap<String, DiscoveryWriteResponse>,
-    backend: Backend
-}
-
+/// The available discovery backends. Only etcd is supported right now.
 #[derive(Debug, Clone, Copy)]
 pub enum Backend {
     Etcd
 }
 
+/// Holds the state for all discovery operations.
+#[derive(Debug)]
+pub struct Discovery {
+    // A list of keys to watch
+    watchers: Vec<DiscoveryWatcher>,
+    // A list of keys to write
+    writers: Vec<DiscoveryWriter>,
+    // A map of responses; the key is the path we are watching
+    status: HashMap<String, DiscoveryResponse>,
+    // A map of write results; the key is the path we are writing
+    write_status: HashMap<String, DiscoveryWriteResponse>,
+    // The selected backend
+    backend: Backend
+}
+
 impl Discovery {
+    /// Given a backend, return an empty `Discovery` struct.
     pub fn new(backend: Backend) -> Discovery {
         Discovery{
             watchers: Vec::new(),
@@ -45,31 +81,46 @@ impl Discovery {
         }
     }
 
+    /// Add a watch.
+    ///
+    /// The backend of the `DiscoveryWatcher` is set to the `backend` of this `Discovery` instance.
     pub fn watch(&mut self, mut dw: DiscoveryWatcher) {
         dw.backend(self.backend);
         dw.start();
         self.watchers.push(dw);
     }
 
+    /// Add a writer.
+    ///
+    /// The backend of the `DiscoveryWriter` is set to the `backend` of this `Discovery` instance.
     pub fn write(&mut self, mut dw: DiscoveryWriter) {
         dw.backend(self.backend);
         dw.start();
         self.writers.push(dw);
     }
 
+    /// Clear the watchers and writers.
     pub fn clear(&mut self) {
         self.watchers.clear();
         self.writers.clear();
     }
 
+    /// Fetch the last known status of a given watch.
     pub fn status(&self, key: &str) -> Option<&DiscoveryResponse> {
         self.status.get(&String::from(key))
     }
 
+    /// Fetch the last known status of a given write.
     pub fn write_status(&self, key: &str) -> Option<&DiscoveryWriteResponse> {
         self.write_status.get(&String::from(key))
     }
 
+    /// Process the next event from both writers and watchers.
+    ///
+    /// # Failures
+    ///
+    /// * If we cannot receive anything from a writer/watcher thread. Most likely this means the
+    /// thread has straight up panic-ed, and gone away.
     pub fn next(&mut self) -> BldrResult<()> {
         // Writers should come first, then watchers - but baby steps
         for writer in self.writers.iter_mut() {
@@ -89,6 +140,7 @@ impl Discovery {
         Ok(())
     }
 
+    /// Stop all watches and writes.
     pub fn stop(&mut self) {
         for writer in self.writers.iter_mut() {
             writer.stop();
@@ -100,6 +152,7 @@ impl Discovery {
     }
 }
 
+/// A struct representing a particular watcher.
 pub struct DiscoveryWatcher {
     package: Package,
     key: String,
@@ -123,6 +176,9 @@ impl Debug for DiscoveryWatcher {
 }
 
 impl DiscoveryWatcher {
+    /// Creates a new struct.
+    ///
+    /// It will watch for changes on the key, and reconnect on failure.
     pub fn new(package: Package, key: String, filename: String, reconnect_interval: u32, wait: bool, recursive: bool) -> DiscoveryWatcher {
         DiscoveryWatcher{
             package: package,
@@ -139,22 +195,30 @@ impl DiscoveryWatcher {
         }
     }
 
+    /// Sets the backend; usually done by the `Discovery` struct.
     fn backend(&mut self, backend: Backend) {
         self.backend = Some(backend)
     }
 
+    /// Set the service we are watching
     pub fn service(&mut self, service: String) {
         self.service = Some(service)
     }
 
+    /// Set the group we are watching
     pub fn group(&mut self, group: String) {
         self.group = Some(group)
     }
 
+    // Start the watch. This method will set up the correct communication channels, and then call
+    // the appropriate `watch` method based on the `Backend`. The `watch` method then is run in a
+    // separate thread, with communication flowing back through the channels we set up.
     fn start(&mut self) {
         let preamble = format!("{}({})", self.package.name, White.bold().paint("D"));
         println!("   {}: Watching {}", preamble, self.key);
+        // Backend
         let (b_tx, b_rx) = channel();
+        // Watch
         let (w_tx, w_rx) = channel();
         self.tx = Some(w_tx);
         self.rx = Some(b_rx);
@@ -164,11 +228,25 @@ impl DiscoveryWatcher {
         }
     }
 
+    // Stop the watch. Sends the signal to the backend thread to stop itself cleanly.
     fn stop(&mut self) {
         let tx = self.tx.as_ref().unwrap();
         tx.send(true).unwrap();
     }
 
+    // Check for a response from a watch.
+    //
+    // If we have a response, write the data out, making it available to the service. If this
+    // watch has a `service` and `group` defined, we put the data returned into the `watch`
+    // toml data. Otherwise, we accept the raw data. This is used to differentiate between data we
+    // are watching from ourselves (and thus don't need to namespace) and data we are watching that
+    // comes from someone else.
+    //
+    // # Failures
+    //
+    // * The discovery backend thread has gone away
+    // * We cannot parse the toml in the reponse
+    // * We cannot write the toml out to the filesystem
     fn try_recv(&mut self) -> BldrResult<Option<DiscoveryResponse>> {
         let rx = self.rx.as_ref().unwrap();
         let result = match rx.try_recv() {
@@ -211,6 +289,7 @@ impl DiscoveryWatcher {
     }
 }
 
+/// A struct representing a given Writer
 pub struct DiscoveryWriter {
     package: Package,
     key: String,
@@ -230,6 +309,9 @@ impl Debug for DiscoveryWriter {
 }
 
 impl DiscoveryWriter {
+    /// Create a new `DiscoverWriter`.
+    ///
+    /// A writer will try to write `value` to `key` evey `ttl` time, in seconds.
     pub fn new(package: Package, key: String, value: Option<String>, ttl: Option<u32>) -> DiscoveryWriter {
         DiscoveryWriter{
             package: package,
@@ -242,17 +324,24 @@ impl DiscoveryWriter {
         }
     }
 
+    // Set the backend
     fn backend(&mut self, backend: Backend) {
         self.backend = Some(backend)
     }
 
+    // Start the writer.
+    //
+    // We create a set of options for the backend's `write` function, then call it. This spawns a
+    // new thread that handles the actual write.
     fn start(&mut self) {
         let preamble = format!("{}({})", self.package.name, White.bold().paint("D"));
         match self.ttl {
             Some(ttl) => println!("   {}: Writing {} every {}", preamble, self.key, ttl),
             None => println!("   {}: Writing {}", preamble, self.key)
         }
+        // Backend channelds
         let (b_tx, b_rx) = channel();
+        // Writer channels
         let (w_tx, w_rx) = channel();
         self.tx = Some(w_tx);
         self.rx = Some(b_rx);
@@ -273,11 +362,19 @@ impl DiscoveryWriter {
         }
     }
 
+    // Stops this writer.
+    //
+    // Sends the appropriate signal to the writer thread.
     fn stop(&mut self) {
         let tx = self.tx.as_ref().unwrap();
         tx.send(true).unwrap();
     }
 
+    // Check for a response to a write.
+    //
+    // # Failures
+    //
+    // * The thread has gone away
     fn try_recv(&mut self) -> BldrResult<Option<DiscoveryWriteResponse>> {
         let rx = self.rx.as_ref().unwrap();
         let (status_code, response_body) = match rx.try_recv() {
@@ -289,12 +386,14 @@ impl DiscoveryWriter {
     }
 }
 
+/// A response to a watch.
 #[derive(Debug)]
 pub struct DiscoveryResponse {
     pub key: String,
     pub value: Option<String>,
 }
 
+/// A response to a write. Note the leaky abstraction!
 #[derive(Debug)]
 pub struct DiscoveryWriteResponse {
     pub key: String,

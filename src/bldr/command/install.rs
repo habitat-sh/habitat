@@ -15,6 +15,47 @@
 // limitations under the License.
 //
 
+//! Installs a bldr package from a [repo](../repo).
+//!
+//! # Examples
+//!
+//! ```bash
+//! $ bldr install redis -u http://bldr.co:9633
+//! ```
+//!
+//! Will install the `redis` package from the repository at `http://bldr.co:9633`.
+//!
+//! ```bash
+//! $ bldr install redis -u http://bldr.co:9633 -d adam
+//! ```
+//!
+//! Will do the same, but choose the `adam` derivation, rather than the default `bldr`.
+//!
+//! ```bash
+//! $ bldr install redis -u http://bldr.co:9633 -v 3.0.1
+//! ```
+//!
+//! Will install the `3.0.1` version of redis.
+//!
+//! ```bash
+//! $ bldr install redis -u http://bldr.co:9633 -v 3.0.1 -r 20150911204047
+//! ```
+//!
+//! Will install the `20150911204047` release of the `3.0.1` version of `redis.
+//!
+//! ```bash
+//! $ bldr install redis -u http://bldr.co:9633 -d adam -v 3.0.1 -r 20150911204047
+//! ```
+//!
+//! The same as the last, but from the `adam` derivation as well.
+//!
+//! # Internals
+//!
+//! * Download the artifact
+//! * Verify it is un-altered
+//! * Unpack it
+//!
+
 use error::{BldrResult, BldrError};
 use std::process::Command;
 use util::{http, gpg};

@@ -14,6 +14,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+//! This is the default topology. It's most useful for applications that stand alone, or that don't
+//! share state between one another.
+//!
+//! ![Standalone Topology](../../images/standalone.png)
+//!
+//! * **Init**: Creates the paths needed for the service in `/opt/bldr/srvc`, and copies in the `run` file
+//! from the package.
+//! * **Configure**: Writes the `default.toml` from the package, followed by any `environment`
+//! configuration (specified as toml in a `$BLDR_service` variable, where `service == redis`, or
+//! whatever the name of your service is), data discovered from the system, data from the bldr
+//! package iteslf, and if configured, from a discovery service.
+//! * **Starting**: Starts the service under `runsv`, and starts a thread to process output and
+//! handle errors.
+//! * **Running**: The state for the 'normal' operating condition.
+//! * **Finished**: Does nothing; exists to handle cleanup.
 
 use std::thread;
 use error::{BldrResult, BldrError};
@@ -28,6 +43,10 @@ use topology::{self, State, Worker};
 use discovery::DiscoveryWatcher;
 use config::Config;
 
+/// Sets up the topology and calls run_internal.
+///
+/// Add's the state transitions to the state machine, sets up the signal handlers, and runs the
+/// `topology::run_internal` function.
 pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     let mut worker = Worker::new(package, String::from("standalone"), config);
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
@@ -40,12 +59,24 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     topology::run_internal(&mut sm, &mut worker)
 }
 
+/// Initialize the service.
+///
+/// Creates the paths needed for the service, and copies in the run file. Transitions to
+/// `state_configure`.
+///
+/// # Failures
+///
+/// * If it fails to create the srvc paths
+/// * If it cannot read or copy the run file
 pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.create_srvc_path());
     try!(worker.package.copy_run());
     Ok((State::Configure, 0))
 }
 
+/// Configure the service.
+///
+/// 
 pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.write_default_data());
     try!(worker.package.write_environment_data());
@@ -101,6 +132,7 @@ pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
         .stderr(Stdio::piped())
         .spawn()
     );
+    worker.supervisor_id = Some(child.id());
     let pkg = worker.package.name.clone();
     let supervisor_thread = thread::spawn(move|| -> BldrResult<()> {
         {
