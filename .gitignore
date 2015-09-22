@@ -2,3 +2,4 @@ target
 .delivery/cli.toml
 bldr-base/bldr-base.tar.bz2
 packages/**/*-cache
+packages/**/Dockerfile
