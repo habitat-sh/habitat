@@ -97,7 +97,7 @@ Everything should come up green. Congratulations - you have a working Bldr devel
 
 ## Documentation
 
-Run `make doc` to build the internal documentation for bldr.
+Run `make docs` to build the internal documentation for bldr.
 
 Run `doc-serve` to run a small webserver that exposes the documentation on port `9633`. You can then
 read the docs at `http://localhost:9633/bldr` (with working javscript-based search).
