@@ -88,6 +88,7 @@ by having a convention cover it. When we do need to configure things, we set san
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. [Install Stable Rust](https://www.rust-lang.org/install.html) `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
 1. [Install the delivery-cli](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)
+1. [Install Node](https://nodejs.org/en/)
 1. [Install docco](http://jashkenas.github.io/docco/)
 1. Run `make`
 1. Run `make test`
