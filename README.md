@@ -90,6 +90,7 @@ by having a convention cover it. When we do need to configure things, we set san
 1. [Install the delivery-cli](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)
 1. [Install Node](https://nodejs.org/en/)
 1. [Install docco](http://jashkenas.github.io/docco/)
+1. Checkout the source by running `delivery clone bldr --ent=chef --org=bldr --user=reset --server=delivery.chef.co`
 1. Run `make`
 1. Run `make test`
 
