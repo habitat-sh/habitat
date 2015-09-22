@@ -34,7 +34,7 @@ key-cache-volume:
 	docker create -v /opt/bldr/cache/keys --name bldr-keys-cache tianon/true /bin/true
 
 key-cache-clean:
-	docker rm bldr-key-cache
+	docker rm bldr-keys-cache
 
 cargo-volume:
 	docker create -v /bldr-cargo-cache --name bldr-cargo-cache tianon/true /bin/true
