@@ -133,7 +133,7 @@ pub fn run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
 
 pub fn bldr_build<P: AsRef<Path>>(cwd: P) -> CmdResult<Cmd> {
     let bldr_build = util::path::bldr_build();
-    let mut command = command(&bldr_build, &["Bldrfile"]);
+    let mut command = command(&bldr_build, &["."]);
     command.env("BLDR_FROM", util::path::bldr());
     command.current_dir(cwd);
     spawn(command)

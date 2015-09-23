@@ -3,7 +3,7 @@
 # # Usage
 #
 # ```
-# $ bldr-build ./Bldrfile
+# $ bldr-build [<PATH>]
 # ```
 #
 # # Synopsis
@@ -264,8 +264,8 @@ BLDR_VERSION=0.0.1
 BLDR_SRC_CACHE=/opt/bldr/cache/src
 # Where the resulting packages are
 BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
-# The first argument to the script is a Bldrfile
-BLDR_FILE=$1
+# The first argument to the script is a bldr context directory, containing a Bldrfile
+BLDR_CONTEXT_SRC=${1:-.}
 # The default derivation is `bldr`
 pkg_derivation=bldr
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -316,7 +316,13 @@ umask 0022
 # Would also exit 1.
 on_exit() {
   local exit_status=${1:-$?}
-  echo "Exiting on error"
+  if [[ -d "$BLDR_CONTEXT" ]]; then
+    echo "Cleaning up $BLDR_CONTEXT"
+    rm -rf "$BLDR_CONTEXT"
+  fi
+  if [[ $exit_status -ne 0 ]]; then
+    echo "Exiting on error"
+  fi
   exit $exit_status
 }
 
@@ -420,6 +426,31 @@ latest_package() {
     "1")
       echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
   esac
+}
+
+# Return the absolute path for a path, which might be absolute or relative.
+#
+# ```sh
+# abspath .
+# # /a/b/c
+# abspath /tmp/
+# # /tmp
+# ```
+#
+# Thanks to [Stack Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
+abspath() {
+  if [[ -d "$1" ]]; then
+    pushd "$1" >/dev/null
+    pwd
+    popd >/dev/null
+  elif [[ -e $1 ]]; then
+    pushd "$(dirname "$1")" >/dev/null
+    echo "$(pwd)/$(basename "$1")"
+    popd >/dev/null
+  else
+    echo "$1" does not exist! >&2
+    return 127
+  fi
 }
 
 # ## Build Phases
@@ -775,7 +806,7 @@ LDFLAGS: $LDFLAGS
 LD_RUN_PATH: $LD_RUN_PATH
 
 \`\`\`bash
-$(cat $BLDR_FILE)
+$(cat $BLDR_CONTEXT/Bldrfile)
 \`\`\`
 
 Files
@@ -843,10 +874,25 @@ bldr_end() {
 }
 
 ## Main Flow
-echo "Loading $1"
+
+# First we check if the provided path has a `Bldrfile` in it. If not, we'll quickly bail.
+if [[ ! -f "$BLDR_CONTEXT_SRC/Bldrfile" ]]; then
+  exit_with "$BLDR_CONTEXT_SRC/Bldrfile does not exist" 42
+fi
+
+# Prepare the build context by copying the contents of the bldr context src into a
+# temp directory to perform the build. Finally, we switch our working directory inside
+# our target.
+context_src_abspath="$(abspath $BLDR_CONTEXT_SRC)"
+tmp_prefix="$(echo "$context_src_abspath" | tr '/' '-')"
+BLDR_CONTEXT="$(mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
+echo "Constructing $BLDR_CONTEXT"
+cp -rp $context_src_abspath/* "$BLDR_CONTEXT"/
+cd $BLDR_CONTEXT
 
 # Load the Bldrfile
-if source $1; then
+echo "Loading $BLDR_CONTEXT/Bldrfile"
+if source "$BLDR_CONTEXT/Bldrfile"; then
   build_line "Bldrfile loaded"
 else
   ret=$?
@@ -951,4 +997,5 @@ build_line "Installed: $pkg_path"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
-exit 0
+build_line "$(basename $0) has baked your brownies"
+on_exit  0
