@@ -1,22 +1,22 @@
 world:
 	- gpg --import chef-public.gpg
 	- gpg --import chef-private.gpg
-	cd glibc && ../bldr-build Bldrfile
-	cd libgcc && ../bldr-build Bldrfile
-	cd zlib && ../bldr-build Bldrfile
-	cd cacerts && ../bldr-build Bldrfile
-	cd busybox && ../bldr-build Bldrfile
-	cd gnupg && ../bldr-build Bldrfile
-	cd openssl && ../bldr-build Bldrfile
-	cd runit && ../bldr-build Bldrfile
-	cd bldr && ../bldr-build Bldrfile
-	cd redis && ../bldr-build Bldrfile
-	cd ncurses && ../bldr-build Bldrfile
-	cd libedit && ../bldr-build Bldrfile
-	cd bzip2 && ../bldr-build Bldrfile
-	cd pcre && ../bldr-build Bldrfile
-	cd nginx && ../bldr-build Bldrfile
-	cd haproxy && ../bldr-build Bldrfile
+	./bldr-build glibc
+	./bldr-build libgcc
+	./bldr-build zlib
+	./bldr-build cacerts
+	./bldr-build busybox
+	./bldr-build gnupg
+	./bldr-build openssl
+	./bldr-build runit
+	./bldr-build bldr
+	./bldr-build redis
+	./bldr-build ncurses
+	./bldr-build libedit
+	./bldr-build bzip2
+	./bldr-build pcre
+	./bldr-build nginx
+	./bldr-build haproxy
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 clean:

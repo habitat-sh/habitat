@@ -68,6 +68,9 @@ mod setup {
                 Err(e) => panic!("{:?}", e)
             };
             simple_service.wait_with_output();
+            if ! simple_service.status.unwrap().success() {
+                panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}", simple_service.stdout, simple_service.stderr)
+            }
         });
     }
 

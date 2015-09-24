@@ -3,7 +3,7 @@
 # # Usage
 #
 # ```
-# $ bldr-build ./Bldrfile
+# $ bldr-build [<PATH>]
 # ```
 #
 # # Synopsis
@@ -264,8 +264,8 @@ BLDR_VERSION=0.0.1
 BLDR_SRC_CACHE=/opt/bldr/cache/src
 # Where the resulting packages are
 BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
-# The first argument to the script is a Bldrfile
-BLDR_FILE=$1
+# The first argument to the script is a bldr context directory, containing a Bldrfile
+BLDR_CONTEXT=${1:-.}
 # The default derivation is `bldr`
 pkg_derivation=bldr
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -316,7 +316,13 @@ umask 0022
 # Would also exit 1.
 on_exit() {
   local exit_status=${1:-$?}
-  echo "Exiting on error"
+  if [[ -d "$DOCKER_CONTEXT" ]]; then
+    echo "Cleaning up Docker context $DOCKER_CONTEXT"
+    rm -rf "$DOCKER_CONTEXT"
+  fi
+  if [[ $exit_status -ne 0 ]]; then
+    echo "Exiting on error"
+  fi
   exit $exit_status
 }
 
@@ -420,6 +426,31 @@ latest_package() {
     "1")
       echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
   esac
+}
+
+# Return the absolute path for a path, which might be absolute or relative.
+#
+# ```sh
+# abspath .
+# # /a/b/c
+# abspath /tmp/
+# # /tmp
+# ```
+#
+# Thanks to [Stack Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
+abspath() {
+  if [[ -d "$1" ]]; then
+    pushd "$1" >/dev/null
+    pwd
+    popd >/dev/null
+  elif [[ -e $1 ]]; then
+    pushd "$(dirname "$1")" >/dev/null
+    echo "$(pwd)/$(basename "$1")"
+    popd >/dev/null
+  else
+    echo "$1" does not exist! >&2
+    return 127
+  fi
 }
 
 # ## Build Phases
@@ -775,7 +806,7 @@ LDFLAGS: $LDFLAGS
 LD_RUN_PATH: $LD_RUN_PATH
 
 \`\`\`bash
-$(cat $BLDR_FILE)
+$(cat $BLDR_CONTEXT/Bldrfile)
 \`\`\`
 
 Files
@@ -790,6 +821,19 @@ package() {
   mkdir -p $BLDR_PKG_CACHE
   gpg-zip -u $pkg_gpg_key --tar-args '-cj --absolute-names' --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --sign $pkg_path
   return 0
+}
+
+# Wraps `dockerfile` to ensure that a Docker image build is being executed in a
+# clean directory with native filesystem permissions which is outside the source
+# code tree.
+dockerfile_wrapper() {
+  tmp_prefix="$(echo "$BLDR_CONTEXT" | tr '/' '-')"
+  DOCKER_CONTEXT="$(mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
+  cp -rp $BLDR_CONTEXT/* "$DOCKER_CONTEXT"/
+  pushd $DOCKER_CONTEXT > /dev/null
+  dockerfile
+  popd > /dev/null
+  rm -rf "$DOCKER_CONTEXT"
 }
 
 # Build the docker container. If `$pkg_docker_build` is set to `auto`,
@@ -843,10 +887,22 @@ bldr_end() {
 }
 
 ## Main Flow
-echo "Loading $1"
+
+# Expand the context path to an absolute path
+BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
+
+# First we check if the provided path has a `Bldrfile` in it. If not, we'll quickly bail.
+if [[ ! -f "$BLDR_CONTEXT/Bldrfile" ]]; then
+  exit_with "$BLDR_CONTEXT/Bldrfile does not exist" 42
+fi
+
+# Change into the `$BLDR_CONTEXT` directory for proper resolution of relative paths
+# in `Bldrfile`
+cd $BLDR_CONTEXT
 
 # Load the Bldrfile
-if source $1; then
+echo "Loading $BLDR_CONTEXT/Bldrfile"
+if source "$BLDR_CONTEXT/Bldrfile"; then
   build_line "Bldrfile loaded"
 else
   ret=$?
@@ -939,7 +995,7 @@ package
 
 # Build the Docker images
 build_line "Creating Docker images"
-dockerfile
+dockerfile_wrapper
 
 # Cleanup
 build_line "Bldr cleanup"
@@ -951,4 +1007,5 @@ build_line "Installed: $pkg_path"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
-exit 0
+build_line "$(basename $0) has baked your brownies"
+on_exit  0

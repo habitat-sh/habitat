@@ -23,12 +23,17 @@ latest_package() {
 	esac
 }
 
+set -e
+if [[ -n "$DEBUG" ]]; then
+  set -x
+fi
+
 BUSYBOX_ROOT=$(latest_package bldr/busybox)
 BLDR_ROOT=$(latest_package bldr/bldr)
 GPG_ROOT=$(latest_package bldr/gnupg)
 RUNIT_ROOT=$(latest_package bldr/runit)
 
-set -e
+WORKDIR="$(pwd)"
 ROOTFS=${TMPDIR:-/var/tmp}/rootfs-busybox-$$-$RANDOM
 mkdir $ROOTFS
 cd $ROOTFS
@@ -89,4 +94,4 @@ do
     cp -a /dev/$X dev
 done
 
-tar --numeric-owner -cjf /src/packages/bldr/bldr-base.tar.bz2 .
+tar --numeric-owner -cjf $WORKDIR/bldr-base.tar.bz2 .
