@@ -265,7 +265,7 @@ BLDR_SRC_CACHE=/opt/bldr/cache/src
 # Where the resulting packages are
 BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
 # The first argument to the script is a bldr context directory, containing a Bldrfile
-BLDR_CONTEXT_SRC=${1:-.}
+BLDR_CONTEXT=${1:-.}
 # The default derivation is `bldr`
 pkg_derivation=bldr
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -316,9 +316,9 @@ umask 0022
 # Would also exit 1.
 on_exit() {
   local exit_status=${1:-$?}
-  if [[ -d "$BLDR_CONTEXT" ]]; then
-    echo "Cleaning up $BLDR_CONTEXT"
-    rm -rf "$BLDR_CONTEXT"
+  if [[ -d "$DOCKER_CONTEXT" ]]; then
+    echo "Cleaning up Docker context $DOCKER_CONTEXT"
+    rm -rf "$DOCKER_CONTEXT"
   fi
   if [[ $exit_status -ne 0 ]]; then
     echo "Exiting on error"
@@ -823,6 +823,19 @@ package() {
   return 0
 }
 
+# Wraps `dockerfile` to ensure that a Docker image build is being executed in a
+# clean directory with native filesystem permissions which is outside the source
+# code tree.
+dockerfile_wrapper() {
+  tmp_prefix="$(echo "$BLDR_CONTEXT" | tr '/' '-')"
+  DOCKER_CONTEXT="$(mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
+  cp -rp $BLDR_CONTEXT/* "$DOCKER_CONTEXT"/
+  pushd $DOCKER_CONTEXT > /dev/null
+  dockerfile
+  popd > /dev/null
+  rm -rf "$DOCKER_CONTEXT"
+}
+
 # Build the docker container. If `$pkg_docker_build` is set to `auto`,
 # create the Dockerfile first.
 #
@@ -875,19 +888,16 @@ bldr_end() {
 
 ## Main Flow
 
+# Expand the context path to an absolute path
+BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
+
 # First we check if the provided path has a `Bldrfile` in it. If not, we'll quickly bail.
-if [[ ! -f "$BLDR_CONTEXT_SRC/Bldrfile" ]]; then
-  exit_with "$BLDR_CONTEXT_SRC/Bldrfile does not exist" 42
+if [[ ! -f "$BLDR_CONTEXT/Bldrfile" ]]; then
+  exit_with "$BLDR_CONTEXT/Bldrfile does not exist" 42
 fi
 
-# Prepare the build context by copying the contents of the bldr context src into a
-# temp directory to perform the build. Finally, we switch our working directory inside
-# our target.
-context_src_abspath="$(abspath $BLDR_CONTEXT_SRC)"
-tmp_prefix="$(echo "$context_src_abspath" | tr '/' '-')"
-BLDR_CONTEXT="$(mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
-echo "Constructing $BLDR_CONTEXT"
-cp -rp $context_src_abspath/* "$BLDR_CONTEXT"/
+# Change into the `$BLDR_CONTEXT` directory for proper resolution of relative paths
+# in `Bldrfile`
 cd $BLDR_CONTEXT
 
 # Load the Bldrfile
@@ -985,7 +995,7 @@ package
 
 # Build the Docker images
 build_line "Creating Docker images"
-dockerfile
+dockerfile_wrapper
 
 # Cleanup
 build_line "Bldr cleanup"
