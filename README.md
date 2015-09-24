@@ -187,7 +187,7 @@ terminal window, and lets write our new configuration:
 ```toml
 # Put this in /tmp/redis.toml
 tcp-backlog = 128
-loglevel = debug
+loglevel = "debug"
 ```
 
 To put this into etcd:
