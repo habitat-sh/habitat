@@ -13,31 +13,39 @@ package-clean:
 packages: package-clean
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash -c 'cd /src/packages; make world'
 
+volume-clean: pkg-cache-volume-clean key-cache-volume-clean cargo-volume-clean installed-cache-volume-clean src-cache-volume-clean
+
 volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume src-cache-volume
 
 installed-cache-volume:
 	docker create -v /opt/bldr/pkgs --name bldr-installed-cache tianon/true /bin/true
 
+installed-cache-volume-clean:
+	docker rm bldr-installed-cache
+
 src-cache-volume:
 	docker create -v /opt/bldr/cache/src --name bldr-src-cache tianon/true /bin/true
 
-src-cache-clean:
+src-cache-volume-clean:
 	docker rm bldr-src-cache
 
 pkg-cache-volume:
 	docker create -v /opt/bldr/cache/pkgs --name bldr-pkg-cache tianon/true /bin/true
 
-pkg-cache-clean:
+pkg-cache-volume-clean:
 	docker rm bldr-pkg-cache
 
 key-cache-volume:
 	docker create -v /opt/bldr/cache/keys --name bldr-keys-cache tianon/true /bin/true
 
-key-cache-clean:
+key-cache-volume-clean:
 	docker rm bldr-keys-cache
 
 cargo-volume:
 	docker create -v /bldr-cargo-cache --name bldr-cargo-cache tianon/true /bin/true
+
+cargo-volume-clean:
+	docker rm bldr-cargo-cache
 
 container:
 	docker build -t chef/bldr --no-cache=${NO_CACHE} .
