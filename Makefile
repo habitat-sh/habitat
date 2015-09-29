@@ -59,9 +59,11 @@ docs:
 	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package rustdoc --crate-name bldr README.md -o ./target/doc/bldr
 	docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build
 	cp -r images ./target/doc/bldr
+	echo '<meta http-equiv=refresh content=0;url=bldr/index.html>' > target/doc/index.html
 
 doc-serve:
-	ruby -run -ehttpd ./target/doc -p 9633
+	@echo "View the docs at: http://127.0.0.1:9633/"
+	ruby -run -e httpd -- --bind-address=127.0.0.1 --port=9633 ./target/doc
 
 shell:
 	docker-compose run bldr bash
