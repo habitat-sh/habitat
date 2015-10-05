@@ -89,14 +89,20 @@ by having a convention cover it. When we do need to configure things, we set san
 1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. [Install Stable Rust](https://www.rust-lang.org/install.html) `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
-1. [Install the delivery-cli](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)
 1. [Install Node](https://nodejs.org/en/)
 1. [Install docco](http://jashkenas.github.io/docco/)
-1. Checkout the source by running `delivery clone bldr --ent=chef --org=bldr --user=reset --server=delivery.chef.co`
+1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
 1. Run `make`
 1. Run `make test`
 
 Everything should come up green. Congratulations - you have a working Bldr development environment.
+
+**Optional:** This project currently uses GitHub integration wtih Delivery so
+while the delivery-cli tool is not strictly necessary to initiate reviews, it
+is highly recommended to have installed for the other useful subcommands.
+Download the [delivery-cli
+package](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)),
+install it, and you're done!
 
 ## Documentation
 
@@ -112,7 +118,7 @@ read the docs at `http://localhost:9633/bldr` (with working javscript-based sear
 1. Build with `cargo build` or `cargo test`
 1. You can use `cargo run -- foobar` to pass options to the built binary
 1. Commit your change
-1. `delivery review`
+1. Push your feature branch to GitHub, and create a Pull Request
 
 # Demo commands
 
