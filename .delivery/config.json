@@ -1,11 +1,12 @@
 {
   "version": "2",
   "build_cookbook": {
-    "path": "cookbooks/bldr",
+    "path": ".delivery/cookbooks/bldr",
     "name": "bldr"
   },
   "skip_phases": [
     "deploy",
+    "lint",
     "provision",
     "publish",
     "quality",
@@ -13,5 +14,7 @@
     "smoke",
     "syntax"
   ],
-  "build_nodes": {}
+  "build_nodes": {
+    "default": ["platform:ubuntu AND platform_version:15.04"]
+  }
 }

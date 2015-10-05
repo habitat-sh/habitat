@@ -1,6 +1,7 @@
 pwd = $(shell pwd)
 container_prefix = bldr
 NO_CACHE = false
+container_with = docker ps -a -q -f
 
 .PHONY: container test run shell clean bldr-base package-clean packages
 
@@ -21,31 +22,31 @@ installed-cache-volume:
 	docker create -v /opt/bldr/pkgs --name bldr-installed-cache tianon/true /bin/true
 
 installed-cache-volume-clean:
-	docker rm bldr-installed-cache
+	if [ -n "`$(container_with) name=bldr-installed-cache`" ]; then docker rm bldr-installed-cache; fi
 
 src-cache-volume:
 	docker create -v /opt/bldr/cache/src --name bldr-src-cache tianon/true /bin/true
 
 src-cache-volume-clean:
-	docker rm bldr-src-cache
+	if [ -n "`$(container_with) name=bldr-src-cache`" ]; then docker rm bldr-src-cache; fi
 
 pkg-cache-volume:
 	docker create -v /opt/bldr/cache/pkgs --name bldr-pkg-cache tianon/true /bin/true
 
 pkg-cache-volume-clean:
-	docker rm bldr-pkg-cache
+	if [ -n "`$(container_with) name=bldr-pkg-cache`" ]; then docker rm bldr-pkg-cache; fi
 
 key-cache-volume:
 	docker create -v /opt/bldr/cache/keys --name bldr-keys-cache tianon/true /bin/true
 
 key-cache-volume-clean:
-	docker rm bldr-keys-cache
+	if [ -n "`$(container_with) name=bldr-keys-cache`" ]; then docker rm bldr-keys-cache; fi
 
 cargo-volume:
 	docker create -v /bldr-cargo-cache --name bldr-cargo-cache tianon/true /bin/true
 
 cargo-volume-clean:
-	docker rm bldr-cargo-cache
+	if [ -n "`$(container_with) name=bldr-cargo-cache`" ]; then docker rm bldr-cargo-cache; fi
 
 container:
 	docker build -t chef/bldr --no-cache=${NO_CACHE} .

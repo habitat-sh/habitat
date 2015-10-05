@@ -1,0 +1,28 @@
+---
+driver:
+  name: vagrant
+  synced_folders:
+    - ["../../../", "/workspace"]
+
+provisioner:
+  name: chef_solo
+  attributes:
+    delivery:
+      workspace:
+        repo: /workspace
+
+platforms:
+  - name: ubuntu-15.04
+    driver:
+      box: bento/ubuntu-15.04
+      box_url: null
+
+suites:
+  - name: unit
+    run_list:
+      - recipe[bldr]
+      - recipe[bldr::unit]
+  - name: functional
+    run_list:
+      - recipe[bldr]
+      - recipe[bldr::functional]
