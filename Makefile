@@ -65,6 +65,9 @@ doc-serve: image
 		echo ${DOCKER_HOST} | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
 	$(run) -p 9633:9633 package sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 
+repo-serve: image
+	$(run) --service-ports repo cargo run -- repo
+
 shell: image
 	$(run) bldr bash
 
@@ -80,6 +83,13 @@ clean:
 	docker-compose kill
 	docker-compose rm -f -v
 	docker images -q -f dangling=true | xargs docker rmi -f || true
+
+gpg:
+	mkdir -p /opt/bldr/cache/gpg
+	- gpg --import /src/bldr-plan/chef-public.gpg
+	- gpg --import /src/bldr-plan/chef-private.gpg
+	- gpg --homedir /opt/bldr/cache/gpg --import /src/bldr-plan/chef-public.gpg
+	- gpg --homedir /opt/bldr/cache/gpg --import /src/bldr-plan/chef-private.gpg
 
 redis:
 	$(run) bldr cargo run -- start chef/redis

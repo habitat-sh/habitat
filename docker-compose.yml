@@ -10,6 +10,7 @@ bldr:
     - cargo
   links:
     - etcd
+    - repo
 
 package:
   image: chef/bldr
@@ -25,6 +26,21 @@ package:
     - cargo
   links:
     - etcd
+
+repo:
+  image: chef/bldr
+  privileged: true
+  ports:
+    - "9632:9632"
+  environment:
+    DOCKER_CERT_PATH: "/docker-certs"
+    DOCKER_TLS_VERIFY: 1
+  volumes:
+    - .:/src
+    - "~/.docker/machine/certs:/docker-certs"
+  volumes_from:
+    - installed
+    - cargo
 
 base:
   image: bldr

@@ -32,8 +32,10 @@
 //! Will install the key found in `/tmp/chef-public.asc`.
 
 use std::fs;
-use util::http;
+
+use super::super::KEY_CACHE;
 use util::gpg;
+use repo;
 use config::Config;
 use error::{BldrResult};
 
@@ -48,13 +50,16 @@ use error::{BldrResult};
 /// * If the we fail to download the key from the repo
 /// * If the GPG import process fails
 pub fn install(config: &Config) -> BldrResult<()> {
-    if config.url().is_empty() {
-        try!(gpg::import("key", &config.key()));
-    } else {
-        println!("url: {}", config.url());
-        try!(fs::create_dir_all("/opt/bldr/cache/keys"));
-        let filename = try!(http::download_key(&config.key(), &config.url(), "/opt/bldr/cache/keys"));
-        try!(gpg::import("key", &filename));
+    match *config.url() {
+        Some(ref url) => {
+            if url.is_empty() {
+                try!(gpg::import("key", &config.key()));
+            }
+            try!(fs::create_dir_all(KEY_CACHE));
+            let filename = try!(repo::client::fetch_key(url, &config.key(), KEY_CACHE));
+            try!(gpg::import("key", &filename));
+        },
+        None => try!(gpg::import("key", &config.key())),
     }
     Ok(())
 }

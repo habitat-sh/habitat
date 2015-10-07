@@ -54,7 +54,7 @@ impl Default for Command {
 pub struct Config {
     command: Command,
     package: String,
-    url: String,
+    url: Option<String>,
     topology: Topology,
     group: String,
     path: String,
@@ -174,12 +174,12 @@ impl Config {
 
     /// Set the url
     pub fn set_url(&mut self, url: String) -> &mut Config {
-        self.url = url;
+        self.url = Some(url);
         self
     }
 
     /// Return the url
-    pub fn url(&self) -> &str {
+    pub fn url(&self) -> &Option<String> {
         &self.url
     }
 
@@ -247,7 +247,7 @@ mod tests {
     fn url() {
         let mut c = Config::new();
         c.set_url(String::from("http://foolio.com"));
-        assert_eq!(c.url(), "http://foolio.com");
+        assert_eq!(c.url().as_ref().unwrap(), "http://foolio.com");
     }
 
     #[test]

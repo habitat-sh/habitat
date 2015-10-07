@@ -74,3 +74,7 @@ pub mod user_config;
 pub mod service_config;
 pub mod watch_config;
 pub mod census;
+
+const PACKAGE_CACHE: &'static str = "/opt/bldr/cache/pkgs";
+const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
+const KEY_CACHE: &'static str = "/opt/bldr/cache/keys";

@@ -32,12 +32,12 @@
 //! Will upload the key at `/tmp/chef-public.asc` to the repo url.
 //!
 
-use error::{BldrResult, BldrError};
-use config::Config;
-use std::fs::File;
+use std::fs;
 use std::path::Path;
 
-use util::http;
+use config::Config;
+use error::{BldrError, BldrResult};
+use repo;
 
 /// Upload a key to a repository.
 ///
@@ -50,18 +50,30 @@ use util::http;
 /// * If the file fails to exist, or if we can't read it
 /// * If the http upload fails
 pub fn key(config: &Config) -> BldrResult<()> {
-    if let Some('/') = config.key().chars().nth(0) {
-        println!("   {}: uploading {}.asc", config.key(), config.key());
-        let mut file = try!(File::open(&format!("{}.asc", config.key())));
-        let path = Path::new(config.key());
-        let file_name = try!(path.file_name().ok_or(BldrError::NoFilePart));
-        try!(http::upload(&format!("{}/keys/{}", config.url(), file_name.to_string_lossy()), &mut file));
-    } else {
-        println!("   {}: uploading {}.asc", config.key(), config.key());
-        let mut file = try!(File::open(&format!("/opt/bldr/cache/keys/{}.asc", config.key())));
-        try!(http::upload(&format!("{}/keys/{}", config.url(), config.key()), &mut file));
+    let url = config.url().as_ref().unwrap();
+    let path = Path::new(config.key());
+
+    match fs::metadata(path) {
+        Ok(_) => {
+            println!("   {}: uploading {}", url, config.key());
+            try!(repo::client::put_key(url, path));
+        },
+        Err(_) => {
+            if path.components().count() == 1 {
+                let file = format!("/opt/bldr/cache/keys/{}.asc", config.key());
+                let cached = Path::new(&file);
+                match fs::metadata(&cached) {
+                    Ok(_) => {
+                        println!("   {}: uploading {}.asc", url, config.key());
+                        try!(repo::client::put_key(url, cached));
+                    },
+                    Err(_) => return Err(BldrError::KeyNotFound(config.key().to_string())),
+                }
+            } else {
+                return Err(BldrError::FileNotFound(config.key().to_string()));
+            }
+        }
     }
     println!("   {}: complete", config.key());
     Ok(())
 }
-

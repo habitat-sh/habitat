@@ -15,9 +15,11 @@
 // limitations under the License.
 //
 
-use error::{BldrResult, BldrError};
 use std::process::Command;
 use std::fs;
+
+use super::super::GPG_CACHE;
+use error::{BldrResult, BldrError};
 use util::perm;
 
 fn gpg_cmd() -> Command {
@@ -28,8 +30,8 @@ fn gpg_cmd() -> Command {
 }
 
 pub fn import(status: &str, keyfile: &str) -> BldrResult<()> {
-    try!(fs::create_dir_all("/opt/bldr/cache/gpg"));
-    try!(perm::set_permissions("/opt/bldr/cache/gpg", "0700"));
+    try!(fs::create_dir_all(GPG_CACHE));
+    try!(perm::set_permissions(GPG_CACHE, "0700"));
     let output = try!(gpg_cmd()
          .arg("--import")
          .arg(keyfile)

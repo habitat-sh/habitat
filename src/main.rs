@@ -43,7 +43,7 @@ static VERSION: &'static str = "0.0.1";
 #[allow(dead_code)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url> [-v <version>] [-r <release>]
-       bldr start <package> [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
+       bldr start <package> [-u <url>] [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
        bldr sh
        bldr bash
        bldr repo [-p <path>] [--port=<port>]
@@ -239,7 +239,7 @@ fn configure(config: &Config) -> BldrResult<()> {
 fn install(config: &Config) -> BldrResult<()> {
     banner();
     println!("Installing {}", Yellow.bold().paint(config.package()));
-    let pkg_file = try!(install::from_url(config.package(), config.deriv(), config.url()));
+    let pkg_file = try!(install::latest_from_url(config.deriv(), config.package(), &config.url().as_ref().unwrap()));
     try!(install::verify(config.package(), &pkg_file));
     try!(install::unpack(config.package(), &pkg_file));
     Ok(())

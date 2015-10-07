@@ -29,17 +29,19 @@ pub mod standalone;
 pub mod leader;
 pub mod initializer;
 
-use ansi_term::Colour::White;
+use std::mem;
+use std::ops::DerefMut;
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::{TryRecvError};
-use libc::{pid_t, c_int};
 
+use ansi_term::Colour::White;
+use libc::{pid_t, c_int};
 use wonder;
 
 use state_machine::StateMachine;
 use census;
-use pkg::{Package, Signal};
+use pkg::{self, Package, PackageUpdaterActor, Signal};
 use util::signals;
 use util::signals::SignalNotifier;
 use error::{BldrResult, BldrError};
@@ -165,6 +167,9 @@ pub struct Worker<'a> {
     pub user_actor: wonder::actor::Actor<user_config::Message>,
     /// Our User Configuration; reads the config periodically
     pub watch_actor: wonder::actor::Actor<watch_config::Message>,
+    /// Watches a package repo for updates and signals the main thread when an update is available. Optionally
+    /// started if a value is passed for the url option on startup.
+    pub pkg_updater: Option<PackageUpdaterActor>,
     /// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
     /// The PID of the Supervisor itself
@@ -176,6 +181,7 @@ impl<'a> Worker<'a> {
     ///
     /// Automatically sets the backend to Etcd.
     pub fn new(package: Package, topology: String, config: &'a Config) -> BldrResult<Worker<'a>> {
+        let mut pkg_updater = None;
         // Setup our Census Entry
         let port = package.exposes().pop().unwrap_or(String::from("0"));
         let exposes = package.exposes().clone();
@@ -207,6 +213,11 @@ impl<'a> Worker<'a> {
         let service_config_lock = Arc::new(RwLock::new(service_config));
         let service_config_lock_1 = service_config_lock.clone();
 
+        if let Some(ref url) = *config.url() {
+            let pkg_lock_2 = pkg_lock.clone();
+            pkg_updater = Some(pkg::PackageUpdater::start(url, pkg_lock_2));
+        }
+
         Ok(Worker{
             package: pkg_lock,
             package_name: package_name,
@@ -231,6 +242,7 @@ impl<'a> Worker<'a> {
                 .name("watch-config".to_string())
                 .start(watch_actor_state)
                 .unwrap(),
+            pkg_updater: pkg_updater,
             supervisor_thread: None,
             supervisor_id: None,
         })
@@ -244,6 +256,18 @@ impl<'a> Worker<'a> {
     pub fn signal_package(&self, signal: Signal) -> BldrResult<String> {
         let package = self.package.read().unwrap();
         package.signal(signal)
+    }
+
+    pub fn update_package(&self, updated: Package) -> BldrResult<()> {
+        let service_config = self.service_config.read().unwrap();
+        {
+            let mut package = self.package.write().unwrap();
+            mem::replace(package.deref_mut(), updated);
+        }
+        let package = self.package.read().unwrap();
+        try!(package.copy_run(&service_config));
+        try!(package.signal(Signal::Restart));
+        Ok(())
     }
 
     /// Join the supervisor thread, and check for errors
@@ -423,6 +447,21 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
                     try!(package.copy_run(&service_config));
                     try!(package.reconfigure(&service_config));
                 }
+            }
+        }
+
+        if let Some(ref updater) = worker.pkg_updater {
+            match updater.receiver.try_recv() {
+                Ok(wonder::actor::Message::Cast(pkg::UpdaterMessage::Update(package))) => {
+                    debug!("Main loop received package update notification: {:?}", &package);
+                    try!(worker.update_package(package));
+                    try!(pkg::PackageUpdater::run(&updater));
+                },
+                Ok(_) => {},
+                Err(TryRecvError::Empty) => {},
+                Err(TryRecvError::Disconnected) => {
+                    panic!("package updater crashed!");
+                },
             }
         }
 
