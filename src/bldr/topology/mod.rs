@@ -20,7 +20,6 @@
 //! A service topology is a [state machine](../state_machine) that wraps the lifecycle events of a service around the
 //! process supervisor and package manager. It is responsible for:
 //!
-//! 1. Handling signals
 //! 1. Processing the main event loop
 //! 1. Registering callbacks with the [discovery](../discovery) system
 //!
@@ -32,23 +31,19 @@ pub mod watcher;
 
 use ansi_term::Colour::White;
 use std::thread;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
+use std::sync::mpsc::{TryRecvError};
 use libc::{pid_t, c_int};
 
 use state_machine::StateMachine;
 use discovery;
 use pkg::{Package, Signal};
+use util::signals;
+use util::signals::SignalNotifier;
 use error::{BldrResult, BldrError};
 use config::Config;
 
-// Has a value when we have caught a signal
-static CAUGHT_SIGNAL: AtomicBool = ATOMIC_BOOL_INIT;
-// Stores the specific value of the signal we caught
-static WHICH_SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
-
-// The signal and waitpid functions from POSIX libc.
+// Functions from POSIX libc.
 extern "C" {
-    fn signal(sig: u32, cb: extern fn(u32)) -> extern fn(u32);
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
 }
 
@@ -104,25 +99,6 @@ pub fn WSTOPSIG(status: c_int) -> c_int {
 #[allow(non_snake_case)]
 pub fn WTERMSIG(status: c_int) -> c_int {
     status & 0x7f
-}
-
-// Our signal handler.
-extern fn handle_signal(sig: u32) {
-    CAUGHT_SIGNAL.store(true, Ordering::SeqCst);
-    WHICH_SIGNAL.store(sig as usize, Ordering::SeqCst);
-}
-
-// Set the global signal handler
-fn set_signal_handlers() {
-    unsafe {
-        signal(1, handle_signal);  //    SIGHUP       terminate process    terminal line hangup
-        signal(2, handle_signal);  //    SIGINT       terminate process    interrupt program
-        signal(3, handle_signal);  //    SIGQUIT      create core image    quit program
-        signal(14, handle_signal); //    SIGALRM      terminate process    real-time timer expired
-        signal(15, handle_signal); //    SIGTERM      terminate process    software termination signal
-        signal(30, handle_signal); //    SIGUSR1      terminate process    User defined signal 1
-        signal(31, handle_signal); //    SIGUSR2      terminate process    User defined signal 2
-    }
 }
 
 /// Viable states for the topologies. Not every topology will implement every state.
@@ -224,47 +200,46 @@ impl<'a> Worker<'a> {
 /// * The topology state machine returns an error
 fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
     loop {
-        if CAUGHT_SIGNAL.load(Ordering::SeqCst) {
-            match WHICH_SIGNAL.load(Ordering::SeqCst) {
-                1 => { // SIGHUP
-                    println!("   {}: Sending SIGHUP", worker.preamble());
-                    try!(worker.package.signal(Signal::Hup));
-                },
-                2 => { // SIGINT
-                    println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
-                    try!(worker.package.signal(Signal::ForceShutdown));
-                    worker.discovery.stop();
-                    try!(worker.join_supervisor());
-                    break;
-                },
-                3 => { // SIGQUIT
-                    try!(worker.package.signal(Signal::Quit));
-                    println!("   {}: Sending SIGQUIT", worker.preamble());
-                },
-                14 => { // SIGALRM
-                    try!(worker.package.signal(Signal::Alarm));
-                    println!("   {}: Sending SIGALRM", worker.preamble());
-                },
-                15 => { // SIGTERM
-                    println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
-                    try!(worker.package.signal(Signal::ForceShutdown));
-                    worker.discovery.stop();
-                    try!(worker.join_supervisor());
-                    break;
-                },
-                30 => { //    SIGUSR1      terminate process    User defined signal 1
-                    println!("   {}: Sending SIGUSR1", worker.preamble());
-                    try!(worker.package.signal(Signal::One));
-                },
-                31 => { //    SIGUSR2      terminate process    User defined signal 25
-                    println!("   {}: Sending SIGUSR1", worker.preamble());
-                    try!(worker.package.signal(Signal::Two));
-                },
-                _ => unreachable!()
-            }
-            // Reset the signal handler flags
-            CAUGHT_SIGNAL.store(false, Ordering::SeqCst);
-            WHICH_SIGNAL.store(0 as usize, Ordering::SeqCst);
+        let handler = SignalNotifier::start();
+        match handler.receiver.try_recv() {
+            Ok(signals::Signal::SIGHUP) => {
+                println!("   {}: Sending SIGHUP", worker.preamble());
+                try!(worker.package.signal(Signal::Hup));
+            },
+            Ok(signals::Signal::SIGINT) => {
+                println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
+                try!(worker.package.signal(Signal::ForceShutdown));
+                worker.discovery.stop();
+                try!(worker.join_supervisor());
+                break;
+            },
+            Ok(signals::Signal::SIGQUIT) => {
+                try!(worker.package.signal(Signal::Quit));
+                println!("   {}: Sending SIGQUIT", worker.preamble());
+            },
+            Ok(signals::Signal::SIGALRM) => {
+                try!(worker.package.signal(Signal::Alarm));
+                println!("   {}: Sending SIGALRM", worker.preamble());
+            },
+            Ok(signals::Signal::SIGTERM) => {
+                println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
+                try!(worker.package.signal(Signal::ForceShutdown));
+                worker.discovery.stop();
+                try!(worker.join_supervisor());
+                break;
+            },
+            Ok(signals::Signal::SIGUSR1) => {
+                println!("   {}: Sending SIGUSR1", worker.preamble());
+                try!(worker.package.signal(Signal::One));
+            },
+            Ok(signals::Signal::SIGUSR2) => {
+                println!("   {}: Sending SIGUSR1", worker.preamble());
+                try!(worker.package.signal(Signal::Two));
+            },
+            Err(TryRecvError::Empty) => {},
+            Err(TryRecvError::Disconnected) => {
+                panic!("signal handler crashed!");
+            },
         }
         match sm.state {
             State::Running => {
@@ -308,5 +283,3 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
     }
     Ok(())
 }
-
-

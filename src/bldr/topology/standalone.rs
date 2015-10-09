@@ -55,7 +55,6 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     sm.add_dispatch(State::Starting, state_starting);
     sm.add_dispatch(State::Running, state_running);
     sm.add_dispatch(State::Finished, state_finished);
-    topology::set_signal_handlers();
     topology::run_internal(&mut sm, &mut worker)
 }
 

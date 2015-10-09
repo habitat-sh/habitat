@@ -19,6 +19,7 @@ pub mod http;
 pub mod gpg;
 pub mod perm;
 pub mod sys;
+pub mod signals;
 
 use time;
 
@@ -29,4 +30,3 @@ pub fn stop_time(duration: i64) -> time::Timespec {
     let stop_time = current_time + wait_duration;
     stop_time
 }
-
