@@ -14,6 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+//! This is the leader topology - it's invoked with `-t leader`. Any software that can be deployed
+//! in a leader/follower pattern should use this topology.
+//!
+//! ![Leader Topology](../../images/leader-follower.png)
 
 use std::thread;
 use hyper::status::StatusCode;
@@ -27,6 +31,11 @@ use discovery::{etcd, DiscoveryWatcher, DiscoveryWriter, DiscoveryResponse, Disc
 use topology::standalone;
 use config::Config;
 
+/// Sets up the topology and calls run_internal.
+///
+/// # Failures
+///
+/// 1. If `topology::run_internal` fails
 pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     let mut worker = Worker::new(package, String::from("leader"), config);
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
@@ -41,6 +50,7 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     topology::run_internal(&mut sm, &mut worker)
 }
 
+/// A helper function for setting a status value within the serice discovery framework.
 fn status_value(status_type: &str, worker: &mut Worker) -> String {
     let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
     let ip = util::sys::ip().unwrap_or(String::from("127.0.0.1"));
@@ -49,6 +59,17 @@ fn status_value(status_type: &str, worker: &mut Worker) -> String {
     format!("{}\nhostname = '{}'\nip = '{}'\nport = '{}'\nexpose = [{}]", status_type, hostname, ip, port, worker.package.exposes().iter().fold(String::new(), |acc, p| format!("{}{},", acc, p)))
 }
 
+/// Initialize the statemachine. Calls [standalone::state_init](standalone.html), then
+/// checks to see if the data set has been initialized. If it has, and it was by this instance, we
+/// immediately determine our viability as a leader; otherwise, we try and restore the previously
+/// initialized dataset (this currently does nothing!) If the data has never been initialized, we
+/// create it.
+///
+/// The intent here is we layer callbacks in. Our first MVP supported redis, which meant we don't
+/// actually need any of that.
+///
+/// # Failures
+/// 1. If we fail the call to standalone::state_init.
 fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(standalone::state_init(worker));
     println!("   {}: Attempting to initialize the data set", worker.preamble());
@@ -81,21 +102,35 @@ fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     };
 }
 
+/// This should eventually hold a callback that can be used to create an initial dataset.
 fn state_create_dataset(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Creating the initial dataset", worker.preamble());
     Ok((State::BecomeLeader, 0))
 }
 
+/// This should eventually hold a callback to fetch an existing dataset and restore it.
 fn state_restore_dataset(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Determining if we should restore a new dataset", worker.preamble());
     Ok((State::BecomeFollower, 0))
 }
 
+/// This should eventually be a callback to determine our viability as a leader.
 fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Determining viability as a leader", worker.preamble());
     Ok((State::BecomeLeader, 0))
 }
 
+/// Try and establish ourselves as the leader.
+///
+/// 1. Try and form the government by winning the race for `topology/leader/government/leader`.
+/// 1. If we can set it, we are the leader. Otherwise, we are a follower.
+/// 1. We write our census entry
+/// 1. Then set our role as the `topology-leader`
+/// 1. Then set up all our discovery configurations
+///
+/// # Failures
+///
+/// 1. If we cannot write toml files out to the srvc directory
 fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Becoming the leader", worker.preamble());
     println!("   {}: Forming the government", worker.preamble());
@@ -189,6 +224,9 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     Ok((State::Leader, 0))
 }
 
+/// Write our census entry out.
+///
+/// The census is full of every member in the topology.
 fn write_census(worker: &mut Worker)  {
     println!("   {}: Creating my entry in the the census", worker.preamble());
     let hostname = util::sys::hostname().unwrap();
@@ -229,6 +267,17 @@ fn write_census(worker: &mut Worker)  {
     };
 }
 
+/// Become a follower.
+///
+/// 1. Write our census entry
+/// 1. Write our role as a `topology-follower`
+/// 1. Write our configuration data
+/// 1. Set up all our watches.
+/// 1. Set up our census writer.
+///
+/// # Failures
+///
+/// 1. If we cannot write out our toml config files
 fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Becoming a follower", worker.preamble());
 
@@ -263,6 +312,17 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     Ok((State::Follower, 0))
 }
 
+/// Become a leader.
+///
+/// 1. Update the government ttl (the directory holding the leader)
+/// 1. Configure the service
+/// 1. Start the service
+///
+/// # Failures
+///
+/// 1. If we fail to configure the service
+/// 1. If we fail to start the service
+/// 1. If we fail to watch our local configuration
 fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     loop {
         match worker.discovery.write_status(&format!("{}/{}/topology/leader/government", worker.package.name, worker.config.group())) {
@@ -294,6 +354,18 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     Ok((State::Leader, 0))
 }
 
+/// Be a follower.
+///
+/// 1. Check to see if we still have a leader
+/// 1. If we don't, determine our viability
+/// 1. Configure the service
+/// 1. Start the service
+///
+/// # Failures
+///
+/// 1. If we fail to configure the service
+/// 1. If we fail to start the service
+/// 1. If we fail to watch our local configuration
 fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     loop {
         match worker.discovery.status(&format!("{}/{}/topology/leader/government/leader", worker.package.name, worker.config.group())) {

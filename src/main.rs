@@ -22,6 +22,7 @@ extern crate docopt;
 extern crate env_logger;
 extern crate ansi_term;
 extern crate libc;
+
 use docopt::Docopt;
 use std::process;
 use ansi_term::Colour::{Red, Green, Yellow};
