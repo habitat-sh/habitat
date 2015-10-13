@@ -199,7 +199,7 @@ impl<'a> Worker<'a> {
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
 fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
-    let handler = SignalNotifier::start();
+    let mut handler = SignalNotifier::start();
     loop {
         match handler.receiver.try_recv() {
             Ok(signals::Signal::SIGHUP) => {
@@ -281,5 +281,6 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         try!(worker.discovery.next());
         try!(sm.next(worker));
     }
+    try!(handler.stop());
     Ok(())
 }
