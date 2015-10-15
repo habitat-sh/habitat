@@ -246,7 +246,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
                 unsafe {
                     let mut status: c_int = 0;
                     let supervisor_pid = worker.supervisor_id.unwrap() as pid_t;
-                    match waitpid(0 as pid_t, &mut status, 1 as c_int) {
+                    match waitpid(supervisor_pid, &mut status, 1 as c_int) {
                         0 => {}, // Nothing returned,
                         pid if pid == supervisor_pid => {
                             if WIFEXITED(status) {
@@ -265,12 +265,12 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
                         pid => {
                             if WIFEXITED(status) {
                                 let exit_code = WEXITSTATUS(status);
-                                println!("   {}: Process {} died with exit code {}", worker.preamble(), pid, exit_code);
+                                debug!("   {}: Process {} died with exit code {}", worker.preamble(), pid, exit_code);
                             } else if WIFSIGNALED(status) {
                                 let exit_signal = WTERMSIG(status);
-                                println!("   {}: Process {} terminated with signal {}", worker.preamble(), pid, exit_signal);
+                                debug!("   {}: Process {} terminated with signal {}", worker.preamble(), pid, exit_signal);
                             } else {
-                                println!("   {}: Process {} died, but I don't know how.", worker.preamble(), pid);
+                                debug!("   {}: Process {} died, but I don't know how.", worker.preamble(), pid);
                             }
                         }
                     }

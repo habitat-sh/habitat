@@ -354,7 +354,10 @@ impl Package {
         let res = self.signal(Signal::Status);
         match res {
             Ok(_) => return true,
-            Err(_) => return false,
+            Err(e) => {
+                debug!("Supervisor not running?: {:?}", e);
+                return false
+            },
         }
     }
 
