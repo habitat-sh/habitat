@@ -23,9 +23,9 @@
 //!
 //! # Examples
 //!
-//! ```
-//! use bldr::util::signals;
-//! use std::sync::mpsc::TryRecvError;
+//! ```no_run
+//! # use bldr::util::signals;
+//! # use std::sync::mpsc::TryRecvError;
 //!
 //! let mut handler = signals::SignalNotifier::start();
 //! match handler.receiver.try_recv() {
@@ -40,7 +40,6 @@
 //!         panic!("signal handler crashed!");
 //!     },
 //! }
-//! handler.stop();
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::{Sender, Receiver, TryRecvError};
