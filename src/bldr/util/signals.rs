@@ -24,22 +24,23 @@
 //! # Examples
 //!
 //! ```
-//! use util::signals::SignalNotifier;
+//! use bldr::util::signals;
+//! use std::sync::mpsc::TryRecvError;
 //!
-//! let handler = SignalNotifier::start();
-//!
+//! let mut handler = signals::SignalNotifier::start();
 //! match handler.receiver.try_recv() {
 //!     Ok(signals::Signal::SIGHUP) => {
 //!         println!("Got SIGHUP!");
 //!     },
 //!     Ok(sig) => {
-//!         println!("Got unhandled - {:?}!", sig);
+//!         println!("Got unhandled signal");
 //!     },
 //!     Err(TryRecvError::Empty) => {},
 //!     Err(TryRecvError::Disconnected) => {
 //!         panic!("signal handler crashed!");
 //!     },
 //! }
+//! handler.stop();
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 use std::sync::mpsc::{Sender, Receiver, TryRecvError};
@@ -108,6 +109,12 @@ impl SignalNotifier {
             SignalNotifier::init(otx, irx)
         });
         SignalNotifier::new(itx, orx, handle)
+    }
+
+    /// Stop a running SignalHandler.
+    pub fn stop(&mut self) -> BldrResult<()> {
+        self.sender.send(1).unwrap();
+        Ok(())
     }
 
     fn init(tx: Sender<Signal>, rx: Receiver<i32>) -> BldrResult<()> {
