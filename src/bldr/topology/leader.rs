@@ -38,7 +38,6 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     sm.add_dispatch(State::BecomeFollower, state_become_follower);
     sm.add_dispatch(State::Leader, state_leader);
     sm.add_dispatch(State::Follower, state_follower);
-    topology::set_signal_handlers();
     topology::run_internal(&mut sm, &mut worker)
 }
 
