@@ -105,9 +105,9 @@ impl SignalNotifier {
     pub fn start() -> SignalNotifier {
         let (otx, orx): (Sender<Signal>, Receiver<Signal>) = mpsc::channel();
         let (itx, irx) = mpsc::channel();
-        let handle = thread::spawn(move || {
+        let handle = thread::Builder::new().name(String::from("signal_handler")).spawn(move || {
             SignalNotifier::init(otx, irx)
-        });
+        }).unwrap();
         SignalNotifier::new(itx, orx, handle)
     }
 

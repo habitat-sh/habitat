@@ -284,10 +284,10 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
         try!(worker.package.configure());
         try!(standalone::state_starting(worker));
         let watch_package = worker.package.clone();
-        let configuration_thread = thread::spawn(move || -> BldrResult<()> {
+        let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
             try!(watch_package.watch_configuration());
             Ok(())
-        });
+        }));
         worker.configuration_thread = Some(configuration_thread);
     }
 
@@ -315,10 +315,10 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
         try!(worker.package.configure());
         try!(standalone::state_starting(worker));
         let watch_package = worker.package.clone();
-        let configuration_thread = thread::spawn(move || -> BldrResult<()> {
+        let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
             try!(watch_package.watch_configuration());
             Ok(())
-        });
+        }));
         worker.configuration_thread = Some(configuration_thread);
     }
     Ok((State::Follower, 0))

@@ -93,7 +93,6 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.write_environment_data());
     try!(worker.package.write_sys_data());
     try!(worker.package.write_bldr_data());
-
     if let Some(_) = discovery::etcd::enabled() {
         let package = worker.package.clone();
         let key = format!("{}/{}/config", package.name, worker.config.group());
@@ -123,13 +122,7 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
         }
     };
     try!(worker.package.configure());
-    let watch_package = worker.package.clone();
-    let configuration_thread = thread::spawn(move || -> BldrResult<()> {
-        try!(watch_package.watch_configuration());
-        Ok(())
-    });
-    worker.configuration_thread = Some(configuration_thread);
-    Ok((State::Starting, 0))
+    Ok((State::Starting, 1))
 }
 
 /// Start the service.
@@ -155,7 +148,7 @@ pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     );
     worker.supervisor_id = Some(child.id());
     let pkg = worker.package.name.clone();
-    let supervisor_thread = thread::spawn(move|| -> BldrResult<()> {
+    let supervisor_thread = try!(thread::Builder::new().name(String::from("supervisor")).spawn(move|| -> BldrResult<()> {
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,
@@ -183,12 +176,20 @@ pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
             }
         }
         Ok(())
-    });
+    }));
     worker.supervisor_thread = Some(supervisor_thread);
     Ok((State::Running, 0))
 }
 
-pub fn state_running(_worker: &mut Worker) -> Result<(State, u32), BldrError> {
+pub fn state_running(worker: &mut Worker) -> Result<(State, u32), BldrError> {
+    if worker.configuration_thread.is_none() {
+        let watch_package = worker.package.clone();
+        let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
+            try!(watch_package.watch_configuration());
+            Ok(())
+        }));
+        worker.configuration_thread = Some(configuration_thread);
+    }
     Ok((State::Running, 0))
 }
 

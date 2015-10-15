@@ -231,7 +231,7 @@ impl DiscoveryWatcher {
     // Stop the watch. Sends the signal to the backend thread to stop itself cleanly.
     fn stop(&mut self) {
         let tx = self.tx.as_ref().unwrap();
-        tx.send(true).unwrap();
+        let _result = tx.send(true);
     }
 
     // Check for a response from a watch.
@@ -367,7 +367,7 @@ impl DiscoveryWriter {
     // Sends the appropriate signal to the writer thread.
     fn stop(&mut self) {
         let tx = self.tx.as_ref().unwrap();
-        tx.send(true).unwrap();
+        let _result = tx.send(true);
     }
 
     // Check for a response to a write.

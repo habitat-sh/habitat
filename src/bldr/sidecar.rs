@@ -48,7 +48,7 @@ fn health(sidecar: &Sidecar, _req: &mut Request) -> IronResult<Response> {
 
 pub fn run(pkg: &str) -> BldrResult<()> {
     let pkg_name = String::from(pkg);
-    thread::spawn(move || -> BldrResult<()> {
+    try!(thread::Builder::new().name(String::from("sidecar")).spawn(move || -> BldrResult<()> {
         // The sidecar is in an Arc. The clones are
         // creating instances to share, and when they all go away, we'll
         // reap the instance. Turns out they won't really ever go away,
@@ -65,7 +65,7 @@ pub fn run(pkg: &str) -> BldrResult<()> {
 
         Iron::new(router).http("0.0.0.0:9631").unwrap();
         Ok(())
-    });
+    }));
     Ok(())
 }
 
