@@ -884,5 +884,4 @@ mod tests {
         template.render_data(&mut bytes, &data);
         assert_eq!(String::from_utf8(bytes).unwrap(), "hello no for 127.0.0.1 6380 no yes  snooze  looze ".to_string());
     }
-
 }

@@ -55,4 +55,5 @@ pub mod sidecar;
 pub mod health_check;
 pub mod config;
 pub mod repo;
+pub mod handlers;
 

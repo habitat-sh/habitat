@@ -138,6 +138,7 @@ impl SignalNotifier {
                 Ok(_) | Err(TryRecvError::Disconnected) => { break; },
                 Err(TryRecvError::Empty) => {},
             }
+            thread::sleep_ms(200);
         }
         Ok(())
     }

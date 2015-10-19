@@ -37,8 +37,7 @@ use libc::{pid_t, c_int};
 use state_machine::StateMachine;
 use discovery;
 use pkg::{Package, Signal};
-use util::signals;
-use util::signals::SignalNotifier;
+use handlers::signals::{self, SignalNotifier};
 use error::{BldrResult, BldrError};
 use config::Config;
 
@@ -280,6 +279,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         }
         try!(worker.discovery.next());
         try!(sm.next(worker));
+        thread::sleep_ms(200);
     }
     try!(handler.stop());
     Ok(())
