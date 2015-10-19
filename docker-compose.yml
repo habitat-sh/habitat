@@ -38,6 +38,7 @@ base:
     - etcd
 
 etcd:
+  container_name: bldr_etcd_1
   image: quay.io/coreos/etcd:latest
   ports:
     - "4001:4001"
