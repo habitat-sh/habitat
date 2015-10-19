@@ -1,0 +1,2 @@
+#!/bin/bash -x
+docker run --link=bldr_etcd_1:etcd $@
