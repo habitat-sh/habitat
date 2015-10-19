@@ -290,6 +290,7 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                     continue;
                 }
             }
+            debug!("JSON RESPONSE BODY: {:?}", response_body);
             let body_as_json = match Json::from_str(&response_body) {
                 Ok(body) => body,
                 Err(e) => {
@@ -301,6 +302,31 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                     continue;
                 }
             };
+            // If we are recursive, the events we get are garbage. We have to do a full GET if we
+            // want all the data; otherwise, we get partial data based on the events we get back
+            // from a watch. This is a chat-tastic kludge. We should remove it post demo.
+            if (recursive == true) && (first_run == false) {
+                match body_as_json.find("action") {
+                    Some(action_value) => {
+                        match action_value.as_string() {
+                            Some("get") => {},
+                            Some(_) => {
+                                // So, yeah - sorry. Just go do the first get.
+                                first_run = true;
+                                continue;
+                            },
+                            None => {
+                                error!("Received an etcd response an action that is not a string - shouldn't be possible");
+                                continue;
+                            }
+                        }
+                    },
+                    None => {
+                        error!("Received an etcd response without an action - shouldn't be possible");
+                        continue;
+                    }
+                }
+            }
             match body_as_json.find("node") {
                 Some(json_value) => {
                     let mut results = String::new();
