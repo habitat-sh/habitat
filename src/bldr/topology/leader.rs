@@ -250,6 +250,7 @@ fn write_census(worker: &mut Worker)  {
 }
 
 fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
+    let pkg_lock = worker.package.clone();
     println!("   {}: Becoming a follower", worker.preamble());
 
     write_census(worker);
@@ -267,24 +268,25 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
         }
     }
 
-    let rpkg = worker.package.clone();
-    let read_package = rpkg.read().unwrap();
-
     worker.discovery.stop();
     worker.discovery.clear();
 
-    let hostname = util::sys::hostname().unwrap();
+    let (key, ckey, census_key) = {
+        let hostname = util::sys::hostname().unwrap();
+        let package = pkg_lock.read().unwrap();
+        let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
+        let ckey = format!("{}/{}/config", package.name, worker.config.group());
+        let census_key = format!("{}/{}/topology/leader/census/{}", package.name, worker.config.group(), hostname);
+        (key, ckey, census_key)
+    };
     let pkg_arc1 = worker.package.clone();
-    let key = format!("{}/{}/topology/leader/government/leader", read_package.name, worker.config.group());
-    let watcher = DiscoveryWatcher::new(pkg_arc1, key, String::from("101_leader.toml"), 1, true, false);
-    worker.discovery.watch(watcher);
     let pkg_arc2 = worker.package.clone();
-    let ckey = format!("{}/{}/config", read_package.name, worker.config.group());
-    let cwatcher = DiscoveryWatcher::new(pkg_arc2, ckey, String::from("100_discovery.toml"), 1, true, false);
-    worker.discovery.watch(cwatcher);
     let pkg_arc3 = worker.package.clone();
-    let census_key = format!("{}/{}/topology/leader/census/{}", read_package.name, worker.config.group(), hostname);
+    let watcher = DiscoveryWatcher::new(pkg_arc1, key, String::from("101_leader.toml"), 1, true, false);
+    let cwatcher = DiscoveryWatcher::new(pkg_arc2, ckey, String::from("100_discovery.toml"), 1, true, false);
     let census_writer = DiscoveryWriter::new(pkg_arc3, census_key, None, Some(30));
+    worker.discovery.watch(watcher);
+    worker.discovery.watch(cwatcher);
     worker.discovery.write(census_writer);
 
     Ok((State::Follower, 0))
