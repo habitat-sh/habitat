@@ -254,31 +254,36 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     write_census(worker);
 
-    let pkg_lock = worker.package.clone();
-    let mut package = pkg_lock.write().unwrap();
-    try!(package.write_toml_string("102_role.toml", &format!("topology-follower = true")));
+    {
+        let pkg_lock = worker.package.clone();
+        let mut package = pkg_lock.write().unwrap();
+        try!(package.write_toml_string("102_role.toml", &format!("topology-follower = true")));
 
-    if worker.configuration_thread.is_none() {
-        try!(package.write_default_data());
-        try!(package.write_environment_data());
-        try!(package.write_sys_data());
-        try!(package.write_bldr_data());
+        if worker.configuration_thread.is_none() {
+            try!(package.write_default_data());
+            try!(package.write_environment_data());
+            try!(package.write_sys_data());
+            try!(package.write_bldr_data());
+        }
     }
+
+    let rpkg = worker.package.clone();
+    let read_package = rpkg.read().unwrap();
 
     worker.discovery.stop();
     worker.discovery.clear();
 
     let hostname = util::sys::hostname().unwrap();
     let pkg_arc1 = worker.package.clone();
-    let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
+    let key = format!("{}/{}/topology/leader/government/leader", read_package.name, worker.config.group());
     let watcher = DiscoveryWatcher::new(pkg_arc1, key, String::from("101_leader.toml"), 1, true, false);
     worker.discovery.watch(watcher);
     let pkg_arc2 = worker.package.clone();
-    let ckey = format!("{}/{}/config", package.name, worker.config.group());
+    let ckey = format!("{}/{}/config", read_package.name, worker.config.group());
     let cwatcher = DiscoveryWatcher::new(pkg_arc2, ckey, String::from("100_discovery.toml"), 1, true, false);
     worker.discovery.watch(cwatcher);
     let pkg_arc3 = worker.package.clone();
-    let census_key = format!("{}/{}/topology/leader/census/{}", package.name, worker.config.group(), hostname);
+    let census_key = format!("{}/{}/topology/leader/census/{}", read_package.name, worker.config.group(), hostname);
     let census_writer = DiscoveryWriter::new(pkg_arc3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
 
