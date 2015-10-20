@@ -185,7 +185,12 @@ pub fn state_running(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     if worker.configuration_thread.is_none() {
         let watch_package = worker.package.clone();
         let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
-            try!(watch_package.watch_configuration());
+            loop {
+                match watch_package.watch_configuration() {
+                    Ok(_) => {},
+                    Err(e) => error!("Configuration thread died with: {:?}", e)
+                }
+            }
             Ok(())
         }));
         worker.configuration_thread = Some(configuration_thread);

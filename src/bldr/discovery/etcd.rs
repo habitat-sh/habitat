@@ -265,7 +265,7 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
             // If it is the first time we've asked, just ask - we want to seed the right data
             // quickly
             let really_wait = if first_run { first_run = false; false } else { wait };
-            let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}&recursive={}&waitIndex={}", base_url, key, really_wait, recursive, modified_index)).send() {
+            let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}&recursive={}&waitIndex={}&sorted=true", base_url, key, really_wait, recursive, modified_index)).send() {
                 Ok(res) => res,
                 Err(e) => {
                     debug!("   {}: Invalid request for config: {:?}", preamble, e);
@@ -276,6 +276,25 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                     continue;
                 }
             };
+            modified_index = match res.headers.get_raw("x-etcd-index") {
+                Some(x_etcd_index) => {
+                 // The header is an array of Vec<u8>'s. We want to take the first one, if we have
+                 // it, or '0' if we don't, and turn it into a string.
+                 // If the response is not valid UTF-8, we want to just start from '0'.
+                 // Then parse into a u64, and again, if its not valid, return 0.
+                 // Then add 1.
+                 // This means we should always get x-etcd-index, and if we can't, we get a
+                 // reasonable number to start with.
+                    String::from_utf8(x_etcd_index
+                                      .iter()
+                                      .nth(0)
+                                      .map_or(vec![0 as u8], |v| v.to_owned()))
+                     .unwrap_or(String::from("0"))
+                     .parse::<u64>().unwrap_or(0u64) + 1
+                },
+                None => { debug!("No x-etcd-index received"); 0 },
+            };
+
             debug!("Response: {:?}", res);
             let mut response_body = String::new();
             match res.read_to_string(&mut response_body) {
@@ -283,7 +302,7 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                 Err(e) => {
                     debug!("   {}: Failed to read request body: {:?}", preamble, e);
                     if let Err(_e) = watcher_tx.send(None) {
-                        debug!("{}: Aborting watch on failed send - peer went away", preamble);
+                        debug!("{}: aborting watch on failed send - peer went away", preamble);
                         return;
                     }
 
@@ -313,16 +332,23 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
                             Some(_) => {
                                 // So, yeah - sorry. Just go do the first get.
                                 first_run = true;
+                                modified_index = 0;
                                 continue;
                             },
                             None => {
-                                error!("Received an etcd response an action that is not a string - shouldn't be possible");
+                                debug!("Received an etcd response an action that is not a string - shouldn't be possible");
                                 continue;
                             }
                         }
                     },
                     None => {
-                        error!("Received an etcd response without an action - shouldn't be possible");
+                        debug!("Received an etcd response without an action - shouldn't be possible");
+                        // This should also set the modified index back to zero - most of
+                        // the time, we can just try again with the new value. This happens
+                        // when the global etcd index gets beyond the last-modified number
+                        // of the index of the root object in etcd. This fixes it.
+                        first_run = true;
+                        modified_index = 0;
                         continue;
                     }
                 }
@@ -330,8 +356,8 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
             match body_as_json.find("node") {
                 Some(json_value) => {
                     let mut results = String::new();
-                    let current_modified_index = json_value.find("modifiedIndex").unwrap().as_u64().unwrap();
-                    modified_index = current_modified_index + 1;
+                    // let current_modified_index = json_value.find("modifiedIndex").unwrap().as_u64().unwrap();
+                    // modified_index = current_modified_index + 1;
 
                     get_json_values_recursively(json_value, &mut results);
                     if results.is_empty() {
@@ -397,6 +423,9 @@ fn get_json_values_recursively(json: &Json, result_acc: &mut String) {
                 Some(json_value) => {
                     match json_value.as_string() {
                         Some(value) => {
+                            // Anything that starts with a '[' means it has a namespace
+                            // in toml. Anything without a namespace (if its at the root)
+                            // needs to be at the front of the toml string.
                             if value.starts_with("[") {
                                 result_acc.push_str(&format!("{}\n", value))
                             } else {
