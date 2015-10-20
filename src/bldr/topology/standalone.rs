@@ -68,8 +68,9 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
 /// * If it fails to create the srvc paths
 /// * If it cannot read or copy the run file
 pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    try!(worker.package.create_srvc_path());
-    try!(worker.package.copy_run());
+    let package = worker.package.read().unwrap();
+    try!(package.create_srvc_path());
+    try!(package.copy_run());
     Ok((State::Configure, 0))
 }
 
@@ -89,14 +90,19 @@ pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 /// * If we can't write any files
 /// * If we can't watch the configuration parts
 pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    try!(worker.package.write_default_data());
-    try!(worker.package.write_environment_data());
-    try!(worker.package.write_sys_data());
-    try!(worker.package.write_bldr_data());
+    let pkg_lock = worker.package.clone();
+    {
+        let mut package = pkg_lock.write().unwrap();
+        try!(package.write_default_data());
+        try!(package.write_environment_data());
+        try!(package.write_sys_data());
+        try!(package.write_bldr_data());
+    }
+    let package = pkg_lock.read().unwrap();
     if let Some(_) = discovery::etcd::enabled() {
-        let package = worker.package.clone();
+        let pkg_arc1 = worker.package.clone();
         let key = format!("{}/{}/config", package.name, worker.config.group());
-        let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1, true, false);
+        let watcher = DiscoveryWatcher::new(pkg_arc1, key, String::from("100_discovery.toml"), 1, true, false);
         worker.discovery.watch(watcher);
 
         // Configure watches!
@@ -113,15 +119,15 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
                     return Err(BldrError::BadWatch(watch.clone()))
                 }
             };
-            let package = worker.package.clone();
+            let pkg_arc2 = worker.package.clone();
             let key = format!("{}/{}", service, group);
-            let mut watcher = DiscoveryWatcher::new(package, key, format!("300_watch_{}_{}.toml", service, group), 1, true, true);
+            let mut watcher = DiscoveryWatcher::new(pkg_arc2, key, format!("300_watch_{}_{}.toml", service, group), 1, true, true);
             watcher.service(service);
             watcher.group(group);
             worker.discovery.watch(watcher);
         }
     };
-    try!(worker.package.configure());
+    try!(package.configure());
     Ok((State::Starting, 1))
 }
 
@@ -137,17 +143,19 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
 /// * If we cannot start the supervisor
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     println!("   {}: Starting", worker.preamble());
+    let pkg = {
+        worker.package.read().unwrap().name.clone()
+    };
     let runit_pkg = try!(pkg::latest("runit", None));
     let mut child = try!(
         Command::new(runit_pkg.join_path("bin/runsv"))
-        .arg(&format!("/opt/bldr/srvc/{}", worker.package.name))
+        .arg(&format!("/opt/bldr/srvc/{}", pkg))
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
     );
     worker.supervisor_id = Some(child.id());
-    let pkg = worker.package.name.clone();
     let supervisor_thread = try!(thread::Builder::new().name(String::from("supervisor")).spawn(move|| -> BldrResult<()> {
         {
             let mut c_stdout = match child.stdout {
@@ -185,7 +193,8 @@ pub fn state_running(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     if worker.configuration_thread.is_none() {
         let watch_package = worker.package.clone();
         let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
-            try!(watch_package.watch_configuration());
+            let package = watch_package.read().unwrap();
+            try!(package.watch_configuration());
             Ok(())
         }));
         worker.configuration_thread = Some(configuration_thread);

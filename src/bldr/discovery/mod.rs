@@ -40,6 +40,7 @@ pub mod etcd;
 
 use toml;
 use std::collections::{BTreeMap, HashMap};
+use std::sync::{Arc, RwLock};
 use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use std::fmt::{self, Debug};
 use ansi_term::Colour::{White};
@@ -154,7 +155,7 @@ impl Discovery {
 
 /// A struct representing a particular watcher.
 pub struct DiscoveryWatcher {
-    package: Package,
+    package: Arc<RwLock<Package>>,
     key: String,
     filename: String,
     wait: bool,
@@ -179,7 +180,7 @@ impl DiscoveryWatcher {
     /// Creates a new struct.
     ///
     /// It will watch for changes on the key, and reconnect on failure.
-    pub fn new(package: Package, key: String, filename: String, reconnect_interval: u32, wait: bool, recursive: bool) -> DiscoveryWatcher {
+    pub fn new(package: Arc<RwLock<Package>>, key: String, filename: String, reconnect_interval: u32, wait: bool, recursive: bool) -> DiscoveryWatcher {
         DiscoveryWatcher{
             package: package,
             key: key,
@@ -214,7 +215,10 @@ impl DiscoveryWatcher {
     // the appropriate `watch` method based on the `Backend`. The `watch` method then is run in a
     // separate thread, with communication flowing back through the channels we set up.
     fn start(&mut self) {
-        let preamble = format!("{}({})", self.package.name, White.bold().paint("D"));
+        let preamble = {
+            let package = self.package.read().unwrap();
+            format!("{}({})", package.name, White.bold().paint("D"))
+        };
         println!("   {}: Watching {}", preamble, self.key);
         // Backend
         let (b_tx, b_rx) = channel();
@@ -276,11 +280,17 @@ impl DiscoveryWatcher {
                         service_list.push(toml::Value::Table(service_toml));
                         base_toml.insert(String::from("watch"), toml::Value::Array(service_list));
 
-                        try!(self.package.write_toml(&self.filename, base_toml));
+                        {
+                            let mut package = self.package.write().unwrap();
+                            try!(package.write_toml(&self.filename, base_toml));
+                        }
                     }
                     Ok(Some(DiscoveryResponse{key: self.key.clone(), value: Some(String::from(s))}))
                 } else {
-                    try!(self.package.write_toml_string(&self.filename, &s));
+                    {
+                        let mut package = self.package.write().unwrap();
+                        try!(package.write_toml_string(&self.filename, &s));
+                    }
                     Ok(Some(DiscoveryResponse{key: self.key.clone(), value: Some(String::from(s))}))
                 }
             },
@@ -291,7 +301,7 @@ impl DiscoveryWatcher {
 
 /// A struct representing a given Writer
 pub struct DiscoveryWriter {
-    package: Package,
+    package: Arc<RwLock<Package>>,
     key: String,
     value: Option<String>,
     ttl: Option<u32>,
@@ -312,7 +322,7 @@ impl DiscoveryWriter {
     /// Create a new `DiscoverWriter`.
     ///
     /// A writer will try to write `value` to `key` evey `ttl` time, in seconds.
-    pub fn new(package: Package, key: String, value: Option<String>, ttl: Option<u32>) -> DiscoveryWriter {
+    pub fn new(package: Arc<RwLock<Package>>, key: String, value: Option<String>, ttl: Option<u32>) -> DiscoveryWriter {
         DiscoveryWriter{
             package: package,
             key: key,
@@ -334,7 +344,10 @@ impl DiscoveryWriter {
     // We create a set of options for the backend's `write` function, then call it. This spawns a
     // new thread that handles the actual write.
     fn start(&mut self) {
-        let preamble = format!("{}({})", self.package.name, White.bold().paint("D"));
+        let preamble = {
+            let package = self.package.read().unwrap();
+            format!("{}({})", package.name, White.bold().paint("D"))
+        };
         match self.ttl {
             Some(ttl) => println!("   {}: Writing {} every {}", preamble, self.key, ttl),
             None => println!("   {}: Writing {}", preamble, self.key)

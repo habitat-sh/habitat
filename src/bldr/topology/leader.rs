@@ -44,15 +44,19 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
 fn status_value(status_type: &str, worker: &mut Worker) -> String {
     let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
     let ip = util::sys::ip().unwrap_or(String::from("127.0.0.1"));
-    let port = worker.package.exposes().pop().unwrap_or(String::from("0"));
+    let package = worker.package.read().unwrap();
+    let port = package.exposes().pop().unwrap_or(String::from("0"));
 
-    format!("{}\nhostname = '{}'\nip = '{}'\nport = '{}'\nexpose = [{}]", status_type, hostname, ip, port, worker.package.exposes().iter().fold(String::new(), |acc, p| format!("{}{},", acc, p)))
+    format!("{}\nhostname = '{}'\nip = '{}'\nport = '{}'\nexpose = [{}]", status_type, hostname, ip, port, package.exposes().iter().fold(String::new(), |acc, p| format!("{}{},", acc, p)))
 }
 
 fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(standalone::state_init(worker));
     println!("   {}: Attempting to initialize the data set", worker.preamble());
-    let key = format!("{}/{}/topology/leader/init", worker.package.name, worker.config.group());
+    let key = {
+        let package = worker.package.read().unwrap();
+        format!("{}/{}/topology/leader/init", package.name, worker.config.group())
+    };
     let status = status_value("[topology.init]", worker);
     let (statuscode, response) =
         etcd::set(&key, &[("value", &status), ("prevExist", "false")]).unwrap();
@@ -97,9 +101,13 @@ fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u32)> {
 }
 
 fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
+    let pkg_lock = worker.package.clone();
     println!("   {}: Becoming the leader", worker.preamble());
     println!("   {}: Forming the government", worker.preamble());
-    let govkey = format!("{}/{}/topology/leader/government", worker.package.name, worker.config.group());
+    let govkey = {
+        let package = pkg_lock.read().unwrap();
+        format!("{}/{}/topology/leader/government", package.name, worker.config.group())
+    };
     let (gov_statuscode, _gov_response) =
         etcd::set(&govkey, &[("dir", "true"), ("ttl", "30")]).unwrap();
     match gov_statuscode {
@@ -118,7 +126,10 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
         },
     };
 
-    let key = format!("{}/{}/topology/leader/government/leader", worker.package.name, worker.config.group());
+    let key = {
+        let package = pkg_lock.read().unwrap();
+        format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group())
+    };
     let (statuscode, response) =
         etcd::set(&key, &[("value", &status_value("[topology.leader]", worker)), ("prevExist", "false")]).unwrap();
     debug!("Response is {:?} {}", statuscode, response);
@@ -156,34 +167,41 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     write_census(worker);
 
-    try!(worker.package.write_toml_string("102_role.toml", &format!("topology-leader = true")));
+    {
+        let mut package = pkg_lock.write().unwrap();
+        try!(package.write_toml_string("102_role.toml", &format!("topology-leader = true")));
 
-    if worker.configuration_thread.is_none() {
-        try!(worker.package.write_default_data());
-        try!(worker.package.write_environment_data());
-        try!(worker.package.write_sys_data());
-        try!(worker.package.write_bldr_data());
+        if worker.configuration_thread.is_none() {
+            try!(package.write_default_data());
+            try!(package.write_environment_data());
+            try!(package.write_sys_data());
+            try!(package.write_bldr_data());
+        }
     }
 
     worker.discovery.stop();
     worker.discovery.clear();
 
-    let hostname = util::sys::hostname().unwrap();
-    let package = worker.package.clone();
-    let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
-    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true, false);
+    let (key, ckey, census_key, gvmt_key) = {
+        let hostname = util::sys::hostname().unwrap();
+        let package = pkg_lock.read().unwrap();
+        let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
+        let ckey = format!("{}/{}/config", package.name, worker.config.group());
+        let census_key = format!("{}/{}/topology/leader/census/{}", package.name, worker.config.group(), hostname);
+        let gvmt_key = format!("{}/{}/topology/leader/government", package.name, worker.config.group());
+        (key, ckey, census_key, gvmt_key)
+    };
+    let pkg_arc1 = worker.package.clone();
+    let pkg_arc2 = worker.package.clone();
+    let pkg_arc3 = worker.package.clone();
+    let pkg_arc4 = worker.package.clone();
+    let watcher = DiscoveryWatcher::new(pkg_arc1, key, String::from("101_leader.toml"), 1, true, false);
+    let cwatcher = DiscoveryWatcher::new(pkg_arc2, ckey, String::from("100_discovery.toml"), 1, true, false);
+    let census_writer = DiscoveryWriter::new(pkg_arc3, census_key, None, Some(30));
+    let gvmt_writer = DiscoveryWriter::new(pkg_arc4, gvmt_key, None, Some(30));
     worker.discovery.watch(watcher);
-    let package2 = worker.package.clone();
-    let ckey = format!("{}/{}/config", package2.name, worker.config.group());
-    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true, false);
     worker.discovery.watch(cwatcher);
-    let package3 = worker.package.clone();
-    let census_key = format!("{}/{}/topology/leader/census/{}", package3.name, worker.config.group(), hostname);
-    let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
-    let package4 = worker.package.clone();
-    let gvmt_key = format!("{}/{}/topology/leader/government", package4.name, worker.config.group());
-    let gvmt_writer = DiscoveryWriter::new(package4, gvmt_key, None, Some(30));
     worker.discovery.write(gvmt_writer);
 
     Ok((State::Leader, 0))
@@ -192,7 +210,9 @@ fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 fn write_census(worker: &mut Worker)  {
     println!("   {}: Creating my entry in the the census", worker.preamble());
     let hostname = util::sys::hostname().unwrap();
-    let census_key = format!("{}/{}/topology/leader/census/{}", worker.package.name, worker.config.group(), hostname);
+    let pkg_lock = worker.package.clone();
+    let package = pkg_lock.read().unwrap();
+    let census_key = format!("{}/{}/topology/leader/census/{}", package.name, worker.config.group(), hostname);
     let (census_statuscode, _census_response) =
         etcd::set(&census_key, &[("dir", "true"), ("ttl", "30")]).unwrap();
     match census_statuscode {
@@ -211,7 +231,7 @@ fn write_census(worker: &mut Worker)  {
         },
     };
 
-    let key = format!("{}/{}/topology/leader/census/{}/data", worker.package.name, worker.config.group(), hostname);
+    let key = format!("{}/{}/topology/leader/census/{}/data", package.name, worker.config.group(), hostname);
     let (statuscode, response) =
         etcd::set(&key, &[("value", &status_value("[[topology.census]]", worker))]).unwrap();
     debug!("Response is {:?} {}", statuscode, response);
@@ -234,38 +254,42 @@ fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     write_census(worker);
 
-    try!(worker.package.write_toml_string("102_role.toml", &format!("topology-follower = true")));
+    let pkg_lock = worker.package.clone();
+    let mut package = pkg_lock.write().unwrap();
+    try!(package.write_toml_string("102_role.toml", &format!("topology-follower = true")));
 
     if worker.configuration_thread.is_none() {
-        try!(worker.package.write_default_data());
-        try!(worker.package.write_environment_data());
-        try!(worker.package.write_sys_data());
-        try!(worker.package.write_bldr_data());
+        try!(package.write_default_data());
+        try!(package.write_environment_data());
+        try!(package.write_sys_data());
+        try!(package.write_bldr_data());
     }
 
     worker.discovery.stop();
     worker.discovery.clear();
 
     let hostname = util::sys::hostname().unwrap();
-    let package = worker.package.clone();
+    let pkg_arc1 = worker.package.clone();
     let key = format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group());
-    let watcher = DiscoveryWatcher::new(package, key, String::from("101_leader.toml"), 1, true, false);
+    let watcher = DiscoveryWatcher::new(pkg_arc1, key, String::from("101_leader.toml"), 1, true, false);
     worker.discovery.watch(watcher);
-    let package2 = worker.package.clone();
-    let ckey = format!("{}/{}/config", package2.name, worker.config.group());
-    let cwatcher = DiscoveryWatcher::new(package2, ckey, String::from("100_discovery.toml"), 1, true, false);
+    let pkg_arc2 = worker.package.clone();
+    let ckey = format!("{}/{}/config", package.name, worker.config.group());
+    let cwatcher = DiscoveryWatcher::new(pkg_arc2, ckey, String::from("100_discovery.toml"), 1, true, false);
     worker.discovery.watch(cwatcher);
-    let package3 = worker.package.clone();
-    let census_key = format!("{}/{}/topology/leader/census/{}", package3.name, worker.config.group(), hostname);
-    let census_writer = DiscoveryWriter::new(package3, census_key, None, Some(30));
+    let pkg_arc3 = worker.package.clone();
+    let census_key = format!("{}/{}/topology/leader/census/{}", package.name, worker.config.group(), hostname);
+    let census_writer = DiscoveryWriter::new(pkg_arc3, census_key, None, Some(30));
     worker.discovery.write(census_writer);
 
     Ok((State::Follower, 0))
 }
 
 fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
+    let pkg_lock = worker.package.clone();
     loop {
-        match worker.discovery.write_status(&format!("{}/{}/topology/leader/government", worker.package.name, worker.config.group())) {
+        let package = pkg_lock.read().unwrap();
+        match worker.discovery.write_status(&format!("{}/{}/topology/leader/government", package.name, worker.config.group())) {
             Some(leader) => {
                 match leader {
                     &DiscoveryWriteResponse{status: StatusCode::Created, ..} => break,
@@ -281,11 +305,13 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     }
 
     if worker.supervisor_thread.is_none() {
-        try!(worker.package.configure());
+        let package = pkg_lock.read().unwrap();
+        try!(package.configure());
         try!(standalone::state_starting(worker));
         let watch_package = worker.package.clone();
         let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
-            try!(watch_package.watch_configuration());
+            let package = watch_package.read().unwrap();
+            try!(package.watch_configuration());
             Ok(())
         }));
         worker.configuration_thread = Some(configuration_thread);
@@ -295,8 +321,10 @@ fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 }
 
 fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
+    let pkg_lock = worker.package.clone();
     loop {
-        match worker.discovery.status(&format!("{}/{}/topology/leader/government/leader", worker.package.name, worker.config.group())) {
+        let package = pkg_lock.read().unwrap();
+        match worker.discovery.status(&format!("{}/{}/topology/leader/government/leader", package.name, worker.config.group())) {
             Some(leader) => {
                 if let &DiscoveryResponse{value: None, ..} = leader {
                     println!("   {}: Determining my viability as a candidate because the leader has left", worker.preamble());
@@ -312,11 +340,13 @@ fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
         }
     }
     if worker.supervisor_thread.is_none() {
-        try!(worker.package.configure());
+        let package = pkg_lock.read().unwrap();
+        try!(package.configure());
         try!(standalone::state_starting(worker));
         let watch_package = worker.package.clone();
         let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
-            try!(watch_package.watch_configuration());
+            let package = watch_package.read().unwrap();
+            try!(package.watch_configuration());
             Ok(())
         }));
         worker.configuration_thread = Some(configuration_thread);

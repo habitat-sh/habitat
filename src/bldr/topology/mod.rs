@@ -31,6 +31,7 @@ pub mod watcher;
 
 use ansi_term::Colour::White;
 use std::thread;
+use std::sync::{Arc, RwLock};
 use std::sync::mpsc::{TryRecvError};
 use libc::{pid_t, c_int};
 
@@ -121,7 +122,7 @@ pub enum State {
 /// The topology `Worker` is where everything our state machine needs between states lives.
 pub struct Worker<'a> {
     /// The package we are supervising
-    pub package: Package,
+    pub package: Arc<RwLock<Package>>,
     /// A pointer to our current Config
     pub config: &'a Config,
     /// The topology we are running
@@ -142,7 +143,7 @@ impl<'a> Worker<'a> {
     /// Automatically sets the backend to Etcd.
     pub fn new(package: Package, topology: String, config: &'a Config) -> Worker<'a> {
         Worker{
-            package: package,
+            package: Arc::new(RwLock::new(package)),
             topology: topology,
             config: config,
             discovery: discovery::Discovery::new(discovery::Backend::Etcd),
@@ -154,7 +155,8 @@ impl<'a> Worker<'a> {
 
     /// Prints a preamble for the topology's println statements
     pub fn preamble(&self) -> String {
-        format!("{}({})", self.package.name, White.bold().paint("T"))
+        let package = self.package.read().unwrap();
+        format!("{}({})", package.name, White.bold().paint("T"))
     }
 
     /// Join the supervisor thread, and check for errors
@@ -201,45 +203,49 @@ impl<'a> Worker<'a> {
 fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
     let mut handler = SignalNotifier::start();
     loop {
-        match handler.receiver.try_recv() {
-            Ok(signals::Signal::SIGHUP) => {
-                println!("   {}: Sending SIGHUP", worker.preamble());
-                try!(worker.package.signal(Signal::Hup));
-            },
-            Ok(signals::Signal::SIGINT) => {
-                println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
-                try!(worker.package.signal(Signal::ForceShutdown));
-                worker.discovery.stop();
-                try!(worker.join_supervisor());
-                break;
-            },
-            Ok(signals::Signal::SIGQUIT) => {
-                try!(worker.package.signal(Signal::Quit));
-                println!("   {}: Sending SIGQUIT", worker.preamble());
-            },
-            Ok(signals::Signal::SIGALRM) => {
-                try!(worker.package.signal(Signal::Alarm));
-                println!("   {}: Sending SIGALRM", worker.preamble());
-            },
-            Ok(signals::Signal::SIGTERM) => {
-                println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
-                try!(worker.package.signal(Signal::ForceShutdown));
-                worker.discovery.stop();
-                try!(worker.join_supervisor());
-                break;
-            },
-            Ok(signals::Signal::SIGUSR1) => {
-                println!("   {}: Sending SIGUSR1", worker.preamble());
-                try!(worker.package.signal(Signal::One));
-            },
-            Ok(signals::Signal::SIGUSR2) => {
-                println!("   {}: Sending SIGUSR1", worker.preamble());
-                try!(worker.package.signal(Signal::Two));
-            },
-            Err(TryRecvError::Empty) => {},
-            Err(TryRecvError::Disconnected) => {
-                panic!("signal handler crashed!");
-            },
+        {
+            let pkg_lock = worker.package.clone();
+            let package = pkg_lock.read().unwrap();
+            match handler.receiver.try_recv() {
+                Ok(signals::Signal::SIGHUP) => {
+                    println!("   {}: Sending SIGHUP", worker.preamble());
+                    try!(package.signal(Signal::Hup));
+                },
+                Ok(signals::Signal::SIGINT) => {
+                    println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
+                    try!(package.signal(Signal::ForceShutdown));
+                    worker.discovery.stop();
+                    try!(worker.join_supervisor());
+                    break;
+                },
+                Ok(signals::Signal::SIGQUIT) => {
+                    try!(package.signal(Signal::Quit));
+                    println!("   {}: Sending SIGQUIT", worker.preamble());
+                },
+                Ok(signals::Signal::SIGALRM) => {
+                    try!(package.signal(Signal::Alarm));
+                    println!("   {}: Sending SIGALRM", worker.preamble());
+                },
+                Ok(signals::Signal::SIGTERM) => {
+                    println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
+                    try!(package.signal(Signal::ForceShutdown));
+                    worker.discovery.stop();
+                    try!(worker.join_supervisor());
+                    break;
+                },
+                Ok(signals::Signal::SIGUSR1) => {
+                    println!("   {}: Sending SIGUSR1", worker.preamble());
+                    try!(package.signal(Signal::One));
+                },
+                Ok(signals::Signal::SIGUSR2) => {
+                    println!("   {}: Sending SIGUSR1", worker.preamble());
+                    try!(package.signal(Signal::Two));
+                },
+                Err(TryRecvError::Empty) => {},
+                Err(TryRecvError::Disconnected) => {
+                    panic!("signal handler crashed!");
+                },
+            }
         }
         match sm.state {
             State::Running => {
