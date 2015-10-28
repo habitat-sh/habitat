@@ -5,3 +5,7 @@ license 'apache2'
 description 'Installs/Configures bldr'
 long_description 'Installs/Configures bldr'
 version '0.1.0'
+
+depends 'build-essential'
+depends 'docker'
+depends 'fancy_execute'
