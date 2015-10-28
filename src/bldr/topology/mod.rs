@@ -34,6 +34,8 @@ use std::thread;
 use std::sync::mpsc::{TryRecvError};
 use libc::{pid_t, c_int};
 
+use wonder::actor;
+
 use state_machine::StateMachine;
 use discovery;
 use pkg::{Package, Signal};
@@ -199,43 +201,44 @@ impl<'a> Worker<'a> {
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
 fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
-    let mut handler = SignalNotifier::start();
+    let handler = actor::Builder::new(SignalNotifier).name("signal-handler".to_string()).start(()).unwrap();
     loop {
         match handler.receiver.try_recv() {
-            Ok(signals::Signal::SIGHUP) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGHUP))) => {
                 println!("   {}: Sending SIGHUP", worker.preamble());
                 try!(worker.package.signal(Signal::Hup));
             },
-            Ok(signals::Signal::SIGINT) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGINT))) => {
                 println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
                 try!(worker.package.signal(Signal::ForceShutdown));
                 worker.discovery.stop();
                 try!(worker.join_supervisor());
                 break;
             },
-            Ok(signals::Signal::SIGQUIT) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGQUIT))) => {
                 try!(worker.package.signal(Signal::Quit));
                 println!("   {}: Sending SIGQUIT", worker.preamble());
             },
-            Ok(signals::Signal::SIGALRM) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGALRM))) => {
                 try!(worker.package.signal(Signal::Alarm));
                 println!("   {}: Sending SIGALRM", worker.preamble());
             },
-            Ok(signals::Signal::SIGTERM) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGTERM))) => {
                 println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
                 try!(worker.package.signal(Signal::ForceShutdown));
                 worker.discovery.stop();
                 try!(worker.join_supervisor());
                 break;
             },
-            Ok(signals::Signal::SIGUSR1) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR1))) => {
                 println!("   {}: Sending SIGUSR1", worker.preamble());
                 try!(worker.package.signal(Signal::One));
             },
-            Ok(signals::Signal::SIGUSR2) => {
+            Ok(actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR2))) => {
                 println!("   {}: Sending SIGUSR1", worker.preamble());
                 try!(worker.package.signal(Signal::Two));
             },
+            Ok(_) => {},
             Err(TryRecvError::Empty) => {},
             Err(TryRecvError::Disconnected) => {
                 panic!("signal handler crashed!");
@@ -281,6 +284,6 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         try!(worker.discovery.next());
         try!(sm.next(worker));
     }
-    try!(handler.stop());
+    try!(SignalNotifier::stop(&handler));
     Ok(())
 }

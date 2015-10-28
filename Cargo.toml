@@ -35,6 +35,10 @@ mount = "*"
 staticfile = "*"
 time = "*"
 
+[dependencies.wonder]
+git = "https://github.com/reset/wonder"
+branch = "master"
+
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
