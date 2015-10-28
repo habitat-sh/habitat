@@ -20,50 +20,42 @@
 //! Start's another thread which you can subscribe to which traps UNIX signals
 //! sent to the running process and notifies the receiver channel of a caught
 //! `signals::Signal`.
-//!
-//! # Examples
-//!
-//! ```no_run
-//! # use bldr::util::signals;
-//! # use std::sync::mpsc::TryRecvError;
-//!
-//! let mut handler = signals::SignalNotifier::start();
-//! match handler.receiver.try_recv() {
-//!     Ok(signals::Signal::SIGHUP) => {
-//!         println!("Got SIGHUP!");
-//!     },
-//!     Ok(sig) => {
-//!         println!("Got unhandled signal");
-//!     },
-//!     Err(TryRecvError::Empty) => {},
-//!     Err(TryRecvError::Disconnected) => {
-//!         panic!("signal handler crashed!");
-//!     },
-//! }
 
+use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
-use std::sync::mpsc::{Sender, Receiver, TryRecvError};
-use std::sync::mpsc;
-use std::thread;
+use std::sync::mpsc::Sender;
 
-use error::BldrResult;
+use wonder::actor;
+use wonder::actor::{HandleResult, InitResult, StopReason};
 
-// Has a value when we have caught a signal
-static CAUGHT_SIGNAL: AtomicBool = ATOMIC_BOOL_INIT;
-// Stores the specific value of the signal we caught
-static WHICH_SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
+use error::{BldrResult, BldrError};
+
+const TIMEOUT_MS: u64 = 30;
+static INIT: Once = ONCE_INIT;
+static mut ALIVE: AtomicBool = ATOMIC_BOOL_INIT;
+// True when we have caught a signal
+static mut CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
+// Stores the value of the signal we caught
+static mut SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
 extern "C" {
-    fn signal(sig: u32, cb: extern fn(u32)) -> extern fn(u32);
+    fn signal(sig: u32, cb: unsafe extern fn(u32)) -> unsafe extern fn(u32);
 }
 
-extern fn handle_signal(sig: u32) {
-    CAUGHT_SIGNAL.store(true, Ordering::SeqCst);
-    WHICH_SIGNAL.store(sig as usize, Ordering::SeqCst);
+unsafe extern fn handle_signal(signal: u32) {
+    CAUGHT.store(true, Ordering::SeqCst);
+    SIGNAL.store(signal as usize, Ordering::SeqCst);
+}
+
+#[derive(Debug)]
+pub enum Message {
+    Signal(Signal),
+    Stop,
 }
 
 /// `i32` representation of each Unix Signal of interest.
+#[derive(Debug)]
 pub enum Signal {
     /// terminate process - terminal line hangup
     SIGHUP = 1,
@@ -83,74 +75,76 @@ pub enum Signal {
 
 /// Thread worker that traps UNIX signals and sends a `Signal` down the receiver
 /// channel representing the trapped UNIX signal.
-pub struct SignalNotifier {
-    pub sender: Sender<i32>,
-    pub receiver: Receiver<Signal>,
-    pub worker: thread::JoinHandle<BldrResult<()>>,
-}
+pub struct SignalNotifier;
 
 impl SignalNotifier {
-    /// Create a new handler struct
-    pub fn new(sender: Sender<i32>, receiver: Receiver<Signal>, worker: thread::JoinHandle<BldrResult<()>>) -> SignalNotifier {
-        SignalNotifier {
-            sender: sender,
-            receiver: receiver,
-            worker: worker,
+    pub fn stop(actor: &actor::Actor<Message>) -> BldrResult<()> {
+        match actor.call(Message::Stop) {
+            Ok(_) => Ok(()),
+            Err(err) => Err(BldrError::from(err)),
         }
     }
+}
 
-    /// Start a SignalNotifier thread and return a SignalNotifier struct with the sending and receiving
-    /// channel to-and-from the started thread.
-    pub fn start() -> SignalNotifier {
-        let (otx, orx): (Sender<Signal>, Receiver<Signal>) = mpsc::channel();
-        let (itx, irx) = mpsc::channel();
-        let handle = thread::Builder::new().name(String::from("signal_handler")).spawn(move || {
-            SignalNotifier::init(otx, irx)
-        }).unwrap();
-        SignalNotifier::new(itx, orx, handle)
-    }
+impl actor::GenServer for SignalNotifier {
+    type T = Message;
+    type S = ();
+    type E = BldrError;
 
-    /// Stop a running SignalHandler.
-    pub fn stop(&mut self) -> BldrResult<()> {
-        self.sender.send(1).unwrap();
-        Ok(())
-    }
-
-    fn init(tx: Sender<Signal>, rx: Receiver<i32>) -> BldrResult<()> {
-        SignalNotifier::set_signal_handlers();
-        loop {
-            if CAUGHT_SIGNAL.load(Ordering::SeqCst) {
-                match WHICH_SIGNAL.load(Ordering::SeqCst) {
-                    1 => tx.send(Signal::SIGHUP).unwrap(),
-                    2 => tx.send(Signal::SIGINT).unwrap(),
-                    3 => tx.send(Signal::SIGQUIT).unwrap(),
-                    14 => tx.send(Signal::SIGALRM).unwrap(),
-                    15 => tx.send(Signal::SIGTERM).unwrap(),
-                    30 => tx.send(Signal::SIGUSR1).unwrap(),
-                    31 => tx.send(Signal::SIGUSR2).unwrap(),
-                    _ => unreachable!(),
-                }
-                // Reset the signal handler flags
-                CAUGHT_SIGNAL.store(false, Ordering::SeqCst);
-                WHICH_SIGNAL.store(0 as usize, Ordering::SeqCst);
-            }
-            match rx.try_recv() {
-                Ok(_) | Err(TryRecvError::Disconnected) => { break; },
-                Err(TryRecvError::Empty) => {},
-            }
-        }
-        Ok(())
-    }
-
-    fn set_signal_handlers() {
+    fn init(&self, _tx: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> InitResult<Self::E> {
         unsafe {
-            signal(Signal::SIGHUP as u32, handle_signal);
-            signal(Signal::SIGINT as u32, handle_signal);
-            signal(Signal::SIGQUIT as u32, handle_signal);
-            signal(Signal::SIGALRM as u32, handle_signal);
-            signal(Signal::SIGTERM as u32, handle_signal);
-            signal(Signal::SIGUSR1 as u32, handle_signal);
-            signal(Signal::SIGUSR2 as u32, handle_signal);
+            INIT.call_once(|| {
+                self::set_signal_handlers();
+                CAUGHT.store(false, Ordering::SeqCst);
+                SIGNAL.store(0 as usize, Ordering::SeqCst);
+            });
+            if ALIVE.compare_and_swap(false, true, Ordering::Relaxed) {
+                return Err(BldrError::SignalNotifierStarted);
+            }
         }
+        Ok(Some(TIMEOUT_MS))
+    }
+
+    fn handle_call(&self, message: Self::T, _: &Sender<actor::Message<Self::T>>, _: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> HandleResult<Self::T> {
+        match message {
+            Message::Stop => HandleResult::Stop(StopReason::Normal, None),
+            msg => HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)), None),
+        }
+    }
+
+    fn handle_timeout(&self, tx: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> HandleResult<Self::T> {
+        unsafe {
+            if CAUGHT.load(Ordering::SeqCst) {
+                match SIGNAL.load(Ordering::SeqCst) {
+                    signal if signal == Signal::SIGHUP as usize => self::send_signal(tx, Signal::SIGHUP),
+                    signal if signal == Signal::SIGINT as usize => self::send_signal(tx, Signal::SIGINT),
+                    signal if signal == Signal::SIGQUIT as usize => self::send_signal(tx, Signal::SIGQUIT),
+                    signal if signal == Signal::SIGALRM as usize => self::send_signal(tx, Signal::SIGALRM),
+                    signal if signal == Signal::SIGTERM as usize => self::send_signal(tx, Signal::SIGTERM),
+                    signal if signal == Signal::SIGUSR1 as usize => self::send_signal(tx, Signal::SIGUSR1),
+                    signal if signal == Signal::SIGUSR2 as usize => self::send_signal(tx, Signal::SIGUSR2),
+                    signal => {
+                        return HandleResult::Stop(StopReason::Fatal(format!("caught unexpected signal: {}", signal)), None)
+                    },
+                }
+            }
+        }
+        HandleResult::NoReply(Some(TIMEOUT_MS))
+    }
+}
+
+fn send_signal(tx: &Sender<actor::Message<Message>>, signal: Signal) {
+    actor::cast(tx, Message::Signal(signal)).unwrap();
+}
+
+fn set_signal_handlers() {
+    unsafe {
+        signal(Signal::SIGHUP as u32, handle_signal);
+        signal(Signal::SIGINT as u32, handle_signal);
+        signal(Signal::SIGQUIT as u32, handle_signal);
+        signal(Signal::SIGALRM as u32, handle_signal);
+        signal(Signal::SIGTERM as u32, handle_signal);
+        signal(Signal::SIGUSR1 as u32, handle_signal);
+        signal(Signal::SIGUSR2 as u32, handle_signal);
     }
 }

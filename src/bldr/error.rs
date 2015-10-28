@@ -19,14 +19,17 @@ use std::io;
 use std::result;
 use std::fmt;
 use std::error::Error;
-use hyper;
-use toml;
-use mustache;
-use regex;
 use std::num;
 use std::string;
 use std::ffi;
 use std::sync::mpsc;
+
+use wonder::actor;
+
+use hyper;
+use toml;
+use mustache;
+use regex;
 
 #[derive(Debug)]
 pub enum BldrError {
@@ -62,6 +65,8 @@ pub enum BldrError {
     BadWatch(String),
     NoXFilename,
     NoFilePart,
+    SignalNotifierStarted,
+    ActorError(actor::ActorError),
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -108,6 +113,8 @@ impl fmt::Display for BldrError {
             BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
             BldrError::NoXFilename => write!(f, "Invalid download from a repository - missing X-Filename header"),
             BldrError::NoFilePart => write!(f, "An invalid path was passed - we needed a filename, and this path does not have one"),
+            BldrError::SignalNotifierStarted => write!(f, "Only one instance of a Signal Notifier may be running"),
+            BldrError::ActorError(ref err) => write!(f, "Actor returned error: {:?}", err),
         }
     }
 }
@@ -147,6 +154,8 @@ impl Error for BldrError {
             BldrError::BadWatch(_) => "An invalid watch was specified",
             BldrError::NoXFilename => "Invalid download from a repository - missing X-Filename header",
             BldrError::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
+            BldrError::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
+            BldrError::ActorError(_) => "A running actor responded with an error",
         }
     }
 }
@@ -208,4 +217,8 @@ impl From<mpsc::TryRecvError> for BldrError {
     }
 }
 
-
+impl From<actor::ActorError> for BldrError {
+    fn from(err: actor::ActorError) -> Self {
+        BldrError::ActorError(err)
+    }
+}

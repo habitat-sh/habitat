@@ -43,6 +43,7 @@ extern crate router;
 extern crate mount;
 extern crate staticfile;
 extern crate time;
+extern crate wonder;
 
 pub mod error;
 pub mod command;
@@ -55,4 +56,3 @@ pub mod sidecar;
 pub mod health_check;
 pub mod config;
 pub mod repo;
-
