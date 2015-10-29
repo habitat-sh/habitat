@@ -8,4 +8,3 @@ version '0.1.0'
 
 depends 'build-essential'
 depends 'docker'
-depends 'fancy_execute'
