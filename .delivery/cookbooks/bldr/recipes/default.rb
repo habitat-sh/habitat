@@ -22,6 +22,11 @@ compose_version = '1.4.2'
 compose_checksum = 'd5fca08d54f59649b93b66a781b22998955f2bd701244fcfd650c00daa9e948c'
 compose_url = "https://github.com/docker/compose/releases/download/#{compose_version}/docker-compose-#{docker_kernel}-#{docker_arch}"
 
+log "debugging" do
+  message "I want to know all about node, so:\n\n>>>>>>>>>>>>>>>>>>>>>>\n#{JSON.pretty_generate(node.to_hash)}\n<<<<<<<<<<<<<<<<<<<<<<<\n"
+  level :warn
+end
+
 # to give us `make` and friends
 include_recipe 'build-essential'
 
