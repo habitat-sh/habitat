@@ -1,12 +1,9 @@
 bldr:
   image: chef/bldr
   privileged: true
-  environment:
-    DOCKER_CERT_PATH: "/docker-certs"
-    DOCKER_TLS_VERIFY: 1
   volumes:
     - .:/src
-    - "~/.docker/machine/certs:/docker-certs"
+    - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
     - "bldr-cargo-cache"
     - "bldr-keys-cache"
@@ -17,12 +14,9 @@ bldr:
 package:
   image: chef/bldr
   privileged: true
-  environment:
-    DOCKER_CERT_PATH: "/docker-certs"
-    DOCKER_TLS_VERIFY: 1
   volumes:
     - .:/src
-    - "~/.docker/machine/certs:/docker-certs"
+    - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
     - "bldr-cargo-cache"
     - "bldr-pkg-cache"

@@ -10,6 +10,8 @@ provisioner:
     delivery:
       workspace:
         repo: /workspace
+    delivery_builder:
+      build_user: root
 
 platforms:
   - name: ubuntu-15.04

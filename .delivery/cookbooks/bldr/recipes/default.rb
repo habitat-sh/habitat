@@ -26,15 +26,11 @@ compose_url = "https://github.com/docker/compose/releases/download/#{compose_ver
 include_recipe 'build-essential'
 
 docker_service 'default' do
-  host 'tcp://0.0.0.0:2376'
+  host 'unix:///var/run/docker.sock'
   action [:create, :start]
 end
 
-execute 'docker info' do
-  environment({
-    'DOCKER_HOST' => "tcp://#{node['ipaddress']}:2376"
-  })
-end
+execute 'docker info'
 
 remote_file '/usr/bin/docker-compose' do
   source compose_url
@@ -44,3 +40,9 @@ remote_file '/usr/bin/docker-compose' do
 end
 
 execute 'docker-compose version'
+
+# add build user to the docker group to access the domain socket
+group 'docker' do
+  append true
+  members Array(node['delivery_builder']['build_user'])
+end

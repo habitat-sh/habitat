@@ -16,19 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-env = { 'DOCKER_HOST' => "tcp://#{node['ipaddress']}:2376" }
 workspace = node['delivery']['workspace']['repo']
 
 execute 'make volume-clean volumes container' do
   cwd workspace
-  environment env
 end
 
-execute "docker ps -a -f 'name=bldr-*'" do
-  environment env
-end
+execute "docker ps -a -f 'name=bldr-*'"
 
 execute 'make unit' do
   cwd workspace
-  environment env
 end
