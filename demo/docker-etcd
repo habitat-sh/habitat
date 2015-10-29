@@ -1,2 +1,2 @@
 #!/bin/bash -x
-docker run --link=bldr_etcd_1:etcd $@
+docker run -e BLDR_CONFIG_ETCD=http://etcd:4001 --link=bldr_etcd_1:etcd $@
