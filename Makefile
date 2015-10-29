@@ -12,7 +12,7 @@ package-clean:
 	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
 
 packages: package-clean
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash -c 'cd /src/packages; make world'
+	docker-compose run package bash -c 'cd /src/packages; make world'
 
 volume-clean: pkg-cache-volume-clean key-cache-volume-clean cargo-volume-clean installed-cache-volume-clean src-cache-volume-clean
 
@@ -52,20 +52,20 @@ container:
 	docker build -t chef/bldr --no-cache=${NO_CACHE} .
 
 test:
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo test
+	docker-compose run package cargo test
 
 unit:
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo test --lib
+	docker-compose run package cargo test --lib
 
 functional:
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo test --test functional
+	docker-compose run package cargo test --test functional
 
 cargo-clean:
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo clean
+	docker-compose run package cargo clean
 
 docs:
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package cargo doc
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package rustdoc --crate-name bldr README.md -o ./target/doc/bldr
+	docker-compose run package cargo doc
+	docker-compose run package rustdoc --crate-name bldr README.md -o ./target/doc/bldr
 	docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build
 	cp -r images ./target/doc/bldr
 	echo '<meta http-equiv=refresh content=0;url=bldr/index.html>' > target/doc/index.html
@@ -78,7 +78,7 @@ shell:
 	docker-compose run bldr bash
 
 pkg-shell:
-	docker-compose run -e DOCKER_HOST=${DOCKER_HOST} package bash
+	docker-compose run package bash
 
 bldr-base: packages
 
