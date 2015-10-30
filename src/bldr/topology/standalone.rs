@@ -34,13 +34,11 @@ use std::thread;
 use error::{BldrResult, BldrError};
 use std::process::{Command, Stdio};
 use std::io::prelude::*;
-use discovery;
 use pkg;
 use ansi_term::Colour::White;
 use pkg::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
-use discovery::DiscoveryWatcher;
 use config::Config;
 
 /// Sets up the topology and calls run_internal.
@@ -48,80 +46,22 @@ use config::Config;
 /// Add's the state transitions to the state machine, sets up the signal handlers, and runs the
 /// `topology::run_internal` function.
 pub fn run(package: Package, config: &Config) -> BldrResult<()> {
-    let mut worker = Worker::new(package, String::from("standalone"), config);
+    let mut worker = try!(Worker::new(package, String::from("standalone"), config));
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::Configure, state_configure);
     sm.add_dispatch(State::Starting, state_starting);
     sm.add_dispatch(State::Running, state_running);
-    sm.add_dispatch(State::Finished, state_finished);
     topology::run_internal(&mut sm, &mut worker)
 }
 
 /// Initialize the service.
-///
-/// Creates the paths needed for the service, and copies in the run file. Transitions to
-/// `state_configure`.
-///
-/// # Failures
-///
-/// * If it fails to create the srvc paths
-/// * If it cannot read or copy the run file
-pub fn state_init(worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    try!(worker.package.create_srvc_path());
-    try!(worker.package.copy_run());
+pub fn state_init(_worker: &mut Worker) -> Result<(State, u32), BldrError> {
     Ok((State::Configure, 0))
 }
 
 /// Configure the service.
-///
-/// 1. Write the default data from the package to the srvc directory
-/// 1. Write out any environment settings
-/// 1. Write out our system information (IP, Port, Hostname)
-/// 1. Write out the bldr package data
-/// 1. If Discovery is enabled, start the watch for our configuration, and fire up the discovery
-///    thread
-/// 1. Configure the package itself
-/// 1. Watch the configuration with inotify
-///
-/// # Failures
-///
-/// * If we can't write any files
-/// * If we can't watch the configuration parts
-pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    try!(worker.package.write_default_data());
-    try!(worker.package.write_environment_data());
-    try!(worker.package.write_sys_data());
-    try!(worker.package.write_bldr_data());
-    if let Some(_) = discovery::etcd::enabled() {
-        let package = worker.package.clone();
-        let key = format!("{}/{}/config", package.name, worker.config.group());
-        let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1, true, false);
-        worker.discovery.watch(watcher);
-
-        // Configure watches!
-        for watch in worker.config.watch().iter() {
-            let watch_parts: Vec<&str> = watch.split('.').collect();
-            let (service, group) = match watch_parts.len() {
-                1 => {
-                    (String::from(watch_parts[0]), String::from("default"))
-                },
-                2 => {
-                    (String::from(watch_parts[0]), String::from(watch_parts[1]))
-                },
-                _ => {
-                    return Err(BldrError::BadWatch(watch.clone()))
-                }
-            };
-            let package = worker.package.clone();
-            let key = format!("{}/{}", service, group);
-            let mut watcher = DiscoveryWatcher::new(package, key, format!("300_watch_{}_{}.toml", service, group), 1, true, true);
-            watcher.service(service);
-            watcher.group(group);
-            worker.discovery.watch(watcher);
-        }
-    };
-    try!(worker.package.configure());
+pub fn state_configure(_worker: &mut Worker) -> Result<(State, u32), BldrError> {
     Ok((State::Starting, 1))
 }
 
@@ -181,18 +121,6 @@ pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     Ok((State::Running, 0))
 }
 
-pub fn state_running(worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    if worker.configuration_thread.is_none() {
-        let watch_package = worker.package.clone();
-        let configuration_thread = try!(thread::Builder::new().name(String::from("configuration")).spawn(move || -> BldrResult<()> {
-            try!(watch_package.watch_configuration());
-            Ok(())
-        }));
-        worker.configuration_thread = Some(configuration_thread);
-    }
+pub fn state_running(_worker: &mut Worker) -> Result<(State, u32), BldrError> {
     Ok((State::Running, 0))
-}
-
-pub fn state_finished(_worker: &mut Worker) -> Result<(State, u32), BldrError> {
-    Ok((State::Finished, 0))
 }

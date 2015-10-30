@@ -17,8 +17,6 @@
 
 use error::{BldrResult, BldrError};
 use std::process::Command;
-use std::collections::BTreeMap;
-use toml;
 
 pub fn ip() -> BldrResult<String> {
     debug!("Shelling out to determine IP address");
@@ -58,14 +56,12 @@ pub fn hostname() -> BldrResult<String> {
     }
 }
 
-pub fn to_toml() -> BldrResult<BTreeMap<String, toml::Value>> {
+pub fn to_toml() -> BldrResult<String> {
     let mut toml_string = String::from("[sys]\n");
     let ip = try!(ip());
     toml_string.push_str(&format!("ip = \"{}\"\n", ip));
     let hostname = try!(hostname());
     toml_string.push_str(&format!("hostname = \"{}\"\n", hostname));
     debug!("Sys Toml: {}", toml_string);
-    let mut toml_parser = toml::Parser::new(&toml_string);
-    let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
-    Ok(toml_value)
+    Ok(toml_string)
 }

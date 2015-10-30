@@ -24,6 +24,7 @@ use std::string;
 use std::ffi;
 use std::sync::mpsc;
 
+use uuid;
 use wonder::actor;
 
 use hyper;
@@ -67,6 +68,8 @@ pub enum BldrError {
     NoFilePart,
     SignalNotifierStarted,
     ActorError(actor::ActorError),
+    CensusNotFound(String),
+    UuidParseError(uuid::ParseError),
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -115,6 +118,8 @@ impl fmt::Display for BldrError {
             BldrError::NoFilePart => write!(f, "An invalid path was passed - we needed a filename, and this path does not have one"),
             BldrError::SignalNotifierStarted => write!(f, "Only one instance of a Signal Notifier may be running"),
             BldrError::ActorError(ref err) => write!(f, "Actor returned error: {:?}", err),
+            BldrError::CensusNotFound(ref s) => write!(f, "Census entry not found: {:?}", s),
+            BldrError::UuidParseError(ref e) => write!(f, "Uuid Parse Error: {:?}", e),
         }
     }
 }
@@ -156,6 +161,8 @@ impl Error for BldrError {
             BldrError::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
             BldrError::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             BldrError::ActorError(_) => "A running actor responded with an error",
+            BldrError::CensusNotFound(_) => "A census entry does not exist",
+            BldrError::UuidParseError(_) => "Uuid Parse Error",
         }
     }
 }
@@ -167,6 +174,12 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str("\n");
     }
     return errors
+}
+
+impl From<uuid::ParseError> for BldrError {
+    fn from(err: uuid::ParseError) -> BldrError {
+        BldrError::UuidParseError(err)
+    }
 }
 
 impl From<ffi::NulError> for BldrError {

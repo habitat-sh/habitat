@@ -12,7 +12,7 @@ echo "### Configuration file ###"
 cat /opt/bldr/srvc/simple_service/config/simple.conf
 echo "### End of configuration file ###"
 echo "### Running toml data ###"
-cat /opt/bldr/srvc/simple_service/last.toml
+cat /opt/bldr/srvc/simple_service/config.toml
 echo "### End running toml data ###"
 
 while [ 1 ]; do

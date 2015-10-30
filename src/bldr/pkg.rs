@@ -18,23 +18,14 @@
 use error::{BldrResult, BldrError};
 use std::cmp::Ordering;
 use std::cmp::PartialOrd;
-use regex::Regex;
+use std::process::Command;
 use std::fs::{self, DirEntry};
 use std::path::PathBuf;
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
-use std::collections::{HashMap, BTreeMap};
-use mustache;
-use toml;
-use ansi_term::Colour::{Purple, White};
-use std::env;
-use std::process::Command;
-use inotify::INotify;
-use inotify::ffi::*;
-use std::path::Path;
-use std::hash::Hasher;
-use fnv::FnvHasher;
+
+use regex::Regex;
 
 use util;
 use health_check::{self, CheckResult};
@@ -45,7 +36,6 @@ pub struct Package {
     pub name: String,
     pub version: String,
     pub release: String,
-    config_fnv: HashMap<String, u64>
 }
 
 pub enum Signal {
@@ -125,12 +115,12 @@ impl Package {
                     },
                     _ => {},
                 }
-                println!("   {}: Failed to send signal to the process supervisor", self.name);
+                debug!("Failed to send signal to the process supervisor for {}", self.name);
                 let outstr = try!(String::from_utf8(output.stdout));
                 let errstr = try!(String::from_utf8(output.stderr));
-                println!("   {}(O): {}", self.name, outstr);
-                println!("   {}(E): {}", self.name, errstr);
-                println!("   {}: Code {:?}", self.name, output.status.code());
+                debug!("Supervisor (O): {}", outstr);
+                debug!("Supervisor (E): {}", errstr);
+                debug!("Supervisor Code {:?}", output.status.code());
                 return Err(BldrError::SupervisorSignalFailed)
             }
         }
@@ -174,8 +164,7 @@ impl Package {
 
     /// Create the service path for this package.
     pub fn create_srvc_path(&self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        println!("   {}: Creating srvc paths", pkg_print);
+        debug!("Creating srvc paths");
         try!(fs::create_dir_all(self.srvc_join_path("config")));
         try!(fs::create_dir_all(self.srvc_join_path("toml")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
@@ -190,8 +179,7 @@ impl Package {
 
     /// Copy the "run" file to the srvc path.
     pub fn copy_run(&self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        println!("   {}: Copying the run file", pkg_print);
+        debug!("Copying the run file");
         try!(fs::copy(self.join_path("run"), self.srvc_join_path("run")));
         try!(util::perm::set_permissions(&self.srvc_join_path("run"), "0755"));
         Ok(())
@@ -219,137 +207,6 @@ impl Package {
         Ok(files)
     }
 
-    pub fn write_toml_string(&mut self, source: &str, toml_string: &str) -> BldrResult<bool> {
-        let mut toml_parser = toml::Parser::new(&toml_string);
-        let toml = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
-        self.write_toml(source, toml)
-    }
-
-    pub fn write_toml(&mut self, source: &str, toml: BTreeMap<String, toml::Value>) -> BldrResult<bool> {
-        debug!("Writing configuration data to toml/{}", source);
-        let toml_string = toml::encode_str(&toml);
-        let mut hasher = FnvHasher::default();
-        hasher.write(&toml_string.into_bytes());
-        let current_fnv = hasher.finish();
-        let should_write: bool;
-
-        if self.config_fnv.contains_key(&String::from(source)) {
-            let last_fnv = self.config_fnv.get(&String::from(source)).unwrap().clone();
-            if last_fnv == current_fnv {
-                should_write = false;
-            } else {
-                self.config_fnv.insert(String::from(source), current_fnv);
-                should_write = true;
-            }
-        } else {
-            self.config_fnv.insert(String::from(source), current_fnv);
-            should_write = true;
-        }
-
-        // RAII will close the file when this scope ends
-        if should_write {
-            let mut toml_file = try!(File::create(self.srvc_join_path(&format!("toml/{}", source))));
-            try!(write!(&mut toml_file, "{}", toml::encode_str(&toml)));
-        }
-        Ok(should_write)
-    }
-
-    pub fn configure(&self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        let mut base_toml: Option<BTreeMap<String, toml::Value>> = None;
-
-        let mut toml_files: Vec<String> = Vec::new();
-        for toml_r in try!(fs::read_dir(self.srvc_join_path("toml"))) {
-            let config = try!(extract_direntry(toml_r));
-            toml_files.push(config.path().to_string_lossy().into_owned().to_string());
-        }
-
-        toml_files.sort();
-
-        for config in toml_files {
-            debug!("Reading toml from {:?}", config);
-            let mut toml_file = try!(File::open(config));
-            let mut toml_data = String::new();
-            try!(toml_file.read_to_string(&mut toml_data));
-            let mut toml_parser = toml::Parser::new(&toml_data);
-            let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
-            if let Some(base) = base_toml {
-                base_toml = Some(toml_merge(base, toml_value));
-            } else {
-                base_toml = Some(toml_value);
-            }
-        }
-
-        let final_toml = match base_toml {
-            Some(toml) => toml,
-            None => return Err(BldrError::NoConfiguration)
-        };
-
-        println!("   {}: Writing final variables to last-data.toml", pkg_print);
-        // RAII will close the file when this scope ends
-        {
-            let mut last_toml = try!(File::create(self.srvc_join_path("last.toml")));
-            try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
-        }
-
-        let final_data = toml_table_to_mustache(final_toml);
-
-        println!("   {}: Writing out configuration files", pkg_print);
-        let config_files = try!(self.config_files());
-        for config in config_files {
-            let tmpl_path = self.join_path(&format!("config/{}", config));
-            println!("   {}: Processing {}", pkg_print, tmpl_path);
-            let template = try!(mustache::compile_path(self.join_path(&format!("config/{}", config))));
-            println!("   {}: Rendering {}", pkg_print, Purple.bold().paint(&config));
-            debug!("{:?}", final_data);
-            let mut config_file = try!(File::create(self.srvc_join_path(&format!("config/{}", config))));
-            template.render_data(&mut config_file, &final_data);
-        }
-        println!("   {}: Configured", pkg_print);
-        Ok(())
-    }
-
-    pub fn write_default_data(&mut self) -> BldrResult<()> {
-       let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-       println!("   {}: Loading data from default.toml", pkg_print);
-       try!(fs::copy(self.join_path("default.toml"), self.srvc_join_path("toml/000_default.toml")));
-       Ok(())
-    }
-
-    pub fn write_environment_data(&mut self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        println!("   {}: Overlaying environment configuration", pkg_print);
-        let some_env_toml = try!(self.env_to_toml());
-        if let Some(env_toml) = some_env_toml {
-            try!(self.write_toml("300_environment.toml", env_toml));
-        }
-        Ok(())
-    }
-
-    pub fn write_sys_data(&mut self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        println!("   {}: Adding sys variables", pkg_print);
-        let sys_toml = try!(util::sys::to_toml());
-        try!(self.write_toml("400_sys.toml", sys_toml));
-        Ok(())
-    }
-
-    pub fn write_bldr_data(&mut self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        println!("   {}: Adding bldr variables", pkg_print);
-        let mut bldr_toml_string = String::from("[bldr]\n");
-        bldr_toml_string.push_str(&format!("derivation = \"{}\"", self.derivation));
-        bldr_toml_string.push_str(&format!("name = \"{}\"", self.name));
-        bldr_toml_string.push_str(&format!("version = \"{}\"", self.version));
-        bldr_toml_string.push_str(&format!("release = \"{}\"", self.release));
-        let expose_string = String::new();
-        bldr_toml_string.push_str(&format!("expose = [{}]", self.exposes().iter().fold(expose_string, |acc, p| format!("{}{},", acc, p))));
-        let mut bldr_toml_parser = toml::Parser::new(&bldr_toml_string);
-        let bldr_toml = try!(bldr_toml_parser.parse().ok_or(BldrError::TomlParser(bldr_toml_parser.errors)));
-        try!(self.write_toml("500_bldr.toml", bldr_toml));
-        Ok(())
-    }
-
     pub fn supervisor_running(&self) -> bool {
         let res = self.signal(Signal::Status);
         match res {
@@ -359,46 +216,6 @@ impl Package {
                 return false
             },
         }
-    }
-
-    pub fn watch_configuration(&self) -> BldrResult<()> {
-        let pkg_print = format!("{}({})", self.name, White.bold().paint("C"));
-        let mut ino = try!(INotify::init());
-        try!(ino.add_watch(Path::new(&self.srvc_join_path("toml")), IN_MODIFY | IN_CREATE | IN_DELETE));
-        loop {
-            let events = try!(ino.wait_for_events());
-
-            for event in events.iter() {
-                if event.is_create() {
-                    println!("   {}: The file \"{}\" was created.", pkg_print, event.name);
-                } else if event.is_delete() {
-                    println!("   {}: The file \"{}\" was deleted.", pkg_print, event.name);
-                } else if event.is_modify() {
-                    println!("   {}: The file \"{}\" was modified.", pkg_print, event.name);
-                }
-            }
-            try!(self.configure());
-            if self.supervisor_running() {
-                println!("   {}: Restarting on configuration change", pkg_print);
-                try!(self.signal(Signal::Restart));
-            } else {
-                println!("   {}: Supervisor has not started; no need to restart", pkg_print);
-            }
-        }
-    }
-
-    fn env_to_toml(&self) -> BldrResult<Option<BTreeMap<String, toml::Value>>> {
-        let pkg = &self.name;
-        let toml_data = match env::var(&format!("BLDR_{}", pkg)) {
-            Ok(val) => val,
-            Err(e) => {
-                debug!("Looking up environment variable BLDR_{} failed: {:?}", pkg, e);
-                return Ok(None)
-            }
-        };
-        let mut toml_parser = toml::Parser::new(&toml_data);
-        let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
-        Ok(Some(toml_value))
     }
 
     pub fn health_check(&self) -> BldrResult<CheckResult> {
@@ -420,61 +237,11 @@ impl Package {
     }
 
     pub fn last_config(&self) -> BldrResult<String> {
-        let mut file = try!(File::open(self.srvc_join_path("last.toml")));
+        let mut file = try!(File::open(self.srvc_join_path("config.toml")));
         let mut result = String::new();
         try!(file.read_to_string(&mut result));
         Ok(result)
     }
-}
-
-/// A completely shallow merge of two Toml tables. For v0 of Bldr, if you set any nested key,
-/// you must set *all* the keys in that nesting, or your out of luck. Someday, this will need
-/// to become a legitimate deep merge.
-///
-/// We use toml as the middle language because its implementation in rust lends itself to easy
-/// cloning of even the deep data.
-fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml::Value>) -> BTreeMap<String, toml::Value> {
-    let mut final_map = BTreeMap::new();
-    for (left_key, left_value) in left.iter() {
-        match right.get(left_key) {
-            Some(right_value) => { final_map.insert(left_key.clone(), right_value.clone()); },
-            None => { final_map.insert(left_key.clone(), left_value.clone()); },
-        }
-    }
-    for (right_key, right_value) in right.iter() {
-        if ! final_map.contains_key(right_key) {
-            final_map.insert(right_key.clone(), right_value.clone());
-        }
-    }
-    final_map
-}
-
-fn toml_table_to_mustache(toml: BTreeMap<String, toml::Value>) -> mustache::Data {
-    let mut hashmap = HashMap::new();
-    for (key, value) in toml.iter() {
-        hashmap.insert(format!("{}", key), toml_to_mustache(value.clone()));
-    }
-    mustache::Data::Map(hashmap)
-}
-
-fn toml_to_mustache(value: toml::Value) -> mustache::Data {
-    match value {
-        toml::Value::String(s) => mustache::Data::StrVal(format!("{}", s)),
-        toml::Value::Integer(i) => mustache::Data::StrVal(format!("{}", i)),
-        toml::Value::Float(i) => mustache::Data::StrVal(format!("{}", i)),
-        toml::Value::Boolean(b) => mustache::Data::Bool(b),
-        toml::Value::Datetime(s) => mustache::Data::StrVal(format!("{}", s)),
-        toml::Value::Array(a) => toml_vec_to_mustache(a),
-        toml::Value::Table(t) => toml_table_to_mustache(t),
-    }
-}
-
-fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
-    let mut mvec = vec![];
-    for x in toml.iter() {
-        mvec.push(toml_to_mustache(x.clone()))
-    }
-    mustache::Data::VecVal(mvec)
 }
 
 pub fn new(deriv: &str, name: &str, version: &str, release: &str) -> Package {
@@ -483,7 +250,7 @@ pub fn new(deriv: &str, name: &str, version: &str, release: &str) -> Package {
         name: String::from(name),
         version: String::from(version),
         release: String::from(release),
-        config_fnv: HashMap::new()
+
     }
 }
 
@@ -545,7 +312,6 @@ pub fn package_list(path: &str) -> BldrResult<Vec<Package>> {
                         name: n,
                         version: v,
                         release: r,
-                        config_fnv: HashMap::new()
                     };
                     package_list.push(package);
                 }
@@ -695,12 +461,9 @@ impl PartialOrd for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{Package, split_version, version_sort, toml_table_to_mustache};
-    use std::collections::HashMap;
+    use super::{Package, split_version, version_sort};
     use std::cmp::Ordering;
     use std::cmp::PartialOrd;
-    use toml;
-    use mustache;
 
     #[test]
     fn package_partial_eq() {
@@ -709,14 +472,12 @@ mod tests {
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         assert_eq!(a, b);
     }
@@ -728,14 +489,12 @@ mod tests {
             name: "bldr".to_string(),
             version: "1.0.1".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
@@ -750,14 +509,12 @@ mod tests {
             name: "snoopy".to_string(),
             version: "1.0.1".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
@@ -772,14 +529,12 @@ mod tests {
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
@@ -794,14 +549,12 @@ mod tests {
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131556".to_string(),
-            config_fnv: HashMap::new()
         };
         let b = Package{
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
-            config_fnv: HashMap::new()
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
@@ -865,24 +618,4 @@ mod tests {
             Err(e) => panic!("{:?}", e)
         }
     }
-
-    #[test]
-    fn toml_data_is_rendered_to_mustache() {
-        let toml = r#"
-                daemonize = "no"
-                slaveof = "127.0.0.1 6380"
-
-                [winks]
-                left = "yes"
-                right = "no"
-                wiggle = [ "snooze", "looze" ]
-            "#;
-        let toml_value = toml::Parser::new(toml).parse().unwrap();
-        let template = mustache::compile_str("hello {{daemonize}} for {{slaveof}} {{winks.right}} {{winks.left}} {{# winks.wiggle}} {{.}} {{/winks.wiggle}}");
-        let mut bytes = vec![];
-        let data = toml_table_to_mustache(toml_value);
-        template.render_data(&mut bytes, &data);
-        assert_eq!(String::from_utf8(bytes).unwrap(), "hello no for 127.0.0.1 6380 no yes  snooze  looze ".to_string());
-    }
-
 }
