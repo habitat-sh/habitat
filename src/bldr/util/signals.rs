@@ -23,10 +23,9 @@
 
 use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
-use std::sync::mpsc::Sender;
 
 use wonder::actor;
-use wonder::actor::{HandleResult, InitResult, StopReason};
+use wonder::actor::{ActorSender, HandleResult, InitResult, StopReason};
 
 use error::{BldrResult, BldrError};
 
@@ -91,7 +90,7 @@ impl actor::GenServer for SignalNotifier {
     type S = ();
     type E = BldrError;
 
-    fn init(&self, _tx: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> InitResult<Self::E> {
+    fn init(&self, _tx: &ActorSender<Self::T>, _: &mut Self::S) -> InitResult<Self::E> {
         unsafe {
             INIT.call_once(|| {
                 self::set_signal_handlers();
@@ -105,14 +104,14 @@ impl actor::GenServer for SignalNotifier {
         Ok(Some(TIMEOUT_MS))
     }
 
-    fn handle_call(&self, message: Self::T, _: &Sender<actor::Message<Self::T>>, _: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self, message: Self::T, _: &ActorSender<Self::T>, _: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
         match message {
             Message::Stop => HandleResult::Stop(StopReason::Normal, None),
             msg => HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)), None),
         }
     }
 
-    fn handle_timeout(&self, tx: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self, tx: &ActorSender<Self::T>, _: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
         unsafe {
             if CAUGHT.load(Ordering::SeqCst) {
                 match SIGNAL.load(Ordering::SeqCst) {
@@ -133,7 +132,7 @@ impl actor::GenServer for SignalNotifier {
     }
 }
 
-fn send_signal(tx: &Sender<actor::Message<Message>>, signal: Signal) {
+fn send_signal(tx: &ActorSender<Message>, signal: Signal) {
     actor::cast(tx, Message::Signal(signal)).unwrap();
 }
 

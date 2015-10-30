@@ -420,7 +420,7 @@ pub struct DiscoveryWriteResponse {
 // limitations under the License.
 //
 
-use wonder::actor::{self, GenServer, HandleResult, InitResult, StopReason};
+use wonder::actor::{self, ActorSender, GenServer, HandleResult, InitResult, StopReason};
 
 const TIMEOUT_MS: u64 = 30;
 
@@ -446,11 +446,11 @@ impl GenServer for DiscoveryActor {
     type S = Discovery;
     type E = BldrError;
 
-    fn init(&self, _tx: &Sender<actor::Message<Self::T>>, _: &mut Self::S) -> InitResult<Self::E> {
+    fn init(&self, _tx: &ActorSender<Self::T>, _: &mut Self::S) -> InitResult<Self::E> {
         Ok(Some(TIMEOUT_MS))
     }
 
-    fn handle_timeout(&self, _me: &Sender<actor::Message<Self::T>>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
         match state.next() {
             Ok(_) => HandleResult::NoReply(Some(TIMEOUT_MS)),
             Err(e) => return HandleResult::Stop(
@@ -460,7 +460,7 @@ impl GenServer for DiscoveryActor {
         }
     }
 
-    fn handle_call(&self, message: Self::T, _caller: &Sender<actor::Message<Self::T>>, _me: &Sender<actor::Message<Self::T>>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
        match message {
            Message::Watch(dw) => {
                state.watch(dw);
