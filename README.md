@@ -89,8 +89,6 @@ by having a convention cover it. When we do need to configure things, we set san
 1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. [Install Stable Rust](https://www.rust-lang.org/install.html) `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
-1. [Install Node](https://nodejs.org/en/)
-1. [Install docco](http://jashkenas.github.io/docco/)
 1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
 1. Run `make`
 1. Run `make test`
