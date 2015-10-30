@@ -6,7 +6,6 @@
   },
   "skip_phases": [
     "deploy",
-    "lint",
     "provision",
     "publish",
     "quality",

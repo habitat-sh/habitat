@@ -24,6 +24,10 @@ suites:
     run_list:
       - recipe[bldr]
       - recipe[bldr::unit]
+  - name: lint
+    run_list:
+      - recipe[bldr]
+      - recipe[bldr::lint]
   - name: functional
     run_list:
       - recipe[bldr]

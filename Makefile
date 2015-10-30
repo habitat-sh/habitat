@@ -8,11 +8,10 @@ container_with = docker ps -a -q -f
 all: volumes container packages
 
 package-clean:
-	docker-compose run package bash -c 'rm -rf /opt/bldr/cache/pkgs/*'
-	docker-compose run package bash -c 'rm -rf /opt/bldr/pkgs/*'
+	docker-compose run package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
 
 packages: package-clean
-	docker-compose run package bash -c 'cd /src/packages; make world'
+	docker-compose run package sh -c 'cd /src/packages && make world'
 
 volume-clean: pkg-cache-volume-clean key-cache-volume-clean cargo-volume-clean installed-cache-volume-clean src-cache-volume-clean
 
@@ -64,11 +63,12 @@ cargo-clean:
 	docker-compose run package cargo clean
 
 docs:
-	docker-compose run package cargo doc
-	docker-compose run package rustdoc --crate-name bldr README.md -o ./target/doc/bldr
-	docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build
-	cp -r images ./target/doc/bldr
-	echo '<meta http-equiv=refresh content=0;url=bldr/index.html>' > target/doc/index.html
+	docker-compose run package sh -c 'set -ex; \
+		cargo doc; \
+		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
+		docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build; \
+		cp -r images ./target/doc/bldr; \
+		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
 
 doc-serve:
 	@echo "View the docs at: http://127.0.0.1:9633/"
