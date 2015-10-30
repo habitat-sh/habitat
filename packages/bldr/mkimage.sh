@@ -89,7 +89,7 @@ ln -sf $RUNIT_ROOT/bin/svlogd bin/svlogd
 ln -sf $RUNIT_ROOT/bin/utmpset bin/utmpset
 
 cp /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 lib
-for X in console null ptmx random stdin stdout stderr tty urandom zero
+for X in null ptmx random stdin stdout stderr tty urandom zero
 do
     cp -a /dev/$X dev
 done
