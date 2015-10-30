@@ -1,0 +1,7 @@
+[package]
+name = "wonder"
+version = "0.1.0"
+authors = ["Jamie Winsor <jamie@vialstudios.com>"]
+
+[dependencies]
+time = "0.1"
