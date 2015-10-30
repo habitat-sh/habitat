@@ -99,7 +99,7 @@ impl<A: GenServer> Builder<A> {
             loop {
                 if let Some(go_time) = timeout {
                     if go_time >= SteadyTime::now() {
-                        match self.spec.handle_timeout(&itx, &mut state) {
+                        match self.spec.handle_timeout(&otx, &itx, &mut state) {
                             HandleResult::Stop(reason, None) => return shutdown(reason, None, &otx),
                             HandleResult::NoReply(Some(0)) => {
                                 set_timeout(0, &mut timeout);
@@ -132,7 +132,7 @@ impl<A: GenServer> Builder<A> {
                         }
                     },
                     Ok(Message::Cast(msg)) => {
-                        match self.spec.handle_cast(msg, &itx, &mut state) {
+                        match self.spec.handle_cast(msg, &otx, &itx, &mut state) {
                             HandleResult::Stop(reason, reply) => return shutdown(reason, reply, &otx),
                             HandleResult::NoReply(new_timeout) => {
                                 if let Some(ms) = new_timeout {
@@ -146,6 +146,14 @@ impl<A: GenServer> Builder<A> {
                     Err(mpsc::TryRecvError::Disconnected) => { break; },
                     Err(mpsc::TryRecvError::Empty) => { },
                 }
+                // This is absolutely the wrong solution. I need to park the thread or call
+                // recv instead of try_recv and schedule the timeout mechanism another way.
+                // This is a quick and dirty workaround that should be short lived while the API
+                // stabilizes and is leveraged in our other applications.
+                //
+                // I'm so sorry for doing this.
+                //      - Jamie
+                thread::sleep_ms(30)
             }
             Ok(())
         }).unwrap();
@@ -209,13 +217,15 @@ pub trait GenServer : Send + 'static {
 
     fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E>;
 
-    fn handle_call(&self, _message: Self::T, _tx: &ActorSender<Self::T>, _caller: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
-        panic!("handle_call callback not implemented");
+    fn handle_call(&self, message: Self::T, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
+        panic!("handle_call callback not implemented; received: {:?}", message);
     }
-    fn handle_cast(&self, _message: Self::T, _tx: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
-        panic!("handle_cast callback not implemented");
+
+    fn handle_cast(&self, message: Self::T, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
+        panic!("handle_cast callback not implemented; received: {:?}", message);
     }
-    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
+
+    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
         HandleResult::NoReply(None)
     }
 }
@@ -294,7 +304,7 @@ mod tests {
             }
         }
 
-        fn handle_cast(&self, msg: Self::T, _: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+        fn handle_cast(&self, msg: Self::T, _: &ActorSender<Self::T>, _: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
             match msg {
                 MyMessage::SetState(value) => {
                     state.initialized = value;

@@ -47,6 +47,7 @@ use hyper::status::StatusCode;
 
 use pkg::Package;
 use error::{BldrResult, BldrError};
+use config::Config;
 
 /// The available discovery backends. Only etcd is supported right now.
 #[derive(Debug, Clone, Copy)]
@@ -387,17 +388,228 @@ impl DiscoveryWriter {
 }
 
 /// A response to a watch.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DiscoveryResponse {
     pub key: String,
     pub value: Option<String>,
 }
 
 /// A response to a write. Note the leaky abstraction!
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DiscoveryWriteResponse {
     pub key: String,
     pub body: Option<String>,
     pub status: StatusCode,
+}
+
+
+//
+// Copyright:: Copyright (c) 2015 Chef Software, Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+use wonder::actor::{self, ActorSender, GenServer, HandleResult, InitResult, StopReason};
+
+const TIMEOUT_MS: u64 = 30;
+
+#[derive(Debug)]
+pub enum Message {
+    Watch(DiscoveryWatcher),
+    Write(DiscoveryWriter),
+    Stop,
+    Clear,
+    Status(String),
+    StatusReply(Option<DiscoveryResponse>),
+    WriteStatus(String),
+    WriteStatusReply(Option<DiscoveryWriteResponse>),
+    Error(BldrError),
+    Ok
+}
+
+#[derive(Debug)]
+pub struct DiscoveryActor;
+
+impl GenServer for DiscoveryActor {
+    type T = Message;
+    type S = Discovery;
+    type E = BldrError;
+
+    fn init(&self, _tx: &ActorSender<Self::T>, _: &mut Self::S) -> InitResult<Self::E> {
+        Ok(Some(TIMEOUT_MS))
+    }
+
+    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+        match state.next() {
+            Ok(_) => HandleResult::NoReply(Some(TIMEOUT_MS)),
+            Err(e) => return HandleResult::Stop(
+                StopReason::Fatal(format!("Discovery actor caught unexpected error: {:?}", e)),
+                None,
+                ),
+        }
+    }
+
+    fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+       match message {
+           Message::Watch(dw) => {
+               state.watch(dw);
+               HandleResult::Reply(Message::Ok, Some(TIMEOUT_MS))
+           },
+           Message::Write(dw) => {
+               state.write(dw);
+               HandleResult::Reply(Message::Ok, Some(TIMEOUT_MS))
+           },
+           Message::Stop => {
+               state.stop();
+               HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
+           },
+           Message::Clear => {
+               state.clear();
+               HandleResult::Reply(Message::Ok, Some(TIMEOUT_MS))
+           },
+           Message::Status(status) => {
+               match state.status(&status) {
+                   Some(dr) => HandleResult::Reply(Message::StatusReply(Some(dr.clone())), Some(TIMEOUT_MS)),
+                   None => HandleResult::Reply(Message::StatusReply(None), Some(TIMEOUT_MS)),
+               }
+           },
+           Message::WriteStatus(status) => {
+               match state.write_status(&status) {
+                   Some(dr) => HandleResult::Reply(Message::WriteStatusReply(Some(dr.clone())), Some(TIMEOUT_MS)),
+                   None => HandleResult::Reply(Message::WriteStatusReply(None), Some(TIMEOUT_MS)),
+               }
+           },
+           Message::WriteStatusReply(_) => HandleResult::Stop(StopReason::Fatal(format!("You don't send me a StatusReply! I send YOU a StatusReply")), Some(Message::Ok)),
+           Message::StatusReply(_) => HandleResult::Stop(StopReason::Fatal(format!("You don't send me a StatusReply! I send YOU a StatusReply")), Some(Message::Ok)),
+           Message::Error(_) => HandleResult::Stop(StopReason::Fatal(format!("You don't send me an Error! I send YOU an Error")), Some(Message::Ok)),
+           Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU Ok!")), Some(Message::Ok)),
+       }
+    }
+}
+
+// Client side
+pub fn stop(actor: &actor::Actor<Message>) -> BldrResult<()> {
+    match try!(actor.call(Message::Stop)) {
+        Message::Ok => Ok(()),
+        _ => unreachable!(),
+    }
+}
+
+pub fn clear(actor: &actor::Actor<Message>) -> BldrResult<()> {
+    match try!(actor.call(Message::Clear)) {
+        Message::Ok => Ok(()),
+        _ => unreachable!(),
+    }
+}
+
+pub fn watch(actor: &actor::Actor<Message>, dw: DiscoveryWatcher) -> BldrResult<()> {
+    match try!(actor.call(Message::Watch(dw))) {
+        Message::Ok => Ok(()),
+        _ => unreachable!(),
+    }
+}
+
+pub fn status(actor: &actor::Actor<Message>, key: String) -> BldrResult<Option<DiscoveryResponse>> {
+    match try!(actor.call(Message::Status(key))) {
+        Message::StatusReply(status) => Ok(status),
+        _ => unreachable!(),
+    }
+}
+
+pub fn write_status(actor: &actor::Actor<Message>, key: String) -> BldrResult<Option<DiscoveryWriteResponse>> {
+    match try!(actor.call(Message::WriteStatus(key))) {
+        Message::WriteStatusReply(status) => Ok(status),
+        _ => unreachable!(),
+    }
+}
+
+pub fn write(actor: &actor::Actor<Message>, dw: DiscoveryWriter) -> BldrResult<()> {
+    match try!(actor.call(Message::Write(dw))) {
+        Message::Ok => Ok(()),
+        _ => unreachable!(),
+    }
+}
+
+pub fn setup_standard_watches(actor: &actor::Actor<Message>, package: Package, config: &Config) -> BldrResult<()> {
+    let p_a = package.clone();
+    let key = format!("{}/{}/config", p_a.name, config.group());
+    let watcher = DiscoveryWatcher::new(p_a, key, String::from("100_discovery.toml"), 1, true, false);
+    try!(watch(actor, watcher));
+
+    // Configure watches!
+    for watch_member in config.watch().iter() {
+        let watch_parts: Vec<&str> = watch_member.split('.').collect();
+        let (service, group) = match watch_parts.len() {
+            1 => {
+                (String::from(watch_parts[0]), String::from("default"))
+            },
+            2 => {
+                (String::from(watch_parts[0]), String::from(watch_parts[1]))
+            },
+            _ => {
+                return Err(BldrError::BadWatch(watch_member.clone()))
+            }
+        };
+        let p_b = package.clone();
+        let key = format!("{}/{}", service, group);
+        let mut watcher = DiscoveryWatcher::new(p_b, key, format!("300_watch_{}_{}.toml", service, group), 1, true, true);
+        watcher.service(service);
+        watcher.group(group);
+        try!(watch(actor, watcher));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use wonder::actor;
+    use super::{stop, clear, watch, write, DiscoveryActor};
+    use discovery::{Discovery, Backend, DiscoveryWatcher, DiscoveryWriter};
+    use pkg;
+
+    #[test]
+    fn start_and_stop() {
+        let actor = actor::Builder::new(DiscoveryActor).name("discovery".to_string()).start(Discovery::new(Backend::Etcd)).unwrap();
+        match stop(&actor) {
+            Ok(()) => assert!(true, "Stopped"),
+            Err(e) => {
+                assert!(false, format!("Failed to stop actor: {:?}", e))
+            }
+        }
+    }
+
+    #[test]
+    fn clears_data() {
+        let actor = actor::Builder::new(DiscoveryActor).name("discovery".to_string()).start(Discovery::new(Backend::Etcd)).unwrap();
+        assert!(clear(&actor).is_ok(), "Failed to clear the discovery backend");
+    }
+
+    #[test]
+    fn adds_watch() {
+        let actor = actor::Builder::new(DiscoveryActor).name("discovery".to_string()).start(Discovery::new(Backend::Etcd)).unwrap();
+        let pkg = pkg::new("bobo", "clown", "1.2.3", "20151029175941");
+        let dw = DiscoveryWatcher::new(pkg, "snooples".to_string(), "42_chill_out.toml".to_string(), 1, true, false);
+        assert!(watch(&actor, dw).is_ok(), "Failed to add a watch");
+    }
+
+    #[test]
+    fn adds_writer() {
+        let actor = actor::Builder::new(DiscoveryActor).name("discovery".to_string()).start(Discovery::new(Backend::Etcd)).unwrap();
+        let pkg = pkg::new("bobo", "clown", "1.2.3", "20151029175941");
+        let dw = DiscoveryWriter::new(pkg, "snooples".to_string(), None, Some(30));
+        assert!(write(&actor, dw).is_ok(), "Failed to add a write");
+    }
+
 }
 
