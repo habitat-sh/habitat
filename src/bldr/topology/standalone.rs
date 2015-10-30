@@ -34,13 +34,11 @@ use std::thread;
 use error::{BldrResult, BldrError};
 use std::process::{Command, Stdio};
 use std::io::prelude::*;
-use discovery;
 use pkg;
 use ansi_term::Colour::White;
 use pkg::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
-use discovery::DiscoveryWatcher;
 use config::Config;
 
 /// Sets up the topology and calls run_internal.
@@ -93,34 +91,6 @@ pub fn state_configure(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     try!(worker.package.write_environment_data());
     try!(worker.package.write_sys_data());
     try!(worker.package.write_bldr_data());
-    if let Some(_) = discovery::etcd::enabled() {
-        let package = worker.package.clone();
-        let key = format!("{}/{}/config", package.name, worker.config.group());
-        let watcher = DiscoveryWatcher::new(package, key, String::from("100_discovery.toml"), 1, true, false);
-        worker.discovery.watch(watcher);
-
-        // Configure watches!
-        for watch in worker.config.watch().iter() {
-            let watch_parts: Vec<&str> = watch.split('.').collect();
-            let (service, group) = match watch_parts.len() {
-                1 => {
-                    (String::from(watch_parts[0]), String::from("default"))
-                },
-                2 => {
-                    (String::from(watch_parts[0]), String::from(watch_parts[1]))
-                },
-                _ => {
-                    return Err(BldrError::BadWatch(watch.clone()))
-                }
-            };
-            let package = worker.package.clone();
-            let key = format!("{}/{}", service, group);
-            let mut watcher = DiscoveryWatcher::new(package, key, format!("300_watch_{}_{}.toml", service, group), 1, true, true);
-            watcher.service(service);
-            watcher.group(group);
-            worker.discovery.watch(watcher);
-        }
-    };
     try!(worker.package.configure());
     Ok((State::Starting, 1))
 }

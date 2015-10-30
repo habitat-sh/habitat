@@ -146,6 +146,7 @@ impl<A: GenServer> Builder<A> {
                     Err(mpsc::TryRecvError::Disconnected) => { break; },
                     Err(mpsc::TryRecvError::Empty) => { },
                 }
+                thread::sleep_ms(20);
             }
             Ok(())
         }).unwrap();
@@ -209,11 +210,11 @@ pub trait GenServer : Send + 'static {
 
     fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E>;
 
-    fn handle_call(&self, _message: Self::T, _tx: &ActorSender<Self::T>, _caller: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
-        panic!("handle_call callback not implemented");
+    fn handle_call(&self, message: Self::T, _tx: &ActorSender<Self::T>, _caller: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
+        panic!("handle_call callback not implemented; received: {:?}", message);
     }
-    fn handle_cast(&self, _message: Self::T, _tx: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
-        panic!("handle_cast callback not implemented");
+    fn handle_cast(&self, message: Self::T, _tx: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
+        panic!("handle_cast callback not implemented; received: {:?}", message);
     }
     fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
         HandleResult::NoReply(None)
