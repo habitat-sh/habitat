@@ -36,8 +36,7 @@ staticfile = "*"
 time = "*"
 
 [dependencies.wonder]
-git = "https://github.com/reset/wonder"
-branch = "master"
+path = "./vendor/wonder"
 
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"

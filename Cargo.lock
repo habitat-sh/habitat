@@ -21,7 +21,7 @@ dependencies = [
  "time 0.1.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.35 (registry+https://github.com/rust-lang/crates.io-index)",
- "wonder 0.1.0 (git+https://github.com/reset/wonder)",
+ "wonder 0.1.0",
 ]
 
 [[package]]
@@ -401,7 +401,6 @@ dependencies = [
 [[package]]
 name = "wonder"
 version = "0.1.0"
-source = "git+https://github.com/reset/wonder#f200f931d3c14bbf648c8f92e20585499ae99832"
 dependencies = [
  "time 0.1.26 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
