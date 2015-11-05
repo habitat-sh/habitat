@@ -15,6 +15,24 @@
 // limitations under the License.
 //
 
+//! The Census is the core of our service discovery mechanism. It keeps track of every supervisor
+//! in our group, and handles reading, writing, and serializing it with the discovery backend
+//! (etcd.) It has 4 main components:
+//!
+//! * CensusEntry: a given supervisors entry in the census.
+//! * CensusEntryActor: a GenServer responsible for serializing our Census Entry to the backend
+//! * Census: The complete list of all supervisors, plus functions for analyzing the data, and
+//!   updating the census.
+//! * CensusActor: a GenServer responsible for reading the global census from the backend
+//!
+//! Think of each supervisor in the system as a 'CensusEntry'; taken together, they form a
+//! 'Census'. Operations to discover or mutate the state of the Census happen through algorithms
+//! that arrive at the same conclusion given the same inputs.
+//!
+//! An example is leader election; it's handled here by having a consistent (and simple) algorithm
+//! for selecting a leader deterministically for the group. We rely on the eventual consistency of
+//! every supervisors CensusEntry to elect a new leader in a reasonable amount of time.
+
 use std::collections::{HashMap, BTreeMap};
 use std::mem;
 use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
@@ -29,6 +47,7 @@ use discovery::etcd::{self, EtcdWrite};
 use util;
 use pkg::Package;
 
+/// A CensusEntry. Manages all the data about a given member of the census.
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable, Eq)]
 pub struct CensusEntry {
     id: Uuid,
@@ -47,6 +66,7 @@ pub struct CensusEntry {
 }
 
 impl PartialEq for CensusEntry {
+    // We are equal, but we don't care about some fields.
     fn eq(&self, other: &CensusEntry) -> bool {
         if self.id != other.id {
             false
@@ -77,6 +97,7 @@ impl PartialEq for CensusEntry {
 }
 
 impl CensusEntry {
+    /// Create a new CensusEntry for this supervisor.
     pub fn new() -> CensusEntry {
         CensusEntry {
             id: Uuid::new_v4(),
@@ -95,50 +116,61 @@ impl CensusEntry {
         }
     }
 
+    /// Set our suitability number. This is an arbitrary determination of our 'suitability' to a
+    /// task; most likely, being the leader in an election.
     pub fn suitability(&mut self, suitability: u64) {
         self.suitability = suitability;
         self.needs_write = Some(true);
     }
 
+    /// Set a port number; often used as the default for watches
     pub fn port(&mut self, port: Option<String>) {
         self.port = port;
         self.needs_write = Some(true);
     }
 
+    /// Set an array of port numbers we expose.
     pub fn exposes(&mut self, exposes: Option<Vec<String>>) {
         self.exposes = exposes;
         self.needs_write = Some(true);
     }
 
+    /// Set our status at the leader.
     pub fn leader(&mut self, leader: Option<bool>) {
         self.leader = leader;
         self.needs_write = Some(true);
     }
 
+    /// Set our status as a follower.
     pub fn follower(&mut self, follower: Option<bool>) {
         self.follower = follower;
         self.needs_write = Some(true);
     }
 
+    /// Set our status on having initialzied data.
     pub fn data_init(&mut self, data_init: Option<bool>) {
         self.data_init = data_init;
         self.needs_write = Some(true);
     }
 
+    /// Set our vote.
     pub fn vote(&mut self, vote: Option<String>) {
         self.vote = vote;
         self.needs_write = Some(true);
     }
 
+    /// Are we in an election?
     pub fn election(&mut self, election: Option<bool>) {
         self.election = election;
         self.needs_write = Some(true);
     }
 
+    /// Return the string we use for this CensusEntry when it is a candidate in an election.
     pub fn candidate_string(&self) -> String {
         format!("{}", self.id)
     }
 
+    /// Turn this CensusEntry into an etcd write.
     pub fn as_etcd_write(&mut self, pkg: &Package, config: &Config) -> EtcdWrite {
         let mut toml = format!("[census.{}]\n", self.id.to_simple_string());
         let toml_ce = toml::encode_str(self);
@@ -156,24 +188,32 @@ impl CensusEntry {
     }
 }
 
+/// Messages for our CensusEntryActor
 #[derive(Debug)]
 pub enum Message {
+    /// A write
     Write(EtcdWrite),
+    /// Ok
     Ok,
+    /// Stop
     Stop
 }
 
+// The time between persisting our CensusEntry to the backend.
 const ENTRY_TIMEOUT_MS: u64 = 20000;
 
+/// The actor for our CensusEntry
 #[derive(Debug)]
 pub struct CensusEntryActor;
 
 impl CensusEntryActor {
+    /// Write this entry to the discovery backend
     pub fn write_to_discovery(&self, write: &EtcdWrite) -> BldrResult<()> {
         try!(etcd::write(write));
         Ok(())
     }
 
+    /// Request the actor write this census entry
     pub fn write(actor: &actor::Actor<Message>, write: EtcdWrite) -> BldrResult<()> {
         match try!(actor.call(Message::Write(write))) {
             Message::Ok => Ok(()),
@@ -182,6 +222,7 @@ impl CensusEntryActor {
     }
 }
 
+/// A simple map of Census Entries; used for decoding toml data
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct CensusMap {
     pub census: BTreeMap<String, CensusEntry>,
@@ -196,8 +237,8 @@ impl GenServer for CensusEntryActor {
         Ok(Some(0))
     }
 
+    /// Makes sure we regularly persist to etcd, beating our entries 30 second ttl.
     fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
-        debug!("Writing census state due to timeout");
         match self.write_to_discovery(state) {
             Ok(_) => HandleResult::NoReply(Some(ENTRY_TIMEOUT_MS)),
             Err(e) => return HandleResult::Stop(
@@ -208,6 +249,7 @@ impl GenServer for CensusEntryActor {
         }
     }
 
+    /// Take a given etcd write, and persist it. Or stop. It's cool. Whatevs.
     fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
         match message {
            Message::Stop => {
@@ -226,15 +268,23 @@ impl GenServer for CensusEntryActor {
     }
 }
 
+/// The census!
+///
+/// Keeps a population of CensusEntries, and allows you to interrogate their global state.
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Census {
+    /// The uuid of the current supervisor
     me: Uuid,
+    /// The total population of CensusEntries
     population: HashMap<Uuid, CensusEntry>,
+    /// Whether we are currently in an event
     pub in_event: bool,
+    /// Whether we need to be written out
     pub needs_write: bool,
 }
 
 impl Census {
+    /// Creates a new Census. Takes a CensusEntry for the current supervisor.
     pub fn new(ce: CensusEntry) -> Census {
         let my_id = ce.id.clone();
         let mut hm = HashMap::new();
@@ -247,22 +297,39 @@ impl Census {
         }
     }
 
+    /// A reference to the current supervisors entry in the census.
+    ///
+    /// # Failures
+    ///
+    /// * If the entry doesn't exist
     pub fn me(&self) -> BldrResult<&CensusEntry> {
         self.population.get(&self.me).ok_or(BldrError::CensusNotFound(self.me.to_simple_string()))
     }
 
+    /// A mutable reference to the current supervisors entry in the census.
+    ///
+    /// # Failures
+    ///
+    /// * If the entry doesn't exist
     pub fn me_mut(&mut self) -> BldrResult<&mut CensusEntry> {
         self.population.get_mut(&self.me).ok_or(BldrError::CensusNotFound(self.me.to_simple_string()))
     }
 
+    /// Add an entry to the census
     pub fn add(&mut self, ce: CensusEntry) {
         self.population.insert(ce.id, ce);
     }
 
+    /// Set whether we are in an event
     pub fn in_event(&mut self, status: bool) {
         self.in_event = status;
     }
 
+    /// Given a toml string of our census, update the internal representation of the census.
+    ///
+    /// # Failures
+    ///
+    /// * If we cannot parse the toml
     pub fn update(&mut self, census_string: &str) -> BldrResult<()> {
         let mut toml_parser = toml::Parser::new(census_string);
         let toml = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
@@ -300,6 +367,12 @@ impl Census {
         Ok(())
     }
 
+    /// Turn the current census into a toml string, to be used when we render the configuration
+    /// files.
+    ///
+    /// # Failures
+    ///
+    /// * If we cannot parse a Uuid
     pub fn to_toml(&mut self) -> BldrResult<String> {
         let mut final_toml = String::new();
         let mut sorted_keys: Vec<_> = self.population.keys().map(|&x| x.to_simple_string()).collect();
@@ -320,7 +393,7 @@ impl Census {
         Ok(final_toml)
     }
 
-    // Interrogate the census!
+    /// Have all members of the census initialized their data?
     pub fn dataset_initialized(&self) -> bool {
         let count = self.population
             .values()
@@ -339,6 +412,7 @@ impl Census {
         }
     }
 
+    /// Is there a leader in the census? Returns that entry.
     pub fn get_leader(&self) -> Option<&CensusEntry> {
         let mut leader: Vec<&CensusEntry> = self.population
             .values()
@@ -357,6 +431,7 @@ impl Census {
         }
     }
 
+    /// Is there a leader in the census?
     pub fn has_leader(&self) -> bool {
         let count = self.population
             .values()
@@ -375,6 +450,7 @@ impl Census {
         }
     }
 
+    /// Is there one leader, and everyone else is a follower?
     pub fn has_all_followers(&self) -> bool {
         let size = self.population.len() - 1;
 
@@ -395,6 +471,10 @@ impl Census {
         }
     }
 
+    /// Decide who we should vote for, and return their CensusEntry.
+    ///
+    /// * Choose the node with the highest `suitability` number
+    /// * If all those are equal, choose the node whose `id` field sorts first lexicographically
     pub fn determine_vote(&self) -> &CensusEntry {
         let acc: Option<&CensusEntry> = None;
         let vote: &CensusEntry = self.population
@@ -422,6 +502,11 @@ impl Census {
         vote
     }
 
+    /// Voting is finished, and we return the winner, if:
+    ///
+    /// * All entries in the census are in an election
+    /// * They have all cast their vote
+    /// * Everyone votes for the same CensusEntry
     pub fn voting_finished(&self) -> Option<&CensusEntry> {
         let all_in_election = self.population
             .values()
@@ -472,20 +557,32 @@ impl Census {
     }
 }
 
+/// The messages for the CensusActor
 #[derive(Debug)]
 pub enum CensusMessage {
+    /// Return the last toml data
     CensusToml(Option<String>),
+    /// Request the latest toml data
     Census,
+    /// Ok
     Ok,
+    /// Knock it off!
     Stop
 }
 
+/// How often to check for changes
 const CENSUS_TIMEOUT_MS: u64 = 200;
 
+/// Our CensusActor
 #[derive(Debug)]
 pub struct CensusActor;
 
 impl CensusActor {
+    /// Get the latest Census toml.
+    ///
+    /// # Failures
+    ///
+    /// * If the call to the actor fails.
     pub fn census_string(actor: &actor::Actor<CensusMessage>) -> BldrResult<Option<String>> {
         match try!(actor.call(CensusMessage::Census)) {
             CensusMessage::CensusToml(census_string) => Ok(census_string),
@@ -494,6 +591,8 @@ impl CensusActor {
     }
 }
 
+/// The state for our Census Actor. Holds a watch key, the last census_string, and the channels for
+/// communicating with etcd.
 pub struct CensusActorState {
     ctx: Option<Sender<bool>>,
     crx: Option<Receiver<Option<String>>>,
@@ -502,6 +601,7 @@ pub struct CensusActorState {
 }
 
 impl CensusActorState {
+    /// Return a new CensusActorState, configured for the given watch.
     pub fn new(watch_key: String) -> CensusActorState {
         CensusActorState {
             ctx: None,
@@ -517,6 +617,7 @@ impl GenServer for CensusActor {
     type S = CensusActorState;
     type E = BldrError;
 
+    /// Set up the watch.
     fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E> {
         let (ctx, wrx) = channel();
         let (wtx, crx) = channel();
@@ -526,6 +627,7 @@ impl GenServer for CensusActor {
         Ok(Some(0))
     }
 
+    /// Check for data from the watch, and update the census_string.
     fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
         if let Some(ref crx) = state.crx {
             match crx.try_recv() {
@@ -546,6 +648,7 @@ impl GenServer for CensusActor {
         HandleResult::NoReply(Some(CENSUS_TIMEOUT_MS))
     }
 
+    /// Return the census_string.
     fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
         if let Some(ref crx) = state.crx {
             match crx.try_recv() {

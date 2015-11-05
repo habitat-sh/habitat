@@ -15,53 +15,54 @@
 // limitations under the License.
 //
 
+//! A generic state machine.
+
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::fmt;
 
+/// The StateMachine struct.
+///
+/// * T: the states your machine can be in
+/// * X: the worker we pass between states
+/// * E: the Error type you want to return
 pub struct StateMachine<T, X, E> {
+    /// The states our machine supports
     pub state: T,
+    /// How long to wait between state transitions
     pub delay: u32,
+    /// The dispatch table of states to functions
     pub dispatch: HashMap<T, fn(&mut X)-> Result<(T, u32), E>>,
-    pub run: Option<fn(&mut StateMachine<T, X, E>, &mut X) -> Result<(), E>>
 }
 
 impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
+    /// Create a new StateMachine
     pub fn new(state: T) -> StateMachine<T, X, E> {
         StateMachine{
             state: state,
             delay: 0,
             dispatch: HashMap::new(),
-            run: None
         }
     }
 
-    pub fn add_run(&mut self, funk: fn(&mut StateMachine<T, X, E>, &mut X) -> Result<(), E>) {
-        self.run = Some(funk);
-    }
-
+    /// Add a function to run for a given state.
     pub fn add_dispatch(&mut self, state: T, funk: fn(&mut X) -> Result<(T, u32), E>) {
         self.dispatch.insert(state, funk);
     }
 
+    /// Set the next state, and a delay.
     fn set_state(&mut self, state: T, delay: u32) {
         self.state = state;
         self.delay = delay;
     }
 
+    /// Call the current state function, then update the next state to its return value.
     pub fn next(&mut self, worker: &mut X) -> Result<(), E> {
         if self.dispatch.contains_key(&self.state) {
             let (next_state, delay) = try!(self.dispatch.get(&self.state).unwrap()(worker));
             self.set_state(next_state, delay);
         } else {
             panic!("Cannot dispatch to {:?} - perhaps you need to call add_dispatch?", self.state);
-        }
-        Ok(())
-    }
-
-    pub fn run(&mut self, worker: &mut X) -> Result<(), E> {
-        if self.run.is_some() {
-            try!(self.run.unwrap()(self, worker));
         }
         Ok(())
     }

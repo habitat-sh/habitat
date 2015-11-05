@@ -42,6 +42,7 @@
 //! * [The bldr Sidecar; http interface to promises](sidecar)
 //! * [The bldr Repo; http based package repository](repo)
 //!
+
 #[macro_use] extern crate hyper;
 #[macro_use] extern crate log;
 extern crate tempdir;

@@ -15,6 +15,15 @@
 // limitations under the License.
 //
 
+//! Stores the configuration data for the service, and manages binding that data to any
+//! configuration files we need to render.
+//!
+//! Components:
+//!
+//! * ServiceConfigItem: A single component of the configuration data (defaults, from the
+//! environment, etc.)
+//! * ServiceConfig: A container holding all the ServiceConfigItems.
+
 use std::fs::File;
 use std::env;
 use std::io::prelude::*;
@@ -30,13 +39,17 @@ use util;
 use error::{BldrError, BldrResult};
 use pkg::Package;
 
+/// A single component of the configuration (such as defaults)
 #[derive(Debug, Clone, Eq, PartialEq)]
 struct ServiceConfigItem {
+    /// The current toml data
     pub toml_string: String,
+    /// Whether this item has been updated, but not written
     pub updated: bool
 }
 
 impl ServiceConfigItem {
+    /// Create a new ServiceConfigItem, with a backing string
     pub fn new(toml_string: String) -> ServiceConfigItem {
         ServiceConfigItem{
             toml_string: toml_string,
@@ -44,6 +57,7 @@ impl ServiceConfigItem {
         }
     }
 
+    /// Set the current string, and set our udpated flag to true.
     pub fn set(&mut self, toml_string: String) {
         if self.toml_string != toml_string {
             self.updated = true;
@@ -51,15 +65,19 @@ impl ServiceConfigItem {
         }
     }
 
+    /// Set the updated flag to false; we have been written!
     pub fn written(&mut self) {
         self.updated = false;
     }
 
+    /// Retrieve a reference to the current config string
     pub fn get(&self) -> &str {
         &self.toml_string
     }
 }
 
+/// The global ServiceConfig. Contains an entry for each type of configuration we track, and a hash
+/// of the latest FNV value of any configuration files we render.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct ServiceConfig {
     default: ServiceConfigItem,
@@ -73,6 +91,11 @@ pub struct ServiceConfig {
 }
 
 impl ServiceConfig {
+    /// Create a new ServiceConfig, based on the package we are running.
+    ///
+    /// # Failures
+    ///
+    /// * If we cannot generate the system configuration (IP address, hostname, etc.)
     pub fn new(pkg: &Package) -> BldrResult<ServiceConfig> {
         let sys = try!(util::sys::to_toml());
         let env = match env::var(&format!("BLDR_{}", pkg.name)) {
@@ -94,40 +117,63 @@ impl ServiceConfig {
         })
     }
 
+    /// Set the default configuration string
     pub fn default(&mut self, toml_string: String) {
         self.default.set(toml_string);
     }
 
+    /// Set the user configuration string
     pub fn user(&mut self, toml_string: String) {
         self.user.set(toml_string);
     }
 
+    /// Set the environment configuration string
     pub fn environment(&mut self, toml_string: String) {
         self.environment.set(toml_string);
     }
 
+    /// Set the sys configuration string
     pub fn sys(&mut self, toml_string: String) {
         self.sys.set(toml_string);
     }
 
+    /// Set the bldr configuration string
     pub fn bldr(&mut self, toml_string: String) {
         self.bldr.set(toml_string);
     }
 
+    /// Set the census configuration string
     pub fn census(&mut self, toml_string: String) {
         self.census.set(toml_string);
     }
 
+    /// Set the watch configuration string
     pub fn watch(&mut self, toml_string: String) {
         self.watch.set(toml_string);
     }
 
+    /// Returns true if any of the backing configuration strings have been updated
     pub fn is_updated(&mut self) -> bool {
         let order = [&self.default, &self.user, &self.census, &self.watch, &self.sys, &self.bldr, &self.environment];
         // If nothing has been updated, nothing needs to be written either - just return!
         order.into_iter().any(|&cfg| cfg.updated)
     }
 
+    /// Compiles our final toml data, based on walking and merging all the various configuration
+    /// types. Merges in this order
+    ///
+    /// * default
+    /// * user
+    /// * census
+    /// * watch
+    /// * sys
+    /// * bldr
+    /// * environment
+    ///
+    /// # Failures
+    ///
+    /// * If we cannot parse some toml
+    /// * If there is no configuration at all
     pub fn compile_toml(&mut self) -> BldrResult<BTreeMap<String, toml::Value>> {
         let order = [&self.default, &self.user, &self.census, &self.watch, &self.sys, &self.bldr, &self.environment];
 
@@ -150,6 +196,25 @@ impl ServiceConfig {
         Ok(final_toml)
     }
 
+    /// Write the configuration to disk.
+    ///
+    /// Returns true if the service should restart - only happens if the final, rendered
+    /// configuration files have changed.
+    ///
+    /// Does nothing if nothing needs to be written (if no data has changed).
+    ///
+    /// * Compiles all the toml
+    /// * Writes to config.toml
+    /// * Creates the mustache data structure
+    /// * Renders each configuration file template
+    /// * Clears the updated bit on every ServiceConfigEntry.
+    ///
+    /// # Failures
+    ///
+    /// * We cannot compile the toml
+    /// * We cannot write config.toml
+    /// * We cannot get a list of configuration files from the package
+    /// * We cannot write the configuration files
     pub fn write(&mut self, pkg: &Package) -> BldrResult<bool> {
         // If nothing is updated, do not write, and do not restart
         if ! self.is_updated() {
@@ -216,6 +281,7 @@ impl ServiceConfig {
     }
 }
 
+// Shallow merges two toml tables.
 fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml::Value>) -> BTreeMap<String, toml::Value> {
     let mut final_map = BTreeMap::new();
     for (left_key, left_value) in left.iter() {
@@ -232,6 +298,7 @@ fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml:
     final_map
 }
 
+// Translates a toml table to a mustache datastructure.
 fn toml_table_to_mustache(toml: BTreeMap<String, toml::Value>) -> mustache::Data {
     let mut hashmap = HashMap::new();
     for (key, value) in toml.iter() {
@@ -240,6 +307,7 @@ fn toml_table_to_mustache(toml: BTreeMap<String, toml::Value>) -> mustache::Data
     mustache::Data::Map(hashmap)
 }
 
+// Translates a given toml value to its mustache equivalent.
 fn toml_to_mustache(value: toml::Value) -> mustache::Data {
     match value {
         toml::Value::String(s) => mustache::Data::StrVal(format!("{}", s)),
@@ -252,6 +320,7 @@ fn toml_to_mustache(value: toml::Value) -> mustache::Data {
     }
 }
 
+// Translates toml vectors to mustache vectors.
 fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
     let mut mvec = vec![];
     for x in toml.iter() {
@@ -260,6 +329,11 @@ fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
     mustache::Data::VecVal(mvec)
 }
 
+// Reads the default.toml file in, and returns the string.
+//
+// # Failures
+//
+// * If we cannot read the file
 fn read_default_toml_file(pkg: &Package) -> BldrResult<String> {
     let mut file = try!(File::open(pkg.join_path("default.toml")));
     let mut config = String::new();
@@ -267,6 +341,7 @@ fn read_default_toml_file(pkg: &Package) -> BldrResult<String> {
     Ok(config)
 }
 
+// Generates the toml for the bldr data from a package.
 fn bldr_data(pkg: &Package) -> String {
     let mut toml_string = String::from("[bldr]\n");
     toml_string.push_str(&format!("derivation = \"{}\"", pkg.derivation));
