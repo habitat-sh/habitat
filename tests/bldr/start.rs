@@ -83,6 +83,10 @@ fn leader_with_discovery() {
     let d1 = docker::run_with_etcd_topology("bldr/simple_service", "leader");
     let d2 = docker::run_with_etcd_topology("bldr/simple_service", "leader");
     let d3 = docker::run_with_etcd_topology("bldr/simple_service", "leader");
+
+    assert_docker_log_count!(1, "Starting my term as leader", [ d1, d2, d3 ]);
+    assert_docker_log_count!(2, "Becoming a follower", [ d1, d2, d3 ]);
+
     assert_docker_log!(d1, r"setting: rustacean");
     assert_docker_log!(d2, r"setting: rustacean");
     assert_docker_log!(d3, r"setting: rustacean");
@@ -92,22 +96,19 @@ fn leader_with_discovery() {
     assert_docker_log!(d2, r"setting: against me!");
     assert_docker_log!(d3, r"setting: against me!");
 
-    assert_docker_log_count!(1, "We are the leader! On to glory!", [ d1, d2, d3 ]);
-    assert_docker_log_count!(2, "Becoming a follower", [ d1, d2, d3 ]);
-
-    let re = Regex::new(r"We are the leader! On to glory!").unwrap();
+    let re = Regex::new(r"Starting my term as leader").unwrap();
     if re.is_match(&d1.logs()) {
         drop(d1);
         thread::sleep_ms(32000);
-        assert_docker_log_count!(1, "We are the leader! On to glory!", [ d2, d3 ]);
+        assert_docker_log_count!(1, "Starting my term as leader", [ d2, d3 ]);
     } else if re.is_match(&d2.logs()) {
         drop(d2);
         thread::sleep_ms(32000);
-        assert_docker_log_count!(1, "We are the leader! On to glory!", [ d1, d3 ]);
+        assert_docker_log_count!(1, "Starting my term as leader", [ d1, d3 ]);
     } else if re.is_match(&d3.logs()) {
         drop(d3);
         thread::sleep_ms(32000);
-        assert_docker_log_count!(1, "We are the leader! On to glory!", [ d1, d2 ]);
+        assert_docker_log_count!(1, "Starting my term as leader", [ d1, d2 ]);
     }
 }
 

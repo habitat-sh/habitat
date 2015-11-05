@@ -24,7 +24,7 @@ use error::{BldrResult, BldrError};
 header! { (XFileName, "X-Filename") => [String] }
 
 pub fn upload(url: &str, file: &mut File) -> BldrResult<()> {
-    let mut client = Client::new();
+    let client = Client::new();
     debug!("Uploading to {}", url);
     let metadata = try!(file.metadata());
     let res = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
@@ -43,7 +43,7 @@ pub fn download_key(key: &str, base_url: &str, path: &str) -> BldrResult<String>
 }
 
 pub fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
-    let mut client = Client::new();
+    let client = Client::new();
     debug!("Making request to url {}", url);
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);

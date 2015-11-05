@@ -111,7 +111,7 @@ impl actor::GenServer for SignalNotifier {
         }
     }
 
-    fn handle_timeout(&self, tx: &ActorSender<Self::T>, _: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self, tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
         unsafe {
             if CAUGHT.load(Ordering::SeqCst) {
                 match SIGNAL.load(Ordering::SeqCst) {

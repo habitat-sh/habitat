@@ -23,7 +23,7 @@ use std::thread;
 
 pub fn clear(key: &str) {
     let url = format!("http://etcd:4001/v2/keys/bldr/simple_service/{}/{}?recursive=true", thread::current().name().unwrap_or("main"), key);
-    let mut client = Client::new();
+    let client = Client::new();
     let request = client.delete(&url);
     let res = request.send().unwrap_or_else(|x| panic!("Error: {:?}; Failed to delete {}", x, url));
     match res.status {
@@ -34,7 +34,7 @@ pub fn clear(key: &str) {
 
 pub fn set(key: &str, body: &str) {
     let url = format!("http://etcd:4001/v2/keys/bldr/simple_service/{}/{}", thread::current().name().unwrap_or("main"), key);
-    let mut client = Client::new();
+    let client = Client::new();
     let req_options = vec![("value", body)];
     let req_body = url::form_urlencoded::serialize(&req_options);
     let request = client.put(&url)

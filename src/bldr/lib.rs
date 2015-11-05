@@ -1,3 +1,19 @@
+//
+// Copyright:: Copyright (c) 2015 Chef Software, Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 //! Bldr helps you build, manage, and run applications - on bare metal, in the cloud, and in
 //! containers. You can [read more about it, including setup instructions, in the README](README.html).
 //!
@@ -36,14 +52,12 @@ extern crate ansi_term;
 extern crate regex;
 extern crate libc;
 extern crate url;
-extern crate inotify;
 extern crate fnv;
 extern crate iron;
 extern crate router;
-extern crate mount;
-extern crate staticfile;
 extern crate time;
 extern crate wonder;
+extern crate uuid;
 
 pub mod error;
 pub mod command;
@@ -56,3 +70,7 @@ pub mod sidecar;
 pub mod health_check;
 pub mod config;
 pub mod repo;
+pub mod user_config;
+pub mod service_config;
+pub mod watch_config;
+pub mod census;
