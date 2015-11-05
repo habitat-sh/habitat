@@ -98,6 +98,11 @@ fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
         }
     }
 
+    if let Some(leader_ce) = worker.census.get_leader() {
+        println!("   {}: {} has already been elected; becoming a follower", preamble, leader_ce.candidate_string());
+        return Ok((State::BecomeFollower, 0));
+    }
+
     match worker.census.voting_finished() {
         Some(winner) => {
             let me = try!(worker.census.me());
