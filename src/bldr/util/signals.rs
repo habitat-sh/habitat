@@ -51,6 +51,7 @@ unsafe extern fn handle_signal(signal: u32) {
 pub enum Message {
     Signal(Signal),
     Stop,
+    Ok,
 }
 
 /// `i32` representation of each Unix Signal of interest.
@@ -106,8 +107,8 @@ impl actor::GenServer for SignalNotifier {
 
     fn handle_call(&self, message: Self::T, _: &ActorSender<Self::T>, _: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
         match message {
-            Message::Stop => HandleResult::Stop(StopReason::Normal, None),
-            msg => HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)), None),
+            Message::Stop => HandleResult::Stop(StopReason::Normal, Some(Message::Ok)),
+            msg => HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)), Some(Message::Ok)),
         }
     }
 
