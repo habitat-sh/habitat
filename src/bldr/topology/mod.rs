@@ -381,6 +381,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         // Next state!
         try!(sm.next(worker));
     }
-    try!(SignalNotifier::stop(&handler));
+    // Guess what? We don't seem to suffer from just shutting this shit down.
+    // try!(SignalNotifier::stop(&handler));
     Ok(())
 }
