@@ -30,7 +30,7 @@ use std::fs::File;
 
 use error::BldrResult;
 use config::Config;
-use pkg;
+use pkg::Package;
 
 /// Print the default.toml for a given package.
 ///
@@ -40,7 +40,7 @@ use pkg;
 /// * If the default.toml does not exist, or cannot be read
 /// * If we can't read the file into a string
 pub fn display(config: &Config) -> BldrResult<()> {
-    let package = try!(pkg::latest(config.package(), None));
+    let package = try!(Package::latest(config.package(), None));
     let mut file = try!(File::open(package.join_path("default.toml")));
     let mut s = String::new();
     try!(file.read_to_string(&mut s));

@@ -60,7 +60,7 @@
 
 use error::{BldrResult, BldrError};
 use config::Config;
-use pkg;
+use pkg::Package;
 use topology;
 
 /// Creates a [Package](../../pkg/struct.Package.html), then passes it to the run method of the
@@ -72,7 +72,7 @@ use topology;
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> BldrResult<()> {
-    let package = try!(pkg::latest(config.package(), None));
+    let package = try!(Package::latest(config.package(), None));
     match config.topology() {
         "standalone" => try!(topology::standalone::run(package, config)),
         "leader" => try!(topology::leader::run(package, config)),

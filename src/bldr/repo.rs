@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use error::{BldrError, BldrResult};
 use config::Config;
 
-use pkg;
+use pkg::Package;
 use util::http::XFileName;
 
 struct Repo {
@@ -137,7 +137,7 @@ fn download_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let pkg = rext.find("pkg").unwrap();
 
     // Hahaha - you thought deriv would work. Not so much.
-    let package = try!(pkg::latest(pkg, Some(&format!("{}/pkgs", &repo.path))));
+    let package = try!(Package::latest(pkg, Some(&format!("{}/pkgs", &repo.path))));
     println!("{:?}", package);
 
     let path = Path::new(&repo.path).join(format!("pkgs/{}/{}/{}/{}", &package.derivation, &package.name, &package.version, &package.release));

@@ -34,7 +34,6 @@ use std::thread;
 use error::{BldrResult, BldrError};
 use std::process::{Command, Stdio};
 use std::io::prelude::*;
-use pkg;
 use ansi_term::Colour::White;
 use pkg::Package;
 use state_machine::StateMachine;
@@ -77,7 +76,7 @@ pub fn state_configure(_worker: &mut Worker) -> Result<(State, u32), BldrError> 
 /// * If we cannot start the supervisor
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     println!("   {}: Starting", worker.preamble());
-    let runit_pkg = try!(pkg::latest("runit", None));
+    let runit_pkg = try!(Package::latest("runit", None));
     let mut child = try!(
         Command::new(runit_pkg.join_path("bin/runsv"))
         .arg(&format!("/opt/bldr/srvc/{}", worker.package.name))
