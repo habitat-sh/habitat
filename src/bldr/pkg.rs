@@ -19,11 +19,9 @@ use error::{BldrResult, BldrError};
 use std::cmp::Ordering;
 use std::cmp::PartialOrd;
 use std::process::Command;
-use std::fs::{self, DirEntry};
+use std::fs::{self, DirEntry, File};
 use std::path::PathBuf;
-use std::io;
 use std::io::prelude::*;
-use std::fs::File;
 
 use regex::Regex;
 
@@ -67,8 +65,37 @@ pub enum Signal {
 }
 
 impl Package {
+    pub fn new(deriv: String, name: String, version: String, release: String) -> Package {
+        Package{
+            derivation: deriv,
+            name: name,
+            version: version,
+            release: release,
+        }
+    }
+
+    pub fn latest(pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
+        let path = opt_path.unwrap_or("/opt/bldr/pkgs");
+        let pl = try!(Self::package_list(path));
+        let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg)
+            .fold(None, |winner, b| {
+                match winner {
+                    Some(a) => {
+                        match a.partial_cmp(&b) {
+                            Some(Ordering::Greater) => Some(a),
+                            Some(Ordering::Equal) => Some(a),
+                            Some(Ordering::Less) => Some(b.clone()),
+                            None => Some(a)
+                        }
+                    }
+                    None => Some(b.clone())
+                }
+            });
+        latest.ok_or(BldrError::PackageNotFound)
+    }
+
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(latest("runit", None));
+        let runit_pkg = try!(Self::latest("runit", None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -195,8 +222,8 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> BldrResult<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        for config_r in try!(fs::read_dir(self.join_path("config"))) {
-            let config = try!(extract_direntry(config_r));
+        for config in try!(fs::read_dir(self.join_path("config"))) {
+            let config = try!(config);
             match config.path().file_name() {
                 Some(filename) => {
                     files.push(filename.to_string_lossy().into_owned().to_string());
@@ -242,83 +269,72 @@ impl Package {
         try!(file.read_to_string(&mut result));
         Ok(result)
     }
-}
 
-pub fn new(deriv: &str, name: &str, version: &str, release: &str) -> Package {
-    Package{
-        derivation: String::from(deriv),
-        name: String::from(name),
-        version: String::from(version),
-        release: String::from(release),
-
+    /// Returns a list of package structs built from the contents of the given directory.
+    fn package_list(path: &str) -> BldrResult<Vec<Package>> {
+        let mut package_list: Vec<Package> = Vec::new();
+        if try!(fs::metadata(path)).is_dir() {
+            try!(Self::walk_derivations(&path, &mut package_list));
+        }
+        Ok(package_list)
     }
-}
 
-pub fn latest(pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
-    let path = if opt_path.is_some() { opt_path.unwrap() } else { "/opt/bldr/pkgs" };
-    let pl = try!(package_list(path));
-    let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg)
-        .fold(None, |winner, b| {
-            match winner {
-                Some(a) => {
-                    match a.partial_cmp(&b) {
-                        Some(Ordering::Greater) => Some(a),
-                        Some(Ordering::Equal) => Some(a),
-                        Some(Ordering::Less) => Some(b.clone()),
-                        None => Some(a)
-                    }
-                }
-                None => Some(b.clone())
-            }
-        });
-    latest.ok_or(BldrError::PackageNotFound)
-}
-
-fn extract_direntry(direntry: Result<DirEntry, io::Error>) -> BldrResult<DirEntry> {
-    match direntry {
-        Ok(x) => Ok(x),
-        Err(e) => Err(From::from(e))
-    }
-}
-
-fn extract_filename(direntry: PathBuf) -> BldrResult<String> {
-    let value = try!(direntry.file_name().ok_or(BldrError::FileNameError));
-    Ok(value.to_string_lossy().into_owned().to_string())
-}
-
-/// So, hey rust. You're cool and all. But you haven't stabilized
-/// is_dir(), which means if we want to stay on stable rust, we can't
-/// actually check to see if the shit we are dealing with is a directory.
-///
-/// The result is pretty simple - we are going to throw a failure if you
-/// put anything in any of the interstitial directories in /opt/bldr/pkgs
-/// that isn't a directory. Fun times.
-pub fn package_list(path: &str) -> BldrResult<Vec<Package>> {
-    let mut package_list: Vec<Package> = Vec::new();
-    for derivation_r in try!(fs::read_dir(path)) {
-        let derivation = try!(extract_direntry(derivation_r));
-        for name_r in try!(fs::read_dir(derivation.path())) {
-            let name = try!(extract_direntry(name_r));
-            for version_r in try!(fs::read_dir(name.path())) {
-                let version = try!(extract_direntry(version_r));
-                for release_r in try!(fs::read_dir(version.path())) {
-                    let release = try!(extract_direntry(release_r));
-                    let d = try!(extract_filename(derivation.path()));
-                    let n = try!(extract_filename(name.path()));
-                    let v = try!(extract_filename(version.path()));
-                    let r = try!(extract_filename(release.path()));
-                    let package = Package{
-                        derivation: d,
-                        name: n,
-                        version: v,
-                        release: r,
-                    };
-                    package_list.push(package);
-                }
+    /// Helper function for package_list. Walks the given path for derivation directories
+    /// and builds on the given package list by recursing into name, version, and release
+    /// directories.
+    fn walk_derivations(path: &str, packages: &mut Vec<Package>) -> BldrResult<()> {
+        for entry in try!(fs::read_dir(path)) {
+            let derivation = try!(entry);
+            if try!(fs::metadata(derivation.path())).is_dir() {
+                try!(Self::walk_names(&derivation, packages));
             }
         }
+        Ok(())
     }
-    Ok(package_list)
+
+    /// Helper function for walk_derivations. Walks the given derivation DirEntry for name
+    /// directories and recurses into them to find version and release directories.
+    fn walk_names(derivation: &DirEntry, packages: &mut Vec<Package>) -> BldrResult<()> {
+        for name in try!(fs::read_dir(derivation.path())) {
+            let name = try!(name);
+            let derivation = derivation.file_name().to_string_lossy().into_owned().to_string();
+            if try!(fs::metadata(name.path())).is_dir() {
+                try!(Self::walk_versions(&derivation, &name, packages));
+            }
+        }
+        Ok(())
+    }
+
+    /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
+    /// into them to find release directories.
+    fn walk_versions(derivation: &String, name: &DirEntry, packages: &mut Vec<Package>) -> BldrResult<()> {
+        for version in try!(fs::read_dir(name.path())) {
+            let version = try!(version);
+            let name = name.file_name().to_string_lossy().into_owned().to_string();
+            if try!(fs::metadata(version.path())).is_dir() {
+                try!(Self::walk_releases(derivation, &name, &version, packages));
+            }
+        }
+        Ok(())
+    }
+
+    /// Helper function for walk_versions. Walks the given release DirEntry for directories and recurses
+    /// into them to find version directories. Finally, a Package struct is built and concatenated onto
+    /// the given packages vector with the derivation, name, version, and release of each.
+    fn walk_releases(derivation: &String, name: &String, version: &DirEntry, packages: &mut Vec<Package>) -> BldrResult<()> {
+        for release in try!(fs::read_dir(version.path())) {
+            let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
+            let version = version.file_name().to_string_lossy().into_owned().to_string();
+            let package = Package::new(
+                derivation.clone(),
+                name.clone(),
+                version,
+                release,
+            );
+            packages.push(package)
+        }
+        Ok(())
+    }
 }
 
 /// Sorts two packages according to their version.

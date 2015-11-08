@@ -32,7 +32,7 @@ use std::thread;
 
 use error::{BldrError, BldrResult};
 
-use pkg::{self, Package, Signal};
+use pkg::{Package, Signal};
 use health_check;
 
 /// The sidecar state
@@ -48,7 +48,7 @@ impl Sidecar {
     ///
     /// * If the package cannot be found
     fn new(pkg: &str) -> BldrResult<Arc<Sidecar>> {
-        let package = try!(pkg::latest(pkg, None));
+        let package = try!(Package::latest(pkg, None));
         Ok(Arc::new(Sidecar{package: package}))
     }
 }
