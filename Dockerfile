@@ -4,6 +4,7 @@ MAINTAINER Adam Jacob <adam@chef.io>
 ENV TRIPLE x86_64-unknown-linux-gnu
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    dh-autoreconf \
     build-essential \
     ca-certificates \
     curl \

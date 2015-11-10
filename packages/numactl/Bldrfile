@@ -1,0 +1,17 @@
+pkg_name=numactl
+pkg_version=2.0.10
+pkg_license=('GPLv2', 'LGPL2.1')
+pkg_source=ftp://oss.sgi.com/www/projects/libnuma/download/${pkg_name}-${pkg_version}.tar.gz
+pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+pkg_shasum=dbdac8fe74f13b2e2864bba352f1597ab1d3345c8c485d7805f58d66f414db61
+pkg_gpg_key=3853DA6B
+pkg_deps=(glibc)
+pkg_lib_dirs=(lib)
+pkg_include_dirs=(include)
+pkg_binary_path=(bin)
+
+build() {
+  ./autogen.sh
+  ./configure --prefix=$pkg_prefix
+}
+
