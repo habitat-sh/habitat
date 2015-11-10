@@ -5,6 +5,7 @@ ENV TRIPLE x86_64-unknown-linux-gnu
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    patchutils \
     ca-certificates \
     curl \
     file \
