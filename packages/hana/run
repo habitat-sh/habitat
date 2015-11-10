@@ -1,0 +1,86 @@
+#!/bin/bash
+
+trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+    echo "$var"
+}
+
+latest_package() {
+  # Count the number of slashes, and use it to make a choice
+  # about what to return as the latest package.
+  latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
+  case $(trim $latest_package_flags) in
+    "3")
+      echo "/opt/bldr/pkgs/$1" ;;
+    "2")
+      echo $(find /opt/bldr/pkgs/${1} -maxdepth 1 -type d | sort -r | head -n 1) ;;
+    "1")
+      echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort -r | head -n 1) ;;
+  esac
+}
+
+hana_path=$(latest_package bldr/hana)
+
+# Because we like to party, we just put all the libraries in the lib cache.
+find /opt/bldr/pkgs -name 'LD_RUN_PATH' | xargs cat | tr ':' '\n' > /etc/ld.so.conf
+glibc_path=$(latest_package bldr/glibc)
+$glibc_path/sbin/ldconfig.real
+
+export LD_LIBRARY_PATH=$(find /opt/bldr/pkgs -name 'LD_RUN_PATH' | xargs cat | tr '\n' :)
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$hana_path/bin/instruntime
+pkg_prefix=$hana_path
+# This needs to have the path be correct for hana
+
+if [[ -d "/usr/sap" ]]; then
+  echo "HANA is already installed"
+else
+  echo "Installing HANA runtime"
+  echo "return 0" > /bin/chkconfig
+  chmod a+x /bin/chkconfig
+  cat <<EOT > /tmp/hana-passwords
+<?xml version="1.0" encoding="UTF-8"?>
+<Passwords>
+<password>Password1234</password>
+<sapadm_password>Password1234</sapadm_password>
+<system_user_password>Password1234</system_user_password>
+<root_password>Password1234</root_password>
+</Passwords>
+EOT
+  env HDB_IGNORE_HANA_PLATFORM_CHECK=1 LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
+  cat /tmp/hana-passwords | $pkg_prefix/bin/hdblcm \
+    --b \
+    --components=all \
+    --sid BDR \
+    --number=42 \
+    --userid=5150 \
+    --groupid=5150 \
+    --shell=/bin/bash \
+    --batch \
+    --read_password_from_stdin=xml \
+    --hdbinst_server_ignore=check_min_mem,check_platform,check_diskspace \
+    --ignore=check_signature_file
+fi
+
+echo "Starting SAP HANA"
+/usr/sap/hostctrl/exe/sapcontrol -nr 42 -function Start
+if [[ $? -ne 0 ]]; then
+  echo "Failed to send start to SAP HANA"
+fi
+
+echo "SAP HANA has baked your muffins"
+
+on_exit() {
+  local exit_status=${1:-$?}
+  /usr/sap/hostctrl/exe/sapcontrol -nr 42 -function Stop
+  if [[ $? -ne 4 ]]; then
+    echo "SAP HANA failed to stop; going to die anyway!"
+  fi
+  exit $exit_status
+}
+
+trap on_exit 1 2 3 15 ERR
+
+find /hana /usr/sap -name '*.log' | xargs tail -f
+

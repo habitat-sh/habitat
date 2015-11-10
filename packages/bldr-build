@@ -285,6 +285,9 @@ pkg_service_run=''
 # container unless a Dockerfile is present. Auto will create the
 # Dockerfile, overwriting any that may be present.
 pkg_docker_build=false
+# Allows you to tweak the docker image we start from. We think it would be great
+# if you never used this. :)
+pkg_docker_from="bldr/base"
 # An array of ports to expose.
 pkg_expose=()
 # The user to run the service as
@@ -740,8 +743,8 @@ config() {
 # Also, if there is a `health` script, we copy it to
 # `$pkg_path/health`.
 service() {
-  if [[ -d $BUILD_SRC_CACHE/$pkg_dirname/run ]]; then
-    cp $BUILD_SRC_CACHE/$pkg_dirname/run $pkg_path
+  if [[ -f $BLDR_CONTEXT/run ]]; then
+    cp $BLDR_CONTEXT/run $pkg_path
   else
     if [[ -n "${pkg_service_run}" ]]; then
       if [[ "${pkg_service_user}" = "bldr" ]]; then
@@ -839,6 +842,12 @@ dockerfile_wrapper() {
   rm -rf "$DOCKER_CONTEXT"
 }
 
+# Add additional entries to the generated Dockerfile. Use something fancy like `echo` to
+# return some data, and it will get inlined.
+docker_inline() {
+  return 0
+}
+
 # Build the docker container. If `$pkg_docker_build` is set to `auto`,
 # create the Dockerfile first.
 #
@@ -849,9 +858,46 @@ dockerfile() {
     mkdir -p ./${pkg_name}-cache
     rsync -av --delete $pkg_path/* ./${pkg_name}-cache
     cat <<EOT > ./Dockerfile
-FROM bldr/base
+FROM $pkg_docker_from
 MAINTAINER $pkg_maintainer
 WORKDIR /
+EOT
+    docker_inline_data=$(docker_inline)
+    if [[ -z "$docker_inline_data" ]]; then
+      cat <<EOT >> ./Dockerfile
+$docker_inline_data
+EOT
+    fi
+    if [[ $pkg_docker_from != "bldr/base" ]]; then
+      pkg_deps+=("bldr")
+      pkg_deps+=("cacerts")
+      pkg_deps+=("glibc")
+      pkg_deps+=("gnupg")
+      pkg_deps+=("libgcc")
+      pkg_deps+=("openssl")
+      pkg_deps+=("zlib")
+      pkg_deps+=("runit")
+      cat <<EOT >> ./Dockerfile
+ENTRYPOINT ["bldr"]
+RUN ln -sf $(latest_package bldr/bldr)/bin/bldr /bin/bldr && \
+    ln -sf $(latest_package bldr/gnupg)/bin/gpg /bin/gpg && \
+    ln -sf $(latest_package bldr/gnupg)/bin/gpg-zip /bin/gpg-zip && \
+    ln -sf $(latest_package bldr/gnupg)/bin/gpgsplit /bin/gpgsplit && \
+    ln -sf $(latest_package bldr/gnupg)/bin/gpgv /bin/gpgv && \
+    ln -sf $(latest_package bldr/runit)/bin/chpst /bin/chpst && \
+    ln -sf $(latest_package bldr/runit)/bin/runit /bin/runit && \
+    ln -sf $(latest_package bldr/runit)/bin/runit-init /bin/runit-init && \
+    ln -sf $(latest_package bldr/runit)/bin/runsv /bin/runsv && \
+    ln -sf $(latest_package bldr/runit)/bin/runsvchdir /bin/runsvchdir && \
+    ln -sf $(latest_package bldr/runit)/bin/runsvdir /bin/runsvdir && \
+    ln -sf $(latest_package bldr/runit)/bin/sv /bin/sv && \
+    ln -sf $(latest_package bldr/runit)/bin/svlogd /bin/svlogd && \
+    ln -sf $(latest_package bldr/runit)/bin/utmpset /bin/utmpset && \
+    addgroup bldr && \
+    adduser --system --disabled-password bldr
+EOT
+    fi
+    cat <<EOT >> ./Dockerfile
 COPY ${pkg_name}-cache/ $pkg_path/
 EOT
     for dep in "${pkg_deps[@]}"; do
