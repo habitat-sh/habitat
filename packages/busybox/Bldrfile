@@ -2,7 +2,6 @@ pkg_name=busybox
 pkg_version=1.23.2
 pkg_license=('GPLv2')
 pkg_source=http://www.busybox.net/downloads/${pkg_name}-${pkg_version}.tar.bz2
-pkg_filename=${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=05a6f9e21aad8c098e388ae77de7b2361941afa7157ef74216703395b14e319a
 pkg_gpg_key=3853DA6B
 pkg_deps=(glibc)

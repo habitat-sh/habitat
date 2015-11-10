@@ -912,6 +912,11 @@ else
   exit_with "Failed to load Bldrfile" $ret
 fi
 
+# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `Bldrfile`.
+if [[ -z "${pkg_filename+xxx}" ]]; then
+  pkg_filename="$(basename $pkg_source)"
+fi
+
 # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not already set by the `Bldrfile`.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
