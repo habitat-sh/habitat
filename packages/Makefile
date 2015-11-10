@@ -15,6 +15,11 @@ world: gpg
 	./bldr-build pcre
 	./bldr-build nginx
 	./bldr-build haproxy
+	./bldr-build libaio
+	./bldr-build libltdl
+	./bldr-build libxml2
+	./bldr-build numactl
+	./bldr-build perl
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 gpg:
