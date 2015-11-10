@@ -516,8 +516,8 @@ unpack() {
   if [[ -f $unpack_file ]]; then
       pushd $BLDR_SRC_CACHE > /dev/null
       case $unpack_file in
-          *.tar.bz2)   tar xjf $unpack_file    ;;
-          *.tar.gz)    tar xzf $unpack_file    ;;
+          *.tar.bz2)   tar xjf $unpack_file     ;;
+          *.tar.gz)    tar xzf $unpack_file     ;;
           *.bz2)       bunzip2 $unpack_file     ;;
           *.rar)       rar x $unpack_file       ;;
           *.gz)        gunzip $unpack_file      ;;
@@ -527,7 +527,8 @@ unpack() {
           *.zip)       unzip $unpack_file       ;;
           *.Z)         uncompress $unpack_file  ;;
           *.7z)        7z x $unpack_file        ;;
-          *)           echo "don't know '$1'..."; return 1 ;;
+          *.xz)        tar xf $unpack_file      ;;
+          *)           echo "Error: unknown archive format '.${unpack_file##*.}'"; return 1 ;;
       esac
   else
       echo "'$1' is not a valid file!"
