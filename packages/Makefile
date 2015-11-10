@@ -1,6 +1,4 @@
-world:
-	- gpg --import chef-public.gpg
-	- gpg --import chef-private.gpg
+world: gpg
 	./bldr-build glibc
 	./bldr-build libgcc
 	./bldr-build zlib
@@ -18,6 +16,10 @@ world:
 	./bldr-build nginx
 	./bldr-build haproxy
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
+
+gpg:
+	- gpg --import chef-public.gpg
+	- gpg --import chef-private.gpg
 
 clean:
 	rm -rf /opt/bldr/pkgs/*
