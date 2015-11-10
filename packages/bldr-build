@@ -527,7 +527,7 @@ unpack() {
           *.zip)       unzip $unpack_file       ;;
           *.Z)         uncompress $unpack_file  ;;
           *.7z)        7z x $unpack_file        ;;
-          *)           echo "don't know '$1'..."; return 1 ;;
+          *)           echo "Error: unknown archive format '.${unpack_file##*.}'"; return 1 ;;
       esac
   else
       echo "'$1' is not a valid file!"
