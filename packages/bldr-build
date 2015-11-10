@@ -485,14 +485,16 @@ download() {
 # has the `$pkg_shasum` we expect.
 verify() {
   if exists gsha256sum; then
-    verify_output=$(gsha256sum $BLDR_SRC_CACHE/$pkg_filename)
+    checksum=($(gsha256sum $BLDR_SRC_CACHE/$pkg_filename))
   else
-    verify_output=$(sha256sum $BLDR_SRC_CACHE/$pkg_filename)
+    checksum=($(sha256sum $BLDR_SRC_CACHE/$pkg_filename))
   fi
-  if [[ "$pkg_shasum  $BLDR_SRC_CACHE/$pkg_filename" = "$verify_output" ]]; then
+  if [[ $pkg_shasum = $checksum ]]; then
     build_line "Checksum verified"
   else
-    build_line "Checksum invalid; looking for $pkg_shasum. Got:\n$verify_output"
+    build_line "Checksum invalid:"
+    build_line "   Expected: $pkg_shasum"
+    build_line "   Received: ${checksum}"
     return 1
   fi
   return 0
