@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm \
     rsync \
     wget \
+    m4 \
   && rm -rf /var/lib/apt/lists/*
 
 ENV SHELL /bin/bash
