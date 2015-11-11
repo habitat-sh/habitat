@@ -8,6 +8,9 @@ bldr:
     - "bldr-cargo-cache"
     - "bldr-keys-cache"
     - "bldr-installed-cache"
+  environment:
+    - http_proxy=$http_proxy
+    - https_proxy=$https_proxy
   links:
     - etcd
 
@@ -23,11 +26,17 @@ package:
     - "bldr-keys-cache"
     - "bldr-src-cache"
     - "bldr-installed-cache"
+  environment:
+    - http_proxy=$http_proxy
+    - https_proxy=$https_proxy
   links:
     - etcd
 
 base:
   image: bldr
+  environment:
+    - http_proxy=$http_proxy
+    - https_proxy=$https_proxy
   links:
     - etcd
 
