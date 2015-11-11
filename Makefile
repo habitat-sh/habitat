@@ -48,7 +48,7 @@ cargo-volume-clean:
 	if [ -n "`$(container_with) name=bldr-cargo-cache`" ]; then docker rm bldr-cargo-cache; fi
 
 container:
-	docker build -t chef/bldr --no-cache=${NO_CACHE} .
+	docker build --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} -t chef/bldr --no-cache=${NO_CACHE} .
 
 test:
 	docker-compose run package cargo test
@@ -86,7 +86,7 @@ base-shell:
 	docker-compose run base
 
 clean:
-	docker rm $(docker ps -q -f status=exited)
+	docker rm $(docker ps -a -q -f status=exited)
 	docker images -q -f dangling=true | xargs docker rmi
 
 redis:
