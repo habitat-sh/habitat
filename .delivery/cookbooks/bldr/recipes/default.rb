@@ -18,8 +18,8 @@
 
 docker_kernel = node['kernel']['name']
 docker_arch = node['kernel']['machine']
-compose_version = '1.4.2'
-compose_checksum = 'd5fca08d54f59649b93b66a781b22998955f2bd701244fcfd650c00daa9e948c'
+compose_version = '1.5.0'
+compose_checksum = 'f920ae9e3907b5007d3d833f1d369f908eeeabf31f292130636102b0c9b6ddf1'
 compose_url = "https://github.com/docker/compose/releases/download/#{compose_version}/docker-compose-#{docker_kernel}-#{docker_arch}"
 
 # to give us `make` and friends
