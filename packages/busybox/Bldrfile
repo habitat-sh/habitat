@@ -1,4 +1,5 @@
 pkg_name=busybox
+pkg_derivation=chef
 pkg_version=1.23.2
 pkg_license=('GPLv2')
 pkg_source=http://www.busybox.net/downloads/${pkg_name}-${pkg_version}.tar.bz2

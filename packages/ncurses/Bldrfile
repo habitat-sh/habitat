@@ -2,6 +2,7 @@
 # vi: set ft=sh :
 
 pkg_name=ncurses
+pkg_derivation=chef
 pkg_version=5.9
 pkg_license=('ncurses')
 pkg_source=http://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz
