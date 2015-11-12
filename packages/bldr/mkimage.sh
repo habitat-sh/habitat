@@ -28,17 +28,17 @@ if [[ -n "$DEBUG" ]]; then
   set -x
 fi
 
-BUSYBOX_ROOT=$(latest_package bldr/busybox)
-BLDR_ROOT=$(latest_package bldr/bldr)
-GPG_ROOT=$(latest_package bldr/gnupg)
-RUNIT_ROOT=$(latest_package bldr/runit)
+BUSYBOX_ROOT=$(latest_package chef/busybox)
+BLDR_ROOT=$(latest_package chef/bldr)
+GPG_ROOT=$(latest_package chef/gnupg)
+RUNIT_ROOT=$(latest_package chef/runit)
 
 WORKDIR="$(pwd)"
 ROOTFS=${TMPDIR:-/var/tmp}/rootfs-busybox-$$-$RANDOM
 mkdir $ROOTFS
 cd $ROOTFS
 
-mkdir -p bin sbin etc dev dev/pts lib proc sys tmp opt/bldr/pkgs/bldr
+mkdir -p bin sbin etc dev dev/pts lib proc sys tmp opt/bldr/pkgs/chef
 cat <<EOT >> etc/resolv.conf
 nameserver 8.8.8.8
 nameserver 8.8.4.4
@@ -59,15 +59,15 @@ echo bldr:x:42:42:root:/:/bin/sh >> etc/passwd
 echo root:x:0: > etc/group
 echo bldr:x:42:bldr >> etc/group
 ln -s lib lib64
-cp -r /opt/bldr/pkgs/bldr/bldr opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/busybox opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/cacerts opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/glibc opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/gnupg opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/libgcc opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/openssl opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/zlib opt/bldr/pkgs/bldr
-cp -r /opt/bldr/pkgs/bldr/runit opt/bldr/pkgs/bldr
+cp -r /opt/bldr/pkgs/chef/bldr opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/busybox opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/cacerts opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/glibc opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/gnupg opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/libgcc opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/openssl opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/zlib opt/bldr/pkgs/chef
+cp -r /opt/bldr/pkgs/chef/runit opt/bldr/pkgs/chef
 
 for x in $($BUSYBOX_ROOT/bin/busybox --list); do
 	ln -s $BUSYBOX_ROOT/bin/busybox bin/$x
