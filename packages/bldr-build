@@ -750,11 +750,11 @@ service() {
     if [[ -n "${pkg_service_run}" ]]; then
       if [[ "${pkg_service_user}" = "bldr" ]]; then
         cat <<EOT >> $pkg_path/run
-#!$(latest_package bldr/busybox)/bin/sh
+#!$(latest_package chef/busybox)/bin/sh
 cd /opt/bldr/srvc/$pkg_name
 
 if [ "\$(whoami)" = "root" ]; then
-  exec $(latest_package bldr/busybox)/bin/chpst \\
+  exec $(latest_package chef/busybox)/bin/chpst \\
     -U bldr:bldr \\
     -u bldr:bldr \\
     $pkg_path/$pkg_service_run 2>&1
@@ -764,7 +764,7 @@ fi
 EOT
       else
         cat <<EOT >> $pkg_path/run
-#!$(latest_package bldr/busybox)/bin/sh
+#!$(latest_package chef/busybox)/bin/sh
 cd /opt/bldr/srvc/$pkg_name
 
 exec $pkg_path/$pkg_service_run 2>&1
@@ -870,30 +870,30 @@ $docker_inline_data
 EOT
     fi
     if [[ $pkg_docker_from != "bldr/base" ]]; then
-      pkg_deps+=("bldr")
-      pkg_deps+=("cacerts")
-      pkg_deps+=("glibc")
-      pkg_deps+=("gnupg")
-      pkg_deps+=("libgcc")
-      pkg_deps+=("openssl")
-      pkg_deps+=("zlib")
-      pkg_deps+=("runit")
+      pkg_deps+=("chef/bldr")
+      pkg_deps+=("chef/cacerts")
+      pkg_deps+=("chef/glibc")
+      pkg_deps+=("chef/gnupg")
+      pkg_deps+=("chef/libgcc")
+      pkg_deps+=("chef/openssl")
+      pkg_deps+=("chef/zlib")
+      pkg_deps+=("chef/runit")
       cat <<EOT >> ./Dockerfile
 ENTRYPOINT ["bldr"]
-RUN ln -sf $(latest_package bldr/bldr)/bin/bldr /bin/bldr && \
-    ln -sf $(latest_package bldr/gnupg)/bin/gpg /bin/gpg && \
-    ln -sf $(latest_package bldr/gnupg)/bin/gpg-zip /bin/gpg-zip && \
-    ln -sf $(latest_package bldr/gnupg)/bin/gpgsplit /bin/gpgsplit && \
-    ln -sf $(latest_package bldr/gnupg)/bin/gpgv /bin/gpgv && \
-    ln -sf $(latest_package bldr/runit)/bin/chpst /bin/chpst && \
-    ln -sf $(latest_package bldr/runit)/bin/runit /bin/runit && \
-    ln -sf $(latest_package bldr/runit)/bin/runit-init /bin/runit-init && \
-    ln -sf $(latest_package bldr/runit)/bin/runsv /bin/runsv && \
-    ln -sf $(latest_package bldr/runit)/bin/runsvchdir /bin/runsvchdir && \
-    ln -sf $(latest_package bldr/runit)/bin/runsvdir /bin/runsvdir && \
-    ln -sf $(latest_package bldr/runit)/bin/sv /bin/sv && \
-    ln -sf $(latest_package bldr/runit)/bin/svlogd /bin/svlogd && \
-    ln -sf $(latest_package bldr/runit)/bin/utmpset /bin/utmpset && \
+RUN ln -sf $(latest_package chef/bldr)/bin/bldr /bin/bldr && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpg /bin/gpg && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpg-zip /bin/gpg-zip && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpgsplit /bin/gpgsplit && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpgv /bin/gpgv && \
+    ln -sf $(latest_package chef/runit)/bin/chpst /bin/chpst && \
+    ln -sf $(latest_package chef/runit)/bin/runit /bin/runit && \
+    ln -sf $(latest_package chef/runit)/bin/runit-init /bin/runit-init && \
+    ln -sf $(latest_package chef/runit)/bin/runsv /bin/runsv && \
+    ln -sf $(latest_package chef/runit)/bin/runsvchdir /bin/runsvchdir && \
+    ln -sf $(latest_package chef/runit)/bin/runsvdir /bin/runsvdir && \
+    ln -sf $(latest_package chef/runit)/bin/sv /bin/sv && \
+    ln -sf $(latest_package chef/runit)/bin/svlogd /bin/svlogd && \
+    ln -sf $(latest_package chef/runit)/bin/utmpset /bin/utmpset && \
     addgroup bldr && \
     adduser --system --disabled-password bldr
 EOT
