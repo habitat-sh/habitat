@@ -267,7 +267,7 @@ BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
 # The first argument to the script is a bldr context directory, containing a Bldrfile
 BLDR_CONTEXT=${1:-.}
 # The default derivation is `bldr`
-pkg_derivation=bldr
+pkg_derivation=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_rel=$(date -u +%Y%m%d%H%M%S)
 # The default deps setting - an empty array
@@ -910,6 +910,10 @@ if source "$BLDR_CONTEXT/Bldrfile"; then
 else
   ret=$?
   exit_with "Failed to load Bldrfile" $ret
+fi
+
+if [[ -z "${pkg_derivation}" ]]; then
+  exit_with "Failed to build. 'pkg_derivation' must be set." 1
 fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `Bldrfile`.
