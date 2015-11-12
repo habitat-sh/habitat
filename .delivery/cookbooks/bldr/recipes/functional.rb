@@ -1,6 +1,6 @@
 workspace = node['delivery']['workspace']['repo']
 
-execute 'make volume-clean all' do
+execute 'make clean all' do
   cwd workspace
 end
 
