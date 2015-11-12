@@ -253,7 +253,7 @@ impl<'a> Worker<'a> {
 /// * The topology state machine returns an error
 fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
     try!(worker.package.create_srvc_path());
-    try!(worker.package.copy_run());
+    try!(worker.package.copy_run(&worker.service_config));
 
     let handler = wonder::actor::Builder::new(SignalNotifier).name("signal-handler".to_string()).start(()).unwrap();
     println!("   {}({}): Watching census", worker.package.name, White.bold().paint("D"));
@@ -374,6 +374,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         if !worker.census.in_event {
             // Write the configuration, and restart if needed
             if try!(worker.service_config.write(&worker.package)) {
+                try!(worker.package.copy_run(&worker.service_config));
                 try!(worker.package.reconfigure(&worker.service_config));
             }
         }
