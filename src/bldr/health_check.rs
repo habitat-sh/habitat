@@ -15,10 +15,7 @@
 // limitations under the License.
 //
 
-use std::process::Command;
 use std::fmt::{self, Display, Formatter};
-
-use error::{BldrResult, BldrError};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Status {
@@ -34,6 +31,31 @@ pub struct CheckResult {
     pub output: String
 }
 
+impl CheckResult {
+    pub fn ok(output: String) -> Self {
+        Self::new(Status::Ok, output)
+    }
+
+    pub fn warning(output: String) -> Self {
+        Self::new(Status::Warning, output)
+    }
+
+    pub fn critical(output: String) -> Self {
+        Self::new(Status::Critical, output)
+    }
+
+    pub fn unknown(output: String) -> Self {
+        Self::new(Status::Unknown, output)
+    }
+
+    fn new(status: Status, output: String) -> Self {
+        CheckResult {
+            status: status,
+            output: output,
+        }
+    }
+}
+
 impl Display for CheckResult {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let status_code = match self.status {
@@ -43,33 +65,5 @@ impl Display for CheckResult {
             Status::Unknown => "UNKNOWN",
         };
         write!(f, "{} - {}", status_code, self.output)
-    }
-}
-
-pub fn run(check: &str) -> BldrResult<CheckResult> {
-    let result = try!(Command::new(check).output());
-    let stdout = try!(String::from_utf8(result.stdout));
-    let stderr = try!(String::from_utf8(result.stderr));
-    let output = format!("{}\n{}", stdout, stderr);
-
-    match result.status.code() {
-        Some(0) => {
-            Ok(CheckResult{ status: Status::Ok, output: output })
-        },
-        Some(1) => {
-            Ok(CheckResult{ status: Status::Warning, output: output })
-        },
-        Some(2) => {
-            Ok(CheckResult{ status: Status::Critical, output: output })
-        }
-        Some(3) => {
-            Ok(CheckResult{ status: Status::Unknown, output: output })
-        },
-        Some(x) => {
-            Err(BldrError::HealthCheck(format!("exited {}: {}", x, output)))
-        },
-        None => {
-            Err(BldrError::HealthCheck(format!("exited from a signal: {}", output)))
-        }
     }
 }
