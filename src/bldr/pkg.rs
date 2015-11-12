@@ -20,6 +20,7 @@ use std::cmp::PartialOrd;
 use std::process::{self, Command};
 use std::fmt;
 use std::fs::{self, DirEntry, File, OpenOptions};
+use std::os::unix;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 use std::io::prelude::*;
@@ -34,6 +35,7 @@ use util::{self, convert};
 
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
+const RUN_FILENAME: &'static str = "run";
 
 #[derive(Debug, Clone, Eq)]
 pub struct Package {
@@ -47,6 +49,7 @@ pub struct Package {
 pub enum HookType {
     HealthCheck,
     Reconfigure,
+    Run,
 }
 
 impl fmt::Display for HookType {
@@ -54,13 +57,14 @@ impl fmt::Display for HookType {
         match self {
             &HookType::HealthCheck => write!(f, "health_check"),
             &HookType::Reconfigure => write!(f, "reconfigure"),
+            &HookType::Run => write!(f, "run"),
         }
     }
 }
 
 pub struct Hook {
     pub htype: HookType,
-    template: PathBuf,
+    pub template: PathBuf,
     path: PathBuf,
 }
 
@@ -91,7 +95,7 @@ impl Hook {
         }
     }
 
-    fn compile(&self, context: Option<&ServiceConfig>) -> BldrResult<()> {
+    pub fn compile(&self, context: Option<&ServiceConfig>) -> BldrResult<()> {
         if let Some(ctx) = context {
             let template = try!(mustache::compile_path(&self.template));
             let mut out = Vec::new();
@@ -125,6 +129,7 @@ pub struct HookTable<'a> {
     pub package: &'a Package,
     pub health_check_hook: Option<Hook>,
     pub reconfigure_hook: Option<Hook>,
+    pub run_hook: Option<Hook>,
 }
 
 impl<'a> HookTable<'a> {
@@ -133,6 +138,7 @@ impl<'a> HookTable<'a> {
             package: package,
             health_check_hook: None,
             reconfigure_hook: None,
+            run_hook: None,
         }
     }
 
@@ -144,6 +150,7 @@ impl<'a> HookTable<'a> {
                 if meta.is_dir() {
                     self.reconfigure_hook = self.load_hook(HookType::Reconfigure);
                     self.health_check_hook = self.load_hook(HookType::HealthCheck);
+                    self.run_hook = self.load_hook(HookType::Run);
                 }
             }
             Err(_) => { }
@@ -299,6 +306,7 @@ impl Package {
         match *hook_type {
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
             HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
+            HookType::Run => base.join(RUN_FILENAME),
         }
     }
 
@@ -307,6 +315,7 @@ impl Package {
         match *hook_type {
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
             HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
+            HookType::Run => base.join(RUN_FILENAME),
         }
     }
 
@@ -347,10 +356,16 @@ impl Package {
     }
 
     /// Copy the "run" file to the srvc path.
-    pub fn copy_run(&self) -> BldrResult<()> {
+    pub fn copy_run(&self, context: &ServiceConfig) -> BldrResult<()> {
         debug!("Copying the run file");
-        try!(fs::copy(self.join_path("run"), self.srvc_join_path("run")));
-        try!(util::perm::set_permissions(&self.srvc_join_path("run"), "0755"));
+        let run_path = self.srvc_join_path(RUN_FILENAME);
+        if let Some(hook) = self.hooks().run_hook {
+            try!(hook.compile(Some(context)));
+            try!(unix::fs::symlink(hook.path, &run_path));
+        } else {
+            try!(fs::copy(self.join_path(RUN_FILENAME), &run_path));
+            try!(util::perm::set_permissions(&run_path, "0755"));
+        }
         Ok(())
     }
 
