@@ -1,4 +1,4 @@
-pkg_name=lib32-libltdl
+pkg_name=libltdl
 pkg_derivation=chef
 pkg_version=2.4.6
 pkg_license=('GPL')
