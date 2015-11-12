@@ -1,1 +1,9 @@
 .delivery
+.git
+demo
+images
+packages
+src
+target
+tests
+vendor

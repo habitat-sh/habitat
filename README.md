@@ -88,12 +88,13 @@ by having a convention cover it. When we do need to configure things, we set san
 
 1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
-1. [Install Stable Rust](https://www.rust-lang.org/install.html) `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
 1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
 1. Run `make`
 1. Run `make test`
 
 Everything should come up green. Congratulations - you have a working Bldr development environment.
+
+**Optional:** This project compiles and runs inside Docker containers so while installing the Rust language isn't strictly necessary, you might want a local copy of Rust on your workstation (some editors' language support require an installed version). To [install stable Rust](https://www.rust-lang.org/install.html), run: `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
 
 **Optional:** This project currently uses GitHub integration wtih Delivery so
 while the delivery-cli tool is not strictly necessary to initiate reviews, it

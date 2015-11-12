@@ -1,69 +1,58 @@
-pwd = $(shell pwd)
-container_prefix = bldr
-NO_CACHE = false
-container_with = docker ps -a -q -f
+build_args :=
+run_args :=
+ifneq (${docker_http_proxy},)
+	_http_proxy := http_proxy="${docker_http_proxy}"
+	build_args := $(build_args) --build-arg $(_http_proxy)
+	run_args := $(run_args) -e $(_http_proxy)
+endif
+ifneq (${docker_https_proxy},)
+	_https_proxy := https_proxy="${docker_https_proxy}"
+	build_args := $(build_args) --build-arg $(_https_proxy)
+	run_args := $(run_args) -e $(_https_proxy)
+endif
 
-.PHONY: container test run shell clean bldr-base package-clean packages
+run := docker-compose run --rm $(run_args)
+VOLUMES := installed cache_pkgs cache_src cache_keys cargo
+CLEAN_VOLUMES := clean-installed clean-cache_pkgs clean-cache_src clean-cache_keys clean-cargo
+NO_CACHE := false
 
-all: volumes container packages
+.PHONY: container test run shell clean bldr-base clean-packages packages volumes clean-volumes all
 
-package-clean:
-	docker-compose run package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
+all: container packages
 
-packages: package-clean
-	docker-compose run package sh -c 'cd /src/packages && make world'
+packages:
+	$(run) package sh -c 'cd /src/packages && make world'
 
-volume-clean: pkg-cache-volume-clean key-cache-volume-clean cargo-volume-clean installed-cache-volume-clean src-cache-volume-clean
+clean-packages:
+	$(run) package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
 
-volumes: pkg-cache-volume key-cache-volume cargo-volume installed-cache-volume src-cache-volume
+volumes: $(VOLUMES)
 
-installed-cache-volume:
-	docker create -v /opt/bldr/pkgs --name bldr-installed-cache tianon/true /bin/true
+$(VOLUMES):
+	docker-compose up -d $@
 
-installed-cache-volume-clean:
-	if [ -n "`$(container_with) name=bldr-installed-cache`" ]; then docker rm bldr-installed-cache; fi
+clean-volumes: $(CLEAN_VOLUMES)
 
-src-cache-volume:
-	docker create -v /opt/bldr/cache/src --name bldr-src-cache tianon/true /bin/true
-
-src-cache-volume-clean:
-	if [ -n "`$(container_with) name=bldr-src-cache`" ]; then docker rm bldr-src-cache; fi
-
-pkg-cache-volume:
-	docker create -v /opt/bldr/cache/pkgs --name bldr-pkg-cache tianon/true /bin/true
-
-pkg-cache-volume-clean:
-	if [ -n "`$(container_with) name=bldr-pkg-cache`" ]; then docker rm bldr-pkg-cache; fi
-
-key-cache-volume:
-	docker create -v /opt/bldr/cache/keys --name bldr-keys-cache tianon/true /bin/true
-
-key-cache-volume-clean:
-	if [ -n "`$(container_with) name=bldr-keys-cache`" ]; then docker rm bldr-keys-cache; fi
-
-cargo-volume:
-	docker create -v /bldr-cargo-cache --name bldr-cargo-cache tianon/true /bin/true
-
-cargo-volume-clean:
-	if [ -n "`$(container_with) name=bldr-cargo-cache`" ]; then docker rm bldr-cargo-cache; fi
+$(CLEAN_VOLUMES):
+	docker-compose rm -f `echo $@ | sed 's/^clean-//'`
 
 container:
-	docker build --build-arg http_proxy=${http_proxy} --build-arg https_proxy=${https_proxy} -t chef/bldr --no-cache=${NO_CACHE} .
+	docker build $(build_args) -t chef/bldr --no-cache=${NO_CACHE} .
 
 test:
-	docker-compose run package cargo test
+	$(run) package cargo test
 
 unit:
-	docker-compose run package cargo test --lib
+	$(run) package cargo test --lib
 
 functional:
-	docker-compose run package cargo test --test functional
+	$(run) package cargo test --test functional
 
 cargo-clean:
-	docker-compose run package cargo clean
+	$(run) package cargo clean
 
 docs:
-	docker-compose run package sh -c 'set -ex; \
+	$(run) package sh -c 'set -ex; \
 		cargo doc; \
 		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
 		docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build; \
@@ -71,26 +60,28 @@ docs:
 		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
 
 doc-serve:
-	@echo "View the docs at: http://127.0.0.1:9633/"
-	ruby -run -e httpd -- --bind-address=127.0.0.1 --port=9633 ./target/doc
+	@echo "==> View the docs at:\n\n        http://`\
+		echo ${DOCKER_HOST} | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
+	$(run) -p 9633:9633 package sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 
 shell:
-	docker-compose run bldr bash
+	$(run) bldr bash
 
 pkg-shell:
-	docker-compose run package bash
+	$(run) package bash
 
 bldr-base: packages
 
 base-shell:
-	docker-compose run base
+	$(run) base
 
 clean:
-	docker rm $(docker ps -a -q -f status=exited)
-	docker images -q -f dangling=true | xargs docker rmi
+	docker-compose kill
+	docker-compose rm -f -v
+	docker images -q -f dangling=true | xargs docker rmi -f || true
 
 redis:
-	docker-compose run bldr cargo run -- start redis
+	$(run) bldr cargo run -- start redis
 
 publish:
 	for x in `docker images | egrep '^bldr/base' | awk '{print $2}'`; do \

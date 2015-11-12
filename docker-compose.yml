@@ -5,12 +5,9 @@ bldr:
     - .:/src
     - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
-    - "bldr-cargo-cache"
-    - "bldr-keys-cache"
-    - "bldr-installed-cache"
-  environment:
-    - http_proxy=$http_proxy
-    - https_proxy=$https_proxy
+    - installed
+    - cache_keys
+    - cargo
   links:
     - etcd
 
@@ -21,22 +18,16 @@ package:
     - .:/src
     - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
-    - "bldr-cargo-cache"
-    - "bldr-pkg-cache"
-    - "bldr-keys-cache"
-    - "bldr-src-cache"
-    - "bldr-installed-cache"
-  environment:
-    - http_proxy=$http_proxy
-    - https_proxy=$https_proxy
+    - installed
+    - cache_src
+    - cache_pkgs
+    - cache_keys
+    - cargo
   links:
     - etcd
 
 base:
   image: bldr
-  environment:
-    - http_proxy=$http_proxy
-    - https_proxy=$https_proxy
   links:
     - etcd
 
@@ -47,3 +38,33 @@ etcd:
     - "4001:4001"
     - "7001:7001"
   command: "-cors='*' -listen-client-urls='http://0.0.0.0:2379,http://0.0.0.0:4001' -advertise-client-urls='http://0.0.0.0:2379,http://0.0.0.0:4001'"
+
+cache_src:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /opt/bldr/cache/src
+
+cache_pkgs:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /opt/bldr/cache/pkgs
+
+cache_keys:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /opt/bldr/cache/keys
+
+installed:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /opt/bldr/pkgs
+
+cargo:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /bldr-cargo-cache
