@@ -31,6 +31,7 @@ use hyper;
 use toml;
 use mustache;
 use regex;
+use pkg;
 
 #[derive(Debug)]
 pub enum BldrError {
@@ -62,6 +63,7 @@ pub enum BldrError {
     UnknownTopology(String),
     NoConfiguration,
     HealthCheck(String),
+    HookFailed(pkg::HookType, i32, String),
     TryRecvError(mpsc::TryRecvError),
     BadWatch(String),
     NoXFilename,
@@ -112,6 +114,7 @@ impl fmt::Display for BldrError {
             BldrError::UnknownTopology(ref t) => write!(f, "Unknown topology {}!", t),
             BldrError::NoConfiguration => write!(f, "No configuration data - cannot continue"),
             BldrError::HealthCheck(ref e) => write!(f, "Health Check failed: {}", e),
+            BldrError::HookFailed(ref t, ref e, ref o) => write!(f, "Hook failed to run: {}, {}, {}", t, e, o),
             BldrError::TryRecvError(ref err) => err.fmt(f),
             BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
             BldrError::NoXFilename => write!(f, "Invalid download from a repository - missing X-Filename header"),
@@ -155,6 +158,7 @@ impl Error for BldrError {
             BldrError::UnknownTopology(_) => "Unknown topology",
             BldrError::NoConfiguration => "No configuration data available",
             BldrError::HealthCheck(_) => "Health Check returned an unknown status code",
+            BldrError::HookFailed(_, _, _) => "Hook failed to run",
             BldrError::TryRecvError(_) => "A channel failed to recieve a response",
             BldrError::BadWatch(_) => "An invalid watch was specified",
             BldrError::NoXFilename => "Invalid download from a repository - missing X-Filename header",

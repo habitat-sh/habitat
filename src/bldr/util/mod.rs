@@ -15,6 +15,7 @@
 // limitations under the License.
 //
 
+pub mod convert;
 pub mod http;
 pub mod gpg;
 pub mod perm;
