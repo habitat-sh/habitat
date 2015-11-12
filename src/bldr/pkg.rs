@@ -32,6 +32,7 @@ use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
 use util::{self, convert};
 
+const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 
 #[derive(Debug, Clone, Eq)]
@@ -44,12 +45,14 @@ pub struct Package {
 
 #[derive(Debug, Clone)]
 pub enum HookType {
+    HealthCheck,
     Reconfigure,
 }
 
 impl fmt::Display for HookType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            &HookType::HealthCheck => write!(f, "health_check"),
             &HookType::Reconfigure => write!(f, "reconfigure"),
         }
     }
@@ -70,20 +73,15 @@ impl Hook {
         }
     }
 
-    pub fn run(&self, context: &ServiceConfig) -> BldrResult<()> {
+    pub fn run(&self, context: Option<&ServiceConfig>) -> BldrResult<String> {
         try!(self.compile(context));
         match Command::new(&self.path).output() {
             Ok(result) => {
+                let output = Self::format_output(&result);
                 match result.status.code() {
-                    Some(0) => Ok(()),
-                    Some(code) => {
-                        let output = Self::format_output(&result);
-                        Err(BldrError::HookFailed(self.htype.clone(), code, output))
-                    },
-                    None => {
-                        let output = Self::format_output(&result);
-                        Err(BldrError::HookFailed(self.htype.clone(), -1, output))
-                    }
+                    Some(0) => Ok(output),
+                    Some(code) => Err(BldrError::HookFailed(self.htype.clone(), code, output)),
+                    None => Err(BldrError::HookFailed(self.htype.clone(), -1, output)),
                 }
             },
             Err(_) => {
@@ -93,16 +91,27 @@ impl Hook {
         }
     }
 
-    fn compile(&self, context: &ServiceConfig) -> BldrResult<()> {
-        let template = try!(mustache::compile_path(&self.template));
-        let mut out = Vec::new();
-        let toml = try!(context.compile_toml());
-        let data = convert::toml_table_to_mustache(toml);
-        template.render_data(&mut out, &data);
-        let data = try!(String::from_utf8(out));
-        let mut file = try!(OpenOptions::new().write(true).truncate(true).create(true).read(true).mode(0o770).open(&self.path));
-        try!(write!(&mut file, "{}", data));
-        Ok(())
+    fn compile(&self, context: Option<&ServiceConfig>) -> BldrResult<()> {
+        if let Some(ctx) = context {
+            let template = try!(mustache::compile_path(&self.template));
+            let mut out = Vec::new();
+            let toml = try!(ctx.compile_toml());
+            let data = convert::toml_table_to_mustache(toml);
+            template.render_data(&mut out, &data);
+            let data = try!(String::from_utf8(out));
+            let mut file = try!(OpenOptions::new()
+                .write(true)
+                .truncate(true)
+                .create(true)
+                .read(true)
+                .mode(0o770)
+                .open(&self.path));
+            try!(write!(&mut file, "{}", data));
+            Ok(())
+        } else {
+            try!(fs::copy(&self.template, &self.path));
+            Ok(())
+        }
     }
 
     fn format_output(output: &process::Output) -> String {
@@ -114,6 +123,7 @@ impl Hook {
 
 pub struct HookTable<'a> {
     pub package: &'a Package,
+    pub health_check_hook: Option<Hook>,
     pub reconfigure_hook: Option<Hook>,
 }
 
@@ -121,6 +131,7 @@ impl<'a> HookTable<'a> {
     pub fn new(package: &'a Package) -> Self {
         HookTable {
             package: package,
+            health_check_hook: None,
             reconfigure_hook: None,
         }
     }
@@ -132,6 +143,7 @@ impl<'a> HookTable<'a> {
             Ok(meta) => {
                 if meta.is_dir() {
                     self.reconfigure_hook = self.load_hook(HookType::Reconfigure);
+                    self.health_check_hook = self.load_hook(HookType::HealthCheck);
                 }
             }
             Err(_) => { }
@@ -283,14 +295,18 @@ impl Package {
     }
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
+        let base = PathBuf::from(self.join_path("hooks"));
         match *hook_type {
-            HookType::Reconfigure => PathBuf::from(self.join_path("hooks")).join(RECONFIGURE_FILENAME),
+            HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
+            HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
         }
     }
 
     pub fn hook_path(&self, hook_type: &HookType) -> PathBuf {
+        let base = PathBuf::from(self.srvc_join_path("hooks"));
         match *hook_type {
-            HookType::Reconfigure => PathBuf::from(self.srvc_join_path("hooks")).join(RECONFIGURE_FILENAME),
+            HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
+            HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
         }
     }
 
@@ -362,7 +378,10 @@ impl Package {
 
     pub fn reconfigure(&self, context: &ServiceConfig) -> BldrResult<()> {
         if let Some(hook) = self.hooks().reconfigure_hook {
-            hook.run(context)
+            match hook.run(Some(context)) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
         } else {
             match self.signal(Signal::Restart) {
                 Ok(_) => Ok(()),
@@ -386,16 +405,21 @@ impl Package {
     }
 
     pub fn health_check(&self) -> BldrResult<CheckResult> {
-        match fs::metadata(&self.srvc_join_path("health")) {
-            Ok(_) => {
-                let result = try!(health_check::run(&self.srvc_join_path("health")));
-                Ok(result)
-            },
-            Err(_) => {
-                let status_output = try!(self.signal(Signal::Status));
-                let last_config = try!(self.last_config());
-                Ok(health_check::CheckResult{status: health_check::Status::Ok, output: format!("{}\n{}", status_output, last_config)})
+        if let Some(hook) = self.hooks().health_check_hook {
+            match hook.run(None) {
+                Ok(output) => Ok(health_check::CheckResult::ok(output)),
+                Err(BldrError::HookFailed(_, 1, output)) => Ok(health_check::CheckResult::warning(output)),
+                Err(BldrError::HookFailed(_, 2, output)) => Ok(health_check::CheckResult::critical(output)),
+                Err(BldrError::HookFailed(_, 3, output)) => Ok(health_check::CheckResult::unknown(output)),
+                Err(BldrError::HookFailed(_, code, output)) => {
+                    Err(BldrError::HealthCheck(format!("hook exited code={}, output={}", code, output)))
+                }
+                Err(e) => Err(BldrError::from(e))
             }
+        } else {
+            let status_output = try!(self.signal(Signal::Status));
+            let last_config = try!(self.last_config());
+            Ok(health_check::CheckResult::ok(format!("{}\n{}", status_output, last_config)))
         }
     }
 
