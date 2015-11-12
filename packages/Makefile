@@ -32,13 +32,13 @@ clean:
 baseimage_root:
 	pushd / && \
 	tar jcvf /src/bldr-base/bldr-base.tar.bz2 \
-		/opt/bldr/pkgs/bldr/glibc \
-		/opt/bldr/pkgs/bldr/libgcc \
-		/opt/bldr/pkgs/bldr/zlib \
-		/opt/bldr/pkgs/bldr/cacerts \
-		/opt/bldr/pkgs/bldr/busybox \
-		/opt/bldr/pkgs/bldr/gnupg \
-		/opt/bldr/pkgs/bldr/openssl \
-		/opt/bldr/pkgs/bldr/bldr \
+		/opt/bldr/pkgs/chef/glibc \
+		/opt/bldr/pkgs/chef/libgcc \
+		/opt/bldr/pkgs/chef/zlib \
+		/opt/bldr/pkgs/chef/cacerts \
+		/opt/bldr/pkgs/chef/busybox \
+		/opt/bldr/pkgs/chef/gnupg \
+		/opt/bldr/pkgs/chef/openssl \
+		/opt/bldr/pkgs/chef/bldr \
 		&& \
 	popd

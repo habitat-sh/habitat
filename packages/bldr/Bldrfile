@@ -21,8 +21,8 @@ download() {
 
 build() {
   cargo clean
-  env OPENSSL_LIB_DIR=$(latest_package bldr/openssl)/lib \
-      OPENSSL_INCLUDE_DIR=$(latest_package bldr/openssl)/include \
+  env OPENSSL_LIB_DIR=$(latest_package chef/openssl)/lib \
+      OPENSSL_INCLUDE_DIR=$(latest_package chef/openssl)/include \
       cargo build --release
 }
 
