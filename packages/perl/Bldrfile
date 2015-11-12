@@ -1,4 +1,5 @@
 pkg_name=perl
+pkg_derivation=chef
 pkg_version=5.22.0
 pkg_license=('GPL' 'PerlArtistic')
 pkg_maintainer="Jamie Winsor <reset@chef.io>"

@@ -1,4 +1,5 @@
 pkg_name=openssl
+pkg_derivation=chef
 pkg_version=1.0.2d
 pkg_license=('BSD')
 pkg_source=https://www.openssl.org/source/openssl-1.0.2d.tar.gz

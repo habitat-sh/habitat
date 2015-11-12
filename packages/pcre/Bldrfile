@@ -1,4 +1,5 @@
 pkg_name=pcre
+pkg_derivation=chef
 pkg_version=8.37
 pkg_license=('bsd')
 pkg_source=https://ftp.csx.cam.ac.uk/pub/software/programming/${pkg_name}/${pkg_name}-${pkg_version}.tar.bz2

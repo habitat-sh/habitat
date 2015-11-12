@@ -1,4 +1,5 @@
 pkg_name=cacerts
+pkg_derivation=chef
 pkg_version=
 pkg_license=('MPL1.1 GPLv2.0 LGPLv2.1')
 pkg_source=http://curl.haxx.se/ca/cacert.pem

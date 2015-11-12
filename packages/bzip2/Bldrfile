@@ -1,4 +1,5 @@
 pkg_name=bzip2
+pkg_derivation=chef
 pkg_version=1.0.6
 pkg_license=('bzip2')
 pkg_source=http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz
