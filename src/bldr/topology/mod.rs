@@ -374,7 +374,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         if !worker.census.in_event {
             // Write the configuration, and restart if needed
             if try!(worker.service_config.write(&worker.package)) {
-                try!(worker.package.signal(Signal::Restart));
+                try!(worker.package.reconfigure(&worker.service_config));
             }
         }
 

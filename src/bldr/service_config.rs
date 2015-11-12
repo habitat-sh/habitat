@@ -36,6 +36,7 @@ use fnv::FnvHasher;
 use ansi_term::Colour::{Purple, White};
 
 use util;
+use util::convert;
 use error::{BldrError, BldrResult};
 use pkg::Package;
 
@@ -174,7 +175,7 @@ impl ServiceConfig {
     ///
     /// * If we cannot parse some toml
     /// * If there is no configuration at all
-    pub fn compile_toml(&mut self) -> BldrResult<BTreeMap<String, toml::Value>> {
+    pub fn compile_toml(&self) -> BldrResult<BTreeMap<String, toml::Value>> {
         let order = [&self.default, &self.user, &self.census, &self.watch, &self.sys, &self.bldr, &self.environment];
 
         let mut base_toml: Option<BTreeMap<String, toml::Value>> = None;
@@ -227,7 +228,7 @@ impl ServiceConfig {
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
 
-        let final_data = toml_table_to_mustache(final_toml);
+        let final_data = convert::toml_table_to_mustache(final_toml);
 
         let mut should_restart = false;
 
@@ -274,7 +275,7 @@ impl ServiceConfig {
         if pkg.supervisor_running() {
             Ok(should_restart)
         } else {
-            // If the supervisor isn't running yet, we don't have to worry about 
+            // If the supervisor isn't running yet, we don't have to worry about
             // restarting it, obviously
             Ok(false)
         }
@@ -296,37 +297,6 @@ fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml:
         }
     }
     final_map
-}
-
-// Translates a toml table to a mustache datastructure.
-fn toml_table_to_mustache(toml: BTreeMap<String, toml::Value>) -> mustache::Data {
-    let mut hashmap = HashMap::new();
-    for (key, value) in toml.iter() {
-        hashmap.insert(format!("{}", key), toml_to_mustache(value.clone()));
-    }
-    mustache::Data::Map(hashmap)
-}
-
-// Translates a given toml value to its mustache equivalent.
-fn toml_to_mustache(value: toml::Value) -> mustache::Data {
-    match value {
-        toml::Value::String(s) => mustache::Data::StrVal(format!("{}", s)),
-        toml::Value::Integer(i) => mustache::Data::StrVal(format!("{}", i)),
-        toml::Value::Float(i) => mustache::Data::StrVal(format!("{}", i)),
-        toml::Value::Boolean(b) => mustache::Data::Bool(b),
-        toml::Value::Datetime(s) => mustache::Data::StrVal(format!("{}", s)),
-        toml::Value::Array(a) => toml_vec_to_mustache(a),
-        toml::Value::Table(t) => toml_table_to_mustache(t),
-    }
-}
-
-// Translates toml vectors to mustache vectors.
-fn toml_vec_to_mustache(toml: Vec<toml::Value>) -> mustache::Data {
-    let mut mvec = vec![];
-    for x in toml.iter() {
-        mvec.push(toml_to_mustache(x.clone()))
-    }
-    mustache::Data::VecVal(mvec)
 }
 
 // Reads the default.toml file in, and returns the string.
@@ -351,30 +321,4 @@ fn bldr_data(pkg: &Package) -> String {
     let expose_string = String::new();
     toml_string.push_str(&format!("expose = [{}]", pkg.exposes().iter().fold(expose_string, |acc, p| format!("{}{},", acc, p))));
     toml_string
-}
-
-#[cfg(test)]
-mod tests {
-    use super::toml_table_to_mustache;
-    use toml;
-    use mustache;
-
-    #[test]
-    fn toml_data_is_rendered_to_mustache() {
-        let toml = r#"
-                daemonize = "no"
-                slaveof = "127.0.0.1 6380"
-
-                [winks]
-                left = "yes"
-                right = "no"
-                wiggle = [ "snooze", "looze" ]
-            "#;
-        let toml_value = toml::Parser::new(toml).parse().unwrap();
-        let template = mustache::compile_str("hello {{daemonize}} for {{slaveof}} {{winks.right}} {{winks.left}} {{# winks.wiggle}} {{.}} {{/winks.wiggle}}");
-        let mut bytes = vec![];
-        let data = toml_table_to_mustache(toml_value);
-        template.render_data(&mut bytes, &data);
-        assert_eq!(String::from_utf8(bytes).unwrap(), "hello no for 127.0.0.1 6380 no yes  snooze  looze ".to_string());
-    }
 }

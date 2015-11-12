@@ -15,18 +15,24 @@
 // limitations under the License.
 //
 
-use error::{BldrResult, BldrError};
 use std::cmp::Ordering;
 use std::cmp::PartialOrd;
-use std::process::Command;
-use std::fs::{self, DirEntry, File};
-use std::path::PathBuf;
+use std::process::{self, Command};
+use std::fmt;
+use std::fs::{self, DirEntry, File, OpenOptions};
+use std::os::unix::fs::OpenOptionsExt;
+use std::path::{Path, PathBuf};
 use std::io::prelude::*;
 
+use mustache;
 use regex::Regex;
 
-use util;
+use error::{BldrResult, BldrError};
 use health_check::{self, CheckResult};
+use service_config::ServiceConfig;
+use util::{self, convert};
+
+const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 
 #[derive(Debug, Clone, Eq)]
 pub struct Package {
@@ -34,6 +40,113 @@ pub struct Package {
     pub name: String,
     pub version: String,
     pub release: String,
+}
+
+#[derive(Debug, Clone)]
+pub enum HookType {
+    Reconfigure,
+}
+
+impl fmt::Display for HookType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &HookType::Reconfigure => write!(f, "reconfigure"),
+        }
+    }
+}
+
+pub struct Hook {
+    pub htype: HookType,
+    template: PathBuf,
+    path: PathBuf,
+}
+
+impl Hook {
+    pub fn new(htype: HookType, template: PathBuf, path: PathBuf) -> Self {
+        Hook {
+            htype: htype,
+            template: template,
+            path: path,
+        }
+    }
+
+    pub fn run(&self, context: &ServiceConfig) -> BldrResult<()> {
+        try!(self.compile(context));
+        match Command::new(&self.path).output() {
+            Ok(result) => {
+                match result.status.code() {
+                    Some(0) => Ok(()),
+                    Some(code) => {
+                        let output = Self::format_output(&result);
+                        Err(BldrError::HookFailed(self.htype.clone(), code, output))
+                    },
+                    None => {
+                        let output = Self::format_output(&result);
+                        Err(BldrError::HookFailed(self.htype.clone(), -1, output))
+                    }
+                }
+            },
+            Err(_) => {
+                let err = format!("couldn't run hook: {}", &self.path.to_string_lossy());
+                Err(BldrError::HookFailed(self.htype.clone(), -1, err))
+            }
+        }
+    }
+
+    fn compile(&self, context: &ServiceConfig) -> BldrResult<()> {
+        let template = try!(mustache::compile_path(&self.template));
+        let mut out = Vec::new();
+        let toml = try!(context.compile_toml());
+        let data = convert::toml_table_to_mustache(toml);
+        template.render_data(&mut out, &data);
+        let data = try!(String::from_utf8(out));
+        let mut file = try!(OpenOptions::new().write(true).truncate(true).create(true).read(true).mode(0o770).open(&self.path));
+        try!(write!(&mut file, "{}", data));
+        Ok(())
+    }
+
+    fn format_output(output: &process::Output) -> String {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        format!("{}\n{}", stdout, stderr)
+    }
+}
+
+pub struct HookTable<'a> {
+    pub package: &'a Package,
+    pub reconfigure_hook: Option<Hook>,
+}
+
+impl<'a> HookTable<'a> {
+    pub fn new(package: &'a Package) -> Self {
+        HookTable {
+            package: package,
+            reconfigure_hook: None,
+        }
+    }
+
+    pub fn load_hooks(&mut self) -> &mut Self {
+        let hook_path = self.package.join_path("hooks");
+        let path = Path::new(&hook_path);
+        match fs::metadata(path) {
+            Ok(meta) => {
+                if meta.is_dir() {
+                    self.reconfigure_hook = self.load_hook(HookType::Reconfigure);
+                }
+            }
+            Err(_) => { }
+        }
+        self
+    }
+
+    fn load_hook(&self, hook_type: HookType) -> Option<Hook> {
+        let template = self.package.hook_template_path(&hook_type);
+        let concrete = self.package.hook_path(&hook_type);
+        match fs::metadata(&template) {
+            Ok(_) => Some(Hook::new(hook_type, template, concrete)),
+            Err(_) => None,
+        }
+    }
 }
 
 pub enum Signal {
@@ -169,6 +282,18 @@ impl Package {
         }
     }
 
+    pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
+        match *hook_type {
+            HookType::Reconfigure => PathBuf::from(self.join_path("hooks")).join(RECONFIGURE_FILENAME),
+        }
+    }
+
+    pub fn hook_path(&self, hook_type: &HookType) -> PathBuf {
+        match *hook_type {
+            HookType::Reconfigure => PathBuf::from(self.srvc_join_path("hooks")).join(RECONFIGURE_FILENAME),
+        }
+    }
+
     /// The path to the package on disk.
     pub fn path(&self) -> String {
         format!("/opt/bldr/pkgs/{}/{}/{}/{}", self.derivation, self.name, self.version, self.release)
@@ -193,6 +318,7 @@ impl Package {
     pub fn create_srvc_path(&self) -> BldrResult<()> {
         debug!("Creating srvc paths");
         try!(fs::create_dir_all(self.srvc_join_path("config")));
+        try!(fs::create_dir_all(self.srvc_join_path("hooks")));
         try!(fs::create_dir_all(self.srvc_join_path("toml")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
         try!(fs::create_dir_all(self.srvc_join_path("var")));
@@ -234,6 +360,20 @@ impl Package {
         Ok(files)
     }
 
+    pub fn reconfigure(&self, context: &ServiceConfig) -> BldrResult<()> {
+        if let Some(hook) = self.hooks().reconfigure_hook {
+            hook.run(context)
+        } else {
+            match self.signal(Signal::Restart) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    let output = format!("failed to run default hook: {}", e);
+                    Err(BldrError::HookFailed(HookType::Reconfigure, -1, output))
+                }
+            }
+        }
+    }
+
     pub fn supervisor_running(&self) -> bool {
         let res = self.signal(Signal::Status);
         match res {
@@ -257,6 +397,12 @@ impl Package {
                 Ok(health_check::CheckResult{status: health_check::Status::Ok, output: format!("{}\n{}", status_output, last_config)})
             }
         }
+    }
+
+    pub fn hooks(&self) -> HookTable {
+        let mut hooks = HookTable::new(&self);
+        hooks.load_hooks();
+        hooks
     }
 
     pub fn cache_file(&self) -> PathBuf {
