@@ -8,7 +8,7 @@ pkg_license=('ncurses')
 pkg_source=http://ftp.gnu.org/gnu/ncurses/ncurses-5.9.tar.gz
 pkg_shasum=9046298fb440324c9d4135ecea7879ffed8546dd1b58e59430ea07a4633f563b
 pkg_gpg_key=3853DA6B
-pkg_deps=(glibc)
+pkg_deps=(chef/glibc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 
