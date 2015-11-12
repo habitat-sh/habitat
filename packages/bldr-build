@@ -561,7 +561,7 @@ build_environment() {
       dep_rest=$(echo $dep | cut -d "^" -f 2)
       dep_path=$(latest_package "$dep_deriv/$dep_rest")
     else
-      dep_path=$(latest_package "bldr/$dep")
+      exit_with "Derivation not specified for dependency '$dep' in package '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
     fi
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
@@ -707,7 +707,7 @@ link_libraries() {
       dep_rest=$(echo $dep | cut -d "^" -f 2)
       dep_path=$(latest_package "$dep_deriv/$dep_rest")
     else
-      dep_path=$(latest_package "bldr/$dep")
+      exit_with "Derivation not specified for dependency '$dep' in package '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
     fi
     dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 $6 $7 $8 }')
     echo $dep_pkg_name >> $pkg_path/DEPS
@@ -862,7 +862,7 @@ EOT
         dep_rest=$(echo $dep | cut -d "^" -f 2)
         dep_path=$(latest_package "$dep_deriv/$dep_rest")
       else
-        dep_path=$(latest_package "bldr/$dep")
+        exit_with "Derivation not specified for dependency '$dep' in package '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
       fi
       rsync -aP $dep_path/* ./${dep}-cache
       echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
