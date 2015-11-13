@@ -30,7 +30,6 @@ use std::ffi::CString;
 use std::ptr;
 
 use bldr::config::{Command, Config};
-use bldr::sidecar;
 use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
 
@@ -212,7 +211,6 @@ fn install(config: &Config) -> BldrResult<()> {
 fn start(config: &Config) -> BldrResult<()> {
     banner();
     println!("Starting {}", Yellow.bold().paint(config.package()));
-    try!(sidecar::run(config.package()));
     try!(start::package(config));
     println!("Finished with {}", Yellow.bold().paint(config.package()));
     Ok(())

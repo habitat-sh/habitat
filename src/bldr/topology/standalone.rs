@@ -79,14 +79,14 @@ pub fn state_starting(worker: &mut Worker) -> Result<(State, u32), BldrError> {
     let runit_pkg = try!(Package::latest("runit", None));
     let mut child = try!(
         Command::new(runit_pkg.join_path("bin/runsv"))
-        .arg(&format!("/opt/bldr/srvc/{}", worker.package.name))
+        .arg(&format!("/opt/bldr/srvc/{}", worker.package_name))
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
     );
     worker.supervisor_id = Some(child.id());
-    let pkg = worker.package.name.clone();
+    let pkg = worker.package_name.clone();
     let supervisor_thread = try!(thread::Builder::new().name(String::from("supervisor")).spawn(move|| -> BldrResult<()> {
         {
             let mut c_stdout = match child.stdout {
