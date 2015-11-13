@@ -727,6 +727,10 @@ config() {
     cp -r ./config $pkg_path
     chmod 755 $pkg_path/config
   fi
+  if [[ -d ./hooks ]]; then
+    cp -r ./hooks $pkg_path
+    chmod 755 $pkg_path/hooks
+  fi
   if [[ -f ./default.toml ]]; then
     cp ./default.toml $pkg_path
   fi
