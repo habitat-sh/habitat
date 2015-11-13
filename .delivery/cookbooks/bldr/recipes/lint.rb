@@ -16,14 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-workspace = node['delivery']['workspace']['repo']
-
-execute 'make clean container force=true' do
-  cwd workspace
-end
-
-execute "docker ps -a -f 'name=bldr-*'"
-
-execute 'make docs' do
-  cwd workspace
+execute 'make clean docs force=true' do
+  cwd node['delivery']['workspace']['repo']
 end
