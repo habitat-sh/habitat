@@ -366,7 +366,15 @@ impl Package {
         let run_path = self.srvc_join_path(RUN_FILENAME);
         if let Some(hook) = self.hooks().run_hook {
             try!(hook.compile(Some(context)));
-            try!(unix::fs::symlink(hook.path, &run_path));
+            match fs::read_link(&run_path) {
+                Ok(path) => {
+                    if path != hook.path {
+                        try!(fs::remove_file(&run_path));
+                        try!(unix::fs::symlink(hook.path, &run_path));
+                    }
+                },
+                Err(_) => try!(unix::fs::symlink(hook.path, &run_path)),
+            }
         } else {
             try!(fs::copy(self.join_path(RUN_FILENAME), &run_path));
             try!(util::perm::set_permissions(&run_path, "0755"));
