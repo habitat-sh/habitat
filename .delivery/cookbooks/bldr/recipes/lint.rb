@@ -18,7 +18,7 @@
 
 workspace = node['delivery']['workspace']['repo']
 
-execute 'make clean container' do
+execute 'make clean container force=true' do
   cwd workspace
 end
 
