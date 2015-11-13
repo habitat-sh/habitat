@@ -1,0 +1,21 @@
+#!/bin/sh
+
+sv status /opt/bldr/srvc/hana
+rc=0
+/usr/sap/hostctrl/exe/sapcontrol -nr {{instance-id}} -function GetProcessList
+case $? in
+  0)
+    rc=1 ;;
+  3)
+    rc=0 ;;
+  4)
+    rc=2 ;;
+  *)
+    rc=3 ;;
+esac
+
+echo
+cat /opt/bldr/srvc/hana/config.toml
+
+exit $rc
+
