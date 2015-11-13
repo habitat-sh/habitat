@@ -21,11 +21,11 @@ latest_package() {
   esac
 }
 
-hana_path=$(latest_package bldr/hana)
+hana_path=$(latest_package sap/hana)
 
 # Because we like to party, we just put all the libraries in the lib cache.
 find /opt/bldr/pkgs -name 'LD_RUN_PATH' | xargs cat | tr ':' '\n' > /etc/ld.so.conf
-glibc_path=$(latest_package bldr/glibc)
+glibc_path=$(latest_package chef/glibc)
 $glibc_path/sbin/ldconfig.real
 
 export LD_LIBRARY_PATH=$(find /opt/bldr/pkgs -name 'LD_RUN_PATH' | xargs cat | tr '\n' :)
