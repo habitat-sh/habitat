@@ -285,6 +285,11 @@ impl Package {
         }
     }
 
+    /// Get status of running package.
+    pub fn status(&self) -> BldrResult<String> {
+        self.signal(Signal::Status)
+    }
+
     pub fn exposes(&self) -> Vec<String> {
         match fs::metadata(self.join_path("EXPOSES")) {
             Ok(_) => {
@@ -419,9 +424,9 @@ impl Package {
         }
     }
 
-    pub fn health_check(&self) -> BldrResult<CheckResult> {
+    pub fn health_check(&self, config: &ServiceConfig) -> BldrResult<CheckResult> {
         if let Some(hook) = self.hooks().health_check_hook {
-            match hook.run(None) {
+            match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
                 Err(BldrError::HookFailed(_, 1, output)) => Ok(health_check::CheckResult::warning(output)),
                 Err(BldrError::HookFailed(_, 2, output)) => Ok(health_check::CheckResult::critical(output)),

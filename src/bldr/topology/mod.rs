@@ -30,6 +30,7 @@ pub mod leader;
 
 use ansi_term::Colour::White;
 use std::thread;
+use std::sync::{Arc, RwLock};
 use std::sync::mpsc::{TryRecvError};
 use libc::{pid_t, c_int};
 
@@ -43,6 +44,7 @@ use util::signals::SignalNotifier;
 use error::{BldrResult, BldrError};
 use config::Config;
 use service_config::ServiceConfig;
+use sidecar;
 use user_config;
 use watch_config;
 
@@ -126,7 +128,9 @@ pub enum State {
 /// The topology `Worker` is where everything our state machine needs between states lives.
 pub struct Worker<'a> {
     /// The package we are supervising
-    pub package: Package,
+    pub package: Arc<RwLock<Package>>,
+    /// Name of the package being supervised
+    pub package_name: String,
     /// A pointer to our current Config
     pub config: &'a Config,
     /// The topology we are running
@@ -134,11 +138,13 @@ pub struct Worker<'a> {
     /// Our census
     pub census: census::Census,
     /// Our Service Configuration; manages changes to our configuration,
-    pub service_config: ServiceConfig,
+    pub service_config: Arc<RwLock<ServiceConfig>>,
     /// Our Census Entry Actor; writes our entry periodically
     pub census_entry_actor: wonder::actor::Actor<census::Message>,
     /// Our Census Actor; reads the census periodically
     pub census_actor: wonder::actor::Actor<census::CensusMessage>,
+    /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
+    pub sidecar_actor: sidecar::SidecarActor,
     /// Our User Configuration; reads the config periodically
     pub user_actor: wonder::actor::Actor<user_config::Message>,
     /// Our User Configuration; reads the config periodically
@@ -146,7 +152,7 @@ pub struct Worker<'a> {
     /// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
     /// The PID of the Supervisor itself
-    pub supervisor_id: Option<u32>
+    pub supervisor_id: Option<u32>,
 }
 
 impl<'a> Worker<'a> {
@@ -161,25 +167,33 @@ impl<'a> Worker<'a> {
         ce.port(Some(port));
         ce.exposes(Some(exposes));
         let census_data = ce.as_etcd_write(&package, &config);
+        let package_name = package.name.clone();
 
-        println!("   {}({}): Supervisor ID {}", package.name, White.bold().paint("T"), ce.candidate_string());
+        println!("   {}({}): Supervisor ID {}", package_name, White.bold().paint("T"), ce.candidate_string());
 
         // Setup the Census
         let census = census::Census::new(ce);
-        let census_actor_state = census::CensusActorState::new(format!("{}/{}/census", package.name, config.group()));
+        let census_actor_state = census::CensusActorState::new(format!("{}/{}/census", package_name, config.group()));
 
         // Setup the Service Configuration
         let service_config = try!(ServiceConfig::new(&package));
 
         // Setup the User Data Configuration
-        let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config", package.name, config.group()));
+        let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config", package_name, config.group()));
 
         // Setup the Watches
         let mut watch_actor_state = watch_config::WatchActorState::new();
         try!(watch_actor_state.set_watches(&config));
 
+        let pkg_lock = Arc::new(RwLock::new(package));
+        let pkg_lock_1 = pkg_lock.clone();
+
+        let service_config_lock = Arc::new(RwLock::new(service_config));
+        let service_config_lock_1 = service_config_lock.clone();
+
         Ok(Worker{
-            package: package,
+            package: pkg_lock,
+            package_name: package_name,
             topology: topology,
             config: config,
             census: census,
@@ -191,7 +205,8 @@ impl<'a> Worker<'a> {
                 .name("census-reader".to_string())
                 .start(census_actor_state)
                 .unwrap(),
-            service_config: service_config,
+            service_config: service_config_lock,
+            sidecar_actor: sidecar::Sidecar::start(pkg_lock_1, service_config_lock_1),
             user_actor: wonder::actor::Builder::new(user_config::UserActor)
                 .name("user-config".to_string())
                 .start(user_actor_state)
@@ -207,7 +222,12 @@ impl<'a> Worker<'a> {
 
     /// Prints a preamble for the topology's println statements
     pub fn preamble(&self) -> String {
-        format!("{}({})", self.package.name, White.bold().paint("T"))
+        format!("{}({})", self.package_name, White.bold().paint("T"))
+    }
+
+    pub fn signal_package(&self, signal: Signal) -> BldrResult<String> {
+        let package = self.package.read().unwrap();
+        package.signal(signal)
     }
 
     /// Join the supervisor thread, and check for errors
@@ -252,45 +272,49 @@ impl<'a> Worker<'a> {
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
 fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
-    try!(worker.package.create_srvc_path());
-    try!(worker.package.copy_run(&worker.service_config));
+    {
+        let package = worker.package.read().unwrap();
+        let service_config = worker.service_config.read().unwrap();
+        try!(package.create_srvc_path());
+        try!(package.copy_run(&service_config));
+    }
 
     let handler = wonder::actor::Builder::new(SignalNotifier).name("signal-handler".to_string()).start(()).unwrap();
-    println!("   {}({}): Watching census", worker.package.name, White.bold().paint("D"));
-    println!("   {}({}): Watching config", worker.package.name, White.bold().paint("D"));
+    println!("   {}({}): Watching census", worker.package_name, White.bold().paint("D"));
+    println!("   {}({}): Watching config", worker.package_name, White.bold().paint("D"));
     loop {
         match handler.receiver.try_recv() {
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGHUP))) => {
                 println!("   {}: Sending SIGHUP", worker.preamble());
-                try!(worker.package.signal(Signal::Hup));
+                try!(worker.signal_package(Signal::Hup));
             },
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGINT))) => {
                 println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
-                try!(worker.package.signal(Signal::ForceShutdown));
+                try!(worker.signal_package(Signal::ForceShutdown));
                 try!(worker.join_supervisor());
                 break;
             },
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGQUIT))) => {
-                try!(worker.package.signal(Signal::Quit));
+                try!(worker.signal_package(Signal::Quit));
                 println!("   {}: Sending SIGQUIT", worker.preamble());
             },
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGALRM))) => {
-                try!(worker.package.signal(Signal::Alarm));
+                try!(worker.signal_package(Signal::Alarm));
                 println!("   {}: Sending SIGALRM", worker.preamble());
             },
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGTERM))) => {
                 println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
-                try!(worker.package.signal(Signal::ForceShutdown));
+                try!(worker.signal_package(Signal::ForceShutdown));
                 try!(worker.join_supervisor());
                 break;
             },
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR1))) => {
                 println!("   {}: Sending SIGUSR1", worker.preamble());
-                try!(worker.package.signal(Signal::One));
+                try!(worker.signal_package(Signal::One));
             },
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR2))) => {
                 println!("   {}: Sending SIGUSR1", worker.preamble());
-                try!(worker.package.signal(Signal::Two));
+                try!(worker.signal_package(Signal::Two));
             },
             Ok(_) => {},
             Err(TryRecvError::Empty) => {},
@@ -336,46 +360,53 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         {
             let mut ce = try!(worker.census.me_mut());
             if ce.needs_write.is_some() {
-                try!(census::CensusEntryActor::write(&worker.census_entry_actor, ce.as_etcd_write(&worker.package, &worker.config)));
+                let package = worker.package.read().unwrap();
+                try!(census::CensusEntryActor::write(&worker.census_entry_actor, ce.as_etcd_write(&package, &worker.config)));
             }
         }
 
-        // Manage the entire census
+        // Obtain write lock on service config
         {
-            if let Some(census_string) = try!(census::CensusActor::census_string(&worker.census_actor)) {
-                try!(worker.census.update(&census_string));
-            }
-            if !worker.census.in_event {
-                if worker.census.needs_write {
-                    let census_toml = try!(worker.census.to_toml());
-                    worker.service_config.census(census_toml);
+            let mut service_config = worker.service_config.write().unwrap();
+
+            // Manage the entire census
+            {
+                if let Some(census_string) = try!(census::CensusActor::census_string(&worker.census_actor)) {
+                    try!(worker.census.update(&census_string));
+                }
+                if !worker.census.in_event {
+                    if worker.census.needs_write {
+                        let census_toml = try!(worker.census.to_toml());
+                        service_config.census(census_toml);
+                    }
                 }
             }
-        }
 
-        // Manage the user configuration from discovery
-        {
-            match try!(user_config::UserActor::config_string(&worker.user_actor)) {
-                Some(user_string) => worker.service_config.user(user_string),
-                None => worker.service_config.user(String::new()),
+            // Manage the user configuration from discovery
+            {
+                match try!(user_config::UserActor::config_string(&worker.user_actor)) {
+                    Some(user_string) => service_config.user(user_string),
+                    None => service_config.user(String::new()),
+                }
             }
-        }
 
-        // Manage the watch configuration from discovery
-        {
-            match try!(watch_config::WatchActor::config_string(&worker.watch_actor)) {
-                Some(watch_string) => worker.service_config.watch(watch_string),
-                None => worker.service_config.watch(String::new()),
+            // Manage the watch configuration from discovery
+            {
+                match try!(watch_config::WatchActor::config_string(&worker.watch_actor)) {
+                    Some(watch_string) => service_config.watch(watch_string),
+                    None => service_config.watch(String::new()),
+                }
             }
-        }
 
-        // Don't bother trying to reconfigure if we are in an event - just wait till
-        // everything settles down.
-        if !worker.census.in_event {
-            // Write the configuration, and restart if needed
-            if try!(worker.service_config.write(&worker.package)) {
-                try!(worker.package.copy_run(&worker.service_config));
-                try!(worker.package.reconfigure(&worker.service_config));
+            // Don't bother trying to reconfigure if we are in an event - just wait till
+            // everything settles down.
+            if !worker.census.in_event {
+                let package = worker.package.read().unwrap();
+                // Write the configuration, and restart if needed
+                if try!(service_config.write(&package)) {
+                    try!(package.copy_run(&service_config));
+                    try!(package.reconfigure(&service_config));
+                }
             }
         }
 

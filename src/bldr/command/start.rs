@@ -82,4 +82,3 @@ pub fn package(config: &Config) -> BldrResult<()> {
     }
     Ok(())
 }
-
