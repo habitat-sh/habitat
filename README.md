@@ -57,7 +57,7 @@ With the same amount of effort required to put your applicatin in a Dockerfile. 
 ## How does it do this?
 
 Bldr provides a way to build an atomic `package` via `bldr-build`, and an
-optional `container` that is automatically configured to run it. It also
+optional `container image` that is automatically configured to run it. It also
 provides a supervisor, that handles running, configuring, and managing your
 services (`bldr`).
 
@@ -107,8 +107,8 @@ install it, and you're done!
 
 Run `make docs` to build the internal documentation for bldr.
 
-Run `doc-serve` to run a small webserver that exposes the documentation on port `9633`. You can then
-read the docs at `http://localhost:9633/bldr` (with working javscript-based search).
+Run `make doc-serve` to run a small webserver that exposes the documentation on port `9633`. You can then
+read the docs at `http://<DOCKER_HOST>:9633/` (with working javscript-based search).
 
 ## Writing new features
 
