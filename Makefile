@@ -12,19 +12,19 @@ ifneq (${docker_https_proxy},)
 endif
 
 run := docker-compose run --rm $(run_args)
-image := chef/bldr
+IMAGE := chef/bldr
 VOLUMES := installed cache_pkgs cache_src cache_keys cargo
 CLEAN_VOLUMES := clean-installed clean-cache_pkgs clean-cache_src clean-cache_keys clean-cargo
 NO_CACHE := false
 
-.PHONY: container test run shell clean bldr-base clean-packages packages volumes clean-volumes all
+.PHONY: image test run shell clean bldr-base clean-packages packages volumes clean-volumes all
 
-all: container packages
+all: packages
 
-packages: container
+packages: image
 	$(run) package sh -c 'cd /src/packages && make world'
 
-clean-packages: container
+clean-packages: image
 	$(run) package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
 
 volumes: $(VOLUMES)
@@ -37,22 +37,22 @@ clean-volumes: $(CLEAN_VOLUMES)
 $(CLEAN_VOLUMES):
 	docker-compose rm -f `echo $@ | sed 's/^clean-//'`
 
-container:
-	if [ -n "${force}" -o -z "`docker images -q $(image)`" ]; then docker build $(build_args) -t $(image) --no-cache=${NO_CACHE} .; fi
+image:
+	if [ -n "${force}" -o -z "`docker images -q $(IMAGE)`" ]; then docker build $(build_args) -t $(IMAGE) --no-cache=${NO_CACHE} .; fi
 
-test: container
+test: image
 	$(run) package cargo test
 
-unit: container
+unit: image
 	$(run) package cargo test --lib
 
-functional: container
+functional: image
 	$(run) package cargo test --test functional
 
-cargo-clean: container
+cargo-clean: image
 	$(run) package cargo clean
 
-docs: container
+docs: image
 	$(run) package sh -c 'set -ex; \
 		cargo doc; \
 		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
@@ -60,20 +60,20 @@ docs: container
 		cp -r images ./target/doc/bldr; \
 		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
 
-doc-serve: container
+doc-serve: image
 	@echo "==> View the docs at:\n\n        http://`\
 		echo ${DOCKER_HOST} | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
 	$(run) -p 9633:9633 package sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 
-shell: container
+shell: image
 	$(run) bldr bash
 
-pkg-shell: container
+pkg-shell: image
 	$(run) package bash
 
 bldr-base: packages
 
-base-shell: container
+base-shell: image
 	$(run) base
 
 clean:
