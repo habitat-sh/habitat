@@ -12,6 +12,7 @@ ifneq (${docker_https_proxy},)
 endif
 
 run := docker-compose run --rm $(run_args)
+image := chef/bldr
 VOLUMES := installed cache_pkgs cache_src cache_keys cargo
 CLEAN_VOLUMES := clean-installed clean-cache_pkgs clean-cache_src clean-cache_keys clean-cargo
 NO_CACHE := false
@@ -20,10 +21,10 @@ NO_CACHE := false
 
 all: container packages
 
-packages:
+packages: container
 	$(run) package sh -c 'cd /src/packages && make world'
 
-clean-packages:
+clean-packages: container
 	$(run) package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
 
 volumes: $(VOLUMES)
@@ -37,21 +38,21 @@ $(CLEAN_VOLUMES):
 	docker-compose rm -f `echo $@ | sed 's/^clean-//'`
 
 container:
-	docker build $(build_args) -t chef/bldr --no-cache=${NO_CACHE} .
+	if [ -n "${force}" -o -z "`docker images -q $(image)`" ]; then docker build $(build_args) -t $(image) --no-cache=${NO_CACHE} .; fi
 
-test:
+test: container
 	$(run) package cargo test
 
-unit:
+unit: container
 	$(run) package cargo test --lib
 
-functional:
+functional: container
 	$(run) package cargo test --test functional
 
-cargo-clean:
+cargo-clean: container
 	$(run) package cargo clean
 
-docs:
+docs: container
 	$(run) package sh -c 'set -ex; \
 		cargo doc; \
 		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
@@ -59,20 +60,20 @@ docs:
 		cp -r images ./target/doc/bldr; \
 		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
 
-doc-serve:
+doc-serve: container
 	@echo "==> View the docs at:\n\n        http://`\
 		echo ${DOCKER_HOST} | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
 	$(run) -p 9633:9633 package sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 
-shell:
+shell: container
 	$(run) bldr bash
 
-pkg-shell:
+pkg-shell: container
 	$(run) package bash
 
 bldr-base: packages
 
-base-shell:
+base-shell: container
 	$(run) base
 
 clean:
