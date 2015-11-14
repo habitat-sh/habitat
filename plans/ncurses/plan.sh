@@ -1,6 +1,3 @@
-# -@- mode: shell -*-
-# vi: set ft=sh :
-
 pkg_name=ncurses
 pkg_derivation=chef
 pkg_version=5.9

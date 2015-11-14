@@ -1,6 +1,3 @@
-# -@- mode: shell -*-
-# vi: set ft=sh :
-
 pkg_name=nginx
 pkg_derivation=chef
 pkg_version=1.8.0

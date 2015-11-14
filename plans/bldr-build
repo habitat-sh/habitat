@@ -11,15 +11,15 @@
 # `bldr-build` handles creating bldr packages, and optionally creating
 # docker images to go with them.
 #
-# # Bldrfile
+# # plan.sh
 #
-# The heart of `bldr-build` is the `Bldrfile`. This file is a shell
+# The heart of `bldr-build` is the Plan. This file is a shell
 # script which defines how you download, configure, make, install,
 # and run software. Think of it as a cross between an rpm `spec` file
 # and a `Dockerfile`.
 #
-# Here is an example `Bldrfile` for [zlib](http://www.zlib.net/) - it
-# also happens to be the smallest possible `Bldrfile`:
+# Here is an example `plan.sh` for [zlib](http://www.zlib.net/) - it
+# also happens to be the smallest possible `plan.sh`:
 #
 # ```sh
 # pkg_name=zlib
@@ -49,7 +49,7 @@
 # 1. Write out the data other packages need to depend on `zlib`
 # 1. Create a gpg signed tarball of the results
 #
-# ## Bldrfile Options
+# ## Plan Options
 #
 # ### pkg_name
 # Sets the name of the package.
@@ -155,7 +155,7 @@
 # pkg_derivation=bldr
 # ```
 #
-# ## Bldrfile variables
+# ## Plan variables
 #
 # `bldr-build` sets a few useful variables for you, in addition to
 # the ones you define above. They are:
@@ -173,10 +173,10 @@
 # * `$PREFIX`: Where to install the software; same as $pkg_prefix
 # * `$LD_RUN_PATH`: Where to find binaries at run time
 #
-# ## Bldrfile Callbacks
+# ## Plan Callbacks
 #
 # `bldr-build` allows you to alter its behavior by defining callbacks within
-# the `Bldrfile`. While `zlib` is awesome and requires no callbacks, most
+# the `plan.sh`. While `zlib` is awesome and requires no callbacks, most
 # software isn't quite so simple to build. To define a callback, simply
 # create a shell function with its name - then write out your script.
 #
@@ -185,12 +185,9 @@
 # 1. build - this step runs './configure --prefix=$pkg_prefix && make`.
 # 1. install - this step runs `make install`.
 #
-# Here is an example `Bldrfile` for `haproxy`, which overrides both:
+# Here is an example `plan.sh` for `haproxy`, which overrides both:
 #
 # ```sh
-# # -@- mode: shell -*-
-# # vi: set ft=sh :
-#
 # pkg_name=haproxy
 # pkg_version=1.5.12
 # pkg_license=('BSD')
@@ -264,7 +261,7 @@ BLDR_VERSION=0.0.1
 BLDR_SRC_CACHE=/opt/bldr/cache/src
 # Where the resulting packages are
 BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
-# The first argument to the script is a bldr context directory, containing a Bldrfile
+# The first argument to the script is a bldr context directory, containing a Plan
 BLDR_CONTEXT=${1:-.}
 # The default derivation is `bldr`
 pkg_derivation=""
@@ -459,7 +456,7 @@ abspath() {
 # ## Build Phases
 #
 # Stub build phases, in the order they are executed. These can be
-# overriden by the `Bldrfile` if needed.
+# overriden by the `plan.sh` if needed.
 
 # Used to execute arbitrary commands before anything else happens.
 bldr_begin() {
@@ -720,7 +717,7 @@ link_libraries() {
   return 0
 }
 
-# Copy the `./config` directory, relative to the `Bldrfile`,
+# Copy the `./config` directory, relative to the Plan,
 # to `$pkg_path/config`. Do the same with `default.toml`.
 config() {
   if [[ -d ./config ]]; then
@@ -806,7 +803,7 @@ SHA: $pkg_shasum
 Path: $pkg_path
 Dependencies: $(printf "%s " ${pkg_deps[@]})
 
-Bldrfile
+Plan
 ========
 
 Flags
@@ -817,7 +814,7 @@ LDFLAGS: $LDFLAGS
 LD_RUN_PATH: $LD_RUN_PATH
 
 \`\`\`bash
-$(cat $BLDR_CONTEXT/Bldrfile)
+$(cat $BLDR_CONTEXT/plan.sh)
 \`\`\`
 
 Files
@@ -945,44 +942,44 @@ bldr_end() {
 # Expand the context path to an absolute path
 BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
 
-# First we check if the provided path has a `Bldrfile` in it. If not, we'll quickly bail.
-if [[ ! -f "$BLDR_CONTEXT/Bldrfile" ]]; then
-  exit_with "$BLDR_CONTEXT/Bldrfile does not exist" 42
+# First we check if the provided path has a `plan.sh` in it. If not, we'll quickly bail.
+if [[ ! -f "$BLDR_CONTEXT/plan.sh" ]]; then
+  exit_with "$BLDR_CONTEXT/plan.sh does not exist" 42
 fi
 
 # Change into the `$BLDR_CONTEXT` directory for proper resolution of relative paths
-# in `Bldrfile`
+# in `plan.sh`
 cd $BLDR_CONTEXT
 
-# Load the Bldrfile
-echo "Loading $BLDR_CONTEXT/Bldrfile"
-if source "$BLDR_CONTEXT/Bldrfile"; then
-  build_line "Bldrfile loaded"
+# Load the Plan
+echo "Loading $BLDR_CONTEXT/plan.sh"
+if source "$BLDR_CONTEXT/plan.sh"; then
+  build_line "Plan loaded"
 else
   ret=$?
-  exit_with "Failed to load Bldrfile" $ret
+  exit_with "Failed to load Plan" $ret
 fi
 
 if [[ -z "${pkg_derivation}" ]]; then
   exit_with "Failed to build. 'pkg_derivation' must be set." 1
 fi
 
-# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `Bldrfile`.
+# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `plan.sh`.
 if [[ -z "${pkg_filename+xxx}" ]]; then
   pkg_filename="$(basename $pkg_source)"
 fi
 
-# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not already set by the `Bldrfile`.
+# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not already set by the `plan.sh`.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
 fi
 
-# Set `$pkg_path` if it is not already set by the `Bldrfile`.
+# Set `$pkg_path` if it is not already set by the `plan.sh`.
 if [[ -z "${pkg_path+xxx}" ]]; then
   pkg_path=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
-# Set `$pkg_prefix` if not already set by the `Bldrfile`.
+# Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi

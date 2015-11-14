@@ -1,5 +1,3 @@
-# -@- mode: shell -*-
-# vi: set ft=sh :
 pkg_derivation=chef
 pkg_name=util-linux
 pkg_version=2.27

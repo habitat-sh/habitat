@@ -1,5 +1,3 @@
-# -@- mode: shell -*-
-# vi: set ft=sh :
 pkg_derivation=chef
 pkg_name=linux-pam
 pkg_version=1.2.1
@@ -14,4 +12,3 @@ pkg_binary_path=(sbin)
 pkg_shasum=8e3f07fdbad5b1c030498fd6298e115e6f740d39d930390fc6937d14fa5c1b4a
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
-

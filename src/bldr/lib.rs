@@ -19,9 +19,8 @@
 //!
 //! Bldr contains two main components:
 //!
-//! * `bldr-build`, written in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which
-//! takes a description of how to build a piece of software (a `Bldrfile`) and produces an atomic
-//! package.
+//! * `bldr-build`, takes a plan ('plan.sh'), a description of how to build a piece of software, written
+//! in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic package.
 //! * `bldr`, a run-time executable that knows how to download, install, serve, and manage services
 //! defined in packages.
 //!

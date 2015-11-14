@@ -1,5 +1,3 @@
-# -@- mode: shell -*-
-# vi: set ft=sh :
 pkg_derivation=sap
 pkg_name=hana
 pkg_version=100.102.01

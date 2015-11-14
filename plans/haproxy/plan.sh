@@ -1,6 +1,3 @@
-# -@- mode: shell -*-
-# vi: set ft=sh :
-
 pkg_name=haproxy
 pkg_derivation=chef
 pkg_version=1.5.12
