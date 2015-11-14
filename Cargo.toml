@@ -2,7 +2,7 @@
 name = "bldr"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>"]
-exclude = ["packages/**/*"]
+exclude = ["plans/**/*"]
 
 [lib]
 name = "bldr"

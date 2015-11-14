@@ -1,0 +1,1071 @@
+#!/bin/bash
+#
+# # Usage
+#
+# ```
+# $ bldr-build [<PATH>]
+# ```
+#
+# # Synopsis
+#
+# `bldr-build` handles creating bldr packages, and optionally creating
+# docker images to go with them.
+#
+# # plan.sh
+#
+# The heart of `bldr-build` is the Plan. This file is a shell
+# script which defines how you download, configure, make, install,
+# and run software. Think of it as a cross between an rpm `spec` file
+# and a `Dockerfile`.
+#
+# Here is an example `plan.sh` for [zlib](http://www.zlib.net/) - it
+# also happens to be the smallest possible `plan.sh`:
+#
+# ```sh
+# pkg_name=zlib
+# pkg_version=1.2.8
+# pkg_license=('zlib')
+# pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
+# pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+# pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
+# pkg_gpg_key=3853DA6B
+# pkg_deps=(glibc)
+# pkg_lib_dirs=(lib)
+# pkg_include_dirs=(include)
+# ```
+#
+# It has the name of the software, the version, where to download it, a checksum to verify the
+# contents are what we expect, a gpg key to sign the resulting package with, a single dependency
+# on glibc, and it has the resulting libaries in `lib` and header files in `include`.
+#
+# When executed, bldr will:
+#
+# 1. Download the software
+# 1. Validate the checksum
+# 1. Uncompress it
+# 1. Set the build environment to depend on the `glibc` bldr package
+# 1. Run `./configure && make`
+# 1. Run `make install`
+# 1. Write out the data other packages need to depend on `zlib`
+# 1. Create a gpg signed tarball of the results
+#
+# ## Plan Options
+#
+# ### pkg_name
+# Sets the name of the package.
+# ```
+# pkg_name=zlib
+# ```
+#
+# ### pkg_maintainer
+# The name and email address of the package maintainer.
+# ```
+# pkg_maintainer="Adam Jacob <adam@chef.io>"
+# ```
+#
+# ### pkg_version
+# Sets the version of the package.
+# ```
+# pkg_version=1.2.8
+# ```
+#
+# ### pkg_license
+# An array of software license that relate to this package. Used in the MANIFEST.
+# ```
+# pkg_license=('zlib')
+# ```
+#
+# ### pkg_source
+# Where to download the source from. Any valid `wget` url will work.
+# ```
+# pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
+# ```
+#
+# ### pkg_filename
+# The resulting filename for the download.
+# ```
+# pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+# ```
+#
+# ### pkg_shasum
+# The sha256 sum of the downloaded `$pkg_source`. You can easily generate by downloading the source and using `sha256sum` or `gsha256sum`.
+# ```
+# pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
+# ```
+#
+# ### pkg_gpg_key
+# The gpg key to sign the package with.
+# ```
+# pkg_gpg_key=3853DA6B
+# ```
+#
+# ### pkg_deps
+# An array of dependencies the package has.
+# ```
+# pkg_deps=(glibc pcre openssl zlib)
+# ```
+#
+# ### pkg_lib_dirs
+# An array of paths, relative to the final install of the software, where libaries can be found. Used to
+# populate `LD_FLAGS` and `LD_RUN_PATH` for software that depends on your package.
+# ```
+# pkg_lib_dirs=(lib)
+# ```
+#
+# ### pkg_include_dirs
+# An array of paths, relative to the final install of the software, where headers can be found. Used to
+# populate `CFLAGS` for software that depends on your package.
+# ```
+# pkg_include_dirs=(include)
+# ```
+#
+# ### pkg_binary_path
+# An array of paths, relative to the final install of the software, where binaries can be found. Used to
+# populate `PATH` for software that depends on your package.
+# ```
+# pkg_binary_path=(bin)
+# ```
+#
+# ### pkg_service_run
+# The command to start the service, if needed. Should not fork!
+# ```
+# pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
+# ```
+#
+# ### pkg_docker_build
+# If set to `auto`, we will automatically generate a `Dockerfile` with this package,
+# its dependencies, and busybox. If undefined or set to `false`, we will only build
+# a docker image if a `Dockerfile` is present.
+# ```
+# pkg_docker_build="auto"
+# ```
+#
+# ### pkg_expose
+# An array of ports this service exposes to the world.
+# ```
+# pkg_expose=(80 443)
+# ```
+#
+# ### pkg_derivation
+# A string to use for the derivation. Defaults to bldr. The derivation
+# is used to denote a particular upstream of a package; when we resolve
+# dependencies, we consider a version of a package to be equal regardless
+# of its derivation - but you can specify what you prefer to use.
+# ```
+# pkg_derivation=bldr
+# ```
+#
+# ## Plan variables
+#
+# `bldr-build` sets a few useful variables for you, in addition to
+# the ones you define above. They are:
+#
+# * `$pkg_prefix`: This variable is the final path for your package.
+# * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
+# * `$pkg_srvc`: Where the running service is; `/opt/bldr/srvc/$pkg_name`
+# * `$pkg_srvc_data`: Service data; `/opt/bldr/srvc/$pkg_name/data`
+# * `$pkg_srvc_var`: Variable state; `/opt/bldr/srvc/$pkg_name/var`
+# * `$pkg_srvc_config`: Configuration; `/opt/bldr/srvc/$pkg_name/config`
+# * `$BLDR_SRC_CACHE`: The path to all the package sources
+# * `$BLDR_PKG_CACHE`: The path to all generated packages
+# * `$CFLAGS`: C compiler options
+# * `$LDFLAGS`: C linker options
+# * `$PREFIX`: Where to install the software; same as $pkg_prefix
+# * `$LD_RUN_PATH`: Where to find binaries at run time
+#
+# ## Plan Callbacks
+#
+# `bldr-build` allows you to alter its behavior by defining callbacks within
+# the `plan.sh`. While `zlib` is awesome and requires no callbacks, most
+# software isn't quite so simple to build. To define a callback, simply
+# create a shell function with its name - then write out your script.
+#
+# Most likely, you simply need to redefine two steps:
+#
+# 1. build - this step runs './configure --prefix=$pkg_prefix && make`.
+# 1. install - this step runs `make install`.
+#
+# Here is an example `plan.sh` for `haproxy`, which overrides both:
+#
+# ```sh
+# pkg_name=haproxy
+# pkg_version=1.5.12
+# pkg_license=('BSD')
+# pkg_maintainer="Adam Jacob <adam@chef.io>"
+# pkg_source=http://www.haproxy.org/download/1.5/src/${pkg_name}-${pkg_version}.tar.gz
+# pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+# pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
+# pkg_gpg_key=3853DA6B
+# pkg_binary_path=(bin)
+# pkg_deps=(glibc pcre openssl zlib)
+# pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
+# pkg_docker_build="auto"
+# pkg_expose=(80 443)
+#
+# build() {
+#   make USE_PCRE=1 \
+#     USE_PCRE_JIT=1 \
+#     CPU=x86_64 \
+#     TARGET=linux2628 \
+#     USE_OPENSSL=1 \
+#     USE_ZLIB=1 \
+#     ADDINC="$CFLAGS" \
+#     ADDLIB="$LDFLAGS"
+# }
+#
+# install() {
+#   mkdir -p $pkg_prefix/bin
+#   cp haproxy $pkg_prefix/bin
+# }
+# ```
+#
+# [A complete list of callbacks, their description, and attendant source code, is but a click away.](#build-phases)
+#
+# # License and Copyright
+# ```
+# Copyright: Copyright (c) 2015 Chef Software, Inc.
+# License: Apache License, Version 2.0
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ```
+#
+#
+
+# # Internals
+
+# Fail when commands return a non-zero return code.
+set -e
+set -E
+
+# If the variable `$DEBUG` is set, then print all the
+# shell commands as we execute.
+if [[ -n "$DEBUG" ]]; then
+  set -x
+fi
+
+# ## Default variables
+
+# The current version of bldr
+BLDR_VERSION=0.0.1
+# Where the source cache is
+BLDR_SRC_CACHE=/opt/bldr/cache/src
+# Where the resulting packages are
+BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
+# The first argument to the script is a bldr context directory, containing a Plan
+BLDR_CONTEXT=${1:-.}
+# The default derivation is `bldr`
+pkg_derivation=""
+# Each release is a timestamp - `YYYYMMDDhhmmss`
+pkg_rel=$(date -u +%Y%m%d%H%M%S)
+# The default deps setting - an empty array
+pkg_deps=()
+# A legacy option; defines you want bldr style packages
+pkg_format=(bldr)
+# The path inside a package that contains libraries - used in `LD_RUN_PATH` and
+# `LD_FLAGS`.
+pkg_lib_dirs=()
+# The path inside a package that contains header files - used in `CFLAGS`
+pkg_include_dirs=()
+# The command to run the service - must not fork or return
+pkg_service_run=''
+# Has two values: `false`, `auto`. False will skip making a docker
+# container unless a Dockerfile is present. Auto will create the
+# Dockerfile, overwriting any that may be present.
+pkg_docker_build=false
+# Allows you to tweak the docker image we start from. We think it would be great
+# if you never used this. :)
+pkg_docker_from="bldr/base"
+# An array of ports to expose.
+pkg_expose=()
+# The user to run the service as
+pkg_service_user=bldr
+# Used to handle if we received a signal, or failed based on a bad status code.
+graceful_exit=true
+
+# We want everything to be build as `rwx-r-x-r-x`
+umask 0022
+
+# ## Helper functions
+
+# Handles exiting the program on signals. Takes either an argument
+# with the status code, or uses the last commands status code.
+#
+# For example, the below would exit with a status of 1.
+#
+# ```bash
+# on_exit 1
+# ```
+#
+# Or:
+#
+# ```bash
+# false
+# on_exit
+# ```
+#
+# Would also exit 1.
+on_exit() {
+  local exit_status=${1:-$?}
+  if [[ -d "$DOCKER_CONTEXT" ]]; then
+    echo "Cleaning up Docker context $DOCKER_CONTEXT"
+    rm -rf "$DOCKER_CONTEXT"
+  fi
+  if [[ $exit_status -ne 0 ]]; then
+    echo "Exiting on error"
+  fi
+  exit $exit_status
+}
+
+# Call the `on_exit` function above on:
+# * HUP (1)
+# * INT (2)
+# * QUIT (3)
+# * TERM (15)
+# * ERR - when a shell command raises an error. Useful for `set -e; set -E`
+#   above.
+trap on_exit 1 2 3 15 ERR
+
+# Check that the command exists, 0 if it does, 1 if it does not.
+#
+# ```sh
+# exists gsha256sum
+# ```
+#
+# Would return 0 if gsha256sum exists, 1 if it does not.
+exists() {
+  if command -v $1 >/dev/null 2>&1
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Print a line of build output. Takes the rest of the line
+# as its only argument.
+#
+# ```sh
+# build_line "Checksum verified - ${pkg_shasum}"
+# ```
+build_line() {
+  echo "   ${pkg_name}: $1"
+  return 0
+}
+
+# Prints a line only if the `$DEBUG` environment value is set.
+#
+# ```sh
+# DEBUG=1
+# debug "Only if things are set"
+# # "DEBUG: Only if things are set"
+# DEBUG=0
+# debug "Not so much anymore"
+# ```
+#
+debug() {
+  if [[ -n "$DEBUG" ]]; then
+    echo "DEBUG: $1"
+  fi
+  return 0
+}
+
+# Exit the program with an error message and a status code.
+#
+# ```
+# exit_with "Something bad went down" 55
+# ```
+exit_with() {
+  echo "ERROR: $1"
+  exit $2
+}
+
+# Trim leading and trailing whitespace.
+# [Thanks to these guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
+# for the tip.
+#
+# ```sh
+# local data=$(cat /tmp/somefile)
+# local trimmed=$(trim $data)
+# ```
+trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+    echo "$var"
+}
+
+# Return the path to the latest release of a package.
+#
+# ```
+# latest_package bldr/nginx
+# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# latest_package bldr/nginx/1.8.0
+# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# latest_package bldr/nginx/1.8.0/20150911120000
+# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# ```
+latest_package() {
+  # Count the number of slashes, and use it to make a choice
+  # about what to return as the latest package.
+  latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
+  case $(trim $latest_package_flags) in
+    "3")
+      echo "/opt/bldr/pkgs/$1" ;;
+    "2")
+      echo $(find /opt/bldr/pkgs/${1} -maxdepth 1 -type d | sort --version-sort -r | head -n 1) ;;
+    "1")
+      echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
+  esac
+}
+
+# Return the absolute path for a path, which might be absolute or relative.
+#
+# ```sh
+# abspath .
+# # /a/b/c
+# abspath /tmp/
+# # /tmp
+# ```
+#
+# Thanks to [Stack Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
+abspath() {
+  if [[ -d "$1" ]]; then
+    pushd "$1" >/dev/null
+    pwd
+    popd >/dev/null
+  elif [[ -e $1 ]]; then
+    pushd "$(dirname "$1")" >/dev/null
+    echo "$(pwd)/$(basename "$1")"
+    popd >/dev/null
+  else
+    echo "$1" does not exist! >&2
+    return 127
+  fi
+}
+
+# ## Build Phases
+#
+# Stub build phases, in the order they are executed. These can be
+# overriden by the `plan.sh` if needed.
+
+# Used to execute arbitrary commands before anything else happens.
+bldr_begin() {
+  return 0
+}
+
+# Download the software from `$pkg_source` and place it in
+# `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already
+# exists in the cache, verify that the checksum is what
+# we expect, and skip the download.
+download() {
+  if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
+    if verify; then
+      build_line "Using cached $pkg_filename"
+    fi
+  else
+    pushd $BLDR_SRC_CACHE
+    wget $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
+    popd
+    build_line "Downloaded";
+  fi
+  return 0
+}
+
+# Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename`
+# has the `$pkg_shasum` we expect.
+verify() {
+  if exists gsha256sum; then
+    checksum=($(gsha256sum $BLDR_SRC_CACHE/$pkg_filename))
+  else
+    checksum=($(sha256sum $BLDR_SRC_CACHE/$pkg_filename))
+  fi
+  if [[ $pkg_shasum = $checksum ]]; then
+    build_line "Checksum verified"
+  else
+    build_line "Checksum invalid:"
+    build_line "   Expected: $pkg_shasum"
+    build_line "   Received: ${checksum}"
+    return 1
+  fi
+  return 0
+}
+
+# Clean up the remnants of any previous build job, ensuring it can't
+# pollute out new output.
+clean_cache() {
+  rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
+  return 0
+}
+
+# Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and
+# unpacks it. We use shell globbing and a case statement to see if it
+# matches a file type we know how to uncompress, and then uncompress it.
+#
+# This takes place in teh $BLDR_SRC_CACHE directory.
+unpack() {
+  unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
+# Thanks http://stackoverflow.com/questions/17420994/bash-regex-match-string
+  if [[ -f $unpack_file ]]; then
+      pushd $BLDR_SRC_CACHE > /dev/null
+      case $unpack_file in
+          *.tar.bz2)   tar xjf $unpack_file     ;;
+          *.tar.gz)    tar xzf $unpack_file     ;;
+          *.bz2)       bunzip2 $unpack_file     ;;
+          *.rar)       rar x $unpack_file       ;;
+          *.gz)        gunzip $unpack_file      ;;
+          *.tar)       tar xvf $unpack_file     ;;
+          *.tbz2)      tar xvjf $unpack_file    ;;
+          *.tgz)       tar xvzf $unpack_file    ;;
+          *.zip)       unzip $unpack_file       ;;
+          *.Z)         uncompress $unpack_file  ;;
+          *.7z)        7z x $unpack_file        ;;
+          *.xz)        tar xf $unpack_file      ;;
+          *)           echo "Error: unknown archive format '.${unpack_file##*.}'"; return 1 ;;
+      esac
+  else
+      echo "'$1' is not a valid file!"
+      return 1
+  fi
+  popd > /dev/null
+  return 0
+}
+
+# Set up our build environment. First, add any library paths defined in
+# `$pkg_lib_dirs` to `LD_RUN_PATH`. Then, for each dependency in `$pkg_deps`,
+# find the latest package, then add it's `LD_RUN_PATH`, `CFLAGS`, `LDFLAGS`,
+# and `PATH` to ours. Also, set `PREFIX=$pkg_path`, ensuring that most
+# software will install into the correct location.
+build_environment() {
+  local ld_run_path_part=""
+  for lib in "${pkg_lib_dirs[@]}"; do
+    if [[ -z $ld_run_path_part ]]; then
+      ld_run_path_part="$pkg_path/$lib"
+    else
+      ld_run_path_part="$ld_run_path_part:$pkg_path/$lib"
+    fi
+  done
+  export LD_RUN_PATH=$ld_run_path_part
+  for dep in "${pkg_deps[@]}"; do
+    if echo $dep | grep '\/'; then
+      echo $dep
+      dep_deriv=$(echo $dep | cut -d "/" -f 1)
+      dep_rest=$(echo $dep | cut -d "/" -f 2)
+      dep_path=$(latest_package "$dep_deriv/$dep_rest")
+    else
+      exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
+    fi
+    if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
+      local data=$(cat $dep_path/LD_RUN_PATH)
+      local trimmed=$(trim $data)
+      export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
+    fi
+    if [[ -f "$dep_path/CFLAGS" ]]; then
+      local data=$(cat $dep_path/CFLAGS)
+      local trimmed=$(trim $data)
+      if [[ -n "$CFLAGS" ]]; then
+        export CFLAGS="$CFLAGS $trimmed"
+      else
+        export CFLAGS="$trimmed"
+      fi
+    fi
+    if [[ -f "$dep_path/LDFLAGS" ]]; then
+      local data=$(cat $dep_path/LDFLAGS)
+      local trimmed=$(trim $data)
+      if [[ -n "$LDFLAGS" ]]; then
+        export LDFLAGS="$LDFLAGS $trimmed"
+      else
+        export LDFLAGS="$trimmed"
+      fi
+    fi
+    if [[ -f "$dep_path/PATH" ]]; then
+      local data=$(cat $dep_path/PATH)
+      local trimmed=$(trim $data)
+      export PATH="$PATH:$trimmed"
+    fi
+  done
+  export PREFIX=$pkg_path
+  debug "Setting PREFIX=$PREFIX"
+  debug "Setting LD_RUN_PATH=$LD_RUN_PATH"
+  debug "Setting CFLAGS=$CFLAGS"
+  debug "Setting LDFLAGS=$LDFLAGS"
+  return 0
+}
+
+# A step that exists to be overriden. We have the software downloaded, unpacked, and the
+# build environment variables set. Do what you need to do before we actually run the build
+# steps.
+prepare() {
+  return 0
+}
+
+# Since `build` is one of the most overriden functions, this wrapper makes sure that
+# no matter how it is changed, our `$cwd` is `$BLDR_SRC_CACHE/$pkg_dirname`.
+build_wrapper() {
+  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  build
+  popd > /dev/null
+}
+
+# Build the software; assumes the GNU pattern.
+build() {
+  ./configure --prefix=$pkg_prefix
+  make
+}
+
+# Identical to the `build_wrapper` function above; simply makes sure the
+# working directory for the install step is correct.
+install_wrapper() {
+  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  install
+  popd > /dev/null
+}
+
+# Install the software.
+install() {
+  make install
+}
+
+# Write out the package data to files:
+#
+# * `$pkg_path/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
+# * `$pkg_path/LDFLAGS` - Any LDFLAGS for things that link against us
+# * `$pkg_path/CFLAGS` - Any CFLAGS for things that link against us
+# * `$pkg_path/PATH` - Any PATH entries for things that link against us
+# * `$pkg_path/EXPOSES` - Any ports we expose
+# * `$pkg_path/DEPS` - Any depencies we used during the build
+link_libraries() {
+  local ld_run_path_part=""
+  local ld_lib_part=""
+  for lib in "${pkg_lib_dirs[@]}"; do
+    if [[ -z "$ld_run_path_part" ]]; then
+      ld_run_path_part="${pkg_path}/$lib"
+    else
+      ld_run_path_part="$ld_run_path_part:${pkg_path}/$lib"
+    fi
+    if [[ -z "$ld_lib_part" ]]; then
+      ld_lib_part="-L${pkg_path}/$lib"
+    else
+      ld_lib_part="$ld_lib_part -L${pkg_path}/$lib"
+    fi
+  done
+  if [[ -n "${ld_run_path_part}" ]]; then
+    echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
+  fi
+  if [[ -n "${ld_lib_part}" ]]; then
+    echo $ld_lib_part > $pkg_path/LDFLAGS
+  fi
+
+  local cflags_part=""
+  for inc in "${pkg_include_dirs[@]}"; do
+    if [[ -z "$cflags_part" ]]; then
+      cflags_part="-I${pkg_path}/${inc}"
+    else
+      cflags_part="$cflags_part -I${pkg_path}/${inc}"
+    fi
+  done
+  if [[ -n "${cflags_part}" ]]; then
+    echo $cflags_part > $pkg_path/CFLAGS
+  fi
+
+  local path_part=""
+  for bin in "${pkg_binary_path[@]}"; do
+    if [[ -z "$path_part" ]]; then
+      path_part="${pkg_path}/${bin}";
+    else
+      path_part="$path_part:${pkg_path}/${bin}";
+    fi
+  done
+  if [[ -n "${path_part}" ]]; then
+    echo $path_part > $pkg_path/PATH
+  fi
+
+  local port_part=""
+  for port in "${pkg_expose[@]}"; do
+    if [[ -z "$port_part" ]]; then
+      port_part="$port";
+    else
+      port_part="$port_part $port";
+    fi
+  done
+  if [[ -n "${port_part}" ]]; then
+    echo $port_part > $pkg_path/EXPOSES
+  fi
+
+  local deps_part=""
+  for dep in "${pkg_deps[@]}"; do
+    if echo $dep | grep '\/'; then
+      dep_deriv=$(echo $dep | cut -d "/" -f 1)
+      dep_rest=$(echo $dep | cut -d "/" -f 2)
+      dep_path=$(latest_package "$dep_deriv/$dep_rest")
+    else
+      exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
+    fi
+    dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 "/" $6 "/" $7 "/" $8 }')
+    echo $dep_pkg_name >> $pkg_path/DEPS
+  done
+
+  return 0
+}
+
+# Copy the `./config` directory, relative to the Plan,
+# to `$pkg_path/config`. Do the same with `default.toml`.
+config() {
+  if [[ -d ./config ]]; then
+    cp -r ./config $pkg_path
+    chmod 755 $pkg_path/config
+  fi
+  if [[ -d ./hooks ]]; then
+    cp -r ./hooks $pkg_path
+    chmod 755 $pkg_path/hooks
+  fi
+  if [[ -f ./default.toml ]]; then
+    cp ./default.toml $pkg_path
+  fi
+  return 0
+}
+
+# Write out the `$pkg_path/run` file. If a file named
+# `run` exists, we will copy it. Otherwise, we look for
+# `$pkg_service_run`, and use that.
+#
+# If the `$pkg_service_user` is set to `bldr`, we
+# change the service to be run under the `bldr` user
+# before we start it.
+#
+# Also, if there is a `health` script, we copy it to
+# `$pkg_path/health`.
+service() {
+  if [[ -f $BLDR_CONTEXT/run ]]; then
+    cp $BLDR_CONTEXT/run $pkg_path
+  else
+    if [[ -n "${pkg_service_run}" ]]; then
+      if [[ "${pkg_service_user}" = "bldr" ]]; then
+        cat <<EOT >> $pkg_path/run
+#!$(latest_package chef/busybox)/bin/sh
+cd /opt/bldr/srvc/$pkg_name
+
+if [ "\$(whoami)" = "root" ]; then
+  exec $(latest_package chef/busybox)/bin/chpst \\
+    -U bldr:bldr \\
+    -u bldr:bldr \\
+    $pkg_path/$pkg_service_run 2>&1
+else
+  exec $pkg_path/$pkg_service_run 2>&1
+fi
+EOT
+      else
+        cat <<EOT >> $pkg_path/run
+#!$(latest_package chef/busybox)/bin/sh
+cd /opt/bldr/srvc/$pkg_name
+
+exec $pkg_path/$pkg_service_run 2>&1
+EOT
+      fi
+    fi
+  fi
+  if [[ -f $BUILD_SRC_CACHE/$pkg_dirname/health ]]; then
+    cp $BUILD_SRC_CACHE/$pkg_dirname/health $pkg_path
+    chmod 755 $pkg_path/health
+  fi
+  return 0
+}
+
+# Strip any binaries, decreasing our total size.
+strip_binaries() {
+  local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | cut -d ":" -f 1)
+  if [[ -n "$binaries" ]]; then
+    echo $binaries | xargs strip
+  fi
+}
+
+# Write the `$pkg_path/MANIFEST`.
+manifest() {
+cat <<-EOT >> $pkg_path/MANIFEST
+$pkg_derivation $pkg_name
+=========================
+
+Maintainer: $pkg_maintainer
+Version: $pkg_version
+Release: $pkg_rel
+License: $(printf "%s " ${pkg_license[@]})
+Source: [$pkg_source]($pkg_source)
+SHA: $pkg_shasum
+Path: $pkg_path
+Dependencies: $(printf "%s " ${pkg_deps[@]})
+
+Plan
+========
+
+Flags
+-----
+
+CFLAGS: $CFLAGS
+LDFLAGS: $LDFLAGS
+LD_RUN_PATH: $LD_RUN_PATH
+
+\`\`\`bash
+$(cat $BLDR_CONTEXT/plan.sh)
+\`\`\`
+
+Files
+-----
+$(find $pkg_path -type f | xargs sha256sum)
+EOT
+  return 0
+}
+
+# Create the bldr package with `gpg-zip`, and sign it with `$pkg_gpg_key`.
+package() {
+  mkdir -p $BLDR_PKG_CACHE
+  gpg-zip -u $pkg_gpg_key --tar-args '-cj --absolute-names' --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --sign $pkg_path
+  return 0
+}
+
+# Wraps `dockerfile` to ensure that a Docker image build is being executed in a
+# clean directory with native filesystem permissions which is outside the source
+# code tree.
+dockerfile_wrapper() {
+  tmp_prefix="$(echo "$BLDR_CONTEXT" | tr '/' '-')"
+  DOCKER_CONTEXT="$(mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
+  cp -rp $BLDR_CONTEXT/* "$DOCKER_CONTEXT"/
+  pushd $DOCKER_CONTEXT > /dev/null
+  dockerfile
+  popd > /dev/null
+  rm -rf "$DOCKER_CONTEXT"
+}
+
+# Add additional entries to the generated Dockerfile. Use something fancy like `echo` to
+# return some data, and it will get inlined.
+docker_inline() {
+  return 0
+}
+
+# Build the docker container. If `$pkg_docker_build` is set to `auto`,
+# create the Dockerfile first.
+#
+# We build and tag the resulting image with `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
+# `$pkg_derivation/$pkg_name:latest`.
+dockerfile() {
+  if [[ $pkg_docker_build = "auto" ]]; then
+    mkdir -p ./${pkg_name}-cache
+    rsync -av --delete $pkg_path/* ./${pkg_name}-cache
+    cat <<EOT > ./Dockerfile
+FROM $pkg_docker_from
+MAINTAINER $pkg_maintainer
+WORKDIR /
+EOT
+    docker_inline_data=$(docker_inline)
+    if [[ -z "$docker_inline_data" ]]; then
+      cat <<EOT >> ./Dockerfile
+$docker_inline_data
+EOT
+    fi
+    if [[ $pkg_docker_from != "bldr/base" ]]; then
+      pkg_deps+=("chef/bldr")
+      pkg_deps+=("chef/cacerts")
+      pkg_deps+=("chef/glibc")
+      pkg_deps+=("chef/gnupg")
+      pkg_deps+=("chef/libgcc")
+      pkg_deps+=("chef/openssl")
+      pkg_deps+=("chef/zlib")
+      pkg_deps+=("chef/runit")
+      cat <<EOT >> ./Dockerfile
+ENTRYPOINT ["bldr"]
+RUN ln -sf $(latest_package chef/bldr)/bin/bldr /bin/bldr && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpg /bin/gpg && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpg-zip /bin/gpg-zip && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpgsplit /bin/gpgsplit && \
+    ln -sf $(latest_package chef/gnupg)/bin/gpgv /bin/gpgv && \
+    ln -sf $(latest_package chef/runit)/bin/chpst /bin/chpst && \
+    ln -sf $(latest_package chef/runit)/bin/runit /bin/runit && \
+    ln -sf $(latest_package chef/runit)/bin/runit-init /bin/runit-init && \
+    ln -sf $(latest_package chef/runit)/bin/runsv /bin/runsv && \
+    ln -sf $(latest_package chef/runit)/bin/runsvchdir /bin/runsvchdir && \
+    ln -sf $(latest_package chef/runit)/bin/runsvdir /bin/runsvdir && \
+    ln -sf $(latest_package chef/runit)/bin/sv /bin/sv && \
+    ln -sf $(latest_package chef/runit)/bin/svlogd /bin/svlogd && \
+    ln -sf $(latest_package chef/runit)/bin/utmpset /bin/utmpset && \
+    addgroup bldr && \
+    adduser --system --disabled-password bldr
+EOT
+    fi
+    cat <<EOT >> ./Dockerfile
+COPY ${pkg_name}-cache/ $pkg_path/
+EOT
+    for dep in "${pkg_deps[@]}"; do
+      rm -rf ./${dep}-cache
+      mkdir -p ./${dep}-cache
+      if echo $dep | grep '\/'; then
+        dep_deriv=$(echo $dep | cut -d "/" -f 1)
+        dep_rest=$(echo $dep | cut -d "/" -f 2)
+        dep_path=$(latest_package "$dep_deriv/$dep_rest")
+      else
+        exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
+      fi
+      rsync -aP $dep_path/* ./${dep}-cache
+      echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
+    done
+    if [[ -n "$BLDR_FROM" ]]; then
+      cp $BLDR_FROM ./bldr-debug
+      echo "COPY bldr /bin/bldr" >> ./Dockerfile
+      echo "COPY bldr-debug /bin/bldr-debug" >> ./Dockerfile
+    fi
+    cat <<EOT >> ./Dockerfile
+VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
+EXPOSE ${pkg_expose[@]} 9631
+CMD ["start", "$pkg_name"]
+EOT
+  fi
+  if [[ -f "./Dockerfile" ]]; then
+    docker build -t "${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}" .
+    docker tag -f "${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}" "${pkg_derivation}/${pkg_name}:latest"
+  fi
+}
+
+# A function for cleaning up after yourself.
+bldr_end() {
+  return 0
+}
+
+## Main Flow
+
+# Expand the context path to an absolute path
+BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
+
+# First we check if the provided path has a `plan.sh` in it. If not, we'll quickly bail.
+if [[ ! -f "$BLDR_CONTEXT/plan.sh" ]]; then
+  exit_with "$BLDR_CONTEXT/plan.sh does not exist" 42
+fi
+
+# Change into the `$BLDR_CONTEXT` directory for proper resolution of relative paths
+# in `plan.sh`
+cd $BLDR_CONTEXT
+
+# Load the Plan
+echo "Loading $BLDR_CONTEXT/plan.sh"
+if source "$BLDR_CONTEXT/plan.sh"; then
+  build_line "Plan loaded"
+else
+  ret=$?
+  exit_with "Failed to load Plan" $ret
+fi
+
+if [[ -z "${pkg_derivation}" ]]; then
+  exit_with "Failed to build. 'pkg_derivation' must be set." 1
+fi
+
+# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `plan.sh`.
+if [[ -z "${pkg_filename+xxx}" ]]; then
+  pkg_filename="$(basename $pkg_source)"
+fi
+
+# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not already set by the `plan.sh`.
+if [[ -z "${pkg_dirname+xxx}" ]]; then
+  pkg_dirname="${pkg_name}-${pkg_version}"
+fi
+
+# Set `$pkg_path` if it is not already set by the `plan.sh`.
+if [[ -z "${pkg_path+xxx}" ]]; then
+  pkg_path=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+fi
+
+# Set `$pkg_prefix` if not already set by the `plan.sh`.
+if [[ -z "${pkg_prefix+xxx}" ]]; then
+  pkg_prefix=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+fi
+
+# Set $pkg_srvc variables.
+pkg_srvc="/opt/bldr/srvc/$pkg_name"
+pkg_srvc_data="/opt/bldr/srvc/$pkg_name/data"
+pkg_srvc_var="/opt/bldr/srvc/$pkg_name/var"
+pkg_srvc_config="/opt/bldr/srvc/$pkg_name/config"
+
+# Create the `$pkg_path`
+mkdir -p $pkg_path
+
+# Run `bldr_begin`
+bldr_begin
+
+# Download the source
+build_line "Downloading $pkg_source"
+mkdir -p $BLDR_SRC_CACHE
+download
+
+# Verify the source
+build_line "Verifying $pkg_filename"
+verify
+
+# Clean the cache
+build_line "Clean the cache"
+clean_cache
+
+# Unpack the source
+build_line "Unpacking $pkg_filename"
+unpack
+
+# Set up the build environment
+build_line "Setting build environment"
+build_environment
+
+# Prepare the source
+build_line "Preparing to build"
+prepare
+
+# Build the source
+build_line "Building"
+build_wrapper
+
+# Install the source
+build_line "Installing"
+install_wrapper
+
+# Render the linking and dependency files
+build_line "Rendering link options for dependent packages"
+link_libraries
+
+# Copy the configuration
+build_line "Writing configuration"
+config
+
+# Copy the service management scripts
+build_line "Writing service management scripts"
+service
+
+# Strip the binaries
+build_line "Stripping binaries"
+strip_binaries
+
+# Write the manifest
+build_line "Creating manifest"
+manifest
+
+# Write the package
+build_line "Writing package"
+package
+
+# Build the Docker images
+build_line "Creating Docker images"
+dockerfile_wrapper
+
+# Cleanup
+build_line "Bldr cleanup"
+bldr_end
+
+# Print the results
+build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
+build_line "Installed: $pkg_path"
+build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+
+# Exit cleanly
+build_line "$(basename $0) has baked your brownies"
+on_exit  0

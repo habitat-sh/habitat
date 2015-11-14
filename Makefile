@@ -22,7 +22,7 @@ NO_CACHE := false
 all: packages
 
 packages: image
-	$(run) package sh -c 'cd /src/packages && make world'
+	$(run) package sh -c 'cd /src/plans && make world'
 
 clean-packages: image
 	$(run) package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
@@ -56,7 +56,7 @@ docs: image
 	$(run) package sh -c 'set -ex; \
 		cargo doc; \
 		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
-		docco -e .sh -o target/doc/bldr/bldr-build packages/bldr-build; \
+		docco -e .sh -o target/doc/bldr/bldr-build plans/bldr-build; \
 		cp -r images ./target/doc/bldr; \
 		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
 
