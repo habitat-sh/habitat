@@ -2,8 +2,7 @@
 target
 .delivery/cli.toml
 bldr-base/bldr-base.tar.bz2
-packages/**/*-cache
-packages/**/Dockerfile
-packages/hana/SAP*
-packages/hana/sapcar.exe
-
+plans/**/*-cache
+plans/**/Dockerfile
+plans/hana/SAP*
+plans/hana/sapcar.exe

@@ -40,11 +40,11 @@ pub fn fixture_as_string(name: &str) -> String {
 }
 
 pub fn bldr_build() -> String {
-    root().parent().unwrap().join("packages/bldr-build").to_string_lossy().into_owned()
+    root().parent().unwrap().join("plans/bldr-build").to_string_lossy().into_owned()
 }
 
-pub fn bldr_package() -> String {
-    root().parent().unwrap().join("packages/bldr").to_string_lossy().into_owned()
+pub fn bldr_plan() -> String {
+    root().parent().unwrap().join("plans/bldr").to_string_lossy().into_owned()
 }
 
 pub fn bldr() -> String {

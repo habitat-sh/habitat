@@ -29,7 +29,7 @@
 //!
 //! The documentation for bldr-build is generated automatically from the script itself, [and can be
 //! found here](bldr-build/bldr-build.html). You can find it in the source tree at
-//! `packages/bldr-build`.
+//! `plans/bldr-build`.
 //!
 //! # bldr
 //!
