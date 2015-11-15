@@ -23,7 +23,7 @@ fn upload_a_key_and_install_it() {
     setup::gpg_import();
     setup::simple_service();
 
-    let d = docker::repo("bldr/simple_service");
+    let d = docker::repo("test/simple_service");
     let ipaddress = d.ipaddress();
 
     let mut upload = command::bldr(&["key-upload", &util::path::fixture_as_string("chef-public"), "-u", &format!("http://{}:9632", ipaddress)]).unwrap();
