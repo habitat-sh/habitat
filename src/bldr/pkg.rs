@@ -212,10 +212,10 @@ impl Package {
         }
     }
 
-    pub fn latest(pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
+    pub fn latest(deriv: &str, pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
         let path = opt_path.unwrap_or("/opt/bldr/pkgs");
         let pl = try!(Self::package_list(path));
-        let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg)
+        let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg && p.derivation == deriv)
             .fold(None, |winner, b| {
                 match winner {
                     Some(a) => {
@@ -233,7 +233,7 @@ impl Package {
     }
 
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(Self::latest("runit", None));
+        let runit_pkg = try!(Self::latest("runit", "chef", None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",

@@ -68,9 +68,9 @@ use std::fs;
 ///
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url(package: &str, url: &str) -> BldrResult<String> {
+pub fn from_url(package: &str, deriv: &str, url: &str) -> BldrResult<String> {
     try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
-    let filename = try!(http::download_package(package, url, "/opt/bldr/cache/pkgs"));
+    let filename = try!(http::download_package(package, deriv, url, "/opt/bldr/cache/pkgs"));
     Ok(filename)
 }
 

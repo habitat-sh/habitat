@@ -30,6 +30,7 @@
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
 //!
+
 use error::BldrResult;
 use config::Config;
 use std::fs::File;
@@ -47,7 +48,7 @@ use util::http;
 /// * Fails if the package doesn't have a `.bldr` file in the cache
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
-    let package = try!(Package::latest(config.package(), None));
+    let package = try!(Package::latest(config.deriv(), config.package(), None));
     println!("   {}: uploading {}", config.package(), package.cache_file().to_string_lossy());
     let mut file = try!(File::open(package.cache_file()));
     try!(http::upload(&format!("{}/pkgs/{}/{}/{}/{}", config.url(), package.derivation, package.name, package.version, package.release), &mut file));

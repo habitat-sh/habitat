@@ -32,8 +32,8 @@ pub fn upload(url: &str, file: &mut File) -> BldrResult<()> {
     Ok(())
 }
 
-pub fn download_package(package: &str, base_url: &str, path: &str) -> BldrResult<String> {
-    let url = format!("{}/pkgs/bldr/{}/download", base_url, package);
+pub fn download_package(package: &str, deriv: &str, base_url: &str, path: &str) -> BldrResult<String> {
+    let url = format!("{}/pkgs/{}/{}/download", base_url, deriv, package);
     download(package, &url, path)
 }
 

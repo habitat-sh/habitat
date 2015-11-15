@@ -72,6 +72,7 @@ pub enum BldrError {
     ActorError(actor::ActorError),
     CensusNotFound(String),
     UuidParseError(uuid::ParseError),
+    InvalidPackageIdent(String),
 }
 
 pub type BldrResult<T> = result::Result<T, BldrError>;
@@ -123,6 +124,7 @@ impl fmt::Display for BldrError {
             BldrError::ActorError(ref err) => write!(f, "Actor returned error: {:?}", err),
             BldrError::CensusNotFound(ref s) => write!(f, "Census entry not found: {:?}", s),
             BldrError::UuidParseError(ref e) => write!(f, "Uuid Parse Error: {:?}", e),
+            BldrError::InvalidPackageIdent(ref e) => write!(f, "Invalid package identifier: {:?}. A valid identifier is in the form derivation/name (example: chef/redis)", e),
         }
     }
 }
@@ -167,6 +169,7 @@ impl Error for BldrError {
             BldrError::ActorError(_) => "A running actor responded with an error",
             BldrError::CensusNotFound(_) => "A census entry does not exist",
             BldrError::UuidParseError(_) => "Uuid Parse Error",
+            BldrError::InvalidPackageIdent(_) => "Package identifiers must be in derivation/name format (example: chef/redis)",
         }
     }
 }

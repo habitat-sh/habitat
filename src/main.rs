@@ -42,18 +42,17 @@ static VERSION: &'static str = "0.0.1";
 /// string. Determines what options are accepted.
 #[allow(dead_code)]
 static USAGE: &'static str = "
-Usage: bldr install <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
+Usage: bldr install <package> -u <url> [-v <version>] [-r <release>]
        bldr start <package> [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
        bldr sh
        bldr bash
        bldr repo [-p <path>]
-       bldr upload <package> -u <url> [-d <deriv>] [-v <version>] [-r <release>]
+       bldr upload <package> -u <url> [-v <version>] [-r <release>]
        bldr key <key> [-u <url>]
        bldr key-upload <key> -u <url>
        bldr config <package>
 
 Options:
-    -d, --deriv=<deriv>        A package derivative
     -g, --group=<group>        The service group; shared config and topology [default: default]
     -r, --release=<release>    A package release
     -t, --topology=<topology>  Specify a service topology [default: standalone]
@@ -76,10 +75,9 @@ struct Args {
     cmd_upload: bool,
     cmd_key_upload: bool,
     cmd_config: bool,
-    arg_package: String,
-    arg_key: String,
+    arg_package: Option<String>,
+    arg_key: Option<String>,
     flag_path: String,
-    flag_deriv: String,
     flag_version: String,
     flag_release: String,
     flag_url: String,
@@ -93,9 +91,14 @@ struct Args {
 fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     let mut config = Config::new();
     config.set_command(command);
-    config.set_package(args.arg_package.clone());
-    config.set_url(args.flag_url.clone());
-
+    if let Some(ref package) = args.arg_package {
+        let (deriv, name) = try!(split_package_arg(package));
+        config.set_deriv(deriv);
+        config.set_package(name);
+    }
+    if let Some(ref arg_key) = args.arg_key {
+        config.set_key(arg_key.clone());
+    }
     if let Some(ref topology) = args.flag_topology {
         match topology.as_ref() {
             "standalone" => {
@@ -110,14 +113,12 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
             t => return Err(BldrError::UnknownTopology(String::from(t))),
         }
     }
-
+    config.set_url(args.flag_url.clone());
     config.set_group(args.flag_group.clone());
     config.set_watch(args.flag_watch.clone());
     config.set_path(args.flag_path.clone());
     config.set_version(args.flag_version.clone());
-    config.set_deriv(args.flag_deriv.clone());
     config.set_release(args.flag_release.clone());
-    config.set_key(args.arg_key.clone());
     Ok(config)
 }
 
@@ -234,7 +235,7 @@ fn configure(config: &Config) -> BldrResult<()> {
 fn install(config: &Config) -> BldrResult<()> {
     banner();
     println!("Installing {}", Yellow.bold().paint(config.package()));
-    let pkg_file = try!(install::from_url(config.package(), config.url()));
+    let pkg_file = try!(install::from_url(config.package(), config.deriv(), config.url()));
     try!(install::verify(config.package(), &pkg_file));
     try!(install::unpack(config.package(), &pkg_file));
     Ok(())
@@ -294,4 +295,13 @@ fn key_upload(config: &Config) -> BldrResult<()> {
 fn exit_with(e: BldrError, code: i32) {
     println!("{}", Red.bold().paint(&format!("{}", e)));
     process::exit(code)
+}
+
+fn split_package_arg(arg: &str) -> BldrResult<(String, String)> {
+    let items: Vec<&str> = arg.split("/").collect();
+    if items.len() == 2 {
+        Ok((items[0].to_string(), items[1].to_string()))
+    } else {
+        Err(BldrError::InvalidPackageIdent(arg.to_string()))
+    }
 }
