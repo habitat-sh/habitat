@@ -735,18 +735,15 @@ config() {
 }
 
 # Write out the `$pkg_path/run` file. If a file named
-# `run` exists, we will copy it. Otherwise, we look for
+# `hooks/run` exists, we skip this step. Otherwise, we look for
 # `$pkg_service_run`, and use that.
 #
 # If the `$pkg_service_user` is set to `bldr`, we
 # change the service to be run under the `bldr` user
 # before we start it.
-#
-# Also, if there is a `health` script, we copy it to
-# `$pkg_path/health`.
 service() {
-  if [[ -f $BLDR_CONTEXT/run ]]; then
-    cp $BLDR_CONTEXT/run $pkg_path
+  if [[ -f $BLDR_CONTEXT/hooks/run ]]; then
+    return 0
   else
     if [[ -n "${pkg_service_run}" ]]; then
       if [[ "${pkg_service_user}" = "bldr" ]]; then
@@ -772,10 +769,6 @@ exec $pkg_path/$pkg_service_run 2>&1
 EOT
       fi
     fi
-  fi
-  if [[ -f $BUILD_SRC_CACHE/$pkg_dirname/health ]]; then
-    cp $BUILD_SRC_CACHE/$pkg_dirname/health $pkg_path
-    chmod 755 $pkg_path/health
   fi
   return 0
 }
