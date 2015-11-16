@@ -108,6 +108,19 @@ pub fn WTERMSIG(status: c_int) -> c_int {
     status & 0x7f
 }
 
+#[derive(PartialEq, Eq, Debug)]
+pub enum Topology {
+    Standalone,
+    Leader,
+    Initializer,
+}
+
+impl Default for Topology {
+    fn default() -> Topology {
+        Topology::Standalone
+    }
+}
+
 /// Viable states for the topologies. Not every topology will implement every state.
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub enum State {
