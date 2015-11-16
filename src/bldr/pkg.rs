@@ -33,6 +33,7 @@ use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
 use util::{self, convert};
 
+const INIT_FILENAME: &'static str = "init";
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
@@ -50,11 +51,13 @@ pub enum HookType {
     HealthCheck,
     Reconfigure,
     Run,
+    Init,
 }
 
 impl fmt::Display for HookType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            &HookType::Init => write!(f, "init"),
             &HookType::HealthCheck => write!(f, "health_check"),
             &HookType::Reconfigure => write!(f, "reconfigure"),
             &HookType::Run => write!(f, "run"),
@@ -127,6 +130,7 @@ impl Hook {
 
 pub struct HookTable<'a> {
     pub package: &'a Package,
+    pub init_hook: Option<Hook>,
     pub health_check_hook: Option<Hook>,
     pub reconfigure_hook: Option<Hook>,
     pub run_hook: Option<Hook>,
@@ -136,6 +140,7 @@ impl<'a> HookTable<'a> {
     pub fn new(package: &'a Package) -> Self {
         HookTable {
             package: package,
+            init_hook: None,
             health_check_hook: None,
             reconfigure_hook: None,
             run_hook: None,
@@ -148,6 +153,7 @@ impl<'a> HookTable<'a> {
         match fs::metadata(path) {
             Ok(meta) => {
                 if meta.is_dir() {
+                    self.init_hook = self.load_hook(HookType::Init);
                     self.reconfigure_hook = self.load_hook(HookType::Reconfigure);
                     self.health_check_hook = self.load_hook(HookType::HealthCheck);
                     self.run_hook = self.load_hook(HookType::Run);
@@ -309,6 +315,7 @@ impl Package {
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
         let base = PathBuf::from(self.join_path("hooks"));
         match *hook_type {
+            HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
             HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
             HookType::Run => base.join(RUN_FILENAME),
@@ -318,6 +325,7 @@ impl Package {
     pub fn hook_path(&self, hook_type: &HookType) -> PathBuf {
         let base = PathBuf::from(self.srvc_join_path("hooks"));
         match *hook_type {
+            HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
             HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
             HookType::Run => base.join(RUN_FILENAME),
@@ -404,6 +412,19 @@ impl Package {
         Ok(files)
     }
 
+    /// Run iniitalization hook if present
+    pub fn initialize(&self, context: &ServiceConfig) -> BldrResult<()> {
+        if let Some(hook) = self.hooks().init_hook {
+            match hook.run(Some(context)) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Run reconfigure hook if present
     pub fn reconfigure(&self, context: &ServiceConfig) -> BldrResult<()> {
         if let Some(hook) = self.hooks().reconfigure_hook {
             match hook.run(Some(context)) {

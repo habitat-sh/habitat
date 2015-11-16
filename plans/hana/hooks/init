@@ -33,23 +33,37 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$hana_path/bin/instruntime
 pkg_prefix=$hana_path
 # This needs to have the path be correct for hana
 
-echo "Starting SAP HANA"
-/usr/sap/hostctrl/exe/sapcontrol -nr {{instance-id}} -function Start
-if [[ $? -ne 0 ]]; then
-  echo "Failed to send start to SAP HANA"
+if [[ -d "/usr/sap" ]]; then
+  echo "HANA is already installed"
+else
+  {{#census.me.leader}}
+  echo "Installing HANA runtime"
+  echo "return 0" > /bin/chkconfig
+  chmod a+x /bin/chkconfig
+  cat <<EOT > /tmp/hana-passwords
+<?xml version="1.0" encoding="UTF-8"?>
+<Passwords>
+<password>{{password}}</password>
+<sapadm_password>{{sapadm-password}}</sapadm_password>
+<system_user_password>{{system-user-password}}</system_user_password>
+<root_password>{{root-password}}</root_password>
+</Passwords>
+EOT
+  env HDB_IGNORE_HANA_PLATFORM_CHECK=1 LD_LIBRARY_PATH=$LD_LIBRARY_PATH \
+  cat /tmp/hana-passwords | $pkg_prefix/bin/hdblcm \
+    --b \
+    --components=all \
+    --sid {{sid}} \
+    --number={{instance-id}} \
+    --userid=5150 \
+    --groupid=5150 \
+    --shell=/bin/bash \
+    --batch \
+    --read_password_from_stdin=xml \
+    --hdbinst_server_ignore=check_min_mem,check_platform,check_diskspace \
+    --ignore=check_signature_file
+  {{/census.me.leader}}
+  {{#census.me.follower}}
+  $pkg_prefix/bin/hdblcm --action=install --addhosts={{census.me.hostname}}:role={{role}}
+  {{/census.me.follower}}
 fi
-
-echo "SAP HANA has baked your muffins"
-
-on_exit() {
-  local exit_status=${1:-$?}
-  /usr/sap/hostctrl/exe/sapcontrol -nr {{instance-id}} -function Stop
-  if [[ $? -ne 4 ]]; then
-    echo "SAP HANA failed to stop; going to die anyway!"
-  fi
-  exit $exit_status
-}
-
-trap on_exit 1 2 3 15 ERR
-
-find /hana /usr/sap -name '*.log' | xargs tail -f

@@ -62,6 +62,7 @@ pub struct CensusEntry {
     pub vote: Option<String>,
     pub election: Option<bool>,
     pub needs_write: Option<bool>,
+    pub initialized: bool,
     keep_me: bool,
 }
 
@@ -112,6 +113,7 @@ impl CensusEntry {
             vote: None,
             election: None,
             needs_write: None,
+            initialized: false,
             keep_me: true,
         }
     }
@@ -144,6 +146,12 @@ impl CensusEntry {
     /// Set our status as a follower.
     pub fn follower(&mut self, follower: Option<bool>) {
         self.follower = follower;
+        self.needs_write = Some(true);
+    }
+
+    /// Set our application initialization status to true.
+    pub fn initialized(&mut self) {
+        self.initialized = true;
         self.needs_write = Some(true);
     }
 
@@ -686,4 +694,3 @@ impl GenServer for CensusActor {
         }
     }
 }
-
