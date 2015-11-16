@@ -1,0 +1,25 @@
+#!/bin/sh
+
+EXIT_NOW=0
+
+set_exit_now() {
+  EXIT_NOW=1
+}
+
+trap "set_exit_now" INT TERM HUP
+echo Shipping out to Boston
+echo "### Configuration file ###"
+cat /opt/bldr/srvc/simple_service/config/simple.conf
+echo "### End of configuration file ###"
+echo "### Running toml data ###"
+cat /opt/bldr/srvc/simple_service/config.toml
+echo "### End running toml data ###"
+
+while [ 1 ]; do
+  if [ $EXIT_NOW = 1 ]; then
+     echo "Exiting on signal"
+     exit 0
+  fi
+  sleep 1
+done
+

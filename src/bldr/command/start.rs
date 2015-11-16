@@ -58,10 +58,10 @@
 //! See the [documentation on topologies](../topology) for a deeper discussion of how they function.
 //!
 
-use error::{BldrResult, BldrError};
+use error::BldrResult;
 use config::Config;
 use pkg::Package;
-use topology;
+use topology::{self, Topology};
 
 /// Creates a [Package](../../pkg/struct.Package.html), then passes it to the run method of the
 /// selected [topology](../../topology).
@@ -73,12 +73,10 @@ use topology;
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> BldrResult<()> {
     let package = try!(Package::latest(config.package(), None));
-    match config.topology() {
-        "standalone" => try!(topology::standalone::run(package, config)),
-        "leader" => try!(topology::leader::run(package, config)),
-        t => {
-            return Err(BldrError::UnknownTopology(String::from(t)))
-        }
+    match *config.topology() {
+        Topology::Standalone => try!(topology::standalone::run(package, config)),
+        Topology::Leader => try!(topology::leader::run(package, config)),
+        Topology::Initializer => try!(topology::initializer::run(package, config)),
     }
     Ok(())
 }

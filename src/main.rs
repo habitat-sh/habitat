@@ -32,6 +32,7 @@ use std::ptr;
 use bldr::config::{Command, Config};
 use bldr::error::{BldrResult, BldrError};
 use bldr::command::*;
+use bldr::topology::Topology;
 
 /// The version number
 #[allow(dead_code)]
@@ -82,19 +83,34 @@ struct Args {
     flag_version: String,
     flag_release: String,
     flag_url: String,
-    flag_topology: String,
+    flag_topology: Option<String>,
     flag_group: String,
     flag_watch: Vec<String>
 }
 
 /// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
 /// struct.
-fn config_from_args(args: &Args, command: Command) -> Config {
+fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     let mut config = Config::new();
     config.set_command(command);
     config.set_package(args.arg_package.clone());
     config.set_url(args.flag_url.clone());
-    config.set_topology(args.flag_topology.clone());
+
+    if let Some(ref topology) = args.flag_topology {
+        match topology.as_ref() {
+            "standalone" => {
+                config.set_topology(Topology::Standalone);
+            },
+            "leader" => {
+                config.set_topology(Topology::Leader);
+            },
+            "initializer" => {
+                config.set_topology(Topology::Initializer);
+            },
+            t => return Err(BldrError::UnknownTopology(String::from(t))),
+        }
+    }
+
     config.set_group(args.flag_group.clone());
     config.set_watch(args.flag_watch.clone());
     config.set_path(args.flag_path.clone());
@@ -102,7 +118,7 @@ fn config_from_args(args: &Args, command: Command) -> Config {
     config.set_deriv(args.flag_deriv.clone());
     config.set_release(args.flag_release.clone());
     config.set_key(args.arg_key.clone());
-    config
+    Ok(config)
 }
 
 /// The primary loop for bldr.
@@ -121,40 +137,58 @@ fn main() {
     debug!("Docopt Args: {:?}", args);
     let result = match args {
         Args{cmd_install: true, ..} => {
-            let config = config_from_args(&args, Command::Install);
-            install(&config)
+            match config_from_args(&args, Command::Install) {
+                Ok(config) => install(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_start: true, ..} => {
-            let config = config_from_args(&args, Command::Start);
-            start(&config)
+            match config_from_args(&args, Command::Start) {
+                Ok(config) => start(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_key: true, ..} => {
-            let config = config_from_args(&args, Command::Key);
-            key(&config)
+            match config_from_args(&args, Command::Key) {
+                Ok(config) => key(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_key_upload: true, ..} => {
-            let config = config_from_args(&args, Command::KeyUpload);
-            key_upload(&config)
+            match config_from_args(&args, Command::KeyUpload) {
+                Ok(config) => key_upload(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_sh: true, ..} => {
-            let config = config_from_args(&args, Command::Shell);
-            shell(&config)
+            match config_from_args(&args, Command::Shell) {
+                Ok(config) => shell(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_bash: true, ..} => {
-            let config = config_from_args(&args, Command::Shell);
-            shell(&config)
+            match config_from_args(&args, Command::Shell) {
+                Ok(config) => shell(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_repo: true, ..} => {
-            let config = config_from_args(&args, Command::Repo);
-            repo(&config)
+            match config_from_args(&args, Command::Repo) {
+                Ok(config) => repo(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_upload: true, ..} => {
-            let config = config_from_args(&args, Command::Upload);
-            upload(&config)
+            match config_from_args(&args, Command::Upload) {
+                Ok(config) => upload(&config),
+                Err(e) => Err(e),
+            }
         },
         Args{cmd_config: true, ..} => {
-            let config = config_from_args(&args, Command::Configuration);
-            configure(&config)
+            match config_from_args(&args, Command::Configuration) {
+                Ok(config) => configure(&config),
+                Err(e) => Err(e),
+            }
         },
         _ => Err(BldrError::CommandNotImplemented),
     };

@@ -23,6 +23,8 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use topology::Topology;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// An enum with the various CLI commands. Used to keep track of what command was called.
 pub enum Command {
@@ -50,7 +52,7 @@ pub struct Config {
     command: Command,
     package: String,
     url: String,
-    topology: String,
+    topology: Topology,
     group: String,
     path: String,
     deriv: String,
@@ -177,13 +179,13 @@ impl Config {
     }
 
     /// Set the topology
-    pub fn set_topology(&mut self, topology: String) -> &mut Config {
+    pub fn set_topology(&mut self, topology: Topology) -> &mut Config {
         self.topology = topology;
         self
     }
 
     /// Return the topology
-    pub fn topology(&self) -> &str {
+    pub fn topology(&self) -> &Topology {
         &self.topology
     }
 }
@@ -191,11 +193,12 @@ impl Config {
 #[cfg(test)]
 mod tests {
     use super::{Config, Command};
+    use topology::Topology;
 
     #[test]
     fn new() {
         let c = Config::new();
-        assert_eq!(c.topology(), String::new());
+        assert_eq!(*c.topology(), Topology::Standalone);
     }
 
     #[test]
@@ -236,7 +239,7 @@ mod tests {
     #[test]
     fn topology() {
         let mut c = Config::new();
-        c.set_topology(String::from("leader"));
-        assert_eq!(c.topology(), "leader");
+        c.set_topology(Topology::Leader);
+        assert_eq!(*c.topology(), Topology::Leader);
     }
 }
