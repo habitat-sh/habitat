@@ -133,12 +133,10 @@ fn download_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     println!("Download Latest {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
-    let _deriv = rext.find("deriv").unwrap();
+    let deriv = rext.find("deriv").unwrap();
     let pkg = rext.find("pkg").unwrap();
 
-    // Hahaha - you thought deriv would work. Not so much.
-    let package = try!(Package::latest(pkg, Some(&format!("{}/pkgs", &repo.path))));
-    println!("{:?}", package);
+    let package = try!(Package::latest(deriv, pkg, Some(&format!("{}/pkgs", &repo.path))));
 
     let path = Path::new(&repo.path).join(format!("pkgs/{}/{}/{}/{}", &package.derivation, &package.name, &package.version, &package.release));
     let short_filename = format!("{}-{}-{}-{}.bldr", &package.derivation, &package.name, &package.version, &package.release);

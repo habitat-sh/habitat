@@ -40,15 +40,15 @@ pub fn run_with_env(image: &str, env: &str) -> Docker {
 }
 
 pub fn run_with_etcd(image: &str) -> Docker {
-    docker_cmd(&["run", "-d", "--link=bldr_etcd_1:etcd", "-e=BLDR_CONFIG_ETCD=http://etcd:4001", image, "start", "simple_service", &format!("--group={}", thread::current().name().unwrap_or("main"))])
+    docker_cmd(&["run", "-d", "--link=bldr_etcd_1:etcd", "-e=BLDR_CONFIG_ETCD=http://etcd:4001", image, "start", "test/simple_service", &format!("--group={}", thread::current().name().unwrap_or("main"))])
 }
 
 pub fn run_with_etcd_watch(image: &str, watch: &str) -> Docker {
-    docker_cmd(&["run", "-d", "--link=bldr_etcd_1:etcd", "-e=BLDR_CONFIG_ETCD=http://etcd:4001", image, "start", "simple_service", &format!("--group={}", thread::current().name().unwrap_or("main")), &format!("--watch={}", watch)])
+    docker_cmd(&["run", "-d", "--link=bldr_etcd_1:etcd", "-e=BLDR_CONFIG_ETCD=http://etcd:4001", image, "start", "test/simple_service", &format!("--group={}", thread::current().name().unwrap_or("main")), &format!("--watch={}", watch)])
 }
 
 pub fn run_with_etcd_topology(image: &str, topology: &str) -> Docker {
-    docker_cmd(&["run", "-d", "--link=bldr_etcd_1:etcd", "-e=BLDR_CONFIG_ETCD=http://etcd:4001", image, "start", "simple_service", &format!("--group={}", thread::current().name().unwrap_or("main")), &format!("--topology={}", topology)])
+    docker_cmd(&["run", "-d", "--link=bldr_etcd_1:etcd", "-e=BLDR_CONFIG_ETCD=http://etcd:4001", image, "start", "test/simple_service", &format!("--group={}", thread::current().name().unwrap_or("main")), &format!("--topology={}", topology)])
 }
 
 impl Docker {

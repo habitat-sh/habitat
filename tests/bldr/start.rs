@@ -111,4 +111,3 @@ fn leader_with_discovery() {
         assert_docker_log_count!(1, "Starting my term as leader", [ d1, d2 ]);
     }
 }
-
