@@ -24,7 +24,7 @@ fn upload_a_package_and_then_install_it() {
     setup::key_install();
     setup::simple_service();
 
-    let d = docker::repo("bldr/simple_service");
+    let d = docker::repo("test/simple_service");
     let ipaddress = d.ipaddress();
 
     let mut upload = command::bldr(&["upload", "simple_service", "-u", &format!("http://{}:9632", ipaddress)]).unwrap();

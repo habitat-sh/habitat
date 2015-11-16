@@ -25,7 +25,7 @@ fn standalone_no_options() {
     setup::gpg_import();
     setup::simple_service();
 
-    let d = docker::run("bldr/simple_service");
+    let d = docker::run("test/simple_service");
     if d.wait_until(r"Shipping out to Boston") {
         let output = d.logs();
         assert_regex!(&output, r"Starting (.+)");
@@ -37,7 +37,7 @@ fn standalone_with_environment_config() {
     setup::gpg_import();
     setup::simple_service();
 
-    let d = docker::run_with_env("bldr/simple_service", "BLDR_simple_service=setting=\"blarg\"");
+    let d = docker::run_with_env("test/simple_service", "BLDR_simple_service=setting=\"blarg\"");
     if d.wait_until(r"End Configuration") {
         let output = d.logs();
         assert_regex!(&output, r"setting: blarg");
@@ -52,7 +52,7 @@ fn standalone_with_discovery_config() {
     util::discovery::clear("config");
     util::discovery::set("config", "setting = \"sepultura\"");
 
-    let d = docker::run_with_etcd("bldr/simple_service");
+    let d = docker::run_with_etcd("test/simple_service");
     assert_docker_log!(d, r"setting: sepultura");
 }
 
@@ -64,7 +64,7 @@ fn standalone_with_discovery_config_updates() {
     util::discovery::clear("config");
 
     util::discovery::set("config", "setting = \"sepultura\"");
-    let d = docker::run_with_etcd("bldr/simple_service");
+    let d = docker::run_with_etcd("test/simple_service");
     assert_docker_log!(d, r"setting: sepultura");
 
     util::discovery::set("config", "setting = \"against me!\"");
@@ -80,9 +80,9 @@ fn leader_with_discovery() {
     util::discovery::clear("topology");
 
     util::discovery::set("config", "setting = \"rustacean\"");
-    let d1 = docker::run_with_etcd_topology("bldr/simple_service", "leader");
-    let d2 = docker::run_with_etcd_topology("bldr/simple_service", "leader");
-    let d3 = docker::run_with_etcd_topology("bldr/simple_service", "leader");
+    let d1 = docker::run_with_etcd_topology("test/simple_service", "leader");
+    let d2 = docker::run_with_etcd_topology("test/simple_service", "leader");
+    let d3 = docker::run_with_etcd_topology("test/simple_service", "leader");
 
     assert_docker_log_count!(1, "Starting my term as leader", [ d1, d2, d3 ]);
     assert_docker_log_count!(2, "Becoming a follower", [ d1, d2, d3 ]);
