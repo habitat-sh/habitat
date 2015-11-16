@@ -27,6 +27,7 @@
 
 pub mod standalone;
 pub mod leader;
+pub mod initializer;
 
 use ansi_term::Colour::White;
 use std::thread;
@@ -120,9 +121,11 @@ pub enum State {
     Leader,
     Follower,
     Configure,
+    Initializing,
+    InitializingLeader,
+    InitializingFollower,
     Starting,
     Running,
-    Finished,
 }
 
 /// The topology `Worker` is where everything our state machine needs between states lives.
