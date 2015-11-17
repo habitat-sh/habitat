@@ -257,10 +257,13 @@ fi
 
 # The current version of bldr
 BLDR_VERSION=0.0.1
+# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
+# otherwise it defaults to `/opt/bldr`.
+: ${BLDR_ROOT:=/opt/bldr}
 # Where the source cache is
-BLDR_SRC_CACHE=/opt/bldr/cache/src
+BLDR_SRC_CACHE=$BLDR_ROOT/cache/src
 # Where the resulting packages are
-BLDR_PKG_CACHE=/opt/bldr/cache/pkgs
+BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
 # The first argument to the script is a bldr context directory, containing a Plan
 BLDR_CONTEXT=${1:-.}
 # The default derivation is `bldr`
@@ -420,11 +423,11 @@ latest_package() {
   latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
   case $(trim $latest_package_flags) in
     "3")
-      echo "/opt/bldr/pkgs/$1" ;;
+      echo "$BLDR_ROOT/pkgs/$1" ;;
     "2")
-      echo $(find /opt/bldr/pkgs/${1} -maxdepth 1 -type d | sort --version-sort -r | head -n 1) ;;
+      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 1 -type d | sort --version-sort -r | head -n 1) ;;
     "1")
-      echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
+      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
   esac
 }
 
@@ -749,7 +752,7 @@ service() {
       if [[ "${pkg_service_user}" = "bldr" ]]; then
         cat <<EOT >> $pkg_path/run
 #!$(latest_package chef/busybox)/bin/sh
-cd /opt/bldr/srvc/$pkg_name
+cd $BLDR_ROOT/srvc/$pkg_name
 
 if [ "\$(whoami)" = "root" ]; then
   exec $(latest_package chef/busybox)/bin/chpst \\
@@ -763,7 +766,7 @@ EOT
       else
         cat <<EOT >> $pkg_path/run
 #!$(latest_package chef/busybox)/bin/sh
-cd /opt/bldr/srvc/$pkg_name
+cd $BLDR_ROOT/srvc/$pkg_name
 
 exec $pkg_path/$pkg_service_run 2>&1
 EOT
@@ -914,7 +917,7 @@ EOT
       echo "COPY bldr-debug /bin/bldr-debug" >> ./Dockerfile
     fi
     cat <<EOT >> ./Dockerfile
-VOLUME /opt/bldr/srvc/$pkg_name/data /opt/bldr/srvc/$pkg_name/config
+VOLUME $BLDR_ROOT/srvc/$pkg_name/data $BLDR_ROOT/srvc/$pkg_name/config
 EXPOSE ${pkg_expose[@]} 9631
 CMD ["start", "$pkg_name"]
 EOT
@@ -969,19 +972,19 @@ fi
 
 # Set `$pkg_path` if it is not already set by the `plan.sh`.
 if [[ -z "${pkg_path+xxx}" ]]; then
-  pkg_path=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_path=$BLDR_ROOT/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=/opt/bldr/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$BLDR_ROOT/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set $pkg_srvc variables.
-pkg_srvc="/opt/bldr/srvc/$pkg_name"
-pkg_srvc_data="/opt/bldr/srvc/$pkg_name/data"
-pkg_srvc_var="/opt/bldr/srvc/$pkg_name/var"
-pkg_srvc_config="/opt/bldr/srvc/$pkg_name/config"
+pkg_srvc="$BLDR_ROOT/srvc/$pkg_name"
+pkg_srvc_data="$BLDR_ROOT/srvc/$pkg_name/data"
+pkg_srvc_var="$BLDR_ROOT/srvc/$pkg_name/var"
+pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
 
 # Create the `$pkg_path`
 mkdir -p $pkg_path
