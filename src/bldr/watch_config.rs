@@ -74,6 +74,7 @@ impl WatchActor {
 }
 
 /// A single watch endpoint.
+#[allow(dead_code)]
 pub struct WatchEntry {
     /// The sending channel to the etcd watch
     ctx: Sender<bool>,
