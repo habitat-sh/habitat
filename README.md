@@ -214,7 +214,7 @@ three in one split window, and then link their inputs things.)
 Now run:
 
 ```bash
-docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis start redis -t leader
+docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis start chef/redis -t leader
 ```
 
 This will start 3 instances of redis, elect one as a leader, and the others
@@ -229,5 +229,3 @@ Then you can load balance them with a generic tcp proxy:
 ```bash
 docker run --expose 6379 --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/haproxy start haproxy -w redis.default
 ```
-
-

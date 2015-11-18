@@ -24,13 +24,13 @@
 //! # Examples
 //!
 //! ```bash
-//! $ bldr start redis
+//! $ bldr start chef/redis
 //! ```
 //!
 //! Will start the `redis` service in the `default` group, using the `standalone` topology.
 //!
 //! ```bash
-//! $ bldr start redis -g production
+//! $ bldr start chef/redis -g production
 //! ```
 //!
 //! Will do the same, but in the `production` group.
@@ -43,13 +43,13 @@
 //! `production` group (note the `.` as the separator.)
 //!
 //! ```bash
-//! $ bldr start redis -t leader
+//! $ bldr start chef/redis -t leader
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology.
 //!
 //! ```bash
-//! $ bldr start redis -t leader -g production -w haproxy.default
+//! $ bldr start chef/redis -t leader -g production -w haproxy.default
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology in the `production` group, while
