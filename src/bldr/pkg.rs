@@ -46,6 +46,12 @@ pub struct Package {
     pub release: String,
 }
 
+impl fmt::Display for Package {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}/{}/{}", self.derivation, self.name, self.version, self.release)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum HookType {
     HealthCheck,

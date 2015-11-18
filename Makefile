@@ -17,14 +17,14 @@ VOLUMES := installed cache_pkgs cache_src cache_keys cargo
 CLEAN_VOLUMES := clean-installed clean-cache_pkgs clean-cache_src clean-cache_keys clean-cargo
 NO_CACHE := false
 
-.PHONY: image test run shell clean bldr-base clean-packages packages volumes clean-volumes all
+.PHONY: image test run shell clean bldr-base clean-package package volumes clean-volumes all
 
-all: packages
+all: package
 
-packages: image
-	$(run) package sh -c 'cd /src/plans && make world'
+package: image
+	$(run) package sh -c '/src/plans/bldr-build /src/bldr-plan'
 
-clean-packages: image
+clean-package: image
 	$(run) package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
 
 volumes: $(VOLUMES)
@@ -71,7 +71,7 @@ shell: image
 pkg-shell: image
 	$(run) package bash
 
-bldr-base: packages
+bldr-base: package
 
 base-shell: image
 	$(run) base

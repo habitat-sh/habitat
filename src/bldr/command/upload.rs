@@ -20,7 +20,7 @@
 //! # Examples
 //!
 //! ```bash
-//! $ bldr upload redis -u http://localhost:9633
+//! $ bldr upload chef/redis -u http://localhost:9632
 //! ```
 //!
 //! Will upload a package to the repository.
@@ -49,9 +49,9 @@ use util::http;
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
     let package = try!(Package::latest(config.deriv(), config.package(), None));
-    println!("   {}: uploading {}", config.package(), package.cache_file().to_string_lossy());
+    println!("   {}: Uploading from {}", &package, package.cache_file().to_string_lossy());
     let mut file = try!(File::open(package.cache_file()));
     try!(http::upload(&format!("{}/pkgs/{}/{}/{}/{}", config.url(), package.derivation, package.name, package.version, package.release), &mut file));
-    println!("   {}: complete", config.package());
+    println!("   {}: complete", &package);
     Ok(())
 }

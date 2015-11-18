@@ -94,7 +94,7 @@ pub fn verify(package: &str, file: &str) -> BldrResult<()> {
 pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
     let output = try!(Command::new("sh")
         .arg("-c")
-        .arg(format!("gpg --homedir /opt/bldr/cache/gpg --decrypt {} | tar x", file))
+        .arg(format!("gpg --homedir /opt/bldr/cache/gpg --decrypt {} | tar -C / -x", file))
         .output());
     match output.status.success() {
         true => println!("   {}: Installed", package),
