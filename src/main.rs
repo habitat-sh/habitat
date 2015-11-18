@@ -46,7 +46,7 @@ Usage: bldr install <package> -u <url> [-v <version>] [-r <release>]
        bldr start <package> [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
        bldr sh
        bldr bash
-       bldr repo [-p <path>]
+       bldr repo [-p <path>] [--port=<port>]
        bldr upload <package> -u <url> [-v <version>] [-r <release>]
        bldr key <key> [-u <url>]
        bldr key-upload <key> -u <url>
@@ -78,6 +78,7 @@ struct Args {
     arg_package: Option<String>,
     arg_key: Option<String>,
     flag_path: String,
+    flag_port: Option<u16>,
     flag_version: String,
     flag_release: String,
     flag_url: String,
@@ -112,6 +113,9 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
             },
             t => return Err(BldrError::UnknownTopology(String::from(t))),
         }
+    }
+    if let Some(port) = args.flag_port {
+        config.set_port(port);
     }
     config.set_url(args.flag_url.clone());
     config.set_group(args.flag_group.clone());
