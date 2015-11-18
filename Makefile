@@ -82,7 +82,7 @@ clean:
 	docker images -q -f dangling=true | xargs docker rmi -f || true
 
 redis:
-	$(run) bldr cargo run -- start redis
+	$(run) bldr cargo run -- start chef/redis
 
 publish:
 	for x in `docker images | egrep '^bldr/base' | awk '{print $2}'`; do \
