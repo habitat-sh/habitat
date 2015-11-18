@@ -956,7 +956,7 @@ while getopts "u:" opt; do
 done
 
 # The default location for the bldr binary to use
-BLDR_BIN=$(latest_package "chef/bldr")
+BLDR_BIN=$(latest_package "chef/bldr")/bin/bldr
 # Expand the context path to an absolute path
 BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
 
