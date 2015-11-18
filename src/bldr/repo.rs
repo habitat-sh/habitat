@@ -4,6 +4,7 @@ use iron::request::Body;
 use iron::headers;
 use router::Router;
 
+use std::net;
 use std::sync::Arc;
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
@@ -22,6 +23,21 @@ struct Repo {
 impl Repo {
     fn new(path: &str) -> BldrResult<Arc<Repo>> {
         Ok(Arc::new(Repo{path: String::from(path)}))
+    }
+}
+
+pub struct ListenAddr(pub net::Ipv4Addr);
+pub struct ListenPort(pub u16);
+
+impl Default for ListenAddr {
+    fn default() -> Self {
+        ListenAddr(net::Ipv4Addr::new(0, 0, 0, 0))
+    }
+}
+
+impl Default for ListenPort {
+    fn default() -> Self {
+        ListenPort(9632)
     }
 }
 
@@ -166,6 +182,6 @@ pub fn run(config: &Config) -> BldrResult<()> {
     router.post("/keys/:key", move |r: &mut Request| upload_key(&repo4, r));
     router.get("/keys/:key", move |r: &mut Request| download_key(&repo5, r));
 
-    Iron::new(router).http("0.0.0.0:9632").unwrap();
+    Iron::new(router).http(config.repo_addr()).unwrap();
     Ok(())
 }

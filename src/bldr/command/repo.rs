@@ -46,5 +46,6 @@ use repo;
 ///
 /// * Fails if the repository fails to start - canot bind to the port, etc.
 pub fn start(config: &Config) -> BldrResult<()> {
+    println!("Repo listening on {:?}", config.repo_addr());
     repo::run(&config)
 }

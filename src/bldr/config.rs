@@ -23,7 +23,10 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use std::net;
+
 use topology::Topology;
+use repo;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// An enum with the various CLI commands. Used to keep track of what command was called.
@@ -60,6 +63,8 @@ pub struct Config {
     release: String,
     watch: Vec<String>,
     key: String,
+    listen_addr: repo::ListenAddr,
+    port: repo::ListenPort,
 }
 
 impl Config {
@@ -187,6 +192,15 @@ impl Config {
     /// Return the topology
     pub fn topology(&self) -> &Topology {
         &self.topology
+    }
+
+    pub fn set_port(&mut self, port: u16) -> &mut Config {
+        self.port = repo::ListenPort(port);
+        self
+    }
+
+    pub fn repo_addr(&self) -> net::SocketAddrV4 {
+        net::SocketAddrV4::new(self.listen_addr.0.clone(), self.port.0.clone())
     }
 }
 
