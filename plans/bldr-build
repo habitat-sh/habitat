@@ -266,6 +266,8 @@ BLDR_SRC_CACHE=$BLDR_ROOT/cache/src
 BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
 # The first argument to the script is a bldr context directory, containing a Plan
 BLDR_CONTEXT=${1:-.}
+# The default bldr package repository from where to download dependencies
+BLDR_REPO=http://ec2-52-10-238-149.us-west-2.compute.amazonaws.com
 # The default derivation is `bldr`
 pkg_derivation=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -560,7 +562,7 @@ build_environment() {
   export LD_RUN_PATH=$ld_run_path_part
   for dep in "${pkg_deps[@]}"; do
     if echo $dep | grep '\/'; then
-      echo $dep
+      $BLDR_BIN install $dep -u $BLDR_REPO
       dep_deriv=$(echo $dep | cut -d "/" -f 1)
       dep_rest=$(echo $dep | cut -d "/" -f 2)
       dep_path=$(latest_package "$dep_deriv/$dep_rest")
@@ -935,6 +937,26 @@ bldr_end() {
 
 ## Main Flow
 
+# Parse bldr repo flag (-u)
+OPTIND=2
+while getopts "u:" opt; do
+  case "${opt}" in
+    u)
+      BLDR_REPO=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+# The default location for the bldr binary to use
+BLDR_BIN=$(latest_package "chef/bldr")
 # Expand the context path to an absolute path
 BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
 
@@ -958,6 +980,10 @@ fi
 
 if [[ -z "${pkg_derivation}" ]]; then
   exit_with "Failed to build. 'pkg_derivation' must be set." 1
+fi
+
+if [[ -z "${pkg_version}" ]]; then
+  exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `plan.sh`.
