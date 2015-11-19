@@ -83,7 +83,7 @@ struct Args {
     flag_port: Option<u16>,
     flag_version: String,
     flag_release: String,
-    flag_url: String,
+    flag_url: Option<String>,
     flag_topology: Option<String>,
     flag_group: String,
     flag_watch: Vec<String>,
@@ -119,7 +119,9 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     if let Some(port) = args.flag_port {
         config.set_port(port);
     }
-    config.set_url(args.flag_url.clone());
+    if let Some(ref url) = args.flag_url {
+        config.set_url(url.clone());
+    }
     config.set_group(args.flag_group.clone());
     config.set_watch(args.flag_watch.clone());
     config.set_path(args.flag_path.clone());
