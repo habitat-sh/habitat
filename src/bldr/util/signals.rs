@@ -38,11 +38,11 @@ static mut CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
 static mut SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
-extern "C" {
-    fn signal(sig: u32, cb: unsafe extern fn(u32)) -> unsafe extern fn(u32);
+extern {
+    fn signal(sig: u32, cb: unsafe extern "C" fn(u32)) -> unsafe extern "C" fn(u32);
 }
 
-unsafe extern fn handle_signal(signal: u32) {
+unsafe extern "C" fn handle_signal(signal: u32) {
     CAUGHT.store(true, Ordering::SeqCst);
     SIGNAL.store(signal as usize, Ordering::SeqCst);
 }
@@ -105,27 +105,48 @@ impl actor::GenServer for SignalNotifier {
         Ok(Some(TIMEOUT_MS))
     }
 
-    fn handle_call(&self, message: Self::T, _: &ActorSender<Self::T>, _: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self,
+                   message: Self::T,
+                   _: &ActorSender<Self::T>,
+                   _: &ActorSender<Self::T>,
+                   _: &mut Self::S)
+                   -> HandleResult<Self::T> {
         match message {
             Message::Stop => HandleResult::Stop(StopReason::Normal, Some(Message::Ok)),
-            msg => HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)), Some(Message::Ok)),
+            msg =>
+                HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)),
+                                   Some(Message::Ok)),
         }
     }
 
-    fn handle_timeout(&self, tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      _: &mut Self::S)
+                      -> HandleResult<Self::T> {
         unsafe {
             if CAUGHT.load(Ordering::SeqCst) {
                 match SIGNAL.load(Ordering::SeqCst) {
-                    signal if signal == Signal::SIGHUP as usize => self::send_signal(tx, Signal::SIGHUP),
-                    signal if signal == Signal::SIGINT as usize => self::send_signal(tx, Signal::SIGINT),
-                    signal if signal == Signal::SIGQUIT as usize => self::send_signal(tx, Signal::SIGQUIT),
-                    signal if signal == Signal::SIGALRM as usize => self::send_signal(tx, Signal::SIGALRM),
-                    signal if signal == Signal::SIGTERM as usize => self::send_signal(tx, Signal::SIGTERM),
-                    signal if signal == Signal::SIGUSR1 as usize => self::send_signal(tx, Signal::SIGUSR1),
-                    signal if signal == Signal::SIGUSR2 as usize => self::send_signal(tx, Signal::SIGUSR2),
+                    signal if signal == Signal::SIGHUP as usize =>
+                        self::send_signal(tx, Signal::SIGHUP),
+                    signal if signal == Signal::SIGINT as usize =>
+                        self::send_signal(tx, Signal::SIGINT),
+                    signal if signal == Signal::SIGQUIT as usize =>
+                        self::send_signal(tx, Signal::SIGQUIT),
+                    signal if signal == Signal::SIGALRM as usize =>
+                        self::send_signal(tx, Signal::SIGALRM),
+                    signal if signal == Signal::SIGTERM as usize =>
+                        self::send_signal(tx, Signal::SIGTERM),
+                    signal if signal == Signal::SIGUSR1 as usize =>
+                        self::send_signal(tx, Signal::SIGUSR1),
+                    signal if signal == Signal::SIGUSR2 as usize =>
+                        self::send_signal(tx, Signal::SIGUSR2),
                     signal => {
-                        return HandleResult::Stop(StopReason::Fatal(format!("caught unexpected signal: {}", signal)), None)
-                    },
+                        return HandleResult::Stop(StopReason::Fatal(format!("caught unexpected \
+                                                                             signal: {}",
+                                                                            signal)),
+                                                  None);
+                    }
                 }
             }
         }

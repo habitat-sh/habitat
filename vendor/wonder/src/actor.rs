@@ -14,7 +14,9 @@ pub type StartResult<T, E> = result::Result<Actor<T>, E>;
 pub type ActorSender<T> = mpsc::Sender<Message<T>>;
 pub type Receiver<T> = mpsc::Receiver<Message<T>>;
 
-pub struct Actor<T> where T: Any + Send {
+pub struct Actor<T>
+    where T: Any + Send
+{
     pub sender: ActorSender<T>,
     pub receiver: Receiver<T>,
     pub handle: thread::JoinHandle<ActorResult<()>>,
@@ -23,8 +25,11 @@ pub struct Actor<T> where T: Any + Send {
 
 impl<T> Actor<T> where T: Any + Send {
     /// Create a new actor handler struct.
-    pub fn new(sender: ActorSender<T>, receiver: Receiver<T>,
-        handle: thread::JoinHandle<ActorResult<()>>, name: Option<String>) -> Self {
+    pub fn new(sender: ActorSender<T>,
+               receiver: Receiver<T>,
+               handle: thread::JoinHandle<ActorResult<()>>,
+               name: Option<String>)
+               -> Self {
         Actor {
             sender: sender,
             receiver: receiver,
@@ -57,7 +62,7 @@ pub fn call<T: Any + Send>(tx: &ActorSender<T>, rx: &Receiver<T>, message: T) ->
                 Ok(_) => panic!("must reply from a call!"),
                 Err(err) => Err(ActorError::from(err)),
             }
-        },
+        }
         Err(err) => Err(ActorError::from(err)),
     }
 }
@@ -146,13 +151,13 @@ impl<A: GenServer> Builder<A> {
                     Err(mpsc::TryRecvError::Disconnected) => { break; },
                     Err(mpsc::TryRecvError::Empty) => { },
                 }
-                // This is absolutely the wrong solution. I need to park the thread or call
-                // recv instead of try_recv and schedule the timeout mechanism another way.
-                // This is a quick and dirty workaround that should be short lived while the API
-                // stabilizes and is leveraged in our other applications.
-                //
-                // I'm so sorry for doing this.
-                //      - Jamie
+        // This is absolutely the wrong solution. I need to park the thread or call
+        // recv instead of try_recv and schedule the timeout mechanism another way.
+        // This is a quick and dirty workaround that should be short lived while the API
+        // stabilizes and is leveraged in our other applications.
+        //
+        // I'm so sorry for doing this.
+        //      - Jamie
                 thread::sleep_ms(30)
             }
             Ok(())
@@ -188,13 +193,17 @@ pub enum StopReason {
 }
 
 #[derive(Debug)]
-pub enum HandleResult<T> where T: Any + Send {
+pub enum HandleResult<T>
+    where T: Any + Send
+{
     Reply(T, Option<u64>),
     NoReply(Option<u64>),
     Stop(StopReason, Option<T>),
 }
 
-pub enum Message<T> where T: Any + Send {
+pub enum Message<T>
+    where T: Any + Send
+{
     Call(T),
     Cast(T),
     Reply(T),
@@ -205,7 +214,7 @@ impl<T> Debug for Message<T> where T: Any + Send + Debug {
         match self {
             &Message::Call(ref msg) => write!(f, "CALL: {:?}", msg),
             &Message::Cast(ref msg) => write!(f, "CAST: {:?}", msg),
-            &Message::Reply(ref msg) => write!(f, "REPLY: {:?}", msg)
+            &Message::Reply(ref msg) => write!(f, "REPLY: {:?}", msg),
         }
     }
 }
@@ -217,15 +226,31 @@ pub trait GenServer : Send + 'static {
 
     fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E>;
 
-    fn handle_call(&self, message: Self::T, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
-        panic!("handle_call callback not implemented; received: {:?}", message);
+    fn handle_call(&self,
+                   message: Self::T,
+                   _tx: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   _state: &mut Self::S)
+                   -> HandleResult<Self::T> {
+        panic!("handle_call callback not implemented; received: {:?}",
+               message);
     }
 
-    fn handle_cast(&self, message: Self::T, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
-        panic!("handle_cast callback not implemented; received: {:?}", message);
+    fn handle_cast(&self,
+                   message: Self::T,
+                   _tx: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   _state: &mut Self::S)
+                   -> HandleResult<Self::T> {
+        panic!("handle_cast callback not implemented; received: {:?}",
+               message);
     }
 
-    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, _state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      _tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      _state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         HandleResult::NoReply(None)
     }
 }
@@ -234,7 +259,10 @@ fn set_timeout(wait_ms: u64, current_timeout: &mut Option<SteadyTime>) {
     *current_timeout = Some(SteadyTime::now() + Duration::milliseconds(wait_ms as i64));
 }
 
-fn shutdown<T: Any + Send>(reason: StopReason, reply: Option<T>, sender: &ActorSender<T>) -> Result<(), ActorError> {
+fn shutdown<T: Any + Send>(reason: StopReason,
+                           reply: Option<T>,
+                           sender: &ActorSender<T>)
+                           -> Result<(), ActorError> {
     if let Some(msg) = reply {
         let _result = sender.send(Message::Reply(msg));
     }
@@ -258,9 +286,7 @@ mod tests {
 
     impl MyState {
         pub fn new() -> Self {
-            MyState {
-                initialized: false,
-            }
+            MyState { initialized: false }
         }
     }
 
@@ -292,10 +318,16 @@ mod tests {
             }
         }
 
-        fn handle_call(&self, msg: Self::T, _: &ActorSender<Self::T>, _: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+        fn handle_call(&self,
+                       msg: Self::T,
+                       _: &ActorSender<Self::T>,
+                       _: &ActorSender<Self::T>,
+                       state: &mut Self::S)
+                       -> HandleResult<Self::T> {
             match msg {
                 MyMessage::Stop => HandleResult::Stop(StopReason::Normal, Some(MyMessage::Ok)),
-                MyMessage::GetState => HandleResult::Reply(MyMessage::State(state.initialized), None),
+                MyMessage::GetState =>
+                    HandleResult::Reply(MyMessage::State(state.initialized), None),
                 MyMessage::SetState(value) => {
                     state.initialized = value;
                     HandleResult::Reply(MyMessage::Ok, None)
@@ -304,13 +336,18 @@ mod tests {
             }
         }
 
-        fn handle_cast(&self, msg: Self::T, _: &ActorSender<Self::T>, _: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+        fn handle_cast(&self,
+                       msg: Self::T,
+                       _: &ActorSender<Self::T>,
+                       _: &ActorSender<Self::T>,
+                       state: &mut Self::S)
+                       -> HandleResult<Self::T> {
             match msg {
                 MyMessage::SetState(value) => {
                     state.initialized = value;
                     HandleResult::NoReply(None)
-                },
-                _ => HandleResult::NoReply(None)
+                }
+                _ => HandleResult::NoReply(None),
             }
         }
     }
@@ -326,7 +363,7 @@ mod tests {
     impl Error for MyError {
         fn description(&self) -> &str {
             match *self {
-                MyError::DirtyState => "state already initialized"
+                MyError::DirtyState => "state already initialized",
             }
         }
     }

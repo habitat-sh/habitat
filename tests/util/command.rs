@@ -38,8 +38,9 @@ impl Cmd {
         match self.child {
             Some(ref mut child) => {
                 child.kill().unwrap_or_else(|x| panic!("{:?}", x));
-            },
-            None => panic!("Cannot kill a child that does not exist - you have probably called wait_with_output already"),
+            }
+            None => panic!("Cannot kill a child that does not exist - you have probably called \
+                            wait_with_output already"),
         }
         self
     }
@@ -47,21 +48,21 @@ impl Cmd {
     pub fn stdout(&self) -> &str {
         match self.stdout {
             Some(ref stdout) => stdout,
-            None => panic!("No stdout available - process needs a wait")
+            None => panic!("No stdout available - process needs a wait"),
         }
     }
 
     pub fn stderr(&self) -> &str {
         match self.stderr {
             Some(ref stderr) => stderr,
-            None => panic!("No stderr available - process needs a wait")
+            None => panic!("No stderr available - process needs a wait"),
         }
     }
 
     pub fn status(&self) -> &ExitStatus {
         match self.status {
             Some(ref status) => status,
-            None => panic!("No status available - process needs a wait or kill")
+            None => panic!("No status available - process needs a wait or kill"),
         }
     }
 
@@ -71,7 +72,7 @@ impl Cmd {
 
         let output = match child.wait_with_output() {
             Ok(output) => output,
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         };
         self.status = Some(output.status);
         let stdout = String::from_utf8(output.stdout).unwrap_or_else(|x| panic!("{:?}", x));
@@ -112,7 +113,10 @@ impl From<io::Error> for CmdError {
 }
 
 pub fn command(cmd: &str, args: &[&str]) -> Command {
-    println!("{}: Running: cmd: {} {:?}", thread::current().name().unwrap_or("main"), cmd, args);
+    println!("{}: Running: cmd: {} {:?}",
+             thread::current().name().unwrap_or("main"),
+             cmd,
+             args);
     let mut command = Command::new(cmd);
     command.args(args);
     command.stdin(Stdio::null());
@@ -123,7 +127,12 @@ pub fn command(cmd: &str, args: &[&str]) -> Command {
 
 pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
     let child = try!(command.spawn());
-    Ok(Cmd{ child: Some(child), status: None, stdout: None, stderr: None })
+    Ok(Cmd {
+        child: Some(child),
+        status: None,
+        stdout: None,
+        stderr: None,
+    })
 }
 
 pub fn run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
@@ -144,4 +153,3 @@ pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {
     let command = command(&bldr, args);
     spawn(command)
 }
-

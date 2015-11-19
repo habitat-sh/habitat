@@ -57,7 +57,12 @@ pub struct Package {
 
 impl fmt::Display for Package {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}/{}/{}/{}", self.derivation, self.name, self.version, self.release)
+        write!(f,
+               "{}/{}/{}/{}",
+               self.derivation,
+               self.name,
+               self.version,
+               self.release)
     }
 }
 
@@ -105,7 +110,7 @@ impl Hook {
                     Some(code) => Err(BldrError::HookFailed(self.htype.clone(), code, output)),
                     None => Err(BldrError::HookFailed(self.htype.clone(), -1, output)),
                 }
-            },
+            }
             Err(_) => {
                 let err = format!("couldn't run hook: {}", &self.path.to_string_lossy());
                 Err(BldrError::HookFailed(self.htype.clone(), -1, err))
@@ -122,12 +127,12 @@ impl Hook {
             template.render_data(&mut out, &data);
             let data = try!(String::from_utf8(out));
             let mut file = try!(OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .create(true)
-                .read(true)
-                .mode(0o770)
-                .open(&self.path));
+                                    .write(true)
+                                    .truncate(true)
+                                    .create(true)
+                                    .read(true)
+                                    .mode(0o770)
+                                    .open(&self.path));
             try!(write!(&mut file, "{}", data));
             Ok(())
         } else {
@@ -174,7 +179,7 @@ impl<'a> HookTable<'a> {
                     self.run_hook = self.load_hook(HookType::Run);
                 }
             }
-            Err(_) => { }
+            Err(_) => {}
         }
         self
     }
@@ -214,12 +219,12 @@ pub enum Signal {
     ForceReload,
     ForceRestart,
     ForceShutdown,
-    TryRestart
+    TryRestart,
 }
 
 impl Package {
     pub fn new(deriv: String, name: String, version: String, release: String) -> Package {
-        Package{
+        Package {
             derivation: deriv,
             name: name,
             version: version,
@@ -230,7 +235,10 @@ impl Package {
     pub fn from_path(spath: &str) -> BldrResult<Package> {
         if Path::new(spath).starts_with("/opt/bldr/pkgs") {
             let items: Vec<&str> = spath.split("/").collect();
-            Ok(Self::new(items[3].to_string(), items[4].to_string(), items[5].to_string(), items[6].to_string()))
+            Ok(Self::new(items[3].to_string(),
+                         items[4].to_string(),
+                         items[5].to_string(),
+                         items[6].to_string()))
         } else {
             Err(BldrError::PackageLoad(spath.to_string()))
         }
@@ -239,20 +247,21 @@ impl Package {
     pub fn latest(deriv: &str, pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
         let path = opt_path.unwrap_or("/opt/bldr/pkgs");
         let pl = try!(Self::package_list(path));
-        let latest: Option<Package> = pl.iter().filter(|&p| p.name == pkg && p.derivation == deriv)
-            .fold(None, |winner, b| {
-                match winner {
-                    Some(a) => {
-                        match a.partial_cmp(&b) {
-                            Some(Ordering::Greater) => Some(a),
-                            Some(Ordering::Equal) => Some(a),
-                            Some(Ordering::Less) => Some(b.clone()),
-                            None => Some(a)
-                        }
-                    }
-                    None => Some(b.clone())
-                }
-            });
+        let latest: Option<Package> = pl.iter()
+                                        .filter(|&p| p.name == pkg && p.derivation == deriv)
+                                        .fold(None, |winner, b| {
+                                            match winner {
+                                                Some(a) => {
+                                                    match a.partial_cmp(&b) {
+                                                        Some(Ordering::Greater) => Some(a),
+                                                        Some(Ordering::Equal) => Some(a),
+                                                        Some(Ordering::Less) => Some(b.clone()),
+                                                        None => Some(a),
+                                                    }
+                                                }
+                                                None => Some(b.clone()),
+                                            }
+                                        });
         latest.ok_or(BldrError::PackageNotFound(deriv.to_string(), pkg.to_string()))
     }
 
@@ -285,32 +294,31 @@ impl Package {
             Signal::ForceShutdown => "force-shutdown",
             Signal::TryRestart => "try-restart",
         };
-        let output = try!(
-            Command::new(runit_pkg.join_path("bin/sv"))
-            .arg(signal_arg)
-            .arg(&format!("/opt/bldr/srvc/{}", self.name))
-            .output()
-            );
+        let output = try!(Command::new(runit_pkg.join_path("bin/sv"))
+                              .arg(signal_arg)
+                              .arg(&format!("/opt/bldr/srvc/{}", self.name))
+                              .output());
         match output.status.success() {
             true => {
                 let stdout = try!(String::from_utf8(output.stdout));
-                return Ok(stdout)
-            },
+                return Ok(stdout);
+            }
             false => {
                 match signal {
                     Signal::ForceShutdown => {
                         let outstr = try!(String::from_utf8(output.stdout));
-                        return Ok(outstr)
-                    },
-                    _ => {},
+                        return Ok(outstr);
+                    }
+                    _ => {}
                 }
-                debug!("Failed to send signal to the process supervisor for {}", self.name);
+                debug!("Failed to send signal to the process supervisor for {}",
+                       self.name);
                 let outstr = try!(String::from_utf8(output.stdout));
                 let errstr = try!(String::from_utf8(output.stderr));
                 debug!("Supervisor (O): {}", outstr);
                 debug!("Supervisor (E): {}", errstr);
                 debug!("Supervisor Code {:?}", output.status.code());
-                return Err(BldrError::SupervisorSignalFailed)
+                return Err(BldrError::SupervisorSignalFailed);
             }
         }
     }
@@ -326,12 +334,16 @@ impl Package {
                 let mut exposed_file = File::open(self.join_path("EXPOSES")).unwrap();
                 let mut exposed_string = String::new();
                 exposed_file.read_to_string(&mut exposed_string).unwrap();
-                let v: Vec<String> = exposed_string.split(' ').map(|x| String::from(x.trim_right_matches('\n'))).collect();
-                return v
-            },
+                let v: Vec<String> = exposed_string.split(' ')
+                                                   .map(|x| {
+                                                       String::from(x.trim_right_matches('\n'))
+                                                   })
+                                                   .collect();
+                return v;
+            }
             Err(_) => {
                 let v: Vec<String> = Vec::new();
-                return v
+                return v;
             }
         }
     }
@@ -358,12 +370,21 @@ impl Package {
 
     /// The path to the package on disk.
     pub fn path(&self) -> String {
-        format!("/opt/bldr/pkgs/{}/{}/{}/{}", self.derivation, self.name, self.version, self.release)
+        format!("/opt/bldr/pkgs/{}/{}/{}/{}",
+                self.derivation,
+                self.name,
+                self.version,
+                self.release)
     }
 
     /// Join a string to the path on disk.
     pub fn join_path(&self, join: &str) -> String {
-        format!("/opt/bldr/pkgs/{}/{}/{}/{}/{}", self.derivation, self.name, self.version, self.release, join)
+        format!("/opt/bldr/pkgs/{}/{}/{}/{}/{}",
+                self.derivation,
+                self.name,
+                self.version,
+                self.release,
+                join)
     }
 
     /// The on disk srvc path for this package.
@@ -405,7 +426,7 @@ impl Package {
                         try!(fs::remove_file(&srvc_run));
                         try!(unix::fs::symlink(hook.path, &srvc_run));
                     }
-                },
+                }
                 Err(_) => try!(unix::fs::symlink(hook.path, &srvc_run)),
             }
         } else {
@@ -432,8 +453,8 @@ impl Package {
             match config.path().file_name() {
                 Some(filename) => {
                     files.push(filename.to_string_lossy().into_owned().to_string());
-                },
-                None => unreachable!()
+                }
+                None => unreachable!(),
             }
         }
         Ok(files)
@@ -475,8 +496,8 @@ impl Package {
             Ok(_) => return true,
             Err(e) => {
                 debug!("Supervisor not running?: {:?}", e);
-                return false
-            },
+                return false;
+            }
         }
     }
 
@@ -484,13 +505,18 @@ impl Package {
         if let Some(hook) = self.hooks().health_check_hook {
             match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
-                Err(BldrError::HookFailed(_, 1, output)) => Ok(health_check::CheckResult::warning(output)),
-                Err(BldrError::HookFailed(_, 2, output)) => Ok(health_check::CheckResult::critical(output)),
-                Err(BldrError::HookFailed(_, 3, output)) => Ok(health_check::CheckResult::unknown(output)),
+                Err(BldrError::HookFailed(_, 1, output)) =>
+                    Ok(health_check::CheckResult::warning(output)),
+                Err(BldrError::HookFailed(_, 2, output)) =>
+                    Ok(health_check::CheckResult::critical(output)),
+                Err(BldrError::HookFailed(_, 3, output)) =>
+                    Ok(health_check::CheckResult::unknown(output)),
                 Err(BldrError::HookFailed(_, code, output)) => {
-                    Err(BldrError::HealthCheck(format!("hook exited code={}, output={}", code, output)))
+                    Err(BldrError::HealthCheck(format!("hook exited code={}, output={}",
+                                                       code,
+                                                       output)))
                 }
-                Err(e) => Err(BldrError::from(e))
+                Err(e) => Err(BldrError::from(e)),
             }
         } else {
             let status_output = try!(self.signal(Signal::Status));
@@ -506,7 +532,11 @@ impl Package {
     }
 
     pub fn cache_file(&self) -> PathBuf {
-        PathBuf::from(format!("/opt/bldr/cache/pkgs/{}-{}-{}-{}.bldr", self.derivation, self.name, self.version, self.release))
+        PathBuf::from(format!("/opt/bldr/cache/pkgs/{}-{}-{}-{}.bldr",
+                              self.derivation,
+                              self.name,
+                              self.version,
+                              self.release))
     }
 
     pub fn last_config(&self) -> BldrResult<String> {
@@ -553,7 +583,10 @@ impl Package {
 
     /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
-    fn walk_versions(derivation: &String, name: &DirEntry, packages: &mut Vec<Package>) -> BldrResult<()> {
+    fn walk_versions(derivation: &String,
+                     name: &DirEntry,
+                     packages: &mut Vec<Package>)
+                     -> BldrResult<()> {
         for version in try!(fs::read_dir(name.path())) {
             let version = try!(version);
             let name = name.file_name().to_string_lossy().into_owned().to_string();
@@ -567,16 +600,15 @@ impl Package {
     /// Helper function for walk_versions. Walks the given release DirEntry for directories and recurses
     /// into them to find version directories. Finally, a Package struct is built and concatenated onto
     /// the given packages vector with the derivation, name, version, and release of each.
-    fn walk_releases(derivation: &String, name: &String, version: &DirEntry, packages: &mut Vec<Package>) -> BldrResult<()> {
+    fn walk_releases(derivation: &String,
+                     name: &String,
+                     version: &DirEntry,
+                     packages: &mut Vec<Package>)
+                     -> BldrResult<()> {
         for release in try!(fs::read_dir(version.path())) {
             let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
             let version = version.file_name().to_string_lossy().into_owned().to_string();
-            let package = Package::new(
-                derivation.clone(),
-                name.clone(),
-                version,
-                release,
-            );
+            let package = Package::new(derivation.clone(), name.clone(), version, release);
             packages.push(package)
         }
         Ok(())
@@ -588,7 +620,10 @@ pub struct PackageUpdater;
 impl PackageUpdater {
     pub fn start(url: &str, package: Arc<RwLock<Package>>) -> PackageUpdaterActor {
         let state = UpdaterState::new(url.to_string(), package);
-        wonder::actor::Builder::new(PackageUpdater).name("package-updater".to_string()).start(state).unwrap()
+        wonder::actor::Builder::new(PackageUpdater)
+            .name("package-updater".to_string())
+            .start(state)
+            .unwrap()
     }
 
     /// Signal a package updater to transition it's status from `stopped` to `running`. An updater
@@ -638,12 +673,11 @@ impl GenServer for PackageUpdater {
         Ok(Some(TIMEOUT_MS))
     }
 
-    fn handle_timeout(
-        &self,
-        tx: &ActorSender<Self::T>,
-        _me: &ActorSender<Self::T>,
-        state: &mut Self::S
-    ) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         let package = state.package.read().unwrap();
         match repo::client::show_package_latest(&state.repo, &package) {
             Ok(latest) => {
@@ -658,7 +692,7 @@ impl GenServer for PackageUpdater {
                             let msg = wonder::actor::Message::Cast(UpdaterMessage::Update(latest));
                             tx.send(msg).unwrap();
                             HandleResult::NoReply(None)
-                        },
+                        }
                         Err(e) => {
                             debug!("Failed to download package: {:?}", e);
                             HandleResult::NoReply(Some(TIMEOUT_MS))
@@ -668,7 +702,7 @@ impl GenServer for PackageUpdater {
                     debug!("Package found is not newer than ours");
                     HandleResult::NoReply(Some(TIMEOUT_MS))
                 }
-            },
+            }
             Err(e) => {
                 debug!("Updater failed to get latest package: {:?}", e);
                 HandleResult::NoReply(Some(TIMEOUT_MS))
@@ -676,13 +710,12 @@ impl GenServer for PackageUpdater {
         }
     }
 
-    fn handle_cast(
-        &self,
-        msg: Self::T,
-        _tx: &ActorSender<Self::T>,
-        _me: &ActorSender<Self::T>,
-        state: &mut Self::S
-    ) -> HandleResult<Self::T> {
+    fn handle_cast(&self,
+                   msg: Self::T,
+                   _tx: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   state: &mut Self::S)
+                   -> HandleResult<Self::T> {
         match msg {
             UpdaterMessage::Run => HandleResult::NoReply(Some(TIMEOUT_MS)),
             _ => {
@@ -723,24 +756,30 @@ pub fn version_sort(a_version: &str, b_version: &str) -> BldrResult<Ordering> {
         let mut b_exhausted = false;
         let a_num = match a_iter.next() {
             Some(i) => try!(i.parse::<u64>()),
-            None => { a_exhausted = true; 0u64 }
+            None => {
+                a_exhausted = true;
+                0u64
+            }
         };
         let b_num = match b_iter.next() {
             Some(i) => try!(i.parse::<u64>()),
-            None => { b_exhausted = true; 0u64 }
+            None => {
+                b_exhausted = true;
+                0u64
+            }
         };
         if a_exhausted && b_exhausted {
             break;
         }
         match a_num.cmp(&b_num) {
             Ordering::Greater => {
-                return Ok(Ordering::Greater)
-            },
+                return Ok(Ordering::Greater);
+            }
             Ordering::Equal => {
-                continue
-            },
+                continue;
+            }
             Ordering::Less => {
-                return Ok(Ordering::Less)
+                return Ok(Ordering::Less);
             }
         }
     }
@@ -763,7 +802,7 @@ pub fn version_sort(a_version: &str, b_version: &str) -> BldrResult<Ordering> {
             Some(b) => b,
             None => String::new(),
         };
-        return Ok(a.cmp(&b))
+        return Ok(a.cmp(&b));
     }
 }
 
@@ -771,7 +810,7 @@ fn split_version(version: &str) -> BldrResult<(Vec<&str>, Option<String>)> {
     let re = try!(Regex::new(r"([\d\.]+)(-.+)?"));
     let caps = match re.captures(version) {
         Some(caps) => caps,
-        None => return Err(BldrError::BadVersion)
+        None => return Err(BldrError::BadVersion),
     };
     let version_number = caps.at(1).unwrap();
     let extension = match caps.at(2) {
@@ -779,8 +818,8 @@ fn split_version(version: &str) -> BldrResult<(Vec<&str>, Option<String>)> {
             let mut estr: String = e.to_string();
             estr.remove(0);
             Some(estr)
-        },
-        None => None
+        }
+        None => None,
     };
     let version_parts: Vec<&str> = version_number.split('.').collect();
     Ok((version_parts, extension))
@@ -789,15 +828,15 @@ fn split_version(version: &str) -> BldrResult<(Vec<&str>, Option<String>)> {
 impl PartialEq for Package {
     fn eq(&self, other: &Package) -> bool {
         if self.derivation != other.derivation {
-            return false
+            return false;
         } else if self.name != other.name {
-            return false
+            return false;
         } else if self.version != other.version {
-            return false
+            return false;
         } else if self.release != other.release {
-            return false
+            return false;
         } else {
-            return true
+            return true;
         }
     }
 }
@@ -814,20 +853,20 @@ impl PartialOrd for Package {
     ///   for the release.
     fn partial_cmp(&self, other: &Package) -> Option<Ordering> {
         if self.name != other.name {
-            return None
+            return None;
         }
         let ord = match version_sort(&self.version, &other.version) {
             Ok(ord) => ord,
             Err(e) => {
                 error!("This was a very bad version number: {:?}", e);
-                return None
+                return None;
             }
         };
         match ord {
             Ordering::Greater => return Some(Ordering::Greater),
             Ordering::Less => return Some(Ordering::Less),
             Ordering::Equal => {
-                return Some(self.release.cmp(&other.release))
+                return Some(self.release.cmp(&other.release));
             }
         }
     }
@@ -841,13 +880,13 @@ mod tests {
 
     #[test]
     fn package_partial_eq() {
-        let a = Package{
+        let a = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
         };
-        let b = Package{
+        let b = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
@@ -858,13 +897,13 @@ mod tests {
 
     #[test]
     fn package_partial_ord() {
-        let a = Package{
+        let a = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.1".to_string(),
             release: "20150521131555".to_string(),
         };
-        let b = Package{
+        let b = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
@@ -872,19 +911,19 @@ mod tests {
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
-            None => panic!("Ordering should be greater")
+            None => panic!("Ordering should be greater"),
         }
     }
 
     #[test]
     fn package_partial_ord_bad_name() {
-        let a = Package{
+        let a = Package {
             derivation: "bldr".to_string(),
             name: "snoopy".to_string(),
             version: "1.0.1".to_string(),
             release: "20150521131555".to_string(),
         };
-        let b = Package{
+        let b = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
@@ -892,19 +931,19 @@ mod tests {
         };
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
-            None => assert!(true)
+            None => assert!(true),
         }
     }
 
     #[test]
     fn package_partial_ord_different_derivation() {
-        let a = Package{
+        let a = Package {
             derivation: "adam".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131555".to_string(),
         };
-        let b = Package{
+        let b = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
@@ -912,19 +951,19 @@ mod tests {
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
-            None => panic!("We failed to return an order")
+            None => panic!("We failed to return an order"),
         }
     }
 
     #[test]
     fn package_partial_ord_release() {
-        let a = Package{
+        let a = Package {
             derivation: "adam".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
             release: "20150521131556".to_string(),
         };
-        let b = Package{
+        let b = Package {
             derivation: "bldr".to_string(),
             name: "bldr".to_string(),
             version: "1.0.0".to_string(),
@@ -932,7 +971,7 @@ mod tests {
         };
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
-            None => panic!("We failed to return an order")
+            None => panic!("We failed to return an order"),
         }
     }
 
@@ -943,9 +982,9 @@ mod tests {
             Ok((version_parts, Some(extension))) => {
                 assert_eq!(vec!["1", "2", "3"], version_parts);
                 assert_eq!("beta16", extension);
-            },
+            }
             Ok((_, None)) => panic!("Has an extension"),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
     }
 
@@ -953,19 +992,19 @@ mod tests {
     fn version_sort_simple() {
         match version_sort("1.0.0", "2.0.0") {
             Ok(compare) => assert_eq!(compare, Ordering::Less),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("2.0.1", "2.0.0") {
             Ok(compare) => assert_eq!(compare, Ordering::Greater),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("2.1.1", "2.1.1") {
             Ok(compare) => assert_eq!(compare, Ordering::Equal),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("20150521131347", "20150521131346") {
             Ok(compare) => assert_eq!(compare, Ordering::Greater),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
     }
 
@@ -973,23 +1012,23 @@ mod tests {
     fn version_sort_complex() {
         match version_sort("1.0.0-alpha2", "1.0.0-alpha1") {
             Ok(compare) => assert_eq!(compare, Ordering::Greater),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("1.0.0-alpha1", "1.0.0-alpha2") {
             Ok(compare) => assert_eq!(compare, Ordering::Less),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("1.0.0-beta1", "1.0.0-alpha1000") {
             Ok(compare) => assert_eq!(compare, Ordering::Greater),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("2.1.1", "2.1.1-alpha2") {
             Ok(compare) => assert_eq!(compare, Ordering::Greater),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
         match version_sort("2.1.1-alpha2", "2.1.1") {
             Ok(compare) => assert_eq!(compare, Ordering::Less),
-            Err(e) => panic!("{:?}", e)
+            Err(e) => panic!("{:?}", e),
         }
     }
 }

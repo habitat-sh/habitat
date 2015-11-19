@@ -13,7 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 
 use std::io::{Read, Write, BufWriter};
 use std::fs::{self, File};
@@ -35,17 +34,20 @@ pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
 /// Download a sepcific package identified by it's name, derivation, version, and release.
 pub fn fetch_package(repo: &str, package: &Package, path: &str) -> BldrResult<String> {
     let url = format!("{}/pkgs/{}/{}/{}/{}/download",
-        repo,
-        package.derivation,
-        package.name,
-        package.version,
-        package.release
-    );
+                      repo,
+                      package.derivation,
+                      package.name,
+                      package.version,
+                      package.release);
     download(&package.name, &url, path)
 }
 
 /// Download the latest version/release of a package regardless of derivation.
-pub fn fetch_package_latest(repo: &str, derivation: &str, package: &str, path: &str) -> BldrResult<String> {
+pub fn fetch_package_latest(repo: &str,
+                            derivation: &str,
+                            package: &str,
+                            path: &str)
+                            -> BldrResult<String> {
     let url = format!("{}/pkgs/{}/{}/download", repo, derivation, package);
     download(package, &url, path)
 }
@@ -70,7 +72,12 @@ pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
 
 pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     let mut file = try!(File::open(package.cache_file()));
-    let url = format!("{}/pkgs/{}/{}/{}/{}", repo, package.derivation, package.name, package.version, package.release);
+    let url = format!("{}/pkgs/{}/{}/{}/{}",
+                      repo,
+                      package.derivation,
+                      package.name,
+                      package.version,
+                      package.release);
     upload(&url, &mut file)
 }
 
@@ -88,8 +95,9 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
         Some(filename) => format!("{}", filename),
         None => return Err(BldrError::NoXFilename),
     };
-    let length = res.headers.get::<hyper::header::ContentLength>()
-        .map_or("Unknown".to_string(), |v| format!("{}", v));
+    let length = res.headers
+                    .get::<hyper::header::ContentLength>()
+                    .map_or("Unknown".to_string(), |v| format!("{}", v));
     // Here is a moment where you can really like Rust. We create
     // a file, wrap it in a BufWriter - which understands how to
     // safely batch writes into large buffer sizes on the heap,
@@ -116,12 +124,14 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     loop {
         let len = try!(res.read(&mut buf)); // Raise IO errors
         match len {
-            0 => { // 0 == EOF, so stop writing and finish progress
+            0 => {
+                // 0 == EOF, so stop writing and finish progress
                 progress(status, written, &length, true);
                 break;
-            },
-            _ => { // Write the buffer to the BufWriter on the Heap
-                let bytes_written = try!(writer.write(&buf[0 .. len]));
+            }
+            _ => {
+                // Write the buffer to the BufWriter on the Heap
+                let bytes_written = try!(writer.write(&buf[0..len]));
                 if bytes_written == 0 {
                     return Err(BldrError::WriteSyncFailed);
                 }
@@ -155,14 +165,14 @@ fn progress(status: &str, written: i64, length: &str, finished: bool) {
 
 fn from_char(length: usize, ch: char) -> String {
     if length == 0 {
-        return String::new()
+        return String::new();
     }
 
     let mut buf = String::new();
     buf.push(ch);
     let size = buf.len() * length;
     buf.reserve(size);
-    for _ in 1 .. length {
+    for _ in 1..length {
         buf.push(ch)
     }
     buf

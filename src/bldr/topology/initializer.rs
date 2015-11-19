@@ -13,7 +13,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
+
 //! This is the building block of complicated topologies which require a leader. It is
 //! used when a single member of your cluster should perform additional applications
 //! level initialization and/or if the other members of your cluster need to perform
@@ -36,7 +36,8 @@ enum InitGate {
 
 pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     let mut worker = try!(Worker::new(package, String::from("initializer"), config));
-    let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::DetermineViability);
+    let mut sm: StateMachine<State, Worker, BldrError> =
+        StateMachine::new(State::DetermineViability);
     sm.add_dispatch(State::DetermineViability, state_determine_viability);
     sm.add_dispatch(State::StartElection, state_start_election);
     sm.add_dispatch(State::InElection, state_in_election);
@@ -50,7 +51,8 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
 }
 
 pub fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Determining viability as a leader", worker.preamble());
+    println!("   {}: Determining viability as a leader",
+             worker.preamble());
     worker.census.in_event = true;
     {
         let mut ce = try!(worker.census.me_mut());
@@ -83,11 +85,11 @@ pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
     {
         let mut ce = try!(worker.census.me_mut());
         match ce.vote {
-            Some(ref c) if *c == candidate => {},
+            Some(ref c) if *c == candidate => {}
             Some(_) => {
                 println!("   {}: Switching my vote to {}", preamble, candidate);
                 ce.vote(Some(candidate));
-            },
+            }
             None => {
                 println!("   {}: Switching my vote to {}", preamble, candidate);
                 ce.vote(Some(candidate));
@@ -96,7 +98,9 @@ pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
     }
 
     if let Some(leader_ce) = worker.census.get_leader() {
-        println!("   {}: {} has already been elected; becoming a follower", preamble, leader_ce.candidate_string());
+        println!("   {}: {} has already been elected; becoming a follower",
+                 preamble,
+                 leader_ce.candidate_string());
         return Ok((State::BecomeFollower, 0));
     }
 
@@ -104,14 +108,16 @@ pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
         Some(winner) => {
             let me = try!(worker.census.me());
             if me == winner {
-                println!("   {}: The votes are in! I won! I will serve with humility.", worker.preamble());
+                println!("   {}: The votes are in! I won! I will serve with humility.",
+                         worker.preamble());
                 Ok((State::BecomeLeader, 0))
             } else {
-                println!("   {}: The votes are in! I lost! I will serve with grace.", worker.preamble());
+                println!("   {}: The votes are in! I lost! I will serve with grace.",
+                         worker.preamble());
                 Ok((State::BecomeFollower, 0))
             }
-        },
-        None => Ok((State::InElection, 10))
+        }
+        None => Ok((State::InElection, 10)),
     }
 }
 
@@ -127,7 +133,8 @@ pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
         println!("   {}: Starting my term as leader", worker.preamble());
         Ok((State::InitializingLeader, 0))
     } else {
-        println!("   {}: Waiting for all my followers to agree", worker.preamble());
+        println!("   {}: Waiting for all my followers to agree",
+                 worker.preamble());
         Ok((State::BecomeLeader, 0))
     }
 }
@@ -172,7 +179,7 @@ pub fn state_initializing_follower(worker: &mut Worker) -> BldrResult<(State, u3
         InitGate::Done => {
             try!(initialize(worker));
             Ok((State::Follower, 0))
-        },
+        }
         InitGate::Waiting => Ok((State::InitializingFollower, 0)),
         InitGate::NoLeader => Ok((State::DetermineViability, 0)),
     }
@@ -219,7 +226,7 @@ pub fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
         try!(standalone::state_starting(worker));
     }
 
-    if ! worker.census.has_leader() {
+    if !worker.census.has_leader() {
         Ok((State::DetermineViability, 0))
     } else {
         Ok((State::Follower, 0))
@@ -234,7 +241,7 @@ fn initialize(worker: &mut Worker) -> BldrResult<()> {
             let mut me = try!(worker.census.me_mut());
             me.initialized();
             Ok(())
-        },
+        }
         Err(e) => Err(e),
     }
 }

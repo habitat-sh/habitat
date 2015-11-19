@@ -32,13 +32,13 @@ pub struct StateMachine<T, X, E> {
     /// How long to wait between state transitions
     pub delay: u32,
     /// The dispatch table of states to functions
-    pub dispatch: HashMap<T, fn(&mut X)-> Result<(T, u32), E>>,
+    pub dispatch: HashMap<T, fn(&mut X) -> Result<(T, u32), E>>,
 }
 
 impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
     /// Create a new StateMachine
     pub fn new(state: T) -> StateMachine<T, X, E> {
-        StateMachine{
+        StateMachine {
             state: state,
             delay: 0,
             dispatch: HashMap::new(),
@@ -62,7 +62,8 @@ impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
             let (next_state, delay) = try!(self.dispatch.get(&self.state).unwrap()(worker));
             self.set_state(next_state, delay);
         } else {
-            panic!("Cannot dispatch to {:?} - perhaps you need to call add_dispatch?", self.state);
+            panic!("Cannot dispatch to {:?} - perhaps you need to call add_dispatch?",
+                   self.state);
         }
         Ok(())
     }
@@ -77,7 +78,7 @@ mod tests {
     #[derive(PartialEq, Eq, Debug, Hash)]
     enum State {
         Init,
-        Done
+        Done,
     }
 
     #[derive(PartialEq)]
@@ -122,7 +123,7 @@ mod tests {
 
     #[test]
     fn add_dispatch() {
-        let mut worker = Worker{ value: String::from("nothing") };
+        let mut worker = Worker { value: String::from("nothing") };
         let mut sm: StateMachine<State, Worker, WorkerError> = StateMachine::new(State::Init);
         sm.add_dispatch(State::Init, Worker::state_init);
         assert!(sm.dispatch.contains_key(&State::Init));
@@ -132,7 +133,7 @@ mod tests {
 
     #[test]
     fn next_works() {
-        let mut worker = Worker{ value: String::from("nothing") };
+        let mut worker = Worker { value: String::from("nothing") };
         let mut sm: StateMachine<State, Worker, WorkerError> = StateMachine::new(State::Init);
         sm.add_dispatch(State::Init, Worker::state_init);
         sm.add_dispatch(State::Done, Worker::state_done);
@@ -142,4 +143,3 @@ mod tests {
         assert_eq!(worker.value, String::from("done"));
     }
 }
-

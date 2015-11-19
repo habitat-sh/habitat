@@ -69,10 +69,13 @@ mod tests {
                 wiggle = [ "snooze", "looze" ]
             "#;
         let toml_value = toml::Parser::new(toml).parse().unwrap();
-        let template = mustache::compile_str("hello {{daemonize}} for {{slaveof}} {{winks.right}} {{winks.left}} {{# winks.wiggle}} {{.}} {{/winks.wiggle}}");
+        let template = mustache::compile_str("hello {{daemonize}} for {{slaveof}} \
+                                              {{winks.right}} {{winks.left}} {{# winks.wiggle}} \
+                                              {{.}} {{/winks.wiggle}}");
         let mut bytes = vec![];
         let data = toml_table_to_mustache(toml_value);
         template.render_data(&mut bytes, &data);
-        assert_eq!(String::from_utf8(bytes).unwrap(), "hello no for 127.0.0.1 6380 no yes  snooze  looze ".to_string());
+        assert_eq!(String::from_utf8(bytes).unwrap(),
+                   "hello no for 127.0.0.1 6380 no yes  snooze  looze ".to_string());
     }
 }

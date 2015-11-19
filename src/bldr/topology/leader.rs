@@ -26,13 +26,16 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::RestoreDataset, state_restore_dataset);
-    sm.add_dispatch(State::DetermineViability, initializer::state_determine_viability);
+    sm.add_dispatch(State::DetermineViability,
+                    initializer::state_determine_viability);
     sm.add_dispatch(State::StartElection, initializer::state_start_election);
     sm.add_dispatch(State::InElection, initializer::state_in_election);
     sm.add_dispatch(State::BecomeLeader, initializer::state_become_leader);
     sm.add_dispatch(State::BecomeFollower, initializer::state_become_follower);
-    sm.add_dispatch(State::InitializingLeader, initializer::state_initializing_leader);
-    sm.add_dispatch(State::InitializingFollower, initializer::state_initializing_follower);
+    sm.add_dispatch(State::InitializingLeader,
+                    initializer::state_initializing_leader);
+    sm.add_dispatch(State::InitializingFollower,
+                    initializer::state_initializing_follower);
     sm.add_dispatch(State::Leader, initializer::state_leader);
     sm.add_dispatch(State::Follower, initializer::state_follower);
     topology::run_internal(&mut sm, &mut worker)
@@ -47,7 +50,8 @@ fn state_init(worker: &mut Worker) -> BldrResult<(State, u32)> {
 }
 
 fn state_restore_dataset(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Restoring the dataset from a peer", worker.preamble());
+    println!("   {}: Restoring the dataset from a peer",
+             worker.preamble());
     let ce = try!(worker.census.me_mut());
     ce.data_init(Some(true));
     Ok((State::DetermineViability, 0))

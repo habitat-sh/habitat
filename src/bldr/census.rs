@@ -184,7 +184,7 @@ impl CensusEntry {
         let toml_ce = toml::encode_str(self);
         toml.push_str(&toml_ce);
         self.needs_write = None;
-        EtcdWrite{
+        EtcdWrite {
             key: format!("{}/{}/census/{}", pkg.name, config.group(), self.id),
             value: Some(toml),
             ttl: Some(30),
@@ -204,7 +204,7 @@ pub enum Message {
     /// Ok
     Ok,
     /// Stop
-    Stop
+    Stop,
 }
 
 // The time between persisting our CensusEntry to the backend.
@@ -246,32 +246,43 @@ impl GenServer for CensusEntryActor {
     }
 
     /// Makes sure we regularly persist to etcd, beating our entries 30 second ttl.
-    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      _tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         match self.write_to_discovery(state) {
             Ok(_) => HandleResult::NoReply(Some(ENTRY_TIMEOUT_MS)),
-            Err(e) => return HandleResult::Stop(
-                StopReason::Fatal(
-                    format!("Census Entry Actor caught unexpected error: {:?}", e)),
-                    None,
-                ),
+            Err(e) =>
+                return HandleResult::Stop(StopReason::Fatal(format!("Census Entry Actor caught \
+                                                                     unexpected error: {:?}",
+                                                                    e)),
+                                          None),
         }
     }
 
     /// Take a given etcd write, and persist it. Or stop. It's cool. Whatevs.
-    fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self,
+                   message: Self::T,
+                   _caller: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   state: &mut Self::S)
+                   -> HandleResult<Self::T> {
         match message {
-           Message::Stop => {
-               HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
-           },
-           Message::Write(etcdwrite) => {
-               mem::replace(state, etcdwrite);
-               match self.write_to_discovery(state) {
-                   Ok(_) => {},
-                   Err(e) => debug!("Failed to write to discovery: {:?}", e),
-               }
-               HandleResult::Reply(Message::Ok, Some(ENTRY_TIMEOUT_MS))
-           },
-           Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU Ok!")), Some(Message::Ok)),
+            Message::Stop => {
+                HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
+            }
+            Message::Write(etcdwrite) => {
+                mem::replace(state, etcdwrite);
+                match self.write_to_discovery(state) {
+                    Ok(_) => {}
+                    Err(e) => debug!("Failed to write to discovery: {:?}", e),
+                }
+                HandleResult::Reply(Message::Ok, Some(ENTRY_TIMEOUT_MS))
+            }
+            Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! \
+                                                                         I send YOU Ok!")),
+                                              Some(Message::Ok)),
         }
     }
 }
@@ -297,7 +308,7 @@ impl Census {
         let my_id = ce.id.clone();
         let mut hm = HashMap::new();
         hm.insert(my_id, ce);
-        Census{
+        Census {
             me: my_id,
             population: hm,
             in_event: false,
@@ -320,7 +331,9 @@ impl Census {
     ///
     /// * If the entry doesn't exist
     pub fn me_mut(&mut self) -> BldrResult<&mut CensusEntry> {
-        self.population.get_mut(&self.me).ok_or(BldrError::CensusNotFound(self.me.to_simple_string()))
+        self.population
+            .get_mut(&self.me)
+            .ok_or(BldrError::CensusNotFound(self.me.to_simple_string()))
     }
 
     /// Add an entry to the census
@@ -356,8 +369,8 @@ impl Census {
                     } else {
                         true
                     }
-                },
-                None => true
+                }
+                None => true,
             };
             if update {
                 debug!("updating {:#?}", new_entry);
@@ -383,7 +396,10 @@ impl Census {
     /// * If we cannot parse a Uuid
     pub fn to_toml(&mut self) -> BldrResult<String> {
         let mut final_toml = String::new();
-        let mut sorted_keys: Vec<_> = self.population.keys().map(|&x| x.to_simple_string()).collect();
+        let mut sorted_keys: Vec<_> = self.population
+                                          .keys()
+                                          .map(|&x| x.to_simple_string())
+                                          .collect();
         sorted_keys.sort();
         for key in sorted_keys {
             let uuid_key = try!(Uuid::parse_str(&key));
@@ -395,7 +411,7 @@ impl Census {
         match self.get_leader() {
             Some(leader) => {
                 final_toml.push_str(&format!("\n[census.leader]\n{}", toml::encode_str(&leader)));
-            },
+            }
             None => {}
         }
         Ok(final_toml)
@@ -404,15 +420,15 @@ impl Census {
     /// Have all members of the census initialized their data?
     pub fn dataset_initialized(&self) -> bool {
         let count = self.population
-            .values()
-            .filter(|&ce| {
-                if let Some(true) = ce.data_init {
-                    true
-                } else {
-                    false
-                }
-            })
-            .count();
+                        .values()
+                        .filter(|&ce| {
+                            if let Some(true) = ce.data_init {
+                                true
+                            } else {
+                                false
+                            }
+                        })
+                        .count();
         if count > 0 {
             true
         } else {
@@ -423,15 +439,15 @@ impl Census {
     /// Is there a leader in the census? Returns that entry.
     pub fn get_leader(&self) -> Option<&CensusEntry> {
         let mut leader: Vec<&CensusEntry> = self.population
-            .values()
-            .filter(|&ce| {
-                if let Some(true) = ce.leader {
-                    true
-                } else {
-                    false
-                }
-            })
-            .collect();
+                                                .values()
+                                                .filter(|&ce| {
+                                                    if let Some(true) = ce.leader {
+                                                        true
+                                                    } else {
+                                                        false
+                                                    }
+                                                })
+                                                .collect();
         if leader.len() == 1 {
             leader.pop()
         } else {
@@ -442,15 +458,15 @@ impl Census {
     /// Is there a leader in the census?
     pub fn has_leader(&self) -> bool {
         let count = self.population
-            .values()
-            .filter(|&ce| {
-                if let Some(true) = ce.leader {
-                    true
-                } else {
-                    false
-                }
-            })
-            .count();
+                        .values()
+                        .filter(|&ce| {
+                            if let Some(true) = ce.leader {
+                                true
+                            } else {
+                                false
+                            }
+                        })
+                        .count();
         if count > 0 {
             true
         } else {
@@ -463,15 +479,15 @@ impl Census {
         let size = self.population.len() - 1;
 
         let count = self.population
-            .values()
-            .filter(|&ce| {
-                if let Some(true) = ce.follower {
-                    true
-                } else {
-                    false
-                }
-            })
-            .count();
+                        .values()
+                        .filter(|&ce| {
+                            if let Some(true) = ce.follower {
+                                true
+                            } else {
+                                false
+                            }
+                        })
+                        .count();
         if count == size {
             true
         } else {
@@ -486,27 +502,29 @@ impl Census {
     pub fn determine_vote(&self) -> &CensusEntry {
         let acc: Option<&CensusEntry> = None;
         let vote: &CensusEntry = self.population
-            .values()
-            .fold(acc, |acc, ref rce| {
-                match acc {
-                    Some(lce) => {
-                        if rce.suitability > lce.suitability {
-                            Some(rce)
-                        } else if lce.suitability == rce.suitability {
-                            if rce.id.to_simple_string() > lce.id.to_simple_string() {
-                                Some(rce)
-                            } else {
-                                Some(lce)
-                            }
-                        } else {
-                            Some(lce)
-                        }
-                    },
-                    None => {
-                        Some(rce)
-                    }
-                }
-            }).unwrap();
+                                     .values()
+                                     .fold(acc, |acc, ref rce| {
+                                         match acc {
+                                             Some(lce) => {
+                                                 if rce.suitability > lce.suitability {
+                                                     Some(rce)
+                                                 } else if lce.suitability == rce.suitability {
+                                                     if rce.id.to_simple_string() >
+                                                        lce.id.to_simple_string() {
+                                                         Some(rce)
+                                                     } else {
+                                                         Some(lce)
+                                                     }
+                                                 } else {
+                                                     Some(lce)
+                                                 }
+                                             }
+                                             None => {
+                                                 Some(rce)
+                                             }
+                                         }
+                                     })
+                                     .unwrap();
         vote
     }
 
@@ -517,27 +535,27 @@ impl Census {
     /// * Everyone votes for the same CensusEntry
     pub fn voting_finished(&self) -> Option<&CensusEntry> {
         let all_in_election = self.population
-            .values()
-            .all(|ref ce| {
-                match ce.election {
-                    Some(true) => true,
-                    Some(false) => false,
-                    None => false,
-                }
-            });
+                                  .values()
+                                  .all(|ref ce| {
+                                      match ce.election {
+                                          Some(true) => true,
+                                          Some(false) => false,
+                                          None => false,
+                                      }
+                                  });
         if all_in_election == false {
             debug!("Not all in election: {:#?}", self);
             return None;
         };
 
         let all_voted = self.population
-            .values()
-            .all(|ref ce| {
-                match ce.vote {
-                    Some(_) => true,
-                    None => false,
-                }
-            });
+                            .values()
+                            .all(|ref ce| {
+                                match ce.vote {
+                                    Some(_) => true,
+                                    None => false,
+                                }
+                            });
         if all_voted == false {
             debug!("Not everyone has voted: {:#?}", self);
             return None;
@@ -551,12 +569,12 @@ impl Census {
                 Some(ref their_vote) => {
                     if my_vote != *their_vote {
                         debug!("We do not all agree: {:#?} vs {:#?}", my_vote, their_vote);
-                        return None
+                        return None;
                     }
-                },
+                }
                 None => {
                     debug!("Citizen {:#?} has not voted yet", lce);
-                    return None
+                    return None;
                 }
             }
         }
@@ -575,7 +593,7 @@ pub enum CensusMessage {
     /// Ok
     Ok,
     /// Knock it off!
-    Stop
+    Stop,
 }
 
 /// How often to check for changes
@@ -615,7 +633,7 @@ impl CensusActorState {
             ctx: None,
             crx: None,
             census_string: None,
-            watch_key: watch_key
+            watch_key: watch_key,
         }
     }
 }
@@ -636,61 +654,78 @@ impl GenServer for CensusActor {
     }
 
     /// Check for data from the watch, and update the census_string.
-    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      _tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         if let Some(ref crx) = state.crx {
             match crx.try_recv() {
                 Ok(Some(toml_string)) => {
                     state.census_string = Some(toml_string);
-                },
+                }
                 Ok(None) => {
                     state.census_string = None;
-                },
-                Err(TryRecvError::Empty) => { },
-                Err(e) => return HandleResult::Stop(
-                    StopReason::Fatal(
-                        format!("Census Actor caught unexpected error: {:?}", e)),
-                        None,
-                        ),
+                }
+                Err(TryRecvError::Empty) => {}
+                Err(e) =>
+                    return HandleResult::Stop(StopReason::Fatal(format!("Census Actor caught \
+                                                                         unexpected error: {:?}",
+                                                                        e)),
+                                              None),
             }
         }
         HandleResult::NoReply(Some(CENSUS_TIMEOUT_MS))
     }
 
     /// Return the census_string.
-    fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self,
+                   message: Self::T,
+                   _caller: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   state: &mut Self::S)
+                   -> HandleResult<Self::T> {
         if let Some(ref crx) = state.crx {
             match crx.try_recv() {
                 Ok(Some(toml_string)) => {
                     state.census_string = Some(toml_string);
-                },
+                }
                 Ok(None) => {
                     state.census_string = None;
-                },
-                Err(TryRecvError::Empty) => { },
-                Err(e) => return HandleResult::Stop(
-                    StopReason::Fatal(
-                        format!("Census Actor caught unexpected error: {:?}", e)),
-                        Some(CensusMessage::Ok),
-                        ),
+                }
+                Err(TryRecvError::Empty) => {}
+                Err(e) =>
+                    return HandleResult::Stop(StopReason::Fatal(format!("Census Actor caught \
+                                                                         unexpected error: {:?}",
+                                                                        e)),
+                                              Some(CensusMessage::Ok)),
             }
         }
 
         match message {
-           CensusMessage::Stop => {
-               HandleResult::Stop(StopReason::Normal, Some(CensusMessage::Ok))
-           },
-           CensusMessage::Census => {
-               match state.census_string {
-                   Some(ref toml_string) => {
-                       HandleResult::Reply(CensusMessage::CensusToml(Some(toml_string.clone())), Some(CENSUS_TIMEOUT_MS))
-                   },
-                   None => {
-                       HandleResult::Reply(CensusMessage::CensusToml(None), Some(CENSUS_TIMEOUT_MS))
-                   }
-               }
-           },
-           CensusMessage::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU Ok!")), Some(CensusMessage::Ok)),
-           CensusMessage::CensusToml(_) => HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! I send YOU CensusToml(_)!")), Some(CensusMessage::Ok)),
+            CensusMessage::Stop => {
+                HandleResult::Stop(StopReason::Normal, Some(CensusMessage::Ok))
+            }
+            CensusMessage::Census => {
+                match state.census_string {
+                    Some(ref toml_string) => {
+                        HandleResult::Reply(CensusMessage::CensusToml(Some(toml_string.clone())),
+                                            Some(CENSUS_TIMEOUT_MS))
+                    }
+                    None => {
+                        HandleResult::Reply(CensusMessage::CensusToml(None),
+                                            Some(CENSUS_TIMEOUT_MS))
+                    }
+                }
+            }
+            CensusMessage::Ok =>
+                HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU \
+                                                              Ok!")),
+                                   Some(CensusMessage::Ok)),
+            CensusMessage::CensusToml(_) =>
+                HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! \
+                                                              I send YOU CensusToml(_)!")),
+                                   Some(CensusMessage::Ok)),
         }
     }
 }

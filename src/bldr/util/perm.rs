@@ -20,14 +20,14 @@ use std::process::Command;
 
 pub fn set_owner(path: &str, owner: &str) -> BldrResult<()> {
     let output = try!(Command::new("chown")
-        .arg(owner)
-        .arg(path)
-        .output());
+                          .arg(owner)
+                          .arg(path)
+                          .output());
     match output.status.success() {
         true => Ok(()),
         false => {
             Err(BldrError::PermissionFailed)
-        },
+        }
     }
 }
 
@@ -36,13 +36,13 @@ pub fn set_owner(path: &str, owner: &str) -> BldrResult<()> {
 // other platform, this code will need to become platform specific.
 pub fn set_permissions(path: &str, perm: &str) -> BldrResult<()> {
     let output = try!(Command::new("chmod")
-        .arg(perm)
-        .arg(path)
-        .output());
+                          .arg(perm)
+                          .arg(path)
+                          .output());
     match output.status.success() {
         true => Ok(()),
         false => {
             Err(BldrError::PermissionFailed)
-        },
+        }
     }
 }

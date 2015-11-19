@@ -39,7 +39,7 @@ pub enum Command {
     Shell,
     Repo,
     Upload,
-    Configuration
+    Configuration,
 }
 
 // We provide a default command primarily so the Config struct can have sane defaults.

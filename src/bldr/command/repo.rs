@@ -39,7 +39,6 @@ use config::Config;
 use error::BldrResult;
 use repo;
 
-
 /// Starts the repository.
 ///
 /// # Failures

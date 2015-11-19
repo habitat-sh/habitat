@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
 //! Starts a service from an installed bldr package.
 //!
 //! Services in bldr support one or more *topologies*, which are state machines that handle the
@@ -84,7 +85,9 @@ pub fn package(config: &Config) -> BldrResult<()> {
                 let latest_pkg = try!(repo::client::show_package_latest(&url, &package));
                 if latest_pkg > package {
                     println!("Downloading latest version from remote: {}", &latest_pkg);
-                    let pkg_file = try!(repo::client::fetch_package(&url, &latest_pkg, PACKAGE_CACHE));
+                    let pkg_file = try!(repo::client::fetch_package(&url,
+                                                                    &latest_pkg,
+                                                                    PACKAGE_CACHE));
                     try!(install::verify(config.package(), &pkg_file));
                     try!(install::unpack(config.package(), &pkg_file));
                     package = try!(Package::from_path(&pkg_file));
@@ -93,20 +96,26 @@ pub fn package(config: &Config) -> BldrResult<()> {
                 };
             }
             start_package(package, config)
-        },
+        }
         Err(_) => {
-            println!("{} not found in local cache", Yellow.bold().paint(config.package()));
+            println!("{} not found in local cache",
+                     Yellow.bold().paint(config.package()));
             match *config.url() {
                 Some(ref url) => {
-                    println!("Searching for {} in remote {}", Yellow.bold().paint(config.package()), url);
-                    let pkg_file = try!(install::latest_from_url(config.deriv(), config.package(), url));
+                    println!("Searching for {} in remote {}",
+                             Yellow.bold().paint(config.package()),
+                             url);
+                    let pkg_file = try!(install::latest_from_url(config.deriv(),
+                                                                 config.package(),
+                                                                 url));
                     try!(install::verify(&config.package(), &pkg_file));
                     try!(install::unpack(&config.package(), &pkg_file));
                     let package = try!(Package::from_path(&pkg_file));
                     start_package(package, config)
-                },
+                }
                 None => {
-                    Err(BldrError::PackageNotFound(config.deriv().to_string(), config.package().to_string()))
+                    Err(BldrError::PackageNotFound(config.deriv().to_string(),
+                                                   config.package().to_string()))
                 }
             }
         }

@@ -18,7 +18,8 @@
 extern crate bldr;
 extern crate rustc_serialize;
 extern crate docopt;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 extern crate env_logger;
 extern crate ansi_term;
 extern crate libc;
@@ -41,6 +42,7 @@ static VERSION: &'static str = "0.0.1";
 /// The [docopts](http://burntsushi.net/rustdoc/docopt/index.html) usage
 /// string. Determines what options are accepted.
 #[allow(dead_code)]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url> [-v <version>] [-r <release>]
        bldr start <package> [-u <url>] [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
@@ -84,7 +86,7 @@ struct Args {
     flag_url: String,
     flag_topology: Option<String>,
     flag_group: String,
-    flag_watch: Vec<String>
+    flag_watch: Vec<String>,
 }
 
 /// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
@@ -104,13 +106,13 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
         match topology.as_ref() {
             "standalone" => {
                 config.set_topology(Topology::Standalone);
-            },
+            }
             "leader" => {
                 config.set_topology(Topology::Leader);
-            },
+            }
             "initializer" => {
                 config.set_topology(Topology::Initializer);
-            },
+            }
             t => return Err(BldrError::UnknownTopology(String::from(t))),
         }
     }
@@ -137,8 +139,8 @@ fn main() {
     env_logger::init().unwrap();
 
     let args: Args = Docopt::new(USAGE)
-                            .and_then(|d| d.decode())
-                            .unwrap_or_else(|e| e.exit());
+                         .and_then(|d| d.decode())
+                         .unwrap_or_else(|e| e.exit());
     debug!("Docopt Args: {:?}", args);
     let result = match args {
         Args{cmd_install: true, ..} => {
@@ -146,61 +148,61 @@ fn main() {
                 Ok(config) => install(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_start: true, ..} => {
             match config_from_args(&args, Command::Start) {
                 Ok(config) => start(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_key: true, ..} => {
             match config_from_args(&args, Command::Key) {
                 Ok(config) => key(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_key_upload: true, ..} => {
             match config_from_args(&args, Command::KeyUpload) {
                 Ok(config) => key_upload(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_sh: true, ..} => {
             match config_from_args(&args, Command::Shell) {
                 Ok(config) => shell(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_bash: true, ..} => {
             match config_from_args(&args, Command::Shell) {
                 Ok(config) => shell(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_repo: true, ..} => {
             match config_from_args(&args, Command::Repo) {
                 Ok(config) => repo(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_upload: true, ..} => {
             match config_from_args(&args, Command::Upload) {
                 Ok(config) => upload(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         Args{cmd_config: true, ..} => {
             match config_from_args(&args, Command::Configuration) {
                 Ok(config) => configure(&config),
                 Err(e) => Err(e),
             }
-        },
+        }
         _ => Err(BldrError::CommandNotImplemented),
     };
 
     match result {
-        Ok(_) => {},
-        Err(e) => exit_with(e, 1)
+        Ok(_) => {}
+        Err(e) => exit_with(e, 1),
     }
 }
 
@@ -215,7 +217,7 @@ fn banner() {
 fn shell(_config: &Config) -> BldrResult<()> {
     banner();
     let shell_arg = try!(CString::new("sh"));
-    let mut argv = [ shell_arg.as_ptr(), ptr::null() ];
+    let mut argv = [shell_arg.as_ptr(), ptr::null()];
     unsafe {
         execvp(shell_arg.as_ptr(), argv.as_mut_ptr());
     }
@@ -228,7 +230,8 @@ fn shell(_config: &Config) -> BldrResult<()> {
 #[allow(dead_code)]
 fn configure(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Displaying config for {}", Yellow.bold().paint(config.package()));
+    println!("Displaying config for {}",
+             Yellow.bold().paint(config.package()));
     println!("");
     try!(configure::display(config));
     Ok(())
@@ -239,7 +242,9 @@ fn configure(config: &Config) -> BldrResult<()> {
 fn install(config: &Config) -> BldrResult<()> {
     banner();
     println!("Installing {}", Yellow.bold().paint(config.package()));
-    let pkg_file = try!(install::latest_from_url(config.deriv(), config.package(), &config.url().as_ref().unwrap()));
+    let pkg_file = try!(install::latest_from_url(config.deriv(),
+                                                 config.package(),
+                                                 &config.url().as_ref().unwrap()));
     try!(install::verify(config.package(), &pkg_file));
     try!(install::unpack(config.package(), &pkg_file));
     Ok(())
@@ -259,7 +264,8 @@ fn start(config: &Config) -> BldrResult<()> {
 #[allow(dead_code)]
 fn repo(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Starting Bldr Repository at {}", Yellow.bold().paint(config.path()));
+    println!("Starting Bldr Repository at {}",
+             Yellow.bold().paint(config.path()));
     try!(repo::start(&config));
     println!("Finished with {}", Yellow.bold().paint(config.package()));
     Ok(())
@@ -269,7 +275,8 @@ fn repo(config: &Config) -> BldrResult<()> {
 #[allow(dead_code)]
 fn upload(config: &Config) -> BldrResult<()> {
     banner();
-    println!("Upload Bldr Package {}", Yellow.bold().paint(config.package()));
+    println!("Upload Bldr Package {}",
+             Yellow.bold().paint(config.package()));
     try!(upload::package(&config));
     println!("Finished with {}", Yellow.bold().paint(config.package()));
     Ok(())

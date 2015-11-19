@@ -37,7 +37,7 @@ use super::super::KEY_CACHE;
 use util::gpg;
 use repo;
 use config::Config;
-use error::{BldrResult};
+use error::BldrResult;
 
 /// Install a GPG key. If `config.url()` is empty, we assume the value
 /// of `config.key()` is a path to the key. Otherwise, we download the
@@ -58,7 +58,7 @@ pub fn install(config: &Config) -> BldrResult<()> {
             try!(fs::create_dir_all(KEY_CACHE));
             let filename = try!(repo::client::fetch_key(url, &config.key(), KEY_CACHE));
             try!(gpg::import("key", &filename));
-        },
+        }
         None => try!(gpg::import("key", &config.key())),
     }
     Ok(())
