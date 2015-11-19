@@ -33,10 +33,9 @@
 
 use error::BldrResult;
 use config::Config;
-use std::fs::File;
 
 use pkg::Package;
-use util::http;
+use repo;
 
 /// Upload a package to a repository.
 ///
@@ -48,10 +47,10 @@ use util::http;
 /// * Fails if the package doesn't have a `.bldr` file in the cache
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
+    let url = config.url().as_ref().unwrap();
     let package = try!(Package::latest(config.deriv(), config.package(), None));
     println!("   {}: Uploading from {}", &package, package.cache_file().to_string_lossy());
-    let mut file = try!(File::open(package.cache_file()));
-    try!(http::upload(&format!("{}/pkgs/{}/{}/{}/{}", config.url(), package.derivation, package.name, package.version, package.release), &mut file));
-    println!("   {}: complete", &package);
+    try!(repo::client::put_package(url, &package));
+    println!("   {}: complete", config.package());
     Ok(())
 }

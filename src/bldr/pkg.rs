@@ -15,30 +15,39 @@
 // limitations under the License.
 //
 
-use std::cmp::Ordering;
-use std::cmp::PartialOrd;
-use std::process::{self, Command};
+use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
 use std::fs::{self, DirEntry, File, OpenOptions};
 use std::os::unix;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 use std::io::prelude::*;
+use std::process::{self, Command};
+use std::sync::{Arc, RwLock};
 
 use mustache;
 use regex::Regex;
+use wonder;
+use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
+use super::PACKAGE_CACHE;
+use command;
 use error::{BldrResult, BldrError};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
 use util::{self, convert};
+use repo;
 
 const INIT_FILENAME: &'static str = "init";
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
 
-#[derive(Debug, Clone, Eq)]
+const TIMEOUT_MS: u64 = 60_000;
+
+pub type PackageUpdaterActor = wonder::actor::Actor<UpdaterMessage>;
+
+#[derive(Debug, Clone, Eq, RustcDecodable, RustcEncodable)]
 pub struct Package {
     pub derivation: String,
     pub name: String,
@@ -218,6 +227,15 @@ impl Package {
         }
     }
 
+    pub fn from_path(spath: &str) -> BldrResult<Package> {
+        if Path::new(spath).starts_with("/opt/bldr/pkgs") {
+            let items: Vec<&str> = spath.split("/").collect();
+            Ok(Self::new(items[3].to_string(), items[4].to_string(), items[5].to_string(), items[6].to_string()))
+        } else {
+            Err(BldrError::PackageLoad(spath.to_string()))
+        }
+    }
+
     pub fn latest(deriv: &str, pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
         let path = opt_path.unwrap_or("/opt/bldr/pkgs");
         let pl = try!(Self::package_list(path));
@@ -235,11 +253,11 @@ impl Package {
                     None => Some(b.clone())
                 }
             });
-        latest.ok_or(BldrError::PackageNotFound)
+        latest.ok_or(BldrError::PackageNotFound(deriv.to_string(), pkg.to_string()))
     }
 
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(Self::latest("runit", "chef", None));
+        let runit_pkg = try!(Self::latest("chef", "runit", None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -377,21 +395,24 @@ impl Package {
     /// Copy the "run" file to the srvc path.
     pub fn copy_run(&self, context: &ServiceConfig) -> BldrResult<()> {
         debug!("Copying the run file");
-        let run_path = self.srvc_join_path(RUN_FILENAME);
+        let srvc_run = self.srvc_join_path(RUN_FILENAME);
         if let Some(hook) = self.hooks().run_hook {
             try!(hook.compile(Some(context)));
-            match fs::read_link(&run_path) {
+            match fs::read_link(&srvc_run) {
                 Ok(path) => {
                     if path != hook.path {
-                        try!(fs::remove_file(&run_path));
-                        try!(unix::fs::symlink(hook.path, &run_path));
+                        try!(util::perm::set_permissions(hook.path.to_str().unwrap(), "0755"));
+                        try!(fs::remove_file(&srvc_run));
+                        try!(unix::fs::symlink(hook.path, &srvc_run));
                     }
                 },
-                Err(_) => try!(unix::fs::symlink(hook.path, &run_path)),
+                Err(_) => try!(unix::fs::symlink(hook.path, &srvc_run)),
             }
         } else {
-            try!(fs::copy(self.join_path(RUN_FILENAME), &run_path));
-            try!(util::perm::set_permissions(&run_path, "0755"));
+            let run = self.join_path(RUN_FILENAME);
+            try!(util::perm::set_permissions(&run, "0755"));
+            try!(fs::remove_file(&srvc_run));
+            try!(unix::fs::symlink(&run, &srvc_run));
         }
         Ok(())
     }
@@ -559,6 +580,118 @@ impl Package {
             packages.push(package)
         }
         Ok(())
+    }
+}
+
+pub struct PackageUpdater;
+
+impl PackageUpdater {
+    pub fn start(url: &str, package: Arc<RwLock<Package>>) -> PackageUpdaterActor {
+        let state = UpdaterState::new(url.to_string(), package);
+        wonder::actor::Builder::new(PackageUpdater).name("package-updater".to_string()).start(state).unwrap()
+    }
+
+    /// Signal a package updater to transition it's status from `stopped` to `running`. An updater
+    /// has the `stopped` status after it has found and notified the main thread of an updated
+    /// package.
+    pub fn run(actor: &PackageUpdaterActor) -> ActorResult<()> {
+        actor.cast(UpdaterMessage::Run)
+    }
+}
+
+pub struct UpdaterState {
+    pub repo: String,
+    pub package: Arc<RwLock<Package>>,
+    pub status: UpdaterStatus,
+}
+
+impl UpdaterState {
+    pub fn new(repo: String, package: Arc<RwLock<Package>>) -> Self {
+        UpdaterState {
+            repo: repo,
+            package: package,
+            status: UpdaterStatus::Stopped,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum UpdaterMessage {
+    Ok,
+    Run,
+    Stop,
+    Update(Package),
+}
+
+pub enum UpdaterStatus {
+    Running,
+    Stopped,
+}
+
+impl GenServer for PackageUpdater {
+    type T = UpdaterMessage;
+    type S = UpdaterState;
+    type E = BldrError;
+
+    fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E> {
+        state.status = UpdaterStatus::Running;
+        Ok(Some(TIMEOUT_MS))
+    }
+
+    fn handle_timeout(
+        &self,
+        tx: &ActorSender<Self::T>,
+        _me: &ActorSender<Self::T>,
+        state: &mut Self::S
+    ) -> HandleResult<Self::T> {
+        let package = state.package.read().unwrap();
+        match repo::client::show_package_latest(&state.repo, &package) {
+            Ok(latest) => {
+                if latest > *package {
+                    match repo::client::fetch_package(&state.repo, &latest, PACKAGE_CACHE) {
+                        Ok(path) => {
+                            debug!("Updater downloaded new package to {:?}", path);
+                            // JW TODO: actually handle verify and unpack results
+                            command::install::verify(&package.name, &path).unwrap();
+                            command::install::unpack(&package.name, &path).unwrap();
+                            state.status = UpdaterStatus::Stopped;
+                            let msg = wonder::actor::Message::Cast(UpdaterMessage::Update(latest));
+                            tx.send(msg).unwrap();
+                            HandleResult::NoReply(None)
+                        },
+                        Err(e) => {
+                            debug!("Failed to download package: {:?}", e);
+                            HandleResult::NoReply(Some(TIMEOUT_MS))
+                        }
+                    }
+                } else {
+                    debug!("Package found is not newer than ours");
+                    HandleResult::NoReply(Some(TIMEOUT_MS))
+                }
+            },
+            Err(e) => {
+                debug!("Updater failed to get latest package: {:?}", e);
+                HandleResult::NoReply(Some(TIMEOUT_MS))
+            }
+        }
+    }
+
+    fn handle_cast(
+        &self,
+        msg: Self::T,
+        _tx: &ActorSender<Self::T>,
+        _me: &ActorSender<Self::T>,
+        state: &mut Self::S
+    ) -> HandleResult<Self::T> {
+        match msg {
+            UpdaterMessage::Run => HandleResult::NoReply(Some(TIMEOUT_MS)),
+            _ => {
+                match state.status {
+                    UpdaterStatus::Running => HandleResult::NoReply(Some(TIMEOUT_MS)),
+                    UpdaterStatus::Stopped => HandleResult::NoReply(None),
+                }
+            }
+        }
     }
 }
 

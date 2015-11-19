@@ -56,10 +56,13 @@
 //! * Unpack it
 //!
 
-use error::{BldrResult, BldrError};
 use std::process::Command;
-use util::{http, gpg};
 use std::fs;
+
+use super::super::{PACKAGE_CACHE, GPG_CACHE};
+use error::{BldrResult, BldrError};
+use util::gpg;
+use repo;
 
 /// Given a package name and a base url, downloads the package
 /// to `/opt/bldr/cache/pkgs`. Returns the filename in the cache as a String
@@ -68,10 +71,9 @@ use std::fs;
 ///
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url(package: &str, deriv: &str, url: &str) -> BldrResult<String> {
-    try!(fs::create_dir_all("/opt/bldr/cache/pkgs"));
-    let filename = try!(http::download_package(package, deriv, url, "/opt/bldr/cache/pkgs"));
-    Ok(filename)
+pub fn latest_from_url(deriv: &str, package: &str, url: &str) -> BldrResult<String> {
+    try!(fs::create_dir_all(PACKAGE_CACHE));
+    repo::client::fetch_package_latest(url, deriv, package, PACKAGE_CACHE)
 }
 
 /// Given a package name and a path to a file as an `&str`, verify
@@ -94,7 +96,7 @@ pub fn verify(package: &str, file: &str) -> BldrResult<()> {
 pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
     let output = try!(Command::new("sh")
         .arg("-c")
-        .arg(format!("gpg --homedir /opt/bldr/cache/gpg --decrypt {} | tar -C / -x", file))
+        .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x", GPG_CACHE, file))
         .output());
     match output.status.success() {
         true => println!("   {}: Installed", package),

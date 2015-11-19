@@ -15,36 +15,72 @@
 // limitations under the License.
 //
 
-use hyper;
-use hyper::client::{Client, Body};
 use std::io::{Read, Write, BufWriter};
 use std::fs::{self, File};
+use std::path::Path;
+
+use hyper;
+use hyper::client::{Client, Body};
+use rustc_serialize::json;
+
+use super::XFileName;
 use error::{BldrResult, BldrError};
+use pkg::Package;
 
-header! { (XFileName, "X-Filename") => [String] }
-
-pub fn upload(url: &str, file: &mut File) -> BldrResult<()> {
-    let client = Client::new();
-    debug!("Uploading to {}", url);
-    let metadata = try!(file.metadata());
-    let res = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
-    debug!("Response {:?}", res);
-    Ok(())
-}
-
-pub fn download_package(package: &str, deriv: &str, base_url: &str, path: &str) -> BldrResult<String> {
-    let url = format!("{}/pkgs/{}/{}/download", base_url, deriv, package);
-    download(package, &url, path)
-}
-
-pub fn download_key(key: &str, base_url: &str, path: &str) -> BldrResult<String> {
-    let url = format!("{}/keys/{}", base_url, key);
+pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
+    let url = format!("{}/keys/{}", repo, key);
     download(key, &url, path)
 }
 
-pub fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
+/// Download a sepcific package identified by it's name, derivation, version, and release.
+pub fn fetch_package(repo: &str, package: &Package, path: &str) -> BldrResult<String> {
+    let url = format!("{}/pkgs/{}/{}/{}/{}/download",
+        repo,
+        package.derivation,
+        package.name,
+        package.version,
+        package.release
+    );
+    download(&package.name, &url, path)
+}
+
+/// Download the latest version/release of a package regardless of derivation.
+pub fn fetch_package_latest(repo: &str, derivation: &str, package: &str, path: &str) -> BldrResult<String> {
+    let url = format!("{}/pkgs/{}/{}/download", repo, derivation, package);
+    download(package, &url, path)
+}
+
+pub fn show_package_latest(repo: &str, package: &Package) -> BldrResult<Package> {
+    let url = url_show_package(repo, package);
     let client = Client::new();
+    let request = client.get(&url);
+    let mut res = try!(request.send());
+    let mut encoded = String::new();
+    try!(res.read_to_string(&mut encoded));
+    let package: Package = json::decode(&encoded).unwrap();
+    Ok(package)
+}
+
+pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
+    let mut file = try!(File::open(path));
+    let file_name = try!(path.file_name().ok_or(BldrError::NoFilePart));
+    let url = format!("{}/keys/{}", repo, file_name.to_string_lossy());
+    upload(&url, &mut file)
+}
+
+pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
+    let mut file = try!(File::open(package.cache_file()));
+    let url = format!("{}/pkgs/{}/{}/{}/{}", repo, package.derivation, package.name, package.version, package.release);
+    upload(&url, &mut file)
+}
+
+fn url_show_package(repo: &str, package: &Package) -> String {
+    format!("{}/pkgs/{}/{}", repo, package.derivation, package.name)
+}
+
+fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     debug!("Making request to url {}", url);
+    let client = Client::new();
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);
 
@@ -96,6 +132,15 @@ pub fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     }
     try!(fs::rename(&tempfile, &finalfile));
     Ok(finalfile)
+}
+
+fn upload(url: &str, file: &mut File) -> BldrResult<()> {
+    debug!("Uploading to {}", url);
+    let client = Client::new();
+    let metadata = try!(file.metadata());
+    let res = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
+    debug!("Response {:?}", res);
+    Ok(())
 }
 
 fn progress(status: &str, written: i64, length: &str, finished: bool) {

@@ -1,8 +1,28 @@
+//
+// Copyright:: Copyright (c) 2015 Chef Software, Inc.
+// License:: Apache License, Version 2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
+pub mod client;
+
 use iron::prelude::*;
 use iron::status;
 use iron::request::Body;
 use iron::headers;
 use router::Router;
+use rustc_serialize::json;
 
 use std::net;
 use std::sync::Arc;
@@ -14,7 +34,8 @@ use error::{BldrError, BldrResult};
 use config::Config;
 
 use pkg::Package;
-use util::http::XFileName;
+
+header! { (XFileName, "X-Filename") => [String] }
 
 struct Repo {
     pub path: String,
@@ -164,12 +185,28 @@ fn download_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+fn show_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+    let rext = req.extensions.get::<Router>().unwrap();
+    let package = rext.find("pkg").unwrap();
+    let deriv = rext.find("deriv").unwrap();
+    match Package::latest(&deriv, &package, Some(&format!("{}/pkgs", &repo.path))) {
+        Ok(package) => {
+            let body = json::encode(&package).unwrap();
+            Ok(Response::with((status::Ok, body)))
+        },
+        Err(_) => {
+            Ok(Response::with((status::NotFound)))
+        }
+    }
+}
+
 pub fn run(config: &Config) -> BldrResult<()> {
     let repo = try!(Repo::new(config.path()));
     let repo2 = repo.clone();
     let repo3 = repo.clone();
     let repo4 = repo.clone();
     let repo5 = repo.clone();
+    let repo6 = repo.clone();
 
     let mut router = Router::new();
 
@@ -177,6 +214,7 @@ pub fn run(config: &Config) -> BldrResult<()> {
     router.post("/pkgs/:deriv/:pkg/:version/:release", move |r: &mut Request| upload(&repo, r));
     router.get("/pkgs/:deriv/:pkg/:version/:release/download", move |r: &mut Request| download(&repo2, r));
     router.get("/pkgs/:deriv/:pkg/download", move |r: &mut Request| download_latest(&repo3, r));
+    router.get("/pkgs/:deriv/:pkg", move |r: &mut Request| show_latest(&repo6, r));
 
     // Keys
     router.post("/keys/:key", move |r: &mut Request| upload_key(&repo4, r));
