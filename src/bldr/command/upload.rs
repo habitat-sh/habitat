@@ -49,7 +49,9 @@ use repo;
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
     let package = try!(Package::latest(config.deriv(), config.package(), None));
-    println!("   {}: Uploading from {}", &package, package.cache_file().to_string_lossy());
+    println!("   {}: Uploading from {}",
+             &package,
+             package.cache_file().to_string_lossy());
     try!(repo::client::put_package(url, &package));
     println!("   {}: complete", config.package());
     Ok(())

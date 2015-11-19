@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
 //! This is the default topology. It's most useful for applications that stand alone, or that don't
 //! share state between one another.
 //!
@@ -71,44 +72,48 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
     println!("   {}: Starting", worker.preamble());
     let package = worker.package_name.clone();
     let runit_pkg = try!(Package::latest("chef", "runit", None));
-    let mut child = try!(
-        Command::new(runit_pkg.join_path("bin/runsv"))
-        .arg(&format!("/opt/bldr/srvc/{}", worker.package_name))
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-    );
+    let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
+                             .arg(&format!("/opt/bldr/srvc/{}", worker.package_name))
+                             .stdin(Stdio::null())
+                             .stdout(Stdio::piped())
+                             .stderr(Stdio::piped())
+                             .spawn());
     worker.supervisor_id = Some(child.id());
-    let supervisor_thread = try!(thread::Builder::new().name(String::from("supervisor")).spawn(move|| -> BldrResult<()> {
-        {
-            let mut c_stdout = match child.stdout {
-                Some(ref mut s) => s,
-                None => return Err(BldrError::UnpackFailed)
-            };
+    let supervisor_thread = try!(thread::Builder::new()
+                 .name(String::from("supervisor"))
+                 .spawn(move || -> BldrResult<()> {
+                     {
+                         let mut c_stdout = match child.stdout {
+                             Some(ref mut s) => s,
+                             None => return Err(BldrError::UnpackFailed),
+                         };
 
-            let mut line = format!("   {}({}): ", package, White.bold().paint("O"));
-            loop {
-                let mut buf = [0u8; 1]; // Our byte buffer
-                let len = try!(c_stdout.read(&mut buf));
-                match len {
-                    0 => { // 0 == EOF, so stop writing and finish progress
-                        break;
-                    },
-                    _ => { // Write the buffer to the BufWriter on the Heap
-                        let buf_vec = buf[0 .. len].to_vec();
-                        let buf_string = String::from_utf8(buf_vec).unwrap();
-                        line.push_str(&buf_string);
-                        if line.contains("\n") {
-                            print!("{}", line);
-                            line = format!("   {}({}): ", package, White.bold().paint("O"));
-                        }
-                    }
-                }
-            }
-        }
-        Ok(())
-    }));
+                         let mut line = format!("   {}({}): ", package, White.bold().paint("O"));
+                         loop {
+                             let mut buf = [0u8; 1]; // Our byte buffer
+                             let len = try!(c_stdout.read(&mut buf));
+                             match len {
+                                 0 => {
+                                     // 0 == EOF, so stop writing and finish progress
+                                     break;
+                                 }
+                                 _ => {
+                                     // Write the buffer to the BufWriter on the Heap
+                                     let buf_vec = buf[0..len].to_vec();
+                                     let buf_string = String::from_utf8(buf_vec).unwrap();
+                                     line.push_str(&buf_string);
+                                     if line.contains("\n") {
+                                         print!("{}", line);
+                                         line = format!("   {}({}): ",
+                                                        package,
+                                                        White.bold().paint("O"));
+                                     }
+                                 }
+                             }
+                         }
+                     }
+                     Ok(())
+                 }));
     worker.supervisor_thread = Some(supervisor_thread);
     Ok((State::Running, 0))
 }

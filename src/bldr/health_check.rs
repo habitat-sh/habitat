@@ -22,13 +22,13 @@ pub enum Status {
     Ok,
     Warning,
     Critical,
-    Unknown
+    Unknown,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CheckResult {
     pub status: Status,
-    pub output: String
+    pub output: String,
 }
 
 impl CheckResult {

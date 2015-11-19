@@ -95,15 +95,17 @@ pub fn verify(package: &str, file: &str) -> BldrResult<()> {
 /// * If the package cannot be unpacked via gpg
 pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
     let output = try!(Command::new("sh")
-        .arg("-c")
-        .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x", GPG_CACHE, file))
-        .output());
+                          .arg("-c")
+                          .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x",
+                                       GPG_CACHE,
+                                       file))
+                          .output());
     match output.status.success() {
         true => println!("   {}: Installed", package),
         false => {
             println!("   {}: Failed to install", package);
             return Err(BldrError::UnpackFailed);
-        },
+        }
     }
     Ok(())
 }

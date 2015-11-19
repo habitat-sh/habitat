@@ -46,15 +46,15 @@ struct ServiceConfigItem {
     /// The current toml data
     pub toml_string: String,
     /// Whether this item has been updated, but not written
-    pub updated: bool
+    pub updated: bool,
 }
 
 impl ServiceConfigItem {
     /// Create a new ServiceConfigItem, with a backing string
     pub fn new(toml_string: String) -> ServiceConfigItem {
-        ServiceConfigItem{
+        ServiceConfigItem {
             toml_string: toml_string,
-            updated: true
+            updated: true,
         }
     }
 
@@ -102,11 +102,13 @@ impl ServiceConfig {
         let env = match env::var(&format!("BLDR_{}", pkg.name)) {
             Ok(val) => val,
             Err(e) => {
-                debug!("Looking up environment variable BLDR_{} failed: {:?}", pkg.name, e);
+                debug!("Looking up environment variable BLDR_{} failed: {:?}",
+                       pkg.name,
+                       e);
                 String::new()
             }
         };
-        Ok(ServiceConfig{
+        Ok(ServiceConfig {
             default: ServiceConfigItem::new(read_default_toml_file(pkg).unwrap_or(String::new())),
             user: ServiceConfigItem::new(String::new()),
             environment: ServiceConfigItem::new(env),
@@ -155,7 +157,13 @@ impl ServiceConfig {
 
     /// Returns true if any of the backing configuration strings have been updated
     pub fn is_updated(&mut self) -> bool {
-        let order = [&self.default, &self.user, &self.census, &self.watch, &self.sys, &self.bldr, &self.environment];
+        let order = [&self.default,
+                     &self.user,
+                     &self.census,
+                     &self.watch,
+                     &self.sys,
+                     &self.bldr,
+                     &self.environment];
         // If nothing has been updated, nothing needs to be written either - just return!
         order.into_iter().any(|&cfg| cfg.updated)
     }
@@ -176,13 +184,20 @@ impl ServiceConfig {
     /// * If we cannot parse some toml
     /// * If there is no configuration at all
     pub fn compile_toml(&self) -> BldrResult<BTreeMap<String, toml::Value>> {
-        let order = [&self.default, &self.user, &self.census, &self.watch, &self.sys, &self.bldr, &self.environment];
+        let order = [&self.default,
+                     &self.user,
+                     &self.census,
+                     &self.watch,
+                     &self.sys,
+                     &self.bldr,
+                     &self.environment];
 
         let mut base_toml: Option<BTreeMap<String, toml::Value>> = None;
 
         for cfg in order.into_iter() {
             let mut toml_parser = toml::Parser::new(cfg.get());
-            let toml_value = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+            let toml_value = try!(toml_parser.parse()
+                                             .ok_or(BldrError::TomlParser(toml_parser.errors)));
             if let Some(base) = base_toml {
                 base_toml = Some(toml_merge(base, toml_value));
             } else {
@@ -192,7 +207,7 @@ impl ServiceConfig {
 
         let final_toml = match base_toml {
             Some(toml) => toml,
-            None => return Err(BldrError::NoConfiguration)
+            None => return Err(BldrError::NoConfiguration),
         };
         Ok(final_toml)
     }
@@ -218,7 +233,7 @@ impl ServiceConfig {
     /// * We cannot write the configuration files
     pub fn write(&mut self, pkg: &Package) -> BldrResult<bool> {
         // If nothing is updated, do not write, and do not restart
-        if ! self.is_updated() {
+        if !self.is_updated() {
             return Ok(false);
         }
         let final_toml = try!(self.compile_toml());
@@ -234,7 +249,8 @@ impl ServiceConfig {
 
         let config_files = try!(pkg.config_files());
         for config in config_files {
-            let template = try!(mustache::compile_path(pkg.join_path(&format!("config/{}", config))));
+            let template = try!(mustache::compile_path(pkg.join_path(&format!("config/{}",
+                                                                              config))));
             let mut config_vec = Vec::new();
             let filename = pkg.srvc_join_path(&format!("config/{}", config));
             template.render_data(&mut config_vec, &final_data);
@@ -248,7 +264,10 @@ impl ServiceConfig {
                     continue;
                 } else {
                     debug!("Configuration {} has changed; restarting", filename);
-                    println!("   {}({}): Updated {}", pkg.name, White.bold().paint("C"), Purple.bold().paint(&config));
+                    println!("   {}({}): Updated {}",
+                             pkg.name,
+                             White.bold().paint("C"),
+                             Purple.bold().paint(&config));
                     self.config_fnv.insert(filename.clone(), new_file_fnv);
                     let mut config_file = try!(File::create(&filename));
                     try!(config_file.write_all(&config_vec));
@@ -256,7 +275,10 @@ impl ServiceConfig {
                 }
             } else {
                 debug!("Configuration {} does not exist; restarting", filename);
-                println!("   {}({}): Updated {}", pkg.name, White.bold().paint("C"), Purple.bold().paint(&config));
+                println!("   {}({}): Updated {}",
+                         pkg.name,
+                         White.bold().paint("C"),
+                         Purple.bold().paint(&config));
                 self.config_fnv.insert(filename.clone(), new_file_fnv);
                 let mut config_file = try!(File::create(&filename));
                 try!(config_file.write_all(&config_vec));
@@ -283,16 +305,22 @@ impl ServiceConfig {
 }
 
 // Shallow merges two toml tables.
-fn toml_merge(left: BTreeMap<String, toml::Value>, right: BTreeMap<String, toml::Value>) -> BTreeMap<String, toml::Value> {
+fn toml_merge(left: BTreeMap<String, toml::Value>,
+              right: BTreeMap<String, toml::Value>)
+              -> BTreeMap<String, toml::Value> {
     let mut final_map = BTreeMap::new();
     for (left_key, left_value) in left.iter() {
         match right.get(left_key) {
-            Some(right_value) => { final_map.insert(left_key.clone(), right_value.clone()); },
-            None => { final_map.insert(left_key.clone(), left_value.clone()); },
+            Some(right_value) => {
+                final_map.insert(left_key.clone(), right_value.clone());
+            }
+            None => {
+                final_map.insert(left_key.clone(), left_value.clone());
+            }
         }
     }
     for (right_key, right_value) in right.iter() {
-        if ! final_map.contains_key(right_key) {
+        if !final_map.contains_key(right_key) {
             final_map.insert(right_key.clone(), right_value.clone());
         }
     }
@@ -319,6 +347,9 @@ fn bldr_data(pkg: &Package) -> String {
     toml_string.push_str(&format!("version = \"{}\"", pkg.version));
     toml_string.push_str(&format!("release = \"{}\"", pkg.release));
     let expose_string = String::new();
-    toml_string.push_str(&format!("expose = [{}]", pkg.exposes().iter().fold(expose_string, |acc, p| format!("{}{},", acc, p))));
+    toml_string.push_str(&format!("expose = [{}]",
+                                  pkg.exposes()
+                                     .iter()
+                                     .fold(expose_string, |acc, p| format!("{}{},", acc, p))));
     toml_string
 }

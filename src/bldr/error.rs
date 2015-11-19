@@ -87,20 +87,23 @@ impl fmt::Display for BldrError {
             BldrError::CommandNotImplemented => write!(f, "Command is not yet implemented!"),
             BldrError::InstallFailed => write!(f, "Could not install package!"),
             BldrError::HyperError(ref err) => err.fmt(f),
-            BldrError::WriteSyncFailed => write!(f, "Could not write to destination; perhaps the disk is full?"),
-            BldrError::CannotParseFileName => write!(f, "Cannot determine the filename from the given URI"),
+            BldrError::WriteSyncFailed =>
+                write!(f,
+                       "Could not write to destination; perhaps the disk is full?"),
+            BldrError::CannotParseFileName =>
+                write!(f, "Cannot determine the filename from the given URI"),
             BldrError::PathUTF8 => write!(f, "Paths must not contain non-UTF8 characters"),
             BldrError::GPGVerifyFailed => write!(f, "Failed to verify a GPG Signature"),
             BldrError::UnpackFailed => write!(f, "Failed to unpack a package"),
             BldrError::TomlParser(ref errs) => {
                 write!(f, "Failed to parse toml:\n{}", toml_parser_string(errs))
-            },
+            }
             BldrError::MustacheEncoderError(ref me) => {
                 match *me {
                     mustache::encoder::Error::IoError(ref e) => e.fmt(f),
                     _ => write!(f, "Mustache encoder error: {:?}", me),
                 }
-            },
+            }
             BldrError::GPGImportFailed => write!(f, "Failed to import a GPG key"),
             BldrError::PermissionFailed => write!(f, "Failed to set permissions"),
             BldrError::BadVersion => write!(f, "Failed to parse a version number"),
@@ -110,9 +113,12 @@ impl fmt::Display for BldrError {
             BldrError::FileNotFound(ref e) => write!(f, "File not found at: {}", e),
             BldrError::KeyNotFound(ref e) => write!(f, "Key not found in key cache: {}", e),
             BldrError::PackageLoad(ref e) => write!(f, "Unable to load package from: {}", e),
-            BldrError::PackageNotFound(ref d, ref n) => write!(f, "Cannot find package: {}/{}", d, n),
-            BldrError::MustacheMergeOnlyMaps => write!(f, "Can only merge two Mustache::Data::Maps"),
-            BldrError::SupervisorSignalFailed => write!(f, "Failed to send a signal to the process supervisor"),
+            BldrError::PackageNotFound(ref d, ref n) =>
+                write!(f, "Cannot find package: {}/{}", d, n),
+            BldrError::MustacheMergeOnlyMaps =>
+                write!(f, "Can only merge two Mustache::Data::Maps"),
+            BldrError::SupervisorSignalFailed =>
+                write!(f, "Failed to send a signal to the process supervisor"),
             BldrError::StringFromUtf8Error(ref e) => e.fmt(f),
             BldrError::SupervisorDied => write!(f, "The supervisor died"),
             BldrError::NulError(ref e) => e.fmt(f),
@@ -121,16 +127,26 @@ impl fmt::Display for BldrError {
             BldrError::UnknownTopology(ref t) => write!(f, "Unknown topology {}!", t),
             BldrError::NoConfiguration => write!(f, "No configuration data - cannot continue"),
             BldrError::HealthCheck(ref e) => write!(f, "Health Check failed: {}", e),
-            BldrError::HookFailed(ref t, ref e, ref o) => write!(f, "Hook failed to run: {}, {}, {}", t, e, o),
+            BldrError::HookFailed(ref t, ref e, ref o) =>
+                write!(f, "Hook failed to run: {}, {}, {}", t, e, o),
             BldrError::TryRecvError(ref err) => err.fmt(f),
             BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
-            BldrError::NoXFilename => write!(f, "Invalid download from a repository - missing X-Filename header"),
-            BldrError::NoFilePart => write!(f, "An invalid path was passed - we needed a filename, and this path does not have one"),
-            BldrError::SignalNotifierStarted => write!(f, "Only one instance of a Signal Notifier may be running"),
+            BldrError::NoXFilename =>
+                write!(f,
+                       "Invalid download from a repository - missing X-Filename header"),
+            BldrError::NoFilePart => write!(f,
+                                            "An invalid path was passed - we needed a filename, \
+                                             and this path does not have one"),
+            BldrError::SignalNotifierStarted =>
+                write!(f, "Only one instance of a Signal Notifier may be running"),
             BldrError::ActorError(ref err) => write!(f, "Actor returned error: {:?}", err),
             BldrError::CensusNotFound(ref s) => write!(f, "Census entry not found: {:?}", s),
             BldrError::UuidParseError(ref e) => write!(f, "Uuid Parse Error: {:?}", e),
-            BldrError::InvalidPackageIdent(ref e) => write!(f, "Invalid package identifier: {:?}. A valid identifier is in the form derivation/name (example: chef/redis)", e),
+            BldrError::InvalidPackageIdent(ref e) =>
+                write!(f,
+                       "Invalid package identifier: {:?}. A valid identifier is in the form \
+                        derivation/name (example: chef/redis)",
+                       e),
         }
     }
 }
@@ -141,7 +157,8 @@ impl Error for BldrError {
             BldrError::Io(ref err) => err.description(),
             BldrError::CommandNotImplemented => "Command is not yet implemented!",
             BldrError::InstallFailed => "Could not install package!",
-            BldrError::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
+            BldrError::WriteSyncFailed =>
+                "Could not write to destination; bytes written was 0 on a non-0 buffer",
             BldrError::CannotParseFileName => "Cannot determine the filename from the given URI",
             BldrError::HyperError(ref err) => err.description(),
             BldrError::PathUTF8 => "Paths must not contain non-UTF8 characters",
@@ -160,10 +177,13 @@ impl Error for BldrError {
             BldrError::PackageLoad(_) => "Unable to load package from path",
             BldrError::PackageNotFound(_, _) => "Cannot find a package",
             BldrError::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
-            BldrError::SupervisorSignalFailed => "Failed to send a signal to the process supervisor",
-            BldrError::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            BldrError::SupervisorSignalFailed =>
+                "Failed to send a signal to the process supervisor",
+            BldrError::StringFromUtf8Error(_) =>
+                "Failed to convert a string from a Vec<u8> as UTF-8",
             BldrError::SupervisorDied => "The supervisor died",
-            BldrError::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            BldrError::NulError(_) =>
+                "An attempt was made to build a CString with a null byte inside it",
             BldrError::IPFailed => "Failed to discover the outbound IP address",
             BldrError::HostnameFailed => "Failed to discover this hosts hostname",
             BldrError::UnknownTopology(_) => "Unknown topology",
@@ -172,13 +192,17 @@ impl Error for BldrError {
             BldrError::HookFailed(_, _, _) => "Hook failed to run",
             BldrError::TryRecvError(_) => "A channel failed to recieve a response",
             BldrError::BadWatch(_) => "An invalid watch was specified",
-            BldrError::NoXFilename => "Invalid download from a repository - missing X-Filename header",
-            BldrError::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
-            BldrError::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
+            BldrError::NoXFilename =>
+                "Invalid download from a repository - missing X-Filename header",
+            BldrError::NoFilePart =>
+                "An invalid path was passed - we needed a filename, and this path does not have one",
+            BldrError::SignalNotifierStarted =>
+                "Only one instance of a Signal Notifier may be running",
             BldrError::ActorError(_) => "A running actor responded with an error",
             BldrError::CensusNotFound(_) => "A census entry does not exist",
             BldrError::UuidParseError(_) => "Uuid Parse Error",
-            BldrError::InvalidPackageIdent(_) => "Package identifiers must be in derivation/name format (example: chef/redis)",
+            BldrError::InvalidPackageIdent(_) =>
+                "Package identifiers must be in derivation/name format (example: chef/redis)",
         }
     }
 }
@@ -189,7 +213,7 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str(&format!("{}", err));
         errors.push_str("\n");
     }
-    return errors
+    return errors;
 }
 
 impl From<uuid::ParseError> for BldrError {

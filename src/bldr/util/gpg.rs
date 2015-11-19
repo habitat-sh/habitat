@@ -33,30 +33,33 @@ pub fn import(status: &str, keyfile: &str) -> BldrResult<()> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
     let output = try!(gpg_cmd()
-         .arg("--import")
-         .arg(keyfile)
-         .output());
+                          .arg("--import")
+                          .arg(keyfile)
+                          .output());
     match output.status.success() {
         true => println!("   {}: GPG key imported", status),
         false => {
-            println!("   {}: GPG import failed:\n{}\n{}", status, String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+            println!("   {}: GPG import failed:\n{}\n{}",
+                     status,
+                     String::from_utf8_lossy(&output.stdout),
+                     String::from_utf8_lossy(&output.stderr));
             return Err(BldrError::GPGImportFailed);
-        },
+        }
     }
     Ok(())
 }
 
 pub fn verify(status: &str, file: &str) -> BldrResult<()> {
     let output = try!(gpg_cmd()
-        .arg("--verify")
-        .arg(file)
-        .output());
+                          .arg("--verify")
+                          .arg(file)
+                          .output());
     match output.status.success() {
         true => println!("   {}: GPG signature verified", status),
         false => {
             println!("   {}: GPG signature failed", status);
             return Err(BldrError::GPGVerifyFailed);
-        },
+        }
     }
     Ok(())
 }

@@ -57,7 +57,7 @@ pub fn key(config: &Config) -> BldrResult<()> {
         Ok(_) => {
             println!("   {}: uploading {}", url, config.key());
             try!(repo::client::put_key(url, path));
-        },
+        }
         Err(_) => {
             if path.components().count() == 1 {
                 let file = format!("/opt/bldr/cache/keys/{}.asc", config.key());
@@ -66,7 +66,7 @@ pub fn key(config: &Config) -> BldrResult<()> {
                     Ok(_) => {
                         println!("   {}: uploading {}.asc", url, config.key());
                         try!(repo::client::put_key(url, cached));
-                    },
+                    }
                     Err(_) => return Err(BldrError::KeyNotFound(config.key().to_string())),
                 }
             } else {

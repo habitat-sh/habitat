@@ -39,7 +39,7 @@ pub enum Message {
     /// A generic Ok
     Ok,
     /// Stop the actor
-    Stop
+    Stop,
 }
 
 /// The actor itself
@@ -79,7 +79,7 @@ impl UserActorState {
             ctx: None,
             crx: None,
             config_string: None,
-            watch_key: watch_key
+            watch_key: watch_key,
         }
     }
 }
@@ -101,62 +101,76 @@ impl GenServer for UserActor {
 
     /// Check the etcd::watch for updates. If we have data, update our states last known
     /// config_string.
-    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      _tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         if let Some(ref crx) = state.crx {
             match crx.try_recv() {
                 Ok(Some(toml_string)) => {
                     state.config_string = Some(toml_string);
-                },
+                }
                 Ok(None) => {
                     state.config_string = None;
-                },
-                Err(TryRecvError::Empty) => { },
-                Err(e) => return HandleResult::Stop(
-                    StopReason::Fatal(
-                        format!("User Actor caught unexpected error: {:?}", e)),
-                        None,
-                        ),
+                }
+                Err(TryRecvError::Empty) => {}
+                Err(e) =>
+                    return HandleResult::Stop(StopReason::Fatal(format!("User Actor caught \
+                                                                         unexpected error: {:?}",
+                                                                        e)),
+                                              None),
             }
         }
         HandleResult::NoReply(Some(TIMEOUT_MS))
     }
 
     /// Respond to messages, after checking for new data from etcd.
-    fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self,
+                   message: Self::T,
+                   _caller: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   state: &mut Self::S)
+                   -> HandleResult<Self::T> {
         if let Some(ref crx) = state.crx {
             match crx.try_recv() {
                 Ok(Some(toml_string)) => {
                     state.config_string = Some(toml_string);
-                },
+                }
                 Ok(None) => {
                     state.config_string = None;
-                },
-                Err(TryRecvError::Empty) => { },
-                Err(e) => return HandleResult::Stop(
-                    StopReason::Fatal(
-                        format!("User Actor caught unexpected error: {:?}", e)),
-                        Some(Message::Ok),
-                        ),
+                }
+                Err(TryRecvError::Empty) => {}
+                Err(e) =>
+                    return HandleResult::Stop(StopReason::Fatal(format!("User Actor caught \
+                                                                         unexpected error: {:?}",
+                                                                        e)),
+                                              Some(Message::Ok)),
             }
         }
 
         match message {
-           Message::Stop => {
-               HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
-           },
-           Message::Config => {
-               match state.config_string {
-                   Some(ref toml_string) => {
-                       HandleResult::Reply(Message::ConfigToml(Some(toml_string.clone())), Some(TIMEOUT_MS))
-                   },
-                   None => {
-                       HandleResult::Reply(Message::ConfigToml(None), Some(TIMEOUT_MS))
-                   }
-               }
-           },
-           Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU Ok!")), Some(Message::Ok)),
-           Message::ConfigToml(_) => HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! I send YOU CensusToml(_)!")), Some(Message::Ok)),
+            Message::Stop => {
+                HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
+            }
+            Message::Config => {
+                match state.config_string {
+                    Some(ref toml_string) => {
+                        HandleResult::Reply(Message::ConfigToml(Some(toml_string.clone())),
+                                            Some(TIMEOUT_MS))
+                    }
+                    None => {
+                        HandleResult::Reply(Message::ConfigToml(None), Some(TIMEOUT_MS))
+                    }
+                }
+            }
+            Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! \
+                                                                         I send YOU Ok!")),
+                                              Some(Message::Ok)),
+            Message::ConfigToml(_) =>
+                HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! \
+                                                              I send YOU CensusToml(_)!")),
+                                   Some(Message::Ok)),
         }
     }
 }
-

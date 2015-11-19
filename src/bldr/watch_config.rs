@@ -50,7 +50,7 @@ pub enum Message {
     /// A simple 'ok' response
     Ok,
     /// Stop the actor
-    Stop
+    Stop,
 }
 
 /// The GenServer Actor
@@ -92,14 +92,19 @@ pub struct WatchEntry {
 
 impl WatchEntry {
     /// Create a new WatchEntry.
-    pub fn new(service: String, group: String, watch_key: String, ctx: Sender<bool>, crx: Receiver<Option<String>>) -> WatchEntry {
+    pub fn new(service: String,
+               group: String,
+               watch_key: String,
+               ctx: Sender<bool>,
+               crx: Receiver<Option<String>>)
+               -> WatchEntry {
         WatchEntry {
             ctx: ctx,
             crx: crx,
             config_string: None,
             service: service,
             group: group,
-            watch_key: watch_key
+            watch_key: watch_key,
         }
     }
 }
@@ -115,9 +120,7 @@ pub struct WatchActorState {
 impl WatchActorState {
     /// Create a new WatchActorState with an empty watch list.
     pub fn new() -> WatchActorState {
-        WatchActorState {
-            watches: Vec::new()
-        }
+        WatchActorState { watches: Vec::new() }
     }
 
     /// Set up all the watches requested on the command line.
@@ -134,18 +137,22 @@ impl WatchActorState {
             let (service, group) = match watch_parts.len() {
                 1 => {
                     (String::from(watch_parts[0]), String::from("default"))
-                },
+                }
                 2 => {
                     (String::from(watch_parts[0]), String::from(watch_parts[1]))
-                },
+                }
                 _ => {
-                    return Err(BldrError::BadWatch(watch_member.clone()))
+                    return Err(BldrError::BadWatch(watch_member.clone()));
                 }
             };
 
             let (ctx, wrx) = channel();
             let (wtx, crx) = channel();
-            let watch_entry = WatchEntry::new(service.clone(), group.clone(), format!("{}/{}", service.clone(), group.clone()), ctx, crx);
+            let watch_entry = WatchEntry::new(service.clone(),
+                                              group.clone(),
+                                              format!("{}/{}", service.clone(), group.clone()),
+                                              ctx,
+                                              crx);
             etcd::watch(&watch_entry.watch_key, 1, true, true, wtx, wrx);
             self.watches.push(watch_entry);
         }
@@ -158,11 +165,11 @@ impl WatchActorState {
             match watch.crx.try_recv() {
                 Ok(Some(toml_string)) => {
                     watch.config_string = Some(toml_string);
-                },
+                }
                 Ok(None) => {
                     watch.config_string = None;
-                },
-                Err(TryRecvError::Empty) => { },
+                }
+                Err(TryRecvError::Empty) => {}
                 Err(e) => println!("Watch actor caught unexpected error: {:?}", e),
             }
         }
@@ -180,76 +187,97 @@ impl GenServer for WatchActor {
     }
 
     /// Gathers watches, then waits to try again.
-    fn handle_timeout(&self, _tx: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      _tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         state.gather_watches();
 
         HandleResult::NoReply(Some(TIMEOUT_MS))
     }
 
     /// Gathers watches, then processess inboud requests.
-    fn handle_call(&self, message: Self::T, _caller: &ActorSender<Self::T>, _me: &ActorSender<Self::T>, state: &mut Self::S) -> HandleResult<Self::T> {
+    fn handle_call(&self,
+                   message: Self::T,
+                   _caller: &ActorSender<Self::T>,
+                   _me: &ActorSender<Self::T>,
+                   state: &mut Self::S)
+                   -> HandleResult<Self::T> {
         {
             state.gather_watches();
         }
 
         match message {
-           Message::Stop => {
-               HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
-           },
-           Message::Config => {
-               let mut watch_toml: toml::Table = BTreeMap::new();
-               let mut watch_list: toml::Array = Vec::new();
+            Message::Stop => {
+                HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
+            }
+            Message::Config => {
+                let mut watch_toml: toml::Table = BTreeMap::new();
+                let mut watch_list: toml::Array = Vec::new();
 
-               // So, this code deserves an explanation.
-               //
-               // Basically, we are taking data out of the backend implementation, wrapping it up
-               // so that it's in a new toml namespace, and then re-formatting the census so it
-               // matches what you would expect as a regular user of bldr.
-               //
-               // It's gross, and it really shows some of the downsides of not managing all this
-               // data ourselves.
-               for watch in state.watches.iter_mut() {
-                   match watch.config_string {
-                       Some(ref toml_string) => {
-                           let mut toml_parser = toml::Parser::new(toml_string);
-                           let mut discovery_toml = toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)).unwrap();
-                           discovery_toml.insert(String::from("service-name"), toml::Value::String(watch.service.clone()));
-                           discovery_toml.insert(String::from("group-name"), toml::Value::String(watch.group.clone()));
-                           let census_toml = match discovery_toml.remove("census") {
-                               Some(census_toml) => census_toml,
-                               None => continue,
-                           };
-                           let mut census = census::Census::new(census::CensusEntry::new());
-                           let mut census_map = BTreeMap::new();
-                           census_map.insert(String::from("census"), census_toml);
-                           match census.update(&toml::encode_str(&census_map)) {
-                               Ok(_) => {},
-                               Err(e) => {
-                                   debug!("Error updating census for watch: {:?}", e);
-                                   continue
-                               }
-                           }
-                           let census_string = census.to_toml().unwrap();
-                           let mut census_parser = toml::Parser::new(&census_string);
-                           let mut census_final_toml = census_parser.parse().ok_or(BldrError::TomlParser(census_parser.errors)).unwrap();
-                           let final_census_obj = census_final_toml.remove("census").unwrap();
-                           discovery_toml.insert(String::from("census"), final_census_obj);
-                           watch_list.push(toml::Value::Table(discovery_toml));
-                       },
-                       None => {
-                       }
-                   }
-               }
-               if watch_list.len() > 0 {
-                   watch_toml.insert(String::from("watch"), toml::Value::Array(watch_list));
-                   let watch_result = toml::encode_str(&watch_toml);
-                   HandleResult::Reply(Message::ConfigToml(Some(watch_result)), Some(TIMEOUT_MS))
-               } else {
-                   HandleResult::Reply(Message::ConfigToml(None), Some(TIMEOUT_MS))
-               }
-           },
-           Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU Ok!")), Some(Message::Ok)),
-           Message::ConfigToml(_) => HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! I send YOU CensusToml(_)!")), Some(Message::Ok)),
+                // So, this code deserves an explanation.
+                //
+                // Basically, we are taking data out of the backend implementation, wrapping it up
+                // so that it's in a new toml namespace, and then re-formatting the census so it
+                // matches what you would expect as a regular user of bldr.
+                //
+                // It's gross, and it really shows some of the downsides of not managing all this
+                // data ourselves.
+                for watch in state.watches.iter_mut() {
+                    match watch.config_string {
+                        Some(ref toml_string) => {
+                            let mut toml_parser = toml::Parser::new(toml_string);
+                            let mut discovery_toml =
+                                toml_parser.parse()
+                                           .ok_or(BldrError::TomlParser(toml_parser.errors))
+                                           .unwrap();
+                            discovery_toml.insert(String::from("service-name"),
+                                                  toml::Value::String(watch.service.clone()));
+                            discovery_toml.insert(String::from("group-name"),
+                                                  toml::Value::String(watch.group.clone()));
+                            let census_toml = match discovery_toml.remove("census") {
+                                Some(census_toml) => census_toml,
+                                None => continue,
+                            };
+                            let mut census = census::Census::new(census::CensusEntry::new());
+                            let mut census_map = BTreeMap::new();
+                            census_map.insert(String::from("census"), census_toml);
+                            match census.update(&toml::encode_str(&census_map)) {
+                                Ok(_) => {}
+                                Err(e) => {
+                                    debug!("Error updating census for watch: {:?}", e);
+                                    continue;
+                                }
+                            }
+                            let census_string = census.to_toml().unwrap();
+                            let mut census_parser = toml::Parser::new(&census_string);
+                            let mut census_final_toml =
+                                census_parser.parse()
+                                             .ok_or(BldrError::TomlParser(census_parser.errors))
+                                             .unwrap();
+                            let final_census_obj = census_final_toml.remove("census").unwrap();
+                            discovery_toml.insert(String::from("census"), final_census_obj);
+                            watch_list.push(toml::Value::Table(discovery_toml));
+                        }
+                        None => {}
+                    }
+                }
+                if watch_list.len() > 0 {
+                    watch_toml.insert(String::from("watch"), toml::Value::Array(watch_list));
+                    let watch_result = toml::encode_str(&watch_toml);
+                    HandleResult::Reply(Message::ConfigToml(Some(watch_result)), Some(TIMEOUT_MS))
+                } else {
+                    HandleResult::Reply(Message::ConfigToml(None), Some(TIMEOUT_MS))
+                }
+            }
+            Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! \
+                                                                         I send YOU Ok!")),
+                                              Some(Message::Ok)),
+            Message::ConfigToml(_) =>
+                HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! \
+                                                              I send YOU CensusToml(_)!")),
+                                   Some(Message::Ok)),
         }
     }
 }

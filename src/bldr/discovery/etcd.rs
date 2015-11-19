@@ -23,6 +23,7 @@
 //! [topology](../topology).
 //!
 //! We do not implement the fullness of the [etcd api](http://...).
+//!
 
 use hyper::header::ContentType;
 use hyper::client::Client;
@@ -69,7 +70,7 @@ pub struct EtcdWrite {
     /// Check for previous index number?
     pub prevIndex: Option<u64>,
     /// Check for previous value?
-    pub prevValue: Option<String>
+    pub prevValue: Option<String>,
 }
 
 /// Write a value to etcd, in a new thread. Used by the
@@ -98,15 +99,15 @@ pub fn write(options: &EtcdWrite) -> BldrResult<(StatusCode, String)> {
     };
     let dir_string = match options.dir {
         Some(v) => format!("{}", v),
-        None => String::new()
+        None => String::new(),
     };
     let pe_string = match options.prevExist {
         Some(v) => format!("{}", v),
-        None => String::new()
+        None => String::new(),
     };
     let pi_string = match options.prevIndex {
         Some(v) => format!("{}", v),
-        None => String::new()
+        None => String::new(),
     };
 
     let mut req_options = Vec::new();
@@ -117,22 +118,22 @@ pub fn write(options: &EtcdWrite) -> BldrResult<(StatusCode, String)> {
     if let Some(ref value) = options.prevValue {
         req_options.push(("prevValue", value));
     }
-    if ! ttl_string.is_empty() {
+    if !ttl_string.is_empty() {
         req_options.push(("ttl", &ttl_string))
     }
-    if ! dir_string.is_empty() {
+    if !dir_string.is_empty() {
         req_options.push(("dir", &dir_string))
     }
-    if ! pe_string.is_empty() {
+    if !pe_string.is_empty() {
         req_options.push(("prevExist", &pe_string))
     }
-    if ! pi_string.is_empty() {
+    if !pi_string.is_empty() {
         req_options.push(("prevIndex", &pi_string))
     }
 
     let base_url = match enabled() {
         Some(url) => url,
-        None => unreachable!()
+        None => unreachable!(),
     };
     let preamble = format!("etcd-write:{}", options.key);
     let url = format!("{}/v2/keys/bldr/{}", base_url, options.key);
@@ -140,8 +141,8 @@ pub fn write(options: &EtcdWrite) -> BldrResult<(StatusCode, String)> {
     debug!("{}: Writing {}", preamble, url);
     debug!("{}: Write body {}", preamble, req_body);
     let request = client.put(&url)
-        .header(ContentType::form_url_encoded())
-        .body(&req_body);
+                        .header(ContentType::form_url_encoded())
+                        .body(&req_body);
     let mut res = try!(request.send());
     debug!("{}: Response: {:?}", preamble, res);
     let mut response_body = String::new();
@@ -165,9 +166,19 @@ pub fn write(options: &EtcdWrite) -> BldrResult<(StatusCode, String)> {
 /// 1. Watch for the stop signal
 /// 1. Sleep or break to the outer loop when time has elapsed
 ///
-pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
+pub fn watch(key: &str,
+             reconnect_interval: u32,
+             wait: bool,
+             recursive: bool,
+             watcher_tx: Sender<Option<String>>,
+             watcher_rx: Receiver<bool>) {
     match enabled() {
-        Some(_) => watch_thread(key, reconnect_interval, wait, recursive, watcher_tx, watcher_rx),
+        Some(_) => watch_thread(key,
+                                reconnect_interval,
+                                wait,
+                                recursive,
+                                watcher_tx,
+                                watcher_rx),
         None => {
             debug!("Etcd not enabled; starting mock thread");
             watch_mock_thread(key, reconnect_interval, watcher_tx, watcher_rx);
@@ -175,12 +186,16 @@ pub fn watch(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, wa
     };
 }
 
-pub fn watch_mock_thread(key: &str, reconnect_interval: u32, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
+pub fn watch_mock_thread(key: &str,
+                         reconnect_interval: u32,
+                         watcher_tx: Sender<Option<String>>,
+                         watcher_rx: Receiver<bool>) {
     let key = String::from(key);
     let _newthread = thread::Builder::new().name(format!("etcdmock:{}", key)).spawn(move || {
         let preamble = format!("etcd:{}", key);
         if let Err(_e) = watcher_tx.send(None) {
-            debug!("{}: aborting watch on failed send - peer went away", preamble);
+            debug!("{}: aborting watch on failed send - peer went away",
+                   preamble);
             return;
         }
         loop {
@@ -191,10 +206,12 @@ pub fn watch_mock_thread(key: &str, reconnect_interval: u32, watcher_tx: Sender<
                     Ok(_stop) => {
                         debug!("   {}: Watch exiting", preamble);
                         return;
-                    },
-                    Err(TryRecvError::Empty) => {},
+                    }
+                    Err(TryRecvError::Empty) => {}
                     Err(e) => {
-                        debug!("   {}: Watch exiting - watcher disappeared - {:?}", preamble, e);
+                        debug!("   {}: Watch exiting - watcher disappeared - {:?}",
+                               preamble,
+                               e);
                         return;
                     }
                 }
@@ -209,7 +226,12 @@ pub fn watch_mock_thread(key: &str, reconnect_interval: u32, watcher_tx: Sender<
     });
 }
 
-pub fn watch_thread(key: &str, reconnect_interval: u32, wait: bool, recursive: bool, watcher_tx: Sender<Option<String>>, watcher_rx: Receiver<bool>) {
+pub fn watch_thread(key: &str,
+                    reconnect_interval: u32,
+                    wait: bool,
+                    recursive: bool,
+                    watcher_tx: Sender<Option<String>>,
+                    watcher_rx: Receiver<bool>) {
     let key = String::from(key);
     let _newthread = thread::Builder::new().name(format!("etcd:{}", key)).spawn(move || {
         let mut first_run = true;
@@ -221,8 +243,8 @@ pub fn watch_thread(key: &str, reconnect_interval: u32, wait: bool, recursive: b
         let mut modified_index = 0u64;
         loop {
             let client = Client::new();
-            // If it is the first time we've asked, just ask - we want to seed the right data
-            // quickly
+    // If it is the first time we've asked, just ask - we want to seed the right data
+    // quickly
             let really_wait = if first_run { first_run = false; false } else { wait };
             let mut res = match client.get(&format!("{}/v2/keys/bldr/{}?wait={}&recursive={}&waitIndex={}&sorted=true", base_url, key, really_wait, recursive, modified_index)).send() {
                 Ok(res) => res,
@@ -237,13 +259,13 @@ pub fn watch_thread(key: &str, reconnect_interval: u32, wait: bool, recursive: b
             };
             modified_index = match res.headers.get_raw("x-etcd-index") {
                 Some(x_etcd_index) => {
-                 // The header is an array of Vec<u8>'s. We want to take the first one, if we have
-                 // it, or '0' if we don't, and turn it into a string.
-                 // If the response is not valid UTF-8, we want to just start from '0'.
-                 // Then parse into a u64, and again, if its not valid, return 0.
-                 // Then add 1.
-                 // This means we should always get x-etcd-index, and if we can't, we get a
-                 // reasonable number to start with.
+    // The header is an array of Vec<u8>'s. We want to take the first one, if we have
+    // it, or '0' if we don't, and turn it into a string.
+    // If the response is not valid UTF-8, we want to just start from '0'.
+    // Then parse into a u64, and again, if its not valid, return 0.
+    // Then add 1.
+    // This means we should always get x-etcd-index, and if we can't, we get a
+    // reasonable number to start with.
                     String::from_utf8(x_etcd_index
                                       .iter()
                                       .nth(0)
@@ -280,16 +302,16 @@ pub fn watch_thread(key: &str, reconnect_interval: u32, wait: bool, recursive: b
                     continue;
                 }
             };
-            // If we are recursive, the events we get are garbage. We have to do a full GET if we
-            // want all the data; otherwise, we get partial data based on the events we get back
-            // from a watch. This is a chat-tastic kludge. We should remove it post demo.
+    // If we are recursive, the events we get are garbage. We have to do a full GET if we
+    // want all the data; otherwise, we get partial data based on the events we get back
+    // from a watch. This is a chat-tastic kludge. We should remove it post demo.
             if (recursive == true) && (first_run == false) {
                 match body_as_json.find("action") {
                     Some(action_value) => {
                         match action_value.as_string() {
                             Some("get") => {},
                             Some(_) => {
-                                // So, yeah - sorry. Just go do the first get.
+    // So, yeah - sorry. Just go do the first get.
                                 first_run = true;
                                 modified_index = 0;
                                 continue;
@@ -312,8 +334,8 @@ pub fn watch_thread(key: &str, reconnect_interval: u32, wait: bool, recursive: b
             match body_as_json.find("node") {
                 Some(json_value) => {
                     let mut results = String::new();
-                    // let current_modified_index = json_value.find("modifiedIndex").unwrap().as_u64().unwrap();
-                    // modified_index = current_modified_index + 1;
+    // let current_modified_index = json_value.find("modifiedIndex").unwrap().as_u64().unwrap();
+    // modified_index = current_modified_index + 1;
 
                     get_json_values_recursively(json_value, &mut results);
                     if results.is_empty() {
@@ -373,7 +395,7 @@ fn get_json_values_recursively(json: &Json, result_acc: &mut String) {
             for node in nodes_list.as_array().unwrap().iter() {
                 get_json_values_recursively(node, result_acc);
             }
-        },
+        }
         None => {
             match json.find("value") {
                 Some(json_value) => {
@@ -392,10 +414,10 @@ fn get_json_values_recursively(json: &Json, result_acc: &mut String) {
                                 };
                                 mem::replace(result_acc, new_string);
                             }
-                        },
-                        None => debug!("node.value should be a string - I have no idea whats up")
+                        }
+                        None => debug!("node.value should be a string - I have no idea whats up"),
                     }
-                },
+                }
                 None => {}
             }
         }
@@ -507,11 +529,11 @@ mod tests {
 }"#;
         let json_top = match Json::from_str(json_string) {
             Ok(json_top) => json_top,
-            Err(e) => panic!("{}", e)
+            Err(e) => panic!("{}", e),
         };
         let nodes_list = match json_top.find_path(&["node"]) {
             Some(nl) => nl,
-            None => panic!("No node/nodes path found")
+            None => panic!("No node/nodes path found"),
         };
         let mut results = String::new();
         get_json_values_recursively_etcd(nodes_list, &mut results);

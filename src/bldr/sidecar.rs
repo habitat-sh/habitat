@@ -70,7 +70,9 @@ impl SidecarState {
 
 impl Sidecar {
     /// Start the sidecar.
-    pub fn start(package: Arc<RwLock<Package>>, config: Arc<RwLock<ServiceConfig>>) -> SidecarActor {
+    pub fn start(package: Arc<RwLock<Package>>,
+                 config: Arc<RwLock<ServiceConfig>>)
+                 -> SidecarActor {
         let state = SidecarState::new(package, config);
         wonder::actor::Builder::new(Sidecar).name("sidecar".to_string()).start(state).unwrap()
     }
@@ -85,12 +87,11 @@ impl GenServer for Sidecar {
         Ok(Some(0))
     }
 
-    fn handle_timeout(
-        &self,
-        _tx: &ActorSender<Self::T>,
-        _me: &ActorSender<Self::T>,
-        state: &mut Self::S
-    ) -> HandleResult<Self::T> {
+    fn handle_timeout(&self,
+                      _tx: &ActorSender<Self::T>,
+                      _me: &ActorSender<Self::T>,
+                      state: &mut Self::S)
+                      -> HandleResult<Self::T> {
         let mut router = Router::new();
         let package_1 = state.package.clone();
         let package_2 = state.package.clone();
@@ -99,11 +100,13 @@ impl GenServer for Sidecar {
 
         router.get(GET_CONFIG, move |r: &mut Request| config(&package_1, r));
         router.get(GET_STATUS, move |r: &mut Request| status(&package_2, r));
-        router.get(GET_HEALTH, move |r: &mut Request| health(&package_3, &config_1, r));
+        router.get(GET_HEALTH,
+                   move |r: &mut Request| health(&package_3, &config_1, r));
 
         match Iron::new(router).http(LISTEN_ADDR) {
             Ok(_) => HandleResult::NoReply(None),
-            Err(_) => HandleResult::Stop(StopReason::Fatal("couldn't start router".to_string()), None),
+            Err(_) =>
+                HandleResult::Stop(StopReason::Fatal("couldn't start router".to_string()), None),
         }
     }
 }
@@ -142,11 +145,10 @@ fn status(lock: &Arc<RwLock<Package>>, _req: &mut Request) -> IronResult<Respons
 /// # Failures
 ///
 /// * If the health_check cannot be run.
-fn health(
-    package_lock: &Arc<RwLock<Package>>,
-    config_lock: &Arc<RwLock<ServiceConfig>>,
-    _req: &mut Request
-) -> IronResult<Response> {
+fn health(package_lock: &Arc<RwLock<Package>>,
+          config_lock: &Arc<RwLock<ServiceConfig>>,
+          _req: &mut Request)
+          -> IronResult<Response> {
     let result = {
         let package = package_lock.read().unwrap();
         let config = config_lock.read().unwrap();
@@ -156,19 +158,22 @@ fn health(
     match result.status {
         health_check::Status::Ok | health_check::Status::Warning => {
             Ok(Response::with((status::Ok, format!("{}", result))))
-        },
+        }
         health_check::Status::Critical => {
             Ok(Response::with((status::ServiceUnavailable, format!("{}", result))))
-        },
+        }
         health_check::Status::Unknown => {
             Ok(Response::with((status::InternalServerError, format!("{}", result))))
-        },
+        }
     }
 }
 
 /// Translates BldrErrors into IronErrors
 impl From<BldrError> for IronError {
     fn from(err: BldrError) -> IronError {
-        IronError{error: Box::new(err), response: Response::with((status::InternalServerError, "Internal bldr error"))}
+        IronError {
+            error: Box::new(err),
+            response: Response::with((status::InternalServerError, "Internal bldr error")),
+        }
     }
 }
