@@ -448,7 +448,10 @@ impl Package {
         } else {
             let run = self.join_path(RUN_FILENAME);
             try!(util::perm::set_permissions(&run, "0755"));
-            try!(fs::remove_file(&srvc_run));
+            match fs::metadata(&srvc_run) {
+                Ok(_) => try!(fs::remove_file(&srvc_run)),
+                Err(_) => {}
+            }
             try!(unix::fs::symlink(&run, &srvc_run));
         }
         Ok(())
