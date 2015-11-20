@@ -84,18 +84,18 @@ pub fn package(config: &Config) -> BldrResult<()> {
         Ok(mut package) => {
             if let Some(ref url) = *config.url() {
                 outputln!("Checking remote for newer versions...");
-                let latest_pkg = try!(repo::client::show_package_latest(&url,
-                                                                        &package.derivation,
-                                                                        &package.name,
-                                                                        None));
+                let latest_pkg = try!(repo::client::show_package(&url,
+                                                                 &package.derivation,
+                                                                 &package.name,
+                                                                 None,
+                                                                 None));
                 if latest_pkg > package {
                     outputln!("Downloading latest version from remote: {}", &latest_pkg);
-                    let pkg_file = try!(repo::client::fetch_package_exact(&url,
-                                                                          &latest_pkg,
-                                                                          PACKAGE_CACHE));
-                    try!(install::verify(config.package(), &pkg_file));
-                    try!(install::unpack(config.package(), &pkg_file));
-                    package = try!(Package::from_path(&pkg_file));
+                    let archive = try!(repo::client::fetch_package_exact(&url,
+                                                                         &latest_pkg,
+                                                                         PACKAGE_CACHE));
+                    try!(archive.verify());
+                    package = try!(archive.unpack());
                 } else {
                     outputln!("Already running latest.");
                 };
@@ -110,14 +110,11 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     outputln!("Searching for {} in remote {}",
                               Yellow.bold().paint(config.package()),
                               url);
-                    let pkg_file = try!(install::from_url(url,
-                                                          config.deriv(),
-                                                          config.package(),
-                                                          config.version(),
-                                                          config.release()));
-                    try!(install::verify(&config.package(), &pkg_file));
-                    try!(install::unpack(&config.package(), &pkg_file));
-                    let package = try!(Package::from_path(&pkg_file));
+                    let package = try!(install::from_url(url,
+                                                         config.deriv(),
+                                                         config.package(),
+                                                         config.version().clone(),
+                                                         config.release().clone()));
                     start_package(package, config)
                 }
                 None => {

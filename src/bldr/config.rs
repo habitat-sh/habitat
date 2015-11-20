@@ -202,6 +202,23 @@ impl Config {
     pub fn repo_addr(&self) -> net::SocketAddrV4 {
         net::SocketAddrV4::new(self.listen_addr.0.clone(), self.port.0.clone())
     }
+
+    pub fn package_id(&self) -> String {
+        if self.version.is_some() && self.release.is_some() {
+            format!("{}/{}/{}/{}",
+                    &self.deriv,
+                    &self.package,
+                    self.version.as_ref().unwrap(),
+                    self.release.as_ref().unwrap())
+        } else if self.version.is_some() {
+            format!("{}/{}/{}",
+                    self.deriv,
+                    self.package,
+                    self.version.as_ref().unwrap())
+        } else {
+            format!("{}/{}", self.deriv, self.package)
+        }
+    }
 }
 
 #[cfg(test)]

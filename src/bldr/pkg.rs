@@ -30,12 +30,11 @@ use regex::Regex;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
-use fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME};
-use command;
+use fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME, GPG_CACHE};
 use error::{BldrResult, BldrError, ErrorKind};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
-use util::{self, convert};
+use util::{self, convert, gpg};
 use repo;
 
 static LOGKEY: &'static str = "PK";
@@ -54,6 +53,7 @@ pub struct Package {
     pub name: String,
     pub version: String,
     pub release: String,
+    pub deps: Option<Vec<Package>>,
 }
 
 impl fmt::Display for Package {
@@ -64,6 +64,150 @@ impl fmt::Display for Package {
                self.name,
                self.version,
                self.release)
+    }
+}
+
+#[derive(Debug)]
+pub enum MetaFile {
+    CFlags,
+    Deps,
+    Exposes,
+    Ident,
+    LdRunPath,
+    LdFlags,
+    Manifest,
+    Path,
+}
+
+impl fmt::Display for MetaFile {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let id = match *self {
+            MetaFile::CFlags => "CFLAGS",
+            MetaFile::Deps => "DEPS",
+            MetaFile::Exposes => "EXPOSES",
+            MetaFile::Ident => "IDENT",
+            MetaFile::LdRunPath => "LD_RUN_PATH",
+            MetaFile::LdFlags => "LDFLAGS",
+            MetaFile::Manifest => "MANIFEST",
+            MetaFile::Path => "PATH",
+        };
+        write!(f, "{}", id)
+    }
+}
+
+#[derive(Debug)]
+pub struct PackageArchive {
+    pub path: PathBuf,
+}
+
+impl PackageArchive {
+    pub fn new(path: PathBuf) -> Self {
+        PackageArchive { path: path }
+    }
+
+    /// A package struct representing the contents of this archive.
+    ///
+    /// # Failures
+    ///
+    /// * If an `IDENT` metafile is not found in the archive
+    /// * If the archive cannot be read
+    /// * If the archive cannot be verified
+    pub fn package(&self) -> BldrResult<Package> {
+        let body = try!(self.read_metadata(MetaFile::Ident));
+        let mut package = try!(Package::from_ident(&body));
+        match self.deps() {
+            Ok(Some(deps)) => {
+                for dep in deps {
+                    package.add_dep(dep);
+                }
+            }
+            Ok(None) => {}
+            Err(e) => return Err(e),
+        }
+        Ok(package)
+    }
+
+    /// List of package structs representing the package dependencies for this archive.
+    ///
+    /// # Failures
+    ///
+    /// * If a `DEPS` metafile is not found in the archive
+    /// * If the archive cannot be read
+    /// * If the archive cannot be verified
+    pub fn deps(&self) -> BldrResult<Option<Vec<Package>>> {
+        match self.read_metadata(MetaFile::Deps) {
+            Ok(body) => {
+                let dep_strs: Vec<&str> = body.split("\n").collect();
+                let mut deps = vec![];
+                for dep in &dep_strs {
+                    match Package::from_ident(&dep) {
+                        Ok(package) => deps.push(package),
+                        Err(_) => continue,
+                    }
+                }
+                Ok(Some(deps))
+            }
+            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// A plain string representation of the archive's file name.
+    pub fn file_name(&self) -> String {
+        self.path.file_name().unwrap().to_string_lossy().into_owned()
+    }
+
+    /// Given a package name and a path to a file as an `&str`, verify
+    /// the files gpg signature.
+    ///
+    /// # Failures
+    ///
+    /// * Fails if it cannot verify the GPG signature for any reason
+    pub fn verify(&self) -> BldrResult<()> {
+        gpg::verify(self.path.to_str().unwrap())
+    }
+
+    /// Given a package name and a path to a file as an `&str`, unpack
+    /// the package.
+    ///
+    /// # Failures
+    ///
+    /// * If the package cannot be unpacked via gpg
+    pub fn unpack(&self) -> BldrResult<Package> {
+        let output = try!(Command::new("sh")
+                              .arg("-c")
+                              .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x",
+                                           GPG_CACHE,
+                                           self.path.to_str().unwrap()))
+                              .output());
+        match output.status.success() {
+            true => self.package(),
+            false => Err(bldr_error!(ErrorKind::UnpackFailed)),
+        }
+    }
+
+    fn read_metadata(&self, file: MetaFile) -> BldrResult<String> {
+        let output = try!(Command::new("sh")
+                              .arg("-c")
+                              .arg(format!("gpg --homedir {} --decrypt {} | tar xO --wildcards \
+                                            --no-anchored {}",
+                                           GPG_CACHE,
+                                           self.path.to_string_lossy(),
+                                           file))
+                              .output());
+        match output.status.success() {
+            true => {
+                Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+            }
+            false => {
+                let re = Regex::new(&format!("{}: Not found in archive", file)).unwrap();
+                if re.is_match(&String::from_utf8_lossy(&output.stderr)) {
+                    Err(bldr_error!(ErrorKind::MetaFileNotFound(file)))
+                } else {
+                    Err(bldr_error!(ErrorKind::ArchiveReadFailed(String::from_utf8_lossy(&output.stderr).into_owned())))
+                }
+            }
+        }
     }
 }
 
@@ -225,22 +369,43 @@ pub enum Signal {
 }
 
 impl Package {
-    pub fn new(deriv: String, name: String, version: String, release: String) -> Package {
+    pub fn new(deriv: String, name: String, version: String, release: String) -> Self {
         Package {
             derivation: deriv,
             name: name,
             version: version,
             release: release,
+            deps: None,
+        }
+    }
+
+    pub fn add_dep(&mut self, dep: Package) -> &mut Self {
+        if let Some(ref mut deps) = self.deps {
+            deps.push(dep);
+        } else {
+            self.deps = Some(vec![dep]);
+        }
+        self
+    }
+
+    pub fn from_ident(id: &str) -> BldrResult<Package> {
+        let items: Vec<&str> = id.split("/").collect();
+        match items.len() {
+            4 => Ok(Self::new(items[0].trim().to_string(),
+                              items[1].trim().to_string(),
+                              items[2].trim().to_string(),
+                              items[3].trim().to_string())),
+            _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(id.to_string()))),
         }
     }
 
     pub fn from_path(spath: &str) -> BldrResult<Package> {
         if Path::new(spath).starts_with(PACKAGE_HOME) {
             let items: Vec<&str> = spath.split("/").collect();
-            Ok(Self::new(items[3].to_string(),
-                         items[4].to_string(),
-                         items[5].to_string(),
-                         items[6].to_string()))
+            Ok(Self::new(items[3].trim().to_string(),
+                         items[4].trim().to_string(),
+                         items[5].trim().to_string(),
+                         items[6].trim().to_string()))
         } else {
             Err(bldr_error!(ErrorKind::PackageLoad(spath.to_string())))
         }
@@ -706,18 +871,19 @@ impl GenServer for PackageUpdater {
                       state: &mut Self::S)
                       -> HandleResult<Self::T> {
         let package = state.package.read().unwrap();
-        match repo::client::show_package_latest(&state.repo,
-                                                &package.derivation,
-                                                &package.name,
-                                                None) {
+        match repo::client::show_package(&state.repo,
+                                         &package.derivation,
+                                         &package.name,
+                                         None,
+                                         None) {
             Ok(latest) => {
                 if latest > *package {
                     match repo::client::fetch_package_exact(&state.repo, &latest, PACKAGE_CACHE) {
-                        Ok(path) => {
-                            debug!("Updater downloaded new package to {:?}", path);
+                        Ok(archive) => {
+                            debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
-                            command::install::verify(&package.name, &path).unwrap();
-                            command::install::unpack(&package.name, &path).unwrap();
+                            archive.verify().unwrap();
+                            archive.unpack().unwrap();
                             state.status = UpdaterStatus::Stopped;
                             let msg = wonder::actor::Message::Cast(UpdaterMessage::Update(latest));
                             tx.send(msg).unwrap();
@@ -910,35 +1076,27 @@ mod tests {
 
     #[test]
     fn package_partial_eq() {
-        let a = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
-        let b = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
+        let a = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
+        let b = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
         assert_eq!(a, b);
     }
 
     #[test]
     fn package_partial_ord() {
-        let a = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.1".to_string(),
-            release: "20150521131555".to_string(),
-        };
-        let b = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
+        let a = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.1".to_string(),
+                             "20150521131555".to_string());
+        let b = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("Ordering should be greater"),
@@ -947,18 +1105,14 @@ mod tests {
 
     #[test]
     fn package_partial_ord_bad_name() {
-        let a = Package {
-            derivation: "bldr".to_string(),
-            name: "snoopy".to_string(),
-            version: "1.0.1".to_string(),
-            release: "20150521131555".to_string(),
-        };
-        let b = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
+        let a = Package::new("bldr".to_string(),
+                             "snoopy".to_string(),
+                             "1.0.1".to_string(),
+                             "20150521131555".to_string());
+        let b = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
             None => assert!(true),
@@ -967,18 +1121,14 @@ mod tests {
 
     #[test]
     fn package_partial_ord_different_derivation() {
-        let a = Package {
-            derivation: "adam".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
-        let b = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
+        let a = Package::new("adam".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
+        let b = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
             None => panic!("We failed to return an order"),
@@ -987,18 +1137,14 @@ mod tests {
 
     #[test]
     fn package_partial_ord_release() {
-        let a = Package {
-            derivation: "adam".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131556".to_string(),
-        };
-        let b = Package {
-            derivation: "bldr".to_string(),
-            name: "bldr".to_string(),
-            version: "1.0.0".to_string(),
-            release: "20150521131555".to_string(),
-        };
+        let a = Package::new("adam".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131556".to_string());
+        let b = Package::new("bldr".to_string(),
+                             "bldr".to_string(),
+                             "1.0.0".to_string(),
+                             "20150521131555".to_string());
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("We failed to return an order"),

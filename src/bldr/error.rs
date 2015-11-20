@@ -94,6 +94,7 @@ impl BldrError {
 #[derive(Debug)]
 /// All the kinds of errors we produce.
 pub enum ErrorKind {
+    ArchiveReadFailed(String),
     Io(io::Error),
     CommandNotImplemented,
     InstallFailed,
@@ -102,11 +103,12 @@ pub enum ErrorKind {
     HTTP(hyper::status::StatusCode),
     CannotParseFileName,
     PathUTF8,
-    GPGVerifyFailed,
+    GPGImportFailed(String),
+    GPGVerifyFailed(String),
     UnpackFailed,
     TomlParser(Vec<toml::ParserError>),
     MustacheEncoderError(mustache::encoder::Error),
-    GPGImportFailed,
+    MetaFileNotFound(pkg::MetaFile),
     PermissionFailed,
     BadVersion,
     RegexParse(regex::Error),
@@ -147,6 +149,7 @@ impl fmt::Display for BldrError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            ErrorKind::ArchiveReadFailed(ref e) => format!("Failed to read package archive, {}", e),
             ErrorKind::Io(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
             ErrorKind::InstallFailed => format!("Could not install package!"),
@@ -157,7 +160,8 @@ impl fmt::Display for BldrError {
             ErrorKind::CannotParseFileName =>
                 format!("Cannot determine the filename from the given URI"),
             ErrorKind::PathUTF8 => format!("Paths must not contain non-UTF8 characters"),
-            ErrorKind::GPGVerifyFailed => format!("Failed to verify a GPG Signature"),
+            ErrorKind::GPGImportFailed(ref e) => format!("Failed to import a GPG key, {}", e),
+            ErrorKind::GPGVerifyFailed(ref e) => format!("Failed to verify GPG Signature, {}", e),
             ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
             ErrorKind::TomlParser(ref errs) => {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
@@ -168,7 +172,8 @@ impl fmt::Display for BldrError {
                     _ => format!("Mustache encoder error: {:?}", me),
                 }
             }
-            ErrorKind::GPGImportFailed => format!("Failed to import a GPG key"),
+            ErrorKind::MetaFileNotFound(ref e) =>
+                format!("Couldn't read MetaFile: {}, not found", e),
             ErrorKind::PermissionFailed => format!("Failed to set permissions"),
             ErrorKind::BadVersion => format!("Failed to parse a version number"),
             ErrorKind::RegexParse(ref e) => format!("{}", e),
@@ -249,6 +254,7 @@ impl fmt::Display for BldrError {
 impl Error for BldrError {
     fn description(&self) -> &str {
         match self.err {
+            ErrorKind::ArchiveReadFailed(_) => "Failed to read contents of package archive",
             ErrorKind::Io(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
             ErrorKind::InstallFailed => "Could not install package!",
@@ -258,11 +264,12 @@ impl Error for BldrError {
             ErrorKind::HyperError(ref err) => err.description(),
             ErrorKind::HTTP(_) => "Received an HTTP error",
             ErrorKind::PathUTF8 => "Paths must not contain non-UTF8 characters",
-            ErrorKind::GPGVerifyFailed => "Failed to verify a GPG Signature",
+            ErrorKind::GPGImportFailed(_) => "Failed to import a GPG key",
+            ErrorKind::GPGVerifyFailed(_) => "Failed to verify a GPG Signature",
             ErrorKind::UnpackFailed => "Failed to unpack a package",
             ErrorKind::TomlParser(_) => "Failed to parse toml!",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
-            ErrorKind::GPGImportFailed => "Failed to import a GPG key",
+            ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             ErrorKind::PermissionFailed => "Failed to set permissions",
             ErrorKind::BadVersion => "Failed to parse a version number",
             ErrorKind::RegexParse(_) => "Failed to parse a regular expression",
