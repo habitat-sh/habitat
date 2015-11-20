@@ -30,7 +30,7 @@ use regex::Regex;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
-use super::PACKAGE_CACHE;
+use fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME};
 use command;
 use error::{BldrResult, BldrError};
 use health_check::{self, CheckResult};
@@ -233,7 +233,7 @@ impl Package {
     }
 
     pub fn from_path(spath: &str) -> BldrResult<Package> {
-        if Path::new(spath).starts_with("/opt/bldr/pkgs") {
+        if Path::new(spath).starts_with(PACKAGE_HOME) {
             let items: Vec<&str> = spath.split("/").collect();
             Ok(Self::new(items[3].to_string(),
                          items[4].to_string(),
@@ -249,7 +249,7 @@ impl Package {
                   ver: Option<&str>,
                   opt_path: Option<&str>)
                   -> BldrResult<Package> {
-        let path = opt_path.unwrap_or("/opt/bldr/pkgs");
+        let path = opt_path.unwrap_or(PACKAGE_HOME);
         let pl = try!(Self::package_list(path));
         let latest: Option<Package> = pl.iter()
                                         .filter(|&p| {
@@ -312,7 +312,7 @@ impl Package {
         };
         let output = try!(Command::new(runit_pkg.join_path("bin/sv"))
                               .arg(signal_arg)
-                              .arg(&format!("/opt/bldr/srvc/{}", self.name))
+                              .arg(&format!("{}/{}", SERVICE_HOME, self.name))
                               .output());
         match output.status.success() {
             true => {
@@ -386,7 +386,8 @@ impl Package {
 
     /// The path to the package on disk.
     pub fn path(&self) -> String {
-        format!("/opt/bldr/pkgs/{}/{}/{}/{}",
+        format!("{}/{}/{}/{}/{}",
+                PACKAGE_HOME,
                 self.derivation,
                 self.name,
                 self.version,
@@ -395,7 +396,8 @@ impl Package {
 
     /// Join a string to the path on disk.
     pub fn join_path(&self, join: &str) -> String {
-        format!("/opt/bldr/pkgs/{}/{}/{}/{}/{}",
+        format!("{}/{}/{}/{}/{}/{}",
+                PACKAGE_HOME,
                 self.derivation,
                 self.name,
                 self.version,
@@ -405,12 +407,12 @@ impl Package {
 
     /// The on disk srvc path for this package.
     pub fn srvc_path(&self) -> String {
-        format!("/opt/bldr/srvc/{}", self.name)
+        format!("{}/{}", SERVICE_HOME, self.name)
     }
 
     /// Join a string to the on disk srvc path for this package.
     pub fn srvc_join_path(&self, join: &str) -> String {
-        format!("/opt/bldr/srvc/{}/{}", self.name, join)
+        format!("{}/{}/{}", SERVICE_HOME, self.name, join)
     }
 
     /// Create the service path for this package.
@@ -551,7 +553,8 @@ impl Package {
     }
 
     pub fn cache_file(&self) -> PathBuf {
-        PathBuf::from(format!("/opt/bldr/cache/pkgs/{}-{}-{}-{}.bldr",
+        PathBuf::from(format!("{}/{}-{}-{}-{}.bldr",
+                              PACKAGE_CACHE,
                               self.derivation,
                               self.name,
                               self.version,

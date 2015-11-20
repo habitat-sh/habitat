@@ -18,14 +18,14 @@
 use std::process::Command;
 use std::fs;
 
-use super::super::GPG_CACHE;
+use fs::GPG_CACHE;
 use error::{BldrResult, BldrError};
 use util::perm;
 
 fn gpg_cmd() -> Command {
     let mut command = Command::new("gpg");
     command.arg("--homedir");
-    command.arg("/opt/bldr/cache/gpg");
+    command.arg(GPG_CACHE);
     command
 }
 

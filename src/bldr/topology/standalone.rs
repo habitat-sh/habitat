@@ -26,10 +26,12 @@
 //! * **Running**: The state for the 'normal' operating condition.
 
 use std::thread;
-use error::{BldrResult, BldrError};
 use std::process::{Command, Stdio};
 use std::io::prelude::*;
 use ansi_term::Colour::White;
+
+use fs::SERVICE_HOME;
+use error::{BldrResult, BldrError};
 use pkg::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
@@ -73,7 +75,7 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
     let package = worker.package_name.clone();
     let runit_pkg = try!(Package::latest("chef", "runit", None, None));
     let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
-                             .arg(&format!("/opt/bldr/srvc/{}", worker.package_name))
+                             .arg(&format!("{}/{}", SERVICE_HOME, worker.package_name))
                              .stdin(Stdio::null())
                              .stdout(Stdio::piped())
                              .stderr(Stdio::piped())

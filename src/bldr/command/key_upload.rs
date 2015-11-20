@@ -35,6 +35,7 @@
 use std::fs;
 use std::path::Path;
 
+use fs::KEY_CACHE;
 use config::Config;
 use error::{BldrError, BldrResult};
 use repo;
@@ -60,7 +61,7 @@ pub fn key(config: &Config) -> BldrResult<()> {
         }
         Err(_) => {
             if path.components().count() == 1 {
-                let file = format!("/opt/bldr/cache/keys/{}.asc", config.key());
+                let file = format!("{}/{}.asc", KEY_CACHE, config.key());
                 let cached = Path::new(&file);
                 match fs::metadata(&cached) {
                     Ok(_) => {
