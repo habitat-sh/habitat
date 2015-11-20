@@ -61,7 +61,7 @@
 
 use ansi_term::Colour::Yellow;
 
-use super::super::PACKAGE_CACHE;
+use fs::PACKAGE_CACHE;
 use error::{BldrResult, BldrError};
 use config::Config;
 use pkg::Package;

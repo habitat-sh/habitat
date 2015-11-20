@@ -68,6 +68,7 @@ pub mod discovery;
 pub mod topology;
 pub mod state_machine;
 pub mod sidecar;
+pub mod fs;
 pub mod health_check;
 pub mod config;
 pub mod repo;
@@ -75,7 +76,3 @@ pub mod user_config;
 pub mod service_config;
 pub mod watch_config;
 pub mod census;
-
-const PACKAGE_CACHE: &'static str = "/opt/bldr/cache/pkgs";
-const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
-const KEY_CACHE: &'static str = "/opt/bldr/cache/keys";

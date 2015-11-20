@@ -59,7 +59,7 @@
 use std::process::Command;
 use std::fs;
 
-use super::super::{PACKAGE_CACHE, GPG_CACHE};
+use fs::{PACKAGE_CACHE, GPG_CACHE};
 use error::{BldrResult, BldrError};
 use util::gpg;
 use repo;

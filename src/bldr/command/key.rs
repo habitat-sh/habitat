@@ -33,7 +33,7 @@
 
 use std::fs;
 
-use super::super::KEY_CACHE;
+use fs::KEY_CACHE;
 use util::gpg;
 use repo;
 use config::Config;
