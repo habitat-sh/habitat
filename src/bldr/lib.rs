@@ -76,3 +76,6 @@ pub mod user_config;
 pub mod service_config;
 pub mod watch_config;
 pub mod census;
+
+#[allow(dead_code)]
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
