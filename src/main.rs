@@ -37,7 +37,7 @@ use bldr::topology::Topology;
 
 /// The version number
 #[allow(dead_code)]
-static VERSION: &'static str = "0.0.1";
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 /// The [docopts](http://burntsushi.net/rustdoc/docopt/index.html) usage
 /// string. Determines what options are accepted.
