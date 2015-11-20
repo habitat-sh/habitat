@@ -111,7 +111,7 @@ fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-fn upload(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     println!("Upload {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
@@ -147,7 +147,10 @@ fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     println!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
-    let key = rext.find("key").unwrap();
+    let key = match rext.find("key") {
+        Some(key) => key,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
     let path = Path::new(&repo.path).join("keys");
     let short_filename = format!("{}.asc", key);
@@ -159,58 +162,58 @@ fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-fn download(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     println!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
-    let deriv = rext.find("deriv").unwrap();
-    let pkg = rext.find("pkg").unwrap();
-    let version = rext.find("version").unwrap();
-    let release = rext.find("release").unwrap();
+    let deriv = match rext.find("deriv") {
+        Some(deriv) => deriv,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let pkg = match rext.find("pkg") {
+        Some(pkg) => pkg,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    let param_ver = rext.find("version");
+    let param_rel = rext.find("release");
 
+    let (version, release) = if param_ver.is_some() && param_rel.is_some() {
+        (param_ver.unwrap().to_string(),
+         param_rel.unwrap().to_string())
+    } else {
+        match Package::latest(deriv, pkg, None, Some(&format!("{}/pkgs", &repo.path))) {
+            Ok(package) => (package.version, package.release),
+            Err(BldrError::Io(_)) => return Ok(Response::with(status::NotFound)),
+            Err(_) => return Ok(Response::with(status::InternalServerError)),
+        }
+    };
+
+    let short_filename = format!("{}-{}-{}-{}.bldr", deriv, pkg, version, release);
     let path = Path::new(&repo.path)
                    .join(format!("pkgs/{}/{}/{}/{}", deriv, pkg, version, release));
-    let short_filename = format!("{}-{}-{}-{}.bldr", deriv, pkg, version, release);
-    let filename = path.join(&short_filename);
+    let file = path.join(&short_filename);
 
-    let mut response = Response::with((status::Ok, filename));
-    response.headers.set(XFileName(short_filename.clone()));
-
-    Ok(response)
+    match fs::metadata(&file) {
+        Ok(_) => {
+            let mut response = Response::with((status::Ok, file));
+            response.headers.set(XFileName(short_filename.clone()));
+            Ok(response)
+        }
+        Err(_) => {
+            Ok(Response::with(status::NotFound))
+        }
+    }
 }
 
-fn download_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
-    println!("Download Latest {:?}", req);
-    let rext = req.extensions.get::<Router>().unwrap();
-
-    let deriv = rext.find("deriv").unwrap();
-    let pkg = rext.find("pkg").unwrap();
-
-    let package = try!(Package::latest(deriv, pkg, Some(&format!("{}/pkgs", &repo.path))));
-
-    let path = Path::new(&repo.path).join(format!("pkgs/{}/{}/{}/{}",
-                                                  &package.derivation,
-                                                  &package.name,
-                                                  &package.version,
-                                                  &package.release));
-    let short_filename = format!("{}-{}-{}-{}.bldr",
-                                 &package.derivation,
-                                 &package.name,
-                                 &package.version,
-                                 &package.release);
-    let filename = path.join(&short_filename);
-
-    let mut response = Response::with((status::Ok, filename));
-    response.headers.set(XFileName(short_filename.clone()));
-
-    Ok(response)
-}
-
-fn show_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn show_package_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let rext = req.extensions.get::<Router>().unwrap();
     let package = rext.find("pkg").unwrap();
     let deriv = rext.find("deriv").unwrap();
-    match Package::latest(&deriv, &package, Some(&format!("{}/pkgs", &repo.path))) {
+    let version = rext.find("version");
+    match Package::latest(&deriv,
+                          &package,
+                          version,
+                          Some(&format!("{}/pkgs", &repo.path))) {
         Ok(package) => {
             let body = json::encode(&package).unwrap();
             Ok(Response::with((status::Ok, body)))
@@ -228,23 +231,19 @@ pub fn run(config: &Config) -> BldrResult<()> {
     let repo4 = repo.clone();
     let repo5 = repo.clone();
     let repo6 = repo.clone();
+    let repo7 = repo.clone();
+    let repo8 = repo.clone();
+    let router = router!(
+        post "/pkgs/:deriv/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo, r),
+        get "/pkgs/:deriv/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo2, r),
+        get "/pkgs/:deriv/:pkg/:version/download" => move |r: &mut Request| download_package(&repo3, r),
+        get "/pkgs/:deriv/:pkg/download" => move |r: &mut Request| download_package(&repo4, r),
+        get "/pkgs/:deriv/:pkg/:version" => move |r: &mut Request| show_package_latest(&repo5, r),
+        get "/pkgs/:deriv/:pkg" => move |r: &mut Request| show_package_latest(&repo6, r),
 
-    let mut router = Router::new();
-
-    // Packages
-    router.post("/pkgs/:deriv/:pkg/:version/:release",
-                move |r: &mut Request| upload(&repo, r));
-    router.get("/pkgs/:deriv/:pkg/:version/:release/download",
-               move |r: &mut Request| download(&repo2, r));
-    router.get("/pkgs/:deriv/:pkg/download",
-               move |r: &mut Request| download_latest(&repo3, r));
-    router.get("/pkgs/:deriv/:pkg",
-               move |r: &mut Request| show_latest(&repo6, r));
-
-    // Keys
-    router.post("/keys/:key", move |r: &mut Request| upload_key(&repo4, r));
-    router.get("/keys/:key", move |r: &mut Request| download_key(&repo5, r));
-
+        post "/keys/:key" => move |r: &mut Request| upload_key(&repo7, r),
+        get "/keys/:key" => move |r: &mut Request| download_key(&repo8, r)
+    );
     Iron::new(router).http(config.repo_addr()).unwrap();
     Ok(())
 }

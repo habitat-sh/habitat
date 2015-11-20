@@ -78,16 +78,19 @@ use repo;
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> BldrResult<()> {
-    match Package::latest(config.deriv(), config.package(), None) {
+    match Package::latest(config.deriv(), config.package(), None, None) {
         Ok(mut package) => {
             if let Some(ref url) = *config.url() {
                 println!("Checking remote for newer versions...");
-                let latest_pkg = try!(repo::client::show_package_latest(&url, &package));
+                let latest_pkg = try!(repo::client::show_package_latest(&url,
+                                                                        &package.derivation,
+                                                                        &package.name,
+                                                                        None));
                 if latest_pkg > package {
                     println!("Downloading latest version from remote: {}", &latest_pkg);
-                    let pkg_file = try!(repo::client::fetch_package(&url,
-                                                                    &latest_pkg,
-                                                                    PACKAGE_CACHE));
+                    let pkg_file = try!(repo::client::fetch_package_exact(&url,
+                                                                          &latest_pkg,
+                                                                          PACKAGE_CACHE));
                     try!(install::verify(config.package(), &pkg_file));
                     try!(install::unpack(config.package(), &pkg_file));
                     package = try!(Package::from_path(&pkg_file));
@@ -105,9 +108,11 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     println!("Searching for {} in remote {}",
                              Yellow.bold().paint(config.package()),
                              url);
-                    let pkg_file = try!(install::latest_from_url(config.deriv(),
-                                                                 config.package(),
-                                                                 url));
+                    let pkg_file = try!(install::from_url(url,
+                                                          config.deriv(),
+                                                          config.package(),
+                                                          config.version(),
+                                                          config.release()));
                     try!(install::verify(&config.package(), &pkg_file));
                     try!(install::unpack(&config.package(), &pkg_file));
                     let package = try!(Package::from_path(&pkg_file));
@@ -115,7 +120,8 @@ pub fn package(config: &Config) -> BldrResult<()> {
                 }
                 None => {
                     Err(BldrError::PackageNotFound(config.deriv().to_string(),
-                                                   config.package().to_string()))
+                                                   config.package().to_string(),
+                                                   config.release().clone()))
                 }
             }
         }

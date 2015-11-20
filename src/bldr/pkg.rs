@@ -244,11 +244,22 @@ impl Package {
         }
     }
 
-    pub fn latest(deriv: &str, pkg: &str, opt_path: Option<&str>) -> BldrResult<Package> {
+    pub fn latest(deriv: &str,
+                  pkg: &str,
+                  ver: Option<&str>,
+                  opt_path: Option<&str>)
+                  -> BldrResult<Package> {
         let path = opt_path.unwrap_or("/opt/bldr/pkgs");
         let pl = try!(Self::package_list(path));
         let latest: Option<Package> = pl.iter()
-                                        .filter(|&p| p.name == pkg && p.derivation == deriv)
+                                        .filter(|&p| {
+                                            if ver.is_some() {
+                                                p.name == pkg && p.derivation == deriv &&
+                                                p.version == *ver.as_ref().unwrap()
+                                            } else {
+                                                p.name == pkg && p.derivation == deriv
+                                            }
+                                        })
                                         .fold(None, |winner, b| {
                                             match winner {
                                                 Some(a) => {
@@ -262,11 +273,16 @@ impl Package {
                                                 None => Some(b.clone()),
                                             }
                                         });
-        latest.ok_or(BldrError::PackageNotFound(deriv.to_string(), pkg.to_string()))
+        let ver = if ver.is_some() {
+            Some(String::from(ver.unwrap()))
+        } else {
+            None
+        };
+        latest.ok_or(BldrError::PackageNotFound(deriv.to_string(), pkg.to_string(), ver))
     }
 
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(Self::latest("chef", "runit", None));
+        let runit_pkg = try!(Self::latest("chef", "runit", None, None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -679,10 +695,13 @@ impl GenServer for PackageUpdater {
                       state: &mut Self::S)
                       -> HandleResult<Self::T> {
         let package = state.package.read().unwrap();
-        match repo::client::show_package_latest(&state.repo, &package) {
+        match repo::client::show_package_latest(&state.repo,
+                                                &package.derivation,
+                                                &package.name,
+                                                None) {
             Ok(latest) => {
                 if latest > *package {
-                    match repo::client::fetch_package(&state.repo, &latest, PACKAGE_CACHE) {
+                    match repo::client::fetch_package_exact(&state.repo, &latest, PACKAGE_CACHE) {
                         Ok(path) => {
                             debug!("Updater downloaded new package to {:?}", path);
                             // JW TODO: actually handle verify and unpack results

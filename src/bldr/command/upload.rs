@@ -48,7 +48,7 @@ use repo;
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
-    let package = try!(Package::latest(config.deriv(), config.package(), None));
+    let package = try!(Package::latest(config.deriv(), config.package(), None, None));
     println!("   {}: Uploading from {}",
              &package,
              package.cache_file().to_string_lossy());
