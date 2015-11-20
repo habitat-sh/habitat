@@ -55,7 +55,7 @@ extern crate libc;
 extern crate url;
 extern crate fnv;
 extern crate iron;
-extern crate router;
+#[macro_use] extern crate router;
 extern crate time;
 extern crate wonder;
 extern crate uuid;

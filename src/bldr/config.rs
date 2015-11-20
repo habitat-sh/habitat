@@ -59,8 +59,8 @@ pub struct Config {
     group: String,
     path: String,
     deriv: String,
-    version: String,
-    release: String,
+    version: Option<String>,
+    release: Option<String>,
     watch: Vec<String>,
     key: String,
     listen_addr: repo::ListenAddr,
@@ -119,23 +119,23 @@ impl Config {
 
     /// Set the version
     pub fn set_version(&mut self, version: String) -> &mut Config {
-        self.version = version;
+        self.version = Some(version);
         self
     }
 
     /// Return the version
-    pub fn version(&self) -> &str {
+    pub fn version(&self) -> &Option<String> {
         &self.version
     }
 
     /// Set the release
     pub fn set_release(&mut self, release: String) -> &mut Config {
-        self.release = release;
+        self.release = Some(release);
         self
     }
 
     /// Return the release
-    pub fn release(&self) -> &str {
+    pub fn release(&self) -> &Option<String> {
         &self.release
     }
 

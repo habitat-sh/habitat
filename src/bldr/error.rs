@@ -40,6 +40,7 @@ pub enum BldrError {
     InstallFailed,
     WriteSyncFailed,
     HyperError(hyper::error::Error),
+    HTTP(hyper::status::StatusCode),
     CannotParseFileName,
     PathUTF8,
     GPGVerifyFailed,
@@ -55,7 +56,8 @@ pub enum BldrError {
     FileNotFound(String),
     KeyNotFound(String),
     PackageLoad(String),
-    PackageNotFound(String, String),
+    PackageNotFound(String, String, Option<String>),
+    RemotePackageNotFound(String, String, Option<String>, Option<String>),
     MustacheMergeOnlyMaps,
     SupervisorSignalFailed,
     StringFromUtf8Error(string::FromUtf8Error),
@@ -87,6 +89,7 @@ impl fmt::Display for BldrError {
             BldrError::CommandNotImplemented => write!(f, "Command is not yet implemented!"),
             BldrError::InstallFailed => write!(f, "Could not install package!"),
             BldrError::HyperError(ref err) => err.fmt(f),
+            BldrError::HTTP(ref e) => e.fmt(f),
             BldrError::WriteSyncFailed =>
                 write!(f,
                        "Could not write to destination; perhaps the disk is full?"),
@@ -113,8 +116,38 @@ impl fmt::Display for BldrError {
             BldrError::FileNotFound(ref e) => write!(f, "File not found at: {}", e),
             BldrError::KeyNotFound(ref e) => write!(f, "Key not found in key cache: {}", e),
             BldrError::PackageLoad(ref e) => write!(f, "Unable to load package from: {}", e),
-            BldrError::PackageNotFound(ref d, ref n) =>
-                write!(f, "Cannot find package: {}/{}", d, n),
+            BldrError::PackageNotFound(ref d, ref n, ref r) => {
+                if r.is_some() {
+                    write!(f,
+                           "Cannot find a release of package: {}/{}/{}",
+                           d,
+                           n,
+                           r.as_ref().unwrap())
+                } else {
+                    write!(f, "Cannot find a release of package: {}/{}", d, n)
+                }
+            }
+            BldrError::RemotePackageNotFound(ref d, ref n, ref v, ref r) => {
+                if v.is_some() && r.is_some() {
+                    write!(f,
+                           "Cannot find package in any sources: {}/{}/{}/{}",
+                           d,
+                           n,
+                           v.as_ref().unwrap(),
+                           r.as_ref().unwrap())
+                } else if v.is_some() {
+                    write!(f,
+                           "Cannot find a release of package in any sources: {}/{}/{}",
+                           d,
+                           n,
+                           v.as_ref().unwrap())
+                } else {
+                    write!(f,
+                           "Cannot find a release of package in any sources: {}/{}",
+                           d,
+                           n)
+                }
+            }
             BldrError::MustacheMergeOnlyMaps =>
                 write!(f, "Can only merge two Mustache::Data::Maps"),
             BldrError::SupervisorSignalFailed =>
@@ -161,6 +194,7 @@ impl Error for BldrError {
                 "Could not write to destination; bytes written was 0 on a non-0 buffer",
             BldrError::CannotParseFileName => "Cannot determine the filename from the given URI",
             BldrError::HyperError(ref err) => err.description(),
+            BldrError::HTTP(_) => "Received an HTTP error",
             BldrError::PathUTF8 => "Paths must not contain non-UTF8 characters",
             BldrError::GPGVerifyFailed => "Failed to verify a GPG Signature",
             BldrError::UnpackFailed => "Failed to unpack a package",
@@ -175,7 +209,8 @@ impl Error for BldrError {
             BldrError::FileNotFound(_) => "File not found",
             BldrError::KeyNotFound(_) => "Key not found in key cache",
             BldrError::PackageLoad(_) => "Unable to load package from path",
-            BldrError::PackageNotFound(_, _) => "Cannot find a package",
+            BldrError::PackageNotFound(_, _, _) => "Cannot find a package",
+            BldrError::RemotePackageNotFound(_, _, _, _) => "Cannot find a package in any sources",
             BldrError::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
             BldrError::SupervisorSignalFailed =>
                 "Failed to send a signal to the process supervisor",

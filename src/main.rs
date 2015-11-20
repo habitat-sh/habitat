@@ -44,23 +44,21 @@ static VERSION: &'static str = "0.0.1";
 #[allow(dead_code)]
 #[cfg_attr(rustfmt, rustfmt_skip)]
 static USAGE: &'static str = "
-Usage: bldr install <package> -u <url> [-v <version>] [-r <release>]
+Usage: bldr install <package> -u <url> [-v <version>]
        bldr start <package> [-u <url>] [--group=<group>] [--topology=<topology>] [--watch=<watch>...]
        bldr sh
        bldr bash
        bldr repo [-p <path>] [--port=<port>]
-       bldr upload <package> -u <url> [-v <version>] [-r <release>]
+       bldr upload <package> -u <url>
        bldr key <key> [-u <url>]
        bldr key-upload <key> -u <url>
        bldr config <package>
 
 Options:
     -g, --group=<group>        The service group; shared config and topology [default: default]
-    -r, --release=<release>    A package release
     -t, --topology=<topology>  Specify a service topology [default: standalone]
     -p, --path=<path>          The path to use for a repository [default: /opt/bldr/srvc/bldr/data]
     -u, --url=<url>            Use the specified package repository url
-    -v, --version=<version>    A package version
     -w, --watch=<watch>        One or more service groups to watch for updates
 ";
 
@@ -81,8 +79,6 @@ struct Args {
     arg_key: Option<String>,
     flag_path: String,
     flag_port: Option<u16>,
-    flag_version: String,
-    flag_release: String,
     flag_url: Option<String>,
     flag_topology: Option<String>,
     flag_group: String,
@@ -95,9 +91,15 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     let mut config = Config::new();
     config.set_command(command);
     if let Some(ref package) = args.arg_package {
-        let (deriv, name) = try!(split_package_arg(package));
+        let (deriv, name, version, release) = try!(split_package_arg(package));
         config.set_deriv(deriv);
         config.set_package(name);
+        if let Some(ver) = version {
+            config.set_version(ver);
+        }
+        if let Some(rel) = release {
+            config.set_release(rel);
+        }
     }
     if let Some(ref arg_key) = args.arg_key {
         config.set_key(arg_key.clone());
@@ -125,8 +127,6 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     config.set_group(args.flag_group.clone());
     config.set_watch(args.flag_watch.clone());
     config.set_path(args.flag_path.clone());
-    config.set_version(args.flag_version.clone());
-    config.set_release(args.flag_release.clone());
     Ok(config)
 }
 
@@ -244,9 +244,11 @@ fn configure(config: &Config) -> BldrResult<()> {
 fn install(config: &Config) -> BldrResult<()> {
     banner();
     println!("Installing {}", Yellow.bold().paint(config.package()));
-    let pkg_file = try!(install::latest_from_url(config.deriv(),
-                                                 config.package(),
-                                                 &config.url().as_ref().unwrap()));
+    let pkg_file = try!(install::from_url(&config.url().as_ref().unwrap(),
+                                          config.deriv(),
+                                          config.package(),
+                                          config.version(),
+                                          config.release()));
     try!(install::verify(config.package(), &pkg_file));
     try!(install::unpack(config.package(), &pkg_file));
     Ok(())
@@ -310,11 +312,18 @@ fn exit_with(e: BldrError, code: i32) {
     process::exit(code)
 }
 
-fn split_package_arg(arg: &str) -> BldrResult<(String, String)> {
+fn split_package_arg(arg: &str) -> BldrResult<(String, String, Option<String>, Option<String>)> {
     let items: Vec<&str> = arg.split("/").collect();
-    if items.len() == 2 {
-        Ok((items[0].to_string(), items[1].to_string()))
-    } else {
-        Err(BldrError::InvalidPackageIdent(arg.to_string()))
+    match items.len() {
+        2 => Ok((items[0].to_string(), items[1].to_string(), None, None)),
+        3 => Ok((items[0].to_string(),
+                 items[1].to_string(),
+                 Some(items[2].to_string()),
+                 None)),
+        4 => Ok((items[0].to_string(),
+                 items[1].to_string(),
+                 Some(items[2].to_string()),
+                 Some(items[3].to_string()))),
+        _ => Err(BldrError::InvalidPackageIdent(arg.to_string())),
     }
 }

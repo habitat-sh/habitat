@@ -20,49 +20,140 @@ use std::path::Path;
 
 use hyper;
 use hyper::client::{Client, Body};
+use hyper::status::StatusCode;
 use rustc_serialize::json;
 
 use super::XFileName;
 use error::{BldrResult, BldrError};
 use pkg::Package;
 
+/// Download a public key from a remote repository to the given filepath.
+///
+/// # Failures
+///
+/// * Key cannot be found
+/// * Remote repository is not available
+/// * File cannot be created and written to
 pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
     let url = format!("{}/keys/{}", repo, key);
     download(key, &url, path)
 }
 
-/// Download a sepcific package identified by it's name, derivation, version, and release.
-pub fn fetch_package(repo: &str, package: &Package, path: &str) -> BldrResult<String> {
+/// Download a sepcific package identified by it's derivation, name, version, and release, to the
+/// given filepath.
+///
+/// # Failures
+///
+/// * Package cannot be found
+/// * Remote repository is not available
+/// * File cannot be created and written to
+pub fn fetch_package_exact(repo: &str, package: &Package, path: &str) -> BldrResult<String> {
     let url = format!("{}/pkgs/{}/{}/{}/{}/download",
                       repo,
                       package.derivation,
                       package.name,
                       package.version,
                       package.release);
-    download(&package.name, &url, path)
+    match download(&package.name, &url, path) {
+        Ok(path) => Ok(path),
+        Err(BldrError::HTTP(StatusCode::NotFound)) =>
+            Err(BldrError::RemotePackageNotFound(package.derivation.clone(),
+                                                 package.name.clone(),
+                                                 Some(package.version.clone()),
+                                                 Some(package.release.clone()))),
+        Err(e) => Err(e),
+    }
 }
 
-/// Download the latest version/release of a package regardless of derivation.
-pub fn fetch_package_latest(repo: &str,
-                            derivation: &str,
-                            package: &str,
-                            path: &str)
-                            -> BldrResult<String> {
-    let url = format!("{}/pkgs/{}/{}/download", repo, derivation, package);
-    download(package, &url, path)
+/// Download the latest release of a package.
+///
+/// An optional version and release can be specified
+/// which, when provided, will increase specificity of the release retrieved. Specifying a version
+/// and no release will retrieve the latest release of a given version. Specifying both a version
+/// and a release will retrieve that exact package.
+///
+/// # Failures
+///
+/// * Package cannot be found
+/// * Remote repository is not available
+/// * File cannot be created and written to
+pub fn fetch_package(repo: &str,
+                     derivation: &str,
+                     package: &str,
+                     version: &Option<String>,
+                     release: &Option<String>,
+                     path: &str)
+                     -> BldrResult<String> {
+    let url = if release.is_some() && version.is_some() {
+        format!("{}/pkgs/{}/{}/{}/{}/download",
+                repo,
+                derivation,
+                package,
+                release.as_ref().unwrap(),
+                version.as_ref().unwrap())
+    } else if release.is_some() {
+        format!("{}/pkgs/{}/{}/{}/download",
+                repo,
+                derivation,
+                package,
+                release.as_ref().unwrap())
+    } else {
+        format!("{}/pkgs/{}/{}/download", repo, derivation, package)
+    };
+    match download(package, &url, path) {
+        Ok(path) => Ok(path),
+        Err(BldrError::HTTP(StatusCode::NotFound)) =>
+            Err(BldrError::RemotePackageNotFound(derivation.to_string(),
+                                                 package.to_string(),
+                                                 version.clone(),
+                                                 release.clone())),
+        Err(e) => Err(e),
+    }
 }
 
-pub fn show_package_latest(repo: &str, package: &Package) -> BldrResult<Package> {
-    let url = url_show_package(repo, package);
+/// Returns a package struct for the latest package.
+///
+/// An optional version can be specified which will scope the release returned to the latest
+/// release of that package.
+///
+/// # Failures
+///
+/// * Package cannot be found
+/// * Remote repository is not available
+pub fn show_package_latest(repo: &str,
+                           derivation: &str,
+                           name: &str,
+                           version: Option<&str>)
+                           -> BldrResult<Package> {
+    let url = url_show_package(repo, derivation, name, version);
     let client = Client::new();
     let request = client.get(&url);
     let mut res = try!(request.send());
+
+    if res.status != hyper::status::StatusCode::Ok {
+        let ver = if version.is_some() {
+            Some(version.unwrap().to_string())
+        } else {
+            None
+        };
+        return Err(BldrError::RemotePackageNotFound(derivation.to_string(),
+                                                    name.to_string(),
+                                                    ver,
+                                                    None));
+    }
+
     let mut encoded = String::new();
     try!(res.read_to_string(&mut encoded));
     let package: Package = json::decode(&encoded).unwrap();
     Ok(package)
 }
 
+/// Upload a public key to a remote repository.
+///
+/// # Failures
+///
+/// * Remote repository is not available
+/// * File cannot be read
 pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
     let mut file = try!(File::open(path));
     let file_name = try!(path.file_name().ok_or(BldrError::NoFilePart));
@@ -70,6 +161,12 @@ pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
     upload(&url, &mut file)
 }
 
+/// Upload a package to a remote repository.
+///
+/// # Failures
+///
+/// * Remote repository is not available
+/// * File cannot be read
 pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     let mut file = try!(File::open(package.cache_file()));
     let url = format!("{}/pkgs/{}/{}/{}/{}",
@@ -81,8 +178,16 @@ pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     upload(&url, &mut file)
 }
 
-fn url_show_package(repo: &str, package: &Package) -> String {
-    format!("{}/pkgs/{}/{}", repo, package.derivation, package.name)
+fn url_show_package(repo: &str, derivation: &str, name: &str, version: Option<&str>) -> String {
+    if version.is_some() {
+        format!("{}/pkgs/{}/{}/{}",
+                repo,
+                derivation,
+                name,
+                version.as_ref().unwrap())
+    } else {
+        format!("{}/pkgs/{}/{}", repo, derivation, name)
+    }
 }
 
 fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
@@ -90,6 +195,10 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     let client = Client::new();
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);
+
+    if res.status != hyper::status::StatusCode::Ok {
+        return Err(BldrError::HTTP(res.status));
+    }
 
     let file_name = match res.headers.get::<XFileName>() {
         Some(filename) => format!("{}", filename),

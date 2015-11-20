@@ -71,9 +71,14 @@ use repo;
 ///
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
-pub fn latest_from_url(deriv: &str, package: &str, url: &str) -> BldrResult<String> {
+pub fn from_url(url: &str,
+                deriv: &str,
+                package: &str,
+                version: &Option<String>,
+                release: &Option<String>)
+                -> BldrResult<String> {
     try!(fs::create_dir_all(PACKAGE_CACHE));
-    repo::client::fetch_package_latest(url, deriv, package, PACKAGE_CACHE)
+    repo::client::fetch_package(url, deriv, package, version, release, PACKAGE_CACHE)
 }
 
 /// Given a package name and a path to a file as an `&str`, verify
