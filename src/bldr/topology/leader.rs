@@ -32,10 +32,6 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     sm.add_dispatch(State::InElection, initializer::state_in_election);
     sm.add_dispatch(State::BecomeLeader, initializer::state_become_leader);
     sm.add_dispatch(State::BecomeFollower, initializer::state_become_follower);
-    sm.add_dispatch(State::InitializingLeader,
-                    initializer::state_initializing_leader);
-    sm.add_dispatch(State::InitializingFollower,
-                    initializer::state_initializing_follower);
     sm.add_dispatch(State::Leader, initializer::state_leader);
     sm.add_dispatch(State::Follower, initializer::state_follower);
     topology::run_internal(&mut sm, &mut worker)
