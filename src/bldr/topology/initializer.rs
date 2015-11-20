@@ -13,14 +13,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-//! This is the building block of complicated topologies which require a leader. It is
-//! used when a single member of your cluster should perform additional applications
-//! level initialization and/or if the other members of your cluster need to perform
-//! additional initialization steps.
-//!
-//! We guarantee that the leader will perform it's initialization sequence before the
-//! followers attempt to run thier initialization sequences.
+//
+// This is the building block of complicated topologies which require a leader. It is
+// used when a single member of your cluster should perform additional applications
+// level initialization and/or if the other members of your cluster need to perform
+// additional initialization steps.
+//
+// We guarantee that the leader will perform it's initialization sequence before the
+// followers attempt to run thier initialization sequences.
 
 use config::Config;
 use error::{BldrResult, BldrError};
@@ -43,8 +43,6 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     sm.add_dispatch(State::InElection, state_in_election);
     sm.add_dispatch(State::BecomeLeader, state_become_leader);
     sm.add_dispatch(State::BecomeFollower, state_become_follower);
-    sm.add_dispatch(State::InitializingLeader, state_initializing_leader);
-    sm.add_dispatch(State::InitializingFollower, state_initializing_follower);
     sm.add_dispatch(State::Leader, state_leader);
     sm.add_dispatch(State::Follower, state_follower);
     topology::run_internal(&mut sm, &mut worker)
@@ -131,7 +129,20 @@ pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     if worker.census.has_all_followers() {
         println!("   {}: Starting my term as leader", worker.preamble());
-        Ok((State::InitializingLeader, 0))
+        {
+            let me = try!(worker.census.me_mut());
+            if me.election.is_some() {
+                me.election(None)
+            }
+            if me.vote.is_some() {
+                me.vote(None)
+            }
+        }
+
+        if worker.census.in_event {
+            worker.census.in_event = false;
+        }
+        Ok((State::Leader, 0))
     } else {
         println!("   {}: Waiting for all my followers to agree",
                  worker.preamble());
@@ -150,57 +161,16 @@ pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
 
     if worker.census.has_leader() {
         println!("   {}: Becoming a follower for real", worker.preamble());
-        Ok((State::InitializingFollower, 0))
+        Ok((State::Follower, 0))
     } else {
         println!("   {}: Waiting for a leader", worker.preamble());
         Ok((State::BecomeFollower, 0))
     }
 }
 
-pub fn state_initializing_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    try!(initialize(worker));
-    Ok((State::Leader, 0))
-}
-
-pub fn state_initializing_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    let gate = {
-        if let Some(leader) = worker.census.get_leader() {
-            if leader.initialized {
-                InitGate::Done
-            } else {
-                InitGate::Waiting
-            }
-        } else {
-            InitGate::NoLeader
-        }
-    };
-
-    match gate {
-        InitGate::Done => {
-            try!(initialize(worker));
-            Ok((State::Follower, 0))
-        }
-        InitGate::Waiting => Ok((State::InitializingFollower, 0)),
-        InitGate::NoLeader => Ok((State::DetermineViability, 0)),
-    }
-}
-
 pub fn state_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    {
-        let me = try!(worker.census.me_mut());
-        if me.election.is_some() {
-            me.election(None)
-        }
-        if me.vote.is_some() {
-            me.vote(None)
-        }
-    }
-
-    if worker.census.in_event {
-        worker.census.in_event = false;
-    }
-
     if worker.supervisor_thread.is_none() {
+        try!(initialize(worker));
         try!(standalone::state_starting(worker));
     }
 
@@ -222,7 +192,26 @@ pub fn state_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
         worker.census.in_event = false;
     }
 
+    let gate = {
+        if let Some(leader) = worker.census.get_leader() {
+            if leader.initialized {
+                InitGate::Done
+            } else {
+                InitGate::Waiting
+            }
+        } else {
+            InitGate::NoLeader
+        }
+    };
+
+    match gate {
+        InitGate::Done => {}
+        InitGate::Waiting => return Ok((State::Follower, 0)),
+        InitGate::NoLeader => return Ok((State::DetermineViability, 0)),
+    }
+
     if worker.supervisor_thread.is_none() {
+        try!(initialize(worker));
         try!(standalone::state_starting(worker));
     }
 

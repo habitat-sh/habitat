@@ -137,8 +137,6 @@ pub enum State {
     Follower,
     Configure,
     Initializing,
-    InitializingLeader,
-    InitializingFollower,
     Starting,
     Running,
 }
