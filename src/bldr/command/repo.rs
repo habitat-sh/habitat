@@ -39,12 +39,14 @@ use config::Config;
 use error::BldrResult;
 use repo;
 
+static LOGKEY: &'static str = "CR";
+
 /// Starts the repository.
 ///
 /// # Failures
 ///
 /// * Fails if the repository fails to start - canot bind to the port, etc.
 pub fn start(config: &Config) -> BldrResult<()> {
-    println!("Repo listening on {:?}", config.repo_addr());
+    outputln!("Repo listening on {:?}", config.repo_addr());
     repo::run(&config)
 }

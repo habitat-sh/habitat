@@ -28,14 +28,15 @@
 use std::thread;
 use std::process::{Command, Stdio};
 use std::io::prelude::*;
-use ansi_term::Colour::White;
 
 use fs::SERVICE_HOME;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, BldrError, ErrorKind};
 use pkg::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
 use config::Config;
+
+static LOGKEY: &'static str = "TS";
 
 /// Sets up the topology and calls run_internal.
 ///
@@ -71,7 +72,7 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u32)> {
 /// * If we cannot find the package
 /// * If we cannot start the supervisor
 pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Starting", worker.preamble());
+    outputln!(P: &worker.package_name, "Starting");
     let package = worker.package_name.clone();
     let runit_pkg = try!(Package::latest("chef", "runit", None, None));
     let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
@@ -87,10 +88,10 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
                      {
                          let mut c_stdout = match child.stdout {
                              Some(ref mut s) => s,
-                             None => return Err(BldrError::UnpackFailed),
+                             None => return Err(bldr_error!(ErrorKind::UnpackFailed)),
                          };
 
-                         let mut line = format!("   {}({}): ", package, White.bold().paint("O"));
+                         let mut line = output_format!(P: &package, L: "SO");
                          loop {
                              let mut buf = [0u8; 1]; // Our byte buffer
                              let len = try!(c_stdout.read(&mut buf));
@@ -106,9 +107,7 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
                                      line.push_str(&buf_string);
                                      if line.contains("\n") {
                                          print!("{}", line);
-                                         line = format!("   {}({}): ",
-                                                        package,
-                                                        White.bold().paint("O"));
+                                         line = output_format!(P: &package, L: "O");
                                      }
                                  }
                              }

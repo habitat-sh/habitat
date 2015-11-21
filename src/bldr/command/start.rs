@@ -62,12 +62,14 @@
 use ansi_term::Colour::Yellow;
 
 use fs::PACKAGE_CACHE;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, ErrorKind};
 use config::Config;
 use pkg::Package;
 use topology::{self, Topology};
 use command::install;
 use repo;
+
+static LOGKEY: &'static str = "CS";
 
 /// Creates a [Package](../../pkg/struct.Package.html), then passes it to the run method of the
 /// selected [topology](../../topology).
@@ -81,13 +83,13 @@ pub fn package(config: &Config) -> BldrResult<()> {
     match Package::latest(config.deriv(), config.package(), None, None) {
         Ok(mut package) => {
             if let Some(ref url) = *config.url() {
-                println!("Checking remote for newer versions...");
+                outputln!("Checking remote for newer versions...");
                 let latest_pkg = try!(repo::client::show_package_latest(&url,
                                                                         &package.derivation,
                                                                         &package.name,
                                                                         None));
                 if latest_pkg > package {
-                    println!("Downloading latest version from remote: {}", &latest_pkg);
+                    outputln!("Downloading latest version from remote: {}", &latest_pkg);
                     let pkg_file = try!(repo::client::fetch_package_exact(&url,
                                                                           &latest_pkg,
                                                                           PACKAGE_CACHE));
@@ -95,19 +97,19 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     try!(install::unpack(config.package(), &pkg_file));
                     package = try!(Package::from_path(&pkg_file));
                 } else {
-                    println!("Already running latest.");
+                    outputln!("Already running latest.");
                 };
             }
             start_package(package, config)
         }
         Err(_) => {
-            println!("{} not found in local cache",
-                     Yellow.bold().paint(config.package()));
+            outputln!("{} not found in local cache",
+                      Yellow.bold().paint(config.package()));
             match *config.url() {
                 Some(ref url) => {
-                    println!("Searching for {} in remote {}",
-                             Yellow.bold().paint(config.package()),
-                             url);
+                    outputln!("Searching for {} in remote {}",
+                              Yellow.bold().paint(config.package()),
+                              url);
                     let pkg_file = try!(install::from_url(url,
                                                           config.deriv(),
                                                           config.package(),
@@ -119,9 +121,9 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     start_package(package, config)
                 }
                 None => {
-                    Err(BldrError::PackageNotFound(config.deriv().to_string(),
-                                                   config.package().to_string(),
-                                                   config.release().clone()))
+                    Err(bldr_error!(ErrorKind::PackageNotFound(config.deriv().to_string(),
+                                                               config.package().to_string(),
+                                                               config.release().clone())))
                 }
             }
         }

@@ -33,12 +33,14 @@ use std::hash::Hasher;
 use toml;
 use mustache;
 use fnv::FnvHasher;
-use ansi_term::Colour::{Purple, White};
+use ansi_term::Colour::Purple;
 
 use util;
 use util::convert;
-use error::{BldrError, BldrResult};
+use error::{BldrResult, ErrorKind};
 use pkg::Package;
+
+static LOGKEY: &'static str = "SC";
 
 /// A single component of the configuration (such as defaults)
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -197,7 +199,7 @@ impl ServiceConfig {
         for cfg in order.into_iter() {
             let mut toml_parser = toml::Parser::new(cfg.get());
             let toml_value = try!(toml_parser.parse()
-                                             .ok_or(BldrError::TomlParser(toml_parser.errors)));
+                                .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
             if let Some(base) = base_toml {
                 base_toml = Some(toml_merge(base, toml_value));
             } else {
@@ -207,7 +209,7 @@ impl ServiceConfig {
 
         let final_toml = match base_toml {
             Some(toml) => toml,
-            None => return Err(BldrError::NoConfiguration),
+            None => return Err(bldr_error!(ErrorKind::NoConfiguration)),
         };
         Ok(final_toml)
     }
@@ -264,10 +266,7 @@ impl ServiceConfig {
                     continue;
                 } else {
                     debug!("Configuration {} has changed; restarting", filename);
-                    println!("   {}({}): Updated {}",
-                             pkg.name,
-                             White.bold().paint("C"),
-                             Purple.bold().paint(&config));
+                    outputln!("Updated {}", Purple.bold().paint(&config));
                     self.config_fnv.insert(filename.clone(), new_file_fnv);
                     let mut config_file = try!(File::create(&filename));
                     try!(config_file.write_all(&config_vec));
@@ -275,10 +274,7 @@ impl ServiceConfig {
                 }
             } else {
                 debug!("Configuration {} does not exist; restarting", filename);
-                println!("   {}({}): Updated {}",
-                         pkg.name,
-                         White.bold().paint("C"),
-                         Purple.bold().paint(&config));
+                outputln!("Updated {}", Purple.bold().paint(&config));
                 self.config_fnv.insert(filename.clone(), new_file_fnv);
                 let mut config_file = try!(File::create(&filename));
                 try!(config_file.write_all(&config_vec));

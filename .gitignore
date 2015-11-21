@@ -7,4 +7,6 @@ plans/**/*-cache
 plans/**/Dockerfile
 plans/hana/SAP*
 plans/hana/sapcar.exe
+plans/hana/*.exe
+plans/hana/*.rar
 opt/

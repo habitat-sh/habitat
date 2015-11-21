@@ -27,7 +27,9 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, AT
 use wonder::actor;
 use wonder::actor::{ActorSender, HandleResult, InitResult, StopReason};
 
-use error::{BldrResult, BldrError};
+use error::{BldrResult, BldrError, ErrorKind};
+
+static LOGKEY: &'static str = "US";
 
 const TIMEOUT_MS: u64 = 30;
 static INIT: Once = ONCE_INIT;
@@ -99,7 +101,7 @@ impl actor::GenServer for SignalNotifier {
                 SIGNAL.store(0 as usize, Ordering::SeqCst);
             });
             if ALIVE.compare_and_swap(false, true, Ordering::Relaxed) {
-                return Err(BldrError::SignalNotifierStarted);
+                return Err(bldr_error!(ErrorKind::SignalNotifierStarted));
             }
         }
         Ok(Some(TIMEOUT_MS))

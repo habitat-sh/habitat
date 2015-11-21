@@ -43,8 +43,10 @@
 //! * [The bldr Repo; http based package repository](repo)
 //!
 
-#[macro_use] extern crate hyper;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate hyper;
+#[macro_use]
+extern crate log;
 extern crate tempdir;
 extern crate mustache;
 extern crate rustc_serialize;
@@ -55,11 +57,202 @@ extern crate libc;
 extern crate url;
 extern crate fnv;
 extern crate iron;
-#[macro_use] extern crate router;
+#[macro_use]
+extern crate router;
 extern crate time;
 extern crate wonder;
 extern crate uuid;
 
+#[macro_export]
+/// Creates a new BldrError, embedding the current file name, line number, column, and module path.
+macro_rules! bldr_error {
+    ($p: expr) => {
+        {
+            use $crate::error::BldrError;
+            BldrError::new($p, LOGKEY, file!(), line!(), column!())
+        }
+    }
+}
+
+#[macro_export]
+/// Works the same as the print! macro, but uses our StructuredOutput formatter.
+macro_rules! output {
+    ($content: expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new("bldr",
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           $content);
+            print!("{}", so);
+        }
+    };
+    (P: $preamble: expr, $content: expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new($preamble,
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           $content);
+            print!("{}", so);
+        }
+    };
+    ($content: expr, $($arg:tt)*) => {
+        {
+            use $crate::output::StructuredOutput;
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new("bldr",
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           &content);
+            print!("{}", so);
+        }
+    };
+    (P: $preamble: expr, $content: expr, $($arg:tt)*) => {
+        {
+            use $crate::output::StructuredOutput;
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new($preamble,
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           &content);
+            print!("{}", so);
+        }
+    };
+}
+
+#[macro_export]
+/// Works the same as println!, but uses our structured output formatter.
+macro_rules! outputln {
+    ($content: expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new("bldr",
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           $content);
+            println!("{}", so);
+        }
+    };
+    (P: $preamble:expr, $content: expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new($preamble,
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           $content);
+            println!("{}", so);
+        }
+    };
+    ($content: expr, $($arg:tt)*) => {
+        {
+            use $crate::output::StructuredOutput;
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new("bldr",
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           &content);
+            println!("{}", so);
+        }
+    };
+    (P: $preamble: expr, $content: expr, $($arg:tt)*) => {
+        {
+            use $crate::output::StructuredOutput;
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new($preamble,
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           &content);
+            println!("{}", so);
+        }
+    }
+}
+
+#[macro_export]
+/// Works the same as format!, but uses our structured output formatter.
+macro_rules! output_format {
+    ($content: expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new("bldr",
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           $content);
+            format!("{}", so)
+        }
+    };
+    (P: $preamble:expr, $content: expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new($preamble,
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           $content);
+            format!("{}", so)
+        }
+    };
+    (P: $preamble:expr, L: $logkey:expr) => {
+        {
+            use $crate::output::StructuredOutput;
+            let so = StructuredOutput::new($preamble,
+                                           $logkey,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           "");
+            format!("{}", so)
+        }
+    };
+
+    ($content: expr, $($arg:tt)*) => {
+        {
+            use $crate::output::StructuredOutput;
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new("bldr",
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           &content);
+            format!("{}", so)
+        }
+    };
+    (P: $preamble: expr, $content: expr, $($arg:tt)*) => {
+        {
+            use $crate::output::StructuredOutput;
+            let content = format!($content, $($arg)*);
+            let so = StructuredOutput::new($preamble,
+                                           LOGKEY,
+                                           line!(),
+                                           file!(),
+                                           column!(),
+                                           &content);
+            format!("{}", so)
+        }
+    }
+}
+
+pub mod output;
 pub mod error;
 pub mod command;
 pub mod util;

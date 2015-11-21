@@ -33,9 +33,8 @@ use std::mem;
 use std::ops::DerefMut;
 use std::thread;
 use std::sync::{Arc, RwLock};
-use std::sync::mpsc::{TryRecvError};
+use std::sync::mpsc::TryRecvError;
 
-use ansi_term::Colour::White;
 use libc::{pid_t, c_int};
 use wonder;
 
@@ -44,15 +43,17 @@ use census;
 use pkg::{self, Package, PackageUpdaterActor, Signal};
 use util::signals;
 use util::signals::SignalNotifier;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, BldrError, ErrorKind};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
 use user_config;
 use watch_config;
 
+static LOGKEY: &'static str = "TP";
+
 // Functions from POSIX libc.
-extern "C" {
+extern {
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
 }
 
@@ -60,17 +61,17 @@ extern "C" {
 #[allow(non_camel_case_types)]
 pub type idtype_t = c_int;
 
-pub const P_ALL:  idtype_t = 0;
-pub const P_PID:  idtype_t = 1;
+pub const P_ALL: idtype_t = 0;
+pub const P_PID: idtype_t = 1;
 pub const P_PGID: idtype_t = 2;
 
 // Process flags
 pub const WCONTINUED: c_int = 8;
-pub const WNOHANG:    c_int = 1;
-pub const WUNTRACED:  c_int = 2;
-pub const WEXITED:    c_int = 4;
-pub const WNOWAIT:    c_int = 16777216;
-pub const WSTOPPED:   c_int = 2;
+pub const WNOHANG: c_int = 1;
+pub const WUNTRACED: c_int = 2;
+pub const WEXITED: c_int = 4;
+pub const WNOWAIT: c_int = 16777216;
+pub const WSTOPPED: c_int = 2;
 
 /// Get the exit status from waitpid's errno
 #[allow(non_snake_case)]
@@ -149,28 +150,28 @@ pub struct Worker<'a> {
     pub package_name: String,
     /// A pointer to our current Config
     pub config: &'a Config,
-    /// The topology we are running
+/// The topology we are running
     pub topology: String,
-    /// Our census
+/// Our census
     pub census: census::Census,
-    /// Our Service Configuration; manages changes to our configuration,
+/// Our Service Configuration; manages changes to our configuration,
     pub service_config: Arc<RwLock<ServiceConfig>>,
-    /// Our Census Entry Actor; writes our entry periodically
+/// Our Census Entry Actor; writes our entry periodically
     pub census_entry_actor: wonder::actor::Actor<census::Message>,
-    /// Our Census Actor; reads the census periodically
+/// Our Census Actor; reads the census periodically
     pub census_actor: wonder::actor::Actor<census::CensusMessage>,
-    /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
+/// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
-    /// Our User Configuration; reads the config periodically
+/// Our User Configuration; reads the config periodically
     pub user_actor: wonder::actor::Actor<user_config::Message>,
-    /// Our User Configuration; reads the config periodically
+/// Our User Configuration; reads the config periodically
     pub watch_actor: wonder::actor::Actor<watch_config::Message>,
-    /// Watches a package repo for updates and signals the main thread when an update is available. Optionally
-    /// started if a value is passed for the url option on startup.
+/// Watches a package repo for updates and signals the main thread when an update is available. Optionally
+/// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
-    /// A pointer to the supervisor thread
+/// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
-    /// The PID of the Supervisor itself
+/// The PID of the Supervisor itself
     pub supervisor_id: Option<u32>,
 }
 
@@ -189,17 +190,21 @@ impl<'a> Worker<'a> {
         let census_data = ce.as_etcd_write(&package, &config);
         let package_name = package.name.clone();
 
-        println!("   {}({}): Supervisor ID {}", package_name, White.bold().paint("T"), ce.candidate_string());
+        outputln!("Supervise ID {}", ce.candidate_string());
 
         // Setup the Census
         let census = census::Census::new(ce);
-        let census_actor_state = census::CensusActorState::new(format!("{}/{}/census", package_name, config.group()));
+        let census_actor_state = census::CensusActorState::new(format!("{}/{}/census",
+                                                                       package_name,
+                                                                       config.group()));
 
         // Setup the Service Configuration
         let service_config = try!(ServiceConfig::new(&package));
 
         // Setup the User Data Configuration
-        let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config", package_name, config.group()));
+        let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config",
+                                                                        package_name,
+                                                                        config.group()));
 
         // Setup the Watches
         let mut watch_actor_state = watch_config::WatchActorState::new();
@@ -216,39 +221,34 @@ impl<'a> Worker<'a> {
             pkg_updater = Some(pkg::PackageUpdater::start(url, pkg_lock_2));
         }
 
-        Ok(Worker{
+        Ok(Worker {
             package: pkg_lock,
             package_name: package_name,
             topology: topology,
             config: config,
             census: census,
             census_entry_actor: wonder::actor::Builder::new(census::CensusEntryActor)
-                .name("census-entry".to_string())
-                .start(census_data)
-                .unwrap(),
+                                    .name("census-entry".to_string())
+                                    .start(census_data)
+                                    .unwrap(),
             census_actor: wonder::actor::Builder::new(census::CensusActor)
-                .name("census-reader".to_string())
-                .start(census_actor_state)
-                .unwrap(),
+                              .name("census-reader".to_string())
+                              .start(census_actor_state)
+                              .unwrap(),
             service_config: service_config_lock,
             sidecar_actor: sidecar::Sidecar::start(pkg_lock_1, service_config_lock_1),
             user_actor: wonder::actor::Builder::new(user_config::UserActor)
-                .name("user-config".to_string())
-                .start(user_actor_state)
-                .unwrap(),
+                            .name("user-config".to_string())
+                            .start(user_actor_state)
+                            .unwrap(),
             watch_actor: wonder::actor::Builder::new(watch_config::WatchActor)
-                .name("watch-config".to_string())
-                .start(watch_actor_state)
-                .unwrap(),
+                             .name("watch-config".to_string())
+                             .start(watch_actor_state)
+                             .unwrap(),
             pkg_updater: pkg_updater,
             supervisor_thread: None,
             supervisor_id: None,
         })
-    }
-
-    /// Prints a preamble for the topology's println statements
-    pub fn preamble(&self) -> String {
-        format!("{}({})", self.package_name, White.bold().paint("T"))
     }
 
     pub fn signal_package(&self, signal: Signal) -> BldrResult<String> {
@@ -274,18 +274,17 @@ impl<'a> Worker<'a> {
     ///
     /// * Supervisor thread fails
     pub fn join_supervisor(&mut self) -> BldrResult<()> {
-        let preamble = self.preamble();
         if self.supervisor_thread.is_some() {
-            println!("   {}: Waiting for supervisor to finish", preamble);
+            outputln!("Waiting for supervisor to finish");
             let st = self.supervisor_thread.take().unwrap().join();
             match st {
                 Ok(result) => {
                     match result {
-                        Ok(()) => println!("   {}: Supervisor has finished", preamble),
-                        Err(_) => println!("   {}: Supervisor has an error", preamble),
+                        Ok(()) => outputln!("Supervisor has finished"),
+                        Err(_) => outputln!("Supervisor has an error"),
                     }
-                },
-                Err(e) => println!("Supervisor thread paniced: {:?}", e),
+                }
+                Err(e) => outputln!("Supervisor thread paniced: {:?}", e),
             }
         }
         Ok(())
@@ -309,7 +308,9 @@ impl<'a> Worker<'a> {
 /// * The supervisor dies unexpectedly
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
-fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker: &mut Worker<'a>) -> BldrResult<()> {
+fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
+                    worker: &mut Worker<'a>)
+                    -> BldrResult<()> {
     {
         let package = worker.package.read().unwrap();
         let service_config = worker.service_config.read().unwrap();
@@ -317,77 +318,84 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         try!(package.copy_run(&service_config));
     }
 
-    let handler = wonder::actor::Builder::new(SignalNotifier).name("signal-handler".to_string()).start(()).unwrap();
-    println!("   {}({}): Watching census", worker.package_name, White.bold().paint("D"));
-    println!("   {}({}): Watching config", worker.package_name, White.bold().paint("D"));
+    let handler = wonder::actor::Builder::new(SignalNotifier)
+                      .name("signal-handler".to_string())
+                      .start(())
+                      .unwrap();
+    outputln!("Watching census");
+    outputln!("Watching config");
     loop {
         match handler.receiver.try_recv() {
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGHUP))) => {
-                println!("   {}: Sending SIGHUP", worker.preamble());
+                outputln!("Sending SIGHUP");
                 try!(worker.signal_package(Signal::Hup));
-            },
+            }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGINT))) => {
-                println!("   {}: Sending 'force-shutdown' on SIGINT", worker.preamble());
+                outputln!("Sending 'force-shutdown' on SIGINT");
                 try!(worker.signal_package(Signal::ForceShutdown));
                 try!(worker.join_supervisor());
                 break;
-            },
+            }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGQUIT))) => {
                 try!(worker.signal_package(Signal::Quit));
-                println!("   {}: Sending SIGQUIT", worker.preamble());
-            },
+                outputln!("Sending SIGQUIT");
+            }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGALRM))) => {
                 try!(worker.signal_package(Signal::Alarm));
-                println!("   {}: Sending SIGALRM", worker.preamble());
-            },
+                outputln!("Sending SIGALRM");
+            }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGTERM))) => {
-                println!("   {}: Sending 'force-shutdown' on SIGTERM", worker.preamble());
+                outputln!("Sending 'force-shutdown' on SIGTERM");
                 try!(worker.signal_package(Signal::ForceShutdown));
                 try!(worker.join_supervisor());
                 break;
-            },
+            }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR1))) => {
-                println!("   {}: Sending SIGUSR1", worker.preamble());
+                outputln!("Sending SIGUSR1");
                 try!(worker.signal_package(Signal::One));
-            },
+            }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR2))) => {
-                println!("   {}: Sending SIGUSR1", worker.preamble());
+                outputln!("Sending SIGUSR1");
                 try!(worker.signal_package(Signal::Two));
-            },
-            Ok(_) => {},
-            Err(TryRecvError::Empty) => {},
+            }
+            Ok(_) => {}
+            Err(TryRecvError::Empty) => {}
             Err(TryRecvError::Disconnected) => {
                 panic!("signal handler crashed!");
-            },
+            }
         }
         if worker.supervisor_id.is_some() {
             unsafe {
                 let mut status: c_int = 0;
                 let supervisor_pid = worker.supervisor_id.unwrap() as pid_t;
                 match waitpid(supervisor_pid, &mut status, 1 as c_int) {
-                    0 => {}, // Nothing returned,
+                    0 => {} // Nothing returned,
                     pid if pid == supervisor_pid => {
                         if WIFEXITED(status) {
                             let exit_code = WEXITSTATUS(status);
-                            println!("   {}: The supervisor died - terminating {} with exit code {}", worker.preamble(), pid, exit_code);
+                            outputln!("The supervisor died - terminating {} with exit code {}",
+                                      pid,
+                                      exit_code);
                         } else if WIFSIGNALED(status) {
                             let exit_signal = WTERMSIG(status);
-                            println!("   {}: The supervisor died - terminating {} with signal {}", worker.preamble(), pid, exit_signal);
+                            outputln!("The supervisor died - terminating {} with signal {}",
+                                      pid,
+                                      exit_signal);
                         } else {
-                            println!("   {}: The supervisor over {} died, but I don't know how.", worker.preamble(), pid);
+                            outputln!("The supervisor over {} died, but I don't know how.", pid);
                         }
-                        return Err(BldrError::SupervisorDied);
-                    },
+                        return Err(bldr_error!(ErrorKind::SupervisorDied));
+                    }
                     // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
                     pid => {
                         if WIFEXITED(status) {
                             let exit_code = WEXITSTATUS(status);
-                            debug!("   {}: Process {} died with exit code {}", worker.preamble(), pid, exit_code);
+                            debug!("Process {} died with exit code {}", pid, exit_code);
                         } else if WIFSIGNALED(status) {
                             let exit_signal = WTERMSIG(status);
-                            debug!("   {}: Process {} terminated with signal {}", worker.preamble(), pid, exit_signal);
+                            debug!("Process {} terminated with signal {}", pid, exit_signal);
                         } else {
-                            debug!("   {}: Process {} died, but I don't know how.", worker.preamble(), pid);
+                            debug!("Process {} died, but I don't know how.", pid);
                         }
                     }
                 }
@@ -399,7 +407,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
             let mut ce = try!(worker.census.me_mut());
             if ce.needs_write.is_some() {
                 let package = worker.package.read().unwrap();
-                try!(census::CensusEntryActor::write(&worker.census_entry_actor, ce.as_etcd_write(&package, &worker.config)));
+                try!(census::CensusEntryActor::write(&worker.census_entry_actor,
+                                                     ce.as_etcd_write(&package, &worker.config)));
             }
         }
 
@@ -409,7 +418,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
 
             // Manage the entire census
             {
-                if let Some(census_string) = try!(census::CensusActor::census_string(&worker.census_actor)) {
+                if let Some(census_string) =
+                       try!(census::CensusActor::census_string(&worker.census_actor)) {
                     try!(worker.census.update(&census_string));
                 }
                 if !worker.census.in_event {
@@ -451,15 +461,16 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>, worker:
         if let Some(ref updater) = worker.pkg_updater {
             match updater.receiver.try_recv() {
                 Ok(wonder::actor::Message::Cast(pkg::UpdaterMessage::Update(package))) => {
-                    debug!("Main loop received package update notification: {:?}", &package);
+                    debug!("Main loop received package update notification: {:?}",
+                           &package);
                     try!(worker.update_package(package));
                     try!(pkg::PackageUpdater::run(&updater));
-                },
-                Ok(_) => {},
-                Err(TryRecvError::Empty) => {},
+                }
+                Ok(_) => {}
+                Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
                     panic!("package updater crashed!");
-                },
+                }
             }
         }
 
