@@ -22,7 +22,7 @@ NO_CACHE := false
 all: package
 
 package: image
-	$(run) package sh -c '/src/plans/bldr-build /src/bldr-plan'
+	$(run) package sh -c 'cd /src/plans; make world'
 
 clean-package: image
 	$(run) package sh -c 'rm -rf /opt/bldr/cache/pkgs/* /opt/bldr/pkgs/*'
@@ -86,10 +86,10 @@ clean:
 
 gpg:
 	mkdir -p /opt/bldr/cache/gpg
-	- gpg --import /src/bldr-plan/chef-public.gpg
-	- gpg --import /src/bldr-plan/chef-private.gpg
-	- gpg --homedir /opt/bldr/cache/gpg --import /src/bldr-plan/chef-public.gpg
-	- gpg --homedir /opt/bldr/cache/gpg --import /src/bldr-plan/chef-private.gpg
+	- gpg --import /src/plans/chef-public.gpg
+	- gpg --import /src/plans/chef-private.gpg
+	- gpg --homedir /opt/bldr/cache/gpg --import /src/plans/chef-public.gpg
+	- gpg --homedir /opt/bldr/cache/gpg --import /src/plans/chef-private.gpg
 
 redis:
 	$(run) bldr cargo run -- start chef/redis
