@@ -1,0 +1,6 @@
+bind = '0.0.0.0'
+tcp-enable = true
+[tcp]
+connect = '4s'
+server = '30s'
+client = '30s'

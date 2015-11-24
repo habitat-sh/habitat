@@ -31,4 +31,3 @@ install() {
   chmod 755 $pkg_path/bin/*
 	return 0
 }
-

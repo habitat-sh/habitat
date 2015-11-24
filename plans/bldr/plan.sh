@@ -1,3 +1,5 @@
+set -x
+
 pkg_name=bldr
 pkg_derivation=chef
 pkg_version=0.2.0
@@ -12,20 +14,20 @@ bldr_begin() {
 	mkdir -p /opt/bldr/cache/keys
 	mkdir -p /opt/bldr/cache/gpg
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
-	gpg --import chef-public.gpg
-	gpg --import chef-private.gpg
-	gpg --homedir /opt/bldr/cache/gpg --import chef-public.gpg
-	gpg --homedir /opt/bldr/cache/gpg --import chef-private.gpg
-	pushd ../
+	gpg --import chef-public.gpg || true
+	gpg --import chef-private.gpg || true
+	gpg --homedir /opt/bldr/cache/gpg --import chef-public.gpg || true
+	gpg --homedir /opt/bldr/cache/gpg --import chef-private.gpg || true
+	pushd ../../
 	tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 \
 		--exclude 'plans' --exclude 'bldr-plan' --exclude 'demo' --exclude 'images' \
 		--exclude '.git' --exclude '.gitignore' --exclude 'target' --exclude '.delivery' \
-		--transform "s,^\.,bldr-0.0.1," .
+		--transform "s,^\.,bldr-$pkg_version," .
 	popd
-	pkg_shasum=$(trim $(sha256sum /opt/bldr/cache/src/bldr-0.0.1.tar.bz2 | cut -d " " -f 1))
+	pkg_shasum=$(trim $(sha256sum /opt/bldr/cache/src/bldr-${pkg_version}.tar.bz2 | cut -d " " -f 1))
 	cargo clean
 	cargo build --release
-	BLDR_BIN=$(abspath "$BLDR_CONTEXT/../target/release/bldr")
+	BLDR_BIN=$(abspath "$BLDR_CONTEXT/../../target/release/bldr")
 }
 
 download() {
@@ -42,10 +44,16 @@ build() {
 install() {
 	mkdir -p $pkg_path/bin
 	cp target/release/bldr $pkg_path/bin
-	$BLDR_BIN key chef-public -u $BLDR_REPO
-	$BLDR_BIN install chef/cacerts -u $BLDR_REPO
-	$BLDR_BIN install chef/gnupg -u $BLDR_REPO
-	$BLDR_BIN install chef/zlib -u $BLDR_REPO
+	# if [[ -f "$BLDR_BIN" ]]; then
+	# 	$BLDR_BIN key chef-public -u $BLDR_REPO
+	# 	$BLDR_BIN install chef/cacerts -u $BLDR_REPO
+	# 	$BLDR_BIN install chef/gnupg -u $BLDR_REPO
+	# 	$BLDR_BIN install chef/zlib -u $BLDR_REPO
+	# fi
+}
+
+verify() {
+	return 0
 }
 
 dockerfile() {

@@ -562,7 +562,9 @@ build_environment() {
   export LD_RUN_PATH=$ld_run_path_part
   for dep in "${pkg_deps[@]}"; do
     if echo $dep | grep '\/'; then
-      $BLDR_BIN install $dep -u $BLDR_REPO
+      if [[ -f "$BLDR_BIN" ]]; then
+        $BLDR_BIN install $dep -u $BLDR_REPO
+      fi
       dep_deriv=$(echo $dep | cut -d "/" -f 1)
       dep_rest=$(echo $dep | cut -d "/" -f 2)
       dep_path=$(latest_package "$dep_deriv/$dep_rest")
