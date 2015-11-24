@@ -82,7 +82,7 @@ base-shell: image
 clean:
 	docker-compose kill
 	docker-compose rm -f -v
-	docker images -q -f dangling=true | xargs docker rmi -f || true
+	(docker images -q -f dangling=true | xargs docker rmi -f) || true
 
 gpg:
 	mkdir -p /opt/bldr/cache/gpg
