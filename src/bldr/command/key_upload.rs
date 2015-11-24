@@ -37,8 +37,10 @@ use std::path::Path;
 
 use fs::KEY_CACHE;
 use config::Config;
-use error::{BldrError, BldrResult};
+use error::{BldrResult, ErrorKind};
 use repo;
+
+static LOGKEY: &'static str = "KU";
 
 /// Upload a key to a repository.
 ///
@@ -56,7 +58,7 @@ pub fn key(config: &Config) -> BldrResult<()> {
 
     match fs::metadata(path) {
         Ok(_) => {
-            println!("   {}: uploading {}", url, config.key());
+            outputln!("Uploading {}", config.key());
             try!(repo::client::put_key(url, path));
         }
         Err(_) => {
@@ -65,16 +67,17 @@ pub fn key(config: &Config) -> BldrResult<()> {
                 let cached = Path::new(&file);
                 match fs::metadata(&cached) {
                     Ok(_) => {
-                        println!("   {}: uploading {}.asc", url, config.key());
+                        outputln!("Uploading {}.asc", config.key());
                         try!(repo::client::put_key(url, cached));
                     }
-                    Err(_) => return Err(BldrError::KeyNotFound(config.key().to_string())),
+                    Err(_) =>
+                        return Err(bldr_error!(ErrorKind::KeyNotFound(config.key().to_string()))),
                 }
             } else {
-                return Err(BldrError::FileNotFound(config.key().to_string()));
+                return Err(bldr_error!(ErrorKind::FileNotFound(config.key().to_string())));
             }
         }
     }
-    println!("   {}: complete", config.key());
+    outputln!("Complete");
     Ok(())
 }

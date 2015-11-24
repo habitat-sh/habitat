@@ -29,10 +29,12 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::{Path, PathBuf};
 
-use error::{BldrError, BldrResult};
+use error::{BldrError, BldrResult, ErrorKind};
 use config::Config;
 
 use pkg::Package;
+
+static LOGKEY: &'static str = "RE";
 
 header! { (XFileName, "X-Filename") => [String] }
 
@@ -79,20 +81,19 @@ fn write_file(path: PathBuf, filename: PathBuf, body: &mut Body) -> BldrResult<b
                 // Write the buffer to the BufWriter on the Heap
                 let bytes_written = try!(writer.write(&buf[0..len]));
                 if bytes_written == 0 {
-                    return Err(BldrError::WriteSyncFailed);
+                    return Err(bldr_error!(ErrorKind::WriteSyncFailed));
                 }
                 written = written + (bytes_written as i64);
             }
         };
     }
-    println!("   repo: file added to repository at {}",
-             filename.to_string_lossy());
+    outputln!("File added to repository at {}", filename.to_string_lossy());
     try!(fs::rename(&tempfile, &filename));
     Ok(true)
 }
 
 fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
-    println!("Upload Key {:?}", req);
+    outputln!("Upload Key {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
     let key = rext.find("key").unwrap();
@@ -112,7 +113,7 @@ fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
-    println!("Upload {:?}", req);
+    outputln!("Upload {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
     let deriv = rext.find("deriv").unwrap();
@@ -144,7 +145,7 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
-    println!("Download {:?}", req);
+    outputln!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
     let key = match rext.find("key") {
@@ -163,7 +164,7 @@ fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
-    println!("Download {:?}", req);
+    outputln!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
     let deriv = match rext.find("deriv") {
@@ -183,7 +184,8 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     } else {
         match Package::latest(deriv, pkg, None, Some(&format!("{}/pkgs", &repo.path))) {
             Ok(package) => (package.version, package.release),
-            Err(BldrError::Io(_)) => return Ok(Response::with(status::NotFound)),
+            Err(BldrError{err: ErrorKind::Io(_), ..}) =>
+                return Ok(Response::with(status::NotFound)),
             Err(_) => return Ok(Response::with(status::InternalServerError)),
         }
     };

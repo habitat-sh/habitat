@@ -36,8 +36,9 @@ use toml;
 use census;
 use discovery::etcd;
 use config::Config;
-use error::{BldrError, BldrResult};
+use error::{BldrError, BldrResult, ErrorKind};
 
+static LOGKEY: &'static str = "WC";
 const TIMEOUT_MS: u64 = 200;
 
 /// Messages accepted by the WatchActor.
@@ -142,7 +143,7 @@ impl WatchActorState {
                     (String::from(watch_parts[0]), String::from(watch_parts[1]))
                 }
                 _ => {
-                    return Err(BldrError::BadWatch(watch_member.clone()));
+                    return Err(bldr_error!(ErrorKind::BadWatch(watch_member.clone())));
                 }
             };
 
@@ -170,7 +171,7 @@ impl WatchActorState {
                     watch.config_string = None;
                 }
                 Err(TryRecvError::Empty) => {}
-                Err(e) => println!("Watch actor caught unexpected error: {:?}", e),
+                Err(e) => outputln!("Watch actor caught unexpected error: {:?}", e),
             }
         }
     }
@@ -230,7 +231,7 @@ impl GenServer for WatchActor {
                             let mut toml_parser = toml::Parser::new(toml_string);
                             let mut discovery_toml =
                                 toml_parser.parse()
-                                           .ok_or(BldrError::TomlParser(toml_parser.errors))
+                                           .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors)))
                                            .unwrap();
                             discovery_toml.insert(String::from("service-name"),
                                                   toml::Value::String(watch.service.clone()));
@@ -254,7 +255,7 @@ impl GenServer for WatchActor {
                             let mut census_parser = toml::Parser::new(&census_string);
                             let mut census_final_toml =
                                 census_parser.parse()
-                                             .ok_or(BldrError::TomlParser(census_parser.errors))
+                                             .ok_or(bldr_error!(ErrorKind::TomlParser(census_parser.errors)))
                                              .unwrap();
                             let final_census_obj = census_final_toml.remove("census").unwrap();
                             discovery_toml.insert(String::from("census"), final_census_obj);

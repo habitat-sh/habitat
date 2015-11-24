@@ -60,9 +60,11 @@ use std::process::Command;
 use std::fs;
 
 use fs::{PACKAGE_CACHE, GPG_CACHE};
-use error::{BldrResult, BldrError};
+use error::{BldrResult, ErrorKind};
 use util::gpg;
 use repo;
+
+static LOGKEY: &'static str = "CI";
 
 /// Given a package name and a base url, downloads the package
 /// to `/opt/bldr/cache/pkgs`. Returns the filename in the cache as a String
@@ -106,10 +108,10 @@ pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
                                        file))
                           .output());
     match output.status.success() {
-        true => println!("   {}: Installed", package),
+        true => outputln!("Installed {}", package),
         false => {
-            println!("   {}: Failed to install", package);
-            return Err(BldrError::UnpackFailed);
+            outputln!("Failed to install {}", package);
+            return Err(bldr_error!(ErrorKind::UnpackFailed));
         }
     }
     Ok(())

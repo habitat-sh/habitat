@@ -15,8 +15,10 @@
 // limitations under the License.
 //
 
-use error::{BldrResult, BldrError};
+use error::{BldrResult, ErrorKind};
 use std::process::Command;
+
+static LOGKEY: &'static str = "UP";
 
 pub fn set_owner(path: &str, owner: &str) -> BldrResult<()> {
     let output = try!(Command::new("chown")
@@ -26,7 +28,7 @@ pub fn set_owner(path: &str, owner: &str) -> BldrResult<()> {
     match output.status.success() {
         true => Ok(()),
         false => {
-            Err(BldrError::PermissionFailed)
+            Err(bldr_error!(ErrorKind::PermissionFailed))
         }
     }
 }
@@ -42,7 +44,7 @@ pub fn set_permissions(path: &str, perm: &str) -> BldrResult<()> {
     match output.status.success() {
         true => Ok(()),
         false => {
-            Err(BldrError::PermissionFailed)
+            Err(bldr_error!(ErrorKind::PermissionFailed))
         }
     }
 }

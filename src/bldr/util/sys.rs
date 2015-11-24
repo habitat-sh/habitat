@@ -15,8 +15,10 @@
 // limitations under the License.
 //
 
-use error::{BldrResult, BldrError};
+use error::{BldrResult, ErrorKind};
 use std::process::Command;
+
+static LOGKEY: &'static str = "US";
 
 pub fn ip() -> BldrResult<String> {
     debug!("Shelling out to determine IP address");
@@ -34,7 +36,7 @@ pub fn ip() -> BldrResult<String> {
             debug!("IP address command returned: OUT: {} ERR: {}",
                    String::from_utf8_lossy(&output.stdout),
                    String::from_utf8_lossy(&output.stderr));
-            Err(BldrError::IPFailed)
+            Err(bldr_error!(ErrorKind::IPFailed))
         }
     }
 }
@@ -56,7 +58,7 @@ pub fn hostname() -> BldrResult<String> {
             debug!("Hostname address command returned: OUT: {} ERR: {}",
                    String::from_utf8_lossy(&output.stdout),
                    String::from_utf8_lossy(&output.stderr));
-            Err(BldrError::IPFailed)
+            Err(bldr_error!(ErrorKind::IPFailed))
         }
     }
 }

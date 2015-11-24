@@ -15,6 +15,30 @@
 // limitations under the License.
 //
 
+//! Error handling for Bldr.
+//!
+//! Errors in bldr are of the type `BldrError`, which contains an `ErrorKind` along with
+//! information about where the error was created in the code base, in the same way that the
+//! `output` module does. To simplify the creation of these annotated errors, we provide the
+//! `bldr_error!` macro, which takes only an `ErrorKind` as its argument.
+//!
+//! To match on `ErrorKind`, do something like this:
+//!
+//! ```rust
+//! let error = bldr_error!(ErrorKind::CommandNotImplemented);
+//! let result = match error {
+//!     BldrError{err: ErrorKind::CommandNotImplemented, ..} => true,
+//!     _ => false
+//! };
+//! assert_eq!(result, true);
+//! ```
+//!
+//! When printing errors, we automatically create a `StructuredOutput` with the `verbose` flag set,
+//! ensuring that you can see the file, line number, and column it was created from.
+//!
+//! Also included in this module is `BldrResult<T>`, a type alias for `Result<T, BldrError>`. Use
+//! it instead of the longer `Result` form.
+
 use std::io;
 use std::result;
 use std::fmt;
@@ -26,15 +50,50 @@ use std::sync::mpsc;
 
 use uuid;
 use wonder::actor;
+use ansi_term::Colour::Red;
 
 use hyper;
 use toml;
 use mustache;
 use regex;
 use pkg;
+use output::StructuredOutput;
+
+static LOGKEY: &'static str = "ER";
 
 #[derive(Debug)]
-pub enum BldrError {
+/// All errors in Bldr are kept in this struct. We store `ErrorKind`, an enum with a variant for
+/// every type of error we produce. It also stores the location the error was created.
+pub struct BldrError {
+    pub err: ErrorKind,
+    logkey: &'static str,
+    file: &'static str,
+    line: u32,
+    column: u32,
+}
+
+impl BldrError {
+    /// Create a new `BldrError`. Usually accessed through the `bldr_error!` macro, rather than
+    /// called directly.
+    pub fn new(err: ErrorKind,
+               logkey: &'static str,
+               file: &'static str,
+               line: u32,
+               column: u32)
+               -> BldrError {
+        BldrError {
+            err: err,
+            logkey: logkey,
+            file: file,
+            line: line,
+            column: column,
+        }
+    }
+}
+
+#[derive(Debug)]
+/// All the kinds of errors we produce.
+pub enum ErrorKind {
     Io(io::Error),
     CommandNotImplemented,
     InstallFailed,
@@ -80,163 +139,166 @@ pub enum BldrError {
     InvalidPackageIdent(String),
 }
 
+/// Our result type alias, for easy coding.
 pub type BldrResult<T> = result::Result<T, BldrError>;
 
 impl fmt::Display for BldrError {
+    // We create a string for each type of error, then create a `StructuedOutput` for it, flip
+    // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            BldrError::Io(ref err) => err.fmt(f),
-            BldrError::CommandNotImplemented => write!(f, "Command is not yet implemented!"),
-            BldrError::InstallFailed => write!(f, "Could not install package!"),
-            BldrError::HyperError(ref err) => err.fmt(f),
-            BldrError::HTTP(ref e) => e.fmt(f),
-            BldrError::WriteSyncFailed =>
-                write!(f,
-                       "Could not write to destination; perhaps the disk is full?"),
-            BldrError::CannotParseFileName =>
-                write!(f, "Cannot determine the filename from the given URI"),
-            BldrError::PathUTF8 => write!(f, "Paths must not contain non-UTF8 characters"),
-            BldrError::GPGVerifyFailed => write!(f, "Failed to verify a GPG Signature"),
-            BldrError::UnpackFailed => write!(f, "Failed to unpack a package"),
-            BldrError::TomlParser(ref errs) => {
-                write!(f, "Failed to parse toml:\n{}", toml_parser_string(errs))
+        let content = match self.err {
+            ErrorKind::Io(ref err) => format!("{}", err),
+            ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
+            ErrorKind::InstallFailed => format!("Could not install package!"),
+            ErrorKind::HyperError(ref err) => format!("{}", err),
+            ErrorKind::HTTP(ref e) => format!("{}", e),
+            ErrorKind::WriteSyncFailed =>
+                format!("Could not write to destination; perhaps the disk is full?"),
+            ErrorKind::CannotParseFileName =>
+                format!("Cannot determine the filename from the given URI"),
+            ErrorKind::PathUTF8 => format!("Paths must not contain non-UTF8 characters"),
+            ErrorKind::GPGVerifyFailed => format!("Failed to verify a GPG Signature"),
+            ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
+            ErrorKind::TomlParser(ref errs) => {
+                format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
-            BldrError::MustacheEncoderError(ref me) => {
+            ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
-                    mustache::encoder::Error::IoError(ref e) => e.fmt(f),
-                    _ => write!(f, "Mustache encoder error: {:?}", me),
+                    mustache::encoder::Error::IoError(ref e) => format!("{}", e),
+                    _ => format!("Mustache encoder error: {:?}", me),
                 }
             }
-            BldrError::GPGImportFailed => write!(f, "Failed to import a GPG key"),
-            BldrError::PermissionFailed => write!(f, "Failed to set permissions"),
-            BldrError::BadVersion => write!(f, "Failed to parse a version number"),
-            BldrError::RegexParse(ref e) => e.fmt(f),
-            BldrError::ParseIntError(ref e) => e.fmt(f),
-            BldrError::FileNameError => write!(f, "Failed to extract a filename"),
-            BldrError::FileNotFound(ref e) => write!(f, "File not found at: {}", e),
-            BldrError::KeyNotFound(ref e) => write!(f, "Key not found in key cache: {}", e),
-            BldrError::PackageLoad(ref e) => write!(f, "Unable to load package from: {}", e),
-            BldrError::PackageNotFound(ref d, ref n, ref r) => {
+            ErrorKind::GPGImportFailed => format!("Failed to import a GPG key"),
+            ErrorKind::PermissionFailed => format!("Failed to set permissions"),
+            ErrorKind::BadVersion => format!("Failed to parse a version number"),
+            ErrorKind::RegexParse(ref e) => format!("{}", e),
+            ErrorKind::ParseIntError(ref e) => format!("{}", e),
+            ErrorKind::FileNameError => format!("Failed to extract a filename"),
+            ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
+            ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
+            ErrorKind::PackageLoad(ref e) => format!("Unable to load package from: {}", e),
+            ErrorKind::PackageNotFound(ref d, ref n, ref r) => {
                 if r.is_some() {
-                    write!(f,
-                           "Cannot find a release of package: {}/{}/{}",
-                           d,
-                           n,
-                           r.as_ref().unwrap())
+                    format!("Cannot find a release of package: {}/{}/{}",
+                            d,
+                            n,
+                            r.as_ref().unwrap())
                 } else {
-                    write!(f, "Cannot find a release of package: {}/{}", d, n)
+                    format!("Cannot find a release of package: {}/{}", d, n)
                 }
             }
-            BldrError::RemotePackageNotFound(ref d, ref n, ref v, ref r) => {
+            ErrorKind::RemotePackageNotFound(ref d, ref n, ref v, ref r) => {
                 if v.is_some() && r.is_some() {
-                    write!(f,
-                           "Cannot find package in any sources: {}/{}/{}/{}",
-                           d,
-                           n,
-                           v.as_ref().unwrap(),
-                           r.as_ref().unwrap())
+                    format!("Cannot find package in any sources: {}/{}/{}/{}",
+                            d,
+                            n,
+                            v.as_ref().unwrap(),
+                            r.as_ref().unwrap())
                 } else if v.is_some() {
-                    write!(f,
-                           "Cannot find a release of package in any sources: {}/{}/{}",
-                           d,
-                           n,
-                           v.as_ref().unwrap())
+                    format!("Cannot find a release of package in any sources: {}/{}/{}",
+                            d,
+                            n,
+                            v.as_ref().unwrap())
                 } else {
-                    write!(f,
-                           "Cannot find a release of package in any sources: {}/{}",
-                           d,
-                           n)
+                    format!("Cannot find a release of package in any sources: {}/{}",
+                            d,
+                            n)
                 }
             }
-            BldrError::MustacheMergeOnlyMaps =>
-                write!(f, "Can only merge two Mustache::Data::Maps"),
-            BldrError::SupervisorSignalFailed =>
-                write!(f, "Failed to send a signal to the process supervisor"),
-            BldrError::StringFromUtf8Error(ref e) => e.fmt(f),
-            BldrError::SupervisorDied => write!(f, "The supervisor died"),
-            BldrError::NulError(ref e) => e.fmt(f),
-            BldrError::IPFailed => write!(f, "Failed to discover this hosts outbound IP address"),
-            BldrError::HostnameFailed => write!(f, "Failed to discover this hosts hostname"),
-            BldrError::UnknownTopology(ref t) => write!(f, "Unknown topology {}!", t),
-            BldrError::NoConfiguration => write!(f, "No configuration data - cannot continue"),
-            BldrError::HealthCheck(ref e) => write!(f, "Health Check failed: {}", e),
-            BldrError::HookFailed(ref t, ref e, ref o) =>
-                write!(f, "Hook failed to run: {}, {}, {}", t, e, o),
-            BldrError::TryRecvError(ref err) => err.fmt(f),
-            BldrError::BadWatch(ref e) => write!(f, "Bad watch format: {} is not valid", e),
-            BldrError::NoXFilename =>
-                write!(f,
-                       "Invalid download from a repository - missing X-Filename header"),
-            BldrError::NoFilePart => write!(f,
-                                            "An invalid path was passed - we needed a filename, \
-                                             and this path does not have one"),
-            BldrError::SignalNotifierStarted =>
-                write!(f, "Only one instance of a Signal Notifier may be running"),
-            BldrError::ActorError(ref err) => write!(f, "Actor returned error: {:?}", err),
-            BldrError::CensusNotFound(ref s) => write!(f, "Census entry not found: {:?}", s),
-            BldrError::UuidParseError(ref e) => write!(f, "Uuid Parse Error: {:?}", e),
-            BldrError::InvalidPackageIdent(ref e) =>
-                write!(f,
-                       "Invalid package identifier: {:?}. A valid identifier is in the form \
-                        derivation/name (example: chef/redis)",
-                       e),
-        }
+            ErrorKind::MustacheMergeOnlyMaps => format!("Can only merge two Mustache::Data::Maps"),
+            ErrorKind::SupervisorSignalFailed =>
+                format!("Failed to send a signal to the process supervisor"),
+            ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
+            ErrorKind::SupervisorDied => format!("The supervisor died"),
+            ErrorKind::NulError(ref e) => format!("{}", e),
+            ErrorKind::IPFailed => format!("Failed to discover this hosts outbound IP address"),
+            ErrorKind::HostnameFailed => format!("Failed to discover this hosts hostname"),
+            ErrorKind::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
+            ErrorKind::NoConfiguration => format!("No configuration data - cannot continue"),
+            ErrorKind::HealthCheck(ref e) => format!("Health Check failed: {}", e),
+            ErrorKind::HookFailed(ref t, ref e, ref o) =>
+                format!("Hook failed to run: {}, {}, {}", t, e, o),
+            ErrorKind::TryRecvError(ref err) => format!("{}", err),
+            ErrorKind::BadWatch(ref e) => format!("Bad watch format: {} is not valid", e),
+            ErrorKind::NoXFilename =>
+                format!("Invalid download from a repository - missing X-Filename header"),
+            ErrorKind::NoFilePart => format!("An invalid path was passed - we needed a filename, \
+                                              and this path does not have one"),
+            ErrorKind::SignalNotifierStarted =>
+                format!("Only one instance of a Signal Notifier may be running"),
+            ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
+            ErrorKind::CensusNotFound(ref s) => format!("Census entry not found: {:?}", s),
+            ErrorKind::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
+            ErrorKind::InvalidPackageIdent(ref e) =>
+                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
+                         derivation/name (example: chef/redis)",
+                        e),
+        };
+        let cstring = Red.bold().paint(&content).to_string();
+        let mut so = StructuredOutput::new("bldr",
+                                           self.logkey,
+                                           self.line,
+                                           self.file,
+                                           self.column,
+                                           &cstring);
+        so.verbose = Some(true);
+        write!(f, "{}", so)
     }
 }
 
 impl Error for BldrError {
     fn description(&self) -> &str {
-        match *self {
-            BldrError::Io(ref err) => err.description(),
-            BldrError::CommandNotImplemented => "Command is not yet implemented!",
-            BldrError::InstallFailed => "Could not install package!",
-            BldrError::WriteSyncFailed =>
+        match self.err {
+            ErrorKind::Io(ref err) => err.description(),
+            ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
+            ErrorKind::InstallFailed => "Could not install package!",
+            ErrorKind::WriteSyncFailed =>
                 "Could not write to destination; bytes written was 0 on a non-0 buffer",
-            BldrError::CannotParseFileName => "Cannot determine the filename from the given URI",
-            BldrError::HyperError(ref err) => err.description(),
-            BldrError::HTTP(_) => "Received an HTTP error",
-            BldrError::PathUTF8 => "Paths must not contain non-UTF8 characters",
-            BldrError::GPGVerifyFailed => "Failed to verify a GPG Signature",
-            BldrError::UnpackFailed => "Failed to unpack a package",
-            BldrError::TomlParser(_) => "Failed to parse toml!",
-            BldrError::MustacheEncoderError(_) => "Failed to encode mustache template",
-            BldrError::GPGImportFailed => "Failed to import a GPG key",
-            BldrError::PermissionFailed => "Failed to set permissions",
-            BldrError::BadVersion => "Failed to parse a version number",
-            BldrError::RegexParse(_) => "Failed to parse a regular expression",
-            BldrError::ParseIntError(_) => "Failed to parse an integer from a string!",
-            BldrError::FileNameError => "Failed to extract a filename from a path",
-            BldrError::FileNotFound(_) => "File not found",
-            BldrError::KeyNotFound(_) => "Key not found in key cache",
-            BldrError::PackageLoad(_) => "Unable to load package from path",
-            BldrError::PackageNotFound(_, _, _) => "Cannot find a package",
-            BldrError::RemotePackageNotFound(_, _, _, _) => "Cannot find a package in any sources",
-            BldrError::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
-            BldrError::SupervisorSignalFailed =>
+            ErrorKind::CannotParseFileName => "Cannot determine the filename from the given URI",
+            ErrorKind::HyperError(ref err) => err.description(),
+            ErrorKind::HTTP(_) => "Received an HTTP error",
+            ErrorKind::PathUTF8 => "Paths must not contain non-UTF8 characters",
+            ErrorKind::GPGVerifyFailed => "Failed to verify a GPG Signature",
+            ErrorKind::UnpackFailed => "Failed to unpack a package",
+            ErrorKind::TomlParser(_) => "Failed to parse toml!",
+            ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
+            ErrorKind::GPGImportFailed => "Failed to import a GPG key",
+            ErrorKind::PermissionFailed => "Failed to set permissions",
+            ErrorKind::BadVersion => "Failed to parse a version number",
+            ErrorKind::RegexParse(_) => "Failed to parse a regular expression",
+            ErrorKind::ParseIntError(_) => "Failed to parse an integer from a string!",
+            ErrorKind::FileNameError => "Failed to extract a filename from a path",
+            ErrorKind::FileNotFound(_) => "File not found",
+            ErrorKind::KeyNotFound(_) => "Key not found in key cache",
+            ErrorKind::PackageLoad(_) => "Unable to load package from path",
+            ErrorKind::PackageNotFound(_, _, _) => "Cannot find a package",
+            ErrorKind::RemotePackageNotFound(_, _, _, _) => "Cannot find a package in any sources",
+            ErrorKind::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
+            ErrorKind::SupervisorSignalFailed =>
                 "Failed to send a signal to the process supervisor",
-            BldrError::StringFromUtf8Error(_) =>
+            ErrorKind::StringFromUtf8Error(_) =>
                 "Failed to convert a string from a Vec<u8> as UTF-8",
-            BldrError::SupervisorDied => "The supervisor died",
-            BldrError::NulError(_) =>
+            ErrorKind::SupervisorDied => "The supervisor died",
+            ErrorKind::NulError(_) =>
                 "An attempt was made to build a CString with a null byte inside it",
-            BldrError::IPFailed => "Failed to discover the outbound IP address",
-            BldrError::HostnameFailed => "Failed to discover this hosts hostname",
-            BldrError::UnknownTopology(_) => "Unknown topology",
-            BldrError::NoConfiguration => "No configuration data available",
-            BldrError::HealthCheck(_) => "Health Check returned an unknown status code",
-            BldrError::HookFailed(_, _, _) => "Hook failed to run",
-            BldrError::TryRecvError(_) => "A channel failed to recieve a response",
-            BldrError::BadWatch(_) => "An invalid watch was specified",
-            BldrError::NoXFilename =>
+            ErrorKind::IPFailed => "Failed to discover the outbound IP address",
+            ErrorKind::HostnameFailed => "Failed to discover this hosts hostname",
+            ErrorKind::UnknownTopology(_) => "Unknown topology",
+            ErrorKind::NoConfiguration => "No configuration data available",
+            ErrorKind::HealthCheck(_) => "Health Check returned an unknown status code",
+            ErrorKind::HookFailed(_, _, _) => "Hook failed to run",
+            ErrorKind::TryRecvError(_) => "A channel failed to recieve a response",
+            ErrorKind::BadWatch(_) => "An invalid watch was specified",
+            ErrorKind::NoXFilename =>
                 "Invalid download from a repository - missing X-Filename header",
-            BldrError::NoFilePart =>
+            ErrorKind::NoFilePart =>
                 "An invalid path was passed - we needed a filename, and this path does not have one",
-            BldrError::SignalNotifierStarted =>
+            ErrorKind::SignalNotifierStarted =>
                 "Only one instance of a Signal Notifier may be running",
-            BldrError::ActorError(_) => "A running actor responded with an error",
-            BldrError::CensusNotFound(_) => "A census entry does not exist",
-            BldrError::UuidParseError(_) => "Uuid Parse Error",
-            BldrError::InvalidPackageIdent(_) =>
+            ErrorKind::ActorError(_) => "A running actor responded with an error",
+            ErrorKind::CensusNotFound(_) => "A census entry does not exist",
+            ErrorKind::UuidParseError(_) => "Uuid Parse Error",
+            ErrorKind::InvalidPackageIdent(_) =>
                 "Package identifiers must be in derivation/name format (example: chef/redis)",
         }
     }
@@ -253,60 +315,60 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
 
 impl From<uuid::ParseError> for BldrError {
     fn from(err: uuid::ParseError) -> BldrError {
-        BldrError::UuidParseError(err)
+        bldr_error!(ErrorKind::UuidParseError(err))
     }
 }
 
 impl From<ffi::NulError> for BldrError {
     fn from(err: ffi::NulError) -> BldrError {
-        BldrError::NulError(err)
+        bldr_error!(ErrorKind::NulError(err))
     }
 }
 
 impl From<mustache::encoder::Error> for BldrError {
     fn from(err: mustache::encoder::Error) -> BldrError {
-        BldrError::MustacheEncoderError(err)
+        bldr_error!(ErrorKind::MustacheEncoderError(err))
     }
 }
 
 impl From<io::Error> for BldrError {
     fn from(err: io::Error) -> BldrError {
-        BldrError::Io(err)
+        bldr_error!(ErrorKind::Io(err))
     }
 }
 
 impl From<hyper::error::Error> for BldrError {
     fn from(err: hyper::error::Error) -> BldrError {
-        BldrError::HyperError(err)
+        bldr_error!(ErrorKind::HyperError(err))
     }
 }
 
 impl From<regex::Error> for BldrError {
     fn from(err: regex::Error) -> BldrError {
-        BldrError::RegexParse(err)
+        bldr_error!(ErrorKind::RegexParse(err))
     }
 }
 
 impl From<num::ParseIntError> for BldrError {
     fn from(err: num::ParseIntError) -> BldrError {
-        BldrError::ParseIntError(err)
+        bldr_error!(ErrorKind::ParseIntError(err))
     }
 }
 
 impl From<string::FromUtf8Error> for BldrError {
     fn from(err: string::FromUtf8Error) -> BldrError {
-        BldrError::StringFromUtf8Error(err)
+        bldr_error!(ErrorKind::StringFromUtf8Error(err))
     }
 }
 
 impl From<mpsc::TryRecvError> for BldrError {
     fn from(err: mpsc::TryRecvError) -> BldrError {
-        BldrError::TryRecvError(err)
+        bldr_error!(ErrorKind::TryRecvError(err))
     }
 }
 
 impl From<actor::ActorError> for BldrError {
     fn from(err: actor::ActorError) -> Self {
-        BldrError::ActorError(err)
+        bldr_error!(ErrorKind::ActorError(err))
     }
 }

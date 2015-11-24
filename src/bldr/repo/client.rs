@@ -24,8 +24,10 @@ use hyper::status::StatusCode;
 use rustc_serialize::json;
 
 use super::XFileName;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, BldrError, ErrorKind};
 use pkg::Package;
+
+static LOGKEY: &'static str = "RC";
 
 /// Download a public key from a remote repository to the given filepath.
 ///
@@ -56,11 +58,11 @@ pub fn fetch_package_exact(repo: &str, package: &Package, path: &str) -> BldrRes
                       package.release);
     match download(&package.name, &url, path) {
         Ok(path) => Ok(path),
-        Err(BldrError::HTTP(StatusCode::NotFound)) =>
-            Err(BldrError::RemotePackageNotFound(package.derivation.clone(),
-                                                 package.name.clone(),
-                                                 Some(package.version.clone()),
-                                                 Some(package.release.clone()))),
+        Err(BldrError{ err: ErrorKind::HTTP(StatusCode::NotFound), ..}) =>
+            Err(bldr_error!(ErrorKind::RemotePackageNotFound(package.derivation.clone(),
+                                                             package.name.clone(),
+                                                             Some(package.version.clone()),
+                                                             Some(package.release.clone())))),
         Err(e) => Err(e),
     }
 }
@@ -102,11 +104,11 @@ pub fn fetch_package(repo: &str,
     };
     match download(package, &url, path) {
         Ok(path) => Ok(path),
-        Err(BldrError::HTTP(StatusCode::NotFound)) =>
-            Err(BldrError::RemotePackageNotFound(derivation.to_string(),
-                                                 package.to_string(),
-                                                 version.clone(),
-                                                 release.clone())),
+        Err(BldrError { err: ErrorKind::HTTP(StatusCode::NotFound), ..}) =>
+            Err(bldr_error!(ErrorKind::RemotePackageNotFound(derivation.to_string(),
+                                                             package.to_string(),
+                                                             version.clone(),
+                                                             release.clone()))),
         Err(e) => Err(e),
     }
 }
@@ -136,10 +138,10 @@ pub fn show_package_latest(repo: &str,
         } else {
             None
         };
-        return Err(BldrError::RemotePackageNotFound(derivation.to_string(),
-                                                    name.to_string(),
-                                                    ver,
-                                                    None));
+        return Err(bldr_error!(ErrorKind::RemotePackageNotFound(derivation.to_string(),
+                                                                name.to_string(),
+                                                                ver,
+                                                                None)));
     }
 
     let mut encoded = String::new();
@@ -156,7 +158,7 @@ pub fn show_package_latest(repo: &str,
 /// * File cannot be read
 pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
     let mut file = try!(File::open(path));
-    let file_name = try!(path.file_name().ok_or(BldrError::NoFilePart));
+    let file_name = try!(path.file_name().ok_or(bldr_error!(ErrorKind::NoFilePart)));
     let url = format!("{}/keys/{}", repo, file_name.to_string_lossy());
     upload(&url, &mut file)
 }
@@ -197,12 +199,12 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     debug!("Response: {:?}", res);
 
     if res.status != hyper::status::StatusCode::Ok {
-        return Err(BldrError::HTTP(res.status));
+        return Err(bldr_error!(ErrorKind::HTTP(res.status)));
     }
 
     let file_name = match res.headers.get::<XFileName>() {
         Some(filename) => format!("{}", filename),
-        None => return Err(BldrError::NoXFilename),
+        None => return Err(bldr_error!(ErrorKind::NoXFilename)),
     };
     let length = res.headers
                     .get::<hyper::header::ContentLength>()
@@ -242,7 +244,7 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
                 // Write the buffer to the BufWriter on the Heap
                 let bytes_written = try!(writer.write(&buf[0..len]));
                 if bytes_written == 0 {
-                    return Err(BldrError::WriteSyncFailed);
+                    return Err(bldr_error!(ErrorKind::WriteSyncFailed));
                 }
                 written = written + (bytes_written as i64);
                 progress(status, written, &length, false);
@@ -263,7 +265,7 @@ fn upload(url: &str, file: &mut File) -> BldrResult<()> {
 }
 
 fn progress(status: &str, written: i64, length: &str, finished: bool) {
-    let progress = format!("   {}: {}/{}", status, written, length);
+    let progress = output_format!(P: status, "{}/{}", written, length);
     print!("{}", from_char(progress.len(), '\x08'));
     if finished {
         println!("{}", progress);

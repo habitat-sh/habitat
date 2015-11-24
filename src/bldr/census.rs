@@ -42,10 +42,12 @@ use uuid::Uuid;
 use wonder::actor::{self, GenServer, HandleResult, InitResult, StopReason, ActorSender};
 
 use config::Config;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, BldrError, ErrorKind};
 use discovery::etcd::{self, EtcdWrite};
 use util;
 use pkg::Package;
+
+static LOGKEY: &'static str = "CN";
 
 /// A CensusEntry. Manages all the data about a given member of the census.
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable, Eq)]
@@ -322,7 +324,9 @@ impl Census {
     ///
     /// * If the entry doesn't exist
     pub fn me(&self) -> BldrResult<&CensusEntry> {
-        self.population.get(&self.me).ok_or(BldrError::CensusNotFound(self.me.to_simple_string()))
+        self.population
+            .get(&self.me)
+            .ok_or(bldr_error!(ErrorKind::CensusNotFound(self.me.to_simple_string())))
     }
 
     /// A mutable reference to the current supervisors entry in the census.
@@ -333,7 +337,7 @@ impl Census {
     pub fn me_mut(&mut self) -> BldrResult<&mut CensusEntry> {
         self.population
             .get_mut(&self.me)
-            .ok_or(BldrError::CensusNotFound(self.me.to_simple_string()))
+            .ok_or(bldr_error!(ErrorKind::CensusNotFound(self.me.to_simple_string())))
     }
 
     /// Add an entry to the census
@@ -353,7 +357,8 @@ impl Census {
     /// * If we cannot parse the toml
     pub fn update(&mut self, census_string: &str) -> BldrResult<()> {
         let mut toml_parser = toml::Parser::new(census_string);
-        let toml = try!(toml_parser.parse().ok_or(BldrError::TomlParser(toml_parser.errors)));
+        let toml = try!(toml_parser.parse()
+                                   .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
         let toml_value = toml::Value::Table(toml);
         let census_map: CensusMap = toml::decode(toml_value).unwrap();
         let current_uuids: Vec<Uuid> = self.population.keys().map(|&x| x.clone()).collect();

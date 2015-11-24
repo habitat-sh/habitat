@@ -37,6 +37,8 @@ use config::Config;
 use pkg::Package;
 use repo;
 
+static LOGKEY: &'static str = "CU";
+
 /// Upload a package to a repository.
 ///
 /// Find the latest package, then read it from the cache, and upload to the repository.
@@ -49,10 +51,8 @@ use repo;
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
     let package = try!(Package::latest(config.deriv(), config.package(), None, None));
-    println!("   {}: Uploading from {}",
-             &package,
-             package.cache_file().to_string_lossy());
+    outputln!("Uploading from {}", package.cache_file().to_string_lossy());
     try!(repo::client::put_package(url, &package));
-    println!("   {}: complete", config.package());
+    outputln!("Complete");
     Ok(())
 }

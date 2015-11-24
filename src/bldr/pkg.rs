@@ -32,12 +32,13 @@ use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResul
 
 use fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME};
 use command;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, BldrError, ErrorKind};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
 use util::{self, convert};
 use repo;
 
+static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
@@ -107,13 +108,14 @@ impl Hook {
                 let output = Self::format_output(&result);
                 match result.status.code() {
                     Some(0) => Ok(output),
-                    Some(code) => Err(BldrError::HookFailed(self.htype.clone(), code, output)),
-                    None => Err(BldrError::HookFailed(self.htype.clone(), -1, output)),
+                    Some(code) =>
+                        Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), code, output))),
+                    None => Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), -1, output))),
                 }
             }
             Err(_) => {
                 let err = format!("couldn't run hook: {}", &self.path.to_string_lossy());
-                Err(BldrError::HookFailed(self.htype.clone(), -1, err))
+                Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), -1, err)))
             }
         }
     }
@@ -240,7 +242,7 @@ impl Package {
                          items[5].to_string(),
                          items[6].to_string()))
         } else {
-            Err(BldrError::PackageLoad(spath.to_string()))
+            Err(bldr_error!(ErrorKind::PackageLoad(spath.to_string())))
         }
     }
 
@@ -278,7 +280,9 @@ impl Package {
         } else {
             None
         };
-        latest.ok_or(BldrError::PackageNotFound(deriv.to_string(), pkg.to_string(), ver))
+        latest.ok_or(bldr_error!(ErrorKind::PackageNotFound(deriv.to_string(),
+                                                            pkg.to_string(),
+                                                            ver)))
     }
 
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
@@ -334,7 +338,7 @@ impl Package {
                 debug!("Supervisor (O): {}", outstr);
                 debug!("Supervisor (E): {}", errstr);
                 debug!("Supervisor Code {:?}", output.status.code());
-                return Err(BldrError::SupervisorSignalFailed);
+                return Err(bldr_error!(ErrorKind::SupervisorSignalFailed));
             }
         }
     }
@@ -505,7 +509,7 @@ impl Package {
                 Ok(_) => Ok(()),
                 Err(e) => {
                     let output = format!("failed to run default hook: {}", e);
-                    Err(BldrError::HookFailed(HookType::Reconfigure, -1, output))
+                    Err(bldr_error!(ErrorKind::HookFailed(HookType::Reconfigure, -1, output)))
                 }
             }
         }
@@ -526,16 +530,17 @@ impl Package {
         if let Some(hook) = self.hooks().health_check_hook {
             match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
-                Err(BldrError::HookFailed(_, 1, output)) =>
+                Err(BldrError{err: ErrorKind::HookFailed(_, 1, output), ..}) =>
                     Ok(health_check::CheckResult::warning(output)),
-                Err(BldrError::HookFailed(_, 2, output)) =>
+                Err(BldrError{err: ErrorKind::HookFailed(_, 2, output), ..}) =>
                     Ok(health_check::CheckResult::critical(output)),
-                Err(BldrError::HookFailed(_, 3, output)) =>
+                Err(BldrError{err: ErrorKind::HookFailed(_, 3, output), ..}) =>
                     Ok(health_check::CheckResult::unknown(output)),
-                Err(BldrError::HookFailed(_, code, output)) => {
-                    Err(BldrError::HealthCheck(format!("hook exited code={}, output={}",
-                                                       code,
-                                                       output)))
+                Err(BldrError{err: ErrorKind::HookFailed(_, code, output), ..}) => {
+                    Err(bldr_error!(ErrorKind::HealthCheck(format!("hook exited code={}, \
+                                                                    output={}",
+                                                                   code,
+                                                                   output))))
                 }
                 Err(e) => Err(BldrError::from(e)),
             }
@@ -835,7 +840,7 @@ fn split_version(version: &str) -> BldrResult<(Vec<&str>, Option<String>)> {
     let re = try!(Regex::new(r"([\d\.]+)(-.+)?"));
     let caps = match re.captures(version) {
         Some(caps) => caps,
-        None => return Err(BldrError::BadVersion),
+        None => return Err(bldr_error!(ErrorKind::BadVersion)),
     };
     let version_number = caps.at(1).unwrap();
     let extension = match caps.at(2) {

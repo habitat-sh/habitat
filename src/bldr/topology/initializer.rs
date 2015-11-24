@@ -28,6 +28,8 @@ use state_machine::StateMachine;
 use topology::{self, standalone, State, Worker};
 use pkg::Package;
 
+static LOGKEY: &'static str = "TI";
+
 enum InitGate {
     NoLeader,
     Waiting,
@@ -49,8 +51,7 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
 }
 
 pub fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Determining viability as a leader",
-             worker.preamble());
+    outputln!("Determining viability as a leader");
     worker.census.in_event = true;
     {
         let mut ce = try!(worker.census.me_mut());
@@ -65,40 +66,38 @@ pub fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u32)
 }
 
 pub fn state_start_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Starting an election", worker.preamble());
+    outputln!("Starting an election");
     {
         let mut ce = try!(worker.census.me_mut());
         ce.election = Some(true);
     }
     let candidate = worker.census.determine_vote().candidate_string();
-    println!("   {}: My candidate is {:?}", worker.preamble(), candidate);
+    outputln!("My candidate is {:?}", candidate);
     let mut ce = try!(worker.census.me_mut());
     ce.vote(Some(candidate));
     Ok((State::InElection, 0))
 }
 
 pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    let preamble = worker.preamble();
     let candidate = worker.census.determine_vote().candidate_string();
     {
         let mut ce = try!(worker.census.me_mut());
         match ce.vote {
             Some(ref c) if *c == candidate => {}
             Some(_) => {
-                println!("   {}: Switching my vote to {}", preamble, candidate);
+                outputln!("Switching my vote to {}", candidate);
                 ce.vote(Some(candidate));
             }
             None => {
-                println!("   {}: Switching my vote to {}", preamble, candidate);
+                outputln!("Switching my vote to {}", candidate);
                 ce.vote(Some(candidate));
             }
         }
     }
 
     if let Some(leader_ce) = worker.census.get_leader() {
-        println!("   {}: {} has already been elected; becoming a follower",
-                 preamble,
-                 leader_ce.candidate_string());
+        outputln!("{} has already been elected; becoming a follower",
+                  leader_ce.candidate_string());
         return Ok((State::BecomeFollower, 0));
     }
 
@@ -106,12 +105,10 @@ pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u32)> {
         Some(winner) => {
             let me = try!(worker.census.me());
             if me == winner {
-                println!("   {}: The votes are in! I won! I will serve with humility.",
-                         worker.preamble());
+                outputln!("The votes are in! I won! I will serve with humility.");
                 Ok((State::BecomeLeader, 0))
             } else {
-                println!("   {}: The votes are in! I lost! I will serve with grace.",
-                         worker.preamble());
+                outputln!("The votes are in! I lost! I will serve with grace.");
                 Ok((State::BecomeFollower, 0))
             }
         }
@@ -128,7 +125,7 @@ pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
     }
 
     if worker.census.has_all_followers() {
-        println!("   {}: Starting my term as leader", worker.preamble());
+        outputln!("Starting my term as leader");
         {
             let me = try!(worker.census.me_mut());
             if me.election.is_some() {
@@ -144,14 +141,13 @@ pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u32)> {
         }
         Ok((State::Leader, 0))
     } else {
-        println!("   {}: Waiting for all my followers to agree",
-                 worker.preamble());
+        outputln!("Waiting for all my followers to agree");
         Ok((State::BecomeLeader, 0))
     }
 }
 
 pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Becoming a follower", worker.preamble());
+    outputln!("Becoming a follower");
     {
         let mut ce = try!(worker.census.me_mut());
         if ce.follower.is_none() {
@@ -160,10 +156,10 @@ pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u32)> {
     }
 
     if worker.census.has_leader() {
-        println!("   {}: Becoming a follower for real", worker.preamble());
+        outputln!("Becoming a follower for real");
         Ok((State::Follower, 0))
     } else {
-        println!("   {}: Waiting for a leader", worker.preamble());
+        outputln!("Waiting for a leader");
         Ok((State::BecomeFollower, 0))
     }
 }

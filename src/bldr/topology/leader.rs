@@ -21,6 +21,8 @@ use error::{BldrResult, BldrError};
 use pkg::Package;
 use config::Config;
 
+static LOGKEY: &'static str = "TL";
+
 pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     let mut worker = try!(Worker::new(package, String::from("leader"), config));
     let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
@@ -46,8 +48,7 @@ fn state_init(worker: &mut Worker) -> BldrResult<(State, u32)> {
 }
 
 fn state_restore_dataset(worker: &mut Worker) -> BldrResult<(State, u32)> {
-    println!("   {}: Restoring the dataset from a peer",
-             worker.preamble());
+    outputln!("Restoring the dataset from a peer");
     let ce = try!(worker.census.me_mut());
     ce.data_init(Some(true));
     Ok((State::DetermineViability, 0))

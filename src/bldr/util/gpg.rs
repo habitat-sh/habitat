@@ -19,8 +19,10 @@ use std::process::Command;
 use std::fs;
 
 use fs::GPG_CACHE;
-use error::{BldrResult, BldrError};
+use error::{BldrResult, ErrorKind};
 use util::perm;
+
+static LOGKEY: &'static str = "GP";
 
 fn gpg_cmd() -> Command {
     let mut command = Command::new("gpg");
@@ -37,13 +39,13 @@ pub fn import(status: &str, keyfile: &str) -> BldrResult<()> {
                           .arg(keyfile)
                           .output());
     match output.status.success() {
-        true => println!("   {}: GPG key imported", status),
+        true => outputln!("{} GPG key imported", status),
         false => {
-            println!("   {}: GPG import failed:\n{}\n{}",
-                     status,
-                     String::from_utf8_lossy(&output.stdout),
-                     String::from_utf8_lossy(&output.stderr));
-            return Err(BldrError::GPGImportFailed);
+            outputln!("{} GPG import failed:\n{}\n{}",
+                      status,
+                      String::from_utf8_lossy(&output.stdout),
+                      String::from_utf8_lossy(&output.stderr));
+            return Err(bldr_error!(ErrorKind::GPGImportFailed));
         }
     }
     Ok(())
@@ -55,10 +57,10 @@ pub fn verify(status: &str, file: &str) -> BldrResult<()> {
                           .arg(file)
                           .output());
     match output.status.success() {
-        true => println!("   {}: GPG signature verified", status),
+        true => outputln!("{} GPG signature verified", status),
         false => {
-            println!("   {}: GPG signature failed", status);
-            return Err(BldrError::GPGVerifyFailed);
+            outputln!("{} GPG signature failed", status);
+            return Err(bldr_error!(ErrorKind::GPGVerifyFailed));
         }
     }
     Ok(())
