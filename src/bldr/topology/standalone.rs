@@ -102,8 +102,7 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
                                  }
                                  _ => {
                                      // Write the buffer to the BufWriter on the Heap
-                                     let buf_vec = buf[0..len].to_vec();
-                                     let buf_string = String::from_utf8(buf_vec).unwrap();
+                                     let buf_string = String::from_utf8_lossy(&buf[0 .. len]);
                                      line.push_str(&buf_string);
                                      if line.contains("\n") {
                                          print!("{}", line);

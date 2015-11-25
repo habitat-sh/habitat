@@ -20,7 +20,7 @@ use std::fs::{self, OpenOptions};
 use std::io::prelude::*;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
-use std::process::{self, Command};
+use std::process::{Command, Stdio};
 
 use mustache;
 
@@ -67,20 +67,46 @@ impl Hook {
 
     pub fn run(&self, context: Option<&ServiceConfig>) -> BldrResult<String> {
         try!(self.compile(context));
-        match Command::new(&self.path).output() {
-            Ok(result) => {
-                let output = Self::format_output(&result);
-                match result.status.code() {
-                    Some(0) => Ok(output),
-                    Some(code) =>
-                        Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), code, output))),
-                    None => Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), -1, output))),
+        let mut child = try!(Command::new(&self.path)
+                                 .stdin(Stdio::null())
+                                 .stdout(Stdio::piped())
+                                 .stderr(Stdio::piped())
+                                 .spawn());
+        {
+            let mut c_stdout = match child.stdout {
+                Some(ref mut s) => s,
+                None => return Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
+                                                                     -1,
+                                                                     String::from("Failed")))),
+            };
+            let mut line = output_format!(P: "hook", "{}", &self.htype);
+            loop {
+                let mut buf = [0u8; 1]; // Our byte buffer
+                let len = try!(c_stdout.read(&mut buf));
+                match len {
+                    0 => {
+                        // 0 == EOF, so stop writing and finish progress
+                        break;
+                    }
+                    _ => {
+                        // Write the buffer to the BufWriter on the Heap
+                        let buf_string = String::from_utf8_lossy(&buf[0..len]);
+                        line.push_str(&buf_string);
+                        if line.contains("\n") {
+                            print!("{}", line);
+                            line = output_format!(P: "hook", "{}", &self.htype);
+                        }
+                    }
                 }
             }
-            Err(_) => {
-                let err = format!("couldn't run hook: {}", &self.path.to_string_lossy());
-                Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), -1, err)))
-            }
+        }
+        let exit_status = try!(child.wait());
+        if exit_status.success() {
+            Ok(String::from("Finished"))
+        } else {
+            Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
+                                                  exit_status.code().unwrap_or(-1),
+                                                  String::from("Failed"))))
         }
     }
 
@@ -105,12 +131,6 @@ impl Hook {
             try!(fs::copy(&self.template, &self.path));
             Ok(())
         }
-    }
-
-    fn format_output(output: &process::Output) -> String {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        format!("{}\n{}", stdout, stderr)
     }
 }
 
