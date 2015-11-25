@@ -41,17 +41,6 @@ mod setup {
         });
     }
 
-    pub fn bldr_release() {
-        // static ONCE: Once = ONCE_INIT;
-        // ONCE.call_once(|| {
-        //     let mut bldr = match util::command::bldr_build(util::path::bldr_plan()) {
-        //         Ok(cmd) => cmd,
-        //         Err(e) => panic!("{:?}", e)
-        //     };
-        //     bldr.wait_with_output();
-        // });
-    }
-
     pub fn simple_service() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {

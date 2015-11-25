@@ -19,6 +19,7 @@ use setup;
 use util::{command, docker};
 
 #[test]
+#[ignore]
 fn upload_a_package_and_then_install_it() {
     setup::gpg_import();
     setup::key_install();
@@ -35,7 +36,7 @@ fn upload_a_package_and_then_install_it() {
     upload.wait_with_output();
     assert_cmd_exit_code!(upload, [0]);
     assert_regex!(upload.stdout(), r"Upload Bldr Package (.+)");
-    assert_regex!(upload.stdout(), r"Uploading (.+)");
+    assert_regex!(upload.stdout(), r"Uploading from (.+)");
     assert_regex!(upload.stdout(), r"Complete");
     let mut install = command::bldr(&["install",
                                       "test/simple_service",
