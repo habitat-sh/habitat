@@ -30,7 +30,7 @@ use std::fs::File;
 
 use error::BldrResult;
 use config::Config;
-use pkg::Package;
+use package::Package;
 
 /// Print the default.toml for a given package.
 ///

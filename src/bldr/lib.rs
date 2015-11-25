@@ -256,7 +256,7 @@ pub mod output;
 pub mod error;
 pub mod command;
 pub mod util;
-pub mod pkg;
+pub mod package;
 pub mod discovery;
 pub mod topology;
 pub mod state_machine;

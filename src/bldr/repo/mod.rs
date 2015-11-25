@@ -32,7 +32,7 @@ use std::path::{Path, PathBuf};
 use error::{BldrResult, ErrorKind};
 use config::Config;
 
-use pkg::{Package, PackageArchive};
+use package::{Package, PackageArchive};
 
 static LOGKEY: &'static str = "RE";
 

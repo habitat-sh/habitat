@@ -38,7 +38,7 @@ use ansi_term::Colour::Purple;
 use util;
 use util::convert;
 use error::{BldrResult, ErrorKind};
-use pkg::Package;
+use package::Package;
 
 static LOGKEY: &'static str = "SC";
 

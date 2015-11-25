@@ -45,7 +45,7 @@ use config::Config;
 use error::{BldrResult, BldrError, ErrorKind};
 use discovery::etcd::{self, EtcdWrite};
 use util;
-use pkg::Package;
+use package::Package;
 
 static LOGKEY: &'static str = "CN";
 

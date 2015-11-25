@@ -25,7 +25,7 @@ use rustc_serialize::json;
 
 use super::XFileName;
 use error::{BldrResult, BldrError, ErrorKind};
-use pkg::{Package, PackageArchive};
+use package::{Package, PackageArchive};
 
 static LOGKEY: &'static str = "RC";
 
