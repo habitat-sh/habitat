@@ -64,7 +64,7 @@ use ansi_term::Colour::Yellow;
 use fs::PACKAGE_CACHE;
 use error::{BldrResult, ErrorKind};
 use config::Config;
-use pkg::Package;
+use package::Package;
 use topology::{self, Topology};
 use command::install;
 use repo;

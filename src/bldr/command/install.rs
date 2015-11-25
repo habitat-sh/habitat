@@ -60,7 +60,7 @@ use std::fs;
 
 use fs::PACKAGE_CACHE;
 use error::BldrResult;
-use pkg::Package;
+use package::Package;
 use repo;
 
 static LOGKEY: &'static str = "CI";

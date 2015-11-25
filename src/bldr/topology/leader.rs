@@ -18,7 +18,7 @@
 use topology::{self, initializer, State, Worker};
 use state_machine::StateMachine;
 use error::{BldrResult, BldrError};
-use pkg::Package;
+use package::Package;
 use config::Config;
 
 static LOGKEY: &'static str = "TL";

@@ -56,7 +56,7 @@ use hyper;
 use toml;
 use mustache;
 use regex;
-use pkg;
+use package;
 use output::StructuredOutput;
 
 static LOGKEY: &'static str = "ER";
@@ -108,7 +108,7 @@ pub enum ErrorKind {
     UnpackFailed,
     TomlParser(Vec<toml::ParserError>),
     MustacheEncoderError(mustache::encoder::Error),
-    MetaFileNotFound(pkg::MetaFile),
+    MetaFileNotFound(package::MetaFile),
     PermissionFailed,
     BadVersion,
     RegexParse(regex::Error),
@@ -129,7 +129,7 @@ pub enum ErrorKind {
     UnknownTopology(String),
     NoConfiguration,
     HealthCheck(String),
-    HookFailed(pkg::HookType, i32, String),
+    HookFailed(package::HookType, i32, String),
     TryRecvError(mpsc::TryRecvError),
     BadWatch(String),
     NoXFilename,

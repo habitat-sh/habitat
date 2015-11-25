@@ -34,7 +34,7 @@
 use error::BldrResult;
 use config::Config;
 
-use pkg::Package;
+use package::Package;
 use repo;
 
 static LOGKEY: &'static str = "CU";

@@ -26,7 +26,7 @@ use config::Config;
 use error::{BldrResult, BldrError};
 use state_machine::StateMachine;
 use topology::{self, standalone, State, Worker};
-use pkg::Package;
+use package::Package;
 
 static LOGKEY: &'static str = "TI";
 

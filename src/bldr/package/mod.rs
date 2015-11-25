@@ -15,37 +15,36 @@
 // limitations under the License.
 //
 
+pub mod archive;
+pub mod hooks;
+pub mod updater;
+
+pub use self::archive::{PackageArchive, MetaFile};
+pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
+pub use self::hooks::HookType;
+
 use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
-use std::fs::{self, DirEntry, File, OpenOptions};
+use std::fs::{self, DirEntry, File};
 use std::os::unix;
-use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
 use std::io::prelude::*;
-use std::process::{self, Command};
-use std::sync::{Arc, RwLock};
+use std::process::Command;
 
-use mustache;
 use regex::Regex;
-use wonder;
-use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
-use fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME, GPG_CACHE};
+use self::hooks::HookTable;
+use fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME};
 use error::{BldrResult, BldrError, ErrorKind};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
-use util::{self, convert, gpg};
-use repo;
+use util;
 
 static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
-
-const TIMEOUT_MS: u64 = 60_000;
-
-pub type PackageUpdaterActor = wonder::actor::Actor<UpdaterMessage>;
 
 #[derive(Debug, Clone, Eq, RustcDecodable, RustcEncodable)]
 pub struct Package {
@@ -64,279 +63,6 @@ impl fmt::Display for Package {
                self.name,
                self.version,
                self.release)
-    }
-}
-
-#[derive(Debug)]
-pub enum MetaFile {
-    CFlags,
-    Deps,
-    Exposes,
-    Ident,
-    LdRunPath,
-    LdFlags,
-    Manifest,
-    Path,
-}
-
-impl fmt::Display for MetaFile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let id = match *self {
-            MetaFile::CFlags => "CFLAGS",
-            MetaFile::Deps => "DEPS",
-            MetaFile::Exposes => "EXPOSES",
-            MetaFile::Ident => "IDENT",
-            MetaFile::LdRunPath => "LD_RUN_PATH",
-            MetaFile::LdFlags => "LDFLAGS",
-            MetaFile::Manifest => "MANIFEST",
-            MetaFile::Path => "PATH",
-        };
-        write!(f, "{}", id)
-    }
-}
-
-#[derive(Debug)]
-pub struct PackageArchive {
-    pub path: PathBuf,
-}
-
-impl PackageArchive {
-    pub fn new(path: PathBuf) -> Self {
-        PackageArchive { path: path }
-    }
-
-    /// A package struct representing the contents of this archive.
-    ///
-    /// # Failures
-    ///
-    /// * If an `IDENT` metafile is not found in the archive
-    /// * If the archive cannot be read
-    /// * If the archive cannot be verified
-    pub fn package(&self) -> BldrResult<Package> {
-        let body = try!(self.read_metadata(MetaFile::Ident));
-        let mut package = try!(Package::from_ident(&body));
-        match self.deps() {
-            Ok(Some(deps)) => {
-                for dep in deps {
-                    package.add_dep(dep);
-                }
-            }
-            Ok(None) => {}
-            Err(e) => return Err(e),
-        }
-        Ok(package)
-    }
-
-    /// List of package structs representing the package dependencies for this archive.
-    ///
-    /// # Failures
-    ///
-    /// * If a `DEPS` metafile is not found in the archive
-    /// * If the archive cannot be read
-    /// * If the archive cannot be verified
-    pub fn deps(&self) -> BldrResult<Option<Vec<Package>>> {
-        match self.read_metadata(MetaFile::Deps) {
-            Ok(body) => {
-                let dep_strs: Vec<&str> = body.split("\n").collect();
-                let mut deps = vec![];
-                for dep in &dep_strs {
-                    match Package::from_ident(&dep) {
-                        Ok(package) => deps.push(package),
-                        Err(_) => continue,
-                    }
-                }
-                Ok(Some(deps))
-            }
-            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-
-    /// A plain string representation of the archive's file name.
-    pub fn file_name(&self) -> String {
-        self.path.file_name().unwrap().to_string_lossy().into_owned()
-    }
-
-    /// Given a package name and a path to a file as an `&str`, verify
-    /// the files gpg signature.
-    ///
-    /// # Failures
-    ///
-    /// * Fails if it cannot verify the GPG signature for any reason
-    pub fn verify(&self) -> BldrResult<()> {
-        gpg::verify(self.path.to_str().unwrap())
-    }
-
-    /// Given a package name and a path to a file as an `&str`, unpack
-    /// the package.
-    ///
-    /// # Failures
-    ///
-    /// * If the package cannot be unpacked via gpg
-    pub fn unpack(&self) -> BldrResult<Package> {
-        let output = try!(Command::new("sh")
-                              .arg("-c")
-                              .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x",
-                                           GPG_CACHE,
-                                           self.path.to_str().unwrap()))
-                              .output());
-        match output.status.success() {
-            true => self.package(),
-            false => Err(bldr_error!(ErrorKind::UnpackFailed)),
-        }
-    }
-
-    fn read_metadata(&self, file: MetaFile) -> BldrResult<String> {
-        let output = try!(Command::new("sh")
-                              .arg("-c")
-                              .arg(format!("gpg --homedir {} --decrypt {} | tar xO --wildcards \
-                                            --no-anchored {}",
-                                           GPG_CACHE,
-                                           self.path.to_string_lossy(),
-                                           file))
-                              .output());
-        match output.status.success() {
-            true => {
-                Ok(String::from_utf8_lossy(&output.stdout).into_owned())
-            }
-            false => {
-                let re = Regex::new(&format!("{}: Not found in archive", file)).unwrap();
-                if re.is_match(&String::from_utf8_lossy(&output.stderr)) {
-                    Err(bldr_error!(ErrorKind::MetaFileNotFound(file)))
-                } else {
-                    Err(bldr_error!(ErrorKind::ArchiveReadFailed(String::from_utf8_lossy(&output.stderr).into_owned())))
-                }
-            }
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum HookType {
-    HealthCheck,
-    Reconfigure,
-    Run,
-    Init,
-}
-
-impl fmt::Display for HookType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            &HookType::Init => write!(f, "init"),
-            &HookType::HealthCheck => write!(f, "health_check"),
-            &HookType::Reconfigure => write!(f, "reconfigure"),
-            &HookType::Run => write!(f, "run"),
-        }
-    }
-}
-
-pub struct Hook {
-    pub htype: HookType,
-    pub template: PathBuf,
-    path: PathBuf,
-}
-
-impl Hook {
-    pub fn new(htype: HookType, template: PathBuf, path: PathBuf) -> Self {
-        Hook {
-            htype: htype,
-            template: template,
-            path: path,
-        }
-    }
-
-    pub fn run(&self, context: Option<&ServiceConfig>) -> BldrResult<String> {
-        try!(self.compile(context));
-        match Command::new(&self.path).output() {
-            Ok(result) => {
-                let output = Self::format_output(&result);
-                match result.status.code() {
-                    Some(0) => Ok(output),
-                    Some(code) =>
-                        Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), code, output))),
-                    None => Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), -1, output))),
-                }
-            }
-            Err(_) => {
-                let err = format!("couldn't run hook: {}", &self.path.to_string_lossy());
-                Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(), -1, err)))
-            }
-        }
-    }
-
-    pub fn compile(&self, context: Option<&ServiceConfig>) -> BldrResult<()> {
-        if let Some(ctx) = context {
-            let template = try!(mustache::compile_path(&self.template));
-            let mut out = Vec::new();
-            let toml = try!(ctx.compile_toml());
-            let data = convert::toml_table_to_mustache(toml);
-            template.render_data(&mut out, &data);
-            let data = try!(String::from_utf8(out));
-            let mut file = try!(OpenOptions::new()
-                                    .write(true)
-                                    .truncate(true)
-                                    .create(true)
-                                    .read(true)
-                                    .mode(0o770)
-                                    .open(&self.path));
-            try!(write!(&mut file, "{}", data));
-            Ok(())
-        } else {
-            try!(fs::copy(&self.template, &self.path));
-            Ok(())
-        }
-    }
-
-    fn format_output(output: &process::Output) -> String {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        format!("{}\n{}", stdout, stderr)
-    }
-}
-
-pub struct HookTable<'a> {
-    pub package: &'a Package,
-    pub init_hook: Option<Hook>,
-    pub health_check_hook: Option<Hook>,
-    pub reconfigure_hook: Option<Hook>,
-    pub run_hook: Option<Hook>,
-}
-
-impl<'a> HookTable<'a> {
-    pub fn new(package: &'a Package) -> Self {
-        HookTable {
-            package: package,
-            init_hook: None,
-            health_check_hook: None,
-            reconfigure_hook: None,
-            run_hook: None,
-        }
-    }
-
-    pub fn load_hooks(&mut self) -> &mut Self {
-        let hook_path = self.package.join_path("hooks");
-        let path = Path::new(&hook_path);
-        match fs::metadata(path) {
-            Ok(meta) => {
-                if meta.is_dir() {
-                    self.init_hook = self.load_hook(HookType::Init);
-                    self.reconfigure_hook = self.load_hook(HookType::Reconfigure);
-                    self.health_check_hook = self.load_hook(HookType::HealthCheck);
-                    self.run_hook = self.load_hook(HookType::Run);
-                }
-            }
-            Err(_) => {}
-        }
-        self
-    }
-
-    fn load_hook(&self, hook_type: HookType) -> Option<Hook> {
-        let template = self.package.hook_template_path(&hook_type);
-        let concrete = self.package.hook_path(&hook_type);
-        match fs::metadata(&template) {
-            Ok(_) => Some(Hook::new(hook_type, template, concrete)),
-            Err(_) => None,
-        }
     }
 }
 
@@ -804,123 +530,6 @@ impl Package {
             packages.push(package)
         }
         Ok(())
-    }
-}
-
-pub struct PackageUpdater;
-
-impl PackageUpdater {
-    pub fn start(url: &str, package: Arc<RwLock<Package>>) -> PackageUpdaterActor {
-        let state = UpdaterState::new(url.to_string(), package);
-        wonder::actor::Builder::new(PackageUpdater)
-            .name("package-updater".to_string())
-            .start(state)
-            .unwrap()
-    }
-
-    /// Signal a package updater to transition it's status from `stopped` to `running`. An updater
-    /// has the `stopped` status after it has found and notified the main thread of an updated
-    /// package.
-    pub fn run(actor: &PackageUpdaterActor) -> ActorResult<()> {
-        actor.cast(UpdaterMessage::Run)
-    }
-}
-
-pub struct UpdaterState {
-    pub repo: String,
-    pub package: Arc<RwLock<Package>>,
-    pub status: UpdaterStatus,
-}
-
-impl UpdaterState {
-    pub fn new(repo: String, package: Arc<RwLock<Package>>) -> Self {
-        UpdaterState {
-            repo: repo,
-            package: package,
-            status: UpdaterStatus::Stopped,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum UpdaterMessage {
-    Ok,
-    Run,
-    Stop,
-    Update(Package),
-}
-
-pub enum UpdaterStatus {
-    Running,
-    Stopped,
-}
-
-impl GenServer for PackageUpdater {
-    type T = UpdaterMessage;
-    type S = UpdaterState;
-    type E = BldrError;
-
-    fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E> {
-        state.status = UpdaterStatus::Running;
-        Ok(Some(TIMEOUT_MS))
-    }
-
-    fn handle_timeout(&self,
-                      tx: &ActorSender<Self::T>,
-                      _me: &ActorSender<Self::T>,
-                      state: &mut Self::S)
-                      -> HandleResult<Self::T> {
-        let package = state.package.read().unwrap();
-        match repo::client::show_package(&state.repo,
-                                         &package.derivation,
-                                         &package.name,
-                                         None,
-                                         None) {
-            Ok(latest) => {
-                if latest > *package {
-                    match repo::client::fetch_package_exact(&state.repo, &latest, PACKAGE_CACHE) {
-                        Ok(archive) => {
-                            debug!("Updater downloaded new package to {:?}", archive);
-                            // JW TODO: actually handle verify and unpack results
-                            archive.verify().unwrap();
-                            archive.unpack().unwrap();
-                            state.status = UpdaterStatus::Stopped;
-                            let msg = wonder::actor::Message::Cast(UpdaterMessage::Update(latest));
-                            tx.send(msg).unwrap();
-                            HandleResult::NoReply(None)
-                        }
-                        Err(e) => {
-                            debug!("Failed to download package: {:?}", e);
-                            HandleResult::NoReply(Some(TIMEOUT_MS))
-                        }
-                    }
-                } else {
-                    debug!("Package found is not newer than ours");
-                    HandleResult::NoReply(Some(TIMEOUT_MS))
-                }
-            }
-            Err(e) => {
-                debug!("Updater failed to get latest package: {:?}", e);
-                HandleResult::NoReply(Some(TIMEOUT_MS))
-            }
-        }
-    }
-
-    fn handle_cast(&self,
-                   msg: Self::T,
-                   _tx: &ActorSender<Self::T>,
-                   _me: &ActorSender<Self::T>,
-                   state: &mut Self::S)
-                   -> HandleResult<Self::T> {
-        match msg {
-            UpdaterMessage::Run => HandleResult::NoReply(Some(TIMEOUT_MS)),
-            _ => {
-                match state.status {
-                    UpdaterStatus::Running => HandleResult::NoReply(Some(TIMEOUT_MS)),
-                    UpdaterStatus::Stopped => HandleResult::NoReply(None),
-                }
-            }
-        }
     }
 }
 

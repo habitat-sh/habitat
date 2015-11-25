@@ -40,7 +40,7 @@ use wonder;
 
 use state_machine::StateMachine;
 use census;
-use pkg::{self, Package, PackageUpdaterActor, Signal};
+use package::{self, Package, PackageUpdaterActor, Signal};
 use util::signals;
 use util::signals::SignalNotifier;
 use error::{BldrResult, BldrError, ErrorKind};
@@ -218,7 +218,7 @@ impl<'a> Worker<'a> {
 
         if let Some(ref url) = *config.url() {
             let pkg_lock_2 = pkg_lock.clone();
-            pkg_updater = Some(pkg::PackageUpdater::start(url, pkg_lock_2));
+            pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
         }
 
         Ok(Worker {
@@ -460,11 +460,11 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
 
         if let Some(ref updater) = worker.pkg_updater {
             match updater.receiver.try_recv() {
-                Ok(wonder::actor::Message::Cast(pkg::UpdaterMessage::Update(package))) => {
+                Ok(wonder::actor::Message::Cast(package::UpdaterMessage::Update(package))) => {
                     debug!("Main loop received package update notification: {:?}",
                            &package);
                     try!(worker.update_package(package));
-                    try!(pkg::PackageUpdater::run(&updater));
+                    try!(package::PackageUpdater::run(&updater));
                 }
                 Ok(_) => {}
                 Err(TryRecvError::Empty) => {}

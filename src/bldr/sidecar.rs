@@ -34,7 +34,7 @@ use wonder::actor::{GenServer, InitResult, HandleResult, StopReason, ActorSender
 
 use error::BldrError;
 use health_check;
-use pkg::Package;
+use package::Package;
 use service_config::ServiceConfig;
 
 const GET_HEALTH: &'static str = "/health";
