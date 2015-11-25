@@ -56,12 +56,11 @@
 //! * Unpack it
 //!
 
-use std::process::Command;
 use std::fs;
 
-use fs::{PACKAGE_CACHE, GPG_CACHE};
-use error::{BldrResult, ErrorKind};
-use util::gpg;
+use fs::PACKAGE_CACHE;
+use error::BldrResult;
+use pkg::Package;
 use repo;
 
 static LOGKEY: &'static str = "CI";
@@ -73,45 +72,37 @@ static LOGKEY: &'static str = "CI";
 ///
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url(url: &str,
+pub fn from_url(repo: &str,
                 deriv: &str,
-                package: &str,
-                version: &Option<String>,
-                release: &Option<String>)
-                -> BldrResult<String> {
+                name: &str,
+                version: Option<String>,
+                release: Option<String>)
+                -> BldrResult<Package> {
+    let package = try!(repo::client::show_package(repo, deriv, name, version, release));
     try!(fs::create_dir_all(PACKAGE_CACHE));
-    repo::client::fetch_package(url, deriv, package, version, release, PACKAGE_CACHE)
+    let mut installed: Vec<Package> = vec![];
+    if let Some(ref pkgs) = package.deps {
+        for pkg in pkgs {
+            try!(install(repo, &pkg, &mut installed));
+        }
+    }
+    try!(install(repo, &package, &mut installed));
+    Ok(package)
 }
 
-/// Given a package name and a path to a file as an `&str`, verify
-/// the files gpg signature.
-///
-/// # Failures
-///
-/// * Fails if it cannot verify the GPG signature for any reason
-pub fn verify(package: &str, file: &str) -> BldrResult<()> {
-    try!(gpg::verify(package, file));
-    Ok(())
-}
-
-/// Given a package name and a path to a file as an `&str`, unpack
-/// the package.
-///
-/// # Failures
-///
-/// * If the package cannot be unpacked via gpg
-pub fn unpack(package: &str, file: &str) -> BldrResult<()> {
-    let output = try!(Command::new("sh")
-                          .arg("-c")
-                          .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x",
-                                       GPG_CACHE,
-                                       file))
-                          .output());
-    match output.status.success() {
-        true => outputln!("Installed {}", package),
-        false => {
-            outputln!("Failed to install {}", package);
-            return Err(bldr_error!(ErrorKind::UnpackFailed));
+fn install(repo: &str, package: &Package, acc: &mut Vec<Package>) -> BldrResult<()> {
+    if acc.contains(&package) {
+        return Ok(());
+    }
+    let archive = try!(repo::client::fetch_package_exact(repo, package, PACKAGE_CACHE));
+    try!(archive.verify());
+    let package = try!(archive.unpack());
+    outputln!("Installed {}", package);
+    let deps = package.deps.clone();
+    acc.push(package);
+    if let Some(ref pkgs) = deps {
+        for pkg in pkgs {
+            try!(install(repo, &pkg, acc))
         }
     }
     Ok(())

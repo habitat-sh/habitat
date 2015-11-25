@@ -16,7 +16,7 @@
 
 use std::io::{Read, Write, BufWriter};
 use std::fs::{self, File};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use hyper;
 use hyper::client::{Client, Body};
@@ -25,7 +25,7 @@ use rustc_serialize::json;
 
 use super::XFileName;
 use error::{BldrResult, BldrError, ErrorKind};
-use pkg::Package;
+use pkg::{Package, PackageArchive};
 
 static LOGKEY: &'static str = "RC";
 
@@ -49,15 +49,21 @@ pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
 /// * Package cannot be found
 /// * Remote repository is not available
 /// * File cannot be created and written to
-pub fn fetch_package_exact(repo: &str, package: &Package, path: &str) -> BldrResult<String> {
+pub fn fetch_package_exact(repo: &str,
+                           package: &Package,
+                           store: &str)
+                           -> BldrResult<PackageArchive> {
     let url = format!("{}/pkgs/{}/{}/{}/{}/download",
                       repo,
                       package.derivation,
                       package.name,
                       package.version,
                       package.release);
-    match download(&package.name, &url, path) {
-        Ok(path) => Ok(path),
+    match download(&package.name, &url, store) {
+        Ok(file) => {
+            let path = PathBuf::from(file);
+            Ok(PackageArchive::new(path))
+        }
         Err(BldrError{ err: ErrorKind::HTTP(StatusCode::NotFound), ..}) =>
             Err(bldr_error!(ErrorKind::RemotePackageNotFound(package.derivation.clone(),
                                                              package.name.clone(),
@@ -84,8 +90,8 @@ pub fn fetch_package(repo: &str,
                      package: &str,
                      version: &Option<String>,
                      release: &Option<String>,
-                     path: &str)
-                     -> BldrResult<String> {
+                     store: &str)
+                     -> BldrResult<PackageArchive> {
     let url = if release.is_some() && version.is_some() {
         format!("{}/pkgs/{}/{}/{}/{}/download",
                 repo,
@@ -102,8 +108,11 @@ pub fn fetch_package(repo: &str,
     } else {
         format!("{}/pkgs/{}/{}/download", repo, derivation, package)
     };
-    match download(package, &url, path) {
-        Ok(path) => Ok(path),
+    match download(package, &url, store) {
+        Ok(file) => {
+            let path = PathBuf::from(file);
+            Ok(PackageArchive::new(path))
+        }
         Err(BldrError { err: ErrorKind::HTTP(StatusCode::NotFound), ..}) =>
             Err(bldr_error!(ErrorKind::RemotePackageNotFound(derivation.to_string(),
                                                              package.to_string(),
@@ -122,12 +131,13 @@ pub fn fetch_package(repo: &str,
 ///
 /// * Package cannot be found
 /// * Remote repository is not available
-pub fn show_package_latest(repo: &str,
-                           derivation: &str,
-                           name: &str,
-                           version: Option<&str>)
-                           -> BldrResult<Package> {
-    let url = url_show_package(repo, derivation, name, version);
+pub fn show_package(repo: &str,
+                    derivation: &str,
+                    name: &str,
+                    version: Option<String>,
+                    release: Option<String>)
+                    -> BldrResult<Package> {
+    let url = url_show_package(repo, derivation, name, &version, &release);
     let client = Client::new();
     let request = client.get(&url);
     let mut res = try!(request.send());
@@ -180,8 +190,20 @@ pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     upload(&url, &mut file)
 }
 
-fn url_show_package(repo: &str, derivation: &str, name: &str, version: Option<&str>) -> String {
-    if version.is_some() {
+fn url_show_package(repo: &str,
+                    derivation: &str,
+                    name: &str,
+                    version: &Option<String>,
+                    release: &Option<String>)
+                    -> String {
+    if version.is_some() && release.is_some() {
+        format!("{}/pkgs/{}/{}/{}/{}",
+                repo,
+                derivation,
+                name,
+                version.as_ref().unwrap(),
+                release.as_ref().unwrap())
+    } else if version.is_some() {
         format!("{}/pkgs/{}/{}/{}",
                 repo,
                 derivation,

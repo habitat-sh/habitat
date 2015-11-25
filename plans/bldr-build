@@ -721,6 +721,8 @@ link_libraries() {
     echo $dep_pkg_name >> $pkg_path/DEPS
   done
 
+  echo "${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_path/IDENT
+
   return 0
 }
 

@@ -24,13 +24,6 @@ use util::perm;
 
 static LOGKEY: &'static str = "GP";
 
-fn gpg_cmd() -> Command {
-    let mut command = Command::new("gpg");
-    command.arg("--homedir");
-    command.arg(GPG_CACHE);
-    command
-}
-
 pub fn import(status: &str, keyfile: &str) -> BldrResult<()> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
@@ -39,29 +32,30 @@ pub fn import(status: &str, keyfile: &str) -> BldrResult<()> {
                           .arg(keyfile)
                           .output());
     match output.status.success() {
-        true => outputln!("{} GPG key imported", status),
-        false => {
-            outputln!("{} GPG import failed:\n{}\n{}",
-                      status,
-                      String::from_utf8_lossy(&output.stdout),
-                      String::from_utf8_lossy(&output.stderr));
-            return Err(bldr_error!(ErrorKind::GPGImportFailed));
+        true => {
+            outputln!("{} GPG key imported", status);
+            Ok(())
         }
+        false => Err(bldr_error!(ErrorKind::GPGImportFailed(String::from_utf8_lossy(&output.stderr)
+                                                                .into_owned()))),
     }
-    Ok(())
 }
 
-pub fn verify(status: &str, file: &str) -> BldrResult<()> {
+pub fn verify(file: &str) -> BldrResult<()> {
     let output = try!(gpg_cmd()
                           .arg("--verify")
                           .arg(file)
                           .output());
     match output.status.success() {
-        true => outputln!("{} GPG signature verified", status),
-        false => {
-            outputln!("{} GPG signature failed", status);
-            return Err(bldr_error!(ErrorKind::GPGVerifyFailed));
-        }
+        true => Ok(()),
+        false => Err(bldr_error!(ErrorKind::GPGVerifyFailed(String::from_utf8_lossy(&output.stderr)
+                                                                .into_owned()))),
     }
-    Ok(())
+}
+
+fn gpg_cmd() -> Command {
+    let mut command = Command::new("gpg");
+    command.arg("--homedir");
+    command.arg(GPG_CACHE);
+    command
 }

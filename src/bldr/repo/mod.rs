@@ -29,10 +29,10 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::{Path, PathBuf};
 
-use error::{BldrError, BldrResult, ErrorKind};
+use error::{BldrResult, ErrorKind};
 use config::Config;
 
-use pkg::Package;
+use pkg::{Package, PackageArchive};
 
 static LOGKEY: &'static str = "RE";
 
@@ -45,6 +45,66 @@ struct Repo {
 impl Repo {
     fn new(path: &str) -> BldrResult<Arc<Repo>> {
         Ok(Arc::new(Repo { path: String::from(path) }))
+    }
+
+    // Return a PackageArchive representing the given package. None is returned if the repository
+    // doesn't have an archive for the given package.
+    fn archive(&self,
+               derivation: &str,
+               name: &str,
+               version: &str,
+               release: &str)
+               -> Option<PackageArchive> {
+        let file = self.archive_path(derivation, name, version, release);
+        match fs::metadata(&file) {
+            Ok(_) => Some(PackageArchive::new(file)),
+            Err(_) => None,
+        }
+    }
+
+    // Return a PackageArchive representing the latest release available for the given package
+    // derivation, name, and version (optional).
+    //
+    // If a version is specified the latest release of that version will be returned, if it is
+    // omitted the latest release of the latest version is returned.
+    fn archive_latest(&self,
+                      derivation: &str,
+                      name: &str,
+                      version: Option<&str>)
+                      -> Option<PackageArchive> {
+        match Package::latest(derivation,
+                              name,
+                              version,
+                              Some(self.packages_path().to_str().unwrap())) {
+            Ok(package) => self.archive(&package.derivation,
+                                        &package.name,
+                                        &package.version,
+                                        &package.release),
+            Err(_) => None,
+        }
+    }
+
+    // Return a formatted string representing the filename of an archive for the given package
+    // identifier pieces.
+    fn archive_path(&self, derivation: &str, name: &str, version: &str, release: &str) -> PathBuf {
+        self.packages_path()
+            .join(derivation)
+            .join(name)
+            .join(version)
+            .join(release)
+            .join(format!("{}-{}-{}-{}.bldr", &derivation, &name, &version, &release))
+    }
+
+    fn key_path(&self, name: &str) -> PathBuf {
+        self.keys_path().join(format!("{}.asc", name))
+    }
+
+    fn keys_path(&self) -> PathBuf {
+        Path::new(&self.path).join("keys")
+    }
+
+    fn packages_path(&self) -> PathBuf {
+        Path::new(&self.path).join("pkgs")
     }
 }
 
@@ -63,7 +123,8 @@ impl Default for ListenPort {
     }
 }
 
-fn write_file(path: PathBuf, filename: PathBuf, body: &mut Body) -> BldrResult<bool> {
+fn write_file(filename: &PathBuf, body: &mut Body) -> BldrResult<bool> {
+    let path = filename.parent().unwrap();
     try!(fs::create_dir_all(path));
     let tempfile = format!("{}.tmp", filename.to_string_lossy());
     let f = try!(File::create(&tempfile));
@@ -95,15 +156,12 @@ fn write_file(path: PathBuf, filename: PathBuf, body: &mut Body) -> BldrResult<b
 fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     outputln!("Upload Key {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
-
     let key = rext.find("key").unwrap();
+    let file = repo.key_path(&key);
 
-    let path = Path::new(&repo.path).join("keys");
-    let short_name = format!("{}.asc", key);
-    let filename = path.join(&short_name);
+    try!(write_file(&file, &mut req.body));
 
-    try!(write_file(path, filename, &mut req.body));
-
+    let short_name = file.file_name().unwrap().to_string_lossy();
     let mut response = Response::with((status::Created, format!("/key/{}", &short_name)));
 
     let mut base_url = req.url.clone();
@@ -121,11 +179,8 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let version = rext.find("version").unwrap();
     let release = rext.find("release").unwrap();
 
-    let path = Path::new(&repo.path)
-                   .join(format!("pkgs/{}/{}/{}/{}", deriv, pkg, version, release));
-    let filename = path.join(format!("{}-{}-{}-{}.bldr", deriv, pkg, version, release));
-
-    try!(write_file(path, filename, &mut req.body));
+    let filename = repo.archive_path(deriv, pkg, version, release);
+    try!(write_file(&filename, &mut req.body));
 
     let mut response = Response::with((status::Created,
                                        format!("/pkgs/{}/{}/{}/{}/download",
@@ -178,27 +233,25 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let param_ver = rext.find("version");
     let param_rel = rext.find("release");
 
-    let (version, release) = if param_ver.is_some() && param_rel.is_some() {
-        (param_ver.unwrap().to_string(),
-         param_rel.unwrap().to_string())
+    let archive = if param_ver.is_some() && param_rel.is_some() {
+        match repo.archive(&deriv,
+                           &pkg,
+                           param_ver.as_ref().unwrap(),
+                           param_rel.as_ref().unwrap()) {
+            Some(archive) => archive,
+            None => return Ok(Response::with(status::NotFound)),
+        }
     } else {
-        match Package::latest(deriv, pkg, None, Some(&format!("{}/pkgs", &repo.path))) {
-            Ok(package) => (package.version, package.release),
-            Err(BldrError{err: ErrorKind::Io(_), ..}) =>
-                return Ok(Response::with(status::NotFound)),
-            Err(_) => return Ok(Response::with(status::InternalServerError)),
+        match repo.archive_latest(&deriv, &pkg, param_ver) {
+            Some(archive) => archive,
+            None => return Ok(Response::with(status::NotFound)),
         }
     };
 
-    let short_filename = format!("{}-{}-{}-{}.bldr", deriv, pkg, version, release);
-    let path = Path::new(&repo.path)
-                   .join(format!("pkgs/{}/{}/{}/{}", deriv, pkg, version, release));
-    let file = path.join(&short_filename);
-
-    match fs::metadata(&file) {
+    match fs::metadata(&archive.path) {
         Ok(_) => {
-            let mut response = Response::with((status::Ok, file));
-            response.headers.set(XFileName(short_filename.clone()));
+            let mut response = Response::with((status::Ok, archive.path.clone()));
+            response.headers.set(XFileName(archive.file_name()));
             Ok(response)
         }
         Err(_) => {
@@ -207,23 +260,31 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn show_package_latest(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn show_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let rext = req.extensions.get::<Router>().unwrap();
     let package = rext.find("pkg").unwrap();
     let deriv = rext.find("deriv").unwrap();
     let version = rext.find("version");
-    match Package::latest(&deriv,
-                          &package,
-                          version,
-                          Some(&format!("{}/pkgs", &repo.path))) {
-        Ok(package) => {
-            let body = json::encode(&package).unwrap();
-            Ok(Response::with((status::Ok, body)))
+    let release = rext.find("release");
+
+    let archive = if version.is_some() && release.is_some() {
+        match repo.archive(&deriv,
+                           &package,
+                           version.as_ref().unwrap(),
+                           release.as_ref().unwrap()) {
+            Some(archive) => archive,
+            None => return Ok(Response::with(status::NotFound)),
         }
-        Err(_) => {
-            Ok(Response::with((status::NotFound)))
+    } else {
+        match repo.archive_latest(&deriv, &package, version) {
+            Some(archive) => archive,
+            None => return Ok(Response::with(status::NotFound)),
         }
-    }
+    };
+
+    let package = try!(archive.package());
+    let body = json::encode(&package).unwrap();
+    Ok(Response::with((status::Ok, body)))
 }
 
 pub fn run(config: &Config) -> BldrResult<()> {
@@ -235,16 +296,18 @@ pub fn run(config: &Config) -> BldrResult<()> {
     let repo6 = repo.clone();
     let repo7 = repo.clone();
     let repo8 = repo.clone();
+    let repo9 = repo.clone();
     let router = router!(
         post "/pkgs/:deriv/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo, r),
         get "/pkgs/:deriv/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo2, r),
         get "/pkgs/:deriv/:pkg/:version/download" => move |r: &mut Request| download_package(&repo3, r),
         get "/pkgs/:deriv/:pkg/download" => move |r: &mut Request| download_package(&repo4, r),
-        get "/pkgs/:deriv/:pkg/:version" => move |r: &mut Request| show_package_latest(&repo5, r),
-        get "/pkgs/:deriv/:pkg" => move |r: &mut Request| show_package_latest(&repo6, r),
+        get "/pkgs/:deriv/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo5, r),
+        get "/pkgs/:deriv/:pkg/:version" => move |r: &mut Request| show_package(&repo6, r),
+        get "/pkgs/:deriv/:pkg" => move |r: &mut Request| show_package(&repo7, r),
 
-        post "/keys/:key" => move |r: &mut Request| upload_key(&repo7, r),
-        get "/keys/:key" => move |r: &mut Request| download_key(&repo8, r)
+        post "/keys/:key" => move |r: &mut Request| upload_key(&repo8, r),
+        get "/keys/:key" => move |r: &mut Request| download_key(&repo9, r)
     );
     Iron::new(router).http(config.repo_addr()).unwrap();
     Ok(())

@@ -1,30 +1,23 @@
+PKGS := glibc libgcc zlib cacerts busybox gnupg openssl runit bldr redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
+REPO := http://ec2-52-10-238-149.us-west-2.compute.amazonaws.com
+
 world: gpg
-	./bldr-build glibc
-	./bldr-build libgcc
-	./bldr-build zlib
-	./bldr-build cacerts
-	./bldr-build busybox
-	./bldr-build gnupg
-	./bldr-build openssl
-	./bldr-build runit
-	./bldr-build bldr
-	./bldr-build redis
-	./bldr-build ncurses
-	./bldr-build libedit
-	./bldr-build bzip2
-	./bldr-build pcre
-	./bldr-build nginx
-	./bldr-build haproxy
-	./bldr-build libaio
-	./bldr-build libltdl
-	./bldr-build libxml2
-	./bldr-build numactl
-	./bldr-build perl
+	@for pkg in $(PKGS); do \
+		./bldr-build $$pkg; \
+	done
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
+
+publish:
+	cargo build --release
+	@for pkg in $(PKGS); do \
+		../target/release/bldr upload chef/$$pkg -u $(REPO); \
+	done
 
 gpg:
 	- gpg --import chef-public.gpg
 	- gpg --import chef-private.gpg
+	- gpg --homedir /opt/bldr/cache/gpg --import chef-public.gpg
+	- gpg --homedir /opt/bldr/cache/gpg --import chef-private.gpg
 
 clean:
 	rm -rf /opt/bldr/pkgs/*
