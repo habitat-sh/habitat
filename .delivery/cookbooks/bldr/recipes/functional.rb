@@ -16,6 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-execute 'make clean packages functional force=true' do
+execute 'make clean package functional force=true' do
   cwd node['delivery']['workspace']['repo']
 end
