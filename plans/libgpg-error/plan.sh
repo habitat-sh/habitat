@@ -1,0 +1,11 @@
+pkg_name=libgpg-error
+pkg_derivation=chef
+pkg_version=1.20
+pkg_license=('LGPL')
+pkg_source=https://www.gnupg.org/ftp/gcrypt/${pkg_name}/${pkg_name}-${pkg_version}.tar.bz2
+pkg_shasum=3266895ce3419a7fb093e63e95e2ee3056c481a9bc0d6df694cfd26f74e72522
+pkg_gpg_key=3853DA6B
+pkg_binary_path=(bin)
+pkg_lib_dirs=(lib)
+pkg_include_dirs=(include)
+pkg_deps=(chef/glibc)
