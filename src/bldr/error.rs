@@ -48,6 +48,7 @@ use std::string;
 use std::ffi;
 use std::sync::mpsc;
 
+use gpgme;
 use uuid;
 use wonder::actor;
 use ansi_term::Colour::Red;
@@ -103,8 +104,7 @@ pub enum ErrorKind {
     HTTP(hyper::status::StatusCode),
     CannotParseFileName,
     PathUTF8,
-    GPGImportFailed(String),
-    GPGVerifyFailed(String),
+    GPGError(gpgme::Error),
     UnpackFailed,
     TomlParser(Vec<toml::ParserError>),
     MustacheEncoderError(mustache::encoder::Error),
@@ -160,8 +160,7 @@ impl fmt::Display for BldrError {
             ErrorKind::CannotParseFileName =>
                 format!("Cannot determine the filename from the given URI"),
             ErrorKind::PathUTF8 => format!("Paths must not contain non-UTF8 characters"),
-            ErrorKind::GPGImportFailed(ref e) => format!("Failed to import a GPG key, {}", e),
-            ErrorKind::GPGVerifyFailed(ref e) => format!("Failed to verify GPG Signature, {}", e),
+            ErrorKind::GPGError(ref e) => format!("{}", e),
             ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
             ErrorKind::TomlParser(ref errs) => {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
@@ -264,8 +263,7 @@ impl Error for BldrError {
             ErrorKind::HyperError(ref err) => err.description(),
             ErrorKind::HTTP(_) => "Received an HTTP error",
             ErrorKind::PathUTF8 => "Paths must not contain non-UTF8 characters",
-            ErrorKind::GPGImportFailed(_) => "Failed to import a GPG key",
-            ErrorKind::GPGVerifyFailed(_) => "Failed to verify a GPG Signature",
+            ErrorKind::GPGError(_) => "gpgme error",
             ErrorKind::UnpackFailed => "Failed to unpack a package",
             ErrorKind::TomlParser(_) => "Failed to parse toml!",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
@@ -371,6 +369,12 @@ impl From<string::FromUtf8Error> for BldrError {
 impl From<mpsc::TryRecvError> for BldrError {
     fn from(err: mpsc::TryRecvError) -> BldrError {
         bldr_error!(ErrorKind::TryRecvError(err))
+    }
+}
+
+impl From<gpgme::Error> for BldrError {
+    fn from(err: gpgme::Error) -> BldrError {
+        bldr_error!(ErrorKind::GPGError(err))
     }
 }
 

@@ -1,5 +1,3 @@
-set -x
-
 pkg_name=bldr
 pkg_derivation=chef
 pkg_version=0.2.0
@@ -8,7 +6,7 @@ pkg_source=http://download.redis.io/releases/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=0e21be5d7c5e6ab6adcbed257619897db59be9e1ded7ef6fd1582d0cdb5e5bb7
 pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
-pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit)
+pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme)
 
 bldr_begin() {
 	mkdir -p /opt/bldr/cache/keys

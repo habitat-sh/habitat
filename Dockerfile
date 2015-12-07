@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rsync \
     wget \
     m4 \
+    libgpgme11-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ENV SHELL /bin/bash

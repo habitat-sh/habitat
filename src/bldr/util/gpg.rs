@@ -15,47 +15,54 @@
 // limitations under the License.
 //
 
-use std::process::Command;
-use std::fs;
+use std::fs::{self, File};
+
+use gpgme;
 
 use fs::GPG_CACHE;
-use error::{BldrResult, ErrorKind};
+use error::{BldrResult, BldrError, ErrorKind};
 use util::perm;
 
 static LOGKEY: &'static str = "GP";
 
-pub fn import(status: &str, keyfile: &str) -> BldrResult<()> {
+pub fn import(keyfile: &str) -> BldrResult<()> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
-    let output = try!(gpg_cmd()
-                          .arg("--import")
-                          .arg(keyfile)
-                          .output());
-    match output.status.success() {
-        true => {
-            outputln!("{} GPG key imported", status);
+    let mut ctx = try!(init_ctx());
+    let mut data = try!(gpgme::Data::load(&keyfile));
+    try!(data.set_encoding(gpgme::data::ENCODING_URL));
+    match ctx.import(&mut data) {
+        Ok(_) => {
+            outputln!("{} GPG key imported", keyfile);
             Ok(())
         }
-        false => Err(bldr_error!(ErrorKind::GPGImportFailed(String::from_utf8_lossy(&output.stderr)
-                                                                .into_owned()))),
+        Err(e) => Err(BldrError::from(e)),
     }
 }
 
 pub fn verify(file: &str) -> BldrResult<()> {
-    let output = try!(gpg_cmd()
-                          .arg("--verify")
-                          .arg(file)
-                          .output());
-    match output.status.success() {
-        true => Ok(()),
-        false => Err(bldr_error!(ErrorKind::GPGVerifyFailed(String::from_utf8_lossy(&output.stderr)
-                                                                .into_owned()))),
+    let mut ctx = try!(init_ctx());
+
+    let mut signature = {
+        let f = match File::open(&file) {
+            Ok(f) => f,
+            Err(_) => return Err(bldr_error!(ErrorKind::FileNotFound(String::from(file)))),
+        };
+        match gpgme::Data::from_seekable_reader(f) {
+            Ok(data) => data,
+            Err(_) => return Err(bldr_error!(ErrorKind::FileNotFound(String::from(file)))),
+        }
+    };
+
+    let mut plain = try!(gpgme::Data::new());
+    match ctx.verify(&mut signature, None, Some(&mut plain)) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(BldrError::from(e)),
     }
 }
 
-fn gpg_cmd() -> Command {
-    let mut command = Command::new("gpg");
-    command.arg("--homedir");
-    command.arg(GPG_CACHE);
-    command
+fn init_ctx() -> BldrResult<gpgme::Context> {
+    let mut ctx = try!(gpgme::create_context());
+    try!(ctx.set_engine_info(gpgme::PROTOCOL_OPENPGP, None, Some(String::from(GPG_CACHE))));
+    Ok(ctx)
 }

@@ -53,13 +53,13 @@ pub fn install(config: &Config) -> BldrResult<()> {
     match *config.url() {
         Some(ref url) => {
             if url.is_empty() {
-                try!(gpg::import("key", &config.key()));
+                try!(gpg::import(&config.key()));
             }
             try!(fs::create_dir_all(KEY_CACHE));
             let filename = try!(repo::client::fetch_key(url, &config.key(), KEY_CACHE));
-            try!(gpg::import("key", &filename));
+            try!(gpg::import(&filename));
         }
-        None => try!(gpg::import("key", &config.key())),
+        None => try!(gpg::import(&config.key())),
     }
     Ok(())
 }
