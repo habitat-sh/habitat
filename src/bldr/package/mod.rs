@@ -137,16 +137,29 @@ impl Package {
         }
     }
 
-    pub fn latest(deriv: &str,
-                  pkg: &str,
-                  ver: Option<&str>,
-                  opt_path: Option<&str>)
-                  -> BldrResult<Package> {
-        let path = opt_path.unwrap_or(PACKAGE_HOME);
+    /// Verifies a package is within the package home and returns a struct representing that
+    /// package.
+    ///
+    /// Only the derivation and name of a package are required - the latest version/release of a
+    /// package will be returned if their optional value is not specified. If only a version is
+    /// specified, the latest release of that package derivation, name, and version is returned.
+    ///
+    /// An optional `home` path may be provided to search for a package in the non-default path.
+    pub fn load(deriv: &str,
+                pkg: &str,
+                ver: Option<String>,
+                rel: Option<String>,
+                home: Option<&str>)
+                -> BldrResult<Package> {
+        let path = home.unwrap_or(PACKAGE_HOME);
         let pl = try!(Self::package_list(path));
         let latest: Option<Package> = pl.iter()
                                         .filter(|&p| {
-                                            if ver.is_some() {
+                                            if ver.is_some() && rel.is_some() {
+                                                p.name == pkg && p.derivation == deriv &&
+                                                p.version == *ver.as_ref().unwrap() &&
+                                                p.release == *rel.as_ref().unwrap()
+                                            } else if ver.is_some() {
                                                 p.name == pkg && p.derivation == deriv &&
                                                 p.version == *ver.as_ref().unwrap()
                                             } else {
@@ -166,18 +179,14 @@ impl Package {
                                                 None => Some(b.clone()),
                                             }
                                         });
-        let ver = if ver.is_some() {
-            Some(String::from(ver.unwrap()))
-        } else {
-            None
-        };
         latest.ok_or(bldr_error!(ErrorKind::PackageNotFound(deriv.to_string(),
                                                             pkg.to_string(),
-                                                            ver)))
+                                                            ver,
+                                                            rel)))
     }
 
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(Self::latest("chef", "runit", None, None));
+        let runit_pkg = try!(Self::load("chef", "runit", None, None, None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",

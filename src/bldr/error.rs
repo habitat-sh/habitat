@@ -117,7 +117,7 @@ pub enum ErrorKind {
     FileNotFound(String),
     KeyNotFound(String),
     PackageLoad(String),
-    PackageNotFound(String, String, Option<String>),
+    PackageNotFound(String, String, Option<String>, Option<String>),
     RemotePackageNotFound(String, String, Option<String>, Option<String>),
     MustacheMergeOnlyMaps,
     SupervisorSignalFailed,
@@ -181,12 +181,18 @@ impl fmt::Display for BldrError {
             ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
             ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             ErrorKind::PackageLoad(ref e) => format!("Unable to load package from: {}", e),
-            ErrorKind::PackageNotFound(ref d, ref n, ref r) => {
-                if r.is_some() {
+            ErrorKind::PackageNotFound(ref d, ref n, ref v, ref r) => {
+                if v.is_some() && r.is_some() {
+                    format!("Cannot find package: {}/{}/{}/{}",
+                            d,
+                            n,
+                            v.as_ref().unwrap(),
+                            r.as_ref().unwrap())
+                } else if v.is_some() {
                     format!("Cannot find a release of package: {}/{}/{}",
                             d,
                             n,
-                            r.as_ref().unwrap())
+                            v.as_ref().unwrap())
                 } else {
                     format!("Cannot find a release of package: {}/{}", d, n)
                 }
@@ -276,7 +282,7 @@ impl Error for BldrError {
             ErrorKind::FileNotFound(_) => "File not found",
             ErrorKind::KeyNotFound(_) => "Key not found in key cache",
             ErrorKind::PackageLoad(_) => "Unable to load package from path",
-            ErrorKind::PackageNotFound(_, _, _) => "Cannot find a package",
+            ErrorKind::PackageNotFound(_, _, _, _) => "Cannot find a package",
             ErrorKind::RemotePackageNotFound(_, _, _, _) => "Cannot find a package in any sources",
             ErrorKind::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
             ErrorKind::SupervisorSignalFailed =>

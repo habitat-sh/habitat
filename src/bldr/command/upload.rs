@@ -39,9 +39,8 @@ use repo;
 
 static LOGKEY: &'static str = "CU";
 
-/// Upload a package to a repository.
-///
-/// Find the latest package, then read it from the cache, and upload to the repository.
+/// Upload a package from the cache to a repository. The latest version/release of the package
+/// will be uploaded if not specified.
 ///
 /// # Failures
 ///
@@ -50,7 +49,11 @@ static LOGKEY: &'static str = "CU";
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
-    let package = try!(Package::latest(config.deriv(), config.package(), None, None));
+    let package = try!(Package::load(config.deriv(),
+                                     config.package(),
+                                     config.version().clone(),
+                                     config.release().clone(),
+                                     None));
     outputln!("Uploading from {}", package.cache_file().to_string_lossy());
     try!(repo::client::put_package(url, &package));
     outputln!("Complete");
