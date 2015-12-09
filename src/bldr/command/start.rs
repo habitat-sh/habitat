@@ -80,7 +80,7 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> BldrResult<()> {
-    match Package::latest(config.deriv(), config.package(), None, None) {
+    match Package::load(config.deriv(), config.package(), None, None, None) {
         Ok(mut package) => {
             if let Some(ref url) = *config.url() {
                 outputln!("Checking remote for newer versions...");
@@ -120,6 +120,7 @@ pub fn package(config: &Config) -> BldrResult<()> {
                 None => {
                     Err(bldr_error!(ErrorKind::PackageNotFound(config.deriv().to_string(),
                                                                config.package().to_string(),
+                                                               config.release().clone(),
                                                                config.release().clone())))
                 }
             }

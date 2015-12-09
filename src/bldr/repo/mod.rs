@@ -72,10 +72,11 @@ impl Repo {
                       name: &str,
                       version: Option<&str>)
                       -> Option<PackageArchive> {
-        match Package::latest(derivation,
-                              name,
-                              version,
-                              Some(self.packages_path().to_str().unwrap())) {
+        match Package::load(derivation,
+                            name,
+                            version.map(String::from),
+                            None,
+                            Some(self.packages_path().to_str().unwrap())) {
             Ok(package) => self.archive(&package.derivation,
                                         &package.name,
                                         &package.version,

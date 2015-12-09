@@ -74,7 +74,7 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u32)> {
 pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
     outputln!(P: &worker.package_name, "Starting");
     let package = worker.package_name.clone();
-    let runit_pkg = try!(Package::latest("chef", "runit", None, None));
+    let runit_pkg = try!(Package::load("chef", "runit", None, None, None));
     let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
                              .arg(&format!("{}/{}", SERVICE_HOME, worker.package_name))
                              .stdin(Stdio::null())
