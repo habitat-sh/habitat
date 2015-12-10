@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+cache_dir = "../../../bldr_cache_pkgs"
+
+FileUtils.mkdir_p(File.join(File.dirname(__FILE__), cache_dir))
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "bento/ubuntu-15.04"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "4096"
+    vb.cpus = 2
+  end
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder "../..", "/plans"
+  config.vm.synced_folder cache_dir, "/mnt/chroot/opt/bldr/cache/pkgs"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    cat <<-EOF | tee /home/vagrant/.bash_profile
+    if [ -n "\\${PS1}" -o "\\$-" = "*i*" ]; then
+      set -eux; cd /plans/support/chroot; exec make metal-shell;
+    fi
+EOF
+  SHELL
+end
