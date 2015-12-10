@@ -100,9 +100,15 @@
 # ```
 #
 # ### pkg_deps
-# An array of dependencies the package has.
+# An array of the package dependencies needed at runtime.
 # ```
 # pkg_deps=(glibc pcre openssl zlib)
+# ```
+#
+# ### pkg_build_deps
+# An array of the package dependencies needed only at build time.
+# ```
+# pkg_build_deps=(linux-headers)
 # ```
 #
 # ### pkg_lib_dirs
@@ -272,7 +278,9 @@ BLDR_REPO=http://ec2-52-10-238-149.us-west-2.compute.amazonaws.com
 pkg_derivation=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_rel=$(date -u +%Y%m%d%H%M%S)
-# The default deps setting - an empty array
+# The default build deps setting - an empty array
+pkg_build_deps=()
+# The default runtime deps setting - an empty array
 pkg_deps=()
 # A legacy option; defines you want bldr style packages
 pkg_format=(bldr)
@@ -547,9 +555,9 @@ unpack() {
 
 # Set up our build environment. First, add any library paths defined in
 # `$pkg_lib_dirs` to `LD_RUN_PATH`. Then, for each dependency in `$pkg_deps`,
-# find the latest package, then add it's `LD_RUN_PATH`, `CFLAGS`, `LDFLAGS`,
-# and `PATH` to ours. Also, set `PREFIX=$pkg_path`, ensuring that most
-# software will install into the correct location.
+# and `$pkg_build_deps`, find the latest package, then add it's `LD_RUN_PATH`,
+# `CFLAGS`, `LDFLAGS`, and `PATH` to ours. Also, set `PREFIX=$pkg_path`,
+# ensuring that most software will install into the correct location.
 build_environment() {
   local ld_run_path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
@@ -560,7 +568,15 @@ build_environment() {
     fi
   done
   export LD_RUN_PATH=$ld_run_path_part
-  for dep in "${pkg_deps[@]}"; do
+  local path_part=""
+  for path in "${pkg_binary_path[@]}"; do
+    if [[ -z $path_part ]]; then
+      path_part="$pkg_path/$path"
+    else
+      path_part="$path_part:$pkg_path/$path"
+    fi
+  done
+  for dep in "${pkg_build_deps[@]}" "${pkg_deps[@]}"; do
     if echo $dep | grep '\/'; then
       if [[ -f "$BLDR_BIN" ]]; then
         $BLDR_BIN install $dep -u $BLDR_REPO
@@ -597,14 +613,25 @@ build_environment() {
     if [[ -f "$dep_path/PATH" ]]; then
       local data=$(cat $dep_path/PATH)
       local trimmed=$(trim $data)
-      export PATH="$PATH:$trimmed"
+      if [[ -z $path_part ]]; then
+        path_part="$trimmed"
+      else
+        path_part="$path_part:$trimmed"
+      fi
     fi
   done
+  # Insert all the package PATH fragments before the default PATH to ensure
+  # Bldr package binaries are used before any userland/operating system binaries
+  if [[ -n $path_part ]]; then
+    export PATH="$path_part:$PATH"
+  fi
+  # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_path
-  debug "Setting PREFIX=$PREFIX"
-  debug "Setting LD_RUN_PATH=$LD_RUN_PATH"
-  debug "Setting CFLAGS=$CFLAGS"
-  debug "Setting LDFLAGS=$LDFLAGS"
+  build_line "Setting PATH=$PATH"
+  build_line "Setting PREFIX=$PREFIX"
+  build_line "Setting LD_RUN_PATH=$LD_RUN_PATH"
+  build_line "Setting CFLAGS=$CFLAGS"
+  build_line "Setting LDFLAGS=$LDFLAGS"
   return 0
 }
 
@@ -709,6 +736,19 @@ link_libraries() {
   fi
 
   local deps_part=""
+  for dep in "${pkg_build_deps[@]}"; do
+    if echo $dep | grep '\/'; then
+      dep_deriv=$(echo $dep | cut -d "/" -f 1)
+      dep_rest=$(echo $dep | cut -d "/" -f 2)
+      dep_path=$(latest_package "$dep_deriv/$dep_rest")
+    else
+      exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
+    fi
+    dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 "/" $6 "/" $7 "/" $8 }')
+    echo $dep_pkg_name >> $pkg_path/BUILD_DEPS
+  done
+
+  local deps_part=""
   for dep in "${pkg_deps[@]}"; do
     if echo $dep | grep '\/'; then
       dep_deriv=$(echo $dep | cut -d "/" -f 1)
@@ -803,13 +843,14 @@ License: $(printf "%s " ${pkg_license[@]})
 Source: [$pkg_source]($pkg_source)
 SHA: $pkg_shasum
 Path: $pkg_path
+Build Dependencies: $(printf "%s " ${pkg_build_deps[@]})
 Dependencies: $(printf "%s " ${pkg_deps[@]})
 
 Plan
 ========
 
-Flags
------
+Build Flags
+-----------
 
 CFLAGS: $CFLAGS
 LDFLAGS: $LDFLAGS
@@ -821,15 +862,19 @@ $(cat $BLDR_CONTEXT/plan.sh)
 
 Files
 -----
-$(find $pkg_path -type f | xargs sha256sum)
+$(find $pkg_path -type f | sort | xargs sha256sum)
 EOT
   return 0
 }
 
-# Create the bldr package with `gpg-zip`, and sign it with `$pkg_gpg_key`.
+# Create the bldr package with `tar`/`gpg`, and sign it with `$pkg_gpg_key`.
 package() {
   mkdir -p $BLDR_PKG_CACHE
-  gpg-zip -u $pkg_gpg_key --tar-args '-cj --absolute-names' --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --sign $pkg_path
+  tar -cf - "$pkg_path" | gpg \
+    --set-filename x.tar \
+    --local-user $pkg_gpg_key \
+    --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
+    --sign
   return 0
 }
 
