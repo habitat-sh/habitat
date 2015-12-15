@@ -24,7 +24,7 @@
 //!
 //! To match on `ErrorKind`, do something like this:
 //!
-//! ```rust
+//! ```ignore
 //! let error = bldr_error!(ErrorKind::CommandNotImplemented);
 //! let result = match error {
 //!     BldrError{err: ErrorKind::CommandNotImplemented, ..} => true,

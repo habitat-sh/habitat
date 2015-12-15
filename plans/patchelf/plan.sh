@@ -1,0 +1,9 @@
+pkg_name=patchelf
+pkg_derivation=chef
+pkg_version=0.8
+pkg_license=('GPLv3')
+pkg_source=http://releases.nixos.org/patchelf/patchelf-$pkg_version/patchelf-${pkg_version}.tar.gz
+pkg_shasum=14af06a2da688d577d64ff8dac065bb8903bbffbe01d30c62df7af9bf4ce72fe
+pkg_gpg_key=3853DA6B
+pkg_binary_path=(bin)
+pkg_deps=(chef/glibc)

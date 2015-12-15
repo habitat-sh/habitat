@@ -1,9 +1,9 @@
 pkg_name=openssl
 pkg_derivation=chef
-pkg_version=1.0.2d
+pkg_version=1.0.2e
 pkg_license=('BSD')
-pkg_source=https://www.openssl.org/source/openssl-1.0.2d.tar.gz
-pkg_shasum=671c36487785628a703374c652ad2cebea45fa920ae5681515df25d9f2c9a8c8
+pkg_source=https://www.openssl.org/source/openssl-1.0.2e.tar.gz
+pkg_shasum=e23ccafdb75cfcde782da0151731aa2185195ac745eea3846133f2e05c0e0bff
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/zlib chef/cacerts)
 pkg_binary_path=(bin)
