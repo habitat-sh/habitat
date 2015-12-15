@@ -1,5 +1,5 @@
 PKGS := glibc libgcc zlib cacerts busybox patchelf libgpg-error libassuan gnupg gpgme openssl runit bldr redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
-REPO := http://ec2-52-10-238-149.us-west-2.compute.amazonaws.com
+REPO := http://159.203.235.47
 
 bldr: gpg
 	@for pkg in glibc libgcc zlib cacerts busybox patchelf libgpg-error libassuan gnupg gpgme openssl runit bldr; do \

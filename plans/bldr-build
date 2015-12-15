@@ -273,7 +273,7 @@ BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
 # The first argument to the script is a bldr context directory, containing a Plan
 BLDR_CONTEXT=${1:-.}
 # The default bldr package repository from where to download dependencies
-BLDR_REPO=http://ec2-52-10-238-149.us-west-2.compute.amazonaws.com
+BLDR_REPO=http://159.203.235.47
 # The default derivation is `bldr`
 pkg_derivation=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
