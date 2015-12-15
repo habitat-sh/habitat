@@ -6,7 +6,7 @@ pkg_source=http://download.redis.io/releases/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=0e21be5d7c5e6ab6adcbed257619897db59be9e1ded7ef6fd1582d0cdb5e5bb7
 pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
-pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme)
+pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme chef/libassuan chef/libgpg-error)
 
 bldr_begin() {
 	mkdir -p /opt/bldr/cache/keys
@@ -23,9 +23,9 @@ bldr_begin() {
 		--transform "s,^\.,bldr-$pkg_version," .
 	popd
 	pkg_shasum=$(trim $(sha256sum /opt/bldr/cache/src/bldr-${pkg_version}.tar.bz2 | cut -d " " -f 1))
-	cargo clean
-	cargo build --release
-	BLDR_BIN=$(abspath "$BLDR_CONTEXT/../../target/release/bldr")
+	# We build ourselves twice, once to fetch stuff, another time to actually release ourselves
+	#build
+	#BLDR_BIN=$(abspath "$BLDR_CONTEXT/../../target/release/bldr")
 }
 
 download() {
@@ -33,9 +33,11 @@ download() {
 }
 
 build() {
-  cargo clean
+  # cargo clean
   env OPENSSL_LIB_DIR=$(latest_package chef/openssl)/lib \
       OPENSSL_INCLUDE_DIR=$(latest_package chef/openssl)/include \
+      GPGME_CONFIG=$(latest_package chef/gpgme)/bin/gpgme-config \
+      GPG_ERROR_CONFIG=$(latest_package chef/libgpg-error)/bin/gpg-error-config \
       cargo build --release
 }
 

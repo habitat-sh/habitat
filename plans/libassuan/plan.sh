@@ -16,3 +16,7 @@ build() {
     --with-libgpg-error-prefix=$(latest_package chef/libgpg-error)
   make
 }
+
+strip_binaries() {
+  return 0
+}

@@ -428,6 +428,15 @@ trim() {
 # # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
 # ```
 latest_package() {
+  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
+    sort_binary=$(which sort)
+  else
+    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
+      sort_binary=/usr/bin/sort
+    else
+      exit_with "We require GNU sort to find the latest package; aborting" 1
+    fi
+  fi
   # Count the number of slashes, and use it to make a choice
   # about what to return as the latest package.
   latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
@@ -435,9 +444,9 @@ latest_package() {
     "3")
       echo "$BLDR_ROOT/pkgs/$1" ;;
     "2")
-      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 1 -type d | sort --version-sort -r | head -n 1) ;;
+      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 1 -type d | $sort_binary --version-sort -r | head -n 1) ;;
     "1")
-      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
+      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 2 -type d | $sort_binary --version-sort -r | head -n 1) ;;
   esac
 }
 
@@ -578,12 +587,21 @@ build_environment() {
   done
   for dep in "${pkg_build_deps[@]}" "${pkg_deps[@]}"; do
     if echo $dep | grep '\/'; then
-      if [[ -f "$BLDR_BIN" ]]; then
-        $BLDR_BIN install $dep -u $BLDR_REPO
-      fi
       dep_deriv=$(echo $dep | cut -d "/" -f 1)
       dep_rest=$(echo $dep | cut -d "/" -f 2)
       dep_path=$(latest_package "$dep_deriv/$dep_rest")
+      if [[ -z "$dep_path" ]]; then
+        if [[ -f "$BLDR_BIN" ]]; then
+          # This code is troublesome. Basically, if we don't have the dep_path, and we do have a bldr binary,
+          # then lets go ahead and try and install the package. That's cool if its all working, not so
+          # cool if its not. Right now, this is in the way of getting a clean build of almost anything.
+          # Lets return to this in a minute.
+          $BLDR_BIN install $dep -u $BLDR_REPO
+          dep_path=$(latest_package "$dep_deriv/$dep_rest")
+        else
+          exit_with "Missing dependency $dep; aborting the build" 1
+        fi
+      fi
     else
       exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
     fi
@@ -822,6 +840,18 @@ EOT
   return 0
 }
 
+# Finds all ELF files in the package, then tries to patch their run path.
+set_rpath() {
+  local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | awk 'BEGIN { FS = ": " }; { print $1 }')
+  local patchelf_path=$(latest_package chef/patchelf)
+  if [[ -z "$patchelf_path" ]]; then
+    build_line "No patchelf package; running without scissors! Install it with bldr install chef/patchelf."
+  fi
+  if [[ -n "$binaries" ]]; then
+    echo $binaries | xargs $patchelf_path/bin/patchelf --set-rpath "$LD_RUN_PATH"
+  fi
+}
+
 # Strip any binaries, decreasing our total size.
 strip_binaries() {
   local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | cut -d ":" -f 1)
@@ -883,7 +913,16 @@ package() {
 # code tree.
 dockerfile_wrapper() {
   tmp_prefix="$(echo "$BLDR_CONTEXT" | tr '/' '-')"
-  DOCKER_CONTEXT="$(mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
+  if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
+    mktemp_binary=$(which mktemp)
+  else
+    if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
+      mktemp_binary=/bin/mktemp
+    else
+      exit_with "We require GNU mktemp to build docker images; aborting" 1
+    fi
+  fi
+  DOCKER_CONTEXT="$($mktemp_binary -t -d "bldr-${tmp_prefix}-XXXX")"
   cp -rp $BLDR_CONTEXT/* "$DOCKER_CONTEXT"/
   pushd $DOCKER_CONTEXT > /dev/null
   dockerfile
@@ -970,7 +1009,7 @@ EOT
     cat <<EOT >> ./Dockerfile
 VOLUME $BLDR_ROOT/srvc/$pkg_name/data $BLDR_ROOT/srvc/$pkg_name/config
 EXPOSE ${pkg_expose[@]} 9631
-CMD ["start", "$pkg_name"]
+CMD ["start", "${pkg_derivation}/${pkg_name}"]
 EOT
   fi
   if [[ -f "./Dockerfile" ]]; then
@@ -1111,6 +1150,10 @@ config
 # Copy the service management scripts
 build_line "Writing service management scripts"
 service
+
+# Munge the rpath
+build_line "Setting RPATH on binaries"
+set_rpath
 
 # Strip the binaries
 build_line "Stripping binaries"

@@ -12,15 +12,35 @@ trim() {
 }
 
 latest_package() {
+  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
+    sort_binary=$(which sort)
+  else
+    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
+      sort_binary=/usr/bin/sort
+    else
+      exit_with "We require GNU sort to find the latest package; aborting" 1
+    fi
+  fi
 	latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
 	case $(trim $latest_package_flags) in
 		"3")
 			echo "/opt/bldr/pkgs/$1" ;;
 		"2")
-			echo $(find /opt/bldr/pkgs/${1} -maxdepth 1 -type d | sort --version-sort -r | head -n 1) ;;
+			echo $(find /opt/bldr/pkgs/${1} -maxdepth 1 -type d | $sort_binary --version-sort -r | head -n 1) ;;
 		"1")
-			echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | sort --version-sort -r | head -n 1) ;;
+			echo $(find /opt/bldr/pkgs/${1} -maxdepth 2 -type d | $sort_binary --version-sort -r | head -n 1) ;;
 	esac
+}
+
+copy_package() {
+	local package_path=$(latest_package $1)
+	if [[ -n "$package_path" ]]; then
+		mkdir -p ./$package_path
+		cp -r $package_path/* ./$package_path
+	else
+		echo "Failed to find $1; need to copy it into the base image"
+		exit 1
+	fi
 }
 
 set -e
@@ -59,15 +79,19 @@ echo bldr:x:42:42:root:/:/bin/sh >> etc/passwd
 echo root:x:0: > etc/group
 echo bldr:x:42:bldr >> etc/group
 ln -s lib lib64
-cp -r /opt/bldr/pkgs/chef/bldr opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/busybox opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/cacerts opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/glibc opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/gnupg opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/libgcc opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/openssl opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/zlib opt/bldr/pkgs/chef
-cp -r /opt/bldr/pkgs/chef/runit opt/bldr/pkgs/chef
+
+copy_package chef/glibc
+copy_package chef/libgcc
+copy_package chef/zlib
+copy_package chef/cacerts
+copy_package chef/busybox
+copy_package chef/libgpg-error
+copy_package chef/libassuan
+copy_package chef/gnupg
+copy_package chef/gpgme
+copy_package chef/openssl
+copy_package chef/runit
+copy_package chef/bldr
 
 for x in $($BUSYBOX_ROOT/bin/busybox --list); do
 	ln -s $BUSYBOX_ROOT/bin/busybox bin/$x
@@ -94,4 +118,4 @@ do
     cp -a /dev/$X dev
 done
 
-tar --numeric-owner -cjf $WORKDIR/bldr-base.tar.bz2 .
+/bin/tar --numeric-owner -cjf $WORKDIR/bldr-base.tar.bz2 .
