@@ -13,7 +13,7 @@ pkg_deps=(chef/glibc chef/libassuan chef/libgpg-error)
 build() {
   ./configure \
     --prefix=$pkg_prefix \
-    --with-libgpg-error-prefix=$(latest_package chef/libgpg-error) \
-    --with-libassuan-prefix=$(latest_package chef/libassuan)
+    --with-libgpg-error-prefix=$(pkg_path_for chef/libgpg-error) \
+    --with-libassuan-prefix=$(pkg_path_for chef/libassuan)
   make
 }

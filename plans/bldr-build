@@ -270,7 +270,10 @@ BLDR_VERSION=0.0.1
 BLDR_SRC_CACHE=$BLDR_ROOT/cache/src
 # Where the resulting packages are
 BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
-# The first argument to the script is a bldr context directory, containing a Plan
+# Location containing installed packages
+BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
+# The first argument to the script is a bldr context directory, containing a
+# Plan
 BLDR_CONTEXT=${1:-.}
 # The default bldr package repository from where to download dependencies
 BLDR_REPO=http://159.203.235.47
@@ -348,6 +351,39 @@ on_exit() {
 #   above.
 trap on_exit 1 2 3 15 ERR
 
+# Ensures that the correct versions of key system commands are able to be used
+# by this program. If we cannot find suitable versions, we will abort early.
+#
+# The following variables are set which contain an absolute path to the
+# desired command:
+#
+# * `$sort` (GNU version from coreutils)
+# * `$mktemp` (GNU version from coreutils)
+#
+# If the commands are not found, `exit_with` is called and the program is
+# terminated.
+find_system_commands() {
+  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
+    sort=$(command -v sort)
+  else
+    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
+      sort=/usr/bin/sort
+    else
+      exit_with "We require GNU sort to find the latest package; aborting" 1
+    fi
+  fi
+
+  if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
+    mktemp=$(command -v mktemp)
+  else
+    if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
+      mktemp=/bin/mktemp
+    else
+      exit_with "We require GNU mktemp to build docker images; aborting" 1
+    fi
+  fi
+}
+
 # Check that the command exists, 0 if it does, 1 if it does not.
 #
 # ```sh
@@ -372,6 +408,17 @@ exists() {
 # ```
 build_line() {
   echo "   ${pkg_name}: $1"
+  return 0
+}
+
+# Print a warning line on stderr. Takes the rest of the line
+# as its only argument.
+#
+# ```sh
+# warn "Checksum failed"
+# ```
+warn() {
+  >&2 echo "   ${pkg_name}: WARN $1"
   return 0
 }
 
@@ -417,7 +464,7 @@ trim() {
     echo "$var"
 }
 
-# Return the path to the latest release of a package.
+# **Internal** Return the path to the latest release of a package on stdout.
 #
 # ```
 # latest_package bldr/nginx
@@ -427,27 +474,125 @@ trim() {
 # latest_package bldr/nginx/1.8.0/20150911120000
 # # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
 # ```
+#
+# Will return 0 if a package was found on disk, and 1 if a package cannot be
+# found. A message will be printed to stderr explaining that no package was
+# found.
 latest_package() {
-  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
-    sort_binary=$(which sort)
-  else
-    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
-      sort_binary=/usr/bin/sort
-    else
-      exit_with "We require GNU sort to find the latest package; aborting" 1
-    fi
+  if [[ ! -d "$BLDR_PKG_ROOT/$1" ]]; then
+    warn "latest_package() found no packages of '$1' installed"
+    return 1
   fi
+
   # Count the number of slashes, and use it to make a choice
   # about what to return as the latest package.
-  latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
+  local latest_package_flags=$(echo $1 | grep -o '/' | wc -l)
+  local result
   case $(trim $latest_package_flags) in
     "3")
-      echo "$BLDR_ROOT/pkgs/$1" ;;
+      result="$BLDR_PKG_ROOT/$1" ;;
     "2")
-      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 1 -type d | $sort_binary --version-sort -r | head -n 1) ;;
+      result=$(find $BLDR_PKG_ROOT/${1} -maxdepth 1 -type d \
+        | $sort --version-sort -r | head -n 1) ;;
     "1")
-      echo $(find $BLDR_ROOT/pkgs/${1} -maxdepth 2 -type d | $sort_binary --version-sort -r | head -n 1) ;;
+      result=$(find $BLDR_PKG_ROOT/${1} -maxdepth 2 -type d \
+        | $sort --version-sort -r | head -n 1) ;;
   esac
+  if [[ -z "$result" && ! -f "$result/MANIFEST" ]]; then
+    warn "latest_package '$1' did not find a suitable installed package"
+    return 1
+  else
+    echo "$result"
+    return 0
+  fi
+}
+
+# **Internal** Returns the path to the desired package on stdout, using the
+# constraints specified in `$pkg_deps` or `$pkg_build_deps`. If a package
+# cannot be found locally on disk, and the `chef/bldr` package is present,
+# `bldr` will attempt to install the package from a remote repository.
+#
+# ```
+# resolve_dep chef/zlib
+# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+# resolve_dep chef/zlib/1.2.8
+# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+# resolve_dep chef/zlib/1.2.8/20151216221001
+# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+# ```
+#
+# Will return 0 if a package was found or installed on disk, and 1 if a package
+# cannot be found or remotely installed. A message will be printed to stderr to
+# provide context.
+resolve_dep() {
+  local dep="$1"
+  local dep_path
+  if ! echo "$dep" | grep -q '\/' > /dev/null; then
+    exit_with "Derivation required for '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
+  fi
+
+  # Ideally we should be able to install from `bldr install` if it's available,
+  # but at the moment self-hosted repo support and external repos are being
+  # worked on which leads to issues when running source builds or clean-slate
+  # bootstrapping. Just note the code here in comments as aspirational for the
+  # time being ;) - Love Fletcher, Adam, and Jamie
+  # if [[ -x "$BLDR_BIN" ]]; then
+  #   $BLDR_BIN install "$dep" -u $BLDR_REPO
+  # fi
+
+  if dep_path=$(latest_package "$dep"); then
+    echo "${dep_path}"
+    return 0
+  else
+    # This code is troublesome. Basically, if we don't have the dep_path, and
+    # we do have a bldr binary, then lets go ahead and try and install the
+    # package. That's cool if its all working, not so cool if its not. Right
+    # now, this is in the way of getting a clean build of almost anything.
+    # Lets return to this in a minute.
+    if [[ -x "$BLDR_BIN" ]]; then
+      $BLDR_BIN install "$dep" -u $BLDR_REPO
+      # Now that we have our dep installed locally, call ourselves to get the
+      # echo/output
+      resolve_dep "$dep"
+      return $?
+    fi
+    return $?
+  fi
+}
+
+# Returns the path for the desired build or runtime package dependency on
+# stdout from the resolved depdency set.
+#
+# ```
+# pkg_all_deps_resolved=(
+#   /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+#   /opt/bldr/pkgs/chef/nginx/1.8.0/20150911120000
+#   /opt/bldr/pkgs/chef/glibc/2.22/20151216221001
+# )
+#
+# pkg_path_for chef/nginx
+# # /opt/bldr/pkgs/chef/nginx/1.8.0/20150911120000
+# pkg_path_for zlib
+# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+# pkg_path_for glibc/2.22
+# # /opt/bldr/pkgs/chef/glibc/2.22/20151216221001
+# ```
+#
+# Will return 0 if a package is found locally on disk, and 1 if a package
+# cannot be found. A message will be printed to stderr to provide context.
+pkg_path_for() {
+  local dep="$1"
+  local e
+  local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
+  for e in "${pkg_all_deps_resolved[@]}"; do
+    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
+      echo "$e"
+      return 0
+    fi
+  done
+  warn "pkg_path_for() '$dep' did not find a suitable installed package"
+  warn "Resolved package set: ${pkg_all_deps_resolved}"
+  return 1
 }
 
 # Attach to an interactive debugging session which lets the user check the state
@@ -494,7 +639,7 @@ attach() {
   # Print out our current code context (source file, line number, etc.)
   __attach_whereami
   # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
-  while [ "$cmd" != "exit" -a "$cmd" != "quit" ]; do
+  while [[ "$cmd" != "exit" && "$cmd" != "quit" ]]; do
     read -p "[$replno] ${pkg_name}($fname)> " cmd
     case "$cmd" in
       vars) (set -o posix; set);;
@@ -549,7 +694,7 @@ __attach_whereami() {
   local lnum="${BASH_LINENO[1]}"
   local src="${BASH_SOURCE[2]}"
   # If we are printing this program, use the absolute path version
-  if [ "$src" = "$0" ]; then
+  if [[ "$src" = "$0" ]]; then
     src="$BLDR_BUILD"
   fi
   echo
@@ -595,6 +740,27 @@ abspath() {
 # Used to execute arbitrary commands before anything else happens.
 bldr_begin() {
   return 0
+}
+
+# Walk each item in `$pkg_build_deps` and $pkg_deps`, and for each item
+# determine the absolute path to a suitable package release (which will be on
+# disk). These "resolved" paths will be added to respective parallel arrays
+# (`$pkg_deps_resolved` and `$pkg_build_deps_resolved`) as well as a combined
+# array `$pkg_all_deps_resolved`.
+resolve_deps() {
+  pkg_build_deps_resolved=()
+  for dep in "${pkg_build_deps[@]}"; do
+    local resolved="$(resolve_dep $dep)"
+    build_line "Resolved build dependency '$dep' to $resolved"
+    pkg_build_deps_resolved+=($resolved)
+  done
+  pkg_deps_resolved=()
+  for dep in "${pkg_deps[@]}"; do
+    local resolved="$(resolve_dep $dep)"
+    build_line "Resolved dependency '$dep' to $resolved"
+    pkg_deps_resolved+=($resolved)
+  done
+  pkg_all_deps_resolved=("${pkg_build_deps_resolved[@]}" "${pkg_deps_resolved[@]}")
 }
 
 # Download the software from `$pkg_source` and place it in
@@ -697,26 +863,7 @@ build_environment() {
       path_part="$path_part:$pkg_path/$path"
     fi
   done
-  for dep in "${pkg_build_deps[@]}" "${pkg_deps[@]}"; do
-    if echo $dep | grep '\/'; then
-      dep_deriv=$(echo $dep | cut -d "/" -f 1)
-      dep_rest=$(echo $dep | cut -d "/" -f 2)
-      dep_path=$(latest_package "$dep_deriv/$dep_rest")
-      if [[ -z "$dep_path" ]]; then
-        if [[ -f "$BLDR_BIN" ]]; then
-          # This code is troublesome. Basically, if we don't have the dep_path, and we do have a bldr binary,
-          # then lets go ahead and try and install the package. That's cool if its all working, not so
-          # cool if its not. Right now, this is in the way of getting a clean build of almost anything.
-          # Lets return to this in a minute.
-          $BLDR_BIN install $dep -u $BLDR_REPO
-          dep_path=$(latest_package "$dep_deriv/$dep_rest")
-        else
-          exit_with "Missing dependency $dep; aborting the build" 1
-        fi
-      fi
-    else
-      exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
-    fi
+  for dep_path in "${pkg_all_deps_resolved[@]}"; do
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
       local trimmed=$(trim $data)
@@ -765,9 +912,19 @@ build_environment() {
   return 0
 }
 
-# A step that exists to be overriden. We have the software downloaded, unpacked, and the
-# build environment variables set. Do what you need to do before we actually run the build
-# steps.
+# This function simply makes sure that the working directory for the prepare
+# step is correct, that is inside the extracted source directory.
+prepare_wrapper() {
+  # Create a working directory if it doesn't already exist from `unpack()`
+  mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
+  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  prepare
+  popd > /dev/null
+}
+
+# A step that exists to be overriden. We have the software downloaded,
+# unpacked, and the build environment variables set. Do what you need to do
+# before we actually run the build steps.
 prepare() {
   return 0
 }
@@ -865,31 +1022,17 @@ link_libraries() {
     echo $port_part > $pkg_path/EXPOSES
   fi
 
-  local deps_part=""
-  for dep in "${pkg_build_deps[@]}"; do
-    if echo $dep | grep '\/'; then
-      dep_deriv=$(echo $dep | cut -d "/" -f 1)
-      dep_rest=$(echo $dep | cut -d "/" -f 2)
-      dep_path=$(latest_package "$dep_deriv/$dep_rest")
-    else
-      exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
-    fi
-    dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 "/" $6 "/" $7 "/" $8 }')
-    echo $dep_pkg_name >> $pkg_path/BUILD_DEPS
-  done
+  local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
+  local deps
 
-  local deps_part=""
-  for dep in "${pkg_deps[@]}"; do
-    if echo $dep | grep '\/'; then
-      dep_deriv=$(echo $dep | cut -d "/" -f 1)
-      dep_rest=$(echo $dep | cut -d "/" -f 2)
-      dep_path=$(latest_package "$dep_deriv/$dep_rest")
-    else
-      exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
-    fi
-    dep_pkg_name=$(echo $dep_path | awk 'BEGIN { FS = "/" } ; { print $5 "/" $6 "/" $7 "/" $8 }')
-    echo $dep_pkg_name >> $pkg_path/DEPS
-  done
+  deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
+  if [[ -n "$deps" ]]; then
+    echo "$deps" > $pkg_path/BUILD_DEPS
+  fi
+  deps="$(printf '%s\n' "${pkg_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
+  if [[ -n "$deps" ]]; then
+    echo "$deps" > $pkg_path/DEPS
+  fi
 
   echo "${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_path/IDENT
 
@@ -952,24 +1095,12 @@ EOT
   return 0
 }
 
-# Finds all ELF files in the package, then tries to patch their run path.
-set_rpath() {
-  local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | awk 'BEGIN { FS = ": " }; { print $1 }')
-  local patchelf_path=$(latest_package chef/patchelf)
-  if [[ -z "$patchelf_path" ]]; then
-    build_line "No patchelf package; running without scissors! Install it with bldr install chef/patchelf."
-  fi
-  if [[ -n "$binaries" ]]; then
-    echo $binaries | xargs $patchelf_path/bin/patchelf --set-rpath "$LD_RUN_PATH"
-  fi
-}
-
 # Strip any binaries, decreasing our total size.
 strip_binaries() {
-  local binaries=$(find $pkg_path -type f  | xargs file | grep ELF | cut -d ":" -f 1)
-  if [[ -n "$binaries" ]]; then
-    echo $binaries | xargs strip
-  fi
+  find $pkg_path -type f -print0 \
+    | xargs -0 file | grep ELF | cut -d ":" -f 1 \
+    | xargs --no-run-if-empty strip --strip-debug \
+    || true
 }
 
 # Write the `$pkg_path/MANIFEST`.
@@ -1004,7 +1135,7 @@ $(cat $BLDR_CONTEXT/plan.sh)
 
 Files
 -----
-$(find $pkg_path -type f | sort | xargs sha256sum)
+$(find $pkg_path -type f | $sort | xargs sha256sum)
 EOT
   return 0
 }
@@ -1025,16 +1156,7 @@ package() {
 # code tree.
 dockerfile_wrapper() {
   tmp_prefix="$(echo "$BLDR_CONTEXT" | tr '/' '-')"
-  if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
-    mktemp_binary=$(which mktemp)
-  else
-    if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
-      mktemp_binary=/bin/mktemp
-    else
-      exit_with "We require GNU mktemp to build docker images; aborting" 1
-    fi
-  fi
-  DOCKER_CONTEXT="$($mktemp_binary -t -d "bldr-${tmp_prefix}-XXXX")"
+  DOCKER_CONTEXT="$($mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
   cp -rp $BLDR_CONTEXT/* "$DOCKER_CONTEXT"/
   pushd $DOCKER_CONTEXT > /dev/null
   dockerfile
@@ -1077,22 +1199,24 @@ EOT
       pkg_deps+=("chef/openssl")
       pkg_deps+=("chef/zlib")
       pkg_deps+=("chef/runit")
+      # Re-resolve dependencies to download any missing
+      resolve_deps
       cat <<EOT >> ./Dockerfile
 ENTRYPOINT ["bldr"]
-RUN ln -sf $(latest_package chef/bldr)/bin/bldr /bin/bldr && \
-    ln -sf $(latest_package chef/gnupg)/bin/gpg /bin/gpg && \
-    ln -sf $(latest_package chef/gnupg)/bin/gpg-zip /bin/gpg-zip && \
-    ln -sf $(latest_package chef/gnupg)/bin/gpgsplit /bin/gpgsplit && \
-    ln -sf $(latest_package chef/gnupg)/bin/gpgv /bin/gpgv && \
-    ln -sf $(latest_package chef/runit)/bin/chpst /bin/chpst && \
-    ln -sf $(latest_package chef/runit)/bin/runit /bin/runit && \
-    ln -sf $(latest_package chef/runit)/bin/runit-init /bin/runit-init && \
-    ln -sf $(latest_package chef/runit)/bin/runsv /bin/runsv && \
-    ln -sf $(latest_package chef/runit)/bin/runsvchdir /bin/runsvchdir && \
-    ln -sf $(latest_package chef/runit)/bin/runsvdir /bin/runsvdir && \
-    ln -sf $(latest_package chef/runit)/bin/sv /bin/sv && \
-    ln -sf $(latest_package chef/runit)/bin/svlogd /bin/svlogd && \
-    ln -sf $(latest_package chef/runit)/bin/utmpset /bin/utmpset && \
+RUN ln -sf $(pkg_path_for chef/bldr)/bin/bldr /bin/bldr && \
+    ln -sf $(pkg_path_for chef/gnupg)/bin/gpg /bin/gpg && \
+    ln -sf $(pkg_path_for chef/gnupg)/bin/gpg-zip /bin/gpg-zip && \
+    ln -sf $(pkg_path_for chef/gnupg)/bin/gpgsplit /bin/gpgsplit && \
+    ln -sf $(pkg_path_for chef/gnupg)/bin/gpgv /bin/gpgv && \
+    ln -sf $(pkg_path_for chef/runit)/bin/chpst /bin/chpst && \
+    ln -sf $(pkg_path_for chef/runit)/bin/runit /bin/runit && \
+    ln -sf $(pkg_path_for chef/runit)/bin/runit-init /bin/runit-init && \
+    ln -sf $(pkg_path_for chef/runit)/bin/runsv /bin/runsv && \
+    ln -sf $(pkg_path_for chef/runit)/bin/runsvchdir /bin/runsvchdir && \
+    ln -sf $(pkg_path_for chef/runit)/bin/runsvdir /bin/runsvdir && \
+    ln -sf $(pkg_path_for chef/runit)/bin/sv /bin/sv && \
+    ln -sf $(pkg_path_for chef/runit)/bin/svlogd /bin/svlogd && \
+    ln -sf $(pkg_path_for chef/runit)/bin/utmpset /bin/utmpset && \
     addgroup bldr && \
     adduser --system --disabled-password bldr
 EOT
@@ -1100,16 +1224,10 @@ EOT
     cat <<EOT >> ./Dockerfile
 COPY ${pkg_name}-cache/ $pkg_path/
 EOT
-    for dep in "${pkg_deps[@]}"; do
+    for dep_path in "${pkg_deps_resolved[@]}"; do
+      local dep="$(echo $dep_path | sed "s,^${BLDR_PKG_ROOT}/,,")"
       rm -rf ./${dep}-cache
       mkdir -p ./${dep}-cache
-      if echo $dep | grep '\/'; then
-        dep_deriv=$(echo $dep | cut -d "/" -f 1)
-        dep_rest=$(echo $dep | cut -d "/" -f 2)
-        dep_path=$(latest_package "$dep_deriv/$dep_rest")
-      else
-        exit_with "Derivation not specified for dependency '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
-      fi
       rsync -aP $dep_path/* ./${dep}-cache
       echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
     done
@@ -1155,8 +1273,9 @@ while getopts "u:" opt; do
   esac
 done
 
-# The default location for the bldr binary to use
-BLDR_BIN=$(latest_package "chef/bldr")/bin/bldr
+# Determine if we have all the commands we need to work
+find_system_commands
+
 # Expand the context path to an absolute path
 BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
 # Expand the path of this program to an absolute path
@@ -1188,24 +1307,26 @@ if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
-# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already set by the `plan.sh`.
+# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
+# set by the `plan.sh`.
 if [[ -z "${pkg_filename+xxx}" ]]; then
   pkg_filename="$(basename $pkg_source)"
 fi
 
-# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not already set by the `plan.sh`.
+# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
+# already set by the `plan.sh`.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
 fi
 
 # Set `$pkg_path` if it is not already set by the `plan.sh`.
 if [[ -z "${pkg_path+xxx}" ]]; then
-  pkg_path=$BLDR_ROOT/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_path=$BLDR_PKG_ROOT/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=$BLDR_ROOT/pkgs/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$BLDR_PKG_ROOT/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set $pkg_srvc variables.
@@ -1214,11 +1335,20 @@ pkg_srvc_data="$BLDR_ROOT/srvc/$pkg_name/data"
 pkg_srvc_var="$BLDR_ROOT/srvc/$pkg_name/var"
 pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
 
+# The default location for the bldr binary to use
+if pkg_for_bldr=$(latest_package "chef/bldr"); then
+  BLDR_BIN="$pkg_for_bldr/bin/bldr"
+fi
+
 # Create the `$pkg_path`
 mkdir -p $pkg_path
 
 # Run `bldr_begin`
 bldr_begin
+
+# Download and resolve the depdencies
+build_line "Resolving dependencies"
+resolve_deps
 
 # Download the source
 build_line "Downloading $pkg_source"
@@ -1243,7 +1373,7 @@ build_environment
 
 # Prepare the source
 build_line "Preparing to build"
-prepare
+prepare_wrapper
 
 # Build the source
 build_line "Building"
@@ -1264,10 +1394,6 @@ config
 # Copy the service management scripts
 build_line "Writing service management scripts"
 service
-
-# Munge the rpath
-build_line "Setting RPATH on binaries"
-set_rpath
 
 # Strip the binaries
 build_line "Stripping binaries"

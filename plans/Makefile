@@ -1,8 +1,9 @@
-PKGS := glibc libgcc zlib cacerts busybox patchelf libgpg-error libassuan gnupg gpgme openssl runit bldr redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
+BLDR_PKGS := glibc libgcc patchelf zlib cacerts busybox libgpg-error libassuan gnupg gpgme openssl runit bldr
+PKGS := $(BLDR_PKGS) redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
 REPO := http://159.203.235.47
 
 bldr: gpg
-	@for pkg in glibc libgcc zlib cacerts busybox patchelf libgpg-error libassuan gnupg gpgme openssl runit bldr; do \
+	@for pkg in $(BLDR_PKGS); do \
 		./bldr-build $$pkg; \
 	done
 
