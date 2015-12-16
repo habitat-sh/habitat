@@ -7,6 +7,7 @@ pkg_shasum=0e21be5d7c5e6ab6adcbed257619897db59be9e1ded7ef6fd1582d0cdb5e5bb7
 pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
 pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme chef/libassuan chef/libgpg-error)
+pkg_build_deps=(chef/patchelf)
 
 bldr_begin() {
 	mkdir -p /opt/bldr/cache/keys
@@ -34,11 +35,14 @@ download() {
 
 build() {
   # cargo clean
-  env OPENSSL_LIB_DIR=$(latest_package chef/openssl)/lib \
-      OPENSSL_INCLUDE_DIR=$(latest_package chef/openssl)/include \
-      GPGME_CONFIG=$(latest_package chef/gpgme)/bin/gpgme-config \
-      GPG_ERROR_CONFIG=$(latest_package chef/libgpg-error)/bin/gpg-error-config \
+  env OPENSSL_LIB_DIR=$(pkg_path_for chef/openssl)/lib \
+      OPENSSL_INCLUDE_DIR=$(pkg_path_for chef/openssl)/include \
+      GPGME_CONFIG=$(pkg_path_for chef/gpgme)/bin/gpgme-config \
+      GPG_ERROR_CONFIG=$(pkg_path_for chef/libgpg-error)/bin/gpg-error-config \
       cargo build --release
+  # Make double-sure our binary is completely pure (no accidental linking leaks
+  # outside `/opt/bldr/pkgs`)
+  patchelf --set-rpath "$LD_RUN_PATH" target/release/bldr
 }
 
 install() {

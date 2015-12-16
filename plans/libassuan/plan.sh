@@ -13,7 +13,7 @@ pkg_deps=(chef/libgpg-error)
 build() {
   ./configure \
     --prefix=$pkg_prefix \
-    --with-libgpg-error-prefix=$(latest_package chef/libgpg-error)
+    --with-libgpg-error-prefix=$(pkg_path_for chef/libgpg-error)
   make
 }
 
