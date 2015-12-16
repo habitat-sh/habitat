@@ -450,6 +450,118 @@ latest_package() {
   esac
 }
 
+# Attach to an interactive debugging session which lets the user check the state
+# of variables, call arbitrary functions, turn on higher levels of logging
+# (with `set -x`), or whatever else is useful.
+#
+# Usage: simply add `attach` in a `plan.sh` file and a debugging session will
+# spawn, similar to:
+#
+# ```
+# ### Attaching to debugging session
+#
+# From: /plans/glibc/plan.sh @ line 66 :
+#
+#     56:
+#     57:   # Modify the ldd rewrite script to remove lib64 and libx32 from RTLDLIST
+#     58:   sed -i '/RTLDLIST/d' sysdeps/unix/sysv/linux/*/ldd-rewrite.sed
+#     59:
+#     60:   rm -rf ../${pkg_name}-build
+#     61:   mkdir ../${pkg_name}-build
+#     62:   pushd ../${pkg_name}-build > /dev/null
+#     63:     # Configure Glibc to install its libraries into `$pkg_prefix/lib`
+#     64:     echo "libc_cv_slibdir=$pkg_prefix/lib" >> config.cache
+#     65:
+#  => 66:     attach
+#     67:
+#     68:     ../$pkg_dirname/configure \
+#     69:       --prefix=$pkg_prefix \
+#     70:       --libdir=$pkg_prefix/lib \
+#     71:       --libexecdir=$pkg_prefix/lib/glibc \
+#     72:       --enable-obsolete-rpc \
+#     73:       --disable-profile \
+#     74:       --enable-kernel=2.6.32 \
+#     75:       --cache-file=config.cache
+#     76:     make
+#
+# [1] glibc(build)>
+# ```
+attach() {
+  printf "\n### Attaching to debugging session\n"
+  local cmd=""
+  local fname="${FUNCNAME[1]}"
+  local replno=1
+  # Print out our current code context (source file, line number, etc.)
+  __attach_whereami
+  # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
+  while [ "$cmd" != "exit" -a "$cmd" != "quit" ]; do
+    read -p "[$replno] ${pkg_name}($fname)> " cmd
+    case "$cmd" in
+      vars) (set -o posix; set);;
+      whereami*|\@*)
+        __attach_whereami "$(echo $cmd \
+          | awk '{if (NF == 2) print $2; else print "10"}')"
+        ;;
+      exit|quit) ;;
+      exit-program|quit-program) exit $?;;
+      help)
+        printf "
+Help
+  help          Show a list of command or information about a specific command.
+
+Context
+  whereami      Show the code surrounding the current context
+                (add a number to increase the lines of context).
+
+Environment
+  vars          Prints all the environment variables that are currently in scope.
+
+Navigating
+  exit          Pop to the previous context.
+  exit-program  End the $0 program.
+
+Aliases
+  @             Alias for \`whereami\`.
+  quit          Alias for \`exit\`.
+  quit-program  Alias for \`exit-program\`.
+
+"
+        ;;
+      *) eval $cmd;;
+    esac
+    # Increment our REPL command line count, cause that's helpful
+    replno=$((${replno}+1))
+  done
+  printf "\n### Leaving debugging session\n\n"
+  return 0
+}
+
+# **Internal** Prints the source file, line number, and lines of context around
+# the current debugging session context. Used by `attach()` and should not be
+# used externally.
+#
+# ```
+# __attach_whereami    # => defaults to 10 lines of context around the current line
+# __attach_whereami 2  # => shows 2 lines of context around the current line
+# ```
+__attach_whereami() {
+  local context=${1:-10}
+  local lnum="${BASH_LINENO[1]}"
+  local src="${BASH_SOURCE[2]}"
+  # If we are printing this program, use the absolute path version
+  if [ "$src" = "$0" ]; then
+    src="$BLDR_BUILD"
+  fi
+  echo
+  echo "From: $src @ line $lnum :"
+  echo
+  awk '{printf "%d: %s\n", NR, $0}' "$src" \
+    | sed -e "$((${lnum}-${context})),$((${lnum}+${context}))!d" \
+      -e 's,^,    ,g' \
+    | sed -e "$((${context}+1))s/^   / =>/"
+  echo
+}
+
 # Return the absolute path for a path, which might be absolute or relative.
 #
 # ```sh
@@ -1047,6 +1159,8 @@ done
 BLDR_BIN=$(latest_package "chef/bldr")/bin/bldr
 # Expand the context path to an absolute path
 BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
+# Expand the path of this program to an absolute path
+BLDR_BUILD=$(abspath $0)
 
 # First we check if the provided path has a `plan.sh` in it. If not, we'll quickly bail.
 if [[ ! -f "$BLDR_CONTEXT/plan.sh" ]]; then
