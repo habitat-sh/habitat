@@ -719,11 +719,11 @@ __attach_whereami() {
 # Thanks to [Stack Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
 abspath() {
   if [[ -d "$1" ]]; then
-    pushd "$1" >/dev/null
+    pushd "$1" > /dev/null
     pwd
     popd >/dev/null
   elif [[ -e $1 ]]; then
-    pushd "$(dirname "$1")" >/dev/null
+    pushd "$(dirname "$1")" > /dev/null
     echo "$(pwd)/$(basename "$1")"
     popd >/dev/null
   else
@@ -773,9 +773,9 @@ download() {
       build_line "Using cached $pkg_filename"
     fi
   else
-    pushd $BLDR_SRC_CACHE
+    pushd $BLDR_SRC_CACHE > /dev/null
     wget $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
-    popd
+    popd > /dev/null
     build_line "Downloaded";
   fi
   return 0
