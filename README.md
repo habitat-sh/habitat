@@ -83,6 +83,7 @@ by having a convention cover it. When we do need to configure things, we set san
 * [Advanced Bash-Scripting Guide](http://www.tldp.org/LDP/abs/html/)
 * [Writing Robust Bash Shell Scripts](http://www.davidpashley.com/articles/writing-robust-shell-scripts/)
 * [Wikibook: Bourne Shell Scripting](https://en.wikibooks.org/wiki/Bourne_Shell_Scripting)
+* [What is the difference between test, \[ and \[\[ ?](http://mywiki.wooledge.org/BashFAQ/031)
 
 ## Setup
 
