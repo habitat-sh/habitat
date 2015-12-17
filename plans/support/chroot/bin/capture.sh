@@ -61,6 +61,16 @@ else
   bash_cmd="/bin/bash"
 fi
 
+# Make us a nice, useful prompt.
+case "$TERM" in
+*term | xterm-* | rxvt | screen | screen-*)
+  prompt='\[\e[0;31m\][\[\e[0;36m\]\#\[\e[0;31m\]][capture:\[\e[0;33m\]'$name'\[\e[0;31m\]:\[\e[0;35m\]\w\[\e[0;31m\]:\e[1;37m$?\[\e[0;31m\]]\$\[\e[0m\] '
+  ;;
+*)
+  prompt='[capture:'$name':\w]\$ '
+  ;;
+esac
+
 # Build the base environment variable set to be passed into `script(1)`. We
 # propagate the `$PATH` of our caller, but set `$HOME` explictly. If either
 # `$http_proxy` or `$https_proxy` environment variables are present, pass
@@ -74,7 +84,7 @@ if [ -n "${https_proxy:-}" ]; then
 fi
 
 # The final command that will be passed to `script(1)`
-command="$env_cmd -i $env 'PS1=[chroot:$name] \u:\w\$ ' $bash_cmd --login +h"
+command="$env_cmd -i $env 'PS1=$prompt' $bash_cmd --login +h"
 # The current timestamp, in UTC--the only true time
 timestamp="`date -u +%Y%m%d%H%M%S`"
 
