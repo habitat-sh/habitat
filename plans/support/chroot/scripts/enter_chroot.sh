@@ -90,6 +90,16 @@ else
   cmd="$*"
 fi
 
+# Make us a nice, useful prompt.
+case "$TERM" in
+*term | xterm-* | rxvt | screen | screen-*)
+  prompt='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]][plan-shell:\[\e[0;35m\]\w\[\e[0;32m\]:\e[1;37m$?\[\e[0;32m\]]\$\[\e[0m\] '
+  ;;
+*)
+  prompt='[plan-shell:\w]\$ '
+  ;;
+esac
+
 # Build the base environment variable set to be passed into `script(1)`. We
 # propagate the `$PATH` of our caller, but set `$HOME` explictly. If either
 # `$http_proxy` or `$https_proxy` environment variables are present, pass
@@ -109,4 +119,4 @@ echo
 set -x
 
 # Finally, become the `chroot(8)` process
-exec chroot "$CHROOT" "$env_cmd" -i $env 'PS1=[chroot] \u:\w\$ ' $cmd
+exec chroot "$CHROOT" "$env_cmd" -i $env "PS1=$prompt" $cmd

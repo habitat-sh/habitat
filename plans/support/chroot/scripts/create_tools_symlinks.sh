@@ -132,5 +132,13 @@ users:x:999:
 EOF
 fi
 
+# If `/root/.inputrc` is not present, create a minimal version so we can clear
+# the screen with Ctrl+l
+if [ ! -f "$root/root/.inputrc" ]; then
+  cat > $root/root/.inputrc << 'EOF'
+"\C-l":'clear\n'
+EOF
+fi
+
 # That's all folks!
 exit 0
