@@ -529,7 +529,8 @@ _resolve_dependency() {
   local dep="$1"
   local dep_path
   if ! echo "$dep" | grep -q '\/' > /dev/null; then
-    exit_with "Derivation required for '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)" 1
+    warn "Derivation required for '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)"
+    return 1
   fi
 
   # Ideally we should be able to install from `bldr install` if it's available,
@@ -557,7 +558,7 @@ _resolve_dependency() {
       _resolve_dependency "$dep"
       return 0
     fi
-    return $?
+    return 1
   fi
 }
 
