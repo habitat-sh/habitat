@@ -877,7 +877,11 @@ _build_environment() {
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
       local trimmed=$(trim $data)
-      export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
+      if [[ -n "$LD_RUN_PATH" ]]; then
+        export LD_RUN_PATH="$LD_RUN_PATH:$trimmed"
+      else
+        export LD_RUN_PATH="$trimmed"
+      fi
     fi
     if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
