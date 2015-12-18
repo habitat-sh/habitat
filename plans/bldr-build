@@ -188,8 +188,8 @@
 #
 # Most likely, you simply need to redefine two steps:
 #
-# 1. build - this step runs './configure --prefix=$pkg_prefix && make`.
-# 1. install - this step runs `make install`.
+# 1. do_build - this step runs './configure --prefix=$pkg_prefix && make`.
+# 1. do_install - this step runs `make install`.
 #
 # Here is an example `plan.sh` for `haproxy`, which overrides both:
 #
@@ -208,7 +208,7 @@
 # pkg_docker_build="auto"
 # pkg_expose=(80 443)
 #
-# build() {
+# do_build() {
 #   make USE_PCRE=1 \
 #     USE_PCRE_JIT=1 \
 #     CPU=x86_64 \
@@ -219,7 +219,7 @@
 #     ADDLIB="$LDFLAGS"
 # }
 #
-# install() {
+# do_install() {
 #   mkdir -p $pkg_prefix/bin
 #   cp haproxy $pkg_prefix/bin
 # }
@@ -272,9 +272,9 @@ BLDR_SRC_CACHE=$BLDR_ROOT/cache/src
 BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
 # Location containing installed packages
 BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
-# The first argument to the script is a bldr context directory, containing a
-# Plan
-BLDR_CONTEXT=${1:-.}
+# The first argument to the script is a Plan context directory, containing a
+# `plan.sh` file
+PLAN_CONTEXT=${1:-.}
 # The default bldr package repository from where to download dependencies
 BLDR_REPO=http://159.203.235.47
 # The default derivation is `bldr`
@@ -738,7 +738,7 @@ abspath() {
 # overriden by the `plan.sh` if needed.
 
 # Used to execute arbitrary commands before anything else happens.
-bldr_begin() {
+do_begin() {
   return 0
 }
 
@@ -747,7 +747,8 @@ bldr_begin() {
 # disk). These "resolved" paths will be added to respective parallel arrays
 # (`$pkg_deps_resolved` and `$pkg_build_deps_resolved`) as well as a combined
 # array `$pkg_all_deps_resolved`.
-resolve_deps() {
+resolve_dependencies() {
+  local resolved
   pkg_build_deps_resolved=()
   for dep in "${pkg_build_deps[@]}"; do
     local resolved="$(resolve_dep $dep)"
@@ -767,9 +768,9 @@ resolve_deps() {
 # `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already
 # exists in the cache, verify that the checksum is what
 # we expect, and skip the download.
-download() {
+do_download() {
   if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
-    if verify; then
+    if do_verify; then
       build_line "Using cached $pkg_filename"
     fi
   else
@@ -783,7 +784,7 @@ download() {
 
 # Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename`
 # has the `$pkg_shasum` we expect.
-verify() {
+do_verify() {
   if exists gsha256sum; then
     checksum=($(gsha256sum $BLDR_SRC_CACHE/$pkg_filename))
   else
@@ -802,7 +803,7 @@ verify() {
 
 # Clean up the remnants of any previous build job, ensuring it can't
 # pollute out new output.
-clean_cache() {
+do_clean() {
   rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
   return 0
 }
@@ -812,7 +813,7 @@ clean_cache() {
 # matches a file type we know how to uncompress, and then uncompress it.
 #
 # This takes place in teh $BLDR_SRC_CACHE directory.
-unpack() {
+do_unpack() {
   unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
 # Thanks http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
@@ -914,45 +915,45 @@ build_environment() {
 
 # This function simply makes sure that the working directory for the prepare
 # step is correct, that is inside the extracted source directory.
-prepare_wrapper() {
-  # Create a working directory if it doesn't already exist from `unpack()`
+do_prepare_wrapper() {
+  # Create a working directory if it doesn't already exist from `do_unpack()`
   mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
-  prepare
+  do_prepare
   popd > /dev/null
 }
 
 # A step that exists to be overriden. We have the software downloaded,
 # unpacked, and the build environment variables set. Do what you need to do
 # before we actually run the build steps.
-prepare() {
+do_prepare() {
   return 0
 }
 
 # Since `build` is one of the most overriden functions, this wrapper makes sure that
 # no matter how it is changed, our `$cwd` is `$BLDR_SRC_CACHE/$pkg_dirname`.
-build_wrapper() {
+do_build_wrapper() {
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
-  build
+  do_build
   popd > /dev/null
 }
 
 # Build the software; assumes the GNU pattern.
-build() {
+do_build() {
   ./configure --prefix=$pkg_prefix
   make
 }
 
 # Identical to the `build_wrapper` function above; simply makes sure the
-# working directory for the install step is correct.
-install_wrapper() {
+# working directory for the install_files step is correct.
+do_install_wrapper() {
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
-  install
+  do_install
   popd > /dev/null
 }
 
 # Install the software.
-install() {
+do_install() {
   make install
 }
 
@@ -963,8 +964,9 @@ install() {
 # * `$pkg_path/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_path/PATH` - Any PATH entries for things that link against us
 # * `$pkg_path/EXPOSES` - Any ports we expose
-# * `$pkg_path/DEPS` - Any depencies we used during the build
-link_libraries() {
+# * `$pkg_path/BUILD_DEPS` - Any depencies we need build the package
+# * `$pkg_path/DEPS` - Any depencies we need to use the package at runtime
+build_metadata() {
   local ld_run_path_part=""
   local ld_lib_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
@@ -1041,17 +1043,17 @@ link_libraries() {
 
 # Copy the `./config` directory, relative to the Plan,
 # to `$pkg_path/config`. Do the same with `default.toml`.
-config() {
-  if [[ -d ./config ]]; then
-    cp -r ./config $pkg_path
+do_build_config() {
+  if [[ -d $PLAN_CONTEXT/config ]]; then
+    cp -r $PLAN_CONTEXT/config $pkg_path
     chmod 755 $pkg_path/config
   fi
-  if [[ -d ./hooks ]]; then
-    cp -r ./hooks $pkg_path
+  if [[ -d $PLAN_CONTEXT/hooks ]]; then
+    cp -r $PLAN_CONTEXT/hooks $pkg_path
     chmod 755 $pkg_path/hooks
   fi
-  if [[ -f ./default.toml ]]; then
-    cp ./default.toml $pkg_path
+  if [[ -f $PLAN_CONTEXT/default.toml ]]; then
+    cp $PLAN_CONTEXT/default.toml $pkg_path
   fi
   return 0
 }
@@ -1063,8 +1065,8 @@ config() {
 # If the `$pkg_service_user` is set to `bldr`, we
 # change the service to be run under the `bldr` user
 # before we start it.
-service() {
-  if [[ -f $BLDR_CONTEXT/hooks/run ]]; then
+do_build_service() {
+  if [[ -f $PLAN_CONTEXT/hooks/run ]]; then
     return 0
   else
     if [[ -n "${pkg_service_run}" ]]; then
@@ -1096,7 +1098,7 @@ EOT
 }
 
 # Strip any binaries, decreasing our total size.
-strip_binaries() {
+do_strip() {
   find $pkg_path -type f -print0 \
     | xargs -0 file | grep ELF | cut -d ":" -f 1 \
     | xargs --no-run-if-empty strip --strip-debug \
@@ -1104,7 +1106,7 @@ strip_binaries() {
 }
 
 # Write the `$pkg_path/MANIFEST`.
-manifest() {
+build_manifest() {
 cat <<-EOT >> $pkg_path/MANIFEST
 $pkg_derivation $pkg_name
 =========================
@@ -1130,7 +1132,7 @@ LDFLAGS: $LDFLAGS
 LD_RUN_PATH: $LD_RUN_PATH
 
 \`\`\`bash
-$(cat $BLDR_CONTEXT/plan.sh)
+$(cat $PLAN_CONTEXT/plan.sh)
 \`\`\`
 
 Files
@@ -1141,7 +1143,7 @@ EOT
 }
 
 # Create the bldr package with `tar`/`gpg`, and sign it with `$pkg_gpg_key`.
-package() {
+generate_package() {
   mkdir -p $BLDR_PKG_CACHE
   tar -cf - "$pkg_path" | gpg \
     --set-filename x.tar \
@@ -1154,28 +1156,28 @@ package() {
 # Wraps `dockerfile` to ensure that a Docker image build is being executed in a
 # clean directory with native filesystem permissions which is outside the source
 # code tree.
-dockerfile_wrapper() {
-  tmp_prefix="$(echo "$BLDR_CONTEXT" | tr '/' '-')"
+do_docker_image_wrapper() {
+  tmp_prefix="$(echo "$PLAN_CONTEXT" | tr '/' '-')"
   DOCKER_CONTEXT="$($mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
-  cp -rp $BLDR_CONTEXT/* "$DOCKER_CONTEXT"/
+  cp -rp $PLAN_CONTEXT/* "$DOCKER_CONTEXT"/
   pushd $DOCKER_CONTEXT > /dev/null
-  dockerfile
+  do_docker_image
   popd > /dev/null
   rm -rf "$DOCKER_CONTEXT"
 }
 
 # Add additional entries to the generated Dockerfile. Use something fancy like `echo` to
 # return some data, and it will get inlined.
-docker_inline() {
+do_dockerfile_inline() {
   return 0
 }
 
-# Build the docker container. If `$pkg_docker_build` is set to `auto`,
+# Build the Docker image. If `$pkg_docker_build` is set to `auto`,
 # create the Dockerfile first.
 #
 # We build and tag the resulting image with `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
 # `$pkg_derivation/$pkg_name:latest`.
-dockerfile() {
+do_docker_image() {
   if [[ $pkg_docker_build = "auto" ]]; then
     mkdir -p ./${pkg_name}-cache
     rsync -av --delete $pkg_path/* ./${pkg_name}-cache
@@ -1184,10 +1186,10 @@ FROM $pkg_docker_from
 MAINTAINER $pkg_maintainer
 WORKDIR /
 EOT
-    docker_inline_data=$(docker_inline)
-    if [[ -z "$docker_inline_data" ]]; then
+    local dockerfile_inline_data=$(do_dockerfile_inline)
+    if [[ -z "$dockerfile_inline_data" ]]; then
       cat <<EOT >> ./Dockerfile
-$docker_inline_data
+$dockerfile_inline_data
 EOT
     fi
     if [[ $pkg_docker_from != "bldr/base" ]]; then
@@ -1200,7 +1202,7 @@ EOT
       pkg_deps+=("chef/zlib")
       pkg_deps+=("chef/runit")
       # Re-resolve dependencies to download any missing
-      resolve_deps
+      resolve_dependencies
       cat <<EOT >> ./Dockerfile
 ENTRYPOINT ["bldr"]
 RUN ln -sf $(pkg_path_for chef/bldr)/bin/bldr /bin/bldr && \
@@ -1249,7 +1251,7 @@ EOT
 }
 
 # A function for cleaning up after yourself.
-bldr_end() {
+do_end() {
   return 0
 }
 
@@ -1277,22 +1279,22 @@ done
 find_system_commands
 
 # Expand the context path to an absolute path
-BLDR_CONTEXT="$(abspath $BLDR_CONTEXT)"
+PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
 # Expand the path of this program to an absolute path
 BLDR_BUILD=$(abspath $0)
 
 # First we check if the provided path has a `plan.sh` in it. If not, we'll quickly bail.
-if [[ ! -f "$BLDR_CONTEXT/plan.sh" ]]; then
-  exit_with "$BLDR_CONTEXT/plan.sh does not exist" 42
+if [[ ! -f "$PLAN_CONTEXT/plan.sh" ]]; then
+  exit_with "$PLAN_CONTEXT/plan.sh does not exist" 42
 fi
 
-# Change into the `$BLDR_CONTEXT` directory for proper resolution of relative paths
+# Change into the `$PLAN_CONTEXT` directory for proper resolution of relative paths
 # in `plan.sh`
-cd $BLDR_CONTEXT
+cd $PLAN_CONTEXT
 
 # Load the Plan
-echo "Loading $BLDR_CONTEXT/plan.sh"
-if source "$BLDR_CONTEXT/plan.sh"; then
+echo "Loading $PLAN_CONTEXT/plan.sh"
+if source "$PLAN_CONTEXT/plan.sh"; then
   build_line "Plan loaded"
 else
   ret=$?
@@ -1343,29 +1345,30 @@ fi
 # Create the `$pkg_path`
 mkdir -p $pkg_path
 
-# Run `bldr_begin`
-bldr_begin
+# Run `do_begin`
+build_line "Bldr setup"
+do_begin
 
 # Download and resolve the depdencies
 build_line "Resolving dependencies"
-resolve_deps
+resolve_dependencies
 
 # Download the source
 build_line "Downloading $pkg_source"
 mkdir -p $BLDR_SRC_CACHE
-download
+do_download
 
 # Verify the source
 build_line "Verifying $pkg_filename"
-verify
+do_verify
 
 # Clean the cache
 build_line "Clean the cache"
-clean_cache
+do_clean
 
 # Unpack the source
 build_line "Unpacking $pkg_filename"
-unpack
+do_unpack
 
 # Set up the build environment
 build_line "Setting build environment"
@@ -1373,47 +1376,47 @@ build_environment
 
 # Prepare the source
 build_line "Preparing to build"
-prepare_wrapper
+do_prepare_wrapper
 
 # Build the source
 build_line "Building"
-build_wrapper
+do_build_wrapper
 
 # Install the source
 build_line "Installing"
-install_wrapper
+do_install_wrapper
 
 # Render the linking and dependency files
-build_line "Rendering link options for dependent packages"
-link_libraries
+build_line "Building package metadata"
+build_metadata
 
 # Copy the configuration
 build_line "Writing configuration"
-config
+do_build_config
 
 # Copy the service management scripts
 build_line "Writing service management scripts"
-service
+do_build_service
 
 # Strip the binaries
 build_line "Stripping binaries"
-strip_binaries
+do_strip
 
 # Write the manifest
 build_line "Creating manifest"
-manifest
+build_manifest
 
 # Write the package
-build_line "Writing package"
-package
+build_line "Generating package"
+generate_package
 
 # Build the Docker images
 build_line "Creating Docker images"
-dockerfile_wrapper
+do_docker_image_wrapper
 
 # Cleanup
 build_line "Bldr cleanup"
-bldr_end
+do_end
 
 # Print the results
 build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"

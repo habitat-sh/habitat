@@ -10,7 +10,7 @@ pkg_lib_dirs=(lib)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 
-build() {
+do_build() {
   ./configure --prefix=$pkg_prefix \
     --enable-unicode-properties \
     --enable-pcre16 \

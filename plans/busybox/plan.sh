@@ -8,11 +8,11 @@ pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_binary_path=(bin sbin)
 
-build() {
+do_build() {
 	make
 }
 
-prepare() {
+do_prepare() {
 	cat <<EOT >> $BLDR_SRC_CACHE/$pkg_dirname/.config
 	#
 # Automatically generated make config: don't edit

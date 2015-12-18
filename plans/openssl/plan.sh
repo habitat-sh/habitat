@@ -10,7 +10,7 @@ pkg_binary_path=(bin)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 
-build() {
+do_build() {
 	./config \
 		--prefix=${pkg_prefix} \
 		no-idea \

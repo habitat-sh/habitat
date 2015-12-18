@@ -10,13 +10,13 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_deps=(chef/libgpg-error)
 
-build() {
+do_build() {
   ./configure \
     --prefix=$pkg_prefix \
     --with-libgpg-error-prefix=$(pkg_path_for chef/libgpg-error)
   make
 }
 
-strip_binaries() {
+do_strip() {
   return 0
 }

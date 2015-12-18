@@ -12,7 +12,7 @@ pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
 pkg_docker_build="auto"
 pkg_expose=(80 443)
 
-build() {
+do_build() {
   make USE_PCRE=1 \
     USE_PCRE_JIT=1 \
     CPU=x86_64 \
@@ -23,7 +23,7 @@ build() {
     ADDLIB="$LDFLAGS"
 }
 
-install() {
+do_install() {
   mkdir -p $pkg_prefix/bin
   cp haproxy $pkg_prefix/bin
 }

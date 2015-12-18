@@ -10,7 +10,7 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_binary_path=(bin)
 
-build() {
+do_build() {
   ./autogen.sh
   ./configure --prefix=$pkg_prefix
 }

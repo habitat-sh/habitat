@@ -11,7 +11,7 @@ pkg_binary_path=(bin)
 pkg_shasum=3689fdb519133d039f49e12834764ff4c1de8f8d925dea44a952ca110d0ac9f7
 pkg_gpg_key=3853DA6B
 
-build() {
+do_build() {
   ./Configure -de -Dprefix=${pkg_prefix}
   make
 }

@@ -8,18 +8,18 @@ pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_binary_path=(bin)
 
-unpack() {
+do_unpack() {
   mkdir -p $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}
   tar zxf $BLDR_SRC_CACHE/$pkg_filename -C $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}
 }
 
-build() {
+do_build() {
   pushd admin/runit-${pkg_version}
   ./package/compile
   popd
 }
 
-install() {
+do_install() {
   mkdir -p $pkg_prefix/bin
   cp admin/runit-${pkg_version}/command/* $pkg_prefix/bin
 }

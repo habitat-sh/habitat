@@ -12,6 +12,6 @@ pkg_service_run="bin/redis-server /opt/bldr/srvc/redis/config/redis.config"
 pkg_docker_build="auto"
 pkg_expose=(6379)
 
-build() {
+do_build() {
 	make
 }

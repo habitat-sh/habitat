@@ -9,7 +9,7 @@ pkg_binary_path=(bin)
 pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme chef/libassuan chef/libgpg-error)
 pkg_build_deps=(chef/patchelf)
 
-bldr_begin() {
+do_begin() {
 	mkdir -p /opt/bldr/cache/keys
 	mkdir -p /opt/bldr/cache/gpg
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
@@ -29,11 +29,11 @@ bldr_begin() {
 	#BLDR_BIN=$(abspath "$BLDR_CONTEXT/../../target/release/bldr")
 }
 
-download() {
+do_download() {
 	return 0
 }
 
-build() {
+do_build() {
   # cargo clean
   env OPENSSL_LIB_DIR=$(pkg_path_for chef/openssl)/lib \
       OPENSSL_INCLUDE_DIR=$(pkg_path_for chef/openssl)/include \
@@ -45,7 +45,7 @@ build() {
   patchelf --set-rpath "$LD_RUN_PATH" target/release/bldr
 }
 
-install() {
+do_install() {
 	mkdir -p $pkg_path/bin
 	cp target/release/bldr $pkg_path/bin
 	# if [[ -f "$BLDR_BIN" ]]; then
@@ -56,11 +56,11 @@ install() {
 	# fi
 }
 
-verify() {
+do_verify() {
 	return 0
 }
 
-dockerfile() {
+do_docker_image() {
   ./mkimage.sh
   docker build -t "bldr/base:${pkg_version}-${pkg_rel}" .
   docker tag -f bldr/base:${pkg_version}-${pkg_rel} bldr/base:latest

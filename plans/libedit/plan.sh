@@ -10,6 +10,6 @@ pkg_deps=(chef/glibc chef/ncurses)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 
-build() {
+do_build() {
   ./configure --enable-widec --prefix=$pkg_prefix
 }
