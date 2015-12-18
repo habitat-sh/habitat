@@ -2,22 +2,22 @@ BLDR_PKGS := glibc libgcc patchelf zlib cacerts busybox libgpg-error libassuan g
 PKGS := $(BLDR_PKGS) redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
 REPO := http://159.203.235.47
 
-bldr: gpg
-	@for pkg in $(BLDR_PKGS); do \
-		./bldr-build $$pkg; \
-	done
+.PHONY: bldr-deps world publish gpg clean baseimage_root $(PKGS) $(addprefix publish-,$(PKGS))
 
-world: gpg
-	@for pkg in $(PKGS); do \
-		./bldr-build $$pkg; \
-	done
+world: gpg $(PKGS)
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
+
+bldr-deps: gpg $(BLDR_PKGS)
 
 publish:
 	cargo build --release
-	@for pkg in $(PKGS); do \
-		../target/release/bldr upload chef/$$pkg -u $(REPO); \
-	done
+	$(MAKE) $(addprefix publish-,$(PKGS))
+
+$(PKGS):
+	./bldr-build $@
+
+$(addprefix publish-,$(PKGS)):
+	../target/release/bldr upload chef/$(subst publish-,,$@) -u $(REPO)
 
 gpg:
 	- gpg --import chef-public.gpg
