@@ -14,27 +14,27 @@ pkg_docker_build="auto"
 pkg_docker_from="ubuntu:latest"
 pkg_expose=(1129 6379)
 
-download() {
+do_download() {
 # I'm particularly sorry about this.
 	ln -sf $BLDR_CONTEXT/$pkg_source $BLDR_SRC_CACHE
 }
 
-verify() {
+do_verify() {
 	return 0
 }
 
-unpack() {
+do_unpack() {
 	$BLDR_CONTEXT/sapcar.exe -xvf $pkg_filename -R $BLDR_SRC_CACHE
 }
 
-build() {
+do_build() {
 	return 0
 }
 
 # We take the contents of the HANA install package, and write it to the package
 # itself. We need to wrap sdbrun with a script that re-sets it's LD_LIBRARY_PATH,
 # due to HANA injecting its own internal shared version of perl.
-install() {
+do_install() {
   mkdir -p $pkg_prefix/bin
   mv $BLDR_SRC_CACHE/$pkg_dirname/* $pkg_prefix/bin
   mv $pkg_prefix/bin/instruntime/sdbrun $pkg_prefix/bin/instruntime/sdbrun-real

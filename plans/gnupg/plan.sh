@@ -8,7 +8,7 @@ pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin libexec)
 pkg_deps=(chef/glibc)
 
-build() {
+do_build() {
 	./configure --prefix=${pkg_prefix} --with-included-zlib --with-included-regex
 	make
 }

@@ -9,7 +9,7 @@ pkg_deps=(chef/glibc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 
-build() {
+do_build() {
   ./configure --prefix=$pkg_prefix \
     --with-shared \
     --with-termlib \
@@ -26,7 +26,7 @@ build() {
   make
 }
 
-install() {
+do_install() {
   make install
   for x in libform libmenu libncurses libtinfo libpanel; do
     ln -s $pkg_prefix/lib/${x}w.so $pkg_prefix/lib/${x}.so

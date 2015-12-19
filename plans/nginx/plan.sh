@@ -15,7 +15,7 @@ pkg_service_user="root"
 pkg_docker_build="auto"
 pkg_expose=(80 443)
 
-build() {
+do_build() {
   ./configure --prefix=$pkg_prefix \
     --conf-path="$pkg_srvc_config/nginx.conf" \
     --sbin-path="$pkg_prefix/bin/nginx" \
@@ -52,7 +52,7 @@ build() {
   make
 }
 
-install() {
+do_install() {
   mkdir -p $pkg_prefix/sbin
   cp $BLDR_SRC_CACHE/$pkg_dirname/objs/nginx $pkg_prefix/sbin
 }

@@ -12,7 +12,7 @@ pkg_shasum=21ede7eb6c3a2a9c7b13eeee241e82428be4f6d5030ff488f638817f419af093
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 
-build() {
+do_build() {
   ./configure --without-systemd --without-python --without-slang --prefix=$pkg_prefix
   make
 }

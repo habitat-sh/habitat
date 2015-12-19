@@ -10,29 +10,29 @@ pkg_bin_dirs=(usr/bin sbin /usr/sbin)
 pkg_include_dirs=(include)
 pkg_gpg_key=3853DA6B
 
-download() {
+do_download() {
 	return 0
 }
 
-verify() {
+do_verify() {
 	return 0
 }
 
-unpack() {
+do_unpack() {
 	return 0
 }
 
-prepare() {
+do_prepare() {
 	pkg_dirname="$pkg_name-$pkg_version"
 	mkdir -p $BLDR_SRC_CACHE/$pkg_dirname
 }
 
-build() {
+do_build() {
 	dpkg -L libc6 > $BLDR_SRC_CACHE/$pkg_dirname/files
 	dpkg -L libc-bin >> $BLDR_SRC_CACHE/$pkg_dirname/files
 }
 
-install() {
+do_install() {
 	mkdir -p $pkg_path
 	rsync -vaP --no-dirs --files-from=$BLDR_SRC_CACHE/$pkg_dirname/files / $pkg_path
 }

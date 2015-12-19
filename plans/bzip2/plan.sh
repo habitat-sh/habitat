@@ -10,12 +10,12 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_binary_path=(bin)
 
-build() {
+do_build() {
   make -f Makefile-libbz2_so PREFIX="$pkg_prefix" LDFLAGS="$LDFLAGS"
   make bzip2 bzip2recover
 }
 
-install() {
+do_install() {
   make install PREFIX="$pkg_prefix"
   cp $BLDR_SRC_CACHE/$pkg_dirname/libbz2.so.1.0.6 $pkg_prefix/lib
   ln -s $pkg_prefix/lib/libbz2.so.1.0.6 $pkg_prefix/lib/libbz2.so

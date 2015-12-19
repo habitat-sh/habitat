@@ -10,7 +10,7 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_deps=(chef/glibc chef/libassuan chef/libgpg-error)
 
-build() {
+do_build() {
   ./configure \
     --prefix=$pkg_prefix \
     --with-libgpg-error-prefix=$(pkg_path_for chef/libgpg-error) \

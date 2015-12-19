@@ -12,7 +12,7 @@ pkg_binary_path=(bin)
 pkg_shasum=5178c30b151d044aefb1b08bf54c3003a0ac55c59c866763997529d60770d5bc
 pkg_gpg_key=3853DA6B
 
-build() {
+do_build() {
   ./configure --prefix=${pkg_prefix} --without-python
   make
 }

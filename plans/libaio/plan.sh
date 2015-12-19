@@ -10,10 +10,10 @@ pkg_include_dirs=(include)
 pkg_shasum=bf4a457253cbaab215aea75cb6e18dc8d95bbd507e9920661ff9bdd288c8778d
 pkg_gpg_key=3853DA6B
 
-build() {
+do_build() {
   make
 }
 
-install() {
+do_install() {
   make install prefix=${pkg_prefix}
 }
