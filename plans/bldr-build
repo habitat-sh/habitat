@@ -313,24 +313,24 @@ umask 0022
 
 # ## Helper functions
 
-# Handles exiting the program on signals. Takes either an argument
+# **Internal** Handles exiting the program on signals. Takes either an argument
 # with the status code, or uses the last commands status code.
 #
 # For example, the below would exit with a status of 1.
 #
 # ```bash
-# on_exit 1
+# _on_exit 1
 # ```
 #
 # Or:
 #
 # ```bash
 # false
-# on_exit
+# _on_exit
 # ```
 #
 # Would also exit 1.
-on_exit() {
+_on_exit() {
   local exit_status=${1:-$?}
   if [[ -d "$DOCKER_CONTEXT" ]]; then
     echo "Cleaning up Docker context $DOCKER_CONTEXT"
@@ -342,17 +342,18 @@ on_exit() {
   exit $exit_status
 }
 
-# Call the `on_exit` function above on:
+# Call the `_on_exit()` function above on:
 # * HUP (1)
 # * INT (2)
 # * QUIT (3)
 # * TERM (15)
 # * ERR - when a shell command raises an error. Useful for `set -e; set -E`
 #   above.
-trap on_exit 1 2 3 15 ERR
+trap _on_exit 1 2 3 15 ERR
 
-# Ensures that the correct versions of key system commands are able to be used
-# by this program. If we cannot find suitable versions, we will abort early.
+# **Internal** Ensures that the correct versions of key system commands are
+# able to be used by this program. If we cannot find suitable versions, we will
+# abort early.
 #
 # The following variables are set which contain an absolute path to the
 # desired command:
@@ -362,7 +363,7 @@ trap on_exit 1 2 3 15 ERR
 #
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
-find_system_commands() {
+_find_system_commands() {
   if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
     sort=$(command -v sort)
   else
@@ -467,20 +468,20 @@ trim() {
 # **Internal** Return the path to the latest release of a package on stdout.
 #
 # ```
-# latest_package bldr/nginx
+# _latest_package bldr/nginx
 # # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
-# latest_package bldr/nginx/1.8.0
+# _latest_package bldr/nginx/1.8.0
 # # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
-# latest_package bldr/nginx/1.8.0/20150911120000
+# _latest_package bldr/nginx/1.8.0/20150911120000
 # # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
 # ```
 #
 # Will return 0 if a package was found on disk, and 1 if a package cannot be
 # found. A message will be printed to stderr explaining that no package was
 # found.
-latest_package() {
+_latest_package() {
   if [[ ! -d "$BLDR_PKG_ROOT/$1" ]]; then
-    warn "latest_package() found no packages of '$1' installed"
+    warn "No installed packages of '$1' were found"
     return 1
   fi
 
@@ -499,7 +500,7 @@ latest_package() {
         | $sort --version-sort -r | head -n 1) ;;
   esac
   if [[ -z "$result" && ! -f "$result/MANIFEST" ]]; then
-    warn "latest_package '$1' did not find a suitable installed package"
+    warn "Could not find a suitable installed package for '$1'"
     return 1
   else
     echo "$result"
@@ -513,18 +514,18 @@ latest_package() {
 # `bldr` will attempt to install the package from a remote repository.
 #
 # ```
-# resolve_dep chef/zlib
+# _resolve_dependency chef/zlib
 # # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
-# resolve_dep chef/zlib/1.2.8
+# _resolve_dependency chef/zlib/1.2.8
 # # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
-# resolve_dep chef/zlib/1.2.8/20151216221001
+# _resolve_dependency chef/zlib/1.2.8/20151216221001
 # # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
 # ```
 #
 # Will return 0 if a package was found or installed on disk, and 1 if a package
 # cannot be found or remotely installed. A message will be printed to stderr to
 # provide context.
-resolve_dep() {
+_resolve_dependency() {
   local dep="$1"
   local dep_path
   if ! echo "$dep" | grep -q '\/' > /dev/null; then
@@ -540,7 +541,7 @@ resolve_dep() {
   #   $BLDR_BIN install "$dep" -u $BLDR_REPO
   # fi
 
-  if dep_path=$(latest_package "$dep"); then
+  if dep_path=$(_latest_package "$dep"); then
     echo "${dep_path}"
     return 0
   else
@@ -553,8 +554,8 @@ resolve_dep() {
       $BLDR_BIN install "$dep" -u $BLDR_REPO
       # Now that we have our dep installed locally, call ourselves to get the
       # echo/output
-      resolve_dep "$dep"
-      return $?
+      _resolve_dependency "$dep"
+      return 0
     fi
     return $?
   fi
@@ -637,7 +638,7 @@ attach() {
   local fname="${FUNCNAME[1]}"
   local replno=1
   # Print out our current code context (source file, line number, etc.)
-  __attach_whereami
+  _attach_whereami
   # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
   while [[ "$cmd" != "exit" && "$cmd" != "quit" ]]; do
     read -p "[$replno] ${pkg_name}($fname)> " cmd
@@ -686,10 +687,10 @@ Aliases
 # used externally.
 #
 # ```
-# __attach_whereami    # => defaults to 10 lines of context around the current line
-# __attach_whereami 2  # => shows 2 lines of context around the current line
+# _attach_whereami    # => defaults to 10 lines of context around the current line
+# _attach_whereami 2  # => shows 2 lines of context around the current line
 # ```
-__attach_whereami() {
+_attach_whereami() {
   local context=${1:-10}
   local lnum="${BASH_LINENO[1]}"
   local src="${BASH_SOURCE[2]}"
@@ -742,24 +743,30 @@ do_begin() {
   return 0
 }
 
-# Walk each item in `$pkg_build_deps` and $pkg_deps`, and for each item
-# determine the absolute path to a suitable package release (which will be on
-# disk). These "resolved" paths will be added to respective parallel arrays
+# **Internal** Walk each item in `$pkg_build_deps` and $pkg_deps`, and for each
+# item determine the absolute path to a suitable package release (which will be
+# on disk). These "resolved" paths will be added to respective parallel arrays
 # (`$pkg_deps_resolved` and `$pkg_build_deps_resolved`) as well as a combined
 # array `$pkg_all_deps_resolved`.
-resolve_dependencies() {
+_resolve_dependencies() {
   local resolved
   pkg_build_deps_resolved=()
   for dep in "${pkg_build_deps[@]}"; do
-    local resolved="$(resolve_dep $dep)"
-    build_line "Resolved build dependency '$dep' to $resolved"
-    pkg_build_deps_resolved+=($resolved)
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved build dependency '$dep' to $resolved"
+      pkg_build_deps_resolved+=($resolved)
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
   done
   pkg_deps_resolved=()
   for dep in "${pkg_deps[@]}"; do
-    local resolved="$(resolve_dep $dep)"
-    build_line "Resolved dependency '$dep' to $resolved"
-    pkg_deps_resolved+=($resolved)
+    if resolved="$(_resolve_dependency $dep)"; then
+      build_line "Resolved dependency '$dep' to $resolved"
+      pkg_deps_resolved+=($resolved)
+    else
+      exit_with "Resolving '$dep' failed, should this be built first?" 1
+    fi
   done
   pkg_all_deps_resolved=("${pkg_build_deps_resolved[@]}" "${pkg_deps_resolved[@]}")
 }
@@ -841,12 +848,13 @@ do_unpack() {
   return 0
 }
 
-# Set up our build environment. First, add any library paths defined in
-# `$pkg_lib_dirs` to `LD_RUN_PATH`. Then, for each dependency in `$pkg_deps`,
-# and `$pkg_build_deps`, find the latest package, then add it's `LD_RUN_PATH`,
-# `CFLAGS`, `LDFLAGS`, and `PATH` to ours. Also, set `PREFIX=$pkg_path`,
-# ensuring that most software will install into the correct location.
-build_environment() {
+# **Internal** Set up our build environment. First, add any library paths
+# defined in `$pkg_lib_dirs` to `LD_RUN_PATH`. Then, for each dependency in
+# `$pkg_deps`, and `$pkg_build_deps`, find the latest package, then add it's
+# `LD_RUN_PATH`, `CFLAGS`, `LDFLAGS`, and `PATH` to ours. Also, set
+# `PREFIX=$pkg_path`, ensuring that most software will install into the correct
+# location.
+_build_environment() {
   local ld_run_path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
     if [[ -z $ld_run_path_part ]]; then
@@ -957,7 +965,7 @@ do_install() {
   make install
 }
 
-# Write out the package data to files:
+# **Internal** Write out the package data to files:
 #
 # * `$pkg_path/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
 # * `$pkg_path/LDFLAGS` - Any LDFLAGS for things that link against us
@@ -966,7 +974,7 @@ do_install() {
 # * `$pkg_path/EXPOSES` - Any ports we expose
 # * `$pkg_path/BUILD_DEPS` - Any depencies we need build the package
 # * `$pkg_path/DEPS` - Any depencies we need to use the package at runtime
-build_metadata() {
+_build_metadata() {
   local ld_run_path_part=""
   local ld_lib_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
@@ -1072,11 +1080,11 @@ do_build_service() {
     if [[ -n "${pkg_service_run}" ]]; then
       if [[ "${pkg_service_user}" = "bldr" ]]; then
         cat <<EOT >> $pkg_path/run
-#!$(latest_package chef/busybox)/bin/sh
+#!$(_latest_package chef/busybox)/bin/sh
 cd $BLDR_ROOT/srvc/$pkg_name
 
 if [ "\$(whoami)" = "root" ]; then
-  exec $(latest_package chef/busybox)/bin/chpst \\
+  exec $(_latest_package chef/busybox)/bin/chpst \\
     -U bldr:bldr \\
     -u bldr:bldr \\
     $pkg_path/$pkg_service_run 2>&1
@@ -1086,7 +1094,7 @@ fi
 EOT
       else
         cat <<EOT >> $pkg_path/run
-#!$(latest_package chef/busybox)/bin/sh
+#!$(_latest_package chef/busybox)/bin/sh
 cd $BLDR_ROOT/srvc/$pkg_name
 
 exec $pkg_path/$pkg_service_run 2>&1
@@ -1105,8 +1113,8 @@ do_strip() {
     || true
 }
 
-# Write the `$pkg_path/MANIFEST`.
-build_manifest() {
+# **Internal** Write the `$pkg_path/MANIFEST`.
+_build_manifest() {
 cat <<-EOT >> $pkg_path/MANIFEST
 $pkg_derivation $pkg_name
 =========================
@@ -1142,8 +1150,9 @@ EOT
   return 0
 }
 
-# Create the bldr package with `tar`/`gpg`, and sign it with `$pkg_gpg_key`.
-generate_package() {
+# **Internal** Create the bldr package with `tar`/`gpg`, and sign it with
+# `$pkg_gpg_key`.
+_generate_package() {
   mkdir -p $BLDR_PKG_CACHE
   tar -cf - "$pkg_path" | gpg \
     --set-filename x.tar \
@@ -1202,7 +1211,7 @@ EOT
       pkg_deps+=("chef/zlib")
       pkg_deps+=("chef/runit")
       # Re-resolve dependencies to download any missing
-      resolve_dependencies
+      _resolve_dependencies
       cat <<EOT >> ./Dockerfile
 ENTRYPOINT ["bldr"]
 RUN ln -sf $(pkg_path_for chef/bldr)/bin/bldr /bin/bldr && \
@@ -1276,7 +1285,7 @@ while getopts "u:" opt; do
 done
 
 # Determine if we have all the commands we need to work
-find_system_commands
+_find_system_commands
 
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
@@ -1338,7 +1347,7 @@ pkg_srvc_var="$BLDR_ROOT/srvc/$pkg_name/var"
 pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
 
 # The default location for the bldr binary to use
-if pkg_for_bldr=$(latest_package "chef/bldr"); then
+if pkg_for_bldr=$(_latest_package "chef/bldr"); then
   BLDR_BIN="$pkg_for_bldr/bin/bldr"
 fi
 
@@ -1351,7 +1360,7 @@ do_begin
 
 # Download and resolve the depdencies
 build_line "Resolving dependencies"
-resolve_dependencies
+_resolve_dependencies
 
 # Download the source
 build_line "Downloading $pkg_source"
@@ -1372,7 +1381,7 @@ do_unpack
 
 # Set up the build environment
 build_line "Setting build environment"
-build_environment
+_build_environment
 
 # Prepare the source
 build_line "Preparing to build"
@@ -1388,7 +1397,7 @@ do_install_wrapper
 
 # Render the linking and dependency files
 build_line "Building package metadata"
-build_metadata
+_build_metadata
 
 # Copy the configuration
 build_line "Writing configuration"
@@ -1404,11 +1413,11 @@ do_strip
 
 # Write the manifest
 build_line "Creating manifest"
-build_manifest
+_build_manifest
 
 # Write the package
 build_line "Generating package"
-generate_package
+_generate_package
 
 # Build the Docker images
 build_line "Creating Docker images"
@@ -1425,4 +1434,4 @@ build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version
 
 # Exit cleanly
 build_line "$(basename $0) has baked your brownies"
-on_exit  0
+_on_exit  0
