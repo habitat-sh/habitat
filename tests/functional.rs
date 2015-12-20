@@ -20,6 +20,7 @@ extern crate tempdir;
 extern crate time;
 extern crate hyper;
 extern crate url;
+extern crate bldr as bldr_lib;
 
 pub mod util;
 
@@ -33,9 +34,12 @@ mod setup {
     pub fn gpg_import() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let mut gpg = match util::command::run("gpg", &["--import", &util::path::fixture_as_string("chef-private.gpg")]) {
+            let mut gpg = match util::command::run("gpg",
+                                                   &["--import",
+                                                     &util::path::fixture_as_string("chef-pri\
+                                                                                     vate.gpg")]) {
                 Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e)
+                Err(e) => panic!("{:?}", e),
             };
             gpg.wait_with_output();
         });
@@ -46,19 +50,24 @@ mod setup {
         ONCE.call_once(|| {
             let tempdir = TempDir::new("simple_service").unwrap();
             let mut copy_cmd = Command::new("cp")
-                .arg("-r")
-                .arg(util::path::fixture("simple_service"))
-                .arg(tempdir.path().to_str().unwrap())
-                .spawn().unwrap();
+                                   .arg("-r")
+                                   .arg(util::path::fixture("simple_service"))
+                                   .arg(tempdir.path().to_str().unwrap())
+                                   .spawn()
+                                   .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service = match util::command::bldr_build(tempdir.path().join("simple_service")) {
+            let mut simple_service = match util::command::bldr_build(tempdir.path()
+                                                                            .join("simple_serv\
+                                                                                   ice")) {
                 Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e)
+                Err(e) => panic!("{:?}", e),
             };
             simple_service.wait_with_output();
-            if ! simple_service.status.unwrap().success() {
-                panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}", simple_service.stdout, simple_service.stderr)
+            if !simple_service.status.unwrap().success() {
+                panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
+                       simple_service.stdout,
+                       simple_service.stderr)
             }
         });
     }
@@ -66,9 +75,12 @@ mod setup {
     pub fn key_install() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let mut cmd = match util::command::bldr(&["key", &util::path::fixture_as_string("chef-public.asc")]) {
+            let mut cmd = match util::command::bldr(&["key",
+                                                      &util::path::fixture_as_string("chef-pu\
+                                                                                      blic.as\
+                                                                                      c")]) {
                 Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e)
+                Err(e) => panic!("{:?}", e),
             };
             cmd.wait_with_output();
         });

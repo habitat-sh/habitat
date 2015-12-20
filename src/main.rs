@@ -64,6 +64,7 @@ Options::
     -p, --path=<path>          The path to use for a repository [default: /opt/bldr/srvc/bldr/data]
     -u, --url=<url>            Use the specified package repository url
     -w, --watch=<watch>        One or more service groups to watch for updates
+    -l, --gossip-listen=<ip>   The listen string for gossip [default: 0.0.0.0:9634]
     -v, --verbose              Verbose output; shows line numbers
     -n, --no-color             Turn ANSI color off :(
 ";
@@ -83,6 +84,7 @@ struct Args {
     cmd_config: bool,
     arg_package: Option<String>,
     arg_key: Option<String>,
+    flag_gossip_listen: String,
     flag_path: String,
     flag_port: Option<u16>,
     flag_url: Option<String>,
@@ -135,6 +137,7 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     config.set_group(args.flag_group.clone());
     config.set_watch(args.flag_watch.clone());
     config.set_path(args.flag_path.clone());
+    config.set_gossip_listen(args.flag_gossip_listen.clone());
     if args.flag_verbose {
         bldr::output::set_verbose(true);
     }

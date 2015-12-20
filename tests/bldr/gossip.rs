@@ -15,9 +15,25 @@
 // limitations under the License.
 //
 
-//! The gossip infrastructure.
+use setup;
+use util::docker;
 
-pub mod message;
-pub mod lamport_clock;
-pub mod server;
-pub mod client;
+use bldr_lib::gossip::message::Message;
+use bldr_lib::gossip::server::Server;
+use bldr_lib::gossip::client::Client;
+
+#[test]
+fn client_server_ping() {
+    setup::gpg_import();
+    setup::simple_service();
+
+    let d = docker::run("test/simple_service");
+    let ip = d.ipaddress();
+    let remote = format!("{}:9634", ip);
+    let mut gc = Client::new(&remote[..]).unwrap();
+    gc.send_message(Message::Ping).unwrap();
+    if d.wait_until(r"Ping from") {
+        let output = d.logs();
+        assert_regex!(&output, r"Ping From");
+    }
+}

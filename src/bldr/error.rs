@@ -57,6 +57,7 @@ use hyper;
 use toml;
 use mustache;
 use regex;
+use msgpack;
 use package;
 use output::StructuredOutput;
 
@@ -139,6 +140,8 @@ pub enum ErrorKind {
     CensusNotFound(String),
     UuidParseError(uuid::ParseError),
     InvalidPackageIdent(String),
+    MsgpackDecode(msgpack::decode::Error),
+    MsgpackEncode(msgpack::encode::Error),
 }
 
 /// Our result type alias, for easy coding.
@@ -243,6 +246,8 @@ impl fmt::Display for BldrError {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
                          derivation/name (example: chef/redis)",
                         e),
+            ErrorKind::MsgpackDecode(ref e) => format!("Msgpack decoding error: {:?}", e),
+            ErrorKind::MsgpackEncode(ref e) => format!("Msgpack encoding error: {:?}", e),
         };
         let cstring = Red.bold().paint(&content).to_string();
         let mut so = StructuredOutput::new("bldr",
@@ -311,6 +316,8 @@ impl Error for BldrError {
             ErrorKind::UuidParseError(_) => "Uuid Parse Error",
             ErrorKind::InvalidPackageIdent(_) =>
                 "Package identifiers must be in derivation/name format (example: chef/redis)",
+            ErrorKind::MsgpackDecode(_) => "Msgpack decoding error",
+            ErrorKind::MsgpackEncode(_) => "Msgpack encoding error",
         }
     }
 }
@@ -387,5 +394,17 @@ impl From<gpgme::Error> for BldrError {
 impl From<actor::ActorError> for BldrError {
     fn from(err: actor::ActorError) -> Self {
         bldr_error!(ErrorKind::ActorError(err))
+    }
+}
+
+impl From<msgpack::decode::Error> for BldrError {
+    fn from(err: msgpack::decode::Error) -> Self {
+        bldr_error!(ErrorKind::MsgpackDecode(err))
+    }
+}
+
+impl From<msgpack::encode::Error> for BldrError {
+    fn from(err: msgpack::encode::Error) -> Self {
+        bldr_error!(ErrorKind::MsgpackEncode(err))
     }
 }
