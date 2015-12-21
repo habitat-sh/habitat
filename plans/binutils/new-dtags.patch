@@ -1,0 +1,67 @@
+diff -ru binutils-2.25.1.orig/ld/ld.texinfo binutils-2.25.1/ld/ld.texinfo
+--- binutils-2.25.1.orig/ld/ld.texinfo	2014-12-23 08:47:10.000000000 +0000
++++ binutils-2.25.1/ld/ld.texinfo	2015-12-21 21:12:53.971763667 +0000
+@@ -2154,7 +2154,7 @@
+ @option{--enable-new-dtags}, the new dynamic tags will be created as needed
+ and older dynamic tags will be omitted.
+ If you specify @option{--disable-new-dtags}, no new dynamic tags will be
+-created. By default, the new dynamic tags are not created. Note that
++created. By default, the new dynamic tags are created. Note that
+ those options are only available for ELF systems.
+ 
+ @kindex --hash-size=@var{number}
+diff -ru binutils-2.25.1.orig/ld/ldmain.c binutils-2.25.1/ld/ldmain.c
+--- binutils-2.25.1.orig/ld/ldmain.c	2015-07-21 08:20:58.000000000 +0000
++++ binutils-2.25.1/ld/ldmain.c	2015-12-21 21:12:00.009578262 +0000
+@@ -276,6 +276,7 @@
+ 
+   link_info.allow_undefined_version = TRUE;
+   link_info.keep_memory = TRUE;
++  link_info.new_dtags = TRUE;
+   link_info.combreloc = TRUE;
+   link_info.strip_discarded = TRUE;
+   link_info.emit_hash = TRUE;
+diff -ru binutils-2.25.1.orig/ld/testsuite/ld-elf/now-3.d binutils-2.25.1/ld/testsuite/ld-elf/now-3.d
+--- binutils-2.25.1.orig/ld/testsuite/ld-elf/now-3.d	2013-11-04 15:33:39.000000000 +0000
++++ binutils-2.25.1/ld/testsuite/ld-elf/now-3.d	2015-12-21 21:13:54.874191879 +0000
+@@ -1,6 +1,6 @@
+ #source: start.s
+ #readelf: -d -W
+-#ld: -shared -z now
++#ld: -shared -z now --disable-new-dtags
+ #target: *-*-linux* *-*-gnu*
+ 
+ #failif
+diff -ru binutils-2.25.1.orig/ld/testsuite/ld-elf/now-4.d binutils-2.25.1/ld/testsuite/ld-elf/now-4.d
+--- binutils-2.25.1.orig/ld/testsuite/ld-elf/now-4.d	2013-11-04 15:33:39.000000000 +0000
++++ binutils-2.25.1/ld/testsuite/ld-elf/now-4.d	2015-12-21 21:14:07.194678378 +0000
+@@ -1,6 +1,6 @@
+ #source: start.s
+ #readelf: -d -W
+-#ld: -shared -z now
++#ld: -shared -z now --disable-new-dtags
+ #target: *-*-linux* *-*-gnu*
+ 
+ #...
+diff -ru binutils-2.25.1.orig/ld/testsuite/ld-elf/rpath-1.d binutils-2.25.1/ld/testsuite/ld-elf/rpath-1.d
+--- binutils-2.25.1.orig/ld/testsuite/ld-elf/rpath-1.d	2013-11-04 15:33:39.000000000 +0000
++++ binutils-2.25.1/ld/testsuite/ld-elf/rpath-1.d	2015-12-21 21:14:29.425552285 +0000
+@@ -1,6 +1,6 @@
+ #source: start.s
+ #readelf: -d -W
+-#ld: -shared -rpath .
++#ld: -shared -rpath . --disable-new-dtags
+ #target: *-*-linux* *-*-gnu*
+ 
+ #failif
+diff -ru binutils-2.25.1.orig/ld/testsuite/ld-elf/rpath-2.d binutils-2.25.1/ld/testsuite/ld-elf/rpath-2.d
+--- binutils-2.25.1.orig/ld/testsuite/ld-elf/rpath-2.d	2013-11-04 15:33:39.000000000 +0000
++++ binutils-2.25.1/ld/testsuite/ld-elf/rpath-2.d	2015-12-21 21:14:42.926080590 +0000
+@@ -1,6 +1,6 @@
+ #source: start.s
+ #readelf: -d -W
+-#ld: -shared -rpath .
++#ld: -shared -rpath . --disable-new-dtags
+ #target: *-*-linux* *-*-gnu*
+ 
+ #...
