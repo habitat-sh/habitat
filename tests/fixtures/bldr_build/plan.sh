@@ -12,20 +12,20 @@ pkg_deps=()
 pkg_service_run="bin/simple_service"
 pkg_docker_build="auto"
 
-bldr_begin() {
+do_begin() {
 	tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 --exclude 'plans' --exclude '.git' --exclude '.gitignore' --exclude 'target' --transform "s,^\.,bldr_build-0.0.1," .
 	pkg_shasum=$(trim $(sha256sum /opt/bldr/cache/src/bldr_build-0.0.1.tar.bz2 | cut -d " " -f 1))
 }
 
-download() {
+do_download() {
 	return 0
 }
 
-build() {
+do_build() {
 	return 0
 }
 
-install() {
+do_install() {
 	cp -r $BLDR_SRC_CACHE/$pkg_dirname/bin $pkg_prefix
 	chmod 755 $pkg_path/bin
   chmod 755 $pkg_path/bin/*
