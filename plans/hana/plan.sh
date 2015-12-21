@@ -16,7 +16,7 @@ pkg_expose=(1129 6379)
 
 do_download() {
 # I'm particularly sorry about this.
-	ln -sf $BLDR_CONTEXT/$pkg_source $BLDR_SRC_CACHE
+	ln -sf $PLAN_CONTEXT/$pkg_source $BLDR_SRC_CACHE
 }
 
 do_verify() {
@@ -24,7 +24,7 @@ do_verify() {
 }
 
 do_unpack() {
-	$BLDR_CONTEXT/sapcar.exe -xvf $pkg_filename -R $BLDR_SRC_CACHE
+	$PLAN_CONTEXT/sapcar.exe -xvf $pkg_filename -R $BLDR_SRC_CACHE
 }
 
 do_build() {
