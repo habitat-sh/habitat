@@ -873,7 +873,7 @@ _build_environment() {
       path_part="$path_part:$pkg_path/$path"
     fi
   done
-  for dep_path in "${pkg_all_deps_resolved[@]}"; do
+  for dep_path in "${pkg_deps_resolved[@]}"; do
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
       local trimmed=$(trim $data)
@@ -883,6 +883,8 @@ _build_environment() {
         export LD_RUN_PATH="$trimmed"
       fi
     fi
+  done
+  for dep_path in "${pkg_all_deps_resolved[@]}"; do
     if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
       local trimmed=$(trim $data)
