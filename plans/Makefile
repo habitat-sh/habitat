@@ -1,4 +1,4 @@
-BLDR_PKGS := linux-headers glibc zlib file binutils m4 gmp
+BLDR_PKGS := linux-headers glibc zlib file binutils m4 gmp mpfr
 BLDR_WEB_PKGS := node ncurses libedit pcre nginx bldr-web
 PKGS := $(BLDR_PKGS) $(BLDR_WEB_PKGS) redis haproxy libaio libltdl libxml2 numactl perl erlang libyaml libiconv libtool libffi ruby
 REPO := http://159.203.235.47
