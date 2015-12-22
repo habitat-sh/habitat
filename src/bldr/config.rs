@@ -65,6 +65,7 @@ pub struct Config {
     key: String,
     listen_addr: repo::ListenAddr,
     port: repo::ListenPort,
+    gossip_listen: String,
 }
 
 impl Config {
@@ -201,6 +202,15 @@ impl Config {
 
     pub fn repo_addr(&self) -> net::SocketAddrV4 {
         net::SocketAddrV4::new(self.listen_addr.0.clone(), self.port.0.clone())
+    }
+
+    pub fn gossip_listen(&self) -> &str {
+        &self.gossip_listen
+    }
+
+    pub fn set_gossip_listen(&mut self, gl: String) -> &mut Config {
+        self.gossip_listen = gl;
+        self
     }
 
     pub fn package_id(&self) -> String {

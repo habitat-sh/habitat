@@ -15,9 +15,10 @@
 // limitations under the License.
 //
 
-//! The gossip infrastructure.
+pub const BUFFER_SIZE: usize = 4096;
 
-pub mod message;
-pub mod lamport_clock;
-pub mod server;
-pub mod client;
+#[derive(Debug, RustcDecodable, RustcEncodable)]
+pub enum Message {
+    Ping,
+    Pong,
+}

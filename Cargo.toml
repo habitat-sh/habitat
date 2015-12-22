@@ -33,6 +33,9 @@ iron = "*"
 router = "*"
 time = "*"
 uuid = "*"
+utp = "*"
+rmp = "*"
+rmp-serialize = "*"
 
 [dependencies.wonder]
 path = "./vendor/wonder"

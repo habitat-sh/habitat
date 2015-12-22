@@ -49,6 +49,7 @@ use service_config::ServiceConfig;
 use sidecar;
 use user_config;
 use watch_config;
+use gossip;
 
 static LOGKEY: &'static str = "TP";
 
@@ -144,11 +145,11 @@ pub enum State {
 
 /// The topology `Worker` is where everything our state machine needs between states lives.
 pub struct Worker<'a> {
-    /// The package we are supervising
+/// The package we are supervising
     pub package: Arc<RwLock<Package>>,
-    /// Name of the package being supervised
+/// Name of the package being supervised
     pub package_name: String,
-    /// A pointer to our current Config
+/// A pointer to our current Config
     pub config: &'a Config,
 /// The topology we are running
     pub topology: String,
@@ -160,6 +161,8 @@ pub struct Worker<'a> {
     pub census_entry_actor: wonder::actor::Actor<census::Message>,
 /// Our Census Actor; reads the census periodically
     pub census_actor: wonder::actor::Actor<census::CensusMessage>,
+/// The Gossip Server; listens for inbound gossip traffic
+    pub gossip_server: wonder::actor::Actor<gossip::server::ServerActorMessage>,
 /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
 /// Our User Configuration; reads the config periodically
@@ -245,6 +248,12 @@ impl<'a> Worker<'a> {
                              .name("watch-config".to_string())
                              .start(watch_actor_state)
                              .unwrap(),
+            gossip_server: wonder::actor::Builder::new(gossip::server::ServerActor)
+                               .name("gossip-server".to_string())
+                               .start(gossip::server::ServerState {
+                                   listen: String::from(config.gossip_listen()),
+                               })
+                               .unwrap(),
             pkg_updater: pkg_updater,
             supervisor_thread: None,
             supervisor_id: None,
