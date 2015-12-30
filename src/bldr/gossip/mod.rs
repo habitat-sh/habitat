@@ -5,8 +5,12 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 //! The gossip infrastructure.
+//!
+//! Start with the server module, then read the rumor, detector, and member modules.
 
-pub mod message;
+pub mod rumor;
 pub mod lamport_clock;
+pub mod member;
 pub mod server;
 pub mod client;
+pub mod detector;

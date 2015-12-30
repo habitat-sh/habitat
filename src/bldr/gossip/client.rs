@@ -7,23 +7,23 @@
 //! The Gossip Client.
 //!
 //! This module takes a `UtpSocket`, and lets you send and receive messages with it. Messages are
-//! encoded with msgpack.
+//! encoded with json.
+//!
 
-use msgpack::{Encoder, Decoder};
-use rustc_serialize::{Encodable, Decodable};
+use rustc_serialize::json;
 use utp::UtpSocket;
 
-use std::thread;
 use std::net::ToSocketAddrs;
+use std::str;
 
 use error::BldrResult;
-use gossip::message::{BUFFER_SIZE, Message};
+use gossip::rumor::{Protocol, Peer, RumorList};
 
-static LOGKEY: &'static str = "GC";
+pub const BUFFER_SIZE: usize = 10000;
 
 /// A Gossip Client.
 pub struct Client {
-    socket: UtpSocket,
+    pub socket: UtpSocket,
 }
 
 impl Client {
@@ -47,24 +47,28 @@ impl Client {
     /// # Errors
     ///
     /// * If we cannot send a ping
-    /// * If we cannot receive a pong
-    pub fn ping(&mut self) -> BldrResult<()> {
-        try!(self.send_message(Message::Ping));
-        let msg = try!(self.recv_message());
-        match msg {
-            Message::Pong => debug!("Gossip is alive - Ping successful"),
-            _ => unreachable!(),
-        }
+    pub fn ping(&mut self, my_peer: Peer, rumors_for_remote: RumorList) -> BldrResult<()> {
+        try!(self.send_message(Protocol::Ping(my_peer, rumors_for_remote)));
         Ok(())
     }
 
-    /// Send a pong.
+    /// Send a pingreq.
     ///
     /// # Errors
     ///
-    /// * If we cannot send a pong
-    pub fn pong(&mut self) -> BldrResult<()> {
-        try!(self.send_message(Message::Pong));
+    /// * If we cannot send a pingreq
+    pub fn pingreq(&mut self, through_peer: Peer, rumors_for_remote: RumorList) -> BldrResult<()> {
+        try!(self.send_message(Protocol::PingReq(through_peer, rumors_for_remote)));
+        Ok(())
+    }
+
+    /// Send a Ack.
+    ///
+    /// # Errors
+    ///
+    /// * If we cannot send a Ack
+    pub fn ack(&mut self, my_peer: Peer, rumors_for_remote: RumorList) -> BldrResult<()> {
+        try!(self.send_message(Protocol::Ack(my_peer, rumors_for_remote)));
         Ok(())
     }
 
@@ -73,14 +77,28 @@ impl Client {
     /// # Errors
     ///
     /// * We cannot receive the data from the socket
-    /// * We cannot decode the data into a `gossip::message::Message`
-    pub fn recv_message(&mut self) -> BldrResult<Message> {
-        let mut buf = Vec::with_capacity(BUFFER_SIZE);
-        let (amt, src) = try!(self.socket.recv_from(&mut buf));
+    /// * We cannot decode the data into a `gossip::message::Protocol`
+    pub fn recv_message(&mut self) -> BldrResult<Protocol> {
+        let mut buf = [0u8; BUFFER_SIZE];
+        let mut json_str = String::new();
+        let mut keep_reading_buffer = true;
 
-        let mut decoder = Decoder::new(&buf[0..amt]);
-        let msg: Message = try!(Decodable::decode(&mut decoder));
-        debug!("Received message ({:?}): {:?}", src, msg);
+        while keep_reading_buffer {
+            let (amt, _src) = try!(self.socket.recv_from(&mut buf));
+            match amt {
+                0 => keep_reading_buffer = false,
+                amt => {
+                    let partial_str = try!(str::from_utf8(&buf[..amt]));
+                    json_str.push_str(partial_str);
+                }
+            }
+        }
+
+        debug!("Received protocol ({:?}): {}",
+               self.socket.peer_addr(),
+               json_str);
+
+        let msg: Protocol = try!(json::decode(&json_str));
         Ok(msg)
     }
 
@@ -90,11 +108,11 @@ impl Client {
     ///
     /// * We cannot encode the `Message`
     /// * We fail to send the encoded buffer to the remote
-    pub fn send_message(&mut self, msg: Message) -> BldrResult<()> {
-        let mut buf = Vec::with_capacity(BUFFER_SIZE);
-        try!(msg.encode(&mut Encoder::new(&mut &mut buf)));
-        try!(self.socket.send_to(&buf[..]));
-        debug!("Sent message: {:?}", msg);
+    pub fn send_message(&mut self, msg: Protocol) -> BldrResult<()> {
+        let encoded = try!(json::encode(&msg));
+        debug!("Encoded message {:#?}", encoded);
+        try!(self.socket.send_to(encoded.as_bytes()));
+        debug!("Sent protocol: {:?}", msg);
         Ok(())
     }
 }

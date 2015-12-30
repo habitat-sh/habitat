@@ -67,7 +67,7 @@ impl Hook {
                 None => {
                     return Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
                                                                  -1,
-                                                                 String::from("Failed"))))
+                                                                 String::from("Failed"))));
                 }
             };
             let mut line = output_format!(P: "hook", "{}", &self.htype);

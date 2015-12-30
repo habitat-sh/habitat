@@ -36,18 +36,19 @@ use std::num;
 use std::string;
 use std::ffi;
 use std::sync::mpsc;
+use std::str;
 
 use gpgme;
 use libarchive;
 use uuid;
 use wonder::actor;
 use ansi_term::Colour::Red;
+use rustc_serialize::json;
 
 use hyper;
 use toml;
 use mustache;
 use regex;
-use msgpack;
 use package;
 use output::StructuredOutput;
 
@@ -115,6 +116,7 @@ pub enum ErrorKind {
     MustacheMergeOnlyMaps,
     SupervisorSignalFailed,
     StringFromUtf8Error(string::FromUtf8Error),
+    StrFromUtf8Error(str::Utf8Error),
     SupervisorDied,
     NulError(ffi::NulError),
     IPFailed,
@@ -132,9 +134,10 @@ pub enum ErrorKind {
     CensusNotFound(String),
     UuidParseError(uuid::ParseError),
     InvalidPackageIdent(String),
-    MsgpackDecode(msgpack::decode::Error),
-    MsgpackEncode(msgpack::encode::Error),
-    InvalidKeyParameter(String)
+    InvalidKeyParameter(String),
+    JsonEncode(json::EncoderError),
+    JsonDecode(json::DecoderError),
+    InitialPeers,
 }
 
 /// Our result type alias, for easy coding.
@@ -223,6 +226,7 @@ impl fmt::Display for BldrError {
                 format!("Failed to send a signal to the process supervisor")
             }
             ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
+            ErrorKind::StrFromUtf8Error(ref e) => format!("{}", e),
             ErrorKind::SupervisorDied => format!("The supervisor died"),
             ErrorKind::NulError(ref e) => format!("{}", e),
             ErrorKind::IPFailed => format!("Failed to discover this hosts outbound IP address"),
@@ -253,9 +257,11 @@ impl fmt::Display for BldrError {
                          derivation/name (example: chef/redis)",
                         e)
             }
-            ErrorKind::MsgpackDecode(ref e) => format!("Msgpack decoding error: {:?}", e),
-            ErrorKind::MsgpackEncode(ref e) => format!("Msgpack encoding error: {:?}", e),
-            ErrorKind::InvalidKeyParameter(ref e) => format!("Invalid key parameter: {:?}", e),
+            ErrorKind::InvalidKeyParameter(ref e) =>
+                format!("Invalid parameter for key generation: {:?}", e),
+            ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
+            ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
+            ErrorKind::InitialPeers => format!("Failed to contact initial peers"),
         };
         let cstring = Red.bold().paint(content).to_string();
         let mut so = StructuredOutput::new("bldr",
@@ -309,6 +315,9 @@ impl Error for BldrError {
             ErrorKind::StringFromUtf8Error(_) => {
                 "Failed to convert a string from a Vec<u8> as UTF-8"
             }
+            ErrorKind::StrFromUtf8Error(_) => {
+                "Failed to convert a str from a &[u8] as UTF-8"
+            }
             ErrorKind::SupervisorDied => "The supervisor died",
             ErrorKind::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
@@ -336,9 +345,10 @@ impl Error for BldrError {
             ErrorKind::InvalidPackageIdent(_) => {
                 "Package identifiers must be in derivation/name format (example: chef/redis)"
             }
-            ErrorKind::MsgpackDecode(_) => "Msgpack decoding error",
-            ErrorKind::MsgpackEncode(_) => "Msgpack encoding error",
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
+            ErrorKind::JsonEncode(_) => "JSON encoding error",
+            ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
+            ErrorKind::InitialPeers => "Failed to contact initial peers",
         }
     }
 }
@@ -400,6 +410,12 @@ impl From<string::FromUtf8Error> for BldrError {
     }
 }
 
+impl From<str::Utf8Error> for BldrError {
+    fn from(err: str::Utf8Error) -> BldrError {
+        bldr_error!(ErrorKind::StrFromUtf8Error(err))
+    }
+}
+
 impl From<mpsc::TryRecvError> for BldrError {
     fn from(err: mpsc::TryRecvError) -> BldrError {
         bldr_error!(ErrorKind::TryRecvError(err))
@@ -424,14 +440,14 @@ impl From<actor::ActorError> for BldrError {
     }
 }
 
-impl From<msgpack::decode::Error> for BldrError {
-    fn from(err: msgpack::decode::Error) -> Self {
-        bldr_error!(ErrorKind::MsgpackDecode(err))
+impl From<json::EncoderError> for BldrError {
+    fn from(err: json::EncoderError) -> Self {
+        bldr_error!(ErrorKind::JsonEncode(err))
     }
 }
 
-impl From<msgpack::encode::Error> for BldrError {
-    fn from(err: msgpack::encode::Error) -> Self {
-        bldr_error!(ErrorKind::MsgpackEncode(err))
+impl From<json::DecoderError> for BldrError {
+    fn from(err: json::DecoderError) -> Self {
+        bldr_error!(ErrorKind::JsonDecode(err))
     }
 }

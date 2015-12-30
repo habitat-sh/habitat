@@ -41,16 +41,51 @@ fn docker_cmd(args: &[&str]) -> Docker {
 }
 
 pub fn run(image: &str) -> Docker {
-    docker_cmd(&["run", "-d", image])
+    docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", image])
 }
 
 pub fn repo(image: &str) -> Docker {
-    docker_cmd(&["run", "-d", "--expose=9632", image, "repo"])
+    docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", "--expose=9632", image, "repo"])
 }
 
 pub fn run_with_env(image: &str, env: &str) -> Docker {
-    docker_cmd(&["run", "-d", &format!("-e={}", env), image])
+    docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", &format!("-e={}", env), image])
 }
+
+pub fn run_with_peer(image: &str, peer: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--gossip-peer={}", peer),
+                 &format!("--group={}", thread::current().name().unwrap_or("main"))])
+}
+
+pub fn run_with_peer_permanent(image: &str, peer: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--gossip-peer={}", peer),
+                 &format!("--group={}", thread::current().name().unwrap_or("main")),
+                 &format!("--gossip-permanent")])
+}
+
+pub fn run_with_permanent(image: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--group={}", thread::current().name().unwrap_or("main")),
+                 &format!("--gossip-permanent")])
+}
+
 
 pub fn run_with_etcd(image: &str) -> Docker {
     docker_cmd(&["run",
@@ -128,7 +163,7 @@ impl Docker {
     }
 
     pub fn wait_until(&self, ready_regex: &str) -> bool {
-        let wait_duration = time::Duration::seconds(5);
+        let wait_duration = time::Duration::seconds(30);
         let current_time = time::now_utc().to_timespec();
         let stop_time = current_time + wait_duration;
         while time::now_utc().to_timespec() < stop_time {
@@ -137,7 +172,7 @@ impl Docker {
                 return true;
             }
         }
-        println!("Container not ready after 5 seconds, looking for {}",
+        println!("Container not ready after 30 seconds, looking for {}",
                  ready_regex);
         false
     }
@@ -146,6 +181,21 @@ impl Docker {
         let mut cmd = command::run("docker", &["stop", &self.container_id])
                           .unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
+    }
+
+    pub fn exec(&self, args: &[&str]) {
+        let mut real_args = vec!["exec", &self.container_id];
+        for arg in args.iter() {
+            real_args.push(arg)
+        }
+        let mut cmd = command::run("docker", &real_args).unwrap_or_else(|x| panic!("{:?}", x));
+        cmd.wait_with_output();
+        if !cmd.status.unwrap().success() {
+            panic!("Failed to run `docker {:#?}`: STDOUT - {:?} STDERR - {:?}",
+                   real_args,
+                   cmd.stdout,
+                   cmd.stderr);
+        }
     }
 }
 

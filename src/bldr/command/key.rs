@@ -68,7 +68,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
                         try!(repo::client::put_key(url, cached));
                     }
                     Err(_) => {
-                        return Err(bldr_error!(ErrorKind::KeyNotFound(config.key().to_string())))
+                        return Err(bldr_error!(ErrorKind::KeyNotFound(config.key().to_string())));
                     }
                 }
             } else {

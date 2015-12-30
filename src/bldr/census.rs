@@ -41,9 +41,9 @@ static LOGKEY: &'static str = "CN";
 /// A CensusEntry. Manages all the data about a given member of the census.
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable, Eq)]
 pub struct CensusEntry {
-    id: Uuid,
-    hostname: String,
-    ip: String,
+    pub id: Uuid,
+    pub hostname: String,
+    pub ip: String,
     suitability: u64,
     port: Option<String>,
     exposes: Option<Vec<String>>,
@@ -248,7 +248,7 @@ impl GenServer for CensusEntryActor {
                 return HandleResult::Stop(StopReason::Fatal(format!("Census Entry Actor caught \
                                                                      unexpected error: {:?}",
                                                                     e)),
-                                          None)
+                                          None);
             }
         }
     }
@@ -665,7 +665,7 @@ impl GenServer for CensusActor {
                     return HandleResult::Stop(StopReason::Fatal(format!("Census Actor caught \
                                                                          unexpected error: {:?}",
                                                                         e)),
-                                              None)
+                                              None);
                 }
             }
         }
@@ -692,7 +692,7 @@ impl GenServer for CensusActor {
                     return HandleResult::Stop(StopReason::Fatal(format!("Census Actor caught \
                                                                          unexpected error: {:?}",
                                                                         e)),
-                                              Some(CensusMessage::Ok))
+                                              Some(CensusMessage::Ok));
                 }
             }
         }

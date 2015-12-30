@@ -113,7 +113,8 @@ pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &st
     println!("{}: Running: cmd: {} {:?} env: {:?}",
              thread::current().name().unwrap_or("main"),
              cmd,
-             args, env);
+             args,
+             env);
     let mut command = Command::new(cmd);
     command.args(args);
     command.stdin(Stdio::null());
@@ -126,7 +127,7 @@ pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &st
                 command.env(k, v);
             }
         }
-        None => ()
+        None => (),
     }
 
     command
@@ -167,7 +168,6 @@ pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {
     spawn(command)
 }
 
-
 pub fn bldr_with_env(args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> {
     let bldr = util::path::bldr();
     let command = command_with_env(&bldr, args, Some(env));
@@ -181,4 +181,3 @@ pub fn bldr_with_test_gpg_cache(args: &[&str], cache_dir: &str) -> CmdResult<Cmd
     env.insert("BLDR_GPG_CACHE", cache_dir);
     bldr_with_env(args, &env)
 }
-

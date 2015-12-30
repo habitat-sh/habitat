@@ -38,7 +38,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 #[cfg_attr(rustfmt, rustfmt_skip)]
 static USAGE: &'static str = "
 Usage: bldr install <package> -u <url> [-vn]
-       bldr start <package> [-u <url>] [--group=<group>] [--topology=<topology>] [--watch=<watch>...] [-vn]
+       bldr start <package> [-u <url>] [--group=<group>] [--topology=<topology>] [--watch=<watch>...] [--gossip-peer=<ip:port>...] [-vnI]
        bldr sh [-v -n]
        bldr bash [-v -n]
        bldr repo [-p <path>] [--port=<port>] [-vn]
@@ -61,9 +61,11 @@ Options:
     -u, --url=<url>                 Use the specified package repository url.
     -w, --watch=<watch>             One or more service groups to watch for updates.
     -l, --gossip-listen=<ip>        The listen string for gossip [default: 0.0.0.0:9634].
+    -P, --gossip-peer=<ip>          The listen string of an initial gossip peer
+    -I, --gossip-permanent          If this service is a permanent gossip peer
     -v, --verbose                   Verbose output; shows line numbers.
+    -e, --expire-days=<expire>      Number of days before key expires.
     -n, --no-color                  Turn ANSI color off :( .
-    --expire-days=<expire>          Number of days before key expires.
 ";
 
 /// The struct that docopts renders options
@@ -97,6 +99,7 @@ struct Args {
     arg_outfile: Option<String>,
 
     flag_gossip_listen: String,
+    flag_gossip_peer: Vec<String>,
     flag_path: String,
     flag_port: Option<u16>,
     flag_url: Option<String>,
@@ -105,8 +108,8 @@ struct Args {
     flag_watch: Vec<String>,
     flag_verbose: bool,
     flag_no_color: bool,
-    flag_expire_days: Option<u16>
-
+    flag_expire_days: Option<u16>,
+    flag_gossip_permanent: bool,
 }
 
 /// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
@@ -131,13 +134,13 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     if let Some(ref arg_password) = args.arg_password {
         config.set_password(arg_password.clone());
     }
-    if let Some(ref arg_email) = args.arg_email{
+    if let Some(ref arg_email) = args.arg_email {
         config.set_email(arg_email.clone());
     }
-    if let Some(ref arg_userkey) = args.arg_userkey{
+    if let Some(ref arg_userkey) = args.arg_userkey {
         config.set_user_key(arg_userkey.clone());
     }
-    if let Some(ref arg_servicekey) = args.arg_servicekey{
+    if let Some(ref arg_servicekey) = args.arg_servicekey {
         config.set_service_key(arg_servicekey.clone());
     }
     if let Some(ref arg_infile) = args.arg_infile {
@@ -173,6 +176,8 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     config.set_watch(args.flag_watch.clone());
     config.set_path(args.flag_path.clone());
     config.set_gossip_listen(args.flag_gossip_listen.clone());
+    config.set_gossip_peer(args.flag_gossip_peer.clone());
+    config.set_gossip_permanent(args.flag_gossip_permanent);
     if args.flag_verbose {
         bldr::output::set_verbose(true);
     }
@@ -272,7 +277,6 @@ fn main() {
         // -----------------------------------------------------
         // end security stuff
         // -----------------------------------------------------
-
         Args{cmd_sh: true, ..} => {
             match config_from_args(&args, Command::Shell) {
                 Ok(config) => shell(&config),
@@ -405,17 +409,21 @@ fn download_repo_key(_config: &Config) -> BldrResult<()> {
 
 /// Generate a key for a user
 fn generate_user_key(config: &Config) -> BldrResult<()> {
-    outputln!("Generate user key for {}", Yellow.bold().paint(config.key()));
+    outputln!("Generate user key for {}",
+              Yellow.bold().paint(config.key()));
     try!(key::generate_user_key(&config));
-    outputln!("Finished generating user key for {}", Yellow.bold().paint(config.key()));
+    outputln!("Finished generating user key for {}",
+              Yellow.bold().paint(config.key()));
     Ok(())
 }
 
 /// Generate a key for a service
 fn generate_service_key(config: &Config) -> BldrResult<()> {
-    outputln!("Generate service key for {}", Yellow.bold().paint(config.key()));
+    outputln!("Generate service key for {}",
+              Yellow.bold().paint(config.key()));
     try!(key::generate_service_key(&config));
-    outputln!("Finished generating service key for {}", Yellow.bold().paint(config.key()));
+    outputln!("Finished generating service key for {}",
+              Yellow.bold().paint(config.key()));
     Ok(())
 }
 

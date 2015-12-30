@@ -14,6 +14,7 @@
 
 use std::net;
 
+use gossip::server::GOSSIP_DEFAULT_PORT;
 use topology::Topology;
 use repo;
 
@@ -69,6 +70,8 @@ pub struct Config {
     servicekey: Option<String>,
     infile: Option<String>,
     outfile: Option<String>,
+    gossip_peer: Vec<String>,
+    gossip_permanent: bool,
 }
 
 impl Config {
@@ -289,6 +292,29 @@ impl Config {
 
     pub fn set_gossip_listen(&mut self, gl: String) -> &mut Config {
         self.gossip_listen = gl;
+        self
+    }
+
+    pub fn gossip_permanent(&self) -> bool {
+        self.gossip_permanent
+    }
+
+    pub fn set_gossip_permanent(&mut self, p: bool) -> &mut Config {
+        self.gossip_permanent = p;
+        self
+    }
+
+    pub fn gossip_peer(&self) -> &[String] {
+        &self.gossip_peer
+    }
+
+    pub fn set_gossip_peer(&mut self, mut gp: Vec<String>) -> &mut Config {
+        for p in gp.iter_mut() {
+            if p.find(':').is_none() {
+                p.push_str(&format!(":{}", GOSSIP_DEFAULT_PORT));
+            }
+        }
+        self.gossip_peer = gp;
         self
     }
 

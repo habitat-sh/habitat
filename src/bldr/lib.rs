@@ -54,9 +54,9 @@ extern crate time;
 extern crate wonder;
 extern crate uuid;
 extern crate utp;
-extern crate rmp;
-extern crate rmp_serialize as msgpack;
 extern crate rpassword;
+extern crate rand;
+extern crate threadpool;
 
 #[macro_export]
 /// Creates a new BldrError, embedding the current file name, line number, column, and module path.

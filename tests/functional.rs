@@ -11,6 +11,7 @@ extern crate hyper;
 extern crate url;
 extern crate bldr as bldr_lib;
 extern crate uuid;
+extern crate rustc_serialize;
 
 pub mod util;
 
@@ -69,14 +70,42 @@ mod setup {
                 .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service =
-            match util::command::bldr_build(tempdir.path().join("simple_service")) {
+            let mut simple_service = match util::command::bldr_build(tempdir.path()
+                                                                            .join("simple_serv\
+                                                                                   ice")) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };
             simple_service.wait_with_output();
             if !simple_service.status.unwrap().success() {
                 panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
+                       simple_service.stdout,
+                       simple_service.stderr)
+            }
+        });
+    }
+
+    pub fn simple_service_gossip() {
+        static ONCE: Once = ONCE_INIT;
+        ONCE.call_once(|| {
+            let tempdir = TempDir::new("simple_service_gossip").unwrap();
+            let mut copy_cmd = Command::new("cp")
+                                   .arg("-r")
+                                   .arg(util::path::fixture("simple_service_gossip"))
+                                   .arg(tempdir.path().to_str().unwrap())
+                                   .spawn()
+                                   .unwrap();
+            copy_cmd.wait().unwrap();
+
+            let mut simple_service = match util::command::bldr_build(tempdir.path()
+                                                                            .join("simple_serv\
+                                                                                   ice_gossip")) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e),
+            };
+            simple_service.wait_with_output();
+            if !simple_service.status.unwrap().success() {
+                panic!("Failed to build simple service for gossip: stdout: {:?}\nstderr: {:?}",
                        simple_service.stdout,
                        simple_service.stderr)
             }
@@ -95,8 +124,7 @@ mod setup {
                                    .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service =
-            match util::command::bldr_build(tempdir.path().join(pkg)) {
+            let mut simple_service = match util::command::bldr_build(tempdir.path().join(pkg)) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };

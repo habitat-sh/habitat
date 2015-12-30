@@ -61,8 +61,8 @@ impl<'a> KeygenParams<'a> {
             None => "".to_string(),
         };
 
-    // NOTE: you can't pass Passphrase: with an empty string
-    // so don't pass the string at all if a value doesn't exist
+// NOTE: you can't pass Passphrase: with an empty string
+// so don't pass the string at all if a value doesn't exist
         format!("
                 <GnupgKeyParms format=\"internal\">
                     Key-Type: {key_type}
@@ -157,24 +157,24 @@ pub fn encrypt_and_sign(userkey: &str,
 
     debug!("Loading keys");
     let ukey = try!(find_key(userkey));
-    //let ukey2 = try!(find_key(userkey));
+    // let ukey2 = try!(find_key(userkey));
     let skey = try!(find_key(servicekey));
 
     if let None = ukey {
         return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
     }
-    /*
-    if let None = ukey2 {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
-    }
-    */
+    //
+    // if let None = ukey2 {
+    // return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
+    // }
+    //
     if let None = skey {
         return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("Service key not \
                                                                             found"))));
     }
 
     let ukey = ukey.unwrap();
-    //let ukey2 = ukey2.unwrap();
+    // let ukey2 = ukey2.unwrap();
     let skey = skey.unwrap();
 
     let recipients = vec![skey, ukey];

@@ -151,7 +151,7 @@ pub struct Worker<'a> {
 /// Our Census Actor; reads the census periodically
     pub census_actor: wonder::actor::Actor<census::CensusMessage>,
 /// The Gossip Server; listens for inbound gossip traffic
-    pub gossip_server: wonder::actor::Actor<gossip::server::ServerActorMessage>,
+    pub gossip_server: gossip::server::Server,
 /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
 /// Our User Configuration; reads the config periodically
@@ -179,10 +179,9 @@ impl<'a> Worker<'a> {
         let mut ce = census::CensusEntry::new();
         ce.port(Some(port));
         ce.exposes(Some(exposes));
+
         let census_data = ce.as_etcd_write(&package, &config);
         let package_name = package.name.clone();
-
-        outputln!("Supervise ID {}", ce.candidate_string());
 
         // Setup the Census
         let census = census::Census::new(ce);
@@ -213,11 +212,23 @@ impl<'a> Worker<'a> {
             pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
         }
 
+        let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen()),
+                                                        config.gossip_permanent());
+        try!(gossip_server.start_inbound());
+        try!(gossip_server.initial_peers(config.gossip_peer()));
+        gossip_server.start_outbound();
+        gossip_server.start_failure_detector();
+        let sidecar_ml = gossip_server.member_list.clone();
+        let sidecar_rl = gossip_server.rumor_list.clone();
+        let sidecar_census = gossip_server.census.clone();
+        let sidecar_detector = gossip_server.detector.clone();
+
         Ok(Worker {
             package: pkg_lock,
             package_name: package_name,
             topology: topology,
             config: config,
+            gossip_server: gossip_server,
             census: census,
             census_entry_actor: wonder::actor::Builder::new(census::CensusEntryActor)
                                     .name("census-entry".to_string())
@@ -228,7 +239,12 @@ impl<'a> Worker<'a> {
                               .start(census_actor_state)
                               .unwrap(),
             service_config: service_config_lock,
-            sidecar_actor: sidecar::Sidecar::start(pkg_lock_1, service_config_lock_1),
+            sidecar_actor: sidecar::Sidecar::start(pkg_lock_1,
+                                                   service_config_lock_1,
+                                                   sidecar_ml,
+                                                   sidecar_rl,
+                                                   sidecar_census,
+                                                   sidecar_detector),
             user_actor: wonder::actor::Builder::new(user_config::UserActor)
                             .name("user-config".to_string())
                             .start(user_actor_state)
@@ -237,12 +253,6 @@ impl<'a> Worker<'a> {
                              .name("watch-config".to_string())
                              .start(watch_actor_state)
                              .unwrap(),
-            gossip_server: wonder::actor::Builder::new(gossip::server::ServerActor)
-                               .name("gossip-server".to_string())
-                               .start(gossip::server::ServerState {
-                                   listen: String::from(config.gossip_listen()),
-                               })
-                               .unwrap(),
             pkg_updater: pkg_updater,
             supervisor_thread: None,
             supervisor_id: None,

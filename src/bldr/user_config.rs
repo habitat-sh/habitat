@@ -108,7 +108,7 @@ impl GenServer for UserActor {
                     return HandleResult::Stop(StopReason::Fatal(format!("User Actor caught \
                                                                          unexpected error: {:?}",
                                                                         e)),
-                                              None)
+                                              None);
                 }
             }
         }
@@ -135,7 +135,7 @@ impl GenServer for UserActor {
                     return HandleResult::Stop(StopReason::Fatal(format!("User Actor caught \
                                                                          unexpected error: {:?}",
                                                                         e)),
-                                              Some(Message::Ok))
+                                              Some(Message::Ok));
                 }
             }
         }

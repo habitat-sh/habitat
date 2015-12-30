@@ -34,9 +34,9 @@ router = "*"
 time = "*"
 uuid = "*"
 utp = "*"
-rmp = "*"
-rmp-serialize = "*"
 rpassword = "*"
+rand = "*"
+threadpool = "*"
 
 [dependencies.wonder]
 path = "./vendor/wonder"
