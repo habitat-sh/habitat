@@ -11,5 +11,4 @@ pkg_binary_path=(bin)
 do_build() {
 	./configure --prefix=${pkg_prefix} --with-apr=$(pkg_path_for chef/apr)
 	make
-        make install
 }

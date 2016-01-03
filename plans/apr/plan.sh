@@ -7,9 +7,3 @@ pkg_shasum=7d03ed29c22a7152be45b8e50431063736df9e1daa1ddf93f6a547ba7a28f67a
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_binary_path=(bin)
-
-do_build() {
-  ./configure --prefix=${pkg_prefix}
-  make
-  make install
-}
