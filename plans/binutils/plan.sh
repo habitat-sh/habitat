@@ -27,13 +27,19 @@ do_begin() {
 }
 
 do_prepare() {
+  glibc="$(pkg_path_for glibc)"
+
+  # TODO: For the wrapper scripts to function correctly, we need the full
+  # path to bash. Until a bash plan is created, we're going to wing this...
+  bash=$(command -v bash)
+
   find . -iname "ltmain.sh" | while read file; do
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
 
   # TODO: We need a more clever way to calculate/determine the path to ld-*.so
-  dynamic_linker="$(pkg_path_for glibc)/lib/ld-2.22.so"
+  dynamic_linker="${glibc}/lib/ld-linux-x86-64.so.2"
 
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
   LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$dynamic_linker"
@@ -96,7 +102,7 @@ do_build() {
     # Check the environment to make sure all the necessary tools are available
     make configure-host
 
-    make tooldir=$pkg_prefix
+    make -j$(nproc) tooldir=$pkg_prefix
 
     # This testsuite is pretty sensitive to its environment, especially when
     # libraries and headers are being flown in from non-standard locations.
@@ -120,5 +126,24 @@ do_install() {
 
     # No shared linking to these files outside binutils
     rm -fv ${pkg_path}/lib/lib{bfd,opcodes}.so
+
+    # Wrap key binaries so we can add some arguments and flags to the real
+    # underlying binary.
+    #
+    # Thanks to: https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/cc-wrapper/ld-wrapper.sh
+    # Thanks to: https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html
+    wrap_binary ld.bfd
   popd > /dev/null
+}
+
+wrap_binary() {
+  local bin="$pkg_path/bin/$1"
+  build_line "Adding wrapper $bin to ${bin}.real"
+  mv -v "$bin" "${bin}.real"
+  sed $PLAN_CONTEXT/ld-wrapper.sh \
+    -e "s^@shell@^${bash}^g" \
+    -e "s^@dynamic_linker@^${dynamic_linker}^g" \
+    -e "s^@program@^${bin}.real^g" \
+    > "$bin"
+  chmod 755 "$bin"
 }
