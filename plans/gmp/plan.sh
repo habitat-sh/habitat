@@ -17,16 +17,14 @@ do_prepare() {
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
 
-  # TODO: We need a more clever way to calculate/determine the path to ld-*.so
+  # Set RUNPATH for c++ compiled code
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
-  LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$(pkg_path_for glibc)/lib/ld-2.22.so"
-  export LDFLAGS
   build_line "Updating LDFLAGS=$LDFLAGS"
 }
 
 do_build() {
   ./configure --prefix=$pkg_prefix --enable-cxx
-  make
+  make -j$(nproc)
 
   if [ -n "${DO_CHECK}" ]; then
     make check

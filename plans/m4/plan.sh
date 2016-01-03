@@ -11,11 +11,9 @@ pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
 do_prepare() {
-  # TODO: We need a more clever way to calculate/determine the path to ld-*.so
-  LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
-  LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$(pkg_path_for glibc)/lib/ld-2.22.so"
-  export LDFLAGS
-  build_line "Updating LDFLAGS=$LDFLAGS"
+  # Force gcc to use our ld wrapper from binutils when calling `ld`
+  CFLAGS="$CFLAGS -B$(pkg_path_for binutils)/bin/"
+  build_line "Updating CFLAGS=$CFLAGS"
 }
 
 do_build() {
@@ -29,6 +27,6 @@ do_build() {
     # Thanks to: http://permalink.gmane.org/gmane.linux.lfs.devel/16285
     sed -i 's/copyright{/copyright\\{/' build-aux/update-copyright
 
-    make check LDFLAGS=""
+    make check
   fi
 }

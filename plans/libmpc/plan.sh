@@ -19,10 +19,7 @@ do_prepare() {
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
 
-  # TODO: We need a more clever way to calculate/determine the path to ld-*.so
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
-  LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$(pkg_path_for glibc)/lib/ld-2.22.so"
-  export LDFLAGS
   build_line "Updating LDFLAGS=$LDFLAGS"
 }
 
