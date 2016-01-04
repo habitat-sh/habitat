@@ -23,14 +23,24 @@ else
 endif
 
 IMAGE := chroot_build
-TOOLS := lfs-tools/lfs-tools-20151209232702.tar.xz
-TOOLS_EXTRA := lfs-tools/lfs-tools-extras-20151202003003.tar.xz
-TARS := $(TOOLS) $(TOOLS_EXTRA)
+TOOLS_TAR := lfs-tools/lfs-tools-20151209232702.tar.xz
+TOOLS_EXTRA_TAR := lfs-tools/lfs-tools-extras-20151202003003.tar.xz
+TARS := $(TOOLS_TAR) $(TOOLS_EXTRA_TAR)
+
+ifneq (${use_bootstrap_tools},)
+	TOOLS := `pwd`/$(TOOLS_TAR)
+	TOOLS_EXTRA := `pwd`/$(TOOLS_EXTRA_TAR)
+else
+	TOOLS :=
+	TOOLS_EXTRA :=
+endif
 
 image:
 	if [ -n "${force}" -o -z "`docker images -q $(IMAGE)`" ]; then \
-		make $(TARS); \
-		docker build $(build_args) -t $(IMAGE):layers .; \
+		make download-bootstrap-tools; \
+		docker build $(build_args) \
+			--build-arg use_bootstrap_tools=$(use_bootstrap_tools) \
+			-t $(IMAGE):layers .; \
 		id=`docker run -d $(IMAGE):layers sh`; \
 		echo "==> Flattening $(IMAGE):layers to $(IMAGE):squash..."; \
 		docker export $$id \
@@ -48,8 +58,8 @@ clean-data:
 	docker-compose rm -f -v data
 
 vm:
-	make $(TARS)
-	time (vagrant up)
+	make download-bootstrap-tools
+	time (env use_bootstrap_tools=${use_bootstrap_tools} vagrant up)
 
 vm-shell: vm
 	vagrant ssh
@@ -57,18 +67,22 @@ vm-shell: vm
 vm-destroy:
 	vagrant destroy -f
 
-metal: ensure-linux
-	make $(TARS)
+chroot: ensure-linux
+	make download-bootstrap-tools
 	sudo -i env CHROOT=$(CHROOT) PLANS=$(PLANS) NO_MOUNT=${NO_MOUNT} \
-		TOOLS=`pwd`/$(TOOLS) TOOLS_EXTRA=`pwd`/$(TOOLS_EXTRA) \
+		TOOLS=$(TOOLS) TOOLS_EXTRA=$(TOOLS_EXTRA) \
 		`pwd`/scripts/create_chroot.sh
 
-metal-shell: metal
+chroot-shell: chroot
 	sudo -i env CHROOT=$(CHROOT) `pwd`/scripts/enter_chroot.sh
 
-metal-destroy: ensure-linux
+chroot-destroy: ensure-linux
 	sudo -i env CHROOT=$(CHROOT) `pwd`/scripts/umount_filesystems.sh
 	sudo -i rm -rfv $(CHROOT)
+
+download-bootstrap-tools:
+	mkdir -pv lfs-tools
+	if [ -n "${use_bootstrap_tools}" ]; then make $(TARS); fi
 
 $(TARS):
 	mkdir -pv `dirname $@`

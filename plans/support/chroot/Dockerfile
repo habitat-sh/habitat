@@ -13,6 +13,9 @@ COPY scripts /tmp-plans/scripts
 ENV CHROOT /mnt/chroot
 ENV PLANS /plans
 
+ARG use_bootstrap_tools
+ENV use_bootstrap_tools ${use_bootstrap_tools:-}
+
 RUN cd /tmp-plans \
-  && make metal NO_MOUNT=true \
+  && make chroot NO_MOUNT=true \
   && rm -rf /tmp-plans

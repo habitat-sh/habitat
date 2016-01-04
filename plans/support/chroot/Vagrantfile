@@ -20,7 +20,9 @@ Vagrant.configure(2) do |config|
   config.vm.provision "shell", inline: <<-SHELL
     cat <<-EOF | tee /home/vagrant/.bash_profile
     if [ -n "\\${PS1}" -o "\\$-" = "*i*" ]; then
-      set -eux; cd /plans/support/chroot; exec make metal-shell;
+      set -eux
+      cd /plans/support/chroot
+      exec make chroot-shell use_bootstrap_tools=#{ENV["use_bootstrap_tools"]}
     fi
 EOF
   SHELL

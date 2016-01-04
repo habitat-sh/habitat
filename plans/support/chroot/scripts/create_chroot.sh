@@ -76,7 +76,7 @@ fi
 
 # Mount virtual filesystems and create the root directory structure
 `dirname $0`/mount_filesystems.sh
-`dirname $0`/create_directories.sh
+`dirname $0`/create_filesystem.sh
 
 # If `$tools` is set and the `/tools` directory doesn't appear to have been
 # previously extracted, then extract! Finally, create some symlinks from

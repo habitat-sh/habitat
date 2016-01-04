@@ -3,12 +3,12 @@
 # # Usage
 #
 # ```
-# $ create_directories.sh
+# $ create_filesystem.sh
 # ```
 #
 # # Synopsis
 #
-# `create_directories.sh` creates a base filesystem layout for the chroot
+# `create_filesystem.sh` creates a base filesystem layout for the chroot
 # environment.
 #
 # # Environment Variables
@@ -147,6 +147,67 @@ mkdir -pv $root/var/lib/color
 mkdir -pv $root/var/lib/misc
 mkdir -pv $root/var/lib/locate
 mkdir -pv $root/var/local
+
+ln -sfv /proc/self/mounts $root/etc/mtab
+
+touch $root/var/log/btmp
+touch $root/var/log/lastlog
+touch $root/var/log/wtmp
+chgrp -v 13 $root/var/log/lastlog
+chmod -v 664 $root/var/log/lastlog
+chmod -v 600 $root/var/log/btmp
+
+# If `/etc/passwd` is not present, create a minimal version to satisfy
+# some software when being built
+if [ ! -f "$root/etc/passwd" ]; then
+  echo "> Creating minimal /etc/passwd"
+  cat > $root/etc/passwd << "EOF"
+root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/dev/null:/bin/false
+daemon:x:6:6:Daemon User:/dev/null:/bin/false
+messagebus:x:18:18:D-Bus Message Daemon User:/var/run/dbus:/bin/false
+nobody:x:99:99:Unprivileged User:/dev/null:/bin/false
+EOF
+fi
+
+# If `/etc/group` is not present, create a minimal version to satisfy
+# some software when being built
+if [ ! -f "$root/etc/group" ]; then
+  echo "> Creating minimal /etc/group"
+  cat > $root/etc/group << "EOF"
+root:x:0:
+bin:x:1:daemon
+sys:x:2:
+kmem:x:3:
+tape:x:4:
+tty:x:5:
+daemon:x:6:
+floppy:x:7:
+disk:x:8:
+lp:x:9:
+dialout:x:10:
+audio:x:11:
+video:x:12:
+utmp:x:13:
+usb:x:14:
+cdrom:x:15:
+adm:x:16:
+messagebus:x:18:
+systemd-journal:x:23:
+input:x:24:
+mail:x:34:
+nogroup:x:99:
+users:x:999:
+EOF
+fi
+
+# If `/root/.inputrc` is not present, create a minimal version so we can clear
+# the screen with Ctrl+l
+if [ ! -f "$root/root/.inputrc" ]; then
+  cat > $root/root/.inputrc << 'EOF'
+"\C-l":'clear\n'
+EOF
+fi
 
 # So long, thank for all the fish!
 exit 0
