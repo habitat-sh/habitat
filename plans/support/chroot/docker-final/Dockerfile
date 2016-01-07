@@ -6,4 +6,4 @@ ENV PLANS /plans
 ENV PATH $PATH:$PLANS/support/chroot/scripts
 
 WORKDIR /plans/support/chroot
-CMD ["make", "metal-shell"]
+CMD ["make", "chroot-shell"]
