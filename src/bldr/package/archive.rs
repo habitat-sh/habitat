@@ -1,4 +1,3 @@
-//
 // Copyright:: Copyright (c) 2015 Chef Software, Inc.
 // License:: Apache License, Version 2.0
 //
@@ -16,9 +15,16 @@
 //
 
 use std::fmt;
+use std::fs::File;
+use std::io::{Seek, SeekFrom};
+use std::mem;
 use std::path::PathBuf;
 use std::process::Command;
+use std::str;
 
+use libarchive::writer;
+use libarchive::reader::{self, Reader};
+use libarchive::archive::{Entry, ReadFilter, ReadFormat};
 use regex::Regex;
 
 use error::{BldrResult, BldrError, ErrorKind};
@@ -125,7 +131,10 @@ impl PackageArchive {
     ///
     /// * Fails if it cannot verify the GPG signature for any reason
     pub fn verify(&self) -> BldrResult<()> {
-        gpg::verify(self.path.to_str().unwrap())
+        match gpg::verify(self.path.to_str().unwrap()) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(e),
+        }
     }
 
     /// Given a package name and a path to a file as an `&str`, unpack
@@ -135,39 +144,49 @@ impl PackageArchive {
     ///
     /// * If the package cannot be unpacked via gpg
     pub fn unpack(&self) -> BldrResult<Package> {
-        let output = try!(Command::new("sh")
-                              .arg("-c")
-                              .arg(format!("gpg --homedir {} --decrypt {} | tar -C / -x",
-                                           GPG_CACHE,
-                                           self.path.to_str().unwrap()))
-                              .output());
-        match output.status.success() {
-            true => self.package(),
-            false => Err(bldr_error!(ErrorKind::UnpackFailed)),
-        }
+        let file = self.path.to_str().unwrap().to_string();
+        let mut out = try!(gpg::verify(&file));
+        try!(out.seek(SeekFrom::Start(0)));
+        let mut builder = reader::Builder::new();
+        try!(builder.support_format(ReadFormat::All));
+        try!(builder.support_filter(ReadFilter::All));
+        let mut reader = try!(builder.open_stream(out));
+        let writer = writer::Disk::new();
+        try!(writer.set_standard_lookup());
+        try!(writer.write(&mut reader, Some("/")));
+        try!(writer.close());
+        self.package()
     }
 
     fn read_metadata(&self, file: MetaFile) -> BldrResult<String> {
-        let output = try!(Command::new("sh")
-                              .arg("-c")
-                              .arg(format!("gpg --homedir {} --decrypt {} | tar xO --wildcards \
-                                            --no-anchored {}",
-                                           GPG_CACHE,
-                                           self.path.to_string_lossy(),
-                                           file))
-                              .output());
-        match output.status.success() {
-            true => {
-                Ok(String::from_utf8_lossy(&output.stdout).into_owned())
-            }
-            false => {
-                let re = Regex::new(&format!("{}: Not found in archive", file)).unwrap();
-                if re.is_match(&String::from_utf8_lossy(&output.stderr)) {
-                    Err(bldr_error!(ErrorKind::MetaFileNotFound(file)))
+        let f = self.path.to_str().unwrap().to_string();
+        let mut out = try!(gpg::verify(&f));
+        try!(out.seek(SeekFrom::Start(0)));
+        let mut builder = reader::Builder::new();
+        try!(builder.support_format(ReadFormat::All));
+        try!(builder.support_filter(ReadFilter::All));
+        let mut reader = try!(builder.open_stream(out));
+        let re = try!(Regex::new(&format!("/{}$", file)));
+        loop {
+            {
+                if let Some(entry) = reader.next_header() {
+                    if re.is_match(entry.pathname()) {
+                        break;
+                    }
                 } else {
-                    Err(bldr_error!(ErrorKind::ArchiveReadFailed(String::from_utf8_lossy(&output.stderr).into_owned())))
+                    return Err(bldr_error!(ErrorKind::MetaFileNotFound(file)));
                 }
             }
+        }
+        match reader.read_block() {
+            Ok(Some(bytes)) => {
+                match str::from_utf8(bytes) {
+                    Ok(content) => Ok(content.to_string()),
+                    Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
+                }
+            }
+            Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
+            Err(e) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
         }
     }
 }
