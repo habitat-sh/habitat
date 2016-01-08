@@ -159,14 +159,14 @@ First, lets show a basic redis container - essentially exactly like the `redis`
 container above.
 
 ```bash
-$ docker run -it bldr/redis
+$ docker run -it chef/redis
 ```
 
 Notice it has the same errors the 'default' container has. Lets see what
 we can configure about it.
 
 ```bash
-$ docker run -it bldr/redis config redis
+$ docker run -it chef/redis config chef/redis
 ```
 
 What you see is a [toml](https://github.com/toml-lang/toml) file, which
@@ -175,7 +175,7 @@ documents every configurable option of our container. One error we see is the
 app:
 
 ```bash
-$ docker run -e BLDR_redis="tcp-backlog = 128" -it bldr/redis
+$ docker run -e BLDR_redis="tcp-backlog = 128" -it chef/redis
 ```
 
 Notice the error has gone away - we've gone from an opaque container we can't
@@ -189,7 +189,7 @@ store the configuration for our service, and then have it automatically
 configure the container at runtime.
 
 ```
-$ docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis
+$ docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it chef/redis
 ```
 
 This links us up to an `etcd` instance for service discovery. Open another
@@ -204,32 +204,23 @@ loglevel = "debug"
 To put this into etcd:
 
 ```bash
-foo=$(cat /tmp/redis.toml); curl -L http://192.168.99.100:4001/v2/keys/bldr/redis/default/config -XPUT -d value="${foo}"
+foo=$(cat /tmp/redis.toml); curl -L http://$(docker-machine ip ${DOCKER_MACHINE_NAME:-default}):4001/v2/keys/bldr/redis/default/config -XPUT -d value="${foo}"
 ```
 
-You'll notice that your redis instance sees the configuration has changed, and
+Once you run the `curl` command, you'll notice that your redis instance sees the configuration has changed, and
 automatically reconfigures iteslf. Neat!
 
-But you don't want just one redis instance. You need a cluster.
+But you don't want just one redis instance. You need a cluster. Cancel the running instance with ^C, then open three more terminal windows. (If you're using iterm, go ahead an put all three in one split window, and then link their inputs things.)
 
-Now, open three more terminal windows. (If you're using iterm, go ahead an put all
-three in one split window, and then link their inputs things.)
-
-Now run:
+Now run in each terminal window:
 
 ```bash
-docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/redis start chef/redis -t leader
+docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it chef/redis start chef/redis -t leader
 ```
 
 This will start 3 instances of redis, elect one as a leader, and the others
 will automatcially become followers.
 
 ```bash
-foo=$(cat /tmp/redis.toml); curl -L http://192.168.99.100:4001/v2/keys/bldr/redis/default -XPUT -d value="${foo}"
-```
-
-Then you can load balance them with a generic tcp proxy:
-
-```bash
-docker run --expose 6379 --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it bldr/haproxy start haproxy -w redis.default
+foo=$(cat /tmp/redis.toml); curl -L http://$(docker-machine ip ${DOCKER_MACHINE_NAME:-default}):4001/v2/keys/bldr/redis/default -XPUT -d value="${foo}"
 ```
