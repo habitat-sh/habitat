@@ -9,7 +9,7 @@ How do we build, run, and manage our applications in a way that provides:
 * Repeatable builds
 * Single, immutable assets
 * Runtime configuration for multiple deployment scenarios
-* Agnostic to operating enviornment (works on bare metal, virtualiation, containers, PaaS)
+* Agnostic to operating environment (works on bare metal, virtualization, containers, PaaS)
 * Idempotent behavior (the same inputs to the same asset provides the same outcome)
 * Convergent behavior (each service makes progress towards the correct behavior in the face of failure)
 * Exposes promises to those who rely on it
@@ -20,9 +20,9 @@ How do we build, run, and manage our applications in a way that provides:
 
 Historically, we build our applications as a conglomeration of upstream artifacts. We have the operating
 system we used, which provides all of our build (and often run) time dependencies. We then layer in the
-specific application (either one we wrote ourselves, or a version of someone elses software), and then we
+specific application (either one we wrote ourselves, or a version of someone else's software), and then we
 layer in the details of how to configure and manage that application within its environment (with something
-like Chef). Much of the complexity in the configuration layer comes from dealing with the large variety
+like Chef.) Much of the complexity in the configuration layer comes from dealing with the large variety
 in the upstream - with no consistent way to express what it means to be well managed, we are forced to
 provide one.
 
@@ -32,7 +32,7 @@ dependencies,) an exhaustive set of configuration options, and a hosting platfor
 them into a single, encrypted or signed artifact, and enables it to be configured dynamically when the
 services are started.
 
-The side effect is that the boundary for idempotency, convergence, and promises shifts from the invidual
+The side effect is that the boundary for idempotency, convergence, and promises shifts from the individual
 details of the application stack to the artifact itself. Given the same input data (regardless of source)
 we will run the application the same way everywhere, the artifact itself handles making best progress
 towards its goal, and exposes consistent interfaces for health and monitoring.
@@ -42,17 +42,17 @@ towards its goal, and exposes consistent interfaces for health and monitoring.
 * Automatically build a minimal environment for your application
 * Include dependencies as binary artifacts
 * Specify all the configurable options for the application
-* Configure them from a file, the environment, or a service discovery framework (etc/consul/chef) - in real time
-* Ensure privilege seperation (supervisor de-privileges the service on your behalf)
+* Configure them from a file, the environment, or a service discovery framework (etcd/consul/chef) - in real time
+* Ensure privilege separation (supervisor de-privileges the service on your behalf)
 * Integrates logging cleanly
 * Provides pluggable interfaces for critical side-car behavior:
-  * Status (up/down/etc)
+  * Status (up/down/etc.)
   * Health checks
   * Smoke testing
   * Monitoring
-  * Backup)
+  * Backup
 
-With the same amount of effort required to put your applicatin in a Dockerfile. Or less.
+With the same amount of effort required to put your application in a Dockerfile. Or less.
 
 ## How does it do this?
 
@@ -66,8 +66,8 @@ services (`bldr`).
 ## Rules for working on Bldr
 
 1. The principle of least abstraction. When possible, we use the tooling that is closest to the native
-tooling for the platform, and provide as little abstraction as neccessary. When we do choose an abstraction,
-we choose one - and we make it the one that is most user-servicable.
+tooling for the platform, and provide as little abstraction as necessary. When we do choose an abstraction,
+we choose one - and we make it the one that is most user-serviceable.
 1. Keep it light. The runtime component of bldr is used as a process supervisor - it needs to stay lean. No runtimes.
 1. Convention over configuration, with sane defaults. Where possible, we remove the need to configure things
 by having a convention cover it. When we do need to configure things, we set sane defaults.
@@ -100,7 +100,7 @@ Everything should come up green. Congratulations - you have a working Bldr devel
 
 **Optional:** This project compiles and runs inside Docker containers so while installing the Rust language isn't strictly necessary, you might want a local copy of Rust on your workstation (some editors' language support require an installed version). To [install stable Rust](https://www.rust-lang.org/install.html), run: `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
 
-**Optional:** This project currently uses GitHub integration wtih Delivery so
+**Optional:** This project currently uses GitHub integration with Delivery so
 while the delivery-cli tool is not strictly necessary to initiate reviews, it
 is highly recommended to have installed for the other useful subcommands.
 Download the [delivery-cli
@@ -111,8 +111,8 @@ install it, and you're done!
 
 Run `make docs` to build the internal documentation for bldr.
 
-Run `make doc-serve` to run a small webserver that exposes the documentation on port `9633`. You can then
-read the docs at `http://<DOCKER_HOST>:9633/` (with working javscript-based search).
+Run `make doc-serve` to run a small web server that exposes the documentation on port `9633`. You can then
+read the docs at `http://<DOCKER_HOST>:9633/` (with working JavaScript-based search).
 
 ## Writing new features
 
@@ -138,7 +138,7 @@ This is awesome because:
 1. You don't know anything about, and don't care, what the "operating system" is
 
 But things are not quite all as awesome as that first experience is. Right off
-the bat, you configuration errors - and to fix it, you're told to update a
+the bat, you have configuration errors - and to fix it, you're told to update a
 configuration file; but how?
 
 The answer is you have to open up the Dockerfile, look at how it's constructed,
@@ -210,7 +210,7 @@ foo=$(cat /tmp/redis.toml); curl -L http://$(docker-machine ip ${DOCKER_MACHINE_
 Once you run the `curl` command, you'll notice that your redis instance sees the configuration has changed, and
 automatically reconfigures iteslf. Neat!
 
-But you don't want just one redis instance. You need a cluster. Cancel the running instance with ^C, then open three more terminal windows. (If you're using iterm, go ahead an put all three in one split window, and then link their inputs things.)
+But you don't want just one redis instance. You need a cluster. Cancel the running instance with ^C, then open three more terminal windows. (If you're using iTerm, go ahead an put all three in one split window, and then link their inputs.)
 
 Now run in each terminal window:
 
@@ -219,7 +219,7 @@ docker run --link=bldr_etcd_1:etcd -e BLDR_CONFIG_ETCD=http://etcd:4001 -it chef
 ```
 
 This will start 3 instances of redis, elect one as a leader, and the others
-will automatcially become followers.
+will automatically become followers.
 
 ```bash
 foo=$(cat /tmp/redis.toml); curl -L http://$(docker-machine ip ${DOCKER_MACHINE_NAME:-default}):4001/v2/keys/bldr/redis/default -XPUT -d value="${foo}"
