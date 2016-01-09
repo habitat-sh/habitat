@@ -35,8 +35,8 @@
 # ```
 #
 # It has the name of the software, the version, where to download it, a checksum to verify the
-# contents are what we expect, a gpg key to sign the resulting package with, a single dependency
-# on glibc, and it has the resulting libaries in `lib` and header files in `include`.
+# contents are what we expect, a GPG key to sign the resulting package with, a single dependency
+# on glibc, and it has the resulting libraries in `lib` and header files in `include`.
 #
 # When executed, bldr will:
 #
@@ -47,7 +47,7 @@
 # 1. Run `./configure && make`
 # 1. Run `make install`
 # 1. Write out the data other packages need to depend on `zlib`
-# 1. Create a gpg signed tarball of the results
+# 1. Create a GPG signed tarball of the results
 #
 # ## Plan Options
 #
@@ -94,7 +94,7 @@
 # ```
 #
 # ### pkg_gpg_key
-# The gpg key to sign the package with.
+# The GPG key to sign the package with.
 # ```
 # pkg_gpg_key=3853DA6B
 # ```
@@ -112,7 +112,7 @@
 # ```
 #
 # ### pkg_lib_dirs
-# An array of paths, relative to the final install of the software, where libaries can be found. Used to
+# An array of paths, relative to the final install of the software, where libraries can be found. Used to
 # populate `LD_FLAGS` and `LD_RUN_PATH` for software that depends on your package.
 # ```
 # pkg_lib_dirs=(lib)
@@ -563,7 +563,7 @@ _resolve_dependency() {
 }
 
 # Returns the path for the desired build or runtime package dependency on
-# stdout from the resolved depdency set.
+# stdout from the resolved dependency set.
 #
 # ```
 # pkg_all_deps_resolved=(
@@ -737,7 +737,7 @@ abspath() {
 # ## Build Phases
 #
 # Stub build phases, in the order they are executed. These can be
-# overriden by the `plan.sh` if needed.
+# overridden by the `plan.sh` if needed.
 
 # Used to execute arbitrary commands before anything else happens.
 do_begin() {
@@ -979,8 +979,8 @@ do_install() {
 # * `$pkg_path/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_path/PATH` - Any PATH entries for things that link against us
 # * `$pkg_path/EXPOSES` - Any ports we expose
-# * `$pkg_path/BUILD_DEPS` - Any depencies we need build the package
-# * `$pkg_path/DEPS` - Any depencies we need to use the package at runtime
+# * `$pkg_path/BUILD_DEPS` - Any dependencies we need build the package
+# * `$pkg_path/DEPS` - Any dependencies we need to use the package at runtime
 _build_metadata() {
   local ld_run_path_part=""
   local ld_lib_part=""
@@ -1440,5 +1440,5 @@ build_line "Installed: $pkg_path"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
-build_line "$(basename $0) has baked your brownies"
+build_line "$(basename $0) complete. I love it when a plan.sh comes together."
 _on_exit  0
