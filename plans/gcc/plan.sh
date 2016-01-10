@@ -1,9 +1,10 @@
 pkg_name=gcc
+pkg_distname=$pkg_name
 pkg_derivation=chef
 pkg_version=5.2.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gpl')
-pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}/${pkg_name}-${pkg_version}.tar.bz2
+pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}/${pkg_distname}-${pkg_version}.tar.bz2
 pkg_shasum=5f835b04b5f7dd4f4d2dc96190ec1621b8d89f2dc6f638f9f8bc1b1014ba8cad
 pkg_deps=(chef/glibc chef/zlib chef/gmp chef/mpfr chef/libmpc chef/binutils)
 pkg_build_deps=(chef/linux-headers chef/m4)
@@ -21,7 +22,7 @@ do_prepare() {
   # path to bash. Until a bash plan is created, we're going to wing this...
   bash=$(command -v bash)
 
-  headers="$(abspath ..)/${pkg_name}-system-header-dir/include"
+  headers="$(abspath ..)/${pkg_distname}-system-header-dir/include"
   rm -rf $headers
   mkdir -p $headers
   pushd $headers > /dev/null
