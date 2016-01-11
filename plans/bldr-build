@@ -873,9 +873,17 @@ do_download() {
     fi
   else
     pushd $BLDR_SRC_CACHE > /dev/null
-    $_wget_cmd $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
-    popd > /dev/null
-    build_line "Downloaded";
+    # Download with wget. If wget encounters a >= 400 status, it still leaves
+    # behind an empty file. If there's an error, delete the empty file so we
+    # don't continue with an empty file.
+    $_wget_cmd $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename} ||
+      rm -f $BLDR_SRC_CACHE/${pkg_filename}
+    if [ -f $BLDR_SRC_CACHE/${pkg_filename} ]; then
+      popd > /dev/null
+      build_line "Downloaded";
+    else
+      exit_with "Downloading $pkg_source failed" 1
+    fi
   fi
   return 0
 }
