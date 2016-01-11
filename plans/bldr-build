@@ -823,6 +823,114 @@ abspath() {
   fi
 }
 
+# Downloads a file from a source URL to a local file and uses an optional
+# shasum to determine if an existing file can be used.
+#
+# If an existing file is present and the third argument is set with a shasum
+# digest, the file will be checked to see if it's valid. If so, the function
+# ends early and returns 0. Otherwise, the shasums do not match so the
+# file-on-disk is removed and a normal download proceeds as though no previous
+# file existed. This is designed to restart an interrupted download.
+#
+# Any valid `wget` URL will work.
+#
+# ```sh
+# download_file http://example.com/file.tar.gz file.tar.gz
+# # Downloads every time, even if the file exists locally
+# download_file http://example.com/file.tar.gz file.tar.gz abc123...
+# # Downloads if no local file is found
+# download_file http://example.com/file.tar.gz file.tar.gz abc123...
+# # File matches checksum: download is skipped, local file is used
+# download_file http://example.com/file.tar.gz file.tar.gz ohnoes...
+# # File donesn't match checksum: local file removed, download attempted
+# ```
+#
+# Will return 0 if a file was downloaded or if a valid cached file was found.
+download_file() {
+  local url="$1"
+  local dst="$2"
+  local sha="$3"
+
+  pushd $BLDR_SRC_CACHE > /dev/null
+  if [[ -f $dst && -n "$sha" ]]; then
+    build_line "Found previous file '$dst', attempting to re-use"
+    if verify_file $dst $sha; then
+      build_line "Using cached and verified '$dst'"
+      return 0
+    else
+      build_line "Clearing previous '$dst' file and re-attempting download"
+      rm -fv $dst
+    fi
+  fi
+
+  build_line "Downloading '$url' to '$dst'"
+  $_wget_cmd $url -O $dst
+  build_line "Downloaded '$dst'";
+  popd > /dev/null
+}
+
+# Verifies that a file on disk matches the given shasum. If the given shasum
+# doesn't match the file's shasum then a warning is printed with the expected
+# and computed shasum values.
+#
+# ```sh
+# verify_file file.tar.gz abc123...
+# ```
+#
+# Will return 0 if the shasums match, and 1 if they do not match. A message
+# will be printed to stderr with the expected and computed shasum values.
+verify_file() {
+  build_line "Verifying $1"
+  local checksum=($($_shasum_cmd $BLDR_SRC_CACHE/$1))
+  if [[ $2 = $checksum ]]; then
+    build_line "Checksum verified for $1"
+  else
+    warn "Checksum invalid for $1:"
+    warn "   Expected: $2"
+    warn "   Computed: ${checksum}"
+    return 1
+  fi
+  return 0
+}
+
+# Unpacks an archive file in a variety of formats.
+#
+# ```sh
+# unpack_file file.tar.gz
+# ```
+#
+# Will return 0 if the file archive is extracted, and 1 if the file archive
+# type could not be found or was not supported (given the file extension). A
+# message will be printed to stderr to provide context.
+unpack_file() {
+  build_line "Unpacking $1"
+  local unpack_file="$BLDR_SRC_CACHE/$1"
+  # Thanks to: http://stackoverflow.com/questions/17420994/bash-regex-match-string
+  if [[ -f $unpack_file ]]; then
+    pushd $BLDR_SRC_CACHE > /dev/null
+    case $unpack_file in
+      *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
+        $_tar_cmd xf $unpack_file
+        ;;
+      *.bz2)  bunzip2 $unpack_file    ;;
+      *.rar)  rar x $unpack_file      ;;
+      *.gz)   gunzip $unpack_file     ;;
+      *.zip)  unzip $unpack_file      ;;
+      *.Z)    uncompress $unpack_file ;;
+      *.7z)   7z x $unpack_file       ;;
+      *)
+        warn "Error: unknown archive format '.${unpack_file##*.}'"
+        return 1
+        ;;
+    esac
+  else
+    warn "'$1' is not a valid file!"
+    return 1
+  fi
+  popd > /dev/null
+  return 0
+}
+
 
 # ## Build Phases
 #
@@ -830,8 +938,15 @@ abspath() {
 # the `plan.sh` if needed.
 
 
-# Used to execute arbitrary commands before anything else happens.
+# Used to execute arbitrary commands before anything else happens. Delegates
+# most implementation to the `do_default_begin()` function.
 do_begin() {
+  do_default_begin
+  return $?
+}
+
+# Default implementation for the `do_begin()` phase.
+do_default_begin() {
   return 0
 }
 
@@ -841,6 +956,7 @@ do_begin() {
 # (`$pkg_deps_resolved` and `$pkg_build_deps_resolved`) as well as a combined
 # array `$pkg_all_deps_resolved`.
 _resolve_dependencies() {
+  build_line "Resolving dependencies"
   local resolved
   pkg_build_deps_resolved=()
   for dep in "${pkg_build_deps[@]}"; do
@@ -866,38 +982,41 @@ _resolve_dependencies() {
 # Download the software from `$pkg_source` and place it in
 # `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
+# Delegates most of the implementation to the `do_default_download()` function.
 do_download() {
-  if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
-    if do_verify; then
-      build_line "Using cached $pkg_filename"
-    fi
-  else
-    pushd $BLDR_SRC_CACHE > /dev/null
-    $_wget_cmd $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
-    popd > /dev/null
-    build_line "Downloaded";
-  fi
-  return 0
+  do_default_download
+  return $?
+}
+
+# Default implementation for the `do_download()` phase.
+do_default_download() {
+  download_file $pkg_source $pkg_filename $pkg_shasum
 }
 
 # Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename` has the
-# `$pkg_shasum` we expect.
+# `$pkg_shasum` we expect. Delegates most of the implementation to the
+# `do_default_verify()` function.
 do_verify() {
-  local checksum=($($_shasum_cmd $BLDR_SRC_CACHE/$pkg_filename))
-  if [[ $pkg_shasum = $checksum ]]; then
-    build_line "Checksum verified"
-  else
-    warn "Checksum invalid:"
-    warn "   Expected: $pkg_shasum"
-    warn "   Received: ${checksum}"
-    return 1
-  fi
-  return 0
+  do_default_verify
+  return $?
+}
+
+# Default implementation for the `do_verify()` phase.
+do_default_verify() {
+  verify_file $pkg_filename $pkg_shasum
 }
 
 # Clean up the remnants of any previous build job, ensuring it can't pollute
-# out new output.
+# out new output. Delegates most of the implementation to the
+# `do_default_clean()` function.
 do_clean() {
+  do_default_clean
+  return $?
+}
+
+# Default implementation for the `do_clean()` phase.
+do_default_clean() {
+  build_line "Clean the cache"
   rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
   return 0
 }
@@ -905,33 +1024,17 @@ do_clean() {
 # Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and unpacks
 # it, as long as the method of extraction can be determined.
 #
-# This takes place in teh $BLDR_SRC_CACHE directory.
+# This takes place in the $BLDR_SRC_CACHE directory.
+#
+# Delegates most of the implementation to the `do_default_unpack()` function.
 do_unpack() {
-  local unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
-  # Thanks to: http://stackoverflow.com/questions/17420994/bash-regex-match-string
-  if [[ -f $unpack_file ]]; then
-    pushd $BLDR_SRC_CACHE > /dev/null
-    case $unpack_file in
-      *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
-        $_tar_cmd xf $unpack_file
-        ;;
-      *.bz2)  bunzip2 $unpack_file    ;;
-      *.rar)  rar x $unpack_file      ;;
-      *.gz)   gunzip $unpack_file     ;;
-      *.zip)  unzip $unpack_file      ;;
-      *.Z)    uncompress $unpack_file ;;
-      *.7z)   7z x $unpack_file       ;;
-      *)
-        echo "Error: unknown archive format '.${unpack_file##*.}'"
-        return 1
-        ;;
-    esac
-  else
-    echo "'$1' is not a valid file!"
-    return 1
-  fi
-  popd > /dev/null
-  return 0
+  do_default_unpack
+  return $?
+}
+
+# Default implementation for the `do_unpack()` phase.
+do_default_unpack() {
+  unpack_file $pkg_filename
 }
 
 # **Internal** Set up our build environment. First, add any library paths
@@ -941,6 +1044,7 @@ do_unpack() {
 # `PREFIX=$pkg_path`, ensuring that most software will install into the correct
 # location.
 _build_environment() {
+  build_line "Setting build environment"
   local ld_run_path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
     if [[ -z $ld_run_path_part ]]; then
@@ -1016,6 +1120,7 @@ _build_environment() {
 # This function simply makes sure that the working directory for the prepare
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
+  build_line "Preparing to build"
   # Create a working directory if it doesn't already exist from `do_unpack()`
   mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
@@ -1025,8 +1130,15 @@ do_prepare_wrapper() {
 
 # A step that exists to be overriden. We have the software downloaded,
 # unpacked, and the build environment variables set. Do what you need to do
-# before we actually run the build steps.
+# before we actually run the build steps. Delegates most of the implementation
+# to the `do_default_prepare()` function.
 do_prepare() {
+  do_default_prepare
+  return $?
+}
+
+# Default implementation of the `do_prepare()` phase.
+do_default_prepare() {
   return 0
 }
 
@@ -1034,13 +1146,21 @@ do_prepare() {
 # that no matter how it is changed, our `$cwd` is
 # `$BLDR_SRC_CACHE/$pkg_dirname`.
 do_build_wrapper() {
+  build_line "Building"
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   do_build
   popd > /dev/null
 }
 
-# Build the software; assumes the GNU pattern.
+# Build the software; assumes the GNU pattern. Delegates most of the
+# implementation to the `do_default_build()` function.
 do_build() {
+  do_default_build
+  return $?
+}
+
+# Default implementation for the `do_build()` phase.
+do_default_build() {
   ./configure --prefix=$pkg_prefix
   make
 }
@@ -1048,13 +1168,21 @@ do_build() {
 # Identical to the `build_wrapper` function above; simply makes sure the
 # working directory for the install_files step is correct.
 do_install_wrapper() {
+  build_line "Installing"
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
 }
 
-# Install the software.
+# Install the software. Delegates most of the implementation to the
+# `do_default_install()` function.
 do_install() {
+  do_default_install
+  return $?
+}
+
+# Default implementation for the `do_install()` phase.
+do_default_install() {
   make install
 }
 
@@ -1068,6 +1196,7 @@ do_install() {
 # * `$pkg_path/BUILD_DEPS` - Any dependencies we need build the package
 # * `$pkg_path/DEPS` - Any dependencies we need to use the package at runtime
 _build_metadata() {
+  build_line "Building package metadata"
   local ld_run_path_part=""
   local ld_lib_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
@@ -1143,8 +1272,16 @@ _build_metadata() {
 }
 
 # Copy the `./config` directory, relative to the Plan, to `$pkg_path/config`.
-# Do the same with `default.toml`.
+# Do the same with `default.toml`. Delegates most of the implementation to the
+# `do_default_build_config()` function.
 do_build_config() {
+  do_default_build_config
+  return $?
+}
+
+# Default implementation for the `do_build_config()` phase.
+do_default_build_config() {
+  build_line "Writing configuration"
   if [[ -d $PLAN_CONTEXT/config ]]; then
     cp -r $PLAN_CONTEXT/config $pkg_path
     chmod 755 $pkg_path/config
@@ -1164,7 +1301,17 @@ do_build_config() {
 #
 # If the `$pkg_service_user` is set to `bldr`, we change the service to be run
 # under the `bldr` user before we start it.
+#
+# Delegates most of the implementation to the `do_default_build_server()`
+# function.
 do_build_service() {
+  do_default_build_service
+  return $?
+}
+
+# Default implementation of the `do_build_service()` phase.
+do_default_build_service() {
+  build_line "Writing service management scripts"
   if [[ -f $PLAN_CONTEXT/hooks/run ]]; then
     return 0
   else
@@ -1196,8 +1343,16 @@ EOT
   return 0
 }
 
-# Strip any binaries, decreasing our total size.
+# Strip any binaries, decreasing our total size. Delegates most of the
+# implementation to the `do_default_strip()` function.
 do_strip() {
+  do_default_strip
+  return $?
+}
+
+# Default implementation for the `do_strip()` phase.
+do_default_strip() {
+  build_line "Stripping binaries"
   find $pkg_path -type f -print0 \
     | xargs -0 file | grep ELF | cut -d ":" -f 1 \
     | xargs --no-run-if-empty strip --strip-debug \
@@ -1206,6 +1361,7 @@ do_strip() {
 
 # **Internal** Write the `$pkg_path/MANIFEST`.
 _build_manifest() {
+build_line "Creating manifest"
 cat <<-EOT >> $pkg_path/MANIFEST
 $pkg_derivation $pkg_name
 =========================
@@ -1244,6 +1400,7 @@ EOT
 # **Internal** Create the bldr package with `tar`/`gpg`, and sign it with
 # `$pkg_gpg_key`.
 _generate_package() {
+  build_line "Generating package"
   mkdir -p $BLDR_PKG_CACHE
   $_tar_cmd -cf - "$pkg_path" | $_gpg_cmd \
     --set-filename x.tar \
@@ -1267,8 +1424,15 @@ do_docker_image_wrapper() {
 }
 
 # Add additional entries to the generated Dockerfile. Use something fancy like
-# `echo` to return some data, and it will get inlined.
+# `echo` to return some data, and it will get inlined. Delegates most of the
+# implementation to the `do_default_dockerfile_inline()` function.
 do_dockerfile_inline() {
+  do_default_dockerfile_inline
+  return $?
+}
+
+# Default immplementation for the `do_dockerfile_inline()` phase.
+do_default_dockerfile_inline() {
   return 0
 }
 
@@ -1278,7 +1442,20 @@ do_dockerfile_inline() {
 # We build and tag the resulting image with
 # `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
 # `$pkg_derivation/$pkg_name:latest`.
+#
+# Delegates most of the implementation to the `do_default_docker_image()`
+# function.
 do_docker_image() {
+  do_default_docker_image
+  return $?
+}
+
+# Default implementation for the `do_docker_image()` phase.
+do_default_docker_image() {
+  if [[ $pkg_docker_build = "auto" || -f "./Dockerfile" ]]; then
+    build_line "Creating Docker images"
+  fi
+
   if [[ $pkg_docker_build = "auto" ]]; then
     mkdir -p ./${pkg_name}-cache
     rsync -av --delete $pkg_path/* ./${pkg_name}-cache
@@ -1352,8 +1529,15 @@ EOT
   fi
 }
 
-# A function for cleaning up after yourself.
+# A function for cleaning up after yourself. Delegates most of the
+# implementation to the `do_default_end()` function.
 do_end() {
+  do_default_end
+  return $?
+}
+
+# Default implementation for the `do_end()` phase.
+do_default_end() {
   return 0
 }
 
@@ -1454,68 +1638,52 @@ build_line "Bldr setup"
 do_begin
 
 # Download and resolve the depdencies
-build_line "Resolving dependencies"
 _resolve_dependencies
 
 # Download the source
-build_line "Downloading $pkg_source"
-mkdir -p $BLDR_SRC_CACHE
+mkdir -pv $BLDR_SRC_CACHE
 do_download
 
 # Verify the source
-build_line "Verifying $pkg_filename"
 do_verify
 
 # Clean the cache
-build_line "Clean the cache"
 do_clean
 
 # Unpack the source
-build_line "Unpacking $pkg_filename"
 do_unpack
 
 # Set up the build environment
-build_line "Setting build environment"
 _build_environment
 
 # Prepare the source
-build_line "Preparing to build"
 do_prepare_wrapper
 
 # Build the source
-build_line "Building"
 do_build_wrapper
 
 # Install the source
-build_line "Installing"
 do_install_wrapper
 
 # Render the linking and dependency files
-build_line "Building package metadata"
 _build_metadata
 
 # Copy the configuration
-build_line "Writing configuration"
 do_build_config
 
 # Copy the service management scripts
-build_line "Writing service management scripts"
 do_build_service
 
 # Strip the binaries
-build_line "Stripping binaries"
 do_strip
 
 # Write the manifest
-build_line "Creating manifest"
 _build_manifest
 
 # Write the package
-build_line "Generating package"
 _generate_package
 
 # Build the Docker images
-build_line "Creating Docker images"
 do_docker_image_wrapper
 
 # Cleanup
