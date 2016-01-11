@@ -87,7 +87,9 @@ by having a convention cover it. When we do need to configure things, we set san
 
 ## Setup
 
-1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/)
+1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/) (you'll need
+   at least Docker 1.9 and docker-machine 0.5. Both are included in Docker
+   Toolbox)
 1. [Install VMWare Fusion](https://www.vmware.com/products/fusion)
 1. Delete the default docker-machine image: `docker-machine rm default`
 1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, Ram, or Disk space as needed. (Adam used 4 cpu, 8gb of ram)
