@@ -860,33 +860,32 @@ do_clean() {
 }
 
 # Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and unpacks
-# it. We use shell globbing and a case statement to see if it matches a file
-# type we know how to uncompress, and then uncompress it.
+# it, as long as the method of extraction can be determined.
 #
 # This takes place in teh $BLDR_SRC_CACHE directory.
 do_unpack() {
-  unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
-# Thanks http://stackoverflow.com/questions/17420994/bash-regex-match-string
+  local unpack_file="$BLDR_SRC_CACHE/$pkg_filename"
+  # Thanks to: http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
-      pushd $BLDR_SRC_CACHE > /dev/null
-      case $unpack_file in
-          *.tar.bz2)   $_tar_cmd xjf $unpack_file   ;;
-          *.tar.gz)    $_tar_cmd xzf $unpack_file   ;;
-          *.bz2)       bunzip2 $unpack_file         ;;
-          *.rar)       rar x $unpack_file           ;;
-          *.gz)        gunzip $unpack_file          ;;
-          *.tar)       $_tar_cmd xvf $unpack_file   ;;
-          *.tbz2)      $_tar_cmd xvjf $unpack_file  ;;
-          *.tgz)       $_tar_cmd xvzf $unpack_file  ;;
-          *.zip)       unzip $unpack_file           ;;
-          *.Z)         uncompress $unpack_file      ;;
-          *.7z)        7z x $unpack_file            ;;
-          *.xz)        $_tar_cmd xf $unpack_file    ;;
-          *)           echo "Error: unknown archive format '.${unpack_file##*.}'"; return 1 ;;
-      esac
+    pushd $BLDR_SRC_CACHE > /dev/null
+    case $unpack_file in
+      *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
+        $_tar_cmd xf $unpack_file
+        ;;
+      *.bz2)  bunzip2 $unpack_file    ;;
+      *.rar)  rar x $unpack_file      ;;
+      *.gz)   gunzip $unpack_file     ;;
+      *.zip)  unzip $unpack_file      ;;
+      *.Z)    uncompress $unpack_file ;;
+      *.7z)   7z x $unpack_file       ;;
+      *)
+        echo "Error: unknown archive format '.${unpack_file##*.}'"
+        return 1
+        ;;
+    esac
   else
-      echo "'$1' is not a valid file!"
-      return 1
+    echo "'$1' is not a valid file!"
+    return 1
   fi
   popd > /dev/null
   return 0
