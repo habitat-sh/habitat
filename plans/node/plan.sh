@@ -3,7 +3,7 @@ pkg_derivation=chef
 pkg_version=4.2.4
 pkg_license=('MIT')
 pkg_maintainer="Dave Parfitt <dparfitt@chef.io>"
-pkg_source=https://nodejs.org/dist/${pkg_version}/${pkg_name}-v${pkg_version}.tar.gz
+pkg_source=https://nodejs.org/dist/v${pkg_version}/${pkg_name}-v${pkg_version}.tar.gz
 # the archive contains a 'v' version # prefix, but the default value of
 # pkg_version is node-4.2.4 (without the v). This tweak makes bldr-build happy
 pkg_dirname=node-v${pkg_version}
