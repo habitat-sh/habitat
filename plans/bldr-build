@@ -316,7 +316,15 @@ graceful_exit=true
 # We want everything to be build as `rwx-r-x-r-x`
 umask 0022
 
-# ## Helper functions
+
+# ## Private/Internal helper functions
+#
+# These functions are part of the private/internal API of this program and
+# should **not** be used externally by Plan authors or other programs. Their
+# behaviors and names can change with little to no warning and no direct
+# support can be provided as a result. Thank you for your
+# understanding--maintaining a tiny but robust public interface is not an easy
+# task.
 
 # **Internal** Handles exiting the program on signals. Takes either an argument
 # with the status code, or uses the last commands status code.
@@ -430,86 +438,6 @@ _find_system_commands() {
   fi
 }
 
-# Check that the command exists, 0 if it does, 1 if it does not.
-#
-# ```sh
-# exists gsha256sum
-# ```
-#
-# Would return 0 if gsha256sum exists, 1 if it does not.
-exists() {
-  if command -v $1 >/dev/null 2>&1
-  then
-    return 0
-  else
-    return 1
-  fi
-}
-
-# Print a line of build output. Takes the rest of the line as its only
-# argument.
-#
-# ```sh
-# build_line "Checksum verified - ${pkg_shasum}"
-# ```
-build_line() {
-  echo "   ${pkg_name}: $1"
-  return 0
-}
-
-# Print a warning line on stderr. Takes the rest of the line as its only
-# argument.
-#
-# ```sh
-# warn "Checksum failed"
-# ```
-warn() {
-  >&2 echo "   ${pkg_name}: WARN $1"
-  return 0
-}
-
-# Prints a line only if the `$DEBUG` environment value is set.
-#
-# ```sh
-# DEBUG=1
-# debug "Only if things are set"
-# # "DEBUG: Only if things are set"
-# DEBUG=0
-# debug "Not so much anymore"
-# ```
-#
-debug() {
-  if [[ -n "$DEBUG" ]]; then
-    echo "DEBUG: $1"
-  fi
-  return 0
-}
-
-# Exit the program with an error message and a status code.
-#
-# ```
-# exit_with "Something bad went down" 55
-# ```
-exit_with() {
-  echo "ERROR: $1"
-  exit $2
-}
-
-# Trim leading and trailing whitespace.  [Thanks to these
-# guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
-# for the tip.
-#
-# ```sh
-# local data=$(cat /tmp/somefile)
-# local trimmed=$(trim $data)
-# ```
-trim() {
-    local var="$*"
-    var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
-    echo "$var"
-}
-
 # **Internal** Return the path to the latest release of a package on stdout.
 #
 # ```
@@ -605,6 +533,119 @@ _resolve_dependency() {
     fi
     return 1
   fi
+}
+
+# **Internal** Prints the source file, line number, and lines of context around
+# the current debugging session context. Used by `attach()` and should not be
+# used externally.
+#
+# ```
+# _attach_whereami    # => defaults to 10 lines of context around the current line
+# _attach_whereami 2  # => shows 2 lines of context around the current line
+# ```
+_attach_whereami() {
+  local context=${1:-10}
+  local lnum="${BASH_LINENO[1]}"
+  local src="${BASH_SOURCE[2]}"
+  # If we are printing this program, use the absolute path version
+  if [[ "$src" = "$0" ]]; then
+    src="$BLDR_BUILD"
+  fi
+  echo
+  echo "From: $src @ line $lnum :"
+  echo
+  awk '{printf "%d: %s\n", NR, $0}' "$src" \
+    | sed -e "$((${lnum}-${context})),$((${lnum}+${context}))!d" \
+      -e 's,^,    ,g' \
+    | sed -e "$((${context}+1))s/^   / =>/"
+  echo
+}
+
+
+# ## Public helper functions
+#
+# These functions intended for use in this program and by Plan authors in their
+# `plan.sh` files.
+
+
+# Check that the command exists, 0 if it does, 1 if it does not.
+#
+# ```sh
+# exists gsha256sum
+# ```
+#
+# Would return 0 if gsha256sum exists, 1 if it does not.
+exists() {
+  if command -v $1 >/dev/null 2>&1
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Print a line of build output. Takes the rest of the line as its only
+# argument.
+#
+# ```sh
+# build_line "Checksum verified - ${pkg_shasum}"
+# ```
+build_line() {
+  echo "   ${pkg_name}: $1"
+  return 0
+}
+
+# Print a warning line on stderr. Takes the rest of the line as its only
+# argument.
+#
+# ```sh
+# warn "Checksum failed"
+# ```
+warn() {
+  >&2 echo "   ${pkg_name}: WARN $1"
+  return 0
+}
+
+# Prints a line only if the `$DEBUG` environment value is set.
+#
+# ```sh
+# DEBUG=1
+# debug "Only if things are set"
+# # "DEBUG: Only if things are set"
+# DEBUG=0
+# debug "Not so much anymore"
+# ```
+#
+debug() {
+  if [[ -n "$DEBUG" ]]; then
+    echo "DEBUG: $1"
+  fi
+  return 0
+}
+
+# Exit the program with an error message and a status code.
+#
+# ```
+# exit_with "Something bad went down" 55
+# ```
+exit_with() {
+  echo "ERROR: $1"
+  exit $2
+}
+
+# Trim leading and trailing whitespace.  [Thanks to these
+# guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
+# for the tip.
+#
+# ```sh
+# local data=$(cat /tmp/somefile)
+# local trimmed=$(trim $data)
+# ```
+trim() {
+  local var="$*"
+  var="${var#"${var%%[![:space:]]*}"}"   # remove leading whitespace characters
+  var="${var%"${var##*[![:space:]]}"}"   # remove trailing whitespace characters
+  echo "$var"
 }
 
 # Returns the path for the desired build or runtime package dependency on
@@ -728,32 +769,6 @@ Aliases
   return 0
 }
 
-# **Internal** Prints the source file, line number, and lines of context around
-# the current debugging session context. Used by `attach()` and should not be
-# used externally.
-#
-# ```
-# _attach_whereami    # => defaults to 10 lines of context around the current line
-# _attach_whereami 2  # => shows 2 lines of context around the current line
-# ```
-_attach_whereami() {
-  local context=${1:-10}
-  local lnum="${BASH_LINENO[1]}"
-  local src="${BASH_SOURCE[2]}"
-  # If we are printing this program, use the absolute path version
-  if [[ "$src" = "$0" ]]; then
-    src="$BLDR_BUILD"
-  fi
-  echo
-  echo "From: $src @ line $lnum :"
-  echo
-  awk '{printf "%d: %s\n", NR, $0}' "$src" \
-    | sed -e "$((${lnum}-${context})),$((${lnum}+${context}))!d" \
-      -e 's,^,    ,g' \
-    | sed -e "$((${context}+1))s/^   / =>/"
-  echo
-}
-
 # Return the absolute path for a path, which might be absolute or relative.
 #
 # ```sh
@@ -780,10 +795,12 @@ abspath() {
   fi
 }
 
+
 # ## Build Phases
 #
 # Stub build phases, in the order they are executed. These can be overridden by
 # the `plan.sh` if needed.
+
 
 # Used to execute arbitrary commands before anything else happens.
 do_begin() {
@@ -1312,7 +1329,8 @@ do_end() {
   return 0
 }
 
-## Main Flow
+
+# # Main Flow
 
 # Parse bldr repo flag (-u)
 OPTIND=2
