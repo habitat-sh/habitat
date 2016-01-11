@@ -292,8 +292,6 @@ pkg_rel=$(date -u +%Y%m%d%H%M%S)
 pkg_build_deps=()
 # The default runtime deps setting - an empty array
 pkg_deps=()
-# A legacy option; defines you want bldr style packages
-pkg_format=(bldr)
 # The path inside a package that contains libraries - used in `LD_RUN_PATH` and
 # `LD_FLAGS`.
 pkg_lib_dirs=()
