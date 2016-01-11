@@ -365,27 +365,67 @@ trap _on_exit 1 2 3 15 ERR
 # The following variables are set which contain an absolute path to the desired
 # command:
 #
-# * `$sort` (GNU version from coreutils)
-# * `$mktemp` (GNU version from coreutils)
+# * `$_sort_cmd` (GNU version from coreutils)
+# * `$_wget_cmd` (wget on system)
+# * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
+# * `$_tar_cmd` (GNU version of tar)
+# * `$_gpg_cmd` (GPG on system)
+# * `$_mktemp_cmd` (GNU version from coreutils)
 #
+# Note that all of the commands noted above are considered internal
+# implementation details and are subject to change with little to no notice,
+# which means the variables such as `$_tar_cmd` should **not** be used directly
+# by Plan authors. The leading underscore denotes an internal/private variable
+# or function.
+
 # If the commands are not found, `exit_with` is called and the program is
 # terminated.
 _find_system_commands() {
   if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
-    sort=$(command -v sort)
+    _sort_cmd=$(command -v sort)
   else
     if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
-      sort=/usr/bin/sort
+      _sort_cmd=/usr/bin/sort
     else
       exit_with "We require GNU sort to find the latest package; aborting" 1
     fi
   fi
 
+  if exists wget; then
+    _wget_cmd=$(command -v wget)
+  else
+    exit_with "We require wget to download sources; aborting" 1
+  fi
+
+  if exists gsha256sum; then
+    _shasum_cmd=$(command -v gsha256sum)
+  elif exists sha256sum; then
+    _shasum_cmd=$(command -v sha256sum)
+  else
+    exit_with "We require gsha256sum or sha256sum for verifying; aborting" 1
+  fi
+
+  if $(tar --version 2>&1 | grep -q 'GNU tar'); then
+    _tar_cmd=$(command -v tar)
+  else
+    if $(/bin/tar --version 2>&1 | grep -q 'GNU tar'); then
+      _tar_cmd=/bin/tar
+    else
+      exit_with "We require GNU tar for long path support; aborting" 1
+    fi
+  fi
+
+  if exists gpg; then
+    _gpg_cmd=$(command -v gpg)
+  else
+    exit_with "We require gpg to sign packages; aborting" 1
+  fi
+
   if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
-    mktemp=$(command -v mktemp)
+    _mktemp_cmd=$(command -v mktemp)
   else
     if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
-      mktemp=/bin/mktemp
+      _mktemp_cmd=/bin/mktemp
     else
       exit_with "We require GNU mktemp to build docker images; aborting" 1
     fi
@@ -501,10 +541,10 @@ _latest_package() {
       result="$BLDR_PKG_ROOT/$1" ;;
     "2")
       result=$(find $BLDR_PKG_ROOT/${1} -maxdepth 1 -type d \
-        | $sort --version-sort -r | head -n 1) ;;
+        | $_sort_cmd --version-sort -r | head -n 1) ;;
     "1")
       result=$(find $BLDR_PKG_ROOT/${1} -maxdepth 2 -type d \
-        | $sort --version-sort -r | head -n 1) ;;
+        | $_sort_cmd --version-sort -r | head -n 1) ;;
   esac
   if [[ -z "$result" && ! -f "$result/MANIFEST" ]]; then
     warn "Could not find a suitable installed package for '$1'"
@@ -790,7 +830,7 @@ do_download() {
     fi
   else
     pushd $BLDR_SRC_CACHE > /dev/null
-    wget $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
+    $_wget_cmd $pkg_source -O $BLDR_SRC_CACHE/${pkg_filename}
     popd > /dev/null
     build_line "Downloaded";
   fi
@@ -800,11 +840,7 @@ do_download() {
 # Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename` has the
 # `$pkg_shasum` we expect.
 do_verify() {
-  if exists gsha256sum; then
-    checksum=($(gsha256sum $BLDR_SRC_CACHE/$pkg_filename))
-  else
-    checksum=($(sha256sum $BLDR_SRC_CACHE/$pkg_filename))
-  fi
+  local checksum=($($_shasum_cmd $BLDR_SRC_CACHE/$pkg_filename))
   if [[ $pkg_shasum = $checksum ]]; then
     build_line "Checksum verified"
   else
@@ -834,18 +870,18 @@ do_unpack() {
   if [[ -f $unpack_file ]]; then
       pushd $BLDR_SRC_CACHE > /dev/null
       case $unpack_file in
-          *.tar.bz2)   tar xjf $unpack_file     ;;
-          *.tar.gz)    tar xzf $unpack_file     ;;
-          *.bz2)       bunzip2 $unpack_file     ;;
-          *.rar)       rar x $unpack_file       ;;
-          *.gz)        gunzip $unpack_file      ;;
-          *.tar)       tar xvf $unpack_file     ;;
-          *.tbz2)      tar xvjf $unpack_file    ;;
-          *.tgz)       tar xvzf $unpack_file    ;;
-          *.zip)       unzip $unpack_file       ;;
-          *.Z)         uncompress $unpack_file  ;;
-          *.7z)        7z x $unpack_file        ;;
-          *.xz)        tar xf $unpack_file      ;;
+          *.tar.bz2)   $_tar_cmd xjf $unpack_file   ;;
+          *.tar.gz)    $_tar_cmd xzf $unpack_file   ;;
+          *.bz2)       bunzip2 $unpack_file         ;;
+          *.rar)       rar x $unpack_file           ;;
+          *.gz)        gunzip $unpack_file          ;;
+          *.tar)       $_tar_cmd xvf $unpack_file   ;;
+          *.tbz2)      $_tar_cmd xvjf $unpack_file  ;;
+          *.tgz)       $_tar_cmd xvzf $unpack_file  ;;
+          *.zip)       unzip $unpack_file           ;;
+          *.Z)         uncompress $unpack_file      ;;
+          *.7z)        7z x $unpack_file            ;;
+          *.xz)        $_tar_cmd xf $unpack_file    ;;
           *)           echo "Error: unknown archive format '.${unpack_file##*.}'"; return 1 ;;
       esac
   else
@@ -1158,7 +1194,7 @@ $(cat $PLAN_CONTEXT/plan.sh)
 
 Files
 -----
-$(find $pkg_path -type f | $sort | xargs sha256sum)
+$(find $pkg_path -type f | $_sort_cmd | xargs $_shasum_cmd)
 EOT
   return 0
 }
@@ -1167,7 +1203,7 @@ EOT
 # `$pkg_gpg_key`.
 _generate_package() {
   mkdir -p $BLDR_PKG_CACHE
-  tar -cf - "$pkg_path" | gpg \
+  $_tar_cmd -cf - "$pkg_path" | $_gpg_cmd \
     --set-filename x.tar \
     --local-user $pkg_gpg_key \
     --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
@@ -1180,7 +1216,7 @@ _generate_package() {
 # source code tree.
 do_docker_image_wrapper() {
   tmp_prefix="$(echo "$PLAN_CONTEXT" | tr '/' '-')"
-  DOCKER_CONTEXT="$($mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
+  DOCKER_CONTEXT="$($_mktemp_cmd -t -d "bldr-${tmp_prefix}-XXXX")"
   cp -rp $PLAN_CONTEXT/* "$DOCKER_CONTEXT"/
   pushd $DOCKER_CONTEXT > /dev/null
   do_docker_image
