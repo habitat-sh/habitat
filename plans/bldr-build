@@ -350,7 +350,14 @@ _on_exit() {
     rm -rf "$DOCKER_CONTEXT"
   fi
   if [[ $exit_status -ne 0 ]]; then
-    echo "Exiting on error"
+    case "$TERM" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        echo -e "\033[1;31mExiting on error\033[0m"
+        ;;
+      *)
+        echo "Exiting on error"
+        ;;
+    esac
   fi
   exit $exit_status
 }
@@ -591,7 +598,14 @@ exists() {
 # build_line "Checksum verified - ${pkg_shasum}"
 # ```
 build_line() {
-  echo "   ${pkg_name}: $1"
+  case "$TERM" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      echo -e "   \033[1;36m${pkg_name}: \033[1;37m$1\033[0m"
+      ;;
+    *)
+      echo "   ${pkg_name}: $1"
+      ;;
+  esac
   return 0
 }
 
@@ -602,7 +616,14 @@ build_line() {
 # warn "Checksum failed"
 # ```
 warn() {
-  >&2 echo "   ${pkg_name}: WARN $1"
+  case "$TERM" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      >&2 echo -e "   \033[1;36m${pkg_name}: \033[1;33mWARN \033[1;37m$1\033[0m"
+      ;;
+    *)
+      >&2 echo "   ${pkg_name}: WARN $1"
+      ;;
+  esac
   return 0
 }
 
@@ -629,7 +650,14 @@ debug() {
 # exit_with "Something bad went down" 55
 # ```
 exit_with() {
-  echo "ERROR: $1"
+  case "$TERM" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      echo -e "\033[1;31mERROR: \033[1;37m$1\033[0m"
+      ;;
+    *)
+      echo "ERROR: $1"
+      ;;
+  esac
   exit $2
 }
 
@@ -859,9 +887,9 @@ do_verify() {
   if [[ $pkg_shasum = $checksum ]]; then
     build_line "Checksum verified"
   else
-    build_line "Checksum invalid:"
-    build_line "   Expected: $pkg_shasum"
-    build_line "   Received: ${checksum}"
+    warn "Checksum invalid:"
+    warn "   Expected: $pkg_shasum"
+    warn "   Received: ${checksum}"
     return 1
   fi
   return 0
