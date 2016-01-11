@@ -34,9 +34,10 @@
 # pkg_include_dirs=(include)
 # ```
 #
-# It has the name of the software, the version, where to download it, a checksum to verify the
-# contents are what we expect, a GPG key to sign the resulting package with, a single dependency
-# on glibc, and it has the resulting libraries in `lib` and header files in `include`.
+# It has the name of the software, the version, where to download it, a
+# checksum to verify the contents are what we expect, a GPG key to sign the
+# resulting package with, a single dependency on glibc, and it has the
+# resulting libraries in `lib` and header files in `include`.
 #
 # When executed, bldr will:
 #
@@ -70,7 +71,8 @@
 # ```
 #
 # ### pkg_license
-# An array of software license that relate to this package. Used in the MANIFEST.
+# An array of software license that relate to this package. Used in the
+# MANIFEST.
 # ```
 # pkg_license=('zlib')
 # ```
@@ -88,7 +90,8 @@
 # ```
 #
 # ### pkg_shasum
-# The sha256 sum of the downloaded `$pkg_source`. You can easily generate by downloading the source and using `sha256sum` or `gsha256sum`.
+# The sha256 sum of the downloaded `$pkg_source`. You can easily generate by
+# downloading the source and using `sha256sum` or `gsha256sum`.
 # ```
 # pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
 # ```
@@ -112,22 +115,25 @@
 # ```
 #
 # ### pkg_lib_dirs
-# An array of paths, relative to the final install of the software, where libraries can be found. Used to
-# populate `LD_FLAGS` and `LD_RUN_PATH` for software that depends on your package.
+# An array of paths, relative to the final install of the software, where
+# libraries can be found. Used to populate `LD_FLAGS` and `LD_RUN_PATH` for
+# software that depends on your package.
 # ```
 # pkg_lib_dirs=(lib)
 # ```
 #
 # ### pkg_include_dirs
-# An array of paths, relative to the final install of the software, where headers can be found. Used to
-# populate `CFLAGS` for software that depends on your package.
+# An array of paths, relative to the final install of the software, where
+# headers can be found. Used to populate `CFLAGS` for software that depends on
+# your package.
 # ```
 # pkg_include_dirs=(include)
 # ```
 #
 # ### pkg_binary_path
-# An array of paths, relative to the final install of the software, where binaries can be found. Used to
-# populate `PATH` for software that depends on your package.
+# An array of paths, relative to the final install of the software, where
+# binaries can be found. Used to populate `PATH` for software that depends on
+# your package.
 # ```
 # pkg_binary_path=(bin)
 # ```
@@ -139,9 +145,9 @@
 # ```
 #
 # ### pkg_docker_build
-# If set to `auto`, we will automatically generate a `Dockerfile` with this package,
-# its dependencies, and busybox. If undefined or set to `false`, we will only build
-# a docker image if a `Dockerfile` is present.
+# If set to `auto`, we will automatically generate a `Dockerfile` with this
+# package, its dependencies, and busybox. If undefined or set to `false`, we
+# will only build a docker image if a `Dockerfile` is present.
 # ```
 # pkg_docker_build="auto"
 # ```
@@ -153,18 +159,18 @@
 # ```
 #
 # ### pkg_derivation
-# A string to use for the derivation. Defaults to bldr. The derivation
-# is used to denote a particular upstream of a package; when we resolve
-# dependencies, we consider a version of a package to be equal regardless
-# of its derivation - but you can specify what you prefer to use.
+# A string to use for the derivation. Defaults to bldr. The derivation is used
+# to denote a particular upstream of a package; when we resolve dependencies,
+# we consider a version of a package to be equal regardless of its derivation -
+# but you can specify what you prefer to use.
 # ```
 # pkg_derivation=bldr
 # ```
 #
 # ## Plan variables
 #
-# `bldr-build` sets a few useful variables for you, in addition to
-# the ones you define above. They are:
+# `bldr-build` sets a few useful variables for you, in addition to the ones you
+# define above. They are:
 #
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
@@ -183,8 +189,8 @@
 #
 # `bldr-build` allows you to alter its behavior by defining callbacks within
 # the `plan.sh`. While `zlib` is awesome and requires no callbacks, most
-# software isn't quite so simple to build. To define a callback, simply
-# create a shell function with its name - then write out your script.
+# software isn't quite so simple to build. To define a callback, simply create
+# a shell function with its name - then write out your script.
 #
 # Most likely, you simply need to redefine two steps:
 #
@@ -225,7 +231,8 @@
 # }
 # ```
 #
-# [A complete list of callbacks, their description, and attendant source code, is but a click away.](#build-phases)
+# [A complete list of callbacks, their description, and attendant source code,
+# is but a click away.](#build-phases)
 #
 # # License and Copyright
 # ```
@@ -294,12 +301,12 @@ pkg_lib_dirs=()
 pkg_include_dirs=()
 # The command to run the service - must not fork or return
 pkg_service_run=''
-# Has two values: `false`, `auto`. False will skip making a docker
-# container unless a Dockerfile is present. Auto will create the
-# Dockerfile, overwriting any that may be present.
+# Has two values: `false`, `auto`. False will skip making a docker container
+# unless a Dockerfile is present. Auto will create the Dockerfile, overwriting
+# any that may be present.
 pkg_docker_build=false
-# Allows you to tweak the docker image we start from. We think it would be great
-# if you never used this. :)
+# Allows you to tweak the docker image we start from. We think it would be
+# great if you never used this. :)
 pkg_docker_from="bldr/base"
 # An array of ports to expose.
 pkg_expose=()
@@ -355,8 +362,8 @@ trap _on_exit 1 2 3 15 ERR
 # able to be used by this program. If we cannot find suitable versions, we will
 # abort early.
 #
-# The following variables are set which contain an absolute path to the
-# desired command:
+# The following variables are set which contain an absolute path to the desired
+# command:
 #
 # * `$sort` (GNU version from coreutils)
 # * `$mktemp` (GNU version from coreutils)
@@ -401,8 +408,8 @@ exists() {
   fi
 }
 
-# Print a line of build output. Takes the rest of the line
-# as its only argument.
+# Print a line of build output. Takes the rest of the line as its only
+# argument.
 #
 # ```sh
 # build_line "Checksum verified - ${pkg_shasum}"
@@ -412,8 +419,8 @@ build_line() {
   return 0
 }
 
-# Print a warning line on stderr. Takes the rest of the line
-# as its only argument.
+# Print a warning line on stderr. Takes the rest of the line as its only
+# argument.
 #
 # ```sh
 # warn "Checksum failed"
@@ -450,8 +457,8 @@ exit_with() {
   exit $2
 }
 
-# Trim leading and trailing whitespace.
-# [Thanks to these guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
+# Trim leading and trailing whitespace.  [Thanks to these
+# guys](http://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-bash-variable)
 # for the tip.
 #
 # ```sh
@@ -597,9 +604,9 @@ pkg_path_for() {
   return 1
 }
 
-# Attach to an interactive debugging session which lets the user check the state
-# of variables, call arbitrary functions, turn on higher levels of logging
-# (with `set -x`), or whatever else is useful.
+# Attach to an interactive debugging session which lets the user check the
+# state of variables, call arbitrary functions, turn on higher levels of
+# logging (with `set -x`), or whatever else is useful.
 #
 # Usage: simply add `attach` in a `plan.sh` file and a debugging session will
 # spawn, similar to:
@@ -610,7 +617,7 @@ pkg_path_for() {
 # From: /plans/glibc/plan.sh @ line 66 :
 #
 #     56:
-#     57:   # Modify the ldd rewrite script to remove lib64 and libx32 from RTLDLIST
+#     57:   # Modify the ldd rewrite script to remove lib64 and libx32
 #     58:   sed -i '/RTLDLIST/d' sysdeps/unix/sysv/linux/*/ldd-rewrite.sed
 #     59:
 #     60:   rm -rf ../${pkg_name}-build
@@ -718,7 +725,8 @@ _attach_whereami() {
 # # /tmp
 # ```
 #
-# Thanks to [Stack Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
+# Thanks to [Stack
+# Overflow](http://stackoverflow.com/questions/7126580/expand-a-possible-relative-path-in-bash#answer-13087801)
 abspath() {
   if [[ -d "$1" ]]; then
     pushd "$1" > /dev/null
@@ -736,8 +744,8 @@ abspath() {
 
 # ## Build Phases
 #
-# Stub build phases, in the order they are executed. These can be
-# overridden by the `plan.sh` if needed.
+# Stub build phases, in the order they are executed. These can be overridden by
+# the `plan.sh` if needed.
 
 # Used to execute arbitrary commands before anything else happens.
 do_begin() {
@@ -773,9 +781,8 @@ _resolve_dependencies() {
 }
 
 # Download the software from `$pkg_source` and place it in
-# `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already
-# exists in the cache, verify that the checksum is what
-# we expect, and skip the download.
+# `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already exists in the
+# cache, verify that the checksum is what we expect, and skip the download.
 do_download() {
   if [[ -f $BLDR_SRC_CACHE/$pkg_filename ]]; then
     if do_verify; then
@@ -790,8 +797,8 @@ do_download() {
   return 0
 }
 
-# Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename`
-# has the `$pkg_shasum` we expect.
+# Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename` has the
+# `$pkg_shasum` we expect.
 do_verify() {
   if exists gsha256sum; then
     checksum=($(gsha256sum $BLDR_SRC_CACHE/$pkg_filename))
@@ -809,16 +816,16 @@ do_verify() {
   return 0
 }
 
-# Clean up the remnants of any previous build job, ensuring it can't
-# pollute out new output.
+# Clean up the remnants of any previous build job, ensuring it can't pollute
+# out new output.
 do_clean() {
   rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
   return 0
 }
 
-# Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and
-# unpacks it. We use shell globbing and a case statement to see if it
-# matches a file type we know how to uncompress, and then uncompress it.
+# Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and unpacks
+# it. We use shell globbing and a case statement to see if it matches a file
+# type we know how to uncompress, and then uncompress it.
 #
 # This takes place in teh $BLDR_SRC_CACHE directory.
 do_unpack() {
@@ -945,8 +952,9 @@ do_prepare() {
   return 0
 }
 
-# Since `build` is one of the most overriden functions, this wrapper makes sure that
-# no matter how it is changed, our `$cwd` is `$BLDR_SRC_CACHE/$pkg_dirname`.
+# Since `build` is one of the most overriden functions, this wrapper makes sure
+# that no matter how it is changed, our `$cwd` is
+# `$BLDR_SRC_CACHE/$pkg_dirname`.
 do_build_wrapper() {
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   do_build
@@ -1056,8 +1064,8 @@ _build_metadata() {
   return 0
 }
 
-# Copy the `./config` directory, relative to the Plan,
-# to `$pkg_path/config`. Do the same with `default.toml`.
+# Copy the `./config` directory, relative to the Plan, to `$pkg_path/config`.
+# Do the same with `default.toml`.
 do_build_config() {
   if [[ -d $PLAN_CONTEXT/config ]]; then
     cp -r $PLAN_CONTEXT/config $pkg_path
@@ -1073,13 +1081,11 @@ do_build_config() {
   return 0
 }
 
-# Write out the `$pkg_path/run` file. If a file named
-# `hooks/run` exists, we skip this step. Otherwise, we look for
-# `$pkg_service_run`, and use that.
+# Write out the `$pkg_path/run` file. If a file named `hooks/run` exists, we
+# skip this step. Otherwise, we look for `$pkg_service_run`, and use that.
 #
-# If the `$pkg_service_user` is set to `bldr`, we
-# change the service to be run under the `bldr` user
-# before we start it.
+# If the `$pkg_service_user` is set to `bldr`, we change the service to be run
+# under the `bldr` user before we start it.
 do_build_service() {
   if [[ -f $PLAN_CONTEXT/hooks/run ]]; then
     return 0
@@ -1170,8 +1176,8 @@ _generate_package() {
 }
 
 # Wraps `dockerfile` to ensure that a Docker image build is being executed in a
-# clean directory with native filesystem permissions which is outside the source
-# code tree.
+# clean directory with native filesystem permissions which is outside the
+# source code tree.
 do_docker_image_wrapper() {
   tmp_prefix="$(echo "$PLAN_CONTEXT" | tr '/' '-')"
   DOCKER_CONTEXT="$($mktemp -t -d "bldr-${tmp_prefix}-XXXX")"
@@ -1182,16 +1188,17 @@ do_docker_image_wrapper() {
   rm -rf "$DOCKER_CONTEXT"
 }
 
-# Add additional entries to the generated Dockerfile. Use something fancy like `echo` to
-# return some data, and it will get inlined.
+# Add additional entries to the generated Dockerfile. Use something fancy like
+# `echo` to return some data, and it will get inlined.
 do_dockerfile_inline() {
   return 0
 }
 
-# Build the Docker image. If `$pkg_docker_build` is set to `auto`,
-# create the Dockerfile first.
+# Build the Docker image. If `$pkg_docker_build` is set to `auto`, create the
+# Dockerfile first.
 #
-# We build and tag the resulting image with `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
+# We build and tag the resulting image with
+# `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
 # `$pkg_derivation/$pkg_name:latest`.
 do_docker_image() {
   if [[ $pkg_docker_build = "auto" ]]; then
@@ -1261,8 +1268,9 @@ CMD ["start", "${pkg_derivation}/${pkg_name}"]
 EOT
   fi
   if [[ -f "./Dockerfile" ]]; then
-    docker build -t "${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}" .
-    docker tag -f "${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}" "${pkg_derivation}/${pkg_name}:latest"
+    local tag="${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}"
+    docker build -t "$tag" .
+    docker tag -f "$tag" "${pkg_derivation}/${pkg_name}:latest"
   fi
 }
 
@@ -1299,13 +1307,14 @@ PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
 # Expand the path of this program to an absolute path
 BLDR_BUILD=$(abspath $0)
 
-# First we check if the provided path has a `plan.sh` in it. If not, we'll quickly bail.
+# First we check if the provided path has a `plan.sh` in it. If not, we'll
+# quickly bail.
 if [[ ! -f "$PLAN_CONTEXT/plan.sh" ]]; then
   exit_with "$PLAN_CONTEXT/plan.sh does not exist" 42
 fi
 
-# Change into the `$PLAN_CONTEXT` directory for proper resolution of relative paths
-# in `plan.sh`
+# Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
+# paths in `plan.sh`
 cd $PLAN_CONTEXT
 
 # Load the Plan
