@@ -1,0 +1,94 @@
+# The root URL for all official patch files
+_patch_url_base=$_url_base/${pkg_name}-${_base_version}-patches/${pkg_name}${_base_version//.}
+
+# All official patch file URLs
+_patch_files=(
+  ${_patch_url_base}-001
+  ${_patch_url_base}-002
+  ${_patch_url_base}-003
+  ${_patch_url_base}-004
+  ${_patch_url_base}-005
+  ${_patch_url_base}-006
+  ${_patch_url_base}-007
+  ${_patch_url_base}-008
+  ${_patch_url_base}-009
+  ${_patch_url_base}-010
+  ${_patch_url_base}-011
+  ${_patch_url_base}-012
+  ${_patch_url_base}-013
+  ${_patch_url_base}-014
+  ${_patch_url_base}-015
+  ${_patch_url_base}-016
+  ${_patch_url_base}-017
+  ${_patch_url_base}-018
+  ${_patch_url_base}-019
+  ${_patch_url_base}-020
+  ${_patch_url_base}-021
+  ${_patch_url_base}-022
+  ${_patch_url_base}-023
+  ${_patch_url_base}-024
+  ${_patch_url_base}-025
+  ${_patch_url_base}-026
+  ${_patch_url_base}-027
+  ${_patch_url_base}-028
+  ${_patch_url_base}-029
+  ${_patch_url_base}-030
+  ${_patch_url_base}-031
+  ${_patch_url_base}-032
+  ${_patch_url_base}-033
+  ${_patch_url_base}-034
+  ${_patch_url_base}-035
+  ${_patch_url_base}-036
+  ${_patch_url_base}-037
+  ${_patch_url_base}-038
+  ${_patch_url_base}-039
+  ${_patch_url_base}-040
+  ${_patch_url_base}-041
+  ${_patch_url_base}-042
+)
+
+# All official patch file shasums
+_patch_shasums=(
+  ecb3dff2648667513e31554b3ad054ccd89fce38e33367c9459ac3a285153742
+  eee7cd7062ab29a9e4f02924d9c367264dcb8b162703f74ff6eb8f175a91502b
+  000e6eac50cd9053ce0630db01239dcdead04a2c2c351c47e2b51dac1ac1087d
+  5ea0a42c6506720d26e6d3c5c358e9a0d49f6f189d69a8ed34d5935964821338
+  1ac83044032b9f5f11aeca8a344ae3c524ec2156185d3adbb8ad3e7a165aa3fa
+  a0648ee72d15e4a90c8b77a5c6b19f8d89e28c1bc881657d22fe26825f040213
+  1113e321c59cf6a8648a36245bbe4217cf8acf948d71e67886dad7d486f8f3a3
+  9941a98a4987192cc5ce3d45afe879983cad2f0bec96d441a4edd9033767f95e
+  c0226d6728946b2f53cdebf090bcd1c01627f01fee03295768605caa80bb40a5
+  ce05799c0137314c70c7b6ea0477c90e1ac1d52e113344be8e32fa5a55c9f0b7
+  7c63402cdbc004a210f6c1c527b63b13d8bb9ec9c5a43d5c464a9010ff6f7f3b
+  3e1379030b35fbcf314e9e7954538cf4b43be1507142b29efae39eef997b8c12
+  bfa8ca5336ab1f5ef988434a4bdedf71604aa8a3659636afa2ce7c7446c42c79
+  5a4d6fa2365b6eb725a9d4966248b5edf7630a4aeb3fa8d526b877972658ac13
+  13293e8a24e003a44d7fe928c6b1e07b444511bed2d9406407e006df28355e8d
+  92d60bcf49f61bd7f1ccb9602bead6f2c9946d79dea0e5ec0589bb3bfa5e0773
+  1267c25c6b5ba57042a7bb6c569a6de02ffd0d29530489a16666c3b8a23e7780
+  7aa8b40a9e973931719d8cc72284a8fb3292b71b522db57a5a79052f021a3d58
+  a7a91475228015d676cafa86d2d7aa9c5d2139aa51485b6bbdebfdfbcf0d2d23
+  ca5e86d87f178128641fe91f2f094875b8c1eb2de9e0d2e9154f5d5cc0336c98
+  41439f06883e6bd11c591d9d5e9ae08afbc2abd4b935e1d244b08100076520a9
+  fd4d47bb95c65863f634c4706c65e1e3bae4ee8460c72045c0a0618689061a88
+  9ac250c7397a8f53dbc84dfe790d2a418fbf1fe090bcece39b4a5c84a2d300d4
+  3b505882a0a6090667d75824fc919524cd44cc3bd89dd08b7c4e622d3f960f6c
+  1e5186f5c4a619bb134a1177d9e9de879f3bb85d9c5726832b03a762a2499251
+  2ecc12201b3ba4273b63af4e9aad2305168cf9babf6d11152796db08724c214d
+  1eb76ad28561d27f7403ff3c76a36e932928a4b58a01b868d663c165f076dabe
+  e8b0dbed4724fa7b9bd8ff77d12c7f03da0fbfc5f8251ef5cb8511eb082b469d
+  4cc4a397fe6bc63ecb97d030a4e44258ef2d4e076d0e90c77782968cc43d6292
+  85434f8a2f379d0c49a3ff6d9ffa12c8b157188dd739e556d638217d2a58385b
+  cd529f59dd0f2fdd49d619fe34691da6f0affedf87cc37cd460a9f3fe812a61d
+  889357d29a6005b2c3308ca5b6286cb223b5e9c083219e5db3156282dd554f4a
+  fb2a7787a13fbe027a7335aca6eb3c21cdbd813e9edc221274b6a9d8692eaa16
+  f1694f04f110defe1330a851cc2768e7e57ddd2dfdb0e3e350ca0e3c214ff889
+  370d85e51780036f2386dc18c5efe996eba8e652fc1973f0f4f2ab55a993c1e3
+  ac5f82445b36efdb543dbfae64afed63f586d7574b833e9aa9cd5170bc5fd27c
+  33f170dd7400ab3418d749c55c6391b1d161ef2de7aced1873451b3a3fca5813
+  adbeaa500ca7a82535f0e88d673661963f8a5fcdc7ad63445e68bf5b49786367
+  ab94dced2215541097691f60c3eb323cc28ef2549463e6a5334bbcc1e61e74ec
+  84bb396b9262992ca5424feab6ed3ec39f193ef5c76dfe4a62b551bd8dd9d76b
+  4ec432966e4198524a7e0cd685fe222e96043769c9613e66742ac475db132c1a
+  ac219322db2791da87a496ee6e8e5544846494bdaaea2626270c2f73c1044919
+)
