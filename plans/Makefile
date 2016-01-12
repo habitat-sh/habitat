@@ -1,4 +1,4 @@
-BLDR_PKGS := glibc libgcc patchelf zlib cacerts busybox libgpg-error libassuan gnupg gpgme openssl runit bldr
+BLDR_PKGS := glibc libgcc patchelf zlib cacerts busybox libgpg-error libassuan gnupg gpgme openssl runit rngd bldr
 PKGS := $(BLDR_PKGS) redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
 REPO := http://159.203.235.47
 
@@ -42,6 +42,7 @@ baseimage_root:
 		/opt/bldr/pkgs/chef/busybox \
 		/opt/bldr/pkgs/chef/gnupg \
 		/opt/bldr/pkgs/chef/openssl \
+		/opt/bldr/pkgs/chef/rngd \
 		/opt/bldr/pkgs/chef/bldr \
 		&& \
 	popd
