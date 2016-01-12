@@ -18,7 +18,6 @@
 pub mod archive;
 pub mod hooks;
 pub mod updater;
-
 pub use self::archive::{PackageArchive, MetaFile};
 pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
 pub use self::hooks::HookType;

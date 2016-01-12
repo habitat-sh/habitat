@@ -1,4 +1,3 @@
-//
 // Copyright:: Copyright (c) 2015 Chef Software, Inc.
 // License:: Apache License, Version 2.0
 //
@@ -24,10 +23,10 @@ extern crate log;
 extern crate env_logger;
 extern crate ansi_term;
 extern crate libc;
+
 use docopt::Docopt;
 use std::process;
 use ansi_term::Colour::Yellow;
-use libc::funcs::posix88::unistd::execvp;
 use std::ffi::CString;
 use std::ptr;
 
@@ -234,7 +233,7 @@ fn shell(_config: &Config) -> BldrResult<()> {
     // Yeah, you don't know any better.. but we aren't coming back from
     // what happens next.
     unsafe {
-        execvp(shell_arg.as_ptr(), argv.as_mut_ptr());
+        libc::execvp(shell_arg.as_ptr(), argv.as_mut_ptr());
     }
     Ok(())
 }
@@ -318,14 +317,18 @@ fn split_package_arg(arg: &str) -> BldrResult<(String, String, Option<String>, O
     let items: Vec<&str> = arg.split("/").collect();
     match items.len() {
         2 => Ok((items[0].to_string(), items[1].to_string(), None, None)),
-        3 => Ok((items[0].to_string(),
-                 items[1].to_string(),
-                 Some(items[2].to_string()),
-                 None)),
-        4 => Ok((items[0].to_string(),
-                 items[1].to_string(),
-                 Some(items[2].to_string()),
-                 Some(items[3].to_string()))),
+        3 => {
+            Ok((items[0].to_string(),
+                items[1].to_string(),
+                Some(items[2].to_string()),
+                None))
+        }
+        4 => {
+            Ok((items[0].to_string(),
+                items[1].to_string(),
+                Some(items[2].to_string()),
+                Some(items[3].to_string())))
+        }
         _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(arg.to_string()))),
     }
 }

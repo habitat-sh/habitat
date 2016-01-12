@@ -53,6 +53,7 @@ extern crate rustc_serialize;
 extern crate toml;
 extern crate ansi_term;
 extern crate gpgme;
+extern crate libarchive;
 extern crate regex;
 extern crate libc;
 extern crate url;

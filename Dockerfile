@@ -22,7 +22,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rsync \
     wget \
     m4 \
+    pkg-config \
     libgpgme11-dev \
+    libarchive-dev \
+    libclang-dev \
   && rm -rf /var/lib/apt/lists/*
 
 ENV SHELL /bin/bash

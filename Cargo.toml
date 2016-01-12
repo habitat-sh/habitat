@@ -44,5 +44,9 @@ path = "./vendor/wonder"
 git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
 
+[dependencies.libarchive]
+git = "https://github.com/reset/libarchive-rust"
+branch = "master"
+
 [profile.release]
 lto = true

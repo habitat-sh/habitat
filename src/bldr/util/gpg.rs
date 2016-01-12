@@ -1,4 +1,3 @@
-//
 // Copyright:: Copyright (c) 2015 Chef Software, Inc.
 // License:: Apache License, Version 2.0
 //
@@ -25,6 +24,23 @@ use util::perm;
 
 static LOGKEY: &'static str = "GP";
 
+pub fn decrypt<'a>(file: &str) -> BldrResult<gpgme::Data<'a>> {
+    let mut ctx = try!(init_ctx());
+    let mut signature = {
+        let f = match File::open(&file) {
+            Ok(f) => f,
+            Err(_) => return Err(bldr_error!(ErrorKind::FileNotFound(String::from(file)))),
+        };
+        match gpgme::Data::from_seekable_reader(f) {
+            Ok(data) => data,
+            Err(_) => return Err(bldr_error!(ErrorKind::FileNotFound(String::from(file)))),
+        }
+    };
+    let mut out = try!(gpgme::Data::new());
+    try!(ctx.decrypt(&mut signature, &mut out));
+    Ok(out)
+}
+
 pub fn import(keyfile: &str) -> BldrResult<()> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
@@ -40,7 +56,7 @@ pub fn import(keyfile: &str) -> BldrResult<()> {
     }
 }
 
-pub fn verify(file: &str) -> BldrResult<()> {
+pub fn verify<'a>(file: &str) -> BldrResult<gpgme::Data<'a>> {
     let mut ctx = try!(init_ctx());
 
     let mut signature = {
@@ -56,7 +72,7 @@ pub fn verify(file: &str) -> BldrResult<()> {
 
     let mut plain = try!(gpgme::Data::new());
     match ctx.verify(&mut signature, None, Some(&mut plain)) {
-        Ok(_) => Ok(()),
+        Ok(_) => Ok(plain),
         Err(e) => Err(BldrError::from(e)),
     }
 }

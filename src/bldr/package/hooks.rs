@@ -1,4 +1,3 @@
-//
 // Copyright:: Copyright (c) 2015 Chef Software, Inc.
 // License:: Apache License, Version 2.0
 //
@@ -75,9 +74,11 @@ impl Hook {
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,
-                None => return Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
-                                                                     -1,
-                                                                     String::from("Failed")))),
+                None => {
+                    return Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
+                                                                 -1,
+                                                                 String::from("Failed"))))
+                }
             };
             let mut line = output_format!(P: "hook", "{}", &self.htype);
             loop {
