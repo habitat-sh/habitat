@@ -1,5 +1,5 @@
-ALL_PKGS := linux-headers glibc zlib file binutils m4 gmp mpfr libmpc gcc patchelf gcc-libs bzip2 pkg-config ncurses attr acl libcap
-BOOTSTRAP_TOOLCHAIN_PKGS := linux-headers glibc zlib file binutils m4 gmp mpfr libmpc gcc patchelf-using-bootstrap-tools gcc-libs patchelf bzip2 pkg-config ncurses attr acl libcap
+ALL_PKGS := linux-headers glibc zlib file binutils m4 gmp mpfr libmpc gcc patchelf gcc-libs bzip2 pkg-config ncurses attr acl libcap sed shadow
+BOOTSTRAP_TOOLCHAIN_PKGS := linux-headers glibc zlib file binutils m4 gmp mpfr libmpc gcc patchelf-using-bootstrap-tools gcc-libs patchelf bzip2 pkg-config ncurses attr acl libcap sed shadow
 BLDR_PKGS := $(BOOTSTRAP_TOOLCHAIN_PKGS)
 BLDR_WEB_PKGS := node ncurses libedit pcre nginx bldr-web
 PKGS := $(BLDR_PKGS) $(BLDR_WEB_PKGS) redis haproxy libaio libltdl libxml2 numactl perl erlang libyaml libiconv libtool libffi ruby
