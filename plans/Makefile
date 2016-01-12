@@ -1,5 +1,5 @@
 BLDR_PKGS := glibc libgcc patchelf zlib cacerts busybox libgpg-error libassuan gnupg gpgme openssl runit bldr
-PKGS := $(BLDR_PKGS) redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl
+PKGS := $(BLDR_PKGS) redis ncurses libedit bzip2 pcre nginx haproxy libaio libltdl libxml2 numactl perl erlang libyaml libiconv libtool libffi ruby
 REPO := http://159.203.235.47
 
 .PHONY: bldr-deps world publish gpg clean baseimage_root $(PKGS) $(addprefix publish-,$(PKGS)) new-plan
