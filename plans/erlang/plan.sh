@@ -13,16 +13,17 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 
 do_build() {
-  ./configure --enable-threads \
-              --enable-smp-support \
-              --enable-kernel-poll \
-              --enable-threads \
-              --enable-smp-support \
-              --enable-kernel-poll \
-              --enable-dynamic-ssl-lib \
-              --enable-shared-zlib \
-              --enable-hipe \
-              --without-javac \
-              --disable-debug
-  make
+    ./configure --prefix=${pkg_prefix} \
+                --enable-threads \
+                --enable-smp-support \
+                --enable-kernel-poll \
+                --enable-threads \
+                --enable-smp-support \
+                --enable-kernel-poll \
+                --enable-dynamic-ssl-lib \
+                --enable-shared-zlib \
+                --enable-hipe \
+                --without-javac \
+                --disable-debug
+    make
 }
