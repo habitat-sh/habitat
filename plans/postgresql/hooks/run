@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+
+export PGDATA={{pkg.svc_path}}/data
+
+exec 2>&1
+exec chpst -u bldr:bldr {{pkg.path}}/bin/postmaster \
+     -c config_file={{pkg.svc_path}}/config/postgresql.conf

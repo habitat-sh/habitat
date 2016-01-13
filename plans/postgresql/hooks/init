@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+
+exec 2>&1
+
+mkdir -p {{pkg.svc_path}}/config/conf.d
+mkdir -p {{pkg.svc_path}}/var/pg_stat_tmp
+
+chown -R bldr:bldr {{pkg.svc_path}}/var
+
+if [[ ! -f "{{pkg.svc_path}}/data/PG_VERSION" && -z  ]]; then
+  echo " Database does not exist, creating with 'initdb'"
+  chpst -u bldr:bldr initdb -U {{cfg.initdb_superuser_name}} \
+                            -E {{cfg.initdb_encoding}} \
+                            -D {{pkg.svc_path}}/data \
+                            --pwfile {{cfg.initdb_pwfile}} && \
+    rm {{pkg.svc_path}}/config/pwfile
+fi
