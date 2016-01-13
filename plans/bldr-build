@@ -542,6 +542,64 @@ _resolve_dependency() {
   fi
 }
 
+# **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
+# installed package which contain the set of all direct and transitive run
+# dependencies. An empty set could be returned as whitespace and/or newlines.
+# The lack of a `TDEPS` file in the desired package will be considered an
+# unset, or empty set.
+#
+# ```
+# _get_tdeps_for /opt/bldr/pkgs/chef/a/4.2.2/20160113044458
+# # /opt/bldr/pkgs/chef/dep-b/1.2.3/20160113033619
+# # /opt/bldr/pkgs/chef/dep-c/5.0.1/20160113033507
+# # /opt/bldr/pkgs/chef/dep-d/2.0.0/20160113033539
+# # /opt/bldr/pkgs/chef/dep-e/10.0.1/20160113033453
+# # /opt/bldr/pkgs/chef/dep-f/4.2.2/20160113033338
+# # /opt/bldr/pkgs/chef/dep-g/4.2.2/20160113033319
+# ```
+#
+# Will return 0 in any case and the contents of `TDEPS` if the file exists.
+_get_tdeps_for() {
+  local pkg_path="$1"
+  if [[ -f "$pkg_path/TDEPS" ]]; then
+    cat $pkg_path/TDEPS
+  else
+    # No file, meaning an empty set
+    echo
+  fi
+  return 0
+}
+
+# **Internal** Appends an entry to the given array only if the entry is not
+# already present and returns the resulting array back on stdout. In so doing,
+# this function mimicks a set when adding new entries. Note that any array can
+# be passed in, including ones that already contain duplicate entries.
+#
+# ```
+# arr=(a b c)
+# arr=($(_return_or_append_to_set "b" "${arr[@]}"))
+# echo ${arr[@]}
+# # a b c
+# arr=($(_return_or_append_to_set "z" "${arr[@]}"))
+# echo ${arr[@]}
+# # a b c z
+# ```
+#
+# Will return 0 in any case.
+_return_or_append_to_set() {
+  local e
+  local appended_set
+  for e in "${@:2}"; do
+    if [[ "$e" == "$1" ]]; then
+      echo "${@:2}"
+      return 0
+    fi
+  done
+  appended_set=("${@:2}" "$1")
+  echo "${appended_set[@]}"
+  return 0
+}
+
 # **Internal** Prints the source file, line number, and lines of context around
 # the current debugging session context. Used by `attach()` and should not be
 # used externally.
@@ -676,8 +734,8 @@ trim() {
   echo "$var"
 }
 
-# Returns the path for the desired build or runtime package dependency on
-# stdout from the resolved dependency set.
+# Returns the path for the desired build or runtime direct package dependency
+# on stdout from the resolved dependency set.
 #
 # ```
 # pkg_all_deps_resolved=(
@@ -950,14 +1008,36 @@ do_default_begin() {
   return 0
 }
 
-# **Internal** Walk each item in `$pkg_build_deps` and $pkg_deps`, and for each
+# **Internal** Determines suitable package identifiers for each build and
+# run dependency and populates several package-related arrays for use
+# throughout this program.
+#
+# Walk each item in `$pkg_build_deps` and $pkg_deps`, and for each
 # item determine the absolute path to a suitable package release (which will be
-# on disk). These "resolved" paths will be added to respective parallel arrays
-# (`$pkg_deps_resolved` and `$pkg_build_deps_resolved`) as well as a combined
-# array `$pkg_all_deps_resolved`.
+# on disk). Then, several package-related arrays are created:
+#
+# * `$pkg_build_deps_resolved`: A pacakge-path array of all direct build
+#    dependencies, declared in `$pkg_build_deps`.
+# * `$pkg_build_tdeps_resolved`: A package-path array of all direct build
+#    depenedencies and the run depedencies for each direct build dependency.
+# * `$pkg_deps_resolved`: A package-path array of all direct run dependencies,
+#    declared in `$pkg_deps`.
+# * `$pkg_tdeps_resolved`:  A package-path array of all direct run depdencies
+#    and the run dependencies for each direct run dependency.
+# * `$pkg_all_deps_resolved`: A package-path array of all direct build and
+#    run depenencies, declared in `$pkg_build_deps` and `$pkg_deps`.
+# * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
+#    build and run dependencies, and the run depenencies for each direct
+#    dependency. Further details below in the function.
 _resolve_dependencies() {
   build_line "Resolving dependencies"
   local resolved
+  local dep
+  local tdep
+  local tdeps
+
+  # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+  # dependencies.
   pkg_build_deps_resolved=()
   for dep in "${pkg_build_deps[@]}"; do
     if resolved="$(_resolve_dependency $dep)"; then
@@ -967,6 +1047,9 @@ _resolve_dependencies() {
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
   done
+
+  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # dependencies.
   pkg_deps_resolved=()
   for dep in "${pkg_deps[@]}"; do
     if resolved="$(_resolve_dependency $dep)"; then
@@ -976,7 +1059,68 @@ _resolve_dependencies() {
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
   done
-  pkg_all_deps_resolved=("${pkg_build_deps_resolved[@]}" "${pkg_deps_resolved[@]}")
+
+  # Build `${pkg_build_tdeps_resolved[@]}` containing all the direct build
+  # dependencies, and the run dependencies for each direct build dependency.
+
+  # Copy all direct build dependencies into a new array
+  pkg_build_tdeps_resolved=("${pkg_build_deps_resolved[@]}")
+  # Append all non-direct (transitive) run dependencies for each direct build
+  # dependency. That's right, not a typo ;) This is how a `chef/gcc` build
+  # dependency could pull in `chef/binutils` for us, as an example. Any
+  # duplicate entries are dropped to produce a proper set.
+  for dep in "${pkg_build_deps_resolved[@]}"; do
+    tdeps=($(_get_tdeps_for $dep))
+    for tdep in "${tdeps[@]}"; do
+      tdep="$BLDR_PKG_ROOT/$tdep"
+      pkg_build_tdeps_resolved=(
+        $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
+      )
+    done
+  done
+
+  # Build `${pkg_tdeps_resolved[@]}` containing all the direct run
+  # dependencies, and the run dependencies for each direct run dependency.
+
+  # Copy all direct dependencies into a new array
+  pkg_tdeps_resolved=("${pkg_deps_resolved[@]}")
+  # Append all non-direct (transitive) run dependencies for each direct run
+  # dependency. Any duplicate entries are dropped to produce a proper set.
+  for dep in "${pkg_deps_resolved[@]}"; do
+    tdeps=($(_get_tdeps_for $dep))
+    for tdep in "${tdeps[@]}"; do
+      tdep="$BLDR_PKG_ROOT/$tdep"
+      pkg_tdeps_resolved=(
+        $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
+      )
+    done
+  done
+
+  # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
+  # dependencies. The build dependencies appear before the run dependencies.
+  pkg_all_deps_resolved=(
+    "${pkg_build_deps_resolved[@]}"
+    "${pkg_deps_resolved[@]}"
+  )
+
+  # Build an ordered set of all build and run dependencies (direct and
+  # transitive). The order is important as this gets used when setting the
+  # `$PATH` ordering in the build environment. To give priority to direct
+  # dependencies over transitive ones the order of packages is the following:
+  #
+  # 1. All direct build dependencies
+  # 1. All direct run dependencies
+  # 1. All unique transitive build dependencies that aren't already added
+  # 1. All unique transitive run dependencies that aren't already added
+  pkg_all_tdeps_resolved=(
+    "${pkg_build_deps_resolved[@]}"
+    "${pkg_deps_resolved[@]}"
+  )
+  for dep in "${pkg_build_tdeps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
+    pkg_all_tdeps_resolved=(
+      $(_return_or_append_to_set "$tdep" "${pkg_all_tdeps_resolved[@]}")
+    )
+  done
 }
 
 # Download the software from `$pkg_source` and place it in
@@ -1045,6 +1189,13 @@ do_default_unpack() {
 # location.
 _build_environment() {
   build_line "Setting build environment"
+
+  # Build `$LD_RUN_PATH` containing each path in our own `${pkg_lib_dirs[@]}`
+  # array and then each direct run dependency's `LD_RUN_PATH` entry if one
+  # exists. This ensures that the resulting `RUNPATH` (like `RPATH`, but not
+  # overridable) entries only contain **direct** **runtime** paths. If a
+  # dependency's lib directory needs to be set in the resulting `RUNPATH`
+  # sections of an ELF binary, it must be a direct dependency, not transitive.
   local ld_run_path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
     if [[ -z $ld_run_path_part ]]; then
@@ -1054,14 +1205,6 @@ _build_environment() {
     fi
   done
   export LD_RUN_PATH=$ld_run_path_part
-  local path_part=""
-  for path in "${pkg_binary_path[@]}"; do
-    if [[ -z $path_part ]]; then
-      path_part="$pkg_path/$path"
-    else
-      path_part="$path_part:$pkg_path/$path"
-    fi
-  done
   for dep_path in "${pkg_deps_resolved[@]}"; do
     if [[ -f "$dep_path/LD_RUN_PATH" ]]; then
       local data=$(cat $dep_path/LD_RUN_PATH)
@@ -1073,6 +1216,41 @@ _build_environment() {
       fi
     fi
   done
+
+  # Build `$PATH` containing each path in our own `${pkg_binary_path[@]}`
+  # array, and then any dependency's `PATH` entry (direct or transitive) if one
+  # exists. The ordering of the path is specfic to
+  # `${pkg_all_tdeps_resolved[@]}` which is further explained in the
+  # `_resolve_dependencies()` function.
+  local path_part=""
+  for path in "${pkg_binary_path[@]}"; do
+    if [[ -z $path_part ]]; then
+      path_part="$pkg_path/$path"
+    else
+      path_part="$path_part:$pkg_path/$path"
+    fi
+  done
+  for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_path/PATH" ]]; then
+      local data=$(cat $dep_path/PATH)
+      local trimmed=$(trim $data)
+      if [[ -z $path_part ]]; then
+        path_part="$trimmed"
+      else
+        path_part="$path_part:$trimmed"
+      fi
+    fi
+  done
+  # Insert all the package PATH fragments before the default PATH to ensure
+  # Bldr package binaries are used before any userland/operating system binaries
+  if [[ -n $path_part ]]; then
+    export PATH="$path_part:$PATH"
+  fi
+
+  # Build `$CFLAGS` and `$LDFLAGS` containing any direct dependency's `CFLAGS`
+  # or `LDFLAGS` entries respectively (build or run). If the software to be
+  # built requires the path to headers or shared libraries, it must be a
+  # direct dependency, not transitive.
   for dep_path in "${pkg_all_deps_resolved[@]}"; do
     if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
@@ -1092,21 +1270,8 @@ _build_environment() {
         export LDFLAGS="$trimmed"
       fi
     fi
-    if [[ -f "$dep_path/PATH" ]]; then
-      local data=$(cat $dep_path/PATH)
-      local trimmed=$(trim $data)
-      if [[ -z $path_part ]]; then
-        path_part="$trimmed"
-      else
-        path_part="$path_part:$trimmed"
-      fi
-    fi
   done
-  # Insert all the package PATH fragments before the default PATH to ensure
-  # Bldr package binaries are used before any userland/operating system binaries
-  if [[ -n $path_part ]]; then
-    export PATH="$path_part:$PATH"
-  fi
+
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_path
   build_line "Setting PATH=$PATH"
@@ -1261,9 +1426,17 @@ _build_metadata() {
   if [[ -n "$deps" ]]; then
     echo "$deps" > $pkg_path/BUILD_DEPS
   fi
+  deps="$(printf '%s\n' "${pkg_build_tdeps_resolved[@]}" | cut -d "/" -f ${cutn}- | sort)"
+  if [[ -n "$deps" ]]; then
+    echo "$deps" > $pkg_path/BUILD_TDEPS
+  fi
   deps="$(printf '%s\n' "${pkg_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
   if [[ -n "$deps" ]]; then
     echo "$deps" > $pkg_path/DEPS
+  fi
+  deps="$(printf '%s\n' "${pkg_tdeps_resolved[@]}" | cut -d "/" -f ${cutn}- | sort)"
+  if [[ -n "$deps" ]]; then
+    echo "$deps" > $pkg_path/TDEPS
   fi
 
   echo "${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_path/IDENT
