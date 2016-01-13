@@ -10,6 +10,7 @@ extern crate time;
 extern crate hyper;
 extern crate url;
 extern crate bldr as bldr_lib;
+extern crate uuid;
 
 pub mod util;
 

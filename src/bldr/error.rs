@@ -134,6 +134,7 @@ pub enum ErrorKind {
     InvalidPackageIdent(String),
     MsgpackDecode(msgpack::decode::Error),
     MsgpackEncode(msgpack::encode::Error),
+    InvalidKeyParameter(String)
 }
 
 /// Our result type alias, for easy coding.
@@ -254,6 +255,7 @@ impl fmt::Display for BldrError {
             }
             ErrorKind::MsgpackDecode(ref e) => format!("Msgpack decoding error: {:?}", e),
             ErrorKind::MsgpackEncode(ref e) => format!("Msgpack encoding error: {:?}", e),
+            ErrorKind::InvalidKeyParameter(ref e) => format!("Invalid parameter for key generation: {:?}", e),
         };
         let cstring = Red.bold().paint(content).to_string();
         let mut so = StructuredOutput::new("bldr",
@@ -336,6 +338,7 @@ impl Error for BldrError {
             }
             ErrorKind::MsgpackDecode(_) => "Msgpack decoding error",
             ErrorKind::MsgpackEncode(_) => "Msgpack encoding error",
+            ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
         }
     }
 }

@@ -23,8 +23,11 @@ pub enum Command {
     Install,
     Config,
     Start,
-    Key,
-    KeyUpload,
+    InstallKey,
+    UploadKey,
+    GenerateUserKey,
+    GenerateServiceKey,
+    ListKeys,
     Shell,
     Repo,
     Upload,
@@ -52,6 +55,9 @@ pub struct Config {
     release: Option<String>,
     watch: Vec<String>,
     key: String,
+    password: Option<String>,
+    email: Option<String>,
+    expire_days: Option<u16>,
     listen_addr: repo::ListenAddr,
     port: repo::ListenPort,
     gossip_listen: String,
@@ -85,6 +91,28 @@ impl Config {
         &self.key
     }
 
+    /// Set the password
+    pub fn set_password(&mut self, password: String) -> &mut Config {
+        self.password = Some(password);
+        self
+    }
+
+    /// Return the password
+    pub fn password(&self) -> &Option<String> {
+        &self.password
+    }
+
+    /// Set the email address
+    pub fn set_email(&mut self, email: String) -> &mut Config {
+        self.email = Some(email);
+        self
+    }
+
+    /// Return the email address
+    pub fn email(&self) -> &Option<String> {
+        &self.email
+    }
+
     /// Set the package name
     pub fn set_package(&mut self, package: String) -> &mut Config {
         self.package = package;
@@ -94,6 +122,16 @@ impl Config {
     /// Return the package name
     pub fn package(&self) -> &str {
         &self.package
+    }
+
+    /// Set the key expire days
+    pub fn set_expire_days(&mut self, expire_days: u16) -> &mut Config {
+        self.expire_days = Some(expire_days);
+        self
+    }
+
+    pub fn expire_days(&self) -> &Option<u16> {
+        &self.expire_days
     }
 
     /// Set the derivation
