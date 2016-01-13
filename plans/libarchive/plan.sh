@@ -14,6 +14,7 @@ do_build() {
   build/autogen.sh
   ./configure \
     --prefix=$pkg_prefix \
-    --without-xml2
+    --without-xml2 \
+    --without-lzo2
   make
 }
