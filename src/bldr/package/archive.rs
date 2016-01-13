@@ -15,11 +15,8 @@
 //
 
 use std::fmt;
-use std::fs::File;
 use std::io::{Seek, SeekFrom};
-use std::mem;
 use std::path::PathBuf;
-use std::process::Command;
 use std::str;
 
 use libarchive::writer;
@@ -28,7 +25,6 @@ use libarchive::archive::{Entry, ReadFilter, ReadFormat};
 use regex::Regex;
 
 use error::{BldrResult, BldrError, ErrorKind};
-use fs::GPG_CACHE;
 use package::Package;
 use util::gpg;
 
@@ -186,7 +182,7 @@ impl PackageArchive {
                 }
             }
             Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
-            Err(e) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
+            Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
         }
     }
 }

@@ -24,13 +24,12 @@ use msgpack::{Encoder, Decoder};
 use rustc_serialize::{Encodable, Decodable};
 use utp::UtpSocket;
 
-use std::thread;
 use std::net::ToSocketAddrs;
 
 use error::BldrResult;
 use gossip::message::{BUFFER_SIZE, Message};
 
-static LOGKEY: &'static str = "GC";
+//static LOGKEY: &'static str = "GC";
 
 /// A Gossip Client.
 pub struct Client {
