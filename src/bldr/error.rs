@@ -39,9 +39,9 @@
 //! it instead of the longer `Result` form.
 
 use std::io;
+use std::error;
 use std::result;
 use std::fmt;
-use std::error::Error;
 use std::num;
 use std::string;
 use std::ffi;
@@ -63,27 +63,26 @@ use output::StructuredOutput;
 
 static LOGKEY: &'static str = "ER";
 
+pub trait ErrMsg {
+    fn err_msg(&self) -> String;
+}
+
 #[derive(Debug)]
 /// All errors in Bldr are kept in this struct. We store `ErrorKind`, an enum with a variant for
 /// every type of error we produce. It also stores the location the error was created.
-pub struct BldrError {
-    pub err: ErrorKind,
+pub struct Error<T: ErrMsg> {
+    pub err: T,
     logkey: &'static str,
     file: &'static str,
     line: u32,
     column: u32,
 }
 
-impl BldrError {
+impl<T: ErrMsg> Error<T> {
     /// Create a new `BldrError`. Usually accessed through the `bldr_error!` macro, rather than
     /// called directly.
-    pub fn new(err: ErrorKind,
-               logkey: &'static str,
-               file: &'static str,
-               line: u32,
-               column: u32)
-               -> BldrError {
-        BldrError {
+    pub fn new(err: T, logkey: &'static str, file: &'static str, line: u32, column: u32) -> Self {
+        Error {
             err: err,
             logkey: logkey,
             file: file,
@@ -146,14 +145,31 @@ pub enum ErrorKind {
     MsgpackEncode(msgpack::encode::Error),
 }
 
+pub type BldrError = Error<ErrorKind>;
+
 /// Our result type alias, for easy coding.
 pub type BldrResult<T> = result::Result<T, BldrError>;
 
-impl fmt::Display for BldrError {
+impl<T: ErrMsg> fmt::Display for Error<T> {
     // We create a string for each type of error, then create a `StructuedOutput` for it, flip
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let content = match self.err {
+        let content = self.err.err_msg();
+        let cstring = Red.bold().paint(&content).to_string();
+        let mut so = StructuredOutput::new("bldr",
+                                           self.logkey,
+                                           self.line,
+                                           self.file,
+                                           self.column,
+                                           &cstring);
+        so.verbose = Some(true);
+        write!(f, "{}", so)
+    }
+}
+
+impl ErrMsg for ErrorKind {
+    fn err_msg(&self) -> String {
+        match *self {
             ErrorKind::ArchiveReadFailed(ref e) => format!("Failed to read package archive, {}", e),
             ErrorKind::ArchiveError(ref err) => format!("{}", err),
             ErrorKind::Io(ref err) => format!("{}", err),
@@ -264,20 +280,11 @@ impl fmt::Display for BldrError {
             }
             ErrorKind::MsgpackDecode(ref e) => format!("Msgpack decoding error: {:?}", e),
             ErrorKind::MsgpackEncode(ref e) => format!("Msgpack encoding error: {:?}", e),
-        };
-        let cstring = Red.bold().paint(&content).to_string();
-        let mut so = StructuredOutput::new("bldr",
-                                           self.logkey,
-                                           self.line,
-                                           self.file,
-                                           self.column,
-                                           &cstring);
-        so.verbose = Some(true);
-        write!(f, "{}", so)
+        }
     }
 }
 
-impl Error for BldrError {
+impl error::Error for BldrError {
     fn description(&self) -> &str {
         match self.err {
             ErrorKind::ArchiveError(ref err) => err.description(),
