@@ -6,7 +6,7 @@ pkg_source=http://download.redis.io/releases/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=0e21be5d7c5e6ab6adcbed257619897db59be9e1ded7ef6fd1582d0cdb5e5bb7
 pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
-pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme chef/libassuan chef/libgpg-error)
+pkg_deps=(chef/glibc chef/libgcc chef/busybox chef/openssl chef/runit chef/gpgme chef/libassuan chef/libarchive chef/libgpg-error)
 pkg_build_deps=(chef/patchelf)
 
 do_begin() {
@@ -39,6 +39,8 @@ do_build() {
       OPENSSL_INCLUDE_DIR=$(pkg_path_for chef/openssl)/include \
       GPGME_CONFIG=$(pkg_path_for chef/gpgme)/bin/gpgme-config \
       GPG_ERROR_CONFIG=$(pkg_path_for chef/libgpg-error)/bin/gpg-error-config \
+      LIBARCHIVE_LIB_DIR=$(pkg_path_for chef/libarchive)/lib \
+      LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for chef/libarchive)/include \
       cargo build --release
   # Make double-sure our binary is completely pure (no accidental linking leaks
   # outside `/opt/bldr/pkgs`)

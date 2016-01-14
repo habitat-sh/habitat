@@ -45,12 +45,12 @@ fn builds_a_service() {
     assert_cmd_exit_code!(simple_service, [0]);
     assert_regex!(simple_service.stdout(), r"Loading /.*/plan.sh");
     assert_regex!(simple_service.stdout(),
-                  r"bldr_build: Cache: /opt/bldr/cache/src/bldr_build-0.0.1");
+                  r"/opt/bldr/cache/src/bldr_build-0.0.1");
     assert_regex!(simple_service.stdout(),
-                  r"bldr_build: Installed: /opt/bldr/pkgs/test/bldr_build/0.0.1/\d{14}");
+                  r"/opt/bldr/pkgs/test/bldr_build/0.0.1/\d{14}");
     assert_regex!(simple_service.stdout(),
-                  r"bldr_build: Package: /opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr");
-    let pkg_re = Regex::new(r"bldr_build: Package: (/opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr)").unwrap();
+                  r"/opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr");
+    let pkg_re = Regex::new(r"(/opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr)").unwrap();
     let caps = pkg_re.captures(simple_service.stdout()).unwrap();
     if let Some(pkg_path) = caps.at(1) {
         assert_file_exists!(pkg_path);

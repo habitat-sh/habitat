@@ -45,8 +45,7 @@ git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
 
 [dependencies.libarchive]
-git = "https://github.com/reset/libarchive-rust"
-branch = "master"
+path = "./vendor/libarchive-rust"
 
 [profile.release]
 lto = true

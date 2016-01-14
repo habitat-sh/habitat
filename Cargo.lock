@@ -9,7 +9,7 @@ dependencies = [
  "gpgme 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.6.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "libarchive 0.1.0 (git+https://github.com/reset/libarchive-rust)",
+ "libarchive 0.1.0",
  "libc 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "mustache 0.6.1 (git+https://github.com/adamhjk/rust-mustache?branch=fallback_on_missing_extension)",
@@ -228,16 +228,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "libarchive"
 version = "0.1.0"
-source = "git+https://github.com/reset/libarchive-rust#ef803aeb46114fbdf4b4428d6152f3f61a1e3b77"
 dependencies = [
- "libarchive3-sys 0.1.0 (git+https://github.com/reset/libarchive3-sys)",
+ "libarchive3-sys 0.1.0",
  "libc 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "libarchive3-sys"
 version = "0.1.0"
-source = "git+https://github.com/reset/libarchive3-sys#b552ffdcc605a986909e1a34f169e6df93b1c552"
 dependencies = [
  "libc 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",

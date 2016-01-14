@@ -12,9 +12,10 @@ pkg_include_dirs=(include)
 
 do_build() {
   build/autogen.sh
-  ./configure \
-    --prefix=$pkg_prefix \
-    --without-xml2 \
-    --without-lzo2
+  LDFLAGS="$LDFLAGS -Wl,-rpath=$LD_RUN_PATH,--enable-new-dtags" \
+    ./configure \
+      --prefix=$pkg_prefix \
+      --without-xml2 \
+      --without-lzo2
   make
 }
