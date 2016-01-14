@@ -1,0 +1,21 @@
+language: rust
+rust: stable
+sudo: false
+addons:
+  apt:
+    packages:
+    - libarchive13
+script:
+- cargo build
+- cargo test
+- cargo doc
+after_success: |
+  [ $TRAVIS_BRANCH = master ] &&
+  [ $TRAVIS_PULL_REQUEST = false ] &&
+  echo '<meta http-equiv=refresh content=0;url=libarchive/index.html>' > target/doc/index.html &&
+  pip install --user ghp-import &&
+  $HOME/.local/bin/ghp-import -n target/doc &&
+  git push -qf https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
+env:
+  global:
+    secure: KKPYXC3dn8CR8YRPuqkBSEu9VUjt7qSTLENnPYz4B2+lFT0iI265MqZGaHFhBv3YHjV/ONjvOj6Tn1l1JFIzLyBbiJ9EeY/5u/kh+tN2fjR8AniaqPG+SZuRERZwe92T/8xr+fGdzlG9hKr7XgAXQAdB7hAlQoU+cuiwuB0+FDMBciDELnLokIRCoKzW0LSY5EvQQ2BkPHuWv3n04isd7WF11IsidqN0HMDtSaVSC6FbfpW/MdlRqVzey/VxG/BpY0FWvCkRayB7NVLEWXtr/rWyn3jY6pKqev+I0w6eIL/hvKrQUrmSP3y0RJcCgq/7asdNQDeIFXbT1emFXw3dKmA9ZdSzBnm5Z2NO18DNAb3yUQjCJztSWaCfyEbKFbrV/V6cl8I61gHzGzS8kWG8kAbC6dSQxaAtm3wrcrPI1q4bHj0JAXJ27ICKAHoxMUWX50+tMZDchv8exQjBPu35gPi+5tJGCuGeSnZ33w+XHPTdJtb1Hqt87CSEs8umJyZbjT/NpIWzgKJz/2dTX1dpvEnJ0THRMTd2W2TQra9Y9e6GxUZlV6MVI6pDSBKdee6fGTxAtfmVzgL6Bfey5vP+70RanHmLTN/FJXw/thEfZaSsZnK298XsmJ6WXksCEBo40E0wINDe6R7R4egzTzoFqUzsv/uPNu/0QXXrM8DWTo4=
