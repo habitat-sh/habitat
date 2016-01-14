@@ -90,6 +90,9 @@ copy_package chef/libassuan
 copy_package chef/gnupg
 copy_package chef/gpgme
 copy_package chef/openssl
+copy_package chef/bzip2
+copy_package chef/xz
+copy_package chef/libarchive
 copy_package chef/runit
 copy_package chef/bldr
 
