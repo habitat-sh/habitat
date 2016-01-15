@@ -1,18 +1,8 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
 //
-// Copyright:: Copyright (c) 2015 Chef Software, Inc.
-// License:: Apache License, Version 2.0
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
 
 use std::io::{Read, Write, BufWriter};
 use std::fs::{self, File};
@@ -64,11 +54,12 @@ pub fn fetch_package_exact(repo: &str,
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
-        Err(BldrError{ err: ErrorKind::HTTP(StatusCode::NotFound), ..}) =>
+        Err(BldrError{ err: ErrorKind::HTTP(StatusCode::NotFound), ..}) => {
             Err(bldr_error!(ErrorKind::RemotePackageNotFound(package.derivation.clone(),
                                                              package.name.clone(),
                                                              Some(package.version.clone()),
-                                                             Some(package.release.clone())))),
+                                                             Some(package.release.clone()))))
+        }
         Err(e) => Err(e),
     }
 }
@@ -113,11 +104,12 @@ pub fn fetch_package(repo: &str,
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
-        Err(BldrError { err: ErrorKind::HTTP(StatusCode::NotFound), ..}) =>
+        Err(BldrError { err: ErrorKind::HTTP(StatusCode::NotFound), ..}) => {
             Err(bldr_error!(ErrorKind::RemotePackageNotFound(derivation.to_string(),
                                                              package.to_string(),
                                                              version.clone(),
-                                                             release.clone()))),
+                                                             release.clone())))
+        }
         Err(e) => Err(e),
     }
 }
