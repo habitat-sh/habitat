@@ -1,6 +1,6 @@
 [package]
 name = "bldr"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>"]
 exclude = ["plans/**/*"]
 
