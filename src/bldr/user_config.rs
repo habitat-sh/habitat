@@ -1,19 +1,8 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
 //
-// Copyright:: Copyright (c) 2015 Chef Software, Inc.
-// License:: Apache License, Version 2.0
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
 
 //! Manages runtime configuration provided by the users through a GenServer.
 //!
@@ -115,11 +104,12 @@ impl GenServer for UserActor {
                     state.config_string = None;
                 }
                 Err(TryRecvError::Empty) => {}
-                Err(e) =>
+                Err(e) => {
                     return HandleResult::Stop(StopReason::Fatal(format!("User Actor caught \
                                                                          unexpected error: {:?}",
                                                                         e)),
-                                              None),
+                                              None)
+                }
             }
         }
         HandleResult::NoReply(Some(TIMEOUT_MS))
@@ -141,36 +131,36 @@ impl GenServer for UserActor {
                     state.config_string = None;
                 }
                 Err(TryRecvError::Empty) => {}
-                Err(e) =>
+                Err(e) => {
                     return HandleResult::Stop(StopReason::Fatal(format!("User Actor caught \
                                                                          unexpected error: {:?}",
                                                                         e)),
-                                              Some(Message::Ok)),
+                                              Some(Message::Ok))
+                }
             }
         }
 
         match message {
-            Message::Stop => {
-                HandleResult::Stop(StopReason::Normal, Some(Message::Ok))
-            }
+            Message::Stop => HandleResult::Stop(StopReason::Normal, Some(Message::Ok)),
             Message::Config => {
                 match state.config_string {
                     Some(ref toml_string) => {
                         HandleResult::Reply(Message::ConfigToml(Some(toml_string.clone())),
                                             Some(TIMEOUT_MS))
                     }
-                    None => {
-                        HandleResult::Reply(Message::ConfigToml(None), Some(TIMEOUT_MS))
-                    }
+                    None => HandleResult::Reply(Message::ConfigToml(None), Some(TIMEOUT_MS)),
                 }
             }
-            Message::Ok => HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! \
-                                                                         I send YOU Ok!")),
-                                              Some(Message::Ok)),
-            Message::ConfigToml(_) =>
+            Message::Ok => {
+                HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU \
+                                                              Ok!")),
+                                   Some(Message::Ok))
+            }
+            Message::ConfigToml(_) => {
                 HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! \
                                                               I send YOU CensusToml(_)!")),
-                                   Some(Message::Ok)),
+                                   Some(Message::Ok))
+            }
         }
     }
 }

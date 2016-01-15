@@ -1,19 +1,8 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
 //
-// Copyright:: Copyright (c) 2015 Chef Software, Inc.
-// License:: Apache License, Version 2.0
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
 
 //! Traps and notifies UNIX signals.
 //!
@@ -40,7 +29,7 @@ static mut CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
 static mut SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
-extern {
+extern "C" {
     fn signal(sig: u32, cb: unsafe extern "C" fn(u32)) -> unsafe extern "C" fn(u32);
 }
 
@@ -115,9 +104,10 @@ impl actor::GenServer for SignalNotifier {
                    -> HandleResult<Self::T> {
         match message {
             Message::Stop => HandleResult::Stop(StopReason::Normal, Some(Message::Ok)),
-            msg =>
+            msg => {
                 HandleResult::Stop(StopReason::Fatal(format!("unexpected call message: {:?}", msg)),
-                                   Some(Message::Ok)),
+                                   Some(Message::Ok))
+            }
         }
     }
 
@@ -129,20 +119,27 @@ impl actor::GenServer for SignalNotifier {
         unsafe {
             if CAUGHT.load(Ordering::SeqCst) {
                 match SIGNAL.load(Ordering::SeqCst) {
-                    signal if signal == Signal::SIGHUP as usize =>
-                        self::send_signal(tx, Signal::SIGHUP),
-                    signal if signal == Signal::SIGINT as usize =>
-                        self::send_signal(tx, Signal::SIGINT),
-                    signal if signal == Signal::SIGQUIT as usize =>
-                        self::send_signal(tx, Signal::SIGQUIT),
-                    signal if signal == Signal::SIGALRM as usize =>
-                        self::send_signal(tx, Signal::SIGALRM),
-                    signal if signal == Signal::SIGTERM as usize =>
-                        self::send_signal(tx, Signal::SIGTERM),
-                    signal if signal == Signal::SIGUSR1 as usize =>
-                        self::send_signal(tx, Signal::SIGUSR1),
-                    signal if signal == Signal::SIGUSR2 as usize =>
-                        self::send_signal(tx, Signal::SIGUSR2),
+                    signal if signal == Signal::SIGHUP as usize => {
+                        self::send_signal(tx, Signal::SIGHUP)
+                    }
+                    signal if signal == Signal::SIGINT as usize => {
+                        self::send_signal(tx, Signal::SIGINT)
+                    }
+                    signal if signal == Signal::SIGQUIT as usize => {
+                        self::send_signal(tx, Signal::SIGQUIT)
+                    }
+                    signal if signal == Signal::SIGALRM as usize => {
+                        self::send_signal(tx, Signal::SIGALRM)
+                    }
+                    signal if signal == Signal::SIGTERM as usize => {
+                        self::send_signal(tx, Signal::SIGTERM)
+                    }
+                    signal if signal == Signal::SIGUSR1 as usize => {
+                        self::send_signal(tx, Signal::SIGUSR1)
+                    }
+                    signal if signal == Signal::SIGUSR2 as usize => {
+                        self::send_signal(tx, Signal::SIGUSR2)
+                    }
                     signal => {
                         return HandleResult::Stop(StopReason::Fatal(format!("caught unexpected \
                                                                              signal: {}",
