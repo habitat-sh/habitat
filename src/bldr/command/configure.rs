@@ -1,4 +1,4 @@
-// Copyright:: Copyright (c) 2015 Chef Software, Inc.
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
 //
 // The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
@@ -29,11 +29,7 @@ use package::Package;
 /// * If the default.toml does not exist, or cannot be read
 /// * If we can't read the file into a string
 pub fn display(config: &Config) -> BldrResult<()> {
-    let package = try!(Package::load(config.deriv(),
-                                     config.package(),
-                                     config.version().clone(),
-                                     config.release().clone(),
-                                     None));
+    let package = try!(Package::load(config.package(), None));
     let mut file = try!(File::open(package.join_path("default.toml")));
     let mut s = String::new();
     try!(file.read_to_string(&mut s));

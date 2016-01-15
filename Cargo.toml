@@ -16,12 +16,16 @@ doc = false
 name = "functional"
 
 [dependencies]
+bincode = "*"
+bitflags = "*"
 rustc-serialize = "*"
 log = "*"
 env_logger = "*"
 ansi_term = "*"
 gpgme = "*"
 hyper = "*"
+lazy_static = "*"
+lmdb-sys = "*"
 tempdir = "*"
 toml = "*"
 regex = "*"

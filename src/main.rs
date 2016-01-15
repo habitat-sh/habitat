@@ -24,6 +24,7 @@ use std::ptr;
 use bldr::config::{Command, Config};
 use bldr::error::{BldrResult, BldrError, ErrorKind};
 use bldr::command::*;
+use bldr::package::PackageIdent;
 use bldr::topology::Topology;
 
 /// Our output key
@@ -36,7 +37,6 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
 static DEFAULT_PATH: &'static str = "/opt/bldr/srvc/bldr/data";
-const DEFAULT_TOPOLOGY: bldr::topology::Topology = Topology::Standalone;
 static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
 
 /// Creates a [Config](config/struct.Config.html) from global args
@@ -48,46 +48,31 @@ fn config_from_args(args: &ArgMatches,
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
-
     if let Some(ref package) = sub_args.value_of("package") {
-        let (deriv, name, version, release) = try!(split_package_arg(package));
-        config.set_deriv(deriv);
-        config.set_package(name);
-        if let Some(ver) = version {
-            config.set_version(ver);
-        }
-        if let Some(rel) = release {
-            config.set_release(rel);
-        }
+        let ident = try!(PackageIdent::from_str(package));
+        config.set_package(ident);
     }
-
     if let Some(key) = sub_args.value_of("key") {
         config.set_key(key.to_string());
     }
-
     if let Some(password) = sub_args.value_of("password") {
         config.set_password(password.to_string());
     }
-
     if let Some(email) = sub_args.value_of("email") {
         config.set_email(email.to_string());
     }
-
     if let Some(user) = sub_args.value_of("user") {
         config.set_user_key(user.to_string());
     }
-
     if let Some(service) = sub_args.value_of("service") {
         config.set_service_key(service.to_string());
     }
-
     if let Some(infile) = sub_args.value_of("infile") {
         config.set_infile(infile.to_string());
     }
     if let Some(outfile) = sub_args.value_of("outfile") {
         config.set_outfile(outfile.to_string());
     }
-
     if let Some(topology) = sub_args.value_of("topology") {
         match topology.as_ref() {
             "standalone" => {
@@ -101,64 +86,45 @@ fn config_from_args(args: &ArgMatches,
             }
             t => return Err(bldr_error!(ErrorKind::UnknownTopology(String::from(t)))),
         }
-    } else {
-        // none set, use the default
-        config.set_topology(DEFAULT_TOPOLOGY);
     }
-
     if sub_args.value_of("port").is_some() {
         let p = value_t!(sub_args.value_of("port"), u16).unwrap_or_else(|e| e.exit());
         config.set_port(p);
     }
-
     if sub_args.value_of("expire-days").is_some() {
         let ed = value_t!(sub_args.value_of("expire-days"), u16).unwrap_or_else(|e| e.exit());
         config.set_expire_days(ed);
     }
-
     if let Some(url) = sub_args.value_of("url") {
         config.set_url(url.to_string());
     }
-
     config.set_group(sub_args.value_of("group").unwrap_or(DEFAULT_GROUP).to_string());
-
     let watches = match sub_args.values_of("watch") {
         Some(ws) => ws.map(|s| s.to_string()).collect(),
         None => vec![],
     };
     config.set_watch(watches);
-
     config.set_path(sub_args.value_of("path").unwrap_or(DEFAULT_PATH).to_string());
-
     config.set_gossip_listen(sub_args.value_of("gossip-listen")
                                      .unwrap_or(DEFAULT_GOSSIP_LISTEN)
                                      .to_string());
-
     let gossip_peers = match sub_args.values_of("gossip-peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],
     };
     config.set_gossip_peer(gossip_peers);
-
     if sub_args.value_of("gossip-permanent").is_some() {
         config.set_gossip_permanent(true);
     }
-
-    // -------------------------------------
-    // begin global args
-    // -------------------------------------
     if args.value_of("verbose").is_some() {
         bldr::output::set_verbose(true);
     }
-
-
     if args.value_of("no-color").is_some() {
         bldr::output::set_no_color(true);
     }
     debug!("Config:\n{:?}", config);
     Ok(config)
 }
-
 
 type Handler = fn(&Config) -> Result<(), bldr::error::BldrError>;
 
@@ -179,31 +145,24 @@ fn main() {
             .takes_value(true)
             .help("Use the specified package depot url")
     };
-
     let arg_group = || {
         Arg::with_name("group")
             .long("group")
             .takes_value(true)
             .help("The service group; shared config and topology [default: default].")
     };
-
-
     let arg_infile = || {
         Arg::with_name("infile")
             .long("infile")
             .takes_value(true)
             .help("Input filename")
     };
-
     let arg_outfile = || {
         Arg::with_name("outfile")
             .long("outfile")
             .takes_value(true)
             .help("Output filename")
     };
-
-
-    // subcommand definitions
 
     let sub_install = SubCommand::with_name("install")
                           .about("Install a bldr package from a depot")
@@ -212,7 +171,6 @@ fn main() {
                                    .required(true)
                                    .help("Name of bldr package to install"))
                           .arg(arg_url());
-
     let sub_start = SubCommand::with_name("start")
                         .about("Start a bldr package")
                         .arg(Arg::with_name("package")
@@ -244,11 +202,8 @@ fn main() {
                                  .short("I")
                                  .long("gossip-permanent")
                                  .help("If this service is a permanent gossip peer"));
-
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
-
     let sub_bash = SubCommand::with_name("bash").about("Start an interactive shell");
-
     let sub_depot = SubCommand::with_name("depot")
                         .about("Run a bldr package depot")
                         .arg(Arg::with_name("path")
@@ -260,7 +215,31 @@ fn main() {
                                  .long("port")
                                  .value_name("port")
                                  .help("Depot port. [default: 9632]"));
-
+    let sub_repair = SubCommand::with_name("depot-repair")
+                         .about("Repair a bldr package depot")
+                         .arg(Arg::with_name("path")
+                                  .short("p")
+                                  .long("path")
+                                  .value_name("path")
+                                  .help("A path"));
+    let sub_repo_list = SubCommand::with_name("repo-list")
+                            .about("List repositories in the bldr depot")
+                            .arg(Arg::with_name("path")
+                                     .short("p")
+                                     .long("path")
+                                     .value_name("path")
+                                     .help("A path"));
+    let sub_repo_create = SubCommand::with_name("repo-create")
+                              .about("Create a new repository in the bldr depot")
+                              .arg(Arg::with_name("repo")
+                                       .index(1)
+                                       .required(true)
+                                       .help("Name of the repository to create"))
+                              .arg(Arg::with_name("path")
+                                       .short("p")
+                                       .long("path")
+                                       .value_name("path")
+                                       .help("A path"));
     let sub_upload = SubCommand::with_name("upload")
                          .about("Upload a package to a bldr depot")
                          .arg(Arg::with_name("package")
@@ -268,7 +247,6 @@ fn main() {
                                   .required(true)
                                   .help("Name of package to upload"))
                          .arg(arg_url().required(true));
-
     let sub_generate_user_key = SubCommand::with_name("generate-user-key")
                                     .about("Generate a bldr user key")
                                     .arg(Arg::with_name("user")
@@ -291,7 +269,6 @@ fn main() {
                                              .takes_value(true)
                                              .value_name("expire-days")
                                              .help("Number of days before a key expires"));
-
     let sub_generate_service_key = SubCommand::with_name("generate-service-key")
                                        .about("Generate a bldr service key")
                                        .arg(Arg::with_name("service")
@@ -304,7 +281,6 @@ fn main() {
                                                 .takes_value(true)
                                                 .value_name("expire-days")
                                                 .help("Number of days before a key expires"));
-
     let sub_encrypt = SubCommand::with_name("encrypt")
                           .about("Encrypt and sign a message with a service as the recipient")
                           .arg(Arg::with_name("user")
@@ -325,12 +301,10 @@ fn main() {
                                    .takes_value(true)
                                    .help("User key password"))
                           .arg(arg_group());
-
     let sub_decrypt = SubCommand::with_name("decrypt")
                           .about("Decrypt and verify a message")
                           .arg(arg_infile().required(true))
                           .arg(arg_outfile().required(true));
-
     let sub_import_key = SubCommand::with_name("import-key")
                              .about("Import a public bldr key")
                              .arg(arg_infile())
@@ -343,7 +317,6 @@ fn main() {
                              .group(ArgGroup::with_name("input-method")
                                         .required(true)
                                         .args(&["infile", "key"]));
-
     let sub_export_key = SubCommand::with_name("export-key")
                              .about("Export a public bldr key")
                              .arg(Arg::with_name("user")
@@ -359,31 +332,25 @@ fn main() {
                                         .args(&["user", "service"]))
                              .arg(arg_outfile().required(true))
                              .arg(arg_group());
-
     let sub_download_depot_key = SubCommand::with_name("download-depot-key")
                                      .about("Not implemented")
                                      .arg(Arg::with_name("key")
                                               .index(1)
                                               .required(true)
                                               .help("Name of key"));
-
     let sub_upload_depot_key = SubCommand::with_name("upload-depot-key")
                                    .about("Not implemented")
                                    .arg(Arg::with_name("key")
                                             .index(1)
                                             .required(true)
                                             .help("Name of key"));
-
     let sub_list_keys = SubCommand::with_name("list-keys").about("List user and service keys");
-
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
                          .arg(Arg::with_name("package")
                                   .index(1)
                                   .required(true)
                                   .help("Name of package"));
-
-
     let args = App::new("bldr")
                    .version(VERSION)
                    .setting(AppSettings::VersionlessSubcommands)
@@ -402,6 +369,9 @@ fn main() {
                    .subcommand(sub_sh)
                    .subcommand(sub_bash)
                    .subcommand(sub_depot)
+                   .subcommand(sub_repair)
+                   .subcommand(sub_repo_list)
+                   .subcommand(sub_repo_create)
                    .subcommand(sub_upload)
                    .subcommand(sub_generate_user_key)
                    .subcommand(sub_generate_service_key)
@@ -413,45 +383,37 @@ fn main() {
                    .subcommand(sub_upload_depot_key)
                    .subcommand(sub_list_keys)
                    .subcommand(sub_config);
-
     let matches = args.get_matches();
 
     debug!("clap matches {:?}", matches);
 
-    // we use AppSettings::SubcommandRequiredElseHelp above, so it's safe to unwrap
     let subcommand_name = matches.subcommand_name().unwrap();
-
-    let handler = match subcommand_name {
-        "bash" => Some(shell as Handler),
-        "config" => Some(configure as Handler),
-        "decrypt" => Some(decrypt as Handler),
-        "depot" => Some(depot as Handler),
-        "download-depot-key" => Some(download_depot_key as Handler),
-        "encrypt" => Some(encrypt as Handler),
-        "export-key" => Some(export_key as Handler),
-        "generate-service-key" => Some(generate_service_key as Handler),
-        "generate-user-key" => Some(generate_user_key as Handler),
-        "import-key" => Some(import_key as Handler),
-        "install" => Some(install as Handler),
-        "list-keys" => Some(list_keys as Handler),
-        "sh" => Some(shell as Handler),
-        "start" => Some(start as Handler),
-        "upload-depot-key" => Some(upload_depot_key as Handler),
-        "upload" => Some(upload as Handler),
-        _ => None,
-    };
-
-    // we use AppSettings::SubcommandRequiredElseHelp above, so it's safe to unwrap
     let subcommand_matches = matches.subcommand_matches(subcommand_name).unwrap();
 
-    let result = match handler {
-        Some(h) => {
-            match config_from_args(&matches, subcommand_name, &subcommand_matches) {
-                Ok(config) => h(&config),
-                Err(e) => Err(e),
-            }
-        }
-        None => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
+    let config = match config_from_args(&matches, subcommand_name, &subcommand_matches) {
+        Ok(config) => config,
+        Err(e) => return exit_with(e, 1),
+    };
+
+    let result = match config.command() {
+        Command::Shell => shell(&config),
+        Command::Config => configure(&config),
+        Command::Decrypt => decrypt(&config),
+        Command::Repo => depot(&config),
+        Command::RepoRepair => repair(&config),
+        Command::RepoList => repo_list(&config),
+        Command::RepoCreate => repo_create(subcommand_matches.value_of("repo").unwrap(), &config),
+        Command::DownloadRepoKey => download_depot_key(&config),
+        Command::Encrypt => encrypt(&config),
+        Command::ExportKey => export_key(&config),
+        Command::GenerateServiceKey => generate_service_key(&config),
+        Command::GenerateUserKey => generate_user_key(&config),
+        Command::ImportKey => import_key(&config),
+        Command::Install => install(&config),
+        Command::ListKeys => list_keys(&config),
+        Command::Start => start(&config),
+        Command::UploadRepoKey => upload_depot_key(&config),
+        Command::Upload => upload(&config),
     };
 
     match result {
@@ -460,38 +422,12 @@ fn main() {
     }
 }
 
-
 /// Exit with an error message and the right status code
 #[allow(dead_code)]
 fn exit_with(e: BldrError, code: i32) {
     println!("{}", e);
     process::exit(code)
 }
-
-fn split_package_arg(arg: &str) -> BldrResult<(String, String, Option<String>, Option<String>)> {
-    let items: Vec<&str> = arg.split("/").collect();
-    match items.len() {
-        2 => Ok((items[0].to_string(), items[1].to_string(), None, None)),
-        3 => {
-            Ok((items[0].to_string(),
-                items[1].to_string(),
-                Some(items[2].to_string()),
-                None))
-        }
-        4 => {
-            Ok((items[0].to_string(),
-                items[1].to_string(),
-                Some(items[2].to_string()),
-                Some(items[3].to_string())))
-        }
-        _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(arg.to_string()))),
-    }
-}
-
-
-// -------------------
-// Handlers
-// -------------------
 
 /// Start a shell
 #[allow(dead_code)]
@@ -517,21 +453,20 @@ fn configure(config: &Config) -> BldrResult<()> {
 /// Install a package
 #[allow(dead_code)]
 fn install(config: &Config) -> BldrResult<()> {
-    outputln!("Installing {}", Yellow.bold().paint(config.package_id()));
-    try!(install::from_url(&config.url().as_ref().unwrap(),
-                           config.deriv(),
-                           config.package(),
-                           config.version().clone(),
-                           config.release().clone()));
+    outputln!("Installing {}",
+              Yellow.bold().paint(config.package().to_string()));
+    try!(install::from_url(&config.url().as_ref().unwrap(), config.package()));
     Ok(())
 }
 
 /// Start a service
 #[allow(dead_code)]
 fn start(config: &Config) -> BldrResult<()> {
-    outputln!("Starting {}", Yellow.bold().paint(config.package_id()));
+    outputln!("Starting {}",
+              Yellow.bold().paint(config.package().to_string()));
     try!(start::package(config));
-    outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
+    outputln!("Finished with {}",
+              Yellow.bold().paint(config.package().to_string()));
     Ok(())
 }
 
@@ -541,7 +476,25 @@ fn depot(config: &Config) -> BldrResult<()> {
     outputln!("Starting Bldr Depot at {}",
               Yellow.bold().paint(config.path()));
     try!(repo::start(&config));
-    outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
+    outputln!("Finished with {}",
+              Yellow.bold().paint(config.package().to_string()));
+    Ok(())
+}
+
+fn repair(config: &Config) -> BldrResult<()> {
+    outputln!("Verifying data integrity of Depot at {}",
+              Yellow.bold().paint(config.path()));
+    try!(repo::repair(config));
+    Ok(())
+}
+
+fn repo_create(name: &str, config: &Config) -> BldrResult<()> {
+    try!(repo::create_repository(name, config));
+    Ok(())
+}
+
+fn repo_list(config: &Config) -> BldrResult<()> {
+    try!(repo::list_repositories(config));
     Ok(())
 }
 
@@ -549,9 +502,10 @@ fn depot(config: &Config) -> BldrResult<()> {
 #[allow(dead_code)]
 fn upload(config: &Config) -> BldrResult<()> {
     outputln!("Upload Bldr Package {}",
-              Yellow.bold().paint(config.package()));
+              Yellow.bold().paint(config.package().to_string()));
     try!(upload::package(&config));
-    outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
+    outputln!("Finished with {}",
+              Yellow.bold().paint(config.package().to_string()));
     Ok(())
 }
 

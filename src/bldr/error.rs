@@ -44,11 +44,12 @@ use uuid;
 use wonder::actor;
 use ansi_term::Colour::Red;
 use rustc_serialize::json;
-
 use hyper;
 use toml;
 use mustache;
 use regex;
+
+use repo::data_store;
 use package;
 use output::StructuredOutput;
 
@@ -91,6 +92,7 @@ pub enum ErrorKind {
     ArchiveError(libarchive::error::ArchiveError),
     Io(io::Error),
     CommandNotImplemented,
+    DbInvalidPath,
     InstallFailed,
     WriteSyncFailed,
     HyperError(hyper::error::Error),
@@ -100,9 +102,12 @@ pub enum ErrorKind {
     GPGError(gpgme::Error),
     UnpackFailed,
     TomlParser(Vec<toml::ParserError>),
+    MdbError(data_store::MdbError),
     MustacheEncoderError(mustache::encoder::Error),
     MetaFileNotFound(package::MetaFile),
     MetaFileMalformed,
+    MetaFileIO(io::Error),
+    PackageArchiveMalformed(String),
     PermissionFailed,
     BadVersion,
     RegexParse(regex::Error),
@@ -111,8 +116,9 @@ pub enum ErrorKind {
     FileNotFound(String),
     KeyNotFound(String),
     PackageLoad(String),
-    PackageNotFound(String, String, Option<String>, Option<String>),
-    RemotePackageNotFound(String, String, Option<String>, Option<String>),
+    PackageNotFound(package::PackageIdent),
+    PackageIdentMismatch(String, String),
+    RemotePackageNotFound(package::PackageIdent),
     MustacheMergeOnlyMaps,
     SupervisorSignalFailed,
     StringFromUtf8Error(string::FromUtf8Error),
@@ -152,6 +158,7 @@ impl fmt::Display for BldrError {
             ErrorKind::ArchiveError(ref err) => format!("{}", err),
             ErrorKind::Io(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
+            ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             ErrorKind::InstallFailed => format!("Could not install package!"),
             ErrorKind::HyperError(ref err) => format!("{}", err),
             ErrorKind::HTTP(ref e) => format!("{}", e),
@@ -167,6 +174,7 @@ impl fmt::Display for BldrError {
             ErrorKind::TomlParser(ref errs) => {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
+            ErrorKind::MdbError(ref err) => format!("{}", err),
             ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
                     mustache::encoder::Error::IoError(ref e) => format!("{}", e),
@@ -177,7 +185,12 @@ impl fmt::Display for BldrError {
                 format!("Couldn't read MetaFile: {}, not found", e)
             }
             ErrorKind::MetaFileMalformed => {
-                "Metafile was blank or didn't contain a valid UTF-8 string".to_string()
+                "MetaFile was blank or didn't contain a valid UTF-8 string".to_string()
+            }
+            ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            ErrorKind::PackageArchiveMalformed(ref e) => {
+                format!("Package archive was unreadable or contained unexpected contents: {:?}",
+                        e)
             }
             ErrorKind::PermissionFailed => format!("Failed to set permissions"),
             ErrorKind::BadVersion => format!("Failed to parse a version number"),
@@ -187,38 +200,23 @@ impl fmt::Display for BldrError {
             ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
             ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             ErrorKind::PackageLoad(ref e) => format!("Unable to load package from: {}", e),
-            ErrorKind::PackageNotFound(ref d, ref n, ref v, ref r) => {
-                if v.is_some() && r.is_some() {
-                    format!("Cannot find package: {}/{}/{}/{}",
-                            d,
-                            n,
-                            v.as_ref().unwrap(),
-                            r.as_ref().unwrap())
-                } else if v.is_some() {
-                    format!("Cannot find a release of package: {}/{}/{}",
-                            d,
-                            n,
-                            v.as_ref().unwrap())
+            ErrorKind::PackageNotFound(ref pkg) => {
+                if pkg.fully_qualified() {
+                    format!("Cannot find package: {}", pkg)
                 } else {
-                    format!("Cannot find a release of package: {}/{}", d, n)
+                    format!("Cannot find a release of package: {}", pkg)
                 }
             }
-            ErrorKind::RemotePackageNotFound(ref d, ref n, ref v, ref r) => {
-                if v.is_some() && r.is_some() {
-                    format!("Cannot find package in any sources: {}/{}/{}/{}",
-                            d,
-                            n,
-                            v.as_ref().unwrap(),
-                            r.as_ref().unwrap())
-                } else if v.is_some() {
-                    format!("Cannot find a release of package in any sources: {}/{}/{}",
-                            d,
-                            n,
-                            v.as_ref().unwrap())
+            ErrorKind::PackageIdentMismatch(ref expect, ref got) => {
+                format!("Encountered an unexpected package identity: expected={}, got={}",
+                        expect,
+                        got)
+            }
+            ErrorKind::RemotePackageNotFound(ref pkg) => {
+                if pkg.fully_qualified() {
+                    format!("Cannot find package in any sources: {}", pkg)
                 } else {
-                    format!("Cannot find a release of package in any sources: {}/{}",
-                            d,
-                            n)
+                    format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
             ErrorKind::MustacheMergeOnlyMaps => format!("Can only merge two Mustache::Data::Maps"),
@@ -257,8 +255,9 @@ impl fmt::Display for BldrError {
                          derivation/name (example: chef/redis)",
                         e)
             }
-            ErrorKind::InvalidKeyParameter(ref e) =>
-                format!("Invalid parameter for key generation: {:?}", e),
+            ErrorKind::InvalidKeyParameter(ref e) => {
+                format!("Invalid parameter for key generation: {:?}", e)
+            }
             ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             ErrorKind::InitialPeers => format!("Failed to contact initial peers"),
@@ -282,6 +281,7 @@ impl Error for BldrError {
             ErrorKind::ArchiveReadFailed(_) => "Failed to read contents of package archive",
             ErrorKind::Io(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
+            ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             ErrorKind::InstallFailed => "Could not install package!",
             ErrorKind::WriteSyncFailed => {
                 "Could not write to destination; bytes written was 0 on a non-0 buffer"
@@ -293,10 +293,15 @@ impl Error for BldrError {
             ErrorKind::GPGError(_) => "gpgme error",
             ErrorKind::UnpackFailed => "Failed to unpack a package",
             ErrorKind::TomlParser(_) => "Failed to parse toml!",
+            ErrorKind::MdbError(_) => "Database error",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             ErrorKind::MetaFileMalformed => {
-                "Metafile was blank or didn't contain a valid UTF-8 string"
+                "MetaFile was blank or didn't contain a valid UTF-8 string"
+            }
+            ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
+            ErrorKind::PackageArchiveMalformed(_) => {
+                "Package archive was unreadable or had unexpected contents"
             }
             ErrorKind::PermissionFailed => "Failed to set permissions",
             ErrorKind::BadVersion => "Failed to parse a version number",
@@ -306,8 +311,11 @@ impl Error for BldrError {
             ErrorKind::FileNotFound(_) => "File not found",
             ErrorKind::KeyNotFound(_) => "Key not found in key cache",
             ErrorKind::PackageLoad(_) => "Unable to load package from path",
-            ErrorKind::PackageNotFound(_, _, _, _) => "Cannot find a package",
-            ErrorKind::RemotePackageNotFound(_, _, _, _) => "Cannot find a package in any sources",
+            ErrorKind::PackageNotFound(_) => "Cannot find a package",
+            ErrorKind::PackageIdentMismatch(_, _) => {
+                "Expected a package identity but received another"
+            }
+            ErrorKind::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             ErrorKind::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
             ErrorKind::SupervisorSignalFailed => {
                 "Failed to send a signal to the process supervisor"
@@ -315,9 +323,7 @@ impl Error for BldrError {
             ErrorKind::StringFromUtf8Error(_) => {
                 "Failed to convert a string from a Vec<u8> as UTF-8"
             }
-            ErrorKind::StrFromUtf8Error(_) => {
-                "Failed to convert a str from a &[u8] as UTF-8"
-            }
+            ErrorKind::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             ErrorKind::SupervisorDied => "The supervisor died",
             ErrorKind::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
@@ -431,6 +437,12 @@ impl From<gpgme::Error> for BldrError {
 impl From<libarchive::error::ArchiveError> for BldrError {
     fn from(err: libarchive::error::ArchiveError) -> BldrError {
         bldr_error!(ErrorKind::ArchiveError(err))
+    }
+}
+
+impl From<data_store::MdbError> for BldrError {
+    fn from(err: data_store::MdbError) -> BldrError {
+        bldr_error!(ErrorKind::MdbError(err))
     }
 }
 
