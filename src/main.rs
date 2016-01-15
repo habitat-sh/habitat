@@ -248,7 +248,7 @@ fn configure(config: &Config) -> BldrResult<()> {
 /// Install a package
 #[allow(dead_code)]
 fn install(config: &Config) -> BldrResult<()> {
-    outputln!("Installing {}", Yellow.bold().paint(&config.package_id()));
+    outputln!("Installing {}", Yellow.bold().paint(config.package_id()));
     try!(install::from_url(&config.url().as_ref().unwrap(),
                            config.deriv(),
                            config.package(),
@@ -260,10 +260,9 @@ fn install(config: &Config) -> BldrResult<()> {
 /// Start a service
 #[allow(dead_code)]
 fn start(config: &Config) -> BldrResult<()> {
-    outputln!("Starting {}", Yellow.bold().paint(&config.package_id()));
+    outputln!("Starting {}", Yellow.bold().paint(config.package_id()));
     try!(start::package(config));
-    outputln!("Finished with {}",
-              Yellow.bold().paint(&config.package_id()));
+    outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
     Ok(())
 }
 
@@ -273,8 +272,7 @@ fn repo(config: &Config) -> BldrResult<()> {
     outputln!("Starting Bldr Repository at {}",
               Yellow.bold().paint(config.path()));
     try!(repo::start(&config));
-    outputln!("Finished with {}",
-              Yellow.bold().paint(&config.package_id()));
+    outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
     Ok(())
 }
 
@@ -284,8 +282,7 @@ fn upload(config: &Config) -> BldrResult<()> {
     outputln!("Upload Bldr Package {}",
               Yellow.bold().paint(config.package()));
     try!(upload::package(&config));
-    outputln!("Finished with {}",
-              Yellow.bold().paint(&config.package_id()));
+    outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
     Ok(())
 }
 

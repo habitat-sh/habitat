@@ -265,7 +265,7 @@ impl fmt::Display for BldrError {
             ErrorKind::MsgpackDecode(ref e) => format!("Msgpack decoding error: {:?}", e),
             ErrorKind::MsgpackEncode(ref e) => format!("Msgpack encoding error: {:?}", e),
         };
-        let cstring = Red.bold().paint(&content).to_string();
+        let cstring = Red.bold().paint(content).to_string();
         let mut so = StructuredOutput::new("bldr",
                                            self.logkey,
                                            self.line,

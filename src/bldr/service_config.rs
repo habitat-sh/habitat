@@ -266,7 +266,7 @@ impl ServiceConfig {
                     continue;
                 } else {
                     debug!("Configuration {} has changed; restarting", filename);
-                    outputln!("Updated {}", Purple.bold().paint(&config));
+                    outputln!("Updated {}", Purple.bold().paint(config));
                     self.config_fnv.insert(filename.clone(), new_file_fnv);
                     let mut config_file = try!(File::create(&filename));
                     try!(config_file.write_all(&config_vec));
@@ -274,7 +274,7 @@ impl ServiceConfig {
                 }
             } else {
                 debug!("Configuration {} does not exist; restarting", filename);
-                outputln!("Updated {}", Purple.bold().paint(&config));
+                outputln!("Updated {}", Purple.bold().paint(config));
                 self.config_fnv.insert(filename.clone(), new_file_fnv);
                 let mut config_file = try!(File::create(&filename));
                 try!(config_file.write_all(&config_vec));
