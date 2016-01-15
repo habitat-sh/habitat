@@ -1,0 +1,12 @@
+.bldr-header-user {
+  @include span-columns(2);
+  @include omega();
+
+  .username span {
+    font-size: 75%;
+  }
+
+  a {
+    display: block;
+  }
+}

@@ -1,3 +1,5 @@
 app/**/*.js
 app/**/*.js.map
+*.css
+*.css.map
 node_modules
