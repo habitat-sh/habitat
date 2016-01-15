@@ -73,8 +73,8 @@ extern crate rmp_serialize as msgpack;
 macro_rules! bldr_error {
     ($p: expr) => {
         {
-            use $crate::error::BldrError;
-            BldrError::new($p, LOGKEY, file!(), line!(), column!())
+            use $crate::error::Error;
+            Error::new($p, LOGKEY, file!(), line!(), column!())
         }
     }
 }

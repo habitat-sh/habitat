@@ -1,0 +1,15 @@
+[package]
+name = "bldr_depot"
+version = "0.1.0"
+authors = ["Jamie Winsor <jamie@vialstudios.com>"]
+
+[dependencies]
+ansi_term = "*"
+docopt = "*"
+env_logger = "*"
+log = "*"
+lmdb-rs = "*"
+rustc-serialize = "*"
+
+[dependencies.bldr]
+path = "../../"
