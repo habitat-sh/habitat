@@ -1,0 +1,29 @@
+@import "bourbon";
+@import "base/base";
+@import "neat";
+
+@import "home/home";
+@import "sign-up-form/sign-up-form";
+@import "user-nav/user-nav";
+
+.bldr-container {
+  @include outer-container;
+}
+
+.bldr-header {
+  @include outer-container;
+  margin-bottom: 3rem;
+
+  h1 {
+    @include span-columns(10);
+    display: inline;
+  }
+}
+
+.bldr-footer {
+  @include outer-container;
+  @include span-columns(12);
+  @include pad(2rem 0);
+
+  font-size: 75%;
+}

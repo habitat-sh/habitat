@@ -1,0 +1,9 @@
+.bldr-hero {
+  @include outer-container;
+}
+
+.bldr-home {
+  @include span-columns(6);
+}
+
+
