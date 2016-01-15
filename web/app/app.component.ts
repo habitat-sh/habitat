@@ -8,10 +8,6 @@ import {RouteConfig, ROUTER_DIRECTIVES} from "angular2/router";
   selector: "bldr",
   template: `
     <h1>bldr</h1>
-    <nav>
-      <a [routerLink]="['Home']">Home</a>
-      <a [routerLink]="['Dashboard']">Dashboard</a>
-    </nav>
     <router-outlet></router-outlet>
   `,
 })
