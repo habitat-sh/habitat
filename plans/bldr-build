@@ -1099,8 +1099,8 @@ _resolve_dependencies() {
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
   # dependencies. The build dependencies appear before the run dependencies.
   pkg_all_deps_resolved=(
-    "${pkg_build_deps_resolved[@]}"
     "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
   )
 
   # Build an ordered set of all build and run dependencies (direct and
@@ -1113,10 +1113,10 @@ _resolve_dependencies() {
   # 1. All unique transitive build dependencies that aren't already added
   # 1. All unique transitive run dependencies that aren't already added
   pkg_all_tdeps_resolved=(
-    "${pkg_build_deps_resolved[@]}"
     "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
   )
-  for dep in "${pkg_build_tdeps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
+  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
     pkg_all_tdeps_resolved=(
       $(_return_or_append_to_set "$tdep" "${pkg_all_tdeps_resolved[@]}")
     )
