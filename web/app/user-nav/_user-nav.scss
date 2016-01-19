@@ -1,12 +1,16 @@
 .bldr-header-user {
-  @include span-columns(2);
+  @include span-columns(3);
   @include omega();
+
+  text-align: right;
 
   .username span {
     font-size: 75%;
   }
 
-  a {
-    display: block;
+  li {
+    padding-left: 1em;
+    display: inline;
+    white-space: nowrap;
   }
 }

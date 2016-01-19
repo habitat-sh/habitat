@@ -3,3 +3,5 @@ app/**/*.js.map
 *.css
 *.css.map
 node_modules
+npm-debug.log
+typings
