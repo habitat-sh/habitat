@@ -60,10 +60,10 @@ do_build() {
     --without-bash-malloc \
     --with-installed-readline=$(pkg_path_for chef/readline)
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    make tests
-  fi
+do_check() {
+  make tests
 }
 
 do_install() {

@@ -19,8 +19,8 @@ do_build() {
     --sbindir=$pkg_prefix/bin \
     --disable-kill
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    make check
-  fi
+do_check() {
+  make check
 }

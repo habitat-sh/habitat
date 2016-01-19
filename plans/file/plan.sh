@@ -21,13 +21,8 @@ do_prepare() {
   build_line "Updating LDFLAGS=$LDFLAGS"
 }
 
-do_build() {
-  ./configure --prefix=$pkg_prefix
-  make
-
-  if [ -n "${DO_CHECK}" ]; then
-    make check
-  fi
+do_check() {
+  make check
 }
 
 do_install() {

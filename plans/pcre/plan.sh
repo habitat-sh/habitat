@@ -20,11 +20,10 @@ do_build() {
     --enable-pcre32 \
     --enable-jit
   make -j$(nproc)
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    make check
-  fi
+do_check() {
+  make check
 }
 
 do_install() {

@@ -16,9 +16,8 @@ do_build() {
   ./configure \
     --prefix=$pkg_prefix
   make -j$(nproc)
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    make check
-  fi
+do_check() {
+  make check
 }

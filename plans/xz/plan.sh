@@ -13,11 +13,6 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_gpg_key=3853DA6B
 
-do_build() {
-  do_default_build
-
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    make check
-  fi
+do_check() {
+  make check
 }

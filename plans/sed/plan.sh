@@ -10,10 +10,6 @@ pkg_build_deps=(chef/binutils chef/gcc)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
-do_build() {
-  do_default_build
-
-  if [[ -n "$DO_CHECK" ]]; then
-    make check
-  fi
+do_check() {
+  make check
 }

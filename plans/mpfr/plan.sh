@@ -24,8 +24,8 @@ do_build() {
     --with-gmp=$(pkg_path_for chef/gmp) \
     --enable-thread-safe
   make -j$(nproc)
+}
 
-  if [ -n "${DO_CHECK}" ]; then
-    make check
-  fi
+do_check() {
+  make check
 }

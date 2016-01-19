@@ -15,9 +15,8 @@ do_build() {
   FORCE_UNSAFE_CONFIGURE=1 ./configure \
     --prefix=$pkg_prefix
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    make check
-  fi
+do_check() {
+  make check
 }

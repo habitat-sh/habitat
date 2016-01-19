@@ -18,9 +18,9 @@ do_build() {
     --prefix=$pkg_prefix \
     --enable-no-install-program=kill,uptime
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    make NON_ROOT_USERNAME=nobody check-root
-    make RUN_EXPENSIVE_TESTS=yes check
-  fi
+do_check() {
+  make NON_ROOT_USERNAME=nobody check-root
+  make RUN_EXPENSIVE_TESTS=yes check
 }

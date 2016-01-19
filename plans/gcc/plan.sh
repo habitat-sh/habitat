@@ -174,21 +174,23 @@ do_build() {
       BOOT_CFLAGS="$build_cflags" \
       BOOT_LDFLAGS="$build_cflags" \
       LIMITS_H_TEST=true
+  popd > /dev/null
+}
 
-    if [ -n "${DO_CHECK}" ]; then
-      # One set of tests in the GCC test suite is known to exhaust the stack,
-      # so increase the stack size prior to running the tests
-      ulimit -s 32768
+do_check() {
+  pushd ../${pkg_name}-build > /dev/null
+    # One set of tests in the GCC test suite is known to exhaust the stack,
+    # so increase the stack size prior to running the tests
+    ulimit -s 32768
 
-      unset CPATH LIBRARY_PATH
-      export LIBRARY_PATH="$LD_RUN_PATH"
-      # Do not abort on error as some are "expected"
-      make -k check || true
-      unset LIBRARY_PATH
+    unset CPATH LIBRARY_PATH
+    export LIBRARY_PATH="$LD_RUN_PATH"
+    # Do not abort on error as some are "expected"
+    make -k check || true
+    unset LIBRARY_PATH
 
-      build_line "Displaying Test Summary"
-      ../$pkg_dirname/contrib/test_summary
-    fi
+    build_line "Displaying Test Summary"
+    ../$pkg_dirname/contrib/test_summary
   popd > /dev/null
 }
 

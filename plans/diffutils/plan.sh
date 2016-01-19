@@ -10,18 +10,12 @@ pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep 
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
-do_build() {
-  do_default_build
+do_check() {
+  # Fixes a broken test with either gcc 5.2.x and/or perl 5.22.x:
+  # FAIL: test-update-copyright.sh
+  #
+  # Thanks to: http://permalink.gmane.org/gmane.linux.lfs.devel/16285
+  sed -i 's/copyright{/copyright\\{/' build-aux/update-copyright
 
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-
-    # Fixes a broken test with either gcc 5.2.x and/or perl 5.22.x:
-    # FAIL: test-update-copyright.sh
-    #
-    # Thanks to: http://permalink.gmane.org/gmane.linux.lfs.devel/16285
-    sed -i 's/copyright{/copyright\\{/' build-aux/update-copyright
-
-    make check
-  fi
+  make check
 }

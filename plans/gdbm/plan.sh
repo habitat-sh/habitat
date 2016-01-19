@@ -17,11 +17,10 @@ do_build() {
     --prefix=$pkg_prefix \
     --enable-libgdbm-compat
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    make check
-  fi
+do_check() {
+  make check
 }
 
 do_install() {

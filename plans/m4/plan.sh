@@ -16,17 +16,12 @@ do_prepare() {
   build_line "Updating CFLAGS=$CFLAGS"
 }
 
-do_build() {
-  ./configure --prefix=$pkg_prefix
-  make
+do_check() {
+  # Fixes a broken test with either gcc 5.2.x and/or perl 5.22.x:
+  # FAIL: test-update-copyright.sh
+  #
+  # Thanks to: http://permalink.gmane.org/gmane.linux.lfs.devel/16285
+  sed -i 's/copyright{/copyright\\{/' build-aux/update-copyright
 
-  if [ -n "${DO_CHECK}" ]; then
-    # Fixes a broken test with either gcc 5.2.x and/or perl 5.22.x:
-    # FAIL: test-update-copyright.sh
-    #
-    # Thanks to: http://permalink.gmane.org/gmane.linux.lfs.devel/16285
-    sed -i 's/copyright{/copyright\\{/' build-aux/update-copyright
-
-    make check
-  fi
+  make check
 }

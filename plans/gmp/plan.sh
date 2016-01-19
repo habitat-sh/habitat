@@ -22,8 +22,8 @@ do_prepare() {
 do_build() {
   ./configure --prefix=$pkg_prefix --enable-cxx
   make -j$(nproc)
+}
 
-  if [ -n "${DO_CHECK}" ]; then
-    make check
-  fi
+do_check() {
+  make check
 }

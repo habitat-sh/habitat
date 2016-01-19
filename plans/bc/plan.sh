@@ -24,9 +24,8 @@ do_build() {
     --prefix=$pkg_prefix \
     --with-readline
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    echo "quit" | ./bc/bc -l Test/checklib.b
-  fi
+do_check() {
+  echo "quit" | ./bc/bc -l Test/checklib.b
 }

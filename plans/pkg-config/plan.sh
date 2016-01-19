@@ -16,8 +16,8 @@ do_build() {
     --with-internal-glib \
     --disable-host-tool
   make
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    make check
-  fi
+do_check() {
+  make check
 }

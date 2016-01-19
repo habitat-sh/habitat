@@ -21,14 +21,9 @@ do_prepare() {
   patch -p1 -i $PLAN_CONTEXT/CVE-2015-1283.patch
 }
 
-do_build() {
-  do_default_build
-
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    # Set `LDFLAGS` for the c++ test code to find libstdc++
-    make check LDFLAGS="$LDFLAGS -lstdc++"
-  fi
+do_check() {
+  # Set `LDFLAGS` for the c++ test code to find libstdc++
+  make check LDFLAGS="$LDFLAGS -lstdc++"
 }
 
 do_install() {

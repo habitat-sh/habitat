@@ -98,17 +98,21 @@ do_build() {
     make configure-host
 
     make -j$(nproc) tooldir=$pkg_prefix
+  popd > /dev/null
+}
 
+do_check() {
+  pushd ../${pkg_name}-build > /dev/null
     # This testsuite is pretty sensitive to its environment, especially when
     # libraries and headers are being flown in from non-standard locations.
-    if [ -n "${DO_CHECK}" ]; then
-      original_LD_RUN_PATH="$LD_RUN_PATH"
-      export LD_LIBRARY_PATH="$LD_RUN_PATH"
-      unset LD_RUN_PATH
-      make check LDFLAGS=""
-      unset LD_LIBRARY_PATH
-      export LD_RUN_PATH="$original_LD_RUN_PATH"
-    fi
+    original_LD_RUN_PATH="$LD_RUN_PATH"
+    export LD_LIBRARY_PATH="$LD_RUN_PATH"
+    unset LD_RUN_PATH
+
+    make check LDFLAGS=""
+
+    unset LD_LIBRARY_PATH
+    export LD_RUN_PATH="$original_LD_RUN_PATH"
   popd > /dev/null
 }
 

@@ -76,71 +76,72 @@ do_build() {
       --cache-file=config.cache
 
     make
+  popd > /dev/null
+}
 
-    # Running a `make check` is considered one critical test of the correctness
-    # of the resulting glibc build. Unfortunetly, the time to complete the test
-    # suite rougly triples the build time of this Plan and there are at least 4
-    # known failures which means that `make check` certainly returns a non-zero
-    # exit code. Despite these downsides, it is still worth the pain when
-    # building the first time in a new environment, or when a new upstream
-    # version is attempted.
+# Running a `make check` is considered one critical test of the correctness of
+# the resulting glibc build. Unfortunetly, the time to complete the test suite
+# rougly triples the build time of this Plan and there are at least 4 known
+# failures which means that `make check` certainly returns a non-zero exit
+# code. Despite these downsides, it is still worth the pain when building the
+# first time in a new environment, or when a new upstream version is attempted.
+#
+# There are known failures in `make check`, but most likely known ones, given a
+# build on a full virtual machine or physical server. Here are the known
+# failures and why:
+#
+# ## FAIL: elf/check-abi-libc
+#
+# "You might see a check failure due to a different size for
+# `_nl_default_dirname` if you build for a different prefix using the
+# `--prefix` configure option. The size of `_nl_default_dirname` depends on the
+# prefix and `/usr/share/locale` is considered the default and hence the value
+# 0x12. If you see such a difference, you should check that the size
+# corresponds to your prefix, i.e. `(length of prefix path + 1)` to ensure that
+# you haven't really broken abi with your change."
+#
+# Source: https://sourceware.org/glibc/wiki/Testing/Testsuite#Known_testsuite_failures
+#
+# ## FAIL: elf/tst-protected1a
+#
+# "The elf/tst-protected1a and elf/tst-protected1b tests are known to fail with
+# the current stable version of binutils."
+#
+# Source: http://www.linuxfromscratch.org/lfs/view/stable/chapter06/glibc.html
+# Source: https://sourceware.org/glibc/wiki/Release/2.22
+#
+# ## FAIL: elf/tst-protected1b
+#
+# Same as above.
+#
+# ## FAIL: posix/tst-getaddrinfo4
+#
+# "This test will always fail due to not having the necessary networking
+# applications when the tests are run."
+#
+# Source: http://www.linuxfromscratch.org/lfs/view/stable/chapter06/glibc.html
+#
+do_check() {
+  pushd ../${pkg_name}-build > /dev/null
+    # "If the test system does not have suitable copies of libgcc_s.so and
+    # libstdc++.so installed in system library directories, it is necessary to
+    # copy or symlink them into the build directory before testing (see
+    # https://sourceware.org/ml/libc-alpha/2012-04/msg01014.html regarding the
+    # use of system library directories here)."
     #
-    # There are known failures in `make check`, but most likely known ones,
-    # given a build on a full virtual machine or physical server. Here are the
-    # known failures and why:
-    #
-    # ## FAIL: elf/check-abi-libc
-    #
-    # "You might see a check failure due to a different size for
-    # `_nl_default_dirname` if you build for a different prefix using the
-    # `--prefix` configure option. The size of `_nl_default_dirname` depends on
-    # the prefix and `/usr/share/locale` is considered the default and hence
-    # the value 0x12. If you see such a difference, you should check that the
-    # size corresponds to your prefix, i.e. `(length of prefix path + 1)` to
-    # ensure that you haven't really broken abi with your change."
-    #
-    # Source: https://sourceware.org/glibc/wiki/Testing/Testsuite#Known_testsuite_failures
-    #
-    # ## FAIL: elf/tst-protected1a
-    #
-    # "The elf/tst-protected1a and elf/tst-protected1b tests are known to fail
-    # with the current stable version of binutils."
-    #
-    # Source: http://www.linuxfromscratch.org/lfs/view/stable/chapter06/glibc.html
     # Source: https://sourceware.org/glibc/wiki/Release/2.22
-    #
-    # ## FAIL: elf/tst-protected1b
-    #
-    # Same as above.
-    #
-    # ## FAIL: posix/tst-getaddrinfo4
-    #
-    # "This test will always fail due to not having the necessary networking
-    # applications when the tests are run."
-    #
-    # Source: http://www.linuxfromscratch.org/lfs/view/stable/chapter06/glibc.html
-    #
-    if [ -n "${DO_CHECK}" ]; then
-      # "If the test system does not have suitable copies of libgcc_s.so and
-      # libstdc++.so installed in system library directories, it is necessary
-      # to copy or symlink them into the build directory before testing (see
-      # https://sourceware.org/ml/libc-alpha/2012-04/msg01014.html regarding
-      # the use of system library directories here)."
-      #
-      # Source: https://sourceware.org/glibc/wiki/Release/2.22
-      # Source: http://www0.cs.ucl.ac.uk/staff/ucacbbl/glibc/index.html#bug-atexit3
-      if [ -f /tools/lib/libgcc_s.so.1 ]; then
-        ln -sv /tools/lib/libgcc_s.so.1 .
-      fi
-      if [ -f /tools/lib/libstdc++.so.6 ]; then
-        ln -sv /tools/lib/libstdc++.so.6 .
-      fi
-      # It appears as though some tests *always* fail, but since the output
-      # (and passing tests) is of value, we will run the anyway. Expect ignore
-      # the exit code. I am sad.
-      make check || true
-      rm -fv ./libgcc_s.so.1 ./libstdc++.so.6
+    # Source: http://www0.cs.ucl.ac.uk/staff/ucacbbl/glibc/index.html#bug-atexit3
+    if [ -f /tools/lib/libgcc_s.so.1 ]; then
+      ln -sv /tools/lib/libgcc_s.so.1 .
     fi
+    if [ -f /tools/lib/libstdc++.so.6 ]; then
+      ln -sv /tools/lib/libstdc++.so.6 .
+    fi
+    # It appears as though some tests *always* fail, but since the output (and
+    # passing tests) is of value, we will run the anyway. Expect ignore the
+    # exit code. I am sad.
+    make check || true
+    rm -fv ./libgcc_s.so.1 ./libstdc++.so.6
   popd > /dev/null
 }
 

@@ -23,10 +23,10 @@ do_prepare() {
 do_build() {
   make -f Makefile-libbz2_so PREFIX="$pkg_prefix"
   make bzip2 bzip2recover
+}
 
-  if [[ -n "$DO_CHECK" ]]; then
-    make test
-  fi
+do_check() {
+  make test
 }
 
 do_install() {

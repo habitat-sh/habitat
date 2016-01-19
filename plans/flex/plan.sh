@@ -12,14 +12,9 @@ pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
 
-do_build() {
-  do_default_build
-
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    # Set `LDFLAGS` for the c++ test code to find libstdc++
-    make check LDFLAGS="$LDFLAGS -lstdc++"
-  fi
+do_check() {
+  # Set `LDFLAGS` for the c++ test code to find libstdc++
+  make check LDFLAGS="$LDFLAGS -lstdc++"
 }
 
 do_install() {

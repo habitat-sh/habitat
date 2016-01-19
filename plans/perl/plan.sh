@@ -82,33 +82,29 @@ do_build() {
 
   # Clear temporary build time environment variables
   unset BUILD_ZLIB BUILD_BZIP2
+}
 
-    # -Dlocincpth=$(pkg_path_for glibc)/include \
-    # -Dloclibpth=$(pkg_path_for glibc)/lib \
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
+do_check() {
+  # If `/etc/services` and/or `/etc/protocols` does not exist, make temporary
+  # versions from the `chef/iana-etc` package. This is needed for several
+  # network-related tests to pass.
+  if [[ ! -f /etc/services ]]; then
+    cp -v $(pkg_path_for iana-etc)/etc/services /etc/services
+    local clean_services=true
+  fi
+  if [[ ! -f /etc/protocols ]]; then
+    cp -v $(pkg_path_for iana-etc)/etc/protocols /etc/protocols
+    local clean_protocols=true
+  fi
 
-    # If `/etc/services` and/or `/etc/protocols` does not exist, make temporary
-    # versions from the `chef/iana-etc` package. This is needed for several
-    # network-related tests to pass.
-    if [[ ! -f /etc/services ]]; then
-      cp -v $(pkg_path_for iana-etc)/etc/services /etc/services
-      local clean_services=true
-    fi
-    if [[ ! -f /etc/protocols ]]; then
-      cp -v $(pkg_path_for iana-etc)/etc/protocols /etc/protocols
-      local clean_protocols=true
-    fi
+  make test
 
-    make test
-
-    # If the `/etc/services` or `/etc/protocols` files were added for the
-    # purposes of this test suite, clean them up. Otherwise leave them be.
-    if [[ -n "$clean_services" ]]; then
-      rm -fv /etc/services
-    fi
-    if [[ -n "$clean_protocols" ]]; then
-      rm -fv /etc/protocols
-    fi
+  # If the `/etc/services` or `/etc/protocols` files were added for the
+  # purposes of this test suite, clean them up. Otherwise leave them be.
+  if [[ -n "$clean_services" ]]; then
+    rm -fv /etc/services
+  fi
+  if [[ -n "$clean_protocols" ]]; then
+    rm -fv /etc/protocols
   fi
 }

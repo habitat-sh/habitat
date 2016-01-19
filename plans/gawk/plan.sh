@@ -10,11 +10,6 @@ pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep 
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
-do_build() {
-  do_default_build
-
-  if [[ -n "$DO_CHECK" ]]; then
-    build_line "Running post-compile tests"
-    make check
-  fi
+do_check() {
+  make check
 }
