@@ -10,13 +10,6 @@ pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep 
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
-do_prepare() {
-  find . -iname "ltmain.sh" | while read file; do
-    build_line "Fixing libtool script $file"
-    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
-  done
-}
-
 do_build() {
   do_default_build
 

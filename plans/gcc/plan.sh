@@ -30,11 +30,6 @@ do_prepare() {
     ln -sv $(ls -d ${linux_headers}/include/* | grep -v 'scsi$') .
   popd > /dev/null
 
-  find . -iname "ltmain.sh" | while read file; do
-    build_line "Fixing libtool script $file"
-    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
-  done
-
   # TODO: We need a more clever way to calculate/determine the path to ld-*.so
   dynamic_linker="${glibc}/lib/ld-linux-x86-64.so.2"
 

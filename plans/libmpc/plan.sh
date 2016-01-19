@@ -14,10 +14,7 @@ pkg_gpg_key=3853DA6B
 pkg_dirname=${pkg_distname}-${pkg_version}
 
 do_prepare() {
-  find . -iname "ltmain.sh" | while read file; do
-    build_line "Fixing libtool script $file"
-    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
-  done
+  do_default_prepare
 
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
   build_line "Updating LDFLAGS=$LDFLAGS"

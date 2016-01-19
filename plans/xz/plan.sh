@@ -13,15 +13,6 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_gpg_key=3853DA6B
 
-do_prepare() {
-  do_default_prepare
-
-  find . -iname "ltmain.sh" | while read file; do
-    build_line "Fixing libtool script $file"
-    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
-  done
-}
-
 do_build() {
   do_default_build
 
