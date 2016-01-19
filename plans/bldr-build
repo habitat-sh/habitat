@@ -1099,8 +1099,8 @@ _resolve_dependencies() {
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
   # dependencies. The build dependencies appear before the run dependencies.
   pkg_all_deps_resolved=(
-    "${pkg_build_deps_resolved[@]}"
     "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
   )
 
   # Build an ordered set of all build and run dependencies (direct and
@@ -1113,10 +1113,10 @@ _resolve_dependencies() {
   # 1. All unique transitive build dependencies that aren't already added
   # 1. All unique transitive run dependencies that aren't already added
   pkg_all_tdeps_resolved=(
-    "${pkg_build_deps_resolved[@]}"
     "${pkg_deps_resolved[@]}"
+    "${pkg_build_deps_resolved[@]}"
   )
-  for dep in "${pkg_build_tdeps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
+  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
     pkg_all_tdeps_resolved=(
       $(_return_or_append_to_set "$tdep" "${pkg_all_tdeps_resolved[@]}")
     )
@@ -1282,6 +1282,16 @@ _build_environment() {
   return 0
 }
 
+# **Internal** Modifies any libtool scripts (`ltmain.sh`) in the extracted
+# source to remove the default system search path of `/usr/lib`, etc. when
+# looking for shared libraries.
+_fix_libtool() {
+  find . -iname "ltmain.sh" | while read file; do
+    build_line "Fixing libtool script $file"
+    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
+  done
+}
+
 # This function simply makes sure that the working directory for the prepare
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
@@ -1328,6 +1338,34 @@ do_build() {
 do_default_build() {
   ./configure --prefix=$pkg_prefix
   make
+}
+
+# Will run post-compile tests and checks, provided 2 conditions are true:
+#
+# 1. A `do_check()` function has been declared. By default, no such function
+#    exists, so Plan author must add one explicitly--there is no reasonably
+#    good deault here.
+# 1. A `$DO_CHECK` environment variable is set to some non-empty value. As
+#    tests can dramatically inflate the build time of a Plan, this has been
+#    left as an opt-in option.
+#
+# Here's an example example of a vanilla Plan such as Sed:
+#
+# ```sh
+# pkg_name=sed
+# # other Plan metadata...
+#
+# do_check() {
+#   make check
+# }
+# ```
+do_check_wrapper() {
+  if [[ "$(type -t do_check)" = "function" && -n "$DO_CHECK" ]]; then
+    build_line "Running post-compile tests"
+    pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+    do_check
+    popd > /dev/null
+  fi
 }
 
 # Identical to the `build_wrapper` function above; simply makes sure the
@@ -1762,12 +1800,26 @@ else
   exit_with "Failed to load Plan" $ret
 fi
 
+# `$pkg_derivation` is a required metadata key
 if [[ -z "${pkg_derivation}" ]]; then
   exit_with "Failed to build. 'pkg_derivation' must be set." 1
 fi
 
+# `$pkg_version` is a required metadata key
 if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
+fi
+
+# `$pkg_gpg_key` is a required metadata key
+if [[ -z "${pkg_gpg_key}" ]]; then
+  exit_with "Failed to build. 'pkg_gpg_key' must be set." 1
+fi
+
+# Ensure that the GPG secret key is loaded and ready for package signing.
+if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
+  warn "GPG key for pkg_gpg_key=$pkg_gpg_key is not loaded in secret key ring."
+  warn "Did you forget to import your signing key with 'gpg --import <KEY>.gpg'?"
+  exit_with "Failed to build. GPG secret key must be loaded." 1
 fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
@@ -1829,11 +1881,17 @@ do_unpack
 # Set up the build environment
 _build_environment
 
+# Fix any libtool scripts in the source
+_fix_libtool
+
 # Prepare the source
 do_prepare_wrapper
 
 # Build the source
 do_build_wrapper
+
+# Check the source
+do_check_wrapper
 
 # Install the source
 do_install_wrapper
