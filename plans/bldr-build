@@ -1282,6 +1282,16 @@ _build_environment() {
   return 0
 }
 
+# **Internal** Modifies any libtool scripts (`ltmain.sh`) in the extracted
+# source to remove the default system search path of `/usr/lib`, etc. when
+# looking for shared libraries.
+_fix_libtool() {
+  find . -iname "ltmain.sh" | while read file; do
+    build_line "Fixing libtool script $file"
+    sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
+  done
+}
+
 # This function simply makes sure that the working directory for the prepare
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
@@ -1828,6 +1838,9 @@ do_unpack
 
 # Set up the build environment
 _build_environment
+
+# Fix any libtool scripts in the source
+_fix_libtool
 
 # Prepare the source
 do_prepare_wrapper
