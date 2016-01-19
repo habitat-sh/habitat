@@ -1340,6 +1340,34 @@ do_default_build() {
   make
 }
 
+# Will run post-compile tests and checks, provided 2 conditions are true:
+#
+# 1. A `do_check()` function has been declared. By default, no such function
+#    exists, so Plan author must add one explicitly--there is no reasonably
+#    good deault here.
+# 1. A `$DO_CHECK` environment variable is set to some non-empty value. As
+#    tests can dramatically inflate the build time of a Plan, this has been
+#    left as an opt-in option.
+#
+# Here's an example example of a vanilla Plan such as Sed:
+#
+# ```sh
+# pkg_name=sed
+# # other Plan metadata...
+#
+# do_check() {
+#   make check
+# }
+# ```
+do_check_wrapper() {
+  if [[ "$(type -t do_check)" = "function" && -n "$DO_CHECK" ]]; then
+    build_line "Running post-compile tests"
+    pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+    do_check
+    popd > /dev/null
+  fi
+}
+
 # Identical to the `build_wrapper` function above; simply makes sure the
 # working directory for the install_files step is correct.
 do_install_wrapper() {
@@ -1861,6 +1889,9 @@ do_prepare_wrapper
 
 # Build the source
 do_build_wrapper
+
+# Check the source
+do_check_wrapper
 
 # Install the source
 do_install_wrapper
