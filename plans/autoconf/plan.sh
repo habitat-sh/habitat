@@ -1,0 +1,11 @@
+pkg_name=autoconf
+pkg_derivation=chef
+pkg_version=2.69
+pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_license=('gplv2+')
+pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
+pkg_shasum=64ebcec9f8ac5b2487125a86a7760d2591ac9e1d3dbd59489633f9de62a57684
+pkg_deps=(chef/m4 chef/perl)
+pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep chef/bash chef/gawk chef/libtool)
+pkg_binary_path=(bin)
+pkg_gpg_key=3853DA6B
