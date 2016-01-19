@@ -1772,12 +1772,26 @@ else
   exit_with "Failed to load Plan" $ret
 fi
 
+# `$pkg_derivation` is a required metadata key
 if [[ -z "${pkg_derivation}" ]]; then
   exit_with "Failed to build. 'pkg_derivation' must be set." 1
 fi
 
+# `$pkg_version` is a required metadata key
 if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
+fi
+
+# `$pkg_gpg_key` is a required metadata key
+if [[ -z "${pkg_gpg_key}" ]]; then
+  exit_with "Failed to build. 'pkg_gpg_key' must be set." 1
+fi
+
+# Ensure that the GPG secret key is loaded and ready for package signing.
+if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
+  warn "GPG key for pkg_gpg_key=$pkg_gpg_key is not loaded in secret key ring."
+  warn "Did you forget to import your signing key with 'gpg --import <KEY>.gpg'?"
+  exit_with "Failed to build. GPG secret key must be loaded." 1
 fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
