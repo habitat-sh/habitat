@@ -43,19 +43,25 @@ Usage: bldr install <package> -u <url> [-vn]
        bldr bash [-v -n]
        bldr repo [-p <path>] [--port=<port>] [-vn]
        bldr upload <package> -u <url> [-vn]
-       bldr key <key> [-u <url>] [-vn]
-       bldr key-upload <key> -u <url> [-vn]
+       bldr generate-user-key <key> <password> <email> [--expire-days=<expire_days>] [-vn]
+       bldr generate-service-key <key> [--expire-days=<expire_days>] [-vn]
+       bldr install-key <key> [--u <url>] [-vn]
+       bldr download-key <key> [-vn]
+       bldr upload-key <key> -u <url> [-vn]
+       bldr list-keys [-vn]
+       bldr revoke-key <key> [-vn]
        bldr config <package> [-vn]
 
-Options::
-    -g, --group=<group>        The service group; shared config and topology [default: default]
-    -t, --topology=<topology>  Specify a service topology [default: standalone]
-    -p, --path=<path>          The path to use for a repository [default: /opt/bldr/srvc/bldr/data]
-    -u, --url=<url>            Use the specified package repository url
-    -w, --watch=<watch>        One or more service groups to watch for updates
-    -l, --gossip-listen=<ip>   The listen string for gossip [default: 0.0.0.0:9634]
-    -v, --verbose              Verbose output; shows line numbers
-    -n, --no-color             Turn ANSI color off :(
+Options:
+    -g, --group=<group>             The service group; shared config and topology [default: default].
+    -t, --topology=<topology>       Specify a service topology [default: standalone].
+    -p, --path=<path>               The path to use for a repository [default: /opt/bldr/srvc/bldr/data].
+    -u, --url=<url>                 Use the specified package repository url.
+    -w, --watch=<watch>             One or more service groups to watch for updates.
+    -l, --gossip-listen=<ip>        The listen string for gossip [default: 0.0.0.0:9634].
+    -v, --verbose                   Verbose output; shows line numbers.
+    -n, --no-color                  Turn ANSI color off :( .
+    --expire-days=<expire>          Number of days before key expires.
 ";
 
 /// The struct that docopts renders options
@@ -64,15 +70,23 @@ Options::
 struct Args {
     cmd_install: bool,
     cmd_start: bool,
-    cmd_key: bool,
     cmd_sh: bool,
     cmd_bash: bool,
     cmd_repo: bool,
     cmd_upload: bool,
-    cmd_key_upload: bool,
     cmd_config: bool,
+
+    cmd_install_key: bool,
+    cmd_upload_key: bool,
+    cmd_generate_user_key: bool,
+    cmd_generate_service_key: bool,
+    cmd_list_keys: bool,
+
     arg_package: Option<String>,
     arg_key: Option<String>,
+    arg_password: Option<String>,
+    arg_email: Option<String>,
+
     flag_gossip_listen: String,
     flag_path: String,
     flag_port: Option<u16>,
@@ -82,6 +96,7 @@ struct Args {
     flag_watch: Vec<String>,
     flag_verbose: bool,
     flag_no_color: bool,
+    flag_expire_days: Option<u16>
 }
 
 /// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
@@ -103,6 +118,12 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     if let Some(ref arg_key) = args.arg_key {
         config.set_key(arg_key.clone());
     }
+    if let Some(ref arg_password) = args.arg_password {
+        config.set_password(arg_password.clone());
+    }
+    if let Some(ref arg_email) = args.arg_email{
+        config.set_email(arg_email.clone());
+    }
     if let Some(ref topology) = args.flag_topology {
         match topology.as_ref() {
             "standalone" => {
@@ -119,6 +140,9 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     }
     if let Some(port) = args.flag_port {
         config.set_port(port);
+    }
+    if let Some(expire_days) = args.flag_expire_days {
+        config.set_expire_days(expire_days);
     }
     if let Some(ref url) = args.flag_url {
         config.set_url(url.clone());
@@ -163,18 +187,44 @@ fn main() {
                 Err(e) => Err(e),
             }
         }
-        Args{cmd_key: true, ..} => {
-            match config_from_args(&args, Command::Key) {
-                Ok(config) => key(&config),
+
+        // -----------------------------------------------------
+        // start security stuff
+        // -----------------------------------------------------
+        Args{cmd_install_key: true, ..} => {
+            match config_from_args(&args, Command::InstallKey) {
+                Ok(config) => install_key(&config),
                 Err(e) => Err(e),
             }
         }
-        Args{cmd_key_upload: true, ..} => {
-            match config_from_args(&args, Command::KeyUpload) {
-                Ok(config) => key_upload(&config),
+        Args{cmd_upload_key: true, ..} => {
+            match config_from_args(&args, Command::UploadKey) {
+                Ok(config) => upload_key(&config),
                 Err(e) => Err(e),
             }
         }
+        Args{cmd_generate_user_key: true, ..} => {
+            match config_from_args(&args, Command::GenerateUserKey) {
+                Ok(config) => generate_user_key(&config),
+                Err(e) => Err(e),
+            }
+        }
+        Args{cmd_generate_service_key: true, ..} => {
+            match config_from_args(&args, Command::GenerateServiceKey) {
+                Ok(config) => generate_service_key(&config),
+                Err(e) => Err(e),
+            }
+        }
+        Args{cmd_list_keys: true, ..} => {
+            match config_from_args(&args, Command::ListKeys) {
+                Ok(config) => list_keys(&config),
+                Err(e) => Err(e),
+            }
+        }
+        // -----------------------------------------------------
+        // end security stuff
+        // -----------------------------------------------------
+
         Args{cmd_sh: true, ..} => {
             match config_from_args(&args, Command::Shell) {
                 Ok(config) => shell(&config),
@@ -209,7 +259,7 @@ fn main() {
     };
 
     match result {
-        Ok(_) => {}
+        Ok(_) => std::process::exit(0),
         Err(e) => exit_with(e, 1),
     }
 }
@@ -277,19 +327,43 @@ fn upload(config: &Config) -> BldrResult<()> {
 }
 
 /// Download/install a key
-#[allow(dead_code)]
-fn key(config: &Config) -> BldrResult<()> {
+fn install_key(config: &Config) -> BldrResult<()> {
     outputln!("Installing key {}", Yellow.bold().paint(config.key()));
     try!(key::install(&config));
     Ok(())
 }
 
 /// Upload a key
-#[allow(dead_code)]
-fn key_upload(config: &Config) -> BldrResult<()> {
+fn upload_key(config: &Config) -> BldrResult<()> {
     outputln!("Upload Bldr key {}", Yellow.bold().paint(config.key()));
-    try!(key_upload::key(&config));
+    try!(key::upload(&config));
     outputln!("Finished with {}", Yellow.bold().paint(config.key()));
+    Ok(())
+}
+
+
+/// Generate a key for a user
+fn generate_user_key(config: &Config) -> BldrResult<()> {
+    outputln!("Generate user key for {}", Yellow.bold().paint(config.key()));
+    try!(key::generate_user_key(&config));
+    outputln!("Finished generating user key for {}", Yellow.bold().paint(config.key()));
+    Ok(())
+}
+
+/// Generate a key for a service
+fn generate_service_key(config: &Config) -> BldrResult<()> {
+    outputln!("Generate service key for {}", Yellow.bold().paint(config.key()));
+    try!(key::generate_service_key(&config));
+    outputln!("Finished generating service key for {}", Yellow.bold().paint(config.key()));
+    Ok(())
+}
+
+
+/// List bldr managed gpg keys
+fn list_keys(config: &Config) -> BldrResult<()> {
+    outputln!("Listing keys");
+    try!(key::list(&config));
+    outputln!("Finished listing keys");
     Ok(())
 }
 

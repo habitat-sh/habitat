@@ -98,7 +98,7 @@ impl Docker {
                           .unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         let ipaddress = String::from(cmd.stdout().trim());
-        println!("I have ipaddress of {}", &ipaddress);
+        println!("I have ipaddress {}", &ipaddress);
         ipaddress
     }
 
