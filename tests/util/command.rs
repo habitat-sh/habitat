@@ -12,6 +12,7 @@ use std::error::Error;
 use std::result;
 use std::path::Path;
 use std::thread;
+use std::collections::HashMap;
 
 use util;
 
@@ -103,16 +104,31 @@ impl From<io::Error> for CmdError {
     }
 }
 
+
 pub fn command(cmd: &str, args: &[&str]) -> Command {
-    println!("{}: Running: cmd: {} {:?}",
+    command_with_env(cmd, args, None)
+}
+
+pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &str>>) -> Command {
+    println!("{}: Running: cmd: {} {:?} env: {:?}",
              thread::current().name().unwrap_or("main"),
              cmd,
-             args);
+             args, env);
     let mut command = Command::new(cmd);
     command.args(args);
     command.stdin(Stdio::null());
     command.stdout(Stdio::piped());
     command.stderr(Stdio::piped());
+
+    match env {
+        Some(e) => {
+            for (k, v) in e {
+                command.env(k, v);
+            }
+        }
+        None => ()
+    }
+
     command
 }
 
@@ -131,6 +147,12 @@ pub fn run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
     spawn(command)
 }
 
+pub fn run_with_env(cmd: &str, args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> {
+    let command = command_with_env(cmd, args, Some(env));
+    spawn(command)
+}
+
+
 pub fn bldr_build<P: AsRef<Path>>(cwd: P) -> CmdResult<Cmd> {
     let bldr_build = util::path::bldr_build();
     let mut command = command(&bldr_build, &["."]);
@@ -144,3 +166,19 @@ pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {
     let command = command(&bldr, args);
     spawn(command)
 }
+
+
+pub fn bldr_with_env(args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> {
+    let bldr = util::path::bldr();
+    let command = command_with_env(&bldr, args, Some(env));
+    spawn(command)
+}
+
+/// some days, you just want to specify a directory instead of a hash.
+/// This function is for you!
+pub fn bldr_with_test_gpg_cache(args: &[&str], cache_dir: &str) -> CmdResult<Cmd> {
+    let mut env: HashMap<&str, &str> = HashMap::new();
+    env.insert("BLDR_GPG_CACHE", cache_dir);
+    bldr_with_env(args, &env)
+}
+

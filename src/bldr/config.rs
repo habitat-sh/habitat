@@ -23,11 +23,15 @@ pub enum Command {
     Install,
     Config,
     Start,
-    InstallKey,
-    UploadKey,
+    ImportKey,
+    ExportKey,
+    UploadRepoKey,
+    DownloadRepoKey,
     GenerateUserKey,
     GenerateServiceKey,
     ListKeys,
+    Encrypt,
+    Decrypt,
     Shell,
     Repo,
     Upload,
@@ -42,7 +46,7 @@ impl Default for Command {
 }
 
 /// Holds our configuration options.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Config {
     command: Command,
     package: String,
@@ -61,6 +65,10 @@ pub struct Config {
     listen_addr: repo::ListenAddr,
     port: repo::ListenPort,
     gossip_listen: String,
+    userkey: Option<String>,
+    servicekey: Option<String>,
+    infile: Option<String>,
+    outfile: Option<String>,
 }
 
 impl Config {
@@ -111,6 +119,50 @@ impl Config {
     /// Return the email address
     pub fn email(&self) -> &Option<String> {
         &self.email
+    }
+
+    /// Set the user key
+    pub fn set_user_key(&mut self, userkey: String) -> &mut Config {
+        self.userkey = Some(userkey);
+        self
+    }
+
+    /// Return the user key
+    pub fn user_key(&self) -> &Option<String> {
+        &self.userkey
+    }
+
+    /// Set the service key
+    pub fn set_service_key(&mut self, set_servicekey: String) -> &mut Config {
+        self.servicekey = Some(set_servicekey);
+        self
+    }
+
+    /// Return the service key
+    pub fn service_key(&self) -> &Option<String> {
+        &self.servicekey
+    }
+
+    /// Set the input file to encrypt/decrypt
+    pub fn set_infile(&mut self, infile: String) -> &mut Config {
+        self.infile = Some(infile);
+        self
+    }
+
+    /// Return the input file to encrypt/decrypt
+    pub fn infile(&self) -> &Option<String> {
+        &self.infile
+    }
+
+    /// Set the input file to encrypt/decrypt
+    pub fn set_outfile(&mut self, outfile: String) -> &mut Config {
+        self.outfile = Some(outfile);
+        self
+    }
+
+    /// Return the input file to encrypt/decrypt
+    pub fn outfile(&self) -> &Option<String> {
+        &self.outfile
     }
 
     /// Set the package name

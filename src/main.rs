@@ -44,12 +44,14 @@ Usage: bldr install <package> -u <url> [-vn]
        bldr repo [-p <path>] [--port=<port>] [-vn]
        bldr upload <package> -u <url> [-vn]
        bldr generate-user-key <key> <password> <email> [--expire-days=<expire_days>] [-vn]
-       bldr generate-service-key <key> [--expire-days=<expire_days>] [-vn]
-       bldr install-key <key> [--u <url>] [-vn]
-       bldr download-key <key> [-vn]
-       bldr upload-key <key> -u <url> [-vn]
+       bldr generate-service-key <key> [--group=<group>] [--expire-days=<expire_days>] [-vn]
+       bldr encrypt --user <userkey> --service <servicekey> --infile <infile> --outfile <outfile> [--password <password>] [--group=<group>] [-vn]
+       bldr decrypt --infile <infile> --outfile <outfile> [-vn]
+       bldr import-key (--infile <infile> | <key> --u <url>) [-vn]
+       bldr export-key (--user <userkey> | --service <servicekey>) --outfile <outfile> [--group=<group>] [-vn]
+       bldr download-repo-key <key> [-vn]
+       bldr upload-repo-key <key> -u <url> [-vn]
        bldr list-keys [-vn]
-       bldr revoke-key <key> [-vn]
        bldr config <package> [-vn]
 
 Options:
@@ -75,17 +77,24 @@ struct Args {
     cmd_repo: bool,
     cmd_upload: bool,
     cmd_config: bool,
-
-    cmd_install_key: bool,
-    cmd_upload_key: bool,
+    cmd_import_key: bool,
+    cmd_export_key: bool,
+    cmd_upload_repo_key: bool,
+    cmd_download_repo_key: bool,
     cmd_generate_user_key: bool,
     cmd_generate_service_key: bool,
     cmd_list_keys: bool,
+    cmd_encrypt: bool,
+    cmd_decrypt: bool,
 
     arg_package: Option<String>,
     arg_key: Option<String>,
     arg_password: Option<String>,
     arg_email: Option<String>,
+    arg_userkey: Option<String>,
+    arg_servicekey: Option<String>,
+    arg_infile: Option<String>,
+    arg_outfile: Option<String>,
 
     flag_gossip_listen: String,
     flag_path: String,
@@ -97,6 +106,7 @@ struct Args {
     flag_verbose: bool,
     flag_no_color: bool,
     flag_expire_days: Option<u16>
+
 }
 
 /// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
@@ -123,6 +133,18 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     }
     if let Some(ref arg_email) = args.arg_email{
         config.set_email(arg_email.clone());
+    }
+    if let Some(ref arg_userkey) = args.arg_userkey{
+        config.set_user_key(arg_userkey.clone());
+    }
+    if let Some(ref arg_servicekey) = args.arg_servicekey{
+        config.set_service_key(arg_servicekey.clone());
+    }
+    if let Some(ref arg_infile) = args.arg_infile {
+        config.set_infile(arg_infile.clone());
+    }
+    if let Some(ref arg_outfile) = args.arg_outfile {
+        config.set_outfile(arg_outfile.clone());
     }
     if let Some(ref topology) = args.flag_topology {
         match topology.as_ref() {
@@ -157,6 +179,7 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
     if args.flag_no_color {
         bldr::output::set_no_color(true);
     }
+    debug!("Config:\n{:?}", config);
     Ok(config)
 }
 
@@ -174,6 +197,7 @@ fn main() {
                          .and_then(|d| d.decode())
                          .unwrap_or_else(|e| e.exit());
     debug!("Docopt Args: {:?}", args);
+
     let result = match args {
         Args{cmd_install: true, ..} => {
             match config_from_args(&args, Command::Install) {
@@ -191,15 +215,27 @@ fn main() {
         // -----------------------------------------------------
         // start security stuff
         // -----------------------------------------------------
-        Args{cmd_install_key: true, ..} => {
-            match config_from_args(&args, Command::InstallKey) {
-                Ok(config) => install_key(&config),
+        Args{cmd_import_key: true, ..} => {
+            match config_from_args(&args, Command::ImportKey) {
+                Ok(config) => import_key(&config),
                 Err(e) => Err(e),
             }
         }
-        Args{cmd_upload_key: true, ..} => {
-            match config_from_args(&args, Command::UploadKey) {
-                Ok(config) => upload_key(&config),
+        Args{cmd_export_key: true, ..} => {
+            match config_from_args(&args, Command::ExportKey) {
+                Ok(config) => export_key(&config),
+                Err(e) => Err(e),
+            }
+        }
+        Args{cmd_upload_repo_key: true, ..} => {
+            match config_from_args(&args, Command::UploadRepoKey) {
+                Ok(config) => upload_repo_key(&config),
+                Err(e) => Err(e),
+            }
+        }
+        Args{cmd_download_repo_key: true, ..} => {
+            match config_from_args(&args, Command::DownloadRepoKey) {
+                Ok(config) => download_repo_key(&config),
                 Err(e) => Err(e),
             }
         }
@@ -218,6 +254,18 @@ fn main() {
         Args{cmd_list_keys: true, ..} => {
             match config_from_args(&args, Command::ListKeys) {
                 Ok(config) => list_keys(&config),
+                Err(e) => Err(e),
+            }
+        }
+        Args{cmd_encrypt: true, ..} => {
+            match config_from_args(&args, Command::Encrypt) {
+                Ok(config) => encrypt(&config),
+                Err(e) => Err(e),
+            }
+        }
+        Args{cmd_decrypt: true, ..} => {
+            match config_from_args(&args, Command::Decrypt) {
+                Ok(config) => decrypt(&config),
                 Err(e) => Err(e),
             }
         }
@@ -326,21 +374,34 @@ fn upload(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-/// Download/install a key
-fn install_key(config: &Config) -> BldrResult<()> {
-    outputln!("Installing key {}", Yellow.bold().paint(config.key()));
-    try!(key::install(&config));
+/// Import a key
+fn import_key(config: &Config) -> BldrResult<()> {
+    outputln!("Importing key {}", Yellow.bold().paint(config.key()));
+    try!(key::import(&config));
+    outputln!("Finished importing key");
     Ok(())
 }
 
-/// Upload a key
-fn upload_key(config: &Config) -> BldrResult<()> {
+/// Export a key
+fn export_key(config: &Config) -> BldrResult<()> {
+    outputln!("Exporting key {}", Yellow.bold().paint(config.key()));
+    try!(key::export(&config));
+    outputln!("Finished exporting key");
+    Ok(())
+}
+
+/// Upload a key to a repo
+fn upload_repo_key(config: &Config) -> BldrResult<()> {
     outputln!("Upload Bldr key {}", Yellow.bold().paint(config.key()));
     try!(key::upload(&config));
     outputln!("Finished with {}", Yellow.bold().paint(config.key()));
     Ok(())
 }
 
+/// Download a key from a repo
+fn download_repo_key(_config: &Config) -> BldrResult<()> {
+    panic!("Not implemented");
+}
 
 /// Generate a key for a user
 fn generate_user_key(config: &Config) -> BldrResult<()> {
@@ -358,7 +419,6 @@ fn generate_service_key(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-
 /// List bldr managed gpg keys
 fn list_keys(config: &Config) -> BldrResult<()> {
     outputln!("Listing keys");
@@ -366,6 +426,24 @@ fn list_keys(config: &Config) -> BldrResult<()> {
     outputln!("Finished listing keys");
     Ok(())
 }
+
+/// Encrypt a file
+fn encrypt(config: &Config) -> BldrResult<()> {
+    outputln!("Encrypting");
+    try!(key::encrypt_and_sign(&config));
+    outputln!("Finished encrypting");
+    Ok(())
+}
+
+/// Decrypt a file
+fn decrypt(config: &Config) -> BldrResult<()> {
+    outputln!("Decrypting");
+    try!(key::decrypt_and_verify(&config));
+    outputln!("Finished decrypting");
+    Ok(())
+}
+
+
 
 /// Exit with an error message and the right status code
 #[allow(dead_code)]
