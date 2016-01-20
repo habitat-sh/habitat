@@ -11,6 +11,8 @@ use config::Config;
 use error::{BldrResult, ErrorKind};
 use util::gpg;
 use regex::Regex;
+use ansi_term::Colour::{Yellow, Red};
+use time::strptime;
 
 use repo;
 
@@ -118,13 +120,43 @@ pub fn install(config: &Config) -> BldrResult<()> {
 
 /// list ALL keys in gpg
 pub fn list(_config: &Config) -> BldrResult<()> {
-    try!(gpg::list());
+    let keys = try!(gpg::list());
+    for key in &keys {
+        for (_, user) in key.user_ids().enumerate() {
+            // Pull out the uid so Cow is happy
+            let uid = user.uid().unwrap_or("");
+            println!("{}", Yellow.bold().paint(uid));
+        }
+        println!("   Key: {}", key.id().unwrap_or("---"));
+        println!("   Fingerprint: {}", key.fingerprint().unwrap_or("---"));
+        let primary_key = key.primary_key().unwrap();
+        let expire = match primary_key.expires() {
+            None => "Never".to_string(),
+            Some(val) => {
+                let datetime = strptime(&val.to_string(), "%s").unwrap();
+                format!("{}", datetime.rfc822())
+            }
+        };
+        println!("   Expires: {}", expire);
+        if key.is_revoked() {
+            println!("\t{}", Red.bold().paint("Revoked"));
+        }
+        if key.is_expired() {
+            println!("\t{}", Red.bold().paint("Expired"));
+        }
+        if key.is_disabled() {
+            println!("\t{}", Red.bold().paint("Disabled"));
+        }
+        if key.is_invalid() {
+            println!("\t{}", Red.bold().paint("Invalid"));
+        }
+    }
     Ok(())
 }
 
 /// ensure parameters are correct before generating
 /// gpg "xml-ish" parameter string
-pub fn check_params(params: gpg::KeygenParams) -> BldrResult<()> {
+fn check_params(params: gpg::KeygenParams) -> BldrResult<()> {
     // must be at least 5 characters
     if params.keyname.len() < 5 {
         return Err(bldr_error!(ErrorKind::InvalidKeyParameter("key name must be at least 5 \
@@ -144,22 +176,21 @@ pub fn check_params(params: gpg::KeygenParams) -> BldrResult<()> {
 
 /// generate a service key name in the form of
 /// `bldr: keyname.group`
-pub fn gen_service_key_name(keyname: String, group: String) -> String {
+fn gen_service_key_name(keyname: &str, group: &str) -> String {
     format!("bldr: {}.{}", keyname, group)
-}
-
-/// generate a user key name in the form of
-/// `bldr: keyname`
-pub fn gen_user_key_name(keyname: String) -> String {
-    format!("bldr: {}", keyname)
 }
 
 /// generate a service key email address in the form of
 /// `keyname.group@bldr`
-pub fn gen_service_key_email(keyname: String, group: String) -> String {
+fn gen_service_key_email(keyname: &str, group: &str) -> String {
     format!("{}.{}@bldr", keyname, group)
 }
 
+/// generate a user key name in the form of
+/// `bldr: keyname`
+fn gen_user_key_name(keyname: &str) -> String {
+    format!("bldr: {}", keyname)
+}
 
 /// generate a user key in gpg
 /// A user key requires a password and valid email address
@@ -167,7 +198,7 @@ pub fn gen_service_key_email(keyname: String, group: String) -> String {
 pub fn generate_user_key(config: &Config) -> BldrResult<()> {
     let comment = USER_KEY_COMMENT.to_string();
     let email = config.email().clone().unwrap();
-    let kn = gen_user_key_name(config.key().to_string());
+    let kn = gen_user_key_name(config.key());
     let mut params = gpg::KeygenParams::new(kn, email, comment);
     params.passphrase = config.password().clone();
     params.expire_days = config.expire_days().unwrap_or(0);
@@ -182,8 +213,8 @@ pub fn generate_user_key(config: &Config) -> BldrResult<()> {
 /// the form: `service.group@bldr`
 pub fn generate_service_key(config: &Config) -> BldrResult<()> {
     let comment = SERVICE_KEY_COMMENT.to_string();
-    let kn = gen_service_key_name(config.key().to_string(), config.group().to_string());
-    let ke = gen_service_key_email(config.key().to_string(), config.group().to_string());
+    let kn = gen_service_key_name(config.key(), config.group());
+    let ke = gen_service_key_email(config.key(), config.group());
     let mut params = gpg::KeygenParams::new(kn, ke, comment);
     params.passphrase = None;
     params.expire_days = config.expire_days().unwrap_or(0);
@@ -193,64 +224,52 @@ pub fn generate_service_key(config: &Config) -> BldrResult<()> {
 }
 
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use util::gpg;
-
-    #[test]
-    fn gen_key_check_params_test() {
-        fn fail_if_err(keyname: &str, email: &str) {
-            let params = gpg::KeygenParams::new(keyname.to_string(),
-                                                email.to_string(),
-                                                "".to_string());
-            let results = check_params(params);
-            match results {
-                Ok(_) => assert!(true),
-                Err(_) => assert!(false),
-            };
-        }
-
-        fn fail_if_ok(keyname: &str, email: &str) {
-            let params = gpg::KeygenParams::new(keyname.to_string(),
-                                                email.to_string(),
-                                                "".to_string());
-            let results = check_params(params);
-            match results {
-                Ok(_) => assert!(false),
-                Err(_) => assert!(true),
-            };
-        }
-
-        // validate key names
-        fail_if_ok("", "foo@bar");
-        fail_if_ok("a", "foo@bar");
-        fail_if_err("abcde", "foo@bar");
-
-        // validate email addresses
-        fail_if_ok("foobar", "");
-        fail_if_ok("foobar", "a");
-        fail_if_ok("foobar", "foo@");
-        fail_if_err("foobar", "foo@bar");
+#[test]
+fn gen_key_check_params_test() {
+    fn fail_if_err(keyname: &str, email: &str) {
+        let params = gpg::KeygenParams::new(keyname.to_string(), email.to_string(), "".to_string());
+        let results = check_params(params);
+        match results {
+            Ok(_) => assert!(true),
+            Err(_) => assert!(false),
+        };
     }
 
-    #[test]
-    fn gen_service_key_email_test() {
-        assert_eq!("foobar.default@bldr",
-                   gen_service_key_email("foobar".to_string(), "default".to_string()));
+    fn fail_if_ok(keyname: &str, email: &str) {
+        let params = gpg::KeygenParams::new(keyname.to_string(), email.to_string(), "".to_string());
+        let results = check_params(params);
+        match results {
+            Ok(_) => assert!(false),
+            Err(_) => assert!(true),
+        };
     }
 
-    #[test]
-    fn gen_service_key_name_test() {
-        assert_eq!("bldr: foobar.default",
-                   gen_service_key_name("foobar".to_string(), "default".to_string()));
-    }
+    // validate key names
+    fail_if_ok("", "foo@bar");
+    fail_if_ok("a", "foo@bar");
+    fail_if_err("abcde", "foo@bar");
 
-    #[test]
-    fn gen_user_key_name_test() {
-        assert_eq!("bldr: foobar",
-                   gen_user_key_name("foobar".to_string()));
+    // validate email addresses
+    fail_if_ok("foobar", "");
+    fail_if_ok("foobar", "a");
+    fail_if_ok("foobar", "foo@");
+    fail_if_err("foobar", "foo@bar");
+}
 
-    }
+#[test]
+fn gen_service_key_email_test() {
+    assert_eq!("foobar.default@bldr",
+               gen_service_key_email("foobar", "default"));
+}
+
+#[test]
+fn gen_service_key_name_test() {
+    assert_eq!("bldr: foobar.default",
+               gen_service_key_name("foobar", "default"));
+}
+
+#[test]
+fn gen_user_key_name_test() {
+    assert_eq!("bldr: foobar", gen_user_key_name("foobar"));
 
 }

@@ -5,15 +5,13 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::fs::{self, File};
-use time::strptime;
 use gpgme;
 use gpgme::ops;
 
 use fs::GPG_CACHE;
 use error::{BldrResult, BldrError, ErrorKind};
 use util::perm;
-
-use ansi_term::Colour::{Yellow, Red, Blue};
+use ansi_term::Colour::Blue;
 
 static LOGKEY: &'static str = "KEY";
 
@@ -83,7 +81,7 @@ impl KeygenParams {
                         name_email = self.email.clone(),
                         expire_date = self.expire_days,
                         passphrase_text = ptext);
-        s.to_string()
+        s
     }
 }
 
@@ -150,7 +148,7 @@ pub fn generate(params: KeygenParams) -> BldrResult<()> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
 
-    let exists = try!(key_exists(params.keyname.clone()));
+    let exists = try!(key_exists(&params.keyname));
     if exists == true {
         return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("Key already exists"))));
     }
@@ -172,14 +170,14 @@ pub fn generate(params: KeygenParams) -> BldrResult<()> {
     }
 }
 
-pub fn key_exists(keyname: String) -> BldrResult<bool> {
+pub fn key_exists(keyname: &str) -> BldrResult<bool> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
 
     let mut ctx = try!(init_ctx());
     let mode = ops::KeyListMode::empty();
     ctx.set_key_list_mode(mode).unwrap();
-    let searchexp = vec![keyname.clone()];
+    let searchexp = vec![keyname];
     // pull this out into it's own value,
     // otherwise ctx doesn't live long enough
     let keymatch = ctx.find_keys(searchexp);
@@ -197,7 +195,7 @@ pub fn key_exists(keyname: String) -> BldrResult<bool> {
     }
 }
 
-pub fn list() -> BldrResult<()> {
+pub fn list() -> BldrResult<Vec<gpgme::keys::Key>> {
     try!(fs::create_dir_all(GPG_CACHE));
     try!(perm::set_permissions(GPG_CACHE, "0700"));
     let mut ctx = try!(init_ctx());
@@ -207,37 +205,12 @@ pub fn list() -> BldrResult<()> {
 
     ctx.set_key_list_mode(mode).unwrap();
 
+    let mut allkeys = Vec::new();
     // get ALL keys
     let mut keys = ctx.keys().unwrap();
+
     for key in keys.by_ref().filter_map(Result::ok) {
-        for (_, user) in key.user_ids().enumerate() {
-            // Pull out the uid so Cow is happy
-            let uid = user.uid().unwrap_or("");
-            println!("{}", Yellow.bold().paint(uid));
-        }
-        println!("   Key: {}", key.id().unwrap_or("---"));
-        println!("   Fingerprint: {}", key.fingerprint().unwrap_or("---"));
-        let primary_key = key.primary_key().unwrap();
-        let expire = match primary_key.expires() {
-            None => "Never".to_string(),
-            Some(val) => {
-                let datetime = strptime(&val.to_string(), "%s").unwrap();
-                format!("{}", datetime.rfc822())
-            }
-        };
-        println!("   Expires: {}", expire);
-        if key.is_revoked() {
-            println!("\t{}", Red.bold().paint("Revoked"));
-        }
-        if key.is_expired() {
-            println!("\t{}", Red.bold().paint("Expired"));
-        }
-        if key.is_disabled() {
-            println!("\t{}", Red.bold().paint("Disabled"));
-        }
-        if key.is_invalid() {
-            println!("\t{}", Red.bold().paint("Invalid"));
-        }
+        allkeys.push(key.clone());
     }
-    Ok(())
+    Ok(allkeys)
 }
