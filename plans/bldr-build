@@ -1272,6 +1272,9 @@ _build_environment() {
     fi
   done
 
+  # Create the `$pkg_path`
+  mkdir -p $pkg_path
+
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_path
   build_line "Setting PATH=$PATH"
@@ -1854,9 +1857,6 @@ pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
 if pkg_for_bldr=$(_latest_package "chef/bldr"); then
   BLDR_BIN="$pkg_for_bldr/bin/bldr"
 fi
-
-# Create the `$pkg_path`
-mkdir -p $pkg_path
 
 # Run `do_begin`
 build_line "Bldr setup"
