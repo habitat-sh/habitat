@@ -105,10 +105,12 @@ impl Package {
     pub fn from_ident(id: &str) -> BldrResult<Package> {
         let items: Vec<&str> = id.split("/").collect();
         match items.len() {
-            4 => Ok(Self::new(items[0].trim().to_string(),
-                              items[1].trim().to_string(),
-                              items[2].trim().to_string(),
-                              items[3].trim().to_string())),
+            4 => {
+                Ok(Self::new(items[0].trim().to_string(),
+                             items[1].trim().to_string(),
+                             items[2].trim().to_string(),
+                             items[3].trim().to_string()))
+            }
             _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(id.to_string()))),
         }
     }
@@ -361,7 +363,14 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> BldrResult<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        for config in try!(fs::read_dir(self.join_path("config"))) {
+        let config_dir = self.join_path("config");
+        {
+            let p = Path::new(&config_dir);
+            if !p.exists() {
+                return Ok(files);
+            }
+        }
+        for config in try!(fs::read_dir(config_dir)) {
             let config = try!(config);
             match config.path().file_name() {
                 Some(filename) => {
@@ -418,12 +427,15 @@ impl Package {
         if let Some(hook) = self.hooks().health_check_hook {
             match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
-                Err(BldrError{err: ErrorKind::HookFailed(_, 1, output), ..}) =>
-                    Ok(health_check::CheckResult::warning(output)),
-                Err(BldrError{err: ErrorKind::HookFailed(_, 2, output), ..}) =>
-                    Ok(health_check::CheckResult::critical(output)),
-                Err(BldrError{err: ErrorKind::HookFailed(_, 3, output), ..}) =>
-                    Ok(health_check::CheckResult::unknown(output)),
+                Err(BldrError{err: ErrorKind::HookFailed(_, 1, output), ..}) => {
+                    Ok(health_check::CheckResult::warning(output))
+                }
+                Err(BldrError{err: ErrorKind::HookFailed(_, 2, output), ..}) => {
+                    Ok(health_check::CheckResult::critical(output))
+                }
+                Err(BldrError{err: ErrorKind::HookFailed(_, 3, output), ..}) => {
+                    Ok(health_check::CheckResult::unknown(output))
+                }
                 Err(BldrError{err: ErrorKind::HookFailed(_, code, output), ..}) => {
                     Err(bldr_error!(ErrorKind::HealthCheck(format!("hook exited code={}, \
                                                                     output={}",
