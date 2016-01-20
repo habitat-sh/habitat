@@ -47,9 +47,8 @@ mod setup {
                                    .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service = match util::command::bldr_build(tempdir.path()
-                                                                            .join("simple_serv\
-                                                                                   ice")) {
+            let mut simple_service =
+            match util::command::bldr_build(tempdir.path().join("simple_service")) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };
@@ -58,6 +57,33 @@ mod setup {
                 panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
                        simple_service.stdout,
                        simple_service.stderr)
+            }
+        });
+    }
+
+    pub fn fixture_service(pkg: &str) {
+        static ONCE: Once = ONCE_INIT;
+        ONCE.call_once(|| {
+            let tempdir = TempDir::new(pkg).unwrap();
+            let mut copy_cmd = Command::new("cp")
+                                   .arg("-r")
+                                   .arg(util::path::fixture(pkg))
+                                   .arg(tempdir.path().to_str().unwrap())
+                                   .spawn()
+                                   .unwrap();
+            copy_cmd.wait().unwrap();
+
+            let mut simple_service =
+            match util::command::bldr_build(tempdir.path().join(pkg)) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e),
+            };
+            simple_service.wait_with_output();
+            if !simple_service.status.unwrap().success() {
+                panic!("Failed to build {}: stdout: {:?}\nstderr: {:?}",
+                       pkg,
+                       simple_service.stdout.unwrap(),
+                       simple_service.stderr.unwrap())
             }
         });
     }

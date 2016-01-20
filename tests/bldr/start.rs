@@ -22,6 +22,21 @@ fn standalone_no_options() {
 }
 
 #[test]
+fn standalone_no_options_without_config() {
+    setup::gpg_import();
+    setup::fixture_service("simple_service_without_config");
+
+    let d = docker::run("test/simple_service_without_config");
+    if d.wait_until(r"Shipping out to Boston") {
+        let output = d.logs();
+        assert_regex!(&output, r"Starting (.+)");
+    } else {
+        // container didn't start in time or pkg doesn't exist
+        assert!(false);
+    }
+}
+
+#[test]
 fn standalone_with_environment_config() {
     setup::gpg_import();
     setup::simple_service();
