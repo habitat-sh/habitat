@@ -1,3 +1,4 @@
+import "angular2/bundles/angular2-polyfills"
 import {AppComponent} from "./AppComponent";
 import {AppStore} from "./AppStore";
 import {ROUTER_PROVIDERS} from "angular2/router";

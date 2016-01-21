@@ -7,11 +7,11 @@
     "build": "concurrent \"npm run build-js\" \"npm run build-css\"",
     "build-css": "node-sass --source-map=true --include-path=node_modules/bourbon-neat/app/assets/stylesheets --include-path=node_modules/bourbon/app/assets/stylesheets --include-path=stylesheets --output app app/app.scss",
     "build-css-watch": "node-sass --source-map=true --include-path=node_modules/bourbon-neat/app/assets/stylesheets --include-path=node_modules/bourbon/app/assets/stylesheets --include-path=stylesheets --output app app/app.scss --watch",
-    "build-js": "tsc",
-    "build-js-watch": "tsc --watch",
+    "build-js": "webpack",
+    "build-js-watch": "webpack --watch",
     "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
     "clean-css": "rm -fv app/app.css app/app.css.map",
-    "clean-js": "rm -fv app/*.js app/*.js.map app/**/*.js app/**/*.js.map",
+    "clean-js": "rm -fv bundle.js bundle.js.map",
     "postinstall": "tsd install",
     "start": "concurrent \"npm run build-css\" \"npm run build-css-watch\" \"npm run build-js-watch\" \"lite-server\""
   },
@@ -32,7 +32,9 @@
     "concurrently": "^1.0.0",
     "lite-server": "^1.3.1",
     "node-sass": "^3.4.2",
+    "ts-loader": "^0.8.0",
     "tsd": "^0.6.5",
-    "typescript": "^1.7.3"
+    "typescript": "^1.7.3",
+    "webpack": "^1.12.11"
   }
 }

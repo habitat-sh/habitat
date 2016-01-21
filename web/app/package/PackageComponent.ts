@@ -5,7 +5,12 @@ import {Router, RouterLink} from "angular2/router";
 @Component({
   directives: [RouterLink],
   template: `
-    <div class="bldr-package">
+    <div *ngIf="!package" class="bldr-package">
+      <h2>Not Found</h2>
+      <p>{{currentPackage}} does not exist.</p>
+      <p>Here's how you would make it: &hellip;</p>
+    </div>
+    <div *ngIf="package" class="bldr-package">
       <h2>
         <a [routerLink]="['Dashboard']">{{package.derivation}}</a>
         /
@@ -36,11 +41,25 @@ import {Router, RouterLink} from "angular2/router";
         <h3>Dependencies</h3>
         <div class="bldr-package-deps-build">
           <h4>Build Dependencies</h4>
-          <p>None</p>
+          <ul>
+            <li *ngIf="package.buildDependencies.length === 0">None</li>
+            <li *ngFor="#dep of package.buildDependencies">
+              <a [routerLink]="['Package', { id: dep.name, derivation: dep.derivation }]">
+                {{dep.identifier}}
+              </a>
+            </li>
+          </ul>
         </div>
         <div class="bldr-package-deps-runtime">
           <h4>Runtime Dependencies</h4>
-          <p>None</p>
+          <ul>
+            <li *ngIf="package.dependencies.length === 0">None</li>
+            <li *ngFor="#dep of package.dependencies">
+              <a [routerLink]="['Package', { id: dep.name, derivation: dep.derivation }]">
+                {{dep.identifier}}
+              </a>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
