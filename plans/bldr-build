@@ -1275,6 +1275,9 @@ _build_environment() {
   # Create the `$pkg_path`
   mkdir -p $pkg_path
 
+  # Create a working directory if it doesn't already exist from `do_unpack()`
+  mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
+
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_path
   build_line "Setting PATH=$PATH"
@@ -1289,7 +1292,7 @@ _build_environment() {
 # source to remove the default system search path of `/usr/lib`, etc. when
 # looking for shared libraries.
 _fix_libtool() {
-  find . -iname "ltmain.sh" | while read file; do
+  find "$BLDR_SRC_CACHE/$pkg_dirname" -iname "ltmain.sh" | while read file; do
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
@@ -1299,8 +1302,6 @@ _fix_libtool() {
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
   build_line "Preparing to build"
-  # Create a working directory if it doesn't already exist from `do_unpack()`
-  mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   do_prepare
   popd > /dev/null
