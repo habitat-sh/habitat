@@ -1,7 +1,7 @@
-app/**/*.js
-app/**/*.js.map
 *.css
 *.css.map
+bundle.js
+bundle.js.map
 node_modules
 npm-debug.log
 typings

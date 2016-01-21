@@ -14,7 +14,7 @@ import {routeChange} from "./actions";
   template: `
     <div class="bldr-container">
       <header class="bldr-header">
-        <h1>bldr</h1>
+        <h1>{{appName}}</h1>
         <nav class="bldr-header-user">
           <user-nav></user-nav>
         </nav>
@@ -42,6 +42,10 @@ export class AppComponent {
     store.subscribe(state => console.log('new state received ', state.toObject())); 
   }
 
+  get appName() {
+    return this.store.getState().appName;
+  }
+  
   get now() {
     return this.store.getState().currentYear;
   }

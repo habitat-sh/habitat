@@ -2,35 +2,11 @@
 <html>
   <head>
     <title>bldr</title>
-
     <link rel="stylesheet" href="/app/app.css">
-
-    <!-- 1. Load libraries -->
-    <script src="/node_modules/angular2/bundles/angular2-polyfills.js"></script>
-    <script src="/node_modules/systemjs/dist/system.src.js"></script>
-    <script src="/node_modules/rxjs/bundles/Rx.js"></script>
-    <script src="/node_modules/angular2/bundles/router.dev.js"></script>
-    <script src="/node_modules/angular2/bundles/angular2.dev.js"></script>
-
-    <!-- 2. Configure SystemJS -->
-    <script>
-      System.config({
-        map: {
-          "immutable": "/node_modules/immutable/dist/immutable.js",
-          "redux": "/node_modules/redux/dist/redux.js"
-        },
-        packages: {
-          app: {
-            format: 'register',
-            defaultExtension: 'js'
-          }
-        }
-      });
-      System.import('app/boot')
-            .then(null, console.error.bind(console));
-    </script>
-
     <base href="/">
   </head>
-  <body><bldr></body>
+  <body>
+    <bldr>
+    <script src="/bundle.js"></script>
+  </body>
 </html>
