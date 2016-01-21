@@ -9,6 +9,10 @@
     "build-css-watch": "node-sass --source-map=true --include-path=node_modules/bourbon-neat/app/assets/stylesheets --include-path=node_modules/bourbon/app/assets/stylesheets --include-path=stylesheets --output app app/app.scss --watch",
     "build-js": "tsc",
     "build-js-watch": "tsc --watch",
+    "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
+    "clean-css": "rm -fv app/app.css app/app.css.map",
+    "clean-js": "rm -fv app/*.js app/*.js.map app/**/*.js app/**/*.js.map",
+    "postinstall": "tsd install",
     "start": "concurrent \"npm run build-css\" \"npm run build-css-watch\" \"npm run build-js-watch\" \"lite-server\""
   },
   "dependencies": {
@@ -17,6 +21,8 @@
     "bourbon-neat": "^1.7.2",
     "es6-promise": "^3.0.2",
     "es6-shim": "^0.33.3",
+    "immutable": "^3.7.6",
+    "redux": "^3.0.5",
     "reflect-metadata": "0.1.2",
     "rxjs": "5.0.0-beta.0",
     "systemjs": "0.19.6",
@@ -26,6 +32,7 @@
     "concurrently": "^1.0.0",
     "lite-server": "^1.3.1",
     "node-sass": "^3.4.2",
+    "tsd": "^0.6.5",
     "typescript": "^1.7.3"
   }
 }
