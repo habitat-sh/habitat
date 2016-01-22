@@ -6,7 +6,6 @@
   },
   "skip_phases": [
     "deploy",
-    "provision",
     "publish",
     "quality",
     "security",
