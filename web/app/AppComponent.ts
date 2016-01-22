@@ -1,8 +1,14 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
+
 import {AppStore} from "./AppStore";
 import {Component, Inject} from "angular2/core";
-import {DashboardComponent} from "./dashboard/DashboardComponent";
 import {HomeComponent} from "./home/HomeComponent";
 import {PackageComponent} from "./package/PackageComponent";
+import {PackagesComponent} from "./packages/PackagesComponent";
 import {Router, RouteConfig, ROUTER_DIRECTIVES} from "angular2/router";
 import {SignInComponent} from "./sign-in/SignInComponent";
 import {UserNavComponent} from "./user-nav/UserNavComponent";
@@ -31,21 +37,27 @@ import {routeChange} from "./actions";
 
 @RouteConfig([
   { path: "/", name: "Home", component: HomeComponent },
-  { path: "/dashboard", name: "Dashboard", component: DashboardComponent },
+  { path: "/packages", name: "Packages", component: PackagesComponent },
+  { path: "/packages/:derivation/:name/:version/:release", name: "Package",
+    component: PackageComponent },
   { path: "/sign-in", name: "Sign In", component: SignInComponent },
-  { path: "/packages/:derivation/:id", name: "Package", component: PackageComponent },
 ])
 
 export class AppComponent {
   constructor(private router: Router, private store: AppStore) {
-    this.router.subscribe(value => this.store.dispatch(routeChange(value)));
-    store.subscribe(state => console.log('new state received ', state.toObject())); 
+    router.subscribe(value => store.dispatch(routeChange(value)));
+    store.subscribe(state => {
+      let requestedRoute = store.getState().requestedRoute;
+      console.log("New state received ", state.toObject());
+
+      if (requestedRoute) { router.navigate(requestedRoute); }
+    });
   }
 
   get appName() {
     return this.store.getState().appName;
   }
-  
+
   get now() {
     return this.store.getState().currentYear;
   }

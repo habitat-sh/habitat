@@ -1,0 +1,8 @@
+#########################
+## Sass Lint File
+#########################
+# Linter Options
+# Rule Configuration
+rules:
+  quotes:
+    style: double
