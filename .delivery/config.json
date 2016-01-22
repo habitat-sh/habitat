@@ -11,7 +11,8 @@
     "quality",
     "security",
     "smoke",
-    "syntax"
+    "syntax",
+    "lint"
   ],
   "build_nodes": {
     "default": ["platform:ubuntu AND platform_version:15.04"]
