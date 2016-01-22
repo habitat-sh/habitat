@@ -17,13 +17,7 @@
 # limitations under the License.
 
 if node.attribute?('delivery')
-  require 'etc'
-  machine_dir = ::File.join(
-    Etc.getpwnam('dbuild').dir,
-    '.docker/machine/machines',
-    'bldr-docker-machine'
-  )
-
+  machine_dir = BldrDockerMachine.dbuild_machine_dir
   load_delivery_chef_config
 else
   chef_dir = ENV['CHEF_DIR'] || '.chef'
