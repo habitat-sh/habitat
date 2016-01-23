@@ -1,0 +1,37 @@
+Common subdirectories: mg-20160118.orig/CVS and mg-20160118/CVS
+diff -u mg-20160118.orig/GNUmakefile mg-20160118/GNUmakefile
+--- mg-20160118.orig/GNUmakefile	2016-01-18 15:01:49.000000000 +0000
++++ mg-20160118/GNUmakefile	2016-01-22 22:14:49.831947418 +0000
+@@ -7,15 +7,15 @@
+ 
+ name=		mg
+ 
+-prefix=		/usr/local
++prefix=		@prefix@
+ bindir=		$(prefix)/bin
+ libdir=		$(prefix)/lib
+ includedir=	$(prefix)/include
+ mandir=		$(prefix)/man
+ 
+-PKG_CONFIG=	/usr/bin/pkg-config
+-INSTALL=	/usr/bin/install
+-STRIP=		/usr/bin/strip
++PKG_CONFIG=	pkg-config
++INSTALL=	install
++STRIP=		strip
+ 
+ UNAME:=		$(shell uname)
+ ifeq ($(UNAME),FreeBSD)
+diff -u mg-20160118.orig/Makefile mg-20160118/Makefile
+--- mg-20160118.orig/Makefile	2016-01-07 18:55:54.000000000 +0000
++++ mg-20160118/Makefile	2016-01-22 22:14:10.620400854 +0000
+@@ -12,6 +12,9 @@
+ #
+ CFLAGS+=-Wall -DREGEX
+ 
++CFLAGS += -I@clens_prefix@/include/clens -isystem @libbsd_prefix@/include/bsd -DLIBBSD_OVERLAY -D__dead -O2
++LDADD+=<------>-lcurses -lutil -lclens -lbsd
++
+ SRCS=	autoexec.c basic.c bell.c buffer.c cinfo.c dir.c display.c \
+ 	echo.c extend.c file.c fileio.c funmap.c help.c kbd.c keymap.c \
+ 	line.c macro.c main.c match.c modes.c paragraph.c \
