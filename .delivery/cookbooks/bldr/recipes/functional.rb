@@ -16,12 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-machine_dir = ::File.join(
-  Etc.getpwnam('dbuild').dir,
-  '.docker/machine/machines',
-  'bldr-docker-machine'
-)
+load_delivery_chef_config
 
+machine_dir = BldrDockerMachine.dbuild_machine_dir
 docker_machine_config = BldrDockerMachine.load_config
 
 execute 'make clean package functional force=true' do
