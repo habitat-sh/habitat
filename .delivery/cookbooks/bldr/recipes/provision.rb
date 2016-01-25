@@ -33,74 +33,13 @@ execute 'bldr-docker-machine' do
   not_if { BldrDockerMachine.available? }
 end
 
-# don't look too closely at this code.
-ruby_block 'configure-docker-machine-if-exists' do
-  block do
-    require 'etc'
-
-    machine_home = ::File.join(Etc.getpwnam('dbuild').dir,
-                               '.docker/machine/machines',
-                               'bldr-docker-machine')
-
-    db = data_bag_item('bldr-acceptance', 'bldr-docker-machine')
-
-    docker_dir = Chef::Resource::Directory.new(machine_home, run_context)
-    docker_dir.recursive(true)
-    docker_dir.run_action(:create)
-
-    %w(ca.pem server.pem server-key.pem).each do |keyfile|
-      f = Chef::Resource::File.new(::File.join(machine_home, keyfile), run_context)
-      f.content(db[keyfile.gsub(/[\.-]/, '_')])
-      f.run_action(:create)
-    end
-
-    private_key = Chef::Resource::File.new(::File.join(machine_home, 'id_rsa'), run_context)
-    private_key.content(db['id_rsa_private'])
-    private_key.sensitive(true)
-    private_key.run_action(:create)
-
-    public_key = Chef::Resource::File.new(::File.join(machine_home, 'id_rsa.pub'), run_context)
-    public_key.content(db['id_rsa_public'])
-    public_key.sensitive(true)
-    public_key.run_action(:create)
-
-    client_cert = Chef::Resource::File.new(::File.join(machine_home, 'cert.pem'), run_context)
-    client_cert.content(db['cert_pem'])
-    client_cert.sensitive(true)
-    client_cert.run_action(:create)
-
-    client_key = Chef::Resource::File.new(::File.join(machine_home, 'key.pem'), run_context)
-    client_key.content(db['key_pem'])
-    client_key.sensitive(true)
-    client_key.run_action(:create)
-
-    puts <<-EOH.gsub(/^\s+/, '')
-      # Connect to the docker machine by exporting the following:
-      export DOCKER_TLS_VERIFY=1
-      export DOCKER_HOST=tcp://#{db['config']['IPAddress']}:2376
-      export DOCKER_CERT_PATH=#{ENV['HOME']}/.docker/machine/machines/bldr-docker-machine
-      export DOCKER_MACHINE_NAME=bldr-docker-machine
-    EOH
-  end
-
-  only_if do
-    begin
-      data_bag_item('bldr-acceptance', 'bldr-docker-machine')
-    rescue Net::HTTPServerException
-      false
-    end
-  end
-end
-
 chef_gem 'aws-sdk-v1'
 
 ruby_block 'save-docker-machine-state' do
   block do
-    # We're up to hijinks because we don't have a "real" resource for
-    # managing a docker-machine instance.
-    #
-    # TODO: (jtimberman) Make a Chef resource for managing a
-    # docker-machine instance?
+    # We need to save the secrets created by
+    # 'execute[bldr-docker-machine]' above somewhere that all builder
+    # nodes in Delivery can access.
     machine_home   = BldrDockerMachine.machine_home
     config         = BldrDockerMachine.load_config
     ca_pem         = IO.read(File.join(machine_home, 'ca.pem'))

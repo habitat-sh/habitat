@@ -30,6 +30,16 @@ module BldrDockerMachine
     config ? config : {}
   end
 
+  def self.dbuild_machine_dir
+    require 'etc'
+
+    ::File.join(
+      Etc.getpwnam('dbuild').dir,
+      '.docker/machine/machines',
+      'bldr-docker-machine'
+    )
+  end
+
   def self.machine_home
     ::File.join(ENV['HOME'], '.docker/machine/machines', 'bldr-docker-machine')
   end

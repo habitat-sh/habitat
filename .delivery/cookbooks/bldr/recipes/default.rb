@@ -46,3 +46,5 @@ group 'docker' do
   append true
   members Array(node['delivery_builder']['build_user'])
 end
+
+include_recipe 'bldr::_docker_machine'
