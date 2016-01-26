@@ -21,7 +21,7 @@ load_delivery_chef_config
 machine_dir = BldrDockerMachine.dbuild_machine_dir
 docker_machine_config = BldrDockerMachine.load_config
 
-ssh_key = data_bag_item('delivery-secrets', 'bldr-chef-acceptance')['github']
+ssh_key = data_bag_item('delivery-secrets', 'chef-bldr-acceptance')['github']
 
 execute 'make clean package functional force=true' do
   cwd node['delivery']['workspace']['repo']
