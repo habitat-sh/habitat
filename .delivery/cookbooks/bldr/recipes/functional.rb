@@ -28,7 +28,6 @@ execute 'make clean package functional force=true' do
   environment(
     'GITHUB_DEPLOY_KEY' => ssh_key,
     'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
-    'GIT_SSH' => "#{node['delivery']['workspace']['repo']}/ssh_wrapper.sh",
     'DOCKER_TLS_VERIFY' => '1',
     'DOCKER_CERT_PATH' => machine_dir,
     'DOCKER_HOST' => "tcp://#{BldrDockerMachine.machine_ip}:2376",
