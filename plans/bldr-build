@@ -284,6 +284,8 @@ BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
 PLAN_CONTEXT=${1:-.}
 # The default bldr package repository from where to download dependencies
 BLDR_REPO=http://159.203.235.47
+# The value of `$PATH` on initial start of this program
+BLDR_INITIAL_PATH="$PATH"
 # The default derivation is `bldr`
 pkg_derivation=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -371,6 +373,34 @@ _on_exit() {
 #   above.
 trap _on_exit 1 2 3 15 ERR
 
+# **Internal** Ensures that the correct versions of key initial system commands are able to be used by this program. Any commands here are required strictly for resolving dependencies. If we cannot find suitable versions, we will abort early.
+#
+# The following variables are set which contain an absolute path to the desired
+# command:
+#
+# * `$_sort_cmd` (GNU version from coreutils, needed for `--version-sort`)
+#
+# Note that all of the commands noted above are considered internal
+# implementation details and are subject to change with little to no notice,
+# which means the variables such as `$_tar_cmd` should **not** be used directly
+# by Plan authors. The leading underscore denotes an internal/private variable
+# or function.
+
+# If the commands are not found, `exit_with` is called and the program is
+# terminated.
+_find_initial_system_commands() {
+  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
+    _sort_cmd=$(command -v sort)
+  else
+    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
+      _sort_cmd=/usr/bin/sort
+    else
+      exit_with "We require GNU sort to find the latest package; aborting" 1
+    fi
+  fi
+  debug "Setting _sort_cmd=$_sort_cmd"
+}
+
 # **Internal** Ensures that the correct versions of key system commands are
 # able to be used by this program. If we cannot find suitable versions, we will
 # abort early.
@@ -403,12 +433,14 @@ _find_system_commands() {
       exit_with "We require GNU sort to find the latest package; aborting" 1
     fi
   fi
+  debug "Setting _sort_cmd=$_sort_cmd"
 
   if exists wget; then
     _wget_cmd=$(command -v wget)
   else
     exit_with "We require wget to download sources; aborting" 1
   fi
+  debug "Setting _wget_cmd=$_wget_cmd"
 
   if exists gsha256sum; then
     _shasum_cmd=$(command -v gsha256sum)
@@ -417,6 +449,7 @@ _find_system_commands() {
   else
     exit_with "We require gsha256sum or sha256sum for verifying; aborting" 1
   fi
+  debug "Setting _shasum_cmd=$_shasum_cmd"
 
   if $(tar --version 2>&1 | grep -q 'GNU tar'); then
     _tar_cmd=$(command -v tar)
@@ -427,12 +460,14 @@ _find_system_commands() {
       exit_with "We require GNU tar for long path support; aborting" 1
     fi
   fi
+  debug "Setting _tar_cmd=$_tar_cmd"
 
   if exists gpg; then
     _gpg_cmd=$(command -v gpg)
   else
     exit_with "We require gpg to sign packages; aborting" 1
   fi
+  debug "Setting _gpg_cmd=$_gpg_cmd"
 
   if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
     _mktemp_cmd=$(command -v mktemp)
@@ -443,6 +478,7 @@ _find_system_commands() {
       exit_with "We require GNU mktemp to build docker images; aborting" 1
     fi
   fi
+  debug "Setting _mktemp_cmd=$_mktemp_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
@@ -1123,6 +1159,40 @@ _resolve_dependencies() {
   done
 }
 
+# **Internal**  Build `$PATH` containing each path in our own
+# `${pkg_binary_path[@]}` array, and then any dependency's `PATH` entry (direct
+# or transitive) if one exists. The ordering of the path is specfic to
+# `${pkg_all_tdeps_resolved[@]}` which is further explained in the
+# `_resolve_dependencies()` function.
+_set_path() {
+  local path_part=""
+  for path in "${pkg_binary_path[@]}"; do
+    if [[ -z $path_part ]]; then
+      path_part="$pkg_path/$path"
+    else
+      path_part="$path_part:$pkg_path/$path"
+    fi
+  done
+  for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
+    if [[ -f "$dep_path/PATH" ]]; then
+      local data=$(cat $dep_path/PATH)
+      local trimmed=$(trim $data)
+      if [[ -z $path_part ]]; then
+        path_part="$trimmed"
+      else
+        path_part="$path_part:$trimmed"
+      fi
+    fi
+  done
+  # Insert all the package PATH fragments before the default PATH to ensure
+  # Bldr package binaries are used before any userland/operating system binaries
+  if [[ -n $path_part ]]; then
+    export PATH="$path_part:$BLDR_INITIAL_PATH"
+  fi
+
+  build_line "Setting PATH=$PATH"
+}
+
 # Download the software from `$pkg_source` and place it in
 # `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
@@ -1217,36 +1287,6 @@ _build_environment() {
     fi
   done
 
-  # Build `$PATH` containing each path in our own `${pkg_binary_path[@]}`
-  # array, and then any dependency's `PATH` entry (direct or transitive) if one
-  # exists. The ordering of the path is specfic to
-  # `${pkg_all_tdeps_resolved[@]}` which is further explained in the
-  # `_resolve_dependencies()` function.
-  local path_part=""
-  for path in "${pkg_binary_path[@]}"; do
-    if [[ -z $path_part ]]; then
-      path_part="$pkg_path/$path"
-    else
-      path_part="$path_part:$pkg_path/$path"
-    fi
-  done
-  for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
-    if [[ -f "$dep_path/PATH" ]]; then
-      local data=$(cat $dep_path/PATH)
-      local trimmed=$(trim $data)
-      if [[ -z $path_part ]]; then
-        path_part="$trimmed"
-      else
-        path_part="$path_part:$trimmed"
-      fi
-    fi
-  done
-  # Insert all the package PATH fragments before the default PATH to ensure
-  # Bldr package binaries are used before any userland/operating system binaries
-  if [[ -n $path_part ]]; then
-    export PATH="$path_part:$PATH"
-  fi
-
   # Build `$CFLAGS` and `$LDFLAGS` containing any direct dependency's `CFLAGS`
   # or `LDFLAGS` entries respectively (build or run). If the software to be
   # built requires the path to headers or shared libraries, it must be a
@@ -1280,7 +1320,6 @@ _build_environment() {
 
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_path
-  build_line "Setting PATH=$PATH"
   build_line "Setting PREFIX=$PREFIX"
   build_line "Setting LD_RUN_PATH=$LD_RUN_PATH"
   build_line "Setting CFLAGS=$CFLAGS"
@@ -1777,9 +1816,6 @@ while getopts "u:" opt; do
   esac
 done
 
-# Determine if we have all the commands we need to work
-_find_system_commands
-
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
 # Expand the path of this program to an absolute path
@@ -1819,13 +1855,6 @@ if [[ -z "${pkg_gpg_key}" ]]; then
   exit_with "Failed to build. 'pkg_gpg_key' must be set." 1
 fi
 
-# Ensure that the GPG secret key is loaded and ready for package signing.
-if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
-  warn "GPG key for pkg_gpg_key=$pkg_gpg_key is not loaded in secret key ring."
-  warn "Did you forget to import your signing key with 'gpg --import <KEY>.gpg'?"
-  exit_with "Failed to build. GPG secret key must be loaded." 1
-fi
-
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
 # set by the `plan.sh`.
 if [[ -z "${pkg_filename+xxx}" ]]; then
@@ -1863,8 +1892,22 @@ fi
 build_line "Bldr setup"
 do_begin
 
+_find_initial_system_commands
+
 # Download and resolve the depdencies
 _resolve_dependencies
+
+_set_path
+
+# Determine if we have all the commands we need to work
+_find_system_commands
+
+# Ensure that the GPG secret key is loaded and ready for package signing.
+if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
+  warn "GPG key for pkg_gpg_key=$pkg_gpg_key is not loaded in secret key ring."
+  warn "Did you forget to import your signing key with 'gpg --import <KEY>.gpg'?"
+  exit_with "Failed to build. GPG secret key must be loaded." 1
+fi
 
 # Download the source
 mkdir -pv $BLDR_SRC_CACHE
