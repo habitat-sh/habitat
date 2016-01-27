@@ -10,3 +10,10 @@ pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
+
+do_prepare () {
+  # Drop the dependency on `help2man` by skipping the generation of a man page
+  sed \
+    -e '/^dist_man1_MANS =/ s,^.*$,dist_man1_MANS = $(libtoolize_1),g' \
+    -i Makefile.in
+}
