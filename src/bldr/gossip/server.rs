@@ -12,17 +12,14 @@ use std::net::SocketAddr;
 use std::thread;
 use std::net;
 
-use msgpack::Decoder;
-use rustc_serialize::Decodable;
 use utp::{UtpListener, UtpSocket};
-use wonder::actor;
 use wonder::actor::{GenServer, ActorSender, HandleResult, InitResult, StopReason};
 
 use gossip::client::Client;
-use gossip::message::{BUFFER_SIZE, Message};
+use gossip::message::Message;
 use error::{BldrResult, BldrError};
 
-static LOGKEY: &'static str = "GS";
+//static LOGKEY: &'static str = "GS";
 
 /// A gossip server
 pub struct Server {
@@ -66,7 +63,7 @@ impl Server {
 /// * We fail to receive a message
 /// * We fail to decode the message into a gossip::Message
 /// * We fail to transmit a response (depending on the message)
-fn receive(mut socket: UtpSocket, src: net::SocketAddr) -> BldrResult<Message> {
+fn receive(socket: UtpSocket, src: net::SocketAddr) -> BldrResult<Message> {
     let mut client = Client::from_socket(socket);
     let msg = try!(client.recv_message());
 
@@ -116,7 +113,7 @@ impl GenServer for ServerActor {
                    message: Self::T,
                    _caller: &ActorSender<Self::T>,
                    _me: &ActorSender<Self::T>,
-                   state: &mut Self::S)
+                   _state: &mut Self::S)
                    -> HandleResult<Self::T> {
         match message {
             ServerActorMessage::Stop => {
