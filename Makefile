@@ -21,19 +21,11 @@ NO_CACHE := false
 
 all: package
 
-atest:
-ifeq ($(GITHUB_DEPLOY_KEY),)
-	@echo "nothing to see here"
-else
-	@echo "$$GITHUB_DEPLOY_KEY"
-	@echo "SHASUM: $(DELIVERY_GIT_SHASUM)"
-endif
-
 package: image
 ifeq ($(GITHUB_DEPLOY_KEY),)
 	$(run) package sh -c '(cd /src/plans && make world)'
 else
-	$(run) package sh -c "mkdir -p ~/.ssh; echo \"$${GITHUB_DEPLOY_KEY}\" > ~/.ssh/id_rsa_bldr_github; chmod 0600 ~/.ssh/id_rsa_bldr_github; chmod +x /usr/local/bin/ssh_wrapper.sh; ([ -d /src/plans ] && true || (cd / && GIT_SSH=/usr/local/bin/ssh_wrapper.sh git clone git@github.com:chef/bldr.git /src)) && (git rev-parse HEAD | grep -q \"$${DELIVERY_GIT_SHASUM}\" || git checkout $${DELIVERY_GIT_SHASUM}) && (cd /src/plans && make world)"
+	$(run) package sh -c "chmod +x /usr/local/bin/ssh_wrapper.sh /usr/local/bin/git_src_checkout.sh; /usr/local/bin/git_src_checkout.sh && (cd /src/plans && make world)"
 endif
 
 clean-package: image

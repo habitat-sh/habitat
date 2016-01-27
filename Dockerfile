@@ -39,6 +39,7 @@ RUN adduser --system bldr
 RUN addgroup --system bldr
 
 COPY ssh_wrapper.sh /usr/local/bin/ssh_wrapper.sh
+COPY git_src_checkout.sh /usr/local/bin/git_src_checkout.sh
 
 WORKDIR /src
 CMD ["bash"]
