@@ -39,7 +39,8 @@ export class PackagesComponent {
   private packages;
 
   constructor(private store: AppStore) {
-    this.packages = query(this.store.getState().packages).allMostRecent().
+    this.packages = query(this.store.getState().packages).
+      allMostRecentForDerivation("smith"). // The demo user
       toArray();
   }
 
