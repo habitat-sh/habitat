@@ -351,13 +351,24 @@ _on_exit() {
     echo "Cleaning up Docker context $DOCKER_CONTEXT"
     rm -rf "$DOCKER_CONTEXT"
   fi
+  : ${pkg_name:=unknown}
+  elapsed=$SECONDS
+  elapsed=$(echo $elapsed | awk '{printf "%dm%ds", $1/60, $1%60}')
+  case "$TERM" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      echo -e "   \033[1;36m${pkg_name}: \033[1;37mBuild time: $elapsed\033[0m"
+      ;;
+    *)
+      echo "   ${pkg_name}: Build time: $elapsed"
+      ;;
+  esac
   if [[ $exit_status -ne 0 ]]; then
     case "$TERM" in
       *term | xterm-* | rxvt | screen | screen-*)
-        echo -e "\033[1;31mExiting on error\033[0m"
+        echo -e "   \033[1;36m${pkg_name}: \033[1;31mExiting on error\033[0m"
         ;;
       *)
-        echo "Exiting on error"
+        echo "   ${pkg_name}: Exiting on error"
         ;;
     esac
   fi
@@ -1971,5 +1982,7 @@ build_line "Installed: $pkg_path"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
-build_line "$(basename $0) complete. I love it when a plan.sh comes together."
+build_line
+build_line "I love it when a plan.sh comes together."
+build_line
 _on_exit  0
