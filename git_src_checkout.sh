@@ -21,12 +21,17 @@ fi
 
 # TODO: REMOVE DEBUGGING
 echo "DEBUG OUTPUT"
-whoami
+echo "Environment for $(whoami) in ${PWD}"
 env | egrep 'GIT|DOCK|DELIV'
-echo $PWD
-ls -a $PWD /src/plans
+echo "Content of PWD and src:"
+ls -la $PWD /src /src/plans
+echo "Git status"
 (cd /src ; git status)
 echo "END DEBUG OUTPUT"
 
 (git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") || git checkout ${DELIVERY_GIT_SHASUM} || exit 1
+
+[ -f /src/plans/bldr-build ] || exit 1
+
+echo "Everything seems okay with /src and /src/plans"
 exit 0
