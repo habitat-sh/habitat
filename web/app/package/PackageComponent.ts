@@ -1,20 +1,34 @@
+// Copyright:: Copyright (c) 2016 Chef Software, Inc.
+//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
+
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
-import {Router, RouterLink} from "angular2/router";
+import {RouteParams, RouterLink} from "angular2/router";
+import {PackageListComponent} from "./PackageListComponent";
+import {packageString} from "../util";
+import query from "../query";
 
 @Component({
-  directives: [RouterLink],
+  directives: [PackageListComponent, RouterLink],
   template: `
+  <div>
     <div *ngIf="!package" class="bldr-package">
       <h2>Not Found</h2>
-      <p>{{currentPackage}} does not exist.</p>
+      <p>{{currentPackageIdString}} does not exist.</p>
       <p>Here's how you would make it: &hellip;</p>
     </div>
     <div *ngIf="package" class="bldr-package">
       <h2>
-        <a [routerLink]="['Dashboard']">{{package.derivation}}</a>
+        <a [routerLink]="['Packages', { derivation: package.derivation }]">{{package.derivation}}</a>
         /
         {{package.name}}
+        /
+        {{package.version}}
+        /
+        {{package.release}}
       </h2>
       <div class="bldr-package-info">
         <dl>
@@ -27,7 +41,6 @@ import {Router, RouterLink} from "angular2/router";
         </dl>
       </div>
       <div class="bldr-package-version-info">
-        <h3>Current Release</h3>
         <dl>
           <dt>Version</dt>
           <dd>{{package.version}}</dd>
@@ -37,46 +50,58 @@ import {Router, RouterLink} from "angular2/router";
           <dd>{{package.sha}}</dd>
         </dl>
       </div>
+      <div class="bldr-package-versions">
+        <h3>Available Versions</h3>
+        <package-list [packages]="versions"></package-list>
+      </div>
+      <div class="bldr-package-releases">
+        <h3>Releases <small>of version {{package.version}}</small></h3>
+        <package-list [packages]="releases"></package-list>
+      </div>
       <div class="bldr-package-deps">
-        <h3>Dependencies</h3>
         <div class="bldr-package-deps-build">
-          <h4>Build Dependencies</h4>
-          <ul>
-            <li *ngIf="package.buildDependencies.length === 0">None</li>
-            <li *ngFor="#dep of package.buildDependencies">
-              <a [routerLink]="['Package', { id: dep.name, derivation: dep.derivation }]">
-                {{dep.identifier}}
-              </a>
-            </li>
-          </ul>
+          <h3>Build Dependencies</h3>
+          <package-list [packages]="package.buildDependencies"></package-list>
         </div>
         <div class="bldr-package-deps-runtime">
-          <h4>Runtime Dependencies</h4>
-          <ul>
-            <li *ngIf="package.dependencies.length === 0">None</li>
-            <li *ngFor="#dep of package.dependencies">
-              <a [routerLink]="['Package', { id: dep.name, derivation: dep.derivation }]">
-                {{dep.identifier}}
-              </a>
-            </li>
-          </ul>
+          <h3>Runtime Dependencies</h3>
+          <package-list [packages]="package.dependencies"></package-list>
         </div>
       </div>
     </div>
+  </div>
   `,
 })
 
 export class PackageComponent {
-  constructor (private router: Router, private store: AppStore) {}
+  private currentPackageParams;
+  private allPackages;
+  private releases;
+  private versions;
 
-  get currentPackage() {
-    let parts = window.location.pathname.split("/")
-    return `${parts[2]}/${parts[3]}`;
+  constructor (private routeParams: RouteParams, private store: AppStore) {
+    this.allPackages = this.store.getState().packages;
+    this.currentPackageParams = this.routeParams.params;
+    this.releases = query(this.allPackages).
+      allReleasesForPackageVersion(this.package).
+      toArray();
+    this.versions = query(this.allPackages).
+      allVersionsForPackage(this.package).
+      toArray();
+    console.log(this.versions);
+  }
+
+  get currentPackageIdString() {
+    return packageString(this.currentPackageParams);
   }
 
   get package () {
-    return this.store.getState().packages.filter((pkg, index) => {
-      return pkg.identifier === this.currentPackage;
-    })[0];
+    return query(this.allPackages).
+      fromParams(this.currentPackageParams).
+      first();
+  }
+
+  packageString(pkg) {
+    return packageString(pkg);
   }
 }

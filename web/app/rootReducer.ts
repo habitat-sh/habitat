@@ -1,83 +1,34 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
+
 ///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
 
 import * as Immutable from "immutable";
 import * as actionTypes from "./actions";
+import packages from "../fixtures/packages.ts";
 
 const initialState = Immutable.Record({
   appName: "bldr",
   currentYear: new Date().getFullYear(),
-  isUserNavOpen: false,
-  isSignedIn: true,
-  isSignUpFormSubmitted: false,
-  username: "smith",
   email: null,
+  isSignUpFormSubmitted: false,
+  isSignedIn: true,
+  isUserNavOpen: false,
+  packages,
   password: null,
+  requestedRoute: null,
   route: null,
-  packages: [
-    {
-      identifier: "smith/openssl",
-      name: "openssl",
-      derivation: "smith",
-      maintainer: "Jamie Winsor <reset@chef.io>",
-      license: "BSD",
-      version: "1.0.2e",
-      release: "20160111220549",
-      source: "https://www.openssl.org/source/openssl-1.0.2e.tar.gz",
-      sha: "e23ccafdb75cfcde782da0151731aa2185195ac745eea3846133f2e05c0e0bff",
-      buildDependencies: [],
-      dependencies: [
-        {
-          identifier: "chef/glibc/2.19/20160111220307",
-          name: "glibc",
-          derivation: "chef",
-          version: "2.19",
-          release: "20160111220307",
-        },
-        {
-          identifier: "chef/zlib/1.2.8/20160111220313",
-          name: "zlib",
-          derivation: "chef",
-          version: "1.2.8",
-          release: "20160111220313",
-        },
-        {
-          identifier: "chef/cacerts/2016.01.11/20160111220317",
-          name: "cacerts",
-          derivation: "chef",
-          version: "2016.01.11",
-          release: "20160111220317",
-        }
-      ]
-    },
-    {
-      identifier: "smith/runit",
-      name: "runit",
-      derivation: "smith",
-      description: "It cannot be stopped.",
-      version: "2.1.2",
-      release: "20160111220840",
-      dependencies: [
-        {
-          identifier: "chef/glibc/2.19/20160111220307",
-          name: "glibc",
-          derivation: "chef",
-          version: "2.19",
-          release: "20160111220307",
-        }
-      ],
-      maintainer: "Joshua Timberman <jtimberman@chef.io>",
-      license: "BSD",
-      source: "http://smarden.org/runit/runit-2.1.2.tar.gz",
-      sha: "6fd0160cb0cf1207de4e66754b6d39750cff14bb0aa66ab49490992c0c47ba18",
-      buildDependencies: [],
-    },
-  ] 
+  username: "smith",
 })();
 
 export function rootReducer(state = initialState, action) {
   switch (action.type) {
   case actionTypes.ROUTE_CHANGE:
-    return state.set("route", action.payload);
+    return state.set("route", action.payload).
+      set("requestedRoute", null);
   case actionTypes.SIGN_UP_ATTEMPT:
     return state.
       set("isSignUpFormSubmitted", true).
@@ -92,6 +43,8 @@ export function rootReducer(state = initialState, action) {
     return state.
       set("isSignUpFormSubmitted", false).
       set("isSignedIn", false);
+  case actionTypes.ROUTE_REQUESTED:
+    return state.set("requestedRoute", action.payload);
   case actionTypes.TOGGLE_USER_NAV_MENU:
     return state.set("isUserNavOpen", !state.get("isUserNavOpen"));
   default:

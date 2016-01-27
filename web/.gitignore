@@ -1,7 +1,7 @@
 *.css
 *.css.map
-bundle.js
-bundle.js.map
+app.js
+app.js.map
 node_modules
 npm-debug.log
 typings

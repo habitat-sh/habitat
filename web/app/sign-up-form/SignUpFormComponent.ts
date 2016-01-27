@@ -1,3 +1,9 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
+
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {RouterLink} from "angular2/router";
@@ -12,7 +18,7 @@ import {attemptSignUp} from "../actions";
         <h2>Get Started Now</h2>
         <h3>Create your bldr account</h3>
         <form (ngSubmit)="onSubmit(username, email, password)">
-          <input placeholder="Username" required #username>
+          <input placeholder="Username" autofocus required #username>
           <input type="email" placeholder="Email Address" required #email>
           <input type="password" placeholder="Password" required #password>
           <button>Sign Up</button>

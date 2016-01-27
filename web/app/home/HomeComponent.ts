@@ -1,7 +1,14 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
+
 import {Component} from "angular2/core";
 import {Router} from "angular2/router";
 import {SignUpFormComponent} from "../sign-up-form/SignUpFormComponent";
 import {AppStore} from "../AppStore";
+import {requestRoute} from "../actions";
 
 @Component({
   directives: [SignUpFormComponent],
@@ -18,11 +25,17 @@ import {AppStore} from "../AppStore";
 })
 
 export class HomeComponent {
-  constructor(private router: Router, private store: AppStore) {}
+  constructor(private store: AppStore) {}
 
   ngOnInit() {
     if (this.store.getState().isSignedIn) {
-      this.router.navigate(["Dashboard"])
+      this.store.dispatch(
+        requestRoute(["Packages", { derivation: this.username }])
+      );
     }
+  }
+
+  get username() {
+    return this.store.getState().username;
   }
 }

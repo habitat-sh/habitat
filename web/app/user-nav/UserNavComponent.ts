@@ -1,7 +1,13 @@
+// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+//
+// The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
+// this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
+// is made available under an open source license such as the Apache 2.0 License.
+
 import {AppStore} from "../AppStore";
 import {Component, Input} from "angular2/core";
 import {Router, RouterLink} from "angular2/router";
-import {signOut, toggleUserNavMenu} from "../actions";
+import {requestRoute, signOut, toggleUserNavMenu} from "../actions";
 
 @Component({
   directives: [RouterLink],
@@ -26,7 +32,7 @@ import {signOut, toggleUserNavMenu} from "../actions";
 })
 
 export class UserNavComponent {
-  constructor(private router: Router, private store: AppStore) {}
+  constructor(private store: AppStore) {}
 
   get isOpen() {
     return this.store.getState().isUserNavOpen;
@@ -51,7 +57,7 @@ export class UserNavComponent {
   signOut() {
     this.store.dispatch(toggleUserNavMenu());
     this.store.dispatch(signOut());
-    this.router.navigate(["Home"]);
+    this.store.dispatch(requestRoute(["Home"]));
     return false;
   }
 
