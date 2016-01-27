@@ -30,7 +30,7 @@ export default [
     release: "20160101000000",
     license: "BSD",
     maintainer: "Jamie Winsor <reset@chef.io>",
-    source: "https://www.openssl.org/source/openssl-1.0.2e.tar.gz",
+    source: "https://www.openssl.org/source/openssl-1.0.2d.tar.gz",
     sha: "e23ccafdb75cfcde782da0151731aa2185195ac745eea3846133f2e05c0e0bff",
     buildDependencies: [],
     dependencies: [

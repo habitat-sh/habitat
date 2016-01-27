@@ -7,9 +7,8 @@
 ///<reference path="../vendor/typings/linq/linq.d.ts"/>
 
 import * as Enumerable from "linq";
-import * as semver from "semver";
 
-export default function query(packages:Array<any>) {
+export default function query(packages: Array<any>) {
   let enumerable = Enumerable.from(packages);
 
   return {
@@ -26,6 +25,13 @@ export default function query(packages:Array<any>) {
         orderBy("$.name");
     },
 
+    // All of the packages, sorted by name, the most recent version, for a
+    // derivation
+    allMostRecentForDerivation(derivation: String) {
+      return this.allMostRecent().
+        where(`$.derivation === "${derivation}"`);
+    },
+
     // Given a package, all of the releases for that version of the package
     allReleasesForPackageVersion(sourcePkg) {
       return enumerable.
@@ -38,13 +44,13 @@ export default function query(packages:Array<any>) {
     // Given a package, the most recent release of each version
     allVersionsForPackage(sourcePkg) {
       return enumerable.
-        where(pkg => { return pkg["name"] === sourcePkg["name"] }).
+        where(pkg => { return pkg["name"] === sourcePkg["name"]; }).
         groupBy("$.version").
         select(group => group.first()).
         orderByDescending("$.version"); // TODO: make this semver(ish) sorted
     },
 
-    fromParams(params:Object = {}) {
+    fromParams(params: Object = {}) {
       return enumerable.
         where(pkg => pkg["name"] === params["name"] &&
                      pkg["derivation"] === params["derivation"] &&
