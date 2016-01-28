@@ -99,7 +99,9 @@ impl Repo {
     }
 }
 
+#[derive(Debug)]
 pub struct ListenAddr(pub net::Ipv4Addr);
+#[derive(Debug)]
 pub struct ListenPort(pub u16);
 
 impl Default for ListenAddr {

@@ -36,6 +36,7 @@ uuid = "*"
 utp = "*"
 rmp = "*"
 rmp-serialize = "*"
+rpassword = "*"
 
 [dependencies.wonder]
 path = "./vendor/wonder"
