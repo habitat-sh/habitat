@@ -48,3 +48,4 @@ group 'docker' do
 end
 
 include_recipe 'bldr::_docker_machine'
+include_recipe 'bldr::functional'
