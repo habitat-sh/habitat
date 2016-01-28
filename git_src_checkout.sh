@@ -23,15 +23,8 @@ else
     (cd / && git clone git@github.com:chef/bldr.git /src)
 fi
 
-if [ ! -z ${DELIVERY_GIT_SHASUM} ]
-then
-    echo "$0: Set working tree to ${DELIVERY_GIT_SHASUM}"
-    (git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") || git checkout ${DELIVERY_GIT_SHASUM} || exit 1
-else
-    echo "$0: Need git shasum for the Delivery changeset to continue!"
-    echo "$0: Set \$DELIVERY_GIT_SHASUM before executing this script!"
-    exit 1
-fi
+echo "$0: Set working tree to '${DELIVERY_GIT_SHASUM}'"
+(git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") || git checkout ${DELIVERY_GIT_SHASUM} || exit 1
 
 if [ -f /src/plans/bldr-build ]
 then
