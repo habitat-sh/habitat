@@ -48,4 +48,6 @@ group 'docker' do
 end
 
 include_recipe 'bldr::_docker_machine'
+Chef::Log.warn(node['delivery'].to_hash)
+
 include_recipe 'bldr::functional'
