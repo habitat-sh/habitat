@@ -3,7 +3,7 @@
 # cookbook that sets the GITHUB_DEPLOY_KEY and DELIVERY_GIT_SHASUM.
 #
 # We're going to use the ssh wrapper so we can clone the private repo
-# from github. This should be dropped off by the Dockerfile.
+# from github. This is dropped off by the Dockerfile COPY.
 export GIT_SSH=/usr/local/bin/ssh_wrapper.sh
 
 # We need the SSH key.
@@ -26,8 +26,7 @@ fi
 if [ ! -z ${DELIVERY_GIT_SHASUM} ]
 then
     echo "$0: Set working tree to ${DELIVERY_GIT_SHASUM}"
-    (git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") ||
-        git checkout ${DELIVERY_GIT_SHASUM} || exit 1
+    (git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") || git checkout ${DELIVERY_GIT_SHASUM} || exit 1
 else
     echo "$0: Need git shasum for the Delivery changeset to continue!"
     echo "$0: Set \$DELIVERY_GIT_SHASUM before executing this script!"
@@ -36,10 +35,10 @@ fi
 
 if [ -f /src/plans/bldr-build ]
 then
-    echo "$0: /src/plans/bldr-build exists, continuing"
+    echo "$0: /src/plans/bldr-build exists, success!"
     exit 0
 else
-    echo "$0: /src/plans/bldr-build does not exist, exiting!"
+    echo "$0: /src/plans/bldr-build does not exist, failure!"
     exit 1
 fi
 

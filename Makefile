@@ -25,7 +25,7 @@ package: image
 ifeq ($(GITHUB_DEPLOY_KEY),)
 	$(run) package sh -c '(cd /src/plans && make world)'
 else
-	$(run) package sh -c "chmod +x /usr/local/bin/ssh_wrapper.sh /usr/local/bin/git_src_checkout.sh; GITHUB_DEPLOY_KEY=\"$${GITHUB_DEPLOY_KEY}\" DELIVERY_GIT_SHASUM=${DELIVERY_GIT_SHASUM} /bin/bash /usr/local/bin/git_src_checkout.sh; bash"
+	$(run) package sh -c "chmod +x /usr/local/bin/ssh_wrapper.sh /usr/local/bin/git_src_checkout.sh; GITHUB_DEPLOY_KEY=\"$${GITHUB_DEPLOY_KEY}\" DELIVERY_GIT_SHASUM=${DELIVERY_GIT_SHASUM} /bin/bash /usr/local/bin/git_src_checkout.sh && (cd /src/plans && make world)"
 endif
 
 clean-package: image
