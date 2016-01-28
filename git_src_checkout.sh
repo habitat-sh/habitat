@@ -4,34 +4,43 @@
 #
 # We're going to use the ssh wrapper so we can clone the private repo
 # from github. This should be dropped off by the Dockerfile.
-GIT_SSH=/usr/local/bin/ssh_wrapper.sh
+export GIT_SSH=/usr/local/bin/ssh_wrapper.sh
 
 # We need the SSH key.
+echo "$0: Writing Github deploy key to ~/.ssh/id_rsa_bldr_github"
 mkdir -p ~/.ssh
 echo "${GITHUB_DEPLOY_KEY}" > ~/.ssh/id_rsa_bldr_github
 chmod 0600 ~/.ssh/id_rsa_bldr_github
 
+echo "$0: Checking for bldr plans in /src/plans"
 if [ -d /src/plans ]
 then
+    echo "$0: /src exists, attempt to fetch from Github"
     cd /src
-    git pull || true
+    git fetch || true
 else
+    echo "$0: /src does not exist, clone from Github"
     (cd / && git clone git@github.com:chef/bldr.git /src)
 fi
 
-# TODO: REMOVE DEBUGGING
-echo "DEBUG OUTPUT"
-echo "Environment for $(whoami) in ${PWD}"
-env | egrep 'GIT|DOCK|DELIV'
-echo "Content of PWD and src:"
-ls -la $PWD /src /src/plans
-echo "Git status"
-(cd /src ; git status)
-echo "END DEBUG OUTPUT"
+if [ ! -z ${DELIVERY_GIT_SHASUM} ]
+then
+    echo "$0: Set working tree to ${DELIVERY_GIT_SHASUM}"
+    (git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") ||
+        git checkout ${DELIVERY_GIT_SHASUM} || exit 1
+else
+    echo "$0: Need git shasum for the Delivery changeset to continue!"
+    echo "$0: Set \$DELIVERY_GIT_SHASUM before executing this script!"
+    exit 1
+fi
 
-(git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") || git checkout ${DELIVERY_GIT_SHASUM} || exit 1
+if [ -f /src/plans/bldr-build ]
+then
+    echo "$0: /src/plans/bldr-build exists, continuing"
+    exit 0
+else
+    echo "$0: /src/plans/bldr-build does not exist, exiting!"
+    exit 1
+fi
 
-[ -f /src/plans/bldr-build ] || exit 1
-
-echo "Everything seems okay with /src and /src/plans"
 exit 0
