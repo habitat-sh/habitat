@@ -332,7 +332,7 @@ fn receive(socket: UtpSocket,
             // Update our rumors
             {
                 let mut rl = rumor_list.write().unwrap();
-                warn!("Rumors from {:#?}", from_peer);
+                debug!("Updating rumors from {:#?}", from_peer);
                 rl.process_rumors(&mp.member_id, remote_rumor_list, member_list);
             }
         }
@@ -364,7 +364,7 @@ fn receive(socket: UtpSocket,
                 // Update our rumors
                 {
                     let mut rl = rumor_list.write().unwrap();
-                    warn!("Rumors from {:#?}", from_peer);
+                    debug!("Updating rumors via ack from {:#?} ", from_peer);
                     rl.process_rumors(&mp.member_id, remote_rumor_list, member_list);
                 }
             }
