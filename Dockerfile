@@ -35,8 +35,8 @@ RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y && rustc -V
 RUN curl -sSL https://get.docker.io | sh && docker -v
 RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
 
-RUN adduser --system bldr
-RUN addgroup --system bldr
+RUN adduser --system bldr || true
+RUN addgroup --system bldr || true
 
 COPY ssh_wrapper.sh /usr/local/bin/ssh_wrapper.sh
 

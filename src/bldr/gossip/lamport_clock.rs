@@ -5,15 +5,17 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 //! This is an implementation of a [lamport
-//! clock](https://en.wikipedia.org/wiki/Lamport_timestamps), which we use to provide ordering in
-//! the gossip system.
+//! clock](https://en.wikipedia.org/wiki/Lamport_timestamps), which we use to track incarnations.
+//!
+//! LamportClocks deref to u64.
 
 use std::cmp::Ordering;
+use std::ops::Deref;
 
 /// A struct representing a lamport clock; a simple unsigned 64 bit integer.
-#[derive(Debug, RustcDecodable, RustcEncodable, Clone)]
+#[derive(Debug, RustcDecodable, RustcEncodable, Clone, Eq)]
 pub struct LamportClock {
-    counter: u64,
+    pub counter: u64,
 }
 
 impl LamportClock {
@@ -37,8 +39,8 @@ impl LamportClock {
     }
 
     /// Return the current time.
-    pub fn time(&self) -> u64 {
-        self.counter.clone()
+    pub fn time(&self) -> &u64 {
+        &self.counter
     }
 }
 
@@ -66,6 +68,14 @@ impl PartialOrd for LamportClock {
     }
 }
 
+impl Deref for LamportClock {
+    type Target = u64;
+
+    fn deref(&self) -> &u64 {
+        &self.counter
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::LamportClock;
@@ -76,7 +86,7 @@ mod test {
     fn lamport_clock_increment() {
         let lc = Arc::new(RwLock::new(LamportClock::new()));
 
-        assert_eq!(lc.read().unwrap().time(), 0);
+        assert_eq!(*lc.read().unwrap().time(), 0);
 
         fn spawn_threads(lc: &Arc<RwLock<LamportClock>>) -> Vec<JoinHandle<()>> {
             let mut children = Vec::new();
@@ -96,7 +106,7 @@ mod test {
             &child.join();
         }
 
-        assert_eq!(lc.read().unwrap().time(), 10);
+        assert_eq!(*lc.read().unwrap().time(), 10);
     }
 
     #[test]
@@ -110,7 +120,7 @@ mod test {
             lc_write.set_by_peer_clock(&peer);
         }
 
-        assert_eq!(lc.read().unwrap().time(), 666);
+        assert_eq!(*lc.read().unwrap().time(), 666);
     }
 
     #[test]
@@ -124,7 +134,7 @@ mod test {
             lc_write.set_by_peer_clock(&peer);
         }
 
-        assert_eq!(lc.read().unwrap().time(), 665);
+        assert_eq!(*lc.read().unwrap().time(), 665);
     }
 
     #[test]

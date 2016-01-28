@@ -94,6 +94,7 @@ copy_package chef/bzip2
 copy_package chef/xz
 copy_package chef/libarchive
 copy_package chef/runit
+copy_package chef/rngd
 copy_package chef/bldr
 
 for x in $($BUSYBOX_ROOT/bin/busybox --list); do

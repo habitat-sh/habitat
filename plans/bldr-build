@@ -1712,8 +1712,8 @@ RUN ln -sf $(pkg_path_for chef/bldr)/bin/bldr /bin/bldr && \
     ln -sf $(pkg_path_for chef/runit)/bin/sv /bin/sv && \
     ln -sf $(pkg_path_for chef/runit)/bin/svlogd /bin/svlogd && \
     ln -sf $(pkg_path_for chef/runit)/bin/utmpset /bin/utmpset && \
-    addgroup bldr && \
-    adduser --system --disabled-password bldr
+    addgroup bldr || true && \
+    adduser --system --disabled-password bldr || true
 EOT
     fi
     cat <<EOT >> ./Dockerfile

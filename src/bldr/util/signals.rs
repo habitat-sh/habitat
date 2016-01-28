@@ -29,7 +29,7 @@ static mut CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
 static mut SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
-extern "C" {
+extern {
     fn signal(sig: u32, cb: unsafe extern "C" fn(u32)) -> unsafe extern "C" fn(u32);
 }
 
