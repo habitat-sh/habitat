@@ -1,4 +1,5 @@
-.delivery
+.delivery/cookbooks
+.delivery/config.json
 .git
 demo
 images

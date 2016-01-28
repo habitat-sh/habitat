@@ -38,7 +38,8 @@ RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco
 RUN adduser --system bldr || true
 RUN addgroup --system bldr || true
 
-COPY ssh_wrapper.sh /usr/local/bin/ssh_wrapper.sh
+COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin/ssh_wrapper.sh
+COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin/git_src_checkout.sh
 
 WORKDIR /src
 CMD ["bash"]
