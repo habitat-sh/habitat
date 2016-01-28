@@ -35,5 +35,12 @@ TASK_NAME`.
 
 ## "Production"
 
-To build the JavaScript files, run `npm run build`. You can then serve
-index.html and the resources it loads from a web server.
+To build the JavaScript and CSS files, run `npm run build`.
+
+`npm run dist` will build these files and put them along with the index.html and
+other needed files into the dist/ directory. A web server can serve the files in
+the dist directory to run the app.
+
+## Additional Documentation
+
+* [Why are there so many files and what do all of them mean?](doc/files.md)

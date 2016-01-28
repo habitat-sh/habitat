@@ -1,13 +1,13 @@
-// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+// Copyright:: Copyright (c) 2016 Chef Software, Inc.
 //
 // The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {AppStore} from "../AppStore";
+import {AppStore} from "../../AppStore";
 import {Component, Input} from "angular2/core";
 import {Router, RouterLink} from "angular2/router";
-import {requestRoute, signOut, toggleUserNavMenu} from "../actions";
+import {requestRoute, signOut, toggleUserNavMenu} from "../../actions";
 
 @Component({
   directives: [RouterLink],
@@ -34,16 +34,20 @@ import {requestRoute, signOut, toggleUserNavMenu} from "../actions";
 export class UserNavComponent {
   constructor(private store: AppStore) {}
 
+  get state() {
+    return this.store.getState();
+  }
+
   get isOpen() {
-    return this.store.getState().isUserNavOpen;
+    return this.state.isUserNavOpen;
   }
 
   get isSignedIn() {
-    return this.store.getState().isSignedIn;
+    return this.state.isSignedIn;
   }
 
   get username() {
-    return this.store.getState().username;
+    return this.state.username;
   }
 
   get isOnSignUpPage() {

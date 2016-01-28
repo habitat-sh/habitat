@@ -9,6 +9,7 @@
 import * as Immutable from "immutable";
 import * as actionTypes from "./actions";
 import packages from "../fixtures/packages.ts";
+import query from "./query";
 
 const initialState = Immutable.Record({
   appName: "bldr",
@@ -22,6 +23,7 @@ const initialState = Immutable.Record({
   requestedRoute: null,
   route: null,
   username: "smith",
+  visiblePackages: [],
 })();
 
 export function rootReducer(state = initialState, action) {
@@ -45,6 +47,19 @@ export function rootReducer(state = initialState, action) {
       set("isSignedIn", false);
   case actionTypes.ROUTE_REQUESTED:
     return state.set("requestedRoute", action.payload);
+  case actionTypes.SET_VISIBLE_PACKAGES:
+    const q = query(state.get("packages"));
+    if (action.payload.filter === "all") {
+      return state.set("visiblePackages", q.allMostRecent().toArray());
+    } else if (action.payload.filter === "mine") {
+      return state.set("visiblePackages", q.allMostRecentForDerivation(
+        "smith").toArray());
+    } else if (action.payload.derivation) {
+      return state.set("visiblePackages", q.allMostRecentForDerivation(
+        action.payload.derivation).toArray());
+    } else {
+      return state.set("visiblePackages", q.allMostRecent().toArray());
+    }
   case actionTypes.TOGGLE_USER_NAV_MENU:
     return state.set("isUserNavOpen", !state.get("isUserNavOpen"));
   default:

@@ -1,7 +1,10 @@
+app**/*.js
+app**/*.js.map
 *.css
 *.css.map
 app.js
 app.js.map
 node_modules
 npm-debug.log
+/dist
 /typings

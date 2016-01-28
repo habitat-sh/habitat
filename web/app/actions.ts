@@ -6,6 +6,7 @@
 
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
+export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
 export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
 export const SIGN_OUT = "SIGN_OUT";
@@ -26,6 +27,13 @@ export function attemptSignUp(username, email, password) {
       email: email,
       password: password,
     }
+  };
+}
+
+export function filterPackagesBy(filter, derivation) {
+  return {
+    type: SET_VISIBLE_PACKAGES,
+    payload: { filter, derivation }
   };
 }
 

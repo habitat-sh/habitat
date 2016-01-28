@@ -30,7 +30,7 @@ export class HomeComponent {
   ngOnInit() {
     if (this.store.getState().isSignedIn) {
       this.store.dispatch(
-        requestRoute(["Packages", { derivation: this.username }])
+        requestRoute(["Packages", { show: "mine" }])
       );
     }
   }

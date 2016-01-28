@@ -5,7 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 .bldr-header-user {
-  @include span-columns(3);
+  @include span-columns(1);
   @include omega();
 
   text-align: right;
@@ -15,8 +15,12 @@
   }
 
   li {
-    padding-left: 1em;
     display: inline;
     white-space: nowrap;
+    position: relative;
+  }
+
+  li>ul {
+    position: absolute;
   }
 }

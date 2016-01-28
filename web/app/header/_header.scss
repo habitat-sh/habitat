@@ -1,0 +1,25 @@
+.bldr-header {
+  @include outer-container;
+  margin-bottom: $base-spacing;
+
+  h1 {
+    @include span-columns(1);
+    display: inline;
+    margin-bottom: 0;
+  }
+
+  &-links {
+    padding: 0.3em;
+    @include span-columns(10);
+    display: inline-block;
+
+    ul {
+      display: inline;
+
+      li {
+        display: inline;
+        margin-right: $base-spacing;
+      }
+    }
+  }
+}
