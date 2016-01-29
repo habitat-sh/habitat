@@ -25,6 +25,8 @@ ssh_key = data_bag_item('delivery-secrets', 'chef-bldr-acceptance')['github']
 
 execute 'make clean package functional force=true' do
   cwd node['delivery']['workspace']['repo']
+  # set a two hour time out because this makes the world
+  timeout 7200
   environment(
     'GITHUB_DEPLOY_KEY' => ssh_key,
     'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
