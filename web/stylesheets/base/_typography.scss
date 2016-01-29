@@ -4,6 +4,10 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+html {
+  overflow-y: scroll;
+}
+
 body {
   color: $base-font-color;
   font-family: $base-font-family;
@@ -49,6 +53,11 @@ a {
   &:focus,
   &:hover {
     color: shade($action-color, 25%);
+  }
+
+  &.active {
+    color: $base-font-color;
+    cursor: default;
   }
 }
 

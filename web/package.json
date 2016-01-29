@@ -17,6 +17,8 @@
     "lint-css-watch": "watch 'npm run lint-css'",
     "lint-js": "tslint app**/*.ts",
     "lint-js-watch": "watch 'npm run lint-js'",
+    "dist": "mkdir -p dist && rm -rf dist/* && npm run build && cp -R app.css* app.js* favicon.ico fixtures index.html dist",
+    "help": "cat README.md",
     "repl": "ts-node",
     "postinstall": "tsd install",
     "start": "concurrent \"npm run build-css-watch\" \"npm run build-js-watch\" \"npm run lint-css-watch\" \"npm run lint-js-watch\" \"lite-server\""

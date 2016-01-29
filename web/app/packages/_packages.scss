@@ -8,8 +8,8 @@
   &-plan-list {
     li {
       a {
-        margin-bottom: 1em;
-        padding: 1em;
+        margin-bottom: $small-spacing;
+        padding: $small-spacing;
         border: 1px solid;
         display: block;
       }

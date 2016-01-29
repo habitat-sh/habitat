@@ -22,7 +22,7 @@ import query from "../query";
     </div>
     <div *ngIf="package" class="bldr-package">
       <h2>
-        <a [routerLink]="['Packages', { derivation: package.derivation }]">{{package.derivation}}</a>
+        <a [routerLink]="['PackagesForDerivation', { derivation: package.derivation }]">{{package.derivation}}</a>
         /
         {{package.name}}
         /
@@ -38,10 +38,6 @@ import query from "../query";
           <dd>{{package.license}}</dd>
           <dt>Source URL</dt>
           <dd><a href="{{package.source}}">{{package.source}}</a></dd>
-        </dl>
-      </div>
-      <div class="bldr-package-version-info">
-        <dl>
           <dt>Version</dt>
           <dd>{{package.version}}</dd>
           <dt>Release</dt>
@@ -58,15 +54,13 @@ import query from "../query";
         <h3>Releases <small>of version {{package.version}}</small></h3>
         <package-list [packages]="releases"></package-list>
       </div>
-      <div class="bldr-package-deps">
-        <div class="bldr-package-deps-build">
-          <h3>Build Dependencies</h3>
-          <package-list [packages]="package.buildDependencies"></package-list>
-        </div>
-        <div class="bldr-package-deps-runtime">
-          <h3>Runtime Dependencies</h3>
-          <package-list [packages]="package.dependencies"></package-list>
-        </div>
+      <div class="bldr-package-deps-build">
+        <h3>Build Dependencies</h3>
+        <package-list [packages]="package.buildDependencies"></package-list>
+      </div>
+      <div class="bldr-package-deps-runtime">
+        <h3>Runtime Dependencies</h3>
+        <package-list [packages]="package.dependencies"></package-list>
       </div>
     </div>
   </div>

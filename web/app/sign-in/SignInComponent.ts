@@ -32,13 +32,13 @@ export class SignInComponent {
   ngOnInit() {
     if (this.store.getState().isSignedIn) {
       this.store.dispatch(
-        requestRoute(["Packages", { derivation: this.username }])
-      )
+        requestRoute(["Packages", { show: "mine" }])
+      );
     }
   }
 
   onSubmit(username) {
     this.store.dispatch(attemptSignIn(username.value));
-    this.store.dispatch(requestRoute(["Packages", { derivation: username.value }]));
+    this.store.dispatch(requestRoute(["Packages", { show: "mine" }]));
   }
 }

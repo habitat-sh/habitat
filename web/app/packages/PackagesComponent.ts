@@ -6,28 +6,32 @@
 
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
-import {Router, RouterLink} from "angular2/router";
-import query from "../query";
-import {requestRoute} from "../actions";
+import {RouteParams, Router, RouterLink} from "angular2/router";
+import {filterPackagesBy, requestRoute} from "../actions";
 
 @Component({
   directives: [RouterLink],
   template: `
   <div class="bldr-packages">
-    <h2>{{username}}</h2>
-    <p>Packages owned by {{username}}</p>
+    <h2 *ngIf="show === 'mine'">My Packages</h2>
+    <h2 *ngIf="show === 'all'">All Packages</h2>
+    <h2 *ngIf="show === 'derivation'">{{derivation}}</h2>
     <ul class="bldr-packages-plan-list">
       <li *ngIf="packages.length === 0">
-        You have no packages. Here's how to create one: &hellip;
+        No packages found. Here's how to create one: &hellip;
       </li>
       <li class="bldr-packages-package" *ngFor="#package of packages">
         <a [routerLink]="['Package', { derivation: package.derivation,
                                        name: package.name,
                                        version: package.version,
                                        release: package.release }]">
-          {{package.derivation}}/{{package.name}}
+          {{package.derivation}}
           /
-          <small>{{package.version}}/{{package.release}}</small>
+          {{package.name}}
+          /
+          {{package.version}}
+          /
+          {{package.release}}
         </a>
       </li>
     </ul>
@@ -36,12 +40,24 @@ import {requestRoute} from "../actions";
 })
 
 export class PackagesComponent {
-  private packages;
+  constructor(private store: AppStore, private routeParams: RouteParams) {}
 
-  constructor(private store: AppStore) {
-    this.packages = query(this.store.getState().packages).
-      allMostRecentForDerivation("smith"). // The demo user
-      toArray();
+  get derivation() {
+    return this.routeParams.params["derivation"];
+  }
+
+  get packages() {
+    return this.store.getState().visiblePackages;
+  }
+
+  get show() {
+    if (this.routeParams.params["show"] === "mine") {
+      return "mine";
+    } else if (this.routeParams.params["derivation"]) {
+      return "derivation";
+    } else {
+      return "all";
+    }
   }
 
   get username() {
@@ -52,5 +68,8 @@ export class PackagesComponent {
     if (!this.store.getState().isSignedIn) {
       this.store.dispatch(requestRoute(["Home"]));
     }
+
+    this.store.dispatch(filterPackagesBy(this.show,
+                                         this.routeParams.params["derivation"]));
   }
 }

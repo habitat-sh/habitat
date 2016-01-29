@@ -8,31 +8,22 @@
 @import "base/base";
 @import "neat";
 
+@import "header/header";
+@import "header/user-nav/user-nav";
 @import "home/home";
 @import "package/package";
 @import "packages/packages";
 @import "sign-in/sign-in";
 @import "sign-up-form/sign-up-form";
-@import "user-nav/user-nav";
 
 .bldr-container {
   @include outer-container;
 }
 
-.bldr-header {
-  @include outer-container;
-  margin-bottom: 3rem;
-
-  h1 {
-    @include span-columns(9);
-    display: inline;
-  }
-}
-
 .bldr-footer {
   @include outer-container;
   @include span-columns(12);
-  @include pad(2rem 0);
+  @include pad($base-spacing 0);
 
   font-size: 75%;
 }

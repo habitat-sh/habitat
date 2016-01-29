@@ -15,8 +15,11 @@ dl {
   margin-bottom: $small-spacing;
 
   dt {
-    font-weight: 600;
-    margin-top: $small-spacing;
+    min-width: 100px;
+    font-weight: bold;
+    clear: left;
+    float: left;
+    margin: 0 $small-spacing 0 0;
   }
 
   dd {
