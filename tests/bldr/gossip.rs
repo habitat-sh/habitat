@@ -313,3 +313,37 @@ fn ressurection_of_permanent_members() {
     assert_eq!(sup_a.incarnation(), 1);
     assert_eq!(sup_b.incarnation(), 1);
 }
+
+// If you ever find yourself completely isolated - you are alive, but every other peer is dead,
+// pretend that every peer is permanent, until you are no longer isolated. This protects from the
+// case where you are on your way to being partitioned, but you had requests in flight for a member
+// that never lands - and you wind up isolated.
+#[test]
+fn isolated_members_find_a_way_to_rejoin() {
+    setup::gpg_import();
+    setup::simple_service_gossip();
+
+    let mut sup_a = Supervisor::new();
+    let sup_b = Supervisor::with_peer(&sup_a);
+
+    // Make sure we are both alive
+    assert!(sup_a.wait_for_alive(&sup_b));
+    assert!(sup_b.wait_for_alive(&sup_a));
+
+    // Split them apart
+    sup_a.netsplit(&sup_b);
+
+    // Confirm they are dead
+    assert!(sup_a.wait_for_confirmed(&sup_b));
+    assert!(sup_b.wait_for_confirmed(&sup_a));
+
+    // Rejoin and confirm they are alive
+    sup_a.netjoin(&sup_b);
+
+    assert!(sup_a.wait_for_alive(&sup_b));
+    assert!(sup_b.wait_for_alive(&sup_a));
+
+    // Validate that the incarnation has increased
+    assert_eq!(sup_a.incarnation(), 1);
+    assert_eq!(sup_b.incarnation(), 1);
+}

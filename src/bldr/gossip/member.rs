@@ -184,6 +184,13 @@ impl MemberList {
         return true;
     }
 
+    /// Set a members health to Alive
+    pub fn alive(&mut self, member_id: &MemberId) {
+        if let Some(mut member) = self.members.get_mut(member_id) {
+            member.health = Health::Alive;
+        }
+    }
+
     /// Set a members health to Suspect.
     pub fn suspect(&mut self, member_id: &MemberId) {
         if let Some(mut member) = self.members.get_mut(member_id) {
@@ -234,6 +241,19 @@ impl MemberList {
             }
         }
         usual_suspects
+    }
+
+    /// Return true if all members other than the provided id are Confirmed.
+    pub fn isolated(&self, myself: &MemberId) -> bool {
+        self.members.iter().fold(true, |acc, (id, m)| {
+            if id == myself {
+                acc
+            } else if m.health == Health::Confirmed && acc != false {
+                true
+            } else {
+                false
+            }
+        })
     }
 }
 
@@ -378,7 +398,7 @@ mod test {
 
     mod member_list {
         use uuid::Uuid;
-        use gossip::member::{Member, MemberList};
+        use gossip::member::{Member, MemberList, Health};
 
         #[test]
         fn insert() {
@@ -487,6 +507,43 @@ mod test {
             ml.insert(oldie);
             // With more than 5 members, use them all
             assert_eq!(ml.pingreq_targets(&my_id, &dead_id).len(), 5);
+        }
+
+        #[test]
+        fn isolated() {
+            let member_names = [String::from("a.foo.com"),
+                                String::from("b.foo.com"),
+                                String::from("c.foo.com"),
+                                String::from("d.foo.com")];
+            let mut ml = MemberList::new();
+            for name in member_names.iter() {
+                let mut member = Member::new(Uuid::new_v4(),
+                                             name.clone(),
+                                             String::from("192.168.1.1"),
+                                             String::from("192.168.1.1:4312"),
+                                             false);
+                member.health = Health::Confirmed;
+                ml.insert(member);
+            }
+            let myself = Member::new(Uuid::new_v4(),
+                                     String::from("me"),
+                                     String::from("192.168.1.100"),
+                                     String::from("192.168.1.100:4312"),
+                                     false);
+            let my_id = myself.id.clone();
+            ml.insert(myself);
+
+            // Everyone is confirmed, so we are isolated
+            assert_eq!(ml.isolated(&my_id), true);
+
+            let mut among_the_living = ml.next().unwrap().id.clone();
+            if among_the_living == my_id {
+                among_the_living = ml.next().unwrap().id.clone();
+            }
+            ml.alive(&among_the_living);
+
+            // One member who is not us is alive, so we are not isolated
+            assert_eq!(ml.isolated(&my_id), false);
         }
     }
 }

@@ -435,8 +435,11 @@ pub fn outbound(my_peer: Peer,
             continue;
         }
 
-        // You can skip dead members, unless they are permanent
-        if member.health == Health::Confirmed && !member.permanent {
+        // You can skip dead members, unless they are permanent, or you are isolated
+        let isolated = {
+            member_list.read().unwrap().isolated(&my_peer.member_id)
+        };
+        if member.health == Health::Confirmed && !member.permanent && !isolated {
             continue;
         }
 
