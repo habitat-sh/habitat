@@ -52,6 +52,7 @@ fn gpg_test_setup() -> String {
     gpg_cache
 }
 
+#[test]
 fn kt_generate_service_key() {
     // also tests list-keys
     let gpg_cache = gpg_test_setup();
