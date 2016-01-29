@@ -7,7 +7,7 @@
     "build": "concurrent \"npm run build-js\" \"npm run build-css\"",
     "build-css": "npm run lint-css && node-sass --source-map=true --include-path=node_modules/bourbon-neat/app/assets/stylesheets --include-path=node_modules/bourbon/app/assets/stylesheets --include-path=node_modules/normalize-scss/sass --include-path=node_modules/normalize-scss/node_modules/support-for/sass --include-path=stylesheets --output=. app/app.scss",
     "build-css-watch": "npm run build-css && npm run build-css -- --watch",
-    "build-js": "npm run lint-js && webpack",
+    "build-js": "webpack",
     "build-js-watch": "npm run build-js -- --watch",
     "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
     "clean-css": "rm -fv app.css app.css.map",
@@ -21,7 +21,7 @@
     "help": "cat README.md",
     "repl": "ts-node",
     "postinstall": "tsd install",
-    "start": "concurrent \"npm run build-css-watch\" \"npm run build-js-watch\" \"npm run lint-css-watch\" \"npm run lint-js-watch\" \"lite-server\""
+    "start": "concurrent \"npm run build-css-watch\" \"npm run build-js-watch\" \"npm run lint-css-watch\" \"lite-server\""
   },
   "dependencies": {
     "angular2": "^2.0.0-beta.1",
@@ -46,6 +46,7 @@
     "ts-node": "^0.5.5",
     "tsd": "^0.6.5",
     "tslint": "^3.2.2",
+    "tslint-loader": "^2.1.0",
     "typescript": "^1.7.3",
     "watch": "^0.17.1",
     "webpack": "^1.12.11"

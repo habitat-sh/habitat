@@ -3,14 +3,14 @@
   margin-bottom: $base-spacing;
 
   h1 {
-    @include span-columns(1);
+    @include span-columns(2);
     display: inline;
     margin-bottom: 0;
   }
 
   &-links {
     padding: 0.3em;
-    @include span-columns(10);
+    @include span-columns(9);
     display: inline-block;
 
     ul {

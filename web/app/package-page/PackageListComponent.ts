@@ -5,11 +5,11 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {Component} from "angular2/core";
-import {RouterLink, RouteParams} from "angular2/router";
+import {RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
 
 @Component({
-  inputs: ["packages"],
+  inputs: ["currentPackage", "packages"],
   directives: [RouterLink],
   selector: "package-list",
   template: `
@@ -28,8 +28,8 @@ import {isPackage, packageString} from "../util";
 })
 
 export class PackageListComponent {
-  constructor(private routeParams: RouteParams) {}
+  private currentPackage: Object;
+  private packages: Array<Object>;
   private isPackage(x, y) { return isPackage(x, y); }
   private packageString(pkg) { return packageString(pkg); }
-  get currentPackage() { return this.routeParams.params; }
 }

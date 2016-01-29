@@ -5,8 +5,8 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {AppStore} from "../AppStore";
-import {Component} from "angular2/core";
-import {RouteParams, Router, RouterLink} from "angular2/router";
+import {Component, OnInit} from "angular2/core";
+import {RouteParams, RouterLink} from "angular2/router";
 import {filterPackagesBy, requestRoute} from "../actions";
 
 @Component({
@@ -39,7 +39,7 @@ import {filterPackagesBy, requestRoute} from "../actions";
   `
 })
 
-export class PackagesComponent {
+export class PackagesPageComponent implements OnInit {
   constructor(private store: AppStore, private routeParams: RouteParams) {}
 
   get derivation() {

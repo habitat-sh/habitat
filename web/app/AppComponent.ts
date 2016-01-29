@@ -5,17 +5,17 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {AppStore} from "./AppStore";
-import {Component, Inject} from "angular2/core";
+import {Component} from "angular2/core";
 import {HeaderComponent} from "./header/HeaderComponent";
-import {HomeComponent} from "./home/HomeComponent";
-import {PackageComponent} from "./package/PackageComponent";
-import {PackagesComponent} from "./packages/PackagesComponent";
-import {Router, RouteConfig, ROUTER_DIRECTIVES} from "angular2/router";
-import {SignInComponent} from "./sign-in/SignInComponent";
+import {HomePageComponent} from "./home-page/HomePageComponent";
+import {PackagePageComponent} from "./package-page/PackagePageComponent";
+import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
+import {RouteConfig, Router, RouterOutlet} from "angular2/router";
+import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
 import {routeChange} from "./actions";
 
 @Component({
-  directives: [ROUTER_DIRECTIVES, HeaderComponent],
+  directives: [HeaderComponent, RouterOutlet],
   selector: "bldr",
   template: `
     <div class="bldr-container">
@@ -31,27 +31,32 @@ import {routeChange} from "./actions";
 })
 
 @RouteConfig([
-  { path: "/", name: "Home", component: HomeComponent },
-  { path: "/packages", name: "Packages", component: PackagesComponent },
-  { path: "/packages/:derivation", name: "PackagesForDerivation", component: PackagesComponent },
+  { path: "/", name: "Home", component: HomePageComponent },
+  { path: "/packages", name: "Packages", component: PackagesPageComponent },
+  { path: "/packages/:derivation", name: "PackagesForDerivation",
+    component: PackagesPageComponent },
   { path: "/packages/:derivation/:name/:version/:release", name: "Package",
-    component: PackageComponent },
-  { path: "/sign-in", name: "Sign In", component: SignInComponent },
+    component: PackagePageComponent },
+  { path: "/sign-in", name: "Sign In", component: SignInPageComponent },
 ])
 
 export class AppComponent {
-  private state;
-
   constructor(private router: Router, private store: AppStore) {
-    this.state = store.getState();
-
+    // Whenever the Angular route has an event, dispatch an event with the new
+    // route data.
     router.subscribe(value => store.dispatch(routeChange(value)));
 
+    // Listen for changes on the state.
     store.subscribe(state => {
-      let requestedRoute = store.getState().requestedRoute;
-      console.log("New state received ", state.toObject());
-
+      // If the state has a requestedRoute attribute, use the router to navigate
+      // to the route that was requested.
+      const requestedRoute = state.requestedRoute;
       if (requestedRoute) { router.navigate(requestedRoute); }
+
+      // For now, just dump the state in the console whenever it changes.
+      console.log("New state received ", state.toObject());
     });
   }
+
+  get state() { return this.store.getState(); }
 }

@@ -33,6 +33,33 @@ TASK_NAME`.
 * `repl`: Start a TypeScript REPL
 * `start`: Watch for changes and start a development server running on port 3000
 
+### Code Style Conventions
+
+These are guidelines for how to structure and format code in the application.
+
+* TypeScript is linted with [TSLint](http://palantir.github.io/tslint/). The
+  rules followed in this repository are in the [tslint.json](tslint.json) file.
+  Check your code with `npm run lint-js`.
+* SCSS is linted with [Sass Lint](https://github.com/sasstools/sass-lint). The
+  rules followed in this repository are in the [.sass-lint.yml](.sass-lint.yml)
+  file. Check your code with `npm run lint-css`.
+* TypeScript files should be named the same name as their default export (or the
+  main thing they are concerned with, if there is no default export), so if a
+  file has `export default class AppComponent {}`, it should be named
+  AppComponent.ts. If a module exports many things, it should given an
+  appropriate name and use camelCase.
+* Directories should be made for components and their associated files when
+  there is more than one file that pertains to a component.
+* Directories that end in -page/ and components that are SomethingPageComponent
+  are "page components", meaning they represent something that functions as a
+  page in the app. All of these should be used in the `RouteConfig` of the
+  AppComponent.
+* Directory names and SCSS file names should use snake-case.
+* SCSS files should start with an underscore and use snake-case:
+  \_my-thing.scss. (in Sass, files that start with underscore are partials and
+  can be loaded into other files. [app/app.scss](app/app.scss) imports these
+  files.)
+
 ## "Production"
 
 To build the JavaScript and CSS files, run `npm run build`.
