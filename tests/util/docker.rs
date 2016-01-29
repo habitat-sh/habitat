@@ -15,6 +15,7 @@ use time;
 use regex::Regex;
 use std::thread;
 use std::env;
+use std::time::Duration;
 
 #[derive(Debug)]
 pub struct Docker {
@@ -42,6 +43,17 @@ fn docker_cmd(args: &[&str]) -> Docker {
 
 pub fn run(image: &str) -> Docker {
     docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", image])
+}
+
+pub fn run_with_topology(image: &str, topology: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--group={}", thread::current().name().unwrap_or("main")),
+                 &format!("--topology={}", topology)])
 }
 
 pub fn repo(image: &str) -> Docker {
@@ -82,6 +94,43 @@ pub fn run_with_permanent(image: &str) -> Docker {
                  image,
                  "start",
                  image,
+                 &format!("--group={}", thread::current().name().unwrap_or("main")),
+                 &format!("--gossip-permanent")])
+}
+
+pub fn run_with_peer_topology(image: &str, peer: &str, topology: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--topology={}", topology),
+                 &format!("--gossip-peer={}", peer),
+                 &format!("--group={}", thread::current().name().unwrap_or("main"))])
+}
+
+pub fn run_with_peer_permanent_topology(image: &str, peer: &str, topology: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--topology={}", topology),
+                 &format!("--gossip-peer={}", peer),
+                 &format!("--group={}", thread::current().name().unwrap_or("main")),
+                 &format!("--gossip-permanent")])
+}
+
+pub fn run_with_permanent_topology(image: &str, topology: &str) -> Docker {
+    docker_cmd(&["run",
+                 "-d",
+                 "--cap-add=NET_ADMIN",
+                 image,
+                 "start",
+                 image,
+                 &format!("--topology={}", topology),
                  &format!("--group={}", thread::current().name().unwrap_or("main")),
                  &format!("--gossip-permanent")])
 }
@@ -140,7 +189,7 @@ impl Docker {
     pub fn logs(&self) -> String {
         loop {
             // Because docker sometimes returns you a container, but the log endpoint fails.
-            thread::sleep_ms(500);
+            thread::sleep(Duration::from_millis(500));
             let mut cmd = command::run("docker", &["logs", &self.container_id])
                               .unwrap_or_else(|x| panic!("{:?}", x));
             cmd.wait_with_output();

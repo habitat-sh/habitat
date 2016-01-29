@@ -22,7 +22,7 @@ use std::collections::BTreeMap;
 use wonder::actor::{self, GenServer, HandleResult, InitResult, StopReason, ActorSender};
 use toml;
 
-use census;
+use old_census;
 use discovery::etcd;
 use config::Config;
 use error::{BldrError, BldrResult, ErrorKind};
@@ -223,7 +223,8 @@ impl GenServer for WatchActor {
                                 Some(census_toml) => census_toml,
                                 None => continue,
                             };
-                            let mut census = census::Census::new(census::CensusEntry::new());
+                            let mut census =
+                                old_census::Census::new(old_census::CensusEntry::new());
                             let mut census_map = BTreeMap::new();
                             census_map.insert(String::from("census"), census_toml);
                             match census.update(&toml::encode_str(&census_map)) {

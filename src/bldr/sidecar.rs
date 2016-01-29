@@ -18,6 +18,7 @@ use iron::prelude::*;
 use iron::status;
 use router::Router;
 use std::sync::{Arc, RwLock};
+use std::collections::HashMap;
 
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, StopReason, ActorSender};
@@ -29,13 +30,16 @@ use service_config::ServiceConfig;
 use gossip::member::{MemberList, MemberId};
 use gossip::rumor::RumorList;
 use gossip::detector::Detector;
-use census::Census;
+use census::{CensusList, CensusEntry, CensusEntryId, Census};
+use election::{Election, ElectionList};
 
 static LOGKEY: &'static str = "SC";
 const GET_HEALTH: &'static str = "/health";
 const GET_CONFIG: &'static str = "/config";
 const GET_STATUS: &'static str = "/status";
 const GET_GOSSIP: &'static str = "/gossip";
+const GET_CENSUS: &'static str = "/census";
+const GET_ELECTION: &'static str = "/election";
 const LISTEN_ADDR: &'static str = "0.0.0.0:9631";
 
 pub type SidecarActor = wonder::actor::Actor<SidecarMessage>;
@@ -49,8 +53,9 @@ pub struct SidecarState {
     pub config: Arc<RwLock<ServiceConfig>>,
     pub member_list: Arc<RwLock<MemberList>>,
     pub rumor_list: Arc<RwLock<RumorList>>,
-    pub census: Arc<RwLock<Census>>,
+    pub census_list: Arc<RwLock<CensusList>>,
     pub detector: Arc<RwLock<Detector>>,
+    pub election_list: Arc<RwLock<ElectionList>>,
 }
 
 #[derive(Debug)]
@@ -64,16 +69,18 @@ impl SidecarState {
                config: Arc<RwLock<ServiceConfig>>,
                member_list: Arc<RwLock<MemberList>>,
                rumor_list: Arc<RwLock<RumorList>>,
-               census: Arc<RwLock<Census>>,
-               detector: Arc<RwLock<Detector>>)
+               census_list: Arc<RwLock<CensusList>>,
+               detector: Arc<RwLock<Detector>>,
+               election_list: Arc<RwLock<ElectionList>>)
                -> Self {
         SidecarState {
             package: package,
             config: config,
             member_list: member_list,
             rumor_list: rumor_list,
-            census: census,
+            census_list: census_list,
             detector: detector,
+            election_list: election_list,
         }
     }
 }
@@ -84,10 +91,17 @@ impl Sidecar {
                  config: Arc<RwLock<ServiceConfig>>,
                  member_list: Arc<RwLock<MemberList>>,
                  rumor_list: Arc<RwLock<RumorList>>,
-                 census: Arc<RwLock<Census>>,
-                 detector: Arc<RwLock<Detector>>)
+                 census_list: Arc<RwLock<CensusList>>,
+                 detector: Arc<RwLock<Detector>>,
+                 election_list: Arc<RwLock<ElectionList>>)
                  -> SidecarActor {
-        let state = SidecarState::new(package, config, member_list, rumor_list, census, detector);
+        let state = SidecarState::new(package,
+                                      config,
+                                      member_list,
+                                      rumor_list,
+                                      census_list,
+                                      detector,
+                                      election_list);
         wonder::actor::Builder::new(Sidecar).name("sidecar".to_string()).start(state).unwrap()
     }
 }
@@ -120,10 +134,18 @@ impl GenServer for Sidecar {
         let ml = state.member_list.clone();
         let rl = state.rumor_list.clone();
         let detector = state.detector.clone();
-        let id = Arc::new(state.census.read().unwrap().me().unwrap().id.clone());
+        let id = {
+            Arc::new(ml.read().unwrap().my_id.clone())
+        };
 
         router.get(GET_GOSSIP,
                    move |r: &mut Request| gossip(&ml, &rl, &detector, &id, r));
+
+        let cl1 = state.census_list.clone();
+        router.get(GET_CENSUS, move |r: &mut Request| census(&cl1, r));
+
+        let el = state.election_list.clone();
+        router.get(GET_ELECTION, move |r: &mut Request| election(&el, r));
 
         match Iron::new(router).http(LISTEN_ADDR) {
             Ok(_) => HandleResult::NoReply(None),
@@ -132,6 +154,27 @@ impl GenServer for Sidecar {
             }
         }
     }
+}
+
+#[derive(Debug, RustcEncodable)]
+struct ElectionResponse<'a> {
+    elections: &'a HashMap<String, Election>,
+    mine: Option<&'a Election>,
+}
+
+fn election(election_list: &Arc<RwLock<ElectionList>>, _req: &mut Request) -> IronResult<Response> {
+    let el = election_list.read().unwrap();
+    let er = ElectionResponse {
+        elections: &el.elections,
+        mine: el.election(),
+    };
+
+    let json_response = match json::encode(&er) {
+        Ok(json_response) => json_response,
+        Err(e) => return Err(IronError::from(bldr_error!(ErrorKind::JsonEncode(e)))),
+    };
+
+    Ok(Response::with((status::Ok, json_response)))
 }
 
 #[derive(Debug, RustcEncodable)]
@@ -170,6 +213,39 @@ fn gossip(member_list: &Arc<RwLock<MemberList>>,
     Ok(Response::with((status::Ok, json_response)))
 }
 
+#[derive(Debug, RustcEncodable)]
+struct CensusResponse<'a> {
+    id: &'a CensusEntryId,
+    census_list: &'a CensusList,
+    me: &'a CensusEntry,
+    local_census: &'a Census,
+    minimum_quorum: bool,
+    quorum: bool,
+    leader: Option<&'a CensusEntry>,
+}
+
+/// The /census callback.
+///
+/// Returns information about the census.
+fn census(census_list: &Arc<RwLock<CensusList>>, _req: &mut Request) -> IronResult<Response> {
+    let cl = census_list.read().unwrap();
+    let response = CensusResponse {
+        id: &cl.me().id.clone(),
+        census_list: &cl,
+        me: cl.me(),
+        local_census: cl.local_census(),
+        minimum_quorum: cl.local_census().minimum_quorum(),
+        quorum: cl.local_census().has_quorum(),
+        leader: cl.local_census().get_leader(),
+    };
+
+    let json_response = match json::encode(&response) {
+        Ok(json_response) => json_response,
+        Err(e) => return Err(IronError::from(bldr_error!(ErrorKind::JsonEncode(e)))),
+    };
+
+    Ok(Response::with((status::Ok, json_response)))
+}
 
 /// The /config callback.
 ///

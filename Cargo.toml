@@ -2,7 +2,7 @@
 name = "bldr"
 version = "0.4.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-exclude = ["plans/**/*"]
+exclude = ["plans/**/*","web/**/*"]
 
 [lib]
 name = "bldr"
@@ -32,7 +32,7 @@ iron = "*"
 router = "*"
 time = "*"
 uuid = "*"
-utp = "*"
+temp_utp = "*"
 rpassword = "*"
 rand = "*"
 threadpool = "*"

@@ -11,6 +11,7 @@ pkg_binary_path=(bin)
 pkg_deps=(chef/gpgme chef/libassuan chef/libgpg-error chef/libarchive chef/busybox)
 pkg_service_run="bin/simple_service"
 pkg_docker_build="auto"
+pkg_docker_build_no_cache="true"
 pkg_docker_from="chef/bldr:latest"
 pkg_service_user=root
 

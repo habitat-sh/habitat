@@ -58,8 +58,7 @@ fn kt_generate_service_key() {
     let gpg_cache = gpg_test_setup();
 
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                           &test_uuid],
+    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key", &test_uuid],
                                                          &gpg_cache)
                            .unwrap();
 
@@ -85,8 +84,7 @@ fn kt_generate_service_key_with_bldr_prefix() {
     let test_uuid = Uuid::new_v4().to_simple_string();
     let test_uuid_with_prefix = "bldr_".to_string() + &test_uuid;
 
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                           &test_uuid],
+    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key", &test_uuid],
                                                          &gpg_cache)
                            .unwrap();
 

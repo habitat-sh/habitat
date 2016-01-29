@@ -9,6 +9,8 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::fmt;
+use std::time::Duration;
+use std::thread;
 
 /// The StateMachine struct.
 ///
@@ -19,9 +21,9 @@ pub struct StateMachine<T, X, E> {
     /// The states our machine supports
     pub state: T,
     /// How long to wait between state transitions
-    pub delay: u32,
+    pub delay: u64,
     /// The dispatch table of states to functions
-    pub dispatch: HashMap<T, fn(&mut X) -> Result<(T, u32), E>>,
+    pub dispatch: HashMap<T, fn(&mut X) -> Result<(T, u64), E>>,
 }
 
 impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
@@ -35,12 +37,12 @@ impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
     }
 
     /// Add a function to run for a given state.
-    pub fn add_dispatch(&mut self, state: T, funk: fn(&mut X) -> Result<(T, u32), E>) {
+    pub fn add_dispatch(&mut self, state: T, funk: fn(&mut X) -> Result<(T, u64), E>) {
         self.dispatch.insert(state, funk);
     }
 
     /// Set the next state, and a delay.
-    fn set_state(&mut self, state: T, delay: u32) {
+    fn set_state(&mut self, state: T, delay: u64) {
         self.state = state;
         self.delay = delay;
     }
@@ -48,6 +50,9 @@ impl<T: Eq + Hash + fmt::Debug, X, E> StateMachine<T, X, E> {
     /// Call the current state function, then update the next state to its return value.
     pub fn next(&mut self, worker: &mut X) -> Result<(), E> {
         if self.dispatch.contains_key(&self.state) {
+            if self.delay != 0 {
+                thread::sleep(Duration::from_millis(self.delay));
+            }
             let (next_state, delay) = try!(self.dispatch.get(&self.state).unwrap()(worker));
             self.set_state(next_state, delay);
         } else {
@@ -92,12 +97,12 @@ mod tests {
     }
 
     impl Worker {
-        fn state_init(&mut self) -> Result<(State, u32), WorkerError> {
+        fn state_init(&mut self) -> Result<(State, u64), WorkerError> {
             self.value = String::from("init");
             Ok((State::Done, 0))
         }
 
-        fn state_done(&mut self) -> Result<(State, u32), WorkerError> {
+        fn state_done(&mut self) -> Result<(State, u64), WorkerError> {
             self.value = String::from("done");
             Ok((State::Init, 0))
         }

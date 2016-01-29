@@ -11,6 +11,9 @@
 
 use std::mem;
 use std::collections::HashMap;
+use std::fmt;
+use std::ops::Deref;
+
 use rand::{thread_rng, Rng};
 use uuid::Uuid;
 
@@ -49,14 +52,9 @@ pub struct Member {
 
 impl Member {
     /// Create a new member.
-    pub fn new(id: Uuid,
-               hostname: String,
-               ip: String,
-               gossip_listener: String,
-               permanent: bool)
-               -> Member {
+    pub fn new(hostname: String, ip: String, gossip_listener: String, permanent: bool) -> Member {
         Member {
-            id: id,
+            id: MemberId::new_v4(),
             hostname: hostname,
             ip: ip,
             gossip_listener: gossip_listener,
@@ -116,23 +114,33 @@ impl Member {
     }
 }
 
+impl fmt::Display for Member {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", self.ip, self.id)
+    }
+}
+
 /// A list of members. Keeps track of both the members themselves, and provides an order to iterate
 /// through them via the `next()` function.
 #[derive(Debug, RustcDecodable, RustcEncodable)]
 pub struct MemberList {
-    members: HashMap<Uuid, Member>,
+    members: HashMap<MemberId, Member>,
     position: usize,
     order: Vec<Uuid>,
+    pub my_id: MemberId,
 }
 
 impl MemberList {
     /// Create a new member list
-    pub fn new() -> MemberList {
-        MemberList {
+    pub fn new(my_member: Member) -> MemberList {
+        let mut ml = MemberList {
             members: HashMap::new(),
             position: 0,
             order: Vec::new(),
-        }
+            my_id: my_member.id.clone(),
+        };
+        ml.insert(my_member);
+        ml
     }
 
     /// Insert a member into the list.
@@ -170,10 +178,10 @@ impl MemberList {
     ///
     /// Either way, we return true if we added a new member or mutated an existing one; false if we
     /// did nothing.
-    pub fn process(&mut self, my_id: &MemberId, remote_member: Member) -> bool {
+    pub fn process(&mut self, remote_member: Member) -> bool {
         // This is strange - rust won't let this be an else.
         if let Some(mut current_member) = self.members.get_mut(&remote_member.id) {
-            return current_member.update_via(my_id, remote_member);
+            return current_member.update_via(&self.my_id, remote_member);
         }
         match remote_member.health {
             Health::Alive => warn!("Member {} is alive", remote_member.id),
@@ -182,6 +190,16 @@ impl MemberList {
         }
         self.insert(remote_member);
         return true;
+    }
+
+    /// Return true if this member is alive
+    pub fn is_alive(&self, member_id: &MemberId) -> bool {
+        if let Some(member) = self.members.get(member_id) {
+            if member.health == Health::Alive {
+                return true;
+            }
+        }
+        false
     }
 
     /// Set a members health to Alive
@@ -257,19 +275,30 @@ impl MemberList {
     }
 }
 
+impl Deref for MemberList {
+    type Target = HashMap<MemberId, Member>;
+
+    fn deref(&self) -> &HashMap<MemberId, Member> {
+        &self.members
+    }
+}
+
 #[cfg(test)]
 mod test {
     mod member {
         use gossip::member::{Member, Health, MemberId};
 
+        fn bobo() -> Member {
+            Member::new(String::from("bobo"),
+                        String::from("192.168.1.1"),
+                        String::from("192.168.1.2"),
+                        false)
+        }
+
         #[test]
         fn update_via_rhs_higher_incarnation() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(MemberId::new_v4(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
             let mut other_bobo = bobo.clone();
 
             // If the RHS has a higher incarnation, use it
@@ -282,11 +311,7 @@ mod test {
         #[test]
         fn update_via_lhs_higher_incarnation() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(MemberId::new_v4(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
             let other_bobo = bobo.clone();
 
             // If the LHS has a higher incarnation, use it
@@ -299,11 +324,7 @@ mod test {
         #[test]
         fn update_via_equal_incarnation_and_health() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(MemberId::new_v4(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
             let other_bobo = bobo.clone();
             let r = bobo.update_via(&my_id, other_bobo);
             assert_eq!(*bobo.incarnation.time(), 0);
@@ -313,11 +334,7 @@ mod test {
         #[test]
         fn update_via_equal_and_rhs_confirmed() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(MemberId::new_v4(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
             let mut other_bobo = bobo.clone();
             other_bobo.health = Health::Confirmed;
             let r = bobo.update_via(&my_id, other_bobo);
@@ -328,11 +345,7 @@ mod test {
         #[test]
         fn update_via_equal_while_lhs_alive_and_rhs_suspect() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(MemberId::new_v4(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
             let mut other_bobo = bobo.clone();
             other_bobo.health = Health::Suspect;
             let r = bobo.update_via(&my_id, other_bobo);
@@ -343,11 +356,8 @@ mod test {
         #[test]
         fn update_via_equal_while_lhs_alive_and_rhs_suspect_and_lhs_is_me() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(my_id.clone(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
+            bobo.id = my_id.clone();
             let mut other_bobo = bobo.clone();
             other_bobo.health = Health::Suspect;
             let r = bobo.update_via(&my_id, other_bobo);
@@ -359,11 +369,8 @@ mod test {
         #[test]
         fn update_via_equal_while_lhs_alive_and_rhs_confirmed_and_lhs_is_me() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(my_id.clone(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
+            bobo.id = my_id.clone();
             let mut other_bobo = bobo.clone();
             other_bobo.health = Health::Confirmed;
             let r = bobo.update_via(&my_id, other_bobo);
@@ -376,11 +383,7 @@ mod test {
         #[test]
         fn update_via_equal_while_lhs_confirmed_and_rhs_suspect_or_alive() {
             let my_id = MemberId::new_v4();
-            let mut bobo = Member::new(MemberId::new_v4(),
-                                       String::from("bobo"),
-                                       String::from("192.168.1.1"),
-                                       String::from("192.168.1.2"),
-                                       false);
+            let mut bobo = bobo();
             let mut other_bobo = bobo.clone();
             bobo.health = Health::Confirmed;
             other_bobo.health = Health::Suspect;
@@ -400,42 +403,40 @@ mod test {
         use uuid::Uuid;
         use gossip::member::{Member, MemberList, Health};
 
-        #[test]
-        fn insert() {
-            let mut ml = MemberList::new();
-            let james = Member::new(Uuid::new_v4(),
-                                    String::from("james"),
+        fn new_member_list() -> MemberList {
+            let james = Member::new(String::from("james"),
                                     String::from("192.168.1.1"),
                                     String::from("192.168.1.1:4312"),
                                     false);
-            let jid = james.id.clone();
-            ml.insert(james);
-            assert!(ml.members.contains_key(&jid));
-            assert_eq!(ml.order[0], jid);
+            MemberList::new(james)
+        }
+
+        fn confirm_member_list(member_list: &mut MemberList) {
+            for (_id, mut member) in member_list.members.iter_mut() {
+                member.health = Health::Confirmed;
+            }
         }
 
         #[test]
         fn next() {
-            let member_names = [String::from("a.foo.com"),
-                                String::from("b.foo.com"),
-                                String::from("c.foo.com"),
-                                String::from("d.foo.com")];
-            let mut ml = MemberList::new();
-
-            // Returns None when the list is empty
-            assert!(ml.next().is_none());
+            let mut ml = new_member_list();
+            let mut member_names = vec![String::from("a.foo.com"),
+                                        String::from("b.foo.com"),
+                                        String::from("c.foo.com"),
+                                        String::from("d.foo.com")];
 
             for name in member_names.iter() {
-                let member = Member::new(Uuid::new_v4(),
-                                         name.clone(),
+                let member = Member::new(name.clone(),
                                          String::from("192.168.1.1"),
                                          String::from("192.168.1.1:4312"),
                                          false);
                 ml.insert(member);
             }
 
+            member_names.insert(0, String::from("james"));
+
             // The first pass through the list is in the order of initial insertion
-            for x in 0..4 {
+            for x in 0..5 {
                 match ml.next() {
                     Some(m) => assert_eq!(m.hostname, member_names[x]),
                     None => assert!(false, "Returned none rather than a member"),
@@ -444,7 +445,7 @@ mod test {
 
             // The next pass is randomized, but should hit every member
             let mut hit_them_all = vec![];
-            for _ in 0..4 {
+            for _ in 0..5 {
                 match ml.next() {
                     Some(m) => hit_them_all.push(m.hostname.clone()),
                     None => assert!(false, "Returned none rather than a member"),
@@ -453,18 +454,18 @@ mod test {
             for name in member_names.iter() {
                 assert!(hit_them_all.iter().any(|x| x == name))
             }
+            assert!(hit_them_all.iter().any(|x| x == "james"))
         }
 
         #[test]
         fn pingreq_members() {
+            let mut ml = new_member_list();
             let member_names = [String::from("a.foo.com"),
                                 String::from("b.foo.com"),
                                 String::from("c.foo.com"),
                                 String::from("d.foo.com")];
-            let mut ml = MemberList::new();
             for name in member_names.iter() {
-                let member = Member::new(Uuid::new_v4(),
-                                         name.clone(),
+                let member = Member::new(name.clone(),
                                          String::from("192.168.1.1"),
                                          String::from("192.168.1.1:4312"),
                                          false);
@@ -472,26 +473,25 @@ mod test {
             }
 
             let my_id = Uuid::new_v4();
-            let my_member = Member::new(my_id.clone(),
-                                        String::from("myguy"),
-                                        String::from("192.168.1.1"),
-                                        String::from("192.168.1.1:4312"),
-                                        false);
+            let mut my_member = Member::new(String::from("myguy"),
+                                            String::from("192.168.1.1"),
+                                            String::from("192.168.1.1:4312"),
+                                            false);
+            my_member.id = my_id.clone();
             ml.insert(my_member);
 
             let dead_id = Uuid::new_v4();
-            let dead_member = Member::new(dead_id.clone(),
-                                          String::from("deadguy"),
-                                          String::from("192.168.1.1"),
-                                          String::from("192.168.1.1:4312"),
-                                          false);
+            let mut dead_member = Member::new(String::from("deadguy"),
+                                              String::from("192.168.1.1"),
+                                              String::from("192.168.1.1:4312"),
+                                              false);
+            dead_member.id = dead_id.clone();
             ml.insert(dead_member);
 
-            // With fewer than 5 members (excluding the target), use them all
-            assert_eq!(ml.pingreq_targets(&my_id, &dead_id).len(), 4);
+            // With fewer than 6 members (excluding the target), use them all
+            assert_eq!(ml.pingreq_targets(&my_id, &dead_id).len(), 5);
 
-            let newbie = Member::new(Uuid::new_v4(),
-                                     String::from("newbie.foo.com"),
+            let newbie = Member::new(String::from("newbie.foo.com"),
                                      String::from("192.168.1.1"),
                                      String::from("192.168.1.1:4312"),
                                      false);
@@ -499,8 +499,7 @@ mod test {
             // With 5 members, use them all
             assert_eq!(ml.pingreq_targets(&my_id, &dead_id).len(), 5);
 
-            let oldie = Member::new(Uuid::new_v4(),
-                                    String::from("oldie.foo.com"),
+            let oldie = Member::new(String::from("oldie.foo.com"),
                                     String::from("192.168.1.1"),
                                     String::from("192.168.1.1:4312"),
                                     false);
@@ -511,22 +510,22 @@ mod test {
 
         #[test]
         fn isolated() {
+            let mut ml = new_member_list();
             let member_names = [String::from("a.foo.com"),
                                 String::from("b.foo.com"),
                                 String::from("c.foo.com"),
                                 String::from("d.foo.com")];
-            let mut ml = MemberList::new();
             for name in member_names.iter() {
-                let mut member = Member::new(Uuid::new_v4(),
-                                             name.clone(),
-                                             String::from("192.168.1.1"),
-                                             String::from("192.168.1.1:4312"),
-                                             false);
-                member.health = Health::Confirmed;
+                let member = Member::new(name.clone(),
+                                         String::from("192.168.1.1"),
+                                         String::from("192.168.1.1:4312"),
+                                         false);
                 ml.insert(member);
             }
-            let myself = Member::new(Uuid::new_v4(),
-                                     String::from("me"),
+
+            confirm_member_list(&mut ml);
+
+            let myself = Member::new(String::from("me"),
                                      String::from("192.168.1.100"),
                                      String::from("192.168.1.100:4312"),
                                      false);

@@ -59,28 +59,28 @@ mod setup {
     pub fn simple_service() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let tempdir = TempDir::new("simple_service").unwrap();
-            let mut copy_cmd = Command::new("cp")
-                                   .arg("-r")
-                                   .arg(util::path::fixture("simple_service"))
-                                   .arg(tempdir.path().to_str().unwrap())
-                                   .spawn()
-                                   .unwrap();
-            copy_cmd.wait().unwrap();
+                let tempdir = TempDir::new("simple_service").unwrap();
+                let mut copy_cmd = Command::new("cp")
+                                       .arg("-r")
+                                       .arg(util::path::fixture("simple_service"))
+                                       .arg(tempdir.path().to_str().unwrap())
+                                       .spawn()
+                                       .unwrap();
+                copy_cmd.wait().unwrap();
 
-            let mut simple_service =
-                match util::command::bldr_build(tempdir.path()
-                                                       .join("simple_service")) {
-                    Ok(cmd) => cmd,
-                    Err(e) => panic!("{:?}", e),
-                };
-            simple_service.wait_with_output();
-            if !simple_service.status.unwrap().success() {
-                panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
-                       simple_service.stdout,
-                       simple_service.stderr)
-            }
-        });
+                let mut simple_service =
+                    match util::command::bldr_build(tempdir.path()
+                                                           .join("simple_service")) {
+                        Ok(cmd) => cmd,
+                        Err(e) => panic!("{:?}", e),
+                    };
+                simple_service.wait_with_output();
+                if !simple_service.status.unwrap().success() {
+                    panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
+                           simple_service.stdout,
+                           simple_service.stderr)
+                }
+            });
     }
 
     pub fn simple_service_gossip() {
@@ -395,8 +395,7 @@ mod key_utils {
                     .unwrap()
             }
             None => {
-                command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                    &service_uuid],
+                command::bldr_with_test_gpg_cache(&["generate-service-key", &service_uuid],
                                                   cache_dir)
                     .unwrap()
             }

@@ -23,44 +23,230 @@
 //! every supervisors CensusEntry to elect a new leader in a reasonable amount of time.
 
 use std::collections::{HashMap, BTreeMap};
-use std::mem;
-use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
+use std::fmt;
+use std::ops::{Deref, DerefMut};
+use std::sync::{Arc, RwLock};
+use std::thread;
+use std::time::Duration;
 
 use toml;
 use uuid::Uuid;
-use wonder::actor::{self, GenServer, HandleResult, InitResult, StopReason, ActorSender};
 
-use config::Config;
-use error::{BldrResult, BldrError, ErrorKind};
-use discovery::etcd::{self, EtcdWrite};
+use gossip::member::{MemberId, MemberList, Health};
+use gossip::lamport_clock::LamportClock;
+use error::{BldrResult, ErrorKind};
 use util;
-use package::Package;
 
 static LOGKEY: &'static str = "CN";
+pub static MIN_QUORUM: usize = 3;
+
+pub type CensusEntryId = Uuid;
 
 /// A CensusEntry. Manages all the data about a given member of the census.
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable, Eq)]
 pub struct CensusEntry {
-    pub id: Uuid,
+    pub id: CensusEntryId,
+    pub member_id: MemberId,
     pub hostname: String,
     pub ip: String,
     suitability: u64,
-    port: Option<String>,
-    exposes: Option<Vec<String>>,
-    pub leader: Option<bool>,
-    pub follower: Option<bool>,
-    pub data_init: Option<bool>,
+    pub port: Option<String>,
+    pub exposes: Option<Vec<String>>,
+    pub leader: bool,
+    pub follower: bool,
+    pub data_init: bool,
     pub vote: Option<String>,
     pub election: Option<bool>,
     pub needs_write: Option<bool>,
     pub initialized: bool,
     keep_me: bool,
+    pub service: String,
+    pub group: String,
+    pub alive: bool,
+    pub suspect: bool,
+    pub confirmed: bool,
+    pub detached: bool,
+    pub incarnation: LamportClock,
+}
+
+
+impl CensusEntry {
+    /// Create a new CensusEntry for this supervisor.
+    pub fn new<S>(service: S, group: S, member_id: MemberId) -> CensusEntry
+        where S: Into<String>
+    {
+        CensusEntry {
+            id: Uuid::new_v4(),
+            member_id: member_id,
+            hostname: util::sys::hostname().unwrap_or(String::from("unknown")),
+            ip: util::sys::ip().unwrap_or(String::from("127.0.0.1")),
+            suitability: 0,
+            port: None,
+            exposes: None,
+            leader: false,
+            follower: false,
+            data_init: false,
+            vote: None,
+            election: None,
+            needs_write: None,
+            initialized: false,
+            keep_me: true,
+            alive: true,
+            suspect: false,
+            confirmed: false,
+            detached: false,
+            service: service.into(),
+            group: group.into(),
+            incarnation: LamportClock::new(),
+        }
+    }
+
+    pub fn needs_write(&self) -> bool {
+        self.needs_write.is_some()
+    }
+
+    /// Set our suitability number. This is an arbitrary determination of our 'suitability' to a
+    /// task; most likely, being the leader in an election.
+    pub fn suitability(&mut self, suitability: u64) {
+        self.suitability = suitability;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set a port number; often used as the default for watches
+    pub fn port(&mut self, port: Option<String>) {
+        self.port = port;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set an array of port numbers we expose.
+    pub fn exposes(&mut self, exposes: Option<Vec<String>>) {
+        self.exposes = exposes;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set our status at the leader.
+    pub fn leader(&mut self, leader: bool) {
+        if self.leader != leader {
+            self.leader = leader;
+            self.incarnation.increment();
+            self.needs_write = Some(true);
+        }
+    }
+
+    /// Set our status as a follower.
+    pub fn follower(&mut self, follower: bool) {
+        if self.follower != follower {
+            self.follower = follower;
+            self.incarnation.increment();
+            self.needs_write = Some(true);
+        }
+    }
+
+    /// Set our application initialization status to true.
+    pub fn initialized(&mut self) {
+        self.initialized = true;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set our status on having initialzied data.
+    pub fn data_init(&mut self, data_init: bool) {
+        if self.data_init != data_init {
+            self.data_init = data_init;
+            self.incarnation.increment();
+            self.needs_write = Some(true);
+        }
+    }
+
+    /// Set our vote.
+    pub fn vote(&mut self, vote: Option<String>) {
+        self.vote = vote;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Are we in an election?
+    pub fn election(&mut self, election: Option<bool>) {
+        self.election = election;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set us to alive.
+    pub fn set_alive(&mut self) {
+        self.alive = true;
+        self.suspect = false;
+        self.confirmed = false;
+        self.detached = false;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set our suspectness.
+    pub fn set_suspect(&mut self) {
+        self.alive = false;
+        self.suspect = true;
+        self.confirmed = false;
+        self.detached = false;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set our confirmedness.
+    pub fn set_confirmed(&mut self) {
+        self.alive = false;
+        self.suspect = false;
+        self.confirmed = true;
+        self.detached = false;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Set our detachedness.
+    pub fn set_detached(&mut self) {
+        self.alive = false;
+        self.suspect = false;
+        self.confirmed = false;
+        self.detached = true;
+        self.incarnation.increment();
+        self.needs_write = Some(true);
+    }
+
+    /// Return the string we use for this CensusEntry when it is a candidate in an election.
+    pub fn candidate_string(&self) -> String {
+        format!("{}", self.id)
+    }
+
+    /// Return the service.group string
+    pub fn service_group(&self) -> String {
+        format!("{}.{}", self.service, self.group)
+    }
+
+    /// Update this entry from another entry. If the other side has a higher incarnation, take it
+    /// as the new you.
+    pub fn update_via(&mut self, other_ce: CensusEntry) -> bool {
+        if other_ce.incarnation > self.incarnation {
+            *self = other_ce;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn written(&mut self) {
+        self.needs_write = None;
+    }
 }
 
 impl PartialEq for CensusEntry {
     // We are equal, but we don't care about some fields.
     fn eq(&self, other: &CensusEntry) -> bool {
         if self.id != other.id {
+            false
+        } else if self.incarnation != other.incarnation {
             false
         } else if self.hostname != other.hostname {
             false
@@ -82,142 +268,19 @@ impl PartialEq for CensusEntry {
             false
         } else if self.election != other.election {
             false
+        } else if self.service != other.service {
+            false
+        } else if self.group != other.group {
+            false
         } else {
             true
         }
     }
 }
 
-impl CensusEntry {
-    /// Create a new CensusEntry for this supervisor.
-    pub fn new() -> CensusEntry {
-        CensusEntry {
-            id: Uuid::new_v4(),
-            hostname: util::sys::hostname().unwrap_or(String::from("unknown")),
-            ip: util::sys::ip().unwrap_or(String::from("127.0.0.1")),
-            suitability: 0,
-            port: None,
-            exposes: None,
-            leader: None,
-            follower: None,
-            data_init: None,
-            vote: None,
-            election: None,
-            needs_write: None,
-            initialized: false,
-            keep_me: true,
-        }
-    }
-
-    /// Set our suitability number. This is an arbitrary determination of our 'suitability' to a
-    /// task; most likely, being the leader in an election.
-    pub fn suitability(&mut self, suitability: u64) {
-        self.suitability = suitability;
-        self.needs_write = Some(true);
-    }
-
-    /// Set a port number; often used as the default for watches
-    pub fn port(&mut self, port: Option<String>) {
-        self.port = port;
-        self.needs_write = Some(true);
-    }
-
-    /// Set an array of port numbers we expose.
-    pub fn exposes(&mut self, exposes: Option<Vec<String>>) {
-        self.exposes = exposes;
-        self.needs_write = Some(true);
-    }
-
-    /// Set our status at the leader.
-    pub fn leader(&mut self, leader: Option<bool>) {
-        self.leader = leader;
-        self.needs_write = Some(true);
-    }
-
-    /// Set our status as a follower.
-    pub fn follower(&mut self, follower: Option<bool>) {
-        self.follower = follower;
-        self.needs_write = Some(true);
-    }
-
-    /// Set our application initialization status to true.
-    pub fn initialized(&mut self) {
-        self.initialized = true;
-        self.needs_write = Some(true);
-    }
-
-    /// Set our status on having initialzied data.
-    pub fn data_init(&mut self, data_init: Option<bool>) {
-        self.data_init = data_init;
-        self.needs_write = Some(true);
-    }
-
-    /// Set our vote.
-    pub fn vote(&mut self, vote: Option<String>) {
-        self.vote = vote;
-        self.needs_write = Some(true);
-    }
-
-    /// Are we in an election?
-    pub fn election(&mut self, election: Option<bool>) {
-        self.election = election;
-        self.needs_write = Some(true);
-    }
-
-    /// Return the string we use for this CensusEntry when it is a candidate in an election.
-    pub fn candidate_string(&self) -> String {
-        format!("{}", self.id)
-    }
-
-    /// Turn this CensusEntry into an etcd write.
-    pub fn as_etcd_write(&mut self, pkg: &Package, config: &Config) -> EtcdWrite {
-        let mut toml = format!("[census.{}]\n", self.id.to_simple_string());
-        let toml_ce = toml::encode_str(self);
-        toml.push_str(&toml_ce);
-        self.needs_write = None;
-        EtcdWrite {
-            key: format!("{}/{}/census/{}", pkg.name, config.group(), self.id),
-            value: Some(toml),
-            ttl: Some(30),
-            dir: None,
-            prevExist: None,
-            prevIndex: None,
-            prevValue: None,
-        }
-    }
-}
-
-/// Messages for our CensusEntryActor
-#[derive(Debug)]
-pub enum Message {
-    /// A write
-    Write(EtcdWrite),
-    /// Ok
-    Ok,
-    /// Stop
-    Stop,
-}
-
-// The time between persisting our CensusEntry to the backend.
-const ENTRY_TIMEOUT_MS: u64 = 20000;
-
-/// The actor for our CensusEntry
-#[derive(Debug)]
-pub struct CensusEntryActor;
-
-impl CensusEntryActor {
-    /// Write this entry to the discovery backend
-    pub fn write_to_discovery(&self, write: &EtcdWrite) -> BldrResult<()> {
-        try!(etcd::write(write));
-        Ok(())
-    }
-
-    /// Request the actor write this census entry
-    pub fn write(actor: &actor::Actor<Message>, write: EtcdWrite) -> BldrResult<()> {
-        match try!(actor.call(Message::Write(write))) {
-            Message::Ok => Ok(()),
-            _ => unreachable!(),
-        }
+impl fmt::Display for CensusEntry {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}: {}", self.service_group(), self.id)
     }
 }
 
@@ -227,59 +290,7 @@ pub struct CensusMap {
     pub census: BTreeMap<String, CensusEntry>,
 }
 
-impl GenServer for CensusEntryActor {
-    type T = Message;
-    type S = EtcdWrite;
-    type E = BldrError;
-
-    fn init(&self, _tx: &ActorSender<Self::T>, _toml_string: &mut Self::S) -> InitResult<Self::E> {
-        Ok(Some(0))
-    }
-
-    /// Makes sure we regularly persist to etcd, beating our entries 30 second ttl.
-    fn handle_timeout(&self,
-                      _tx: &ActorSender<Self::T>,
-                      _me: &ActorSender<Self::T>,
-                      state: &mut Self::S)
-                      -> HandleResult<Self::T> {
-        match self.write_to_discovery(state) {
-            Ok(_) => HandleResult::NoReply(Some(ENTRY_TIMEOUT_MS)),
-            Err(e) => {
-                return HandleResult::Stop(StopReason::Fatal(format!("Census Entry Actor caught \
-                                                                     unexpected error: {:?}",
-                                                                    e)),
-                                          None);
-            }
-        }
-    }
-
-    /// Take a given etcd write, and persist it. Or stop. It's cool. Whatevs.
-    fn handle_call(&self,
-                   message: Self::T,
-                   _caller: &ActorSender<Self::T>,
-                   _me: &ActorSender<Self::T>,
-                   state: &mut Self::S)
-                   -> HandleResult<Self::T> {
-        match message {
-            Message::Stop => HandleResult::Stop(StopReason::Normal, Some(Message::Ok)),
-            Message::Write(etcdwrite) => {
-                mem::replace(state, etcdwrite);
-                match self.write_to_discovery(state) {
-                    Ok(_) => {}
-                    Err(e) => debug!("Failed to write to discovery: {:?}", e),
-                }
-                HandleResult::Reply(Message::Ok, Some(ENTRY_TIMEOUT_MS))
-            }
-            Message::Ok => {
-                HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU \
-                                                              Ok!")),
-                                   Some(Message::Ok))
-            }
-        }
-    }
-}
-
-/// The census!
+/// A census!
 ///
 /// Keeps a population of CensusEntries, and allows you to interrogate their global state.
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
@@ -290,22 +301,47 @@ pub struct Census {
     population: HashMap<Uuid, CensusEntry>,
     /// Whether we are currently in an event
     pub in_event: bool,
-    /// Whether we need to be written out
-    pub needs_write: bool,
+    pub service: String,
+    pub group: String,
 }
 
 impl Census {
     /// Creates a new Census. Takes a CensusEntry for the current supervisor.
     pub fn new(ce: CensusEntry) -> Census {
         let my_id = ce.id.clone();
+        let service = ce.service.clone();
+        let group = ce.group.clone();
         let mut hm = HashMap::new();
         hm.insert(my_id, ce);
         Census {
             me: my_id,
             population: hm,
             in_event: false,
-            needs_write: true,
+            service: service,
+            group: group,
         }
+    }
+
+    pub fn needs_write(&self) -> bool {
+        self.population.iter().any(|(_id, ce)| ce.needs_write())
+    }
+
+    pub fn written(&mut self) {
+        for (_id, mut ce) in self.population.iter_mut() {
+            ce.written();
+        }
+    }
+
+    pub fn service_group(&self) -> String {
+        format!("{}.{}", self.service, self.group)
+    }
+
+    pub fn get(&self, id: &CensusEntryId) -> Option<&CensusEntry> {
+        self.population.get(id)
+    }
+
+    pub fn get_mut(&mut self, id: &CensusEntryId) -> Option<&mut CensusEntry> {
+        self.population.get_mut(id)
     }
 
     /// A reference to the current supervisors entry in the census.
@@ -313,10 +349,10 @@ impl Census {
     /// # Failures
     ///
     /// * If the entry doesn't exist
-    pub fn me(&self) -> BldrResult<&CensusEntry> {
+    pub fn me(&self) -> &CensusEntry {
         self.population
             .get(&self.me)
-            .ok_or(bldr_error!(ErrorKind::CensusNotFound(self.me.to_simple_string())))
+            .unwrap()
     }
 
     /// A mutable reference to the current supervisors entry in the census.
@@ -324,10 +360,10 @@ impl Census {
     /// # Failures
     ///
     /// * If the entry doesn't exist
-    pub fn me_mut(&mut self) -> BldrResult<&mut CensusEntry> {
+    pub fn me_mut(&mut self) -> &mut CensusEntry {
         self.population
             .get_mut(&self.me)
-            .ok_or(bldr_error!(ErrorKind::CensusNotFound(self.me.to_simple_string())))
+            .unwrap()
     }
 
     /// Add an entry to the census
@@ -389,8 +425,13 @@ impl Census {
     /// # Failures
     ///
     /// * If we cannot parse a Uuid
-    pub fn to_toml(&mut self) -> BldrResult<String> {
-        let mut final_toml = String::new();
+    pub fn to_toml(&self) -> BldrResult<String> {
+        let mut top = toml::Table::new();
+        let mut census = toml::Table::new();
+        census.insert("service".to_string(),
+                      toml::Value::String(self.service.clone()));
+        census.insert("group".to_string(), toml::Value::String(self.group.clone()));
+        let mut members = toml::Array::new();
         let mut sorted_keys: Vec<_> = self.population
                                           .keys()
                                           .map(|&x| x.to_simple_string())
@@ -399,17 +440,24 @@ impl Census {
         for key in sorted_keys {
             let uuid_key = try!(Uuid::parse_str(&key));
             let value = self.population.get(&uuid_key).unwrap();
-            final_toml.push_str(&format!("\n[[census.members]]\n{}", toml::encode_str(value)));
+            members.push(toml::encode(value));
         }
-        let me = try!(self.me());
-        final_toml.push_str(&format!("\n[census.me]\n{}", toml::encode_str(&me)));
+
+        census.insert("members".to_string(), toml::Value::Array(members));
+
+        let me = self.me();
+        census.insert("me".to_string(), toml::encode(me));
+
         match self.get_leader() {
             Some(leader) => {
-                final_toml.push_str(&format!("\n[census.leader]\n{}", toml::encode_str(&leader)));
+                census.insert("leader".to_string(), toml::encode(leader));
             }
             None => {}
         }
-        Ok(final_toml)
+
+        top.insert("census".to_string(), toml::Value::Table(census));
+
+        Ok(toml::encode_str(&top))
     }
 
     /// Have all members of the census initialized their data?
@@ -417,7 +465,7 @@ impl Census {
         let count = self.population
                         .values()
                         .filter(|&ce| {
-                            if let Some(true) = ce.data_init {
+                            if ce.data_init {
                                 true
                             } else {
                                 false
@@ -431,31 +479,25 @@ impl Census {
         }
     }
 
-    /// Is there a leader in the census? Returns that entry.
+    /// Is there a living leader in the census? Returns that entry.
     pub fn get_leader(&self) -> Option<&CensusEntry> {
-        let mut leader: Vec<&CensusEntry> = self.population
-                                                .values()
-                                                .filter(|&ce| {
-                                                    if let Some(true) = ce.leader {
-                                                        true
-                                                    } else {
-                                                        false
-                                                    }
-                                                })
-                                                .collect();
-        if leader.len() == 1 {
-            leader.pop()
-        } else {
-            None
-        }
+        self.population
+            .values()
+            .find(|&ce| {
+                if ce.leader && ce.alive {
+                    true
+                } else {
+                    false
+                }
+            })
     }
 
-    /// Is there a leader in the census?
+    /// Is there an alive leader in the census?
     pub fn has_leader(&self) -> bool {
         let count = self.population
                         .values()
                         .filter(|&ce| {
-                            if let Some(true) = ce.leader {
+                            if ce.leader && ce.alive {
                                 true
                             } else {
                                 false
@@ -469,14 +511,14 @@ impl Census {
         }
     }
 
-    /// Is there one leader, and everyone else is a follower?
+    /// Is there one leader, and everyone alive is a follower?
     pub fn has_all_followers(&self) -> bool {
-        let size = self.population.len() - 1;
+        let size = self.population.values().filter(|&ce| ce.alive).count() - 1;
 
         let count = self.population
                         .values()
                         .filter(|&ce| {
-                            if let Some(true) = ce.follower {
+                            if ce.follower && ce.alive {
                                 true
                             } else {
                                 false
@@ -498,6 +540,7 @@ impl Census {
         let acc: Option<&CensusEntry> = None;
         let vote: &CensusEntry = self.population
                                      .values()
+                                     .filter(|ce| ce.alive)
                                      .fold(acc, |acc, ref rce| {
                                          match acc {
                                              Some(lce) => {
@@ -529,6 +572,7 @@ impl Census {
     pub fn voting_finished(&self) -> Option<&CensusEntry> {
         let all_in_election = self.population
                                   .values()
+                                  .filter(|ref ce| ce.alive)
                                   .all(|ref ce| {
                                       match ce.election {
                                           Some(true) => true,
@@ -543,6 +587,7 @@ impl Census {
 
         let all_voted = self.population
                             .values()
+                            .filter(|ref ce| ce.alive)
                             .all(|ref ce| {
                                 match ce.vote {
                                     Some(_) => true,
@@ -554,10 +599,10 @@ impl Census {
             return None;
         };
 
-        let ce = self.me().unwrap();
+        let ce = self.me();
         let my_vote = ce.clone().vote.unwrap();
 
-        for (_lid, lce) in self.population.iter() {
+        for (_lid, lce) in self.population.iter().filter(|&(_id, ce)| ce.alive) {
             match lce.vote {
                 Some(ref their_vote) => {
                     if my_vote != *their_vote {
@@ -574,153 +619,277 @@ impl Census {
 
         self.population.get(&Uuid::parse_str(&my_vote).unwrap())
     }
-}
 
-/// The messages for the CensusActor
-#[derive(Debug)]
-pub enum CensusMessage {
-    /// Return the last toml data
-    CensusToml(Option<String>),
-    /// Request the latest toml data
-    Census,
-    /// Ok
-    Ok,
-    /// Knock it off!
-    Stop,
-}
+    pub fn total_population(&self) -> usize {
+        self.population.len()
+    }
 
-/// How often to check for changes
-const CENSUS_TIMEOUT_MS: u64 = 200;
+    pub fn alive_population(&self) -> usize {
+        self.population
+            .iter()
+            .filter(|&(_id, ce)| ce.alive)
+            .count()
+    }
 
-/// Our CensusActor
-#[derive(Debug)]
-pub struct CensusActor;
+    pub fn minimum_quorum(&self) -> bool {
+        let total_population = self.population.len();
+        total_population >= MIN_QUORUM
+    }
 
-impl CensusActor {
-    /// Get the latest Census toml.
-    ///
-    /// # Failures
-    ///
-    /// * If the call to the actor fails.
-    pub fn census_string(actor: &actor::Actor<CensusMessage>) -> BldrResult<Option<String>> {
-        match try!(actor.call(CensusMessage::Census)) {
-            CensusMessage::CensusToml(census_string) => Ok(census_string),
-            _ => unreachable!(),
+    pub fn has_quorum(&self) -> bool {
+        let total_population = self.total_population();
+        if total_population % 2 == 0 {
+            warn!("This census has an even population. If half the membership fails, quorum will never be met, and no leader will be elected. Add another instance to the service group!");
+        }
+        let alive_population = self.alive_population() as f32;
+        let total_pop = total_population as f32;
+        let percent_alive: usize = ((alive_population.round() / total_pop.round()) * 100.0)
+                                       .round() as usize;
+        if percent_alive > 50 {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn no_leaders_allowed(&mut self) {
+        for (_id, ce) in self.population.iter_mut() {
+            ce.leader = false;
         }
     }
 }
 
-/// The state for our Census Actor. Holds a watch key, the last census_string, and the channels for
-/// communicating with etcd.
-pub struct CensusActorState {
-    ctx: Option<Sender<bool>>,
-    crx: Option<Receiver<Option<String>>>,
-    census_string: Option<String>,
-    watch_key: String,
+impl Deref for Census {
+    type Target = HashMap<Uuid, CensusEntry>;
+
+    fn deref(&self) -> &HashMap<Uuid, CensusEntry> {
+        &self.population
+    }
 }
 
-impl CensusActorState {
-    /// Return a new CensusActorState, configured for the given watch.
-    pub fn new(watch_key: String) -> CensusActorState {
-        CensusActorState {
-            ctx: None,
-            crx: None,
-            census_string: None,
-            watch_key: watch_key,
+impl DerefMut for Census {
+    fn deref_mut(&mut self) -> &mut HashMap<Uuid, CensusEntry> {
+        &mut self.population
+    }
+}
+
+
+#[derive(Debug, RustcEncodable)]
+pub struct CensusList {
+    local_census: String,
+    // I'm sorry about this. This really is the plural of census. What can you do.
+    // String here == service.group
+    censuses: HashMap<String, Census>,
+}
+
+impl CensusList {
+    pub fn new(local_census: Census) -> CensusList {
+        let mut cl = CensusList {
+            censuses: HashMap::new(),
+            local_census: local_census.service_group(),
+        };
+        cl.insert(local_census);
+        cl
+    }
+
+    pub fn me(&self) -> &CensusEntry {
+        self.local_census().me()
+    }
+
+    pub fn me_mut(&mut self) -> &mut CensusEntry {
+        self.local_census_mut().me_mut()
+    }
+
+    pub fn local_census(&self) -> &Census {
+        self.censuses.get(&self.local_census).unwrap()
+    }
+
+    pub fn local_census_mut(&mut self) -> &mut Census {
+        self.censuses.get_mut(&self.local_census).unwrap()
+    }
+
+    pub fn insert(&mut self, census: Census) {
+        self.censuses.insert(census.service_group(), census);
+    }
+
+    pub fn insert_entry(&mut self, ce: CensusEntry) {
+        if let Some(mut census) = self.censuses.get_mut(&ce.service_group()) {
+            census.add(ce);
+            return;
         }
-    }
-}
 
-impl GenServer for CensusActor {
-    type T = CensusMessage;
-    type S = CensusActorState;
-    type E = BldrError;
-
-    /// Set up the watch.
-    fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E> {
-        let (ctx, wrx) = channel();
-        let (wtx, crx) = channel();
-        etcd::watch(&state.watch_key, 1, true, true, wtx, wrx);
-        state.ctx = Some(ctx);
-        state.crx = Some(crx);
-        Ok(Some(0))
+        let census = Census::new(ce);
+        self.insert(census);
     }
 
-    /// Check for data from the watch, and update the census_string.
-    fn handle_timeout(&self,
-                      _tx: &ActorSender<Self::T>,
-                      _me: &ActorSender<Self::T>,
-                      state: &mut Self::S)
-                      -> HandleResult<Self::T> {
-        if let Some(ref crx) = state.crx {
-            match crx.try_recv() {
-                Ok(Some(toml_string)) => {
-                    state.census_string = Some(toml_string);
-                }
-                Ok(None) => {
-                    state.census_string = None;
-                }
-                Err(TryRecvError::Empty) => {}
-                Err(e) => {
-                    return HandleResult::Stop(StopReason::Fatal(format!("Census Actor caught \
-                                                                         unexpected error: {:?}",
-                                                                        e)),
-                                              None);
-                }
+    pub fn get_mut(&mut self,
+                   census_entry_id: &CensusEntryId,
+                   service_group: &str)
+                   -> Option<&mut CensusEntry> {
+        match self.censuses.get_mut(service_group) {
+            Some(mut census) => {
+                census.get_mut(census_entry_id)
             }
+            None => None,
         }
-        HandleResult::NoReply(Some(CENSUS_TIMEOUT_MS))
     }
 
-    /// Return the census_string.
-    fn handle_call(&self,
-                   message: Self::T,
-                   _caller: &ActorSender<Self::T>,
-                   _me: &ActorSender<Self::T>,
-                   state: &mut Self::S)
-                   -> HandleResult<Self::T> {
-        if let Some(ref crx) = state.crx {
-            match crx.try_recv() {
-                Ok(Some(toml_string)) => {
-                    state.census_string = Some(toml_string);
-                }
-                Ok(None) => {
-                    state.census_string = None;
-                }
-                Err(TryRecvError::Empty) => {}
-                Err(e) => {
-                    return HandleResult::Stop(StopReason::Fatal(format!("Census Actor caught \
-                                                                         unexpected error: {:?}",
-                                                                        e)),
-                                              Some(CensusMessage::Ok));
-                }
-            }
+    pub fn process(&mut self, remote_ce: CensusEntry) -> bool {
+        if let Some(mut current_ce) = self.get_mut(&remote_ce.id, &remote_ce.service_group()) {
+            return current_ce.update_via(remote_ce);
         }
+        self.insert_entry(remote_ce);
+        return true;
+    }
 
-        match message {
-            CensusMessage::Stop => HandleResult::Stop(StopReason::Normal, Some(CensusMessage::Ok)),
-            CensusMessage::Census => {
-                match state.census_string {
-                    Some(ref toml_string) => {
-                        HandleResult::Reply(CensusMessage::CensusToml(Some(toml_string.clone())),
-                                            Some(CENSUS_TIMEOUT_MS))
+    pub fn written(&mut self) {
+        for (_sg, mut census) in self.censuses.iter_mut() {
+            census.written();
+        }
+    }
+
+}
+
+impl Deref for CensusList {
+    type Target = HashMap<String, Census>;
+
+    fn deref(&self) -> &HashMap<String, Census> {
+        &self.censuses
+    }
+}
+
+impl DerefMut for CensusList {
+    fn deref_mut(&mut self) -> &mut HashMap<String, Census> {
+        &mut self.censuses
+    }
+}
+
+pub fn start_health_adjustor(census_list: Arc<RwLock<CensusList>>,
+                             member_list: Arc<RwLock<MemberList>>) {
+    outputln!("Starting census health adjustor");
+    let cl1 = census_list.clone();
+    let ml1 = member_list.clone();
+    let _t = thread::Builder::new().name("health_adjustor".to_string()).spawn(move || {
+        loop {
+            {
+                let mut cl = cl1.write().unwrap();
+                for (_service_group, mut census) in cl.iter_mut() {
+                    for (_census_entry_id, mut census_entry) in census.iter_mut() {
+                        let ml = ml1.read().unwrap();
+                        if let Some(member) = ml.get(&census_entry.member_id) {
+                            match member.health {
+                                Health::Alive => {
+                                    if census_entry.alive == false {
+                                        census_entry.set_alive();
+                                    }
+                                }
+                                Health::Suspect => {
+                                    if census_entry.suspect == false {
+                                        census_entry.set_suspect();
+                                    }
+                                }
+                                Health::Confirmed => {
+                                    if census_entry.confirmed == false {
+                                        census_entry.set_confirmed();
+                                    }
+                                }
+                            }
+                        } else {
+                            if census_entry.detached == false {
+                                census_entry.set_detached();
+                            }
+                        }
                     }
-                    None => {
-                        HandleResult::Reply(CensusMessage::CensusToml(None),
-                                            Some(CENSUS_TIMEOUT_MS))
-                    }
                 }
             }
-            CensusMessage::Ok => {
-                HandleResult::Stop(StopReason::Fatal(format!("You don't send me Ok! I send YOU \
-                                                              Ok!")),
-                                   Some(CensusMessage::Ok))
+            thread::sleep(Duration::from_millis(1000));
+        }
+    });
+}
+
+#[cfg(test)]
+mod test {
+    mod census {
+        use gossip::member::MemberId;
+        use census::{Census, CensusEntry};
+
+        fn generate_ce() -> CensusEntry {
+            CensusEntry::new("bldr", "unit", MemberId::new_v4())
+        }
+
+        fn generate_census() -> Census {
+            Census::new(generate_ce())
+        }
+
+        fn add_entries(census: &mut Census, count: usize) {
+            for _x in 0..count {
+                census.add(generate_ce());
             }
-            CensusMessage::CensusToml(_) => {
-                HandleResult::Stop(StopReason::Fatal(format!("You don't send me CensusToml(_)! \
-                                                              I send YOU CensusToml(_)!")),
-                                   Some(CensusMessage::Ok))
+        }
+
+        fn confirm_entries(census: &mut Census, count: usize) {
+            let me = census.me.clone();
+            for (_id, mut ce) in census.iter_mut()
+                                       .filter(|&(id, ref _ce)| *id != me)
+                                       .take(count) {
+                ce.set_confirmed();
             }
+        }
+
+        fn elect_an_entry(census: &mut Census) {
+            let (_id, mut ce) = census.population.iter_mut().next().unwrap();
+            ce.leader(true);
+            ce.follower(false);
+        }
+
+        fn fail_the_leader(census: &mut Census) {
+            let (_id, mut leader) = census.population
+                                          .iter_mut()
+                                          .find(|&(_id, ref ce)| ce.leader)
+                                          .unwrap();
+            leader.set_confirmed();
+        }
+
+        #[test]
+        fn has_quorum() {
+            let mut census = generate_census();
+            add_entries(&mut census, 10);
+            assert_eq!(census.has_quorum(), true);
+            confirm_entries(&mut census, 6);
+            assert_eq!(census.has_quorum(), false);
+        }
+
+        #[test]
+        fn has_quorum_even_population_split_brain_is_false() {
+            let mut census = generate_census();
+            add_entries(&mut census, 9);
+            confirm_entries(&mut census, 5);
+            assert_eq!(census.has_quorum(), false);
+        }
+
+        #[test]
+        fn minimum_quorum() {
+            let mut census = generate_census();
+            add_entries(&mut census, 1);
+            assert_eq!(census.minimum_quorum(), false);
+            add_entries(&mut census, 1);
+            assert_eq!(census.minimum_quorum(), true);
+            add_entries(&mut census, 10);
+            assert_eq!(census.minimum_quorum(), true);
+        }
+
+        #[test]
+        fn has_leader() {
+            let mut census = generate_census();
+            add_entries(&mut census, 10);
+            elect_an_entry(&mut census);
+
+            // We have a leader, and it is alive
+            assert_eq!(census.has_leader(), true);
+
+            // We have a leader, but it is confirmed dead
+            fail_the_leader(&mut census);
+            assert_eq!(census.has_leader(), false);
         }
     }
 }
