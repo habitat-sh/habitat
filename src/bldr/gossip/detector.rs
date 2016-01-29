@@ -94,6 +94,7 @@ impl Detector {
     pub fn awaiting_ack(&mut self, member_id: &MemberId) {
         if let Some(rs) = self.open_requests.get_mut(member_id) {
             rs.status = Status::AwaitingAck;
+            rs.timeout = SteadyTime::now() + Duration::milliseconds(REQUEST_FAILURE_TIME);
         }
     }
 
@@ -111,13 +112,15 @@ impl Detector {
     }
 
     /// Checks the timeout of connections. Returns a tuple of (suspect, confirmed) members.
-    pub fn expire(&mut self) -> (Vec<MemberId>, Vec<MemberId>) {
+    pub fn expire(&mut self) -> (Vec<MemberId>, Vec<MemberId>, Vec<MemberId>) {
         debug!("Detector State: {:#?}", self);
+        let mut pingreq_members = Vec::new();
         let mut failed_members = Vec::new();
         let mut confirmed_members = Vec::new();
         for (member_id, request_state) in self.open_requests.iter() {
             if SteadyTime::now() > request_state.timeout {
                 match request_state.status {
+                    Status::AwaitingAck => pingreq_members.push(member_id.clone()),
                     Status::PingReq => failed_members.push(member_id.clone()),
                     Status::Failed => confirmed_members.push(member_id.clone()),
                     _ => {}
@@ -130,7 +133,7 @@ impl Detector {
         for member_id in confirmed_members.iter() {
             self.open_requests.remove(member_id);
         }
-        (failed_members, confirmed_members)
+        (pingreq_members, failed_members, confirmed_members)
     }
 }
 

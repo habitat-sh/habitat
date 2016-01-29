@@ -130,11 +130,12 @@ impl Server {
     /// Starts the failure detector.
     pub fn start_failure_detector(&self) {
         outputln!("Starting gossip failure detector");
+        let my_peer = self.peer.clone();
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
         let census = self.census.clone();
         let detector = self.detector.clone();
-        thread::spawn(move || failure_detector(ml, rl, census, detector));
+        thread::spawn(move || failure_detector(my_peer, ml, rl, census, detector));
     }
 
     /// Sends blocking SWIM requests to our initial gossip peers.
@@ -563,16 +564,18 @@ pub fn send_pingreq(my_peer: Peer,
 /// The failure detector. Every 100ms, we check for any failed for confirmed timeouts within the
 /// detector. If we find a timeout, we update our rumor and the members entry. Additionally, if we
 /// mark a member as Suspect through a rumor we were passed, we set up its entry in the detector.
-pub fn failure_detector(member_list: Arc<RwLock<MemberList>>,
+pub fn failure_detector(my_peer: Peer,
+                        member_list: Arc<RwLock<MemberList>>,
                         rumor_list: Arc<RwLock<RumorList>>,
                         _census: Arc<RwLock<Census>>,
                         detector: Arc<RwLock<Detector>>) {
     loop {
         // Get a list of all our suspected and confirmed members
-        let (failed, confirmed) = {
+        let (pingreq, failed, confirmed) = {
             let mut fd = detector.write().unwrap();
             fd.expire()
         };
+
         // For each failed member, mark it as suspect and update
         for member_id in failed.iter() {
             {
@@ -588,6 +591,7 @@ pub fn failure_detector(member_list: Arc<RwLock<MemberList>>,
                 rl.update_rumor(Rumor::member(suspect_member));
             }
         }
+
         // For each suspect confirmed failed, confirm it!
         for member_id in confirmed.iter() {
             {
@@ -603,6 +607,7 @@ pub fn failure_detector(member_list: Arc<RwLock<MemberList>>,
                 rl.update_rumor(Rumor::member(confirmed_member));
             }
         }
+
         // Account for any suspects who come to us via rumors
         {
             let ml = member_list.read().unwrap();
@@ -618,6 +623,18 @@ pub fn failure_detector(member_list: Arc<RwLock<MemberList>>,
                 }
             }
         }
+
+        // For each pingreq target, send the pingreq!
+        for member_id in pingreq.iter() {
+            let ml = member_list.read().unwrap();
+            let member = ml.get(&member_id).unwrap().clone();
+            send_pingreq(my_peer.clone(),
+                         member,
+                         rumor_list.clone(),
+                         member_list.clone(),
+                         detector.clone());
+        }
+
         thread::sleep_ms(100);
     }
 }
