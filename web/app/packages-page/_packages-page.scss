@@ -12,6 +12,15 @@
         padding: $small-spacing;
         border: 1px solid;
         display: block;
+        
+        .stars {
+            float: right;
+            font-size: 75%;
+        }
+        
+        .stars:after {
+            content:  "★"
+         }
       }
     }
   }

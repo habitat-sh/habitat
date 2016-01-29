@@ -9,33 +9,35 @@ import {RouterLink} from "angular2/router";
 import {UserNavComponent} from "./user-nav/UserNavComponent";
 
 @Component({
-  directives: [RouterLink, UserNavComponent],
-  inputs: ["appName", "routeParams"],
-  selector: "bldr-header",
-  template: `
+    directives: [RouterLink, UserNavComponent],
+    inputs: ["appName", "routeParams"],
+    selector: "bldr-header",
+    template: `
     <header class="bldr-header">
-      <h1>{{appName}}</h1>
-      <nav class="bldr-header-links">
-        <ul>
-          <li><a [ngClass]="{ active: onAllPackages }" [routerLink]="['Packages', { show: 'all' }]">All Packages</a></li>
-          <li><a [ngClass]="{ active: onMyPackages }" [routerLink]="['Packages', { show: 'mine' }]">My Packages</a></li>
-        </ul>
-      </nav>
-      <nav class="bldr-header-user">
-        <user-nav></user-nav>
-      </nav>
-    </header>
-  `,
+        <h1>{{appName}}</h1>
+        <nav class="bldr-header-links">
+            <ul>
+                <li><a [ngClass]="{ active: onExplore }" [routerLink]="['Explore']">Explore</a></li>
+                <li><a [ngClass]="{ active: onAllPackages }" [routerLink]="['Packages']">All Packages</a></li>
+                <li><a [ngClass]="{ active: onMyPackages }" [routerLink]="['Packages', { filter: 'mine' }]">My Packages</a></li>
+            </ul>
+        </nav>
+        <nav class="bldr-header-user">
+            <user-nav></user-nav>
+        </nav>
+    </header>`,
 })
 
 export class HeaderComponent {
-  get onAllPackages() {
-    return window.location.pathname === "/packages" &&
-      window.location.search.replace("?show=", "") !== "mine";
-  }
+    get onAllPackages() {
+        return window.location.pathname === "/packages" &&
+            window.location.search.replace("?filter=", "") !== "mine";
+    }
 
-  get onMyPackages() {
-    return window.location.pathname === "/packages" &&
-      window.location.search.replace("?show=", "") === "mine";
-  }
+    get onExplore() { return false; }
+
+    get onMyPackages() {
+        return window.location.pathname === "/packages" &&
+            window.location.search.replace("?filter=", "") === "mine";
+    }
 }

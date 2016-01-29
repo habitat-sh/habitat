@@ -14,97 +14,96 @@ import {isPackage, packageString} from "../util";
 import {setCurrentPackage} from "../actions";
 
 @Component({
-  directives: [PackageListComponent, RouterLink],
-  template: `
-  <div>
-    <div *ngIf="!package" class="bldr-package">
-      <h2>Not Found</h2>
-      <p>{{packageString(package)}} does not exist.</p>
-      <p>Here's how you would make it: &hellip;</p>
-    </div>
-    <div *ngIf="package" class="bldr-package">
-      <h2>
-        <a [routerLink]="['PackagesForDerivation', { derivation: package.derivation }]">{{package.derivation}}</a>
-        /
-        {{package.name}}
-        /
-        {{package.version}}
-        /
-        {{package.release}}
-      </h2>
-      <div class="bldr-package-info">
-        <dl>
-          <dt>Maintainer</dt>
-          <dd>{{package.maintainer}}</dd>
-          <dt>License</dt>
-          <dd>{{package.license}}</dd>
-          <dt>Source URL</dt>
-          <dd><a href="{{package.source}}">{{package.source}}</a></dd>
-          <dt>Version</dt>
-          <dd>{{package.version}}</dd>
-          <dt>Release</dt>
-          <dd>{{package.release}}</dd>
-          <dt>SHA</dt>
-          <dd>{{package.sha}}</dd>
-        </dl>
+    directives: [PackageListComponent, RouterLink],
+    template: `
+    <div>
+        <div *ngIf="!package" class="bldr-package">
+            <h2>Not Found</h2>
+            <p>{{packageString(package)}} does not exist.</p>
+            <p>Here's how you would make it: &hellip;</p>
+        </div>
+        <div *ngIf="package" class="bldr-package">
+            <h2>
+                <a [routerLink]="['PackagesForDerivation', { derivation: package.derivation }]">{{package.derivation}}</a>
+                /
+                {{package.name}}
+                /
+                {{package.version}}
+                /
+                {{package.release}}
+            </h2>
+            <div class="bldr-package-info">
+                <dl>
+                    <dt>Maintainer</dt>
+                    <dd>{{package.maintainer}}</dd>
+                    <dt>License</dt>
+                    <dd>{{package.license}}</dd>
+                    <dt>Source URL</dt>
+                    <dd><a href="{{package.source}}">{{package.source}}</a></dd>
+                    <dt>Version</dt>
+                    <dd>{{package.version}}</dd>
+                    <dt>Release</dt>
+                    <dd>{{package.release}}</dd>
+                    <dt>SHA</dt>
+                    <dd>{{package.sha}}</dd>
+                </dl>
+            </div>
+            <div class="bldr-package-versions">
+                <h3>Available Versions</h3>
+                <package-list [currentPackage]="package"
+                              [packages]="versions"></package-list>
+            </div>
+            <div class="bldr-package-releases">
+                <h3>Releases <small>of version {{package.version}}</small></h3>
+                <package-list [currentPackage]="package"
+                              [packages]="releases"></package-list>
+            </div>
+            <div class="bldr-package-deps-build">
+                <h3>Build Dependencies</h3>
+                <package-list [currentPackage]="package"
+                              [packages]="package.buildDependencies"></package-list>
+            </div>
+            <div class="bldr-package-deps-runtime">
+                <h3>Runtime Dependencies</h3>
+                <package-list [currentPackage]="package"
+                              [packages]="package.dependencies"></package-list>
+            </div>
       </div>
-      <div class="bldr-package-versions">
-        <h3>Available Versions</h3>
-        <package-list [currentPackage]="package"
-                      [packages]="versions"></package-list>
-      </div>
-      <div class="bldr-package-releases">
-        <h3>Releases <small>of version {{package.version}}</small></h3>
-        <package-list [currentPackage]="package"
-                      [packages]="releases"></package-list>
-      </div>
-      <div class="bldr-package-deps-build">
-        <h3>Build Dependencies</h3>
-        <package-list [currentPackage]="package"
-                      [packages]="package.buildDependencies"></package-list>
-      </div>
-      <div class="bldr-package-deps-runtime">
-        <h3>Runtime Dependencies</h3>
-        <package-list [currentPackage]="package"
-                      [packages]="package.dependencies"></package-list>
-      </div>
-    </div>
-  </div>
-  `,
+  </div>`,
 })
 
 export class PackagePageComponent implements OnInit {
-  private releases;
-  private versions;
+    private releases;
+    private versions;
 
-  constructor (private routeParams: RouteParams, private store: AppStore) {
-    this.releases = query(this.allPackages).
-      allReleasesForPackageVersion(this.package).
-      toArray();
-    this.versions = query(this.allPackages).
-      allVersionsForPackage(this.package).
-      toArray();
-  }
-
-  // Initially set up the package to be whatever comes from the params,
-  // so we can query for its versions and releases. In ngOnInit, we'll
-  // populate more data by dispatching setCurrentPackage.
-  get package() {
-    const currentPackageFromState = this.store.getState().currentPackage;
-    const params = this.routeParams.params;
-
-    // Use the currentPackage from the state if it's the same package we want
-    // here.
-    if (isPackage(currentPackageFromState || {}, params)) {
-      return currentPackageFromState;
-    } else {
-      return params;
+    constructor(private routeParams: RouteParams, private store: AppStore) {
+        this.releases = query(this.allPackages).
+            allReleasesForPackageVersion(this.package).
+            toArray();
+        this.versions = query(this.allPackages).
+            allVersionsForPackage(this.package).
+            toArray();
     }
-  }
 
-  get allPackages() { return this.store.getState().packages; }
+    // Initially set up the package to be whatever comes from the params,
+    // so we can query for its versions and releases. In ngOnInit, we'll
+    // populate more data by dispatching setCurrentPackage.
+    get package() {
+        const currentPackageFromState = this.store.getState().currentPackage;
+        const params = this.routeParams.params;
 
-  ngOnInit() { this.store.dispatch(setCurrentPackage(this.package)); }
+        // Use the currentPackage from the state if it's the same package we want
+        // here.
+        if (isPackage(currentPackageFromState || {}, params)) {
+            return currentPackageFromState;
+        } else {
+            return params;
+        }
+    }
 
-  packageString(params) { return packageString(params); }
+    get allPackages() { return this.store.getState().packages; }
+
+    ngOnInit() { this.store.dispatch(setCurrentPackage(this.package)); }
+
+    packageString(params) { return packageString(params); }
 }

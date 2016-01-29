@@ -1,7 +1,10 @@
 {
   "name": "bldr",
   "version": "0.4.0",
-  "repository": "chef/bldr",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chef/bldr.git"
+  },
   "license": "Apache-2.0",
   "scripts": {
     "build": "concurrent \"npm run build-js\" \"npm run build-css\"",
@@ -12,6 +15,7 @@
     "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
     "clean-css": "rm -fv app.css app.css.map",
     "clean-js": "rm -fv app.js app.js.map app**/*.js app**/*.js.map",
+    "format-js": "tsfmt --replace app**/*.ts",
     "lint": "concurrent \"npm run lint-css\" \"npm run lint-js\"",
     "lint-css": "sass-lint --verbose stylesheets**/*.scss app**/*.scss",
     "lint-css-watch": "watch 'npm run lint-css'",
@@ -24,7 +28,7 @@
     "start": "concurrent \"npm run build-css-watch\" \"npm run build-js-watch\" \"npm run lint-css-watch\" \"lite-server\""
   },
   "dependencies": {
-    "angular2": "^2.0.0-beta.1",
+    "angular2": "^2.0.0-beta.2",
     "bourbon": "^4.2.6",
     "bourbon-neat": "^1.7.2",
     "es6-promise": "^3.0.2",
@@ -33,8 +37,10 @@
     "linq": "^3.0.5",
     "normalize-scss": "^4.0.3",
     "redux": "^3.0.5",
+    "redux-thunk": "^1.0.3",
     "reflect-metadata": "0.1.2",
     "rxjs": "5.0.0-beta.0",
+    "whatwg-fetch": "^0.11.0",
     "zone.js": "0.5.10"
   },
   "devDependencies": {
@@ -48,6 +54,7 @@
     "tslint": "^3.2.2",
     "tslint-loader": "^2.1.0",
     "typescript": "^1.7.3",
+    "typescript-formatter": "^1.2.0",
     "watch": "^0.17.1",
     "webpack": "^1.12.11"
   }

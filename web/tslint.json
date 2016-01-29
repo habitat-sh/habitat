@@ -7,7 +7,7 @@
         ],
         "indent": [
             true,
-            "spaces"
+            4
         ],
         "no-duplicate-variable": true,
         "no-eval": true,

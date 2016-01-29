@@ -9,27 +9,26 @@ import {RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
 
 @Component({
-  inputs: ["currentPackage", "packages"],
-  directives: [RouterLink],
-  selector: "package-list",
-  template: `
-  <ul class="bldr-package-list">
-    <li *ngIf="packages.length === 0">None</li>
-    <li *ngFor="#pkg of packages">
-      <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['Package', { derivation: pkg.derivation,
-                                     name: pkg.name,
-                                     version: pkg.version,
-                                     release: pkg.release }]">
-        {{packageString(pkg)}}
-      </a>
-    </li>
-  </ul>
-  `
+    inputs: ["currentPackage", "packages"],
+    directives: [RouterLink],
+    selector: "package-list",
+    template: `
+    <ul class="bldr-package-list">
+        <li *ngIf="packages.length === 0">None</li>
+        <li *ngFor="#pkg of packages">
+            <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['Package', { derivation: pkg.derivation,
+                                                                                                  name: pkg.name,
+                                                                                                  version: pkg.version,
+                                                                                                  release: pkg.release }]">
+                {{packageString(pkg)}}
+            </a>
+        </li>
+    </ul>`,
 })
 
 export class PackageListComponent {
-  private currentPackage: Object;
-  private packages: Array<Object>;
-  private isPackage(x, y) { return isPackage(x, y); }
-  private packageString(pkg) { return packageString(pkg); }
+    private currentPackage: Object;
+    private packages: Array<Object>;
+    private isPackage(x, y) { return isPackage(x, y); }
+    private packageString(pkg) { return packageString(pkg); }
 }

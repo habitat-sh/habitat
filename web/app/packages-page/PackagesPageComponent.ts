@@ -10,66 +10,71 @@ import {RouteParams, RouterLink} from "angular2/router";
 import {filterPackagesBy, requestRoute} from "../actions";
 
 @Component({
-  directives: [RouterLink],
-  template: `
-  <div class="bldr-packages">
-    <h2 *ngIf="show === 'mine'">My Packages</h2>
-    <h2 *ngIf="show === 'all'">All Packages</h2>
-    <h2 *ngIf="show === 'derivation'">{{derivation}}</h2>
-    <ul class="bldr-packages-plan-list">
-      <li *ngIf="packages.length === 0">
-        No packages found. Here's how to create one: &hellip;
-      </li>
-      <li class="bldr-packages-package" *ngFor="#package of packages">
-        <a [routerLink]="['Package', { derivation: package.derivation,
-                                       name: package.name,
-                                       version: package.version,
-                                       release: package.release }]">
-          {{package.derivation}}
-          /
-          {{package.name}}
-          /
-          {{package.version}}
-          /
-          {{package.release}}
-        </a>
-      </li>
-    </ul>
-  </div>
-  `
+    directives: [RouterLink],
+    template: `
+    <div class="bldr-packages">
+        <h2>
+            <span *ngIf="filter === 'mine'">My Packages</span>
+            <span *ngIf="showAll">All Packages</span>
+            <span *ngIf="derivation">{{derivation}}</span>
+            <span *ngIf="name">
+                <a [routerLink]="['Packages']">*</a>
+                /
+                {{name}}
+            </span>
+        </h2>
+        <ul class="bldr-packages-plan-list">
+            <li *ngIf="packages.length === 0">
+                No packages found. Here's how to create one: &hellip;
+            </li>
+            <li class="bldr-packages-package" *ngFor="#package of packages">
+                <a [routerLink]="['Package', { derivation: package.derivation,
+                                               name: package.name,
+                                               version: package.version,
+                                               release: package.release }]">
+                    {{package.derivation}}
+                    /
+                    {{package.name}}
+                    /
+                    {{package.version}}
+                    /
+                    {{package.release}}
+          
+                    <span class="stars" *ngIf="package.starCount">{{package.starCount}}</span>
+                </a>
+            </li>
+        </ul>
+    </div>`,
 })
 
 export class PackagesPageComponent implements OnInit {
-  constructor(private store: AppStore, private routeParams: RouteParams) {}
+    constructor(private store: AppStore, private routeParams: RouteParams) { }
 
-  get derivation() {
-    return this.routeParams.params["derivation"];
-  }
-
-  get packages() {
-    return this.store.getState().visiblePackages;
-  }
-
-  get show() {
-    if (this.routeParams.params["show"] === "mine") {
-      return "mine";
-    } else if (this.routeParams.params["derivation"]) {
-      return "derivation";
-    } else {
-      return "all";
-    }
-  }
-
-  get username() {
-    return this.store.getState().username;
-  }
-
-  ngOnInit() {
-    if (!this.store.getState().isSignedIn) {
-      this.store.dispatch(requestRoute(["Home"]));
+    get derivation() {
+        return this.routeParams.params["derivation"];
     }
 
-    this.store.dispatch(filterPackagesBy(this.show,
-                                         this.routeParams.params["derivation"]));
-  }
+    get filter() {
+        return this.routeParams.params["filter"];
+    }
+
+    get name() {
+        return this.routeParams.params["name"];
+    }
+
+    get packages() {
+        return this.store.getState().visiblePackages;
+    }
+
+    get showAll() {
+        return Object.keys(this.routeParams.params).length === 0;
+    }
+
+    ngOnInit() {
+        if (!this.store.getState().isSignedIn) {
+            this.store.dispatch(requestRoute(["Home"]));
+        }
+
+        this.store.dispatch(filterPackagesBy(this.routeParams.params));
+    }
 }
