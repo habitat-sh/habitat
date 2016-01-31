@@ -19,7 +19,7 @@ do_begin() {
 	gpg --homedir /opt/bldr/cache/gpg --import chef-private.gpg || true
 	pushd ../../
 	tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 \
-		--exclude 'plans' --exclude 'bldr-plan' --exclude 'demo' --exclude 'images' \
+		--exclude 'plans' --exclude 'bldr-plan' --exclude 'demo' --exclude 'images' --exclude 'web' \
 		--exclude '.git' --exclude '.gitignore' --exclude 'target' --exclude '.delivery' \
 		--transform "s,^\.,bldr-$pkg_version," .
 	popd
@@ -41,15 +41,15 @@ do_build() {
       GPG_ERROR_CONFIG=$(pkg_path_for chef/libgpg-error)/bin/gpg-error-config \
       LIBARCHIVE_LIB_DIR=$(pkg_path_for chef/libarchive)/lib \
       LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for chef/libarchive)/include \
-      cargo build --release
+      cargo build
   # Make double-sure our binary is completely pure (no accidental linking leaks
   # outside `/opt/bldr/pkgs`)
-  patchelf --set-rpath "$LD_RUN_PATH" target/release/bldr
+  patchelf --set-rpath "$LD_RUN_PATH" target/debug/bldr
 }
 
 do_install() {
 	mkdir -p $pkg_path/bin
-	cp target/release/bldr $pkg_path/bin
+	cp target/debug/bldr $pkg_path/bin
 	# if [[ -f "$BLDR_BIN" ]]; then
 	# 	$BLDR_BIN key chef-public -u $BLDR_REPO
 	# 	$BLDR_BIN install chef/cacerts -u $BLDR_REPO
