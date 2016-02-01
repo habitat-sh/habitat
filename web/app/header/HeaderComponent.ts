@@ -5,12 +5,12 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {Component} from "angular2/core";
-import {ROUTER_DIRECTIVES} from "angular2/router";
+import {RouterLink} from "angular2/router";
 import {UserNavComponent} from "./user-nav/UserNavComponent";
 
 @Component({
-  directives: [ROUTER_DIRECTIVES, UserNavComponent],
-  inputs: ["appName"],
+  directives: [RouterLink, UserNavComponent],
+  inputs: ["appName", "routeParams"],
   selector: "bldr-header",
   template: `
     <header class="bldr-header">
@@ -29,12 +29,6 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
 })
 
 export class HeaderComponent {
-  // Ok I get that some of the state exists in the URL, but why aren't you using
-  // something like RouteParams instead of window.location?
-  //
-  // Because I was having some trouble with those and this works.
-  //
-  // See also https://github.com/angular/angular/issues/4016
   get onAllPackages() {
     return window.location.pathname === "/packages" &&
       window.location.search.replace("?show=", "") !== "mine";

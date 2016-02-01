@@ -5,15 +5,14 @@ all of these are present when you first check out the app, but they may appear
 after running some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
 
     app/                         # The app/ directory contains the code that makes up the app.
-      home/                      # The top level directories contain the app's components.
-      package/                   # For example, the package/ directory has
+      home-page/                      # The top level directories contain the app's components.
+      package-page/              # For example, the package-page/ directory has
         _package.scss            #   [Sass](http://sass-lang.com/) SCSS stylesheet,
-        PackageComponent.ts      #   a component that represents a page,
+        PackagePageComponent.ts  #   a component that represents a page,
         PackageListComponent.ts  #   and possibly more components that are used by that one.
-      packages/
-      sign-in/
-      sign-up-form/
-      user-nav/
+      packages-page/             # Directories that end in -page/ contain
+      sign-in-page/              # components that act like pages.
+      sign-up-form/              # But other directories have components that do not.
       actions.ts                 # [Actions](http://redux.js.org/docs/basics/Actions.html).
       app.scss                   # Main entry point for the SCSS.
       AppComponent.ts            # The top level component of the app.

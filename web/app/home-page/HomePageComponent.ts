@@ -24,7 +24,7 @@ import {requestRoute} from "../actions";
   `,
 })
 
-export class HomeComponent {
+export class HomePageComponent {
   constructor(private store: AppStore) {}
 
   ngOnInit() {

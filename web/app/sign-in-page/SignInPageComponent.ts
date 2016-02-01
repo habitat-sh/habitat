@@ -1,4 +1,4 @@
-// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+// Copyright:: Copyright (c) 2016 Chef Software, Inc.
 //
 // The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
@@ -7,7 +7,7 @@
 import {Component} from "angular2/core";
 import {Router} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {attemptSignIn, requestRoute} from "../actions"
+import {attemptSignIn, requestRoute} from "../actions";
 
 @Component({
     template: `
@@ -22,7 +22,7 @@ import {attemptSignIn, requestRoute} from "../actions"
     `
 })
 
-export class SignInComponent {
+export class SignInPageComponent {
   constructor(private store: AppStore) {}
 
   get username() {

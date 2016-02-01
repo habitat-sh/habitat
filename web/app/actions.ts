@@ -6,6 +6,7 @@
 
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
+export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
 export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
 export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
@@ -48,6 +49,13 @@ export function requestRoute(requestedRoute: Array<any>) {
   return {
     type: ROUTE_REQUESTED,
     payload: requestedRoute
+  };
+}
+
+export function setCurrentPackage(pkg) {
+  return {
+    type: SET_CURRENT_PACKAGE,
+    payload: pkg,
   };
 }
 
