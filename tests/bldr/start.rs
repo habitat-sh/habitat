@@ -9,6 +9,7 @@ use setup;
 use regex::Regex;
 use std::thread;
 
+#[ignore]
 #[test]
 fn standalone_no_options() {
     setup::gpg_import();
@@ -21,6 +22,7 @@ fn standalone_no_options() {
     }
 }
 
+#[ignore]
 #[test]
 fn standalone_no_options_without_config() {
     setup::gpg_import();
@@ -36,6 +38,7 @@ fn standalone_no_options_without_config() {
     }
 }
 
+#[ignore]
 #[test]
 fn standalone_with_environment_config() {
     setup::gpg_import();
@@ -49,6 +52,7 @@ fn standalone_with_environment_config() {
     }
 }
 
+#[ignore]
 #[test]
 fn standalone_with_discovery_config() {
     setup::gpg_import();
@@ -61,6 +65,7 @@ fn standalone_with_discovery_config() {
     assert_docker_log!(d, r"setting: sepultura");
 }
 
+#[ignore]
 #[test]
 fn standalone_with_discovery_config_updates() {
     setup::gpg_import();
@@ -76,6 +81,7 @@ fn standalone_with_discovery_config_updates() {
     assert_docker_log!(d, r"setting: against me!");
 }
 
+#[ignore]
 #[test]
 fn leader_with_discovery() {
     setup::gpg_import();
