@@ -3,7 +3,7 @@ name = "bldr"
 version = "0.3.0"
 dependencies = [
  "ansi_term 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "docopt 0.6.78 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gpgme 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -61,6 +61,22 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "bitflags"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "clap"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "ansi_term 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "strsim 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "vec_map 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "conduit-mime-types"
 version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -77,16 +93,6 @@ dependencies = [
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.34 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "docopt"
-version = "0.6.78"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "regex 0.1.48 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
- "strsim 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -491,7 +497,7 @@ dependencies = [
 
 [[package]]
 name = "strsim"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -628,6 +634,11 @@ dependencies = [
  "rand 0.3.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "vec_map"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "winapi"

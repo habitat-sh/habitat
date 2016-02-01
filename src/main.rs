@@ -7,14 +7,15 @@
 #[macro_use]
 extern crate bldr;
 extern crate rustc_serialize;
-extern crate docopt;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
 extern crate ansi_term;
 extern crate libc;
-
-use docopt::Docopt;
+#[macro_use]
+extern crate clap;
+use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
+use std::str::FromStr;
 use std::process;
 use ansi_term::Colour::Yellow;
 use std::ffi::CString;
@@ -32,92 +33,23 @@ static LOGKEY: &'static str = "MN";
 #[allow(dead_code)]
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-/// The [docopts](http://burntsushi.net/rustdoc/docopt/index.html) usage
-/// string. Determines what options are accepted.
-#[allow(dead_code)]
-#[cfg_attr(rustfmt, rustfmt_skip)]
-static USAGE: &'static str = "
-Usage: bldr install <package> -u <url> [-vn]
-       bldr start <package> [-u <url>] [--group=<group>] [--topology=<topology>] [--watch=<watch>...] [--gossip-peer=<ip:port>...] [-vnI]
-       bldr sh [-v -n]
-       bldr bash [-v -n]
-       bldr repo [-p <path>] [--port=<port>] [-vn]
-       bldr upload <package> -u <url> [-vn]
-       bldr generate-user-key <key> <password> <email> [--expire-days=<expire_days>] [-vn]
-       bldr generate-service-key <key> [--group=<group>] [--expire-days=<expire_days>] [-vn]
-       bldr encrypt --user <userkey> --service <servicekey> --infile <infile> --outfile <outfile> [--password <password>] [--group=<group>] [-vn]
-       bldr decrypt --infile <infile> --outfile <outfile> [-vn]
-       bldr import-key (--infile <infile> | <key> --u <url>) [-vn]
-       bldr export-key (--user <userkey> | --service <servicekey>) --outfile <outfile> [--group=<group>] [-vn]
-       bldr download-repo-key <key> [-vn]
-       bldr upload-repo-key <key> -u <url> [-vn]
-       bldr list-keys [-vn]
-       bldr config <package> [-vn]
+/// CLI defaults
+static DEFAULT_GROUP: &'static str = "default";
+static DEFAULT_PATH: &'static str = "/opt/bldr/srvc/bldr/data";
+const DEFAULT_TOPOLOGY: bldr::topology::Topology = Topology::Standalone;
+static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
 
-Options:
-    -g, --group=<group>             The service group; shared config and topology [default: default].
-    -t, --topology=<topology>       Specify a service topology [default: standalone].
-    -p, --path=<path>               The path to use for a repository [default: /opt/bldr/srvc/bldr/data].
-    -u, --url=<url>                 Use the specified package repository url.
-    -w, --watch=<watch>             One or more service groups to watch for updates.
-    -l, --gossip-listen=<ip>        The listen string for gossip [default: 0.0.0.0:9634].
-    -P, --gossip-peer=<ip>          The listen string of an initial gossip peer
-    -I, --gossip-permanent          If this service is a permanent gossip peer
-    -v, --verbose                   Verbose output; shows line numbers.
-    -e, --expire-days=<expire>      Number of days before key expires.
-    -n, --no-color                  Turn ANSI color off :( .
-";
-
-/// The struct that docopts renders options
-/// into.
-#[derive(RustcDecodable, Debug)]
-struct Args {
-    cmd_install: bool,
-    cmd_start: bool,
-    cmd_sh: bool,
-    cmd_bash: bool,
-    cmd_repo: bool,
-    cmd_upload: bool,
-    cmd_config: bool,
-    cmd_import_key: bool,
-    cmd_export_key: bool,
-    cmd_upload_repo_key: bool,
-    cmd_download_repo_key: bool,
-    cmd_generate_user_key: bool,
-    cmd_generate_service_key: bool,
-    cmd_list_keys: bool,
-    cmd_encrypt: bool,
-    cmd_decrypt: bool,
-
-    arg_package: Option<String>,
-    arg_key: Option<String>,
-    arg_password: Option<String>,
-    arg_email: Option<String>,
-    arg_userkey: Option<String>,
-    arg_servicekey: Option<String>,
-    arg_infile: Option<String>,
-    arg_outfile: Option<String>,
-
-    flag_gossip_listen: String,
-    flag_gossip_peer: Vec<String>,
-    flag_path: String,
-    flag_port: Option<u16>,
-    flag_url: Option<String>,
-    flag_topology: Option<String>,
-    flag_group: String,
-    flag_watch: Vec<String>,
-    flag_verbose: bool,
-    flag_no_color: bool,
-    flag_expire_days: Option<u16>,
-    flag_gossip_permanent: bool,
-}
-
-/// Creates a [Config](config/struct.Config.html) from the [Args](/Args)
-/// struct.
-fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
+/// Creates a [Config](config/struct.Config.html) from global args
+/// and subcommand args.
+fn config_from_args(args: &ArgMatches,
+                    subcommand: &str,
+                    sub_args: &ArgMatches)
+                    -> BldrResult<Config> {
     let mut config = Config::new();
+    let command = try!(Command::from_str(subcommand));
     config.set_command(command);
-    if let Some(ref package) = args.arg_package {
+
+    if let Some(ref package) = sub_args.value_of("package") {
         let (deriv, name, version, release) = try!(split_package_arg(package));
         config.set_deriv(deriv);
         config.set_package(name);
@@ -128,28 +60,35 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
             config.set_release(rel);
         }
     }
-    if let Some(ref arg_key) = args.arg_key {
-        config.set_key(arg_key.clone());
+
+    if let Some(key) = sub_args.value_of("key") {
+        config.set_key(key.to_string());
     }
-    if let Some(ref arg_password) = args.arg_password {
-        config.set_password(arg_password.clone());
+
+    if let Some(password) = sub_args.value_of("password") {
+        config.set_password(password.to_string());
     }
-    if let Some(ref arg_email) = args.arg_email {
-        config.set_email(arg_email.clone());
+
+    if let Some(email) = sub_args.value_of("email") {
+        config.set_email(email.to_string());
     }
-    if let Some(ref arg_userkey) = args.arg_userkey {
-        config.set_user_key(arg_userkey.clone());
+
+    if let Some(user) = sub_args.value_of("user") {
+        config.set_user_key(user.to_string());
     }
-    if let Some(ref arg_servicekey) = args.arg_servicekey {
-        config.set_service_key(arg_servicekey.clone());
+
+    if let Some(service) = sub_args.value_of("service") {
+        config.set_service_key(service.to_string());
     }
-    if let Some(ref arg_infile) = args.arg_infile {
-        config.set_infile(arg_infile.clone());
+
+    if let Some(infile) = sub_args.value_of("infile") {
+        config.set_infile(infile.to_string());
     }
-    if let Some(ref arg_outfile) = args.arg_outfile {
-        config.set_outfile(arg_outfile.clone());
+    if let Some(outfile) = sub_args.value_of("outfile") {
+        config.set_outfile(outfile.to_string());
     }
-    if let Some(ref topology) = args.flag_topology {
+
+    if let Some(topology) = sub_args.value_of("topology") {
         match topology.as_ref() {
             "standalone" => {
                 config.set_topology(Topology::Standalone);
@@ -162,152 +101,325 @@ fn config_from_args(args: &Args, command: Command) -> BldrResult<Config> {
             }
             t => return Err(bldr_error!(ErrorKind::UnknownTopology(String::from(t)))),
         }
+    } else {
+        // none set, use the default
+        config.set_topology(DEFAULT_TOPOLOGY);
     }
-    if let Some(port) = args.flag_port {
-        config.set_port(port);
+
+    if sub_args.value_of("port").is_some() {
+        let p = value_t!(sub_args.value_of("port"), u16).unwrap_or_else(|e| e.exit());
+        config.set_port(p);
     }
-    if let Some(expire_days) = args.flag_expire_days {
-        config.set_expire_days(expire_days);
+
+    if sub_args.value_of("expire-days").is_some() {
+        let ed = value_t!(sub_args.value_of("expire-days"), u16).unwrap_or_else(|e| e.exit());
+        config.set_expire_days(ed);
     }
-    if let Some(ref url) = args.flag_url {
-        config.set_url(url.clone());
+
+    if let Some(url) = sub_args.value_of("url") {
+        config.set_url(url.to_string());
     }
-    config.set_group(args.flag_group.clone());
-    config.set_watch(args.flag_watch.clone());
-    config.set_path(args.flag_path.clone());
-    config.set_gossip_listen(args.flag_gossip_listen.clone());
-    config.set_gossip_peer(args.flag_gossip_peer.clone());
-    config.set_gossip_permanent(args.flag_gossip_permanent);
-    if args.flag_verbose {
+
+    config.set_group(sub_args.value_of("group").unwrap_or(DEFAULT_GROUP).to_string());
+
+    let watches = match sub_args.values_of("watch") {
+        Some(ws) => ws.map(|s| s.to_string()).collect(),
+        None => vec![],
+    };
+    config.set_watch(watches);
+
+    config.set_path(sub_args.value_of("path").unwrap_or(DEFAULT_PATH).to_string());
+
+    config.set_gossip_listen(sub_args.value_of("gossip-listen")
+                                     .unwrap_or(DEFAULT_GOSSIP_LISTEN)
+                                     .to_string());
+
+    let gossip_peers = match sub_args.values_of("gossip-peer") {
+        Some(gp) => gp.map(|s| s.to_string()).collect(),
+        None => vec![],
+    };
+    config.set_gossip_peer(gossip_peers);
+
+    if sub_args.value_of("gossip-permanent").is_some() {
+        config.set_gossip_permanent(true);
+    }
+
+    // -------------------------------------
+    // begin global args
+    // -------------------------------------
+    if args.value_of("verbose").is_some() {
         bldr::output::set_verbose(true);
     }
-    if args.flag_no_color {
+
+
+    if args.value_of("no-color").is_some() {
         bldr::output::set_no_color(true);
     }
     debug!("Config:\n{:?}", config);
     Ok(config)
 }
 
+
+type Handler = fn(&Config) -> Result<(), bldr::error::BldrError>;
+
 /// The primary loop for bldr.
 ///
 /// * Set up the logger
-/// * Pull in the arguments from the Command Line, push through Docopts
+/// * Pull in the arguments from the Command Line, push through clap
 /// * Dispatch to a function that handles that action called
 /// * Exit cleanly, or if we return an `Error`, call `exit_with(E, 1)`
 #[allow(dead_code)]
+#[cfg_attr(rustfmt, rustfmt_skip)]
 fn main() {
     env_logger::init().unwrap();
 
-    let args: Args = Docopt::new(USAGE)
-                         .and_then(|d| d.decode())
-                         .unwrap_or_else(|e| e.exit());
-    debug!("Docopt Args: {:?}", args);
+    let arg_url = || {
+        Arg::with_name("url")
+            .short("u")
+            .long("url")
+            .takes_value(true)
+            .help("Use the specified package depot url")
+    };
 
-    let result = match args {
-        Args{cmd_install: true, ..} => {
-            match config_from_args(&args, Command::Install) {
-                Ok(config) => install(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_start: true, ..} => {
-            match config_from_args(&args, Command::Start) {
-                Ok(config) => start(&config),
-                Err(e) => Err(e),
-            }
-        }
+    let arg_group = || {
+        Arg::with_name("group")
+            .long("group")
+            .takes_value(true)
+            .help("The service group; shared config and topology [default: default].")
+    };
 
-        // -----------------------------------------------------
-        // start security stuff
-        // -----------------------------------------------------
-        Args{cmd_import_key: true, ..} => {
-            match config_from_args(&args, Command::ImportKey) {
-                Ok(config) => import_key(&config),
+
+    let arg_infile = || {
+        Arg::with_name("infile")
+            .long("infile")
+            .takes_value(true)
+            .help("Input filename")
+    };
+
+    let arg_outfile = || {
+        Arg::with_name("outfile")
+            .long("outfile")
+            .takes_value(true)
+            .help("Output filename")
+    };
+
+    // args is too big for rustfmt, so split it into several calls
+    let args = App::new("bldr")
+                   .version(VERSION)
+                   .setting(AppSettings::VersionlessSubcommands)
+                   .setting(AppSettings::SubcommandRequiredElseHelp)
+                   // global args
+                   .arg(Arg::with_name("verbose")
+                         .short("v")
+                         .global(true)
+                         .help("Verbose output; shows line numbers"))
+                   .arg(Arg::with_name("no-color")
+                         .short("n")
+                         .long("no-color")
+                         .global(true)
+                         .help("Turn ANSI color off :("))
+        .subcommand(SubCommand::with_name("install")
+                    .about("Install a bldr package from a depot")
+                    .arg(Arg::with_name("package")
+                         .index(1)
+                         .required(true)
+                         .help("Name of bldr package to install"))
+                    .arg(arg_url()))
+        .subcommand(SubCommand::with_name("start")
+                    .about("Start a bldr package")
+                    .arg(Arg::with_name("package")
+                         .index(1)
+                         .required(true)
+                         .help("Name of package to start"))
+                    .arg(arg_url())
+                    .arg(arg_group())
+                    .arg(Arg::with_name("topology")
+                         .long("topology")
+                         .value_name("topology")
+                         .help("Service topology"))
+                    .arg(Arg::with_name("watch")
+                         .long("watch")
+                         .value_name("watch")
+                         .multiple(true)
+                         .help("One or more service groups to watch for updates"))
+                    .arg(Arg::with_name("gossip-peer")
+                         .long("gossip-peer")
+                         .value_name("ip:port")
+                         .multiple(true)
+                         .help("The listen string of an initial gossip peer"))
+                    .arg(Arg::with_name("gossip-listen")
+                         .long("gossip-listen")
+                         .value_name("ip:port")
+                         .help("The listen string for gossip [default: 0.0.0.0:9634]"))
+                    .arg(Arg::with_name("gossip-permanant")
+                         .short("I")
+                         .long("gossip-permanent")
+                         .help("If this service is a permanent gossip peer")))
+        .subcommand(SubCommand::with_name("sh")
+                    .about("Start an interactive shell"))
+        .subcommand(SubCommand::with_name("bash")
+                    .about("Start an interactive shell"))
+        .subcommand(SubCommand::with_name("depot")
+                    .about("Run a bldr package depot")
+                    .arg(Arg::with_name("path")
+                         .short("p")
+                         .long("path")
+                         .value_name("path")
+                         .help("A path"))
+                    .arg(Arg::with_name("port")
+                         .long("port")
+                         .value_name("port")
+                         .help("Depot port. [default: 9632]")))
+        .subcommand(SubCommand::with_name("upload")
+                    .about("Upload a package to a bldr depot")
+                    .arg(Arg::with_name("package")
+                         .index(1)
+                         .required(true)
+                         .help("Name of package to upload"))
+                    .arg(arg_url().required(true)))
+        .subcommand(SubCommand::with_name("generate-user-key")
+                    .about("Generate a bldr user key")
+                    .arg(Arg::with_name("user")
+                         .required(true)
+                         .long("user")
+                         .takes_value(true)
+                         .help("Name of user key"))
+                    .arg(Arg::with_name("password")
+                         .required(true)
+                         .long("password")
+                         .takes_value(true)
+                         .help("User key password"))
+                    .arg(Arg::with_name("email")
+                         .required(true)
+                         .long("email")
+                         .takes_value(true)
+                         .help("User key email address"))
+                    .arg(Arg::with_name("expire-days")
+                         .long("expire-days")
+                         .takes_value(true)
+                         .value_name("expire-days")
+                         .help("Number of days before a key expires")))
+        .subcommand(SubCommand::with_name("generate-service-key")
+                    .about("Generate a bldr service key")
+                    .arg(Arg::with_name("service")
+                         .required(true)
+                         .takes_value(true)
+                         .help("Name of service key"))
+                    .arg(arg_group())
+                    .arg(Arg::with_name("expire-days")
+                         .long("expire-days")
+                         .takes_value(true)
+                         .value_name("expire-days")
+                         .help("Number of days before a key expires")))
+        .subcommand(SubCommand::with_name("encrypt")
+                    .about("Encrypt and sign a message with a service as the recipient")
+                    .arg(Arg::with_name("user")
+                         .required(true)
+                         .long("user")
+                         .takes_value(true)
+                         .help("Name of user key"))
+                    .arg(Arg::with_name("service")
+                         .required(true)
+                         .long("service")
+                         .takes_value(true)
+                         .help("Name of service key"))
+                    .arg(arg_infile().required(true))
+                    .arg(arg_outfile().required(true))
+                    .arg(Arg::with_name("password")
+                         .required(false)
+                         .long("password")
+                         .takes_value(true)
+                         .help("User key password"))
+                    .arg(arg_group()))
+        .subcommand(SubCommand::with_name("decrypt")
+                    .about("Decrypt and verify a message")
+                    .arg(arg_infile().required(true))
+                    .arg(arg_outfile().required(true)))
+        .subcommand(SubCommand::with_name("import-key")
+                    .about("Import a public bldr key")
+                    .arg(arg_infile())
+                    .arg(Arg::with_name("key")
+                         .long("key")
+                         .takes_value(true)
+                         .help("Public key filename")
+                         .requires("url"))
+                    .arg(arg_url())
+                    .group(ArgGroup::with_name("input-method")
+                         .required(true)
+                         .args(&["infile", "key"])))
+        .subcommand(SubCommand::with_name("export-key")
+                    .about("Export a public bldr key")
+                    .arg(Arg::with_name("user")
+                         .long("user")
+                         .takes_value(true)
+                         .help("Name of user key"))
+                    .arg(Arg::with_name("service")
+                         .long("service")
+                         .takes_value(true)
+                         .help("Name of service key"))
+                    .group(ArgGroup::with_name("user-or-service-key")
+                         .required(true)
+                         .args(&["user", "service"]))
+                         .arg(arg_outfile().required(true))
+                         .arg(arg_group()))
+        .subcommand(SubCommand::with_name("download-depot-key")
+                    .about("Not implemented")
+                    .arg(Arg::with_name("key")
+                         .index(1)
+                         .required(true)
+                         .help("Name of key")))
+        .subcommand(SubCommand::with_name("upload-depot-key")
+                    .about("Not implemented")
+                    .arg(Arg::with_name("key")
+                         .index(1)
+                         .required(true)
+                         .help("Name of key")))
+        .subcommand(SubCommand::with_name("list-keys")
+                    .about("List user and service keys"))
+        .subcommand(SubCommand::with_name("config")
+                    .about("Print the default.toml for a given package")
+                    .arg(Arg::with_name("package")
+                         .index(1)
+                         .required(true)
+                         .help("Name of package")));
+    let matches = args.get_matches();
+
+    debug!("clap matches {:?}", matches);
+
+    // we use AppSettings::SubcommandRequiredElseHelp above, so it's safe to unwrap
+    let subcommand_name = matches.subcommand_name().unwrap();
+
+    let handler = match subcommand_name {
+        "bash" => Some(shell as Handler),
+        "config" => Some(configure as Handler),
+        "decrypt" => Some(decrypt as Handler),
+        "depot" => Some(depot as Handler),
+        "download-depot-key" => Some(download_depot_key as Handler),
+        "encrypt" => Some(encrypt as Handler),
+        "export-key" => Some(export_key as Handler),
+        "generate-service-key" => Some(generate_service_key as Handler),
+        "generate-user-key" => Some(generate_user_key as Handler),
+        "import-key" => Some(import_key as Handler),
+        "install" => Some(install as Handler),
+        "list-keys" => Some(list_keys as Handler),
+        "sh" => Some(shell as Handler),
+        "start" => Some(start as Handler),
+        "upload-depot-key" => Some(upload_depot_key as Handler),
+        "upload" => Some(upload as Handler),
+        _ => None,
+    };
+
+    // we use AppSettings::SubcommandRequiredElseHelp above, so it's safe to unwrap
+    let subcommand_matches = matches.subcommand_matches(subcommand_name).unwrap();
+
+    let result = match handler {
+        Some(h) => {
+            match config_from_args(&matches, subcommand_name, &subcommand_matches) {
+                Ok(config) => h(&config),
                 Err(e) => Err(e),
             }
         }
-        Args{cmd_export_key: true, ..} => {
-            match config_from_args(&args, Command::ExportKey) {
-                Ok(config) => export_key(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_upload_repo_key: true, ..} => {
-            match config_from_args(&args, Command::UploadRepoKey) {
-                Ok(config) => upload_repo_key(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_download_repo_key: true, ..} => {
-            match config_from_args(&args, Command::DownloadRepoKey) {
-                Ok(config) => download_repo_key(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_generate_user_key: true, ..} => {
-            match config_from_args(&args, Command::GenerateUserKey) {
-                Ok(config) => generate_user_key(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_generate_service_key: true, ..} => {
-            match config_from_args(&args, Command::GenerateServiceKey) {
-                Ok(config) => generate_service_key(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_list_keys: true, ..} => {
-            match config_from_args(&args, Command::ListKeys) {
-                Ok(config) => list_keys(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_encrypt: true, ..} => {
-            match config_from_args(&args, Command::Encrypt) {
-                Ok(config) => encrypt(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_decrypt: true, ..} => {
-            match config_from_args(&args, Command::Decrypt) {
-                Ok(config) => decrypt(&config),
-                Err(e) => Err(e),
-            }
-        }
-        // -----------------------------------------------------
-        // end security stuff
-        // -----------------------------------------------------
-        Args{cmd_sh: true, ..} => {
-            match config_from_args(&args, Command::Shell) {
-                Ok(config) => shell(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_bash: true, ..} => {
-            match config_from_args(&args, Command::Shell) {
-                Ok(config) => shell(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_repo: true, ..} => {
-            match config_from_args(&args, Command::Repo) {
-                Ok(config) => repo(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_upload: true, ..} => {
-            match config_from_args(&args, Command::Upload) {
-                Ok(config) => upload(&config),
-                Err(e) => Err(e),
-            }
-        }
-        Args{cmd_config: true, ..} => {
-            match config_from_args(&args, Command::Configuration) {
-                Ok(config) => configure(&config),
-                Err(e) => Err(e),
-            }
-        }
-        _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
+        None => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
     };
 
     match result {
@@ -315,6 +427,39 @@ fn main() {
         Err(e) => exit_with(e, 1),
     }
 }
+
+
+/// Exit with an error message and the right status code
+#[allow(dead_code)]
+fn exit_with(e: BldrError, code: i32) {
+    println!("{}", e);
+    process::exit(code)
+}
+
+fn split_package_arg(arg: &str) -> BldrResult<(String, String, Option<String>, Option<String>)> {
+    let items: Vec<&str> = arg.split("/").collect();
+    match items.len() {
+        2 => Ok((items[0].to_string(), items[1].to_string(), None, None)),
+        3 => {
+            Ok((items[0].to_string(),
+                items[1].to_string(),
+                Some(items[2].to_string()),
+                None))
+        }
+        4 => {
+            Ok((items[0].to_string(),
+                items[1].to_string(),
+                Some(items[2].to_string()),
+                Some(items[3].to_string())))
+        }
+        _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(arg.to_string()))),
+    }
+}
+
+
+// -------------------
+// Handlers
+// -------------------
 
 /// Start a shell
 #[allow(dead_code)]
@@ -360,8 +505,8 @@ fn start(config: &Config) -> BldrResult<()> {
 
 /// Run a package repo
 #[allow(dead_code)]
-fn repo(config: &Config) -> BldrResult<()> {
-    outputln!("Starting Bldr Repository at {}",
+fn depot(config: &Config) -> BldrResult<()> {
+    outputln!("Starting Bldr Depot at {}",
               Yellow.bold().paint(config.path()));
     try!(repo::start(&config));
     outputln!("Finished with {}", Yellow.bold().paint(config.package_id()));
@@ -394,16 +539,13 @@ fn export_key(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-/// Upload a key to a repo
-fn upload_repo_key(config: &Config) -> BldrResult<()> {
-    outputln!("Upload Bldr key {}", Yellow.bold().paint(config.key()));
-    try!(key::upload(&config));
-    outputln!("Finished with {}", Yellow.bold().paint(config.key()));
-    Ok(())
+/// Upload a key to a depot
+fn upload_depot_key(_config: &Config) -> BldrResult<()> {
+    panic!("Not implemented");
 }
 
-/// Download a key from a repo
-fn download_repo_key(_config: &Config) -> BldrResult<()> {
+/// Download a key from a depot
+fn download_depot_key(_config: &Config) -> BldrResult<()> {
     panic!("Not implemented");
 }
 
@@ -449,33 +591,4 @@ fn decrypt(config: &Config) -> BldrResult<()> {
     try!(key::decrypt_and_verify(&config));
     outputln!("Finished decrypting");
     Ok(())
-}
-
-
-
-/// Exit with an error message and the right status code
-#[allow(dead_code)]
-fn exit_with(e: BldrError, code: i32) {
-    println!("{}", e);
-    process::exit(code)
-}
-
-fn split_package_arg(arg: &str) -> BldrResult<(String, String, Option<String>, Option<String>)> {
-    let items: Vec<&str> = arg.split("/").collect();
-    match items.len() {
-        2 => Ok((items[0].to_string(), items[1].to_string(), None, None)),
-        3 => {
-            Ok((items[0].to_string(),
-                items[1].to_string(),
-                Some(items[2].to_string()),
-                None))
-        }
-        4 => {
-            Ok((items[0].to_string(),
-                items[1].to_string(),
-                Some(items[2].to_string()),
-                Some(items[3].to_string())))
-        }
-        _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(arg.to_string()))),
-    }
 }
