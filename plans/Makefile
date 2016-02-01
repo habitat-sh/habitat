@@ -3,7 +3,7 @@ BOOTSTRAP_TOOLCHAIN_PKGS := linux-headers glibc zlib file binutils m4 gmp mpfr l
 BLDR_PKGS := $(BOOTSTRAP_TOOLCHAIN_PKGS)
 BLDR_WEB_PKGS := node ncurses libedit pcre nginx bldr-web
 PKGS := $(BLDR_PKGS) $(BLDR_WEB_PKGS) redis haproxy libaio libltdl libxml2 numactl perl erlang libyaml libiconv libtool libffi ruby
-REPO := http://159.203.235.47
+REPO := http://52.11.158.96:32768
 
 .PHONY: bldr-deps bldr-webui world publish gpg clean baseimage_root new-plan bootstrap-toolchain $(ALL_PKGS) $(addprefix publish-,$(ALL_PKGS)) $(addsuffix -using-bootstrap-tools,$(ALL_PKGS))
 

@@ -283,8 +283,9 @@ BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
-# The default bldr package repository from where to download dependencies
-BLDR_REPO=http://159.203.235.47
+# The default bldr package repository from where to download dependencies}. If
+# `BLDR_REPO` is set, this value is overridden.
+: ${BLDR_REPO:=http://52.11.158.96:32768}
 # The value of `$PATH` on initial start of this program
 BLDR_INITIAL_PATH="$PATH"
 # The default derivation is `bldr`
