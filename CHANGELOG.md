@@ -1,3 +1,28 @@
+# 0.4.0
+
+## Enhancements
+- [gh-156](https://github.com/chef/bldr/pull/156) WebUI sign in and sign out flow
+- [gh-158](https://github.com/chef/bldr/pull/158) Runtime dependencies should come before build dependencies, fail fast if PGP signing key is not setup, add a function for running post-compilation tests
+- [gh-163](https://github.com/chef/bldr/pull/163) Add a dashboard with a package list that can be clicked through
+- [gh-164](https://github.com/chef/bldr/pull/164) Link to dependencies in the package view
+- [gh-171](https://github.com/chef/bldr/pull/171) Implement encryption and decryption commands for `bldr` CLI
+- [gh-175](https://github.com/chef/bldr/pull/175) Show other versions and packages on the package view
+- [gh-178](https://github.com/chef/bldr/pull/178) Ensure the currently selected package doesn't look like a link
+- [gh-180](https://github.com/chef/bldr/pull/180) Implement SWIM membership and gossip protocol
+- [gh-183](https://github.com/chef/bldr/pull/183) Allow listing of all packages
+- [gh-197](https://github.com/chef/bldr/pull/197) Use clap instead of docopt for CLI argument passing
+
+## Bug Fixes
+- [gh-157](https://github.com/chef/bldr/pull/157) Corrected and consistent licensing headers for all source files
+- [gh-159](https://github.com/chef/bldr/pull/159) Don't crash if a pkg is missing a config directory
+- [gh-161](https://github.com/chef/bldr/pull/161) Ensure plans' build environment is created before creating the package path
+- [gh-162](https://github.com/chef/bldr/pull/162) Create the working directory for the build environment earlier to ensure it exists
+- [gh-182](https://github.com/chef/bldr/pull/182) Set PATH directly after resolving dependencies
+- [gh-187](https://github.com/chef/bldr/pull/187) Rumor peer reporting should be at debug log level
+- [gh-189](https://github.com/chef/bldr/pull/189) Fix a missing Ack timeout
+- [gh-192](https://github.com/chef/bldr/pull/192) Find a way to ressurect isolated members
+- [gh-193](https://github.com/chef/bldr/pull/193) Workaround for a rust performance regression
+
 # 0.3.0
 ## Enhancements
 - [gh-99](https://github.com/chef/bldr/pull/99) Consistent and much improved output and error formatting
