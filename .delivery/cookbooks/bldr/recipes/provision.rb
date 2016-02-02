@@ -23,7 +23,7 @@ execute 'bldr-docker-machine' do
     docker-machine create -d amazonec2 \
       --amazonec2-vpc-id vpc-2229ff47 \
       --amazonec2-region us-west-2 \
-      --amazonec2-instance-type m3.medium \
+      --amazonec2-instance-type c3.xlarge \
       --amazonec2-private-address-only \
       bldr-docker-machine
   EOH

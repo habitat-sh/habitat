@@ -21,8 +21,6 @@ NO_CACHE := false
 
 all: package
 
-
-
 package: image
 ifeq ($(GITHUB_DEPLOY_KEY),)
 	$(run) package sh -c '(cd /src/plans && make bldr-deps)'
