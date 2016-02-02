@@ -16,7 +16,6 @@ doc = false
 name = "functional"
 
 [dependencies]
-docopt = "*"
 rustc-serialize = "*"
 log = "*"
 env_logger = "*"
@@ -47,6 +46,9 @@ branch = "fallback_on_missing_extension"
 
 [dependencies.libarchive]
 path = "./vendor/libarchive-rust"
+
+[dependencies.clap]
+features = [ "suggestions", "color" ]
 
 [profile.release]
 lto = true

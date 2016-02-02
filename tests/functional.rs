@@ -28,8 +28,7 @@ mod setup {
         ONCE.call_once(|| {
             let mut gpg = match util::command::run("gpg",
                                                    &["--import",
-                                                   &util::path::fixture_as_string("chef-pri\
-                                                                                  vate.gpg")]) {
+                                                   &util::path::fixture_as_string("chef-private.gpg")]) {
                                                        Ok(cmd) => cmd,
                                                        Err(e) => panic!("{:?}", e),
         };
@@ -47,8 +46,7 @@ mod setup {
             let mut gpg =
                 match util::command::run_with_env("gpg",
                                                   &["--import",
-                                                  &util::path::fixture_as_string("chef-priv\
-                                                                                 ate.gpg")],
+                                                  &util::path::fixture_as_string("chef-private.gpg")],
                                                                                  &env) {
                     Ok(cmd) => cmd,
                     Err(e) => panic!("{:?}", e),
@@ -63,19 +61,19 @@ mod setup {
         ONCE.call_once(|| {
             let tempdir = TempDir::new("simple_service").unwrap();
             let mut copy_cmd = Command::new("cp")
-                .arg("-r")
-                .arg(util::path::fixture("simple_service"))
-                .arg(tempdir.path().to_str().unwrap())
-                .spawn()
-                .unwrap();
+                                   .arg("-r")
+                                   .arg(util::path::fixture("simple_service"))
+                                   .arg(tempdir.path().to_str().unwrap())
+                                   .spawn()
+                                   .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service = match util::command::bldr_build(tempdir.path()
-                                                                            .join("simple_serv\
-                                                                                   ice")) {
-                Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e),
-            };
+            let mut simple_service =
+                match util::command::bldr_build(tempdir.path()
+                                                       .join("simple_service")) {
+                    Ok(cmd) => cmd,
+                    Err(e) => panic!("{:?}", e),
+                };
             simple_service.wait_with_output();
             if !simple_service.status.unwrap().success() {
                 panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
@@ -97,12 +95,12 @@ mod setup {
                                    .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service = match util::command::bldr_build(tempdir.path()
-                                                                            .join("simple_serv\
-                                                                                   ice_gossip")) {
-                Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e),
-            };
+            let mut simple_service =
+                match util::command::bldr_build(tempdir.path()
+                                                       .join("simple_service_gossip")) {
+                    Ok(cmd) => cmd,
+                    Err(e) => panic!("{:?}", e),
+                };
             simple_service.wait_with_output();
             if !simple_service.status.unwrap().success() {
                 panic!("Failed to build simple service for gossip: stdout: {:?}\nstderr: {:?}",
@@ -142,9 +140,7 @@ mod setup {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
             let mut cmd = match util::command::bldr(&["key",
-                                                    &util::path::fixture_as_string("chef-pu\
-                                                                                   blic.as\
-                                                                                      c")]) {
+                                                    &util::path::fixture_as_string("chef-public.asc")]) {
                                                         Ok(cmd) => cmd,
                                                         Err(e) => panic!("{:?}", e),
         };
@@ -249,21 +245,21 @@ mod key_utils {
         let mut export = match group {
             Some(g) => {
                 command::bldr_with_test_gpg_cache(&["export-key",
-                                                  "--service",
-                                                  &key,
-                                                  "--outfile",
-                                                  &outfile,
-                                                  "--group",
-                                                  &g],
+                                                    "--service",
+                                                    &key,
+                                                    "--outfile",
+                                                    &outfile,
+                                                    "--group",
+                                                    &g],
                                                   &cache)
                     .unwrap()
             }
             None => {
                 command::bldr_with_test_gpg_cache(&["export-key",
-                                                  "--service",
-                                                  &key,
-                                                  "--outfile",
-                                                  &outfile],
+                                                    "--service",
+                                                    &key,
+                                                    "--outfile",
+                                                    &outfile],
                                                   &cache)
                     .unwrap()
             }
@@ -276,12 +272,12 @@ mod key_utils {
 
     pub fn export_user_key(key: &str, outfile: &str, cache: &str) {
         let mut export = command::bldr_with_test_gpg_cache(&["export-key",
-                                                           "--user",
-                                                           &key,
-                                                           "--outfile",
-                                                           &outfile],
+                                                             "--user",
+                                                             &key,
+                                                             "--outfile",
+                                                             &outfile],
                                                            &cache)
-            .unwrap();
+                             .unwrap();
         export.wait_with_output();
         assert_cmd_exit_code!(export, [0]);
         println!("{}", export.stdout());
@@ -289,10 +285,10 @@ mod key_utils {
 
     pub fn import(exported_user_key: &str, cache: &str) {
         let mut import = command::bldr_with_test_gpg_cache(&["import-key",
-                                                           "--infile",
-                                                           &exported_user_key],
+                                                             "--infile",
+                                                             &exported_user_key],
                                                            &cache)
-            .unwrap();
+                             .unwrap();
         import.wait_with_output();
         assert_cmd_exit_code!(import, [0]);
         println!("{}", import.stdout());
@@ -308,33 +304,33 @@ mod key_utils {
         let mut encrypt = match group {
             Some(g) => {
                 command::bldr_with_test_gpg_cache(&["encrypt",
-                                                  "--user",
-                                                  &user,
-                                                  "--service",
-                                                  &service,
-                                                  "--infile",
-                                                  &file_to_encrypt,
-                                                  "--outfile",
-                                                  &encrypted_file,
-                                                  "--password",
-                                                  "password",
-                                                  "--group",
-                                                  g],
+                                                    "--user",
+                                                    &user,
+                                                    "--service",
+                                                    &service,
+                                                    "--infile",
+                                                    &file_to_encrypt,
+                                                    "--outfile",
+                                                    &encrypted_file,
+                                                    "--password",
+                                                    "password",
+                                                    "--group",
+                                                    g],
                                                   &cache)
                     .unwrap()
             }
             None => {
                 command::bldr_with_test_gpg_cache(&["encrypt",
-                                                  "--user",
-                                                  &user,
-                                                  "--service",
-                                                  &service,
-                                                  "--infile",
-                                                  &file_to_encrypt,
-                                                  "--outfile",
-                                                  &encrypted_file,
-                                                  "--password",
-                                                  "password"],
+                                                    "--user",
+                                                    &user,
+                                                    "--service",
+                                                    &service,
+                                                    "--infile",
+                                                    &file_to_encrypt,
+                                                    "--outfile",
+                                                    &encrypted_file,
+                                                    "--password",
+                                                    "password"],
                                                   &cache)
                     .unwrap()
             }
@@ -350,12 +346,12 @@ mod key_utils {
     pub fn decrypt(encrypted_file: &str, decrypted_file: &str, cache: &str, expected_status: i32) {
         // try to decrypt a file that's not meant for me
         let mut decrypt = command::bldr_with_test_gpg_cache(&["decrypt",
-                                                            "--infile",
-                                                            &encrypted_file,
-                                                            "--outfile",
-                                                            &decrypted_file],
+                                                              "--infile",
+                                                              &encrypted_file,
+                                                              "--outfile",
+                                                              &decrypted_file],
                                                             &cache)
-            .unwrap();
+                              .unwrap();
         decrypt.wait_with_output();
         println!("{}", decrypt.stdout());
         assert_cmd_exit_code!(decrypt, [expected_status]);
@@ -375,12 +371,15 @@ mod key_utils {
 
         // generate a test user
         let mut generate_user = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                                  &user_uuid,
-                                                                  "password",
-                                                                  "email@bldrtest",
-                                                                  "--expire-days=10"],
+                                                                    "--user",
+                                                                    &user_uuid,
+                                                                    "--password",
+                                                                    "password",
+                                                                    "--email",
+                                                                    "email@bldrtest",
+                                                                    "--expire-days=10"],
                                                                   cache_dir)
-            .unwrap();
+                                    .unwrap();
         generate_user.wait_with_output();
         println!("{}", generate_user.stdout());
         assert_cmd_exit_code!(generate_user, [0]);
@@ -389,14 +388,15 @@ mod key_utils {
         let mut generate_service = match group {
             Some(g) => {
                 command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                  &service_uuid,
-                                                  "--group",
-                                                  &g],
+                                                    &service_uuid,
+                                                    "--group",
+                                                    &g],
                                                   cache_dir)
                     .unwrap()
             }
             None => {
-                command::bldr_with_test_gpg_cache(&["generate-service-key", &service_uuid],
+                command::bldr_with_test_gpg_cache(&["generate-service-key",
+                                                    &service_uuid],
                                                   cache_dir)
                     .unwrap()
             }

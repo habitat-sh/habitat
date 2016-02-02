@@ -351,7 +351,9 @@ fn run_rngd() -> BldrResult<DroppableChildProcess> {
 pub fn generate_user_key(config: &Config) -> BldrResult<()> {
     let _child = try!(run_rngd());
     let email = config.email().as_ref().unwrap();
-    let keyname = gen_user_key_name(config.key());
+    // clap requires user_key to be specified for generate
+    let user_key = config.user_key().as_ref().unwrap();
+    let keyname = gen_user_key_name(user_key);
 
     let fingerprint = {
         let mut params = gpg::KeygenParams::new(&keyname, &email, USER_KEY_COMMENT);
@@ -375,8 +377,10 @@ pub fn generate_user_key(config: &Config) -> BldrResult<()> {
 pub fn generate_service_key(config: &Config) -> BldrResult<()> {
     let _child = try!(run_rngd());
     let comment = SERVICE_KEY_COMMENT;
-    let kn = gen_service_key_name(config.key(), config.group());
-    let ke = gen_service_key_email(config.key(), config.group());
+    // clap requires service_key to be specified
+    let service_key = config.service_key().as_ref().unwrap();
+    let kn = gen_service_key_name(service_key, config.group());
+    let ke = gen_service_key_email(service_key, config.group());
     let fingerprint = {
         let mut params = gpg::KeygenParams::new(&kn, &ke, comment);
         params.passphrase = None;

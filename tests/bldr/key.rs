@@ -58,7 +58,8 @@ fn kt_generate_service_key() {
     let gpg_cache = gpg_test_setup();
 
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key", &test_uuid],
+    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
+                                                           &test_uuid],
                                                          &gpg_cache)
                            .unwrap();
 
@@ -84,7 +85,8 @@ fn kt_generate_service_key_with_bldr_prefix() {
     let test_uuid = Uuid::new_v4().to_simple_string();
     let test_uuid_with_prefix = "bldr_".to_string() + &test_uuid;
 
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key", &test_uuid],
+    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
+                                                           &test_uuid],
                                                          &gpg_cache)
                            .unwrap();
 
@@ -199,8 +201,11 @@ fn kt_generate_user_key() {
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
     let mut generate = command::bldr_with_test_gpg_cache(&["generate-user-key",
+                                                           "--user",
                                                            &test_uuid,
+                                                           "--password",
                                                            "password",
+                                                           "--email",
                                                            "email@bldrtest"],
                                                          &gpg_cache)
                            .unwrap();
@@ -224,8 +229,11 @@ fn kt_generate_user_key_with_expiration() {
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
     let mut generate = command::bldr_with_test_gpg_cache(&["generate-user-key",
+                                                           "--user",
                                                            &test_uuid,
+                                                           "--password",
                                                            "password",
+                                                           "--email",
                                                            "email@bldrtest",
                                                            "--expire-days=10"],
                                                          &gpg_cache)
@@ -251,8 +259,11 @@ fn kt_generate_user_key_with_bldr_prefix() {
     let test_uuid = Uuid::new_v4().to_simple_string();
     let test_uuid_with_prefix = "bldr_".to_string() + &test_uuid;
     let mut generate = command::bldr_with_test_gpg_cache(&["generate-user-key",
+                                                           "--user",
                                                            &test_uuid_with_prefix,
+                                                           "--password",
                                                            "password",
+                                                           "--email",
                                                            "email@bldrtest",
                                                            "--expire-days=10"],
                                                          &gpg_cache)
@@ -297,8 +308,11 @@ fn kt_find_key() {
     {
         // generate a test user
         let mut generate_user = command::bldr_with_test_gpg_cache(&["generate-user-key",
+                                                                    "--user",
                                                                     "a",
+                                                                    "--password",
                                                                     "password",
+                                                                    "--email",
                                                                     "email@bldrtest",
                                                                     "--expire-days=10"],
                                                                   &cache_dir)
@@ -312,8 +326,11 @@ fn kt_find_key() {
     {
         // generate a test user
         let mut generate_user = command::bldr_with_test_gpg_cache(&["generate-user-key",
+                                                                    "--user",
                                                                     "aa",
+                                                                    "--password",
                                                                     "password",
+                                                                    "--email",
                                                                     "email@bldrtest",
                                                                     "--expire-days=10"],
                                                                   &cache_dir)

@@ -115,6 +115,22 @@ pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &st
              cmd,
              args,
              env);
+
+    let envstr = match env {
+        Some(es) => {
+            let mut s = String::new();
+            for (k, v) in es {
+                s.push_str(&format!("{}={} ", k, v));
+            }
+            s
+        }
+        None => "".to_string(),
+    };
+
+    let argsstr = args.join(" ");
+    // copy and paste commands to run in your terminal. You're welcome.
+    println!(">>>>\n\t\t {} {} {}\n<<<<", envstr, cmd, argsstr);
+
     let mut command = Command::new(cmd);
     command.args(args);
     command.stdin(Stdio::null());

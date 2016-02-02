@@ -13,10 +13,13 @@
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
 use std::net;
-
 use gossip::server::GOSSIP_DEFAULT_PORT;
 use topology::Topology;
 use repo;
+use std::str::FromStr;
+use error::{BldrResult, BldrError, ErrorKind};
+
+static LOGKEY: &'static str = "CFG";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// An enum with the various CLI commands. Used to keep track of what command was called.
@@ -37,6 +40,32 @@ pub enum Command {
     Repo,
     Upload,
     Configuration,
+}
+
+
+impl FromStr for Command {
+    type Err = BldrError;
+    fn from_str(s: &str) -> Result<Command, BldrError> {
+        match s {
+        "bash" => Ok(Command::Shell),
+        "config" => Ok(Command::Config),
+        "decrypt" => Ok(Command::Decrypt),
+        "depot" => Ok(Command::Repo),
+        "download-depot-key" => Ok(Command::DownloadRepoKey),
+        "encrypt" => Ok(Command::Encrypt),
+        "export-key" => Ok(Command::ExportKey),
+        "generate-service-key" => Ok(Command::GenerateServiceKey),
+        "generate-user-key" => Ok(Command::GenerateUserKey),
+        "import-key" => Ok(Command::ImportKey),
+        "install" => Ok(Command::Install),
+        "list-keys" => Ok(Command::ListKeys),
+        "sh" => Ok(Command::Shell),
+        "start" => Ok(Command::Start),
+        "upload-depot-key" => Ok(Command::UploadRepoKey),
+        "upload" => Ok(Command::Upload),
+            _ => Err(bldr_error!(ErrorKind::CommandNotImplemented))
+        }
+    }
 }
 
 // We provide a default command primarily so the Config struct can have sane defaults.
