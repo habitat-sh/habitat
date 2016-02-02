@@ -1,6 +1,6 @@
 pkg_name=bldr
 pkg_derivation=chef
-pkg_version=0.3.0
+pkg_version=0.4.0
 pkg_license=('Apache2')
 pkg_source=http://download.redis.io/releases/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=0e21be5d7c5e6ab6adcbed257619897db59be9e1ded7ef6fd1582d0cdb5e5bb7
