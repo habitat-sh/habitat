@@ -13,3 +13,4 @@ plans/logs/
 plans/support/chroot/lfs-tools/
 opt/
 .vagrant/
+support/**/*.tar
