@@ -12,8 +12,8 @@ import {LocationStrategy, HashLocationStrategy, ROUTER_PROVIDERS} from "angular2
 import {bootstrap} from "angular2/platform/browser";
 
 bootstrap(AppComponent, [
-  AppStore,
-  ROUTER_PROVIDERS,
-// Temporarily commenting this out
-//  bind(LocationStrategy).toClass(HashLocationStrategy)
+    AppStore,
+    ROUTER_PROVIDERS,
+    // Temporarily commenting this out
+    //  bind(LocationStrategy).toClass(HashLocationStrategy)
 ]);

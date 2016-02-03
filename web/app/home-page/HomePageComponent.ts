@@ -11,31 +11,30 @@ import {AppStore} from "../AppStore";
 import {requestRoute} from "../actions";
 
 @Component({
-  directives: [SignUpFormComponent],
-  template: `
+    directives: [SignUpFormComponent],
+    template: `
     <div class="bldr-hero">
-      <div class="bldr-home">
-        <h2>Applications done correctly</h2>
-        <h3>Build, deploy, and run your applications well.</h3>
-        <h4>For containers, for the cloud, for the data center.</h4>
-      </div>
-      <sign-up-form></sign-up-form>
-    </div>
-  `,
+        <div class="bldr-home">
+            <h2>Applications done correctly</h2>
+            <h3>Build, deploy, and run your applications well.</h3>
+            <h4>For containers, for the cloud, for the data center.</h4>
+        </div>
+        <sign-up-form></sign-up-form>
+    </div>`,
 })
 
 export class HomePageComponent {
-  constructor(private store: AppStore) {}
+    constructor(private store: AppStore) { }
 
-  ngOnInit() {
-    if (this.store.getState().isSignedIn) {
-      this.store.dispatch(
-        requestRoute(["Packages", { show: "mine" }])
-      );
+    ngOnInit() {
+        if (this.store.getState().isSignedIn) {
+            this.store.dispatch(
+                requestRoute(["Packages", { filter: "mine" }])
+            );
+        }
     }
-  }
 
-  get username() {
-    return this.store.getState().username;
-  }
+    get username() {
+        return this.store.getState().username;
+    }
 }

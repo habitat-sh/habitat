@@ -5,61 +5,70 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import * as actionTypes from "./actions";
+import {List} from "immutable";
 import initialState from "./initialState";
 import query from "./query";
 
 export function rootReducer(state = initialState, action) {
-  switch (action.type) {
+    console.log("New action received", action);
 
-  case actionTypes.ROUTE_CHANGE:
-    return state.set("route", action.payload).
-      set("requestedRoute", null);
+    switch (action.type) {
 
-  case actionTypes.SIGN_UP_ATTEMPT:
-    return state.
-      set("isSignUpFormSubmitted", true).
-      set("username", action.payload.username).
-      set("email", action.payload.email).
-      set("password", action.payload.password);
+        case actionTypes.POPULATE_EXPLORE:
+            return state.setIn(["explore", "packages"], List(action.payload));
 
-  case actionTypes.SIGN_IN_ATTEMPT:
-    return state.
-      set("username", action.payload.username).
-      set("isSignedIn", true);
+        case actionTypes.ROUTE_CHANGE:
+            return state.set("route", action.payload).
+                set("requestedRoute", null);
 
-  case actionTypes.SIGN_OUT:
-    return state.
-      set("isSignUpFormSubmitted", false).
-      set("isSignedIn", false);
+        case actionTypes.SIGN_UP_ATTEMPT:
+            return state.
+                set("isSignUpFormSubmitted", true).
+                set("username", action.payload.username).
+                set("email", action.payload.email).
+                set("password", action.payload.password);
 
-  case actionTypes.ROUTE_REQUESTED:
-    return state.
-      set("requestedRoute", action.payload);
+        case actionTypes.SIGN_IN_ATTEMPT:
+            return state.
+                set("username", action.payload.username).
+                set("isSignedIn", true);
 
-  // Query the list of packages to set the currentPackage data.
-  case actionTypes.SET_CURRENT_PACKAGE:
-    return state.set("currentPackage",
-                     query(state.get("packages")).
-                       fromParams(action.payload).first());
+        case actionTypes.SIGN_OUT:
+            return state.
+                set("isSignUpFormSubmitted", false).
+                set("isSignedIn", false);
 
-  case actionTypes.SET_VISIBLE_PACKAGES:
-    const q = query(state.get("packages"));
-    let p;
-    if (action.payload.filter === "all") {
-      p = q.allMostRecent();
-    } else if (action.payload.filter === "mine") {
-      p = q.allMostRecentForDerivation("smith");
-    } else if (action.payload.derivation) {
-      p = q.allMostRecentForDerivation(action.payload.derivation);
-    } else {
-      p = q.allMostRecent();
+        case actionTypes.ROUTE_REQUESTED:
+            return state.
+                set("requestedRoute", action.payload);
+
+        // Query the list of packages to set the currentPackage data.
+        case actionTypes.SET_CURRENT_PACKAGE:
+            return state.set("currentPackage",
+                query(state.get("packages")).
+                    fromParams(action.payload).first());
+
+        case actionTypes.SET_PACKAGES:
+            return state.set("packages", action.payload);
+
+        case actionTypes.SET_VISIBLE_PACKAGES:
+            const q = query(state.get("packages"));
+            let p;
+            if (action.payload.filter === "mine") {
+                p = q.allMostRecentForDerivation("smith");
+            } else if (action.payload.derivation) {
+                p = q.allMostRecentForDerivation(action.payload.derivation);
+            } else if (action.payload.name) {
+                p = q.allForNameByStars(action.payload.name);
+            } else {
+                p = q.allMostRecent();
+            }
+            return state.set("visiblePackages", p.toArray());
+
+        case actionTypes.TOGGLE_USER_NAV_MENU:
+            return state.set("isUserNavOpen", !state.get("isUserNavOpen"));
+
+        default:
+            return state;
     }
-    return state.set("visiblePackages", p.toArray());
-
-  case actionTypes.TOGGLE_USER_NAV_MENU:
-    return state.set("isUserNavOpen", !state.get("isUserNavOpen"));
-
-  default:
-    return state;
-  }
 }

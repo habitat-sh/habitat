@@ -12,33 +12,32 @@ import {attemptSignIn, requestRoute} from "../actions";
 @Component({
     template: `
     <div class="bldr-sign-in">
-      <h2>Sign In</h2>
-      <form (ngSubmit)="onSubmit(usernameOrEmail, password)">
-        <input placeholder="Username or email" autofocus required #usernameOrEmail>
-        <input type="password" placeholder="Password" required #password>
-        <button>Sign In</button>
-      </form>
-    </div>
-    `
+        <h2>Sign In</h2>
+        <form (ngSubmit)="onSubmit(usernameOrEmail, password)">
+            <input placeholder="Username or email" autofocus required #usernameOrEmail>
+            <input type="password" placeholder="Password" required #password>
+            <button>Sign In</button>
+        </form>
+    </div>`,
 })
 
 export class SignInPageComponent {
-  constructor(private store: AppStore) {}
+    constructor(private store: AppStore) { }
 
-  get username() {
-    return this.store.getState().username;
-  }
-
-  ngOnInit() {
-    if (this.store.getState().isSignedIn) {
-      this.store.dispatch(
-        requestRoute(["Packages", { show: "mine" }])
-      );
+    get username() {
+        return this.store.getState().username;
     }
-  }
 
-  onSubmit(username) {
-    this.store.dispatch(attemptSignIn(username.value));
-    this.store.dispatch(requestRoute(["Packages", { show: "mine" }]));
-  }
+    ngOnInit() {
+        if (this.store.getState().isSignedIn) {
+            this.store.dispatch(
+                requestRoute(["Packages", { filter: "mine" }])
+            );
+        }
+    }
+
+    onSubmit(username) {
+        this.store.dispatch(attemptSignIn(username.value));
+        this.store.dispatch(requestRoute(["Packages", { filter: "mine" }]));
+    }
 }

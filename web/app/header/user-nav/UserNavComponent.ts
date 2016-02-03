@@ -10,63 +10,62 @@ import {Router, RouterLink} from "angular2/router";
 import {requestRoute, signOut, toggleUserNavMenu} from "../../actions";
 
 @Component({
-  directives: [RouterLink],
-  selector: "user-nav",
-  template: `
+    directives: [RouterLink],
+    selector: "user-nav",
+    template: `
     <nav>
-      <ul>
-        <li><a class="button" *ngIf="isSignUpLinkVisible" [routerLink]="['Home']">Sign Up</a></li>
-        <li><a *ngIf="!isSignedIn" [routerLink]="['Sign In']">Sign In</a></li>
-        <li *ngIf="isSignedIn">
-          <a class="username" href="#" (click)="toggleMenu()">{{username}}
-            <span *ngIf="!isOpen">▼</span>
-            <span *ngIf="isOpen">▲</span>
-          </a>
-          <ul *ngIf="isOpen">
-            <li><a href="#" (click)="signOut()">Sign Out</a></li>
-          </ul>
-        </li>
-      </ul>
-    </nav>
-  `
+        <ul>
+            <li><a class="button" *ngIf="isSignUpLinkVisible" [routerLink]="['Home']">Sign Up</a></li>
+            <li><a *ngIf="!isSignedIn" [routerLink]="['SignIn']">Sign In</a></li>
+            <li *ngIf="isSignedIn">
+                <a class="username" href="#" (click)="toggleMenu()">{{username}}
+                    <span *ngIf="!isOpen">▼</span>
+                    <span *ngIf="isOpen">▲</span>
+                </a>
+                <ul *ngIf="isOpen">
+                    <li><a href="#" (click)="signOut()">Sign Out</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>`,
 })
 
 export class UserNavComponent {
-  constructor(private store: AppStore) {}
+    constructor(private store: AppStore) { }
 
-  get state() {
-    return this.store.getState();
-  }
+    get state() {
+        return this.store.getState();
+    }
 
-  get isOpen() {
-    return this.state.isUserNavOpen;
-  }
+    get isOpen() {
+        return this.state.isUserNavOpen;
+    }
 
-  get isSignedIn() {
-    return this.state.isSignedIn;
-  }
+    get isSignedIn() {
+        return this.state.isSignedIn;
+    }
 
-  get username() {
-    return this.state.username;
-  }
+    get username() {
+        return this.state.username;
+    }
 
-  get isOnSignUpPage() {
-    return window.location.pathname === "/";
-  }
+    get isOnSignUpPage() {
+        return window.location.pathname === "/";
+    }
 
-  get isSignUpLinkVisible() {
-    return !this.isSignedIn && !this.isOnSignUpPage;
-  }
+    get isSignUpLinkVisible() {
+        return !this.isSignedIn && !this.isOnSignUpPage;
+    }
 
-  signOut() {
-    this.store.dispatch(toggleUserNavMenu());
-    this.store.dispatch(signOut());
-    this.store.dispatch(requestRoute(["Home"]));
-    return false;
-  }
+    signOut() {
+        this.store.dispatch(toggleUserNavMenu());
+        this.store.dispatch(signOut());
+        this.store.dispatch(requestRoute(["Home"]));
+        return false;
+    }
 
-  toggleMenu() {
-    this.store.dispatch(toggleUserNavMenu());
-    return false;
-  }
+    toggleMenu() {
+        this.store.dispatch(toggleUserNavMenu());
+        return false;
+    }
 }
