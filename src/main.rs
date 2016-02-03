@@ -276,7 +276,7 @@ fn main() {
                                              .takes_value(true)
                                              .help("Name of user key"))
                                     .arg(Arg::with_name("password")
-                                             .required(true)
+                                             .required(false)
                                              .long("password")
                                              .takes_value(true)
                                              .help("User key password"))

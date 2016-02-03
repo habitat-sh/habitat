@@ -355,9 +355,19 @@ pub fn generate_user_key(config: &Config) -> BldrResult<()> {
     let user_key = config.user_key().as_ref().unwrap();
     let keyname = gen_user_key_name(user_key);
 
+    let password = match config.password().clone() {
+        Some(p) => p,
+        None => {
+            println!("Please enter a password for {}:", user_key);
+            let p = try!(read_password());
+            debug!("The password is: '{}'", p);
+            p
+        }
+    };
+
     let fingerprint = {
         let mut params = gpg::KeygenParams::new(&keyname, &email, USER_KEY_COMMENT);
-        params.passphrase = config.password().as_ref();
+        params.passphrase = Some(&password);
         params.expire_days = config.expire_days().unwrap_or(0);
         try!(check_params(&params));
         try!(gpg::generate(&params))
