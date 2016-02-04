@@ -1,0 +1,11 @@
+doc_root = '/opt/bldr/srvc/bldr-web/static'
+worker_processes = 1
+
+[events]
+worker_connections = 2048
+
+[http]
+sendfile = 'off'
+tcp_nopush = 'off'
+tcp_nodelay = 'on'
+keepalive_timeout = '75s'
