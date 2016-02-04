@@ -1,5 +1,35 @@
 [
     {
+        "name": "openssl",
+        "derivation": "chef",
+        "version": "1.0.2f",
+        "release": "20160204195444",
+        "license": "BSD",
+        "source": "https://www.openssl.org/source/openssl-1.0.2f.tar.gz",
+        "sha": "932b4ee4def2b434f85435d9e3e19ca8ba99ce9a065a61524b429a9d5e9b2e9c",
+        "dependencies": [
+            {
+                "derivation": "chef",
+                "name": "glibc",
+                "version": "2.19",
+                "release": "20160204174948"
+            },
+            {
+                "derivation": "chef",
+                "name": "zlib",
+                "version": "1.2.8",
+                "release": "20160204174955"
+            },
+            {
+                "derivation": "chef",
+                "name": "cacerts",
+                "version": "2016.02.04",
+                "release": "20160204175039"
+            }
+        ],
+        "buildDependencies": []
+    },
+    {
         "name": "glibc",
         "derivation": "chef",
         "version": "2.19",

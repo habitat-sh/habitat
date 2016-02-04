@@ -29,15 +29,16 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
 })
 
 export class HeaderComponent {
+    // TODO: Remove these and replace with something not terrible.
     get onAllPackages() {
-        return window.location.pathname === "/packages" &&
+        return window.location.pathname === "/pkgs" &&
             window.location.search.replace("?filter=", "") !== "mine";
     }
 
     get onExplore() { return false; }
 
     get onMyPackages() {
-        return window.location.pathname === "/packages" &&
+        return window.location.pathname === "/pkgs" &&
             window.location.search.replace("?filter=", "") === "mine";
     }
 }

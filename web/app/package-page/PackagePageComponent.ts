@@ -4,17 +4,16 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import query from "../query";
 import {AppStore} from "../AppStore";
-import {Component} from "angular2/core";
-import {OnInit} from "angular2/core";
+import {BuildLogComponent} from "./BuildLogComponent";
+import {Component, OnInit} from "angular2/core";
 import {PackageListComponent} from "./PackageListComponent";
 import {RouteParams, RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
-import {setCurrentPackage} from "../actions";
+import {setCurrentPackage, fetchBuildLog} from "../actions";
 
 @Component({
-    directives: [PackageListComponent, RouterLink],
+    directives: [BuildLogComponent, PackageListComponent, RouterLink],
     template: `
     <div>
         <div *ngIf="!package" class="bldr-package">
@@ -51,12 +50,12 @@ import {setCurrentPackage} from "../actions";
             <div class="bldr-package-versions">
                 <h3>Available Versions</h3>
                 <package-list [currentPackage]="package"
-                              [packages]="versions"></package-list>
+                              [packages]="package.versions"></package-list>
             </div>
             <div class="bldr-package-releases">
                 <h3>Releases <small>of version {{package.version}}</small></h3>
                 <package-list [currentPackage]="package"
-                              [packages]="releases"></package-list>
+                              [packages]="package.releases"></package-list>
             </div>
             <div class="bldr-package-deps-build">
                 <h3>Build Dependencies</h3>
@@ -68,22 +67,16 @@ import {setCurrentPackage} from "../actions";
                 <package-list [currentPackage]="package"
                               [packages]="package.dependencies"></package-list>
             </div>
+            <div class="bldr-package-log">
+                <h3>Build Log</h3>
+                <build-log [package]="package"></build-log>
+            </div>
       </div>
   </div>`,
 })
 
 export class PackagePageComponent implements OnInit {
-    private releases;
-    private versions;
-
-    constructor(private routeParams: RouteParams, private store: AppStore) {
-        this.releases = query(this.allPackages).
-            allReleasesForPackageVersion(this.package).
-            toArray();
-        this.versions = query(this.allPackages).
-            allVersionsForPackage(this.package).
-            toArray();
-    }
+    constructor(private routeParams: RouteParams, private store: AppStore) { }
 
     // Initially set up the package to be whatever comes from the params,
     // so we can query for its versions and releases. In ngOnInit, we'll
@@ -101,9 +94,10 @@ export class PackagePageComponent implements OnInit {
         }
     }
 
-    get allPackages() { return this.store.getState().packages; }
-
-    ngOnInit() { this.store.dispatch(setCurrentPackage(this.package)); }
+    ngOnInit() {
+        this.store.dispatch(setCurrentPackage(this.package));
+        this.store.dispatch(fetchBuildLog(this.package));
+    }
 
     packageString(params) { return packageString(params); }
 }

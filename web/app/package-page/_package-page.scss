@@ -19,4 +19,22 @@
       margin-top: $base-spacing;
     }
   }
+
+  &-log {
+    position: relative;
+
+    button.rebuild {
+      position: absolute;
+      right: $base-spacing;
+      top: $base-spacing * 2.5;
+    }
+
+    .output {
+      font-family: monospace;
+      @include pad($base-spacing);
+      background: black;
+      color: $medium-gray;
+      overflow: auto;
+    }
+  }
 }

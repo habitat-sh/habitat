@@ -1,8 +1,9 @@
 # Why are there so many files and what do all of them mean?
 
-The list below shows important files in the app and how they are organized. Not
-all of these are present when you first check out the app, but they may appear
-after running some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
+The list below shows important files in the app and how they are organized. This
+is not a complete list, but shows examples of files that exist. Not all of these
+are present when you first check out the app, but they may appear after running
+some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
 
     app/                         # The app/ directory contains the code that makes up the app.
       home-page/                      # The top level directories contain the app's components.
@@ -18,12 +19,16 @@ after running some `npm` scripts (`npm install`, `npm start`, etc.) and using th
       AppComponent.ts            # The top level component of the app.
       AppStore.ts                # The [Store](http://redux.js.org/docs/basics/Store.html) for the app.
       boot.ts                    # Main entry point for the TypeScript.
+      initialState.ts            # The initial state of the app.
       query.ts                   # Object that lets you query for packages.
       rootReducer.ts             # The root [Reducer](http://rackt.org/redux/docs/basics/Reducers.html).
+      tests-entry.ts             # Main entry point for the tests.
+      util.test.ts               # Files that end in .test.ts are tests.
       util.ts                    # Utility functions.
+    dist/                        # Where the app prepared for production distribution goes. `npm run dist` to create it. Ignored by git.
+
     doc/                         # Documentation.
       files.md                   # This is the file you are reading now.
-    dist/                        # Where the app prepared for production distribution goes. `npm run dist` to create it. Ignored by git.
     fixtures/                    # Fixture data the app uses to make fake requests.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
     stylesheets/base/            # The SCSS files for the stylesheets.
@@ -38,6 +43,7 @@ after running some `npm` scripts (`npm install`, `npm start`, etc.) and using th
     app.js.map                   # The source map for that JS, mapping to the TypeScript versions.
     favicon.ico                  # The favicon.
     index.html                   # The main HTML document.
+    karma.conf.js                # The [Karma](https://karma-runner.github.io/0.13/index.html) config file.
     npm-debug.log                # Logs from npm debug output. Ignored by git.
     npm-shrinkwrap.json          # [`npm-shrinkwrap`](https://docs.npmjs.com/cli/shrinkwrap) file for locking npm dependencies.
     package.json                 # A [package.json](https://docs.npmjs.com/files/package.json).

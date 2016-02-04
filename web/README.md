@@ -12,6 +12,17 @@ Run `npm install` to install dependencies.
 
 To run a development web server, run `npm start`.
 
+### Tests
+
+Run the unit tests with `npm test`. They also run in the background when
+running `npm start`.
+
+Files ending with .test.ts are unit tested. We use
+[Karma](https://karma-runner.github.io/0.13/index.html),
+[Mocha](https://mochajs.org/), and [Chai](http://chaijs.com/).
+
+See [app/util.test.ts](app/util.test.ts) for an example.
+
 ### Tasks
 
 These are defined in [package.json](package.json) and can be run with `npm run
@@ -33,6 +44,10 @@ TASK_NAME`.
 * `lint-js-watch`
 * `repl`: Start a TypeScript REPL
 * `start`: Watch for changes and start a development server running on port 3000
+* `test`: Run the tests
+* `test-watch`
+* `test-unit`: Run the unit tests
+* `test-unit-watch`
 
 ### Code Style Conventions
 

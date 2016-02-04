@@ -12,7 +12,16 @@ import query from "./query";
 export function rootReducer(state = initialState, action) {
     console.log("New action received", action);
 
+    // Since switch is the main block scope here, define some variables
+    // that can be reused below
+    let p, q;
+
     switch (action.type) {
+
+        case actionTypes.POPULATE_BUILD_LOG:
+            p = state.get("currentPackage");
+            p.buildLog = action.payload;
+            return state.set("currentPackage", p);
 
         case actionTypes.POPULATE_EXPLORE:
             return state.setIn(["explore", "packages"], List(action.payload));
@@ -44,16 +53,25 @@ export function rootReducer(state = initialState, action) {
 
         // Query the list of packages to set the currentPackage data.
         case actionTypes.SET_CURRENT_PACKAGE:
-            return state.set("currentPackage",
-                query(state.get("packages")).
-                    fromParams(action.payload).first());
+            q = query(state.get("packages"));
+            p = null;
+            const pkgEnumerable = q.fromParams(action.payload);
+
+            if (pkgEnumerable.count() > 0) {
+                p = pkgEnumerable.first();
+                p.versions = q.allReleasesForPackageVersion(p).toArray();
+                p.releases = q.allVersionsForPackage(p).toArray();
+                p.dependencies = p.dependencies || [];
+                p.buildDependencies = p.buildDependencies || [];
+            }
+
+            return state.set("currentPackage", p);
 
         case actionTypes.SET_PACKAGES:
             return state.set("packages", action.payload);
 
         case actionTypes.SET_VISIBLE_PACKAGES:
-            const q = query(state.get("packages"));
-            let p;
+            q = query(state.get("packages"));
             if (action.payload.filter === "mine") {
                 p = q.allMostRecentForDerivation("smith");
             } else if (action.payload.derivation) {
