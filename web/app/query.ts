@@ -46,6 +46,7 @@ export default function query(packages: Array<any>) {
             return enumerable.
                 where(pkg => {
                     return pkg["name"] === sourcePkg["name"] &&
+                        pkg["derivation"] === sourcePkg["derivation"] &&
                         pkg["version"] === sourcePkg["version"];
                 });
         },
@@ -53,7 +54,10 @@ export default function query(packages: Array<any>) {
         // Given a package, the most recent release of each version
         allVersionsForPackage(sourcePkg) {
             return enumerable.
-                where(pkg => { return pkg["name"] === sourcePkg["name"]; }).
+                where(pkg => {
+                    return pkg["name"] === sourcePkg["name"] &&
+                        pkg["derivation"] === sourcePkg["derivation"];
+                }).
                 groupBy("$.version").
                 select(group => group.first()).
                 orderByDescending("$.version"); // TODO: make this semver(ish) sorted

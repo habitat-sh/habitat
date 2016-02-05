@@ -33,14 +33,14 @@ import {routeChange} from "./actions";
 @RouteConfig([
     { path: "/", name: "Home", component: HomePageComponent },
     { path: "/explore", name: "Explore", component: ExplorePageComponent },
-    { path: "/packages", name: "Packages", component: PackagesPageComponent },
-    { path: "/packages/*/:name", name: "PackagesForName", component: PackagesPageComponent },
+    { path: "/pkgs", name: "Packages", component: PackagesPageComponent },
+    { path: "/pkgs/*/:name", name: "PackagesForName", component: PackagesPageComponent },
     {
-        path: "/packages/:derivation", name: "PackagesForDerivation",
+        path: "/pkgs/:derivation", name: "PackagesForDerivation",
         component: PackagesPageComponent
     },
     {
-        path: "/packages/:derivation/:name/:version/:release", name: "Package",
+        path: "/pkgs/:derivation/:name/:version/:release", name: "Package",
         component: PackagePageComponent
     },
     { path: "/sign-in", name: "SignIn", component: SignInPageComponent },
