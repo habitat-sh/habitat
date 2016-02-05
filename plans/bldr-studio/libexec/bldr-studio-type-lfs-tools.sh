@@ -7,7 +7,7 @@ studio_build_environment=
 studio_build_command=
 studio_run_environment=
 
-: ${LFS_TOOLS_URL:=http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/lfs-tools-20160128050001.tar.xz}
+: ${LFS_TOOLS_URL:=http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/lfs-tools-20160205204818.tar.xz}
 : ${TAR_DIR:=/tmp}
 
 finish_setup() {
