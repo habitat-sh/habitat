@@ -5,15 +5,15 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {AppStore} from "../AppStore";
-import {BuildLogComponent} from "./BuildLogComponent";
+import {BuildListComponent} from "./BuildListComponent";
 import {Component, OnInit} from "angular2/core";
 import {PackageListComponent} from "./PackageListComponent";
 import {RouteParams, RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
-import {setCurrentPackage, fetchBuildLog} from "../actions";
+import {fetchPackage, fetchBuilds} from "../actions";
 
 @Component({
-    directives: [BuildLogComponent, PackageListComponent, RouterLink],
+    directives: [BuildListComponent, PackageListComponent, RouterLink],
     template: `
     <div>
         <div *ngIf="!package" class="bldr-package">
@@ -68,8 +68,8 @@ import {setCurrentPackage, fetchBuildLog} from "../actions";
                               [packages]="package.dependencies"></package-list>
             </div>
             <div class="bldr-package-log">
-                <h3>Build Log</h3>
-                <build-log [package]="package"></build-log>
+                <h3>Builds</h3>
+                <build-list [package]="package" [builds]="package.builds" [logs]="package.buildLogs"></build-list>
             </div>
       </div>
   </div>`,
@@ -95,8 +95,10 @@ export class PackagePageComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.store.dispatch(setCurrentPackage(this.package));
-        this.store.dispatch(fetchBuildLog(this.package));
+        this.store.dispatch(fetchPackage(this.package));
+        this.store.dispatch(fetchBuilds({
+            derivation: this.package.derivation, name: this.package.name
+        }));
     }
 
     packageString(params) { return packageString(params); }

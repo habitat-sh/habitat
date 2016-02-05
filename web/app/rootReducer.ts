@@ -10,8 +10,6 @@ import initialState from "./initialState";
 import query from "./query";
 
 export function rootReducer(state = initialState, action) {
-    console.log("New action received", action);
-
     // Since switch is the main block scope here, define some variables
     // that can be reused below
     let p, q;
@@ -20,7 +18,19 @@ export function rootReducer(state = initialState, action) {
 
         case actionTypes.POPULATE_BUILD_LOG:
             p = state.get("currentPackage");
-            p.buildLog = action.payload;
+
+            if (p) {
+                p.buildLogs = p.buildLogs || {};
+                p.buildLogs[action.payload.id] = action.payload.data;
+            }
+
+            return state.set("currentPackage", p);
+
+        case actionTypes.POPULATE_BUILDS:
+            p = state.get("currentPackage");
+
+            if (p) { p.builds = action.payload; }
+
             return state.set("currentPackage", p);
 
         case actionTypes.POPULATE_EXPLORE:
@@ -29,23 +39,6 @@ export function rootReducer(state = initialState, action) {
         case actionTypes.ROUTE_CHANGE:
             return state.set("route", action.payload).
                 set("requestedRoute", null);
-
-        case actionTypes.SIGN_UP_ATTEMPT:
-            return state.
-                set("isSignUpFormSubmitted", true).
-                set("username", action.payload.username).
-                set("email", action.payload.email).
-                set("password", action.payload.password);
-
-        case actionTypes.SIGN_IN_ATTEMPT:
-            return state.
-                set("username", action.payload.username).
-                set("isSignedIn", true);
-
-        case actionTypes.SIGN_OUT:
-            return state.
-                set("isSignUpFormSubmitted", false).
-                set("isSignedIn", false);
 
         case actionTypes.ROUTE_REQUESTED:
             return state.
@@ -63,6 +56,7 @@ export function rootReducer(state = initialState, action) {
                 p.releases = q.allVersionsForPackage(p).toArray();
                 p.dependencies = p.dependencies || [];
                 p.buildDependencies = p.buildDependencies || [];
+                p.builds = p.builds || [];
             }
 
             return state.set("currentPackage", p);
@@ -82,6 +76,23 @@ export function rootReducer(state = initialState, action) {
                 p = q.allMostRecent();
             }
             return state.set("visiblePackages", p.toArray());
+
+        case actionTypes.SIGN_IN_ATTEMPT:
+            return state.
+                set("username", action.payload.username).
+                set("isSignedIn", true);
+
+        case actionTypes.SIGN_OUT:
+            return state.
+                set("isSignUpFormSubmitted", false).
+                set("isSignedIn", false);
+
+        case actionTypes.SIGN_UP_ATTEMPT:
+            return state.
+                set("isSignUpFormSubmitted", true).
+                set("username", action.payload.username).
+                set("email", action.payload.email).
+                set("password", action.payload.password);
 
         case actionTypes.TOGGLE_USER_NAV_MENU:
             return state.set("isUserNavOpen", !state.get("isUserNavOpen"));

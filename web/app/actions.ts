@@ -12,6 +12,7 @@ import {packageString} from "./util";
 // webpack.
 const ansiToHtml = require("ansi_up").ansi_to_html;
 
+export const POPULATE_BUILDS = "POPULATE_BUILDS";
 export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
@@ -42,29 +43,46 @@ export function attemptSignUp(username, email, password) {
     };
 }
 
-// Fetch the build log for a package
-export function fetchBuildLog(pkg) {
+// Fetch the list of builds for a package
+export function fetchBuilds(pkg) {
     return dispatch => {
-        api.get(`log/${packageString(pkg)}.txt`).then(response => {
-            dispatch(populateBuildLog(response));
+        api.get(`log/${packageString(pkg)}/builds.json`).then(response => {
+            dispatch(populateBuilds(response));
+            dispatch(fetchBuildLog(pkg, response));
         }).catch(error => {
-            // If the request comes back as a 404, that means we don't have
-            // for this package.
-            //
-            // Right now I'm getting back "SyntaxError: Unexpected token C",
-            // and I'm not sure if that's from the lite-server we're using
-            // or something else. Ideally we want to check the error object to
-            // make sure it's a 404, then log/reraise if it's not.
-            dispatch(populateBuildLog(undefined));
+            dispatch(populateBuilds([]));
         });
     };
 }
+
+// Fetch the build log for a package
+export function fetchBuildLog(pkg, builds) {
+    return dispatch => {
+        builds.forEach(build => {
+            api.get(`log/${packageString(pkg)}/${build.id}.txt`).then(response => {
+                dispatch(populateBuildLog(build.id, response));
+            }).catch(error => {
+                dispatch(populateBuildLog(build.id, undefined));
+            });
+        });
+    };
+}
+
 // Fetch the explore endpoint
 export function fetchExplore() {
     return dispatch => {
         api.get("explore.json").then(response => {
             dispatch(populateExplore(response));
         }).catch(error => console.error(error));
+    };
+}
+
+export function fetchPackage(pkg) {
+    return dispatch => {
+        api.get("packages.json").then(response => {
+            dispatch(setPackages(response));
+            dispatch(setCurrentPackage(pkg));
+        });
     };
 }
 
@@ -77,10 +95,17 @@ export function filterPackagesBy(params) {
     };
 }
 
-export function populateBuildLog(data) {
+export function populateBuilds(data) {
+    return {
+        type: POPULATE_BUILDS,
+        payload: data,
+    };
+}
+
+export function populateBuildLog(id, data) {
     return {
         type: POPULATE_BUILD_LOG,
-        payload: ansiToHtml(data)
+        payload: { id, data: data ? ansiToHtml(data) : undefined },
     };
 }
 export function populateExplore(data) {

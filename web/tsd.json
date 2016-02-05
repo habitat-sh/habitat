@@ -19,6 +19,12 @@
     },
     "assertion-error/assertion-error.d.ts": {
       "commit": "e69fe60f2d6377ea4fae539493997b098f52cad1"
+    },
+    "moment/moment.d.ts": {
+      "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
+    },
+    "moment/moment-node.d.ts": {
+      "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
     }
   }
 }

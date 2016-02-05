@@ -5,15 +5,19 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {Injectable} from "angular2/core";
-import {applyMiddleware, createStore} from "redux";
+import {applyMiddleware, compose, createStore} from "redux";
 import {rootReducer} from "./rootReducer";
 import * as thunk from "redux-thunk";
 
-// The thunk middleware allows an action to return a function that takes a
-// dispatch argument instead of returning an object directly. This allows
-// actions to make async calls.
-const createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
-const appStore = createStoreWithMiddleware(rootReducer);
+const finalCreateStore = compose(
+    // The thunk middleware allows an action to return a function that takes a
+    // dispatch argument instead of returning an object directly. This allows
+    // actions to make async calls.
+    applyMiddleware(thunk),
+    // Enable dev tools if the extension is installed.
+    window["devToolsExtension"] ? window["devToolsExtension"]() : (f) => { f; }
+)(createStore);
+const appStore = finalCreateStore(rootReducer);
 
 @Injectable()
 export class AppStore {

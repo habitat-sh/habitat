@@ -7,10 +7,11 @@
 import {Component} from "angular2/core";
 import {RouterLink} from "angular2/router";
 import {UserNavComponent} from "./user-nav/UserNavComponent";
+import {url} from "../util";
 
 @Component({
     directives: [RouterLink, UserNavComponent],
-    inputs: ["appName", "routeParams"],
+    inputs: ["appName", "route"],
     selector: "bldr-header",
     template: `
     <header class="bldr-header">
@@ -29,16 +30,23 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
 })
 
 export class HeaderComponent {
-    // TODO: Remove these and replace with something not terrible.
+    private route;
+
+    // Methods to figure out which page we're on
     get onAllPackages() {
-        return window.location.pathname === "/pkgs" &&
-            window.location.search.replace("?filter=", "") !== "mine";
+        const route = url(this.route);
+        return route.pathname === "/pkgs" &&
+            route.search.replace("?filter=", "") !== "mine";
     }
 
-    get onExplore() { return false; }
+    get onExplore() {
+        const route = url(this.route);
+        return route.pathname === "/explore";
+    }
 
     get onMyPackages() {
-        return window.location.pathname === "/pkgs" &&
-            window.location.search.replace("?filter=", "") === "mine";
+        const route = url(this.route);
+        return route.pathname === "/pkgs" &&
+            route.search.replace("?filter=", "") === "mine";
     }
 }

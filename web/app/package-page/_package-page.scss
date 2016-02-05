@@ -24,9 +24,7 @@
     position: relative;
 
     button.rebuild {
-      position: absolute;
-      right: $base-spacing;
-      top: $base-spacing * 2.5;
+        font-size: 50%;
     }
 
     .output {
@@ -36,5 +34,47 @@
       color: $medium-gray;
       overflow: auto;
     }
+  }
+
+  .bldr-build-list {
+      li {
+        border: 1px solid;
+        border-left: $small-spacing/2 solid;
+        margin: $small-spacing;
+        padding: $small-spacing;
+
+        h1 {
+            font-size: 100%;
+        }
+
+        .status {
+            float: right;
+            font-size: 75%;
+        }
+
+        &.queued {
+            border-color: $queued-color;
+
+            .color {
+                color: $queued-color;
+            }
+        }
+
+        &.failure {
+            border-color: $failure-color;
+
+            .color {
+                color: $failure-color;
+            }
+        }
+
+        &.success {
+            border-color: $success-color;
+
+            .color {
+                color: $success-color;
+            }
+        }
+      }
   }
 }
