@@ -10,6 +10,7 @@ plans/hana/sapcar.exe
 plans/hana/*.exe
 plans/hana/*.rar
 plans/log/
+plans/tmp/
 plans/support/chroot/lfs-tools/
 opt/
 .vagrant/
