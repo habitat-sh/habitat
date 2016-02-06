@@ -1,4 +1,4 @@
-studio_type="lfs-tools"
+studio_type="stage1"
 studio_path="/tools/bin"
 studio_env_command="/tools/bin/env"
 studio_enter_environment=
@@ -7,7 +7,7 @@ studio_build_environment=
 studio_build_command=
 studio_run_environment=
 
-: ${LFS_TOOLS_URL:=http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/lfs-tools-20160205204818.tar.xz}
+: ${STAGE1_TOOLS_URL:=http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/lfs-tools-20160205204818.tar.xz}
 : ${TAR_DIR:=/tmp}
 
 finish_setup() {
@@ -15,12 +15,12 @@ finish_setup() {
     return 0
   fi
 
-  tar_file="$TAR_DIR/$($bb basename $LFS_TOOLS_URL)"
+  tar_file="$TAR_DIR/$($bb basename $STAGE1_TOOLS_URL)"
 
   if [ ! -f $tar_file ]; then
     trap '$bb rm -f $tar_file; exit $?' INT TERM EXIT
-    info "Downloading $LFS_TOOLS_URL"
-    $bb wget $LFS_TOOLS_URL -O $tar_file
+    info "Downloading $STAGE1_TOOLS_URL"
+    $bb wget $STAGE1_TOOLS_URL -O $tar_file
     trap - INT TERM EXIT
   fi
 

@@ -70,7 +70,7 @@ OPTIONS:
     -r <STUDIO_ROOT>  Sets a Studio root (default: /opt/studio)
     -s <SRC_PATH>     Sets the source path (default: \$PWD)
     -t <STUDIO_TYPE>  Sets a Studio type when creating (default: bldr)
-                      Valid types: [bldr bldr-slim busybox lfs-tools]
+                      Valid types: [bldr bldr-slim busybox stage1]
 
 SUBCOMMANDS:
     build     Build using a Studio
@@ -136,7 +136,7 @@ new_studio() {
       # Set the default/unset type
       STUDIO_TYPE=bldr
       ;;
-    bldr-slim|busybox|lfs-tools)
+    bldr-slim|busybox|stage1)
       # Confirmed valid types
       ;;
     *)
@@ -764,7 +764,7 @@ dir_name="$(echo $SRC_PATH | $bb sed -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g')
 # file at the root of its filesystem.
 studio_config="$STUDIO_ROOT/.studio"
 # The type (flavor, variant, etc.) of Studio. Such types include `bldr`,
-# `lfs-tools`, and `busybox` among others.
+# `stage1`, and `busybox` among others.
 : ${STUDIO_TYPE:=}
 # Whether or not to mount the `$SRC_PATH` into the Studio. An unset or empty
 # value mean it is set to false (and therefore will mount `$SRC_PATH`) and any
