@@ -613,6 +613,8 @@ chroot_env() {
   # Set the environment which will be passed to `env(1)` to initialize the
   # session.
   env="LC_ALL=POSIX HOME=/root TERM=${TERM:-} PATH=$studio_path"
+  # Add `STUDIO_TYPE` to the environment
+  env="$env STUDIO_TYPE=$STUDIO_TYPE"
   # Add any additional environment variables from the Studio config, based on
   # type
   if [ -n "$extra_env" ]; then
