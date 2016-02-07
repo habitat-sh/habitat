@@ -7,7 +7,7 @@ pkg_license=('gpl')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}/${pkg_distname}-${pkg_version}.tar.bz2
 pkg_shasum=5f835b04b5f7dd4f4d2dc96190ec1621b8d89f2dc6f638f9f8bc1b1014ba8cad
 pkg_deps=(chef/glibc chef/zlib chef/gmp chef/mpfr chef/libmpc chef/binutils)
-pkg_build_deps=(chef/linux-headers chef/m4)
+pkg_build_deps=(chef/m4)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -15,20 +15,12 @@ pkg_gpg_key=3853DA6B
 
 do_prepare() {
   glibc="$(pkg_path_for glibc)"
-  linux_headers="$(pkg_path_for linux-headers)"
   binutils="$(pkg_path_for binutils)"
+  headers="$glibc/include"
 
   # TODO: For the wrapper scripts to function correctly, we need the full
   # path to bash. Until a bash plan is created, we're going to wing this...
   bash=$(command -v bash)
-
-  headers="$(abspath ..)/${pkg_distname}-system-header-dir/include"
-  rm -rf $headers
-  mkdir -p $headers
-  pushd $headers > /dev/null
-    ln -sv $(ls -d ${glibc}/include/*) .
-    ln -sv $(ls -d ${linux_headers}/include/* | grep -v 'scsi$') .
-  popd > /dev/null
 
   # TODO: We need a more clever way to calculate/determine the path to ld-*.so
   dynamic_linker="${glibc}/lib/ld-linux-x86-64.so.2"
@@ -37,13 +29,12 @@ do_prepare() {
   LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$dynamic_linker"
   build_line "Updating LDFLAGS=$LDFLAGS"
 
-  # Remove glibc and linux-headers include directories from `$CFLAGS` as their
-  # contents will be included in the temporary system headers directory which
-  # combines both sets of headers
+  # Remove glibc include directories from `$CFLAGS` as their contents will be
+  # included in the `--with-native-system-header-dir` configure option
   orig_cflags="$CFLAGS"
   CFLAGS=
   for include in $orig_cflags; do
-    if ! echo "$include" | egrep -q "(${glibc}|${linux_headers})" > /dev/null; then
+    if ! echo "$include" | grep -q "${glibc}" > /dev/null; then
       CFLAGS="$CFLAGS $include"
     fi
   done

@@ -5,8 +5,9 @@ pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv2' 'lgplv2')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=eb731406903befef1d8f878a46be75ef862b9056ab0cde1626d08a7a05328948
-pkg_build_deps=(chef/linux-headers)
-pkg_binary_path=(sbin bin)
+pkg_deps=(chef/linux-headers)
+pkg_build_deps=()
+pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
@@ -66,6 +67,7 @@ do_build() {
 
     ../$pkg_dirname/configure \
       --prefix=$pkg_prefix \
+      --sbindir=$pkg_prefix/bin \
       --with-headers=$(pkg_path_for linux-headers)/include \
       --libdir=$pkg_prefix/lib \
       --libexecdir=$pkg_prefix/lib/glibc \
@@ -157,6 +159,11 @@ do_install() {
     mkdir -p $pkg_path/lib
     ln -sv ld-2.22.so $pkg_path/lib/ld-linux.so.2
 
+    # Add a `lib64` -> `lib` symlink for `bin/ldd` to work correctly.
+    #
+    # Thanks to: https://github.com/NixOS/nixpkgs/blob/55b03266cfc25ae019af3cdd2cfcad0facdc68f2/pkgs/development/libraries/glibc/builder.sh#L43-L47
+    ln -sv lib $pkg_path/lib64
+
     # When building glibc using a build toolchain, we need libgcc_s at `$RPATH`
     # which gets us by until we can link against this for real
     if [ -f /tools/lib/libgcc_s.so.1 ]; then
@@ -165,13 +172,37 @@ do_install() {
       cp -av /tools/lib/libgcc_s.so $pkg_path/lib/
     fi
 
-    make install sysconfdir=$pkg_path/etc
+    make install sysconfdir=$pkg_path/etc sbindir=$pkg_path/bin
+
+    # Move all remaining binaries in `sbin/` into `bin/`, namely `ldconfig`
+    mv $pkg_path/sbin/* $pkg_path/bin/
+    rm -rf $pkg_path/sbin
 
     # Remove unneeded files from `include/rpcsvc`
     rm -fv $pkg_path/include/rpcsvc/*.x
 
     # Remove the `make install` check symlink
     rm -fv $pkg_path/lib/ld-linux.so.2
+
+    # Remove `sln` (statically built ln)--not needed
+    rm -f $pkg_path/bin/sln
+
+    # Include the Linux kernel headers in Glibc, except the `scsi/` directory,
+    # which Glibc provides itself.
+    #
+    # We can thank GCC for this requirement; we must provide a single path
+    # value for the `--with-native-system-header-dir` configure option and this
+    # path must contain libc and kernel headers (the assumption is we are
+    # running a common operating system with everything under `/usr/include`).
+    # GCC then bakes this path in when it builds itself, thus it's pretty
+    # important for any future GCC-built packages. If there is an alternate way
+    # we can make GCC happy, then we'll change this up. This is the best of a
+    # sad, sad situation.
+    #
+    # Thanks to: https://github.com/NixOS/nixpkgs/blob/55b03266cfc25ae019af3cdd2cfcad0facdc68f2/pkgs/development/libraries/glibc/builder.sh#L25-L32
+    pushd $pkg_path/include > /dev/null
+      ln -sv $(ls -d $(pkg_path_for linux-headers)/include/* | grep -v 'scsi$') .
+    popd > /dev/null
 
     mkdir -pv $pkg_path/lib/locale
     localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
