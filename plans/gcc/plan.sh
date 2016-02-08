@@ -193,6 +193,14 @@ do_install() {
 
     make install
 
+    # Install PIC version of libiberty which lets Binutils successfully build.
+    # As of some point in the near past (2015+ ?), the GCC distribution
+    # maintains the libiberty code and not Binutils (they each used to
+    # potentially install `libiberty.a` which was confusing as to the "owner").
+    #
+    # Thanks to: https://projects.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/gcc
+    install -v -m644 libiberty/pic/libiberty.a $pkg_path/lib
+
     # Install Runtime Library Exception
     install -Dm644 ../$pkg_dirname/COPYING.RUNTIME \
       $pkg_path/share/licenses/RUNTIME.LIBRARY.EXCEPTION
