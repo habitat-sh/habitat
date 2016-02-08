@@ -6,13 +6,19 @@ pkg_license=('gplv2' 'lgplv2')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=eb731406903befef1d8f878a46be75ef862b9056ab0cde1626d08a7a05328948
 pkg_deps=(chef/linux-headers)
-pkg_build_deps=()
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/perl)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
 
 do_prepare() {
+  # The `/bin/pwd` path is hardcoded, so we'll add a symlink if needed.
+  if [[ ! -r /bin/pwd ]]; then
+    ln -sv $(pkg_path_for coreutils)/bin/pwd /bin/pwd
+    _clean_pwd=true
+  fi
+
   # We don't want glibc to try and reference itself before it's installed,
   # no `$LD_RUN_PATH`s here
   unset LD_RUN_PATH
@@ -25,7 +31,7 @@ do_prepare() {
   build_line "Overriding LDFLAGS=$LDFLAGS"
 
   # Don't depend on dynamically linked libgcc for nscd, as we don't want it
-  # denpending on our /tools install.
+  # depending on any bootstrapped version.
   echo "LDFLAGS-nscd += -static-libgcc" >> nscd/Makefile
 
   # Have `rpcgen(1)` look for `cpp(1)` in `$PATH`.
@@ -49,12 +55,16 @@ do_prepare() {
   patch -p1 < $PLAN_CONTEXT/testsuite-fix.patch
 
   # Adjust `scripts/test-installation.pl` to use our new dynamic linker
-  LINKER=$(readelf -l /tools/bin/bash \
-    | sed -n "s@.*interpret.*/tools/lib\(64\)\{0,\}\(.*\)]\$@${pkg_prefix}/lib\2@p")
-  build_line "Our new dynamic linker is will be: $LINKER"
-  sed -i "s|libs -o|libs -L${pkg_prefix}/lib -Wl,-dynamic-linker=${LINKER} -o|" \
+  if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+    linker=$(readelf -l /tools/bin/bash \
+      | sed -n "s@.*interpret.*/tools/lib\(64\)\{0,\}\(.*\)]\$@${pkg_prefix}/lib\2@p")
+  else
+    linker="$pkg_prefix/lib/ld-linux-x86-64.so.2"
+  fi
+  build_line "Our new dynamic linker is will be: $linker"
+  sed -i "s|libs -o|libs -L${pkg_prefix}/lib -Wl,-dynamic-linker=${linker} -o|" \
     scripts/test-installation.pl
-  unset LINKER
+  unset linker
 }
 
 do_build() {
@@ -125,6 +135,19 @@ do_build() {
 #
 do_check() {
   pushd ../${pkg_name}-build > /dev/null
+    # One of the tests uses the hardcoded `bin/cat` path, so we'll add it, if
+    # it doesn't exist.
+    if [[ ! -r /bin/cat ]]; then
+      ln -sv $(pkg_path_for coreutils)/bin/cat /bin/cat
+      _clean_cat=true
+    fi
+    # One of the tests uses the hardcoded `bin/echo` path, so we'll add it, if
+    # it doesn't exist.
+    if [[ ! -r /bin/echo ]]; then
+      ln -sv $(pkg_path_for coreutils)/bin/echo /bin/echo
+      _clean_echo=true
+    fi
+
     # "If the test system does not have suitable copies of libgcc_s.so and
     # libstdc++.so installed in system library directories, it is necessary to
     # copy or symlink them into the build directory before testing (see
@@ -133,17 +156,28 @@ do_check() {
     #
     # Source: https://sourceware.org/glibc/wiki/Release/2.22
     # Source: http://www0.cs.ucl.ac.uk/staff/ucacbbl/glibc/index.html#bug-atexit3
-    if [ -f /tools/lib/libgcc_s.so.1 ]; then
+    if [[ "$STUDIO_TYPE" = "stage1" ]]; then
       ln -sv /tools/lib/libgcc_s.so.1 .
-    fi
-    if [ -f /tools/lib/libstdc++.so.6 ]; then
       ln -sv /tools/lib/libstdc++.so.6 .
+    else
+      ln -sv $(pkg_path_for gcc)/lib/libgcc_s.so.1 .
+      ln -sv $(pkg_path_for gcc)/lib/libstdc++.so.6 .
     fi
+
     # It appears as though some tests *always* fail, but since the output (and
     # passing tests) is of value, we will run the anyway. Expect ignore the
     # exit code. I am sad.
     make check || true
+
     rm -fv ./libgcc_s.so.1 ./libstdc++.so.6
+
+    # Clean up the symlinks if we set it up.
+    if [[ -n "$_clean_echo" ]]; then
+      rm -fv /bin/echo
+    fi
+    if [[ -n "$_clean_cat" ]]; then
+      rm -fv /bin/cat
+    fi
   popd > /dev/null
 }
 
@@ -164,12 +198,14 @@ do_install() {
     # Thanks to: https://github.com/NixOS/nixpkgs/blob/55b03266cfc25ae019af3cdd2cfcad0facdc68f2/pkgs/development/libraries/glibc/builder.sh#L43-L47
     ln -sv lib $pkg_path/lib64
 
-    # When building glibc using a build toolchain, we need libgcc_s at `$RPATH`
-    # which gets us by until we can link against this for real
-    if [ -f /tools/lib/libgcc_s.so.1 ]; then
-      cp -v /tools/lib/libgcc_s.so.1 $pkg_path/lib/
-      # the .so file used to be a symlink, but now it is a script
-      cp -av /tools/lib/libgcc_s.so $pkg_path/lib/
+    if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+      # When building glibc using a build toolchain, we need libgcc_s at
+      # `$RPATH` which gets us by until we can link against this for real
+      if [ -f /tools/lib/libgcc_s.so.1 ]; then
+        cp -v /tools/lib/libgcc_s.so.1 $pkg_path/lib/
+        # the .so file used to be a symlink, but now it is a script
+        cp -av /tools/lib/libgcc_s.so $pkg_path/lib/
+      fi
     fi
 
     make install sysconfdir=$pkg_path/etc sbindir=$pkg_path/bin
@@ -252,6 +288,13 @@ EOF
   popd > /dev/null
 }
 
+do_end() {
+  # Clean up the `pwd` link, if we set it up.
+  if [[ -n "$_clean_pwd" ]]; then
+    rm -fv /bin/pwd
+  fi
+}
+
 extract_src() {
   build_dirname=$pkg_dirname/../${pkg_name}-build
   plan=$1
@@ -268,3 +311,15 @@ extract_src() {
     mv -v $BLDR_SRC_CACHE/$pkg_dirname $BLDR_SRC_CACHE/$build_dirname/$plan
   )
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=()
+fi
