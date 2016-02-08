@@ -1,8 +1,9 @@
 BLDR_PKGS := glibc libgcc patchelf zlib xz bzip2 cacerts busybox libgpg-error libassuan gnupg gpgme openssl libarchive runit rngd bldr
-PKGS := $(BLDR_PKGS) redis ncurses libedit pcre nginx haproxy libaio libltdl libxml2 numactl perl erlang libyaml libiconv libtool libffi ruby
+BLDR_WEB_PKGS := node ncurses libedit pcre nginx bldr-web
+PKGS := $(BLDR_PKGS) $(BLDR_WEB_PKGS) redis haproxy libaio libltdl libxml2 numactl perl erlang libyaml libiconv libtool libffi ruby
 REPO := http://159.203.235.47
 
-.PHONY: bldr-deps world publish gpg clean baseimage_root $(PKGS) $(addprefix publish-,$(PKGS)) new-plan
+.PHONY: bldr-deps bldr-webui world publish gpg clean baseimage_root $(PKGS) $(addprefix publish-,$(PKGS)) new-plan
 
 new-plan:
 	mkdir -p $(plan)
@@ -12,6 +13,8 @@ world: gpg $(PKGS)
 	cp ./chef-public.gpg /opt/bldr/cache/keys/chef-public.asc
 
 bldr-deps: gpg $(BLDR_PKGS)
+
+bldr-webui: gpg $(BLDR_WEB_PKGS)
 
 publish:
 	cargo build --release

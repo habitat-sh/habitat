@@ -178,6 +178,7 @@
 # * `$pkg_srvc_data`: Service data; `/opt/bldr/srvc/$pkg_name/data`
 # * `$pkg_srvc_var`: Variable state; `/opt/bldr/srvc/$pkg_name/var`
 # * `$pkg_srvc_config`: Configuration; `/opt/bldr/srvc/$pkg_name/config`
+# * `$pkg_srvc_static`: Static data; `/opt/bldr/srvc/$pkg_name/static`
 # * `$BLDR_SRC_CACHE`: The path to all the package sources
 # * `$BLDR_PKG_CACHE`: The path to all generated packages
 # * `$CFLAGS`: C compiler options
@@ -1893,6 +1894,7 @@ pkg_srvc="$BLDR_ROOT/srvc/$pkg_name"
 pkg_srvc_data="$BLDR_ROOT/srvc/$pkg_name/data"
 pkg_srvc_var="$BLDR_ROOT/srvc/$pkg_name/var"
 pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
+pkg_srvc_static="$BLDR_ROOT/srvc/$pkg_name/static"
 
 # The default location for the bldr binary to use
 if pkg_for_bldr=$(_latest_package "chef/bldr"); then
