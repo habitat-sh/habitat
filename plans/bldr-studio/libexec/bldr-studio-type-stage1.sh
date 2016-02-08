@@ -1,5 +1,5 @@
 studio_type="stage1"
-studio_path="/tools/bin"
+studio_path="/bin:/tools/bin"
 studio_env_command="/tools/bin/env"
 studio_enter_environment=
 studio_enter_command="/tools/bin/bash --login +h"
