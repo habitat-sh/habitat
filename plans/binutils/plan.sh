@@ -6,27 +6,15 @@ pkg_license=('gpl')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=b5b14added7d78a8d1ca70b5cb75fef57ce2197264f4f5835326b0df22ac9f22
 pkg_deps=(chef/glibc chef/zlib)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/texinfo chef/expect chef/dejagnu)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
 
-do_begin() {
-  # verify that PTYs are working properly
-  local actual
-  local expected='spawn ls'
-  local cmd="expect -c 'spawn ls'"
-  if actual=$(expect -c "spawn ls" | sed 's/\r$//'); then
-    if [[ $expected != $actual ]]; then
-      exit_with "Expected out from '$cmd' was: '$expected', actual: '$actual'" 1
-    fi
-  else
-    exit_with "PTYs may not be working properly, aborting" 1
-  fi
-  return 0
-}
-
 do_prepare() {
+  _verify_tty
+
   glibc="$(pkg_path_for glibc)"
 
   # TODO: For the wrapper scripts to function correctly, we need the full
@@ -106,7 +94,7 @@ do_check() {
     # This testsuite is pretty sensitive to its environment, especially when
     # libraries and headers are being flown in from non-standard locations.
     original_LD_RUN_PATH="$LD_RUN_PATH"
-    export LD_LIBRARY_PATH="$LD_RUN_PATH"
+    export LD_LIBRARY_PATH="$LD_RUN_PATH:$(pkg_path_for gcc)/lib"
     unset LD_RUN_PATH
 
     make check LDFLAGS=""
@@ -131,11 +119,25 @@ do_install() {
     #
     # Thanks to: https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/cc-wrapper/ld-wrapper.sh
     # Thanks to: https://gcc.gnu.org/onlinedocs/gcc/Directory-Options.html
-    wrap_binary ld.bfd
+    _wrap_binary ld.bfd
   popd > /dev/null
 }
 
-wrap_binary() {
+_verify_tty() {
+  # verify that PTYs are working properly
+  local actual
+  local expected='spawn ls'
+  local cmd="expect -c 'spawn ls'"
+  if actual=$(expect -c "spawn ls" | sed 's/\r$//'); then
+    if [[ $expected != $actual ]]; then
+      exit_with "Expected out from '$cmd' was: '$expected', actual: '$actual'" 1
+    fi
+  else
+    exit_with "PTYs may not be working properly, aborting" 1
+  fi
+}
+
+_wrap_binary() {
   local bin="$pkg_path/bin/$1"
   build_line "Adding wrapper $bin to ${bin}.real"
   mv -v "$bin" "${bin}.real"
@@ -146,3 +148,15 @@ wrap_binary() {
     > "$bin"
   chmod 755 "$bin"
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=()
+fi
