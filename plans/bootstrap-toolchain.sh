@@ -32,7 +32,7 @@ build() {
   mkdir -p $(dirname $db)
   touch $db
 
-  if grep -q "^$derivation/$plan$" $db > /dev/null; then
+  if grep -q "^$derivation/$plan:$*$" $db > /dev/null; then
     if ident=$(find $path -name IDENT -type f 2>&1); then
       ident="$(echo $ident | tr ' ' '\n' | sort | tail -n 1)"
       if [ ! -f "$ident" ]; then
@@ -55,7 +55,7 @@ build() {
   echo "[$plan] Building with: $cmd"
   eval $cmd
   echo "[$plan] Recording build record in $db"
-  echo "$derivation/$plan" >> $db
+  echo "$derivation/$plan:$*" >> $db
 }
 
 cat <<_PLANS_ | while read plan; do build $plan; done
