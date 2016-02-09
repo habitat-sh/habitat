@@ -5,7 +5,7 @@ pkg_license=('ncurses')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260
 pkg_deps=(chef/glibc chef/gcc-libs)
-pkg_build_deps=(chef/binutils chef/gcc)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -54,3 +54,15 @@ do_install() {
   install -dv $pkg_path/share/licenses
   grep -B 100 '$Id' README > $pkg_path/share/licenses/LICENSE
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc)
+fi
