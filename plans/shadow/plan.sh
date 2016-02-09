@@ -6,7 +6,7 @@ pkg_license=('bsd')
 pkg_source=http://pkg-shadow.alioth.debian.org/releases/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=3b0893d1476766868cd88920f4f1231c4795652aa407569faff802bcda0f3d41
 pkg_deps=(chef/glibc chef/attr chef/acl)
-pkg_build_deps=(chef/binutils chef/gcc)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
@@ -53,3 +53,15 @@ do_install() {
   # Install the license
   install -Dm644 COPYING $pkg_path/share/licenses/COPYING
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc)
+fi
