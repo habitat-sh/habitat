@@ -5,26 +5,28 @@ pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv3')
 pkg_source=http://releases.nixos.org/$pkg_name/${pkg_name}-$pkg_version/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=14af06a2da688d577d64ff8dac065bb8903bbffbe01d30c62df7af9bf4ce72fe
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_binary_path=(bin)
-pkg_build_deps=(chef/binutils chef/gcc)
 pkg_gpg_key=3853DA6B
 
-if [[ -n "$BOOTSTRAP_TOOLS" ]]; then
+if [[ -n "$FIRST_PASS" ]]; then
   # Waiting on chef/gcc-libs to link libgcc and libstdc++, but because we need
   # this package to prepare chef/gcc-libs, we'll do the cheap version first
-  # that relies on the bootstrapping tools' version of these shared libraries
-  pkg_deps=(chef/glibc)
-  build_line "Using bootstrap tools from $BOOTSTRAP_TOOLS for libgcc and libstdc++"
+  # that relies on the full gcc version of these shared libraries
+  pkg_deps=(chef/glibc chef/gcc)
+  build_line "Using libgcc and libstdc++ from chef/gcc"
 else
   pkg_deps=(chef/glibc chef/gcc-libs)
 fi
 
-do_prepare() {
-  # If chef/gcc-libs is not yet a dependency (i.e. when building from
-  # bootstrapping tools), add `/usr/lib` to the `$LD_RUN_PATH` for using the
-  # libgcc and libstdc++ from the bootstrapping tools
-  if [[ -n "$BOOTSTRAP_TOOLS" ]]; then
-    LD_RUN_PATH="$LD_RUN_PATH:/usr/lib"
-    build_line "Updating LD_RUN_PATH=$LD_RUN_PATH"
-  fi
-}
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc)
+fi

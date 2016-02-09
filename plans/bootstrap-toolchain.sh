@@ -69,7 +69,7 @@ cat <<_PLANS_ | while read plan; do build $plan; done
   mpfr
   libmpc
   gcc
-  patchelf BOOTSTRAP_TOOLS=/tools
+  patchelf FIRST_PASS=true
   gcc-libs
   patchelf
   bzip2
