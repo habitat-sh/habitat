@@ -7,7 +7,7 @@ pkg_license=('gpl')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}/${pkg_distname}-${pkg_version}.tar.bz2
 pkg_shasum=5f835b04b5f7dd4f4d2dc96190ec1621b8d89f2dc6f638f9f8bc1b1014ba8cad
 pkg_deps=(chef/glibc chef/zlib chef/gmp chef/mpfr chef/libmpc chef/binutils)
-pkg_build_deps=(chef/m4)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/gawk chef/m4 chef/texinfo chef/perl chef/inetutils chef/expect chef/dejagnu)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -137,8 +137,7 @@ do_build() {
       --disable-werror \
       --disable-multilib \
       --with-system-zlib \
-      --disable-libstdcxx-pch \
-      --disable-bootstrap
+      --disable-libstdcxx-pch
 
     # Don't store the configure flags in the resulting executables.
     #
@@ -164,7 +163,8 @@ do_build() {
       LDFLAGS_FOR_TARGET="$target_ldflags" \
       BOOT_CFLAGS="$build_cflags" \
       BOOT_LDFLAGS="$build_cflags" \
-      LIMITS_H_TEST=true
+      LIMITS_H_TEST=true \
+      profiledbootstrap
   popd > /dev/null
 }
 
@@ -252,3 +252,15 @@ wrap_binary() {
     > "$bin"
   chmod 755 "$bin"
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/m4)
+fi
