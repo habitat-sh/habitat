@@ -1,0 +1,8 @@
+Loading /src/plans/openssl/plan.sh
+   [1;36mopenssl: [1;37mPlan loaded[0m
+../bldr-build: line 527: --version-sort: command not found
+   [1;36mopenssl: [1;33mWARN [1;37mCould not find a suitable installed package for 'chef/bldr'[0m
+   [1;36mopenssl: [1;37mBldr setup[0m
+   [1;36mopenssl: [1;37mResolving dependencies[0m
+   [1;36mopenssl: [1;33mWARN [1;37mNo installed packages of 'chef/glibc' were found[0m
+[1;31mERROR: [1;37mResolving 'chef/glibc' failed, should this be built first?[0m

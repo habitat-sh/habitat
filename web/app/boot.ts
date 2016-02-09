@@ -14,6 +14,7 @@ import {bootstrap} from "angular2/platform/browser";
 bootstrap(AppComponent, [
     AppStore,
     ROUTER_PROVIDERS,
-    // Temporarily commenting this out
-    //  bind(LocationStrategy).toClass(HashLocationStrategy)
+    // Temporarily adding this until we have nginx handle routing non-existent
+    // pages.
+    bind(LocationStrategy).toClass(HashLocationStrategy)
 ]);

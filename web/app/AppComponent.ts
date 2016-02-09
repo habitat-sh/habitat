@@ -20,7 +20,8 @@ import {routeChange} from "./actions";
     selector: "bldr",
     template: `
     <div class="bldr-container">
-        <bldr-header [appName]="state.appName"></bldr-header>
+        <bldr-header [appName]="state.appName" [route]="state.route">
+        </bldr-header>
         <section class="bldr-main">
             <router-outlet></router-outlet>
         </section>
@@ -58,9 +59,6 @@ export class AppComponent {
             // to the route that was requested.
             const requestedRoute = state.requestedRoute;
             if (requestedRoute) { router.navigate(requestedRoute); }
-
-            // For now, just dump the state in the console whenever it changes.
-            console.log("New state received ", state.toObject());
         });
     }
 

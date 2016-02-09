@@ -78,6 +78,13 @@ These are guidelines for how to structure and format code in the application.
   can be loaded into other files. [app/app.scss](app/app.scss) imports these
   files.)
 
+### Tools
+
+* [Visual Studio Code](https://code.visualstudio.com/) works very well with
+  TypeScript. There's also a tslint extension.
+* The [Redux Devtools Chrome extension](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=en)
+  will let you inspect the state and actions of the running app in Chrome.
+
 ## "Production"
 
 To build the JavaScript and CSS files, run `npm run build`.

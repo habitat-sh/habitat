@@ -5,7 +5,6 @@
   h1 {
     @include span-columns(2);
     display: inline;
-    margin-bottom: 0;
   }
 
   &-links {
