@@ -222,6 +222,7 @@ fn main() {
                         .arg(arg_url())
                         .arg(arg_group())
                         .arg(Arg::with_name("topology")
+                                 .short("t")
                                  .long("topology")
                                  .value_name("topology")
                                  .help("Service topology"))
