@@ -16,6 +16,21 @@ export function rootReducer(state = initialState, action) {
 
     switch (action.type) {
 
+        // When we're simulating streaming and adding to a build log
+        case actionTypes.APPEND_TO_BUILD_LOG:
+            p = Object.assign({}, state.get("currentPackage"));
+            const id = action.payload.buildId;
+            p.buildLogs[id] = (p.buildLogs[id] || "") + action.payload.text + "\n";
+            return state.set("currentPackage", p);
+
+        // Set a build to successful when its log is done streaming
+        case actionTypes.FINISH_BUILD_STREAM:
+            p = state.get("currentPackage");
+            const index = p.builds.findIndex(x => x.id === action.payload.buildId);
+            p.builds[index].status = "success";
+            p.builds[index].duration = action.payload.duration;
+            return state.set("currentPackage", p);
+
         case actionTypes.POPULATE_BUILD_LOG:
             p = state.get("currentPackage");
 
