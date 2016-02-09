@@ -5,6 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import * as api from "./api";
+import {Observable} from "rxjs";
 import {packageString} from "./util";
 
 // The ansi_up module does not have TypeScript type definitions, so it needs to
@@ -12,6 +13,8 @@ import {packageString} from "./util";
 // webpack.
 const ansiToHtml = require("ansi_up").ansi_to_html;
 
+export const APPEND_TO_BUILD_LOG = "APPEND_TO_BUILD_LOG";
+export const FINISH_BUILD_STREAM = "FINISH_BUILD_STREAM";
 export const POPULATE_BUILDS = "POPULATE_BUILDS";
 export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
@@ -24,6 +27,13 @@ export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
 export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
 export const SIGN_OUT = "SIGN_OUT";
 export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
+
+function appendToBuildLog(build, text) {
+    return {
+        type: APPEND_TO_BUILD_LOG,
+        payload: { buildId: build.id, text: ansiToHtml(text) }
+    };
+}
 
 export function attemptSignIn(username) {
     return {
@@ -56,11 +66,15 @@ export function fetchBuilds(pkg) {
 }
 
 // Fetch the build log for a package
-export function fetchBuildLog(pkg, builds) {
+function fetchBuildLog(pkg, builds) {
     return dispatch => {
         builds.forEach(build => {
             api.get(`log/${packageString(pkg)}/${build.id}.txt`).then(response => {
-                dispatch(populateBuildLog(build.id, response));
+                if (build.status === "running") {
+                    dispatch(simulateLogStream(build, response));
+                } else {
+                    dispatch(populateBuildLog(build.id, response));
+                }
             }).catch(error => {
                 dispatch(populateBuildLog(build.id, undefined));
             });
@@ -95,7 +109,14 @@ export function filterPackagesBy(params) {
     };
 }
 
-export function populateBuilds(data) {
+function finishBuildStream(build) {
+    return {
+        type: FINISH_BUILD_STREAM,
+        payload: { buildId: build.id, duration: 171 },
+    };
+}
+
+function populateBuilds(data) {
     return {
         type: POPULATE_BUILDS,
         payload: data,
@@ -146,6 +167,23 @@ export function setVisiblePackages(params) {
     return {
         type: SET_VISIBLE_PACKAGES,
         payload: params,
+    };
+}
+
+function simulateLogStream(build, response) {
+    return dispatch => {
+        // This is where we simulate a streaming build
+        if (build.status === "running") {
+            const o = Observable.from(response.split("\n")).concatMap(x =>
+                Observable.of(x).delay((() => Math.floor(Math.random() * 300))())
+            );
+            o.subscribe(
+                x => dispatch(appendToBuildLog(build, x)),
+                e => console.error(e),
+                () => dispatch(finishBuildStream(build))
+            );
+        }
+
     };
 }
 

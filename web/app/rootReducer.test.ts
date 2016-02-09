@@ -12,7 +12,7 @@ describe("rootReducer", () => {
                 const action = {
                     type: SET_CURRENT_PACKAGE, payload: { name: "test" }
                 };
-                chai.expect(rootReducer(state, action).get("currentPackage"))
+                expect(rootReducer(state, action).get("currentPackage"))
                     .to.equal(null);
             });
         });
@@ -25,7 +25,7 @@ describe("rootReducer", () => {
                 const action = {
                     type: SET_CURRENT_PACKAGE, payload: { name: "test" }
                 };
-                chai.expect(rootReducer(state, action).get("currentPackage")
+                expect(rootReducer(state, action).get("currentPackage")
                     .dependencies).to.deep.equal([]);
             });
         });
@@ -38,7 +38,7 @@ describe("rootReducer", () => {
                 const action = {
                     type: SET_CURRENT_PACKAGE, payload: { name: "test" }
                 };
-                chai.expect(rootReducer(state, action).get("currentPackage")
+                expect(rootReducer(state, action).get("currentPackage")
                     .buildDependencies).to.deep.equal([]);
             });
         });

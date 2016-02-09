@@ -1,4 +1,12 @@
-[
+[    {
+        "id": 4,
+        "status": "running",
+        "gitCommit": "118096d",
+        "gitCommitUrl": "https://github.com/chef/bldr/commit/118096d73755a185c5b8cde0a92701c401f6ff12",
+        "startTime": "2016-02-01T19:49:00Z",
+        "author": "Nathan Smith <smith@chef.io>",
+        "version": "1.0.2f"
+    },
     {
         "id": 3,
         "status": "queued",

@@ -15,7 +15,7 @@ const finalCreateStore = compose(
     // actions to make async calls.
     applyMiddleware(thunk),
     // Enable dev tools if the extension is installed.
-    window["devToolsExtension"] ? window["devToolsExtension"]() : (f) => { f; }
+    window["devToolsExtension"] ? window["devToolsExtension"]() : (f) => f
 )(createStore);
 const appStore = finalCreateStore(rootReducer);
 

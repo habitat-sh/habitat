@@ -4,7 +4,7 @@ describe("util", () => {
     describe("packageString", () => {
         describe("with a fully qualified identifier", () => {
             it("returns the string", () => {
-                chai.expect(util.packageString({
+                expect(util.packageString({
                     derivation: "testderiv",
                     name: "testname",
                     version: "1.0.0",
@@ -16,7 +16,7 @@ describe("util", () => {
 
         describe("with a missing parts", () => {
             it("returns the partial string", () => {
-                chai.expect(util.packageString({
+                expect(util.packageString({
                     derivation: "testderiv",
                     name: "testname",
                 })
