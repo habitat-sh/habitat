@@ -15,16 +15,28 @@
       "commit": "e69fe60f2d6377ea4fae539493997b098f52cad1"
     },
     "chai/chai.d.ts": {
-      "commit": "e69fe60f2d6377ea4fae539493997b098f52cad1"
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "assertion-error/assertion-error.d.ts": {
-      "commit": "e69fe60f2d6377ea4fae539493997b098f52cad1"
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     },
     "moment/moment.d.ts": {
       "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
     },
     "moment/moment-node.d.ts": {
       "commit": "3030a4be536b6530c06b80081f1333dc0de4d703"
+    },
+    "angular-protractor/angular-protractor.d.ts": {
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
+    },
+    "selenium-webdriver/selenium-webdriver.d.ts": {
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
+    },
+    "chai-as-promised/chai-as-promised.d.ts": {
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
+    },
+    "promises-a-plus/promises-a-plus.d.ts": {
+      "commit": "1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
     }
   }
 }
