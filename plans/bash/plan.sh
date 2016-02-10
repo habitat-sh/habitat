@@ -10,7 +10,7 @@ pkg_source=$_url_base/${pkg_distname}-${_base_version}.tar.gz
 pkg_dirname=${pkg_distname}-$_base_version
 pkg_shasum=afc687a28e0e24dc21b988fa159ff9dbcf6b7caa92ade8645cc6d5605cd024d4
 pkg_deps=(chef/glibc chef/ncurses chef/readline)
-pkg_build_deps=(chef/gcc chef/grep)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
@@ -67,7 +67,22 @@ do_build() {
 }
 
 do_check() {
+  # This test suite hard codes several commands out of coreutils, so we'll add
+  # those as symlinks before the tests.
+  local clean_cmds=()
+  for cmd in /bin/rm /bin/cat /bin/touch /bin/chmod /usr/bin/printf /bin/echo; do
+    if [[ ! -r "$cmd" ]]; then
+      ln -sv $(pkg_path_for coreutils)/bin/$(basename $cmd) $cmd
+      clean_cmds+=($cmd)
+    fi
+  done
+
   make tests
+
+  # Clean up any symlinks that were added to support the test suite.
+  for cmd in "${clean_cmds[@]}"; do
+    rm -fv $cmd
+  done
 }
 
 do_install() {
@@ -76,3 +91,15 @@ do_install() {
   # Add an `sh` which symlinks to `bash`
   ln -sv bash $pkg_path/bin/sh
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc chef/coreutils)
+fi
