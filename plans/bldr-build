@@ -1322,9 +1322,6 @@ _build_environment() {
     fi
   done
 
-  # Create the `$pkg_path`
-  mkdir -p $pkg_path
-
   # Create a working directory if it doesn't already exist from `do_unpack()`
   mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
 
@@ -1425,6 +1422,7 @@ do_check_wrapper() {
 # working directory for the install_files step is correct.
 do_install_wrapper() {
   build_line "Installing"
+  mkdir -pv $pkg_path
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
