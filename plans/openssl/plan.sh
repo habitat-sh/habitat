@@ -6,7 +6,7 @@ pkg_license=('bsd')
 pkg_source=http://www.openssl.org/source/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=932b4ee4def2b434f85435d9e3e19ca8ba99ce9a065a61524b429a9d5e9b2e9c
 pkg_deps=(chef/glibc chef/zlib chef/cacerts)
-pkg_build_deps=(chef/gcc chef/sed chef/bison chef/flex chef/grep chef/bash chef/libtool chef/diffutils chef/findutils chef/xz chef/gettext chef/gzip chef/make chef/patch chef/texinfo chef/util-linux chef/perl)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/perl)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -68,3 +68,15 @@ do_install() {
   # Remove dependency on Perl at runtime
   rm -rfv $pkg_path/ssl/misc $pkg_path/bin/c_rehash
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/grep chef/perl chef/diffutils chef/make chef/patch)
+fi
