@@ -20,3 +20,6 @@ do_build() {
     LDFLAGS="-static $LDFLAGS"
   make
 }
+
+# We will rely on tests from `coreutils`, so skip them here
+unset -f do_check
