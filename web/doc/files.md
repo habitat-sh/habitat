@@ -32,6 +32,7 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     fixtures/                    # Fixture data the app uses to make fake requests.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
     stylesheets/base/            # The SCSS files for the stylesheets.
+    test/e2e/                    # End-to-end [Protractor](https://angular.github.io/protractor/#/) tests.
     typings/                     # Type definitions for [TSD](http://definitelytyped.org/tsd/). Ignored by git.
     vendor/typings/              # Type definitions that we maintain ourselves rather than using the ones TSD downloads.
     .gitignore                   # Tells git which files it should ignore.
@@ -47,6 +48,7 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     npm-debug.log                # Logs from npm debug output. Ignored by git.
     npm-shrinkwrap.json          # [`npm-shrinkwrap`](https://docs.npmjs.com/cli/shrinkwrap) file for locking npm dependencies.
     package.json                 # A [package.json](https://docs.npmjs.com/files/package.json).
+    protractor.conf.js           # Configuration for Protractor.
     README.md                    # The README.
     tsconfig.json                # [Configuration for TypeScript](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json).
     tsd.json                     # Configuration for TSD.
