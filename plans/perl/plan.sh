@@ -6,7 +6,7 @@ pkg_license=('gpl' 'perlartistic')
 pkg_source=http://www.cpan.org/src/5.0/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=e98e4075a3167fa40524abe447c30bcca10c60e02a54ee1361eff278947a1221
 pkg_deps=(chef/glibc chef/zlib chef/bzip2 chef/gdbm chef/db chef/coreutils chef/less)
-pkg_build_deps=(chef/gcc chef/sed chef/bison chef/flex chef/grep chef/bash chef/gawk chef/procps-ng chef/inetutils chef/iana-etc)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/procps-ng chef/inetutils chef/iana-etc)
 pkg_binary_path=(bin)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
@@ -108,3 +108,15 @@ do_check() {
     rm -fv /etc/protocols
   fi
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc chef/procps-ng chef/inetutils chef/iana-etc)
+fi
