@@ -559,33 +559,30 @@ _resolve_dependency() {
     return 1
   fi
 
-  # Ideally we should be able to install from `bldr install` if it's available,
-  # but at the moment self-hosted repo support and external repos are being
-  # worked on which leads to issues when running source builds or clean-slate
-  # bootstrapping. Just note the code here in comments as aspirational for the
-  # time being ;) - Love Fletcher, Adam, and Jamie
-  # if [[ -x "$BLDR_BIN" ]]; then
-  #   $BLDR_BIN install "$dep" -u $BLDR_REPO
-  # fi
-
   if dep_path=$(_latest_installed_package "$dep"); then
     echo "${dep_path}"
     return 0
   else
-    # This code is troublesome. Basically, if we don't have the dep_path, and
-    # we do have a bldr binary, then lets go ahead and try and install the
-    # package. That's cool if its all working, not so cool if its not. Right
-    # now, this is in the way of getting a clean build of almost anything.
-    # Lets return to this in a minute.
-    if [[ -x "$BLDR_BIN" ]]; then
-      $BLDR_BIN install "$dep" -u $BLDR_REPO
-      # Now that we have our dep installed locally, call ourselves to get the
-      # echo/output
-      _resolve_dependency "$dep"
-      return 0
-    fi
     return 1
   fi
+}
+
+# **Internal** Attempts to download a package dependency. If the value of the
+# `$BLDR_BIN` variable is not set or the value does not resolve to an
+# executable binary, then no installation will be attempted. If an installation
+# is attempted but there is an error, this function will still return with `0`
+# and is intended to be "best effort".
+#
+# ```
+# _install_dependency chef/zlib
+# _install_dependency chef/zlib/1.2.8
+# _install_dependency chef/zlib/1.2.8/20151216221001
+# ```
+_install_dependency() {
+  if [[ -x "$BLDR_BIN" ]]; then
+    $BLDR_BIN install -u $BLDR_REPO "$dep" || true
+  fi
+  return 0
 }
 
 # **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
@@ -670,6 +667,38 @@ _attach_whereami() {
       -e 's,^,    ,g' \
     | sed -e "$((${context}+1))s/^   / =>/"
   echo
+}
+
+# **Internal** Determines what command/binary to use for installation of
+# package dependencies. The `$BLDR_BIN` variable will either be set or emptied
+# according to the following criteria (first match wins):
+#
+# * If a `$NO_INSTALL_DEPS` environment variable is set, then set `$BLDR_BIN`
+#   to an empty/unset value.
+# * If a `$BLDR_BIN` environment variable is set, then use this as the absolute
+#   path to the binary.
+# * If a version of the `chef/bldr` package is installed on disk, use that
+#   version's `bin/bldr` as the command.
+# * If a version of the `chef/bpm` package is installed on disk, use that
+#   version's `bin/bpm` as the command.
+# * If no other criteria match then set `$BLDR_BIN` to an empty/unset value.
+_determine_pkg_installer() {
+  if [ -n "${NO_INSTALL_DEPS:-}" ]; then
+    BLDR_BIN=
+    build_line "NO_INSTALL_DEPS set: no package dependencies will be installed"
+  elif [ -n "${BLDR_BIN:-}" ]; then
+    BLDR_BIN=$BLDR_BIN
+    build_line "Using set BLDR_BIN=$BLDR_BIN for dependency installs"
+  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bldr"); then
+    BLDR_BIN="$_pkg_for_bldr_install/bin/bldr"
+    build_line "Using chef/bldr for dependency installs"
+  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bpm"); then
+    BLDR_BIN="$_pkg_for_bldr_install/bin/bpm"
+    build_line "Using chef/bpm for dependency installs"
+  else
+    BLDR_BIN=
+    build_line "Could not find chef/bldr or chef/bpm for dependency installs"
+  fi
 }
 
 
@@ -1086,6 +1115,7 @@ _resolve_dependencies() {
   # dependencies.
   pkg_build_deps_resolved=()
   for dep in "${pkg_build_deps[@]}"; do
+    _install_dependency $dep
     if resolved="$(_resolve_dependency $dep)"; then
       build_line "Resolved build dependency '$dep' to $resolved"
       pkg_build_deps_resolved+=($resolved)
@@ -1098,6 +1128,7 @@ _resolve_dependencies() {
   # dependencies.
   pkg_deps_resolved=()
   for dep in "${pkg_deps[@]}"; do
+    _install_dependency $dep
     if resolved="$(_resolve_dependency $dep)"; then
       build_line "Resolved dependency '$dep' to $resolved"
       pkg_deps_resolved+=($resolved)
@@ -1892,16 +1923,13 @@ pkg_srvc_var="$BLDR_ROOT/srvc/$pkg_name/var"
 pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
 pkg_srvc_static="$BLDR_ROOT/srvc/$pkg_name/static"
 
-# The default location for the bldr binary to use
-if pkg_for_bldr=$(_latest_package "chef/bldr"); then
-  BLDR_BIN="$pkg_for_bldr/bin/bldr"
-fi
-
 # Run `do_begin`
 build_line "Bldr setup"
 do_begin
 
 _find_initial_system_commands
+
+_determine_pkg_installer
 
 # Download and resolve the depdencies
 _resolve_dependencies
