@@ -31,10 +31,6 @@ do_build() {
   make
 }
 
-do_check() {
-  make test
-}
-
 do_install() {
   do_default_install
 
