@@ -321,6 +321,8 @@ subcommand_exec() {
 subcommand_install() {
   local opt
   local pkg_indent
+  local pkg_local
+  local latest
 
   OPTIND=1
   # Parse command line flags and options.
@@ -349,6 +351,18 @@ subcommand_install() {
   fi
   if ! pkg_ident="$(latest_remote_package $1)"; then
     exit_with "Package could not be found for: $1" 6
+  fi
+  # If a local package is installed and it is newer than the latest version
+  # that is available remotely, use the local version.
+  if pkg_local="$(latest_installed_package $1 quietly)"; then
+    latest="$(printf -- "$pkg_ident\n$pkg_local\n" \
+      | $cu --coreutils-prog=sort --version-sort -r | $bb head -n 1)"
+    if [ "$latest" = "$pkg_local" ]; then
+      if [ -n "$VERBOSE" ]; then
+        info "Local package $pkg_local is newer than remote $pkg_ident, skipping"
+      fi
+      return 0
+    fi
   fi
 
   # Install the package and each of its direct and transitive runtime
