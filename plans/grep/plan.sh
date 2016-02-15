@@ -10,6 +10,10 @@ pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
+do_prepare() {
+  patch -p1 -i $PLAN_CONTEXT/disable-perf-related-test.patch
+}
+
 do_check() {
   make check
 }
