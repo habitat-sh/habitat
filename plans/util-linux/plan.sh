@@ -1,18 +1,49 @@
-pkg_derivation=chef
 pkg_name=util-linux
-pkg_version=2.27
+pkg_derivation=chef
+pkg_version=2.27.1
 pkg_license=('GPLv2')
-pkg_maintainer="Adam Jacob <adam@chef.io>"
-pkg_source=https://www.kernel.org/pub/linux/utils/util-linux/v2.27/util-linux-2.27.tar.gz
-pkg_filename=${pkg_name}-${pkg_version}.tar.gz
-pkg_lib_dirs=(lib)
+pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_source=http://ftp.kernel.org/pub/linux/utils/${pkg_name}/v${pkg_version%.?}/${pkg_name}-${pkg_version}.tar.xz
+pkg_shasum=0a818fcdede99aec43ffe6ca5b5388bff80d162f2f7bd4541dca94fecb87a290
+pkg_deps=(chef/glibc chef/zlib chef/ncurses)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
+pkg_binary_path=(bin)
 pkg_include_dirs=(include)
-pkg_binary_path=(sbin)
-pkg_shasum=21ede7eb6c3a2a9c7b13eeee241e82428be4f6d5030ff488f638817f419af093
+pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
-pkg_deps=(chef/glibc)
 
 do_build() {
-  ./configure --without-systemd --without-python --without-slang --prefix=$pkg_prefix
+  ./configure \
+    --prefix=$pkg_prefix \
+    --sbindir=$pkg_prefix/bin \
+    --localstatedir=$pkg_srvc_var/run \
+    --without-python \
+    --without-slang \
+    --without-systemd \
+    --without-systemdsystemunitdir \
+    --disable-use-tty-group \
+    --disable-chfn-chsh \
+    --disable-login \
+    --disable-nologin \
+    --disable-su \
+    --disable-setpriv \
+    --disable-runuser \
+    --disable-pylibmount
   make
 }
+
+do_install() {
+  make install usrsbin_execdir=$pkg_path/bin
+}
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/make chef/patch)
+fi

@@ -9,7 +9,9 @@ plans/hana/SAP*
 plans/hana/sapcar.exe
 plans/hana/*.exe
 plans/hana/*.rar
-plans/logs/
+plans/log/
+plans/tmp/
 plans/support/chroot/lfs-tools/
 opt/
 .vagrant/
+support/**/*.tar

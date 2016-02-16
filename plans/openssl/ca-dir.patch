@@ -1,0 +1,45 @@
+diff -ur openssl-1.0.2e.orig/apps/CA.pl.in openssl-1.0.2e/apps/CA.pl.in
+--- openssl-1.0.2e.orig/apps/CA.pl.in	2015-12-03 14:04:23.000000000 +0000
++++ openssl-1.0.2e/apps/CA.pl.in	2016-01-20 23:58:07.330911590 +0000
+@@ -53,7 +53,7 @@
+ $X509="$openssl x509";
+ $PKCS12="$openssl pkcs12";
+ 
+-$CATOP="./demoCA";
++$CATOP="/opt/bldr/pkgs/chef/openssl/1.0.2e/20160120235806/ssl";
+ $CAKEY="cakey.pem";
+ $CAREQ="careq.pem";
+ $CACERT="cacert.pem";
+diff -ur openssl-1.0.2e.orig/apps/CA.sh openssl-1.0.2e/apps/CA.sh
+--- openssl-1.0.2e.orig/apps/CA.sh	2015-12-03 14:04:23.000000000 +0000
++++ openssl-1.0.2e/apps/CA.sh	2016-01-20 23:58:07.340911932 +0000
+@@ -68,7 +68,7 @@
+ X509="$OPENSSL x509"
+ PKCS12="openssl pkcs12"
+ 
+-if [ -z "$CATOP" ] ; then CATOP=./demoCA ; fi
++if [ -z "$CATOP" ] ; then CATOP=/opt/bldr/pkgs/chef/openssl/1.0.2e/20160120235806/ssl ; fi
+ CAKEY=./cakey.pem
+ CAREQ=./careq.pem
+ CACERT=./cacert.pem
+diff -ur openssl-1.0.2e.orig/apps/openssl.cnf openssl-1.0.2e/apps/openssl.cnf
+--- openssl-1.0.2e.orig/apps/openssl.cnf	2015-12-03 14:04:23.000000000 +0000
++++ openssl-1.0.2e/apps/openssl.cnf	2016-01-21 00:00:37.936048877 +0000
+@@ -39,7 +39,7 @@
+ ####################################################################
+ [ CA_default ]
+ 
+-dir		= ./demoCA		# Where everything is kept
++dir		= @prefix@/ssl		# Where everything is kept
+ certs		= $dir/certs		# Where the issued certs are kept
+ crl_dir		= $dir/crl		# Where the issued crl are kept
+ database	= $dir/index.txt	# database index file.
+@@ -47,7 +47,7 @@
+ 					# several ctificates with same subject.
+ new_certs_dir	= $dir/newcerts		# default place for new certs.
+ 
+-certificate	= $dir/cacert.pem 	# The CA certificate
++certificate	= @cacerts_prefix@/ssl/certs/cacert.pem # The CA certificate
+ serial		= $dir/serial 		# The current serial number
+ crlnumber	= $dir/crlnumber	# the current crl number
+ 					# must be commented out to leave a V1 CRL
