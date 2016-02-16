@@ -4,8 +4,6 @@
 //
 // All return Enumerable instances.
 
-///<reference path="../vendor/typings/linq/linq.d.ts"/>
-
 import * as Enumerable from "linq";
 
 export default function query(packages: Array<any>) {
