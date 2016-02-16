@@ -17,21 +17,24 @@ use threadpool::ThreadPool;
 
 use std::net::SocketAddr;
 use std::thread;
+use std::time::Duration;
 use std::sync::{Arc, RwLock};
 use std::net;
 
 use utp::{UtpListener, UtpSocket};
 
-use census::{Census, CensusEntry};
 use gossip::client::Client;
 use gossip::member::{Member, MemberList, Health};
-use gossip::rumor::{Peer, Protocol, Rumor, RumorList};
+use gossip::rumor::{Peer, Protocol, Rumor, RumorList, Message};
 use gossip::detector::Detector;
+use election::ElectionList;
+use census::{Census, CensusEntry, CensusList};
 use error::BldrResult;
+use util;
 
 static LOGKEY: &'static str = "GS";
 /// How often do we send an outbound request, in milliseconds
-static OUTBOUND_INTERVAL: u32 = 200;
+static OUTBOUND_INTERVAL: u64 = 200;
 /// How many outbound threads do we allow?
 static OUTBOUND_MAX_THREADS: usize = 5;
 /// How many inbound threads do we allow?
@@ -47,10 +50,12 @@ pub struct Server {
     pub member_list: Arc<RwLock<MemberList>>,
     /// Our list of rumors to share
     pub rumor_list: Arc<RwLock<RumorList>>,
-    /// Our list of census entries
-    pub census: Arc<RwLock<Census>>,
+    /// Our list of censuses
+    pub census_list: Arc<RwLock<CensusList>>,
     /// The failure detector
     pub detector: Arc<RwLock<Detector>>,
+    /// The list of elections
+    pub election_list: Arc<RwLock<ElectionList>>,
     /// Our 'peer' entry, used to generate SWIM protocol messages.
     pub peer: Peer,
 }
@@ -58,43 +63,45 @@ pub struct Server {
 impl Server {
     /// Creates a new Server. Creates our own entry in the census and membership lists, and writes
     /// a rumor that this server is alive.
-    pub fn new(listen: String, permanent: bool) -> Server {
-        let ce = CensusEntry::new();
-        let my_id = ce.id.clone();
-        outputln!("Supervisor {}", ce.id);
-        let peer_listen = format!("{}:{}", ce.ip, GOSSIP_DEFAULT_PORT);
+    pub fn new(listen: String, permanent: bool, service: String, group: String) -> Server {
+        let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
+        let ip = util::sys::ip().unwrap_or(String::from("127.0.0.1"));
+
+        let peer_listen = format!("{}:{}", ip, GOSSIP_DEFAULT_PORT);
         let peer_listen2 = peer_listen.clone();
+        let member = Member::new(hostname, ip, peer_listen2, permanent);
+
+        let service_group = format!("{}.{}", service, group);
+        let ce = CensusEntry::new(service, group, member.id.clone());
+        let my_id = member.id.clone();
+        let leader_id = member.id.clone();
+        outputln!("Supervisor {}", member);
+        outputln!("Census {}", ce);
+
+        let census_list = CensusList::new(Census::new(ce.clone()));
 
         let server = Server {
             listen: listen,
-            member_list: Arc::new(RwLock::new(MemberList::new())),
+            member_list: Arc::new(RwLock::new(MemberList::new(member.clone()))),
             rumor_list: Arc::new(RwLock::new(RumorList::new())),
-            census: Arc::new(RwLock::new(Census::new(ce))),
+            census_list: Arc::new(RwLock::new(census_list)),
             peer: Peer::new(my_id, peer_listen),
             detector: Arc::new(RwLock::new(Detector::new())),
-        };
-
-        // Create our member entry from the census
-        let member = {
-            let census = server.census.read().unwrap();
-            Member::new(census.me().unwrap().id.clone(),
-                        census.me().unwrap().hostname.clone(),
-                        census.me().unwrap().ip.clone(),
-                        peer_listen2,
-                        permanent.clone())
+            election_list: Arc::new(RwLock::new(ElectionList::new(service_group, leader_id))),
         };
 
         // Write our Alive Rumor
         {
-            let rumor = Rumor::member(member.clone());
+            let rumor = Rumor::member(member);
             let mut rl = server.rumor_list.write().unwrap();
-            rl.add_rumor(member.id.clone(), rumor);
+            rl.add_rumor(rumor);
         }
 
-        // Add ourselves to the Membership list
+        // Write our Census Entry Rumor
         {
-            let mut ml = server.member_list.write().unwrap();
-            ml.insert(member);
+            let rumor = Rumor::census_entry(ce);
+            let mut rl = server.rumor_list.write().unwrap();
+            rl.add_rumor(rumor);
         }
 
         server
@@ -109,11 +116,14 @@ impl Server {
         outputln!("Starting inbound gossip listener");
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
-        let census = self.census.clone();
+        let cl = self.census_list.clone();
         let my_peer = self.peer.clone();
         let detector = self.detector.clone();
+        let el = self.election_list.clone();
         let listener = try!(UtpListener::bind(&self.listen[..]));
-        thread::spawn(move || inbound(listener, my_peer, ml, rl, census, detector));
+        let _t = thread::Builder::new()
+                     .name("inbound".to_string())
+                     .spawn(move || inbound(listener, my_peer, ml, rl, cl, detector, el));
         Ok(())
     }
 
@@ -124,7 +134,9 @@ impl Server {
         let rl = self.rumor_list.clone();
         let my_peer = self.peer.clone();
         let detector = self.detector.clone();
-        thread::spawn(move || outbound(my_peer, ml, rl, detector));
+        let _t = thread::Builder::new()
+                     .name("outbound".to_string())
+                     .spawn(move || outbound(my_peer, ml, rl, detector));
     }
 
     /// Starts the failure detector.
@@ -133,9 +145,10 @@ impl Server {
         let my_peer = self.peer.clone();
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
-        let census = self.census.clone();
         let detector = self.detector.clone();
-        thread::spawn(move || failure_detector(my_peer, ml, rl, census, detector));
+        let _t = thread::Builder::new()
+                     .name("failure_detector".to_string())
+                     .spawn(move || failure_detector(my_peer, ml, rl, detector));
     }
 
     /// Sends blocking SWIM requests to our initial gossip peers.
@@ -203,8 +216,9 @@ pub fn inbound(listener: UtpListener,
                my_peer: Peer,
                member_list: Arc<RwLock<MemberList>>,
                rumor_list: Arc<RwLock<RumorList>>,
-               census: Arc<RwLock<Census>>,
-               detector: Arc<RwLock<Detector>>) {
+               census_list: Arc<RwLock<CensusList>>,
+               detector: Arc<RwLock<Detector>>,
+               election_list: Arc<RwLock<ElectionList>>) {
     let pool = ThreadPool::new(INBOUND_MAX_THREADS);
     for connection in listener.incoming() {
         loop {
@@ -227,10 +241,11 @@ pub fn inbound(listener: UtpListener,
                 let my_peer = my_peer.clone();
                 let ml = member_list.clone();
                 let rl = rumor_list.clone();
-                let census = census.clone();
+                let cl = census_list.clone();
                 let d1 = detector.clone();
+                let el = election_list.clone();
 
-                pool.execute(move || receive(socket, src, my_peer, ml, rl, census, d1));
+                pool.execute(move || receive(socket, src, my_peer, ml, rl, cl, d1, el));
             }
             _ => {}
         }
@@ -260,8 +275,9 @@ fn receive(socket: UtpSocket,
            my_peer: Peer,
            member_list: Arc<RwLock<MemberList>>,
            rumor_list: Arc<RwLock<RumorList>>,
-           _census: Arc<RwLock<Census>>,
-           detector: Arc<RwLock<Detector>>) {
+           census_list: Arc<RwLock<CensusList>>,
+           detector: Arc<RwLock<Detector>>,
+           election_list: Arc<RwLock<ElectionList>>) {
     let mut client = Client::from_socket(socket);
     let msg = match client.recv_message() {
         Ok(msg) => msg,
@@ -272,8 +288,6 @@ fn receive(socket: UtpSocket,
             return;
         }
     };
-
-    let mp = my_peer.clone();
 
     debug!("#{:?} protocol {:?}", src, msg);
 
@@ -331,11 +345,12 @@ fn receive(socket: UtpSocket,
             }
 
             // Update our rumors
-            {
-                let mut rl = rumor_list.write().unwrap();
-                debug!("Updating rumors from {:#?}", from_peer);
-                rl.process_rumors(&mp.member_id, remote_rumor_list, member_list);
-            }
+            debug!("Updating rumors from {:#?}", from_peer);
+            process_rumors(remote_rumor_list,
+                           rumor_list,
+                           member_list,
+                           census_list,
+                           election_list);
         }
         Protocol::Ack(mut from_peer, remote_rumor_list) => {
             // If this is a proxy ack, forward the results on
@@ -363,11 +378,12 @@ fn receive(socket: UtpSocket,
                     detector.write().unwrap().success(&from_peer.member_id);
                 }
                 // Update our rumors
-                {
-                    let mut rl = rumor_list.write().unwrap();
-                    debug!("Updating rumors via ack from {:#?} ", from_peer);
-                    rl.process_rumors(&mp.member_id, remote_rumor_list, member_list);
-                }
+                debug!("Updating rumors via ack from {:#?} ", from_peer);
+                process_rumors(remote_rumor_list,
+                               rumor_list,
+                               member_list,
+                               census_list,
+                               election_list);
             }
         }
         Protocol::PingReq(from_peer, remote_rumor_list) => {
@@ -401,6 +417,73 @@ fn receive(socket: UtpSocket,
     }
 }
 
+pub fn process_rumors(remote_rumors: RumorList,
+                      rumor_list: Arc<RwLock<RumorList>>,
+                      member_list: Arc<RwLock<MemberList>>,
+                      census_list: Arc<RwLock<CensusList>>,
+                      election_list: Arc<RwLock<ElectionList>>) {
+    for (id, remote_rumor) in remote_rumors.rumors.into_iter() {
+        match remote_rumor.payload {
+            Message::Member(m) => {
+                debug!("Processing member {:#?}", m);
+                let processed = {
+                    let mut ml = member_list.write().unwrap();
+                    ml.process(m)
+                };
+                if processed {
+                    let member = {
+                        let ml = member_list.read().unwrap();
+                        ml.get(&id).unwrap().clone()
+                    };
+
+                    // The internals of the object might have changed, but not by
+                    // replacement. Hence, we don't take the rumor as given - we have to go
+                    // get the current member for the new rumor
+                    {
+                        let mut rl = rumor_list.write().unwrap();
+                        rl.add_rumor(Rumor::member(member));
+                    }
+                }
+            }
+            Message::CensusEntry(ce) => {
+                debug!("Processing Census Entry {:#?}", ce);
+                let processed = {
+                    let mut cl = census_list.write().unwrap();
+                    cl.process(ce.clone())
+                };
+                if processed {
+                    let mut rl = rumor_list.write().unwrap();
+                    // If we changed, by definition we took the other side.
+                    rl.add_rumor(Rumor::census_entry(ce));
+                }
+            }
+            // We are processing - all we need to do is thread it through, and then make sure we
+            // destroy the un-neccessary rumors
+            Message::Election(election) => {
+                debug!("Processing Election {}", election);
+                let processed = {
+                    let mut el = election_list.write().unwrap();
+                    el.process(election.clone())
+                };
+                if processed {
+                    debug!("We processed Election {}", election);
+
+                    let elector = {
+                        let el = election_list.read().unwrap();
+                        el.get(&election.service_group()).unwrap().clone()
+                    };
+
+                    let mut rl = rumor_list.write().unwrap();
+                    rl.prune_elections_for(&elector.service_group());
+                    rl.add_rumor(Rumor::election(elector));
+                }
+            }
+            Message::Blank => {}
+        }
+    }
+}
+
+
 /// The outbound distributor. Every OUTBOUND_INTERVAL in milliseconds, it spawns a new connection
 /// to the next member.
 ///
@@ -413,7 +496,7 @@ pub fn outbound(my_peer: Peer,
     let pool = ThreadPool::new(OUTBOUND_MAX_THREADS);
     loop {
         // Pretty chimpy, but will work for now
-        thread::sleep_ms(OUTBOUND_INTERVAL);
+        thread::sleep(Duration::from_millis(OUTBOUND_INTERVAL));
 
         if pool.active_count() == pool.max_count() {
             info!("{} of {} outbound threads full; delaying this round",
@@ -570,7 +653,6 @@ pub fn send_pingreq(my_peer: Peer,
 pub fn failure_detector(my_peer: Peer,
                         member_list: Arc<RwLock<MemberList>>,
                         rumor_list: Arc<RwLock<RumorList>>,
-                        _census: Arc<RwLock<Census>>,
                         detector: Arc<RwLock<Detector>>) {
     loop {
         // Get a list of all our suspected and confirmed members
@@ -638,6 +720,6 @@ pub fn failure_detector(my_peer: Peer,
                          detector.clone());
         }
 
-        thread::sleep_ms(100);
+        thread::sleep(Duration::from_millis(100));
     }
 }

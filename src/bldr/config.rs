@@ -17,7 +17,7 @@ use gossip::server::GOSSIP_DEFAULT_PORT;
 use topology::Topology;
 use repo;
 use std::str::FromStr;
-use error::{BldrResult, BldrError, ErrorKind};
+use error::{BldrError, ErrorKind};
 
 static LOGKEY: &'static str = "CFG";
 
@@ -47,23 +47,23 @@ impl FromStr for Command {
     type Err = BldrError;
     fn from_str(s: &str) -> Result<Command, BldrError> {
         match s {
-        "bash" => Ok(Command::Shell),
-        "config" => Ok(Command::Config),
-        "decrypt" => Ok(Command::Decrypt),
-        "depot" => Ok(Command::Repo),
-        "download-depot-key" => Ok(Command::DownloadRepoKey),
-        "encrypt" => Ok(Command::Encrypt),
-        "export-key" => Ok(Command::ExportKey),
-        "generate-service-key" => Ok(Command::GenerateServiceKey),
-        "generate-user-key" => Ok(Command::GenerateUserKey),
-        "import-key" => Ok(Command::ImportKey),
-        "install" => Ok(Command::Install),
-        "list-keys" => Ok(Command::ListKeys),
-        "sh" => Ok(Command::Shell),
-        "start" => Ok(Command::Start),
-        "upload-depot-key" => Ok(Command::UploadRepoKey),
-        "upload" => Ok(Command::Upload),
-            _ => Err(bldr_error!(ErrorKind::CommandNotImplemented))
+            "bash" => Ok(Command::Shell),
+            "config" => Ok(Command::Config),
+            "decrypt" => Ok(Command::Decrypt),
+            "depot" => Ok(Command::Repo),
+            "download-depot-key" => Ok(Command::DownloadRepoKey),
+            "encrypt" => Ok(Command::Encrypt),
+            "export-key" => Ok(Command::ExportKey),
+            "generate-service-key" => Ok(Command::GenerateServiceKey),
+            "generate-user-key" => Ok(Command::GenerateUserKey),
+            "import-key" => Ok(Command::ImportKey),
+            "install" => Ok(Command::Install),
+            "list-keys" => Ok(Command::ListKeys),
+            "sh" => Ok(Command::Shell),
+            "start" => Ok(Command::Start),
+            "upload-depot-key" => Ok(Command::UploadRepoKey),
+            "upload" => Ok(Command::Upload),
+            _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
         }
     }
 }

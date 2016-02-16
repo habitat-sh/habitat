@@ -11,6 +11,7 @@ pkg_binary_path=(bin)
 pkg_deps=(chef/gpgme chef/libassuan chef/libgpg-error)
 pkg_service_run="bin/simple_service"
 pkg_docker_build="auto"
+pkg_docker_build_no_cache="true"
 
 do_begin() {
 	tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 --exclude 'plans' --exclude '.git' --exclude '.gitignore' --exclude 'target' --transform "s,^\.,simple_service-0.0.1," .

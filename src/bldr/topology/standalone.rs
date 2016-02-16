@@ -41,7 +41,7 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
 }
 
 /// Initialize the service.
-pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u32)> {
+pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
     let service_config = worker.service_config.read().unwrap();
     let package = worker.package.read().unwrap();
     match package.initialize(&service_config) {
@@ -60,7 +60,7 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u32)> {
 ///
 /// * If we cannot find the package
 /// * If we cannot start the supervisor
-pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
+pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
     outputln!(P: &worker.package_name, "Starting");
     let package = worker.package_name.clone();
     let runit_pkg = try!(Package::load("chef", "runit", None, None, None));
@@ -107,6 +107,6 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u32)> {
     Ok((State::Running, 0))
 }
 
-pub fn state_running(_worker: &mut Worker) -> BldrResult<(State, u32)> {
+pub fn state_running(_worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::Running, 0))
 }

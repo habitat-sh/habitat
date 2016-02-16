@@ -306,6 +306,8 @@ pkg_service_run=''
 # unless a Dockerfile is present. Auto will create the Dockerfile, overwriting
 # any that may be present.
 pkg_docker_build=false
+# If we should not cache images; caching is on by default
+pkg_docker_build_no_cache=false
 # Allows you to tweak the docker image we start from. We think it would be
 # great if you never used this. :)
 pkg_docker_from="bldr/base"
@@ -1817,7 +1819,11 @@ EOT
   fi
   if [[ -f "./Dockerfile" ]]; then
     local tag="${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}"
-    docker build -t "$tag" .
+    if [[ $pkg_docker_build_no_cache = "true" ]]; then
+      docker build --no-cache -t "$tag" .
+    else
+      docker build -t "$tag" .
+    fi
     docker tag -f "$tag" "${pkg_derivation}/${pkg_name}:latest"
   fi
 }

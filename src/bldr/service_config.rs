@@ -186,6 +186,7 @@ impl ServiceConfig {
         let mut base_toml: Option<BTreeMap<String, toml::Value>> = None;
 
         for cfg in order.into_iter() {
+            debug!("{:?}: {}", cfg, cfg.get());
             let mut toml_parser = toml::Parser::new(cfg.get());
             let toml_value = try!(toml_parser.parse()
                                 .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));

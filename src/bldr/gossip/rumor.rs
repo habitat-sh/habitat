@@ -10,15 +10,16 @@
 //! detection protocol to share state.
 
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::ops::{Deref, DerefMut};
 
-use gossip::member::MemberList;
+use census::CensusEntry;
+use election::Election;
 
 use rustc_serialize::Encodable;
 use uuid::Uuid;
 
 /// How many times does a rumor get shared with a member before we stop sharing it?
-pub const COLD_AFTER: usize = 1;
+pub const COLD_AFTER: usize = 3;
 
 use gossip::member::{Member, MemberId};
 
@@ -57,6 +58,8 @@ pub enum Protocol {
 #[derive(Debug, RustcDecodable, RustcEncodable, Clone, PartialEq, Eq)]
 pub enum Message {
     Member(Member),
+    CensusEntry(CensusEntry),
+    Election(Election),
     Blank,
 }
 
@@ -66,8 +69,8 @@ pub type RumorId = Uuid;
 /// A Rumor, which contains a Message.
 #[derive(Debug, RustcEncodable, RustcDecodable, PartialEq, Eq, Clone)]
 pub struct Rumor {
-    id: RumorId,
-    payload: Message,
+    pub id: RumorId,
+    pub payload: Message,
 }
 
 impl Rumor {
@@ -78,6 +81,23 @@ impl Rumor {
             payload: Message::Member(member),
         }
     }
+
+    /// Create a new rumor with a 'Message::CensusEntry' payload.
+    pub fn census_entry(ce: CensusEntry) -> Rumor {
+        Rumor {
+            id: ce.id.clone(),
+            payload: Message::CensusEntry(ce),
+        }
+    }
+
+    /// Create a new rumor with a 'Message::Election' payload.
+    pub fn election(e: Election) -> Rumor {
+        Rumor {
+            id: e.id.clone(),
+            payload: Message::Election(e),
+        }
+    }
+
 
     /// Create a new rumor with a 'Blank' payload.
     pub fn blank() -> Rumor {
@@ -107,32 +127,42 @@ impl RumorList {
 
     /// Given a RumorList, we match on the payload of each rumor, and then dispatch the
     /// corresponding entry to the right subsystem (e.g. Membership, Census, etc.).
-    pub fn process_rumors(&mut self,
-                          my_id: &MemberId,
-                          remote_rumors: RumorList,
-                          member_list: Arc<RwLock<MemberList>>) {
-        for (id, remote_rumor) in remote_rumors.rumors.into_iter() {
-            match remote_rumor.payload {
-                Message::Member(ref m) => {
-                    {
-                        debug!("Processing member {:#?}", m);
-                        let mut ml = member_list.write().unwrap();
-                        if ml.process(my_id, m.clone()) {
-                            self.reset_heat_for(&id);
-                            self.add_rumor(id.clone(), Rumor::member(ml.get(&id).unwrap().clone()));
-                        }
-                    }
-                }
-                Message::Blank => {}
-            }
-        }
-    }
-
+    //  pub fn process_rumors(&mut self, remote_rumors: RumorList,
+    //                        member_list: Arc<RwLock<MemberList>>,
+    //                        census_list: Arc<RwLock<CensusList>>) {
+    //      for (id, remote_rumor) in remote_rumors.rumors.into_iter() {
+    //          match remote_rumor.payload {
+    //              Message::Member(m) => {
+    //                  debug!("Processing member {:#?}", m);
+    //                  {
+    //                      let mut ml = member_list.write().unwrap();
+    //                      if ml.process(m) {
+    //                          // The internals of the object might have changed, but not by
+    //                          // replacement. Hence, we don't take the rumor as given - we have to go
+    //                          // get the current member for the new rumor
+    //                          self.add_rumor(Rumor::member(ml.get(&id).unwrap().clone()));
+    //                      }
+    //                  }
+    //              }
+    //              Message::CensusEntry(ce) => {
+    //                  debug!("Processing Census Entry {:#?}", ce);
+    //                  {
+    //                      let mut cl = census_list.write().unwrap();
+    //                      if cl.process(ce.clone()) {
+    //                          // If we changed, by definition we took the other side.
+    //                          self.add_rumor(Rumor::census_entry(ce));
+    //                      }
+    //                  }
+    //              }
+    //              Message::Blank => {}
+    //          }
+    //      }
+    //  }
     /// Update a rumor. Resets the heat.
     pub fn update_rumor(&mut self, rumor: Rumor) {
         debug!("Updating rumor {:#?}", rumor);
         self.reset_heat_for(&rumor.id);
-        self.add_rumor(rumor.id.clone(), rumor);
+        self.add_rumor(rumor);
     }
 
     /// Resets the heat for a rumor.
@@ -177,7 +207,7 @@ impl RumorList {
     pub fn hot_rumors_for(&self, member_id: &MemberId) -> RumorList {
         let mut hot_rumors = RumorList::new();
         let hot_rumor_iterator = self.rumors.iter().filter(|&(rumor_id, _rumor)| {
-            let hot_or_not = if self.heat_for(member_id, rumor_id) < COLD_AFTER {
+            let hot_or_not = if self.heat_for(member_id, rumor_id) <= COLD_AFTER {
                 true
             } else {
                 false
@@ -186,7 +216,7 @@ impl RumorList {
         });
         for (_rid, rumor) in hot_rumor_iterator {
             let rc = rumor.clone();
-            hot_rumors.add_rumor(member_id.clone(), rc);
+            hot_rumors.add_rumor(rc);
         }
         hot_rumors
     }
@@ -206,9 +236,45 @@ impl RumorList {
     }
 
     /// Add a new rumor to the list.
-    pub fn add_rumor(&mut self, member_id: MemberId, rumor: Rumor) {
-        debug!("Adding rumor {} {:?}", member_id, rumor);
+    pub fn add_rumor(&mut self, rumor: Rumor) {
+        debug!("Adding rumor {:?}", rumor);
+        self.reset_heat_for(&rumor.id);
         self.rumors.insert(rumor.id, rumor);
+    }
+
+    pub fn prune_elections_for(&mut self, service_group: &str) {
+        let mut prune_list: Vec<RumorId> = Vec::new();
+        for (rid, rumor) in self.rumors.iter() {
+            if let Message::Election(ref election) = rumor.payload {
+                if &election.service_group() == service_group {
+                    prune_list.push(rid.clone());
+                }
+            }
+        }
+        for rid in prune_list.iter() {
+            self.rumors.remove(&rid);
+        }
+    }
+
+    pub fn remove_rumor(&mut self, rumor_id: &RumorId) {
+        self.rumors.remove(rumor_id);
+        for (_member, mut rumor_map) in self.heat.iter_mut() {
+            rumor_map.remove(rumor_id);
+        }
+    }
+}
+
+impl Deref for RumorList {
+    type Target = HashMap<RumorId, Rumor>;
+
+    fn deref(&self) -> &HashMap<RumorId, Rumor> {
+        &self.rumors
+    }
+}
+
+impl DerefMut for RumorList {
+    fn deref_mut(&mut self) -> &mut HashMap<RumorId, Rumor> {
+        &mut self.rumors
     }
 }
 
@@ -223,8 +289,7 @@ mod test {
             let rumor = Rumor::blank();
             let rumor_id = rumor.id.clone();
             let mut rl = RumorList::new();
-            let member_id = MemberId::new_v4();
-            rl.add_rumor(member_id, rumor);
+            rl.add_rumor(rumor);
             assert_eq!(rumor_id, rl.rumors.get(&rumor_id).unwrap().id);
         }
 
@@ -234,7 +299,7 @@ mod test {
             let rumor_id = rumor.id.clone();
             let mut rl = RumorList::new();
             let member_id = MemberId::new_v4();
-            rl.add_rumor(member_id, rumor);
+            rl.add_rumor(rumor);
             // Rumor exists
             assert_eq!(0, rl.heat_for(&member_id, &rumor_id));
             // Rumor does not exist in the heat map

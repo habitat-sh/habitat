@@ -8,8 +8,8 @@ use util::{self, docker};
 use setup;
 use regex::Regex;
 use std::thread;
+use std::time::Duration;
 
-#[ignore]
 #[test]
 fn standalone_no_options() {
     setup::gpg_import();
@@ -110,15 +110,15 @@ fn leader_with_discovery() {
     let re = Regex::new(r"Starting my term as leader").unwrap();
     if re.is_match(&d1.logs()) {
         drop(d1);
-        thread::sleep_ms(32000);
+        thread::sleep(Duration::from_millis(32000));
         assert_docker_log_count!(1, "Starting my term as leader", [d2, d3]);
     } else if re.is_match(&d2.logs()) {
         drop(d2);
-        thread::sleep_ms(32000);
+        thread::sleep(Duration::from_millis(32000));
         assert_docker_log_count!(1, "Starting my term as leader", [d1, d3]);
     } else if re.is_match(&d3.logs()) {
         drop(d3);
-        thread::sleep_ms(32000);
+        thread::sleep(Duration::from_millis(32000));
         assert_docker_log_count!(1, "Starting my term as leader", [d1, d2]);
     }
 }

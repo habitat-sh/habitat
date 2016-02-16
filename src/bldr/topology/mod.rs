@@ -28,7 +28,7 @@ use libc::{pid_t, c_int};
 use wonder;
 
 use state_machine::StateMachine;
-use census;
+use census::{self, CensusList};
 use package::{self, Package, PackageUpdaterActor, Signal};
 use util::signals;
 use util::signals::SignalNotifier;
@@ -37,10 +37,15 @@ use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
 use user_config;
-use watch_config;
 use gossip;
+use gossip::rumor::{Rumor, RumorList};
+use gossip::member::MemberList;
+use election::ElectionList;
+use std::time::Duration;
+use time::SteadyTime;
 
 static LOGKEY: &'static str = "TP";
+static MINIMUM_LOOP_TIME_MS: i64 = 200;
 
 // Functions from POSIX libc.
 extern {
@@ -118,10 +123,14 @@ impl Default for Topology {
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub enum State {
     Init,
+    MinimumQuorum,
+    WaitingForQuorum,
     RestoreDataset,
     DetermineViability,
     BecomeLeader,
     BecomeFollower,
+    CheckForElection,
+    Election,
     StartElection,
     InElection,
     Leader,
@@ -142,22 +151,18 @@ pub struct Worker<'a> {
     pub config: &'a Config,
 /// The topology we are running
     pub topology: String,
-/// Our census
-    pub census: census::Census,
 /// Our Service Configuration; manages changes to our configuration,
     pub service_config: Arc<RwLock<ServiceConfig>>,
-/// Our Census Entry Actor; writes our entry periodically
-    pub census_entry_actor: wonder::actor::Actor<census::Message>,
-/// Our Census Actor; reads the census periodically
-    pub census_actor: wonder::actor::Actor<census::CensusMessage>,
 /// The Gossip Server; listens for inbound gossip traffic
     pub gossip_server: gossip::server::Server,
+    pub census_list: Arc<RwLock<CensusList>>,
+    pub rumor_list: Arc<RwLock<RumorList>>,
+    pub election_list: Arc<RwLock<ElectionList>>,
+    pub member_list: Arc<RwLock<MemberList>>,
 /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
 /// Our User Configuration; reads the config periodically
     pub user_actor: wonder::actor::Actor<user_config::Message>,
-/// Our User Configuration; reads the config periodically
-    pub watch_actor: wonder::actor::Actor<watch_config::Message>,
 /// Watches a package repo for updates and signals the main thread when an update is available. Optionally
 /// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
@@ -165,6 +170,7 @@ pub struct Worker<'a> {
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
 /// The PID of the Supervisor itself
     pub supervisor_id: Option<u32>,
+    pub return_state: Option<State>,
 }
 
 impl<'a> Worker<'a> {
@@ -173,33 +179,16 @@ impl<'a> Worker<'a> {
     /// Automatically sets the backend to Etcd.
     pub fn new(package: Package, topology: String, config: &'a Config) -> BldrResult<Worker<'a>> {
         let mut pkg_updater = None;
-        // Setup our Census Entry
-        let port = package.exposes().pop().unwrap_or(String::from("0"));
-        let exposes = package.exposes().clone();
-        let mut ce = census::CensusEntry::new();
-        ce.port(Some(port));
-        ce.exposes(Some(exposes));
-
-        let census_data = ce.as_etcd_write(&package, &config);
-        let package_name = package.name.clone();
-
-        // Setup the Census
-        let census = census::Census::new(ce);
-        let census_actor_state = census::CensusActorState::new(format!("{}/{}/census",
-                                                                       package_name,
-                                                                       config.group()));
-
         // Setup the Service Configuration
         let service_config = try!(ServiceConfig::new(&package));
+
+        let package_name = package.name.clone();
 
         // Setup the User Data Configuration
         let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config",
                                                                         package_name,
                                                                         config.group()));
 
-        // Setup the Watches
-        let mut watch_actor_state = watch_config::WatchActorState::new();
-        try!(watch_actor_state.set_watches(&config));
 
         let pkg_lock = Arc::new(RwLock::new(package));
         let pkg_lock_1 = pkg_lock.clone();
@@ -213,49 +202,47 @@ impl<'a> Worker<'a> {
         }
 
         let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen()),
-                                                        config.gossip_permanent());
+                                                        config.gossip_permanent(),
+                                                        package_name.clone(),
+                                                        config.group().to_string());
         try!(gossip_server.start_inbound());
         try!(gossip_server.initial_peers(config.gossip_peer()));
         gossip_server.start_outbound();
         gossip_server.start_failure_detector();
+        census::start_health_adjustor(gossip_server.census_list.clone(),
+                                      gossip_server.member_list.clone());
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();
-        let sidecar_census = gossip_server.census.clone();
+        let sidecar_cl = gossip_server.census_list.clone();
         let sidecar_detector = gossip_server.detector.clone();
+        let sidecar_el = gossip_server.election_list.clone();
 
         Ok(Worker {
             package: pkg_lock,
             package_name: package_name,
             topology: topology,
             config: config,
+            census_list: gossip_server.census_list.clone(),
+            rumor_list: gossip_server.rumor_list.clone(),
+            election_list: gossip_server.election_list.clone(),
+            member_list: gossip_server.member_list.clone(),
             gossip_server: gossip_server,
-            census: census,
-            census_entry_actor: wonder::actor::Builder::new(census::CensusEntryActor)
-                                    .name("census-entry".to_string())
-                                    .start(census_data)
-                                    .unwrap(),
-            census_actor: wonder::actor::Builder::new(census::CensusActor)
-                              .name("census-reader".to_string())
-                              .start(census_actor_state)
-                              .unwrap(),
             service_config: service_config_lock,
             sidecar_actor: sidecar::Sidecar::start(pkg_lock_1,
                                                    service_config_lock_1,
                                                    sidecar_ml,
                                                    sidecar_rl,
-                                                   sidecar_census,
-                                                   sidecar_detector),
+                                                   sidecar_cl,
+                                                   sidecar_detector,
+                                                   sidecar_el),
             user_actor: wonder::actor::Builder::new(user_config::UserActor)
                             .name("user-config".to_string())
                             .start(user_actor_state)
                             .unwrap(),
-            watch_actor: wonder::actor::Builder::new(watch_config::WatchActor)
-                             .name("watch-config".to_string())
-                             .start(watch_actor_state)
-                             .unwrap(),
             pkg_updater: pkg_updater,
             supervisor_thread: None,
             supervisor_id: None,
+            return_state: None,
         })
     }
 
@@ -330,9 +317,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                       .name("signal-handler".to_string())
                       .start(())
                       .unwrap();
-    outputln!("Watching census");
-    outputln!("Watching config");
     loop {
+        let start_time = SteadyTime::now();
         match handler.receiver.try_recv() {
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGHUP))) => {
                 outputln!("Sending SIGHUP");
@@ -410,58 +396,61 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
             }
         }
 
-        // Write our census entry immediately if something is dirty
         {
-            let mut ce = try!(worker.census.me_mut());
-            if ce.needs_write.is_some() {
-                let package = worker.package.read().unwrap();
-                try!(census::CensusEntryActor::write(&worker.census_entry_actor,
-                                                     ce.as_etcd_write(&package, &worker.config)));
-            }
-        }
+            // Manage the census
+            let (write_census, in_event, census_toml, write_rumor, me_clone) = {
+                let cl = worker.census_list.read().unwrap();
+                let census = cl.local_census();
+                (census.needs_write(),
+                 census.in_event,
+                 census.to_toml().unwrap(),
+                 census.me().needs_write(),
+                 census.me().clone())
+            };
 
-        // Obtain write lock on service config
-        {
-            let mut service_config = worker.service_config.write().unwrap();
-
-            // Manage the entire census
-            {
-                if let Some(census_string) =
-                       try!(census::CensusActor::census_string(&worker.census_actor)) {
-                    try!(worker.census.update(&census_string));
+            if write_census {
+                if !in_event {
+                    let mut service_config = worker.service_config.write().unwrap();
+                    service_config.census(census_toml);
                 }
-                if !worker.census.in_event {
-                    if worker.census.needs_write {
-                        let census_toml = try!(worker.census.to_toml());
-                        service_config.census(census_toml);
-                    }
+                if write_rumor {
+                    outputln!("Writing our census rumor: {:#?}", me_clone);
+                    let mut rl = worker.rumor_list.write().unwrap();
+                    rl.add_rumor(Rumor::census_entry(me_clone));
                 }
+                let mut cl = worker.census_list.write().unwrap();
+                cl.written();
             }
 
             // Manage the user configuration from discovery
-            {
-                match try!(user_config::UserActor::config_string(&worker.user_actor)) {
-                    Some(user_string) => service_config.user(user_string),
-                    None => service_config.user(String::new()),
-                }
-            }
+            // {
+            //     match try!(user_config::UserActor::config_string(&worker.user_actor)) {
+            //         Some(user_string) => service_config.user(user_string),
+            //         None => service_config.user(String::new()),
+            //     }
+            // }
 
             // Manage the watch configuration from discovery
-            {
-                match try!(watch_config::WatchActor::config_string(&worker.watch_actor)) {
-                    Some(watch_string) => service_config.watch(watch_string),
-                    None => service_config.watch(String::new()),
-                }
-            }
+            // {
+            //     match try!(watch_config::WatchActor::config_string(&worker.watch_actor)) {
+            //         Some(watch_string) => service_config.watch(watch_string),
+            //         None => service_config.watch(String::new()),
+            //     }
+            // }
 
             // Don't bother trying to reconfigure if we are in an event - just wait till
             // everything settles down.
-            if !worker.census.in_event {
-                let package = worker.package.read().unwrap();
-                // Write the configuration, and restart if needed
-                if try!(service_config.write(&package)) {
-                    try!(package.copy_run(&service_config));
-                    try!(package.reconfigure(&service_config));
+            {
+                let census_list = worker.census_list.read().unwrap();
+                let census = census_list.local_census();
+                if !census.in_event {
+                    let package = worker.package.read().unwrap();
+                    let mut service_config = worker.service_config.write().unwrap();
+                    // Write the configuration, and restart if needed
+                    if try!(service_config.write(&package)) {
+                        try!(package.copy_run(&service_config));
+                        try!(package.reconfigure(&service_config));
+                    }
                 }
             }
         }
@@ -484,6 +473,14 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
 
         // Next state!
         try!(sm.next(worker));
+
+        // Slow down our loop
+        let elapsed_time = SteadyTime::now() - start_time;
+        let elapsed_millis = elapsed_time.num_milliseconds();
+
+        if elapsed_millis < MINIMUM_LOOP_TIME_MS {
+            thread::sleep(Duration::from_millis((MINIMUM_LOOP_TIME_MS - elapsed_millis) as u64));
+        }
     }
     Ok(())
 }
