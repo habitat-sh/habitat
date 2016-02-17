@@ -8,6 +8,7 @@ pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
+pkg_build_deps=(chef/gcc chef/coreutils chef/make)
 pkg_deps=(chef/glibc chef/libassuan chef/libgpg-error)
 
 do_build() {
