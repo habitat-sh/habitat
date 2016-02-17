@@ -226,3 +226,22 @@ will automatically become followers.
 ```bash
 foo=$(cat /tmp/redis.toml); curl -L http://$(docker-machine ip ${DOCKER_MACHINE_NAME:-default}):4001/v2/keys/bldr/redis/default -XPUT -d value="${foo}"
 ```
+
+# New Stuff
+
+## Making a package
+
+```bash
+$ cd studio; make docker-studio
+$ make gpg
+$ build vim
+```
+
+## Uploading a package
+
+From within studio
+
+```bash
+$ export BLDR_REPO=http://52.11.158.96:32768
+$ ./support/cheap-upload.sh /PATH/TO/PKG
+```
