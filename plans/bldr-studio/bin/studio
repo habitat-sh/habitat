@@ -161,6 +161,7 @@ new_studio() {
   $bb mkdir -p $v $STUDIO_ROOT/proc
   $bb mkdir -p $v $STUDIO_ROOT/sys
   $bb mkdir -p $v $STUDIO_ROOT/run
+  $bb mkdir -p $v $STUDIO_ROOT/var/run
 
   # Make  a `/dev/console` device, if it doesn't exist
   if [ ! -r $STUDIO_ROOT/dev/console ]; then
@@ -190,6 +191,12 @@ new_studio() {
     fi
     if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/run type"; then
       $bb mount $v -t tmpfs tmpfs $STUDIO_ROOT/run
+    fi
+    if [ -e /var/run/docker.sock ]; then
+      if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/var/run/docker.sock type"; then
+        $bb touch $STUDIO_ROOT/var/run/docker.sock
+        $bb mount $v --bind /var/run/docker.sock $STUDIO_ROOT/var/run/docker.sock
+      fi
     fi
 
     if [ -h "$STUDIO_ROOT/dev/shm" ]; then
@@ -245,7 +252,7 @@ new_studio() {
   $bb mkdir -p $v $STUDIO_ROOT/var/mail
   $bb mkdir -p $v $STUDIO_ROOT/var/spool
 
-  $bb ln -sf $v /run $STUDIO_ROOT/var/run
+  #$bb ln -sf $v /run $STUDIO_ROOT/var/run
   $bb ln -sf $v /run/lock $STUDIO_ROOT/var/lock
 
   $bb mkdir -p $v $STUDIO_ROOT/var/opt
@@ -321,10 +328,10 @@ EOF
   # Add a useful command prompt
   case "${TERM:-}" in
   *term | xterm-* | rxvt | screen | screen-*)
-    prompt='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['$studio_type':\[\e[0;35m\]\w\[\e[0;32m\]:\e[1;37m\$?\[\e[0;32m\]]\$\[\e[0m\]\040'
+    prompt='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['$studio_type':\[\e[0;35m\]\w\[\e[0;32m\]:\e[1;37m\$?\[\e[0;32m\]]\$\[\e[0m\]\040 '
     ;;
   *)
-    prompt='[\#]['$studio_type':\w:\$?]\$\040'
+    prompt='[\#]['$studio_type':\w:\$?]\$\040 '
     ;;
   esac
   studio_enter_environment="$studio_enter_environment PS1=$prompt"
@@ -542,6 +549,10 @@ rm_studio() {
 
   if $bb mount | $bb grep -q "on $STUDIO_ROOT/dev type"; then
     $bb umount $v -l $STUDIO_ROOT/dev
+  fi
+
+  if $bb mount | $bb grep -q "on $STUDIO_ROOT/var/run/docker.sock type"; then
+    $bb umount $v -l $STUDIO_ROOT/var/run/docker.sock
   fi
 
   # If a Studio root directory exists, but does not contain a Studio
