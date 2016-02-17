@@ -4,6 +4,9 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+///<reference path="../node_modules/angular2/typings/browser.d.ts"/>
+///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
+
 import "angular2/bundles/angular2-polyfills";
 import {AppComponent} from "./AppComponent";
 import {AppStore} from "./AppStore";

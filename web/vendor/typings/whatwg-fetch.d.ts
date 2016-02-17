@@ -3,8 +3,6 @@
 // Definitions by: Ryan Graham <https://github.com/ryan-codingintrigue>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
 
-/// <reference path="../../../node_modules/angular2/typings/es6-shim/es6-shim.d.ts" />
-
 declare class Request extends Body {
 	constructor(input: string|Request, init?:RequestInit);
 	method: string;

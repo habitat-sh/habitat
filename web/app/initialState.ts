@@ -1,5 +1,3 @@
-///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
-
 import {List, Record} from "immutable";
 
 export default Record({

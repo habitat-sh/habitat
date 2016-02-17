@@ -33,8 +33,8 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
     stylesheets/base/            # The SCSS files for the stylesheets.
     test/e2e/                    # End-to-end [Protractor](https://angular.github.io/protractor/#/) tests.
-    typings/                     # Type definitions for [TSD](http://definitelytyped.org/tsd/). Ignored by git.
-    vendor/typings/              # Type definitions that we maintain ourselves rather than using the ones TSD downloads.
+    typings/                     # Type definitions for [Typings](https://github.com/typings/typings). Ignored by git.
+    vendor/typings/              # Type definitions that we maintain ourselves rather than using the ones Typings downloads.
     .gitignore                   # Tells git which files it should ignore.
     .nvmrc                       # Shows the version of [node](https://nodejs.org/en/) you should be using, possibly with [NVM](https://github.com/creationix/nvm).
     .sass-lint.yml               # [Configuration](https://github.com/brigade/scss-lint#configuration) for `scss-lint`.
@@ -51,6 +51,6 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     protractor.conf.js           # Configuration for Protractor.
     README.md                    # The README.
     tsconfig.json                # [Configuration for TypeScript](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json).
-    tsd.json                     # Configuration for TSD.
     tslint.json                  # Configuration for [TSLint](http://palantir.github.io/tslint/).
+    typings.json                 # Configuration for Typings.
     webpack.config.js            # Configuration for [webpack](http://webpack.github.io/).
