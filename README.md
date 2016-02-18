@@ -229,19 +229,42 @@ foo=$(cat /tmp/redis.toml); curl -L http://$(docker-machine ip ${DOCKER_MACHINE_
 
 # New Stuff
 
-## Making a package
+## Development environment with studio
+
+This commit brings the development environment up to date in studio.
+
+To build a package:
 
 ```bash
-$ cd studio; make docker-studio
+$ make pkg-shell
+$ studio enter
 $ make gpg
-$ build vim
+$ build plans/redis
 ```
 
-## Uploading a package
-
-From within studio
+To upload the resulting package
 
 ```bash
-$ export BLDR_REPO=http://52.11.158.96:32768
-$ ./support/cheap-upload.sh /PATH/TO/PKG
+$ studio enter
+$ ./plans/support/cheap-upload.sh PKG
 ```
+
+To create a docker container of a package, either local or remote:
+
+```bash
+$ studio enter
+$ dockerize chef/redis
+```
+
+To develop bldr itself, just work like you always did. If you want to,
+for example, test that redis is working with your development version of
+the supervisor:
+
+```bash
+$ bpm install chef/redis
+$ ./target/debug/bldr start chef/redis
+```
+
+Will work just fine (as will running bldr on other host operating
+systems, cause thats all we're up to).
+

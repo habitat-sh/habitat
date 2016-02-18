@@ -40,6 +40,8 @@ RUN addgroup --system bldr || true
 
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin/ssh_wrapper.sh
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin/git_src_checkout.sh
+COPY studio/studio-install.sh /tmp
+RUN /tmp/studio-install.sh && bpm install chef/bldr
 
 WORKDIR /src
 CMD ["bash"]

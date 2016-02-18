@@ -5,7 +5,6 @@ bldr:
     - .:/src
     - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
-    - installed
     - cache_keys
     - cargo
   links:
@@ -19,9 +18,7 @@ package:
     - .:/src
     - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
-    - installed
     - cache_src
-    - cache_pkgs
     - cache_keys
     - cargo
   links:
