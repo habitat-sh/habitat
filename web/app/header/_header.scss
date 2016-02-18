@@ -3,13 +3,15 @@
   margin-bottom: $base-spacing;
 
   h1 {
-    @include span-columns(2);
+    @include span-columns(11);
     display: inline;
   }
 
+  // Temporarily there's nothing in here, but links to things like help
+  // and docs will be later.
   &-links {
     padding: 0.3em;
-    @include span-columns(9);
+    @include span-columns(0);
     display: inline-block;
 
     ul {

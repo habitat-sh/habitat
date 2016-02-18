@@ -5,6 +5,6 @@ app**/*.js.map
 app.js
 app.js.map
 node_modules
-npm-debug.log
+npm-debug.log*
 /dist
 /typings
