@@ -11,17 +11,20 @@ import {HeaderComponent} from "./header/HeaderComponent";
 import {HomePageComponent} from "./home-page/HomePageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
 import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
+import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
 import {RouteConfig, Router, RouterOutlet} from "angular2/router";
+import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
 import {routeChange} from "./actions";
 
 @Component({
-    directives: [HeaderComponent, RouterOutlet],
+    directives: [HeaderComponent, RouterOutlet, SideNavComponent],
     selector: "bldr",
     template: `
     <div class="bldr-container">
         <bldr-header [appName]="state.appName" [route]="state.route">
         </bldr-header>
+        <bldr-side-nav></bldr-side-nav>
         <section class="bldr-main">
             <router-outlet></router-outlet>
         </section>
@@ -44,6 +47,7 @@ import {routeChange} from "./actions";
         path: "/pkgs/:derivation/:name/:version/:release", name: "Package",
         component: PackagePageComponent
     },
+    { path: "/projects", name: "Projects", component: ProjectsPageComponent },
     { path: "/sign-in", name: "SignIn", component: SignInPageComponent },
 ])
 

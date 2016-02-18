@@ -8,6 +8,8 @@
 @import "base/base";
 @import "neat";
 
+@import "item-list";
+
 @import "explore-page/explore-page";
 @import "header/header";
 @import "header/user-nav/user-nav";
@@ -21,10 +23,20 @@
   @include outer-container;
 }
 
+.bldr-side-nav {
+  @include span-columns(3);
+}
+
+.bldr-main {
+  @include span-columns(9);
+}
+
 .bldr-footer {
   @include outer-container;
   @include span-columns(12);
   @include pad($base-spacing 0);
 
+  bottom: $base-spacing;
   font-size: 75%;
+  position: absolute;
 }

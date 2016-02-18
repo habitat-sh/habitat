@@ -11,6 +11,7 @@ export default Record({
     isUserNavOpen: false,
     packages: [],
     password: null,
+    projects: List(),
     requestedRoute: null,
     route: null,
     username: "smith",

@@ -1,6 +1,6 @@
 import {expect} from "./helper";
 
-describe("routes", () => {
+describe("Routes", () => {
     describe("/pkgs", () => {
         beforeEach(() => {
             browser.get("#/pkgs");
@@ -29,6 +29,14 @@ describe("routes", () => {
             browser.get("#/pkgs/chef/zlib/1.2.8/20160111220313");
             expect(element(by.css(".bldr-package h2")).getText()).to.
                 eventually.equal("chef / zlib / 1.2.8 / 20160111220313");
+        });
+    });
+
+    describe("/projects", () => {
+        it("shows projects", () => {
+            browser.get("#/projects");
+            expect(element(by.css(".bldr-projects h2")).getText()).to.
+                eventually.equal("Projects");
         });
     });
 });

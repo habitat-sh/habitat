@@ -79,6 +79,9 @@ export function rootReducer(state = initialState, action) {
         case actionTypes.SET_PACKAGES:
             return state.set("packages", action.payload);
 
+        case actionTypes.SET_PROJECTS:
+            return state.set("projects", List(action.payload));
+
         case actionTypes.SET_VISIBLE_PACKAGES:
             q = query(state.get("packages"));
             if (action.payload.filter === "mine") {

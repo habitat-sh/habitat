@@ -1,7 +1,9 @@
-﻿// Type definitions for fetch API
+// Type definitions for fetch API
 // Project: https://github.com/github/fetch
 // Definitions by: Ryan Graham <https://github.com/ryan-codingintrigue>
 // Definitions: https://github.com/borisyankov/DefinitelyTyped
+
+///<reference path="../../node_modules/angular2/typings/browser.d.ts"/>
 
 declare class Request extends Body {
 	constructor(input: string|Request, init?:RequestInit);

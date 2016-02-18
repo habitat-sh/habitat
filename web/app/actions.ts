@@ -22,6 +22,7 @@ export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
 export const SET_PACKAGES = "SET_PACKAGES";
+export const SET_PROJECTS = "SET_PROJECTS";
 export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
 export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
@@ -100,6 +101,14 @@ export function fetchPackage(pkg) {
     };
 }
 
+export function fetchProjects() {
+    return dispatch => {
+        api.get("projects.json").then(response => {
+            dispatch(setProjects(response));
+        });
+    };
+}
+
 export function filterPackagesBy(params) {
     return dispatch => {
         api.get("packages.json").then(response => {
@@ -149,6 +158,13 @@ export function requestRoute(requestedRoute: Array<any>) {
     };
 }
 
+export function setCurrentPackage(pkg) {
+    return {
+        type: SET_CURRENT_PACKAGE,
+        payload: pkg,
+    };
+}
+
 export function setPackages(packages) {
     return {
         type: SET_PACKAGES,
@@ -156,10 +172,10 @@ export function setPackages(packages) {
     };
 }
 
-export function setCurrentPackage(pkg) {
+function setProjects(projects) {
     return {
-        type: SET_CURRENT_PACKAGE,
-        payload: pkg,
+        type: SET_PROJECTS,
+        payload: projects,
     };
 }
 

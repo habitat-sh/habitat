@@ -4,19 +4,10 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-.bldr-packages {
-  &-plan-list {
-    li a {
-      @extend .bldr-item-list;
-
-      .stars {
-          float: right;
-          font-size: 75%;
-      }
-
-      .stars:after {
-          content:  "★"
-       }
-    }
-  }
+// For lists of things like packages or projects
+.bldr-item-list {
+  border: 1px solid;
+  display: block;
+  margin-bottom: $small-spacing;
+  padding: $small-spacing;
 }

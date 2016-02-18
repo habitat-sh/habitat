@@ -5,6 +5,7 @@ exports.config = {
     specs: ["test/e2e**/*.test.ts"],
 
     mochaOpts: {
+        reporter: "spec",
         timeout: 2000,
     },
 
