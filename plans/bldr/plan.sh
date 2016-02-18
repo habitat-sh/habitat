@@ -43,7 +43,11 @@ do_install() {
 }
 
 do_docker_image() {
-  ./mkimage.sh
-  docker build -t "bldr/base:${pkg_version}-${pkg_rel}" .
-  docker tag -f bldr/base:${pkg_version}-${pkg_rel} bldr/base:latest
+  return 0
 }
+
+# do_docker_image() {
+#   ./mkimage.sh
+#   docker build -t "bldr/base:${pkg_version}-${pkg_rel}" .
+#   docker tag -f bldr/base:${pkg_version}-${pkg_rel} bldr/base:latest
+# }

@@ -70,7 +70,7 @@ OPTIONS:
     -r <STUDIO_ROOT>  Sets a Studio root (default: /opt/studio)
     -s <SRC_PATH>     Sets the source path (default: \$PWD)
     -t <STUDIO_TYPE>  Sets a Studio type when creating (default: bldr)
-                      Valid types: [bldr bldr-slim busybox stage1]
+                      Valid types: [baseimage bldr bldr-slim busybox stage1]
 
 SUBCOMMANDS:
     build     Build using a Studio
@@ -136,7 +136,7 @@ new_studio() {
       # Set the default/unset type
       STUDIO_TYPE=bldr
       ;;
-    bldr-slim|busybox|stage1)
+    bldr-slim|busybox|stage1|baseimage)
       # Confirmed valid types
       ;;
     *)
@@ -271,6 +271,9 @@ new_studio() {
   $bb chmod $v 664 $STUDIO_ROOT/var/log/lastlog
   $bb chmod $v 600 $STUDIO_ROOT/var/log/btmp
 
+  # Load the appropriate type strategy to complete the setup
+  . $libexec_path/bldr-studio-type-${STUDIO_TYPE}.sh
+
   # If `/etc/passwd` is not present, create a minimal version to satisfy
   # some software when being built
   if [ ! -f "$STUDIO_ROOT/etc/passwd" ]; then
@@ -319,8 +322,12 @@ users:x:999:
 EOF
   fi
 
-  # Load the appropriate type strategy to complete the setup
-  . $libexec_path/bldr-studio-type-${STUDIO_TYPE}.sh
+  # Copy minimal networking and DNS resolution configuration files into the
+  # Studio filesystem so that commands such as `wget(1)` will work
+  for f in /etc/hosts /etc/resolv.conf; do
+    $bb mkdir -p $v $($bb dirname $f)
+    $bb cp $v $f $STUDIO_ROOT$f
+  done
 
   # Invoke the type's implementation
   finish_setup
@@ -393,13 +400,6 @@ cd /src
 
 PROFILE
   fi
-
-  # Copy minimal networking and DNS resolution configuration files into the
-  # Studio filesystem so that commands such as `wget(1)` will work
-  for f in /etc/hosts /etc/resolv.conf; do
-    $bb mkdir -p $v $($bb dirname $f)
-    $bb cp $v $f $STUDIO_ROOT$f
-  done
 
   $bb mkdir -p $v $STUDIO_ROOT/src
   # Mount the `$SRC_PATH` under `/src` in the Studio, unless either `$NO_MOUNT`
@@ -687,7 +687,6 @@ set_libexec_path() {
   libexec_path="$($bb dirname $p)/libexec"
   return 0
 }
-
 
 # # Main Flow
 

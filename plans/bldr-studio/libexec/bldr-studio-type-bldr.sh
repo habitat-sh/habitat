@@ -3,4 +3,4 @@
 studio_type="bldr"
 studio_enter_command="/opt/bldr/bin/bpm exec chef/backline bash --login +h"
 
-bldr_pkgs="chef/bpm chef/backline"
+bldr_pkgs="chef/bpm chef/backline chef/bldr-studio"
