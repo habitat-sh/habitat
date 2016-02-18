@@ -50,6 +50,8 @@
 
 use ansi_term::Colour::Yellow;
 
+use std::env;
+
 use fs::PACKAGE_CACHE;
 use error::{BldrResult, ErrorKind};
 use config::Config;
@@ -118,6 +120,9 @@ pub fn package(config: &Config) -> BldrResult<()> {
 }
 
 fn start_package(package: Package, config: &Config) -> BldrResult<()> {
+    let run_path = try!(package.run_path());
+    debug!("Setting the PATH to {}", run_path);
+    env::set_var("PATH", &run_path);
     match *config.topology() {
         Topology::Standalone => topology::standalone::run(package, config),
         Topology::Leader => topology::leader::run(package, config),

@@ -18,7 +18,8 @@ use std::os::unix;
 use std::path::{Path, PathBuf};
 use std::io::prelude::*;
 use std::process::Command;
-
+use std::io::BufReader;
+use std::env;
 use regex::Regex;
 
 use self::hooks::HookTable;
@@ -238,6 +239,7 @@ impl Package {
         self.signal(Signal::Status)
     }
 
+    /// A vector of ports we expose
     pub fn exposes(&self) -> Vec<String> {
         match fs::metadata(self.join_path("EXPOSES")) {
             Ok(_) => {
@@ -257,6 +259,86 @@ impl Package {
             }
         }
     }
+
+    /// Creates a Package for every TDEP
+    pub fn tdeps(&self) -> BldrResult<Vec<Package>> {
+        let mut tdeps = Vec::new();
+        match fs::metadata(self.join_path("TDEPS")) {
+            Ok(_) => {
+                let tdep_file = File::open(self.join_path("TDEPS")).unwrap();
+                let reader = BufReader::new(tdep_file);
+                for line in reader.lines() {
+                    match line {
+                        Ok(tdep) => {
+                            let pkg = try!(Package::from_ident(&tdep));
+                            tdeps.push(pkg);
+                        }
+                        Err(e) => {
+                            outputln!("Package {} has malformed TDEPS: {}", self, e);
+                        }
+                    }
+                }
+            }
+            Err(_) => {}
+        }
+        Ok(tdeps)
+    }
+
+    /// Returns a string with the full run path for this package. This path is composed of any
+    /// binary paths specified by this package, or its TDEPS, plus bldr or its TDEPS, plus the
+    /// existing value of the PATH variable.
+    ///
+    /// This means we work on any operating system, as long as you can call 'bldr', without having
+    /// to worry much about context.
+    pub fn run_path(&self) -> BldrResult<String> {
+        let mut run_path = String::new();
+        if let Some(path) = self.path_meta() {
+            run_path = format!("{}", path);
+        }
+        let tdeps = try!(self.tdeps());
+        for dep in tdeps.iter() {
+            if let Some(path) = dep.path_meta() {
+                run_path = format!("{}:{}", run_path, path);
+            }
+        }
+        if self.name != "bldr" {
+            let bldr_pkg = try!(Package::load("chef", "bldr", None, None, None));
+            if let Some(path) = bldr_pkg.path_meta() {
+                run_path = format!("{}:{}", run_path, path);
+            }
+            let tdeps = try!(bldr_pkg.tdeps());
+            for dep in tdeps.iter() {
+                if let Some(path) = dep.path_meta() {
+                    run_path = format!("{}:{}", run_path, path);
+                }
+            }
+        }
+        match env::var_os("PATH") {
+            Some(val) => {
+                run_path = format!("{}:{}",
+                                   run_path,
+                                   String::from(val.to_string_lossy().into_owned()));
+            }
+            None => outputln!("PATH is not defined in the environment; good luck, cowboy!"),
+        }
+        Ok(run_path)
+    }
+
+    /// Return the PATH string from the package metadata, if it exists
+    pub fn path_meta(&self) -> Option<String> {
+        match fs::metadata(self.join_path("PATH")) {
+            Ok(_) => {
+                let mut path_file = File::open(self.join_path("PATH")).unwrap();
+                let mut path_string = String::new();
+                path_file.read_to_string(&mut path_string).unwrap();
+                Some(String::from(path_string.trim_right_matches("\n")))
+            }
+            Err(_) => {
+                None
+            }
+        }
+    }
+
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
         let base = PathBuf::from(self.join_path("hooks"));

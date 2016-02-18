@@ -8,8 +8,7 @@
 #
 # # Synopsis
 #
-# `bldr-build` handles creating bldr packages, and optionally creating
-# docker images to go with them.
+# `bldr-build` handles creating bldr packages.
 #
 # # plan.sh
 #
@@ -144,14 +143,6 @@
 # pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
 # ```
 #
-# ### pkg_docker_build
-# If set to `auto`, we will automatically generate a `Dockerfile` with this
-# package, its dependencies, and busybox. If undefined or set to `false`, we
-# will only build a docker image if a `Dockerfile` is present.
-# ```
-# pkg_docker_build="auto"
-# ```
-#
 # ### pkg_expose
 # An array of ports this service exposes to the world.
 # ```
@@ -212,7 +203,6 @@
 # pkg_binary_path=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
 # pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
-# pkg_docker_build="auto"
 # pkg_expose=(80 443)
 #
 # do_build() {
@@ -303,15 +293,6 @@ pkg_lib_dirs=()
 pkg_include_dirs=()
 # The command to run the service - must not fork or return
 pkg_service_run=''
-# Has two values: `false`, `auto`. False will skip making a docker container
-# unless a Dockerfile is present. Auto will create the Dockerfile, overwriting
-# any that may be present.
-pkg_docker_build=false
-# If we should not cache images; caching is on by default
-pkg_docker_build_no_cache=false
-# Allows you to tweak the docker image we start from. We think it would be
-# great if you never used this. :)
-pkg_docker_from="bldr/base"
 # An array of ports to expose.
 pkg_expose=()
 # The user to run the service as
@@ -351,10 +332,6 @@ umask 0022
 # Would also exit 1.
 _on_exit() {
   local exit_status=${1:-$?}
-  if [[ -d "$DOCKER_CONTEXT" ]]; then
-    echo "Cleaning up Docker context $DOCKER_CONTEXT"
-    rm -rf "$DOCKER_CONTEXT"
-  fi
   : ${pkg_name:=unknown}
   elapsed=$SECONDS
   elapsed=$(echo $elapsed | awk '{printf "%dm%ds", $1/60, $1%60}')
@@ -483,17 +460,6 @@ _find_system_commands() {
     exit_with "We require gpg to sign packages; aborting" 1
   fi
   debug "Setting _gpg_cmd=$_gpg_cmd"
-
-  if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
-    _mktemp_cmd=$(command -v mktemp)
-  else
-    if $(/bin/mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
-      _mktemp_cmd=/bin/mktemp
-    else
-      exit_with "We require GNU mktemp to build docker images; aborting" 1
-    fi
-  fi
-  debug "Setting _mktemp_cmd=$_mktemp_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
@@ -1615,11 +1581,11 @@ do_default_build_service() {
     if [[ -n "${pkg_service_run}" ]]; then
       if [[ "${pkg_service_user}" = "bldr" ]]; then
         cat <<EOT >> $pkg_path/run
-#!$(_latest_installed_package chef/busybox)/bin/sh
+#!/bin/sh
 cd $BLDR_ROOT/srvc/$pkg_name
 
 if [ "\$(whoami)" = "root" ]; then
-  exec $(_latest_installed_package chef/busybox)/bin/chpst \\
+  exec chpst \\
     -U bldr:bldr \\
     -u bldr:bldr \\
     $pkg_path/$pkg_service_run 2>&1
@@ -1629,7 +1595,7 @@ fi
 EOT
       else
         cat <<EOT >> $pkg_path/run
-#!$(_latest_installed_package chef/busybox)/bin/sh
+#!/bin/sh
 cd $BLDR_ROOT/srvc/$pkg_name
 
 exec $pkg_path/$pkg_service_run 2>&1
@@ -1705,129 +1671,6 @@ _generate_package() {
     --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
     --sign
   return 0
-}
-
-# Wraps `dockerfile` to ensure that a Docker image build is being executed in a
-# clean directory with native filesystem permissions which is outside the
-# source code tree.
-do_docker_image_wrapper() {
-  tmp_prefix="$(echo "$PLAN_CONTEXT" | tr '/' '-')"
-  DOCKER_CONTEXT="$($_mktemp_cmd -t -d "bldr-${tmp_prefix}-XXXX")"
-  cp -rp $PLAN_CONTEXT/* "$DOCKER_CONTEXT"/
-  pushd $DOCKER_CONTEXT > /dev/null
-  do_docker_image
-  popd > /dev/null
-  rm -rf "$DOCKER_CONTEXT"
-}
-
-# Add additional entries to the generated Dockerfile. Use something fancy like
-# `echo` to return some data, and it will get inlined. Delegates most of the
-# implementation to the `do_default_dockerfile_inline()` function.
-do_dockerfile_inline() {
-  do_default_dockerfile_inline
-  return $?
-}
-
-# Default immplementation for the `do_dockerfile_inline()` phase.
-do_default_dockerfile_inline() {
-  return 0
-}
-
-# Build the Docker image. If `$pkg_docker_build` is set to `auto`, create the
-# Dockerfile first.
-#
-# We build and tag the resulting image with
-# `$pkg_derivation/$pkg_name:$pkg_version-$pkg_release` and
-# `$pkg_derivation/$pkg_name:latest`.
-#
-# Delegates most of the implementation to the `do_default_docker_image()`
-# function.
-do_docker_image() {
-  do_default_docker_image
-  return $?
-}
-
-# Default implementation for the `do_docker_image()` phase.
-do_default_docker_image() {
-  if [[ $pkg_docker_build = "auto" || -f "./Dockerfile" ]]; then
-    build_line "Creating Docker images"
-  fi
-
-  if [[ $pkg_docker_build = "auto" ]]; then
-    mkdir -p ./${pkg_name}-cache
-    rsync -av --delete $pkg_path/* ./${pkg_name}-cache
-    cat <<EOT > ./Dockerfile
-FROM $pkg_docker_from
-MAINTAINER $pkg_maintainer
-WORKDIR /
-EOT
-    local dockerfile_inline_data=$(do_dockerfile_inline)
-    if [[ -z "$dockerfile_inline_data" ]]; then
-      cat <<EOT >> ./Dockerfile
-$dockerfile_inline_data
-EOT
-    fi
-    if [[ $pkg_docker_from != "bldr/base" ]]; then
-      pkg_deps+=("chef/bldr")
-      pkg_deps+=("chef/cacerts")
-      pkg_deps+=("chef/glibc")
-      pkg_deps+=("chef/gnupg")
-      pkg_deps+=("chef/libgcc")
-      pkg_deps+=("chef/openssl")
-      pkg_deps+=("chef/zlib")
-      pkg_deps+=("chef/runit")
-      # Re-resolve dependencies to download any missing
-      _resolve_dependencies
-      cat <<EOT >> ./Dockerfile
-ENTRYPOINT ["bldr"]
-RUN ln -sf $(pkg_path_for chef/bldr)/bin/bldr /bin/bldr && \
-    ln -sf $(pkg_path_for chef/gnupg)/bin/gpg /bin/gpg && \
-    ln -sf $(pkg_path_for chef/gnupg)/bin/gpg-zip /bin/gpg-zip && \
-    ln -sf $(pkg_path_for chef/gnupg)/bin/gpgsplit /bin/gpgsplit && \
-    ln -sf $(pkg_path_for chef/gnupg)/bin/gpgv /bin/gpgv && \
-    ln -sf $(pkg_path_for chef/runit)/bin/chpst /bin/chpst && \
-    ln -sf $(pkg_path_for chef/runit)/bin/runit /bin/runit && \
-    ln -sf $(pkg_path_for chef/runit)/bin/runit-init /bin/runit-init && \
-    ln -sf $(pkg_path_for chef/runit)/bin/runsv /bin/runsv && \
-    ln -sf $(pkg_path_for chef/runit)/bin/runsvchdir /bin/runsvchdir && \
-    ln -sf $(pkg_path_for chef/runit)/bin/runsvdir /bin/runsvdir && \
-    ln -sf $(pkg_path_for chef/runit)/bin/sv /bin/sv && \
-    ln -sf $(pkg_path_for chef/runit)/bin/svlogd /bin/svlogd && \
-    ln -sf $(pkg_path_for chef/runit)/bin/utmpset /bin/utmpset && \
-    addgroup bldr || true && \
-    adduser --system --disabled-password bldr || true
-EOT
-    fi
-    cat <<EOT >> ./Dockerfile
-COPY ${pkg_name}-cache/ $pkg_path/
-EOT
-    for dep_path in "${pkg_deps_resolved[@]}"; do
-      local dep="$(echo $dep_path | sed "s,^${BLDR_PKG_ROOT}/,,")"
-      rm -rf ./${dep}-cache
-      mkdir -p ./${dep}-cache
-      rsync -aP $dep_path/* ./${dep}-cache
-      echo "COPY ${dep}-cache/ $dep_path/" >> ./Dockerfile
-    done
-    if [[ -n "$BLDR_FROM" ]]; then
-      cp $BLDR_FROM ./bldr-debug
-      echo "COPY bldr /bin/bldr" >> ./Dockerfile
-      echo "COPY bldr-debug /bin/bldr-debug" >> ./Dockerfile
-    fi
-    cat <<EOT >> ./Dockerfile
-VOLUME $BLDR_ROOT/srvc/$pkg_name/data $BLDR_ROOT/srvc/$pkg_name/config
-EXPOSE ${pkg_expose[@]} 9631
-CMD ["start", "${pkg_derivation}/${pkg_name}"]
-EOT
-  fi
-  if [[ -f "./Dockerfile" ]]; then
-    local tag="${pkg_derivation}/${pkg_name}:${pkg_version}-${pkg_rel}"
-    if [[ $pkg_docker_build_no_cache = "true" ]]; then
-      docker build --no-cache -t "$tag" .
-    else
-      docker build -t "$tag" .
-    fi
-    docker tag -f "$tag" "${pkg_derivation}/${pkg_name}:latest"
-  fi
 }
 
 # A function for cleaning up after yourself. Delegates most of the
@@ -2002,9 +1845,6 @@ _build_manifest
 
 # Write the package
 _generate_package
-
-# Build the Docker images
-do_docker_image_wrapper
 
 # Cleanup
 build_line "Bldr cleanup"
