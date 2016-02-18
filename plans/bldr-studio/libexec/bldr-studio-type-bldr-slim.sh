@@ -6,7 +6,7 @@ studio_build_environment=
 studio_build_command="/opt/bldr/bin/build"
 studio_run_environment=
 
-bldr_pkgs="chef/bpm chef/build"
+bldr_pkgs="chef/bpm chef/build chef/bldr-studio"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT/opt/bldr/bin/bpm" ]; then
@@ -42,6 +42,22 @@ EOF
 exec /opt/bldr/bin/bpm exec chef/build build \$*
 EOF
   $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/build
+
+  # Create a wrapper to dockerize
+  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/dockerize
+#!$bpm_path/libexec/busybox sh
+cmd=\$(find /opt/bldr/pkgs/chef/bldr-studio -name dockerize)
+exec \$cmd \$*
+EOF
+  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/dockerize
+
+  # Create a wrapper to studio
+  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/studio
+#!$bpm_path/libexec/busybox sh
+cmd=\$(find /opt/bldr/pkgs/chef/bldr-studio -name studio)
+exec \$cmd \$*
+EOF
+  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/studio
 
   $bb ln -s $v $bash_path/bin/bash $STUDIO_ROOT/bin/bash
   $bb ln -s $v bash $STUDIO_ROOT/bin/sh

@@ -11,6 +11,7 @@ pkg_gpg_key=3853DA6B
 
 do_build() {
   cp -v $PLAN_CONTEXT/bin/studio studio
+  cp -v $PLAN_CONTEXT/bin/dockerize dockerize
   cp -v $PLAN_CONTEXT/libexec/bldr-studio-type-*.sh .
 
   # Embed the release version and author information of the program.
@@ -18,10 +19,16 @@ do_build() {
     -e "s,@author@,$pkg_maintainer,g" \
     -e "s,@version@,$pkg_version/$pkg_rel,g" \
     -i studio
+
+  sed \
+    -e "s,@author@,$pkg_maintainer,g" \
+    -e "s,@version@,$pkg_version/$pkg_rel,g" \
+    -i dockerize
 }
 
 do_install() {
   install -v -D studio $pkg_path/bin/studio
+  install -v -D dockerize $pkg_path/bin/dockerize
   for f in `ls bldr-studio-type-*.sh`; do
     install -v -D $f $pkg_path/libexec/$f
   done

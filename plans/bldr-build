@@ -692,9 +692,10 @@ _determine_pkg_installer() {
   elif [ -n "${BLDR_BIN:-}" ]; then
     BLDR_BIN=$BLDR_BIN
     build_line "Using set BLDR_BIN=$BLDR_BIN for dependency installs"
-  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bldr"); then
-    BLDR_BIN="$_pkg_for_bldr_install/bin/bldr"
-    build_line "Using chef/bldr for dependency installs"
+## We are bypassing bldr for now, while we get the system stable, then we come back
+#  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bldr"); then
+#    BLDR_BIN="$_pkg_for_bldr_install/bin/bldr"
+#    build_line "Using chef/bldr for dependency installs"
   elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bpm"); then
     BLDR_BIN="$_pkg_for_bldr_install/bin/bpm"
     build_line "Using chef/bpm for dependency installs"
