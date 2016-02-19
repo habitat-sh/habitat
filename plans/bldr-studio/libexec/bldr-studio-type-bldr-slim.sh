@@ -4,7 +4,7 @@ studio_enter_environment=
 studio_enter_command="/opt/bldr/bin/bpm exec chef/build bash --login +h"
 studio_build_environment=
 studio_build_command="/opt/bldr/bin/build"
-studio_run_environment=
+studio_run_environment="/opt/bldr/bin/bpm exec chef/build bash -l"
 
 bldr_pkgs="chef/bpm chef/build chef/bldr-studio"
 
