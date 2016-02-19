@@ -498,8 +498,8 @@ run_studio() {
   fi
 
   # Become the `chroot` process
-  exec $bb chroot "$STUDIO_ROOT" \
-    $studio_env_command -i $env $*
+  echo $* | $bb chroot "$STUDIO_ROOT" \
+    $studio_env_command -i $env
 }
 
 # **Internal** Destroy a Studio.
