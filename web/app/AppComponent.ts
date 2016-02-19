@@ -11,6 +11,7 @@ import {HeaderComponent} from "./header/HeaderComponent";
 import {HomePageComponent} from "./home-page/HomePageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
 import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
+import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePageComponent";
 import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
 import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
@@ -48,6 +49,7 @@ import {routeChange} from "./actions";
         component: PackagePageComponent
     },
     { path: "/projects", name: "Projects", component: ProjectsPageComponent },
+    { path: "/projects/create", name: "ProjectCreate", component: ProjectCreatePageComponent },
     { path: "/sign-in", name: "SignIn", component: SignInPageComponent },
 ])
 
