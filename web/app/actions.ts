@@ -18,6 +18,7 @@ export const FINISH_BUILD_STREAM = "FINISH_BUILD_STREAM";
 export const POPULATE_BUILDS = "POPULATE_BUILDS";
 export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
+export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
@@ -28,6 +29,13 @@ export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
 export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
 export const SIGN_OUT = "SIGN_OUT";
 export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
+
+export function addProject(project) {
+    return dispatch => {
+        dispatch(requestRoute(["Projects"]));
+        dispatch(populateProject(project));
+    };
+}
 
 function appendToBuildLog(build, text) {
     return {
@@ -138,12 +146,21 @@ export function populateBuildLog(id, data) {
         payload: { id, data: data ? ansiToHtml(data) : undefined },
     };
 }
+
 export function populateExplore(data) {
     return {
         type: POPULATE_EXPLORE,
         payload: data,
     };
 }
+
+function populateProject(project) {
+    return {
+        type: POPULATE_PROJECT,
+        payload: project,
+    };
+}
+
 export function routeChange(newRoute) {
     return {
         type: ROUTE_CHANGE,

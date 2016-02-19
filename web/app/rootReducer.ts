@@ -51,6 +51,9 @@ export function rootReducer(state = initialState, action) {
         case actionTypes.POPULATE_EXPLORE:
             return state.setIn(["explore", "packages"], List(action.payload));
 
+        case actionTypes.POPULATE_PROJECT:
+            return state.set("addedProjects", state.get("addedProjects").unshift(action.payload));
+
         case actionTypes.ROUTE_CHANGE:
             return state.set("route", action.payload).
                 set("requestedRoute", null);
@@ -80,7 +83,8 @@ export function rootReducer(state = initialState, action) {
             return state.set("packages", action.payload);
 
         case actionTypes.SET_PROJECTS:
-            return state.set("projects", List(action.payload));
+            return state.set("projects",
+                state.get("addedProjects").concat(List(action.payload)));
 
         case actionTypes.SET_VISIBLE_PACKAGES:
             q = query(state.get("packages"));
