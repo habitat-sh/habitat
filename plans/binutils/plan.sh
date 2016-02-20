@@ -15,15 +15,9 @@ pkg_gpg_key=3853DA6B
 do_prepare() {
   _verify_tty
 
-  glibc="$(pkg_path_for glibc)"
-
-  # TODO: For the wrapper scripts to function correctly, we need the full
-  # path to bash. Until a bash plan is created, we're going to wing this...
-  bash=/bin/bash
-
-  # TODO: We need a more clever way to calculate/determine the path to ld-*.so
-  dynamic_linker="${glibc}/lib/ld-linux-x86-64.so.2"
-
+  # Add explicit linker instructions as the binutils we are using may have its
+  # own dynamic linker defaults.
+  dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
   LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$dynamic_linker"
   export LDFLAGS
@@ -33,6 +27,10 @@ do_prepare() {
   # on our /tools install.
   export CFLAGS="$CFLAGS -static-libgcc"
   build_line "Updating CFLAGS=$CFLAGS"
+
+  # TODO: For the wrapper scripts to function correctly, we need the full
+  # path to bash. Until a bash plan is created, we're going to wing this...
+  bash=/bin/bash
 
   # Make `--enable-new-dtags` the default so that the linker sets `RUNPATH`
   # instead of `RPATH` in ELF binaries. This is important as `RPATH` is

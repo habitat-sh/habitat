@@ -6,7 +6,7 @@ pkg_license=('gplv2' 'lgplv2')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=eb731406903befef1d8f878a46be75ef862b9056ab0cde1626d08a7a05328948
 pkg_deps=(chef/linux-headers)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/perl)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/perl)
 pkg_binary_path=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -19,6 +19,9 @@ do_prepare() {
     _clean_pwd=true
   fi
 
+  # Determine the full path to the linker which will be produced.
+  dynamic_linker="$pkg_prefix/lib/ld-linux-x86-64.so.2"
+
   # We don't want glibc to try and reference itself before it's installed,
   # no `$LD_RUN_PATH`s here
   unset LD_RUN_PATH
@@ -27,8 +30,10 @@ do_prepare() {
   unset CFLAGS
   build_line "Overriding CFLAGS=$CFLAGS"
 
-  unset LDFLAGS
-  build_line "Overriding LDFLAGS=$LDFLAGS"
+  # Add a dynamic-linker option to `$LDFLAGS` so that every dynamic ELF binary
+  # will use our own dynamic linker and not a previously built version.
+  LDFLAGS="-Wl,--dynamic-linker=$dynamic_linker"
+  build_line "Setting LDFLAGS=$LDFLAGS"
 
   # Don't depend on dynamically linked libgcc for nscd, as we don't want it
   # depending on any bootstrapped version.
@@ -55,16 +60,8 @@ do_prepare() {
   patch -p1 < $PLAN_CONTEXT/testsuite-fix.patch
 
   # Adjust `scripts/test-installation.pl` to use our new dynamic linker
-  if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-    linker=$(readelf -l /tools/bin/bash \
-      | sed -n "s@.*interpret.*/tools/lib\(64\)\{0,\}\(.*\)]\$@${pkg_prefix}/lib\2@p")
-  else
-    linker="$pkg_prefix/lib/ld-linux-x86-64.so.2"
-  fi
-  build_line "Our new dynamic linker is will be: $linker"
-  sed -i "s|libs -o|libs -L${pkg_prefix}/lib -Wl,-dynamic-linker=${linker} -o|" \
+  sed -i "s|libs -o|libs -L${pkg_prefix}/lib -Wl,-dynamic-linker=${dynamic_linker} -o|" \
     scripts/test-installation.pl
-  unset linker
 }
 
 do_build() {
@@ -222,6 +219,12 @@ do_install() {
 
     # Remove `sln` (statically built ln)--not needed
     rm -f $pkg_path/bin/sln
+
+    # Update the shebangs of a few shell scripts that have a fully-qualified
+    # path to the `chef/bash` package which built the software.
+    for b in ldd sotruss tzselect xtrace; do
+      sed -e 's,^#!.*$,#! /bin/bash,' -i $pkg_path/bin/$b
+    done
 
     # Include the Linux kernel headers in Glibc, except the `scsi/` directory,
     # which Glibc provides itself.

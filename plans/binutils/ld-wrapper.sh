@@ -42,10 +42,11 @@ set -e
 params=("$@")
 
 # Create an empty array for extra arguments.
-extra=()
+before=()
+after=()
 
 # Add the dynamic linker.
-extra+=("-dynamic-linker @dynamic_linker@")
+before+=("-dynamic-linker @dynamic_linker@")
 
 # Add `-rpath` switches.
 #
@@ -53,7 +54,7 @@ extra+=("-dynamic-linker @dynamic_linker@")
 # http://mywiki.wooledge.org/BashFAQ/024
 while read path; do
   if [ -n "$path" ]; then
-    extra+=("-rpath $path")
+    after+=("-rpath $path")
   fi
 done < <(echo $LD_RUN_PATH | tr : '\n')
 
@@ -63,11 +64,15 @@ if [ -n "$DEBUG" ]; then
   for i in "${params[@]}"; do
     echo "  $i" >&2
   done
-  echo "extra flags to @program@:" >&2
-  for i in ${extra[@]}; do
+  echo "before flags to @program@:" >&2
+  for i in ${before[@]}; do
+    echo "  $i" >&2
+  done
+  echo "after flags to @program@:" >&2
+  for i in ${after[@]}; do
     echo "  $i" >&2
   done
 fi
 
 # Become the underlying real program
-exec @program@ "${params[@]}" ${extra[@]}
+exec @program@ ${before[@]} "${params[@]}" ${after[@]}
