@@ -15,9 +15,13 @@ pkg_gpg_key=3853DA6B
 do_prepare() {
   do_default_prepare
 
-  # TODO: We need a more clever way to calculate/determine the path to ld-*.so
+  # Add explicit linker instructions as the binutils we are using may have its
+  # own dynamic linker defaults. This is necessary because this Plan is built
+  # before the `chef/binutils` Plan which will set the new `chef/glibc` dynamic
+  # linker for all later Plans.
+  dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
-  LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$(pkg_path_for glibc)/lib/ld-2.22.so"
+  LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$dynamic_linker"
   export LDFLAGS
   build_line "Updating LDFLAGS=$LDFLAGS"
 }

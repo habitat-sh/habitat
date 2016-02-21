@@ -18,13 +18,9 @@ do_prepare() {
   binutils="$(pkg_path_for binutils)"
   headers="$glibc/include"
 
-  # TODO: For the wrapper scripts to function correctly, we need the full
-  # path to bash. Until a bash plan is created, we're going to wing this...
-  bash=/bin/bash
-
-  # TODO: We need a more clever way to calculate/determine the path to ld-*.so
-  dynamic_linker="${glibc}/lib/ld-linux-x86-64.so.2"
-
+  # Add explicit linker instructions as the binutils we are using may have its
+  # own dynamic linker defaults.
+  dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"
   LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$dynamic_linker"
   build_line "Updating LDFLAGS=$LDFLAGS"
@@ -52,6 +48,10 @@ do_prepare() {
   # Ensure gcc can find the shared libs for zlib
   export LIBRARY_PATH="$(pkg_path_for zlib)/lib"
   build_line "Setting LIBRARY_PATH=$LIBRARY_PATH"
+
+  # TODO: For the wrapper scripts to function correctly, we need the full
+  # path to bash. Until a bash plan is created, we're going to wing this...
+  bash=/bin/bash
 
   # Tell gcc not to look under the default `/lib/` and `/usr/lib/` directories
   # for libraries
