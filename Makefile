@@ -17,7 +17,7 @@ VOLUMES := installed cache_pkgs cache_src cache_keys cargo
 CLEAN_VOLUMES := clean-installed clean-cache_pkgs clean-cache_src clean-cache_keys clean-cargo
 NO_CACHE := false
 
-.PHONY: image test run shell clean bldr-base clean-package package volumes clean-volumes all
+.PHONY: image test run shell pkg-shell clean bldr-base clean-package package volumes clean-volumes all
 
 all: package
 
@@ -73,15 +73,11 @@ repo-serve: image
 	$(run) --service-ports repo cargo run -- repo
 
 shell: image
-	$(run) bldr bash
-
-pkg-shell: image
 	$(run) package bash
 
-bldr-base: package
+pkg-shell: shell
 
-base-shell: image
-	$(run) base
+bldr-base: package
 
 clean:
 	docker-compose kill
