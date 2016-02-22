@@ -1,17 +1,5 @@
-bldr:
-  image: chef/bldr
-  privileged: true
-  volumes:
-    - .:/src
-    - /var/run/docker.sock:/var/run/docker.sock
-  volumes_from:
-    - cache_keys
-    - cargo
-  links:
-    - repo
-
-package:
-  image: chef/bldr
+shell:
+  image: bldr/devshell
   privileged: true
   volumes:
     - .:/src
@@ -21,47 +9,17 @@ package:
     - cache_keys
     - cargo
 
-repo:
-  image: chef/bldr
-  privileged: true
-  ports:
-    - "9632:9632"
-  environment:
-    DOCKER_CERT_PATH: "/docker-certs"
-    DOCKER_TLS_VERIFY: 1
-  volumes:
-    - .:/src
-    - "~/.docker/machine/certs:/docker-certs"
-  volumes_from:
-    - installed
-    - cargo
-
-base:
-  image: bldr
-
 cache_src:
   image: tianon/true
   command: /true
   volumes:
     - /opt/bldr/cache/src
 
-cache_pkgs:
-  image: tianon/true
-  command: /true
-  volumes:
-    - /opt/bldr/cache/pkgs
-
 cache_keys:
   image: tianon/true
   command: /true
   volumes:
     - /opt/bldr/cache/keys
-
-installed:
-  image: tianon/true
-  command: /true
-  volumes:
-    - /opt/bldr/pkgs
 
 cargo:
   image: tianon/true

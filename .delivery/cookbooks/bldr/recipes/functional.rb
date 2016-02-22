@@ -30,7 +30,7 @@ makelog = ::File.join(Chef::Config[:file_cache_path],
 # otherwise :)
 Chef::Log.warn("`make` will log output to #{makelog}")
 
-execute "make clean package functional force=true 2>&1 | tee #{makelog}" do
+execute "make clean functional force=true 2>&1 | tee #{makelog}" do
   cwd node['delivery']['workspace']['repo']
   # set a two hour time out because this compiles :allthethings:
   timeout 7200

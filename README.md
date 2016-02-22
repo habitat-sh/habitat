@@ -113,7 +113,7 @@ install it, and you're done!
 
 Run `make docs` to build the internal documentation for bldr.
 
-Run `make doc-serve` to run a small web server that exposes the documentation on port `9633`. You can then
+Run `make docs-serve` to run a small web server that exposes the documentation on port `9633`. You can then
 read the docs at `http://<DOCKER_HOST>:9633/` (with working JavaScript-based search).
 
 ## Writing new features

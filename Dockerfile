@@ -1,35 +1,35 @@
 FROM ubuntu:latest
-MAINTAINER Adam Jacob <adam@chef.io>
-
-ENV TRIPLE x86_64-unknown-linux-gnu
+MAINTAINER The Bldr Maintainers <bldr@chef.io>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    dh-autoreconf \
     build-essential \
-    patchutils \
     ca-certificates \
     curl \
+    dh-autoreconf \
     file \
     gawk \
     gdb \
     gnupg \
+    libarchive-dev \
+    libclang-dev \
     libncurses5-dev \
     libncursesw5-dev \
+    libgpgme11-dev \
     libssl-dev \
     libssl-doc \
     man \
+    m4 \
     npm \
+    patchutils \
+    pkg-config \
     rsync \
     wget \
-    m4 \
-    pkg-config \
-    libgpgme11-dev \
-    libarchive-dev \
-    libclang-dev \
   && rm -rf /var/lib/apt/lists/*
 
-ENV SHELL /bin/bash
 ENV CARGO_HOME /bldr-cargo-cache
+
+ARG BLDR_REPO
+ENV BLDR_REPO ${BLDR_REPO:-}
 
 RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y && rustc -V
 RUN curl -sSL https://get.docker.io | sh && docker -v
