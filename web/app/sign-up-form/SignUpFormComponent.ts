@@ -7,7 +7,7 @@
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {RouterLink} from "angular2/router";
-import {attemptSignUp} from "../actions";
+import {attemptSignUp} from "../actions/index";
 
 @Component({
     directives: [RouterLink],

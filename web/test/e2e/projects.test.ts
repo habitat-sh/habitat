@@ -26,8 +26,9 @@ describe("Projects", () => {
         });
 
         it("creates a list entry for the new Project", () => {
-            expect(element(by.css(".bldr-projects ul a")).getText()).to.eventually.
-                equal("smith / testname");
+            expect(
+                element.all(by.css(".bldr-projects ul a")).get(0).getText()
+            ).to.eventually.equal("smith / testname");
         });
     });
 });

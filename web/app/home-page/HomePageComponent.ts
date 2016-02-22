@@ -8,7 +8,7 @@ import {Component} from "angular2/core";
 import {Router} from "angular2/router";
 import {SignUpFormComponent} from "../sign-up-form/SignUpFormComponent";
 import {AppStore} from "../AppStore";
-import {requestRoute} from "../actions";
+import {requestRoute} from "../actions/index";
 
 @Component({
     directives: [SignUpFormComponent],

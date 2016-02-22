@@ -6,29 +6,31 @@ are present when you first check out the app, but they may appear after running
 some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
 
     app/                         # The app/ directory contains the code that makes up the app.
-      home-page/                      # The top level directories contain the app's components.
-      package-page/              # For example, the package-page/ directory has
-        _package.scss            #   [Sass](http://sass-lang.com/) SCSS stylesheet,
-        PackagePageComponent.ts  #   a component that represents a page,
-        PackageListComponent.ts  #   and possibly more components that are used by that one.
-      packages-page/             # Directories that end in -page/ contain
-      sign-in-page/              # components that act like pages.
-      sign-up-form/              # But other directories have components that do not.
-      actions.ts                 # [Actions](http://redux.js.org/docs/basics/Actions.html).
-      app.scss                   # Main entry point for the SCSS.
-      AppComponent.ts            # The top level component of the app.
-      AppStore.ts                # The [Store](http://redux.js.org/docs/basics/Store.html) for the app.
-      boot.ts                    # Main entry point for the TypeScript.
-      initialState.ts            # The initial state of the app.
-      query.ts                   # Object that lets you query for packages.
-      rootReducer.ts             # The root [Reducer](http://rackt.org/redux/docs/basics/Reducers.html).
-      tests-entry.ts             # Main entry point for the tests.
-      util.test.ts               # Files that end in .test.ts are tests.
-      util.ts                    # Utility functions.
+      home-page/                 #   The top level directories contain the app's components.
+      package-page/              #   For example, the package-page/ directory has
+        _package.scss            #     [Sass](http://sass-lang.com/) SCSS stylesheet,
+        PackagePageComponent.ts  #     a component that represents a page,
+        PackageListComponent.ts  #     and possibly more components that are used by that one.
+      packages-page/             #   Directories that end in -page/ contain
+      sign-in-page/              #   components that act like pages.
+      sign-up-form/              #   But other directories have components that do not.
+      actions/                   #   [Actions](http://redux.js.org/docs/basics/Actions.html).
+        index.ts                 #     The main action creators entry point.
+        notifications.ts         #     Other action creators live here too.
+      app.scss                   #   Main entry point for the SCSS.
+      AppComponent.ts            #   The top level component of the app.
+      AppStore.ts                #   The [Store](http://redux.js.org/docs/basics/Store.html) for the app.
+      boot.ts                    #   Main entry point for the TypeScript.
+      initialState.ts            #   The initial state of the app.
+      query.ts                   #   Object that lets you query for packages.
+      rootReducer.ts             #   The root [Reducer](http://rackt.org/redux/docs/basics/Reducers.html).
+      tests-entry.ts             #   Main entry point for the tests.
+      util.test.ts               #   Files that end in .test.ts are tests.
+      util.ts                    #   Utility functions.
     dist/                        # Where the app prepared for production distribution goes. `npm run dist` to create it. Ignored by git.
 
     doc/                         # Documentation.
-      files.md                   # This is the file you are reading now.
+      files.md                   #   This is the file you are reading now.
     fixtures/                    # Fixture data the app uses to make fake requests.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
     stylesheets/base/            # The SCSS files for the stylesheets.

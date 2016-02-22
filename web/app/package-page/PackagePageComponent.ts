@@ -10,7 +10,7 @@ import {Component, OnInit} from "angular2/core";
 import {PackageListComponent} from "./PackageListComponent";
 import {RouteParams, RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
-import {fetchPackage, fetchBuilds} from "../actions";
+import {fetchPackage, fetchBuilds} from "../actions/index";
 
 @Component({
     directives: [BuildListComponent, PackageListComponent, RouterLink],

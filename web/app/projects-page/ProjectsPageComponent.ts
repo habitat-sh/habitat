@@ -7,7 +7,7 @@
 import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
 import {RouterLink} from "angular2/router";
-import {fetchProjects} from "../actions";
+import {fetchProjects} from "../actions/index";
 
 @Component({
     directives: [RouterLink],

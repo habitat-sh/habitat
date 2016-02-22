@@ -1,6 +1,6 @@
 import {Record} from "immutable";
 import {rootReducer} from "./rootReducer";
-import {SET_CURRENT_PACKAGE} from "./actions";
+import {SET_CURRENT_PACKAGE} from "./actions/index";
 
 describe("rootReducer", () => {
     describe("SET_CURRENT_PACKAGE", () => {
