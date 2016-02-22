@@ -4,7 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as actionTypes from "./actions";
+import * as actionTypes from "./actions/index";
 import {List} from "immutable";
 import initialState from "./initialState";
 import query from "./query";
@@ -15,6 +15,10 @@ export function rootReducer(state = initialState, action) {
     let p, q;
 
     switch (action.type) {
+
+        case actionTypes.ADD_NOTIFICATION:
+            return state.set("notifications",
+                state.get("notifications").push(action.payload));
 
         // When we're simulating streaming and adding to a build log
         case actionTypes.APPEND_TO_BUILD_LOG:
@@ -53,6 +57,10 @@ export function rootReducer(state = initialState, action) {
 
         case actionTypes.POPULATE_PROJECT:
             return state.set("addedProjects", state.get("addedProjects").unshift(action.payload));
+
+        case actionTypes.REMOVE_NOTIFICATION:
+            return state.set("notifications",
+                state.get("notifications").delete(action.payload));
 
         case actionTypes.ROUTE_CHANGE:
             return state.set("route", action.payload).

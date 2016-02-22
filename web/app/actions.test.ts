@@ -1,4 +1,4 @@
-import * as actions from "./actions";
+import * as actions from "./actions/index";
 
 describe("actions", () => {
     describe("populateBuildLog", () => {

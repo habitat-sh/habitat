@@ -9,6 +9,7 @@ export default Record({
     isSignUpFormSubmitted: false,
     isSignedIn: true,
     isUserNavOpen: false,
+    notifications: List(),
     packages: [],
     password: null,
     projects: List(),

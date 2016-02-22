@@ -7,7 +7,7 @@
 import {AppStore} from "../../AppStore";
 import {Component, Input} from "angular2/core";
 import {Router, RouterLink} from "angular2/router";
-import {requestRoute, signOut, toggleUserNavMenu} from "../../actions";
+import {requestRoute, signOut, toggleUserNavMenu} from "../../actions/index";
 
 @Component({
     directives: [RouterLink],

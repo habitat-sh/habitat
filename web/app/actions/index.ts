@@ -4,21 +4,25 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as api from "./api";
+import * as api from "../api";
 import {Observable} from "rxjs";
-import {packageString} from "./util";
+import {packageString} from "../util";
+import * as notificationActions from "./notifications";
+import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
 
 // The ansi_up module does not have TypeScript type definitions, so it needs to
 // be loaded with a CommonJS require call, which will end up being handled by
 // webpack.
 const ansiToHtml = require("ansi_up").ansi_to_html;
 
+export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const APPEND_TO_BUILD_LOG = "APPEND_TO_BUILD_LOG";
 export const FINISH_BUILD_STREAM = "FINISH_BUILD_STREAM";
 export const POPULATE_BUILDS = "POPULATE_BUILDS";
 export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const POPULATE_PROJECT = "POPULATE_PROJECT";
+export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
@@ -30,10 +34,18 @@ export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
 export const SIGN_OUT = "SIGN_OUT";
 export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
 
+export const addNotification = notificationActions.addNotification;
+export const removeNotification = notificationActions.removeNotification;
+
 export function addProject(project) {
     return dispatch => {
         dispatch(requestRoute(["Projects"]));
         dispatch(populateProject(project));
+        dispatch(addNotification({
+            title: "Project Created",
+            body: `${project.derivation}/${project.name}`,
+            type: SUCCESS,
+        }));
     };
 }
 
@@ -161,6 +173,7 @@ function populateProject(project) {
     };
 }
 
+
 export function routeChange(newRoute) {
     return {
         type: ROUTE_CHANGE,
@@ -213,7 +226,14 @@ function simulateLogStream(build, response) {
             o.subscribe(
                 x => dispatch(appendToBuildLog(build, x)),
                 e => console.error(e),
-                () => dispatch(finishBuildStream(build))
+                () => {
+                    dispatch(finishBuildStream(build));
+                    dispatch(addNotification({
+                        title: "Build Complete",
+                        type: SUCCESS,
+                        body: `Build ${packageString(build)}#${build.id} completed successfully.`,
+                    }));
+                }
             );
         }
 

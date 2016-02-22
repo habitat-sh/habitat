@@ -4,6 +4,11 @@ exports.config = {
     framework: "mocha",
     specs: ["test/e2e**/*.test.ts"],
 
+    chromeOptions: {
+        extensions: [],
+    },
+
+
     mochaOpts: {
         reporter: "spec",
         timeout: 2000,

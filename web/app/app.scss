@@ -14,6 +14,7 @@
 @import "header/header";
 @import "header/user-nav/user-nav";
 @import "home-page/home-page";
+@import "notifications/notifications";
 @import "package-page/package-page";
 @import "packages-page/packages-page";
 @import "project-create-page/project-create-page";
@@ -40,5 +41,5 @@
 
   bottom: $base-spacing;
   font-size: 75%;
-  position: absolute;
+  position: fixed;
 }

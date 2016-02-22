@@ -7,7 +7,7 @@
 import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
-import {filterPackagesBy, requestRoute} from "../actions";
+import {filterPackagesBy, requestRoute} from "../actions/index";
 
 @Component({
     directives: [RouterLink],

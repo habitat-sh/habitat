@@ -7,7 +7,7 @@
 import {Component} from "angular2/core";
 import {Router} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {attemptSignIn, requestRoute} from "../actions";
+import {attemptSignIn, requestRoute} from "../actions/index";
 
 @Component({
     template: `

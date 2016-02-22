@@ -4,7 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {addProject} from "../actions";
+import {addProject} from "../actions/index";
 import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
