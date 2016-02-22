@@ -26,13 +26,25 @@ mod setup {
     pub fn gpg_import() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let mut gpg = match util::command::run("gpg",
+            let mut gpg = match util::command::studio_run("gpg",
                                                    &["--import",
                                                    &util::path::fixture_as_string("chef-private.gpg")]) {
                                                        Ok(cmd) => cmd,
                                                        Err(e) => panic!("{:?}", e),
         };
-        gpg.wait_with_output();
+            gpg.wait_with_output();
+            if !gpg.status.unwrap().success() {
+                match gpg.stderr {
+                    Some(stderr) => {
+                        use regex::Regex;
+                        let re = Regex::new("already in secret keyring").unwrap();
+                        if !re.is_match(&stderr) {
+                            panic!("Failed to import gpg keys");
+                        }
+                    }
+                    None => panic!("Failed to import gpg keys")
+                }
+            }
         });
     }
 
@@ -59,53 +71,43 @@ mod setup {
     pub fn simple_service() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-                let tempdir = TempDir::new("simple_service").unwrap();
-                let mut copy_cmd = Command::new("cp")
-                                       .arg("-r")
-                                       .arg(util::path::fixture("simple_service"))
-                                       .arg(tempdir.path().to_str().unwrap())
-                                       .spawn()
-                                       .unwrap();
-                copy_cmd.wait().unwrap();
-
-                let mut simple_service =
-                    match util::command::bldr_build(tempdir.path()
-                                                           .join("simple_service")) {
-                        Ok(cmd) => cmd,
-                        Err(e) => panic!("{:?}", e),
-                    };
-                simple_service.wait_with_output();
-                if !simple_service.status.unwrap().success() {
-                    panic!("Failed to build simple service: stdout: {:?}\nstderr: {:?}",
-                           simple_service.stdout,
-                           simple_service.stderr)
-                }
-            });
+            let mut simple_service = match util::command::bldr_build(&util::path::fixture_as_string("simple_service")) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e),
+            };
+            simple_service.wait_with_output();
+            if !simple_service.status.unwrap().success() {
+                panic!("Failed to build simple service");
+            }
+            let mut docker = match util::command::studio_run("dockerize", &["test/simple_service"]) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e),
+            };
+            docker.wait_with_output();
+            if !docker.status.unwrap().success() {
+                panic!("Failed to dockerize simple service");
+            }
+        });
     }
 
     pub fn simple_service_gossip() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let tempdir = TempDir::new("simple_service_gossip").unwrap();
-            let mut copy_cmd = Command::new("cp")
-                                   .arg("-r")
-                                   .arg(util::path::fixture("simple_service_gossip"))
-                                   .arg(tempdir.path().to_str().unwrap())
-                                   .spawn()
-                                   .unwrap();
-            copy_cmd.wait().unwrap();
-
-            let mut simple_service =
-                match util::command::bldr_build(tempdir.path()
-                                                       .join("simple_service_gossip")) {
-                    Ok(cmd) => cmd,
-                    Err(e) => panic!("{:?}", e),
-                };
+            let mut simple_service = match util::command::bldr_build(&util::path::fixture_as_string("simple_service_gossip")) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e),
+            };
             simple_service.wait_with_output();
             if !simple_service.status.unwrap().success() {
-                panic!("Failed to build simple service for gossip: stdout: {:?}\nstderr: {:?}",
-                       simple_service.stdout,
-                       simple_service.stderr)
+                panic!("Failed to build simple service gossip");
+            }
+            let mut docker = match util::command::studio_run("dockerize", &["test/simple_service_gossip"]) {
+                Ok(cmd) => cmd,
+                Err(e) => panic!("{:?}", e),
+            };
+            docker.wait_with_output();
+            if !docker.status.unwrap().success() {
+                panic!("Failed to dockerize simple service gossip");
             }
         });
     }
@@ -122,7 +124,10 @@ mod setup {
                                    .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service = match util::command::bldr_build(tempdir.path().join(pkg)) {
+            let mut simple_service = match util::command::bldr_build(tempdir.path()
+                                                                            .join(pkg)
+                                                                            .to_str()
+                                                                            .unwrap()) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };
@@ -236,6 +241,19 @@ macro_rules! assert_file_exists {
     }
 }
 
+macro_rules! assert_file_exists_in_studio {
+    ($string:expr) => {
+        {
+            use std::fs;
+            let path = format!("/opt/studios/functional-tests{}", $string);
+            let meta = match fs::metadata(&path) {
+                Ok(meta) => meta,
+                Err(e) => panic!("{} does not exist - {:?}", path, e)
+            };
+            assert!(meta.is_file(), "{} exists, but is not a file", path)
+        }
+    }
+}
 
 mod key_utils {
     use util::command;

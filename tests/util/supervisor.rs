@@ -195,13 +195,17 @@ impl Supervisor {
     }
 
     pub fn netsplit(&self, sup: &Supervisor) {
-        self.docker.exec(&["iptables", "-A", "INPUT", "-s", &sup.ip, "-j", "DROP"]);
-        sup.docker.exec(&["iptables", "-A", "INPUT", "-s", &self.ip, "-j", "DROP"]);
+        self.docker
+            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &sup.ip)]);
+        sup.docker
+           .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &self.ip)]);
     }
 
     pub fn netjoin(&self, sup: &Supervisor) {
-        self.docker.exec(&["iptables", "-D", "INPUT", "-s", &sup.ip, "-j", "DROP"]);
-        sup.docker.exec(&["iptables", "-D", "INPUT", "-s", &self.ip, "-j", "DROP"]);
+        self.docker
+            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &sup.ip)]);
+        sup.docker
+           .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &self.ip)]);
     }
 
     pub fn keeps_member_alive(&self, sup: &Supervisor) -> bool {

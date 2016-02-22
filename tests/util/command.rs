@@ -10,7 +10,6 @@ use std::process::{Command, Child, Stdio, ExitStatus};
 use std::fmt;
 use std::error::Error;
 use std::result;
-use std::path::Path;
 use std::thread;
 use std::collections::HashMap;
 
@@ -69,6 +68,8 @@ impl Cmd {
         self.status = Some(output.status);
         let stdout = String::from_utf8(output.stdout).unwrap_or_else(|x| panic!("{:?}", x));
         let stderr = String::from_utf8(output.stderr).unwrap_or_else(|x| panic!("{:?}", x));
+        println!("OUT: {}", stdout);
+        println!("ERR: {}", stderr);
         self.stdout = Some(stdout);
         self.stderr = Some(stderr);
         self
@@ -104,46 +105,77 @@ impl From<io::Error> for CmdError {
     }
 }
 
+#[derive(Debug)]
+pub struct CommandArgs {
+    pub cmd: String,
+    pub args: Vec<String>,
+    pub env: HashMap<String, String>,
+    pub cwd: Option<String>,
+}
+
+impl CommandArgs {
+    fn new<S: Into<String>>(cmd: S) -> CommandArgs {
+        CommandArgs {
+            cmd: cmd.into(),
+            args: Vec::new(),
+            env: HashMap::new(),
+            cwd: None,
+        }
+    }
+
+    fn arg<S: Into<String>>(&mut self, arg: S) -> &mut CommandArgs {
+        self.args.push(arg.into());
+        self
+    }
+
+    fn env<S: Into<String>>(&mut self, k: S, v: S) -> &mut CommandArgs {
+        self.env.insert(k.into(), v.into());
+        self
+    }
+}
+
+impl fmt::Display for CommandArgs {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "Command: C: {} A: {:?} E: {:?} CWD: {:?}",
+               self.cmd,
+               self.args,
+               self.env,
+               self.cwd)
+    }
+}
+
 
 pub fn command(cmd: &str, args: &[&str]) -> Command {
     command_with_env(cmd, args, None)
 }
 
 pub fn command_with_env(cmd: &str, args: &[&str], env: Option<&HashMap<&str, &str>>) -> Command {
-    println!("{}: Running: cmd: {} {:?} env: {:?}",
-             thread::current().name().unwrap_or("main"),
-             cmd,
-             args,
-             env);
-
-    let envstr = match env {
-        Some(es) => {
-            let mut s = String::new();
-            for (k, v) in es {
-                s.push_str(&format!("{}={} ", k, v));
-            }
-            s
+    let mut cmd_args = CommandArgs::new(cmd);
+    for a in args {
+        cmd_args.arg(*a);
+    }
+    if let Some(real_env) = env {
+        for (k, v) in real_env {
+            cmd_args.env(*k, *v);
         }
-        None => "".to_string(),
-    };
+    }
+    run_command(cmd_args)
+}
 
-    let argsstr = args.join(" ");
-    // copy and paste commands to run in your terminal. You're welcome.
-    println!(">>>>\n\t\t {} {} {}\n<<<<", envstr, cmd, argsstr);
+pub fn run_command(cmd_args: CommandArgs) -> Command {
+    println!("{}: {}",
+             thread::current().name().unwrap_or("main"),
+             cmd_args);
 
-    let mut command = Command::new(cmd);
-    command.args(args);
+    let mut command = Command::new(&cmd_args.cmd);
+    command.args(&cmd_args.args);
     command.stdin(Stdio::null());
     command.stdout(Stdio::piped());
     command.stderr(Stdio::piped());
 
-    match env {
-        Some(e) => {
-            for (k, v) in e {
-                command.env(k, v);
-            }
-        }
-        None => (),
+    for (k, v) in cmd_args.env {
+        command.env(k, v);
     }
 
     command
@@ -159,6 +191,15 @@ pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
     })
 }
 
+pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
+    let real_cmd = "studio";
+    let mut real_args = vec!["-r", "/opt/studios/functional-tests", "run", cmd];
+    real_args.extend_from_slice(args);
+    let mut command = command(real_cmd, &real_args[..]);
+    command.current_dir("/src");
+    spawn(command)
+}
+
 pub fn run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
     let command = command(cmd, args);
     spawn(command)
@@ -169,13 +210,8 @@ pub fn run_with_env(cmd: &str, args: &[&str], env: &HashMap<&str, &str>) -> CmdR
     spawn(command)
 }
 
-
-pub fn bldr_build<P: AsRef<Path>>(cwd: P) -> CmdResult<Cmd> {
-    let bldr_build = util::path::bldr_build();
-    let mut command = command(&bldr_build, &["."]);
-    command.env("BLDR_FROM", util::path::bldr());
-    command.current_dir(cwd);
-    spawn(command)
+pub fn bldr_build(to_build: &str) -> CmdResult<Cmd> {
+    studio_run("/src/plans/bldr-build", &[to_build])
 }
 
 pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {

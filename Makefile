@@ -45,7 +45,11 @@ clean:
 
 image:
 	if [ -n "${force}" -o -z "`$(docker_cmd) images -q $(dimage)`" ]; then \
-		$(docker_cmd) build $(build_args) -t $(dimage) .; \
+		if [ -n "${force}" ]; then \
+		  $(docker_cmd) build --no-cache $(build_args) -t $(dimage) .; \
+		else \
+		  $(docker_cmd) build $(build_args) -t $(dimage) .; \
+		fi \
 	fi
 
 docs: image

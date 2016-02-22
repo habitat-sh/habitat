@@ -28,7 +28,6 @@ do_install() {
 }
 
 # Turn the remaining default phases into no-ops
-
 do_download() {
   return 0
 }

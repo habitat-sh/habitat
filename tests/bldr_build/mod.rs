@@ -4,10 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::process::Command;
-
 use regex::Regex;
-use tempdir::TempDir;
 
 use util;
 use setup;
@@ -16,19 +13,11 @@ use setup;
 fn builds_a_service() {
     setup::gpg_import();
 
-    let tempdir = TempDir::new("simple_service").unwrap();
-    let mut copy_cmd = Command::new("cp")
-                           .arg("-r")
-                           .arg(util::path::fixture("bldr_build"))
-                           .arg(tempdir.path().to_str().unwrap())
-                           .spawn()
-                           .unwrap();
-    copy_cmd.wait().unwrap();
-
-    let mut simple_service = match util::command::bldr_build(tempdir.path().join("bldr_build")) {
-        Ok(cmd) => cmd,
-        Err(e) => panic!("{:?}", e),
-    };
+    let mut simple_service =
+        match util::command::bldr_build(&util::path::fixture_as_string("bldr_build")) {
+            Ok(cmd) => cmd,
+            Err(e) => panic!("{:?}", e),
+        };
 
     simple_service.wait_with_output();
     assert_cmd_exit_code!(simple_service, [0]);
@@ -42,6 +31,6 @@ fn builds_a_service() {
     let pkg_re = Regex::new(r"(/opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr)").unwrap();
     let caps = pkg_re.captures(simple_service.stdout()).unwrap();
     if let Some(pkg_path) = caps.at(1) {
-        assert_file_exists!(pkg_path);
+        assert_file_exists_in_studio!(pkg_path);
     }
 }

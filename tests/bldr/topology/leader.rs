@@ -61,7 +61,10 @@ fn elects_a_leader() {
 
 // Start three supervisors; once they have a leader, kill it. The remaining two should elect a new
 // leader from amongst themselves.
+//
+// This test is ignored because it is consistently inconsistent.
 #[test]
+#[ignore]
 fn elects_on_failure() {
     setup::gpg_import();
     setup::simple_service_gossip();
@@ -114,7 +117,10 @@ fn elects_on_failure() {
 // Start five supervisors. Partition the leader and one follower. This results in the leader not
 // having quorum, stopping the service, and the three supervisors with quorum electing a new leader
 // amongst themselves.
+//
+// We are ignoring this test for now, as it is super unreliable.
 #[test]
+#[ignore]
 fn leader_without_quorum_stops_service_remainder_elects_new_leader() {
     setup::gpg_import();
     setup::simple_service_gossip();
