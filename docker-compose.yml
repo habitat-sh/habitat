@@ -8,7 +8,6 @@ bldr:
     - cache_keys
     - cargo
   links:
-    - etcd
     - repo
 
 package:
@@ -21,8 +20,6 @@ package:
     - cache_src
     - cache_keys
     - cargo
-  links:
-    - etcd
 
 repo:
   image: chef/bldr
@@ -41,16 +38,6 @@ repo:
 
 base:
   image: bldr
-  links:
-    - etcd
-
-etcd:
-  container_name: bldr_etcd_1
-  image: quay.io/coreos/etcd:latest
-  ports:
-    - "4001:4001"
-    - "7001:7001"
-  command: "-cors='*' -listen-client-urls='http://0.0.0.0:2379,http://0.0.0.0:4001' -advertise-client-urls='http://0.0.0.0:2379,http://0.0.0.0:4001'"
 
 cache_src:
   image: tianon/true
