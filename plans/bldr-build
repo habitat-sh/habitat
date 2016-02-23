@@ -158,6 +158,17 @@
 # pkg_derivation=bldr
 # ```
 #
+# ### pkg_interpreters
+# An array of interpreters used in shebang lines for scripts. Specify
+# the subdirectory where the binary is relative to the package, e.g.,
+# `bin/bash` or `libexec/neverland`, since binaries can be located in
+# directories besides `bin`. This list of interpreters will be written
+# to the metadata INTERPRETERS file with their fully-qualified path.
+# Then these can be used with the `fix_interpreter` function in this script.
+# ```
+# pkg_interpreters=(bin/bash bin/sh)
+# ```
+#
 # ## Plan variables
 #
 # `bldr-build` sets a few useful variables for you, in addition to the ones you
@@ -1034,6 +1045,76 @@ unpack_file() {
   return 0
 }
 
+# Edit the `#!` shebang of the target file in-place. Useful for
+# changing hardcoded `/usr/bin/env` to our coreutils, for example. Be
+# sure to depend on the required package that provides the expected
+# path for the shebang in `pkg_deps`. This does a greedy match against
+# the specified interpreter in the target file(s).
+#
+# To use this function in your plan.sh, specify the following
+# arguments:
+#
+# 1. The target file or files
+# 2. The name of the package that contains the interpreter
+# 3. The relative directory and binary path to the interpreter
+#
+# For example, to replace all the files in `node_modules/.bin` that
+# have `#!/usr/bin/env` with the `coreutils` path
+# to `bin/env` (which resolves to
+# /opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/bin/env):
+#
+#     fix_interpreter node_modules/.bin/* chef/coreutils bin/env
+#
+# For a single target:
+#
+#     fix_interpreter node_modules/.bin/concurrent chef/coreutils bin/env
+#
+# To get the interpreters exposed by a package, look in that package's
+# INTERPRETERS metadata file, e.g.,
+# `/opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/INTERPRETERS`
+
+fix_interpreter() {
+    local targets=$1
+    local pkg=$2
+    local int=$3
+    local interpreter_old=".*${int}"
+    local interpreter_new="$(pkg_interpreter_for ${pkg} ${int})"
+
+    for t in ${targets}; do
+      build_line "Replacing '${interpreter_old} with ${interpreter_new} in ${t}"
+      sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
+    done
+}
+
+# Returns the path for the given package and interpreter by reading it
+# from the INTERPRETERS metadata in the package. The directory of the
+# interpreter needs to be specified, as an interpeter binary might
+# live in `bin`, `sbin`, or `libexec`, depending on the software.
+#
+# ```
+# pkg_interpreter_for chef/coreutils bin/env
+# ```
+#
+# Will return 0 if the specified package and interpreter were found,
+# and 1 if the package could not be found or the interpreter is not
+# specified for that package.
+pkg_interpreter_for() {
+    local pkg=$1
+    local int=$2
+    local path=$(pkg_path_for $pkg)
+    if [[ -z $path || $? -ne 0 ]]; then
+      warn "Could not resolve the path for ${pkg}, is it specified in 'pkg_deps'?"
+      return 1
+    fi
+
+   local int_path=$(grep -x ".*${int}" ${path}/INTERPRETERS)
+    if [[ ! -z "$int_path" ]]; then
+      echo $int_path
+      return 0
+    fi
+    warn "Could not find interpreter ${int} in package ${pkg}"
+    return 1
+}
 
 # ## Build Phases
 #
@@ -1509,6 +1590,11 @@ _build_metadata() {
     echo $port_part > $pkg_path/EXPOSES
   fi
 
+  local interpreters="$(printf "${pkg_path}/%s\n" ${pkg_interpreters[@]})"
+  if [[ -n $interpreters ]]; then
+    echo "$interpreters" > $pkg_path/INTERPRETERS
+  fi
+
   local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
   local deps
 
@@ -1638,6 +1724,7 @@ SHA: $pkg_shasum
 Path: $pkg_path
 Build Dependencies: $(printf "%s " ${pkg_build_deps[@]})
 Dependencies: $(printf "%s " ${pkg_deps[@]})
+Interpreters $(printf "%s " ${pkg_interpreters[@]})
 
 Plan
 ========

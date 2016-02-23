@@ -1,4 +1,4 @@
-#1/bin/sh
+#!/bin/sh
 set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 

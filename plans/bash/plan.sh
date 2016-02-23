@@ -13,6 +13,7 @@ pkg_deps=(chef/glibc chef/ncurses chef/readline)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
+pkg_interpreters=(bin/bash bin/sh)
 
 do_begin() {
   # The maintainer of Bash only releases these patches to fix serious issues,
