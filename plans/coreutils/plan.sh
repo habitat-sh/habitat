@@ -10,6 +10,7 @@ pkg_deps=(chef/glibc chef/acl chef/attr chef/gmp chef/libcap)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/m4 chef/perl)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
+pkg_interpreters=(bin/env)
 
 do_build() {
   # The `FORCE_` variable allows the software to compile with the root user,

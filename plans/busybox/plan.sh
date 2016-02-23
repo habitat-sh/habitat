@@ -10,6 +10,7 @@ pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep chef/bash chef/gawk chef/libtool chef/diffutils chef/findutils chef/xz chef/gettext chef/gzip chef/make chef/patch chef/texinfo chef/util-linux chef/wget)
 pkg_binary_path=(bin sbin)
 pkg_gpg_key=3853DA6B
+pkg_interpreters=(bin/ash bin/awk bin/env bin/sh)
 
 do_build() {
   make -j$(nproc)

@@ -11,6 +11,8 @@ pkg_deps=(chef/glibc chef/ncurses chef/zlib chef/libedit chef/openssl
           chef/libyaml chef/libiconv chef/libffi)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
+pkg_binary_path=(bin)
+pkg_interpreters=(bin/ruby)
 
 do_build() {
     CFLAGS="${CFLAGS} -O3 -g -pipe"

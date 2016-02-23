@@ -9,6 +9,7 @@ pkg_deps=(chef/glibc chef/mpfr)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
+pkg_interpreters=(bin/awk bin/gawk)
 
 do_check() {
   make check

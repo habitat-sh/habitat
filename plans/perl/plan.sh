@@ -10,6 +10,7 @@ pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef
 pkg_binary_path=(bin)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
+pkg_interpreters=(bin/perl)
 
 do_prepare() {
   do_default_prepare
