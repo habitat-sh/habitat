@@ -158,6 +158,12 @@
 # pkg_derivation=bldr
 # ```
 #
+# ### pkg_interpreters
+# An array of binaries that are used as interpreters in shebang lines for scripts.
+# ```
+# pkg_interpreters=(bash sh)
+# ```
+#
 # ## Plan variables
 #
 # `bldr-build` sets a few useful variables for you, in addition to the ones you
@@ -1034,6 +1040,57 @@ unpack_file() {
   return 0
 }
 
+# Edit the `#!` shebang of the target file in-place. Useful for
+# changing hardcoded `/usr/bin/env` to our coreutils, for example. Be
+# sure to depend on the required package that provides the expected
+# path for the shebang in `pkg_deps`.
+#
+# To use this function in your plan.sh, specify the target file or
+# files as the first argument, and the package and relative path of
+# the package for the binary to use. This will be used to match in the
+# existing file's shebang.
+# For example, to replace `#!/usr/bin/env` with the coreutils path to
+# `bin/env`, which might resolve to
+# /opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/bin/env for all
+# the files in `node_modules/.bin`:
+#
+#     fix_shebang node_modules/.bin/* chef/coreutils:bin/env
+#
+# For a single target:
+#
+#     fix_shebang node_modules/.bin/concurrent chef/coreutils:bin/env
+fix_shebang() {
+    local targets=$1
+    local pkg=`echo $2 | cut -d: -f1`
+    local int=`echo $2 | cut -d: -f2`
+    local shebang_old=".*${int}"
+    local shebang_new="$(pkg_interpreter_for ${pkg} ${int})"
+
+    for t in ${targets}
+    do
+      build_line "Replacing '${shebang_old} with ${shebang_new} in ${t}"
+      sed -e "s#\#\!${shebang_old}#\#\!${shebang_new}#" -i $t
+    done
+}
+
+# Returns the path for the given package and interpreter by reading it
+# from the INTERPRETERS metadata in the package.
+#
+# ```
+# pkg_interpreter_for chef/coreutils env
+# ```
+pkg_interpreter_for() {
+    local pkg=$1
+    local int=$2
+    local path=$(pkg_path_for $pkg)
+    local int_path=$(grep -x ".*${int}" ${path}/INTERPRETERS)
+    if [[ ! -z "$int_path" ]]; then
+        echo $int_path
+        return 0
+    fi
+    warn "Could not find interpreter ${int} in package ${pkg}"
+    return 1
+}
 
 # ## Build Phases
 #
@@ -1509,6 +1566,18 @@ _build_metadata() {
     echo $port_part > $pkg_path/EXPOSES
   fi
 
+  local int_part=""
+  for int in "${pkg_interpreters[@]}"; do
+    if [[ -z "$int_part" ]]; then
+      int_part="${pkg_path}/${pkg_binary_path[0]}/${int}";
+    else
+      int_part="$int_part ${pkg_path}/${pkg_binary_path[0]}/${int}";
+    fi
+  done
+  if [[ -n "${int_part}" ]]; then
+    echo $int_part > $pkg_path/INTERPRETERS
+  fi
+
   local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
   local deps
 
@@ -1638,6 +1707,7 @@ SHA: $pkg_shasum
 Path: $pkg_path
 Build Dependencies: $(printf "%s " ${pkg_build_deps[@]})
 Dependencies: $(printf "%s " ${pkg_deps[@]})
+Interpreters $(printf "%s " ${pkg_interpreters[@]})
 
 Plan
 ========
