@@ -1061,9 +1061,10 @@ unpack_file() {
 # For example, to replace all the files in `node_modules/.bin` that
 # have `#!/usr/bin/env` with the `coreutils` path
 # to `bin/env` (which resolves to
-# /opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/bin/env):
+# /opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/bin/env), be sure
+# to quote the wildcard target:
 #
-#     fix_interpreter node_modules/.bin/* chef/coreutils bin/env
+#     fix_interpreter "node_modules/.bin/*" chef/coreutils bin/env
 #
 # For a single target:
 #
@@ -1081,7 +1082,7 @@ fix_interpreter() {
     local interpreter_new="$(pkg_interpreter_for ${pkg} ${int})"
 
     for t in ${targets}; do
-      build_line "Replacing '${interpreter_old} with ${interpreter_new} in ${t}"
+      build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
       sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
     done
 }
