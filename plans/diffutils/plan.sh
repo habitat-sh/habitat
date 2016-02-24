@@ -6,7 +6,7 @@ pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=a25e89a8ab65fded1731e4186be1bb25cda967834b6df973599cdcd5abdfc19c
 pkg_deps=(chef/glibc)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
+pkg_build_deps=(chef/coreutils chef/patch chef/make chef/gcc chef/sed)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
