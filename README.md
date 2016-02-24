@@ -238,7 +238,7 @@ To build a package:
 ```bash
 $ make shell
 $ studio enter
-$ make gpg
+$ (cd plans; make gpg)
 $ build plans/redis
 ```
 
