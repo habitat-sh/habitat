@@ -349,8 +349,10 @@ subcommand_install() {
     print_install_help
     exit_with "Missing package argument" 5
   fi
+  # If a remote package version could not be determined, ensure that
+  # `$pkg_ident` is empty--this signals a remote failure
   if ! pkg_ident="$(latest_remote_package $1)"; then
-    exit_with "Package could not be found for: $1" 6
+    pkg_ident=""
   fi
   # If a local package is installed and it is newer than the latest version
   # that is available remotely, use the local version.
@@ -363,6 +365,12 @@ subcommand_install() {
       fi
       return 0
     fi
+  fi
+  # If a suitable local package was not found above (and triggered an early
+  # return), and `$pkg_ident` is empty, then we have not found a remote or
+  # local pacakge. Time to die.
+  if [ -z "$pkg_ident" ]; then
+    exit_with "Remote package could not be found for: $1" 6
   fi
 
   # Install the package and each of its direct and transitive runtime
@@ -519,12 +527,12 @@ latest_remote_package() {
       if [ -n "$result" ]; then
         echo $result
       else
-        warn "Could not find a suitable package release for $1"
+        warn "Could not find a suitable remote package release for $1"
         return 1
       fi
       ;;
     *)
-      warn "Could not find a suitable package release for $1"
+      warn "Could not find a suitable remote package release for $1"
       return 1
       ;;
   esac
