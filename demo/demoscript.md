@@ -1,5 +1,19 @@
 # The bldr demo script
 
+## Preparing for the demo
+
+You don't need to make the whole world before running a demo; starting from scratch you can simply
+
+```
+make shell
+studio enter
+# downloads pre-built userland, enough for package building
+build redis
+dockerize redis
+```
+
+Now you're ready for the demo.
+
 ## Pre-bldr world
 
 ```
