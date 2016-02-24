@@ -9,6 +9,7 @@ pkg_gpg_key=3853DA6B
 
 pkg_deps=(
   chef/build
+  chef/diffutils
   chef/less
   chef/make
   chef/mg
