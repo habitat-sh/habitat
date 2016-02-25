@@ -14,6 +14,12 @@ do_prepare() {
   # Force gcc to use our ld wrapper from binutils when calling `ld`
   CFLAGS="$CFLAGS -B$(pkg_path_for binutils)/bin/"
   build_line "Updating CFLAGS=$CFLAGS"
+
+  # Add explicit linker instructions as the binutils we are using may have its
+  # own dynamic linker defaults.
+  dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
+  LDFLAGS="$LDFLAGS -Wl,--dynamic-linker=$dynamic_linker"
+  build_line "Updating LDFLAGS=$LDFLAGS"
 }
 
 do_check() {
