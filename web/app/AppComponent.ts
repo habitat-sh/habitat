@@ -13,6 +13,7 @@ import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
 import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
 import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePageComponent";
+import {ProjectPageComponent} from "./project-page/ProjectPageComponent";
 import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
 import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
@@ -44,15 +45,16 @@ import {removeNotification, routeChange} from "./actions/index";
     { path: "/pkgs", name: "Packages", component: PackagesPageComponent },
     { path: "/pkgs/*/:name", name: "PackagesForName", component: PackagesPageComponent },
     {
-        path: "/pkgs/:derivation", name: "PackagesForDerivation",
+        path: "/pkgs/:origin", name: "PackagesForOrigin",
         component: PackagesPageComponent
     },
     {
-        path: "/pkgs/:derivation/:name/:version/:release", name: "Package",
+        path: "/pkgs/:origin/:name/:version/:release", name: "Package",
         component: PackagePageComponent
     },
     { path: "/projects", name: "Projects", component: ProjectsPageComponent },
     { path: "/projects/create", name: "ProjectCreate", component: ProjectCreatePageComponent },
+    { path: "/projects/:origin/:name", name: "Project", component: ProjectPageComponent },
     { path: "/sign-in", name: "SignIn", component: SignInPageComponent },
 ])
 

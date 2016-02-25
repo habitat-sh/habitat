@@ -7,6 +7,7 @@
 // Typography
 $base-font-family: $helvetica;
 $heading-font-family: $base-font-family;
+$monospace-font-family: "Source Code Pro", Menlo, Consolas, monospace;
 
 // Font Sizes
 $base-font-size: 1em;
@@ -22,6 +23,7 @@ $small-spacing: $base-spacing / 2;
 $base-z-index: 0;
 
 // Colors
+$black: black;
 $blue: #1565c0;
 $dark-gray: #333;
 $medium-gray: #999;

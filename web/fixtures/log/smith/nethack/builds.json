@@ -5,7 +5,7 @@
         "gitCommitUrl": "https://github.com/chef/bldr/commit/118096d73755a185c5b8cde0a92701c401f6ff12",
         "startTime": "2016-02-01T19:49:00Z",
         "author": "Nathan Smith <smith@chef.io>",
-        "version": "1.0.2f"
+        "version": "3.6.0"
     },
     {
         "id": 3,
@@ -14,7 +14,7 @@
         "gitCommitUrl": "https://github.com/chef/bldr/commit/118096d73755a185c5b8cde0a92701c401f6ff12",
         "startTime": "2016-02-01T19:49:00Z",
         "author": "Nathan Smith <smith@chef.io>",
-        "version": "1.0.2f"
+        "version": "3.6.0"
     },
     {
         "id": 2,
@@ -24,7 +24,7 @@
         "startTime": "2016-01-10T19:49:00Z",
         "duration": 1,
         "author": "Nathan Smith <smith@chef.io>",
-        "version": "1.0.2e"
+        "version": "3.4.3"
     },
     {
         "id": 1,
@@ -34,7 +34,7 @@
         "startTime": "2015-12-10T19:49:00Z",
         "duration": 171,
         "author": "Nathan Smith <smith@chef.io>",
-        "version": "1.0.2f",
+        "version": "3.6.0",
         "release": "20160204195444"
     }
 ]

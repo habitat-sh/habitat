@@ -1,7 +1,7 @@
 [
     {
         "name": "openssl",
-        "derivation": "chef",
+        "origin": "chef",
         "version": "1.0.2f",
         "release": "20160204195444",
         "license": "BSD",
@@ -9,19 +9,19 @@
         "sha": "932b4ee4def2b434f85435d9e3e19ca8ba99ce9a065a61524b429a9d5e9b2e9c",
         "dependencies": [
             {
-                "derivation": "chef",
+                "origin": "chef",
                 "name": "glibc",
                 "version": "2.19",
                 "release": "20160204174948"
             },
             {
-                "derivation": "chef",
+                "origin": "chef",
                 "name": "zlib",
                 "version": "1.2.8",
                 "release": "20160204174955"
             },
             {
-                "derivation": "chef",
+                "origin": "chef",
                 "name": "cacerts",
                 "version": "2016.02.04",
                 "release": "20160204175039"
@@ -31,7 +31,7 @@
     },
     {
         "name": "glibc",
-        "derivation": "chef",
+        "origin": "chef",
         "version": "2.19",
         "release": "20160111220307",
         "buildDependencies": [],
@@ -40,7 +40,7 @@
     },
     {
         "name": "glibc",
-        "derivation": "chef",
+        "origin": "chef",
         "version": "2.19",
         "release": "20160111220000",
         "buildDependencies": [],
@@ -49,7 +49,7 @@
     },
     {
         "name": "glibc",
-        "derivation": "chef",
+        "origin": "chef",
         "version": "2.18",
         "release": "20150111220000",
         "buildDependencies": [],
@@ -58,7 +58,7 @@
     },
     {
         "name": "glibc",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "2.18",
         "release": "20140111220307",
         "buildDependencies": [],
@@ -67,7 +67,7 @@
     },
     {
         "name": "glibc",
-        "derivation": "fnichol",
+        "origin": "fnichol",
         "version": "2.19",
         "release": "20160211220009",
         "buildDependencies": [],
@@ -76,7 +76,7 @@
     },
     {
         "name": "zlib",
-        "derivation": "chef",
+        "origin": "chef",
         "version": "1.2.8",
         "release": "20160111220313",
         "buildDependencies": [],
@@ -84,7 +84,7 @@
     },
     {
         "name": "cacerts",
-        "derivation": "chef",
+        "origin": "chef",
         "version": "2016.01.11",
         "release": "20160111220317",
         "buildDependencies": [],
@@ -92,7 +92,7 @@
     },
     {
         "name": "openssl",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "1.0.2d",
         "release": "20160101000000",
         "license": "BSD",
@@ -103,19 +103,19 @@
         "dependencies": [
             {
                 "name": "glibc",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2.19",
                 "release": "20160111220307"
             },
             {
                 "name": "zlib",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "1.2.8",
                 "release": "20160111220313"
             },
             {
                 "name": "cacerts",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2016.01.11",
                 "release": "20160111220317"
             }
@@ -123,7 +123,7 @@
     },
     {
         "name": "openssl",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "1.0.2e",
         "release": "20160111220549",
         "maintainer": "Jamie Winsor <reset@chef.io>",
@@ -134,19 +134,19 @@
         "dependencies": [
             {
                 "name": "glibc",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2.19",
                 "release": "20160111220307"
             },
             {
                 "name": "zlib",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "1.2.8",
                 "release": "20160111220313"
             },
             {
                 "name": "cacerts",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2016.01.11",
                 "release": "20160111220317"
             }
@@ -154,7 +154,7 @@
     },
     {
         "name": "openssl",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "1.0.2e",
         "release": "20160102000000",
         "maintainer": "Jamie Winsor <reset@chef.io>",
@@ -165,19 +165,19 @@
         "dependencies": [
             {
                 "name": "glibc",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2.19",
                 "release": "20160111220307"
             },
             {
                 "name": "zlib",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "1.2.8",
                 "release": "20160111220313"
             },
             {
                 "name": "cacerts",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2016.01.11",
                 "release": "20160111220317"
             }
@@ -185,7 +185,7 @@
     },
     {
         "name": "openssl",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "1.0.2e",
         "release": "20160101000000",
         "license": "BSD",
@@ -196,19 +196,19 @@
         "dependencies": [
             {
                 "name": "glibc",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2.19",
                 "release": "20160111220307"
             },
             {
                 "name": "zlib",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "1.2.8",
                 "release": "20160111220313"
             },
             {
                 "name": "cacerts",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2016.01.11",
                 "release": "20160111220317"
             }
@@ -216,7 +216,7 @@
     },
     {
         "name": "openssl",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "1.0.2d",
         "release": "20160102000000",
         "license": "BSD",
@@ -227,19 +227,19 @@
         "dependencies": [
             {
                 "name": "glibc",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2.19",
                 "release": "20160111220307"
             },
             {
                 "name": "zlib",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "1.2.8",
                 "release": "20160111220313"
             },
             {
                 "name": "cacerts",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2016.01.11",
                 "release": "20160111220317"
             }
@@ -247,14 +247,14 @@
     },
     {
         "name": "runit",
-        "derivation": "smith",
+        "origin": "smith",
         "version": "2.1.2",
         "release": "20160111220840",
         "description": "It cannot be stopped.",
         "dependencies": [
             {
                 "name": "glibc",
-                "derivation": "chef",
+                "origin": "chef",
                 "version": "2.19",
                 "release": "20160111220307"
             }

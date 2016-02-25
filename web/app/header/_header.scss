@@ -1,6 +1,5 @@
 .bldr-header {
   @include outer-container;
-  margin-bottom: $base-spacing;
 
   h1 {
     @include span-columns(11);

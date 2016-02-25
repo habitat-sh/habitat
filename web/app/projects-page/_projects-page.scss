@@ -1,7 +1,6 @@
 .bldr-projects {
   a.create {
-    display: block;
-    float: right;
-    margin-top: -2.5em;
+    display: inline-block;
+    margin-bottom: $small-spacing;
   }
 }

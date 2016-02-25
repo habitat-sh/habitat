@@ -14,7 +14,7 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
     <div class="bldr-project-create">
         <h2>Add Project</h2>
         <p>
-            All projects require a derivation (your username or organization
+            All projects require a origin (your username or organization
             name) and a path to the plan in the source code repository.
         </p>
         <form [ngFormModel]="form" (ngSubmit)="addProject(form.value)" #formValues="ngForm">
@@ -25,8 +25,8 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
             </div>
             <div class="project-fields">
                 <div class="deriv">
-                    <label for="derivation">Project Derivation</label>
-                    <input ngControl="derivation" disabled id="derivation" name="derivation">
+                    <label for="origin">Project Origin</label>
+                    <input ngControl="origin" disabled id="origin" name="origin">
                 </div>
                 <div class="name">
                     <label for="name">Project Name</label>
@@ -50,7 +50,7 @@ export class ProjectCreatePageComponent {
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
         this.form = formBuilder.group({
-            derivation: ["smith", Validators.required],
+            origin: ["smith", Validators.required],
             name: ["", Validators.required],
             plan: ["/plan.sh", Validators.required],
         });

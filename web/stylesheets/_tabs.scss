@@ -1,0 +1,20 @@
+.bldr-tabs {
+  border-bottom: 1px solid $light-gray;
+  display: block;
+  margin-bottom: $base-spacing;
+  padding-bottom: $small-spacing / 2;
+
+  >li {
+    border-bottom: $small-spacing / 4 solid transparent;
+    cursor: pointer;
+    display: inline;
+    margin-right: $base-spacing * 2;
+    padding-bottom: $small-spacing / 2;
+    text-transform: uppercase;
+
+    &.active {
+      border-bottom-color: $black;
+    }
+  }
+
+}

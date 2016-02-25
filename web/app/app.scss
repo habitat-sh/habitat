@@ -9,6 +9,7 @@
 @import "neat";
 
 @import "item-list";
+@import "tabs";
 
 @import "explore-page/explore-page";
 @import "header/header";
@@ -18,16 +19,14 @@
 @import "package-page/package-page";
 @import "packages-page/packages-page";
 @import "project-create-page/project-create-page";
+@import "project-page/project-page";
 @import "projects-page/projects-page";
+@import "side-nav/side-nav";
 @import "sign-in-page/sign-in-page";
 @import "sign-up-form/sign-up-form";
 
 .bldr-container {
   @include outer-container;
-}
-
-.bldr-side-nav {
-  @include span-columns(3);
 }
 
 .bldr-main {

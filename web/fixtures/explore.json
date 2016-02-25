@@ -1,22 +1,22 @@
 [
     {
         "name": "glibc",
-        "derivationCount": 4,
+        "originCount": 4,
         "starCount": 2345
     },
     {
         "name": "mongodb",
-        "derivationCount": 3,
+        "originCount": 3,
         "starCount": 2340
     },
     {
         "name": "redis",
-        "derivationCount": 16,
+        "originCount": 16,
         "starCount": 234
     },
     {
         "name": "couchdb",
-        "derivationCount": 1,
+        "originCount": 1,
         "starCount": 23
     }
 ]

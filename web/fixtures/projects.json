@@ -1,14 +1,14 @@
 [
     {
-        "derivation": "smith",
+        "origin": "smith",
         "name": "mongodb"
     },
     {
-        "derivation": "smith",
+        "origin": "smith",
         "name": "openssl"
     },
     {
-        "derivation": "smith",
+        "origin": "smith",
         "name": "nethack"
     }
 ]

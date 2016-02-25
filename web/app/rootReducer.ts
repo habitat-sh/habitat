@@ -5,7 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import * as actionTypes from "./actions/index";
-import {List} from "immutable";
+import {List, Record} from "immutable";
 import initialState from "./initialState";
 import query from "./query";
 
@@ -22,35 +22,33 @@ export function rootReducer(state = initialState, action) {
 
         // When we're simulating streaming and adding to a build log
         case actionTypes.APPEND_TO_BUILD_LOG:
-            p = Object.assign({}, state.get("currentPackage"));
+            p = state.get("currentProject");
             const id = action.payload.buildId;
-            p.buildLogs[id] = (p.buildLogs[id] || "") + action.payload.text + "\n";
-            return state.set("currentPackage", p);
+            return state.setIn(["currentProject", "buildLogs", id],
+                (p.buildLogs.get(id) || "") + action.payload.text + "\n");
 
         // Set a build to successful when its log is done streaming
         case actionTypes.FINISH_BUILD_STREAM:
-            p = state.get("currentPackage");
-            const index = p.builds.findIndex(x => x.id === action.payload.buildId);
-            p.builds[index].status = "success";
-            p.builds[index].duration = action.payload.duration;
-            return state.set("currentPackage", p);
+            p = state.get("currentProject");
+            const keyPath = List(["currentProject", "builds",
+                p.builds.findIndex(x => x.id === action.payload.buildId)
+            ]);
+            let build = Object.assign({}, state.getIn(keyPath));
+
+            build.status = "success";
+            build.duration = action.payload.duration;
+
+            return state.setIn(keyPath, build);
 
         case actionTypes.POPULATE_BUILD_LOG:
-            p = state.get("currentPackage");
-
-            if (p) {
-                p.buildLogs = p.buildLogs || {};
-                p.buildLogs[action.payload.id] = action.payload.data;
-            }
-
-            return state.set("currentPackage", p);
+            return state.setIn(
+                ["currentProject", "buildLogs", action.payload.id],
+                action.payload.data
+            );
 
         case actionTypes.POPULATE_BUILDS:
-            p = state.get("currentPackage");
-
-            if (p) { p.builds = action.payload; }
-
-            return state.set("currentPackage", p);
+            return state.setIn(["currentProject", "builds"],
+                List(action.payload));
 
         case actionTypes.POPULATE_EXPLORE:
             return state.setIn(["explore", "packages"], List(action.payload));
@@ -82,10 +80,12 @@ export function rootReducer(state = initialState, action) {
                 p.releases = q.allVersionsForPackage(p).toArray();
                 p.dependencies = p.dependencies || [];
                 p.buildDependencies = p.buildDependencies || [];
-                p.builds = p.builds || [];
             }
 
             return state.set("currentPackage", p);
+
+        case actionTypes.SET_CURRENT_PROJECT:
+            return state.mergeIn(["currentProject"], Record(action.payload)());
 
         case actionTypes.SET_PACKAGES:
             return state.set("packages", action.payload);
@@ -97,9 +97,9 @@ export function rootReducer(state = initialState, action) {
         case actionTypes.SET_VISIBLE_PACKAGES:
             q = query(state.get("packages"));
             if (action.payload.filter === "mine") {
-                p = q.allMostRecentForDerivation("smith");
-            } else if (action.payload.derivation) {
-                p = q.allMostRecentForDerivation(action.payload.derivation);
+                p = q.allMostRecentForOrigin("smith");
+            } else if (action.payload.origin) {
+                p = q.allMostRecentForOrigin(action.payload.origin);
             } else if (action.payload.name) {
                 p = q.allForNameByStars(action.payload.name);
             } else {
