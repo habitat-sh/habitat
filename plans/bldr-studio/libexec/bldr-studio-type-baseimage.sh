@@ -37,11 +37,15 @@ finish_setup() {
   local bldr_path=$(_pkgpath_for chef/bldr)
   local busybox_path=$(_pkgpath_for chef/busybox-static)
 
-  local full_path="/opt/bldr/bin"
+  local full_path=""
   for path_pkg in $PKGS chef/bldr chef/busybox-static; do
     local path_file="$STUDIO_ROOT/$(_pkgpath_for $path_pkg)/PATH"
     if [ -f "$path_file" ]; then
-      full_path="$full_path:$($bb cat $path_file)"
+      if [ -z "$full_path" ]; then
+        full_path="$($bb cat $path_file)"
+      else
+        full_path="$full_path:$($bb cat $path_file)"
+      fi
     fi
 
     local tdeps_file="$STUDIO_ROOT/$(_pkgpath_for $path_pkg)/TDEPS"
@@ -54,6 +58,7 @@ finish_setup() {
       done
     fi
   done
+  full_path="$full_path:/opt/bldr/bin"
 
   studio_path="$full_path"
   studio_enter_command="${busybox_path}/bin/sh --login"
