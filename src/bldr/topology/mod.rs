@@ -209,7 +209,7 @@ impl<'a> Worker<'a> {
         try!(gossip_server.initial_peers(config.gossip_peer()));
         gossip_server.start_outbound();
         gossip_server.start_failure_detector();
-        census::start_health_adjustor(gossip_server.census_list.clone(),
+        census::start_health_adjuster(gossip_server.census_list.clone(),
                                       gossip_server.member_list.clone());
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();

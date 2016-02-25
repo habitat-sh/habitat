@@ -764,12 +764,12 @@ impl DerefMut for CensusList {
     }
 }
 
-pub fn start_health_adjustor(census_list: Arc<RwLock<CensusList>>,
+pub fn start_health_adjuster(census_list: Arc<RwLock<CensusList>>,
                              member_list: Arc<RwLock<MemberList>>) {
-    outputln!("Starting census health adjustor");
+    outputln!("Starting census health adjuster");
     let cl1 = census_list.clone();
     let ml1 = member_list.clone();
-    let _t = thread::Builder::new().name("health_adjustor".to_string()).spawn(move || {
+    let _t = thread::Builder::new().name("health_adjuster".to_string()).spawn(move || {
         loop {
             {
                 let mut cl = cl1.write().unwrap();
