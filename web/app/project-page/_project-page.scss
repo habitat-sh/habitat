@@ -1,0 +1,103 @@
+.bldr-project {
+  h3 {
+    font-size: 100%;
+
+    .lastBuild {
+      color: $light-gray;
+      margin-left: $small-spacing;
+    }
+  }
+
+  .build-command {
+    background-color: $light-gray;
+    display: inline-block;
+    font-family: $monospace-font-family;
+    font-size: 75%;
+    margin-bottom: $base-spacing;
+    padding: $small-spacing;
+    white-space: nowrap;
+
+    a {
+      color: inherit;
+    }
+  }
+
+  .info, .builds {
+    @include outer-container;
+
+    .l {
+      @include span-columns(8);
+    }
+
+    .r {
+      @include span-columns(4);
+      @include omega;
+
+      border-left: 1px solid $light-gray;
+      padding-left: $small-spacing;
+    }
+  }
+
+  .sourceUrl {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 200px;
+  }
+
+  .bldr-build-list {
+    li {
+      border: 1px solid;
+      border-left: $small-spacing/2 solid;
+      margin: $small-spacing;
+      padding: $small-spacing;
+
+      h1 {
+        font-size: 100%;
+      }
+
+      .status {
+        float: right;
+        font-size: 75%;
+      }
+
+      &.queued {
+        border-color: $queued-color;
+
+        .color {
+          color: $queued-color;
+        }
+      }
+
+      &.failure {
+        border-color: $failure-color;
+
+        .color {
+          color: $failure-color;
+        }
+      }
+
+      &.success {
+        border-color: $success-color;
+
+        .color {
+          color: $success-color;
+        }
+      }
+
+      button.rebuild {
+        font-size: 50%;
+      }
+
+      .output {
+        font-family: $monospace-font-family;
+        font-size: 75%;
+        @include pad($base-spacing);
+        background: black;
+        color: $medium-gray;
+        overflow: auto;
+      }
+    }
+  }
+}

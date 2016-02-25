@@ -39,4 +39,22 @@ describe("Routes", () => {
                 eventually.equal("Projects");
         });
     });
+
+    describe("/projects/:origin/:name", () => {
+        describe("When the project exists", () => {
+            it("shows a project", () => {
+                browser.get("#/projects/smith/nethack");
+                expect(element(by.css(".bldr-project h2")).getText()).to.
+                    eventually.equal("smith / nethack");
+            });
+        });
+
+        describe("When the project does not exist", () => {
+            it("shows a not found page", () => {
+                browser.get("#/projects/smith/nothing");
+                expect(element(by.css(".bldr-project h2")).getText()).to.
+                    eventually.equal("Project Not Found");
+            });
+        });
+    });
 });

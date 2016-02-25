@@ -6,18 +6,17 @@
 
 import {Component} from "angular2/core";
 import {RouterLink} from "angular2/router";
-import * as moment from "moment";
-import {packageString} from "../util";
+import {duration, friendlyTime, packageString} from "../util";
 
 @Component({
     directives: [RouterLink],
-    inputs: ["builds", "logs", "package"],
+    inputs: ["builds", "logs", "project"],
     selector: "build-list",
     template: `
-    <p *ngIf="!builds || builds.length === 0">
-        No builds found. This package may have been uploaded manually.
+    <p *ngIf="!builds || builds.size === 0">
+        No builds found.
     </p>
-    <ul *ngIf="builds && builds.length > 0" class="bldr-build-list">
+    <ul *ngIf="builds && builds.size > 0" class="bldr-build-list">
         <li *ngFor="#build of builds" class="{{build.status}}">
             <span class="status color">{{build.status}}</span>
             <h1>
@@ -42,19 +41,19 @@ import {packageString} from "../util";
                     </a>
                 </dd>
             </dl>
-            <button *ngIf="logs && logs[build.id]" class="rebuild" disabled
+            <button *ngIf="logs && logs.get(build.id)" class="rebuild" disabled
                     title="You do not have authorization to rebuild this package.">
                 Rebuild
             </button>
-            <pre class="output" *ngIf="logs && logs[build.id]"
-                 [innerHTML]="logs[build.id]">
+            <pre class="output" *ngIf="logs && logs.get(build.id)"
+                 [innerHTML]="logs.get(build.id)">
             </pre>
         </li>
     </ul>`,
 })
 
 export class BuildListComponent {
-    private package;
+    private project;
 
     private packageString(pkg) { return packageString(pkg); }
 
@@ -62,10 +61,8 @@ export class BuildListComponent {
     // and what happened in the build.
     private ident(build) {
         return Object.assign({
-            derivation: this.package.derivation,
-            name: this.package.name,
-            version: this.package.version,
-            release: this.package.release,
+            origin: this.project.origin,
+            name: this.project.name,
         },
             {
                 version: build.version,
@@ -73,14 +70,7 @@ export class BuildListComponent {
             });
     }
 
-    // Pretty print a time
-    // Print a number of seconds as minutes and seconds
-    private duration(s) {
-        return moment.utc(s * 1000).format("m [min] s [sec]");
-    }
+    private duration(s) { return duration(s); }
 
-    // Pretty printed date
-    private friendlyTime(t) {
-        return moment(t).fromNow();
-    }
+    private friendlyTime(t) { return friendlyTime(t); }
 }

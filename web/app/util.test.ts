@@ -5,7 +5,7 @@ describe("util", () => {
         describe("with a fully qualified identifier", () => {
             it("returns the string", () => {
                 expect(util.packageString({
-                    derivation: "testderiv",
+                    origin: "testderiv",
                     name: "testname",
                     version: "1.0.0",
                     release: "197001010000",
@@ -17,7 +17,7 @@ describe("util", () => {
         describe("with a missing parts", () => {
             it("returns the partial string", () => {
                 expect(util.packageString({
-                    derivation: "testderiv",
+                    origin: "testderiv",
                     name: "testname",
                 })
                 ).to.eq("testderiv/testname");

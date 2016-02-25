@@ -18,7 +18,7 @@ export default function query(packages: Array<any>) {
         allForNameByStars(name: string) {
             return enumerable.
                 where(`$.name === "${name}"`).
-                groupBy("$.derivation").
+                groupBy("$.origin").
                 select(group => group.first()).
                 orderByDescending("$.starCount");
         },
@@ -33,10 +33,10 @@ export default function query(packages: Array<any>) {
         },
 
         // All of the packages, sorted by name, the most recent version, for a
-        // derivation
-        allMostRecentForDerivation(derivation: string) {
+        // origin
+        allMostRecentForOrigin(origin: string) {
             return this.allMostRecent().
-                where(`$.derivation === "${derivation}"`);
+                where(`$.origin === "${origin}"`);
         },
 
         // Given a package, all of the releases for that version of the package
@@ -44,7 +44,7 @@ export default function query(packages: Array<any>) {
             return enumerable.
                 where(pkg => {
                     return pkg["name"] === sourcePkg["name"] &&
-                        pkg["derivation"] === sourcePkg["derivation"] &&
+                        pkg["origin"] === sourcePkg["origin"] &&
                         pkg["version"] === sourcePkg["version"];
                 });
         },
@@ -54,7 +54,7 @@ export default function query(packages: Array<any>) {
             return enumerable.
                 where(pkg => {
                     return pkg["name"] === sourcePkg["name"] &&
-                        pkg["derivation"] === sourcePkg["derivation"];
+                        pkg["origin"] === sourcePkg["origin"];
                 }).
                 groupBy("$.version").
                 select(group => group.first()).
@@ -64,7 +64,7 @@ export default function query(packages: Array<any>) {
         fromParams(params: Object = {}) {
             return enumerable.
                 where(pkg => pkg["name"] === params["name"] &&
-                    pkg["derivation"] === params["derivation"] &&
+                    pkg["origin"] === params["origin"] &&
                     pkg["version"] === params["version"] &&
                     pkg["release"] === params["release"]);
         }

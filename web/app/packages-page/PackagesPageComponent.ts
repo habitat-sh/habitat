@@ -16,7 +16,7 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
         <h2>
             <span *ngIf="filter === 'mine'">My Packages</span>
             <span *ngIf="showAll">All Packages</span>
-            <span *ngIf="derivation">{{derivation}}</span>
+            <span *ngIf="origin">{{origin}}</span>
             <span *ngIf="name">
                 <a [routerLink]="['Packages']">*</a>
                 /
@@ -24,15 +24,15 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
             </span>
         </h2>
         <ul class="bldr-packages-plan-list">
-            <li *ngIf="packages.length === 0">
+            <li *ngIf="packages.size === 0">
                 No packages found. Here's how to create one: &hellip;
             </li>
             <li class="bldr-packages-package" *ngFor="#package of packages">
-                <a [routerLink]="['Package', { derivation: package.derivation,
+                <a [routerLink]="['Package', { origin: package.origin,
                                                name: package.name,
                                                version: package.version,
                                                release: package.release }]">
-                    {{package.derivation}}
+                    {{package.origin}}
                     /
                     {{package.name}}
                     /
@@ -50,8 +50,8 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
 export class PackagesPageComponent implements OnInit {
     constructor(private store: AppStore, private routeParams: RouteParams) { }
 
-    get derivation() {
-        return this.routeParams.params["derivation"];
+    get origin() {
+        return this.routeParams.params["origin"];
     }
 
     get filter() {

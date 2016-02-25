@@ -16,7 +16,7 @@ import {isPackage, packageString} from "../util";
     <ul class="bldr-package-list">
         <li *ngIf="!packages || packages.length === 0">None</li>
         <li *ngFor="#pkg of packages">
-            <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['Package', { derivation: pkg.derivation,
+            <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['Package', { origin: pkg.origin,
                                                                                                   name: pkg.name,
                                                                                                   version: pkg.version,
                                                                                                   release: pkg.release }]">

@@ -5,15 +5,14 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {AppStore} from "../AppStore";
-import {BuildListComponent} from "./BuildListComponent";
 import {Component, OnInit} from "angular2/core";
 import {PackageListComponent} from "./PackageListComponent";
 import {RouteParams, RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
-import {fetchPackage, fetchBuilds} from "../actions/index";
+import {fetchPackage} from "../actions/index";
 
 @Component({
-    directives: [BuildListComponent, PackageListComponent, RouterLink],
+    directives: [PackageListComponent, RouterLink],
     template: `
     <div>
         <div *ngIf="!package" class="bldr-package">
@@ -23,7 +22,7 @@ import {fetchPackage, fetchBuilds} from "../actions/index";
         </div>
         <div *ngIf="package" class="bldr-package">
             <h2>
-                <a [routerLink]="['PackagesForDerivation', { derivation: package.derivation }]">{{package.derivation}}</a>
+                <a [routerLink]="['PackagesForOrigin', { origin: package.origin }]">{{package.origin}}</a>
                 /
                 {{package.name}}
                 /
@@ -67,10 +66,6 @@ import {fetchPackage, fetchBuilds} from "../actions/index";
                 <package-list [currentPackage]="package"
                               [packages]="package.dependencies"></package-list>
             </div>
-            <div class="bldr-package-log">
-                <h3>Builds</h3>
-                <build-list [package]="package" [builds]="package.builds" [logs]="package.buildLogs"></build-list>
-            </div>
       </div>
   </div>`,
 })
@@ -96,9 +91,6 @@ export class PackagePageComponent implements OnInit {
 
     ngOnInit() {
         this.store.dispatch(fetchPackage(this.package));
-        this.store.dispatch(fetchBuilds({
-            derivation: this.package.derivation, name: this.package.name
-        }));
     }
 
     packageString(params) { return packageString(params); }

@@ -14,15 +14,15 @@ import {fetchProjects} from "../actions/index";
     template: `
     <div class="bldr-projects">
         <h2>Projects</h2>
-        <a class="create" [routerLink]="['ProjectCreate']">+ Add Project</a>
+        <a class="button create" [routerLink]="['ProjectCreate']">+ Add Project</a>
         <ul>
             <li *ngIf="projects.size === 0">
                 You do not have any Projects yet. Why not
                 <a [routerLink]="['ProjectCreate']">create one</a>?
             </li>
             <li *ngFor="#project of projects">
-                <a class="bldr-item-list" href="#">
-                    {{project.derivation}} / {{project.name}}
+                <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="bldr-item-list" href="#">
+                    {{project.origin}} / {{project.name}}
                 </a>
             </li>
         </ul>

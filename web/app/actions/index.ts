@@ -26,6 +26,7 @@ export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
+export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
 export const SET_PACKAGES = "SET_PACKAGES";
 export const SET_PROJECTS = "SET_PROJECTS";
 export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
@@ -43,7 +44,7 @@ export function addProject(project) {
         dispatch(populateProject(project));
         dispatch(addNotification({
             title: "Project Created",
-            body: `${project.derivation}/${project.name}`,
+            body: `${project.origin}/${project.name}`,
             type: SUCCESS,
         }));
     };
@@ -121,6 +122,24 @@ export function fetchPackage(pkg) {
     };
 }
 
+export function fetchProject(params) {
+    return dispatch => {
+        api.get(`projects/${params["origin"]}/${params["name"]}.json`).then(response => {
+            dispatch(
+                setCurrentProject(
+                    Object.assign({
+                        ui: { exists: true, loading: false }
+                    }, response)
+                )
+            );
+        }).catch(error => {
+            dispatch(setCurrentProject({
+                ui: { exists: false, loading: false }
+            }));
+        });
+    };
+}
+
 export function fetchProjects() {
     return dispatch => {
         api.get("projects.json").then(response => {
@@ -192,6 +211,13 @@ export function setCurrentPackage(pkg) {
     return {
         type: SET_CURRENT_PACKAGE,
         payload: pkg,
+    };
+}
+
+export function setCurrentProject(project) {
+    return {
+        type: SET_CURRENT_PROJECT,
+        payload: project,
     };
 }
 

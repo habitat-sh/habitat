@@ -9,10 +9,15 @@
 
   .project-fields {
     @include span-columns(9);
+    @include omega;
     @include outer-container;
 
     .deriv, .name {
       @include span-columns(6);
+    }
+
+    .name {
+      @include omega;
     }
 
     .plan, .submit {

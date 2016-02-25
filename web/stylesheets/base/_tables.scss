@@ -12,8 +12,8 @@ table {
 }
 
 th {
-  border-bottom: 1px solid shade($base-border-color, 25%);
-  font-weight: 600;
+  @extend h4;
+  border-bottom: 1px solid $light-gray;
   padding: $small-spacing 0;
   text-align: left;
 }

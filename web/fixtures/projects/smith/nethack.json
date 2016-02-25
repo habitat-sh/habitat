@@ -1,0 +1,19 @@
+{
+    "origin": "smith",
+    "name": "nethack",
+    "description": "NetHack is a single player dungeon exploration game that runs on a wide variety of computer systems, with a variety of graphical and text interfaces all using the same game engine. Unlike many other Dungeons & Dragons-inspired games, the emphasis in NetHack is on discovering the detail of the dungeon and not simply killing everything in sight - in fact, killing everything in sight is a good way to die quickly. Each game presents a different landscape - the random number generator provides an essentially unlimited number of variations of the dungeon and its denizens to be discovered by the player in one of a number of characters: you can pick your race, your role, and your gender.",
+    "latestBuild": {
+        "version": "3.6.0",
+        "release": "20160224120015",
+        "finishTime": "2016-02-24T18:01:06.493Z"
+    },
+    "maintainer": {
+        "name": "Nathan L Smith",
+        "email": "smith@chef.io"
+    },
+    "sourceRepository": {
+        "url": "https://github.com/smith/test",
+        "slug": "smith/test"
+    },
+    "sourceUrl": "http://iweb.dl.sourceforge.net/project/nethack/nethack/3.6.0/nethack-360-src.tgz"
+}
