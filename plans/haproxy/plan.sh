@@ -1,5 +1,5 @@
 pkg_name=haproxy
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.5.12
 pkg_license=('BSD')
 pkg_maintainer="Adam Jacob <adam@chef.io>"

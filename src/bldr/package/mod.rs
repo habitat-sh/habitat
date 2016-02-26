@@ -39,7 +39,7 @@ const RUN_FILENAME: &'static str = "run";
 
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Package {
-    pub derivation: String,
+    pub origin: String,
     pub name: String,
     pub version: String,
     pub release: String,
@@ -55,7 +55,7 @@ impl fmt::Display for Package {
 
 #[derive(RustcEncodable, RustcDecodable, PartialEq, Debug, Clone)]
 pub struct PackageIdent {
-    pub derivation: String,
+    pub origin: String,
     pub name: String,
     pub version: Option<String>,
     pub release: Option<String>,
@@ -63,9 +63,9 @@ pub struct PackageIdent {
 
 impl PackageIdent {
     /// Creates a new package identifier
-    pub fn new<T: Into<String>>(deriv: T, name: T, version: Option<T>, release: Option<T>) -> Self {
+    pub fn new<T: Into<String>>(origin: T, name: T, version: Option<T>, release: Option<T>) -> Self {
         PackageIdent {
-            derivation: deriv.into(),
+            origin: origin.into(),
             name: name.into(),
             version: version.map(|v| v.into()),
             release: release.map(|v| v.into()),
@@ -77,7 +77,7 @@ impl PackageIdent {
     }
 
     pub fn satisfies(&self, other: &Self) -> bool {
-        if self.derivation != other.derivation || self.name != other.name {
+        if self.origin != other.origin || self.name != other.name {
             return false;
         }
         if self.version.is_some() {
@@ -110,24 +110,24 @@ impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.version.is_some() && self.release.is_some() {
             write!(f, "{}/{}/{}/{}",
-                    self.derivation,
+                    self.origin,
                     self.name,
                     self.version.as_ref().unwrap(),
                     self.release.as_ref().unwrap())
         } else if self.version.is_some() {
             write!(f, "{}/{}/{}",
-                    self.derivation,
+                    self.origin,
                     self.name,
                     self.version.as_ref().unwrap())
         } else {
-            write!(f, "{}/{}", self.derivation, self.name)
+            write!(f, "{}/{}", self.origin, self.name)
         }
     }
 }
 
 impl From<Package> for PackageIdent {
     fn from(value: Package) -> PackageIdent {
-        PackageIdent::new(value.derivation, value.name, Some(value.version), Some(value.release))
+        PackageIdent::new(value.origin, value.name, Some(value.version), Some(value.release))
     }
 }
 
@@ -136,20 +136,20 @@ impl FromStr for PackageIdent {
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         let items: Vec<&str> = value.split("/").collect();
-        let (deriv, name, ver, rel) = match items.len() {
+        let (origin, name, ver, rel) = match items.len() {
             2 => (items[0], items[1], None, None),
             3 => (items[0], items[1], Some(items[2]), None),
             4 => (items[0], items[1], Some(items[2]), Some(items[3])),
             _ => return Err(bldr_error!(ErrorKind::InvalidPackageIdent(value.to_string()))),
         };
-        Ok(PackageIdent::new(deriv, name, ver, rel))
+        Ok(PackageIdent::new(origin, name, ver, rel))
     }
 }
 
 impl PartialOrd for PackageIdent {
     /// Packages can be compared according to the following:
     ///
-    /// * Derivation is ignored in the comparison - my redis and
+    /// * origin is ignored in the comparison - my redis and
     ///   your redis compare the same.
     /// * If the names are not equal, they cannot be compared.
     /// * If the versions are greater/lesser, return that as
@@ -288,16 +288,16 @@ impl Package {
     /// Verifies a package is within the package home and returns a struct representing that
     /// package.
     ///
-    /// Only the derivation and name of a package are required - the latest version/release of a
+    /// Only the origin and name of a package are required - the latest version/release of a
     /// package will be returned if their optional value is not specified. If only a version is
-    /// specified, the latest release of that package derivation, name, and version is returned.
+    /// specified, the latest release of that package origin, name, and version is returned.
     ///
     /// An optional `home` path may be provided to search for a package in a non-default path.
     pub fn load(ident: &PackageIdent, home: Option<&str>) -> BldrResult<Package> {
         let path = home.unwrap_or(PACKAGE_HOME);
         if ident.fully_qualified() {
             Ok(Package {
-                derivation: ident.derivation.clone(),
+                origin: ident.origin.clone(),
                 name: ident.name.clone(),
                 version: ident.version.as_ref().unwrap().clone(),
                 release: ident.release.as_ref().unwrap().clone(),
@@ -325,7 +325,7 @@ impl Package {
                 Ok(Package {
                     deps: try!(Self::deps(&id, path)),
                     tdeps: try!(Self::tdeps(&id, path)),
-                    derivation: id.derivation,
+                    origin: id.origin,
                     name: id.name,
                     version: id.version.unwrap(),
                     release: id.release.unwrap(),
@@ -497,7 +497,7 @@ impl Package {
     pub fn path(&self) -> String {
         format!("{}/{}/{}/{}/{}",
                 PACKAGE_HOME,
-                self.derivation,
+                self.origin,
                 self.name,
                 self.version,
                 self.release)
@@ -507,7 +507,7 @@ impl Package {
     pub fn join_path(&self, join: &str) -> String {
         format!("{}/{}/{}/{}/{}/{}",
                 PACKAGE_HOME,
-                self.derivation,
+                self.origin,
                 self.name,
                 self.version,
                 self.release,
@@ -592,7 +592,7 @@ impl Package {
 
     pub fn ident(&self) -> String {
         format!("{}/{}/{}/{}",
-                self.derivation,
+                self.origin,
                 self.name,
                 self.version,
                 self.release)
@@ -676,7 +676,7 @@ impl Package {
     pub fn cache_file(&self) -> PathBuf {
         PathBuf::from(format!("{}/{}-{}-{}-{}.bldr",
                               PACKAGE_CACHE,
-                              self.derivation,
+                              self.origin,
                               self.name,
                               self.version,
                               self.release))
@@ -709,32 +709,32 @@ impl Package {
     fn package_list(path: &str) -> BldrResult<Vec<PackageIdent>> {
         let mut package_list: Vec<PackageIdent> = vec![];
         if try!(fs::metadata(path)).is_dir() {
-            try!(Self::walk_derivations(&path, &mut package_list));
+            try!(Self::walk_origins(&path, &mut package_list));
         }
         Ok(package_list)
     }
 
-    /// Helper function for package_list. Walks the given path for derivation directories
+    /// Helper function for package_list. Walks the given path for origin directories
     /// and builds on the given package list by recursing into name, version, and release
     /// directories.
-    fn walk_derivations(path: &str, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
+    fn walk_origins(path: &str, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
         for entry in try!(fs::read_dir(path)) {
-            let derivation = try!(entry);
-            if try!(fs::metadata(derivation.path())).is_dir() {
-                try!(Self::walk_names(&derivation, packages));
+            let origin = try!(entry);
+            if try!(fs::metadata(origin.path())).is_dir() {
+                try!(Self::walk_names(&origin, packages));
             }
         }
         Ok(())
     }
 
-    /// Helper function for walk_derivations. Walks the given derivation DirEntry for name
+    /// Helper function for walk_origins. Walks the given origin DirEntry for name
     /// directories and recurses into them to find version and release directories.
-    fn walk_names(derivation: &DirEntry, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
-        for name in try!(fs::read_dir(derivation.path())) {
+    fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
+        for name in try!(fs::read_dir(origin.path())) {
             let name = try!(name);
-            let derivation = derivation.file_name().to_string_lossy().into_owned().to_string();
+            let origin = origin.file_name().to_string_lossy().into_owned().to_string();
             if try!(fs::metadata(name.path())).is_dir() {
-                try!(Self::walk_versions(&derivation, &name, packages));
+                try!(Self::walk_versions(&origin, &name, packages));
             }
         }
         Ok(())
@@ -742,7 +742,7 @@ impl Package {
 
     /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
-    fn walk_versions(derivation: &String,
+    fn walk_versions(origin: &String,
                      name: &DirEntry,
                      packages: &mut Vec<PackageIdent>)
                      -> BldrResult<()> {
@@ -750,7 +750,7 @@ impl Package {
             let version = try!(version);
             let name = name.file_name().to_string_lossy().into_owned().to_string();
             if try!(fs::metadata(version.path())).is_dir() {
-                try!(Self::walk_releases(derivation, &name, &version, packages));
+                try!(Self::walk_releases(origin, &name, &version, packages));
             }
         }
         Ok(())
@@ -758,8 +758,8 @@ impl Package {
 
     /// Helper function for walk_versions. Walks the given release DirEntry for directories and recurses
     /// into them to find version directories. Finally, a Package struct is built and concatenated onto
-    /// the given packages vector with the derivation, name, version, and release of each.
-    fn walk_releases(derivation: &String,
+    /// the given packages vector with the origin, name, version, and release of each.
+    fn walk_releases(origin: &String,
                      name: &String,
                      version: &DirEntry,
                      packages: &mut Vec<PackageIdent>)
@@ -767,7 +767,7 @@ impl Package {
         for release in try!(fs::read_dir(version.path())) {
             let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
             let version = version.file_name().to_string_lossy().into_owned().to_string();
-            let ident = PackageIdent::new(derivation.clone(), name.clone(), Some(version), Some(release));
+            let ident = PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
             packages.push(ident)
         }
         Ok(())
@@ -873,7 +873,7 @@ fn split_version(version: &str) -> BldrResult<(Vec<&str>, Option<String>)> {
 
 impl PartialEq for Package {
     fn eq(&self, other: &Package) -> bool {
-        if self.derivation != other.derivation {
+        if self.origin != other.origin {
             return false;
         } else if self.name != other.name {
             return false;
@@ -890,7 +890,7 @@ impl PartialEq for Package {
 impl PartialOrd for Package {
     /// Packages can be compared according to the following:
     ///
-    /// * Derivation is ignored in the comparison - my redis and
+    /// * origin is ignored in the comparison - my redis and
     ///   your redis compare the same.
     /// * If the names are not equal, they cannot be compared.
     /// * If the versions are greater/lesser, return that as
@@ -970,7 +970,7 @@ mod tests {
     }
 
     #[test]
-    fn package_ident_partial_ord_different_derivation() {
+    fn package_ident_partial_ord_different_origin() {
         let a = PackageIdent::new("adam".to_string(),
                              "bldr".to_string(),
                              Some("1.0.0".to_string()),

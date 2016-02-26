@@ -109,7 +109,7 @@ pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     let mut file = try!(File::open(package.cache_file()));
     let url = format!("{}/pkgs/{}/{}/{}/{}",
                       repo,
-                      package.derivation,
+                      package.origin,
                       package.name,
                       package.version,
                       package.release);

@@ -1,5 +1,5 @@
 pkg_name=autoconf
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.69
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv2+')

@@ -1,5 +1,5 @@
 pkg_name=bpm
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=0.1.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')

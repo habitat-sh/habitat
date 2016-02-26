@@ -1,5 +1,5 @@
 pkg_name=util-linux
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.27.1
 pkg_license=('GPLv2')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

@@ -328,7 +328,7 @@ fn read_default_toml_file(pkg: &Package) -> BldrResult<String> {
 // Generates the toml for the bldr data from a package.
 fn bldr_data(pkg: &Package) -> String {
     let mut toml_string = String::from("[bldr]\n");
-    toml_string.push_str(&format!("derivation = \"{}\"", pkg.derivation));
+    toml_string.push_str(&format!("origin = \"{}\"", pkg.origin));
     toml_string.push_str(&format!("name = \"{}\"", pkg.name));
     toml_string.push_str(&format!("version = \"{}\"", pkg.version));
     toml_string.push_str(&format!("release = \"{}\"", pkg.release));

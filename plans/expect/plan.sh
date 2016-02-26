@@ -1,5 +1,5 @@
 pkg_name=expect
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=5.45
 pkg_license=('custom')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

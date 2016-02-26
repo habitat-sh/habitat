@@ -1,5 +1,5 @@
 pkg_name=zlib
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.2.8
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('zlib')

@@ -18,7 +18,7 @@
 //! $ bldr install redis -u http://bldr.co:9633 -d adam
 //! ```
 //!
-//! Will do the same, but choose the `adam` derivation, rather than the default `bldr`.
+//! Will do the same, but choose the `adam` origin, rather than the default `bldr`.
 //!
 //! ```bash
 //! $ bldr install redis -u http://bldr.co:9633 -v 3.0.1
@@ -36,7 +36,7 @@
 //! $ bldr install redis -u http://bldr.co:9633 -d adam -v 3.0.1 -r 20150911204047
 //! ```
 //!
-//! The same as the last, but from the `adam` derivation as well.
+//! The same as the last, but from the `adam` origin as well.
 //!
 //! # Internals
 //!

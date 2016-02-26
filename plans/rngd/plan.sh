@@ -1,5 +1,5 @@
 pkg_name=rngd
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=5
 pkg_license=('gplv2')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

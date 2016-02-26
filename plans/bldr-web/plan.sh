@@ -1,6 +1,6 @@
 pkg_name=bldr-web
 pkg_version=0.4.0
-pkg_derivation=chef
+pkg_origin=chef
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('Apache2')
 pkg_source=http://example.com/${pkg_name}-${pkg_version}.tar.bz2

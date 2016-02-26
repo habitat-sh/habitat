@@ -1,5 +1,5 @@
 pkg_name=libbsd
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=0.8.1
 pkg_license=('custom')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

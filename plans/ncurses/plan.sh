@@ -1,5 +1,5 @@
 pkg_name=ncurses
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=6.0
 pkg_license=('ncurses')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz

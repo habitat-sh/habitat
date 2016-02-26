@@ -1,6 +1,6 @@
 pkg_name=gnupg
 pkg_distname=$pkg_name
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.4.20
 pkg_license=('gplv3+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

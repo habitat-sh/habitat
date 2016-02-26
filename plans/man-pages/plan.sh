@@ -1,5 +1,5 @@
 pkg_name=man-pages
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=4.02
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv2')

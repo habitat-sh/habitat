@@ -1,5 +1,5 @@
 pkg_name=libgcrypt
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.6.4
 pkg_license=('lgplv2+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

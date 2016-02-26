@@ -252,7 +252,7 @@ impl fmt::Display for BldrError {
             ErrorKind::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
             ErrorKind::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
-                         derivation/name (example: chef/redis)",
+                         origin/name (example: chef/redis)",
                         e)
             }
             ErrorKind::InvalidKeyParameter(ref e) => {
@@ -349,7 +349,7 @@ impl Error for BldrError {
             ErrorKind::CensusNotFound(_) => "A census entry does not exist",
             ErrorKind::UuidParseError(_) => "Uuid Parse Error",
             ErrorKind::InvalidPackageIdent(_) => {
-                "Package identifiers must be in derivation/name format (example: chef/redis)"
+                "Package identifiers must be in origin/name format (example: chef/redis)"
             }
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
             ErrorKind::JsonEncode(_) => "JSON encoding error",

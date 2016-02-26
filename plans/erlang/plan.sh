@@ -1,5 +1,5 @@
 pkg_name=erlang
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=18.2.1
 pkg_dirname=otp_src_${pkg_version}
 pkg_license=('erlang')

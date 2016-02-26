@@ -86,7 +86,7 @@ impl GenServer for PackageUpdater {
         // JW TODO: Store and use the version if the package was started with a specific version.
         //          This will allow an operator to lock to a version and receive security updates
         //          in the form of release updates for a package.
-        let ident = PackageIdent::new(package.derivation.clone(), package.name.clone(), None, None);
+        let ident = PackageIdent::new(package.origin.clone(), package.name.clone(), None, None);
         match repo::client::show_package(&state.repo, &ident) {
             Ok(remote) => {
                 let latest: Package = remote.into();

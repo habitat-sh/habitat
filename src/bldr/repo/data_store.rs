@@ -1303,7 +1303,7 @@ impl Database for PkgIndex {
     }
 
     fn write<'a>(&self, txn: &RwTransaction<'a, Self>, object: &Self::Object) -> BldrResult<()> {
-        try!(txn.put(&object.deriv_idx(), object));
+        try!(txn.put(&object.origin_idx(), object));
         try!(txn.put(&object.name_idx(), object));
         txn.put(&object.version_idx(), object)
     }

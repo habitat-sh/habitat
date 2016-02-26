@@ -1,5 +1,5 @@
 pkg_name=flex
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.6.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('custom')

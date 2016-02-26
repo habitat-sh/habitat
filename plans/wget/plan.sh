@@ -1,6 +1,6 @@
 pkg_name=wget
 pkg_distname=$pkg_name
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.16.3
 pkg_license=('gplv3+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

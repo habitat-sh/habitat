@@ -1,5 +1,5 @@
 pkg_name=lzo
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.09
 pkg_license=('GPL')
 pkg_source=http://www.oberhumer.com/opensource/${pkg_name}/download/${pkg_name}-${pkg_version}.tar.gz

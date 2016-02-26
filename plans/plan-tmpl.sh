@@ -1,7 +1,7 @@
 # Template plan.sh
 pkg_name=PACKAGE
 pkg_version=0.0.0
-pkg_derivation=chef
+pkg_origin=chef
 pkg_license=('PACKAGE')
 pkg_source=http://example.com/${pkg_name}-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz

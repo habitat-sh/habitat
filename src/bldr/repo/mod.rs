@@ -60,11 +60,11 @@ impl Repo {
     // identifier pieces.
     fn archive_path(&self, ident: &package::PackageIdent) -> PathBuf {
         self.packages_path()
-            .join(&ident.derivation)
+            .join(&ident.origin)
             .join(&ident.name)
             .join(ident.version.as_ref().unwrap())
             .join(ident.release.as_ref().unwrap())
-            .join(format!("{}-{}-{}-{}.bldr", &ident.derivation, &ident.name, ident.version.as_ref().unwrap(), ident.release.as_ref().unwrap()))
+            .join(format!("{}-{}-{}-{}.bldr", &ident.origin, &ident.name, ident.version.as_ref().unwrap(), ident.release.as_ref().unwrap()))
     }
 
     fn key_path(&self, name: &str) -> PathBuf {
@@ -99,24 +99,24 @@ impl Default for ListenPort {
 
 impl<'a> Into<package::PackageIdent> for &'a Params {
     fn into(self) -> package::PackageIdent {
-        package::PackageIdent::new(self.find("deriv").unwrap(), self.find("pkg").unwrap(), self.find("version"), self.find("release"))
+        package::PackageIdent::new(self.find("origin").unwrap(), self.find("pkg").unwrap(), self.find("version"), self.find("release"))
     }
 }
 
 impl<'a> Into<data_object::PackageIdent> for &'a Params {
     fn into(self) -> data_object::PackageIdent {
-        let deriv = self.find("deriv").unwrap();
+        let origin = self.find("origin").unwrap();
         let name = self.find("pkg");
         let version = self.find("version");
         let release = self.find("release");
         if release.is_some() && version.is_some() && name.is_some() {
-            data_object::PackageIdent::new(format!("{}/{}/{}/{}", deriv, name.unwrap(), version.unwrap(), release.unwrap()))
+            data_object::PackageIdent::new(format!("{}/{}/{}/{}", origin, name.unwrap(), version.unwrap(), release.unwrap()))
         } else if version.is_some() && name.is_some() {
-            data_object::PackageIdent::new(format!("{}/{}/{}", deriv, name.unwrap(), version.unwrap()))
+            data_object::PackageIdent::new(format!("{}/{}/{}", origin, name.unwrap(), version.unwrap()))
         } else if name.is_some() {
-            data_object::PackageIdent::new(format!("{}/{}", deriv, name.unwrap()))
+            data_object::PackageIdent::new(format!("{}/{}", origin, name.unwrap()))
         } else {
-            data_object::PackageIdent::new(deriv.to_string())
+            data_object::PackageIdent::new(origin.to_string())
         }
     }
 }
@@ -392,20 +392,20 @@ pub fn run(config: &Config) -> BldrResult<()> {
     let repo17 = repo.clone();
     let router = router!(
         // JW TODO: update list/show/download function to cover scoping rules of these routes repos
-        get "/pkgs/:deriv/:pkg/:version" => move |r: &mut Request| list_packages(&repo3, r),
-        get "/pkgs/:deriv/:pkg" => move |r: &mut Request| list_packages(&repo4, r),
-        get "/pkgs/:deriv/:pkg/latest" => move |r: &mut Request| show_package(&repo5, r),
-        get "/pkgs/:deriv/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo6, r),
-        get "/pkgs/:deriv/:pkg/:version/download" => move |r: &mut Request| download_package(&repo7, r),
-        get "/pkgs/:deriv/:pkg/download" => move |r: &mut Request| download_package(&repo8, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo3, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo4, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo5, r),
+        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo6, r),
+        get "/pkgs/:origin/:pkg/:version/download" => move |r: &mut Request| download_package(&repo7, r),
+        get "/pkgs/:origin/:pkg/download" => move |r: &mut Request| download_package(&repo8, r),
 
-        post "/pkgs/:deriv/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo9, r),
-        get "/pkgs/:deriv/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo10, r),
-        get "/pkgs/:deriv/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo11, r),
-        get "/pkgs/:deriv/:pkg/latest" => move |r: &mut Request| show_package(&repo12, r),
-        get "/pkgs/:deriv/:pkg/:version" => move |r: &mut Request| list_packages(&repo13, r),
-        get "/pkgs/:deriv/:pkg" => move |r: &mut Request| list_packages(&repo14, r),
-        get "/pkgs/:deriv" => move |r: &mut Request| list_packages(&repo15, r),
+        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo9, r),
+        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo10, r),
+        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo11, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo12, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo13, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo14, r),
+        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo15, r),
 
         post "/keys/:key" => move |r: &mut Request| upload_key(&repo16, r),
         get "/keys/:key" => move |r: &mut Request| download_key(&repo17, r)

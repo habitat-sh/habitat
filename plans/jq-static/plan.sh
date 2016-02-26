@@ -1,6 +1,6 @@
 pkg_name=jq-static
 pkg_distname=jq
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.5
 pkg_license=('mit')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

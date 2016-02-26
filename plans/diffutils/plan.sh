@@ -1,5 +1,5 @@
 pkg_name=diffutils
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=3.3
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv3+')

@@ -1,5 +1,5 @@
 pkg_name=libedit
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=3.1.20150325
 pkg_license=('bsd')
 pkg_source=http://thrysoee.dk/editline/libedit-20150325-3.1.tar.gz

@@ -1,5 +1,5 @@
 pkg_name=cacerts
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=_set_from_downloaded_cacerts_file_
 pkg_license=('mplv1.1' 'gplV2' 'lgplv2.1')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
@@ -48,6 +48,6 @@ update_pkg_version() {
   # Several metadata values get their defaults from the value of `$pkg_version`
   # so we must update these as well
   pkg_dirname=${pkg_name}-${pkg_version}
-  pkg_prefix=$BLDR_PKG_ROOT/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
   pkg_path=$pkg_prefix
 }

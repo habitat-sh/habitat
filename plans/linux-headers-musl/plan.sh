@@ -1,5 +1,5 @@
 pkg_name=linux-headers-musl
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=3.12.6-5
 pkg_license=('mit')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

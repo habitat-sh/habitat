@@ -1,6 +1,6 @@
 pkg_name=libmpc
 pkg_distname=mpc
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.0.3
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('lgpl')

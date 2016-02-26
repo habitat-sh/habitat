@@ -1,5 +1,5 @@
 pkg_name=libaio
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=0.3.109
 pkg_license=('LGPL')
 pkg_maintainer="Jamie Winsor <reset@chef.io>"

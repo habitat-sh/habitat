@@ -1,5 +1,5 @@
 pkg_name=numactl
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.0.10
 pkg_license=('GPLv2', 'LGPL2.1')
 pkg_source=https://github.com/${pkg_name}/${pkg_name}/archive/v${pkg_version}.tar.gz

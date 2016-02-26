@@ -1,5 +1,5 @@
 pkg_name=build
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=0.4.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')

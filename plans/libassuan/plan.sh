@@ -1,5 +1,5 @@
 pkg_name=libassuan
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.4.2
 pkg_license=('lgplv2+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

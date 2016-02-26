@@ -1,5 +1,5 @@
 pkg_name=mg
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=20160118
 pkg_license=('publicdomain')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

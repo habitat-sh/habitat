@@ -1,5 +1,5 @@
 pkg_name=runit
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.1.2
 pkg_license=('BSD')
 pkg_source=http://smarden.org/runit/runit-2.1.2.tar.gz

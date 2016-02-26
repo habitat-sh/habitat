@@ -12,7 +12,7 @@
     @include omega;
     @include outer-container;
 
-    .deriv, .name {
+    .origin, .name {
       @include span-columns(6);
     }
 
