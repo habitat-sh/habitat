@@ -6,17 +6,19 @@
 
 use std::fs;
 use std::path::Path;
-use fs::KEY_CACHE;
-use config::Config;
-use error::{BldrResult, ErrorKind};
-use util::gpg;
-use regex::Regex;
+use std::process::{Command, Stdio, Child};
+
 use ansi_term::Colour::{Yellow, Red};
 use time::strptime;
 use rpassword::read_password;
-use package::Package;
-use std::process::{Command, Stdio, Child};
+use regex::Regex;
+
+use config::Config;
+use error::{BldrResult, ErrorKind};
+use fs::KEY_CACHE;
+use package::{Package, PackageIdent};
 use repo;
+use util::gpg;
 
 static LOGKEY: &'static str = "KU"; // "key utils"
 static USER_KEY_COMMENT: &'static str = "bldr user key";
@@ -298,7 +300,6 @@ fn gen_service_key_email(keyname: &str, group: &str) -> String {
 /// generate a user key name in the form of
 /// `bldr_keyname`. If a user key is already in the
 /// form BLDR_KEY_PREFIX.+, then just return it
-
 fn gen_user_key_name(keyname: &str) -> String {
     let re = String::from(BLDR_KEY_PREFIX) + ".+";
     let regex = Regex::new(&re).unwrap();
@@ -325,12 +326,11 @@ impl Drop for DroppableChildProcess {
     }
 }
 
-
 /// run rngd in the background to generate entropy while generating keys.
 /// The process is killed when it goes out of scope via `DroppableChildProcess`.
 fn run_rngd() -> BldrResult<DroppableChildProcess> {
     debug!("Spawning rngd in the background");
-    let res = try!(Package::load("chef", "rngd", None, None, None));
+    let res = try!(Package::load(&PackageIdent::new("chef", "rngd", None, None), None));
     let rngdpath = res.join_path("sbin/rngd");
     debug!("RNGD path = {}", rngdpath);
     let child = Command::new(rngdpath)

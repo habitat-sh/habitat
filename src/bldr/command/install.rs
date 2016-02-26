@@ -46,11 +46,12 @@
 //!
 
 use std::fs;
+use std::str::FromStr;
 
 use fs::PACKAGE_CACHE;
 use error::BldrResult;
-use package::Package;
-use repo;
+use package::{Package, PackageIdent};
+use repo::{self, data_object};
 
 static LOGKEY: &'static str = "CI";
 
@@ -61,38 +62,30 @@ static LOGKEY: &'static str = "CI";
 ///
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url(repo: &str,
-                deriv: &str,
-                name: &str,
-                version: Option<String>,
-                release: Option<String>)
-                -> BldrResult<Package> {
-    let package = try!(repo::client::show_package(repo, deriv, name, version, release));
+pub fn from_url(repo: &str, ident: &PackageIdent) -> BldrResult<data_object::Package> {
+    let package = try!(repo::client::show_package(repo, ident));
     try!(fs::create_dir_all(PACKAGE_CACHE));
-    let mut installed: Vec<Package> = vec![];
-    if let Some(ref pkgs) = package.deps {
-        for pkg in pkgs {
-            try!(install(repo, &pkg, &mut installed));
-        }
+    let mut installed: Vec<PackageIdent> = vec![];
+    for dep in &package.deps {
+        let ident = try!(PackageIdent::from_str(&dep.to_string()));
+        try!(install(repo, &ident, &mut installed));
     }
-    try!(install(repo, &package, &mut installed));
+    try!(install(repo, &ident, &mut installed));
     Ok(package)
 }
 
-fn install(repo: &str, package: &Package, acc: &mut Vec<Package>) -> BldrResult<()> {
+fn install(repo: &str, package: &PackageIdent, acc: &mut Vec<PackageIdent>) -> BldrResult<()> {
     if acc.contains(&package) {
         return Ok(());
     }
-    let archive = try!(repo::client::fetch_package_exact(repo, package, PACKAGE_CACHE));
-    try!(archive.verify());
-    let package = try!(archive.unpack());
+    let archive = try!(repo::client::fetch_package(repo, package, PACKAGE_CACHE));
+    let package = try!(archive.ident());
+    let deps = try!(archive.deps());
+    try!(archive.unpack());
     outputln!("Installed {}", package);
-    let deps = package.deps.clone();
     acc.push(package);
-    if let Some(ref pkgs) = deps {
-        for pkg in pkgs {
-            try!(install(repo, &pkg, acc))
-        }
+    for dep in deps {
+        try!(install(repo, &dep, acc))
     }
     Ok(())
 }

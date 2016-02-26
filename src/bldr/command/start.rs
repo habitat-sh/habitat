@@ -55,7 +55,7 @@ use std::env;
 use fs::PACKAGE_CACHE;
 use error::{BldrResult, ErrorKind};
 use config::Config;
-use package::Package;
+use package::{Package, PackageIdent};
 use topology::{self, Topology};
 use command::install;
 use repo;
@@ -71,22 +71,26 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> BldrResult<()> {
-    match Package::load(config.deriv(), config.package(), None, None, None) {
-        Ok(mut package) => {
+    match Package::load(config.package(), None) {
+        Ok(package) => {
             if let Some(ref url) = *config.url() {
                 outputln!("Checking remote for newer versions...");
-                let latest_pkg = try!(repo::client::show_package(&url,
-                                                                 &package.derivation,
-                                                                 &package.name,
-                                                                 None,
-                                                                 None));
+                // It is important to pass `config.package()` to `show_package()` instead of the
+                // package identifier of the loaded package. This will ensure that if the operator
+                // starts a package while specifying a version number, they will only automaticaly
+                // receive release updates for the started package.
+                //
+                // If the operator does not specify a version number they will automatically receive
+                // updates for any releases, regardless of version number, for the started  package.
+                let latest_pkg: Package = try!(repo::client::show_package(&url, config.package()))
+                                              .into();
                 if latest_pkg > package {
                     outputln!("Downloading latest version from remote: {}", &latest_pkg);
-                    let archive = try!(repo::client::fetch_package_exact(&url,
-                                                                         &latest_pkg,
-                                                                         PACKAGE_CACHE));
+                    let archive = try!(repo::client::fetch_package(&url,
+                                                                   &PackageIdent::from(latest_pkg),
+                                                                   PACKAGE_CACHE));
                     try!(archive.verify());
-                    package = try!(archive.unpack());
+                    try!(archive.unpack());
                 } else {
                     outputln!("Already running latest.");
                 };
@@ -95,25 +99,16 @@ pub fn package(config: &Config) -> BldrResult<()> {
         }
         Err(_) => {
             outputln!("{} not found in local cache",
-                      Yellow.bold().paint(config.package()));
+                      Yellow.bold().paint(config.package().to_string()));
             match *config.url() {
                 Some(ref url) => {
                     outputln!("Searching for {} in remote {}",
-                              Yellow.bold().paint(config.package()),
+                              Yellow.bold().paint(config.package().to_string()),
                               url);
-                    let package = try!(install::from_url(url,
-                                                         config.deriv(),
-                                                         config.package(),
-                                                         config.version().clone(),
-                                                         config.release().clone()));
+                    let package: Package = try!(install::from_url(url, config.package())).into();
                     start_package(package, config)
                 }
-                None => {
-                    Err(bldr_error!(ErrorKind::PackageNotFound(config.deriv().to_string(),
-                                                               config.package().to_string(),
-                                                               config.release().clone(),
-                                                               config.release().clone())))
-                }
+                None => Err(bldr_error!(ErrorKind::PackageNotFound(config.package().clone()))),
             }
         }
     }

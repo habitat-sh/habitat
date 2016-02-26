@@ -20,9 +20,10 @@
 //! complex than just latest version.
 //!
 
-use error::BldrResult;
-use config::Config;
+use hyper::status::StatusCode;
 
+use error::{BldrResult, BldrError, ErrorKind};
+use config::Config;
 use package::Package;
 use repo;
 
@@ -38,13 +39,22 @@ static LOGKEY: &'static str = "CU";
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
-    let package = try!(Package::load(config.deriv(),
-                                     config.package(),
-                                     config.version().clone(),
-                                     config.release().clone(),
-                                     None));
+    let package = try!(Package::load(config.package(), None));
     outputln!("Uploading from {}", package.cache_file().to_string_lossy());
-    try!(repo::client::put_package(url, &package));
+    match repo::client::put_package(url, &package) {
+        Ok(()) => (),
+        Err(BldrError{err: ErrorKind::HTTP(StatusCode::Conflict), ..}) => {
+            outputln!("Package already exists on remote; skipping.");
+        }
+        Err(BldrError{err: ErrorKind::HTTP(StatusCode::UnprocessableEntity), ..}) => {
+            return Err(bldr_error!(ErrorKind::PackageArchiveMalformed(format!("{}",
+                                                                          package.cache_file().to_string_lossy()))));
+        }
+        Err(e) => {
+            outputln!("Unexpected response from remote");
+            return Err(e);
+        }
+    }
     outputln!("Complete");
     Ok(())
 }

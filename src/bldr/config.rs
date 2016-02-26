@@ -13,11 +13,13 @@
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
 use std::net;
-use gossip::server::GOSSIP_DEFAULT_PORT;
-use topology::Topology;
-use repo;
 use std::str::FromStr;
+
 use error::{BldrError, ErrorKind};
+use gossip::server::GOSSIP_DEFAULT_PORT;
+use package::PackageIdent;
+use repo;
+use topology::Topology;
 
 static LOGKEY: &'static str = "CFG";
 
@@ -38,10 +40,11 @@ pub enum Command {
     Decrypt,
     Shell,
     Repo,
+    RepoCreate,
+    RepoList,
+    RepoRepair,
     Upload,
-    Configuration,
 }
-
 
 impl FromStr for Command {
     type Err = BldrError;
@@ -51,6 +54,7 @@ impl FromStr for Command {
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
             "depot" => Ok(Command::Repo),
+            "depot-repair" => Ok(Command::RepoRepair),
             "download-depot-key" => Ok(Command::DownloadRepoKey),
             "encrypt" => Ok(Command::Encrypt),
             "export-key" => Ok(Command::ExportKey),
@@ -59,6 +63,8 @@ impl FromStr for Command {
             "import-key" => Ok(Command::ImportKey),
             "install" => Ok(Command::Install),
             "list-keys" => Ok(Command::ListKeys),
+            "repo-create" => Ok(Command::RepoCreate),
+            "repo-list" => Ok(Command::RepoList),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
             "upload-depot-key" => Ok(Command::UploadRepoKey),
@@ -79,14 +85,11 @@ impl Default for Command {
 #[derive(Default, Debug)]
 pub struct Config {
     command: Command,
-    package: String,
+    package: PackageIdent,
     url: Option<String>,
     topology: Topology,
     group: String,
     path: String,
-    deriv: String,
-    version: Option<String>,
-    release: Option<String>,
     watch: Vec<String>,
     key: String,
     password: Option<String>,
@@ -197,17 +200,6 @@ impl Config {
         &self.outfile
     }
 
-    /// Set the package name
-    pub fn set_package(&mut self, package: String) -> &mut Config {
-        self.package = package;
-        self
-    }
-
-    /// Return the package name
-    pub fn package(&self) -> &str {
-        &self.package
-    }
-
     /// Set the key expire days
     pub fn set_expire_days(&mut self, expire_days: u16) -> &mut Config {
         self.expire_days = Some(expire_days);
@@ -216,39 +208,6 @@ impl Config {
 
     pub fn expire_days(&self) -> &Option<u16> {
         &self.expire_days
-    }
-
-    /// Set the derivation
-    pub fn set_deriv(&mut self, deriv: String) -> &mut Config {
-        self.deriv = deriv;
-        self
-    }
-
-    /// Return the derivation
-    pub fn deriv(&self) -> &str {
-        &self.deriv
-    }
-
-    /// Set the version
-    pub fn set_version(&mut self, version: String) -> &mut Config {
-        self.version = Some(version);
-        self
-    }
-
-    /// Return the version
-    pub fn version(&self) -> &Option<String> {
-        &self.version
-    }
-
-    /// Set the release
-    pub fn set_release(&mut self, release: String) -> &mut Config {
-        self.release = Some(release);
-        self
-    }
-
-    /// Return the release
-    pub fn release(&self) -> &Option<String> {
-        &self.release
     }
 
     /// Set the path
@@ -347,21 +306,13 @@ impl Config {
         self
     }
 
-    pub fn package_id(&self) -> String {
-        if self.version.is_some() && self.release.is_some() {
-            format!("{}/{}/{}/{}",
-                    &self.deriv,
-                    &self.package,
-                    self.version.as_ref().unwrap(),
-                    self.release.as_ref().unwrap())
-        } else if self.version.is_some() {
-            format!("{}/{}/{}",
-                    self.deriv,
-                    self.package,
-                    self.version.as_ref().unwrap())
-        } else {
-            format!("{}/{}", self.deriv, self.package)
-        }
+    pub fn set_package(&mut self, ident: PackageIdent) -> &mut Config {
+        self.package = ident;
+        self
+    }
+
+    pub fn package(&self) -> &PackageIdent {
+        &self.package
     }
 }
 
@@ -388,13 +339,6 @@ mod tests {
         let mut c = Config::new();
         c.set_key(String::from("foolio"));
         assert_eq!(c.key(), "foolio");
-    }
-
-    #[test]
-    fn package() {
-        let mut c = Config::new();
-        c.set_package(String::from("foolio"));
-        assert_eq!(c.package(), "foolio");
     }
 
     #[test]

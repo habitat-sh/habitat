@@ -13,9 +13,9 @@ use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
 use rustc_serialize::json;
 
-use super::XFileName;
+use super::{XFileName, data_object};
 use error::{BldrResult, BldrError, ErrorKind};
-use package::{Package, PackageArchive};
+use package::{Package, PackageArchive, PackageIdent};
 
 static LOGKEY: &'static str = "RC";
 
@@ -31,39 +31,6 @@ pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
     download(key, &url, path)
 }
 
-/// Download a sepcific package identified by it's derivation, name, version, and release, to the
-/// given filepath.
-///
-/// # Failures
-///
-/// * Package cannot be found
-/// * Remote repository is not available
-/// * File cannot be created and written to
-pub fn fetch_package_exact(repo: &str,
-                           package: &Package,
-                           store: &str)
-                           -> BldrResult<PackageArchive> {
-    let url = format!("{}/pkgs/{}/{}/{}/{}/download",
-                      repo,
-                      package.derivation,
-                      package.name,
-                      package.version,
-                      package.release);
-    match download(&package.name, &url, store) {
-        Ok(file) => {
-            let path = PathBuf::from(file);
-            Ok(PackageArchive::new(path))
-        }
-        Err(BldrError{ err: ErrorKind::HTTP(StatusCode::NotFound), ..}) => {
-            Err(bldr_error!(ErrorKind::RemotePackageNotFound(package.derivation.clone(),
-                                                             package.name.clone(),
-                                                             Some(package.version.clone()),
-                                                             Some(package.release.clone()))))
-        }
-        Err(e) => Err(e),
-    }
-}
-
 /// Download the latest release of a package.
 ///
 /// An optional version and release can be specified
@@ -77,38 +44,17 @@ pub fn fetch_package_exact(repo: &str,
 /// * Remote repository is not available
 /// * File cannot be created and written to
 pub fn fetch_package(repo: &str,
-                     derivation: &str,
-                     package: &str,
-                     version: &Option<String>,
-                     release: &Option<String>,
+                     package: &PackageIdent,
                      store: &str)
                      -> BldrResult<PackageArchive> {
-    let url = if release.is_some() && version.is_some() {
-        format!("{}/pkgs/{}/{}/{}/{}/download",
-                repo,
-                derivation,
-                package,
-                release.as_ref().unwrap(),
-                version.as_ref().unwrap())
-    } else if release.is_some() {
-        format!("{}/pkgs/{}/{}/{}/download",
-                repo,
-                derivation,
-                package,
-                release.as_ref().unwrap())
-    } else {
-        format!("{}/pkgs/{}/{}/download", repo, derivation, package)
-    };
-    match download(package, &url, store) {
+    let url = format!("{}/pkgs/{}/download", repo, package);
+    match download(&package.name, &url, store) {
         Ok(file) => {
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
         Err(BldrError { err: ErrorKind::HTTP(StatusCode::NotFound), ..}) => {
-            Err(bldr_error!(ErrorKind::RemotePackageNotFound(derivation.to_string(),
-                                                             package.to_string(),
-                                                             version.clone(),
-                                                             release.clone())))
+            Err(bldr_error!(ErrorKind::RemotePackageNotFound(package.clone())))
         }
         Err(e) => Err(e),
     }
@@ -123,32 +69,20 @@ pub fn fetch_package(repo: &str,
 ///
 /// * Package cannot be found
 /// * Remote repository is not available
-pub fn show_package(repo: &str,
-                    derivation: &str,
-                    name: &str,
-                    version: Option<String>,
-                    release: Option<String>)
-                    -> BldrResult<Package> {
-    let url = url_show_package(repo, derivation, name, &version, &release);
+pub fn show_package(repo: &str, ident: &PackageIdent) -> BldrResult<data_object::Package> {
+    let url = url_show_package(repo, ident);
     let client = Client::new();
     let request = client.get(&url);
     let mut res = try!(request.send());
 
     if res.status != hyper::status::StatusCode::Ok {
-        let ver = if version.is_some() {
-            Some(version.unwrap().to_string())
-        } else {
-            None
-        };
-        return Err(bldr_error!(ErrorKind::RemotePackageNotFound(derivation.to_string(),
-                                                                name.to_string(),
-                                                                ver,
-                                                                None)));
+        return Err(bldr_error!(ErrorKind::RemotePackageNotFound(ident.clone())));
     }
 
     let mut encoded = String::new();
     try!(res.read_to_string(&mut encoded));
-    let package: Package = json::decode(&encoded).unwrap();
+    debug!("Body: {:?}", encoded);
+    let package: data_object::Package = json::decode(&encoded).unwrap();
     Ok(package)
 }
 
@@ -182,27 +116,11 @@ pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     upload(&url, &mut file)
 }
 
-fn url_show_package(repo: &str,
-                    derivation: &str,
-                    name: &str,
-                    version: &Option<String>,
-                    release: &Option<String>)
-                    -> String {
-    if version.is_some() && release.is_some() {
-        format!("{}/pkgs/{}/{}/{}/{}",
-                repo,
-                derivation,
-                name,
-                version.as_ref().unwrap(),
-                release.as_ref().unwrap())
-    } else if version.is_some() {
-        format!("{}/pkgs/{}/{}/{}",
-                repo,
-                derivation,
-                name,
-                version.as_ref().unwrap())
+fn url_show_package(repo: &str, package: &PackageIdent) -> String {
+    if package.fully_qualified() {
+        format!("{}/pkgs/{}", repo, package)
     } else {
-        format!("{}/pkgs/{}/{}", repo, derivation, name)
+        format!("{}/pkgs/{}/latest", repo, package)
     }
 }
 
@@ -273,9 +191,13 @@ fn upload(url: &str, file: &mut File) -> BldrResult<()> {
     debug!("Uploading to {}", url);
     let client = Client::new();
     let metadata = try!(file.metadata());
-    let res = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
-    debug!("Response {:?}", res);
-    Ok(())
+    let response = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
+    if response.status.is_success() {
+        Ok(())
+    } else {
+        debug!("Response {:?}", response);
+        Err(bldr_error!(ErrorKind::HTTP(response.status)))
+    }
 }
 
 fn progress(status: &str, written: i64, length: &str, finished: bool) {

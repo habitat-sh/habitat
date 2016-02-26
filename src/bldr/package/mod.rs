@@ -7,6 +7,7 @@
 pub mod archive;
 pub mod hooks;
 pub mod updater;
+
 pub use self::archive::{PackageArchive, MetaFile};
 pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
 pub use self::hooks::HookType;
@@ -16,9 +17,10 @@ use std::fmt;
 use std::fs::{self, DirEntry, File};
 use std::os::unix;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
+use std::string::ToString;
 use std::io::prelude::*;
 use std::process::Command;
-use std::io::BufReader;
 use std::env;
 use regex::Regex;
 
@@ -35,23 +37,161 @@ const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
 
-#[derive(Debug, Clone, Eq, RustcDecodable, RustcEncodable)]
+#[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Package {
     pub derivation: String,
     pub name: String,
     pub version: String,
     pub release: String,
-    pub deps: Option<Vec<Package>>,
+    pub deps: Vec<PackageIdent>,
+    pub tdeps: Vec<PackageIdent>,
 }
 
 impl fmt::Display for Package {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f,
-               "{}/{}/{}/{}",
-               self.derivation,
-               self.name,
-               self.version,
-               self.release)
+        write!(f, "{}", self.ident())
+    }
+}
+
+#[derive(RustcEncodable, RustcDecodable, PartialEq, Debug, Clone)]
+pub struct PackageIdent {
+    pub derivation: String,
+    pub name: String,
+    pub version: Option<String>,
+    pub release: Option<String>,
+}
+
+impl PackageIdent {
+    /// Creates a new package identifier
+    pub fn new<T: Into<String>>(deriv: T, name: T, version: Option<T>, release: Option<T>) -> Self {
+        PackageIdent {
+            derivation: deriv.into(),
+            name: name.into(),
+            version: version.map(|v| v.into()),
+            release: release.map(|v| v.into()),
+        }
+    }
+
+    pub fn fully_qualified(&self) -> bool {
+        self.version.is_some() && self.release.is_some()
+    }
+
+    pub fn satisfies(&self, other: &Self) -> bool {
+        if self.derivation != other.derivation || self.name != other.name {
+            return false;
+        }
+        if self.version.is_some() {
+            if other.version.is_none() {
+                return true;
+            }
+            if *self.version.as_ref().unwrap() != *other.version.as_ref().unwrap() {
+                return false;
+            }
+        }
+        if self.release.is_some() {
+            if other.release.is_none() {
+                return true;
+            }
+            if *self.release.as_ref().unwrap() != *other.release.as_ref().unwrap() {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl Default for PackageIdent {
+    fn default() -> PackageIdent {
+        PackageIdent::new("", "", None, None)
+    }
+}
+
+impl fmt::Display for PackageIdent {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.version.is_some() && self.release.is_some() {
+            write!(f, "{}/{}/{}/{}",
+                    self.derivation,
+                    self.name,
+                    self.version.as_ref().unwrap(),
+                    self.release.as_ref().unwrap())
+        } else if self.version.is_some() {
+            write!(f, "{}/{}/{}",
+                    self.derivation,
+                    self.name,
+                    self.version.as_ref().unwrap())
+        } else {
+            write!(f, "{}/{}", self.derivation, self.name)
+        }
+    }
+}
+
+impl From<Package> for PackageIdent {
+    fn from(value: Package) -> PackageIdent {
+        PackageIdent::new(value.derivation, value.name, Some(value.version), Some(value.release))
+    }
+}
+
+impl FromStr for PackageIdent {
+    type Err = BldrError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let items: Vec<&str> = value.split("/").collect();
+        let (deriv, name, ver, rel) = match items.len() {
+            2 => (items[0], items[1], None, None),
+            3 => (items[0], items[1], Some(items[2]), None),
+            4 => (items[0], items[1], Some(items[2]), Some(items[3])),
+            _ => return Err(bldr_error!(ErrorKind::InvalidPackageIdent(value.to_string()))),
+        };
+        Ok(PackageIdent::new(deriv, name, ver, rel))
+    }
+}
+
+impl PartialOrd for PackageIdent {
+    /// Packages can be compared according to the following:
+    ///
+    /// * Derivation is ignored in the comparison - my redis and
+    ///   your redis compare the same.
+    /// * If the names are not equal, they cannot be compared.
+    /// * If the versions are greater/lesser, return that as
+    ///   the ordering.
+    /// * If the versions are equal, return the greater/lesser
+    ///   for the release.
+    fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> {
+        if self.name != other.name {
+            return None;
+        }
+        if self.version.is_none() && other.version.is_none() {
+            return None;
+        }
+        if self.version.is_none() && other.version.is_some() {
+            return Some(Ordering::Less);
+        }
+        if self.version.is_some() && other.version.is_none() {
+            return Some(Ordering::Greater);
+        }
+        if self.release.is_none() && other.release.is_none() {
+            return None;
+        }
+        if self.release.is_none() && other.release.is_some() {
+            return Some(Ordering::Less);
+        }
+        if self.release.is_some() && other.release.is_none() {
+            return Some(Ordering::Greater);
+        }
+        let ord = match version_sort(self.version.as_ref().unwrap(), other.version.as_ref().unwrap()) {
+            Ok(ord) => ord,
+            Err(e) => {
+                error!("This was a very bad version number: {:?}", e);
+                return None;
+            }
+        };
+        match ord {
+            Ordering::Greater => return Some(Ordering::Greater),
+            Ordering::Less => return Some(Ordering::Less),
+            Ordering::Equal => {
+                return Some(self.release.cmp(&other.release));
+            }
+        }
     }
 }
 
@@ -84,47 +224,64 @@ pub enum Signal {
 }
 
 impl Package {
-    pub fn new(deriv: String, name: String, version: String, release: String) -> Self {
-        Package {
-            derivation: deriv,
-            name: name,
-            version: version,
-            release: release,
-            deps: None,
-        }
+    pub fn deps<P: AsRef<Path>>(ident: &PackageIdent, home: P) -> BldrResult<Vec<PackageIdent>> {
+        Self::read_deps(home.as_ref().join(ident.to_string()), MetaFile::Deps)
     }
 
-    pub fn add_dep(&mut self, dep: Package) -> &mut Self {
-        if let Some(ref mut deps) = self.deps {
-            deps.push(dep);
-        } else {
-            self.deps = Some(vec![dep]);
-        }
-        self
+    pub fn tdeps<P: AsRef<Path>>(ident: &PackageIdent, home: P) -> BldrResult<Vec<PackageIdent>> {
+        Self::read_deps(home.as_ref().join(ident.to_string()), MetaFile::TDeps)
     }
 
-    pub fn from_ident(id: &str) -> BldrResult<Package> {
-        let items: Vec<&str> = id.split("/").collect();
-        match items.len() {
-            4 => {
-                Ok(Self::new(items[0].trim().to_string(),
-                             items[1].trim().to_string(),
-                             items[2].trim().to_string(),
-                             items[3].trim().to_string()))
+    /// Helper function for reading metafiles containing dependencies represented by package
+    /// identifiers separated by new lines
+    ///
+    /// # Failures
+    ///
+    /// * Metafile could not be found
+    /// * Contents of the metafile could not be read
+    /// * Contents of the metafile are unreadable or malformed
+    fn read_deps<P: AsRef<Path>>(path: P, file: MetaFile) -> BldrResult<Vec<PackageIdent>> {
+        let mut deps: Vec<PackageIdent> = vec![];
+        match Self::read_metadata(path.as_ref(), file) {
+            Ok(body) => {
+                let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
+                for id in &ids {
+                    let package = try!(PackageIdent::from_str(id));
+                    if !package.fully_qualified() {
+                        return Err(bldr_error!(ErrorKind::InvalidPackageIdent(package.to_string())));
+                    }
+                    deps.push(package);
+                }
+                Ok(deps)
             }
-            _ => Err(bldr_error!(ErrorKind::InvalidPackageIdent(id.to_string()))),
+            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(deps),
+            Err(e) => Err(e),
         }
     }
 
-    pub fn from_path(spath: &str) -> BldrResult<Package> {
-        if Path::new(spath).starts_with(PACKAGE_HOME) {
-            let items: Vec<&str> = spath.split("/").collect();
-            Ok(Self::new(items[3].trim().to_string(),
-                         items[4].trim().to_string(),
-                         items[5].trim().to_string(),
-                         items[6].trim().to_string()))
-        } else {
-            Err(bldr_error!(ErrorKind::PackageLoad(spath.to_string())))
+    /// Read the contents of the given metafile from a package at the given filepath.
+    ///
+    /// # Failures
+    ///
+    /// * A metafile could not be found
+    /// * Contents of the metafile could not be read
+    /// * Contents of the metafile are unreadable or malformed
+    fn read_metadata<P: AsRef<Path>>(path: P, file: MetaFile) -> BldrResult<String> {
+        let filepath = path.as_ref().join(file.to_string());
+        match fs::metadata(&filepath) {
+            Ok(_) => {
+                match File::open(&filepath) {
+                    Ok(mut f) => {
+                        let mut data = String::new();
+                        if f.read_to_string(&mut data).is_err() {
+                            return Err(bldr_error!(ErrorKind::MetaFileMalformed));
+                        }
+                        Ok(data.trim().to_string())
+                    },
+                    Err(e) => Err(bldr_error!(ErrorKind::MetaFileIO(e)))
+                }
+            },
+            Err(_) => Err(bldr_error!(ErrorKind::MetaFileNotFound(file)))
         }
     }
 
@@ -135,49 +292,52 @@ impl Package {
     /// package will be returned if their optional value is not specified. If only a version is
     /// specified, the latest release of that package derivation, name, and version is returned.
     ///
-    /// An optional `home` path may be provided to search for a package in the non-default path.
-    pub fn load(deriv: &str,
-                pkg: &str,
-                ver: Option<String>,
-                rel: Option<String>,
-                home: Option<&str>)
-                -> BldrResult<Package> {
+    /// An optional `home` path may be provided to search for a package in a non-default path.
+    pub fn load(ident: &PackageIdent, home: Option<&str>) -> BldrResult<Package> {
         let path = home.unwrap_or(PACKAGE_HOME);
-        let pl = try!(Self::package_list(path));
-        let latest: Option<Package> = pl.iter()
-                                        .filter(|&p| {
-                                            if ver.is_some() && rel.is_some() {
-                                                p.name == pkg && p.derivation == deriv &&
-                                                p.version == *ver.as_ref().unwrap() &&
-                                                p.release == *rel.as_ref().unwrap()
-                                            } else if ver.is_some() {
-                                                p.name == pkg && p.derivation == deriv &&
-                                                p.version == *ver.as_ref().unwrap()
-                                            } else {
-                                                p.name == pkg && p.derivation == deriv
-                                            }
-                                        })
-                                        .fold(None, |winner, b| {
-                                            match winner {
-                                                Some(a) => {
-                                                    match a.partial_cmp(&b) {
-                                                        Some(Ordering::Greater) => Some(a),
-                                                        Some(Ordering::Equal) => Some(a),
-                                                        Some(Ordering::Less) => Some(b.clone()),
-                                                        None => Some(a),
+        if ident.fully_qualified() {
+            Ok(Package {
+                derivation: ident.derivation.clone(),
+                name: ident.name.clone(),
+                version: ident.version.as_ref().unwrap().clone(),
+                release: ident.release.as_ref().unwrap().clone(),
+                deps: try!(Self::deps(ident, path)),
+                tdeps: try!(Self::tdeps(ident, path)),
+            })
+        } else {
+            let pl = try!(Self::package_list(path));
+            let latest: Option<PackageIdent> = pl.iter()
+                                            .filter(|&p| p.satisfies(ident))
+                                            .fold(None, |winner, b| {
+                                                match winner {
+                                                    Some(a) => {
+                                                        match a.partial_cmp(&b) {
+                                                            Some(Ordering::Greater) => Some(a),
+                                                            Some(Ordering::Equal) => Some(a),
+                                                            Some(Ordering::Less) => Some(b.clone()),
+                                                            None => Some(a),
+                                                        }
                                                     }
+                                                    None => Some(b.clone()),
                                                 }
-                                                None => Some(b.clone()),
-                                            }
-                                        });
-        latest.ok_or(bldr_error!(ErrorKind::PackageNotFound(deriv.to_string(),
-                                                            pkg.to_string(),
-                                                            ver,
-                                                            rel)))
+                                            });
+            if let Some(id) = latest {
+                Ok(Package {
+                    deps: try!(Self::deps(&id, path)),
+                    tdeps: try!(Self::tdeps(&id, path)),
+                    derivation: id.derivation,
+                    name: id.name,
+                    version: id.version.unwrap(),
+                    release: id.release.unwrap(),
+                })
+            } else {
+                Err(bldr_error!(ErrorKind::PackageNotFound(ident.clone())))
+            }
+        }
     }
 
     pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(Self::load("chef", "runit", None, None, None));
+        let runit_pkg = try!(Self::load(&PackageIdent::new("chef", "runit", None, None), None));
         let signal_arg = match signal {
             Signal::Status => "status",
             Signal::Up => "up",
@@ -260,30 +420,6 @@ impl Package {
         }
     }
 
-    /// Creates a Package for every TDEP
-    pub fn tdeps(&self) -> BldrResult<Vec<Package>> {
-        let mut tdeps = Vec::new();
-        match fs::metadata(self.join_path("TDEPS")) {
-            Ok(_) => {
-                let tdep_file = File::open(self.join_path("TDEPS")).unwrap();
-                let reader = BufReader::new(tdep_file);
-                for line in reader.lines() {
-                    match line {
-                        Ok(tdep) => {
-                            let pkg = try!(Package::from_ident(&tdep));
-                            tdeps.push(pkg);
-                        }
-                        Err(e) => {
-                            outputln!("Package {} has malformed TDEPS: {}", self, e);
-                        }
-                    }
-                }
-            }
-            Err(_) => {}
-        }
-        Ok(tdeps)
-    }
-
     /// Returns a string with the full run path for this package. This path is composed of any
     /// binary paths specified by this package, or its TDEPS, plus bldr or its TDEPS, plus the
     /// existing value of the PATH variable.
@@ -292,23 +428,23 @@ impl Package {
     /// to worry much about context.
     pub fn run_path(&self) -> BldrResult<String> {
         let mut run_path = String::new();
-        if let Some(path) = self.path_meta() {
+        if let Some(path) = try!(self.path_meta()) {
             run_path = format!("{}", path);
         }
-        let tdeps = try!(self.tdeps());
+        let tdeps: Vec<Package> = try!(self.load_tdeps());
         for dep in tdeps.iter() {
-            if let Some(path) = dep.path_meta() {
+            if let Some(path) = try!(dep.path_meta()) {
                 run_path = format!("{}:{}", run_path, path);
             }
         }
         if self.name != "bldr" {
-            let bldr_pkg = try!(Package::load("chef", "bldr", None, None, None));
-            if let Some(path) = bldr_pkg.path_meta() {
+            let bldr_pkg = try!(Package::load(&PackageIdent::new("chef", "bldr", None, None), None));
+            if let Some(path) = try!(bldr_pkg.path_meta()) {
                 run_path = format!("{}:{}", run_path, path);
             }
-            let tdeps = try!(bldr_pkg.tdeps());
+            let tdeps: Vec<Package> = try!(bldr_pkg.load_tdeps());
             for dep in tdeps.iter() {
-                if let Some(path) = dep.path_meta() {
+                if let Some(path) = try!(dep.path_meta()) {
                     run_path = format!("{}:{}", run_path, path);
                 }
             }
@@ -325,20 +461,17 @@ impl Package {
     }
 
     /// Return the PATH string from the package metadata, if it exists
-    pub fn path_meta(&self) -> Option<String> {
-        match fs::metadata(self.join_path("PATH")) {
-            Ok(_) => {
-                let mut path_file = File::open(self.join_path("PATH")).unwrap();
-                let mut path_string = String::new();
-                path_file.read_to_string(&mut path_string).unwrap();
-                Some(String::from(path_string.trim_right_matches("\n")))
-            }
-            Err(_) => {
-                None
-            }
+    ///
+    /// # Failures
+    ///
+    /// * The package contains a Path metafile but it could not be read or it was malformed
+    pub fn path_meta(&self) -> BldrResult<Option<String>> {
+        match Self::read_metadata(self.path(), MetaFile::Path) {
+            Ok(data) => Ok(Some(data)),
+            Err(BldrError {err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Err(e) => Err(e),
         }
     }
-
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
         let base = PathBuf::from(self.join_path("hooks"));
@@ -445,14 +578,7 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> BldrResult<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        let config_dir = self.join_path("config");
-        {
-            let p = Path::new(&config_dir);
-            if !p.exists() {
-                return Ok(files);
-            }
-        }
-        for config in try!(fs::read_dir(config_dir)) {
+        for config in try!(fs::read_dir(self.join_path("config"))) {
             let config = try!(config);
             match config.path().file_name() {
                 Some(filename) => {
@@ -462,6 +588,14 @@ impl Package {
             }
         }
         Ok(files)
+    }
+
+    pub fn ident(&self) -> String {
+        format!("{}/{}/{}/{}",
+                self.derivation,
+                self.name,
+                self.version,
+                self.release)
     }
 
     /// Run iniitalization hook if present
@@ -555,9 +689,25 @@ impl Package {
         Ok(result)
     }
 
+    /// Attempts to load the extracted package for each transitive dependency and returns a
+    /// `Package` struct representation of each in the returned vector.
+    ///
+    /// # Failures
+    ///
+    /// * Any transitive dependency could not be located or it's contents could not be read
+    ///   from disk
+    fn load_tdeps(&self) -> BldrResult<Vec<Package>> {
+        let mut deps = Vec::with_capacity(self.tdeps.len());
+        for dep in self.tdeps.iter() {
+            let package = try!(Package::load(dep, None));
+            deps.push(package);
+        }
+        Ok(deps)
+    }
+
     /// Returns a list of package structs built from the contents of the given directory.
-    fn package_list(path: &str) -> BldrResult<Vec<Package>> {
-        let mut package_list: Vec<Package> = Vec::new();
+    fn package_list(path: &str) -> BldrResult<Vec<PackageIdent>> {
+        let mut package_list: Vec<PackageIdent> = vec![];
         if try!(fs::metadata(path)).is_dir() {
             try!(Self::walk_derivations(&path, &mut package_list));
         }
@@ -567,7 +717,7 @@ impl Package {
     /// Helper function for package_list. Walks the given path for derivation directories
     /// and builds on the given package list by recursing into name, version, and release
     /// directories.
-    fn walk_derivations(path: &str, packages: &mut Vec<Package>) -> BldrResult<()> {
+    fn walk_derivations(path: &str, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
         for entry in try!(fs::read_dir(path)) {
             let derivation = try!(entry);
             if try!(fs::metadata(derivation.path())).is_dir() {
@@ -579,7 +729,7 @@ impl Package {
 
     /// Helper function for walk_derivations. Walks the given derivation DirEntry for name
     /// directories and recurses into them to find version and release directories.
-    fn walk_names(derivation: &DirEntry, packages: &mut Vec<Package>) -> BldrResult<()> {
+    fn walk_names(derivation: &DirEntry, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
         for name in try!(fs::read_dir(derivation.path())) {
             let name = try!(name);
             let derivation = derivation.file_name().to_string_lossy().into_owned().to_string();
@@ -594,7 +744,7 @@ impl Package {
     /// into them to find release directories.
     fn walk_versions(derivation: &String,
                      name: &DirEntry,
-                     packages: &mut Vec<Package>)
+                     packages: &mut Vec<PackageIdent>)
                      -> BldrResult<()> {
         for version in try!(fs::read_dir(name.path())) {
             let version = try!(version);
@@ -612,13 +762,13 @@ impl Package {
     fn walk_releases(derivation: &String,
                      name: &String,
                      version: &DirEntry,
-                     packages: &mut Vec<Package>)
+                     packages: &mut Vec<PackageIdent>)
                      -> BldrResult<()> {
         for release in try!(fs::read_dir(version.path())) {
             let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
             let version = version.file_name().to_string_lossy().into_owned().to_string();
-            let package = Package::new(derivation.clone(), name.clone(), version, release);
-            packages.push(package)
+            let ident = PackageIdent::new(derivation.clone(), name.clone(), Some(version), Some(release));
+            packages.push(ident)
         }
         Ok(())
     }
@@ -770,33 +920,33 @@ impl PartialOrd for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{Package, split_version, version_sort};
+    use super::{Package, PackageIdent, split_version, version_sort};
     use std::cmp::Ordering;
     use std::cmp::PartialOrd;
 
     #[test]
-    fn package_partial_eq() {
-        let a = Package::new("bldr".to_string(),
+    fn package_ident_partial_eq() {
+        let a = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
-        let b = Package::new("bldr".to_string(),
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
+        let b = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
         assert_eq!(a, b);
     }
 
     #[test]
-    fn package_partial_ord() {
-        let a = Package::new("bldr".to_string(),
+    fn package_ident_partial_ord() {
+        let a = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.1".to_string(),
-                             "20150521131555".to_string());
-        let b = Package::new("bldr".to_string(),
+                             Some("1.0.1".to_string()),
+                             Some("20150521131555".to_string()));
+        let b = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("Ordering should be greater"),
@@ -804,15 +954,15 @@ mod tests {
     }
 
     #[test]
-    fn package_partial_ord_bad_name() {
-        let a = Package::new("bldr".to_string(),
+    fn package_ident_partial_ord_bad_name() {
+        let a = PackageIdent::new("bldr".to_string(),
                              "snoopy".to_string(),
-                             "1.0.1".to_string(),
-                             "20150521131555".to_string());
-        let b = Package::new("bldr".to_string(),
+                             Some("1.0.1".to_string()),
+                             Some("20150521131555".to_string()));
+        let b = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
             None => assert!(true),
@@ -820,15 +970,15 @@ mod tests {
     }
 
     #[test]
-    fn package_partial_ord_different_derivation() {
-        let a = Package::new("adam".to_string(),
+    fn package_ident_partial_ord_different_derivation() {
+        let a = PackageIdent::new("adam".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
-        let b = Package::new("bldr".to_string(),
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
+        let b = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
             None => panic!("We failed to return an order"),
@@ -836,15 +986,15 @@ mod tests {
     }
 
     #[test]
-    fn package_partial_ord_release() {
-        let a = Package::new("adam".to_string(),
+    fn package_ident_partial_ord_release() {
+        let a = PackageIdent::new("adam".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131556".to_string());
-        let b = Package::new("bldr".to_string(),
+                             Some("1.0.0".to_string()),
+                             Some("20150521131556".to_string()));
+        let b = PackageIdent::new("bldr".to_string(),
                              "bldr".to_string(),
-                             "1.0.0".to_string(),
-                             "20150521131555".to_string());
+                             Some("1.0.0".to_string()),
+                             Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("We failed to return an order"),
@@ -906,5 +1056,13 @@ mod tests {
             Ok(compare) => assert_eq!(compare, Ordering::Less),
             Err(e) => panic!("{:?}", e),
         }
+    }
+
+    #[test]
+    fn check_fully_qualified_package_id() {
+        let partial = PackageIdent::new("chef", "libarchive", None, None);
+        let full = PackageIdent::new("chef", "libarchive", Some("1.2.3"), Some("1234"));
+        assert!(!partial.fully_qualified());
+        assert!(full.fully_qualified());
     }
 }

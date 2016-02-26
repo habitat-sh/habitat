@@ -20,7 +20,7 @@ use std::io::prelude::*;
 
 use fs::SERVICE_HOME;
 use error::{BldrResult, BldrError, ErrorKind};
-use package::Package;
+use package::{Package, PackageIdent};
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
 use config::Config;
@@ -63,7 +63,7 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
 pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
     outputln!(P: &worker.package_name, "Starting");
     let package = worker.package_name.clone();
-    let runit_pkg = try!(Package::load("chef", "runit", None, None, None));
+    let runit_pkg = try!(Package::load(&PackageIdent::new("chef", "runit", None, None), None));
     let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
                              .arg(&format!("{}/{}", SERVICE_HOME, worker.package_name))
                              .stdin(Stdio::null())

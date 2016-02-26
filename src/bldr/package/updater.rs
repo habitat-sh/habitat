@@ -5,13 +5,14 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::sync::{Arc, RwLock};
+use std::str::FromStr;
 
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
 use error::BldrError;
 use fs::PACKAGE_CACHE;
-use package::Package;
+use package::{Package, PackageIdent};
 use repo;
 
 const TIMEOUT_MS: u64 = 60_000;
@@ -82,14 +83,18 @@ impl GenServer for PackageUpdater {
                       state: &mut Self::S)
                       -> HandleResult<Self::T> {
         let package = state.package.read().unwrap();
-        match repo::client::show_package(&state.repo,
-                                         &package.derivation,
-                                         &package.name,
-                                         None,
-                                         None) {
-            Ok(latest) => {
+        // JW TODO: Store and use the version if the package was started with a specific version.
+        //          This will allow an operator to lock to a version and receive security updates
+        //          in the form of release updates for a package.
+        let ident = PackageIdent::new(package.derivation.clone(), package.name.clone(), None, None);
+        match repo::client::show_package(&state.repo, &ident) {
+            Ok(remote) => {
+                let latest: Package = remote.into();
                 if latest > *package {
-                    match repo::client::fetch_package_exact(&state.repo, &latest, PACKAGE_CACHE) {
+                    match repo::client::fetch_package(&state.repo,
+                                                      &PackageIdent::from_str(&latest.ident())
+                                                           .unwrap(),
+                                                      PACKAGE_CACHE) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
