@@ -1,5 +1,5 @@
 pkg_name=libltdl
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.4.6
 pkg_license=('GPL')
 pkg_maintainer="Jamie Winsor <reset@chef.io>"

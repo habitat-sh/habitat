@@ -1,5 +1,5 @@
 pkg_name=libarchive
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=3.1.2
 pkg_license=('BSD')
 pkg_source=http://www.libarchive.org/downloads/${pkg_name}-${pkg_version}.tar.gz

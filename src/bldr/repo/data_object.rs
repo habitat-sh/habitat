@@ -30,7 +30,7 @@ impl PackageIdent {
         PackageIdent(ident)
     }
 
-    pub fn deriv_idx(&self) -> String {
+    pub fn origin_idx(&self) -> String {
         format!("{}", self.parts()[0])
     }
 
@@ -59,7 +59,7 @@ impl Encodable for PackageIdent {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
         let p = self.parts();
         try!(s.emit_struct("PackageIdent", p.len(), |s| {
-            try!(s.emit_struct_field("derivation", 0, |s| p[0].encode(s)));
+            try!(s.emit_struct_field("origin", 0, |s| p[0].encode(s)));
             try!(s.emit_struct_field("name", 1, |s| p[1].encode(s)));
             if p.len() > 2 {
                 try!(s.emit_struct_field("version", 2, |s| p[2].encode(s)));
@@ -76,11 +76,11 @@ impl Encodable for PackageIdent {
 impl Decodable for PackageIdent {
     fn decode<D: Decoder>(d: &mut D) -> Result<Self, D::Error> {
         d.read_struct("PackageIdent", 4, |d| {
-            let derivation: String = try!(d.read_struct_field("derivation", 0, |d| Decodable::decode(d)));
+            let origin: String = try!(d.read_struct_field("origin", 0, |d| Decodable::decode(d)));
             let name: String = try!(d.read_struct_field("name", 1, |d| Decodable::decode(d)));
             let version: String = try!(d.read_struct_field("version", 2, |d| Decodable::decode(d)));
             let release: String = try!(d.read_struct_field("release", 3, |d| Decodable::decode(d)));
-            Ok(PackageIdent::new(format!("{}/{}/{}/{}", derivation, name, version, release)))
+            Ok(PackageIdent::new(format!("{}/{}/{}/{}", origin, name, version, release)))
         })
     }
 }
@@ -178,7 +178,7 @@ impl Into<package::Package> for Package {
     fn into(self) -> package::Package {
         let ident = self.ident.parts();
         package::Package {
-            derivation: ident[0].to_string(),
+            origin: ident[0].to_string(),
             name: ident[1].to_string(),
             version: ident[2].to_string(),
             release: ident[3].to_string(),

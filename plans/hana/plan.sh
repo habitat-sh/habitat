@@ -1,4 +1,4 @@
-pkg_derivation=sap
+pkg_origin=sap
 pkg_name=hana
 pkg_version=100.102.01
 pkg_license=('SAP')

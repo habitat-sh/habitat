@@ -1,5 +1,5 @@
 pkg_name=check
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=0.10.0
 pkg_license=('lgplv2+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

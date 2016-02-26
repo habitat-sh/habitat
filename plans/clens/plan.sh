@@ -1,5 +1,5 @@
 pkg_name=clens
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=0.7.0
 pkg_license=('isc')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

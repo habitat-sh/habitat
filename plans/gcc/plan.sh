@@ -1,6 +1,6 @@
 pkg_name=gcc
 pkg_distname=$pkg_name
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=5.2.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gpl')

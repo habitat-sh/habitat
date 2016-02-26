@@ -1,5 +1,5 @@
 pkg_name=acl
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.2.52
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('lgpl')

@@ -1,6 +1,6 @@
 pkg_name=bash
 pkg_distname=$pkg_name
-pkg_derivation=chef
+pkg_origin=chef
 _base_version=4.3
 pkg_version=${_base_version}.42
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

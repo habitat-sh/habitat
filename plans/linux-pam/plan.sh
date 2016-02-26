@@ -1,4 +1,4 @@
-pkg_derivation=chef
+pkg_origin=chef
 pkg_name=linux-pam
 pkg_version=1.2.1
 pkg_license=('MIT', 'GPL')

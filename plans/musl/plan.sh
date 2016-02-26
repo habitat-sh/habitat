@@ -1,5 +1,5 @@
 pkg_name=musl
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.1.12
 pkg_license=('mit')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

@@ -1,5 +1,5 @@
 pkg_name=pcre
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=8.38
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('bsd')

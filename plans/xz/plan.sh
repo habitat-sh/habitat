@@ -1,5 +1,5 @@
 pkg_name=xz
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=5.2.2
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gpl2+' 'lgpl2+')

@@ -1,6 +1,6 @@
 pkg_name=python
 pkg_version=3.5.1
-pkg_derivation=chef
+pkg_origin=chef
 pkg_license=('python')
 pkg_dirname=Python-${pkg_version}
 pkg_source=https://www.python.org/ftp/python/${pkg_version}/${pkg_dirname}.tgz

@@ -15,7 +15,7 @@ trap _on_exit 1 2 3 15 ERR
 : ${BUILD:=./bldr-build}
 BLDR_ROOT=/opt/bldr
 BLDR_PKG_ROOT="$BLDR_ROOT/pkgs"
-derivation=chef
+origin=chef
 
 build() {
   local plan="${1:-}"
@@ -25,14 +25,14 @@ build() {
     exit 0
   fi
   local db="tmp/${DB_PREFIX:-}bootstrap-toolchain.db"
-  local path="$BLDR_PKG_ROOT/$derivation/$plan"
+  local path="$BLDR_PKG_ROOT/$origin/$plan"
   local manifest
   local ident
   local cmd
   mkdir -p $(dirname $db)
   touch $db
 
-  if grep -q "^$derivation/$plan:$*$" $db > /dev/null; then
+  if grep -q "^$origin/$plan:$*$" $db > /dev/null; then
     if ident=$(find $path -name IDENT -type f 2>&1); then
       ident="$(echo $ident | tr ' ' '\n' | sort | tail -n 1)"
       if [ ! -f "$ident" ]; then
@@ -55,7 +55,7 @@ build() {
   echo "[$plan] Building with: $cmd"
   eval $cmd
   echo "[$plan] Recording build record in $db"
-  echo "$derivation/$plan:$*" >> $db
+  echo "$origin/$plan:$*" >> $db
 }
 
 cat <<_PLANS_ | while read plan; do build $plan; done

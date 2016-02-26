@@ -1,5 +1,5 @@
 pkg_name=dejagnu
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.5.3
 pkg_license=('gplv2+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

@@ -1,5 +1,5 @@
 pkg_name=apr
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.5.2
 pkg_license=('Apache2')
 pkg_source=http://www.us.apache.org/dist/apr/${pkg_name}-${pkg_version}.tar.bz2

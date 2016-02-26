@@ -1,5 +1,5 @@
 pkg_name=vim
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=7.4.1089
 pkg_license=('vim')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

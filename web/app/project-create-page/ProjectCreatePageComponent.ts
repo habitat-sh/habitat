@@ -24,7 +24,7 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
                 <a href="#">(change)</a>
             </div>
             <div class="project-fields">
-                <div class="deriv">
+                <div class="origin">
                     <label for="origin">Project Origin</label>
                     <input ngControl="origin" disabled id="origin" name="origin">
                 </div>

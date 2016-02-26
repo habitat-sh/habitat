@@ -1,5 +1,5 @@
 pkg_name=node
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=4.2.6
 pkg_license=('MIT')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

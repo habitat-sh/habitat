@@ -149,13 +149,12 @@
 # pkg_expose=(80 443)
 # ```
 #
-# ### pkg_derivation
-# A string to use for the derivation. Defaults to bldr. The derivation is used
-# to denote a particular upstream of a package; when we resolve dependencies,
-# we consider a version of a package to be equal regardless of its derivation -
-# but you can specify what you prefer to use.
+# ### pkg_origin
+# A string to use for the origin. The origin is used to denote a particular upstream of a
+# package; when we resolve dependencies, we consider a version of a package to be equal
+# regardless of its origin - but you can specify what you prefer to use.
 # ```
-# pkg_derivation=bldr
+# pkg_origin=chef
 # ```
 #
 # ### pkg_interpreters
@@ -289,8 +288,8 @@ PLAN_CONTEXT=${1:-.}
 : ${BLDR_REPO:=http://52.11.158.96:32768}
 # The value of `$PATH` on initial start of this program
 BLDR_INITIAL_PATH="$PATH"
-# The default derivation is `bldr`
-pkg_derivation=""
+# The package's origin (i.e. chef)
+pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_rel=$(date -u +%Y%m%d%H%M%S)
 # The default build deps setting - an empty array
@@ -535,7 +534,7 @@ _resolve_dependency() {
   local dep="$1"
   local dep_path
   if ! echo "$dep" | grep -q '\/' > /dev/null; then
-    warn "Derivation required for '$dep' in plan '$pkg_derivation/$pkg_name' (example: chef/$dep)"
+    warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: chef/$dep)"
     return 1
   fi
 
@@ -1616,7 +1615,7 @@ _build_metadata() {
     echo "$deps" > $pkg_path/TDEPS
   fi
 
-  echo "${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_path/IDENT
+  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_path/IDENT
 
   return 0
 }
@@ -1713,7 +1712,7 @@ do_default_strip() {
 _build_manifest() {
 build_line "Creating manifest"
 cat <<-EOT >> $pkg_path/MANIFEST
-$pkg_derivation $pkg_name
+$pkg_origin $pkg_name
 =========================
 
 Maintainer: $pkg_maintainer
@@ -1756,7 +1755,7 @@ _generate_package() {
   $_tar_cmd -cf - "$pkg_path" | $_gpg_cmd \
     --set-filename x.tar \
     --local-user $pkg_gpg_key \
-    --output $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
+    --output $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
     --sign
   return 0
 }
@@ -1818,9 +1817,9 @@ else
   exit_with "Failed to load Plan" $ret
 fi
 
-# `$pkg_derivation` is a required metadata key
-if [[ -z "${pkg_derivation}" ]]; then
-  exit_with "Failed to build. 'pkg_derivation' must be set." 1
+# `$pkg_origin` is a required metadata key
+if [[ -z "${pkg_origin}" ]]; then
+  exit_with "Failed to build. 'pkg_origin' must be set." 1
 fi
 
 # `$pkg_version` is a required metadata key
@@ -1847,12 +1846,12 @@ fi
 
 # Set `$pkg_path` if it is not already set by the `plan.sh`.
 if [[ -z "${pkg_path+xxx}" ]]; then
-  pkg_path=$BLDR_PKG_ROOT/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_path=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=$BLDR_PKG_ROOT/${pkg_derivation}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set $pkg_srvc variables.
@@ -1941,7 +1940,7 @@ do_end
 # Print the results
 build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
 build_line "Installed: $pkg_path"
-build_line "Package: $BLDR_PKG_CACHE/${pkg_derivation}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+build_line "Package: $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
 build_line

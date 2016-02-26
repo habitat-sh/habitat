@@ -1,5 +1,5 @@
 pkg_name=redis
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=3.0.7
 pkg_license=('BSD')
 pkg_maintainer="Adam Jacob <adam@chef.io>"

@@ -1,5 +1,5 @@
 pkg_name=db
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=5.3.28
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('custom')

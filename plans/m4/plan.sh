@@ -1,5 +1,5 @@
 pkg_name=m4
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.4.17
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv3')

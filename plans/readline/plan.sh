@@ -1,5 +1,5 @@
 pkg_name=readline
-pkg_derivation=chef
+pkg_origin=chef
 _base_version=6.3
 pkg_version=${_base_version}.8
 pkg_license=('gplv3+')

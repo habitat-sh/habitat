@@ -1,5 +1,5 @@
 pkg_name=perl
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=5.22.1
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gpl' 'perlartistic')

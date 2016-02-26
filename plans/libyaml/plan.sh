@@ -1,6 +1,6 @@
 pkg_name=libyaml
 pkg_version=0.1.6
-pkg_derivation=chef
+pkg_origin=chef
 pkg_license=('mit')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_dirname=yaml-${pkg_version}

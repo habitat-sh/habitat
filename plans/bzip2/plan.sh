@@ -1,5 +1,5 @@
 pkg_name=bzip2
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.0.6
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('bzip2')

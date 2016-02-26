@@ -1,6 +1,6 @@
 pkg_name=libiconv
 pkg_version=1.14
-pkg_derivation=chef
+pkg_origin=chef
 pkg_license=('gplv2')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_source=http://ftp.gnu.org/pub/gnu/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz

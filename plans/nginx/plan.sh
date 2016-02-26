@@ -1,5 +1,5 @@
 pkg_name=nginx
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.8.0
 pkg_maintainer="Adam Jacob <adam@chef.io>"
 pkg_license=('bsd')

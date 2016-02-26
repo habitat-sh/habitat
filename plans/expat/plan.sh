@@ -1,5 +1,5 @@
 pkg_name=expat
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.1.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('mit')

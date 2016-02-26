@@ -1,5 +1,5 @@
 pkg_name=libtool
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.4.6
 pkg_license=('gplv2+')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

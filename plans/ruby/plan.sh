@@ -1,5 +1,5 @@
 pkg_name=ruby
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.3.0
 pkg_license=('ruby')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

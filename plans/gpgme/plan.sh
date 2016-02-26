@@ -1,5 +1,5 @@
 pkg_name=gpgme
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.6.0
 pkg_license=('LGPL')
 pkg_source=https://www.gnupg.org/ftp/gcrypt/${pkg_name}/${pkg_name}-${pkg_version}.tar.bz2

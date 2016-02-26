@@ -1,6 +1,6 @@
 pkg_name=busybox
 pkg_distname=$pkg_name
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.24.1
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv2')

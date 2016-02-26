@@ -1,5 +1,5 @@
 pkg_name=libxml2
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=2.9.2
 pkg_license=('MIT')
 pkg_maintainer="Jamie Winsor <reset@chef.io>"

@@ -1,4 +1,4 @@
-pkg_derivation=chef
+pkg_origin=chef
 pkg_name=openssl-0.9.8
 pkg_version=0.9.8zg
 pkg_license=('BSD')

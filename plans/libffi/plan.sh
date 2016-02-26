@@ -1,6 +1,6 @@
 pkg_name=libffi
 pkg_version=3.2.1
-pkg_derivation=chef
+pkg_origin=chef
 pkg_license=('mit')
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_source=ftp://sourceware.org/pub/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz

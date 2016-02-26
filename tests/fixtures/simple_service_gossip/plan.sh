@@ -1,5 +1,5 @@
 pkg_name=simple_service_gossip
-pkg_derivation=test
+pkg_origin=test
 pkg_version=0.0.1
 pkg_license=('Apache2')
 pkg_maintainer="Adam Jacob <adam@chef.io>"

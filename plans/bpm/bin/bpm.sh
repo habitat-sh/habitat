@@ -523,7 +523,7 @@ latest_remote_package() {
     "2"|"1")
       local result="$(\
         $bb env -u http_proxy $bb wget "$BLDR_REPO/pkgs/$1" -O- -q | \
-        $jq -r '.derivation + "/" + .name + "/" + .version + "/" + .release')"
+        $jq -r '.origin + "/" + .name + "/" + .version + "/" + .release')"
       if [ -n "$result" ]; then
         echo $result
       else
@@ -596,7 +596,7 @@ latest_installed_package() {
 # given package identifier.
 #
 # Note that a fully qualified package identifier must be provided, that is
-# `<DERIVATION>/<NAME>/<VERSION>/<RELEASE>`.
+# `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
 #
 # ```sh
 # install_package chef/zlib/1.2.8/20160104212444
@@ -648,7 +648,7 @@ install_package() {
 # from a package repository, represented by the given package identifier.
 #
 # Note that a fully qualified package identifier must be provided, that is
-# `<DERIVATION>/<NAME>/<VERSION>/<RELEASE>`.
+# `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
 #
 # ```sh
 # install_package_tdeps chef/zlib/1.2.8/20160104212444

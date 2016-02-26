@@ -1,5 +1,5 @@
 pkg_name=rust
-pkg_derivation=chef
+pkg_origin=chef
 pkg_version=1.6.0
 pkg_license=('Apache-2.0' 'MIT')
 pkg_source=https://static.rust-lang.org/dist/${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu.tar.gz
