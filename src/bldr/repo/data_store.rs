@@ -1305,7 +1305,8 @@ impl Database for PkgIndex {
     fn write<'a>(&self, txn: &RwTransaction<'a, Self>, object: &Self::Object) -> BldrResult<()> {
         try!(txn.put(&object.origin_idx(), object));
         try!(txn.put(&object.name_idx(), object));
-        txn.put(&object.version_idx(), object)
+        try!(txn.put(object.version_idx().as_ref().unwrap(), object));
+        Ok(())
     }
 }
 
@@ -1385,6 +1386,7 @@ mod tests {
     use super::*;
     use super::super::data_object::*;
     use error::{BldrError, ErrorKind};
+    use package;
 
     // JW TODO: This test is ignored while I track down a bug preventing multiple transactions
     // being opened from different threads.
@@ -1392,7 +1394,7 @@ mod tests {
     #[ignore]
     fn read_write_composite_data_object() {
         let ds = open_datastore();
-        let key: String = "chef/redis/3.0.1/1234".to_string();
+        let key: package::PackageIdent = package::PackageIdent::new("chef", "redis", Some("3.0.1"), Some("1234"));
         {
             let pkg = Package {
                 ident: PackageIdent::new(key.clone()),
@@ -1408,9 +1410,9 @@ mod tests {
             txn.commit().unwrap();
         }
         let txn = ds.packages.txn_ro().unwrap();
-        let saved = txn.get(&"chef/redis/3.0.1/1234".to_string()).unwrap();
+        let saved = txn.get(&key.to_string()).unwrap();
         txn.abort();
-        assert_eq!(saved.ident(), "chef/redis/3.0.1/1234");
+        assert_eq!(saved.ident(), &key.to_string());
         assert_eq!(saved.manifest, "my-manifest");
         assert_eq!(saved.config, Some("configuration".to_string()));
     }

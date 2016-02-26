@@ -105,19 +105,8 @@ impl<'a> Into<package::PackageIdent> for &'a Params {
 
 impl<'a> Into<data_object::PackageIdent> for &'a Params {
     fn into(self) -> data_object::PackageIdent {
-        let origin = self.find("origin").unwrap();
-        let name = self.find("pkg");
-        let version = self.find("version");
-        let release = self.find("release");
-        if release.is_some() && version.is_some() && name.is_some() {
-            data_object::PackageIdent::new(format!("{}/{}/{}/{}", origin, name.unwrap(), version.unwrap(), release.unwrap()))
-        } else if version.is_some() && name.is_some() {
-            data_object::PackageIdent::new(format!("{}/{}/{}", origin, name.unwrap(), version.unwrap()))
-        } else if name.is_some() {
-            data_object::PackageIdent::new(format!("{}/{}", origin, name.unwrap()))
-        } else {
-            data_object::PackageIdent::new(origin.to_string())
-        }
+        let ident: package::PackageIdent = self.into();
+        data_object::PackageIdent::new(ident)
     }
 }
 
@@ -206,12 +195,8 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 
         let mut response = Response::with((status::Created, format!("/pkgs/{}/download", object.ident)));
         let mut base_url = req.url.clone();
-        let parts: Vec<&str> = object.ident.parts();
         base_url.path = vec![String::from("pkgs"),
-                             parts[0].to_string(),
-                             parts[1].to_string(),
-                             parts[2].to_string(),
-                             parts[3].to_string(),
+                             object.ident.to_string(),
                              String::from("download")];
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
@@ -242,10 +227,9 @@ fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     outputln!("Download {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
-    // JW TODO: check for repo param
     let ident: data_object::PackageIdent = params.into();
 
-    let result = if ident.parts().len() == 4 {
+    let result = {
         let txn = try!(repo.datastore.packages.txn_ro());
         match txn.get(&ident.to_string()) {
             Ok(package) => {
@@ -253,25 +237,6 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
                 Ok(value)
             },
             Err(e) => Err(e)
-        }
-    } else {
-        // JW TODO: fix scoping of cursor/transactions and refactor this
-        let r = {
-            let idx = try!(repo.datastore.packages.index.txn_ro());
-            let mut cursor = try!(idx.cursor_ro());
-            if let Some(e) = cursor.set_key(&ident.to_string()).err() {
-                Err(e)
-            } else {
-                cursor.last_dup()
-            }
-        };
-        match r {
-            Ok(v) => {
-                let txn = try!(repo.datastore.packages.txn_ro());
-                let value: package::PackageIdent = try!(txn.get(&v.ident())).ident.into();
-                Ok(value)
-            },
-            Err(e) => Err(BldrError::from(e))
         }
     };
 
@@ -375,8 +340,8 @@ pub fn repair(config: &Config) -> BldrResult<()> {
 pub fn run(config: &Config) -> BldrResult<()> {
     let repo = try!(Repo::new(String::from(config.path())));
     // let repo2 = repo.clone();
-    let repo3 = repo.clone();
-    let repo4 = repo.clone();
+    // let repo3 = repo.clone();
+    // let repo4 = repo.clone();
     let repo5 = repo.clone();
     let repo6 = repo.clone();
     let repo7 = repo.clone();
@@ -387,28 +352,24 @@ pub fn run(config: &Config) -> BldrResult<()> {
     let repo12 = repo.clone();
     let repo13 = repo.clone();
     let repo14 = repo.clone();
-    let repo15 = repo.clone();
-    let repo16 = repo.clone();
-    let repo17 = repo.clone();
+
     let router = router!(
-        // JW TODO: update list/show/download function to cover scoping rules of these routes repos
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo3, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo4, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo5, r),
-        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo6, r),
-        get "/pkgs/:origin/:pkg/:version/download" => move |r: &mut Request| download_package(&repo7, r),
-        get "/pkgs/:origin/:pkg/download" => move |r: &mut Request| download_package(&repo8, r),
+        // get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo2, r),
+        // get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo3, r),
+        // get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo4, r),
 
-        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo9, r),
-        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo10, r),
-        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo11, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo12, r),
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo13, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo14, r),
-        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo15, r),
+        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo5, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo6, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo7, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo8, r),
+        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo9, r),
+        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo10, r),
 
-        post "/keys/:key" => move |r: &mut Request| upload_key(&repo16, r),
-        get "/keys/:key" => move |r: &mut Request| download_key(&repo17, r)
+        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo11, r),
+        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo12, r),
+
+        post "/keys/:key" => move |r: &mut Request| upload_key(&repo13, r),
+        get "/keys/:key" => move |r: &mut Request| download_key(&repo14, r)
     );
     Iron::new(router).http(config.repo_addr()).unwrap();
     Ok(())
