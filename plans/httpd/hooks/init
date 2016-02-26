@@ -1,0 +1,4 @@
+#!/bin/sh
+mkdir -p /opt/bldr/srvc/httpd/htdocs
+mkdir -p /opt/bldr/srvc/httpd/logs
+mkdir -p /opt/bldr/srvc/httpd/cgi-bin
