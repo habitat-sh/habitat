@@ -6,7 +6,6 @@
 
 use std::collections::HashSet;
 use std::fmt;
-use std::str::FromStr;
 
 use rustc_serialize::{Encoder, Decoder, Encodable, Decodable};
 
@@ -23,29 +22,39 @@ pub trait DataObject : Encodable + Decodable {
 
 #[repr(C)]
 #[derive(PartialEq, Debug, Clone)]
-pub struct PackageIdent(String);
+pub struct PackageIdent(package::PackageIdent, String);
 
 impl PackageIdent {
-    pub fn new(ident: String) -> Self {
-        PackageIdent(ident)
+    pub fn new(ident: package::PackageIdent) -> Self {
+        let string_id = ident.to_string();
+        PackageIdent(ident, string_id)
+    }
+
+    pub fn len(&self) -> u8 {
+        let mut len = 2;
+        if self.0.version.is_some() {
+            len += 1;
+        }
+        if self.0.release.is_some() {
+            len += 1;
+        }
+        len
     }
 
     pub fn origin_idx(&self) -> String {
-        format!("{}", self.parts()[0])
+        format!("{}", self.0.origin)
     }
 
     pub fn name_idx(&self) -> String {
-        let vec: Vec<&str> = self.parts();
-        format!("{}/{}", vec[0], vec[1])
+        format!("{}/{}", self.0.origin, self.0.name)
     }
 
-    pub fn version_idx(&self) -> String {
-        let vec: Vec<&str> = self.parts();
-        format!("{}/{}/{}", vec[0], vec[1], vec[2])
-    }
-
-    pub fn parts(&self) -> Vec<&str> {
-        self.0.split("/").collect()
+    pub fn version_idx(&self) -> Option<String> {
+        if self.0.version.is_some() {
+            Some(format!("{}/{}/{}", self.0.origin, self.0.name, self.0.version.as_ref().unwrap()))
+        } else {
+            None
+        }
     }
 }
 
@@ -55,17 +64,28 @@ impl fmt::Display for PackageIdent {
     }
 }
 
+impl AsRef<package::PackageIdent> for PackageIdent {
+    fn as_ref(&self) -> &package::PackageIdent {
+        &self.0
+    }
+}
+
+impl AsRef<str> for PackageIdent {
+    fn as_ref(&self) -> &str {
+        &self.1
+    }
+}
+
 impl Encodable for PackageIdent {
     fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
-        let p = self.parts();
-        try!(s.emit_struct("PackageIdent", p.len(), |s| {
-            try!(s.emit_struct_field("origin", 0, |s| p[0].encode(s)));
-            try!(s.emit_struct_field("name", 1, |s| p[1].encode(s)));
-            if p.len() > 2 {
-                try!(s.emit_struct_field("version", 2, |s| p[2].encode(s)));
+        try!(s.emit_struct("PackageIdent", self.len() as usize, |s| {
+            try!(s.emit_struct_field("origin", 0, |s| self.0.origin.encode(s)));
+            try!(s.emit_struct_field("name", 1, |s| self.0.name.encode(s)));
+            if let Some(ref version) = self.0.version {
+                try!(s.emit_struct_field("version", 2, |s| version.encode(s)));
             }
-            if p.len() > 3 {
-                try!(s.emit_struct_field("release", 3, |s| p[3].encode(s)));
+            if let Some(ref release) = self.0.release {
+                try!(s.emit_struct_field("release", 3, |s| release.encode(s)));
             }
             Ok(())
         }));
@@ -80,7 +100,7 @@ impl Decodable for PackageIdent {
             let name: String = try!(d.read_struct_field("name", 1, |d| Decodable::decode(d)));
             let version: String = try!(d.read_struct_field("version", 2, |d| Decodable::decode(d)));
             let release: String = try!(d.read_struct_field("release", 3, |d| Decodable::decode(d)));
-            Ok(PackageIdent::new(format!("{}/{}/{}/{}", origin, name, version, release)))
+            Ok(PackageIdent::new(package::PackageIdent::new(origin, name, Some(version), Some(release))))
         })
     }
 }
@@ -88,14 +108,20 @@ impl Decodable for PackageIdent {
 impl DataObject for PackageIdent {
     type Key = String;
 
-    fn ident<'a>(&'a self) -> &'a String {
-        &self.0
+    fn ident(&self) -> &String {
+        &self.1
     }
 }
 
 impl Into<package::PackageIdent> for PackageIdent {
     fn into(self) -> package::PackageIdent {
-        FromStr::from_str(&self.0).unwrap()
+        self.0
+    }
+}
+
+impl From<package::PackageIdent> for PackageIdent {
+    fn from(val: package::PackageIdent) -> PackageIdent {
+        PackageIdent::new(val)
     }
 }
 
@@ -153,15 +179,15 @@ impl Package {
                 if !value.fully_qualified() {
                     return Err(bldr_error!(ErrorKind::InvalidPackageIdent(value.to_string())));
                 }
-                PackageIdent::new(value.to_string())
+                PackageIdent::new(value)
             }
             Err(e) => return Err(e),
         };
         Ok(Package {
             ident: ident,
             manifest: try!(archive.manifest()),
-            deps: try!(archive.deps()).iter().map(|d| PackageIdent::new(d.to_string())).collect(),
-            tdeps: try!(archive.tdeps()).iter().map(|d| PackageIdent::new(d.to_string())).collect(),
+            deps: try!(archive.deps()).into_iter().map(|d| d.into()).collect(),
+            tdeps: try!(archive.tdeps()).into_iter().map(|d| d.into()).collect(),
             exposes: try!(archive.exposes()),
             config: try!(archive.config()),
             views: HashSet::new(),
@@ -176,12 +202,11 @@ impl Package {
 
 impl Into<package::Package> for Package {
     fn into(self) -> package::Package {
-        let ident = self.ident.parts();
         package::Package {
-            origin: ident[0].to_string(),
-            name: ident[1].to_string(),
-            version: ident[2].to_string(),
-            release: ident[3].to_string(),
+            origin: self.ident.0.origin,
+            name: self.ident.0.name,
+            version: self.ident.0.version.unwrap(),
+            release: self.ident.0.release.unwrap(),
             deps: self.deps.into_iter().map(|d| d.into()).collect(),
             tdeps: self.tdeps.into_iter().map(|d| d.into()).collect(),
         }
@@ -191,7 +216,7 @@ impl Into<package::Package> for Package {
 impl DataObject for Package {
     type Key = String;
 
-    fn ident<'a>(&'a self) -> &'a String {
-        &self.ident.0
+    fn ident(&self) -> &String {
+        &self.ident.1
     }
 }

@@ -46,7 +46,6 @@
 //!
 
 use std::fs;
-use std::str::FromStr;
 
 use fs::PACKAGE_CACHE;
 use error::BldrResult;
@@ -62,30 +61,20 @@ static LOGKEY: &'static str = "CI";
 ///
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url(repo: &str, ident: &PackageIdent) -> BldrResult<data_object::Package> {
-    let package = try!(repo::client::show_package(repo, ident));
+pub fn from_url<P: AsRef<PackageIdent>>(repo: &str, ident: &P) -> BldrResult<data_object::Package> {
+    let package = try!(repo::client::show_package(repo, ident.as_ref()));
     try!(fs::create_dir_all(PACKAGE_CACHE));
-    let mut installed: Vec<PackageIdent> = vec![];
-    for dep in &package.deps {
-        let ident = try!(PackageIdent::from_str(&dep.to_string()));
-        try!(install(repo, &ident, &mut installed));
+    for dep in &package.tdeps {
+        try!(install(repo, &dep));
     }
-    try!(install(repo, &ident, &mut installed));
+    try!(install(repo, &package.ident));
     Ok(package)
 }
 
-fn install(repo: &str, package: &PackageIdent, acc: &mut Vec<PackageIdent>) -> BldrResult<()> {
-    if acc.contains(&package) {
-        return Ok(());
-    }
-    let archive = try!(repo::client::fetch_package(repo, package, PACKAGE_CACHE));
+fn install<P: AsRef<PackageIdent>>(repo: &str, package: &P) -> BldrResult<()> {
+    let archive = try!(repo::client::fetch_package(repo, package.as_ref(), PACKAGE_CACHE));
     let package = try!(archive.ident());
-    let deps = try!(archive.deps());
     try!(archive.unpack());
     outputln!("Installed {}", package);
-    acc.push(package);
-    for dep in deps {
-        try!(install(repo, &dep, acc))
-    }
     Ok(())
 }

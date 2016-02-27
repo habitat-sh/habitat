@@ -125,6 +125,12 @@ impl fmt::Display for PackageIdent {
     }
 }
 
+impl AsRef<PackageIdent> for PackageIdent {
+    fn as_ref(&self) -> &PackageIdent {
+        self
+    }
+}
+
 impl From<Package> for PackageIdent {
     fn from(value: Package) -> PackageIdent {
         PackageIdent::new(value.origin, value.name, Some(value.version), Some(value.release))
@@ -920,7 +926,7 @@ impl PartialOrd for Package {
 
 #[cfg(test)]
 mod tests {
-    use super::{Package, PackageIdent, split_version, version_sort};
+    use super::{PackageIdent, split_version, version_sort};
     use std::cmp::Ordering;
     use std::cmp::PartialOrd;
 
