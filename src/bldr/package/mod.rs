@@ -53,7 +53,7 @@ impl fmt::Display for Package {
     }
 }
 
-#[derive(RustcEncodable, RustcDecodable, PartialEq, Debug, Clone)]
+#[derive(RustcEncodable, RustcDecodable, Eq, PartialEq, Debug, Clone)]
 pub struct PackageIdent {
     pub origin: String,
     pub name: String,

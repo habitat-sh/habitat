@@ -71,10 +71,10 @@ impl Depot {
             .join(format!("{:x}", output[0]))
             .join(format!("{:x}", output[1]))
             .join(format!("{}-{}-{}-{}.bldr",
-                                  &ident.origin,
-                                  &ident.name,
-                                  ident.version.as_ref().unwrap(),
-                                  ident.release.as_ref().unwrap()))
+                          &ident.origin,
+                          &ident.name,
+                          ident.version.as_ref().unwrap(),
+                          ident.release.as_ref().unwrap()))
     }
 
     fn key_path(&self, name: &str) -> PathBuf {
@@ -90,9 +90,9 @@ impl Depot {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ListenAddr(pub net::Ipv4Addr);
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct ListenPort(pub u16);
 
 impl Default for ListenAddr {
@@ -208,7 +208,9 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         }
     };
     if object.checksum != checksum {
-        debug!("Checksums did not match: expected={:?}, got={:?}", checksum, object.checksum);
+        debug!("Checksums did not match: expected={:?}, got={:?}",
+               checksum,
+               object.checksum);
         return Ok(Response::with(status::UnprocessableEntity));
     }
     if ident.satisfies(&object.ident) {
@@ -284,8 +286,9 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 panic!("Inconsistent package metadata! Exit and run `bldr-depot repair` to fix data integrity.");
             }
         }
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
-            Ok(Response::with((status::NotFound))),
+        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+            Ok(Response::with((status::NotFound)))
+        }
         Err(_) => unreachable!("unknown error"),
     }
 }
@@ -307,21 +310,22 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 loop {
                     match cursor.next_dup() {
                         Ok((_, value)) => packages.push(value.into()),
-                        Err(_) => break
+                        Err(_) => break,
                     }
                 }
                 Ok(())
-            },
-            Err(e) => Err(BldrError::from(e))
+            }
+            Err(e) => Err(BldrError::from(e)),
         };
 
         match result {
             Ok(()) => {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
-            },
-            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
-                Ok(Response::with((status::NotFound))),
+            }
+            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+                Ok(Response::with((status::NotFound)))
+            }
             Err(_) => unreachable!("unknown error"),
         }
     }
@@ -344,8 +348,9 @@ fn list_packages_scoped_to_repo(depot: &Depot, view: &str) -> IronResult<Respons
             let body = json::encode(&packages).unwrap();
             Ok(Response::with((status::Ok, body)))
         }
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
-            Ok(Response::with((status::NotFound))),
+        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+            Ok(Response::with((status::NotFound)))
+        }
         Err(_) => unreachable!("unknown error"),
     }
 }
@@ -406,14 +411,19 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 response.headers.set(ETag(data.checksum));
                 Ok(response)
             }
-            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
-                Ok(Response::with((status::NotFound))),
+            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+                Ok(Response::with((status::NotFound)))
+            }
             Err(e) => unreachable!("unknown error: {:?}", e),
         }
     }
 }
 
-fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Depot, repo: &str) -> BldrResult<Option<data_object::PackageIdent>> {
+fn latest_package_in_repo<P: AsRef<package::PackageIdent>>
+    (ident: P,
+     depot: &Depot,
+     repo: &str)
+     -> BldrResult<Option<data_object::PackageIdent>> {
     let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     match cursor.set_key(&repo.to_string()) {
@@ -427,10 +437,10 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Dep
                         Ok((_, next)) => {
                             pkg = next;
                             continue;
-                        },
+                        }
                         Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
                             return Ok(None);
-                        },
+                        }
                         Err(_) => unreachable!("unknown error"),
                     }
                 }
@@ -438,7 +448,7 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Dep
         }
         Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
             return Ok(None);
-        },
+        }
         Err(_) => unreachable!("unknown error"),
     }
 }
@@ -457,11 +467,11 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                     try!(depot.datastore.views.associate(&nested, &view, &package));
                     try!(nested.commit());
                     Ok(Response::with((status::Ok)))
-                },
-                Err(_) => Ok(Response::with((status::NotFound)))
+                }
+                Err(_) => Ok(Response::with((status::NotFound))),
             }
-        },
-        Err(_) => Ok(Response::with((status::NotFound)))
+        }
+        Err(_) => Ok(Response::with((status::NotFound))),
     }
 }
 

@@ -1,7 +1,5 @@
 app:
-  image: chef/bldr
-  environment:
-    RUST_LOG: debug
+  image: bldr/base
   command: depot
   ports:
     - "9632:9632"

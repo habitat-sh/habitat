@@ -15,7 +15,6 @@
 
 use threadpool::ThreadPool;
 
-use std::net::SocketAddr;
 use std::thread;
 use std::time::Duration;
 use std::sync::{Arc, RwLock};

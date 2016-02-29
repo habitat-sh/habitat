@@ -82,7 +82,7 @@ impl Default for Command {
 }
 
 /// Holds our configuration options.
-#[derive(Default, Debug)]
+#[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
     command: Command,
     package: PackageIdent,

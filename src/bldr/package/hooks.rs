@@ -105,8 +105,8 @@ impl Hook {
         if let Some(ctx) = context {
             let template = try!(mustache::compile_path(&self.template));
             let mut out = Vec::new();
-            let toml = try!(ctx.compile_toml());
-            let data = convert::toml_table_to_mustache(toml);
+            let toml = try!(ctx.to_toml());
+            let data = convert::toml_to_mustache(toml);
             template.render_data(&mut out, &data);
             let data = try!(String::from_utf8(out));
             let mut file = try!(OpenOptions::new()

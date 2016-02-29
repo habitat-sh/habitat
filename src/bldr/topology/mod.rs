@@ -48,7 +48,7 @@ static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
 
 // Functions from POSIX libc.
-extern "C" {
+extern {
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
 }
 
@@ -106,7 +106,7 @@ pub fn WTERMSIG(status: c_int) -> c_int {
     status & 0x7f
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, RustcEncodable)]
 pub enum Topology {
     Standalone,
     Leader,
@@ -149,26 +149,26 @@ pub struct Worker<'a> {
     pub package_name: String,
     /// A pointer to our current Config
     pub config: &'a Config,
-    /// The topology we are running
+/// The topology we are running
     pub topology: String,
-    /// Our Service Configuration; manages changes to our configuration,
+/// Our Service Configuration; manages changes to our configuration,
     pub service_config: Arc<RwLock<ServiceConfig>>,
-    /// The Gossip Server; listens for inbound gossip traffic
+/// The Gossip Server; listens for inbound gossip traffic
     pub gossip_server: gossip::server::Server,
     pub census_list: Arc<RwLock<CensusList>>,
     pub rumor_list: Arc<RwLock<RumorList>>,
     pub election_list: Arc<RwLock<ElectionList>>,
     pub member_list: Arc<RwLock<MemberList>>,
-    /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
+/// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
-    /// Our User Configuration; reads the config periodically
+/// Our User Configuration; reads the config periodically
     pub user_actor: wonder::actor::Actor<user_config::Message>,
-    /// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
-    /// started if a value is passed for the url option on startup.
+/// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
+/// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
-    /// A pointer to the supervisor thread
+/// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
-    /// The PID of the Supervisor itself
+/// The PID of the Supervisor itself
     pub supervisor_id: Option<u32>,
     pub return_state: Option<State>,
 }
@@ -179,8 +179,6 @@ impl<'a> Worker<'a> {
     /// Automatically sets the backend to Etcd.
     pub fn new(package: Package, topology: String, config: &'a Config) -> BldrResult<Worker<'a>> {
         let mut pkg_updater = None;
-        // Setup the Service Configuration
-        let service_config = try!(ServiceConfig::new(&package));
 
         let package_name = package.name.clone();
 
@@ -193,8 +191,6 @@ impl<'a> Worker<'a> {
         let pkg_lock = Arc::new(RwLock::new(package));
         let pkg_lock_1 = pkg_lock.clone();
 
-        let service_config_lock = Arc::new(RwLock::new(service_config));
-        let service_config_lock_1 = service_config_lock.clone();
 
         if let Some(ref url) = *config.url() {
             let pkg_lock_2 = pkg_lock.clone();
@@ -205,12 +201,24 @@ impl<'a> Worker<'a> {
                                                         config.gossip_permanent(),
                                                         package_name.clone(),
                                                         config.group().to_string());
+
         try!(gossip_server.start_inbound());
         try!(gossip_server.initial_peers(config.gossip_peer()));
         gossip_server.start_outbound();
         gossip_server.start_failure_detector();
         census::start_health_adjuster(gossip_server.census_list.clone(),
                                       gossip_server.member_list.clone());
+
+        // Setup the Service Configuration
+        let service_config = {
+            let cl = gossip_server.census_list.read().unwrap();
+            let pkg = pkg_lock.read().unwrap();
+            let sc = try!(ServiceConfig::new(&pkg, &cl));
+            sc
+        };
+        let service_config_lock = Arc::new(RwLock::new(service_config));
+        let service_config_lock_1 = service_config_lock.clone();
+
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();
         let sidecar_cl = gossip_server.census_list.clone();
@@ -408,12 +416,11 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
 
         {
             // Manage the census
-            let (write_census, in_event, census_toml, write_rumor, me_clone) = {
+            let (write_census, in_event, write_rumor, me_clone) = {
                 let cl = worker.census_list.read().unwrap();
                 let census = cl.local_census();
                 (census.needs_write(),
                  census.in_event,
-                 census.to_toml().unwrap(),
                  census.me().needs_write(),
                  census.me().clone())
             };
@@ -421,7 +428,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
             if write_census {
                 if !in_event {
                     let mut service_config = worker.service_config.write().unwrap();
-                    service_config.census(census_toml);
+                    let cl = worker.census_list.read().unwrap();
+                    service_config.svc(&cl);
                 }
                 if write_rumor {
                     outputln!("Writing our census rumor: {:#?}", me_clone);
@@ -454,12 +462,14 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                 let census_list = worker.census_list.read().unwrap();
                 let census = census_list.local_census();
                 if !census.in_event {
-                    let package = worker.package.read().unwrap();
                     let mut service_config = worker.service_config.write().unwrap();
-                    // Write the configuration, and restart if needed
-                    if try!(service_config.write(&package)) {
-                        try!(package.copy_run(&service_config));
-                        try!(package.reconfigure(&service_config));
+                    if service_config.needs_write {
+                        let package = worker.package.read().unwrap();
+                        // Write the configuration, and restart if needed
+                        if try!(service_config.write(&package)) {
+                            try!(package.copy_run(&service_config));
+                            try!(package.reconfigure(&service_config));
+                        }
                     }
                 }
             }
