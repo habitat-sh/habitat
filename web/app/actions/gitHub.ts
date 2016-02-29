@@ -7,14 +7,32 @@
 import * as api from "../api";
 import {requestRoute} from "./router";
 
+export const LINK_GITHUB_ACCOUNT = "LINK_GITHUB_ACCOUNT";
+export const LINK_GITHUB_ACCOUNT_SUCCESS = "LINK_GITHUB_ACCOUNT_SUCCESS";
 export const POPULATE_GITHUB_REPOS = "POPULATE_GITHUB_REPOS";
 export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
+export const UNLINK_GITHUB_ACCOUNT = "UNLINK_GITHUB_ACCOUNT";
+export const UNLINK_GITHUB_ACCOUNT_SUCCESS = "UNLINK_GITHUB_ACCOUNT";
 
 export function fetchGitHubRepos() {
     return dispatch => {
         api.get("github/user/repos.json").then(response => {
             dispatch(populateGitHubRepos(response));
         });
+    };
+}
+
+export function linkGitHubAccount(username) {
+    return dispatch => {
+        window["githubWindow"] = window.open("/fixtures/authorizeGitHub.html");
+        dispatch(linkGitHubAccountSuccess(username));
+    };
+}
+
+function linkGitHubAccountSuccess(username) {
+    return {
+        type: LINK_GITHUB_ACCOUNT_SUCCESS,
+        payload: username,
     };
 }
 
@@ -37,5 +55,17 @@ export function setSelectedGitHubOrg(org) {
     return {
         type: SET_SELECTED_GITHUB_ORG,
         payload: org,
+    };
+}
+
+export function unlinkGitHubAccount() {
+    return dispatch => {
+        dispatch(unlinkGitHubAccountSuccess());
+    };
+}
+
+function unlinkGitHubAccountSuccess() {
+    return {
+        type: UNLINK_GITHUB_ACCOUNT,
     };
 }

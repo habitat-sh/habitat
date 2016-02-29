@@ -64,8 +64,8 @@ export default Record({
         })(),
     })(),
     router: Record({
-        requestedRoute: undefined,
-        route: undefined,
+        requestedRoute: "",
+        route: "",
     })(),
     user: Record({
         email: undefined,

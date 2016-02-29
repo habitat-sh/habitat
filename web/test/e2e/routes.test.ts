@@ -1,6 +1,14 @@
 import {expect} from "./helper";
 
 describe("Routes", () => {
+    describe("/linked-accounts", () => {
+        it("shows linked accounts", () => {
+            browser.get("#//linked-accounts");
+            expect(element(by.css(".bldr-linked-accounts h2")).getText()).to.
+                eventually.equal("Linked Accounts");
+        });
+    });
+
     describe("/pkgs", () => {
         beforeEach(() => {
             browser.get("#/pkgs");

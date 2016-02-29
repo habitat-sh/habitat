@@ -4,7 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as gitHubRepoActions from "./gitHubRepos";
+import * as gitHubActions from "./gitHub";
 import * as notificationActions from "./notifications";
 import * as orgActions from "./orgs";
 import * as packageActions from "./packages";
@@ -13,8 +13,12 @@ import * as routerActions from "./router";
 import * as userActions from "./user";
 
 // Action types
-export const POPULATE_GITHUB_REPOS = gitHubRepoActions.POPULATE_GITHUB_REPOS;
-export const SET_SELECTED_GITHUB_ORG = gitHubRepoActions.SET_SELECTED_GITHUB_ORG;
+export const LINK_GITHUB_ACCOUNT = gitHubActions.LINK_GITHUB_ACCOUNT;
+export const LINK_GITHUB_ACCOUNT_SUCCESS = gitHubActions.LINK_GITHUB_ACCOUNT_SUCCESS;
+export const POPULATE_GITHUB_REPOS = gitHubActions.POPULATE_GITHUB_REPOS;
+export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
+export const UNLINK_GITHUB_ACCOUNT = gitHubActions.UNLINK_GITHUB_ACCOUNT;
+export const UNLINK_GITHUB_ACCOUNT_SUCCESS = gitHubActions.UNLINK_GITHUB_ACCOUNT_SUCCESS;
 
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
@@ -43,9 +47,11 @@ export const SIGN_OUT = userActions.SIGN_OUT;
 export const TOGGLE_USER_NAV_MENU = userActions.TOGGLE_USER_NAV_MENU;
 
 // Actions
-export const fetchGitHubRepos = gitHubRepoActions.fetchGitHubRepos;
-export const onGitHubRepoSelect = gitHubRepoActions.onGitHubRepoSelect;
-export const setSelectedGitHubOrg = gitHubRepoActions.setSelectedGitHubOrg;
+export const fetchGitHubRepos = gitHubActions.fetchGitHubRepos;
+export const linkGitHubAccount = gitHubActions.linkGitHubAccount;
+export const onGitHubRepoSelect = gitHubActions.onGitHubRepoSelect;
+export const setSelectedGitHubOrg = gitHubActions.setSelectedGitHubOrg;
+export const unlinkGitHubAccount = gitHubActions.unlinkGitHubAccount;
 
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;

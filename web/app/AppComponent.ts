@@ -9,6 +9,7 @@ import {Component} from "angular2/core";
 import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
 import {HomePageComponent} from "./home-page/HomePageComponent";
+import {LinkedAccountsPageComponent} from "./linked-accounts-page/LinkedAccountsPageComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
@@ -30,9 +31,8 @@ import {removeNotification, routeChange} from "./actions/index";
         <bldr-notifications [notifications]="state.notifications.all"
                             [removeNotification]="removeNotification">
         </bldr-notifications>
-        <bldr-header [appName]="state.app.name" [route]="state.router.route">
-        </bldr-header>
-        <bldr-side-nav></bldr-side-nav>
+        <bldr-header [appName]="state.app.name"></bldr-header>
+        <bldr-side-nav [route]="state.router.route"></bldr-side-nav>
         <section class="bldr-main">
             <router-outlet></router-outlet>
         </section>
@@ -46,14 +46,24 @@ import {removeNotification, routeChange} from "./actions/index";
     { path: "/", name: "Home", component: HomePageComponent },
     { path: "/explore", name: "Explore", component: ExplorePageComponent },
     {
-        path: "/organizations",
+        path: "/linked-accounts",
+        name: "LinkedAccounts",
+        component: LinkedAccountsPageComponent,
+    },
+    {
+        path: "/orgs",
         name: "Organizations",
         component: OrganizationsPageComponent,
     },
     { path: "/pkgs", name: "Packages", component: PackagesPageComponent },
-    { path: "/pkgs/*/:name", name: "PackagesForName", component: PackagesPageComponent },
     {
-        path: "/pkgs/:origin", name: "PackagesForOrigin",
+        path: "/pkgs/*/:name",
+        name: "PackagesForName",
+        component: PackagesPageComponent
+    },
+    {
+        path: "/pkgs/:origin",
+        name: "PackagesForOrigin",
         component: PackagesPageComponent
     },
     {
@@ -61,8 +71,16 @@ import {removeNotification, routeChange} from "./actions/index";
         component: PackagePageComponent
     },
     { path: "/projects", name: "Projects", component: ProjectsPageComponent },
-    { path: "/projects/create", name: "ProjectCreate", component: ProjectCreatePageComponent },
-    { path: "/projects/:origin/:name", name: "Project", component: ProjectPageComponent },
+    {
+        path: "/projects/create",
+        name: "ProjectCreate",
+        component: ProjectCreatePageComponent
+    },
+    {
+        path: "/projects/:origin/:name",
+        name: "Project",
+        component: ProjectPageComponent
+    },
     {
         path: "/scm-repos",
         name: "SCMRepos",
@@ -87,7 +105,7 @@ export class AppComponent {
             if (requestedRoute) { router.navigate(requestedRoute); }
         });
 
-        this.removeNotification = function (i) {
+        this.removeNotification = function(i) {
             this.store.dispatch(removeNotification(i));
             return false;
         }.bind(this);
