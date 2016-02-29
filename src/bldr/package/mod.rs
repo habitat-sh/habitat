@@ -80,7 +80,8 @@ impl PackageIdent {
         self.version.is_some() && self.release.is_some()
     }
 
-    pub fn satisfies(&self, other: &Self) -> bool {
+    pub fn satisfies<T: AsRef<Self>>(&self, ident: T) -> bool {
+        let other = ident.as_ref();
         if self.origin != other.origin || self.name != other.name {
             return false;
         }

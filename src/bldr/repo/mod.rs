@@ -25,7 +25,7 @@ use error::{BldrError, BldrResult, ErrorKind};
 use config::Config;
 use self::data_store::{Cursor, DataStore, Database, Transaction};
 use self::data_object::DataObject;
-use package::{self, Package, PackageArchive};
+use package::{self, PackageArchive};
 
 static LOGKEY: &'static str = "RE";
 
@@ -199,7 +199,7 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
-    if ident.satisfies(&object.ident.clone().into()) {
+    if ident.satisfies(&object.ident) {
         // JW TODO: handle failure here?
         try!(repo.datastore.packages.write(&txn, &object));
         try!(txn.commit());
@@ -280,27 +280,54 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 
 fn list_packages(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: data_object::PackageIdent = params.into();
-    let mut packages: Vec<package::PackageIdent> = vec![];
 
-    let txn = try!(repo.datastore.packages.index.txn_ro());
+    if let Some(view) = params.find("repo") {
+        list_packages_scoped_to_repo(repo, view)
+    } else {
+        let ident: data_object::PackageIdent = params.into();
+        let mut packages: Vec<package::PackageIdent> = vec![];
+
+        let txn = try!(repo.datastore.packages.index.txn_ro());
+        let mut cursor = try!(txn.cursor_ro());
+        let result = match cursor.set_key(ident.ident()) {
+            Ok((_, value)) => {
+                packages.push(value.into());
+                loop {
+                    match cursor.next_dup() {
+                        Ok((_, value)) => packages.push(value.into()),
+                        Err(_) => break
+                    }
+                }
+                Ok(())
+            },
+            Err(e) => Err(BldrError::from(e))
+        };
+
+        match result {
+            Ok(()) => {
+                let body = json::encode(&packages).unwrap();
+                Ok(Response::with((status::Ok, body)))
+            },
+            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => Ok(Response::with((status::NotFound))),
+            Err(_) => unreachable!("unknown error"),
+        }
+    }
+}
+
+fn list_packages_scoped_to_repo(repo: &Repo, view: &str) -> IronResult<Response> {
+    let txn = try!(repo.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
-    let result = match cursor.set_key(ident.ident()) {
-        Ok((_, value)) => {
-            packages.push(value.into());
+    match cursor.set_key(&view.to_string()) {
+        Ok((_, pkg)) => {
+            let mut packages: Vec<data_object::PackageIdent> = vec![];
+            packages.push(pkg);
             loop {
-                match cursor.next_dup() {
-                    Ok((_, value)) => packages.push(value.into()),
-                    Err(_) => break,
+                if let Some((_, pkg)) = cursor.next_dup().ok() {
+                    packages.push(pkg);
+                } else {
+                    break;
                 }
             }
-            Ok(())
-        }
-        Err(e) => Err(BldrError::from(e)),
-    };
-
-    match result {
-        Ok(()) => {
             let body = json::encode(&packages).unwrap();
             Ok(Response::with((status::Ok, body)))
         }
@@ -310,41 +337,116 @@ fn list_packages(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn show_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let ident: package::PackageIdent = params.into();
+fn list_repos(depot: &Repo, _req: &mut Request) -> IronResult<Response> {
+    let txn = try!(depot.datastore.views.txn_ro());
+    let mut cursor = try!(txn.cursor_ro());
+    let mut repos: Vec<data_object::View> = vec![];
+    loop {
+        match cursor.next() {
+            Ok((_, data)) => repos.push(data),
+            Err(_) => break,
+        }
+    }
+    let body = json::encode(&repos).unwrap();
+    Ok(Response::with((status::Ok, body)))
+}
 
-    let result = if ident.fully_qualified() {
-        let txn = try!(repo.datastore.packages.txn_ro());
-        txn.get(&ident.to_string())
+fn show_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let ident: data_object::PackageIdent = params.into();
+
+    if let Some(repo) = params.find("repo") {
+        if let Some(pkg) = try!(latest_package_in_repo(&ident, depot, repo)) {
+            let txn = try!(depot.datastore.packages.txn_ro());
+            let package = try!(txn.get(&pkg.ident()));
+            let body = json::encode(&package).unwrap();
+            Ok(Response::with((status::Ok, body)))
+        } else {
+            Ok(Response::with((status::NotFound)))
+        }
     } else {
-        let r = {
-            let idx = try!(repo.datastore.packages.index.txn_ro());
-            let mut cursor = try!(idx.cursor_ro());
-            if let Some(e) = cursor.set_key(&ident.to_string()).err() {
-                Err(e)
-            } else {
-                cursor.last_dup()
+        let result = if ident.fully_qualified() {
+            let txn = try!(depot.datastore.packages.txn_ro());
+            txn.get(&ident.to_string())
+        } else {
+            let r = {
+                let idx = try!(depot.datastore.packages.index.txn_ro());
+                let mut cursor = try!(idx.cursor_ro());
+                if let Some(e) = cursor.set_key(&ident.to_string()).err() {
+                    Err(e)
+                } else {
+                    cursor.last_dup()
+                }
+            };
+            match r {
+                Ok(v) => {
+                    let txn = try!(depot.datastore.packages.txn_ro());
+                    txn.get(&v.ident())
+                }
+                Err(e) => Err(e),
             }
         };
-        match r {
-            Ok(v) => {
-                let txn = try!(repo.datastore.packages.txn_ro());
-                txn.get(&v.ident())
+        match result {
+            Ok(data) => {
+                let body = json::encode(&data).unwrap();
+                Ok(Response::with((status::Ok, body)))
             }
-            Err(e) => Err(e),
+            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
+                Ok(Response::with((status::NotFound))),
+            Err(e) => unreachable!("unknown error: {:?}", e),
         }
-    };
-    match result {
-        Ok(data) => {
-            // JW TODO: re-enable proper json encoding when I have a plan for proper decoding
-            // let body = json::encode(&data.to_json()).unwrap();
-            let body = json::encode(&data).unwrap();
-            Ok(Response::with((status::Ok, body)))
+    }
+}
+
+fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Repo, repo: &str) -> BldrResult<Option<data_object::PackageIdent>> {
+    let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
+    let mut cursor = try!(txn.cursor_ro());
+    match cursor.set_key(&repo.to_string()) {
+        Ok(_) => {
+            let mut pkg = try!(cursor.last_dup());
+            loop {
+                if ident.as_ref().satisfies(&pkg) {
+                    return Ok(Some(pkg));
+                } else {
+                    match cursor.prev_dup() {
+                        Ok((_, next)) => {
+                            pkg = next;
+                            continue;
+                        },
+                        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+                            return Ok(None);
+                        },
+                        Err(_) => unreachable!("unknown error"),
+                    }
+                }
+            }
         }
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
-            Ok(Response::with((status::NotFound))),
-        Err(e) => unreachable!("unknown error: {:?}", e),
+        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+            return Ok(None);
+        },
+        Err(_) => unreachable!("unknown error"),
+    }
+}
+
+fn promote_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let repo = params.find("repo").unwrap();
+
+    let txn = try!(depot.datastore.views.txn_rw());
+    match txn.get(&repo.to_string()) {
+        Ok(view) => {
+            let ident: package::PackageIdent = params.into();
+            let nested = try!(txn.new_child_rw(&depot.datastore.packages));
+            match nested.get(&ident.to_string()) {
+                Ok(package) => {
+                    try!(depot.datastore.views.associate(&nested, &view, &package));
+                    try!(nested.commit());
+                    Ok(Response::with((status::Ok)))
+                },
+                Err(_) => Ok(Response::with((status::NotFound)))
+            }
+        },
+        Err(_) => Ok(Response::with((status::NotFound)))
     }
 }
 
@@ -355,9 +457,10 @@ pub fn repair(config: &Config) -> BldrResult<()> {
 
 pub fn run(config: &Config) -> BldrResult<()> {
     let repo = try!(Repo::new(String::from(config.path())));
-    // let repo2 = repo.clone();
-    // let repo3 = repo.clone();
-    // let repo4 = repo.clone();
+    let repo1 = repo.clone();
+    let repo2 = repo.clone();
+    let repo3 = repo.clone();
+    let repo4 = repo.clone();
     let repo5 = repo.clone();
     let repo6 = repo.clone();
     let repo7 = repo.clone();
@@ -368,24 +471,32 @@ pub fn run(config: &Config) -> BldrResult<()> {
     let repo12 = repo.clone();
     let repo13 = repo.clone();
     let repo14 = repo.clone();
+    let repo15 = repo.clone();
+    let repo16 = repo.clone();
+    let repo17 = repo.clone();
 
     let router = router!(
-    // get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo2, r),
-    // get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo3, r),
-    // get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo4, r),
+        get "/repos" => move |r: &mut Request| list_repos(&repo1, r),
+        get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo2, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo3, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo4, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo5, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo6, r),
 
-        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo5, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo6, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo7, r),
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo8, r),
-        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo9, r),
-        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo10, r),
+        post "/repos/:repo/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&repo7, r),
 
-        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo11, r),
-        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo12, r),
+        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo8, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo9, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo10, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo11, r),
+        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo12, r),
+        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo13, r),
 
-        post "/keys/:key" => move |r: &mut Request| upload_key(&repo13, r),
-        get "/keys/:key" => move |r: &mut Request| download_key(&repo14, r)
+        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo14, r),
+        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo15, r),
+
+        post "/keys/:key" => move |r: &mut Request| upload_key(&repo16, r),
+        get "/keys/:key" => move |r: &mut Request| download_key(&repo17, r)
     );
     Iron::new(router).http(config.repo_addr()).unwrap();
     Ok(())

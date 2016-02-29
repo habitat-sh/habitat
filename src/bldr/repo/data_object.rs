@@ -4,7 +4,6 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::collections::HashSet;
 use std::fmt;
 
 use rustc_serialize::{Encoder, Decoder, Encodable, Decodable};
@@ -28,6 +27,10 @@ impl PackageIdent {
     pub fn new(ident: package::PackageIdent) -> Self {
         let string_id = ident.to_string();
         PackageIdent(ident, string_id)
+    }
+
+    pub fn fully_qualified(&self) -> bool {
+        self.0.fully_qualified()
     }
 
     pub fn len(&self) -> u8 {
@@ -135,20 +138,11 @@ impl From<package::PackageIdent> for PackageIdent {
 #[derive(RustcEncodable, RustcDecodable, PartialEq, Debug)]
 pub struct View {
     pub ident: String,
-    pub packages: HashSet<<Package as DataObject>::Key>,
 }
 
 impl View {
     pub fn new(name: &str) -> Self {
-        View {
-            ident: String::from(name),
-            packages: HashSet::new(),
-        }
-    }
-
-    pub fn add_package(&mut self, package: <Package as DataObject>::Key) -> &mut Self {
-        self.packages.insert(package);
-        self
+        View { ident: String::from(name) }
     }
 }
 
@@ -175,7 +169,6 @@ pub struct Package {
     pub tdeps: Vec<PackageIdent>,
     pub exposes: Vec<u16>,
     pub config: Option<String>,
-    pub views: HashSet<<View as DataObject>::Key>,
 }
 
 impl Package {
@@ -196,13 +189,7 @@ impl Package {
             tdeps: try!(archive.tdeps()).into_iter().map(|d| d.into()).collect(),
             exposes: try!(archive.exposes()),
             config: try!(archive.config()),
-            views: HashSet::new(),
         })
-    }
-
-    pub fn add_view(&mut self, view: <View as DataObject>::Key) -> &mut Self {
-        self.views.insert(view);
-        self
     }
 }
 
