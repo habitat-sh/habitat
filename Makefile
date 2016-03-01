@@ -14,41 +14,45 @@ compose_cmd := env http_proxy= https_proxy= docker-compose
 run := $(compose_cmd) run --rm $(run_args)
 dimage := bldr/devshell
 
-.PHONY: build shell docs-serve test unit functional clean image docs
+.PHONY: build shell docs-serve test unit functional clean image docs help
+.DEFAULT_GOAL := help
 
-build: image
+help:
+	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+build: image ## run cargo build
 	$(run) shell cargo build
 
-shell: image
+shell: image ## start a shell for building packages
 	$(run) shell
 
-docs-serve: docs
+docs-serve: docs ## serve up the documentation
 	@echo "==> View the docs at:\n\n        http://`\
 		echo ${DOCKER_HOST} | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
 	$(run) -p 9633:9633 shell sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 
-test: image
+test: image ## run `cargo test`
 	$(run) shell cargo test
 
-unit: image
+unit: image ## run unit tests with cargo
 	$(run) shell cargo test --lib
 
-functional: image
+functional: image ## run the functional tests
 	$(run) shell cargo test --test functional
 
-clean:
+clean: ## clean up our docker environment
 	rm -rf target/debug target/release
 	$(compose_cmd) stop
 	$(compose_cmd) rm -f -v
 	$(docker_cmd) rmi $(dimage) || true
 	($(docker_cmd) images -q -f dangling=true | xargs $(docker_cmd) rmi -f) || true
 
-image:
+image: ## create an image
 	if [ -n "${force}" -o -z "`$(docker_cmd) images -q $(dimage)`" ]; then \
 		$(docker_cmd) build $(build_args) -t $(dimage) .; \
 	fi
 
-docs: image
+docs: image ## build the docs
 	$(run) shell sh -c 'set -ex; \
 		cargo doc; \
 		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
@@ -56,5 +60,4 @@ docs: image
 		cp -r images ./target/doc/bldr; \
 		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
 
-# Alias to `make shell` for the "old fingers" crowd
-pkg-shell: shell
+pkg-shell: shell ## Alias to `make shell` for the "old fingers" crowd

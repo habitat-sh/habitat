@@ -95,10 +95,12 @@ by having a convention cover it. When we do need to configure things, we set san
 1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, Ram, or Disk space as needed. (Adam used 4 cpu, 8gb of ram)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
-1. Run `make`
+1. Run `make build`
 1. Run `make test`
 
 Everything should come up green. Congratulations - you have a working Bldr development environment.
+
+**Note:** The Makefile targets are documented. Run `make` or `make help` to show the output. Requires `perl`.
 
 **Optional:** This project compiles and runs inside Docker containers so while installing the Rust language isn't strictly necessary, you might want a local copy of Rust on your workstation (some editors' language support require an installed version). To [install stable Rust](https://www.rust-lang.org/install.html), run: `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
 
