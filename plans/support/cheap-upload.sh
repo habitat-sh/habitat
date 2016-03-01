@@ -1,5 +1,5 @@
 set -eu
-BLDR_REPO=${BLDR_REPO:-"http://52.11.158.96:32768"}
+BLDR_REPO=${BLDR_REPO:-"http://52.37.151.35:9632"}
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 pkg_file="$1"

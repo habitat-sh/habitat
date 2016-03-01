@@ -51,7 +51,10 @@ impl PackageIdent {
 
     pub fn version_idx(&self) -> Option<String> {
         if self.0.version.is_some() {
-            Some(format!("{}/{}/{}", self.0.origin, self.0.name, self.0.version.as_ref().unwrap()))
+            Some(format!("{}/{}/{}",
+                         self.0.origin,
+                         self.0.name,
+                         self.0.version.as_ref().unwrap()))
         } else {
             None
         }
@@ -100,7 +103,10 @@ impl Decodable for PackageIdent {
             let name: String = try!(d.read_struct_field("name", 1, |d| Decodable::decode(d)));
             let version: String = try!(d.read_struct_field("version", 2, |d| Decodable::decode(d)));
             let release: String = try!(d.read_struct_field("release", 3, |d| Decodable::decode(d)));
-            Ok(PackageIdent::new(package::PackageIdent::new(origin, name, Some(version), Some(release))))
+            Ok(PackageIdent::new(package::PackageIdent::new(origin,
+                                                            name,
+                                                            Some(version),
+                                                            Some(release))))
         })
     }
 }

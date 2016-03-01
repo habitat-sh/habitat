@@ -7,9 +7,9 @@ set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 # Download URL for the `chef/bpm` slim package
-bpm_tar_url="${BPM_TAR_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/chef-bpm-0.1.0-20160216061454.tar.xz}"
+bpm_tar_url="${BPM_TAR_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/chef-bpm-0.1.0-20160302223632.tar.xz}"
 # Shasum for the slim package, used to verify the download
-bpm_tar_sha="${BPM_TAR_SHASUM:-b9c76ab8a146122296b88f58808cba91e56565149ef5205faa905202c78cfc7c}"
+bpm_tar_sha="${BPM_TAR_SHASUM:-595a3386eb9c92172b06c6a1fe4b67c3d787d712fec892d6c9a17e9b1f64c2f0}"
 
 # Download location of the slim package
 bpm_tar_file="${TMPDIR:-/tmp}/$(basename $bpm_tar_url)"

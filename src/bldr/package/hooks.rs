@@ -70,7 +70,7 @@ impl Hook {
                                                                  String::from("Failed"))));
                 }
             };
-            let mut line = output_format!(P: "hook", "{}", &self.htype);
+            let mut line = output_format!(preamble "hook", "{}", &self.htype);
             loop {
                 let mut buf = [0u8; 1]; // Our byte buffer
                 let len = try!(c_stdout.read(&mut buf));
@@ -85,7 +85,7 @@ impl Hook {
                         line.push_str(&buf_string);
                         if line.contains("\n") {
                             print!("{}", line);
-                            line = output_format!(P: "hook", "{}", &self.htype);
+                            line = output_format!(preamble "hook", "{}", &self.htype);
                         }
                     }
                 }
