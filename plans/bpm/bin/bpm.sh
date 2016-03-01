@@ -857,7 +857,7 @@ BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
 # Location containing cached gpg keys
 BLDR_GPG_CACHE=$BLDR_ROOT/cache/gpg
 # The default bldr package repository from where to download dependencies
-: ${BLDR_REPO:=http://52.11.158.96:32768}
+: ${BLDR_REPO:=http://52.37.151.35:32768}
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : ${VERBOSE:=}
