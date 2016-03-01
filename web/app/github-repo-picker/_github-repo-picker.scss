@@ -1,0 +1,22 @@
+.bldr-github-repo-picker {
+  @include outer-container;
+
+  li a {
+    color: inherit;
+    display: block;
+    padding: $small-spacing / 2;
+
+    &.active, &:active {
+      background: $light-gray;
+    }
+  }
+
+
+  .users, .repos {
+    @include span-columns(6);
+  }
+
+  .repos {
+    @include omega;
+  }
+}

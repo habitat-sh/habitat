@@ -21,7 +21,10 @@ import {RouterLink} from "angular2/router";
             <li><a [routerLink]="['Explore']">Explore</a></li>
             <li><a [routerLink]="['Packages']">All Packages</a></li>
             <li><a [routerLink]="['Packages', { filter: 'mine' }]">My Packages</a></li>
-
+        </ul>
+        <h4>Linked Accounts</h4>
+        <ul>
+            <li><a [routerLink]="['SCMRepos']">GitHub Repos</a></li>
         </ul>
     </div>`
 })

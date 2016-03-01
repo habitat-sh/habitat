@@ -5,6 +5,12 @@ export default Record({
         name: "bldr",
         currentYear: new Date().getFullYear(),
     })(),
+    gitHub: Record({
+        isLinked: true,
+        repos: List(),
+        selectedOrg: undefined,
+        username: undefined,
+    })(),
     notifications: Record({
         all: List(),
     })(),

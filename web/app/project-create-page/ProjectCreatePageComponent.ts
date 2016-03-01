@@ -8,8 +8,10 @@ import {addProject} from "../actions/index";
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
+import {RouteParams, RouterLink} from "angular2/router";
 
 @Component({
+    directives: [RouterLink],
     template: `
     <div class="bldr-project-create">
         <h2>Add Project</h2>
@@ -20,8 +22,15 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
         <form [ngFormModel]="form" (ngSubmit)="addProject(form.value)" #formValues="ngForm">
             <div class="scm-repo-fields">
                 <label>GitHub Repository</label>
-                smith / example
-                <a href="#">(change)</a>
+                <div *ngIf="repo">
+                    {{repo}}
+                    <a [routerLink]='["SCMRepos"]' href="#">(change)</a>
+                </div>
+                <div *ngIf="!repo">
+                    <a [routerLink]='["SCMRepos"]' href="#">
+                        (select a GitHub repository)
+                    </a>
+                </div>
             </div>
             <div class="project-fields">
                 <div class="origin">
@@ -48,12 +57,18 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
 export class ProjectCreatePageComponent {
     private form: ControlGroup;
 
-    constructor(private formBuilder: FormBuilder, private store: AppStore) {
+    constructor(private formBuilder: FormBuilder,
+        private routeParams: RouteParams, private store: AppStore) {
         this.form = formBuilder.group({
+            repo: [this.repo || "", Validators.nullValidator],
             origin: [this.store.getState().user.username, Validators.required],
             name: ["", Validators.required],
             plan: ["/plan.sh", Validators.required],
         });
+    }
+
+    get repo() {
+        return decodeURIComponent(this.routeParams.params["repo"]);
     }
 
     private addProject(values) {

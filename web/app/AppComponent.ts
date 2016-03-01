@@ -16,6 +16,7 @@ import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePag
 import {ProjectPageComponent} from "./project-page/ProjectPageComponent";
 import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
 import {RouteConfig, Router, RouterOutlet} from "angular2/router";
+import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
 import {removeNotification, routeChange} from "./actions/index";
@@ -56,6 +57,11 @@ import {removeNotification, routeChange} from "./actions/index";
     { path: "/projects", name: "Projects", component: ProjectsPageComponent },
     { path: "/projects/create", name: "ProjectCreate", component: ProjectCreatePageComponent },
     { path: "/projects/:origin/:name", name: "Project", component: ProjectPageComponent },
+    {
+        path: "/scm-repos",
+        name: "SCMRepos",
+        component: SCMReposPageComponent,
+    },
     { path: "/sign-in", name: "SignIn", component: SignInPageComponent },
 ])
 
