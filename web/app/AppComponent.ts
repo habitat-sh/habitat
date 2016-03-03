@@ -10,6 +10,7 @@ import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
 import {HomePageComponent} from "./home-page/HomePageComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
+import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
 import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
 import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePageComponent";
@@ -43,6 +44,11 @@ import {removeNotification, routeChange} from "./actions/index";
 @RouteConfig([
     { path: "/", name: "Home", component: HomePageComponent },
     { path: "/explore", name: "Explore", component: ExplorePageComponent },
+    {
+        path: "/organizations",
+        name: "Organizations",
+        component: OrganizationsPageComponent,
+    },
     { path: "/pkgs", name: "Packages", component: PackagesPageComponent },
     { path: "/pkgs/*/:name", name: "PackagesForName", component: PackagesPageComponent },
     {

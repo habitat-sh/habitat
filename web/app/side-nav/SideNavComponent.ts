@@ -11,7 +11,7 @@ import {RouterLink} from "angular2/router";
     directives: [RouterLink],
     selector: "bldr-side-nav",
     template: `
-    <div class="bldr-side-nav">
+    <nav class="bldr-side-nav">
         <ul>
             <li><a [routerLink]="['Projects']">Projects</a></li>
         </ul>
@@ -23,7 +23,11 @@ import {RouterLink} from "angular2/router";
             <li><a [routerLink]="['Packages', { filter: 'mine' }]">My Packages</a></li>
 
         </ul>
-    </div>`
+        <h4>Organizations</h4>
+        <ul>
+            <li><a [routerLink]="['Organizations']">Manage Orgs</a></li>
+        </ul>
+    </nav>`
 })
 
 export class SideNavComponent { }

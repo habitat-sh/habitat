@@ -1,0 +1,14 @@
+.bldr-organizations {
+  @include outer-container;
+
+  form {
+    @include span-columns(5);
+  }
+
+  .info {
+    @include span-columns(7);
+    @include omega;
+    border-left: 1px solid $light-gray;
+    padding-left: $base-spacing;
+  }
+}

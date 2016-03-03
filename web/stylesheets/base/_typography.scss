@@ -40,6 +40,12 @@ h3 {
   font-size: 125%;
 }
 
+h3.hero {
+  font-size: 150%;
+  padding: $base-spacing * 2 0;
+  text-align: center;
+}
+
 h4 {
   color: $medium-gray;
   text-transform: uppercase;
