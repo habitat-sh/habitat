@@ -92,17 +92,27 @@ pub const VIEW_DB: &'static str = "views";
 pub const MAX_DBS: u32 = 3;
 
 macro_rules! try_mdb {
-    ($e: expr) => (match $e {
-        lmdb_sys::MDB_SUCCESS => (),
-        _ => return Err(bldr_error!(ErrorKind::MdbError(MdbError::from($e))))
-    })
+    ($e: expr) => (
+        {
+            let code = $e;
+            match code {
+                lmdb_sys::MDB_SUCCESS => (),
+                _ => return Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+            }
+        }
+    )
 }
 
 macro_rules! handle_mdb {
-    ($e: expr) => (match $e {
-        lmdb_sys::MDB_SUCCESS => Ok(()),
-        _ => Err(bldr_error!(ErrorKind::MdbError(MdbError::from($e))))
-    })
+    ($e: expr) => (
+        {
+            let code = $e;
+            match code {
+                lmdb_sys::MDB_SUCCESS => Ok(()),
+                _ => Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+            }
+        }
+    )
 }
 
 macro_rules! assert_txn_state_eq {
@@ -1394,7 +1404,10 @@ mod tests {
     #[ignore]
     fn read_write_composite_data_object() {
         let ds = open_datastore();
-        let key: package::PackageIdent = package::PackageIdent::new("chef", "redis", Some("3.0.1"), Some("1234"));
+        let key: package::PackageIdent = package::PackageIdent::new("chef",
+                                                                    "redis",
+                                                                    Some("3.0.1"),
+                                                                    Some("1234"));
         {
             let pkg = Package {
                 ident: PackageIdent::new(key.clone()),
