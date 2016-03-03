@@ -290,7 +290,7 @@ impl Package {
                     Ok(mut f) => {
                         let mut data = String::new();
                         if f.read_to_string(&mut data).is_err() {
-                            return Err(bldr_error!(ErrorKind::MetaFileMalformed));
+                            return Err(bldr_error!(ErrorKind::MetaFileMalformed(file)));
                         }
                         Ok(data.trim().to_string())
                     }

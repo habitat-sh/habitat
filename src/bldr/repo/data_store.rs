@@ -92,17 +92,27 @@ pub const VIEW_DB: &'static str = "views";
 pub const MAX_DBS: u32 = 3;
 
 macro_rules! try_mdb {
-    ($e: expr) => (match $e {
-        lmdb_sys::MDB_SUCCESS => (),
-        _ => return Err(bldr_error!(ErrorKind::MdbError(MdbError::from($e))))
-    })
+    ($e: expr) => (
+        {
+            let code = $e;
+            match code {
+                lmdb_sys::MDB_SUCCESS => (),
+                _ => return Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+            }
+        }
+    )
 }
 
 macro_rules! handle_mdb {
-    ($e: expr) => (match $e {
-        lmdb_sys::MDB_SUCCESS => Ok(()),
-        _ => Err(bldr_error!(ErrorKind::MdbError(MdbError::from($e))))
-    })
+    ($e: expr) => (
+        {
+            let code = $e;
+            match code {
+                lmdb_sys::MDB_SUCCESS => Ok(()),
+                _ => Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+            }
+        }
+    )
 }
 
 macro_rules! assert_txn_state_eq {
@@ -352,7 +362,11 @@ impl DataStore {
             Some(root) => try!(fs::create_dir_all(root)),
             None => return Err(bldr_error!(ErrorKind::DbInvalidPath)),
         }
-        let env = try!(Environment::new().max_databases(MAX_DBS).flags(flags).open(&path, 0o744));
+        let env = try!(Environment::new()
+                           .map_size(1073741824)
+                           .max_databases(MAX_DBS)
+                           .flags(flags)
+                           .open(&path, 0o744));
         let env1 = Arc::new(env);
         let env2 = env1.clone();
         let env3 = env1.clone();

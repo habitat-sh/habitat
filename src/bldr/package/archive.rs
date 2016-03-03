@@ -64,7 +64,7 @@ impl PackageArchive {
 
     pub fn cflags(&self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::CFlags) {
-            Ok(data) => Ok(Some(data)),
+            Ok(data) => Ok(data),
             Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
             Err(e) => Err(e),
         }
@@ -72,7 +72,7 @@ impl PackageArchive {
 
     pub fn config(&self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::Config) {
-            Ok(data) => Ok(Some(data)),
+            Ok(data) => Ok(data),
             Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
             Err(e) => Err(e),
         }
@@ -104,25 +104,29 @@ impl PackageArchive {
 
     pub fn exposes(&self) -> BldrResult<Vec<u16>> {
         match self.read_metadata(MetaFile::Exposes) {
-            Ok(data) => {
+            Ok(Some(data)) => {
                 let ports: Vec<u16> = data.split(" ")
                                           .filter_map(|port| port.parse::<u16>().ok())
                                           .collect();
                 Ok(ports)
             }
+            Ok(None) => Ok(vec![]),
             Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(vec![]),
             Err(e) => Err(e),
         }
     }
 
     pub fn ident(&self) -> BldrResult<PackageIdent> {
-        let data = try!(self.read_metadata(MetaFile::Ident));
-        PackageIdent::from_str(&data)
+        match self.read_metadata(MetaFile::Ident) {
+            Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed(MetaFile::Ident))),
+            Ok(Some(data)) => PackageIdent::from_str(&data),
+            Err(e) => Err(e),
+        }
     }
 
     pub fn ld_run_path(&self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::LdRunPath) {
-            Ok(data) => Ok(Some(data)),
+            Ok(data) => Ok(data),
             Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
             Err(e) => Err(e),
         }
@@ -130,19 +134,23 @@ impl PackageArchive {
 
     pub fn ldflags(&self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::LdFlags) {
-            Ok(data) => Ok(Some(data)),
+            Ok(data) => Ok(data),
             Err(BldrError {err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
             Err(e) => Err(e),
         }
     }
 
     pub fn manifest(&self) -> BldrResult<String> {
-        self.read_metadata(MetaFile::Manifest)
+        match self.read_metadata(MetaFile::Manifest) {
+            Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed(MetaFile::Manifest))),
+            Ok(Some(data)) => Ok(data),
+            Err(e) => Err(e),
+        }
     }
 
     pub fn path(&self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::Path) {
-            Ok(data) => Ok(Some(data)),
+            Ok(data) => Ok(data),
             Err(BldrError {err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
             Err(e) => Err(e),
         }
@@ -190,7 +198,7 @@ impl PackageArchive {
     fn read_deps(&self, file: MetaFile) -> BldrResult<Vec<PackageIdent>> {
         let mut deps: Vec<PackageIdent> = vec![];
         match self.read_metadata(file) {
-            Ok(body) => {
+            Ok(Some(body)) => {
                 let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
                 for id in &ids {
                     let package = try!(PackageIdent::from_str(id));
@@ -204,12 +212,13 @@ impl PackageArchive {
                 }
                 Ok(deps)
             }
+            Ok(None) => Ok(vec![]),
             Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(deps),
             Err(e) => Err(e),
         }
     }
 
-    fn read_metadata(&self, file: MetaFile) -> BldrResult<String> {
+    fn read_metadata(&self, file: MetaFile) -> BldrResult<Option<String>> {
         let f = self.path.to_str().unwrap().to_string();
         let mut out = try!(gpg::verify(&f));
         try!(out.seek(SeekFrom::Start(0)));
@@ -232,12 +241,12 @@ impl PackageArchive {
         match reader.read_block() {
             Ok(Some(bytes)) => {
                 match str::from_utf8(bytes) {
-                    Ok(content) => Ok(content.trim().to_string()),
-                    Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
+                    Ok(content) => Ok(Some(content.trim().to_string())),
+                    Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed(file))),
                 }
             }
-            Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
-            Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed)),
+            Ok(None) => Ok(None),
+            Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed(file))),
         }
     }
 }

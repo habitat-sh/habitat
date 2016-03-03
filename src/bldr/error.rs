@@ -105,7 +105,7 @@ pub enum ErrorKind {
     MdbError(data_store::MdbError),
     MustacheEncoderError(mustache::encoder::Error),
     MetaFileNotFound(package::MetaFile),
-    MetaFileMalformed,
+    MetaFileMalformed(package::MetaFile),
     MetaFileIO(io::Error),
     PackageArchiveMalformed(String),
     PermissionFailed,
@@ -162,12 +162,8 @@ impl fmt::Display for BldrError {
             ErrorKind::InstallFailed => format!("Could not install package!"),
             ErrorKind::HyperError(ref err) => format!("{}", err),
             ErrorKind::HTTP(ref e) => format!("{}", e),
-            ErrorKind::WriteSyncFailed => {
-                format!("Could not write to destination; perhaps the disk is full?")
-            }
-            ErrorKind::CannotParseFileName => {
-                format!("Cannot determine the filename from the given URI")
-            }
+            ErrorKind::WriteSyncFailed => format!("Could not write to destination; perhaps the disk is full?"),
+            ErrorKind::CannotParseFileName => format!("Cannot determine the filename from the given URI"),
             ErrorKind::PathUTF8 => format!("Paths must not contain non-UTF8 characters"),
             ErrorKind::GPGError(ref e) => format!("{}", e),
             ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
@@ -184,8 +180,9 @@ impl fmt::Display for BldrError {
             ErrorKind::MetaFileNotFound(ref e) => {
                 format!("Couldn't read MetaFile: {}, not found", e)
             }
-            ErrorKind::MetaFileMalformed => {
-                "MetaFile was blank or didn't contain a valid UTF-8 string".to_string()
+            ErrorKind::MetaFileMalformed(ref e) => {
+                format!("MetaFile: {:?}, was blank or didn't contain a valid UTF-8 string",
+                        e)
             }
             ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             ErrorKind::PackageArchiveMalformed(ref e) => {
@@ -220,9 +217,7 @@ impl fmt::Display for BldrError {
                 }
             }
             ErrorKind::MustacheMergeOnlyMaps => format!("Can only merge two Mustache::Data::Maps"),
-            ErrorKind::SupervisorSignalFailed => {
-                format!("Failed to send a signal to the process supervisor")
-            }
+            ErrorKind::SupervisorSignalFailed => format!("Failed to send a signal to the process supervisor"),
             ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
             ErrorKind::StrFromUtf8Error(ref e) => format!("{}", e),
             ErrorKind::SupervisorDied => format!("The supervisor died"),
@@ -237,16 +232,12 @@ impl fmt::Display for BldrError {
             }
             ErrorKind::TryRecvError(ref err) => format!("{}", err),
             ErrorKind::BadWatch(ref e) => format!("Bad watch format: {} is not valid", e),
-            ErrorKind::NoXFilename => {
-                format!("Invalid download from a repository - missing X-Filename header")
-            }
+            ErrorKind::NoXFilename => format!("Invalid download from a repository - missing X-Filename header"),
             ErrorKind::NoFilePart => {
                 format!("An invalid path was passed - we needed a filename, and this path does \
                          not have one")
             }
-            ErrorKind::SignalNotifierStarted => {
-                format!("Only one instance of a Signal Notifier may be running")
-            }
+            ErrorKind::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
             ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
             ErrorKind::CensusNotFound(ref s) => format!("Census entry not found: {:?}", s),
             ErrorKind::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
@@ -283,9 +274,7 @@ impl Error for BldrError {
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
             ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             ErrorKind::InstallFailed => "Could not install package!",
-            ErrorKind::WriteSyncFailed => {
-                "Could not write to destination; bytes written was 0 on a non-0 buffer"
-            }
+            ErrorKind::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
             ErrorKind::CannotParseFileName => "Cannot determine the filename from the given URI",
             ErrorKind::HyperError(ref err) => err.description(),
             ErrorKind::HTTP(_) => "Received an HTTP error",
@@ -296,13 +285,9 @@ impl Error for BldrError {
             ErrorKind::MdbError(_) => "Database error",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
-            ErrorKind::MetaFileMalformed => {
-                "MetaFile was blank or didn't contain a valid UTF-8 string"
-            }
+            ErrorKind::MetaFileMalformed(_) => "MetaFile was blank or didn't contain a valid UTF-8 string",
             ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
-            ErrorKind::PackageArchiveMalformed(_) => {
-                "Package archive was unreadable or had unexpected contents"
-            }
+            ErrorKind::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
             ErrorKind::PermissionFailed => "Failed to set permissions",
             ErrorKind::BadVersion => "Failed to parse a version number",
             ErrorKind::RegexParse(_) => "Failed to parse a regular expression",
@@ -312,22 +297,14 @@ impl Error for BldrError {
             ErrorKind::KeyNotFound(_) => "Key not found in key cache",
             ErrorKind::PackageLoad(_) => "Unable to load package from path",
             ErrorKind::PackageNotFound(_) => "Cannot find a package",
-            ErrorKind::PackageIdentMismatch(_, _) => {
-                "Expected a package identity but received another"
-            }
+            ErrorKind::PackageIdentMismatch(_, _) => "Expected a package identity but received another",
             ErrorKind::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             ErrorKind::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
-            ErrorKind::SupervisorSignalFailed => {
-                "Failed to send a signal to the process supervisor"
-            }
-            ErrorKind::StringFromUtf8Error(_) => {
-                "Failed to convert a string from a Vec<u8> as UTF-8"
-            }
+            ErrorKind::SupervisorSignalFailed => "Failed to send a signal to the process supervisor",
+            ErrorKind::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             ErrorKind::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             ErrorKind::SupervisorDied => "The supervisor died",
-            ErrorKind::NulError(_) => {
-                "An attempt was made to build a CString with a null byte inside it"
-            }
+            ErrorKind::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             ErrorKind::IPFailed => "Failed to discover the outbound IP address",
             ErrorKind::HostnameFailed => "Failed to discover this hosts hostname",
             ErrorKind::UnknownTopology(_) => "Unknown topology",
@@ -336,21 +313,13 @@ impl Error for BldrError {
             ErrorKind::HookFailed(_, _, _) => "Hook failed to run",
             ErrorKind::TryRecvError(_) => "A channel failed to recieve a response",
             ErrorKind::BadWatch(_) => "An invalid watch was specified",
-            ErrorKind::NoXFilename => {
-                "Invalid download from a repository - missing X-Filename header"
-            }
-            ErrorKind::NoFilePart => {
-                "An invalid path was passed - we needed a filename, and this path does not have one"
-            }
-            ErrorKind::SignalNotifierStarted => {
-                "Only one instance of a Signal Notifier may be running"
-            }
+            ErrorKind::NoXFilename => "Invalid download from a repository - missing X-Filename header",
+            ErrorKind::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
+            ErrorKind::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             ErrorKind::ActorError(_) => "A running actor responded with an error",
             ErrorKind::CensusNotFound(_) => "A census entry does not exist",
             ErrorKind::UuidParseError(_) => "Uuid Parse Error",
-            ErrorKind::InvalidPackageIdent(_) => {
-                "Package identifiers must be in origin/name format (example: chef/redis)"
-            }
+            ErrorKind::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
             ErrorKind::JsonEncode(_) => "JSON encoding error",
             ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
