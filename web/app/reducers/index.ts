@@ -6,6 +6,7 @@
 
 import {combineReducers} from "redux";
 import app from "./app";
+import gitHub from "./gitHub";
 import notifications from "./notifications";
 import orgs from "./orgs";
 import packages from "./packages";
@@ -15,6 +16,7 @@ import user from "./user";
 
 export default combineReducers({
     app,
+    gitHub,
     notifications,
     orgs,
     packages,

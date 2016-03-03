@@ -4,6 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+import * as gitHubRepoActions from "./gitHubRepos";
 import * as notificationActions from "./notifications";
 import * as orgActions from "./orgs";
 import * as packageActions from "./packages";
@@ -12,6 +13,9 @@ import * as routerActions from "./router";
 import * as userActions from "./user";
 
 // Action types
+export const POPULATE_GITHUB_REPOS = gitHubRepoActions.POPULATE_GITHUB_REPOS;
+export const SET_SELECTED_GITHUB_ORG = gitHubRepoActions.SET_SELECTED_GITHUB_ORG;
+
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
 
@@ -39,6 +43,10 @@ export const SIGN_OUT = userActions.SIGN_OUT;
 export const TOGGLE_USER_NAV_MENU = userActions.TOGGLE_USER_NAV_MENU;
 
 // Actions
+export const fetchGitHubRepos = gitHubRepoActions.fetchGitHubRepos;
+export const onGitHubRepoSelect = gitHubRepoActions.onGitHubRepoSelect;
+export const setSelectedGitHubOrg = gitHubRepoActions.setSelectedGitHubOrg;
+
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;
 

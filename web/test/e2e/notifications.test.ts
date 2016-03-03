@@ -21,7 +21,7 @@ describe("Notifications", () => {
     });
 
     describe("Creating two notifications", () => {
-        xit("adds the notifications (disabled because of UnknownError: unknown error: Element is not clickable at point)", () => {
+        it("adds the notifications", () => {
             createProject("test1");
             createProject("test2");
             expect(element.all(by.css(".bldr-notifications li")).count()).to.
@@ -31,7 +31,7 @@ describe("Notifications", () => {
 
 
     describe("Dismissing a notification", () => {
-        xit("removes the notification (disabled because of UnknownError: unknown error: Element is not clickable at point)", () => {
+        it("removes the notification", () => {
             createProject("test1");
             createProject("test2");
             let button = element.all(by.css(".bldr-notifications li a.dismiss")).get(0).getWebElement();
