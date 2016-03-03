@@ -25,11 +25,11 @@ export class SignInPageComponent {
     constructor(private store: AppStore) { }
 
     get username() {
-        return this.store.getState().username;
+        return this.store.getState().user.username;
     }
 
     ngOnInit() {
-        if (this.store.getState().isSignedIn) {
+        if (this.store.getState().user.isSignedIn) {
             this.store.dispatch(
                 requestRoute(["Packages", { filter: "mine" }])
             );

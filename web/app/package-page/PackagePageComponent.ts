@@ -77,7 +77,7 @@ export class PackagePageComponent implements OnInit {
     // so we can query for its versions and releases. In ngOnInit, we'll
     // populate more data by dispatching setCurrentPackage.
     get package() {
-        const currentPackageFromState = this.store.getState().currentPackage;
+        const currentPackageFromState = this.store.getState().packages.current;
         const params = this.routeParams.params;
 
         // Use the currentPackage from the state if it's the same package we want

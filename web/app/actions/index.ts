@@ -1,279 +1,68 @@
-// Copyright:: Copyright (c) 2015-2016 Chef Software, Inc.
+// Copyright:: Copyright (c) 2016 Chef Software, Inc.
 //
 // The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as api from "../api";
-import {Observable} from "rxjs";
-import {packageString} from "../util";
 import * as notificationActions from "./notifications";
-import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
+import * as orgActions from "./orgs";
+import * as packageActions from "./packages";
+import * as projectActions from "./projects";
+import * as routerActions from "./router";
+import * as userActions from "./user";
 
-// The ansi_up module does not have TypeScript type definitions, so it needs to
-// be loaded with a CommonJS require call, which will end up being handled by
-// webpack.
-const ansiToHtml = require("ansi_up").ansi_to_html;
-
+// Action types
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
-export const APPEND_TO_BUILD_LOG = "APPEND_TO_BUILD_LOG";
-export const FINISH_BUILD_STREAM = "FINISH_BUILD_STREAM";
-export const POPULATE_BUILDS = "POPULATE_BUILDS";
-export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
-export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
-export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
-export const ROUTE_CHANGE = "ROUTE_CHANGE";
-export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
-export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
-export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
-export const SET_PACKAGES = "SET_PACKAGES";
-export const SET_PROJECTS = "SET_PROJECTS";
-export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
-export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
-export const SIGN_UP_ATTEMPT = "SIGN_UP_ATTEMPT";
-export const SIGN_OUT = "SIGN_OUT";
-export const TOGGLE_USER_NAV_MENU = "TOGGLE_USER_NAV_MENU";
 
+export const POPULATE_ORG = orgActions.POPULATE_ORG;
+
+export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
+export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
+export const SET_PACKAGES = packageActions.SET_PACKAGES;
+export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
+
+export const APPEND_TO_BUILD_LOG = projectActions.APPEND_TO_BUILD_LOG;
+export const FINISH_BUILD_STREAM = projectActions.FINISH_BUILD_STREAM;
+export const POPULATE_BUILDS = projectActions.POPULATE_BUILDS;
+export const POPULATE_BUILD_LOG = projectActions.POPULATE_BUILD_LOG;
+export const POPULATE_PROJECT = projectActions.POPULATE_PROJECT;
+export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
+export const SET_PROJECTS = projectActions.SET_PROJECTS;
+
+export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
+export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
+
+export const SIGN_IN_ATTEMPT = userActions.SIGN_IN_ATTEMPT;
+export const SIGN_UP_ATTEMPT = userActions.SIGN_UP_ATTEMPT;
+export const SIGN_OUT = userActions.SIGN_OUT;
+export const TOGGLE_USER_NAV_MENU = userActions.TOGGLE_USER_NAV_MENU;
+
+// Actions
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;
 
-export function addProject(project) {
-    return dispatch => {
-        dispatch(requestRoute(["Projects"]));
-        dispatch(populateProject(project));
-        dispatch(addNotification({
-            title: "Project Created",
-            body: `${project.origin}/${project.name}`,
-            type: SUCCESS,
-        }));
-    };
-}
+export const addOrg = orgActions.addOrg;
 
-function appendToBuildLog(build, text) {
-    return {
-        type: APPEND_TO_BUILD_LOG,
-        payload: { buildId: build.id, text: ansiToHtml(text) }
-    };
-}
+export const fetchExplore = packageActions.fetchExplore;
+export const fetchPackage = packageActions.fetchPackage;
+export const filterPackagesBy = packageActions.filterPackagesBy;
+export const populateExplore = packageActions.populateExplore;
+export const setCurrentPackage = packageActions.setCurrentPackage;
+export const setPackages = packageActions.setPackages;
+export const setVisiblePackages = packageActions.setVisiblePackages;
 
-export function attemptSignIn(username) {
-    return {
-        type: SIGN_IN_ATTEMPT,
-        payload: { username: username },
-    };
-}
+export const addProject = projectActions.addProject;
+export const fetchBuilds = projectActions.fetchBuilds;
+export const fetchProject = projectActions.fetchProject;
+export const fetchProjects = projectActions.fetchProjects;
+export const populateBuildLog = projectActions.populateBuildLog;
+export const setCurrentProject = projectActions.setCurrentProject;
 
-export function attemptSignUp(username, email, password) {
-    return {
-        type: SIGN_UP_ATTEMPT,
-        payload: {
-            username: username,
-            email: email,
-            password: password,
-        }
-    };
-}
+export const routeChange = routerActions.routeChange;
+export const requestRoute = routerActions.requestRoute;
 
-// Fetch the list of builds for a package
-export function fetchBuilds(pkg) {
-    return dispatch => {
-        api.get(`log/${packageString(pkg)}/builds.json`).then(response => {
-            dispatch(populateBuilds(response));
-            dispatch(fetchBuildLog(pkg, response));
-        }).catch(error => {
-            dispatch(populateBuilds([]));
-        });
-    };
-}
-
-// Fetch the build log for a package
-function fetchBuildLog(pkg, builds) {
-    return dispatch => {
-        builds.forEach(build => {
-            api.get(`log/${packageString(pkg)}/${build.id}.txt`).then(response => {
-                if (build.status === "running") {
-                    dispatch(simulateLogStream(build, response));
-                } else {
-                    dispatch(populateBuildLog(build.id, response));
-                }
-            }).catch(error => {
-                dispatch(populateBuildLog(build.id, undefined));
-            });
-        });
-    };
-}
-
-// Fetch the explore endpoint
-export function fetchExplore() {
-    return dispatch => {
-        api.get("explore.json").then(response => {
-            dispatch(populateExplore(response));
-        }).catch(error => console.error(error));
-    };
-}
-
-export function fetchPackage(pkg) {
-    return dispatch => {
-        api.get("packages.json").then(response => {
-            dispatch(setPackages(response));
-            dispatch(setCurrentPackage(pkg));
-        });
-    };
-}
-
-export function fetchProject(params) {
-    return dispatch => {
-        api.get(`projects/${params["origin"]}/${params["name"]}.json`).then(response => {
-            dispatch(
-                setCurrentProject(
-                    Object.assign({
-                        ui: { exists: true, loading: false }
-                    }, response)
-                )
-            );
-        }).catch(error => {
-            dispatch(setCurrentProject({
-                ui: { exists: false, loading: false }
-            }));
-        });
-    };
-}
-
-export function fetchProjects() {
-    return dispatch => {
-        api.get("projects.json").then(response => {
-            dispatch(setProjects(response));
-        });
-    };
-}
-
-export function filterPackagesBy(params) {
-    return dispatch => {
-        api.get("packages.json").then(response => {
-            dispatch(setPackages(response));
-            dispatch(setVisiblePackages(params));
-        });
-    };
-}
-
-function finishBuildStream(build) {
-    return {
-        type: FINISH_BUILD_STREAM,
-        payload: { buildId: build.id, duration: 171 },
-    };
-}
-
-function populateBuilds(data) {
-    return {
-        type: POPULATE_BUILDS,
-        payload: data,
-    };
-}
-
-export function populateBuildLog(id, data) {
-    return {
-        type: POPULATE_BUILD_LOG,
-        payload: { id, data: data ? ansiToHtml(data) : undefined },
-    };
-}
-
-export function populateExplore(data) {
-    return {
-        type: POPULATE_EXPLORE,
-        payload: data,
-    };
-}
-
-function populateProject(project) {
-    return {
-        type: POPULATE_PROJECT,
-        payload: project,
-    };
-}
-
-
-export function routeChange(newRoute) {
-    return {
-        type: ROUTE_CHANGE,
-        payload: newRoute,
-    };
-}
-
-export function requestRoute(requestedRoute: Array<any>) {
-    return {
-        type: ROUTE_REQUESTED,
-        payload: requestedRoute
-    };
-}
-
-export function setCurrentPackage(pkg) {
-    return {
-        type: SET_CURRENT_PACKAGE,
-        payload: pkg,
-    };
-}
-
-export function setCurrentProject(project) {
-    return {
-        type: SET_CURRENT_PROJECT,
-        payload: project,
-    };
-}
-
-export function setPackages(packages) {
-    return {
-        type: SET_PACKAGES,
-        payload: packages,
-    };
-}
-
-function setProjects(projects) {
-    return {
-        type: SET_PROJECTS,
-        payload: projects,
-    };
-}
-
-export function setVisiblePackages(params) {
-    return {
-        type: SET_VISIBLE_PACKAGES,
-        payload: params,
-    };
-}
-
-function simulateLogStream(build, response) {
-    return dispatch => {
-        // This is where we simulate a streaming build
-        if (build.status === "running") {
-            const o = Observable.from(response.split("\n")).concatMap(x =>
-                Observable.of(x).delay((() => Math.floor(Math.random() * 300))())
-            );
-            o.subscribe(
-                x => dispatch(appendToBuildLog(build, x)),
-                e => console.error(e),
-                () => {
-                    dispatch(finishBuildStream(build));
-                    dispatch(addNotification({
-                        title: "Build Complete",
-                        type: SUCCESS,
-                        body: `Build ${packageString(build)}#${build.id} completed successfully.`,
-                    }));
-                }
-            );
-        }
-
-    };
-}
-
-export function toggleUserNavMenu() {
-    return {
-        type: TOGGLE_USER_NAV_MENU
-    };
-}
-
-export function signOut() {
-    return {
-        type: SIGN_OUT
-    };
-}
+export const attemptSignIn = userActions.attemptSignIn;
+export const attemptSignUp = userActions.attemptSignUp;
+export const toggleUserNavMenu = userActions.toggleUserNavMenu;
+export const signOut = userActions.signOut;

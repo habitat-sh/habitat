@@ -9,7 +9,7 @@ import {RouterLink} from "angular2/router";
     <div class="bldr-explore">
         <h1>Explore</h1>
         <ul>
-            <li *ngFor="#item of store.getState().explore.packages">
+            <li *ngFor="#item of store.getState().packages.explore">
                 <a [routerLink]="['PackagesForName', { name: item.name }]">
                     <span class="title">{{item.name}}</span>
                     <div class="info">

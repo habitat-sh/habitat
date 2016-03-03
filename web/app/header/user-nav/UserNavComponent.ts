@@ -34,7 +34,7 @@ export class UserNavComponent {
     constructor(private store: AppStore) { }
 
     get state() {
-        return this.store.getState();
+        return this.store.getState().user;
     }
 
     get isOpen() {

@@ -33,7 +33,7 @@ export class ProjectsPageComponent implements OnInit {
     constructor(private store: AppStore) {}
 
     get projects() {
-        return this.store.getState().projects;
+        return this.store.getState().projects.all;
     }
 
     ngOnInit() {

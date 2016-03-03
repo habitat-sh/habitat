@@ -18,9 +18,17 @@ legend {
 }
 
 label {
+  color: $medium-gray;
   display: block;
-  font-weight: 600;
   margin-bottom: $small-spacing / 2;
+  text-transform: uppercase;
+}
+
+form small {
+  color: $medium-gray;
+  display: block;
+  margin-bottom: $small-spacing / 2;
+  margin-top: -($small-spacing / 2);
 }
 
 input,

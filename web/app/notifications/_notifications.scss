@@ -1,48 +1,47 @@
 .bldr-notifications {
-    position: fixed;
-    right: $small-spacing;
-    bottom: 0;
-    width: 25%;
-    z-index: 9999;
+  position: fixed;
+  right: $small-spacing;
+  bottom: 0;
+  width: 25%;
+  z-index: 9999;
 
-    li {
-      border: 2px solid;
-      display: block;
-      margin: $small-spacing 0;
-      padding: $small-spacing;
-      position: relative;
+  li {
+    border: 2px solid;
+    display: block;
+    margin: $small-spacing 0;
+    padding: $small-spacing;
+    position: relative;
 
-      h1 {
-        font-size: 100%;
-        font-weight: bold;
-      }
-
-      a.dismiss {
-        color: inherit;
-        display: block;
-        float: right;
-        margin-top: -($small-spacing / 2);
-      }
-
-      &.danger {
-        color: darken($notification-danger-color, 60);
-        background-color: $notification-danger-color;
-      }
-
-      &.info {
-        color: darken($notification-info-color, 60);
-        background-color: $notification-info-color;
-      }
-
-      &.success {
-        color: darken($notification-success-color, 60);
-        background-color: $notification-success-color;
-      }
-
-
-      &.warning {
-        color: darken($notification-warning-color, 60);
-        background-color: $notification-warning-color;
-      }
+    h1 {
+      font-size: 100%;
+      font-weight: bold;
     }
+
+    a.dismiss {
+      color: inherit;
+      display: block;
+      float: right;
+      margin-top: -($small-spacing / 2);
+    }
+
+    &.danger {
+      color: darken($notification-danger-color, 60);
+      background-color: $notification-danger-color;
+    }
+
+    &.info {
+      color: darken($notification-info-color, 60);
+      background-color: $notification-info-color;
+    }
+
+    &.success {
+      color: darken($notification-success-color, 60);
+      background-color: $notification-success-color;
+    }
+
+    &.warning {
+      color: darken($notification-warning-color, 60);
+      background-color: $notification-warning-color;
+    }
+  }
 }

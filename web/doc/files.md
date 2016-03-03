@@ -23,16 +23,18 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
       boot.ts                    #   Main entry point for the TypeScript.
       initialState.ts            #   The initial state of the app.
       query.ts                   #   Object that lets you query for packages.
-      rootReducer.ts             #   The root [Reducer](http://rackt.org/redux/docs/basics/Reducers.html).
       tests-entry.ts             #   Main entry point for the tests.
       util.test.ts               #   Files that end in .test.ts are tests.
       util.ts                    #   Utility functions.
     dist/                        # Where the app prepared for production distribution goes. `npm run dist` to create it. Ignored by git.
-
     doc/                         # Documentation.
       files.md                   #   This is the file you are reading now.
     fixtures/                    # Fixture data the app uses to make fake requests.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
+    reducers/                    # [Reducers](http://rackt.org/redux/docs/basics/Reducers.html) for redux
+      app.ts                     #   Each reducer is responsible for a key in the app state (defined in app/initialState.ts.)
+      index.ts                   #   The root Reducer.
+      notifications.ts           #
     stylesheets/base/            # The SCSS files for the stylesheets.
     test/e2e/                    # End-to-end [Protractor](https://angular.github.io/protractor/#/) tests.
     typings/                     # Type definitions for [Typings](https://github.com/typings/typings). Ignored by git.
