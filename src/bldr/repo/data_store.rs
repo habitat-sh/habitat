@@ -362,7 +362,11 @@ impl DataStore {
             Some(root) => try!(fs::create_dir_all(root)),
             None => return Err(bldr_error!(ErrorKind::DbInvalidPath)),
         }
-        let env = try!(Environment::new().max_databases(MAX_DBS).flags(flags).open(&path, 0o744));
+        let env = try!(Environment::new()
+                           .map_size(1073741824)
+                           .max_databases(MAX_DBS)
+                           .flags(flags)
+                           .open(&path, 0o744));
         let env1 = Arc::new(env);
         let env2 = env1.clone();
         let env3 = env1.clone();
