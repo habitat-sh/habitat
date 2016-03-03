@@ -226,7 +226,8 @@ impl PackageArchive {
         try!(builder.support_format(ReadFormat::All));
         try!(builder.support_filter(ReadFilter::All));
         let mut reader = try!(builder.open_stream(out));
-        let re = try!(Regex::new(&format!("/{}$", file)));
+        let re = try!(Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                                          file)));
         loop {
             {
                 if let Some(entry) = reader.next_header() {
