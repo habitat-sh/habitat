@@ -181,8 +181,7 @@ impl fmt::Display for BldrError {
                 format!("Couldn't read MetaFile: {}, not found", e)
             }
             ErrorKind::MetaFileMalformed(ref e) => {
-                format!("MetaFile: {:?}, was blank or didn't contain a valid UTF-8 string",
-                        e)
+                format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
             }
             ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             ErrorKind::PackageArchiveMalformed(ref e) => {
@@ -285,7 +284,7 @@ impl Error for BldrError {
             ErrorKind::MdbError(_) => "Database error",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
-            ErrorKind::MetaFileMalformed(_) => "MetaFile was blank or didn't contain a valid UTF-8 string",
+            ErrorKind::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
             ErrorKind::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
             ErrorKind::PermissionFailed => "Failed to set permissions",
