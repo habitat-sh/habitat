@@ -64,7 +64,11 @@ impl Repo {
             .join(&ident.name)
             .join(ident.version.as_ref().unwrap())
             .join(ident.release.as_ref().unwrap())
-            .join(format!("{}-{}-{}-{}.bldr", &ident.origin, &ident.name, ident.version.as_ref().unwrap(), ident.release.as_ref().unwrap()))
+            .join(format!("{}-{}-{}-{}.bldr",
+                          &ident.origin,
+                          &ident.name,
+                          ident.version.as_ref().unwrap(),
+                          ident.release.as_ref().unwrap()))
     }
 
     fn key_path(&self, name: &str) -> PathBuf {
@@ -99,7 +103,10 @@ impl Default for ListenPort {
 
 impl<'a> Into<package::PackageIdent> for &'a Params {
     fn into(self) -> package::PackageIdent {
-        package::PackageIdent::new(self.find("origin").unwrap(), self.find("pkg").unwrap(), self.find("version"), self.find("release"))
+        package::PackageIdent::new(self.find("origin").unwrap(),
+                                   self.find("pkg").unwrap(),
+                                   self.find("version"),
+                                   self.find("release"))
     }
 }
 
@@ -184,16 +191,21 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     let filename = repo.archive_path(&ident);
     try!(write_file(&filename, &mut req.body));
     let archive = PackageArchive::new(filename);
+    debug!("Package Archive: {:#?}", archive);
     let object = match data_object::Package::from_archive(&archive) {
         Ok(object) => object,
-        Err(_) => return Ok(Response::with(status::UnprocessableEntity)),
+        Err(e) => {
+            debug!("Error building package from archive: {:#?}", e);
+            return Ok(Response::with(status::UnprocessableEntity));
+        }
     };
     if ident.satisfies(&object.ident.clone().into()) {
         // JW TODO: handle failure here?
         try!(repo.datastore.packages.write(&txn, &object));
         try!(txn.commit());
 
-        let mut response = Response::with((status::Created, format!("/pkgs/{}/download", object.ident)));
+        let mut response = Response::with((status::Created,
+                                           format!("/pkgs/{}/download", object.ident)));
         let mut base_url = req.url.clone();
         base_url.path = vec![String::from("pkgs"),
                              object.ident.to_string(),
@@ -201,6 +213,7 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
+        debug!("Ident failed to satisfy: {:#?}", ident);
         Ok(Response::with(status::UnprocessableEntity))
     }
 }
@@ -235,8 +248,8 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
             Ok(package) => {
                 let value: package::PackageIdent = package.ident.into();
                 Ok(value)
-            },
-            Err(e) => Err(e)
+            }
+            Err(e) => Err(e),
         }
     };
 
@@ -258,8 +271,9 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
                 // JW TODO: write the depot repair tool and wire it into the `bldr-depot repair` command
                 panic!("Inconsistent package metadata! Exit and run `bldr-depot repair` to fix data integrity.");
             }
-        },
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => Ok(Response::with((status::NotFound))),
+        }
+        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
+            Ok(Response::with((status::NotFound))),
         Err(_) => unreachable!("unknown error"),
     }
 }
@@ -277,20 +291,21 @@ fn list_packages(repo: &Repo, req: &mut Request) -> IronResult<Response> {
             loop {
                 match cursor.next_dup() {
                     Ok((_, value)) => packages.push(value.into()),
-                    Err(_) => break
+                    Err(_) => break,
                 }
             }
             Ok(())
-        },
-        Err(e) => Err(BldrError::from(e))
+        }
+        Err(e) => Err(BldrError::from(e)),
     };
 
     match result {
         Ok(()) => {
             let body = json::encode(&packages).unwrap();
             Ok(Response::with((status::Ok, body)))
-        },
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => Ok(Response::with((status::NotFound))),
+        }
+        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
+            Ok(Response::with((status::NotFound))),
         Err(_) => unreachable!("unknown error"),
     }
 }
@@ -316,8 +331,8 @@ fn show_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
             Ok(v) => {
                 let txn = try!(repo.datastore.packages.txn_ro());
                 txn.get(&v.ident())
-            },
-            Err(e) => Err(e)
+            }
+            Err(e) => Err(e),
         }
     };
     match result {
@@ -326,8 +341,9 @@ fn show_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
             // let body = json::encode(&data.to_json()).unwrap();
             let body = json::encode(&data).unwrap();
             Ok(Response::with((status::Ok, body)))
-        },
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => Ok(Response::with((status::NotFound))),
+        }
+        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
+            Ok(Response::with((status::NotFound))),
         Err(e) => unreachable!("unknown error: {:?}", e),
     }
 }
@@ -354,9 +370,9 @@ pub fn run(config: &Config) -> BldrResult<()> {
     let repo14 = repo.clone();
 
     let router = router!(
-        // get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo2, r),
-        // get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo3, r),
-        // get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo4, r),
+    // get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo2, r),
+    // get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo3, r),
+    // get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo4, r),
 
         get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo5, r),
         get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo6, r),

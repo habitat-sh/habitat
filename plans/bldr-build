@@ -285,7 +285,7 @@ BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
 PLAN_CONTEXT=${1:-.}
 # The default bldr package repository from where to download dependencies}. If
 # `BLDR_REPO` is set, this value is overridden.
-: ${BLDR_REPO:=http://52.11.158.96:32768}
+: ${BLDR_REPO:=http://52.37.151.35:9632}
 # The value of `$PATH` on initial start of this program
 BLDR_INITIAL_PATH="$PATH"
 # The package's origin (i.e. chef)

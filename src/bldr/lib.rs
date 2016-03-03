@@ -90,7 +90,7 @@ macro_rules! output {
             print!("{}", so);
         }
     };
-    (P: $preamble: expr, $content: expr) => {
+    (preamble $preamble: expr, $content: expr) => {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
@@ -115,7 +115,7 @@ macro_rules! output {
             print!("{}", so);
         }
     };
-    (P: $preamble: expr, $content: expr, $($arg:tt)*) => {
+    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);
@@ -145,7 +145,7 @@ macro_rules! outputln {
             println!("{}", so);
         }
     };
-    (P: $preamble:expr, $content: expr) => {
+    (preamble $preamble:expr, $content: expr) => {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
@@ -170,7 +170,7 @@ macro_rules! outputln {
             println!("{}", so);
         }
     };
-    (P: $preamble: expr, $content: expr, $($arg:tt)*) => {
+    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);
@@ -200,7 +200,7 @@ macro_rules! output_format {
             format!("{}", so)
         }
     };
-    (P: $preamble:expr, $content: expr) => {
+    (preamble $preamble:expr, $content: expr) => {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
@@ -212,7 +212,7 @@ macro_rules! output_format {
             format!("{}", so)
         }
     };
-    (P: $preamble:expr, L: $logkey:expr) => {
+    (preamble $preamble:expr, logkey $logkey:expr) => {
         {
             use $crate::output::StructuredOutput;
             let so = StructuredOutput::new($preamble,
@@ -238,7 +238,7 @@ macro_rules! output_format {
             format!("{}", so)
         }
     };
-    (P: $preamble: expr, $content: expr, $($arg:tt)*) => {
+    (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
             let content = format!($content, $($arg)*);

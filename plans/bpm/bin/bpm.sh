@@ -523,7 +523,7 @@ latest_remote_package() {
     "2"|"1")
       local result="$(\
         $bb env -u http_proxy $bb wget "$BLDR_REPO/pkgs/$1" -O- -q | \
-        $jq -r '.origin + "/" + .name + "/" + .version + "/" + .release')"
+        $jq -r 'last | .origin + "/" + .name + "/" + .version + "/" + .release')"
       if [ -n "$result" ]; then
         echo $result
       else
@@ -857,7 +857,7 @@ BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
 # Location containing cached gpg keys
 BLDR_GPG_CACHE=$BLDR_ROOT/cache/gpg
 # The default bldr package repository from where to download dependencies
-: ${BLDR_REPO:=http://52.11.158.96:32768}
+: ${BLDR_REPO:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : ${VERBOSE:=}

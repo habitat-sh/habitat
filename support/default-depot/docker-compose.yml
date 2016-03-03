@@ -1,0 +1,15 @@
+app:
+  image: chef/bldr
+  environment:
+    RUST_LOG: debug
+  command: depot
+  ports:
+    - "9632:9632"
+  volumes_from:
+    - data
+
+data:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /opt/bldr/srvc

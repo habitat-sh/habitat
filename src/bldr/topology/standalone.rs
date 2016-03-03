@@ -60,8 +60,9 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
 ///
 /// * If we cannot find the package
 /// * If we cannot start the supervisor
+#[cfg_attr(rustfmt, rustfmt_skip)]
 pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
-    outputln!(P: &worker.package_name, "Starting");
+    outputln!(preamble &worker.package_name, "Starting");
     let package = worker.package_name.clone();
     let runit_pkg = try!(Package::load(&PackageIdent::new("chef", "runit", None, None), None));
     let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
@@ -80,22 +81,22 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
                              None => return Err(bldr_error!(ErrorKind::UnpackFailed)),
                          };
 
-                         let mut line = output_format!(P: &package, L: "SO");
+                         let mut line = output_format!(preamble &package, logkey "SO");
                          loop {
                              let mut buf = [0u8; 1]; // Our byte buffer
                              let len = try!(c_stdout.read(&mut buf));
                              match len {
                                  0 => {
-                                     // 0 == EOF, so stop writing and finish progress
+// 0 == EOF, so stop writing and finish progress
                                      break;
                                  }
                                  _ => {
-                                     // Write the buffer to the BufWriter on the Heap
+// Write the buffer to the BufWriter on the Heap
                                      let buf_string = String::from_utf8_lossy(&buf[0 .. len]);
                                      line.push_str(&buf_string);
                                      if line.contains("\n") {
                                          print!("{}", line);
-                                         line = output_format!(P: &package, L: "O");
+                                         line = output_format!(preamble &package, logkey "O");
                                      }
                                  }
                              }

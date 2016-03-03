@@ -201,7 +201,7 @@ fn upload(url: &str, file: &mut File) -> BldrResult<()> {
 }
 
 fn progress(status: &str, written: i64, length: &str, finished: bool) {
-    let progress = output_format!(P: status, "{}/{}", written, length);
+    let progress = output_format!(preamble status, "{}/{}", written, length);
     print!("{}", from_char(progress.len(), '\x08'));
     if finished {
         println!("{}", progress);
