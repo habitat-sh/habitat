@@ -47,6 +47,6 @@ export class SignUpFormComponent {
     }
 
     get isSubmitted() {
-        return this.store.getState().isSignUpFormSubmitted;
+        return this.store.getState().user.isSignUpFormSubmitted;
     }
 }

@@ -6,7 +6,7 @@
 
 import {addProject} from "../actions/index";
 import {AppStore} from "../AppStore";
-import {Component, OnInit} from "angular2/core";
+import {Component} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
 
 @Component({
@@ -34,7 +34,7 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
                 </div>
                 <div class="plan">
                     <label for="plan">Path to Plan file</label>
-                    <p>The location in the repository of the plan.sh that will build this project.</p>
+                    <small>The location in the repository of the plan.sh that will build this project.</small>
                     <input ngControl="plan" id="plan" name="plan" required>
                 </div>
                 <div class="submit">
@@ -50,11 +50,10 @@ export class ProjectCreatePageComponent {
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
         this.form = formBuilder.group({
-            origin: ["smith", Validators.required],
+            origin: [this.store.getState().user.username, Validators.required],
             name: ["", Validators.required],
             plan: ["/plan.sh", Validators.required],
         });
-
     }
 
     private addProject(values) {

@@ -101,7 +101,7 @@ export class ProjectPageComponent implements OnInit {
     constructor(private routeParams: RouteParams, private store: AppStore) {}
 
     get project() {
-        return this.store.getState().currentProject;
+        return this.store.getState().projects.current;
     }
 
     ngOnInit() {

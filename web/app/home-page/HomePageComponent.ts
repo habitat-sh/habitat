@@ -27,7 +27,7 @@ export class HomePageComponent {
     constructor(private store: AppStore) { }
 
     ngOnInit() {
-        if (this.store.getState().isSignedIn) {
+        if (this.store.getState().user.isSignedIn) {
             this.store.dispatch(
                 requestRoute(["Packages", { filter: "mine" }])
             );
@@ -35,6 +35,6 @@ export class HomePageComponent {
     }
 
     get username() {
-        return this.store.getState().username;
+        return this.store.getState().user.username;
     }
 }

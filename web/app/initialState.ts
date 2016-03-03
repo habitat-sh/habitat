@@ -1,44 +1,72 @@
 import {List, Map, Record} from "immutable";
 
 export default Record({
-    appName: "bldr",
-    currentPackage: undefined,
-    currentProject: Record({
-        origin: undefined,
-        name: undefined,
-        description: undefined,
-        latestBuild: undefined,
-        sourceUrl: undefined,
-        maintainer: Record({
-
-        })(),
-        sourceRepository: Record({
-
-        }),
-        builds: List(),
-        buildLogs: Map(),
-        ui: Record({
-            exists: false,
-            loading: true,
-        })()
+    app: Record({
+        name: "bldr",
+        currentYear: new Date().getFullYear(),
     })(),
-    currentYear: new Date().getFullYear(),
-    email: undefined,
-    explore: Record({ packages: List() })(),
-    isSignUpFormSubmitted: false,
-    isSignedIn: true,
-    isUserNavOpen: false,
-    notifications: List(),
-    packages: List(),
-    password: undefined,
-    projects: List(),
-    // This is a temporary hack that lets us add projects, and gets
-    // concatted with projects on display. In real life we'll make another
-    // server call when displaying a list after a project is added and it will
-    // be there
-    addedProjects: List(),
-    requestedRoute: undefined,
-    route: undefined,
-    username: "smith",
-    visiblePackages: List(),
+    notifications: Record({
+        all: List(),
+    })(),
+    orgs: Record({
+        added: List(),
+        all: List(),
+        beingCreated: Record({
+            namespace: undefined,
+            name: undefined,
+            email: undefined,
+            website: undefined,
+            members: List(),
+        })(),
+        ui: Record({
+            create: Record({
+                saved: false,
+            })(),
+        })(),
+    })(),
+    packages: Record({
+        all: List(),
+        current: undefined,
+        explore: List(),
+        visible: List(),
+    })(),
+    projects: Record({
+        // This is a temporary hack that lets us add projects, and gets
+        // concatted with projects on display. In real life we'll make another
+        // server call when displaying a list after a project is added and it will
+        // be there
+        added: List(),
+        all: List(),
+        current: Record({
+            origin: undefined,
+            name: undefined,
+            description: undefined,
+            latestBuild: undefined,
+            sourceUrl: undefined,
+            maintainer: Record({
+
+            })(),
+            sourceRepository: Record({
+
+            })(),
+            builds: List(),
+            buildLogs: Map(),
+            ui: Record({
+                exists: false,
+                loading: true,
+            })()
+        })(),
+    })(),
+    router: Record({
+        requestedRoute: undefined,
+        route: undefined,
+    })(),
+    user: Record({
+        email: undefined,
+        isSignedIn: true,
+        isSignUpFormSubmitted: false,
+        isUserNavOpen: false,
+        password: undefined,
+        username: "smith",
+    })(),
 })();

@@ -63,7 +63,7 @@ export class PackagesPageComponent implements OnInit {
     }
 
     get packages() {
-        return this.store.getState().visiblePackages;
+        return this.store.getState().packages.visible;
     }
 
     get showAll() {
@@ -71,7 +71,7 @@ export class PackagesPageComponent implements OnInit {
     }
 
     ngOnInit() {
-        if (!this.store.getState().isSignedIn) {
+        if (!this.store.getState().user.isSignedIn) {
             this.store.dispatch(requestRoute(["Home"]));
         }
 

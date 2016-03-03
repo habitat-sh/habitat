@@ -25,16 +25,17 @@ import {removeNotification, routeChange} from "./actions/index";
     selector: "bldr",
     template: `
     <div class="bldr-container">
-        <bldr-notifications [notifications]="state.notifications" [removeNotification]="removeNotification">
+        <bldr-notifications [notifications]="state.notifications.all"
+                            [removeNotification]="removeNotification">
         </bldr-notifications>
-        <bldr-header [appName]="state.appName" [route]="state.route">
+        <bldr-header [appName]="state.app.name" [route]="state.router.route">
         </bldr-header>
         <bldr-side-nav></bldr-side-nav>
         <section class="bldr-main">
             <router-outlet></router-outlet>
         </section>
         <footer class="bldr-footer">
-            <p>&copy; {{state.currentYear}} Chef Software, Inc. All Rights Reserved.</p>
+            <p>&copy; {{state.app.currentYear}} Chef Software, Inc. All Rights Reserved.</p>
         </footer>
     </div>`,
 })
@@ -70,7 +71,7 @@ export class AppComponent {
         store.subscribe(state => {
             // If the state has a requestedRoute attribute, use the router to navigate
             // to the route that was requested.
-            const requestedRoute = state.requestedRoute;
+            const requestedRoute = state.router.requestedRoute;
             if (requestedRoute) { router.navigate(requestedRoute); }
         });
 

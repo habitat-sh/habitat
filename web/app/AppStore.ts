@@ -6,7 +6,7 @@
 
 import {Injectable} from "angular2/core";
 import {applyMiddleware, compose, createStore} from "redux";
-import {rootReducer} from "./rootReducer";
+import rootReducer from "./reducers/index";
 import * as thunk from "redux-thunk";
 
 const finalCreateStore = compose(
