@@ -11,6 +11,7 @@ import {HeaderComponent} from "./header/HeaderComponent";
 import {HomePageComponent} from "./home-page/HomePageComponent";
 import {LinkedAccountsPageComponent} from "./linked-accounts-page/LinkedAccountsPageComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
+import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
 import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
 import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
@@ -43,8 +44,16 @@ import {removeNotification, routeChange} from "./actions/index";
 })
 
 @RouteConfig([
-    { path: "/", name: "Home", component: HomePageComponent },
-    { path: "/explore", name: "Explore", component: ExplorePageComponent },
+    {
+        path: "/",
+        name: "Home",
+        component: HomePageComponent
+    },
+    {
+        path: "/explore",
+        name: "Explore",
+        component: ExplorePageComponent
+    },
     {
         path: "/linked-accounts",
         name: "LinkedAccounts",
@@ -55,7 +64,16 @@ import {removeNotification, routeChange} from "./actions/index";
         name: "Organizations",
         component: OrganizationsPageComponent,
     },
-    { path: "/pkgs", name: "Packages", component: PackagesPageComponent },
+    {
+        path: "/orgs/create",
+        name: "OrganizationCreate",
+        component: OrganizationCreatePageComponent,
+    },
+    {
+        path: "/pkgs",
+        name: "Packages",
+        component: PackagesPageComponent
+    },
     {
         path: "/pkgs/*/:name",
         name: "PackagesForName",
@@ -67,10 +85,15 @@ import {removeNotification, routeChange} from "./actions/index";
         component: PackagesPageComponent
     },
     {
-        path: "/pkgs/:origin/:name/:version/:release", name: "Package",
+        path: "/pkgs/:origin/:name/:version/:release",
+        name: "Package",
         component: PackagePageComponent
     },
-    { path: "/projects", name: "Projects", component: ProjectsPageComponent },
+    {
+        path: "/projects",
+        name: "Projects",
+        component: ProjectsPageComponent
+    },
     {
         path: "/projects/create",
         name: "ProjectCreate",
@@ -86,7 +109,11 @@ import {removeNotification, routeChange} from "./actions/index";
         name: "SCMRepos",
         component: SCMReposPageComponent,
     },
-    { path: "/sign-in", name: "SignIn", component: SignInPageComponent },
+    {
+        path: "/sign-in",
+        name: "SignIn",
+        component: SignInPageComponent
+    },
 ])
 
 export class AppComponent {

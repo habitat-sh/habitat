@@ -6,7 +6,7 @@ export default Record({
         currentYear: new Date().getFullYear(),
     })(),
     gitHub: Record({
-        isLinked: true,
+        isLinked: false,
         repos: List(),
         selectedOrg: undefined,
         username: undefined,

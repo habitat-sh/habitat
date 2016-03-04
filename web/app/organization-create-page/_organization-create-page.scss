@@ -1,0 +1,33 @@
+.bldr-organization-create {
+  @include outer-container;
+
+  form {
+    @include outer-container;
+    @include span-columns(8);
+  }
+
+  .ns, .name {
+    @include span-columns(6);
+  }
+
+  .name {
+    @include omega;
+  }
+
+  nav {
+    @include span-columns(4);
+    @include omega;
+
+    border-left: 1px solid $light-gray;
+    padding-left: $base-spacing;
+
+    ul {
+      line-height: 2;
+      margin-bottom: $base-spacing;
+
+      li.active {
+        font-weight: bold;
+      }
+    }
+  }
+}

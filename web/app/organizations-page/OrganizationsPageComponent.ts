@@ -7,8 +7,10 @@
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {List} from "immutable";
+import {RouterLink} from "angular2/router";
 
 @Component({
+    directives: [RouterLink],
     template: `
     <div class="bldr-organizations">
         <h2>Organizations</h2>
@@ -21,7 +23,11 @@ import {List} from "immutable";
                 <p>
                     Create an organization, then start adding projects and users.
                 </p>
-                <p><button>Add Organization</button></p>
+                <p>
+                    <a class="button" [routerLink]='["OrganizationCreate"]'>
+                        Add Organization
+                    </a>
+                </p>
             </form>
             <div class="info">
                 <p>Organizations allow you to do the following:</p>

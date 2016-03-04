@@ -35,7 +35,7 @@ import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
                     <p>
                     <p>read/write</p>
                     <p>
-                        <a class="button" [routerLink]='["ProjectCreate"]'>
+                        <a class="button" [routerLink]='["SCMRepos"]'>
                             View Repos & Add Project
                         </a>
                     </p>
