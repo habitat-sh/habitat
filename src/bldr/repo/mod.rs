@@ -30,6 +30,7 @@ use package::{self, PackageArchive};
 static LOGKEY: &'static str = "RE";
 
 header! { (XFileName, "X-Filename") => [String] }
+header! { (ETag, "ETag") => [String] }
 
 pub struct Repo {
     pub path: String,
@@ -389,7 +390,9 @@ fn show_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
         match result {
             Ok(data) => {
                 let body = json::encode(&data).unwrap();
-                Ok(Response::with((status::Ok, body)))
+                let mut response = Response::with((status::Ok, body));
+                response.headers.set(ETag(data.checksum));
+                Ok(response)
             }
             Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
                 Ok(Response::with((status::NotFound))),

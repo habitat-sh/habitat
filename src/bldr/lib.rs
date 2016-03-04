@@ -35,6 +35,7 @@
 extern crate bincode;
 #[macro_use]
 extern crate bitflags;
+extern crate crypto;
 #[macro_use]
 extern crate hyper;
 #[macro_use]

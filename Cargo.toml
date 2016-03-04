@@ -39,6 +39,7 @@ uuid = "*"
 temp_utp = "*"
 rpassword = "*"
 rand = "*"
+rust-crypto = "*"
 threadpool = "*"
 
 [dependencies.wonder]
