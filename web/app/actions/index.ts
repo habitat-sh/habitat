@@ -23,6 +23,7 @@ export const UNLINK_GITHUB_ACCOUNT_SUCCESS = gitHubActions.UNLINK_GITHUB_ACCOUNT
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
 
+export const FINISH_CREATING_ORG = orgActions.FINISH_CREATING_ORG;
 export const POPULATE_ORG = orgActions.POPULATE_ORG;
 
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
@@ -57,6 +58,7 @@ export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;
 
 export const addOrg = orgActions.addOrg;
+export const finishAddingOrg = orgActions.finishAddingOrg;
 
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
