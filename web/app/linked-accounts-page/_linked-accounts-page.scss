@@ -1,0 +1,18 @@
+.bldr-linked-accounts {
+  form {
+    @include outer-container;
+    border-top: 1px solid $light-gray;
+    padding: $base-spacing 0;
+  }
+
+  .gh {
+    @include span-columns(2);
+
+    text-align: center;
+  }
+
+  .info {
+    @include span-columns(10);
+    @include omega;
+  }
+}

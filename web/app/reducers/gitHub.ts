@@ -8,13 +8,23 @@ import {fromJS} from "immutable";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
 
-export default function notifications(state = initialState["gitHub"], action) {
+export default function gitHub(state = initialState["gitHub"], action) {
     switch (action.type) {
+        case actionTypes.LINK_GITHUB_ACCOUNT_SUCCESS:
+            return state.
+                set("isLinked", true).
+                set("username", action.payload);
+
         case actionTypes.POPULATE_GITHUB_REPOS:
             return state.set("repos", fromJS(action.payload));
 
         case actionTypes.SET_SELECTED_GITHUB_ORG:
             return state.set("selectedOrg", action.payload);
+
+        case actionTypes.UNLINK_GITHUB_ACCOUNT_SUCCESS:
+            return state.
+                set("isLinked", false).
+                set("username", undefined);
 
         default:
             return state;

@@ -7,6 +7,10 @@
 .bldr-side-nav {
   @include span-columns(3);
 
+  h4 {
+    white-space: nowrap;
+  }
+
   hr {
     width: 75%;
   }
@@ -16,7 +20,12 @@
     margin-bottom: $small-spacing;
 
     a {
-      color: black;
+      color: $black;
+
+      &.active {
+        color: $dark-gray;
+        font-weight: bold;
+      }
     }
   }
 }

@@ -9,28 +9,44 @@ import {RouterLink} from "angular2/router";
 
 @Component({
     directives: [RouterLink],
+    inputs: ["route"],
     selector: "bldr-side-nav",
     template: `
     <nav class="bldr-side-nav">
         <ul>
-            <li><a [routerLink]="['Projects']">Projects</a></li>
+            <li><a [class.active]='routeMatch("projects")'
+                   [routerLink]="['Projects']">Projects</a></li>
         </ul>
         <hr>
         <h4>Public Packages</h4>
         <ul>
-            <li><a [routerLink]="['Explore']">Explore</a></li>
-            <li><a [routerLink]="['Packages']">All Packages</a></li>
-            <li><a [routerLink]="['Packages', { filter: 'mine' }]">My Packages</a></li>
+            <li><a [class.active]='routeMatch("explore")'
+                   [routerLink]="['Explore']">Explore</a></li>
+            <li><a [class.active]='routeMatch("pkgs$")'
+                   [routerLink]="['Packages']">All Packages</a></li>
+            <li><a [class.active]='routeMatch("pkgs.+filter=mine")'
+                   [routerLink]="['Packages', { filter: 'mine' }]">My Packages</a></li>
         </ul>
         <h4>Linked Accounts</h4>
         <ul>
-            <li><a [routerLink]="['SCMRepos']">GitHub Repos</a></li>
+            <li><a [class.active]='routeMatch("linked-accounts")'
+                   [routerLink]='["LinkedAccounts"]'>Manage Accounts</a></li>
+            <li><a [class.active]='routeMatch("scm-repos")'
+                   [routerLink]="['SCMRepos']">GitHub Repos</a></li>
         </ul>
         <h4>Organizations</h4>
         <ul>
-            <li><a [routerLink]="['Organizations']">Manage Orgs</a></li>
+            <li><a [class.active]='routeMatch("orgs")'
+                   [routerLink]="['Organizations']">Manage Orgs</a></li>
         </ul>
     </nav>`
 })
 
-export class SideNavComponent { }
+export class SideNavComponent {
+    private route: string;
+
+    // Return true if a route matches what we're looking at.
+    private routeMatch(s: string): boolean {
+        return this.route.match(s) !== null;
+    }
+}
