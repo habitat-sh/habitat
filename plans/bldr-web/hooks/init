@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 mkdir -p /opt/bldr/srvc/nginx/var
 path_to_bldr_web="/opt/bldr/pkgs/{{bldr.origin}}/{{bldr.name}}/{{bldr.version}}/{{bldr.release}}"
 

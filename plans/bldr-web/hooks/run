@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 path_to_nginx=`cat /opt/bldr/pkgs/{{bldr.origin}}/{{bldr.name}}/{{bldr.version}}/{{bldr.release}}/DEPS | grep nginx`
 exec 2>&1

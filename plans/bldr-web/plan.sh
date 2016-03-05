@@ -6,7 +6,8 @@ pkg_license=('Apache2')
 pkg_filename=${pkg_name}-${pkg_version}.tar.bz2
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/bldr chef/pcre chef/nginx)
-pkg_build_deps=(chef/node chef/coreutils chef/phantomjs)
+pkg_build_deps=(chef/node chef/coreutils chef/phantomjs chef/python2
+                chef/make chef/gcc chef/gcc-libs)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_expose=(80 443)
@@ -21,9 +22,14 @@ do_begin() {
 }
 
 do_build() {
-    npm install
-    fix_interpreter "${BLDR_SRC_CACHE}/${pkg_name}-${pkg_version}/node_modules/.bin/*" chef/coreutils bin/env
-    npm run dist
+  npm install
+
+  for b in ${BLDR_SRC_CACHE}/${pkg_name}-${pkg_version}/node_modules/.bin/*; do
+    fix_interpreter $(readlink -f -n $b) chef/coreutils bin/env
+  done
+
+  npm run postinstall
+  npm run dist
 }
 
 do_install() {

@@ -24,7 +24,7 @@
     "lint-js-watch": "watch 'npm run lint-js'",
     "help": "cat README.md",
     "repl": "cd app && tsun",
-    "postinstall": "typings install",
+    "postinstall": "typings install --no-insight",
     "start": "concurrent \"npm run build-css-watch\" \"npm run build-js-watch\" \"npm run test-unit -- --no-single-run\" \"npm run lint-css-watch\" \"lite-server\"",
     "test": "npm run test-unit && npm run test-e2e",
     "test-watch": "concurrent \"npm run test-unit-watch\" \"npm run test-e2e-watch\"",
