@@ -4,10 +4,12 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::io::{Read, Write, BufWriter};
 use std::fs::{self, File};
+use std::io::{Read, Write, BufWriter, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
+use crypto::sha2::Sha256;
+use crypto::digest::Digest;
 use hyper;
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
@@ -107,12 +109,18 @@ pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
 /// * File cannot be read
 pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     let mut file = try!(File::open(package.cache_file()));
-    let url = format!("{}/pkgs/{}/{}/{}/{}",
+    let mut digest = Sha256::new();
+    let mut buffer = Vec::new();
+    try!(file.read_to_end(&mut buffer));
+    digest.input(&buffer);
+    let checksum = digest.result_str();
+    let url = format!("{}/pkgs/{}/{}/{}/{}?checksum={}",
                       repo,
                       package.origin,
                       package.name,
                       package.version,
-                      package.release);
+                      package.release,
+                      checksum);
     upload(&url, &mut file)
 }
 
@@ -189,6 +197,7 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
 
 fn upload(url: &str, file: &mut File) -> BldrResult<()> {
     debug!("Uploading to {}", url);
+    try!(file.seek(SeekFrom::Start(0)));
     let client = Client::new();
     let metadata = try!(file.metadata());
     let response = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());

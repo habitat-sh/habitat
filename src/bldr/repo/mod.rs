@@ -14,6 +14,7 @@ use iron::request::Body;
 use iron::headers;
 use router::{Params, Router};
 use rustc_serialize::json;
+use urlencoded::UrlEncodedQuery;
 
 use std::net;
 use std::sync::Arc;
@@ -167,13 +168,15 @@ fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 
 fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     outputln!("Upload {:?}", req);
-    let ident: package::PackageIdent = {
-        let params = req.extensions.get::<Router>().unwrap();
-        params.into()
+    let checksum = match extract_query_value("checksum", req) {
+        Some(checksum) => checksum,
+        None => return Ok(Response::with(status::BadRequest)),
     };
+    let params = req.extensions.get::<Router>().unwrap();
+    let ident: package::PackageIdent = params.into();
 
     if !ident.fully_qualified() {
-        return Ok(Response::with((status::BadRequest)));
+        return Ok(Response::with(status::BadRequest));
     }
 
     let txn = try!(repo.datastore.packages.txn_rw());
@@ -200,8 +203,12 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
+    if object.checksum != checksum {
+        debug!("Checksums did not match: expected={:?}, got={:?}", checksum, object.checksum);
+        return Ok(Response::with(status::UnprocessableEntity));
+    }
     if ident.satisfies(&object.ident) {
-        // JW TODO: handle failure here?
+        // JW TODO: handle write errors here. Storage full as a 507.
         try!(repo.datastore.packages.write(&txn, &object));
         try!(txn.commit());
 
@@ -450,6 +457,23 @@ fn promote_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
             }
         },
         Err(_) => Ok(Response::with((status::NotFound)))
+    }
+}
+
+fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
+    match req.get_ref::<UrlEncodedQuery>() {
+        Ok(map) => {
+            for (k, v) in map.iter() {
+                if key == *k {
+                    if v.len() < 1 {
+                        return None;
+                    }
+                    return Some(v[0].clone());
+                }
+            }
+            None
+        }
+        Err(_) => None,
     }
 }
 

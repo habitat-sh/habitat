@@ -41,6 +41,7 @@ rpassword = "*"
 rand = "*"
 rust-crypto = "*"
 threadpool = "*"
+urlencoded = "*"
 
 [dependencies.wonder]
 path = "./vendor/wonder"
