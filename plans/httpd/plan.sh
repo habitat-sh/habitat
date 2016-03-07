@@ -22,6 +22,7 @@ do_build() {
               --with-apr=$(pkg_path_for chef/apr) \
               --with-apr-util=$(pkg_path_for chef/apr-util) \
               --with-z=$(pkg_path_for chef/zlib) \
-              --enable-ssl --with-ssl=$(pkg_path_for chef/openssl)
+              --enable-ssl --with-ssl=$(pkg_path_for chef/openssl) \
+              --enable-modules=most --enable-mods-shared=most
   make 
 }
