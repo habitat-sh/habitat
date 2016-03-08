@@ -9,6 +9,7 @@ pkg_shasum=ba5ba60e5f1aa21b4ef8e9bf35b9ddb57286cb546aac4b5a28c71f459467e507
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/ncurses chef/zlib chef/libedit chef/openssl
           chef/libyaml chef/libiconv chef/libffi)
+pkg_build_deps=(chef/coreutils chef/make chef/gcc chef/patch)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_binary_path=(bin)
