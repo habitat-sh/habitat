@@ -221,9 +221,9 @@ do_install() {
     rm -f $pkg_path/bin/sln
 
     # Update the shebangs of a few shell scripts that have a fully-qualified
-    # path to the `chef/bash` package which built the software.
+    # path to `/bin/sh` so they will work in a minimal busybox
     for b in ldd sotruss tzselect xtrace; do
-      sed -e 's,^#!.*$,#! /bin/bash,' -i $pkg_path/bin/$b
+      sed -e 's,^#!.*$,#! /bin/sh,' -i $pkg_path/bin/$b
     done
 
     # Include the Linux kernel headers in Glibc, except the `scsi/` directory,
