@@ -5,7 +5,9 @@ pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
-pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static chef/coreutils-static chef/gnupg-static chef/jq-static)
+pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static
+                chef/coreutils-static chef/gnupg-static chef/jq-static
+                chef/wget-static)
 pkg_binary_path=(bin)
 pkg_gpg_key=3853DA6B
 
@@ -38,6 +40,9 @@ do_install() {
 
   install -v -D $(pkg_path_for jq-static)/bin/jq \
     $pkg_path/libexec/jq
+
+  install -v -D $(pkg_path_for wget-static)/bin/wget \
+    $pkg_path/libexec/wget
 }
 
 do_end() {

@@ -522,7 +522,7 @@ latest_remote_package() {
       ;;
     "2"|"1")
       local result="$(\
-        $bb env -u http_proxy $bb wget "$BLDR_REPO/pkgs/$1" -O- -q | \
+        $bb env -u http_proxy $wget "$BLDR_REPO/pkgs/$1" -O- -q | \
         $jq -r 'last | .origin + "/" + .name + "/" + .version + "/" + .release')"
       if [ -n "$result" ]; then
         echo $result
@@ -632,7 +632,7 @@ install_package() {
     trap '$bb rm -f $pkg_filename; exit $?' INT TERM EXIT
 
     info "Downloading $($bb basename $pkg_filename)"
-    $bb wget $pkg_source -O $pkg_filename $wui
+    $wget $pkg_source -O $pkg_filename $wui
 
     info "Unpacking $($bb basename $pkg_filename)"
     local gpg_cmd="$gpg --homedir $BLDR_GPG_CACHE --decrypt $pkg_filename"
@@ -802,6 +802,8 @@ cu="$libexec_path/coreutils"
 gpg="$libexec_path/gpg"
 # Absolute path to the `jq` command
 jq="$libexec_path/jq"
+# Absolute path to the `wget` command
+wget="$libexec_path/wget"
 # The current version of this program
 version='@version@'
 # The author of this program
