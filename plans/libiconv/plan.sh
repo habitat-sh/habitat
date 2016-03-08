@@ -8,6 +8,7 @@ pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=72b24ded17d687193c3366d0ebe7cde1e6b18f0df8c55438ac95be39e8a30613
 pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
+pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 
