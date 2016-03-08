@@ -1572,6 +1572,7 @@ mod tests {
                 tdeps: vec![],
                 exposes: vec![],
                 config: Some("configuration".to_string()),
+                checksum: "f61d212ed22121dbf443f03f0f3aa577".to_string(),
             };
             let txn = ds.packages.txn_rw().unwrap();
             txn.put(&pkg.ident(), &pkg).unwrap();

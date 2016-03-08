@@ -5,10 +5,13 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::fmt;
-use std::io::{Seek, SeekFrom};
+use std::fs::File;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::str::{self, FromStr};
 
+use crypto::sha2::Sha256;
+use crypto::digest::Digest;
 use libarchive::writer;
 use libarchive::reader::{self, Reader};
 use libarchive::archive::{Entry, ReadFilter, ReadFormat};
@@ -60,6 +63,21 @@ pub struct PackageArchive {
 impl PackageArchive {
     pub fn new(path: PathBuf) -> Self {
         PackageArchive { path: path }
+    }
+
+    /// Calculate and return the checksum of the package archive in hexadecimal format.
+    ///
+    /// # Failures
+    ///
+    /// * If the archive cannot be read
+    pub fn checksum(&self) -> BldrResult<String> {
+        let mut digest = Sha256::new();
+        let mut file = try!(File::open(&self.path));
+        let mut buffer = Vec::new();
+        try!(file.read_to_end(&mut buffer));
+        digest.input(&buffer);
+        let hash = digest.result_str();
+        Ok(hash)
     }
 
     pub fn cflags(&self) -> BldrResult<Option<String>> {

@@ -169,6 +169,7 @@ pub struct Package {
     pub tdeps: Vec<PackageIdent>,
     pub exposes: Vec<u16>,
     pub config: Option<String>,
+    pub checksum: String,
 }
 
 impl Package {
@@ -189,6 +190,7 @@ impl Package {
             tdeps: try!(archive.tdeps()).into_iter().map(|d| d.into()).collect(),
             exposes: try!(archive.exposes()),
             config: try!(archive.config()),
+            checksum: try!(archive.checksum()),
         })
     }
 }

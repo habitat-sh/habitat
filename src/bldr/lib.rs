@@ -35,6 +35,7 @@
 extern crate bincode;
 #[macro_use]
 extern crate bitflags;
+extern crate crypto;
 #[macro_use]
 extern crate hyper;
 #[macro_use]
@@ -63,6 +64,7 @@ extern crate utp;
 extern crate rpassword;
 extern crate rand;
 extern crate threadpool;
+extern crate urlencoded;
 
 #[macro_export]
 /// Creates a new BldrError, embedding the current file name, line number, column, and module path.
