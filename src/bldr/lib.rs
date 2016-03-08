@@ -66,6 +66,7 @@ extern crate rand;
 extern crate threadpool;
 extern crate urlencoded;
 extern crate openssl;
+extern crate walkdir;
 
 #[macro_export]
 /// Creates a new BldrError, embedding the current file name, line number, column, and module path.
