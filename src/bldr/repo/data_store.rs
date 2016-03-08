@@ -23,7 +23,6 @@ use rustc_serialize::{Encodable, Decodable};
 
 use error::{BldrResult, ErrorKind};
 use super::data_object::{self, DataObject};
-use package::PackageIdent;
 
 static LOGKEY: &'static str = "DS";
 
@@ -86,10 +85,14 @@ pub const PACKAGE_DB: &'static str = "packages";
 pub const PACKAGE_INDEX: &'static str = "package-index";
 /// Name of the views database
 pub const VIEW_DB: &'static str = "views";
+/// Name of the package to views index database
+pub const PACKAGE_VIEW_INDEX: &'static str = "package-view-index";
+/// Name of the view to packages index database
+pub const VIEW_PACKAGE_INDEX: &'static str = "view-package-index";
 /// Value for how many databases can be opened within a DataStore's environment. Increase this
 /// count for each new database added and decrease this count if databases are removed from the
 /// DataStore.
-pub const MAX_DBS: u32 = 3;
+pub const MAX_DBS: u32 = 5;
 
 macro_rules! try_mdb {
     ($e: expr) => (
@@ -370,8 +373,8 @@ impl DataStore {
         let env1 = Arc::new(env);
         let env2 = env1.clone();
         let env3 = env1.clone();
-        let pkg_database = try!(PkgDatabase::new().create(env2));
         let view_database = try!(ViewDatabase::new().create(env3));
+        let pkg_database = try!(PkgDatabase::new().create(env2));
         Ok(DataStore {
             env: env1,
             packages: pkg_database,
@@ -604,6 +607,9 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     /// Returns the cursor's database handle.
     fn database(&self) -> lmdb_sys::MDB_dbi;
 
+    /// Close an open cursor.
+    fn close(self) -> ();
+
     /// Return count of duplicates for current key.
     ///
     /// This call is only valid on databases that support sorted duplicate items by the
@@ -700,6 +706,30 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
         }
     }
 
+    fn prev(&mut self) -> BldrResult<(&'a <D::Object as DataObject>::Key, D::Object)> {
+        assert_txn_state_eq!(self.state(), TxnState::Normal);
+        match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
+                                                                      None,
+                                                                      None,
+                                                                      CursorOp::Prev) {
+            Ok((Some(key), value)) => Ok((key, value)),
+            Ok(_) => unreachable!(),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn prev_dup(&mut self) -> BldrResult<(&'a <D::Object as DataObject>::Key, D::Object)> {
+        assert_txn_state_eq!(self.state(), TxnState::Normal);
+        match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
+                                                                      None,
+                                                                      None,
+                                                                      CursorOp::PrevDup) {
+            Ok((Some(key), value)) => Ok((key, value)),
+            Ok(_) => unreachable!(),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Position the cursor at the specified key and return the key and data.
     fn set_key(&mut self,
                key: &<D::Object as DataObject>::Key)
@@ -745,6 +775,10 @@ impl<'a, 'b, D, T> Cursor<'a, 'b, D, T> for RoCursor<'a, D, T>
     where D: 'a + 'b + Database,
           T: 'a + Transaction<'a, D>
 {
+    fn close(self) {
+        unsafe { lmdb_sys::mdb_cursor_close(self.cursor) }
+    }
+
     fn handle(&self) -> *mut lmdb_sys::MDB_cursor {
         self.cursor
     }
@@ -797,6 +831,10 @@ impl<'a, 'b, D, T> Cursor<'a, 'b, D, T> for RwCursor<'a, D>
     where D: 'a + 'b + Database,
           T: 'a + Transaction<'a, D>
 {
+    fn close(self) {
+        unsafe { lmdb_sys::mdb_cursor_close(self.cursor) }
+    }
+
     fn handle(&self) -> *mut lmdb_sys::MDB_cursor {
         self.cursor
     }
@@ -1347,6 +1385,8 @@ impl Drop for PkgIndex {
 ///
 /// This is how packages will be "promoted" between environments without duplicating data on disk.
 pub struct ViewDatabase {
+    pub pkg_view_idx: PkgViewIndex,
+    pub view_pkg_idx: ViewPkgIndex,
     env: Arc<Environment>,
     handle: lmdb_sys::MDB_dbi,
 }
@@ -1355,15 +1395,30 @@ impl ViewDatabase {
     pub fn new() -> DatabaseBuilder<Self> {
         DatabaseBuilder::default()
     }
+
+    // Associate the given package to the given view
+    pub fn associate<'a, T: Database>(&self, txn: &RwTransaction<'a, T>, view: &<Self as Database>::Object, pkg: &<PkgDatabase as Database>::Object) -> BldrResult<()> {
+        let nested = try!(txn.new_child_rw(&self.pkg_view_idx));
+        try!(nested.put(pkg.ident(), view));
+        let nested2 = try!(nested.new_child_rw(&self.view_pkg_idx));
+        try!(nested2.put(view.ident(), &pkg.ident));
+        Ok(())
+    }
 }
 
 impl Database for ViewDatabase {
     type Object = data_object::View;
 
     fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+        let env2 = env.clone();
+        let env3 = env.clone();
+        let pkg_view_idx = try!(PkgViewIndex::new().create(env2));
+        let view_pkg_idx = try!(ViewPkgIndex::new().create(env3));
         Ok(ViewDatabase {
             env: env,
             handle: handle,
+            pkg_view_idx: pkg_view_idx,
+            view_pkg_idx: view_pkg_idx,
         })
     }
 
@@ -1393,10 +1448,107 @@ impl Drop for ViewDatabase {
     }
 }
 
+pub struct PkgViewIndex {
+    env: Arc<Environment>,
+    handle: lmdb_sys::MDB_dbi,
+}
+
+impl PkgViewIndex {
+    pub fn new() -> DatabaseBuilder<Self> {
+        DatabaseBuilder::default()
+    }
+}
+
+impl Database for PkgViewIndex {
+    type Object = data_object::View;
+
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+        Ok(PkgViewIndex {
+            env: env,
+            handle: handle,
+        })
+    }
+
+    fn env(&self) -> &Environment {
+        &self.env
+    }
+
+    fn handle(&self) -> lmdb_sys::MDB_dbi {
+        self.handle
+    }
+}
+
+impl Default for DatabaseBuilder<PkgViewIndex> {
+    fn default() -> DatabaseBuilder<PkgViewIndex> {
+        let mut flags = DatabaseFlags::empty();
+        flags.toggle(DB_ALLOW_DUPS);
+        DatabaseBuilder {
+            name: Some(PACKAGE_VIEW_INDEX.to_string()),
+            flags: flags,
+            txn_flags: 0,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl Drop for PkgViewIndex {
+    fn drop(&mut self) {
+        unsafe { lmdb_sys::mdb_dbi_close(self.env.handle, self.handle()) }
+    }
+}
+
+pub struct ViewPkgIndex {
+    env: Arc<Environment>,
+    handle: lmdb_sys::MDB_dbi,
+}
+
+impl ViewPkgIndex {
+    pub fn new() -> DatabaseBuilder<Self> {
+        DatabaseBuilder::default()
+    }
+}
+
+impl Database for ViewPkgIndex {
+    type Object = data_object::PackageIdent;
+
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+        Ok(ViewPkgIndex {
+            env: env,
+            handle: handle,
+        })
+    }
+
+    fn env(&self) -> &Environment {
+        &self.env
+    }
+
+    fn handle(&self) -> lmdb_sys::MDB_dbi {
+        self.handle
+    }
+}
+
+impl Default for DatabaseBuilder<ViewPkgIndex> {
+    fn default() -> DatabaseBuilder<ViewPkgIndex> {
+        let mut flags = DatabaseFlags::empty();
+        flags.toggle(DB_ALLOW_DUPS);
+        DatabaseBuilder {
+            name: Some(VIEW_PACKAGE_INDEX.to_string()),
+            flags: flags,
+            txn_flags: 0,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl Drop for ViewPkgIndex {
+    fn drop(&mut self) {
+        unsafe { lmdb_sys::mdb_dbi_close(self.env.handle, self.handle()) }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::path::Path;
-    use std::collections::HashSet;
     use super::*;
     use super::super::data_object::*;
     use error::{BldrError, ErrorKind};
@@ -1420,7 +1572,6 @@ mod tests {
                 tdeps: vec![],
                 exposes: vec![],
                 config: Some("configuration".to_string()),
-                views: HashSet::new(),
             };
             let txn = ds.packages.txn_rw().unwrap();
             txn.put(&pkg.ident(), &pkg).unwrap();
@@ -1441,8 +1592,7 @@ mod tests {
     fn transaction_read_write() {
         let ds = open_datastore();
         {
-            let mut view = View::new("my-view");
-            view.add_package("my-package".to_string());
+            let view = View::new("my-view");
             let txn = ds.views.txn_rw().unwrap();
             txn.put(view.ident(), &view).unwrap();
             txn.commit().unwrap();
@@ -1451,7 +1601,6 @@ mod tests {
         let saved = txn.get(&"my-view".to_string()).unwrap();
         txn.abort();
         assert_eq!(saved.ident(), "my-view");
-        assert_eq!(saved.packages.len(), 1);
     }
 
     // JW TODO: This test is ignored while I track down a bug preventing multiple transactions
@@ -1461,8 +1610,7 @@ mod tests {
     fn transaction_delete() {
         let ds = open_datastore();
         {
-            let mut view = View::new("my-view");
-            view.add_package("my-package".to_string());
+            let view = View::new("my-view");
             let txn = ds.views.txn_rw().unwrap();
             txn.put(view.ident(), &view).unwrap();
             txn.commit().unwrap();

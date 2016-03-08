@@ -49,7 +49,7 @@ use std::fs;
 
 use fs::PACKAGE_CACHE;
 use error::BldrResult;
-use package::{Package, PackageIdent};
+use package::PackageIdent;
 use repo::{self, data_object};
 
 static LOGKEY: &'static str = "CI";
