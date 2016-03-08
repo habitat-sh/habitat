@@ -8,6 +8,8 @@ pub mod client;
 pub mod data_object;
 pub mod data_store;
 
+use crypto::sha2::Sha256;
+use crypto::digest::Digest;
 use iron::prelude::*;
 use iron::status;
 use iron::request::Body;
@@ -61,16 +63,18 @@ impl Repo {
     // Return a formatted string representing the filename of an archive for the given package
     // identifier pieces.
     fn archive_path(&self, ident: &package::PackageIdent) -> PathBuf {
+        let mut digest = Sha256::new();
+        let mut output = [0; 64];
+        digest.input_str(&ident.to_string());
+        digest.result(&mut output);
         self.packages_path()
-            .join(&ident.origin)
-            .join(&ident.name)
-            .join(ident.version.as_ref().unwrap())
-            .join(ident.release.as_ref().unwrap())
+            .join(format!("{:x}", output[0]))
+            .join(format!("{:x}", output[1]))
             .join(format!("{}-{}-{}-{}.bldr",
-                          &ident.origin,
-                          &ident.name,
-                          ident.version.as_ref().unwrap(),
-                          ident.release.as_ref().unwrap()))
+                                  &ident.origin,
+                                  &ident.name,
+                                  ident.version.as_ref().unwrap(),
+                                  ident.release.as_ref().unwrap()))
     }
 
     fn key_path(&self, name: &str) -> PathBuf {
