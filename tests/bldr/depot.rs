@@ -13,7 +13,7 @@ fn upload_a_package_and_then_install_it() {
     setup::gpg_import();
     setup::key_install();
     setup::simple_service();
-    let d = docker::repo("test/simple_service");
+    let d = docker::depot("test/simple_service");
     let ipaddress = d.ipaddress();
 
     let mut upload = command::bldr(&["upload",

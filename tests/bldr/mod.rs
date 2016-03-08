@@ -5,7 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 pub mod start;
-pub mod repo;
+pub mod depot;
 pub mod key;
 pub mod gossip;
 pub mod topology;

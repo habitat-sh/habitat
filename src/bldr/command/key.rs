@@ -17,7 +17,7 @@ use config::Config;
 use error::{BldrResult, ErrorKind};
 use fs::KEY_CACHE;
 use package::{Package, PackageIdent};
-use repo;
+use depot;
 use util::gpg;
 
 static LOGKEY: &'static str = "KU"; // "key utils"
@@ -27,11 +27,11 @@ static SERVICE_KEY_COMMENT: &'static str = "bldr service key";
 static BLDR_KEY_PREFIX: &'static str = "bldr_";
 static BLDR_EMAIL_SUFFIX: &'static str = "@bldr";
 
-/// Uploads a gpg key to a [repo](../repo).
+/// Uploads a gpg key to a [depot](../depot).
 ///
 /// If the key starts with a `/`, we treat it as a path to a specific file; otherwise, it's a key
 /// to grab from the cache in `/opt/bldr/cache/keys`. Either way, we read the file and upload it to
-/// the repository.
+/// the depot.
 ///
 /// # Failures
 ///
@@ -43,13 +43,13 @@ static BLDR_EMAIL_SUFFIX: &'static str = "@bldr";
 /// $ bldr upload-key chef-public -u http://localhost:9633
 /// ```
 ///
-/// Will upload the `chef-public` key from the local key cache to the repo url.
+/// Will upload the `chef-public` key from the local key cache to the depot url.
 ///
 /// ```bash
 /// $ bldr upload-key --infile /tmp/chef-public -u http://localhost:9633
 /// ```
 ///
-/// Will upload the key at `/tmp/chef-public.asc` to the repo url.
+/// Will upload the key at `/tmp/chef-public.asc` to the depot url.
 ///
 pub fn upload(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
@@ -58,7 +58,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
     match fs::metadata(path) {
         Ok(_) => {
             outputln!("Uploading {}", config.key());
-            try!(repo::client::put_key(url, path));
+            try!(depot::client::put_key(url, path));
         }
         Err(_) => {
             if path.components().count() == 1 {
@@ -67,7 +67,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
                 match fs::metadata(&cached) {
                     Ok(_) => {
                         outputln!("Uploading {}.asc", config.key());
-                        try!(repo::client::put_key(url, cached));
+                        try!(depot::client::put_key(url, cached));
                     }
                     Err(_) => {
                         return Err(bldr_error!(ErrorKind::KeyNotFound(config.key().to_string())));
@@ -82,7 +82,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-/// Imports a gpg key from a [repo](../repo) or a local file.
+/// Imports a gpg key from a [depot](../depot) or a local file.
 /// If `config.infile() is not empty, we try to load from a file.
 /// Otherwise, we load the key `config.key()` from `config.url()`,
 /// drop it in `/opt/bldr/cache/keys`, and then import it into GPG.
@@ -90,7 +90,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
 /// # Failures
 ///
 /// * If the directory `/opt/bldr/cache/keys` cannot be created
-/// * If the we fail to download the key from the repo
+/// * If the we fail to download the key from the depot
 /// * If the GPG import process fails
 ///
 /// # Examples
@@ -99,7 +99,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
 /// $ bldr import-key chef-public -u http://localhost:9633
 /// ```
 ///
-/// Will download the `chef-public` gpg key from the specified repo.
+/// Will download the `chef-public` gpg key from the specified depot.
 ///
 /// ```bash
 /// $ bldr import-key --infile /tmp/chef-public.asc
@@ -116,7 +116,7 @@ pub fn import(config: &Config) -> BldrResult<()> {
             try!(fs::create_dir_all(KEY_CACHE));
             // docopt requires -u to be set, so we should be safe to unwrap here
             let url = config.url().as_ref().unwrap();
-            let filename = try!(repo::client::fetch_key(&url, &config.key(), KEY_CACHE));
+            let filename = try!(depot::client::fetch_key(&url, &config.key(), KEY_CACHE));
             try!(gpg::import(&filename));
         }
     }

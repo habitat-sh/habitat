@@ -399,11 +399,11 @@ fn main() {
         Command::Shell => shell(&config),
         Command::Config => configure(&config),
         Command::Decrypt => decrypt(&config),
-        Command::Repo => depot(&config),
-        Command::RepoRepair => repair(&config),
+        Command::Depot => depot(&config),
+        Command::DepotRepair => repair(&config),
         Command::RepoList => repo_list(&config),
         Command::RepoCreate => repo_create(subcommand_matches.value_of("repo").unwrap(), &config),
-        Command::DownloadRepoKey => download_depot_key(&config),
+        Command::DownloadDepotKey => download_depot_key(&config),
         Command::Encrypt => encrypt(&config),
         Command::ExportKey => export_key(&config),
         Command::GenerateServiceKey => generate_service_key(&config),
@@ -412,7 +412,7 @@ fn main() {
         Command::Install => install(&config),
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
-        Command::UploadRepoKey => upload_depot_key(&config),
+        Command::UploadDepotKey => upload_depot_key(&config),
         Command::Upload => upload(&config),
     };
 
@@ -470,12 +470,12 @@ fn start(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-/// Run a package repo
+/// Run a package Depot
 #[allow(dead_code)]
 fn depot(config: &Config) -> BldrResult<()> {
     outputln!("Starting Bldr Depot at {}",
               Yellow.bold().paint(config.path()));
-    try!(repo::start(&config));
+    try!(depot::start(&config));
     outputln!("Finished with {}",
               Yellow.bold().paint(config.package().to_string()));
     Ok(())
@@ -484,17 +484,17 @@ fn depot(config: &Config) -> BldrResult<()> {
 fn repair(config: &Config) -> BldrResult<()> {
     outputln!("Verifying data integrity of Depot at {}",
               Yellow.bold().paint(config.path()));
-    try!(repo::repair(config));
+    try!(depot::repair(config));
     Ok(())
 }
 
 fn repo_create(name: &str, config: &Config) -> BldrResult<()> {
-    try!(repo::create_repository(name, config));
+    try!(depot::create_repository(name, config));
     Ok(())
 }
 
 fn repo_list(config: &Config) -> BldrResult<()> {
-    try!(repo::list_repositories(config));
+    try!(depot::list_repositories(config));
     Ok(())
 }
 

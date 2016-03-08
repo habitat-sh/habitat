@@ -35,22 +35,22 @@ static LOGKEY: &'static str = "RE";
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
 
-pub struct Repo {
+pub struct Depot {
     pub path: String,
     pub datastore: DataStore,
 }
 
-impl Repo {
-    pub fn new(path: String) -> BldrResult<Arc<Repo>> {
+impl Depot {
+    pub fn new(path: String) -> BldrResult<Arc<Depot>> {
         let dbpath = Path::new(&path).join("datastore");
         let datastore = try!(DataStore::open(dbpath.as_path()));
-        Ok(Arc::new(Repo {
+        Ok(Arc::new(Depot {
             path: path,
             datastore: datastore,
         }))
     }
 
-    // Return a PackageArchive representing the given package. None is returned if the repository
+    // Return a PackageArchive representing the given package. None is returned if the Depot
     // doesn't have an archive for the given package.
     fn archive(&self, ident: &package::PackageIdent) -> Option<PackageArchive> {
         let file = self.archive_path(&ident);
@@ -148,16 +148,16 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> BldrResult<bool> {
             }
         };
     }
-    outputln!("File added to repository at {}", filename.to_string_lossy());
+    outputln!("File added to Depot at {}", filename.to_string_lossy());
     try!(fs::rename(&tempfile, &filename));
     Ok(true)
 }
 
-fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     outputln!("Upload Key {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
     let key = rext.find("key").unwrap();
-    let file = repo.key_path(&key);
+    let file = depot.key_path(&key);
 
     try!(write_file(&file, &mut req.body));
 
@@ -170,7 +170,7 @@ fn upload_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     outputln!("Upload {:?}", req);
     let checksum = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
@@ -183,9 +183,9 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    let txn = try!(repo.datastore.packages.txn_rw());
+    let txn = try!(depot.datastore.packages.txn_rw());
     if let Ok(_) = txn.get(&ident.to_string()) {
-        if let Some(_) = repo.archive(&ident) {
+        if let Some(_) = depot.archive(&ident) {
             return Ok(Response::with((status::Conflict)));
         } else {
             // This should never happen. Writing the package to disk and recording it's existence
@@ -196,7 +196,7 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
         }
     }
 
-    let filename = repo.archive_path(&ident);
+    let filename = depot.archive_path(&ident);
     try!(write_file(&filename, &mut req.body));
     let archive = PackageArchive::new(filename);
     debug!("Package Archive: {:#?}", archive);
@@ -213,7 +213,7 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     }
     if ident.satisfies(&object.ident) {
         // JW TODO: handle write errors here. Storage full as a 507.
-        try!(repo.datastore.packages.write(&txn, &object));
+        try!(depot.datastore.packages.write(&txn, &object));
         try!(txn.commit());
 
         let mut response = Response::with((status::Created,
@@ -230,7 +230,7 @@ fn upload_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     outputln!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
@@ -239,7 +239,7 @@ fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let path = Path::new(&repo.path).join("keys");
+    let path = Path::new(&depot.path).join("keys");
     let short_filename = format!("{}.asc", key);
     let filename = path.join(&short_filename);
 
@@ -249,13 +249,13 @@ fn download_key(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     outputln!("Download {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
     let ident: data_object::PackageIdent = params.into();
 
     let result = {
-        let txn = try!(repo.datastore.packages.txn_ro());
+        let txn = try!(depot.datastore.packages.txn_ro());
         match txn.get(&ident.to_string()) {
             Ok(package) => {
                 let value: package::PackageIdent = package.ident.into();
@@ -267,7 +267,7 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
 
     match result {
         Ok(ident) => {
-            if let Some(archive) = repo.archive(&ident) {
+            if let Some(archive) = depot.archive(&ident) {
                 match fs::metadata(&archive.path) {
                     Ok(_) => {
                         let mut response = Response::with((status::Ok, archive.path.clone()));
@@ -290,16 +290,16 @@ fn download_package(repo: &Repo, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn list_packages(repo: &Repo, req: &mut Request) -> IronResult<Response> {
+fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
 
     if let Some(view) = params.find("repo") {
-        list_packages_scoped_to_repo(repo, view)
+        list_packages_scoped_to_repo(depot, view)
     } else {
         let ident: data_object::PackageIdent = params.into();
         let mut packages: Vec<package::PackageIdent> = vec![];
 
-        let txn = try!(repo.datastore.packages.index.txn_ro());
+        let txn = try!(depot.datastore.packages.index.txn_ro());
         let mut cursor = try!(txn.cursor_ro());
         let result = match cursor.set_key(ident.ident()) {
             Ok((_, value)) => {
@@ -320,14 +320,15 @@ fn list_packages(repo: &Repo, req: &mut Request) -> IronResult<Response> {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             },
-            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => Ok(Response::with((status::NotFound))),
+            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) =>
+                Ok(Response::with((status::NotFound))),
             Err(_) => unreachable!("unknown error"),
         }
     }
 }
 
-fn list_packages_scoped_to_repo(repo: &Repo, view: &str) -> IronResult<Response> {
-    let txn = try!(repo.datastore.views.view_pkg_idx.txn_ro());
+fn list_packages_scoped_to_repo(depot: &Depot, view: &str) -> IronResult<Response> {
+    let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     match cursor.set_key(&view.to_string()) {
         Ok((_, pkg)) => {
@@ -349,7 +350,7 @@ fn list_packages_scoped_to_repo(repo: &Repo, view: &str) -> IronResult<Response>
     }
 }
 
-fn list_repos(depot: &Repo, _req: &mut Request) -> IronResult<Response> {
+fn list_repos(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
     let txn = try!(depot.datastore.views.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     let mut repos: Vec<data_object::View> = vec![];
@@ -363,7 +364,7 @@ fn list_repos(depot: &Repo, _req: &mut Request) -> IronResult<Response> {
     Ok(Response::with((status::Ok, body)))
 }
 
-fn show_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
+fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let ident: data_object::PackageIdent = params.into();
 
@@ -412,7 +413,7 @@ fn show_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Repo, repo: &str) -> BldrResult<Option<data_object::PackageIdent>> {
+fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Depot, repo: &str) -> BldrResult<Option<data_object::PackageIdent>> {
     let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     match cursor.set_key(&repo.to_string()) {
@@ -442,7 +443,7 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>(ident: P, depot: &Rep
     }
 }
 
-fn promote_package(depot: &Repo, req: &mut Request) -> IronResult<Response> {
+fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let repo = params.find("repo").unwrap();
 
@@ -482,53 +483,53 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
 }
 
 pub fn repair(config: &Config) -> BldrResult<()> {
-    let repo = try!(Repo::new(String::from(config.path())));
-    repo.datastore.clear()
+    let depot = try!(Depot::new(String::from(config.path())));
+    depot.datastore.clear()
 }
 
 pub fn run(config: &Config) -> BldrResult<()> {
-    let repo = try!(Repo::new(String::from(config.path())));
-    let repo1 = repo.clone();
-    let repo2 = repo.clone();
-    let repo3 = repo.clone();
-    let repo4 = repo.clone();
-    let repo5 = repo.clone();
-    let repo6 = repo.clone();
-    let repo7 = repo.clone();
-    let repo8 = repo.clone();
-    let repo9 = repo.clone();
-    let repo10 = repo.clone();
-    let repo11 = repo.clone();
-    let repo12 = repo.clone();
-    let repo13 = repo.clone();
-    let repo14 = repo.clone();
-    let repo15 = repo.clone();
-    let repo16 = repo.clone();
-    let repo17 = repo.clone();
+    let depot = try!(Depot::new(String::from(config.path())));
+    let depot1 = depot.clone();
+    let depot2 = depot.clone();
+    let depot3 = depot.clone();
+    let depot4 = depot.clone();
+    let depot5 = depot.clone();
+    let depot6 = depot.clone();
+    let depot7 = depot.clone();
+    let depot8 = depot.clone();
+    let depot9 = depot.clone();
+    let depot10 = depot.clone();
+    let depot11 = depot.clone();
+    let depot12 = depot.clone();
+    let depot13 = depot.clone();
+    let depot14 = depot.clone();
+    let depot15 = depot.clone();
+    let depot16 = depot.clone();
+    let depot17 = depot.clone();
 
     let router = router!(
-        get "/repos" => move |r: &mut Request| list_repos(&repo1, r),
-        get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo2, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo3, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo4, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo5, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo6, r),
+        get "/repos" => move |r: &mut Request| list_repos(&depot1, r),
+        get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot2, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot3, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot4, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot5, r),
+        get "/repos/:repo/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot6, r),
 
-        post "/repos/:repo/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&repo7, r),
+        post "/repos/:repo/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&depot7, r),
 
-        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&repo8, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&repo9, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&repo10, r),
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&repo11, r),
-        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&repo12, r),
-        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&repo13, r),
+        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot8, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot9, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot10, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot11, r),
+        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot12, r),
+        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot13, r),
 
-        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&repo14, r),
-        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&repo15, r),
+        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&depot14, r),
+        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&depot15, r),
 
-        post "/keys/:key" => move |r: &mut Request| upload_key(&repo16, r),
-        get "/keys/:key" => move |r: &mut Request| download_key(&repo17, r)
+        post "/keys/:key" => move |r: &mut Request| upload_key(&depot16, r),
+        get "/keys/:key" => move |r: &mut Request| download_key(&depot17, r)
     );
-    Iron::new(router).http(config.repo_addr()).unwrap();
+    Iron::new(router).http(config.depot_addr()).unwrap();
     Ok(())
 }

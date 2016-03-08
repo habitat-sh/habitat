@@ -56,8 +56,8 @@ pub fn run_with_topology(image: &str, topology: &str) -> Docker {
                  &format!("--topology={}", topology)])
 }
 
-pub fn repo(image: &str) -> Docker {
-    docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", "--expose=9632", image, "repo"])
+pub fn depot(image: &str) -> Docker {
+    docker_cmd(&["run", "-d", "--cap-add=NET_ADMIN", "--expose=9632", image, "depot"])
 }
 
 pub fn run_with_env(image: &str, env: &str) -> Docker {
