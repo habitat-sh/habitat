@@ -49,7 +49,7 @@ use toml;
 use mustache;
 use regex;
 
-use repo::data_store;
+use depot::data_store;
 use package;
 use output::StructuredOutput;
 
@@ -231,7 +231,7 @@ impl fmt::Display for BldrError {
             }
             ErrorKind::TryRecvError(ref err) => format!("{}", err),
             ErrorKind::BadWatch(ref e) => format!("Bad watch format: {} is not valid", e),
-            ErrorKind::NoXFilename => format!("Invalid download from a repository - missing X-Filename header"),
+            ErrorKind::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
             ErrorKind::NoFilePart => {
                 format!("An invalid path was passed - we needed a filename, and this path does \
                          not have one")
@@ -312,7 +312,7 @@ impl Error for BldrError {
             ErrorKind::HookFailed(_, _, _) => "Hook failed to run",
             ErrorKind::TryRecvError(_) => "A channel failed to recieve a response",
             ErrorKind::BadWatch(_) => "An invalid watch was specified",
-            ErrorKind::NoXFilename => "Invalid download from a repository - missing X-Filename header",
+            ErrorKind::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             ErrorKind::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
             ErrorKind::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             ErrorKind::ActorError(_) => "A running actor responded with an error",

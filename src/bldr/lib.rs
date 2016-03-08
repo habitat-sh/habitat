@@ -29,7 +29,7 @@
 //!
 //! * [The bldr Command Line Reference](command)
 //! * [The bldr Sidecar; http interface to promises](sidecar)
-//! * [The bldr Repo; http based package repository](repo)
+//! * [The bldr Depot; http based package repository](depot)
 //!
 
 extern crate bincode;
@@ -267,7 +267,7 @@ pub mod sidecar;
 pub mod fs;
 pub mod health_check;
 pub mod config;
-pub mod repo;
+pub mod depot;
 pub mod user_config;
 pub mod service_config;
 pub mod watch_config;

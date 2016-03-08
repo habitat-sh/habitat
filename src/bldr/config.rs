@@ -18,7 +18,7 @@ use std::str::FromStr;
 use error::{BldrError, ErrorKind};
 use gossip::server::GOSSIP_DEFAULT_PORT;
 use package::PackageIdent;
-use repo;
+use depot;
 use topology::Topology;
 
 static LOGKEY: &'static str = "CFG";
@@ -31,18 +31,18 @@ pub enum Command {
     Start,
     ImportKey,
     ExportKey,
-    UploadRepoKey,
-    DownloadRepoKey,
+    UploadDepotKey,
+    DownloadDepotKey,
     GenerateUserKey,
     GenerateServiceKey,
     ListKeys,
     Encrypt,
     Decrypt,
     Shell,
-    Repo,
+    Depot,
     RepoCreate,
     RepoList,
-    RepoRepair,
+    DepotRepair,
     Upload,
 }
 
@@ -53,9 +53,9 @@ impl FromStr for Command {
             "bash" => Ok(Command::Shell),
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
-            "depot" => Ok(Command::Repo),
-            "depot-repair" => Ok(Command::RepoRepair),
-            "download-depot-key" => Ok(Command::DownloadRepoKey),
+            "depot" => Ok(Command::Depot),
+            "depot-repair" => Ok(Command::DepotRepair),
+            "download-depot-key" => Ok(Command::DownloadDepotKey),
             "encrypt" => Ok(Command::Encrypt),
             "export-key" => Ok(Command::ExportKey),
             "generate-service-key" => Ok(Command::GenerateServiceKey),
@@ -67,7 +67,7 @@ impl FromStr for Command {
             "repo-list" => Ok(Command::RepoList),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
-            "upload-depot-key" => Ok(Command::UploadRepoKey),
+            "upload-depot-key" => Ok(Command::UploadDepotKey),
             "upload" => Ok(Command::Upload),
             _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
         }
@@ -95,8 +95,8 @@ pub struct Config {
     password: Option<String>,
     email: Option<String>,
     expire_days: Option<u16>,
-    listen_addr: repo::ListenAddr,
-    port: repo::ListenPort,
+    listen_addr: depot::ListenAddr,
+    port: depot::ListenPort,
     gossip_listen: String,
     userkey: Option<String>,
     servicekey: Option<String>,
@@ -266,11 +266,11 @@ impl Config {
     }
 
     pub fn set_port(&mut self, port: u16) -> &mut Config {
-        self.port = repo::ListenPort(port);
+        self.port = depot::ListenPort(port);
         self
     }
 
-    pub fn repo_addr(&self) -> net::SocketAddrV4 {
+    pub fn depot_addr(&self) -> net::SocketAddrV4 {
         net::SocketAddrV4::new(self.listen_addr.0.clone(), self.port.0.clone())
     }
 

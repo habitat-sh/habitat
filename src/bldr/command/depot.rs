@@ -4,44 +4,44 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-//! Runs a bldr package repository.
+//! Runs a bldr package depot.
 //!
-//! The repository is an HTTP service that runs on port `9632`.
+//! The depot is an HTTP service that runs on port `9632`.
 //!
-//! Look in the [repo](../../repo) module for more information on how the service itself operates.
+//! Look in the [depot](../../depot) module for more information on how the service itself operates.
 //!
 //! # Examples
 //!
 //! ```bash
-//! $ bldr repo
+//! $ bldr depot
 //! ```
 //!
-//! Starts a bldr repository, with the data stored in `/opt/bldr/srvc/bldr/data`.
+//! Starts a bldr depot, with the data stored in `/opt/bldr/srvc/bldr/data`.
 //!
 //! ```bash
-//! $ bldr repo -p /tmp/whatever
+//! $ bldr depot -p /tmp/whatever
 //! ```
 //!
 //! Does the same, but the data is stored in `/tmp/whatever`.
 
 use config::Config;
 use error::{BldrError, BldrResult, ErrorKind};
-use repo::{self, data_object};
-use repo::data_store::{self, Cursor, Database, Transaction};
+use depot::{self, data_object, Depot};
+use depot::data_store::{self, Cursor, Database, Transaction};
 
 static LOGKEY: &'static str = "CR";
 
-/// Create a repository with the given name in the database.
+/// Create a repository with the given name in the depot.
 ///
 /// # Failures
 ///
 /// * The database cannot be read
 /// * A write transaction cannot be acquired.
 pub fn create_repository(name: &str, config: &Config) -> BldrResult<()> {
-    let repo = try!(repo::Repo::new(String::from(config.path())));
-    let txn = try!(repo.datastore.views.txn_rw());
+    let depot = try!(Depot::new(String::from(config.path())));
+    let txn = try!(depot.datastore.views.txn_rw());
     let object = data_object::View::new(name);
-    try!(repo.datastore.views.write(&txn, &object));
+    try!(depot.datastore.views.write(&txn, &object));
     Ok(())
 }
 
@@ -52,9 +52,9 @@ pub fn create_repository(name: &str, config: &Config) -> BldrResult<()> {
 /// * The database cannot be read
 /// * A read transaction cannot be acquired.
 pub fn list_repositories(config: &Config) -> BldrResult<()> {
-    let repo = try!(repo::Repo::new(String::from(config.path())));
+    let depot = try!(Depot::new(String::from(config.path())));
     let mut views: Vec<data_object::View> = vec![];
-    let txn = try!(repo.datastore.views.txn_ro());
+    let txn = try!(depot.datastore.views.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     match cursor.first() {
         Err(BldrError {err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
@@ -83,8 +83,8 @@ pub fn list_repositories(config: &Config) -> BldrResult<()> {
 ///
 /// * Fails if the depot server fails to start - canot bind to the port, etc.
 pub fn start(config: &Config) -> BldrResult<()> {
-    outputln!("Repo listening on {:?}", config.repo_addr());
-    repo::run(&config)
+    outputln!("Depot listening on {:?}", config.depot_addr());
+    depot::run(&config)
 }
 
 /// Analyzes the integrity of the depot's metadata by comparing the metadata with the packages
@@ -97,6 +97,6 @@ pub fn start(config: &Config) -> BldrResult<()> {
 /// * The database cannot be read
 /// * A write transaction cannot be acquired
 pub fn repair(config: &Config) -> BldrResult<()> {
-    outputln!("Repairing repo at {:?}", config.path());
-    repo::repair(&config)
+    outputln!("Repairing depot at {:?}", config.path());
+    depot::repair(&config)
 }

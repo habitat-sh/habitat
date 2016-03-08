@@ -23,7 +23,7 @@ fn gen_test_gpg_cache() -> String {
 fn kt_upload_a_key_and_install_it() {
     setup::gpg_import();
     setup::simple_service();
-    let d = docker::repo("test/simple_service");
+    let d = docker::depot("test/simple_service");
     let ipaddress = d.ipaddress();
     let mut upload = command::bldr(&["upload-repo-key",
                                      &util::path::fixture_as_string("chef-public.gpg"),

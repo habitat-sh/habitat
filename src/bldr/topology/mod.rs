@@ -48,7 +48,7 @@ static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
 
 // Functions from POSIX libc.
-extern {
+extern "C" {
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
 }
 
@@ -143,32 +143,32 @@ pub enum State {
 
 /// The topology `Worker` is where everything our state machine needs between states lives.
 pub struct Worker<'a> {
-/// The package we are supervising
+    /// The package we are supervising
     pub package: Arc<RwLock<Package>>,
-/// Name of the package being supervised
+    /// Name of the package being supervised
     pub package_name: String,
-/// A pointer to our current Config
+    /// A pointer to our current Config
     pub config: &'a Config,
-/// The topology we are running
+    /// The topology we are running
     pub topology: String,
-/// Our Service Configuration; manages changes to our configuration,
+    /// Our Service Configuration; manages changes to our configuration,
     pub service_config: Arc<RwLock<ServiceConfig>>,
-/// The Gossip Server; listens for inbound gossip traffic
+    /// The Gossip Server; listens for inbound gossip traffic
     pub gossip_server: gossip::server::Server,
     pub census_list: Arc<RwLock<CensusList>>,
     pub rumor_list: Arc<RwLock<RumorList>>,
     pub election_list: Arc<RwLock<ElectionList>>,
     pub member_list: Arc<RwLock<MemberList>>,
-/// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
+    /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
-/// Our User Configuration; reads the config periodically
+    /// Our User Configuration; reads the config periodically
     pub user_actor: wonder::actor::Actor<user_config::Message>,
-/// Watches a package repo for updates and signals the main thread when an update is available. Optionally
-/// started if a value is passed for the url option on startup.
+    /// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
+    /// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
-/// A pointer to the supervisor thread
+    /// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
-/// The PID of the Supervisor itself
+    /// The PID of the Supervisor itself
     pub supervisor_id: Option<u32>,
     pub return_state: Option<State>,
 }
@@ -331,26 +331,36 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                 break;
             }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGQUIT))) => {
-                try!(worker.signal_package(Signal::Quit));
-                outputln!("Sending SIGQUIT");
+                {
+                    try!(worker.signal_package(Signal::Quit));
+                    outputln!("Sending SIGQUIT");
+                }
             }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGALRM))) => {
-                try!(worker.signal_package(Signal::Alarm));
-                outputln!("Sending SIGALRM");
+                {
+                    try!(worker.signal_package(Signal::Alarm));
+                    outputln!("Sending SIGALRM");
+                }
             }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGTERM))) => {
-                outputln!("Sending 'force-shutdown' on SIGTERM");
-                try!(worker.signal_package(Signal::ForceShutdown));
-                try!(worker.join_supervisor());
-                break;
+                {
+                    outputln!("Sending 'force-shutdown' on SIGTERM");
+                    try!(worker.signal_package(Signal::ForceShutdown));
+                    try!(worker.join_supervisor());
+                    break;
+                }
             }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR1))) => {
-                outputln!("Sending SIGUSR1");
-                try!(worker.signal_package(Signal::One));
+                {
+                    outputln!("Sending SIGUSR1");
+                    try!(worker.signal_package(Signal::One));
+                }
             }
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR2))) => {
-                outputln!("Sending SIGUSR1");
-                try!(worker.signal_package(Signal::Two));
+                {
+                    outputln!("Sending SIGUSR1");
+                    try!(worker.signal_package(Signal::Two));
+                }
             }
             Ok(_) => {}
             Err(TryRecvError::Empty) => {}

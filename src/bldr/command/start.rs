@@ -58,7 +58,7 @@ use config::Config;
 use package::{Package, PackageIdent};
 use topology::{self, Topology};
 use command::install;
-use repo;
+use depot;
 
 static LOGKEY: &'static str = "CS";
 
@@ -82,11 +82,11 @@ pub fn package(config: &Config) -> BldrResult<()> {
                 //
                 // If the operator does not specify a version number they will automatically receive
                 // updates for any releases, regardless of version number, for the started  package.
-                let latest_pkg: Package = try!(repo::client::show_package(&url, config.package()))
+                let latest_pkg: Package = try!(depot::client::show_package(&url, config.package()))
                                               .into();
                 if latest_pkg > package {
                     outputln!("Downloading latest version from remote: {}", &latest_pkg);
-                    let archive = try!(repo::client::fetch_package(&url,
+                    let archive = try!(depot::client::fetch_package(&url,
                                                                    &PackageIdent::from(latest_pkg),
                                                                    PACKAGE_CACHE));
                     try!(archive.verify());

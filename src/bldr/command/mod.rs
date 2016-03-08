@@ -13,5 +13,5 @@ pub mod install;
 pub mod start;
 pub mod key;
 pub mod upload;
-pub mod repo;
+pub mod depot;
 pub mod configure;

@@ -21,15 +21,15 @@ use package::{Package, PackageArchive, PackageIdent};
 
 static LOGKEY: &'static str = "RC";
 
-/// Download a public key from a remote repository to the given filepath.
+/// Download a public key from a remote Depot to the given filepath.
 ///
 /// # Failures
 ///
 /// * Key cannot be found
-/// * Remote repository is not available
+/// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
-    let url = format!("{}/keys/{}", repo, key);
+pub fn fetch_key(depot: &str, key: &str, path: &str) -> BldrResult<String> {
+    let url = format!("{}/keys/{}", depot, key);
     download(key, &url, path)
 }
 
@@ -43,13 +43,13 @@ pub fn fetch_key(repo: &str, key: &str, path: &str) -> BldrResult<String> {
 /// # Failures
 ///
 /// * Package cannot be found
-/// * Remote repository is not available
+/// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_package(repo: &str,
+pub fn fetch_package(depot: &str,
                      package: &PackageIdent,
                      store: &str)
                      -> BldrResult<PackageArchive> {
-    let url = format!("{}/pkgs/{}/download", repo, package);
+    let url = format!("{}/pkgs/{}/download", depot, package);
     match download(&package.name, &url, store) {
         Ok(file) => {
             let path = PathBuf::from(file);
@@ -70,9 +70,9 @@ pub fn fetch_package(repo: &str,
 /// # Failures
 ///
 /// * Package cannot be found
-/// * Remote repository is not available
-pub fn show_package(repo: &str, ident: &PackageIdent) -> BldrResult<data_object::Package> {
-    let url = url_show_package(repo, ident);
+/// * Remote Depot is not available
+pub fn show_package(depot: &str, ident: &PackageIdent) -> BldrResult<data_object::Package> {
+    let url = url_show_package(depot, ident);
     let client = Client::new();
     let request = client.get(&url);
     let mut res = try!(request.send());
@@ -88,26 +88,26 @@ pub fn show_package(repo: &str, ident: &PackageIdent) -> BldrResult<data_object:
     Ok(package)
 }
 
-/// Upload a public key to a remote repository.
+/// Upload a public key to a remote Depot.
 ///
 /// # Failures
 ///
-/// * Remote repository is not available
+/// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_key(repo: &str, path: &Path) -> BldrResult<()> {
+pub fn put_key(depot: &str, path: &Path) -> BldrResult<()> {
     let mut file = try!(File::open(path));
     let file_name = try!(path.file_name().ok_or(bldr_error!(ErrorKind::NoFilePart)));
-    let url = format!("{}/keys/{}", repo, file_name.to_string_lossy());
+    let url = format!("{}/keys/{}", depot, file_name.to_string_lossy());
     upload(&url, &mut file)
 }
 
-/// Upload a package to a remote repository.
+/// Upload a package to a remote Depot.
 ///
 /// # Failures
 ///
-/// * Remote repository is not available
+/// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
+pub fn put_package(depot: &str, package: &Package) -> BldrResult<()> {
     let mut file = try!(File::open(package.cache_file()));
     let mut digest = Sha256::new();
     let mut buffer = Vec::new();
@@ -115,7 +115,7 @@ pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     digest.input(&buffer);
     let checksum = digest.result_str();
     let url = format!("{}/pkgs/{}/{}/{}/{}?checksum={}",
-                      repo,
+                      depot,
                       package.origin,
                       package.name,
                       package.version,
@@ -124,11 +124,11 @@ pub fn put_package(repo: &str, package: &Package) -> BldrResult<()> {
     upload(&url, &mut file)
 }
 
-fn url_show_package(repo: &str, package: &PackageIdent) -> String {
+fn url_show_package(depot: &str, package: &PackageIdent) -> String {
     if package.fully_qualified() {
-        format!("{}/pkgs/{}", repo, package)
+        format!("{}/pkgs/{}", depot, package)
     } else {
-        format!("{}/pkgs/{}/latest", repo, package)
+        format!("{}/pkgs/{}/latest", depot, package)
     }
 }
 

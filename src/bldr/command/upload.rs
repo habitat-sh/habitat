@@ -4,7 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-//! Uploads a package to a [repository](../repo).
+//! Uploads a package to a [Depot](../depot).
 //!
 //! # Examples
 //!
@@ -12,7 +12,7 @@
 //! $ bldr upload chef/redis -u http://localhost:9632
 //! ```
 //!
-//! Will upload a package to the repository.
+//! Will upload a package to the Depot.
 //!
 //! # Notes
 //!
@@ -25,11 +25,11 @@ use hyper::status::StatusCode;
 use error::{BldrResult, BldrError, ErrorKind};
 use config::Config;
 use package::Package;
-use repo;
+use depot;
 
 static LOGKEY: &'static str = "CU";
 
-/// Upload a package from the cache to a repository. The latest version/release of the package
+/// Upload a package from the cache to a Depot. The latest version/release of the package
 /// will be uploaded if not specified.
 ///
 /// # Failures
@@ -41,7 +41,7 @@ pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
     let package = try!(Package::load(config.package(), None));
     outputln!("Uploading from {}", package.cache_file().to_string_lossy());
-    match repo::client::put_package(url, &package) {
+    match depot::client::put_package(url, &package) {
         Ok(()) => (),
         Err(BldrError{err: ErrorKind::HTTP(StatusCode::Conflict), ..}) => {
             outputln!("Package already exists on remote; skipping.");

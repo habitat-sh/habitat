@@ -13,7 +13,7 @@ use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResul
 use error::BldrError;
 use fs::PACKAGE_CACHE;
 use package::{Package, PackageIdent};
-use repo;
+use depot;
 
 const TIMEOUT_MS: u64 = 60_000;
 
@@ -39,15 +39,15 @@ impl PackageUpdater {
 }
 
 pub struct UpdaterState {
-    pub repo: String,
+    pub depot: String,
     pub package: Arc<RwLock<Package>>,
     pub status: UpdaterStatus,
 }
 
 impl UpdaterState {
-    pub fn new(repo: String, package: Arc<RwLock<Package>>) -> Self {
+    pub fn new(depot: String, package: Arc<RwLock<Package>>) -> Self {
         UpdaterState {
-            repo: repo,
+            depot: depot,
             package: package,
             status: UpdaterStatus::Stopped,
         }
@@ -87,14 +87,14 @@ impl GenServer for PackageUpdater {
         //          This will allow an operator to lock to a version and receive security updates
         //          in the form of release updates for a package.
         let ident = PackageIdent::new(package.origin.clone(), package.name.clone(), None, None);
-        match repo::client::show_package(&state.repo, &ident) {
+        match depot::client::show_package(&state.depot, &ident) {
             Ok(remote) => {
                 let latest: Package = remote.into();
                 if latest > *package {
-                    match repo::client::fetch_package(&state.repo,
-                                                      &PackageIdent::from_str(&latest.ident())
-                                                           .unwrap(),
-                                                      PACKAGE_CACHE) {
+                    match depot::client::fetch_package(&state.depot,
+                                                       &PackageIdent::from_str(&latest.ident())
+                                                            .unwrap(),
+                                                       PACKAGE_CACHE) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
