@@ -24,5 +24,5 @@ do_build() {
               --with-z=$(pkg_path_for chef/zlib) \
               --enable-ssl --with-ssl=$(pkg_path_for chef/openssl) \
               --enable-modules=most --enable-mods-shared=most
-  make 
+  make
 }

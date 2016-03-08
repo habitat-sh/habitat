@@ -1,4 +1,4 @@
 #!/bin/sh
-mkdir -p /opt/bldr/srvc/httpd/htdocs
-mkdir -p /opt/bldr/srvc/httpd/logs
-mkdir -p /opt/bldr/srvc/httpd/cgi-bin
+mkdir -p /opt/bldr/srvc/httpd/data/htdocs
+mkdir -p /opt/bldr/srvc/httpd/data/cgi-bin
+mkdir -p /opt/bldr/srvc/httpd/var/logs
