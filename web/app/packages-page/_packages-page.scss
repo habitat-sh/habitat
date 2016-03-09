@@ -8,15 +8,6 @@
   &-plan-list {
     li a {
       @extend .bldr-item-list;
-
-      .stars {
-          float: right;
-          font-size: 75%;
-      }
-
-      .stars:after {
-          content:  "★"
-       }
     }
   }
 }

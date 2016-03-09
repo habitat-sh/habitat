@@ -6,11 +6,11 @@
 
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
-import {List} from "immutable";
+import {GravatarComponent} from "../GravatarComponent";
 import {RouterLink} from "angular2/router";
 
 @Component({
-    directives: [RouterLink],
+    directives: [GravatarComponent, RouterLink],
     template: `
     <div class="bldr-organizations">
         <h2>Organizations</h2>
@@ -45,9 +45,25 @@ import {RouterLink} from "angular2/router";
                 </ul>
             </div>
         </div>
+        <div *ngIf="orgs.size > 0">
+            <ul>
+                <li *ngFor="#org of orgs">
+                    <a href="#" class="bldr-item-list">
+                        <gravatar size=32 email="{{org.email}}"></gravatar>
+                        {{org.name}}
+                        <span class="count">
+                            <img src="/node_modules/octicons/svg/organization.svg">
+                            {{org.members.size}}
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>`
 })
 
 export class OrganizationsPageComponent {
-    get orgs() { return List(); }
+    constructor(private store: AppStore) {}
+
+    get orgs() { return this.store.getState().orgs.all; }
 }

@@ -6,8 +6,27 @@
 
 // For lists of things like packages or projects
 .bldr-item-list {
-  border: 1px solid;
+
+  background-blend-mode: overlay;
+  background-color: rgba(255, 255, 255, 0.9);
+  background-image: url("/node_modules/octicons/svg/chevron-right.svg");
+  background-position: 98% 50%;
+  background-repeat: no-repeat;
+  background-size: $base-spacing;
+
+  border-bottom: 1px solid $light-gray;
+  color: inherit;
   display: block;
-  margin-bottom: $small-spacing;
   padding: $small-spacing;
+
+  .count {
+      float: right;
+      font-size: 75%;
+      margin: auto $base-spacing * 2 0 auto;
+  }
+
+  .bldr-gravatar {
+      float: left;
+      margin-right: $small-spacing;
+  }
 }

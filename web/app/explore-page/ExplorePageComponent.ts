@@ -13,7 +13,7 @@ import {RouterLink} from "angular2/router";
                 <a [routerLink]="['PackagesForName', { name: item.name }]">
                     <span class="title">{{item.name}}</span>
                     <div class="info">
-                        <span class="stars">{{item.starCount}}</span>
+                        <span class="stars">{{item.starCount}} ★</span>
                     </div>
                 </a>
             </li>
