@@ -14,11 +14,14 @@ compose_cmd := env http_proxy= https_proxy= docker-compose
 run := $(compose_cmd) run --rm $(run_args)
 dimage := bldr/devshell
 
-.PHONY: build shell docs-serve test unit functional clean image docs help
+.PHONY: build shell docs-serve test unit functional clean image docs help gpg
 .DEFAULT_GOAL := help
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+gpg: ## install gpg keys, only run this in a studio
+	(cd plans && make gpg)
 
 build: image ## run cargo build
 	$(run) shell cargo build
