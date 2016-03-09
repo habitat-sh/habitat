@@ -40,7 +40,7 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
                     /
                     {{package.release}}
 
-                    <span class="stars" *ngIf="package.starCount">{{package.starCount}}</span>
+                    <span class="count" *ngIf="package.starCount">{{package.starCount}} ★</span>
                 </a>
             </li>
         </ul>
