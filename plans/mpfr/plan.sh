@@ -1,10 +1,10 @@
 pkg_name=mpfr
 pkg_origin=chef
-pkg_version=3.1.3
+pkg_version=3.1.4
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('lgpl')
-pkg_source=http://www.mpfr.org/mpfr-current/${pkg_name}-${pkg_version}.tar.xz
-pkg_shasum=6835a08bd992c8257641791e9a6a2b35b02336c8de26d0a8577953747e514a16
+pkg_source=http://www.mpfr.org/${pkg_name}-${pkg_version}/${pkg_name}-${pkg_version}.tar.xz
+pkg_shasum=761413b16d749c53e2bfd2b1dfaa3b027b0e793e404b90b5fbaeef60af6517f5
 pkg_deps=(chef/glibc chef/gmp)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/binutils)
 pkg_include_dirs=(include)
