@@ -146,10 +146,8 @@ dockerize chef/rust
 
 Talk about how easy it is for a developer to write a health check that gets invoked by the sidecar:
 
-FIXME: We ought not talk about hana, per SAP's request. Use another example.
-
 ```
-cat plans/hana/hooks/health_check
+cat plans/bldr-web/hooks/health_check
 ```
 
 # To-Do on Gossip
