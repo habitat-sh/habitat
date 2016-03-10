@@ -681,6 +681,141 @@ _determine_pkg_installer() {
   fi
 }
 
+# **Internal** Validates that the computed dependencies are reasonable and that
+# the full runtime set is unique--that is, there are no duplicate entries of
+# the same `ORIGIN/NAME` tokens. An example would be a Plan which has a
+# dependency on `chef/glibc` and a dependency on `chef/pcre` which uses an
+# older version of `chef/glibc`. This leads to a package which would have 2
+# version of `chef/glibc` in the shared library `RUNPATH` (`RPATH`). Rather
+# than building a package which is destined to fail at runtime, this function
+# will fast-fail with dependency information which an end user can use to
+# resolve the situation before continuing.
+_validate_deps() {
+  # Build the list of full runtime deps (one per line) without the
+  # `$BLDR_PKG_ROOT` prefix.
+  local tdeps=$(echo ${pkg_tdeps_resolved[@]} \
+    | tr ' ' '\n' \
+    | sed "s,^${BLDR_PKG_ROOT}/,,")
+  # Build the list of any runtime deps that appear more than once. That is,
+  # `ORIGIN/NAME` token duplicates.
+  local dupes=$(echo "$tdeps" \
+    | awk -F/ '{print $1"/"$2}' \
+    | sort \
+    | uniq -d)
+
+  if [[ -n "$dupes" ]]; then
+    local dupe
+    # Build a list of all fully qualified package identifiers that are members
+    # of the duplicated `ORIGIN/NAME` tokens. This will be used to star the
+    # problematic dependencies in the graph.
+    _dupes_qualified=$(echo "$tdeps" \
+      | egrep "($(echo "$dupes" | tr '\n' '|' | sed 's,|$,,'))")
+
+    warn
+    warn "The following runtime dependencies have more than one version"
+    warn "release in the full dependency chain:"
+    warn
+    echo "$dupes" | while read dupe; do
+      warn "  * $dupe ( $(echo "$tdeps" | grep "$dupe" | tr '\n' ' '))"
+    done
+    warn
+    warn 'The current situation usually arises when a Plan has a direct '
+    warn 'dependency on one version of a package (`acme/A/7.0/20160101200001`)'
+    warn 'and has a direct dependency on another package which itself depends'
+    warn 'on another version of the same package (`acme/A/2.0/20151201060001`).'
+    warn 'If this package (`acme/A`) contains shared libraries which are'
+    warn 'loaded at runtime by the current Plan, then both versions of'
+    warn '`acme/A` could be loaded into the same process in a potentially'
+    warn 'suprprising order. Worse, if both versions of `acme/A` are'
+    warn 'ABI-incompatible, runtime segementation faults are more than likely.'
+    warn
+    warn 'In order to preserve reliability at runtime the duplicate dependency'
+    warn 'entries will need to be resolved before this Plan can be built.'
+    warn 'Below is an expanded graph of all `$pkg_deps` and their dependencies'
+    warn 'with the problematic lines noted.'
+    warn
+    warn "Computed dependency graph (Lines with '*' denote a problematic entry):"
+    printf "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}\n"
+    echo ${pkg_deps_resolved[@]} \
+      | tr ' ' '\n' \
+      | sed -e "s,^${BLDR_PKG_ROOT}/,," \
+      | _print_recursive_deps 1
+    echo
+    exit_with "Computed runtime dependency check failed, aborting" 31
+  fi
+
+  return 0
+}
+
+# **Internal** Prints a dependncy graph in a format to the `tree(1)` command.
+# This is used in concert with `_validate_deps` for the purpose of output to an
+# end user.  It accepts a standard in stream as input where each line is a
+# direct dependency package identifier of some pacakge. The first function
+# parameter is the leading padding depth when printing the dependency line.
+# Finally, a global internal variable, `$_dupes_qualified`, is used to display
+# which dependency entries have the duplicate versions present. An example
+# should help to clarify:
+#
+# ```
+# _dupes_qualified=$(cat <<EOF
+# chef/glibc/2.22/20160309153915
+# chef/glibc/2.22/20160308150809
+# chef/linux-headers/4.3/20160309153535
+# chef/linux-headers/4.3/20160308150438
+# EOF
+# )
+#
+# echo "chef/less/481/20160309165238"
+#
+# cat <<EOF | _print_recursive_deps 1
+# chef/glibc/2.22/20160309153915
+# chef/ncurses/6.0/20160308165339
+# chef/pcre/8.38/20160308165506
+# EOF
+# ```
+#
+# And the corresponding output, in this case showing the problematic
+# dependencies:
+#
+# ```
+# chef/less/481/20160309165238
+#     chef/glibc/2.22/20160309153915 (*)
+#         chef/linux-headers/4.3/20160309153535 (*)
+#     chef/ncurses/6.0/20160308165339
+#         chef/glibc/2.22/20160308150809 (*)
+#             chef/linux-headers/4.3/20160308150438 (*)
+#         chef/gcc-libs/5.2.0/20160308165030
+#             chef/glibc/2.22/20160308150809 (*)
+#                 chef/linux-headers/4.3/20160308150438 (*)
+#     chef/pcre/8.38/20160308165506
+#         chef/glibc/2.22/20160308150809 (*)
+#             chef/linux-headers/4.3/20160308150438 (*)
+#         chef/gcc-libs/5.2.0/20160308165030
+#             chef/glibc/2.22/20160308150809 (*)
+#                 chef/linux-headers/4.3/20160308150438 (*)
+# ```
+_print_recursive_deps() {
+  local level=$1
+  local dep
+  # Compute the amount of leading whitespace when display this line and any
+  # child dependencies.
+  local padn=$(($level * 4))
+  while read dep; do
+    # If this dependency is a member of the duplicated set, then add an
+    # asterisk at the end of the line, otherwise print the dependency.
+    if echo "$_dupes_qualified" | grep -q "$dep" > /dev/null; then
+      printf "%*s$dep (*)\n" $padn
+    else
+      printf "%*s$dep\n" $padn
+    fi
+    # If this dependency itself has direct dependencies, then recursively print
+    # them.
+    if [[ -f $BLDR_PKG_ROOT/$dep/DEPS ]]; then
+      cat $BLDR_PKG_ROOT/$dep/DEPS | _print_recursive_deps $(($level + 1))
+    fi
+  done
+}
+
 
 # ## Public helper functions
 #
@@ -1249,6 +1384,8 @@ _resolve_dependencies() {
       $(_return_or_append_to_set "$tdep" "${pkg_all_tdeps_resolved[@]}")
     )
   done
+
+  _validate_deps
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
