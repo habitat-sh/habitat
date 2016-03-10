@@ -19,7 +19,7 @@ Make sure it works:
 docker run -it quay.io/bldr/redis
 ```
 
-You're ready to demo. 
+You're ready to demo.
 
 ## Pre-bldr world
 
@@ -52,7 +52,7 @@ some extra colorization. Ok...
 But we can ask the supervisor what things are configurable:
 
 ```
-docker run -it quay.io/bldr/redis config redis
+docker run -it quay.io/bldr/redis config chef/redis
 ```
 
 Get a TOML output with all the configuration values.
@@ -71,7 +71,8 @@ See the message gone.
 
 (Once this is reimplemented we can inject this config into the supervisor
 by asking it to load a TOML file from the host machine. You can track the
-progress of fixing this by following BLDR-84 on the dev board.)
+progress of fixing this by following
+[BLDR-86]([https://chefio.atlassian.net/browse/BLDR-86) on the dev board.)
 
 ## Built-in topology awareness discovery using gossip
 
@@ -124,9 +125,13 @@ Refer to how easy it is to make a custom callback for the app when showing the p
 
 # Show the Packaging System
 
+From the root of the bldr GitHub repository:
+
 ```
-cd studio && make docker-studio
+make shell
+studio enter
 # Talk about what this is, then rebuild something
+cd plans
 make gpg
 # You need Internet access for this part - not guest Wi-Fi because
 # until the depot is up, it runs on a weird port
@@ -142,7 +147,7 @@ dockerize chef/rust
 Talk about how easy it is for a developer to write a health check that gets invoked by the sidecar:
 
 ```
-cat plans/hana/hooks/health_check
+cat plans/bldr-web/hooks/health_check
 ```
 
 # To-Do on Gossip
@@ -159,9 +164,10 @@ a new one. Do this from the root of `bldr`:
 ```
 make shell
 studio enter
+cd plans
 # downloads pre-built userland, enough for package building
 build redis
-dockerize redis
+dockerize chef/redis
 ```
 
 Now remember that the name of this local container is `chef/redis`, so don't use `quay.io/bldr/redis` in your
