@@ -50,10 +50,11 @@ pub fn package(config: &Config) -> BldrResult<()> {
             return Err(bldr_error!(ErrorKind::PackageArchiveMalformed(format!("{}",
                                                                           package.cache_file().to_string_lossy()))));
         }
-        Err(e) => {
+        Err(e @ BldrError{err: ErrorKind::HTTP(_), ..}) => {
             outputln!("Unexpected response from remote");
             return Err(e);
         }
+        Err(e) => return Err(e),
     }
     outputln!("Complete");
     Ok(())
