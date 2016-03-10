@@ -65,6 +65,7 @@ extern crate rpassword;
 extern crate rand;
 extern crate threadpool;
 extern crate urlencoded;
+extern crate openssl;
 
 #[macro_export]
 /// Creates a new BldrError, embedding the current file name, line number, column, and module path.
@@ -270,8 +271,6 @@ pub mod config;
 pub mod depot;
 pub mod user_config;
 pub mod service_config;
-pub mod watch_config;
-pub mod old_census;
 pub mod census;
 pub mod gossip;
 pub mod election;

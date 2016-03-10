@@ -102,6 +102,7 @@ pub enum ErrorKind {
     GPGError(gpgme::Error),
     UnpackFailed,
     TomlParser(Vec<toml::ParserError>),
+    TomlEncode(toml::Error),
     MdbError(data_store::MdbError),
     MustacheEncoderError(mustache::encoder::Error),
     MetaFileNotFound(package::MetaFile),
@@ -170,6 +171,7 @@ impl fmt::Display for BldrError {
             ErrorKind::TomlParser(ref errs) => {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
+            ErrorKind::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
             ErrorKind::MdbError(ref err) => format!("{}", err),
             ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
@@ -281,6 +283,7 @@ impl Error for BldrError {
             ErrorKind::GPGError(_) => "gpgme error",
             ErrorKind::UnpackFailed => "Failed to unpack a package",
             ErrorKind::TomlParser(_) => "Failed to parse toml!",
+            ErrorKind::TomlEncode(_) => "Failed to encode toml!",
             ErrorKind::MdbError(_) => "Database error",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
@@ -429,5 +432,11 @@ impl From<json::EncoderError> for BldrError {
 impl From<json::DecoderError> for BldrError {
     fn from(err: json::DecoderError) -> Self {
         bldr_error!(ErrorKind::JsonDecode(err))
+    }
+}
+
+impl From<toml::Error> for BldrError {
+    fn from(err: toml::Error) -> Self {
+        bldr_error!(ErrorKind::TomlEncode(err))
     }
 }

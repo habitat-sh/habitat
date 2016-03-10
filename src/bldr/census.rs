@@ -69,7 +69,6 @@ pub struct CensusEntry {
     pub incarnation: LamportClock,
 }
 
-
 impl CensusEntry {
     /// Create a new CensusEntry for this supervisor.
     pub fn new<S>(service: S, group: S, member_id: MemberId) -> CensusEntry
