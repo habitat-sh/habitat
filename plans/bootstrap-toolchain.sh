@@ -127,6 +127,7 @@ cat <<_PLANS_ | while read plan; do build $plan; done
   busybox-static
   gnupg-static
   jq-static
+  wget-static
   bpm
   build
   vim
