@@ -1,10 +1,10 @@
 pkg_name=glibc
 pkg_origin=chef
-pkg_version=2.22
+pkg_version=2.23
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('gplv2' 'lgplv2')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
-pkg_shasum=eb731406903befef1d8f878a46be75ef862b9056ab0cde1626d08a7a05328948
+pkg_shasum=94efeb00e4603c8546209cefb3e1a50a5315c86fa9b078b6fad758e187ce13e9
 pkg_deps=(chef/linux-headers)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/perl)
 pkg_binary_path=(bin)
