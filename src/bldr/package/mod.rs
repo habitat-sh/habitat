@@ -331,8 +331,9 @@ impl Package {
                                                              match a.partial_cmp(&b) {
                                                                  Some(Ordering::Greater) => Some(a),
                                                                  Some(Ordering::Equal) => Some(a),
-                                                                 Some(Ordering::Less) =>
-                                                                     Some(b.clone()),
+                                                                 Some(Ordering::Less) => {
+                                                                     Some(b.clone())
+                                                                 }
                                                                  None => Some(a),
                                                              }
                                                          }

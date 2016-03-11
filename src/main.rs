@@ -38,6 +38,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 static DEFAULT_GROUP: &'static str = "default";
 static DEFAULT_PATH: &'static str = "/opt/bldr/srvc/bldr/data";
 static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
+static DEFAULT_DEPOT_URL: &'static str = "http://52.37.151.35:9632";
 
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
@@ -48,6 +49,9 @@ fn config_from_args(args: &ArgMatches,
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
+    if let Some(ref archive) = sub_args.value_of("archive") {
+        config.set_archive(archive.to_string());
+    }
     if let Some(ref package) = sub_args.value_of("package") {
         let ident = try!(PackageIdent::from_str(package));
         config.set_package(ident);
@@ -95,9 +99,7 @@ fn config_from_args(args: &ArgMatches,
         let ed = value_t!(sub_args.value_of("expire-days"), u16).unwrap_or_else(|e| e.exit());
         config.set_expire_days(ed);
     }
-    if let Some(url) = sub_args.value_of("url") {
-        config.set_url(url.to_string());
-    }
+    config.set_url(sub_args.value_of("url").unwrap_or(DEFAULT_DEPOT_URL).to_string());
     config.set_group(sub_args.value_of("group").unwrap_or(DEFAULT_GROUP).to_string());
     let watches = match sub_args.values_of("watch") {
         Some(ws) => ws.map(|s| s.to_string()).collect(),
@@ -241,12 +243,12 @@ fn main() {
                                        .value_name("path")
                                        .help("A path"));
     let sub_upload = SubCommand::with_name("upload")
-                         .about("Upload a package to a bldr depot")
-                         .arg(Arg::with_name("package")
+                         .about("Upload an archive to a bldr depot")
+                         .arg(Arg::with_name("archive")
                                   .index(1)
                                   .required(true)
-                                  .help("Name of package to upload"))
-                         .arg(arg_url().required(true));
+                                  .help("Path to the archive to upload"))
+                         .arg(arg_url());
     let sub_generate_user_key = SubCommand::with_name("generate-user-key")
                                     .about("Generate a bldr user key")
                                     .arg(Arg::with_name("user")
@@ -502,10 +504,9 @@ fn repo_list(config: &Config) -> BldrResult<()> {
 #[allow(dead_code)]
 fn upload(config: &Config) -> BldrResult<()> {
     outputln!("Upload Bldr Package {}",
-              Yellow.bold().paint(config.package().to_string()));
+              Yellow.bold().paint(config.archive()));
     try!(upload::package(&config));
-    outputln!("Finished with {}",
-              Yellow.bold().paint(config.package().to_string()));
+    outputln!("Finished with {}", Yellow.bold().paint(config.archive()));
     Ok(())
 }
 
