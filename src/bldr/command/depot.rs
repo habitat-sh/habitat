@@ -26,7 +26,7 @@
 
 use config::Config;
 use error::{BldrError, BldrResult, ErrorKind};
-use depot::{self, data_object, Depot};
+use depot::{self, data_object, doctor, Depot};
 use depot::data_store::{self, Cursor, Database, Transaction};
 
 static LOGKEY: &'static str = "CR";
@@ -62,7 +62,7 @@ pub fn list_repositories(config: &Config) -> BldrResult<()> {
             return Ok(());
         }
         Err(e) => return Err(e),
-        Ok(value) => views.push(value),
+        Ok((_, value)) => views.push(value),
     }
     loop {
         match cursor.next() {
@@ -97,6 +97,8 @@ pub fn start(config: &Config) -> BldrResult<()> {
 /// * The database cannot be read
 /// * A write transaction cannot be acquired
 pub fn repair(config: &Config) -> BldrResult<()> {
-    outputln!("Repairing depot at {:?}", config.path());
-    depot::repair(&config)
+    let depot = try!(Depot::new(String::from(config.path())));
+    let report = try!(doctor::repair(&depot));
+    outputln!("Report: {:?}", &report);
+    Ok(())
 }

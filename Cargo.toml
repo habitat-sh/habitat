@@ -43,6 +43,7 @@ rust-crypto = "*"
 threadpool = "*"
 urlencoded = "*"
 openssl = "*"
+walkdir = "*"
 
 [dependencies.wonder]
 path = "./vendor/wonder"

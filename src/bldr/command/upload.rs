@@ -41,9 +41,9 @@ static LOGKEY: &'static str = "CU";
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
-    let pa = PackageArchive::new(PathBuf::from(config.archive()));
+    let mut pa = PackageArchive::new(PathBuf::from(config.archive()));
     outputln!("Uploading from {}", pa.path.to_string_lossy());
-    match depot::client::put_package(url, &pa) {
+    match depot::client::put_package(url, &mut pa) {
         Ok(()) => (),
         Err(BldrError{err: ErrorKind::HTTP(StatusCode::Conflict), ..}) => {
             outputln!("Package already exists on remote; skipping.");

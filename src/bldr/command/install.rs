@@ -72,7 +72,7 @@ pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> BldrResult<data
 }
 
 fn install<P: AsRef<PackageIdent>>(url: &str, package: &P) -> BldrResult<()> {
-    let archive = try!(depot::client::fetch_package(url, package.as_ref(), PACKAGE_CACHE));
+    let mut archive = try!(depot::client::fetch_package(url, package.as_ref(), PACKAGE_CACHE));
     let package = try!(archive.ident());
     try!(archive.unpack());
     outputln!("Installed {}", package);

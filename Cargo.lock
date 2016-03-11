@@ -32,6 +32,7 @@ dependencies = [
  "url 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "walkdir 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "wonder 0.1.0",
 ]
 
@@ -724,6 +725,15 @@ dependencies = [
 name = "vec_map"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "walkdir"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "winapi"

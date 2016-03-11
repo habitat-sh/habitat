@@ -7,6 +7,7 @@
 pub mod client;
 pub mod data_object;
 pub mod data_store;
+pub mod doctor;
 
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
@@ -62,7 +63,8 @@ impl Depot {
 
     // Return a formatted string representing the filename of an archive for the given package
     // identifier pieces.
-    fn archive_path(&self, ident: &package::PackageIdent) -> PathBuf {
+    fn archive_path<T: AsRef<package::PackageIdent>>(&self, ident: T) -> PathBuf {
+        let ident = ident.as_ref();
         let mut digest = Sha256::new();
         let mut output = [0; 64];
         digest.input_str(&ident.to_string());
@@ -198,9 +200,9 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     let filename = depot.archive_path(&ident);
     try!(write_file(&filename, &mut req.body));
-    let archive = PackageArchive::new(filename);
+    let mut archive = PackageArchive::new(filename);
     debug!("Package Archive: {:#?}", archive);
-    let object = match data_object::Package::from_archive(&archive) {
+    let object = match data_object::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
             debug!("Error building package from archive: {:#?}", e);
@@ -490,11 +492,6 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
         }
         Err(_) => None,
     }
-}
-
-pub fn repair(config: &Config) -> BldrResult<()> {
-    let depot = try!(Depot::new(String::from(config.path())));
-    depot.datastore.clear()
 }
 
 pub fn run(config: &Config) -> BldrResult<()> {

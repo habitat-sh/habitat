@@ -260,12 +260,12 @@ fn create_txn(env: &Environment,
     Ok(handle)
 }
 
-fn cursor_get<'a, K, D>(cursor: *mut lmdb_sys::MDB_cursor,
-                        key: Option<&K>,
-                        value: Option<&D>,
-                        op: CursorOp)
-                        -> BldrResult<(Option<&'a K>, D)>
-    where K: ToMdbValue,
+fn cursor_get<K, D>(cursor: *mut lmdb_sys::MDB_cursor,
+                    key: Option<&K>,
+                    value: Option<&D>,
+                    op: CursorOp)
+                    -> BldrResult<(Option<K>, D)>
+    where K: FromMdbValue + ToMdbValue,
           D: Encodable + Decodable
 {
     unsafe {
@@ -278,7 +278,7 @@ fn cursor_get<'a, K, D>(cursor: *mut lmdb_sys::MDB_cursor,
         let key_ptr = kval.mv_data;
         try_mdb!(lmdb_sys::mdb_cursor_get(cursor, &mut kval, &mut dval, op as u32));
         let kout = if key_ptr != kval.mv_data {
-            let kout: &K = &*(kval.mv_data as *const K);
+            let kout = K::from_mdb_value(&kval);
             Some(kout)
         } else {
             None
@@ -340,6 +340,18 @@ unsafe impl ToMdbValue for String {
             mv_data: t.as_ptr() as *mut c_void,
             mv_size: t.len(),
         }
+    }
+}
+
+pub unsafe trait FromMdbValue {
+    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self;
+}
+
+unsafe impl FromMdbValue for String {
+    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self {
+        let bytes: Vec<u8> = slice::from_raw_parts(value.mv_data as *const u8, value.mv_size)
+                                 .to_vec();
+        String::from_utf8(bytes).unwrap()
     }
 }
 
@@ -624,13 +636,14 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     }
 
     /// Position cursor at the first key/data item and return the data for the item.
-    fn first(&mut self) -> BldrResult<D::Object> {
+    fn first(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
                                                                       None,
                                                                       CursorOp::First) {
-            Ok((_, value)) => Ok(value),
+            Ok((Some(key), value)) => Ok((key, value)),
+            Ok(_) => unreachable!(),
             Err(e) => Err(e),
         }
     }
@@ -678,7 +691,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     }
 
     /// Position the cursor at the next data item.
-    fn next(&mut self) -> BldrResult<(&'a <D::Object as DataObject>::Key, D::Object)> {
+    fn next(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -694,7 +707,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases taht support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn next_dup(&mut self) -> BldrResult<(&'a <D::Object as DataObject>::Key, D::Object)> {
+    fn next_dup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -706,7 +719,24 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
         }
     }
 
-    fn prev(&mut self) -> BldrResult<(&'a <D::Object as DataObject>::Key, D::Object)> {
+    /// Position the cursor at the first data item of the next key.
+    ///
+    /// This call is only valid on databases taht support sorted duplicate items by the
+    /// `DB_ALLOW_DUPS` flag.
+    fn next_nodup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+        assert_txn_state_eq!(self.state(), TxnState::Normal);
+        match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
+                                                                      None,
+                                                                      None,
+                                                                      CursorOp::NextNoDup) {
+            Ok((Some(key), value)) => Ok((key, value)),
+            Ok(_) => unreachable!(),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Position the cursor at the previous data item.
+    fn prev(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -718,7 +748,11 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
         }
     }
 
-    fn prev_dup(&mut self) -> BldrResult<(&'a <D::Object as DataObject>::Key, D::Object)> {
+    /// Position the cursor at the previous data item of the current key.
+    ///
+    /// This call is only valid on databases taht support sorted duplicate items by the
+    /// `DB_ALLOW_DUPS` flag.
+    fn prev_dup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -730,10 +764,26 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
         }
     }
 
+    /// Position the cursor at the first data item of the previous key.
+    ///
+    /// This call is only valid on databases taht support sorted duplicate items by the
+    /// `DB_ALLOW_DUPS` flag.
+    fn prev_nodup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+        assert_txn_state_eq!(self.state(), TxnState::Normal);
+        match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
+                                                                      None,
+                                                                      None,
+                                                                      CursorOp::PrevNoDup) {
+            Ok((Some(key), value)) => Ok((key, value)),
+            Ok(_) => unreachable!(),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Position the cursor at the specified key and return the key and data.
     fn set_key(&mut self,
                key: &<D::Object as DataObject>::Key)
-               -> BldrResult<(&'d <D::Object as DataObject>::Key, D::Object)> {
+               -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       Some(key),
@@ -858,8 +908,36 @@ impl<'a, D: Database> Drop for RwCursor<'a, D> {
     }
 }
 
+pub struct MdbStat(lmdb_sys::MDB_stat);
+
+impl MdbStat {
+    pub fn new(native: lmdb_sys::MDB_stat) -> Self {
+        MdbStat(native)
+    }
+
+    /// Number of internal (non-leaf) pages
+    pub fn branch_pages(&self) -> usize {
+        self.0.ms_branch_pages
+    }
+
+    /// Number of data items
+    pub fn entries(&self) -> usize {
+        self.0.ms_entries
+    }
+
+    /// Number of leaf pages
+    pub fn leaf_pages(&self) -> usize {
+        self.0.ms_leaf_pages
+    }
+
+    /// Number of overflow pages
+    pub fn overflow_pages(&self) -> usize {
+        self.0.ms_overflow_pages
+    }
+}
+
 pub struct DatabaseBuilder<T: Database> {
-    pub name: Option<String>,
+    pub name: Option<&'static str>,
     pub flags: DatabaseFlags,
     txn_flags: c_uint,
     _marker: PhantomData<T>,
@@ -881,7 +959,7 @@ impl<T: Database> DatabaseBuilder<T> {
     }
 
     /// Configures the database to be a named database
-    pub fn named(&mut self, name: String) -> &mut Self {
+    pub fn named(&mut self, name: &'static str) -> &mut Self {
         self.name = Some(name);
         self
     }
@@ -939,6 +1017,12 @@ impl<T: Database> DatabaseBuilder<T> {
 pub trait Database : Sized {
     type Object: DataObject + Any;
 
+    /// Open the database
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self>;
+
+    /// Returns the name of the database if one was provided
+    fn name() -> &'static str;
+
     /// Drop all entries from the database
     fn clear<'a, T: Transaction<'a, Self>>(&'a self, txn: &'a T) -> BldrResult<()> {
         txn.clear()
@@ -949,14 +1033,20 @@ pub trait Database : Sized {
         txn.put(object.ident(), object)
     }
 
-    /// Open the database
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self>;
-
     /// Returns a reference to the database's environment
     fn env(&self) -> &Environment;
 
     /// Returns the database handle
     fn handle(&self) -> lmdb_sys::MDB_dbi;
+
+    /// Retrieve statistics for the database
+    fn stat<'a, T: Transaction<'a, Self>>(&'a self, txn: &T) -> BldrResult<MdbStat> {
+        unsafe {
+            let mut native: lmdb_sys::MDB_stat = mem::zeroed();
+            try_mdb!(lmdb_sys::mdb_stat(txn.handle(), self.handle(), &mut native));
+            Ok(MdbStat::new(native))
+        }
+    }
 
     /// Begin a read-only transaction
     fn txn_ro<'b>(&'b self) -> BldrResult<RoTransaction<'b, Self>> {
@@ -1153,7 +1243,7 @@ impl<'a, D: Database> RwTransaction<'a, D> {
     /// allowed.
     ///
     /// Duplicates can be allowed by setting the `DB_ALLOW_DUPS` flag on the database.
-    fn put(&self, key: &<D::Object as DataObject>::Key, value: &D::Object) -> BldrResult<()> {
+    pub fn put(&self, key: &<D::Object as DataObject>::Key, value: &D::Object) -> BldrResult<()> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         // JW TODO: these flags represent different types of "writes" and are dependent upon the
         // flags used to open the database. This would mean that this `put` function is the
@@ -1182,11 +1272,10 @@ impl<'a, D: Database> RwTransaction<'a, D> {
     /// # Failures
     ///
     /// * MdbError::NotFound if the specified key/data pair is not in the database
-    #[allow(dead_code)]
-    fn delete(&self,
-              key: &<D::Object as DataObject>::Key,
-              value: Option<&D::Object>)
-              -> BldrResult<()> {
+    pub fn delete(&self,
+                  key: &<D::Object as DataObject>::Key,
+                  value: Option<&D::Object>)
+                  -> BldrResult<()> {
         unsafe {
             let mut kval = key.to_mdb_value();
             let dval: *mut lmdb_sys::MDB_val = {
@@ -1281,6 +1370,10 @@ impl Database for PkgDatabase {
         })
     }
 
+    fn name() -> &'static str {
+        PACKAGE_DB
+    }
+
     fn clear<'a, T: Transaction<'a, Self>>(&'a self, txn: &'a T) -> BldrResult<()> {
         try!(txn.clear());
         let nested = try!(txn.new_child_rw(&self.index));
@@ -1309,7 +1402,7 @@ impl Database for PkgDatabase {
 impl Default for DatabaseBuilder<PkgDatabase> {
     fn default() -> DatabaseBuilder<PkgDatabase> {
         DatabaseBuilder {
-            name: Some(PACKAGE_DB.to_string()),
+            name: Some(PkgDatabase::name()),
             flags: DatabaseFlags::empty(),
             txn_flags: 0,
             _marker: PhantomData,
@@ -1346,6 +1439,10 @@ impl Database for PkgIndex {
         })
     }
 
+    fn name() -> &'static str {
+        PACKAGE_INDEX
+    }
+
     fn env(&self) -> &Environment {
         &self.env
     }
@@ -1367,7 +1464,7 @@ impl Default for DatabaseBuilder<PkgIndex> {
         let mut flags = DatabaseFlags::empty();
         flags.toggle(DB_ALLOW_DUPS);
         DatabaseBuilder {
-            name: Some(PACKAGE_INDEX.to_string()),
+            name: Some(PkgIndex::name()),
             flags: flags,
             txn_flags: 0,
             _marker: PhantomData,
@@ -1422,6 +1519,10 @@ impl Database for ViewDatabase {
         })
     }
 
+    fn name() -> &'static str {
+        VIEW_DB
+    }
+
     fn env(&self) -> &Environment {
         &self.env
     }
@@ -1434,7 +1535,7 @@ impl Database for ViewDatabase {
 impl Default for DatabaseBuilder<ViewDatabase> {
     fn default() -> DatabaseBuilder<ViewDatabase> {
         DatabaseBuilder {
-            name: Some(VIEW_DB.to_string()),
+            name: Some(ViewDatabase::name()),
             flags: DatabaseFlags::empty(),
             txn_flags: 0,
             _marker: PhantomData,
@@ -1469,6 +1570,10 @@ impl Database for PkgViewIndex {
         })
     }
 
+    fn name() -> &'static str {
+        PACKAGE_VIEW_INDEX
+    }
+
     fn env(&self) -> &Environment {
         &self.env
     }
@@ -1483,7 +1588,7 @@ impl Default for DatabaseBuilder<PkgViewIndex> {
         let mut flags = DatabaseFlags::empty();
         flags.toggle(DB_ALLOW_DUPS);
         DatabaseBuilder {
-            name: Some(PACKAGE_VIEW_INDEX.to_string()),
+            name: Some(PkgViewIndex::name()),
             flags: flags,
             txn_flags: 0,
             _marker: PhantomData,
@@ -1511,6 +1616,10 @@ impl ViewPkgIndex {
 impl Database for ViewPkgIndex {
     type Object = data_object::PackageIdent;
 
+    fn name() -> &'static str {
+        VIEW_PACKAGE_INDEX
+    }
+
     fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
         Ok(ViewPkgIndex {
             env: env,
@@ -1532,7 +1641,7 @@ impl Default for DatabaseBuilder<ViewPkgIndex> {
         let mut flags = DatabaseFlags::empty();
         flags.toggle(DB_ALLOW_DUPS);
         DatabaseBuilder {
-            name: Some(VIEW_PACKAGE_INDEX.to_string()),
+            name: Some(ViewPkgIndex::name()),
             flags: flags,
             txn_flags: 0,
             _marker: PhantomData,

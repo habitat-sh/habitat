@@ -10,12 +10,12 @@ use rustc_serialize::{Encoder, Decoder, Encodable, Decodable};
 
 use error::{BldrResult, ErrorKind};
 use package;
-use super::data_store::ToMdbValue;
+use super::data_store::{FromMdbValue, ToMdbValue};
 
 static LOGKEY: &'static str = "DO";
 
 pub trait DataObject : Encodable + Decodable {
-    type Key: ToMdbValue + fmt::Display;
+    type Key: ToMdbValue + FromMdbValue + fmt::Display;
     fn ident(&self) -> &Self::Key;
 }
 
@@ -173,7 +173,7 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn from_archive(archive: &package::PackageArchive) -> BldrResult<Self> {
+    pub fn from_archive(archive: &mut package::PackageArchive) -> BldrResult<Self> {
         let ident = match archive.ident() {
             Ok(value) => {
                 if !value.fully_qualified() {
