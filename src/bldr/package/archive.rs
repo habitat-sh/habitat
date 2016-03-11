@@ -4,6 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
@@ -23,7 +24,24 @@ use util::gpg;
 
 static LOGKEY: &'static str = "PA";
 
-#[derive(Debug)]
+lazy_static! {
+    static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
+        let mut map = HashMap::new();
+        map.insert(MetaFile::CFlags, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::CFlags)).unwrap());
+        map.insert(MetaFile::Config, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Config)).unwrap());
+        map.insert(MetaFile::Deps, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Deps)).unwrap());
+        map.insert(MetaFile::TDeps, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::TDeps)).unwrap());
+        map.insert(MetaFile::Exposes, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Exposes)).unwrap());
+        map.insert(MetaFile::Ident, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Ident)).unwrap());
+        map.insert(MetaFile::LdRunPath, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdRunPath)).unwrap());
+        map.insert(MetaFile::LdFlags, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdFlags)).unwrap());
+        map.insert(MetaFile::Manifest, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Manifest)).unwrap());
+        map.insert(MetaFile::Path, Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Path)).unwrap());
+        map
+    };
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum MetaFile {
     CFlags,
     Config,
@@ -55,14 +73,20 @@ impl fmt::Display for MetaFile {
     }
 }
 
+type Metadata = HashMap<MetaFile, String>;
+
 #[derive(Debug)]
 pub struct PackageArchive {
     pub path: PathBuf,
+    metadata: Option<Metadata>,
 }
 
 impl PackageArchive {
     pub fn new(path: PathBuf) -> Self {
-        PackageArchive { path: path }
+        PackageArchive {
+            path: path,
+            metadata: None,
+        }
     }
 
     /// Calculate and return the checksum of the package archive in hexadecimal format.
@@ -80,18 +104,16 @@ impl PackageArchive {
         Ok(hash)
     }
 
-    pub fn cflags(&self) -> BldrResult<Option<String>> {
+    pub fn cflags(&mut self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::CFlags) {
-            Ok(data) => Ok(data),
-            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Ok(data) => Ok(data.cloned()),
             Err(e) => Err(e),
         }
     }
 
-    pub fn config(&self) -> BldrResult<Option<String>> {
+    pub fn config(&mut self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::Config) {
-            Ok(data) => Ok(data),
-            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Ok(data) => Ok(data.cloned()),
             Err(e) => Err(e),
         }
     }
@@ -104,7 +126,7 @@ impl PackageArchive {
     /// * If a `DEPS` metafile is not found in the archive
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn deps(&self) -> BldrResult<Vec<PackageIdent>> {
+    pub fn deps(&mut self) -> BldrResult<Vec<PackageIdent>> {
         self.read_deps(MetaFile::Deps)
     }
 
@@ -116,11 +138,11 @@ impl PackageArchive {
     /// * If a `TDEPS` metafile is not found in the archive
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn tdeps(&self) -> BldrResult<Vec<PackageIdent>> {
+    pub fn tdeps(&mut self) -> BldrResult<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
     }
 
-    pub fn exposes(&self) -> BldrResult<Vec<u16>> {
+    pub fn exposes(&mut self) -> BldrResult<Vec<u16>> {
         match self.read_metadata(MetaFile::Exposes) {
             Ok(Some(data)) => {
                 let ports: Vec<u16> = data.split(" ")
@@ -129,12 +151,11 @@ impl PackageArchive {
                 Ok(ports)
             }
             Ok(None) => Ok(vec![]),
-            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(vec![]),
             Err(e) => Err(e),
         }
     }
 
-    pub fn ident(&self) -> BldrResult<PackageIdent> {
+    pub fn ident(&mut self) -> BldrResult<PackageIdent> {
         match self.read_metadata(MetaFile::Ident) {
             Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed(MetaFile::Ident))),
             Ok(Some(data)) => PackageIdent::from_str(&data),
@@ -142,34 +163,31 @@ impl PackageArchive {
         }
     }
 
-    pub fn ld_run_path(&self) -> BldrResult<Option<String>> {
+    pub fn ld_run_path(&mut self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::LdRunPath) {
-            Ok(data) => Ok(data),
-            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Ok(data) => Ok(data.cloned()),
             Err(e) => Err(e),
         }
     }
 
-    pub fn ldflags(&self) -> BldrResult<Option<String>> {
+    pub fn ldflags(&mut self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::LdFlags) {
-            Ok(data) => Ok(data),
-            Err(BldrError {err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Ok(data) => Ok(data.cloned()),
             Err(e) => Err(e),
         }
     }
 
-    pub fn manifest(&self) -> BldrResult<String> {
+    pub fn manifest(&mut self) -> BldrResult<String> {
         match self.read_metadata(MetaFile::Manifest) {
             Ok(None) => Err(bldr_error!(ErrorKind::MetaFileMalformed(MetaFile::Manifest))),
-            Ok(Some(data)) => Ok(data),
+            Ok(Some(data)) => Ok(data.clone()),
             Err(e) => Err(e),
         }
     }
 
-    pub fn path(&self) -> BldrResult<Option<String>> {
+    pub fn path(&mut self) -> BldrResult<Option<String>> {
         match self.read_metadata(MetaFile::Path) {
-            Ok(data) => Ok(data),
-            Err(BldrError {err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
+            Ok(data) => Ok(data.cloned()),
             Err(e) => Err(e),
         }
     }
@@ -213,7 +231,7 @@ impl PackageArchive {
         Ok(())
     }
 
-    fn read_deps(&self, file: MetaFile) -> BldrResult<Vec<PackageIdent>> {
+    fn read_deps(&mut self, file: MetaFile) -> BldrResult<Vec<PackageIdent>> {
         let mut deps: Vec<PackageIdent> = vec![];
         match self.read_metadata(file) {
             Ok(Some(body)) => {
@@ -236,7 +254,13 @@ impl PackageArchive {
         }
     }
 
-    fn read_metadata(&self, file: MetaFile) -> BldrResult<Option<String>> {
+    fn read_metadata(&mut self, file: MetaFile) -> BldrResult<Option<&String>> {
+        if let Some(ref files) = self.metadata {
+            return Ok(files.get(&file));
+        }
+
+        let mut metadata = Metadata::new();
+        let mut matched_count = 0u8;
         let f = self.path.to_str().unwrap().to_string();
         let mut out = try!(gpg::verify(&f));
         try!(out.seek(SeekFrom::Start(0)));
@@ -244,28 +268,46 @@ impl PackageArchive {
         try!(builder.support_format(ReadFormat::All));
         try!(builder.support_filter(ReadFilter::All));
         let mut reader = try!(builder.open_stream(out));
-        let re = try!(Regex::new(&format!(r"^opt/bldr/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
-                                          file)));
         loop {
-            {
-                if let Some(entry) = reader.next_header() {
-                    if re.is_match(entry.pathname()) {
+            let mut matched_type: Option<MetaFile> = None;
+            if let Some(entry) = reader.next_header() {
+                for (matched, regx) in METAFILE_REGXS.iter() {
+                    if regx.is_match(entry.pathname()) {
+                        matched_type = Some((*matched).clone());
+                        matched_count += 1;
                         break;
                     }
-                } else {
-                    return Err(bldr_error!(ErrorKind::MetaFileNotFound(file)));
+                }
+            } else {
+                break;
+            }
+
+            if matched_type.is_none() {
+                continue;
+            }
+
+            match reader.read_block() {
+                Ok(Some(bytes)) => {
+                    match str::from_utf8(bytes) {
+                        Ok(content) => {
+                            metadata.insert(matched_type.unwrap(), content.trim().to_string());
+                        }
+                        Err(_) => {
+                            return Err(bldr_error!(ErrorKind::MetaFileMalformed(matched_type.unwrap())))
+                        }
+                    }
+                }
+                Ok(None) => (),
+                Err(_) => {
+                    return Err(bldr_error!(ErrorKind::MetaFileMalformed(matched_type.unwrap())))
                 }
             }
-        }
-        match reader.read_block() {
-            Ok(Some(bytes)) => {
-                match str::from_utf8(bytes) {
-                    Ok(content) => Ok(Some(content.trim().to_string())),
-                    Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed(file))),
-                }
+
+            if matched_count == METAFILE_REGXS.len() as u8 {
+                break;
             }
-            Ok(None) => Ok(None),
-            Err(_) => Err(bldr_error!(ErrorKind::MetaFileMalformed(file))),
         }
+        self.metadata = Some(metadata);
+        Ok(self.metadata.as_ref().unwrap().get(&file))
     }
 }

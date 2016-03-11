@@ -17,7 +17,27 @@ use super::data_store::{Cursor, Database, Transaction};
 use error::{BldrError, BldrResult};
 use package::{self, PackageArchive};
 
-pub struct ReportBuilder {
+#[derive(Debug)]
+/// A struct containing the details of a repair run by `Doctor`.
+pub struct Report {
+    /// Start time in nanoseconds since epoch.
+    pub start: u64,
+    /// Finish time in nanoseconds since epoch.
+    pub finish: u64,
+    /// True if the report contained no errors and false otherwise.
+    pub success: bool,
+    /// A complete list of operations in the order in which they were performed.
+    pub operations: Vec<Operation>,
+}
+
+impl Report {
+    /// Duration in nanoseconds that the repair took to run.
+    pub fn duration(&self) -> u64 {
+        (self.finish - self.start)
+    }
+}
+
+struct ReportBuilder {
     pub operations: Vec<Operation>,
     pub start: u64,
 }
@@ -27,16 +47,19 @@ impl ReportBuilder {
         ReportBuilder::default()
     }
 
+    /// Record a successful operation.
     pub fn success(&mut self, operation: OperationType) -> &mut Self {
         self.add(Operation::Success(operation));
         self
     }
 
+    /// Record a failed operation.
     pub fn failure(&mut self, operation: OperationType, reason: Reason) -> &mut Self {
         self.add(Operation::Failure(operation, reason));
         self
     }
 
+    /// Consumes the report builder and returns a completed report.
     pub fn generate(self) -> Report {
         let time = time::precise_time_ns();
         Report {
@@ -69,20 +92,18 @@ impl Default for ReportBuilder {
 }
 
 #[derive(Debug)]
-pub struct Report {
-    pub start: u64,
-    pub finish: u64,
-    pub success: bool,
-    pub operations: Vec<Operation>,
-}
-
-#[derive(Debug)]
 pub enum OperationType {
-    ArchiveSort(String),
+    /// Record of an archive being re-inserted into the datastore. Contains the filepath to the
+    /// final location of the archive.
     ArchiveInsert(String),
+    /// Record of cleaning up after the doctor has run. Contains the filepath of the trash which
+    /// was cleaned.
     CleanupTrash(String),
+    /// Record of initializing the depot's datastore filesystem. Contains the filepath of the new
+    /// filesystem.
     InitDepotFs(String),
-    Trashed(String, Reason),
+    /// Record of preparing the datastore for re-build. Contains the amount of records dropped from
+    /// the database.
     TruncateDatabase(&'static str, usize),
 }
 
@@ -123,8 +144,8 @@ impl<'a> Doctor<'a> {
     fn run(mut self) -> BldrResult<Report> {
         try!(self.init_fs());
         try!(self.truncate_database(&self.depot.datastore.packages));
-        try!(self.sort_packages());
         try!(self.rebuild_metadata());
+        try!(self.rebuild_indices());
         Ok(self.report.generate())
     }
 
@@ -148,29 +169,7 @@ impl<'a> Doctor<'a> {
         Ok(())
     }
 
-    fn rebuild_metadata(&mut self) -> BldrResult<()> {
-        let txn = try!(self.depot.datastore.packages.txn_rw());
-        for entry in WalkDir::new(&self.depot.packages_path()).follow_links(false) {
-            let entry = entry.unwrap();
-            if entry.metadata().unwrap().is_dir() {
-                continue;
-            }
-            let mut archive = PackageArchive::new(PathBuf::from(entry.path()));
-            match data_object::Package::from_archive(&mut archive) {
-                Ok(object) => {
-                    try!(self.depot.datastore.packages.write(&txn, &object));
-                }
-                Err(e) => {
-                    // We should be moving this back to the garbage directory and recording the
-                    // path of it there in this failure
-                    self.report.failure(OperationType::ArchiveInsert(entry.path()
-                                                                          .to_string_lossy()
-                                                                          .to_string()),
-                                        Reason::BadMetadata(e));
-                }
-            }
-        }
-        try!(txn.commit());
+    fn rebuild_indices(&mut self) -> BldrResult<()> {
         let txn = try!(self.depot.datastore.views.pkg_view_idx.txn_rw());
         {
             let tx2 = try!(txn.new_child_rw(&self.depot.datastore.views.view_pkg_idx));
@@ -212,7 +211,7 @@ impl<'a> Doctor<'a> {
         Ok(())
     }
 
-    fn sort_packages(&mut self) -> BldrResult<()> {
+    fn rebuild_metadata(&mut self) -> BldrResult<()> {
         let mut directories = vec![];
         for entry in WalkDir::new(&self.packages_path).follow_links(false) {
             let entry = entry.unwrap();
@@ -226,16 +225,32 @@ impl<'a> Doctor<'a> {
                     let path = self.depot.archive_path(&ident);
                     try!(fs::create_dir_all(path.parent().unwrap()));
                     try!(fs::rename(entry.path(), path));
-                    self.report
-                        .success(OperationType::ArchiveSort(entry.path()
-                                                                 .to_string_lossy()
-                                                                 .to_string()));
+
+                    let txn = try!(self.depot.datastore.packages.txn_rw());
+                    match data_object::Package::from_archive(&mut archive) {
+                        Ok(object) => {
+                            try!(self.depot.datastore.packages.write(&txn, &object));
+                            self.report
+                                .success(OperationType::ArchiveInsert(entry.path()
+                                                                           .to_string_lossy()
+                                                                           .to_string()));
+                        }
+                        Err(e) => {
+                            // We should be moving this back to the garbage directory and recording the
+                            // path of it there in this failure
+                            self.report
+                                .failure(OperationType::ArchiveInsert(entry.path()
+                                                                           .to_string_lossy()
+                                                                           .to_string()),
+                                         Reason::BadMetadata(e));
+                        }
+                    }
                 }
                 Err(e) => {
                     debug!("Error reading, archive={:?} error={:?}", &archive, &e);
-                    self.report.failure(OperationType::ArchiveSort(entry.path()
-                                                                        .to_string_lossy()
-                                                                        .to_string()),
+                    self.report.failure(OperationType::ArchiveInsert(entry.path()
+                                                                          .to_string_lossy()
+                                                                          .to_string()),
                                         Reason::BadArchive);
                 }
             }
@@ -265,6 +280,12 @@ impl<'a> Doctor<'a> {
     }
 }
 
+/// Runs the repair tool on the given Depot and returns a Report containing the results. A repair
+/// tool analyzes all packages found within the Depot's metadata store and re-inserts them into
+/// the file system and re-builds all indices.
+///
+/// Any files found within the metastore which are not valid or readable archives are moved into a
+/// gargbage directory for the user to examine.
 pub fn repair(depot: &Depot) -> BldrResult<Report> {
     Doctor::new(depot).run()
 }

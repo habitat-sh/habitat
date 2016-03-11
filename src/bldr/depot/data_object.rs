@@ -173,7 +173,7 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn from_archive(archive: &package::PackageArchive) -> BldrResult<Self> {
+    pub fn from_archive(archive: &mut package::PackageArchive) -> BldrResult<Self> {
         let ident = match archive.ident() {
             Ok(value) => {
                 if !value.fully_qualified() {

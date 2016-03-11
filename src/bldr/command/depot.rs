@@ -97,7 +97,6 @@ pub fn start(config: &Config) -> BldrResult<()> {
 /// * The database cannot be read
 /// * A write transaction cannot be acquired
 pub fn repair(config: &Config) -> BldrResult<()> {
-    outputln!("Repairing depot at {:?}", config.path());
     let depot = try!(Depot::new(String::from(config.path())));
     let report = try!(doctor::repair(&depot));
     outputln!("Report: {:?}", &report);

@@ -915,29 +915,26 @@ impl MdbStat {
         MdbStat(native)
     }
 
+    /// Number of internal (non-leaf) pages
     pub fn branch_pages(&self) -> usize {
         self.0.ms_branch_pages
     }
 
+    /// Number of data items
     pub fn entries(&self) -> usize {
         self.0.ms_entries
     }
 
+    /// Number of leaf pages
     pub fn leaf_pages(&self) -> usize {
         self.0.ms_leaf_pages
     }
 
+    /// Number of overflow pages
     pub fn overflow_pages(&self) -> usize {
         self.0.ms_overflow_pages
     }
 }
-
-// JW TODO: need to free this memory
-// impl Drop for MdbStat {
-//     fn drop(&mut self) {
-//         unsafe { free(self.0) }
-//     }
-// }
 
 pub struct DatabaseBuilder<T: Database> {
     pub name: Option<&'static str>,

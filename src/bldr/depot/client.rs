@@ -105,7 +105,7 @@ pub fn put_key(depot: &str, path: &Path) -> BldrResult<()> {
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(depot: &str, pa: &PackageArchive) -> BldrResult<()> {
+pub fn put_package(depot: &str, pa: &mut PackageArchive) -> BldrResult<()> {
     let checksum = try!(pa.checksum());
     let ident = try!(pa.ident());
     let url = format!("{}/pkgs/{}?checksum={}", depot, ident, checksum);

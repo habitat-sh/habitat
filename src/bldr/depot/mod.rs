@@ -200,9 +200,9 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     let filename = depot.archive_path(&ident);
     try!(write_file(&filename, &mut req.body));
-    let archive = PackageArchive::new(filename);
+    let mut archive = PackageArchive::new(filename);
     debug!("Package Archive: {:#?}", archive);
-    let object = match data_object::Package::from_archive(&archive) {
+    let object = match data_object::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
             debug!("Error building package from archive: {:#?}", e);
