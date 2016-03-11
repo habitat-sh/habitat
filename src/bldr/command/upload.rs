@@ -20,11 +20,13 @@
 //! complex than just latest version.
 //!
 
+use std::path::PathBuf;
+
 use hyper::status::StatusCode;
 
 use error::{BldrResult, BldrError, ErrorKind};
 use config::Config;
-use package::Package;
+use package::archive::PackageArchive;
 use depot;
 
 static LOGKEY: &'static str = "CU";
@@ -39,22 +41,24 @@ static LOGKEY: &'static str = "CU";
 /// * Fails if it cannot upload the file
 pub fn package(config: &Config) -> BldrResult<()> {
     let url = config.url().as_ref().unwrap();
-    let package = try!(Package::load(config.package(), None));
-    outputln!("Uploading from {}", package.cache_file().to_string_lossy());
-    match depot::client::put_package(url, &package) {
+    let pa = PackageArchive::new(PathBuf::from(config.archive()));
+    outputln!("Uploading from {}", pa.path.to_string_lossy());
+    match depot::client::put_package(url, &pa) {
         Ok(()) => (),
         Err(BldrError{err: ErrorKind::HTTP(StatusCode::Conflict), ..}) => {
             outputln!("Package already exists on remote; skipping.");
         }
         Err(BldrError{err: ErrorKind::HTTP(StatusCode::UnprocessableEntity), ..}) => {
-            return Err(bldr_error!(ErrorKind::PackageArchiveMalformed(format!("{}",
-                                                                          package.cache_file().to_string_lossy()))));
+            return Err(bldr_error!(ErrorKind::PackageArchiveMalformed(format!("{}", pa.path.to_string_lossy()))));
         }
         Err(e @ BldrError{err: ErrorKind::HTTP(_), ..}) => {
             outputln!("Unexpected response from remote");
             return Err(e);
         }
-        Err(e) => return Err(e),
+        Err(e) => {
+            outputln!("The package might exist on the remote - we fast abort, so.. :)");
+            return Err(e);
+        }
     }
     outputln!("Complete");
     Ok(())

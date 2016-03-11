@@ -90,6 +90,7 @@ pub struct Config {
     topology: Topology,
     group: String,
     path: String,
+    archive: String,
     watch: Vec<String>,
     key: String,
     password: Option<String>,
@@ -110,6 +111,17 @@ impl Config {
     /// Create a default `Config`
     pub fn new() -> Config {
         Config::default()
+    }
+
+    /// Set the archive
+    pub fn set_archive(&mut self, archive: String) -> &mut Config {
+        self.archive = archive;
+        self
+    }
+
+    /// Return the archive
+    pub fn archive(&self) -> &str {
+        &self.archive
     }
 
     /// Set the `Command` we used

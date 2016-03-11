@@ -8,8 +8,6 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
-use crypto::sha2::Sha256;
-use crypto::digest::Digest;
 use hyper;
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
@@ -17,7 +15,7 @@ use rustc_serialize::json;
 
 use super::{XFileName, data_object};
 use error::{BldrResult, BldrError, ErrorKind};
-use package::{Package, PackageArchive, PackageIdent};
+use package::{PackageArchive, PackageIdent};
 
 static LOGKEY: &'static str = "RC";
 
@@ -107,20 +105,11 @@ pub fn put_key(depot: &str, path: &Path) -> BldrResult<()> {
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(depot: &str, package: &Package) -> BldrResult<()> {
-    let mut file = try!(File::open(package.cache_file()));
-    let mut digest = Sha256::new();
-    let mut buffer = Vec::new();
-    try!(file.read_to_end(&mut buffer));
-    digest.input(&buffer);
-    let checksum = digest.result_str();
-    let url = format!("{}/pkgs/{}/{}/{}/{}?checksum={}",
-                      depot,
-                      package.origin,
-                      package.name,
-                      package.version,
-                      package.release,
-                      checksum);
+pub fn put_package(depot: &str, pa: &PackageArchive) -> BldrResult<()> {
+    let checksum = try!(pa.checksum());
+    let ident = try!(pa.ident());
+    let url = format!("{}/pkgs/{}?checksum={}", depot, ident, checksum);
+    let mut file = try!(File::open(&pa.path));
     upload(&url, &mut file)
 }
 
