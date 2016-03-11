@@ -8,12 +8,17 @@ import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {GravatarComponent} from "../GravatarComponent";
 import {RouterLink} from "angular2/router";
+import {icon} from "../util";
 
 @Component({
     directives: [GravatarComponent, RouterLink],
     template: `
     <div class="hab-organizations">
         <h2>Organizations</h2>
+        <a *ngIf="orgs.size > 0" class="button" href="#"
+           [routerLink]='["OrganizationCreate"]'>
+            Add Organization
+        </a>
         <hr>
         <div *ngIf="orgs.size === 0">
             <h3 class="hero">
@@ -52,7 +57,7 @@ import {RouterLink} from "angular2/router";
                         <gravatar size=32 email="{{org.email}}"></gravatar>
                         {{org.name}}
                         <span class="count">
-                            <img src="/node_modules/octicons/svg/organization.svg">
+                            <img src='{{icon("organization")}}'>
                             {{org.members.size}}
                         </span>
                     </a>
@@ -66,4 +71,6 @@ export class OrganizationsPageComponent {
     constructor(private store: AppStore) {}
 
     get orgs() { return this.store.getState().orgs.all; }
+
+    private icon(x) { return icon(x); }
 }

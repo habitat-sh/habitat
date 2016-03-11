@@ -17,12 +17,35 @@ export default Record({
     orgs: Record({
         added: List(),
         all: List(),
-        beingCreated: Record({
+        current: Record({
             namespace: undefined,
             name: undefined,
             email: undefined,
             website: undefined,
             members: List(),
+            availableMemberSearchResults: List([
+                Record({
+                    username: "testUser",
+                    name: "Test User",
+                    email: "smith+chef-logo@getchef.com",
+                    status: "",
+                    canBeAdded: true,
+                    ui: Record({
+                        isActionsMenuOpen: false
+                    })(),
+                })(),
+                Record({
+                    username: "testUser2",
+                    name: "Test User 2",
+                    email: "nlloyds@gmail.com",
+                    status: "",
+                    canBeAdded: true,
+                    ui: Record({
+                        isActionsMenuOpen: false
+                    })(),
+                })(),
+            ]),
+            memberSearchResults: List(),
         })(),
         ui: Record({
             create: Record({

@@ -11,6 +11,11 @@ export function friendlyTime(t) {
     return moment(t).fromNow();
 }
 
+// get an icon's path
+export function icon(x: string): string {
+    return `/node_modules/octicons/svg/${x}.svg`;
+}
+
 // Compare the identifying attributes of two packages to see if they are the
 // same
 export function isPackage(x = {}, y = {}) {

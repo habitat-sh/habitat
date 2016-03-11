@@ -17,10 +17,9 @@
   li {
     display: inline;
     white-space: nowrap;
-    position: relative;
   }
 
-  li>ul {
-    position: absolute;
+  li.sign-in-button {
+    @extend .hab-drop-down;
   }
 }

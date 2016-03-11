@@ -7,7 +7,8 @@ import {RouterLink} from "angular2/router";
     directives: [RouterLink],
     template: `
     <div class="hab-explore">
-        <h1>Explore</h1>
+        <h2>Explore</h2>
+        <hr>
         <ul>
             <li *ngFor="#item of store.getState().packages.explore">
                 <a [routerLink]="['PackagesForName', { name: item.name }]">

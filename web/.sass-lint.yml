@@ -6,3 +6,5 @@
 rules:
   quotes:
     style: double
+  leading-zero:
+    style: include_zero
