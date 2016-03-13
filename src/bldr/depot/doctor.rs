@@ -5,6 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::fs;
+use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -112,6 +113,7 @@ pub enum Reason {
     BadArchive,
     BadMetadata(BldrError),
     BadPermissions,
+    IO(io::Error),
     FileExists,
     NotEmpty,
 }
@@ -222,18 +224,32 @@ impl<'a> Doctor<'a> {
             let mut archive = PackageArchive::new(PathBuf::from(entry.path()));
             match archive.ident() {
                 Ok(ident) => {
-                    let path = self.depot.archive_path(&ident);
-                    try!(fs::create_dir_all(path.parent().unwrap()));
-                    try!(fs::rename(entry.path(), path));
-
                     let txn = try!(self.depot.datastore.packages.txn_rw());
                     match data_object::Package::from_archive(&mut archive) {
                         Ok(object) => {
                             try!(self.depot.datastore.packages.write(&txn, &object));
+                            let path = self.depot.archive_path(&ident);
+                            if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
+                                self.report
+                                    .failure(OperationType::ArchiveInsert(entry.path()
+                                                                               .to_string_lossy()
+                                                                               .to_string()),
+                                             Reason::IO(e));
+                                txn.abort();
+                                break;
+                            }
+                            if let Some(e) = fs::rename(entry.path(), &path).err() {
+                                self.report
+                                    .failure(OperationType::ArchiveInsert(entry.path()
+                                                                               .to_string_lossy()
+                                                                               .to_string()),
+                                             Reason::IO(e));
+                                txn.abort();
+                                break;
+                            }
                             self.report
-                                .success(OperationType::ArchiveInsert(entry.path()
-                                                                           .to_string_lossy()
-                                                                           .to_string()));
+                                .success(OperationType::ArchiveInsert(path.to_string_lossy()
+                                                                          .to_string()));
                         }
                         Err(e) => {
                             // We should be moving this back to the garbage directory and recording the
