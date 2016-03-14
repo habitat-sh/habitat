@@ -24,7 +24,7 @@ gpg: ## install gpg keys, only run this in a studio
 	(cd plans && make gpg)
 
 build: image ## run cargo build
-	$(run) shell cargo build
+	$(run) shell cargo build --manifest-path components/bldr/Cargo.toml
 
 shell: image ## start a shell for building packages
 	$(run) shell
@@ -32,19 +32,19 @@ shell: image ## start a shell for building packages
 docs-serve: docs ## serve up the documentation
 	@echo "==> View the docs at:\n\n        http://`\
 		echo ${DOCKER_HOST} | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
-	$(run) -p 9633:9633 shell sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
+	$(run) -p 9633:9633 shell sh -c 'set -e; cd ./components/bldr/target/doc; python -m SimpleHTTPServer 9633;'
 
 test: image ## run `cargo test`
-	$(run) shell cargo test
+	$(run) shell cargo test --manifest-path components/bldr/Cargo.toml
 
 unit: image ## run unit tests with cargo
-	$(run) shell cargo test --lib
+	$(run) shell cargo test --lib --manifest-path components/bldr/Cargo.toml
 
 functional: image ## run the functional tests
-	$(run) shell cargo test --test functional
+	$(run) shell cargo test --test functional --manifest-path components/bldr/Cargo.toml
 
 clean: ## clean up our docker environment
-	rm -rf target/debug target/release
+	rm -rf components/bldr/target/debug components/bldr/target/release
 	$(compose_cmd) stop
 	$(compose_cmd) rm -f -v
 	$(docker_cmd) rmi $(dimage) || true
@@ -61,10 +61,10 @@ image: ## create an image
 
 docs: image ## build the docs
 	$(run) shell sh -c 'set -ex; \
-		cargo doc; \
-		rustdoc --crate-name bldr README.md -o ./target/doc/bldr; \
-		docco -e .sh -o target/doc/bldr/bldr-build plans/bldr-build; \
-		cp -r images ./target/doc/bldr; \
-		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > target/doc/index.html;'
+		cargo doc --manifest-path components/bldr/Cargo.toml; \
+		rustdoc --crate-name bldr README.md -o ./components/bldr/target/doc/bldr; \
+		docco -e .sh -o components/bldr/target/doc/bldr/bldr-build plans/bldr-build; \
+		cp -r images ./components/bldr/target/doc/bldr; \
+		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > components/bldr/target/doc/index.html;'
 
 pkg-shell: shell ## Alias to `make shell` for the "old fingers" crowd
