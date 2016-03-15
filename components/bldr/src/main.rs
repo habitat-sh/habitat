@@ -283,6 +283,15 @@ fn main() {
                                                 .takes_value(true)
                                                 .value_name("expire-days")
                                                 .help("Number of days before a key expires"));
+
+    let sub_distribute_key = SubCommand::with_name("distribute-key")
+                                       .about("Distribute a bldr service key")
+                                       .arg(Arg::with_name("service")
+                                                .required(true)
+                                                .takes_value(true)
+                                                .help("Name of service key"))
+                                       .arg(arg_group());
+
     let sub_encrypt = SubCommand::with_name("encrypt")
                           .about("Encrypt and sign a message with a service as the recipient")
                           .arg(Arg::with_name("user")
@@ -377,6 +386,7 @@ fn main() {
                    .subcommand(sub_upload)
                    .subcommand(sub_generate_user_key)
                    .subcommand(sub_generate_service_key)
+                   .subcommand(sub_distribute_key)
                    .subcommand(sub_encrypt)
                    .subcommand(sub_decrypt)
                    .subcommand(sub_import_key)
@@ -410,6 +420,7 @@ fn main() {
         Command::ExportKey => export_key(&config),
         Command::GenerateServiceKey => generate_service_key(&config),
         Command::GenerateUserKey => generate_user_key(&config),
+        Command::DistributeKey => distribute_key(&config),
         Command::ImportKey => import_key(&config),
         Command::Install => install(&config),
         Command::ListKeys => list_keys(&config),
@@ -579,3 +590,12 @@ fn decrypt(config: &Config) -> BldrResult<()> {
     outputln!("Finished decrypting");
     Ok(())
 }
+
+/// Distribute a private key around a bldr cluster
+fn distribute_key(config: &Config) -> BldrResult<()> {
+    outputln!("Distribute key");
+    try!(key::distribute_key(&config));
+    outputln!("Finished distributing key");
+    Ok(())
+}
+
