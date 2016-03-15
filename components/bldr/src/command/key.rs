@@ -405,6 +405,20 @@ pub fn generate_service_key(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
+
+
+pub fn distribute_key(config: &Config) -> BldrResult<()> {
+    // servicekey won't be null as it's required by clap
+    let servicekey = config.service_key().as_ref().unwrap();
+    let full_servicekey = gen_service_key_name(&servicekey, config.group());
+    let private_key = try!(gpg::export_private_key(&full_servicekey));
+    debug!("Distributing {}", full_servicekey);
+    debug!("KEY = {}", private_key);
+    outputln!("Not implemented");
+    Ok(())
+}
+
+
 #[test]
 fn gen_key_check_params_test() {
     fn fail_if_err(keyname: &str, email: &str) {

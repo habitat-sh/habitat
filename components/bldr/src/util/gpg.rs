@@ -8,11 +8,13 @@ use std::fs::{self, File};
 use std::io;
 use std::io::Write;
 use std::env;
+use std::process::Command;
 use gpgme;
 use gpgme::ops;
 use fs::GPG_CACHE;
 use error::{BldrResult, BldrError, ErrorKind};
 use util::perm;
+use package::{Package, PackageIdent};
 
 static LOGKEY: &'static str = "KEY";
 static BLDR_GPG_CACHE_ENV_VAR: &'static str = "BLDR_GPG_CACHE";
@@ -61,8 +63,8 @@ impl<'a> KeygenParams<'a> {
             None => "".to_string(),
         };
 
-// NOTE: you can't pass Passphrase: with an empty string
-// so don't pass the string at all if a value doesn't exist
+    // NOTE: you can't pass Passphrase: with an empty string
+    // so don't pass the string at all if a value doesn't exist
         format!("
                 <GnupgKeyParms format=\"internal\">
                     Key-Type: {key_type}
@@ -163,7 +165,6 @@ pub fn encrypt_and_sign(userkey: &str,
     if let None = ukey {
         return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
     }
-    //
     // if let None = ukey2 {
     // return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
     // }
@@ -436,3 +437,71 @@ fn write_output(outfile: &str, output: gpgme::Data) -> BldrResult<()> {
     }
     Ok(())
 }
+
+/// Shell out to the gpg executable directly, skipping gpgme.
+/// Execute a gpg command against bldr gpg cache and return stdout
+pub fn exec_gpg(params: Vec<&str>) -> BldrResult<String> {
+    let keydir = gpg_cache_dir();
+    debug!("running gpg on {}", &keydir);
+    let res = try!(Package::load(&PackageIdent::new("chef", "gnupg", None, None), None));
+    let gpgpath = res.join_path("bin/gpg");
+    debug!("gpg path = {}", gpgpath);
+    let output = Command::new(gpgpath)
+                     .arg("--homedir")
+                     .arg(keydir)
+                     .args(&params[..])
+                     .output()
+                     .unwrap_or_else(|e| panic!("failed to execute child: {}", e));
+
+    if !output.status.success() {
+        if let Some(code) = output.status.code() {
+            debug!("Return code: {}", code);
+        } else {
+            debug!("Empty status code, possibly killed by signal");
+        }
+        debug!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        debug!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        panic!("gpg command failed");
+    }
+
+    let out = try!(String::from_utf8(output.stdout));
+    Ok(out)
+}
+
+
+/// Did we get a result back from gpg that looks like
+/// an armored key?
+fn valid_gpg_armor_result(s: &str) -> bool {
+    let s = s.trim();
+    s.starts_with("-----BEGIN PGP PRIVATE KEY BLOCK-----") &&
+    s.ends_with("-----END PGP PRIVATE KEY BLOCK-----")
+}
+
+
+/// Export a private key by shelling out to gpg
+pub fn export_private_key(keyname: &str) -> BldrResult<String> {
+    let params = vec!["-a", "--export-secret-keys", keyname];
+    let key_text = try!(exec_gpg(params));
+    if !valid_gpg_armor_result(&key_text) {
+       return Err(bldr_error!(ErrorKind::KeyNotFound(keyname.to_string())));
+    }
+    Ok(key_text)
+}
+
+#[test]
+fn test_valid_gpg_armor_result() {
+    // w/ whitespace before + after
+    let valid_key =
+        "   -----BEGIN PGP PRIVATE KEY BLOCK-----
+        Version: GnuPG v1
+        random text
+        =nfr+
+        -----END PGP PRIVATE KEY BLOCK-----  ";
+    let invalid_key =
+        "-----BEGIN PGP PRIVATE KEY BLOCK-----
+        Version: GnuPG v1 ";
+    assert!(valid_gpg_armor_result(valid_key));
+    assert!(!valid_gpg_armor_result(invalid_key));
+
+}
+
