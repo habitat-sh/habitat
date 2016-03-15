@@ -726,9 +726,7 @@ impl CensusList {
                    service_group: &str)
                    -> Option<&mut CensusEntry> {
         match self.censuses.get_mut(service_group) {
-            Some(mut census) => {
-                census.get_mut(census_entry_id)
-            }
+            Some(mut census) => census.get_mut(census_entry_id),
             None => None,
         }
     }
@@ -746,7 +744,6 @@ impl CensusList {
             census.written();
         }
     }
-
 }
 
 impl Deref for CensusList {

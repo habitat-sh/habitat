@@ -48,7 +48,7 @@ static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
 
 // Functions from POSIX libc.
-extern {
+extern "C" {
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
 }
 
@@ -149,26 +149,26 @@ pub struct Worker<'a> {
     pub package_name: String,
     /// A pointer to our current Config
     pub config: &'a Config,
-/// The topology we are running
+    /// The topology we are running
     pub topology: String,
-/// Our Service Configuration; manages changes to our configuration,
+    /// Our Service Configuration; manages changes to our configuration,
     pub service_config: Arc<RwLock<ServiceConfig>>,
-/// The Gossip Server; listens for inbound gossip traffic
+    /// The Gossip Server; listens for inbound gossip traffic
     pub gossip_server: gossip::server::Server,
     pub census_list: Arc<RwLock<CensusList>>,
     pub rumor_list: Arc<RwLock<RumorList>>,
     pub election_list: Arc<RwLock<ElectionList>>,
     pub member_list: Arc<RwLock<MemberList>>,
-/// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
+    /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
-/// Our User Configuration; reads the config periodically
+    /// Our User Configuration; reads the config periodically
     pub user_actor: wonder::actor::Actor<user_config::Message>,
-/// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
-/// started if a value is passed for the url option on startup.
+    /// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
+    /// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
-/// A pointer to the supervisor thread
+    /// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
-/// The PID of the Supervisor itself
+    /// The PID of the Supervisor itself
     pub supervisor_id: Option<u32>,
     pub return_state: Option<State>,
 }
@@ -181,6 +181,8 @@ impl<'a> Worker<'a> {
         let mut pkg_updater = None;
 
         let package_name = package.name.clone();
+        let package_exposes = package.exposes().clone();
+        let package_port = package_exposes.first().map(|e| e.clone());
 
         // Setup the User Data Configuration
         let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config",
@@ -200,7 +202,9 @@ impl<'a> Worker<'a> {
         let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen()),
                                                         config.gossip_permanent(),
                                                         package_name.clone(),
-                                                        config.group().to_string());
+                                                        config.group().to_string(),
+                                                        Some(package_exposes),
+                                                        package_port);
 
         try!(gossip_server.start_inbound());
         try!(gossip_server.initial_peers(config.gossip_peer()));

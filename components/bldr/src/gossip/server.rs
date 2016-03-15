@@ -62,7 +62,13 @@ pub struct Server {
 impl Server {
     /// Creates a new Server. Creates our own entry in the census and membership lists, and writes
     /// a rumor that this server is alive.
-    pub fn new(listen: String, permanent: bool, service: String, group: String) -> Server {
+    pub fn new(listen: String,
+               permanent: bool,
+               service: String,
+               group: String,
+               exposes: Option<Vec<String>>,
+               port: Option<String>)
+               -> Server {
         let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
         let ip = util::sys::ip().unwrap_or(String::from("127.0.0.1"));
 
@@ -71,7 +77,9 @@ impl Server {
         let member = Member::new(hostname, ip, peer_listen2, permanent);
 
         let service_group = format!("{}.{}", service, group);
-        let ce = CensusEntry::new(service, group, member.id.clone());
+        let mut ce = CensusEntry::new(service, group, member.id.clone());
+        ce.exposes = exposes;
+        ce.port = port;
         let my_id = member.id.clone();
         let leader_id = member.id.clone();
         outputln!("Supervisor {}", member);
