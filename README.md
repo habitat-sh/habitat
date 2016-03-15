@@ -122,6 +122,7 @@ read the docs at `http://<DOCKER_HOST>:9633/` (with working JavaScript-based sea
 
 1. Start a new feature branch
 1. Open a terminal and run `make shell`
+1. Change directory to a component `cd components/bldr`
 1. Build with `cargo build` or `cargo test`
 1. You can use `cargo run -- foobar` to pass options to the built binary
 1. Commit your change
@@ -269,4 +270,3 @@ $ ./target/debug/bldr start chef/redis
 
 Will work just fine (as will running bldr on other host operating
 systems, cause thats all we're up to).
-

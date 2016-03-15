@@ -180,7 +180,7 @@ mod tests {
         so.verbose = Some(true);
         so.color = Some(false);
         assert_eq!(format!("{}", so),
-                   "bldr(SOT)[src/bldr/output.rs:1:2]: opeth is amazing");
+                   "bldr(SOT)[components/bldr/src/output.rs:1:2]: opeth is amazing");
     }
 
     #[test]
@@ -192,7 +192,7 @@ mod tests {
                    format!("{}({})[{}]: opeth is amazing",
                    Cyan.paint("bldr"),
                    White.bold().paint("SOT"),
-                   White.underline().paint("src/bldr/output.rs:1:2"),
+                   White.underline().paint("components/bldr/src/output.rs:1:2"),
                    ));
     }
 }

@@ -6,7 +6,6 @@ exclude = ["plans/**/*","web/**/*"]
 
 [lib]
 name = "bldr"
-path = "src/bldr/lib.rs"
 
 [[bin]]
 name = "bldr"
@@ -46,14 +45,14 @@ openssl = "*"
 walkdir = "*"
 
 [dependencies.wonder]
-path = "./vendor/wonder"
+path = "../../vendor/wonder"
 
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
 
 [dependencies.libarchive]
-path = "./vendor/libarchive-rust"
+path = "../../vendor/libarchive-rust"
 
 [dependencies.clap]
 features = [ "suggestions", "color" ]
