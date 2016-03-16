@@ -76,6 +76,18 @@ impl PackageIdent {
         }
     }
 
+    pub fn archive_name(&self) -> Option<String> {
+        if self.fully_qualified() {
+            Some(format!("{}-{}-{}-{}.bldr",
+                         self.origin,
+                         self.name,
+                         self.version.as_ref().unwrap(),
+                         self.release.as_ref().unwrap()))
+        } else {
+            None
+        }
+    }
+
     pub fn fully_qualified(&self) -> bool {
         self.version.is_some() && self.release.is_some()
     }
