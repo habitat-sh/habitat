@@ -4,20 +4,27 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+extern crate bldr_core as bldr;
+extern crate bldr_depot_core as depot_core;
+#[macro_use]
+extern crate hyper;
+#[macro_use]
+extern crate log;
+extern crate rustc_serialize;
+
+pub mod error;
+
+pub use error::{Error, Result};
+
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
-use hyper;
+use bldr::package::{PackageArchive, PackageIdent};
+use depot_core::{XFileName, data_object};
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
 use rustc_serialize::json;
-
-use super::{XFileName, data_object};
-use error::{BldrResult, BldrError, ErrorKind};
-use package::{PackageArchive, PackageIdent};
-
-static LOGKEY: &'static str = "RC";
 
 /// Download a public key from a remote Depot to the given filepath.
 ///
@@ -26,7 +33,7 @@ static LOGKEY: &'static str = "RC";
 /// * Key cannot be found
 /// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_key(depot: &str, key: &str, path: &str) -> BldrResult<String> {
+pub fn fetch_key(depot: &str, key: &str, path: &str) -> Result<String> {
     let url = format!("{}/keys/{}", depot, key);
     download(key, &url, path)
 }
@@ -46,15 +53,15 @@ pub fn fetch_key(depot: &str, key: &str, path: &str) -> BldrResult<String> {
 pub fn fetch_package(depot: &str,
                      package: &PackageIdent,
                      store: &str)
-                     -> BldrResult<PackageArchive> {
+                     -> Result<PackageArchive> {
     let url = format!("{}/pkgs/{}/download", depot, package);
     match download(&package.name, &url, store) {
         Ok(file) => {
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
-        Err(BldrError { err: ErrorKind::HTTP(StatusCode::NotFound), ..}) => {
-            Err(bldr_error!(ErrorKind::RemotePackageNotFound(package.clone())))
+        Err(Error::HTTP(StatusCode::NotFound)) => {
+            Err(Error::RemotePackageNotFound(package.clone()))
         }
         Err(e) => Err(e),
     }
@@ -69,14 +76,14 @@ pub fn fetch_package(depot: &str,
 ///
 /// * Package cannot be found
 /// * Remote Depot is not available
-pub fn show_package(depot: &str, ident: &PackageIdent) -> BldrResult<data_object::Package> {
+pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Package> {
     let url = url_show_package(depot, ident);
     let client = Client::new();
     let request = client.get(&url);
     let mut res = try!(request.send());
 
     if res.status != hyper::status::StatusCode::Ok {
-        return Err(bldr_error!(ErrorKind::RemotePackageNotFound(ident.clone())));
+        return Err(Error::RemotePackageNotFound(ident.clone()));
     }
 
     let mut encoded = String::new();
@@ -92,9 +99,9 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> BldrResult<data_object
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_key(depot: &str, path: &Path) -> BldrResult<()> {
+pub fn put_key(depot: &str, path: &Path) -> Result<()> {
     let mut file = try!(File::open(path));
-    let file_name = try!(path.file_name().ok_or(bldr_error!(ErrorKind::NoFilePart)));
+    let file_name = try!(path.file_name().ok_or(Error::NoFilePart));
     let url = format!("{}/keys/{}", depot, file_name.to_string_lossy());
     upload(&url, &mut file)
 }
@@ -105,7 +112,7 @@ pub fn put_key(depot: &str, path: &Path) -> BldrResult<()> {
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(depot: &str, pa: &mut PackageArchive) -> BldrResult<()> {
+pub fn put_package(depot: &str, pa: &mut PackageArchive) -> Result<()> {
     let checksum = try!(pa.checksum());
     let ident = try!(pa.ident());
     let url = format!("{}/pkgs/{}?checksum={}", depot, ident, checksum);
@@ -121,19 +128,19 @@ fn url_show_package(depot: &str, package: &PackageIdent) -> String {
     }
 }
 
-fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
+fn download(status: &str, url: &str, path: &str) -> Result<String> {
     debug!("Making request to url {}", url);
     let client = Client::new();
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);
 
     if res.status != hyper::status::StatusCode::Ok {
-        return Err(bldr_error!(ErrorKind::HTTP(res.status)));
+        return Err(Error::HTTP(res.status));
     }
 
     let file_name = match res.headers.get::<XFileName>() {
         Some(filename) => format!("{}", filename),
-        None => return Err(bldr_error!(ErrorKind::NoXFilename)),
+        None => return Err(Error::NoXFilename),
     };
     let length = res.headers
                     .get::<hyper::header::ContentLength>()
@@ -173,7 +180,7 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
                 // Write the buffer to the BufWriter on the Heap
                 let bytes_written = try!(writer.write(&buf[0..len]));
                 if bytes_written == 0 {
-                    return Err(bldr_error!(ErrorKind::WriteSyncFailed));
+                    return Err(Error::WriteSyncFailed);
                 }
                 written = written + (bytes_written as i64);
                 progress(status, written, &length, false);
@@ -184,7 +191,7 @@ fn download(status: &str, url: &str, path: &str) -> BldrResult<String> {
     Ok(finalfile)
 }
 
-fn upload(url: &str, file: &mut File) -> BldrResult<()> {
+fn upload(url: &str, file: &mut File) -> Result<()> {
     debug!("Uploading to {}", url);
     try!(file.seek(SeekFrom::Start(0)));
     let client = Client::new();
@@ -194,12 +201,12 @@ fn upload(url: &str, file: &mut File) -> BldrResult<()> {
         Ok(())
     } else {
         debug!("Response {:?}", response);
-        Err(bldr_error!(ErrorKind::HTTP(response.status)))
+        Err(Error::HTTP(response.status))
     }
 }
 
 fn progress(status: &str, written: i64, length: &str, finished: bool) {
-    let progress = output_format!(preamble status, "{}/{}", written, length);
+    let progress = format!("{} {}/{}", status, written, length);
     print!("{}", from_char(progress.len(), '\x08'));
     if finished {
         println!("{}", progress);

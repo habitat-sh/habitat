@@ -5,8 +5,6 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 pub mod convert;
-pub mod gpg;
-pub mod perm;
 pub mod sys;
 pub mod signals;
 

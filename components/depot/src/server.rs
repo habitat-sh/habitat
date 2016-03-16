@@ -4,13 +4,12 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-pub mod client;
-pub mod data_object;
-pub mod data_store;
-pub mod doctor;
+use std::fs::{self, File};
+use std::io::{Read, Write, BufWriter};
+use std::path::{Path, PathBuf};
 
-use crypto::sha2::Sha256;
-use crypto::digest::Digest;
+use depot_core::{ETag, XFileName};
+use depot_core::data_object::{self, DataObject};
 use iron::prelude::*;
 use iron::status;
 use iron::request::Body;
@@ -19,113 +18,13 @@ use router::{Params, Router};
 use rustc_serialize::json;
 use urlencoded::UrlEncodedQuery;
 
-use std::net;
-use std::sync::Arc;
-use std::fs::{self, File};
-use std::io::{Read, Write, BufWriter};
-use std::path::{Path, PathBuf};
-
-use error::{BldrError, BldrResult, ErrorKind};
+use super::Depot;
 use config::Config;
-use self::data_store::{Cursor, DataStore, Database, Transaction};
-use self::data_object::DataObject;
-use package::{self, PackageArchive};
+use data_store::{self, Cursor, Database, Transaction};
+use error::{Error, Result};
+use bldr::package::{self, PackageArchive};
 
-static LOGKEY: &'static str = "RE";
-
-header! { (XFileName, "X-Filename") => [String] }
-header! { (ETag, "ETag") => [String] }
-
-pub struct Depot {
-    pub path: String,
-    pub datastore: DataStore,
-}
-
-impl Depot {
-    pub fn new(path: String) -> BldrResult<Arc<Depot>> {
-        let dbpath = Path::new(&path).join("datastore");
-        let datastore = try!(DataStore::open(dbpath.as_path()));
-        Ok(Arc::new(Depot {
-            path: path,
-            datastore: datastore,
-        }))
-    }
-
-    // Return a PackageArchive representing the given package. None is returned if the Depot
-    // doesn't have an archive for the given package.
-    fn archive(&self, ident: &package::PackageIdent) -> Option<PackageArchive> {
-        let file = self.archive_path(&ident);
-        match fs::metadata(&file) {
-            Ok(_) => Some(PackageArchive::new(file)),
-            Err(_) => None,
-        }
-    }
-
-    // Return a formatted string representing the filename of an archive for the given package
-    // identifier pieces.
-    fn archive_path<T: AsRef<package::PackageIdent>>(&self, ident: T) -> PathBuf {
-        let ident = ident.as_ref();
-        let mut digest = Sha256::new();
-        let mut output = [0; 64];
-        digest.input_str(&ident.to_string());
-        digest.result(&mut output);
-        self.packages_path()
-            .join(format!("{:x}", output[0]))
-            .join(format!("{:x}", output[1]))
-            .join(format!("{}-{}-{}-{}.bldr",
-                          &ident.origin,
-                          &ident.name,
-                          ident.version.as_ref().unwrap(),
-                          ident.release.as_ref().unwrap()))
-    }
-
-    fn key_path(&self, name: &str) -> PathBuf {
-        self.keys_path().join(format!("{}.asc", name))
-    }
-
-    fn keys_path(&self) -> PathBuf {
-        Path::new(&self.path).join("keys")
-    }
-
-    fn packages_path(&self) -> PathBuf {
-        Path::new(&self.path).join("pkgs")
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct ListenAddr(pub net::Ipv4Addr);
-#[derive(Debug, PartialEq, Eq)]
-pub struct ListenPort(pub u16);
-
-impl Default for ListenAddr {
-    fn default() -> Self {
-        ListenAddr(net::Ipv4Addr::new(0, 0, 0, 0))
-    }
-}
-
-impl Default for ListenPort {
-    fn default() -> Self {
-        ListenPort(9632)
-    }
-}
-
-impl<'a> Into<package::PackageIdent> for &'a Params {
-    fn into(self) -> package::PackageIdent {
-        package::PackageIdent::new(self.find("origin").unwrap(),
-                                   self.find("pkg").unwrap(),
-                                   self.find("version"),
-                                   self.find("release"))
-    }
-}
-
-impl<'a> Into<data_object::PackageIdent> for &'a Params {
-    fn into(self) -> data_object::PackageIdent {
-        let ident: package::PackageIdent = self.into();
-        data_object::PackageIdent::new(ident)
-    }
-}
-
-fn write_file(filename: &PathBuf, body: &mut Body) -> BldrResult<bool> {
+fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     let path = filename.parent().unwrap();
     try!(fs::create_dir_all(path));
     let tempfile = format!("{}.tmp", filename.to_string_lossy());
@@ -144,19 +43,19 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> BldrResult<bool> {
                 // Write the buffer to the BufWriter on the Heap
                 let bytes_written = try!(writer.write(&buf[0..len]));
                 if bytes_written == 0 {
-                    return Err(bldr_error!(ErrorKind::WriteSyncFailed));
+                    return Err(Error::WriteSyncFailed);
                 }
                 written = written + (bytes_written as i64);
             }
         };
     }
-    outputln!("File added to Depot at {}", filename.to_string_lossy());
+    info!("File added to Depot at {}", filename.to_string_lossy());
     try!(fs::rename(&tempfile, &filename));
     Ok(true)
 }
 
 fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    outputln!("Upload Key {:?}", req);
+    info!("Upload Key {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
     let key = rext.find("key").unwrap();
     let file = depot.key_path(&key);
@@ -173,13 +72,13 @@ fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    outputln!("Upload {:?}", req);
+    info!("Upload {:?}", req);
     let checksum = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
         None => return Ok(Response::with(status::BadRequest)),
     };
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: package::PackageIdent = params.into();
+    let ident: package::PackageIdent = extract_ident(params);
 
     if !ident.fully_qualified() {
         return Ok(Response::with(status::BadRequest));
@@ -235,7 +134,7 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    outputln!("Download {:?}", req);
+    info!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
     let key = match rext.find("key") {
@@ -254,9 +153,9 @@ fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    outputln!("Download {:?}", req);
+    info!("Download {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: data_object::PackageIdent = params.into();
+    let ident: data_object::PackageIdent = extract_data_ident(params);
 
     let result = {
         let txn = try!(depot.datastore.packages.txn_ro());
@@ -288,7 +187,7 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 panic!("Inconsistent package metadata! Exit and run `bldr-depot repair` to fix data integrity.");
             }
         }
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
             Ok(Response::with((status::NotFound)))
         }
         Err(_) => unreachable!("unknown error"),
@@ -301,7 +200,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     if let Some(view) = params.find("repo") {
         list_packages_scoped_to_repo(depot, view)
     } else {
-        let ident: data_object::PackageIdent = params.into();
+        let ident: data_object::PackageIdent = extract_data_ident(params);
         let mut packages: Vec<package::PackageIdent> = vec![];
 
         let txn = try!(depot.datastore.packages.index.txn_ro());
@@ -317,7 +216,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 }
                 Ok(())
             }
-            Err(e) => Err(BldrError::from(e)),
+            Err(e) => Err(Error::from(e)),
         };
 
         match result {
@@ -325,7 +224,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             }
-            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+            Err(Error::MdbError(data_store::MdbError::NotFound)) => {
                 Ok(Response::with((status::NotFound)))
             }
             Err(_) => unreachable!("unknown error"),
@@ -350,7 +249,7 @@ fn list_packages_scoped_to_repo(depot: &Depot, view: &str) -> IronResult<Respons
             let body = json::encode(&packages).unwrap();
             Ok(Response::with((status::Ok, body)))
         }
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
             Ok(Response::with((status::NotFound)))
         }
         Err(_) => unreachable!("unknown error"),
@@ -373,7 +272,7 @@ fn list_repos(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
 
 fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: data_object::PackageIdent = params.into();
+    let ident: data_object::PackageIdent = extract_data_ident(params);
 
     if let Some(repo) = params.find("repo") {
         if let Some(pkg) = try!(latest_package_in_repo(&ident, depot, repo)) {
@@ -413,7 +312,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 response.headers.set(ETag(data.checksum));
                 Ok(response)
             }
-            Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+            Err(Error::MdbError(data_store::MdbError::NotFound)) => {
                 Ok(Response::with((status::NotFound)))
             }
             Err(e) => unreachable!("unknown error: {:?}", e),
@@ -425,7 +324,7 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>
     (ident: P,
      depot: &Depot,
      repo: &str)
-     -> BldrResult<Option<data_object::PackageIdent>> {
+     -> Result<Option<data_object::PackageIdent>> {
     let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     match cursor.set_key(&repo.to_string()) {
@@ -440,7 +339,7 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>
                             pkg = next;
                             continue;
                         }
-                        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+                        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
                             return Ok(None);
                         }
                         Err(_) => unreachable!("unknown error"),
@@ -448,7 +347,7 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>
                 }
             }
         }
-        Err(BldrError { err: ErrorKind::MdbError(data_store::MdbError::NotFound), ..}) => {
+        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
             return Ok(None);
         }
         Err(_) => unreachable!("unknown error"),
@@ -462,7 +361,7 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let txn = try!(depot.datastore.views.txn_rw());
     match txn.get(&repo.to_string()) {
         Ok(view) => {
-            let ident: package::PackageIdent = params.into();
+            let ident: package::PackageIdent = extract_ident(params);
             let nested = try!(txn.new_child_rw(&depot.datastore.packages));
             match nested.get(&ident.to_string()) {
                 Ok(package) => {
@@ -475,6 +374,18 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         }
         Err(_) => Ok(Response::with((status::NotFound))),
     }
+}
+
+fn extract_ident(params: &Params) -> package::PackageIdent {
+    package::PackageIdent::new(params.find("origin").unwrap(),
+                               params.find("pkg").unwrap(),
+                               params.find("version"),
+                               params.find("release"))
+}
+
+fn extract_data_ident(params: &Params) -> data_object::PackageIdent {
+    let ident: package::PackageIdent = extract_ident(params);
+    data_object::PackageIdent::new(ident)
 }
 
 fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
@@ -494,8 +405,8 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
-pub fn run(config: &Config) -> BldrResult<()> {
-    let depot = try!(Depot::new(String::from(config.path())));
+pub fn run(config: &Config) -> Result<()> {
+    let depot = try!(Depot::new(config.path.clone()));
     let depot1 = depot.clone();
     let depot2 = depot.clone();
     let depot3 = depot.clone();
@@ -539,4 +450,13 @@ pub fn run(config: &Config) -> BldrResult<()> {
     );
     Iron::new(router).http(config.depot_addr()).unwrap();
     Ok(())
+}
+
+impl From<Error> for IronError {
+    fn from(err: Error) -> IronError {
+        IronError {
+            error: Box::new(err),
+            response: Response::with((status::InternalServerError, "Internal bldr error")),
+        }
+    }
 }

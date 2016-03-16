@@ -38,6 +38,8 @@ use std::ffi;
 use std::sync::mpsc;
 use std::str;
 
+use core::{self, package};
+use depot_client;
 use gpgme;
 use libarchive;
 use uuid;
@@ -49,8 +51,7 @@ use toml;
 use mustache;
 use regex;
 
-use depot::data_store;
-use package;
+use package::HookType;
 use output::StructuredOutput;
 
 static LOGKEY: &'static str = "ER";
@@ -88,11 +89,13 @@ impl BldrError {
 #[derive(Debug)]
 /// All the kinds of errors we produce.
 pub enum ErrorKind {
+    BldrCore(core::Error),
     ArchiveReadFailed(String),
     ArchiveError(libarchive::error::ArchiveError),
     Io(io::Error),
     CommandNotImplemented,
     DbInvalidPath,
+    DepotClient(depot_client::Error),
     InstallFailed,
     WriteSyncFailed,
     HyperError(hyper::error::Error),
@@ -103,14 +106,11 @@ pub enum ErrorKind {
     UnpackFailed,
     TomlParser(Vec<toml::ParserError>),
     TomlEncode(toml::Error),
-    MdbError(data_store::MdbError),
     MustacheEncoderError(mustache::encoder::Error),
     MetaFileNotFound(package::MetaFile),
     MetaFileMalformed(package::MetaFile),
     MetaFileIO(io::Error),
     PackageArchiveMalformed(String),
-    PermissionFailed,
-    BadVersion,
     RegexParse(regex::Error),
     ParseIntError(num::ParseIntError),
     FileNameError,
@@ -131,7 +131,7 @@ pub enum ErrorKind {
     UnknownTopology(String),
     NoConfiguration,
     HealthCheck(String),
-    HookFailed(package::HookType, i32, String),
+    HookFailed(HookType, i32, String),
     TryRecvError(mpsc::TryRecvError),
     BadWatch(String),
     NoXFilename,
@@ -155,10 +155,12 @@ impl fmt::Display for BldrError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            ErrorKind::BldrCore(ref err) => format!("{}", err),
             ErrorKind::ArchiveReadFailed(ref e) => format!("Failed to read package archive, {}", e),
             ErrorKind::ArchiveError(ref err) => format!("{}", err),
             ErrorKind::Io(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
+            ErrorKind::DepotClient(ref err) => format!("{}", err),
             ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             ErrorKind::InstallFailed => format!("Could not install package!"),
             ErrorKind::HyperError(ref err) => format!("{}", err),
@@ -172,7 +174,6 @@ impl fmt::Display for BldrError {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
             ErrorKind::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
-            ErrorKind::MdbError(ref err) => format!("{}", err),
             ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
                     mustache::encoder::Error::IoError(ref e) => format!("{}", e),
@@ -190,8 +191,6 @@ impl fmt::Display for BldrError {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
             }
-            ErrorKind::PermissionFailed => format!("Failed to set permissions"),
-            ErrorKind::BadVersion => format!("Failed to parse a version number"),
             ErrorKind::RegexParse(ref e) => format!("{}", e),
             ErrorKind::ParseIntError(ref e) => format!("{}", e),
             ErrorKind::FileNameError => format!("Failed to extract a filename"),
@@ -269,11 +268,13 @@ impl fmt::Display for BldrError {
 impl Error for BldrError {
     fn description(&self) -> &str {
         match self.err {
+            ErrorKind::BldrCore(ref err) => err.description(),
             ErrorKind::ArchiveError(ref err) => err.description(),
             ErrorKind::ArchiveReadFailed(_) => "Failed to read contents of package archive",
             ErrorKind::Io(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
             ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
+            ErrorKind::DepotClient(ref err) => err.description(),
             ErrorKind::InstallFailed => "Could not install package!",
             ErrorKind::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
             ErrorKind::CannotParseFileName => "Cannot determine the filename from the given URI",
@@ -284,14 +285,11 @@ impl Error for BldrError {
             ErrorKind::UnpackFailed => "Failed to unpack a package",
             ErrorKind::TomlParser(_) => "Failed to parse toml!",
             ErrorKind::TomlEncode(_) => "Failed to encode toml!",
-            ErrorKind::MdbError(_) => "Database error",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             ErrorKind::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
             ErrorKind::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
-            ErrorKind::PermissionFailed => "Failed to set permissions",
-            ErrorKind::BadVersion => "Failed to parse a version number",
             ErrorKind::RegexParse(_) => "Failed to parse a regular expression",
             ErrorKind::ParseIntError(_) => "Failed to parse an integer from a string!",
             ErrorKind::FileNameError => "Failed to extract a filename from a path",
@@ -337,6 +335,18 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str("\n");
     }
     return errors;
+}
+
+impl From<core::Error> for BldrError {
+    fn from(err: core::Error) -> BldrError {
+        bldr_error!(ErrorKind::BldrCore(err))
+    }
+}
+
+impl From<depot_client::Error> for BldrError {
+    fn from(err: depot_client::Error) -> BldrError {
+        bldr_error!(ErrorKind::DepotClient(err))
+    }
 }
 
 impl From<uuid::ParseError> for BldrError {
@@ -408,12 +418,6 @@ impl From<gpgme::Error> for BldrError {
 impl From<libarchive::error::ArchiveError> for BldrError {
     fn from(err: libarchive::error::ArchiveError) -> BldrError {
         bldr_error!(ErrorKind::ArchiveError(err))
-    }
-}
-
-impl From<data_store::MdbError> for BldrError {
-    fn from(err: data_store::MdbError) -> BldrError {
-        bldr_error!(ErrorKind::MdbError(err))
     }
 }
 

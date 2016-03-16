@@ -6,6 +6,7 @@
 
 #[macro_use]
 extern crate bldr;
+extern crate bldr_core as core;
 extern crate rustc_serialize;
 #[macro_use]
 extern crate log;
@@ -14,17 +15,19 @@ extern crate ansi_term;
 extern crate libc;
 #[macro_use]
 extern crate clap;
-use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
-use std::str::FromStr;
-use std::process;
-use ansi_term::Colour::Yellow;
+
 use std::ffi::CString;
+use std::process;
 use std::ptr;
+use std::str::FromStr;
+
+use ansi_term::Colour::Yellow;
+use core::package::PackageIdent;
+use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
 
 use bldr::config::{Command, Config};
 use bldr::error::{BldrResult, BldrError, ErrorKind};
 use bldr::command::*;
-use bldr::package::PackageIdent;
 use bldr::topology::Topology;
 
 /// Our output key
@@ -90,10 +93,6 @@ fn config_from_args(args: &ArgMatches,
             }
             t => return Err(bldr_error!(ErrorKind::UnknownTopology(String::from(t)))),
         }
-    }
-    if sub_args.value_of("port").is_some() {
-        let p = value_t!(sub_args.value_of("port"), u16).unwrap_or_else(|e| e.exit());
-        config.set_port(p);
     }
     if sub_args.value_of("expire-days").is_some() {
         let ed = value_t!(sub_args.value_of("expire-days"), u16).unwrap_or_else(|e| e.exit());
@@ -206,42 +205,6 @@ fn main() {
                                  .help("If this service is a permanent gossip peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
     let sub_bash = SubCommand::with_name("bash").about("Start an interactive shell");
-    let sub_depot = SubCommand::with_name("depot")
-                        .about("Run a bldr package depot")
-                        .arg(Arg::with_name("path")
-                                 .short("p")
-                                 .long("path")
-                                 .value_name("path")
-                                 .help("A path"))
-                        .arg(Arg::with_name("port")
-                                 .long("port")
-                                 .value_name("port")
-                                 .help("Depot port. [default: 9632]"));
-    let sub_repair = SubCommand::with_name("depot-repair")
-                         .about("Repair a bldr package depot")
-                         .arg(Arg::with_name("path")
-                                  .short("p")
-                                  .long("path")
-                                  .value_name("path")
-                                  .help("A path"));
-    let sub_repo_list = SubCommand::with_name("repo-list")
-                            .about("List repositories in the bldr depot")
-                            .arg(Arg::with_name("path")
-                                     .short("p")
-                                     .long("path")
-                                     .value_name("path")
-                                     .help("A path"));
-    let sub_repo_create = SubCommand::with_name("repo-create")
-                              .about("Create a new repository in the bldr depot")
-                              .arg(Arg::with_name("repo")
-                                       .index(1)
-                                       .required(true)
-                                       .help("Name of the repository to create"))
-                              .arg(Arg::with_name("path")
-                                       .short("p")
-                                       .long("path")
-                                       .value_name("path")
-                                       .help("A path"));
     let sub_upload = SubCommand::with_name("upload")
                          .about("Upload an archive to a bldr depot")
                          .arg(Arg::with_name("archive")
@@ -370,10 +333,6 @@ fn main() {
                    .subcommand(sub_start)
                    .subcommand(sub_sh)
                    .subcommand(sub_bash)
-                   .subcommand(sub_depot)
-                   .subcommand(sub_repair)
-                   .subcommand(sub_repo_list)
-                   .subcommand(sub_repo_create)
                    .subcommand(sub_upload)
                    .subcommand(sub_generate_user_key)
                    .subcommand(sub_generate_service_key)
@@ -401,10 +360,6 @@ fn main() {
         Command::Shell => shell(&config),
         Command::Config => configure(&config),
         Command::Decrypt => decrypt(&config),
-        Command::Depot => depot(&config),
-        Command::DepotRepair => repair(&config),
-        Command::RepoList => repo_list(&config),
-        Command::RepoCreate => repo_create(subcommand_matches.value_of("repo").unwrap(), &config),
         Command::DownloadDepotKey => download_depot_key(&config),
         Command::Encrypt => encrypt(&config),
         Command::ExportKey => export_key(&config),
@@ -469,34 +424,6 @@ fn start(config: &Config) -> BldrResult<()> {
     try!(start::package(config));
     outputln!("Finished with {}",
               Yellow.bold().paint(config.package().to_string()));
-    Ok(())
-}
-
-/// Run a package Depot
-#[allow(dead_code)]
-fn depot(config: &Config) -> BldrResult<()> {
-    outputln!("Starting Bldr Depot at {}",
-              Yellow.bold().paint(config.path()));
-    try!(depot::start(&config));
-    outputln!("Finished with {}",
-              Yellow.bold().paint(config.package().to_string()));
-    Ok(())
-}
-
-fn repair(config: &Config) -> BldrResult<()> {
-    outputln!("Verifying data integrity of Depot at {}",
-              Yellow.bold().paint(config.path()));
-    try!(depot::repair(config));
-    Ok(())
-}
-
-fn repo_create(name: &str, config: &Config) -> BldrResult<()> {
-    try!(depot::create_repository(name, config));
-    Ok(())
-}
-
-fn repo_list(config: &Config) -> BldrResult<()> {
-    try!(depot::list_repositories(config));
     Ok(())
 }
 

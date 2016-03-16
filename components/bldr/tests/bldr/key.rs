@@ -300,7 +300,8 @@ fn mk_tmp_filename() -> String {
 
 #[test]
 fn kt_find_key() {
-    use bldr_lib::util::gpg;
+    use core::gpg;
+
     let cache_dir = gen_test_gpg_cache();
     // let cache_dir = "/opt/bldr/cache/gpg/";
     {

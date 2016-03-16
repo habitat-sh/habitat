@@ -7,13 +7,14 @@
 use std::sync::{Arc, RwLock};
 use std::str::FromStr;
 
+use core::fs::PACKAGE_CACHE;
+use core::package::PackageIdent;
+use depot_client;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
 use error::BldrError;
-use fs::PACKAGE_CACHE;
-use package::{Package, PackageIdent};
-use depot;
+use package::Package;
 
 const TIMEOUT_MS: u64 = 60_000;
 
@@ -87,14 +88,14 @@ impl GenServer for PackageUpdater {
         //          This will allow an operator to lock to a version and receive security updates
         //          in the form of release updates for a package.
         let ident = PackageIdent::new(package.origin.clone(), package.name.clone(), None, None);
-        match depot::client::show_package(&state.depot, &ident) {
+        match depot_client::show_package(&state.depot, &ident) {
             Ok(remote) => {
                 let latest: Package = remote.into();
                 if latest > *package {
-                    match depot::client::fetch_package(&state.depot,
-                                                       &PackageIdent::from_str(&latest.ident())
-                                                            .unwrap(),
-                                                       PACKAGE_CACHE) {
+                    match depot_client::fetch_package(&state.depot,
+                                                      &PackageIdent::from_str(&latest.ident())
+                                                           .unwrap(),
+                                                      PACKAGE_CACHE) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
