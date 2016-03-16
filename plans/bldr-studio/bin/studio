@@ -332,15 +332,8 @@ EOF
   # Invoke the type's implementation
   finish_setup
 
-  # Add a useful command prompt
-  case "${TERM:-}" in
-  *term | xterm-* | rxvt | screen | screen-*)
-    prompt='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['$studio_type':\[\e[0;35m\]\w\[\e[0;32m\]:\e[1;37m\$?\[\e[0;32m\]]\$\[\e[0m\]\040 '
-    ;;
-  *)
-    prompt='[\#]['$studio_type':\w:\$?]\$\040 '
-    ;;
-  esac
+  # This prompt tells us what kind of studio we're in!
+  prompt='[\#]['$studio_type':\w:\$?]\$\040 '
   studio_enter_environment="$studio_enter_environment PS1=$prompt"
 
   # Add a Studio configuration file at the root of the filesystem
