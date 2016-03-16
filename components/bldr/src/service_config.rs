@@ -345,7 +345,6 @@ pub struct Pkg {
     pub release: String,
     pub ident: String,
     pub deps: Vec<Pkg>,
-    pub tdeps: Vec<Pkg>,
     pub exposes: Vec<String>,
     pub path: String,
     pub svc_path: String,
@@ -362,15 +361,6 @@ impl Pkg {
                           d)
             }
         }
-        let mut tdeps = Vec::new();
-        for d in package.tdeps.iter() {
-            if let Ok(p) = Package::load(d, None) {
-                tdeps.push(Pkg::new(&p));
-            } else {
-                outputln!("Failed to load {} - it will be missing from the configuration",
-                          d)
-            }
-        }
         Pkg {
             origin: package.origin.clone(),
             name: package.name.clone(),
@@ -378,7 +368,6 @@ impl Pkg {
             release: package.release.clone(),
             ident: package.ident(),
             deps: deps,
-            tdeps: tdeps,
             exposes: package.exposes(),
             path: package.path(),
             svc_path: package.srvc_path(),
