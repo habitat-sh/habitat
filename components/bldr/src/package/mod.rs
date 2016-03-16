@@ -312,17 +312,21 @@ impl Package {
     /// An optional `home` path may be provided to search for a package in a non-default path.
     pub fn load(ident: &PackageIdent, home: Option<&str>) -> BldrResult<Package> {
         let path = home.unwrap_or(PACKAGE_HOME);
+        let pl = try!(Self::package_list(path));
         if ident.fully_qualified() {
-            Ok(Package {
-                origin: ident.origin.clone(),
-                name: ident.name.clone(),
-                version: ident.version.as_ref().unwrap().clone(),
-                release: ident.release.as_ref().unwrap().clone(),
-                deps: try!(Self::deps(ident, path)),
-                tdeps: try!(Self::tdeps(ident, path)),
-            })
+            if pl.iter().any(|ref p| p.satisfies(ident)) {
+                Ok(Package {
+                    origin: ident.origin.clone(),
+                    name: ident.name.clone(),
+                    version: ident.version.as_ref().unwrap().clone(),
+                    release: ident.release.as_ref().unwrap().clone(),
+                    deps: try!(Self::deps(ident, path)),
+                    tdeps: try!(Self::tdeps(ident, path)),
+                })
+            } else {
+                Err(bldr_error!(ErrorKind::PackageNotFound(ident.clone())))
+            }
         } else {
-            let pl = try!(Self::package_list(path));
             let latest: Option<PackageIdent> = pl.iter()
                                                  .filter(|&p| p.satisfies(ident))
                                                  .fold(None, |winner, b| {
