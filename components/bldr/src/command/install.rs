@@ -9,34 +9,16 @@
 //! # Examples
 //!
 //! ```bash
-//! $ bldr install redis -u http://bldr.co:9633
+//! $ bldr install chef/redis
 //! ```
 //!
-//! Will install the `redis` package from the package depot at `http://bldr.co:9633`.
+//! Will install `chef/redis` package from the package depot at `http://bldr.co:9633`.
 //!
 //! ```bash
-//! $ bldr install redis -u http://bldr.co:9633 -d adam
-//! ```
-//!
-//! Will do the same, but choose the `adam` origin, rather than the default `bldr`.
-//!
-//! ```bash
-//! $ bldr install redis -u http://bldr.co:9633 -v 3.0.1
+//! $ bldr install chef/redis/3.0.1 redis -u http://bldr.co:9633
 //! ```
 //!
 //! Will install the `3.0.1` version of redis.
-//!
-//! ```bash
-//! $ bldr install redis -u http://bldr.co:9633 -v 3.0.1 -r 20150911204047
-//! ```
-//!
-//! Will install the `20150911204047` release of the `3.0.1` version of `redis.
-//!
-//! ```bash
-//! $ bldr install redis -u http://bldr.co:9633 -d adam -v 3.0.1 -r 20150911204047
-//! ```
-//!
-//! The same as the last, but from the `adam` origin as well.
 //!
 //! # Internals
 //!
@@ -49,7 +31,7 @@ use std::fs;
 
 use fs::PACKAGE_CACHE;
 use error::BldrResult;
-use package::PackageIdent;
+use package::{Package, PackageIdent};
 use depot::{self, data_object};
 
 static LOGKEY: &'static str = "CI";
@@ -72,9 +54,19 @@ pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> BldrResult<data
 }
 
 fn install<P: AsRef<PackageIdent>>(url: &str, package: &P) -> BldrResult<()> {
-    let mut archive = try!(depot::client::fetch_package(url, package.as_ref(), PACKAGE_CACHE));
-    let package = try!(archive.ident());
-    try!(archive.unpack());
-    outputln!("Installed {}", package);
+    match Package::load(package.as_ref(), None) {
+        Ok(_) => {
+            outputln!("Package that satisfies {} already installed",
+                      package.as_ref());
+        }
+        Err(_) => {
+            let mut archive = try!(depot::client::fetch_package(url,
+                                                                package.as_ref(),
+                                                                PACKAGE_CACHE));
+            let package = try!(archive.ident());
+            try!(archive.unpack());
+            outputln!("Installed {}", package);
+        }
+    }
     Ok(())
 }
