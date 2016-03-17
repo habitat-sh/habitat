@@ -144,16 +144,20 @@ impl Disk {
         let mut offset = 0;
 
         unsafe {
-            match ffi::archive_read_data_block(reader.handle(), &mut buff, &mut size, &mut offset) {
-                ffi::ARCHIVE_EOF => Ok(size),
-                ffi::ARCHIVE_OK => {
-                    if ffi::archive_write_data_block(self.handle, buff, size, offset) < 0 {
-                        Err(ArchiveError::from(self as &Handle))
-                    } else {
-                        Ok(size)
+            loop {
+                match ffi::archive_read_data_block(reader.handle(),
+                                                   &mut buff,
+                                                   &mut size,
+                                                   &mut offset) {
+                    ffi::ARCHIVE_EOF => return Ok(size),
+                    ffi::ARCHIVE_OK => {
+                        if ffi::archive_write_data_block(self.handle, buff, size, offset) !=
+                           ffi::ARCHIVE_OK as isize {
+                            return Err(ArchiveError::from(self as &Handle));
+                        }
                     }
+                    _ => return Err(ArchiveError::from(reader as &Handle)),
                 }
-                _ => Err(ArchiveError::from(reader as &Handle)),
             }
         }
     }
