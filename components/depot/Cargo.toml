@@ -16,6 +16,7 @@ hyper = "*"
 iron = "*"
 libc = "*"
 lazy_static = "*"
+libarchive = "*"
 lmdb-sys = "*"
 log = "*"
 openssl = "*"
@@ -36,9 +37,6 @@ path = "../core"
 
 [dependencies.bldr_depot_core]
 path = "../depot-core"
-
-[dependencies.libarchive]
-path = "../../vendor/libarchive-rust"
 
 [dev-dependencies]
 url = "*"

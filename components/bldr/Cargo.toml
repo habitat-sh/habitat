@@ -24,6 +24,7 @@ ansi_term = "*"
 gpgme = "*"
 hyper = "*"
 lazy_static = "*"
+libarchive = "*"
 lmdb-sys = "*"
 tempdir = "*"
 toml = "*"
@@ -59,9 +60,6 @@ path = "../../vendor/wonder"
 [dependencies.mustache]
 git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
-
-[dependencies.libarchive]
-path = "../../vendor/libarchive-rust"
 
 [dependencies.clap]
 features = [ "suggestions", "color" ]
