@@ -32,6 +32,9 @@
 //! * [The bldr Depot; http based package repository](depot)
 //!
 
+extern crate bldr_core as core;
+extern crate bldr_depot_client as depot_client;
+extern crate bldr_depot_core as depot_core;
 extern crate bincode;
 #[macro_use]
 extern crate bitflags;
@@ -266,10 +269,8 @@ pub mod discovery;
 pub mod topology;
 pub mod state_machine;
 pub mod sidecar;
-pub mod fs;
 pub mod health_check;
 pub mod config;
-pub mod depot;
 pub mod user_config;
 pub mod service_config;
 pub mod census;

@@ -44,6 +44,15 @@ urlencoded = "*"
 openssl = "*"
 walkdir = "*"
 
+[dependencies.bldr_core]
+path = "../core"
+
+[dependencies.bldr_depot_core]
+path = "../depot-core"
+
+[dependencies.bldr_depot_client]
+path = "../depot-client"
+
 [dependencies.wonder]
 path = "../../vendor/wonder"
 

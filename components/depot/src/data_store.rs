@@ -17,14 +17,12 @@ use std::sync::{Arc, Mutex};
 
 use bincode::{self, SizeLimit};
 use bincode::rustc_serialize::{encode, decode};
+use depot_core::data_object::{self, DataObject, ToMdbValue, FromMdbValue};
 use libc::{c_void, c_int, c_uint, mode_t, size_t};
 use lmdb_sys;
 use rustc_serialize::{Encodable, Decodable};
 
-use error::{BldrResult, ErrorKind};
-use super::data_object::{self, DataObject};
-
-static LOGKEY: &'static str = "DS";
+use error::{Error, Result};
 
 lazy_static! {
     static ref OPEN_LOCK: Mutex<()> = Mutex::new(());
@@ -100,7 +98,7 @@ macro_rules! try_mdb {
             let code = $e;
             match code {
                 lmdb_sys::MDB_SUCCESS => (),
-                _ => return Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+                _ => return Err(Error::from(MdbError::from(code)))
             }
         }
     )
@@ -112,7 +110,7 @@ macro_rules! handle_mdb {
             let code = $e;
             match code {
                 lmdb_sys::MDB_SUCCESS => Ok(()),
-                _ => Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+                _ => Err(Error::from(MdbError::from(code)))
             }
         }
     )
@@ -126,7 +124,7 @@ macro_rules! assert_txn_state_eq {
             if c == e {
                 ()
             } else {
-                return Err(bldr_error!(ErrorKind::MdbError(MdbError::StateError(c, e))))
+                return Err(Error::from(MdbError::StateError(c, e)))
             }
         }
     )
@@ -247,7 +245,7 @@ impl From<bincode::rustc_serialize::EncodingError> for MdbError {
 fn create_txn(env: &Environment,
               flags: c_uint,
               parent: Option<&mut lmdb_sys::MDB_txn>)
-              -> BldrResult<*mut lmdb_sys::MDB_txn> {
+              -> Result<*mut lmdb_sys::MDB_txn> {
     let mut handle: *mut lmdb_sys::MDB_txn = ptr::null_mut();
     let parent = if parent.is_some() {
         parent.unwrap() as *mut lmdb_sys::MDB_txn
@@ -264,7 +262,7 @@ fn cursor_get<K, D>(cursor: *mut lmdb_sys::MDB_cursor,
                     key: Option<&K>,
                     value: Option<&D>,
                     op: CursorOp)
-                    -> BldrResult<(Option<K>, D)>
+                    -> Result<(Option<K>, D)>
     where K: FromMdbValue + ToMdbValue,
           D: Encodable + Decodable
 {
@@ -286,7 +284,7 @@ fn cursor_get<K, D>(cursor: *mut lmdb_sys::MDB_cursor,
         let bytes: &[u8] = slice::from_raw_parts(dval.mv_data as *const u8, dval.mv_size);
         match decode(bytes) {
             Ok(dout) => Ok((kout, dout)),
-            Err(e) => Err(bldr_error!(ErrorKind::MdbError(MdbError::from(e)))),
+            Err(e) => Err(Error::from(MdbError::from(e))),
         }
     }
 }
@@ -329,32 +327,6 @@ unsafe fn encoded_val_for<T: Encodable>(data: Option<&T>) -> lmdb_sys::MDB_val {
     }
 }
 
-pub unsafe trait ToMdbValue {
-    fn to_mdb_value(&self) -> lmdb_sys::MDB_val;
-}
-
-unsafe impl ToMdbValue for String {
-    fn to_mdb_value(&self) -> lmdb_sys::MDB_val {
-        let t: &str = self;
-        lmdb_sys::MDB_val {
-            mv_data: t.as_ptr() as *mut c_void,
-            mv_size: t.len(),
-        }
-    }
-}
-
-pub unsafe trait FromMdbValue {
-    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self;
-}
-
-unsafe impl FromMdbValue for String {
-    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self {
-        let bytes: Vec<u8> = slice::from_raw_parts(value.mv_data as *const u8, value.mv_size)
-                                 .to_vec();
-        String::from_utf8(bytes).unwrap()
-    }
-}
-
 pub struct DataStore {
     pub packages: PkgDatabase,
     pub views: ViewDatabase,
@@ -370,12 +342,12 @@ impl DataStore {
     /// * Cannot read/write to the given path
     /// * Cannot obtain a lock to create the environment
     /// * Could not create the environment or any of it's databases
-    pub fn open(path: &Path) -> BldrResult<Self> {
+    pub fn open(path: &Path) -> Result<Self> {
         let mut flags = EnvCreateFlags::empty();
         flags.toggle(ENV_CREATE_NO_SUB_DIR);
         match path.parent() {
             Some(root) => try!(fs::create_dir_all(root)),
-            None => return Err(bldr_error!(ErrorKind::DbInvalidPath)),
+            None => return Err(Error::DbInvalidPath),
         }
         let env = try!(Environment::new()
                            .map_size(1073741824)
@@ -400,7 +372,7 @@ impl DataStore {
     ///
     /// * If a read-write transaction could not be acquired for any of the databases in the
     ///   datastore
-    pub fn clear(&self) -> BldrResult<()> {
+    pub fn clear(&self) -> Result<()> {
         let txn = try!(self.packages.txn_rw());
         try!(self.packages.clear(&txn));
         try!(txn.commit());
@@ -460,7 +432,7 @@ impl EnvironmentBuilder {
     }
 
     /// Create/open the database
-    pub fn open(self, path: &Path, permissions: u32) -> BldrResult<Environment> {
+    pub fn open(self, path: &Path, permissions: u32) -> Result<Environment> {
         let handle: *mut lmdb_sys::MDB_env = ptr::null_mut();
         unsafe {
             try_mdb!(lmdb_sys::mdb_env_create(mem::transmute(&handle)));
@@ -483,10 +455,8 @@ impl EnvironmentBuilder {
         // JW TODO: if read only flag is set, lets return a read only environment.
 
         unsafe {
-            let path_str = try!(path.to_str().ok_or(bldr_error!(ErrorKind::DbInvalidPath)));
-            let path_ptr = try!(CString::new(path_str)
-                                    .map_err(|_| bldr_error!(ErrorKind::DbInvalidPath)))
-                               .as_ptr();
+            let path_str = try!(path.to_str().ok_or(Error::DbInvalidPath));
+            let path_ptr = try!(CString::new(path_str).map_err(|_| Error::DbInvalidPath)).as_ptr();
 
             match lmdb_sys::mdb_env_open(handle,
                                          path_ptr,
@@ -495,7 +465,7 @@ impl EnvironmentBuilder {
                 lmdb_sys::MDB_SUCCESS => Ok(Environment { handle: handle }),
                 code => {
                     lmdb_sys::mdb_env_close(handle);
-                    Err(bldr_error!(ErrorKind::MdbError(MdbError::from(code))))
+                    Err(Error::from(MdbError::from(code)))
                 }
             }
         }
@@ -626,7 +596,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases that support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn dup_count(&self) -> BldrResult<u64> {
+    fn dup_count(&self) -> Result<u64> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         let mut count: size_t = 0;
         unsafe {
@@ -636,7 +606,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     }
 
     /// Position cursor at the first key/data item and return the data for the item.
-    fn first(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn first(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -652,7 +622,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases that support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn first_dup(&mut self) -> BldrResult<D::Object> {
+    fn first_dup(&mut self) -> Result<D::Object> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -664,7 +634,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     }
 
     /// Position the cursor at the last key/data item and return the data for that item.
-    fn last(&mut self) -> BldrResult<D::Object> {
+    fn last(&mut self) -> Result<D::Object> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -679,7 +649,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases that support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn last_dup(&mut self) -> BldrResult<D::Object> {
+    fn last_dup(&mut self) -> Result<D::Object> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -691,7 +661,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     }
 
     /// Position the cursor at the next data item.
-    fn next(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn next(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -707,7 +677,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases taht support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn next_dup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn next_dup(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -723,7 +693,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases taht support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn next_nodup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn next_nodup(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -736,7 +706,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     }
 
     /// Position the cursor at the previous data item.
-    fn prev(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn prev(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -752,7 +722,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases taht support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn prev_dup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn prev_dup(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -768,7 +738,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     ///
     /// This call is only valid on databases taht support sorted duplicate items by the
     /// `DB_ALLOW_DUPS` flag.
-    fn prev_nodup(&mut self) -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+    fn prev_nodup(&mut self) -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       None,
@@ -783,7 +753,7 @@ pub trait Cursor<'a, 'd, D: 'a + 'd + Database, T: Transaction<'a, D>> {
     /// Position the cursor at the specified key and return the key and data.
     fn set_key(&mut self,
                key: &<D::Object as DataObject>::Key)
-               -> BldrResult<(<D::Object as DataObject>::Key, D::Object)> {
+               -> Result<(<D::Object as DataObject>::Key, D::Object)> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         match cursor_get::<<D::Object as DataObject>::Key, D::Object>(self.handle(),
                                                                       Some(key),
@@ -807,7 +777,7 @@ impl<'a, D, T> RoCursor<'a, D, T>
     where D: Database,
           T: Transaction<'a, D>
 {
-    fn open(txn: &'a T) -> BldrResult<Self> {
+    fn open(txn: &'a T) -> Result<Self> {
         assert_txn_state_eq!(txn.state(), TxnState::Normal);
         let mut cursor: *mut lmdb_sys::MDB_cursor = ptr::null_mut();
         unsafe {
@@ -863,7 +833,7 @@ pub struct RwCursor<'a, D: 'a + Database> {
 }
 
 impl<'a, D: Database> RwCursor<'a, D> {
-    fn open(txn: &'a RwTransaction<D>) -> BldrResult<Self> {
+    fn open(txn: &'a RwTransaction<D>) -> Result<Self> {
         assert_txn_state_eq!(txn.state(), TxnState::Normal);
         let mut cursor: *mut lmdb_sys::MDB_cursor = ptr::null_mut();
         unsafe {
@@ -945,14 +915,14 @@ pub struct DatabaseBuilder<T: Database> {
 
 impl<T: Database> DatabaseBuilder<T> {
     /// Create a new database
-    pub fn create(mut self, env: Arc<Environment>) -> BldrResult<T> {
+    pub fn create(mut self, env: Arc<Environment>) -> Result<T> {
         self.flags = self.flags | DB_CREATE;
         let handle = try!(self.open_database(&env));
         T::open(env, handle)
     }
 
     /// Open an existing database
-    pub fn open(mut self, env: Arc<Environment>) -> BldrResult<T> {
+    pub fn open(mut self, env: Arc<Environment>) -> Result<T> {
         self.flags = self.flags - DB_CREATE;
         let handle = try!(self.open_database(&env));
         T::open(env, handle)
@@ -982,7 +952,7 @@ impl<T: Database> DatabaseBuilder<T> {
         self
     }
 
-    fn open_database(&self, env: &Environment) -> BldrResult<lmdb_sys::MDB_dbi> {
+    fn open_database(&self, env: &Environment) -> Result<lmdb_sys::MDB_dbi> {
         match OPEN_LOCK.lock() {
             Ok(_) => {
                 let name_ptr = if self.name.is_some() {
@@ -1018,18 +988,18 @@ pub trait Database : Sized {
     type Object: DataObject + Any;
 
     /// Open the database
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self>;
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> Result<Self>;
 
     /// Returns the name of the database if one was provided
     fn name() -> &'static str;
 
     /// Drop all entries from the database
-    fn clear<'a, T: Transaction<'a, Self>>(&'a self, txn: &'a T) -> BldrResult<()> {
+    fn clear<'a, T: Transaction<'a, Self>>(&'a self, txn: &'a T) -> Result<()> {
         txn.clear()
     }
 
     /// Write an object into the database
-    fn write<'a>(&self, txn: &'a RwTransaction<'a, Self>, object: &Self::Object) -> BldrResult<()> {
+    fn write<'a>(&self, txn: &'a RwTransaction<'a, Self>, object: &Self::Object) -> Result<()> {
         txn.put(object.ident(), object)
     }
 
@@ -1040,7 +1010,7 @@ pub trait Database : Sized {
     fn handle(&self) -> lmdb_sys::MDB_dbi;
 
     /// Retrieve statistics for the database
-    fn stat<'a, T: Transaction<'a, Self>>(&'a self, txn: &T) -> BldrResult<MdbStat> {
+    fn stat<'a, T: Transaction<'a, Self>>(&'a self, txn: &T) -> Result<MdbStat> {
         unsafe {
             let mut native: lmdb_sys::MDB_stat = mem::zeroed();
             try_mdb!(lmdb_sys::mdb_stat(txn.handle(), self.handle(), &mut native));
@@ -1049,12 +1019,12 @@ pub trait Database : Sized {
     }
 
     /// Begin a read-only transaction
-    fn txn_ro<'b>(&'b self) -> BldrResult<RoTransaction<'b, Self>> {
+    fn txn_ro<'b>(&'b self) -> Result<RoTransaction<'b, Self>> {
         RoTransaction::begin(self)
     }
 
     /// Begin a read-write transaction
-    fn txn_rw<'b>(&'b self) -> BldrResult<RwTransaction<'b, Self>> {
+    fn txn_rw<'b>(&'b self) -> Result<RwTransaction<'b, Self>> {
         RwTransaction::begin(self)
     }
 }
@@ -1062,13 +1032,13 @@ pub trait Database : Sized {
 /// Common behaviour for transactions
 pub trait Transaction<'a, D: 'a + Database> : Sized {
     /// Begin a transaction
-    fn begin(database: &'a D) -> BldrResult<Self>;
+    fn begin(database: &'a D) -> Result<Self>;
 
     /// Abandon all the operations of the transaction instead of saving them.
     fn abort(self) -> ();
 
     /// Commit all the operations of a transaction into the database.
-    fn commit(self) -> BldrResult<()>;
+    fn commit(self) -> Result<()>;
 
     /// Return a reference to the transaction's database
     fn database(&self) -> &'a D;
@@ -1080,13 +1050,13 @@ pub trait Transaction<'a, D: 'a + Database> : Sized {
     fn state(&self) -> &TxnState;
 
     /// Returns a read-only cursor
-    fn cursor_ro(&'a self) -> BldrResult<RoCursor<'a, D, Self>> {
+    fn cursor_ro(&'a self) -> Result<RoCursor<'a, D, Self>> {
         RoCursor::open(self)
     }
 
     /// Begins a read-only nested transaction within the current transaction into the given
     /// database.
-    fn new_child<D2: Database>(&'a self, database: &'a D2) -> BldrResult<RoTransaction<'a, D2>> {
+    fn new_child<D2: Database>(&'a self, database: &'a D2) -> Result<RoTransaction<'a, D2>> {
         let handle = try!(create_txn(database.env(), lmdb_sys::MDB_RDONLY, Some(self.handle())));
         Ok(RoTransaction {
             database: database,
@@ -1098,7 +1068,7 @@ pub trait Transaction<'a, D: 'a + Database> : Sized {
 
     /// Begins a read-write nested transaction within the current transaction into the given
     /// database.
-    fn new_child_rw<D2: Database>(&'a self, database: &'a D2) -> BldrResult<RwTransaction<'a, D2>> {
+    fn new_child_rw<D2: Database>(&'a self, database: &'a D2) -> Result<RwTransaction<'a, D2>> {
         let handle = try!(create_txn(database.env(), 0, Some(self.handle())));
         Ok(RwTransaction {
             database: database,
@@ -1109,7 +1079,7 @@ pub trait Transaction<'a, D: 'a + Database> : Sized {
     }
 
     /// Clear all data in the database.
-    fn clear(&self) -> BldrResult<()> {
+    fn clear(&self) -> Result<()> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         unsafe {
             try_mdb!(lmdb_sys::mdb_drop(self.handle(), self.database().handle(), 0));
@@ -1118,7 +1088,7 @@ pub trait Transaction<'a, D: 'a + Database> : Sized {
     }
 
     /// Return a value from the database.
-    fn get(&self, k: &<D::Object as DataObject>::Key) -> BldrResult<D::Object> {
+    fn get(&self, k: &<D::Object as DataObject>::Key) -> Result<D::Object> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         unsafe {
             let mut key = k.to_mdb_value();
@@ -1130,7 +1100,7 @@ pub trait Transaction<'a, D: 'a + Database> : Sized {
             let bytes: &[u8] = slice::from_raw_parts(data.mv_data as *const u8, data.mv_size);
             match decode(bytes) {
                 Ok(value) => Ok(value),
-                Err(e) => Err(bldr_error!(ErrorKind::MdbError(MdbError::from(e)))),
+                Err(e) => Err(Error::from(MdbError::from(e))),
             }
         }
     }
@@ -1159,7 +1129,7 @@ impl<'a, D: Database> RoTransaction<'a, D> {
 
     /// Acquires a new reader lock for a transaction that had been previously released by `renew()`.
     #[allow(dead_code)]
-    fn renew(&mut self) -> BldrResult<()> {
+    fn renew(&mut self) -> Result<()> {
         assert_txn_state_eq!(self.state(), TxnState::Released);
         unsafe {
             try_mdb!(lmdb_sys::mdb_txn_renew(self.handle()));
@@ -1170,7 +1140,7 @@ impl<'a, D: Database> RoTransaction<'a, D> {
 }
 
 impl<'a, D: 'a + Database> Transaction<'a, D> for RoTransaction<'a, D> {
-    fn begin(database: &'a D) -> BldrResult<Self> {
+    fn begin(database: &'a D) -> Result<Self> {
         let handle = try!(create_txn(database.env(), lmdb_sys::MDB_RDONLY, None));
         Ok(RoTransaction {
             database: database,
@@ -1189,7 +1159,7 @@ impl<'a, D: 'a + Database> Transaction<'a, D> for RoTransaction<'a, D> {
         }
     }
 
-    fn commit(mut self) -> BldrResult<()> {
+    fn commit(mut self) -> Result<()> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         unsafe {
             try_mdb!(lmdb_sys::mdb_txn_commit(self.handle()));
@@ -1232,7 +1202,7 @@ pub struct RwTransaction<'a, D: 'a + Database> {
 
 impl<'a, D: Database> RwTransaction<'a, D> {
     /// Returns a read-write cursor
-    pub fn cursor_rw(&'a self) -> BldrResult<RwCursor<'a, D>> {
+    pub fn cursor_rw(&'a self) -> Result<RwCursor<'a, D>> {
         RwCursor::open(self)
     }
 
@@ -1243,7 +1213,7 @@ impl<'a, D: Database> RwTransaction<'a, D> {
     /// allowed.
     ///
     /// Duplicates can be allowed by setting the `DB_ALLOW_DUPS` flag on the database.
-    pub fn put(&self, key: &<D::Object as DataObject>::Key, value: &D::Object) -> BldrResult<()> {
+    pub fn put(&self, key: &<D::Object as DataObject>::Key, value: &D::Object) -> Result<()> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         // JW TODO: these flags represent different types of "writes" and are dependent upon the
         // flags used to open the database. This would mean that this `put` function is the
@@ -1275,7 +1245,7 @@ impl<'a, D: Database> RwTransaction<'a, D> {
     pub fn delete(&self,
                   key: &<D::Object as DataObject>::Key,
                   value: Option<&D::Object>)
-                  -> BldrResult<()> {
+                  -> Result<()> {
         unsafe {
             let mut kval = key.to_mdb_value();
             let dval: *mut lmdb_sys::MDB_val = {
@@ -1292,7 +1262,7 @@ impl<'a, D: Database> RwTransaction<'a, D> {
 }
 
 impl<'a, D: 'a + Database> Transaction<'a, D> for RwTransaction<'a, D> {
-    fn begin(database: &'a D) -> BldrResult<Self> {
+    fn begin(database: &'a D) -> Result<Self> {
         let handle = try!(create_txn(database.env(), 0, None));
         Ok(RwTransaction {
             database: database,
@@ -1311,7 +1281,7 @@ impl<'a, D: 'a + Database> Transaction<'a, D> for RwTransaction<'a, D> {
         }
     }
 
-    fn commit(mut self) -> BldrResult<()> {
+    fn commit(mut self) -> Result<()> {
         assert_txn_state_eq!(self.state(), TxnState::Normal);
         unsafe {
             try_mdb!(lmdb_sys::mdb_txn_commit(self.handle()));
@@ -1360,7 +1330,7 @@ impl PkgDatabase {
 impl Database for PkgDatabase {
     type Object = data_object::Package;
 
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> Result<Self> {
         let env2 = env.clone();
         let index = try!(PkgIndex::new().create(env2));
         Ok(PkgDatabase {
@@ -1374,7 +1344,7 @@ impl Database for PkgDatabase {
         PACKAGE_DB
     }
 
-    fn clear<'a, T: Transaction<'a, Self>>(&'a self, txn: &'a T) -> BldrResult<()> {
+    fn clear<'a, T: Transaction<'a, Self>>(&'a self, txn: &'a T) -> Result<()> {
         try!(txn.clear());
         let nested = try!(txn.new_child_rw(&self.index));
         try!(self.index.clear(&nested));
@@ -1382,7 +1352,7 @@ impl Database for PkgDatabase {
         Ok(())
     }
 
-    fn write<'a>(&self, txn: &RwTransaction<'a, Self>, object: &Self::Object) -> BldrResult<()> {
+    fn write<'a>(&self, txn: &RwTransaction<'a, Self>, object: &Self::Object) -> Result<()> {
         try!(txn.put(object.ident(), object));
         let nested = try!(txn.new_child_rw(&self.index));
         try!(self.index.write(&nested, &object.ident));
@@ -1432,7 +1402,7 @@ impl PkgIndex {
 impl Database for PkgIndex {
     type Object = data_object::PackageIdent;
 
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> Result<Self> {
         Ok(PkgIndex {
             env: env,
             handle: handle,
@@ -1451,7 +1421,7 @@ impl Database for PkgIndex {
         self.handle
     }
 
-    fn write<'a>(&self, txn: &RwTransaction<'a, Self>, object: &Self::Object) -> BldrResult<()> {
+    fn write<'a>(&self, txn: &RwTransaction<'a, Self>, object: &Self::Object) -> Result<()> {
         try!(txn.put(&object.origin_idx(), object));
         try!(txn.put(&object.name_idx(), object));
         try!(txn.put(object.version_idx().as_ref().unwrap(), object));
@@ -1494,7 +1464,7 @@ impl ViewDatabase {
     }
 
     // Associate the given package to the given view
-    pub fn associate<'a, T: Database>(&self, txn: &RwTransaction<'a, T>, view: &<Self as Database>::Object, pkg: &<PkgDatabase as Database>::Object) -> BldrResult<()> {
+    pub fn associate<'a, T: Database>(&self, txn: &RwTransaction<'a, T>, view: &<Self as Database>::Object, pkg: &<PkgDatabase as Database>::Object) -> Result<()> {
         let nested = try!(txn.new_child_rw(&self.pkg_view_idx));
         try!(nested.put(pkg.ident(), view));
         let nested2 = try!(nested.new_child_rw(&self.view_pkg_idx));
@@ -1506,7 +1476,7 @@ impl ViewDatabase {
 impl Database for ViewDatabase {
     type Object = data_object::View;
 
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> Result<Self> {
         let env2 = env.clone();
         let env3 = env.clone();
         let pkg_view_idx = try!(PkgViewIndex::new().create(env2));
@@ -1563,7 +1533,7 @@ impl PkgViewIndex {
 impl Database for PkgViewIndex {
     type Object = data_object::View;
 
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> Result<Self> {
         Ok(PkgViewIndex {
             env: env,
             handle: handle,
@@ -1620,7 +1590,7 @@ impl Database for ViewPkgIndex {
         VIEW_PACKAGE_INDEX
     }
 
-    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> BldrResult<Self> {
+    fn open(env: Arc<Environment>, handle: lmdb_sys::MDB_dbi) -> Result<Self> {
         Ok(ViewPkgIndex {
             env: env,
             handle: handle,
@@ -1659,9 +1629,9 @@ impl Drop for ViewPkgIndex {
 mod tests {
     use std::path::Path;
     use super::*;
-    use super::super::data_object::*;
-    use error::{BldrError, ErrorKind};
-    use package;
+    use error::Error;
+    use depot_core::data_object::*;
+    use bldr::package;
 
     // JW TODO: This test is ignored while I track down a bug preventing multiple transactions
     // being opened from different threads.
@@ -1728,7 +1698,7 @@ mod tests {
         let txn = ds.views.txn_rw().unwrap();
         txn.delete(&"my-view".to_string(), None).unwrap();
         match txn.get(&"my-view".to_string()) {
-            Err(BldrError { err: ErrorKind::MdbError(MdbError::NotFound), .. }) => {
+            Err(Error::MdbError(MdbError::NotFound)) => {
                 txn.abort();
                 assert!(true)
             }

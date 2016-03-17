@@ -4,13 +4,14 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-//! The CLI commands.
-//!
-//! Bldr's command line actions are defined here; one module per command. Their names map 1:1 to
-//! the actual command line arguments, with one exception - `_` is translated to `-` on the CLI.
+extern crate bldr_core as bldr;
+#[macro_use]
+extern crate hyper;
+extern crate libc;
+extern crate lmdb_sys;
+extern crate rustc_serialize;
 
-pub mod install;
-pub mod start;
-pub mod key;
-pub mod upload;
-pub mod configure;
+pub mod data_object;
+
+header! { (XFileName, "X-Filename") => [String] }
+header! { (ETag, "ETag") => [String] }

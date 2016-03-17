@@ -8,13 +8,15 @@ use std::fs::{self, File};
 use std::io;
 use std::io::Write;
 use std::env;
+use std::result;
+
 use gpgme;
 use gpgme::ops;
+
+use error::{Error, Result};
 use fs::GPG_CACHE;
-use error::{BldrResult, BldrError, ErrorKind};
 use util::perm;
 
-static LOGKEY: &'static str = "KEY";
 static BLDR_GPG_CACHE_ENV_VAR: &'static str = "BLDR_GPG_CACHE";
 
 static DEFAULT_KEY_TYPE: &'static str = "RSA";
@@ -61,8 +63,8 @@ impl<'a> KeygenParams<'a> {
             None => "".to_string(),
         };
 
-// NOTE: you can't pass Passphrase: with an empty string
-// so don't pass the string at all if a value doesn't exist
+    // NOTE: you can't pass Passphrase: with an empty string
+    // so don't pass the string at all if a value doesn't exist
         format!("
                 <GnupgKeyParms format=\"internal\">
                     Key-Type: {key_type}
@@ -100,7 +102,7 @@ fn gpg_cache_dir() -> String {
 
 /// Initialize the gpgme context w/ OpenPGP protocol and
 /// GPG cache directory (which may come from an env var)
-fn init_ctx() -> BldrResult<gpgme::Context> {
+fn init_ctx() -> Result<gpgme::Context> {
     let mut ctx = try!(gpgme::create_context());
     try!(ctx.set_engine_info(gpgme::PROTOCOL_OPENPGP, None, Some(gpg_cache_dir())));
     Ok(ctx)
@@ -108,23 +110,23 @@ fn init_ctx() -> BldrResult<gpgme::Context> {
 
 /// Create the GPG cache directory if it doesn't exist
 /// Set the permissions on the directory so the user has r/w/x only
-fn ensure_gpg_dir() -> BldrResult<()> {
+fn ensure_gpg_dir() -> Result<()> {
     try!(fs::create_dir_all(gpg_cache_dir()));
     try!(perm::set_permissions(&gpg_cache_dir(), CACHE_DIR_PERMS));
     Ok(())
 }
 
-pub fn decrypt<'a>(file: &str) -> BldrResult<gpgme::Data<'a>> {
+pub fn decrypt<'a>(file: &str) -> Result<gpgme::Data<'a>> {
     let mut ctx = try!(init_ctx());
     try!(ensure_gpg_dir());
     let mut signature = {
         let f = match File::open(&file) {
             Ok(f) => f,
-            Err(e) => return Err(BldrError::from(e)),
+            Err(e) => return Err(Error::from(e)),
         };
         match gpgme::Data::from_seekable_reader(f) {
             Ok(data) => data,
-            Err(wrapped_error) => return Err(BldrError::from(wrapped_error.error())),
+            Err(wrapped_error) => return Err(Error::from(wrapped_error.error())),
         }
     };
     let mut out = try!(gpgme::Data::new());
@@ -140,17 +142,17 @@ pub fn encrypt_and_sign(userkey: &str,
                         servicekey: &str,
                         infile: &str,
                         outfile: &str)
-                        -> BldrResult<()> {
+                        -> Result<()> {
     let mut ctx = try!(init_ctx());
 
     let mut infiledata = {
         let f = match File::open(&infile) {
             Ok(f) => f,
-            Err(e) => return Err(BldrError::from(e)),
+            Err(e) => return Err(Error::from(e)),
         };
         match gpgme::Data::from_seekable_reader(f) {
             Ok(data) => data,
-            Err(wrapped_error) => return Err(BldrError::from(wrapped_error.error())),
+            Err(wrapped_error) => return Err(Error::from(wrapped_error.error())),
 
         }
     };
@@ -160,21 +162,15 @@ pub fn encrypt_and_sign(userkey: &str,
     // let ukey2 = try!(find_key(userkey));
     let skey = try!(find_key(servicekey));
 
-    if let None = ukey {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
+    if ukey.is_none() {
+        return Err(Error::InvalidKeyParameter(String::from("User key not found")));
     }
-    //
-    // if let None = ukey2 {
-    // return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("User key not found"))));
-    // }
-    //
-    if let None = skey {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("Service key not \
-                                                                            found"))));
+    if skey.is_none() {
+        return Err(Error::InvalidKeyParameter(String::from("Service key not \
+                                                                            found")));
     }
 
     let ukey = ukey.unwrap();
-    // let ukey2 = ukey2.unwrap();
     let skey = skey.unwrap();
 
     let recipients = vec![skey, ukey];
@@ -219,16 +215,16 @@ pub fn encrypt_and_sign(userkey: &str,
 
 /// Decrypt uses a service private key and a user public key to verify an encrypted message.
 ///	A service OR a user should be able to decrypt bldr-encrypted a message.
-pub fn decrypt_and_verify(infile: &str, outfile: &str) -> BldrResult<()> {
+pub fn decrypt_and_verify(infile: &str, outfile: &str) -> Result<()> {
     let mut ctx = try!(init_ctx());
     let mut infiledata = {
         let f = match File::open(&infile) {
             Ok(f) => f,
-            Err(e) => return Err(BldrError::from(e)),
+            Err(e) => return Err(Error::from(e)),
         };
         match gpgme::Data::from_seekable_reader(f) {
             Ok(data) => data,
-            Err(wrapped_error) => return Err(BldrError::from(wrapped_error.error())),
+            Err(wrapped_error) => return Err(Error::from(wrapped_error.error())),
         }
     };
     let mut output = try!(gpgme::Data::new());
@@ -243,7 +239,7 @@ pub fn decrypt_and_verify(infile: &str, outfile: &str) -> BldrResult<()> {
             debug!("signatures? {:?}", verify_result.signatures());
             debug!("filename? {:?}", verify_result.filename());
         }
-        Err(e) => return Err(BldrError::from(e)),
+        Err(e) => return Err(Error::from(e)),
     };
 
     try!(write_output(outfile, output));
@@ -292,7 +288,7 @@ fn debug_import_result(result: ops::ImportResult) {
 }
 
 /// Import a public key into the GPG cache
-pub fn import(keyfile: &str) -> BldrResult<()> {
+pub fn import(keyfile: &str) -> Result<()> {
     try!(ensure_gpg_dir());
     let mut ctx = try!(init_ctx());
     let mut data = try!(gpgme::Data::load(&keyfile));
@@ -302,16 +298,16 @@ pub fn import(keyfile: &str) -> BldrResult<()> {
             debug_import_result(result);
             Ok(())
         }
-        Err(e) => Err(BldrError::from(e)),
+        Err(e) => Err(Error::from(e)),
     }
 }
 
 /// Export a public key from the GPG cache.
-pub fn export(key: &str, outfile: &str) -> BldrResult<()> {
+pub fn export(key: &str, outfile: &str) -> Result<()> {
     let mut ctx = try!(init_ctx());
     let key_search = try!(find_key(&key));
-    if let None = key_search {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("Key not found"))));
+    if key_search.is_none() {
+        return Err(Error::InvalidKeyParameter(String::from("Key not found")));
     }
     let k = key_search.unwrap();
     let keys = vec![k];
@@ -319,31 +315,31 @@ pub fn export(key: &str, outfile: &str) -> BldrResult<()> {
     let mut output = gpgme::Data::new().unwrap();
     ctx.set_armor(true);
     if let Err(e) = ctx.export_keys(&keys, mode, Some(&mut output)) {
-        return Err(BldrError::from(e));
+        return Err(Error::from(e));
     };
 
     try!(write_output(outfile, output));
     Ok(())
 }
 
-pub fn verify<'a>(file: &str) -> BldrResult<gpgme::Data<'a>> {
+pub fn verify<'a>(file: &str) -> Result<gpgme::Data<'a>> {
     let mut ctx = try!(init_ctx());
 
     let mut signature = {
         let f = match File::open(&file) {
             Ok(f) => f,
-            Err(_) => return Err(bldr_error!(ErrorKind::FileNotFound(String::from(file)))),
+            Err(_) => return Err(Error::FileNotFound(String::from(file))),
         };
         match gpgme::Data::from_seekable_reader(f) {
             Ok(data) => data,
-            Err(wrapped_error) => return Err(BldrError::from(wrapped_error.error())),
+            Err(e) => return Err(Error::from(e.error())),
         }
     };
 
     let mut plain = try!(gpgme::Data::new());
     match ctx.verify(&mut signature, None, Some(&mut plain)) {
         Ok(_) => Ok(plain),
-        Err(e) => Err(BldrError::from(e)),
+        Err(e) => Err(Error::from(e)),
     }
 }
 
@@ -351,12 +347,12 @@ pub fn verify<'a>(file: &str) -> BldrResult<gpgme::Data<'a>> {
 /// in the GPG cache.
 /// `RUST_LOG=bldr=debug` is your friend for this one, as the `ctx.generate_key`
 /// function takes an ugly xml-ish string.
-pub fn generate(params: &KeygenParams) -> BldrResult<String> {
+pub fn generate(params: &KeygenParams) -> Result<String> {
     try!(ensure_gpg_dir());
 
     let k = try!(find_key(&params.keyname));
     if k.is_some() {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter(String::from("Key already exists"))));
+        return Err(Error::InvalidKeyParameter(String::from("Key already exists")));
     }
 
     let mut ctx = try!(init_ctx());
@@ -372,19 +368,19 @@ pub fn generate(params: &KeygenParams) -> BldrResult<String> {
                 None => Ok("No fingerprint".to_string()),
             }
         }
-        Err(e) => Err(BldrError::from(e)),
+        Err(e) => Err(Error::from(e)),
     }
 }
 
 /// Return the **first** key that contains the `keyname` **first** in it's list of users
-pub fn find_key(keyname: &str) -> BldrResult<Option<gpgme::keys::Key>> {
+pub fn find_key(keyname: &str) -> Result<Option<gpgme::keys::Key>> {
     try!(ensure_gpg_dir());
     let mut ctx = try!(init_ctx());
     let mode = ops::KeyListMode::empty();
     ctx.set_key_list_mode(mode).unwrap();
     let mut keys = try!(ctx.keys());
     // irritatingly nested
-    for key in keys.by_ref().filter_map(Result::ok) {
+    for key in keys.by_ref().filter_map(result::Result::ok) {
         match key.user_ids().enumerate().next() {
             Some((_, user)) => {
                 if let Some(n) = user.name() {
@@ -401,7 +397,7 @@ pub fn find_key(keyname: &str) -> BldrResult<Option<gpgme::keys::Key>> {
 
 /// query all keys in the gpg cache and return a vec
 /// with a copy of each
-pub fn list() -> BldrResult<Vec<gpgme::keys::Key>> {
+pub fn list() -> Result<Vec<gpgme::keys::Key>> {
     try!(ensure_gpg_dir());
     let mut ctx = try!(init_ctx());
 
@@ -414,25 +410,21 @@ pub fn list() -> BldrResult<Vec<gpgme::keys::Key>> {
     let mut allkeys = Vec::new();
     // get ALL keys
     let mut keys = ctx.keys().unwrap();
-    for key in keys.by_ref().filter_map(Result::ok) {
+    for key in keys.by_ref().filter_map(result::Result::ok) {
         allkeys.push(key.clone());
     }
     Ok(allkeys)
 }
 
 /// write the output from a gpgme::Data object to a file
-fn write_output(outfile: &str, output: gpgme::Data) -> BldrResult<()> {
+fn write_output(outfile: &str, output: gpgme::Data) -> Result<()> {
     match output.into_string() {
         Ok(o) => {
             let mut f = try!(File::create(outfile));
             try!(f.write_all(o.as_bytes()));
+            Ok(())
         }
-        Err(e) => {
-            match e {
-                Some(utf8_error) => return Err(BldrError::from(utf8_error)),
-                None => panic!("File output error: {:?}", e),
-            }
-        }
+        Err(Some(e)) => Err(Error::from(e)),
+        Err(None) => panic!("File output error"),
     }
-    Ok(())
 }

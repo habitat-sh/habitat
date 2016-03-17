@@ -24,7 +24,11 @@ gpg: ## install gpg keys, only run this in a studio
 	(cd plans && make gpg)
 
 build: image ## run cargo build
+	$(run) shell cargo build --manifest-path components/core/Cargo.toml
 	$(run) shell cargo build --manifest-path components/bldr/Cargo.toml
+	$(run) shell cargo build --manifest-path components/depot-core/Cargo.toml
+	$(run) shell cargo build --manifest-path components/depot/Cargo.toml
+	$(run) shell cargo build --manifest-path components/depot-client/Cargo.toml
 
 shell: image ## start a shell for building packages
 	$(run) shell
@@ -35,16 +39,32 @@ docs-serve: docs ## serve up the documentation
 	$(run) -p 9633:9633 shell sh -c 'set -e; cd ./components/bldr/target/doc; python -m SimpleHTTPServer 9633;'
 
 test: image ## run `cargo test`
+	$(run) shell cargo test --manifest-path components/core/Cargo.toml
 	$(run) shell cargo test --manifest-path components/bldr/Cargo.toml
+	$(run) shell cargo test --manifest-path components/depot-core/Cargo.toml
+	$(run) shell cargo test --manifest-path components/depot/Cargo.toml
+	$(run) shell cargo test --manifest-path components/depot-client/Cargo.toml
 
 unit: image ## run unit tests with cargo
+	$(run) shell cargo test --lib --manifest-path components/core/Cargo.toml
 	$(run) shell cargo test --lib --manifest-path components/bldr/Cargo.toml
+	$(run) shell cargo test --lib --manifest-path components/depot-core/Cargo.toml
+	$(run) shell cargo test --lib --manifest-path components/depot/Cargo.toml
+	$(run) shell cargo test --lib --manifest-path components/depot-client/Cargo.toml
 
 functional: image ## run the functional tests
+	$(run) shell cargo test --test functional --manifest-path components/core/Cargo.toml
 	$(run) shell cargo test --test functional --manifest-path components/bldr/Cargo.toml
+	$(run) shell cargo test --test functional --manifest-path components/depot-core/Cargo.toml
+	$(run) shell cargo test --test functional --manifest-path components/depot/Cargo.toml
+	$(run) shell cargo test --test functional --manifest-path components/depot-client/Cargo.toml
 
 clean: ## clean up our docker environment
 	rm -rf components/bldr/target/debug components/bldr/target/release
+	rm -rf components/bldr/target/debug components/core/target/release
+	rm -rf components/bldr/target/debug components/depot-core/target/release
+	rm -rf components/bldr/target/debug components/depot/target/release
+	rm -rf components/bldr/target/debug components/depot-client/target/release
 	$(compose_cmd) stop
 	$(compose_cmd) rm -f -v
 	$(docker_cmd) rmi $(dimage) || true

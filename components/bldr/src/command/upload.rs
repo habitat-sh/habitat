@@ -22,12 +22,12 @@
 
 use std::path::PathBuf;
 
+use core::package::PackageArchive;
+use depot_client;
 use hyper::status::StatusCode;
 
 use error::{BldrResult, BldrError, ErrorKind};
 use config::Config;
-use package::archive::PackageArchive;
-use depot;
 
 static LOGKEY: &'static str = "CU";
 
@@ -47,9 +47,9 @@ pub fn package(config: &Config) -> BldrResult<()> {
     outputln!("Checking that all dependencies are in the depot...");
     let tdeps = try!(pa.tdeps());
     for dep in tdeps.iter() {
-        match depot::client::show_package(url, dep) {
+        match depot_client::show_package(url, dep) {
             Ok(_) => outputln!("{} is present", dep),
-            Err(BldrError{ err: ErrorKind::RemotePackageNotFound(_), .. }) => {
+            Err(depot_client::Error::RemotePackageNotFound(_)) => {
                 let dep_path = PathBuf::from(format!("{}/{}",
                                                      archive_path.to_string_lossy(),
                                                      dep.archive_name().unwrap()));
@@ -76,11 +76,11 @@ pub fn package(config: &Config) -> BldrResult<()> {
                                                                            .into_owned())));
                 }
             }
-            Err(e) => return Err(e),
+            Err(e) => return Err(BldrError::from(e)),
         }
     }
     let ident = try!(pa.ident());
-    match depot::client::show_package(url, &ident) {
+    match depot_client::show_package(url, &ident) {
         Ok(_) => outputln!("{} is present", ident),
         Err(_) => {
             outputln!("Uploading {} from {}", ident, pa.path.to_string_lossy());
@@ -92,21 +92,21 @@ pub fn package(config: &Config) -> BldrResult<()> {
 }
 
 pub fn upload(mut pa: &mut PackageArchive, url: &str) -> BldrResult<()> {
-    match depot::client::put_package(url, &mut pa) {
+    match depot_client::put_package(url, &mut pa) {
         Ok(()) => (),
-        Err(BldrError{err: ErrorKind::HTTP(StatusCode::Conflict), ..}) => {
+        Err(depot_client::Error::HTTP(StatusCode::Conflict)) => {
             outputln!("Package already exists on remote; skipping.");
         }
-        Err(BldrError{err: ErrorKind::HTTP(StatusCode::UnprocessableEntity), ..}) => {
+        Err(depot_client::Error::HTTP(StatusCode::UnprocessableEntity)) => {
             return Err(bldr_error!(ErrorKind::PackageArchiveMalformed(format!("{}", pa.path.to_string_lossy()))));
         }
-        Err(e @ BldrError{err: ErrorKind::HTTP(_), ..}) => {
+        Err(e @ depot_client::Error::HTTP(_)) => {
             outputln!("Unexpected response from remote");
-            return Err(e);
+            return Err(BldrError::from(e));
         }
         Err(e) => {
             outputln!("The package might exist on the remote - we fast abort, so.. :)");
-            return Err(e);
+            return Err(BldrError::from(e));
         }
     }
     Ok(())

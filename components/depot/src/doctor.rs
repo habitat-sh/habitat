@@ -9,14 +9,15 @@ use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use bldr;
+use bldr::package::{self, PackageArchive};
+use depot_core::data_object::{self, DataObject};
 use time;
 use walkdir::WalkDir;
 
 use super::Depot;
-use super::data_object::{self, DataObject};
 use super::data_store::{Cursor, Database, Transaction};
-use error::{BldrError, BldrResult};
-use package::{self, PackageArchive};
+use error::Result;
 
 #[derive(Debug)]
 /// A struct containing the details of a repair run by `Doctor`.
@@ -111,7 +112,7 @@ pub enum OperationType {
 #[derive(Debug)]
 pub enum Reason {
     BadArchive,
-    BadMetadata(BldrError),
+    BadMetadata(bldr::Error),
     BadPermissions,
     IO(io::Error),
     FileExists,
@@ -143,7 +144,7 @@ impl<'a> Doctor<'a> {
         }
     }
 
-    fn run(mut self) -> BldrResult<Report> {
+    fn run(mut self) -> Result<Report> {
         try!(self.init_fs());
         try!(self.truncate_database(&self.depot.datastore.packages));
         try!(self.rebuild_metadata());
@@ -151,7 +152,7 @@ impl<'a> Doctor<'a> {
         Ok(self.report.generate())
     }
 
-    fn init_fs(&mut self) -> BldrResult<()> {
+    fn init_fs(&mut self) -> Result<()> {
         match fs::metadata(&self.depot.path) {
             Ok(meta) => {
                 if meta.is_file() {
@@ -171,7 +172,7 @@ impl<'a> Doctor<'a> {
         Ok(())
     }
 
-    fn rebuild_indices(&mut self) -> BldrResult<()> {
+    fn rebuild_indices(&mut self) -> Result<()> {
         let txn = try!(self.depot.datastore.views.pkg_view_idx.txn_rw());
         {
             let tx2 = try!(txn.new_child_rw(&self.depot.datastore.views.view_pkg_idx));
@@ -213,7 +214,7 @@ impl<'a> Doctor<'a> {
         Ok(())
     }
 
-    fn rebuild_metadata(&mut self) -> BldrResult<()> {
+    fn rebuild_metadata(&mut self) -> Result<()> {
         let mut directories = vec![];
         for entry in WalkDir::new(&self.packages_path).follow_links(false) {
             let entry = entry.unwrap();
@@ -284,7 +285,7 @@ impl<'a> Doctor<'a> {
         Ok(())
     }
 
-    fn truncate_database<D: Database>(&mut self, database: &D) -> BldrResult<()> {
+    fn truncate_database<D: Database>(&mut self, database: &D) -> Result<()> {
         let count = {
             let txn = try!(database.txn_rw());
             let stats = try!(database.stat(&txn));
@@ -302,6 +303,6 @@ impl<'a> Doctor<'a> {
 ///
 /// Any files found within the metastore which are not valid or readable archives are moved into a
 /// gargbage directory for the user to examine.
-pub fn repair(depot: &Depot) -> BldrResult<Report> {
+pub fn repair(depot: &Depot) -> Result<Report> {
     Doctor::new(depot).run()
 }

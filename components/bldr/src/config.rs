@@ -12,13 +12,12 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
-use std::net;
 use std::str::FromStr;
+
+use core::package::PackageIdent;
 
 use error::{BldrError, ErrorKind};
 use gossip::server::GOSSIP_DEFAULT_PORT;
-use package::PackageIdent;
-use depot;
 use topology::Topology;
 
 static LOGKEY: &'static str = "CFG";
@@ -39,10 +38,6 @@ pub enum Command {
     Encrypt,
     Decrypt,
     Shell,
-    Depot,
-    RepoCreate,
-    RepoList,
-    DepotRepair,
     Upload,
 }
 
@@ -53,8 +48,6 @@ impl FromStr for Command {
             "bash" => Ok(Command::Shell),
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
-            "depot" => Ok(Command::Depot),
-            "depot-repair" => Ok(Command::DepotRepair),
             "download-depot-key" => Ok(Command::DownloadDepotKey),
             "encrypt" => Ok(Command::Encrypt),
             "export-key" => Ok(Command::ExportKey),
@@ -63,8 +56,6 @@ impl FromStr for Command {
             "import-key" => Ok(Command::ImportKey),
             "install" => Ok(Command::Install),
             "list-keys" => Ok(Command::ListKeys),
-            "repo-create" => Ok(Command::RepoCreate),
-            "repo-list" => Ok(Command::RepoList),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
             "upload-depot-key" => Ok(Command::UploadDepotKey),
@@ -96,8 +87,6 @@ pub struct Config {
     password: Option<String>,
     email: Option<String>,
     expire_days: Option<u16>,
-    listen_addr: depot::ListenAddr,
-    port: depot::ListenPort,
     gossip_listen: String,
     userkey: Option<String>,
     servicekey: Option<String>,
@@ -275,15 +264,6 @@ impl Config {
     /// Return the topology
     pub fn topology(&self) -> &Topology {
         &self.topology
-    }
-
-    pub fn set_port(&mut self, port: u16) -> &mut Config {
-        self.port = depot::ListenPort(port);
-        self
-    }
-
-    pub fn depot_addr(&self) -> net::SocketAddrV4 {
-        net::SocketAddrV4::new(self.listen_addr.0.clone(), self.port.0.clone())
     }
 
     pub fn gossip_listen(&self) -> &str {

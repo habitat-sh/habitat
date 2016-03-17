@@ -10,6 +10,7 @@ extern crate time;
 extern crate hyper;
 extern crate url;
 extern crate bldr as bldr_lib;
+extern crate bldr_core as core;
 extern crate uuid;
 extern crate rustc_serialize;
 

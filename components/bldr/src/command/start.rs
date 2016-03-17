@@ -48,17 +48,17 @@
 //! See the [documentation on topologies](../topology) for a deeper discussion of how they function.
 //!
 
-use ansi_term::Colour::Yellow;
-
 use std::env;
 
-use fs::PACKAGE_CACHE;
+use ansi_term::Colour::Yellow;
+use core::fs::PACKAGE_CACHE;
+use depot_client;
+
 use error::{BldrResult, ErrorKind};
 use config::Config;
-use package::{Package, PackageIdent};
+use package::Package;
 use topology::{self, Topology};
 use command::install;
-use depot;
 
 static LOGKEY: &'static str = "CS";
 
@@ -82,12 +82,12 @@ pub fn package(config: &Config) -> BldrResult<()> {
                 //
                 // If the operator does not specify a version number they will automatically receive
                 // updates for any releases, regardless of version number, for the started  package.
-                let latest_pkg: Package = try!(depot::client::show_package(&url, config.package()))
+                let latest_pkg: Package = try!(depot_client::show_package(&url, config.package()))
                                               .into();
                 if latest_pkg > package {
                     outputln!("Downloading latest version from remote: {}", &latest_pkg);
-                    let archive = try!(depot::client::fetch_package(&url,
-                                                                   &PackageIdent::from(latest_pkg),
+                    let archive = try!(depot_client::fetch_package(&url,
+                                                                   &latest_pkg.into(),
                                                                    PACKAGE_CACHE));
                     try!(archive.verify());
                     try!(archive.unpack());

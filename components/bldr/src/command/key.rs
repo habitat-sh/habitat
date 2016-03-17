@@ -9,16 +9,17 @@ use std::path::Path;
 use std::process::{Command, Stdio, Child};
 
 use ansi_term::Colour::{Yellow, Red};
+use core::package::PackageIdent;
+use core::fs::KEY_CACHE;
+use core::gpg;
+use depot_client;
 use time::strptime;
 use rpassword::read_password;
 use regex::Regex;
 
 use config::Config;
 use error::{BldrResult, ErrorKind};
-use fs::KEY_CACHE;
-use package::{Package, PackageIdent};
-use depot;
-use util::gpg;
+use package::Package;
 
 static LOGKEY: &'static str = "KU"; // "key utils"
 static USER_KEY_COMMENT: &'static str = "bldr user key";
@@ -58,7 +59,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
     match fs::metadata(path) {
         Ok(_) => {
             outputln!("Uploading {}", config.key());
-            try!(depot::client::put_key(url, path));
+            try!(depot_client::put_key(url, path));
         }
         Err(_) => {
             if path.components().count() == 1 {
@@ -67,7 +68,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
                 match fs::metadata(&cached) {
                     Ok(_) => {
                         outputln!("Uploading {}.asc", config.key());
-                        try!(depot::client::put_key(url, cached));
+                        try!(depot_client::put_key(url, cached));
                     }
                     Err(_) => {
                         return Err(bldr_error!(ErrorKind::KeyNotFound(config.key().to_string())));
@@ -116,7 +117,7 @@ pub fn import(config: &Config) -> BldrResult<()> {
             try!(fs::create_dir_all(KEY_CACHE));
             // docopt requires -u to be set, so we should be safe to unwrap here
             let url = config.url().as_ref().unwrap();
-            let filename = try!(depot::client::fetch_key(&url, &config.key(), KEY_CACHE));
+            let filename = try!(depot_client::fetch_key(&url, &config.key(), KEY_CACHE));
             try!(gpg::import(&filename));
         }
     }

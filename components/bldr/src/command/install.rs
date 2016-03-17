@@ -29,10 +29,13 @@
 
 use std::fs;
 
-use fs::PACKAGE_CACHE;
+use core::fs::PACKAGE_CACHE;
+use core::package::PackageIdent;
+use depot_core::data_object;
+use depot_client;
+
 use error::BldrResult;
-use package::{Package, PackageIdent};
-use depot::{self, data_object};
+use package::Package;
 
 static LOGKEY: &'static str = "CI";
 
@@ -44,7 +47,7 @@ static LOGKEY: &'static str = "CI";
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
 pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> BldrResult<data_object::Package> {
-    let package = try!(depot::client::show_package(url, ident.as_ref()));
+    let package = try!(depot_client::show_package(url, ident.as_ref()));
     try!(fs::create_dir_all(PACKAGE_CACHE));
     for dep in &package.tdeps {
         try!(install(url, &dep));
@@ -60,9 +63,9 @@ fn install<P: AsRef<PackageIdent>>(url: &str, package: &P) -> BldrResult<()> {
                       package.as_ref());
         }
         Err(_) => {
-            let mut archive = try!(depot::client::fetch_package(url,
-                                                                package.as_ref(),
-                                                                PACKAGE_CACHE));
+            let mut archive = try!(depot_client::fetch_package(url,
+                                                               package.as_ref(),
+                                                               PACKAGE_CACHE));
             let package = try!(archive.ident());
             try!(archive.unpack());
             outputln!("Installed {}", package);

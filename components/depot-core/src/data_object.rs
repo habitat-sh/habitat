@@ -5,14 +5,13 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::fmt;
+use std::result;
+use std::slice;
 
+use bldr::{package, Error, Result};
+use libc::c_void;
+use lmdb_sys;
 use rustc_serialize::{Encoder, Decoder, Encodable, Decodable};
-
-use error::{BldrResult, ErrorKind};
-use package;
-use super::data_store::{FromMdbValue, ToMdbValue};
-
-static LOGKEY: &'static str = "DO";
 
 pub trait DataObject : Encodable + Decodable {
     type Key: ToMdbValue + FromMdbValue + fmt::Display;
@@ -83,7 +82,7 @@ impl AsRef<str> for PackageIdent {
 }
 
 impl Encodable for PackageIdent {
-    fn encode<S: Encoder>(&self, s: &mut S) -> Result<(), S::Error> {
+    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
         try!(s.emit_struct("PackageIdent", self.len() as usize, |s| {
             try!(s.emit_struct_field("origin", 0, |s| self.0.origin.encode(s)));
             try!(s.emit_struct_field("name", 1, |s| self.0.name.encode(s)));
@@ -100,7 +99,7 @@ impl Encodable for PackageIdent {
 }
 
 impl Decodable for PackageIdent {
-    fn decode<D: Decoder>(d: &mut D) -> Result<Self, D::Error> {
+    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
         d.read_struct("PackageIdent", 4, |d| {
             let origin: String = try!(d.read_struct_field("origin", 0, |d| Decodable::decode(d)));
             let name: String = try!(d.read_struct_field("name", 1, |d| Decodable::decode(d)));
@@ -173,15 +172,15 @@ pub struct Package {
 }
 
 impl Package {
-    pub fn from_archive(archive: &mut package::PackageArchive) -> BldrResult<Self> {
+    pub fn from_archive(archive: &mut package::PackageArchive) -> Result<Self> {
         let ident = match archive.ident() {
             Ok(value) => {
                 if !value.fully_qualified() {
-                    return Err(bldr_error!(ErrorKind::InvalidPackageIdent(value.to_string())));
+                    return Err(Error::InvalidPackageIdent(value.to_string()));
                 }
                 PackageIdent::new(value)
             }
-            Err(e) => return Err(e),
+            Err(e) => return Err(Error::from(e)),
         };
         Ok(Package {
             ident: ident,
@@ -195,23 +194,36 @@ impl Package {
     }
 }
 
-impl Into<package::Package> for Package {
-    fn into(self) -> package::Package {
-        package::Package {
-            origin: self.ident.0.origin,
-            name: self.ident.0.name,
-            version: self.ident.0.version.unwrap(),
-            release: self.ident.0.release.unwrap(),
-            deps: self.deps.into_iter().map(|d| d.into()).collect(),
-            tdeps: self.tdeps.into_iter().map(|d| d.into()).collect(),
-        }
-    }
-}
-
 impl DataObject for Package {
     type Key = String;
 
     fn ident(&self) -> &String {
         &self.ident.1
+    }
+}
+
+pub unsafe trait ToMdbValue {
+    fn to_mdb_value(&self) -> lmdb_sys::MDB_val;
+}
+
+unsafe impl ToMdbValue for String {
+    fn to_mdb_value(&self) -> lmdb_sys::MDB_val {
+        let t: &str = self;
+        lmdb_sys::MDB_val {
+            mv_data: t.as_ptr() as *mut c_void,
+            mv_size: t.len(),
+        }
+    }
+}
+
+pub unsafe trait FromMdbValue {
+    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self;
+}
+
+unsafe impl FromMdbValue for String {
+    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self {
+        let bytes: Vec<u8> = slice::from_raw_parts(value.mv_data as *const u8, value.mv_size)
+                                 .to_vec();
+        String::from_utf8(bytes).unwrap()
     }
 }

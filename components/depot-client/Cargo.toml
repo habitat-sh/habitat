@@ -1,0 +1,15 @@
+[package]
+name = "bldr_depot_client"
+version = "0.4.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+
+[dependencies]
+hyper = "*"
+log = "*"
+rustc-serialize = "*"
+
+[dependencies.bldr_core]
+path = "../core"
+
+[dependencies.bldr_depot_core]
+path = "../depot-core"

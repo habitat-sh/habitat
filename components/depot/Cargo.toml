@@ -1,0 +1,45 @@
+[package]
+name = "bldr_depot"
+version = "0.4.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+
+[[bin]]
+name = "bldr-depot"
+doc = false
+
+[dependencies]
+bincode = "*"
+bitflags = "*"
+env_logger = "*"
+gpgme = "*"
+hyper = "*"
+iron = "*"
+libc = "*"
+lazy_static = "*"
+lmdb-sys = "*"
+log = "*"
+openssl = "*"
+regex = "*"
+router = "*"
+rust-crypto = "*"
+rustc-serialize = "*"
+time = "*"
+toml = "*"
+urlencoded = "*"
+walkdir = "*"
+
+[dependencies.clap]
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.bldr_core]
+path = "../core"
+
+[dependencies.bldr_depot_core]
+path = "../depot-core"
+
+[dependencies.libarchive]
+path = "../../vendor/libarchive-rust"
+
+[dev-dependencies]
+url = "*"
+uuid = "*"

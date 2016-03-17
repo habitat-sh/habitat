@@ -18,9 +18,11 @@ use std::thread;
 use std::process::{Command, Stdio};
 use std::io::prelude::*;
 
-use fs::SERVICE_HOME;
+use core::package::PackageIdent;
+use core::fs::SERVICE_HOME;
+
 use error::{BldrResult, BldrError, ErrorKind};
-use package::{Package, PackageIdent};
+use package::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
 use config::Config;
