@@ -6,10 +6,8 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 [dependencies]
 gpgme = "*"
 lazy_static = "*"
+libarchive = "*"
 log = "*"
 regex = "*"
 rust-crypto = "*"
 rustc-serialize = "*"
-
-[dependencies.libarchive]
-path = "../../vendor/libarchive-rust"
