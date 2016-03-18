@@ -60,7 +60,7 @@ Get a TOML output with all the configuration values.
 Run the container again overriding the configuration:
 
 ```
-docker run -e BLDR_redis='tcp-backlog = 128' -it quay.io/bldr/redis
+docker run -e BLDR_REDIS='tcp-backlog = 128' -it quay.io/bldr/redis
 ```
 
 See the message gone.
