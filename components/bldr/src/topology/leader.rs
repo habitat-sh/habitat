@@ -4,13 +4,12 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use topology::{self, standalone, State, Worker};
+use topology::{self, standalone, State, Worker, stop};
 use state_machine::StateMachine;
 use error::{BldrResult, BldrError};
 use package::Package;
 use config::Config;
 use census::MIN_QUORUM;
-use package::Signal;
 use gossip::server;
 
 static LOGKEY: &'static str = "TL";
@@ -125,9 +124,10 @@ fn state_check_for_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
             }
             outputln!("Stopping the service to ensure there is only one master");
             {
-                let package = worker.package.write().unwrap();
-                if let Err(e) = package.signal(Signal::Stop) {
-                    outputln!("{}", e);
+                if worker.child_info.is_some() {
+                    if let Err(e) = stop(worker.child_info.as_ref().unwrap().pid) {
+                        outputln!("{}", e);
+                    }
                 }
             }
         } else {

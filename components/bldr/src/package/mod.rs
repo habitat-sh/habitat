@@ -18,8 +18,11 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::string::ToString;
 use std::io::prelude::*;
-use std::process::Command;
 use std::env;
+use std::os::unix::fs::MetadataExt;
+
+use time;
+use time::Timespec;
 
 use core::fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME};
 use core::package::{version_sort, MetaFile, PackageIdent};
@@ -36,34 +39,7 @@ const INIT_FILENAME: &'static str = "init";
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
-
-pub enum Signal {
-    Status,
-    Up,
-    Down,
-    Once,
-    Pause,
-    Cont,
-    Hup,
-    Alarm,
-    Interrupt,
-    Quit,
-    One,
-    Two,
-    Term,
-    Kill,
-    Exit,
-    Start,
-    Stop,
-    Reload,
-    Restart,
-    Shutdown,
-    ForceStop,
-    ForceReload,
-    ForceRestart,
-    ForceShutdown,
-    TryRestart,
-}
+const PIDFILE_NAME: &'static str = "PID";
 
 #[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct Package {
@@ -74,6 +50,7 @@ pub struct Package {
     pub deps: Vec<PackageIdent>,
     pub tdeps: Vec<PackageIdent>,
 }
+
 
 impl Package {
     pub fn deps<P: AsRef<Path>>(ident: &PackageIdent, home: P) -> BldrResult<Vec<PackageIdent>> {
@@ -194,67 +171,98 @@ impl Package {
         }
     }
 
-    pub fn signal(&self, signal: Signal) -> BldrResult<String> {
-        let runit_pkg = try!(Self::load(&PackageIdent::new("chef", "runit", None, None), None));
-        let signal_arg = match signal {
-            Signal::Status => "status",
-            Signal::Up => "up",
-            Signal::Down => "down",
-            Signal::Once => "once",
-            Signal::Pause => "pause",
-            Signal::Cont => "cont",
-            Signal::Hup => "hup",
-            Signal::Alarm => "alarm",
-            Signal::Interrupt => "interrupt",
-            Signal::Quit => "quit",
-            Signal::One => "1",
-            Signal::Two => "2",
-            Signal::Term => "term",
-            Signal::Kill => "kill",
-            Signal::Exit => "exit",
-            Signal::Start => "start",
-            Signal::Stop => "stop",
-            Signal::Reload => "reload",
-            Signal::Restart => "restart",
-            Signal::Shutdown => "shutdown",
-            Signal::ForceStop => "force-stop",
-            Signal::ForceReload => "force-reload",
-            Signal::ForceRestart => "force-restart",
-            Signal::ForceShutdown => "force-shutdown",
-            Signal::TryRestart => "try-restart",
+    /// Create a pid file for a package
+    /// The existence of this file does not guarantee that a
+    /// process exists at the PID contained within.
+    pub fn create_pidfile(&self, pid: u32) -> BldrResult<()> {
+        let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
+        let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
+        debug!("Creating PID file for child {} -> {}", pid_file, pid);
+        let mut f = try!(File::create(pid_file));
+        try!(write!(f, "{}", pid));
+        Ok(())
+    }
+
+
+    /// Remove a pidfile for this package if it exists.
+    /// Do NOT fail if there is an error removing the PIDFILE
+    pub fn cleanup_pidfile(&self) -> BldrResult<()> {
+        let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
+        let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
+        debug!("Attempting to clean up pid file {}", &pid_file);
+        match fs::remove_file(pid_file) {
+            Ok(_) => {
+                debug!("Removed pid file");
+            }
+            Err(e) => {
+                debug!("Error removing pidfile: {}, continuing", e);
+            }
         };
-        let output = try!(Command::new(runit_pkg.join_path("bin/sv"))
-                              .arg(signal_arg)
-                              .arg(&format!("{}/{}", SERVICE_HOME, self.name))
-                              .output());
-        match output.status.success() {
-            true => {
-                let stdout = try!(String::from_utf8(output.stdout));
-                return Ok(stdout);
-            }
-            false => {
-                match signal {
-                    Signal::ForceShutdown => {
-                        let outstr = try!(String::from_utf8(output.stdout));
-                        return Ok(outstr);
-                    }
-                    _ => {}
+        Ok(())
+    }
+
+    /// attempt to read the pidfile for this package.
+    /// If the pidfile does not exist, then return None,
+    /// otherwise, return Some(pid, uptime_seconds).
+    pub fn read_pidfile(&self) -> BldrResult<Option<(u32, Timespec)>> {
+        let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
+        let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
+        debug!("Reading pidfile {}", &pid_file);
+
+        // check to see if the file exists
+        // if it does, we'll return the start_time
+        let start_time = match fs::metadata(&pid_file) {
+            Ok(metadata) => {
+                if metadata.is_file() {
+                    Timespec::new(metadata.ctime(),0 /* nanos */)
+                } else {
+                    return Ok(None);
                 }
-                debug!("Failed to send signal to the process supervisor for {}",
-                       self.name);
-                let outstr = try!(String::from_utf8(output.stdout));
-                let errstr = try!(String::from_utf8(output.stderr));
-                debug!("Supervisor (O): {}", outstr);
-                debug!("Supervisor (E): {}", errstr);
-                debug!("Supervisor Code {:?}", output.status.code());
-                return Err(bldr_error!(ErrorKind::SupervisorSignalFailed));
             }
+            Err(_) => {
+                debug!("No pidfile detected");
+                return Ok(None);
+            }
+        };
+
+        let mut f = try!(File::open(pid_file));
+        let mut contents = String::new();
+        try!(f.read_to_string(&mut contents));
+        debug!("pidfile contents = {}", contents);
+        let pid = match contents.parse::<u32>() {
+            Ok(pid) => pid,
+            Err(e) => {
+                debug!("Error reading pidfile: {}", e);
+                return Err(bldr_error!(ErrorKind::InvalidPidFile))
+            }
+        };
+        Ok(Some((pid, start_time)))
+    }
+
+    /// take a timestamp in seconds since epoch,
+    /// calculate how many seconds before right now
+    /// this timestamp occurs.
+    fn seconds_before_now(t0: Timespec) -> i64 {
+        let now = time::now().to_timespec();
+        (now - t0).num_seconds()
+    }
+
+    /// return a "down" or "run" with uptime in seconds status message
+    pub fn status_from_pid(&self, childinfo: Option<(u32, Timespec)>) -> BldrResult<String> {
+        match childinfo{
+            Some((pid, start_time)) => {
+                let diff = Self::seconds_before_now(start_time);
+                let s = format!("run: (pid {}) {}s\n", pid, diff);
+                Ok(s)
+            }
+            None => Ok("down".to_string()),
         }
     }
 
-    /// Get status of running package.
-    pub fn status(&self) -> BldrResult<String> {
-        self.signal(Signal::Status)
+    /// read the pidfile to get a status
+    pub fn status_via_pidfile(&self) -> BldrResult<String> {
+        let pidinfo = try!(self.read_pidfile());
+        self.status_from_pid(pidinfo)
     }
 
     /// A vector of ports we expose
@@ -457,7 +465,7 @@ impl Package {
                 self.release)
     }
 
-    /// Run iniitalization hook if present
+    /// Run initialization hook if present
     pub fn initialize(&self, context: &ServiceConfig) -> BldrResult<()> {
         if let Some(hook) = self.hooks().init_hook {
             match hook.run(Some(context)) {
@@ -469,7 +477,7 @@ impl Package {
         }
     }
 
-    /// Run reconfigure hook if present
+    /// Run reconfigure hook if present, DOES NOT restart the package
     pub fn reconfigure(&self, context: &ServiceConfig) -> BldrResult<()> {
         if let Some(hook) = self.hooks().reconfigure_hook {
             match hook.run(Some(context)) {
@@ -477,23 +485,18 @@ impl Package {
                 Err(e) => Err(e),
             }
         } else {
-            match self.signal(Signal::Restart) {
-                Ok(_) => Ok(()),
-                Err(e) => {
-                    let output = format!("failed to run default hook: {}", e);
-                    Err(bldr_error!(ErrorKind::HookFailed(HookType::Reconfigure, -1, output)))
-                }
-            }
+            Ok(())
         }
     }
 
+    /// called from outside a topo worker, this will hit the pidfile
     pub fn supervisor_running(&self) -> bool {
-        let res = self.signal(Signal::Status);
+        let res = self.status_via_pidfile();
         match res {
             Ok(_) => return true,
             Err(e) => {
                 debug!("Supervisor not running?: {:?}", e);
-                return false;
+                return false
             }
         }
     }
@@ -520,9 +523,11 @@ impl Package {
                 Err(e) => Err(BldrError::from(e)),
             }
         } else {
-            let status_output = try!(self.signal(Signal::Status));
+            let status_output = try!(self.status_via_pidfile());
             let last_config = try!(self.last_config());
-            Ok(health_check::CheckResult::ok(format!("{}\n{}", status_output, last_config)))
+            Ok(health_check::CheckResult::ok(format!("{}\n{}",
+                                                     status_output,
+                                                     last_config)))
         }
     }
 
@@ -638,7 +643,10 @@ impl Package {
 
 impl Into<PackageIdent> for Package {
     fn into(self) -> PackageIdent {
-        PackageIdent::new(self.origin, self.name, Some(self.version), Some(self.release))
+        PackageIdent::new(self.origin,
+                          self.name,
+                          Some(self.version),
+                          Some(self.release))
     }
 }
 

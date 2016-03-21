@@ -15,17 +15,17 @@
 //! * **Running**: The state for the 'normal' operating condition.
 
 use std::thread;
-use std::process::{Command, Stdio};
+use std::process::{Command, Stdio, Child};
 use std::io::prelude::*;
 
-use core::package::PackageIdent;
 use core::fs::SERVICE_HOME;
 
 use error::{BldrResult, BldrError, ErrorKind};
 use package::Package;
 use state_machine::StateMachine;
-use topology::{self, State, Worker};
+use topology::{self, State, Worker, ChildInfo};
 use config::Config;
+use time;
 
 static LOGKEY: &'static str = "TS";
 
@@ -52,10 +52,42 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
+
+/// Consume output from a child process until EOF, then finish
+fn child_reader(child: &mut Child, package_name: String) -> BldrResult<()> {
+    let mut c_stdout = match child.stdout {
+        Some(ref mut s) => s,
+        None => return Err(bldr_error!(ErrorKind::UnpackFailed)),
+    };
+
+    let mut line = output_format!(preamble &package_name, logkey "SO");
+    loop {
+        let mut buf = [0u8; 1]; // Our byte buffer
+        let len = try!(c_stdout.read(&mut buf));
+        match len {
+            0 => {
+                // 0 == EOF, so stop writing and finish progress
+                break;
+            }
+            _ => {
+                // Write the buffer to the BufWriter on the Heap
+                let buf_string = String::from_utf8_lossy(&buf[0 .. len]);
+                line.push_str(&buf_string);
+                if line.contains("\n") {
+                    print!("{}", line);
+                    line = output_format!(preamble &package_name, logkey "O");
+                }
+            }
+        }
+    }
+    debug!("child_reader exiting");
+    Ok(())
+}
+
 /// Start the service.
 ///
 /// 1. Finds the package
-/// 1. Starts runit for the `run` script
+/// 1. Starts the package `run` script
 /// 1. Spawns the supervisor thread
 ///
 /// # Failures
@@ -65,51 +97,40 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
 #[cfg_attr(rustfmt, rustfmt_skip)]
 pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
     outputln!(preamble &worker.package_name, "Starting");
-    let package = worker.package_name.clone();
-    let runit_pkg = try!(Package::load(&PackageIdent::new("chef", "runit", None, None), None));
-    let mut child = try!(Command::new(runit_pkg.join_path("bin/runsv"))
-                             .arg(&format!("{}/{}", SERVICE_HOME, worker.package_name))
-                             .stdin(Stdio::null())
-                             .stdout(Stdio::piped())
-                             .stderr(Stdio::piped())
-                             .spawn());
-    worker.supervisor_id = Some(child.id());
-    let supervisor_thread = try!(thread::Builder::new()
-                 .name(String::from("supervisor"))
-                 .spawn(move || -> BldrResult<()> {
-                     {
-                         let mut c_stdout = match child.stdout {
-                             Some(ref mut s) => s,
-                             None => return Err(bldr_error!(ErrorKind::UnpackFailed)),
-                         };
+    let package_name = worker.package_name.clone();
+    let service_dir = format!("{}/{}", SERVICE_HOME, worker.package_name);
+    // call the "run" script in the specified package
+    let cmd = format!("{}/run", service_dir);
 
-                         let mut line = output_format!(preamble &package, logkey "SO");
-                         loop {
-                             let mut buf = [0u8; 1]; // Our byte buffer
-                             let len = try!(c_stdout.read(&mut buf));
-                             match len {
-                                 0 => {
-// 0 == EOF, so stop writing and finish progress
-                                     break;
-                                 }
-                                 _ => {
-// Write the buffer to the BufWriter on the Heap
-                                     let buf_string = String::from_utf8_lossy(&buf[0 .. len]);
-                                     line.push_str(&buf_string);
-                                     if line.contains("\n") {
-                                         print!("{}", line);
-                                         line = output_format!(preamble &package, logkey "O");
-                                     }
-                                 }
-                             }
-                         }
-                     }
-                     Ok(())
-                 }));
+    // create a PID file so we can find the supervisor by
+    // package name elsewhere in the code.
+    let package = worker.package.read().unwrap();
+
+    // if we are restarting, then remove the previous pidfile just to
+    // be a good citizen
+    try!(package.cleanup_pidfile());
+
+    let mut child = try!(Command::new(cmd)
+                         .stdin(Stdio::null())
+                         .stdout(Stdio::piped())
+                         .stderr(Stdio::piped())
+                         .spawn());
+    let child_info = ChildInfo {pid: child.id(), start_time: time::now().to_timespec()};
+    worker.child_info = Some(child_info);
+    try!(package.create_pidfile(child.id()));
+    let supervisor_thread = try!(thread::Builder::new()
+                                 .name(String::from("supervisor"))
+                                 .spawn(move || -> BldrResult<()> {
+                                    child_reader(&mut child, package_name)
+                                 }));
     worker.supervisor_thread = Some(supervisor_thread);
     Ok((State::Running, 0))
 }
 
-pub fn state_running(_worker: &mut Worker) -> BldrResult<(State, u64)> {
-    Ok((State::Running, 0))
+pub fn state_running(worker: &mut Worker) -> BldrResult<(State, u64)> {
+    if let Some(state) = worker.return_state {
+        Ok((state,0))
+    } else {
+        Ok((State::Running, 0))
+    }
 }

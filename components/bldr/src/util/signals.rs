@@ -29,8 +29,9 @@ static mut CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
 static mut SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 
 // Functions from POSIX libc.
-extern {
+extern "C" {
     fn signal(sig: u32, cb: unsafe extern "C" fn(u32)) -> unsafe extern "C" fn(u32);
+    fn kill(pid: i32, sig: u32) -> u32;
 }
 
 unsafe extern "C" fn handle_signal(signal: u32) {
@@ -46,7 +47,7 @@ pub enum Message {
 }
 
 /// `i32` representation of each Unix Signal of interest.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Signal {
     /// terminate process - terminal line hangup
     SIGHUP = 1,
@@ -54,6 +55,8 @@ pub enum Signal {
     SIGINT = 2,
     /// create core image - quit program
     SIGQUIT = 3,
+    /// Kill a process
+    SIGKILL = 9,
     /// terminate process - real-time timer expired
     SIGALRM = 14,
     /// terminate process - software termination signal
@@ -147,6 +150,10 @@ impl actor::GenServer for SignalNotifier {
                                                   None);
                     }
                 }
+
+                // clear out the signal so we don't sent it repeatedly
+                CAUGHT.store(false, Ordering::SeqCst);
+                SIGNAL.store(0 as usize, Ordering::SeqCst);
             }
         }
         HandleResult::NoReply(Some(TIMEOUT_MS))
@@ -166,5 +173,17 @@ fn set_signal_handlers() {
         signal(Signal::SIGTERM as u32, handle_signal);
         signal(Signal::SIGUSR1 as u32, handle_signal);
         signal(Signal::SIGUSR2 as u32, handle_signal);
+    }
+}
+
+/// send a Unix signal to a pid
+pub fn send_signal_to_pid(pid: i32, sig: Signal) -> BldrResult<()>  {
+    let s = sig as u32;
+    debug!("sending signal {} to pid {}", s, pid);
+    unsafe { let result = kill(pid, s);
+        match result {
+            0 => Ok(()),
+            _ => return Err(bldr_error!(ErrorKind::SignalFailed))
+        }
     }
 }
