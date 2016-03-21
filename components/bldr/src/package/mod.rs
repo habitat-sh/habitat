@@ -37,6 +37,7 @@ use service_config::ServiceConfig;
 static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
 const HEALTHCHECK_FILENAME: &'static str = "health_check";
+const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
 const PIDFILE_NAME: &'static str = "PID";
@@ -214,7 +215,7 @@ impl Package {
         let start_time = match fs::metadata(&pid_file) {
             Ok(metadata) => {
                 if metadata.is_file() {
-                    Timespec::new(metadata.ctime(),0 /* nanos */)
+                    Timespec::new(metadata.ctime(), 0 /* nanos */)
                 } else {
                     return Ok(None);
                 }
@@ -233,7 +234,7 @@ impl Package {
             Ok(pid) => pid,
             Err(e) => {
                 debug!("Error reading pidfile: {}", e);
-                return Err(bldr_error!(ErrorKind::InvalidPidFile))
+                return Err(bldr_error!(ErrorKind::InvalidPidFile));
             }
         };
         Ok(Some((pid, start_time)))
@@ -249,7 +250,7 @@ impl Package {
 
     /// return a "down" or "run" with uptime in seconds status message
     pub fn status_from_pid(&self, childinfo: Option<(u32, Timespec)>) -> BldrResult<String> {
-        match childinfo{
+        match childinfo {
             Some((pid, start_time)) => {
                 let diff = Self::seconds_before_now(start_time);
                 let s = format!("run: (pid {}) {}s\n", pid, diff);
@@ -345,6 +346,7 @@ impl Package {
         match *hook_type {
             HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
+            HookType::FileUpdated => base.join(FILEUPDATED_FILENAME),
             HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
             HookType::Run => base.join(RUN_FILENAME),
         }
@@ -355,6 +357,7 @@ impl Package {
         match *hook_type {
             HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
+            HookType::FileUpdated => base.join(FILEUPDATED_FILENAME),
             HookType::Reconfigure => base.join(RECONFIGURE_FILENAME),
             HookType::Run => base.join(RUN_FILENAME),
         }
@@ -399,6 +402,9 @@ impl Package {
         try!(fs::create_dir_all(self.srvc_join_path("toml")));
         try!(fs::create_dir_all(self.srvc_join_path("data")));
         try!(fs::create_dir_all(self.srvc_join_path("var")));
+        try!(fs::create_dir_all(self.srvc_join_path("files")));
+        try!(util::perm::set_permissions(&self.srvc_join_path("files"), "0700"));
+        try!(util::perm::set_owner(&self.srvc_join_path("files"), "bldr:bldr"));
         try!(util::perm::set_permissions(&self.srvc_join_path("toml"), "0700"));
         try!(util::perm::set_owner(&self.srvc_join_path("data"), "bldr:bldr"));
         try!(util::perm::set_permissions(&self.srvc_join_path("data"), "0700"));
@@ -489,6 +495,18 @@ impl Package {
         }
     }
 
+    /// Run file_updated hook if present
+    pub fn file_updated(&self, context: &ServiceConfig) -> BldrResult<()> {
+        if let Some(hook) = self.hooks().file_updated_hook {
+            match hook.run(Some(context)) {
+                Ok(_) => Ok(()),
+                Err(e) => Err(e),
+            }
+        } else {
+            Ok(())
+        }
+    }
+
     /// called from outside a topo worker, this will hit the pidfile
     pub fn supervisor_running(&self) -> bool {
         let res = self.status_via_pidfile();
@@ -496,7 +514,7 @@ impl Package {
             Ok(_) => return true,
             Err(e) => {
                 debug!("Supervisor not running?: {:?}", e);
-                return false
+                return false;
             }
         }
     }
@@ -525,9 +543,7 @@ impl Package {
         } else {
             let status_output = try!(self.status_via_pidfile());
             let last_config = try!(self.last_config());
-            Ok(health_check::CheckResult::ok(format!("{}\n{}",
-                                                     status_output,
-                                                     last_config)))
+            Ok(health_check::CheckResult::ok(format!("{}\n{}", status_output, last_config)))
         }
     }
 

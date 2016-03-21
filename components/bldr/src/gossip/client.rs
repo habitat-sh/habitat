@@ -72,6 +72,11 @@ impl Client {
         Ok(())
     }
 
+    pub fn inject(&mut self, rumors_for_remote: RumorList) -> BldrResult<()> {
+        try!(self.send_message(Protocol::Inject(rumors_for_remote)));
+        Ok(())
+    }
+
     /// Receives a message.
     ///
     /// # Errors

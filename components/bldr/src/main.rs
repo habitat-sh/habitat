@@ -120,6 +120,13 @@ fn config_from_args(args: &ArgMatches,
     if sub_args.value_of("gossip-permanent").is_some() {
         config.set_gossip_permanent(true);
     }
+    if let Some(sg) = sub_args.value_of("service-group") {
+        config.set_service_group(sg.to_string());
+    }
+    if let Some(fp) = sub_args.value_of("file-path") {
+        config.set_file_path(fp.to_string());
+    }
+    config.set_version_number(value_t!(sub_args, "version-number", u64).unwrap_or(0));
     if args.value_of("verbose").is_some() {
         bldr::output::set_verbose(true);
     }
@@ -322,6 +329,36 @@ fn main() {
                                             .required(true)
                                             .help("Name of key"));
     let sub_list_keys = SubCommand::with_name("list-keys").about("List user and service keys");
+    let sub_inject_config_file =
+        SubCommand::with_name("inject-config-file")
+            .about("Inject a config file")
+            .arg(Arg::with_name("service-group")
+                     .help("Target service group for this configuration (Ex: redis.default)")
+                     .long("service-group")
+                     .short("s")
+                     .value_name("SERVICE_GROUP")
+                     .takes_value(true)
+                     .required(true))
+            .arg(Arg::with_name("gossip-peer")
+                     .help("The listen string of gossip peer (Ex: ip:port)")
+                     .long("gossip-peer")
+                     .short("p")
+                     .value_name("PEER")
+                     .takes_value(true)
+                     .multiple(true)
+                     .required(true))
+            .arg(Arg::with_name("version-number")
+                     .help("Version number for the config file (Ex: 42)")
+                     .long("version-number")
+                     .short("n")
+                     .value_name("VERSION")
+                     .takes_value(true)
+                     .required(true))
+            .arg(Arg::with_name("file-path")
+                     .help("Path to local config file on disk (Ex: /tmp/config.toml)")
+                     .index(1)
+                     .value_name("PATH")
+                     .required(true));
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
                          .arg(Arg::with_name("package")
@@ -337,7 +374,6 @@ fn main() {
                             .global(true)
                             .help("Verbose output; shows line numbers"))
                    .arg(Arg::with_name("no-color")
-                            .short("n")
                             .long("no-color")
                             .global(true)
                             .help("Turn ANSI color off :("))
@@ -355,6 +391,7 @@ fn main() {
                    .subcommand(sub_download_depot_key)
                    .subcommand(sub_upload_depot_key)
                    .subcommand(sub_list_keys)
+                   .subcommand(sub_inject_config_file)
                    .subcommand(sub_config);
     let matches = args.get_matches();
 
@@ -378,6 +415,7 @@ fn main() {
         Command::GenerateServiceKey => generate_service_key(&config),
         Command::GenerateUserKey => generate_user_key(&config),
         Command::ImportKey => import_key(&config),
+        Command::InjectConfigFile => inject_config_file(&config),
         Command::Install => install(&config),
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
@@ -516,5 +554,15 @@ fn decrypt(config: &Config) -> BldrResult<()> {
     outputln!("Decrypting");
     try!(key::decrypt_and_verify(&config));
     outputln!("Finished decrypting");
+    Ok(())
+}
+
+/// Inject a config file
+fn inject_config_file(config: &Config) -> BldrResult<()> {
+    outputln!("Injecting {} into {}",
+              config.file_path(),
+              config.service_group());
+    try!(inject::inject(&config));
+    outputln!("Finished injecting");
     Ok(())
 }
