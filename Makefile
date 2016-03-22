@@ -53,11 +53,8 @@ unit: image ## run unit tests with cargo
 	$(run) shell cargo test --lib --manifest-path components/depot-client/Cargo.toml
 
 functional: image ## run the functional tests
-	$(run) shell cargo test --test functional --manifest-path components/core/Cargo.toml
 	$(run) shell cargo test --test functional --manifest-path components/bldr/Cargo.toml
-	$(run) shell cargo test --test functional --manifest-path components/depot-core/Cargo.toml
 	$(run) shell cargo test --test functional --manifest-path components/depot/Cargo.toml
-	$(run) shell cargo test --test functional --manifest-path components/depot-client/Cargo.toml
 
 clean: ## clean up our docker environment
 	rm -rf components/bldr/target/debug components/bldr/target/release
