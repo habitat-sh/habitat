@@ -41,6 +41,27 @@ pub enum Command {
     Upload,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum UpdateStrategy {
+    None,
+    AtOnce,
+}
+
+impl UpdateStrategy {
+    pub fn from_str(strategy: &str) -> Self {
+        match strategy {
+            "none" => UpdateStrategy::None,
+            "at-once" => UpdateStrategy::AtOnce,
+            s => panic!("Invalid update strategy {}", s),
+        }
+    }
+}
+impl Default for UpdateStrategy {
+    fn default() -> UpdateStrategy {
+        UpdateStrategy::None
+    }
+}
+
 impl FromStr for Command {
     type Err = BldrError;
     fn from_str(s: &str) -> Result<Command, BldrError> {
@@ -94,6 +115,7 @@ pub struct Config {
     outfile: Option<String>,
     gossip_peer: Vec<String>,
     gossip_permanent: bool,
+    update_strategy: UpdateStrategy,
 }
 
 impl Config {
@@ -111,6 +133,16 @@ impl Config {
     /// Return the archive
     pub fn archive(&self) -> &str {
         &self.archive
+    }
+
+    pub fn set_update_strategy(&mut self, strat: UpdateStrategy) -> &mut Config {
+        self.update_strategy = strat;
+        self
+    }
+
+    /// Return the command we used
+    pub fn update_strategy(&self) -> UpdateStrategy {
+        self.update_strategy.clone()
     }
 
     /// Set the `Command` we used

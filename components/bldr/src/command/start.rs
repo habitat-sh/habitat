@@ -55,7 +55,7 @@ use core::fs::PACKAGE_CACHE;
 use depot_client;
 
 use error::{BldrResult, ErrorKind};
-use config::Config;
+use config::{Config, UpdateStrategy};
 use package::Package;
 use topology::{self, Topology};
 use command::install;
@@ -73,32 +73,38 @@ static LOGKEY: &'static str = "CS";
 pub fn package(config: &Config) -> BldrResult<()> {
     match Package::load(config.package(), None) {
         Ok(package) => {
-            if let Some(ref url) = *config.url() {
-                outputln!("Checking remote for newer versions...");
-                // It is important to pass `config.package()` to `show_package()` instead of the
-                // package identifier of the loaded package. This will ensure that if the operator
-                // starts a package while specifying a version number, they will only automaticaly
-                // receive release updates for the started package.
-                //
-                // If the operator does not specify a version number they will automatically receive
-                // updates for any releases, regardless of version number, for the started  package.
-                let latest_pkg: Package = try!(depot_client::show_package(&url, config.package()))
-                                              .into();
-                if latest_pkg > package {
-                    outputln!("Downloading latest version from remote: {}", &latest_pkg);
-                    let archive = try!(depot_client::fetch_package(&url,
-                                                                   &latest_pkg.into(),
-                                                                   PACKAGE_CACHE));
-                    try!(archive.verify());
-                    try!(archive.unpack());
-                } else {
-                    outputln!("Already running latest.");
-                };
+            let update_strategy = config.update_strategy();
+            match update_strategy {
+                UpdateStrategy::None => {}
+                _ => {
+                    if let &Some(ref url) = config.url() {
+                        outputln!("Checking remote for newer versions...");
+                        // It is important to pass `config.package()` to `show_package()` instead of the
+                        // package identifier of the loaded package. This will ensure that if the operator
+                        // starts a package while specifying a version number, they will only automaticaly
+                        // receive release updates for the started package.
+                        //
+                        // If the operator does not specify a version number they will automatically receive
+                        // updates for any releases, regardless of version number, for the started  package.
+                        let latest_pkg: Package =
+                            try!(depot_client::show_package(&url, config.package())).into();
+                        if latest_pkg > package {
+                            outputln!("Downloading latest version from remote: {}", &latest_pkg);
+                            let archive = try!(depot_client::fetch_package(&url,
+                                                                           &latest_pkg.into(),
+                                                                           PACKAGE_CACHE));
+                            try!(archive.verify());
+                            try!(archive.unpack());
+                        } else {
+                            outputln!("Already running latest.");
+                        };
+                    }
+                }
             }
             start_package(package, config)
         }
         Err(_) => {
-            outputln!("{} not found in local cache",
+            outputln!("{} is not installed",
                       Yellow.bold().paint(config.package().to_string()));
             match *config.url() {
                 Some(ref url) => {
