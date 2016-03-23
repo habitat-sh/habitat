@@ -31,7 +31,7 @@ do_build() {
 
 do_install() {
   cp -r $PLAN_CONTEXT/bin $pkg_prefix
-  cp -r /src/target/debug/bldr $pkg_prefix/bin
+  cp -r /src/components/bldr/target/debug/bldr $pkg_prefix/bin
   chmod 755 $pkg_prefix/bin
   chmod 755 $pkg_prefix/bin/*
   return 0

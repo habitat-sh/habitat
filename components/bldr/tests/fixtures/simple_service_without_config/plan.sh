@@ -27,7 +27,7 @@ do_build() {
 }
 
 do_install() {
-  cp -r /src/target/debug/bldr $pkg_prefix/bin
+  cp -r /src/components/bldr/target/debug/bldr $pkg_prefix/bin
 	cp -r $BLDR_SRC_CACHE/$pkg_dirname/bin $pkg_prefix
 	chmod 755 $pkg_path/bin
     chmod 755 $pkg_path/bin/*
