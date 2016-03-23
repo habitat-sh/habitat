@@ -12,7 +12,7 @@ import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
 @Component({
     directives: [RouterLink],
     template: `
-    <div class="bldr-linked-accounts">
+    <div class="hab-linked-accounts">
         <h2>Linked Accounts</h2>
         <p>
             You'll need to link a
@@ -43,9 +43,9 @@ import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
                 <div *ngIf="!gitHub.isLinked">
                     <p><button>Link GitHub Account</button></p>
                     <p>
-                        bldr will be able to read and write to all public and private
-                        repositories. We'll only use write access to automatically
-                        configure service hooks.
+                        {{appName}} will be able to read and write to all
+                        public and private repositories. We'll only use write
+                        access to automatically configure service hooks.
                     </p>
                 </div>
             </div>
@@ -56,6 +56,7 @@ import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
 export class LinkedAccountsPageComponent {
     constructor(private store: AppStore) { }
 
+    get appName() { return this.store.getState().appName; }
     get gitHub() { return this.store.getState().gitHub; }
 
     linkGitHubAccount(username) {

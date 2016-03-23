@@ -12,7 +12,7 @@ import {RouterLink} from "angular2/router";
 @Component({
     directives: [GravatarComponent, RouterLink],
     template: `
-    <div class="bldr-organizations">
+    <div class="hab-organizations">
         <h2>Organizations</h2>
         <hr>
         <div *ngIf="orgs.size === 0">
@@ -48,7 +48,7 @@ import {RouterLink} from "angular2/router";
         <div *ngIf="orgs.size > 0">
             <ul>
                 <li *ngFor="#org of orgs">
-                    <a href="#" class="bldr-item-list">
+                    <a href="#" class="hab-item-list">
                         <gravatar size=32 email="{{org.email}}"></gravatar>
                         {{org.name}}
                         <span class="count">

@@ -11,7 +11,7 @@ const md5 = require("blueimp-md5");
     selector: "gravatar",
     inputs: ["defaultStyle", "email", "size"],
     template: `
-    <img class="bldr-gravatar"
+    <img class="hab-gravatar"
         width="{{size || DEFAULT_SIZE}}" height="{{size || DEFAULT_SIZE}}"
         src='{{gravatarUrl(defaultStyle, email, size)}}'>`
 })

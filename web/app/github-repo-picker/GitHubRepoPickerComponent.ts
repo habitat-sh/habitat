@@ -11,7 +11,7 @@ import {List, Map, OrderedSet} from "immutable";
     inputs: ["repos", "onOrgSelect", "onRepoSelect", "selectedOrg"],
     selector: "github-repo-picker",
     template: `
-    <div class="bldr-github-repo-picker">
+    <div class="hab-github-repo-picker">
         <div class="users">
             <h4>Users/Organizations</h4>
             <ul>

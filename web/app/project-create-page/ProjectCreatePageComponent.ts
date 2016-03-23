@@ -13,7 +13,7 @@ import {RouteParams, RouterLink} from "angular2/router";
 @Component({
     directives: [RouterLink],
     template: `
-    <div class="bldr-project-create">
+    <div class="hab-project-create">
         <h2>Add Project</h2>
         <p>
             All projects require a origin (your username or organization

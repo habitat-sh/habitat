@@ -12,7 +12,7 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
 @Component({
     directives: [RouterLink],
     template: `
-    <div class="bldr-packages">
+    <div class="hab-packages">
         <h2>
             <span *ngIf="filter === 'mine'">My Packages</span>
             <span *ngIf="showAll">All Packages</span>
@@ -23,11 +23,11 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
                 {{name}}
             </span>
         </h2>
-        <ul class="bldr-packages-plan-list">
+        <ul class="hab-packages-plan-list">
             <li *ngIf="packages.size === 0">
                 No packages found. Here's how to create one: &hellip;
             </li>
-            <li class="bldr-packages-package" *ngFor="#package of packages">
+            <li class="hab-packages-package" *ngFor="#package of packages">
                 <a [routerLink]="['Package', { origin: package.origin,
                                                name: package.name,
                                                version: package.version,

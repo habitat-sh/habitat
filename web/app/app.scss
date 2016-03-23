@@ -29,15 +29,15 @@
 @import "sign-in-page/sign-in-page";
 @import "sign-up-form/sign-up-form";
 
-.bldr-container {
+.hab-container {
   @include outer-container;
 }
 
-.bldr-main {
+.hab-main {
   @include span-columns(9);
 }
 
-.bldr-footer {
+.hab-footer {
   @include outer-container;
   @include span-columns(12);
   @include pad($base-spacing 0);

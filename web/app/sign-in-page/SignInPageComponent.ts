@@ -11,7 +11,7 @@ import {attemptSignIn, requestRoute} from "../actions/index";
 
 @Component({
     template: `
-    <div class="bldr-sign-in">
+    <div class="hab-sign-in">
         <h2>Sign In</h2>
         <form (ngSubmit)="onSubmit(usernameOrEmail, password)">
             <input placeholder="Username or email" autofocus required #usernameOrEmail>

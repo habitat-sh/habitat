@@ -10,7 +10,7 @@ import {TabComponent} from "./TabComponent";
 @Component({
     selector: "tabs",
     template: `
-    <ul class="bldr-tabs">
+    <ul class="hab-tabs">
         <li *ngFor="#tab of tabs"
             [ngClass]="{ active: tab.active }"
             (click)="selectTab(tab)">{{tab.tabTitle}}</li>

@@ -10,9 +10,9 @@ import {RouterLink} from "angular2/router";
 @Component({
     directives: [RouterLink],
     inputs: ["route"],
-    selector: "bldr-side-nav",
+    selector: "hab-side-nav",
     template: `
-    <nav class="bldr-side-nav">
+    <nav class="hab-side-nav">
         <ul>
             <li><a [class.active]='routeMatch("projects")'
                    [routerLink]="['Projects']">Projects</a></li>

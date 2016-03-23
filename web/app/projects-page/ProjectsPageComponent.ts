@@ -12,7 +12,7 @@ import {fetchProjects} from "../actions/index";
 @Component({
     directives: [RouterLink],
     template: `
-    <div class="bldr-projects">
+    <div class="hab-projects">
         <h2>Projects</h2>
         <a class="button create" [routerLink]="['ProjectCreate']">+ Add Project</a>
         <ul>
@@ -21,7 +21,7 @@ import {fetchProjects} from "../actions/index";
                 <a [routerLink]="['ProjectCreate']">create one</a>?
             </li>
             <li *ngFor="#project of projects">
-                <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="bldr-item-list" href="#">
+                <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="hab-item-list" href="#">
                     {{project.origin}} / {{project.name}}
                 </a>
             </li>

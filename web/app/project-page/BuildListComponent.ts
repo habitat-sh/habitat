@@ -16,7 +16,7 @@ import {duration, friendlyTime, packageString} from "../util";
     <p *ngIf="!builds || builds.size === 0">
         No builds found.
     </p>
-    <ul *ngIf="builds && builds.size > 0" class="bldr-build-list">
+    <ul *ngIf="builds && builds.size > 0" class="hab-build-list">
         <li *ngFor="#build of builds" class="{{build.status}}">
             <span class="status color">{{build.status}}</span>
             <h1>

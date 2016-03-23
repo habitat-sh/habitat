@@ -13,7 +13,7 @@ import {fetchGitHubRepos, onGitHubRepoSelect, setSelectedGitHubOrg}
 @Component({
     directives: [GitHubRepoPickerComponent],
     template: `
-    <div class="bldr-scm-repos">
+    <div class="hab-scm-repos">
         <h2>
             GitHub Repositories
             <span *ngIf="gitHub.username">
