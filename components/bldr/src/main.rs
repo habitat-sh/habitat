@@ -25,7 +25,7 @@ use ansi_term::Colour::Yellow;
 use core::package::PackageIdent;
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
 
-use bldr::config::{Command, Config};
+use bldr::config::{Command, Config, UpdateStrategy};
 use bldr::error::{BldrResult, BldrError, ErrorKind};
 use bldr::command::*;
 use bldr::topology::Topology;
@@ -52,6 +52,9 @@ fn config_from_args(args: &ArgMatches,
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
+    if let Some(ref strategy) = sub_args.value_of("strategy") {
+        config.set_update_strategy(UpdateStrategy::from_str(strategy));
+    }
     if let Some(ref archive) = sub_args.value_of("archive") {
         config.set_archive(archive.to_string());
     }
@@ -164,6 +167,14 @@ fn main() {
             .takes_value(true)
             .help("Output filename")
     };
+    let arg_strategy = || {
+        Arg::with_name("strategy")
+            .long("strategy")
+            .short("s")
+            .takes_value(true)
+            .possible_values(&["none", "at-once"])
+            .help("The update strategy; [default: none].")
+    };
 
     let sub_install = SubCommand::with_name("install")
                           .about("Install a bldr package from a depot")
@@ -180,6 +191,7 @@ fn main() {
                                  .help("Name of package to start"))
                         .arg(arg_url())
                         .arg(arg_group())
+                        .arg(arg_strategy())
                         .arg(Arg::with_name("topology")
                                  .short("t")
                                  .long("topology")
