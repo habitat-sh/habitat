@@ -16,7 +16,7 @@ import {friendlyTime} from "../util";
 @Component({
     directives: [BuildListComponent, RouterLink, TabsComponent, TabComponent],
     template: `
-    <div *ngIf="!project.ui.loading" class="bldr-project">
+    <div *ngIf="!project.ui.loading" class="hab-project">
         <div *ngIf="!project.ui.exists">
             <h2>Project Not Found</h2>
         </div>
@@ -56,7 +56,7 @@ import {friendlyTime} from "../util";
                         <div class="r">
                             <h4>Build Command</h4>
                             <div class="build-command">
-                                bldr install {{project.origin}}/{{project.name}}
+                                hab install {{project.origin}}/{{project.name}}
                                 <a (click)="false" href="#">⎘</a>
                             </div>
                             <h4>Maintainer</h4>
@@ -76,7 +76,7 @@ import {friendlyTime} from "../util";
                         <div class="r">
                             <h4>Build Command</h4>
                             <div class="build-command">
-                                bldr install {{project.origin}}/{{project.name}}
+                                hab install {{project.origin}}/{{project.name}}
                                 <a (click)="false" href="#">⎘</a>
                             </div>
                             <h4>Build Dependencies</h4>

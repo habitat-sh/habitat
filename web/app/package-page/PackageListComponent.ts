@@ -13,7 +13,7 @@ import {isPackage, packageString} from "../util";
     directives: [RouterLink],
     selector: "package-list",
     template: `
-    <ul class="bldr-package-list">
+    <ul class="hab-package-list">
         <li *ngIf="!packages || packages.length === 0">None</li>
         <li *ngFor="#pkg of packages">
             <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['Package', { origin: pkg.origin,

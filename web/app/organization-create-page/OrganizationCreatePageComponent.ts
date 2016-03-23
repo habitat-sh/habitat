@@ -27,7 +27,7 @@ const sidebar = `
 
 @Component({
     template: `
-    <div class="bldr-organization-create">
+    <div class="hab-organization-create">
         <h2>
             Add Organization
             <span *ngIf="saved">Members</span>

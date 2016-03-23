@@ -13,13 +13,13 @@ import {requestRoute} from "../actions/index";
 @Component({
     directives: [SignUpFormComponent],
     template: `
-    <div class="bldr-hero">
-        <div class="bldr-home">
+    <div class="hab-hero">
+        <div class="hab-home">
             <h2>Applications done correctly</h2>
             <h3>Build, deploy, and run your applications well.</h3>
             <h4>For containers, for the cloud, for the data center.</h4>
         </div>
-        <sign-up-form></sign-up-form>
+        <sign-up-form [appName]="appName"></sign-up-form>
     </div>`,
 })
 
@@ -34,7 +34,6 @@ export class HomePageComponent {
         }
     }
 
-    get username() {
-        return this.store.getState().user.username;
-    }
+    get appName() { return this.store.getState().appName; }
+    get username() { return this.store.getState().user.username; }
 }

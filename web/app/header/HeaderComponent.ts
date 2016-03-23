@@ -10,11 +10,11 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
 @Component({
     directives: [UserNavComponent],
     inputs: ["appName"],
-    selector: "bldr-header",
+    selector: "hab-header",
     template: `
-    <header class="bldr-header">
+    <header class="hab-header">
         <h1>{{appName}}</h1>
-        <nav class="bldr-header-user">
+        <nav class="hab-header-user">
             <user-nav></user-nav>
         </nav>
     </header>`,

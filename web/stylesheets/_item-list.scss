@@ -5,7 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 // For lists of things like packages or projects
-.bldr-item-list {
+.hab-item-list {
 
   background-blend-mode: overlay;
   background-color: rgba(255, 255, 255, 0.9);
@@ -25,7 +25,7 @@
       margin: auto $base-spacing * 2 0 auto;
   }
 
-  .bldr-gravatar {
+  .hab-gravatar {
       float: left;
       margin-right: $small-spacing;
   }

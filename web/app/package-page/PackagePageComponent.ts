@@ -15,12 +15,12 @@ import {fetchPackage} from "../actions/index";
     directives: [PackageListComponent, RouterLink],
     template: `
     <div>
-        <div *ngIf="!package" class="bldr-package">
+        <div *ngIf="!package" class="hab-package">
             <h2>Not Found</h2>
             <p>{{packageString(package)}} does not exist.</p>
             <p>Here's how you would make it: &hellip;</p>
         </div>
-        <div *ngIf="package" class="bldr-package">
+        <div *ngIf="package" class="hab-package">
             <h2>
                 <a [routerLink]="['PackagesForOrigin', { origin: package.origin }]">{{package.origin}}</a>
                 /
@@ -30,7 +30,7 @@ import {fetchPackage} from "../actions/index";
                 /
                 {{package.release}}
             </h2>
-            <div class="bldr-package-info">
+            <div class="hab-package-info">
                 <dl>
                     <dt>Maintainer</dt>
                     <dd>{{package.maintainer}}</dd>
@@ -46,22 +46,22 @@ import {fetchPackage} from "../actions/index";
                     <dd>{{package.sha}}</dd>
                 </dl>
             </div>
-            <div class="bldr-package-versions">
+            <div class="hab-package-versions">
                 <h3>Available Versions</h3>
                 <package-list [currentPackage]="package"
                               [packages]="package.versions"></package-list>
             </div>
-            <div class="bldr-package-releases">
+            <div class="hab-package-releases">
                 <h3>Releases <small>of version {{package.version}}</small></h3>
                 <package-list [currentPackage]="package"
                               [packages]="package.releases"></package-list>
             </div>
-            <div class="bldr-package-deps-build">
+            <div class="hab-package-deps-build">
                 <h3>Build Dependencies</h3>
                 <package-list [currentPackage]="package"
                               [packages]="package.buildDependencies"></package-list>
             </div>
-            <div class="bldr-package-deps-runtime">
+            <div class="hab-package-deps-runtime">
                 <h3>Runtime Dependencies</h3>
                 <package-list [currentPackage]="package"
                               [packages]="package.dependencies"></package-list>

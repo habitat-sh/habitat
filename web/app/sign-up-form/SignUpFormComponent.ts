@@ -11,12 +11,13 @@ import {attemptSignUp} from "../actions/index";
 
 @Component({
     directives: [RouterLink],
+    inputs: ["appName"],
     selector: "sign-up-form",
     template: `
-    <div class="bldr-sign-up-form">
+    <div class="hab-sign-up-form">
         <div *ngIf="!isSubmitted">
             <h2>Get Started Now</h2>
-            <h3>Create your bldr account</h3>
+            <h3>Create your {{appName}} account</h3>
             <form (ngSubmit)="onSubmit(username, email, password)">
                 <input placeholder="Username" autofocus required #username>
                 <input type="email" placeholder="Email Address" required #email>

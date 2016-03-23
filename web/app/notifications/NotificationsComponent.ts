@@ -8,9 +8,9 @@ import {Component} from "angular2/core";
 
 @Component({
     inputs: ["notifications", "removeNotification"],
-    selector: "bldr-notifications",
+    selector: "hab-notifications",
     template: `
-    <ul class="bldr-notifications">
+    <ul class="hab-notifications">
         <li *ngFor="#n of notifications; #i = index" class="{{n.type}}">
             <a class="dismiss" href="#" (click)="removeNotification(i)">&times;</a>
             <h1>{{n.title}}</h1>

@@ -26,18 +26,18 @@ import {removeNotification, routeChange} from "./actions/index";
 
 @Component({
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
-    selector: "bldr",
+    selector: "hab",
     template: `
-    <div class="bldr-container">
-        <bldr-notifications [notifications]="state.notifications.all"
+    <div class="hab-container">
+        <hab-notifications [notifications]="state.notifications.all"
                             [removeNotification]="removeNotification">
-        </bldr-notifications>
-        <bldr-header [appName]="state.app.name"></bldr-header>
-        <bldr-side-nav [route]="state.router.route"></bldr-side-nav>
-        <section class="bldr-main">
+        </hab-notifications>
+        <hab-header [appName]="state.app.name"></hab-header>
+        <hab-side-nav [route]="state.router.route"></hab-side-nav>
+        <section class="hab-main">
             <router-outlet></router-outlet>
         </section>
-        <footer class="bldr-footer">
+        <footer class="hab-footer">
             <p>&copy; {{state.app.currentYear}} Chef Software, Inc. All Rights Reserved.</p>
         </footer>
     </div>`,

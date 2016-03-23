@@ -6,7 +6,7 @@ import {RouterLink} from "angular2/router";
 @Component({
     directives: [RouterLink],
     template: `
-    <div class="bldr-explore">
+    <div class="hab-explore">
         <h1>Explore</h1>
         <ul>
             <li *ngFor="#item of store.getState().packages.explore">

@@ -1,6 +1,6 @@
-# bldr Web
+# Habitat Web
 
-This is the web application for the bldr SaaS.
+This is the web application for the Habitat SaaS.
 
 This is a single page app built using [Angular 2](https://angular.io/).
 

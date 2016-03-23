@@ -2,7 +2,7 @@ import {List, Map, Record} from "immutable";
 
 export default Record({
     app: Record({
-        name: "bldr",
+        name: "Habitat",
         currentYear: new Date().getFullYear(),
     })(),
     gitHub: Record({
