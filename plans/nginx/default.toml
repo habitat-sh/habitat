@@ -1,15 +1,27 @@
-# NGINX Tunables
+ #    #   ####      #    #    #  #    #
+ ##   #  #    #     #    ##   #   #  #
+ # #  #  #          #    # #  #    ##
+ #  # #  #  ###     #    #  # #    ##
+ #   ##  #    #     #    #   ##   #  #
+ #    #   ####      #    #    #  #    #
+ # For help with NGINX Config Tuning, 
+ # refer to: http://nginx.org/en/docs/http/ngx_http_core_module.html
 
-#
-# For help with NGINX Config Tuning, refer to: http://nginx.org/en/docs/http/ngx_http_core_module.html
-#
 
+#### General Configuration
 # worker_processes: Number of NGINX processes. Default = 1
 worker_processes = 4
 
+
+
+#### Events Context Configuration
+[events]
 # worker_connections: Connections per Worker Process.  Default = 1024
 worker_connections = 1024
 
+
+#### HTTP Context Configuration
+[http]
 # http.sendfile: Enable (on) or disable (off) Sendfile Support.  Default = on
 sendfile = "on"
 
