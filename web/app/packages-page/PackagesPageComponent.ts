@@ -23,6 +23,7 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
                 {{name}}
             </span>
         </h2>
+        <hr>
         <ul class="hab-packages-plan-list">
             <li *ngIf="packages.size === 0">
                 No packages found. Here's how to create one: &hellip;

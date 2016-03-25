@@ -1,0 +1,12 @@
+.hab-drop-down {
+  position: relative;
+  white-space: nowrap;
+
+
+  ul {
+    background-color: $white-slightly-transparent;
+    padding: $small-spacing;
+    position: absolute;
+    top: $base-spacing;
+  }
+}

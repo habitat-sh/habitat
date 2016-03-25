@@ -8,6 +8,7 @@ import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {RouterLink} from "angular2/router";
 import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
+import {icon} from "../util";
 
 @Component({
     directives: [RouterLink],
@@ -25,7 +26,7 @@ import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
                 <img class="github-logo"
                      height=64
                      width=64
-                     src="/node_modules/octicons/svg/mark-github.svg">
+                     src='{{icon("mark-github")}}'>
             </div>
             <div class="info">
                 <div *ngIf="gitHub.isLinked">
@@ -59,12 +60,14 @@ export class LinkedAccountsPageComponent {
     get appName() { return this.store.getState().appName; }
     get gitHub() { return this.store.getState().gitHub; }
 
-    linkGitHubAccount(username) {
+    private icon(x) { return icon(x); }
+
+    private linkGitHubAccount(username) {
         this.store.dispatch(linkGitHubAccount(username));
         return false;
     }
 
-    unlinkGitHubAccount() {
+    private unlinkGitHubAccount() {
         this.store.dispatch(unlinkGitHubAccount());
         return false;
     }

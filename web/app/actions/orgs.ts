@@ -8,11 +8,22 @@ import {addNotification, SUCCESS} from "./notifications";
 import {requestRoute} from "./router";
 
 export const FINISH_CREATING_ORG = "FINISH_CREATING_ORG";
+export const ORG_INVITATION_CANCELLED = "ORG_INVITATION_CANCELLED";
+export const ORG_INVITATION_CREATED = "ORG_INVITATION_CREATED";
+export const PERFORM_ORG_MEMBER_SEARCH = "PERFORM_ORG_MEMBER_SEARCH";
 export const POPULATE_ORG = "POPULATE_ORG";
+export const TOGGLE_MEMBER_ACTION_MENU = "TOGGLE_MEMBER_ACTION_MENU";
 
 export function addOrg(values) {
     return dispatch => {
         dispatch(populateOrg(values));
+    };
+}
+
+export function cancelOrgInvitation(index) {
+    return dispatch => {
+        dispatch(toggleMemberActionMenu(index));
+        dispatch(removeOrgMember(index));
     };
 }
 
@@ -34,9 +45,37 @@ function finishCreatingOrg() {
     };
 }
 
+export function inviteMemberToOrg(member, index) {
+    return {
+        type: ORG_INVITATION_CREATED,
+        payload: { member, index },
+    };
+}
+
+export function performOrgMemberSearch(value) {
+    return {
+        type: PERFORM_ORG_MEMBER_SEARCH,
+        payload: value,
+    };
+}
+
 function populateOrg(values) {
     return {
         type: POPULATE_ORG,
         payload: values,
+    };
+}
+
+function removeOrgMember(index) {
+    return {
+        type: ORG_INVITATION_CANCELLED,
+        payload: index,
+    };
+}
+
+export function toggleMemberActionMenu(index) {
+    return {
+        type: TOGGLE_MEMBER_ACTION_MENU,
+        payload: index,
     };
 }

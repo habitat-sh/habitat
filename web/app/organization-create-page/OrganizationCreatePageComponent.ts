@@ -4,10 +4,13 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {addOrg, finishAddingOrg} from "../actions/index";
+import {addOrg, cancelOrgInvitation, inviteMemberToOrg, finishAddingOrg,
+    performOrgMemberSearch, toggleMemberActionMenu} from "../actions/index";
+
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
+import {OrganizationMembersComponent} from "../organization-members/OrganizationMembersComponent";
 
 // This shows up on both steps. It could be broken out into a Component
 // is really too simple for that.
@@ -26,6 +29,7 @@ const sidebar = `
     </nav>`;
 
 @Component({
+    directives: [OrganizationMembersComponent],
     template: `
     <div class="hab-organization-create">
         <h2>
@@ -60,6 +64,12 @@ const sidebar = `
         </div>
         <div class="step2" *ngIf="saved">
             <form (ngSubmit)="finishAddingOrg()">
+                <hab-org-members [org]="org"
+                                 [cancelInvitation]="cancelOrgInvitation"
+                                 [inviteMemberToOrg]="inviteMemberToOrg"
+                                 [performSearch]="performOrgMemberSearch"
+                                 [toggleMemberActionMenu]="toggleMemberActionMenu">
+                </hab-org-members>
                 <button>Finish</button>
             </form>
             ${sidebar}
@@ -69,6 +79,10 @@ const sidebar = `
 
 export class OrganizationCreatePageComponent {
     private form: ControlGroup;
+    private cancelOrgInvitation: Function;
+    private inviteMemberToOrg: Function;
+    private performOrgMemberSearch: Function;
+    private toggleMemberActionMenu: Function;
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
         this.form = formBuilder.group({
@@ -77,6 +91,22 @@ export class OrganizationCreatePageComponent {
             email: [this.store.getState().email, Validators.required],
             website: ["", Validators.nullValidator],
         });
+
+        this.cancelOrgInvitation = (index) =>
+            this.store.dispatch(cancelOrgInvitation(index));
+
+        this.inviteMemberToOrg = (member, index) =>
+            this.store.dispatch(inviteMemberToOrg(member, index));
+
+        this.performOrgMemberSearch = (index) =>
+            this.store.dispatch(performOrgMemberSearch(index));
+
+        this.toggleMemberActionMenu = (index) =>
+            this.store.dispatch(toggleMemberActionMenu(index));
+    }
+
+    get org() {
+        return this.store.getState().orgs.current;
     }
 
     get saved() {
@@ -90,7 +120,7 @@ export class OrganizationCreatePageComponent {
 
     private finishAddingOrg() {
         this.store.dispatch(finishAddingOrg(
-            this.store.getState().orgs.beingCreated
+            this.store.getState().orgs.current
         ));
         return false;
     }

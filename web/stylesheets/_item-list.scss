@@ -4,12 +4,13 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+$item-list-bg: rgba(255, 255, 255, 0.9);
+
 // For lists of things like packages or projects
 .hab-item-list {
-
   background-blend-mode: overlay;
-  background-color: rgba(255, 255, 255, 0.9);
-  background-image: url("/node_modules/octicons/svg/chevron-right.svg");
+  background-color: $white-slightly-transparent;
+  background-image: hab-icon("chevron-right");
   background-position: 98% 50%;
   background-repeat: no-repeat;
   background-size: $base-spacing;
@@ -20,13 +21,13 @@
   padding: $small-spacing;
 
   .count {
-      float: right;
-      font-size: 75%;
-      margin: auto $base-spacing * 2 0 auto;
+    float: right;
+    font-size: 75%;
+    margin: auto $base-spacing * 2 0 auto;
   }
 
   .hab-gravatar {
-      float: left;
-      margin-right: $small-spacing;
+    float: left;
+    margin-right: $small-spacing;
   }
 }

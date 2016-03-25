@@ -31,6 +31,7 @@ $light-gray: #ddd;
 $success-color: green;
 $failure-color: red;
 $queued-color: $blue;
+$white-slightly-transparent: rgba(255, 255, 255, 0.95);
 
 // Notification colors
 $notification-danger-color: #fbe3e4;
@@ -57,3 +58,7 @@ $form-box-shadow-focus: $form-box-shadow, 0 0 5px adjust-color($action-color, $l
 // Animations
 $base-duration: 150ms;
 $base-timing: ease;
+
+@function hab-icon($n) {
+  @return url("/node_modules/octicons/svg/" + $n + ".svg");
+}

@@ -17,7 +17,7 @@ import {requestRoute, signOut, toggleUserNavMenu} from "../../actions/index";
         <ul>
             <li><a class="button" *ngIf="isSignUpLinkVisible" [routerLink]="['Home']">Sign Up</a></li>
             <li><a *ngIf="!isSignedIn" [routerLink]="['SignIn']">Sign In</a></li>
-            <li *ngIf="isSignedIn">
+            <li class="sign-in-button" [class.active]="isOpen" *ngIf="isSignedIn">
                 <a class="username" href="#" (click)="toggleMenu()">{{username}}
                     <span *ngIf="!isOpen">▼</span>
                     <span *ngIf="isOpen">▲</span>

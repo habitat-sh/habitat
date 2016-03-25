@@ -1,0 +1,86 @@
+.hab-org-members {
+  margin-bottom: $small-spacing;
+
+  .members>li {
+    @include outer-container;
+    padding-bottom: $small-spacing / 2;
+    border-bottom: 1px solid $light-gray;
+
+    .hab-gravatar {
+      @include span-columns(1);
+    }
+
+    .username {
+      @include span-columns(3);
+      font-weight: bold;
+      padding-left: $small-spacing;
+    }
+
+    .name {
+      @include span-columns(4);
+    }
+
+    .status {
+      @include span-columns(3);
+      color: $medium-gray;
+    }
+
+    .actions {
+      @extend .hab-drop-down;
+      @include span-columns(1);
+      @include omega;
+
+    }
+  }
+
+  .results {
+    background-color: $white-slightly-transparent;
+    background-blend-mode: overlay;
+
+    border: 1px solid $light-gray;
+    box-shadow: -2px 2px 2px $light-gray;
+    margin-top: -$small-spacing / 1.1;
+    padding: 0;
+    position: absolute;
+    width: 25%;
+    z-index: 20;
+
+    &>li {
+      color: $light-gray;
+      position: relative;
+      padding: $small-spacing;
+
+      &.addable {
+        color: inherit;
+
+        &:hover {
+          background-color: lighten($blue, 50%);
+          cursor: pointer;
+        }
+      }
+
+
+      .grav {
+        float: left;
+        padding-right: $small-spacing;
+      }
+
+      .username {
+        font-weight: bold;
+      }
+
+      .info {
+        margin: 0;
+      }
+
+      .indicator {
+        position: absolute;
+        right: $small-spacing;
+        top: $base-spacing / 1.5;
+        img {
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+}
