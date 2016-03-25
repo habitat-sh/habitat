@@ -23,16 +23,16 @@ use std::ops::DerefMut;
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::TryRecvError;
+use std::time::Duration;
 
 use libc::{pid_t, c_int};
 use wonder;
 
 use state_machine::StateMachine;
 use census::{self, CensusList};
-use package::{self, Package, PackageUpdaterActor, Signal};
-use util::signals;
+use package::{self, Package, PackageUpdaterActor};
 use util::signals::SignalNotifier;
-use error::{BldrResult, BldrError, ErrorKind};
+use error::{BldrResult, BldrError};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
@@ -41,11 +41,12 @@ use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
 use election::ElectionList;
-use std::time::Duration;
-use time::SteadyTime;
+use time::{SteadyTime, Timespec};
+use util::signals;
 
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
+static MAXIMUM_WAIT_MILLIS_BEFORE_KILL: u32 = 7000;
 
 // Functions from POSIX libc.
 extern "C" {
@@ -141,6 +142,12 @@ pub enum State {
     Running,
 }
 
+/// PID and start time of a child process
+pub struct ChildInfo {
+    pub pid: u32,
+    pub start_time: Timespec,
+}
+
 /// The topology `Worker` is where everything our state machine needs between states lives.
 pub struct Worker<'a> {
     /// The package we are supervising
@@ -168,8 +175,8 @@ pub struct Worker<'a> {
     pub pkg_updater: Option<PackageUpdaterActor>,
     /// A pointer to the supervisor thread
     pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
-    /// The PID of the Supervisor itself
-    pub supervisor_id: Option<u32>,
+    /// process info of child that we're supervising
+    pub child_info: Option<ChildInfo>,
     pub return_state: Option<State>,
 }
 
@@ -253,16 +260,12 @@ impl<'a> Worker<'a> {
                             .unwrap(),
             pkg_updater: pkg_updater,
             supervisor_thread: None,
-            supervisor_id: None,
+            child_info: None,
             return_state: None,
         })
     }
 
-    pub fn signal_package(&self, signal: Signal) -> BldrResult<String> {
-        let package = self.package.read().unwrap();
-        package.signal(signal)
-    }
-
+    /// update a package, but does NOT restart the service
     pub fn update_package(&self, updated: Package) -> BldrResult<()> {
         let service_config = self.service_config.read().unwrap();
         {
@@ -271,7 +274,6 @@ impl<'a> Worker<'a> {
         }
         let package = self.package.read().unwrap();
         try!(package.copy_run(&service_config));
-        try!(package.signal(Signal::Restart));
         Ok(())
     }
 
@@ -298,12 +300,106 @@ impl<'a> Worker<'a> {
     }
 }
 
+/// Send a SIGTERM to a process
+pub fn stop(pid: u32) -> BldrResult<()> {
+    try!(signals::send_signal_to_pid(pid as i32, signals::Signal::SIGTERM));
+    Ok(())
+}
+
+/// send a SIGKILL to a process
+pub fn force_stop(pid: u32) -> BldrResult<()> {
+    try!(signals::send_signal_to_pid(pid as i32, signals::Signal::SIGKILL));
+    Ok(())
+}
+
+/// Pass through a Unix signal to a process
+pub fn send_unix_signal(pid: u32, sig: signals::Signal) -> BldrResult<()> {
+    try!(signals::send_signal_to_pid(pid as i32, sig));
+    Ok(())
+}
+
+
+/// if the child process exists, check it's status via waitpid()
+fn check_child_process<'a>(worker: &mut Worker<'a>) -> BldrResult<()> {
+    if worker.child_info.is_none() {
+        return Ok(());
+    }
+
+    unsafe {
+        let mut status: c_int = 0;
+        let cpid = worker.child_info.as_ref().unwrap().pid as pid_t;
+        match waitpid(cpid, &mut status, 1 as c_int) {
+            0 => {} // Nothing returned,
+            pid if pid == cpid => {
+                if WIFEXITED(status) {
+                    let exit_code = WEXITSTATUS(status);
+                    outputln!("The child {} died with exit code {}", pid, exit_code);
+                } else if WIFSIGNALED(status) {
+                    let exit_signal = WTERMSIG(status);
+                    outputln!("The child {} died with signal {}", pid, exit_signal);
+                } else {
+                    outputln!("The child {} died, but I don't know how.", pid);
+                }
+
+                debug!("Child exited, restarting");
+                worker.return_state = Some(State::Starting);
+                worker.child_info = None;
+            }
+            // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
+            pid => {
+                if WIFEXITED(status) {
+                    let exit_code = WEXITSTATUS(status);
+                    debug!("Process {} died with exit code {}", pid, exit_code);
+                } else if WIFSIGNALED(status) {
+                    let exit_signal = WTERMSIG(status);
+                    debug!("Process {} terminated with signal {}", pid, exit_signal);
+                } else {
+                    debug!("Process {} died, but I don't know how.", pid);
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+
+fn kill_after_timeout(cpid: u32, max_wait: u32) -> BldrResult<()> {
+    debug!("waiting to kill process if it doesn't exit");
+    let mut elapsed = 0;
+    let wait_interval_millis = 1000;
+    let mut clean_exit = false;
+    loop {
+        let mut status: c_int = 0;
+        unsafe {
+            match waitpid(cpid as i32, &mut status, 1 as c_int) {
+                0 => {}
+                _ => {
+                    clean_exit = true;
+                    break;
+                }
+            }
+        }
+        thread::sleep(Duration::from_millis(wait_interval_millis as u64));
+        elapsed = elapsed + wait_interval_millis;
+        if elapsed == max_wait {
+            break;
+        }
+    }
+    if !clean_exit {
+        debug!("process still running, sending SIGKILL");
+        let _result = force_stop(cpid);
+        debug!("sent a sigkill, the fate of your planet rests in your hands");
+    }
+    Ok(())
+}
+
+
 /// The main loop of a topology.
 ///
 /// 1. Loops forever
 /// 1. Checks if we have caught a signal; if so, acts on the signal. (May exit entirely)
 /// 1. Checks the current `state` of our [StateMachine](../state_machine)
-/// 1. If it is running, we run a non-blocking `waitpid`, and inspect why the supervisor died;
+/// 1. If it is running, we run a non-blocking `waitpid`, and inspect why the child died;
 ///    depending on the circumstances, we may exit with an error here
 /// 1. Process any discovery events
 /// 1. Trigger the next iteration of the state machine
@@ -324,7 +420,6 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
         try!(package.create_srvc_path());
         try!(package.copy_run(&service_config));
     }
-
     let handler = wonder::actor::Builder::new(SignalNotifier)
                       .name("signal-handler".to_string())
                       .start(())
@@ -332,47 +427,36 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
     loop {
         let start_time = SteadyTime::now();
         match handler.receiver.try_recv() {
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGHUP))) => {
-                outputln!("Sending SIGHUP");
-                try!(worker.signal_package(Signal::Hup));
-            }
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGINT))) => {
-                outputln!("Sending 'force-shutdown' on SIGINT");
-                try!(worker.signal_package(Signal::ForceShutdown));
-                try!(worker.join_supervisor());
-                break;
-            }
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGQUIT))) => {
-                {
-                    try!(worker.signal_package(Signal::Quit));
-                    outputln!("Sending SIGQUIT");
-                }
-            }
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGALRM))) => {
-                {
-                    try!(worker.signal_package(Signal::Alarm));
-                    outputln!("Sending SIGALRM");
-                }
-            }
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGTERM))) => {
-                {
-                    outputln!("Sending 'force-shutdown' on SIGTERM");
-                    try!(worker.signal_package(Signal::ForceShutdown));
-                    try!(worker.join_supervisor());
-                    break;
-                }
-            }
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR1))) => {
-                {
-                    outputln!("Sending SIGUSR1");
-                    try!(worker.signal_package(Signal::One));
-                }
-            }
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(signals::Signal::SIGUSR2))) => {
-                {
-                    outputln!("Sending SIGUSR1");
-                    try!(worker.signal_package(Signal::Two));
-                }
+            Ok(wonder::actor::Message::Cast(signals::Message::Signal(sig))) => {
+                debug!("SIG = {:?}", sig);
+                match sig {
+                    signals::Signal::SIGINT |
+                    signals::Signal::SIGTERM => {
+                        // SIGINT + SIGTERM just send a SIGTERM to the child
+                        if worker.child_info.is_some() {
+                            {
+                                let pid = worker.child_info.as_ref().unwrap().pid;
+                                try!(send_unix_signal(pid, signals::Signal::SIGTERM));
+                                // try to kill the process, but don't fail if things
+                                // don't work out. Don't feel bad, it happens to the best.
+                                let _result = kill_after_timeout(pid, MAXIMUM_WAIT_MILLIS_BEFORE_KILL);
+                            }
+                            try!(worker.join_supervisor());
+                            {
+                                let package = worker.package.read().unwrap();
+                                let _ = package.cleanup_pidfile();
+                            }
+                        }
+                        break;
+                    }
+                    _ => {
+                        // just pass the signal through
+                        if worker.child_info.is_some() {
+                            let pid = worker.child_info.as_ref().unwrap().pid;
+                            try!(send_unix_signal(pid, sig.clone()));
+                        }
+                    }
+                };
             }
             Ok(_) => {}
             Err(TryRecvError::Empty) => {}
@@ -380,42 +464,9 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                 panic!("signal handler crashed!");
             }
         }
-        if worker.supervisor_id.is_some() {
-            unsafe {
-                let mut status: c_int = 0;
-                let supervisor_pid = worker.supervisor_id.unwrap() as pid_t;
-                match waitpid(supervisor_pid, &mut status, 1 as c_int) {
-                    0 => {} // Nothing returned,
-                    pid if pid == supervisor_pid => {
-                        if WIFEXITED(status) {
-                            let exit_code = WEXITSTATUS(status);
-                            outputln!("The supervisor died - terminating {} with exit code {}",
-                                      pid,
-                                      exit_code);
-                        } else if WIFSIGNALED(status) {
-                            let exit_signal = WTERMSIG(status);
-                            outputln!("The supervisor died - terminating {} with signal {}",
-                                      pid,
-                                      exit_signal);
-                        } else {
-                            outputln!("The supervisor over {} died, but I don't know how.", pid);
-                        }
-                        return Err(bldr_error!(ErrorKind::SupervisorDied));
-                    }
-                    // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
-                    pid => {
-                        if WIFEXITED(status) {
-                            let exit_code = WEXITSTATUS(status);
-                            debug!("Process {} died with exit code {}", pid, exit_code);
-                        } else if WIFSIGNALED(status) {
-                            let exit_signal = WTERMSIG(status);
-                            debug!("Process {} terminated with signal {}", pid, exit_signal);
-                        } else {
-                            debug!("Process {} died, but I don't know how.", pid);
-                        }
-                    }
-                }
-            }
+
+        if sm.state == State::Running {
+            try!(check_child_process(worker));
         }
 
         {
@@ -473,6 +524,12 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                         if try!(service_config.write(&package)) {
                             try!(package.copy_run(&service_config));
                             try!(package.reconfigure(&service_config));
+                            // force the package to restart
+                            if sm.state == State::Running {
+                                debug!("Forcing package to restart due to service_config update");
+                                worker.return_state = Some(State::Starting);
+                                worker.child_info = None;
+                            }
                         }
                     }
                 }
@@ -485,7 +542,17 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                     debug!("Main loop received package update notification: {:?}",
                            &package);
                     try!(worker.update_package(package));
+                    if worker.child_info.is_some() {
+                        let pid = worker.child_info.as_ref().unwrap().pid;
+                        try!(stop(pid));
+                    }
                     try!(package::PackageUpdater::run(&updater));
+                    // force the package to restart
+                    if sm.state == State::Running {
+                        debug!("Forcing package to restart due to pkg updater");
+                        worker.return_state = Some(State::Starting);
+                        worker.child_info = None;
+                    }
                 }
                 Ok(_) => {}
                 Err(TryRecvError::Empty) => {}

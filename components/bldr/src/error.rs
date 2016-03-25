@@ -121,7 +121,7 @@ pub enum ErrorKind {
     PackageIdentMismatch(String, String),
     RemotePackageNotFound(package::PackageIdent),
     MustacheMergeOnlyMaps,
-    SupervisorSignalFailed,
+    SignalFailed,
     StringFromUtf8Error(string::FromUtf8Error),
     StrFromUtf8Error(str::Utf8Error),
     SupervisorDied,
@@ -145,6 +145,7 @@ pub enum ErrorKind {
     JsonEncode(json::EncoderError),
     JsonDecode(json::DecoderError),
     InitialPeers,
+    InvalidPidFile,
 }
 
 /// Our result type alias, for easy coding.
@@ -217,7 +218,7 @@ impl fmt::Display for BldrError {
                 }
             }
             ErrorKind::MustacheMergeOnlyMaps => format!("Can only merge two Mustache::Data::Maps"),
-            ErrorKind::SupervisorSignalFailed => format!("Failed to send a signal to the process supervisor"),
+            ErrorKind::SignalFailed => format!("Failed to send a signal to the child process"),
             ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
             ErrorKind::StrFromUtf8Error(ref e) => format!("{}", e),
             ErrorKind::SupervisorDied => format!("The supervisor died"),
@@ -252,6 +253,8 @@ impl fmt::Display for BldrError {
             ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             ErrorKind::InitialPeers => format!("Failed to contact initial peers"),
+            ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
+
         };
         let cstring = Red.bold().paint(content).to_string();
         let mut so = StructuredOutput::new("bldr",
@@ -300,7 +303,7 @@ impl Error for BldrError {
             ErrorKind::PackageIdentMismatch(_, _) => "Expected a package identity but received another",
             ErrorKind::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             ErrorKind::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
-            ErrorKind::SupervisorSignalFailed => "Failed to send a signal to the process supervisor",
+            ErrorKind::SignalFailed => "Failed to send a signal to the child process",
             ErrorKind::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             ErrorKind::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             ErrorKind::SupervisorDied => "The supervisor died",
@@ -324,6 +327,7 @@ impl Error for BldrError {
             ErrorKind::JsonEncode(_) => "JSON encoding error",
             ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
             ErrorKind::InitialPeers => "Failed to contact initial peers",
+            ErrorKind::InvalidPidFile => "Invalid child process PID file",
         }
     }
 }

@@ -269,7 +269,7 @@ fn config(lock: &Arc<RwLock<Package>>, _req: &mut Request) -> IronResult<Respons
 /// * Fails if the supervisor cannot return the status.
 fn status(lock: &Arc<RwLock<Package>>, _req: &mut Request) -> IronResult<Response> {
     let package = lock.read().unwrap();
-    let output = try!(package.status());
+    let output = try!(package.status_via_pidfile());
     Ok(Response::with((status::Ok, output)))
 }
 
