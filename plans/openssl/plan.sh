@@ -1,10 +1,10 @@
 pkg_name=openssl
 pkg_origin=chef
-pkg_version=1.0.2f
+pkg_version=1.0.2g
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('bsd')
-pkg_source=http://www.openssl.org/source/old/1.0.2/${pkg_name}-${pkg_version}.tar.gz
-pkg_shasum=932b4ee4def2b434f85435d9e3e19ca8ba99ce9a065a61524b429a9d5e9b2e9c
+pkg_source=https://www.openssl.org/source/${pkg_name}-${pkg_version}.tar.gz
+pkg_shasum=b784b1b3907ce39abf4098702dade6365522a253ad1552e267a9a0e89594aa33
 pkg_deps=(chef/glibc chef/zlib chef/cacerts)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/perl)
 pkg_binary_path=(bin)
