@@ -85,7 +85,7 @@ by having a convention cover it. When we do need to configure things, we set san
 * [Wikibook: Bourne Shell Scripting](https://en.wikibooks.org/wiki/Bourne_Shell_Scripting)
 * [What is the difference between test, \[ and \[\[ ?](http://mywiki.wooledge.org/BashFAQ/031)
 
-## Setup
+## Setup On Mac OSX
 
 1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/) (you'll need
    at least Docker 1.9 and docker-machine 0.5. Both are included in Docker
@@ -110,6 +110,28 @@ is highly recommended to have installed for the other useful subcommands.
 Download the [delivery-cli
 package](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)),
 install it, and you're done!
+
+## Setup on native Linux
+
+1. [Install Docker](https://docs.docker.com/linux/step_one/) **Note: You may need to logout and then login again after this step**
+1. [Install Docker Compose](https://docs.docker.com/compose/install/)
+1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
+1. Run `make build`
+1. Run `make test`
+
+Everything should come up green. Congratulations - you have a working Bldr development environment.
+
+**Note:** The Makefile targets are documented. Run `make` or `make help` to show the output. Requires `perl`.
+
+**Optional:** This project compiles and runs inside Docker containers so while installing the Rust language isn't strictly necessary, you might want a local copy of Rust on your workstation (some editors' language support require an installed version). To [install stable Rust](https://www.rust-lang.org/install.html), run: `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
+
+**Optional:** This project currently uses GitHub integration with Delivery so
+while the delivery-cli tool is not strictly necessary to initiate reviews, it
+is highly recommended to have installed for the other useful subcommands.
+Download the [delivery-cli
+package](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)),
+install it, and you're done!
+
 
 ## Documentation
 
