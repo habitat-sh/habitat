@@ -1,0 +1,13 @@
+#!/bin/sh
+
+export RADIANT_DATA="{{pkg.svc_path}}/data"
+export GEM_HOME="${RADIANT_DATA}/dist/vendor/bundle/ruby/2.3.0"
+export GEM_PATH="$(bpm pkgpath chef/ruby)/lib/ruby/gems/2.3.0:$(bpm pkgpath chef/bundler):$GEM_HOME"
+export LD_LIBRARY_PATH="$(bpm pkgpath chef/gcc-libs)/lib"
+export PATH="$PATH:${RADIANT_DATA}/dist/bin"
+export RAILS_ENV="production"
+
+cd $RADIANT_DATA/dist
+
+exec 2>&1
+exec chpst -u bldr ./bin/rails server
