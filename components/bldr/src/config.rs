@@ -29,6 +29,7 @@ pub enum Command {
     Config,
     Start,
     ImportKey,
+    InjectConfigFile,
     ExportKey,
     UploadDepotKey,
     DownloadDepotKey,
@@ -75,6 +76,7 @@ impl FromStr for Command {
             "generate-service-key" => Ok(Command::GenerateServiceKey),
             "generate-user-key" => Ok(Command::GenerateUserKey),
             "import-key" => Ok(Command::ImportKey),
+            "inject-config-file" => Ok(Command::InjectConfigFile),
             "install" => Ok(Command::Install),
             "list-keys" => Ok(Command::ListKeys),
             "sh" => Ok(Command::Shell),
@@ -116,6 +118,9 @@ pub struct Config {
     gossip_peer: Vec<String>,
     gossip_permanent: bool,
     update_strategy: UpdateStrategy,
+    service_group: String,
+    file_path: String,
+    version_number: u64,
 }
 
 impl Config {
@@ -318,6 +323,39 @@ impl Config {
 
     pub fn gossip_peer(&self) -> &[String] {
         &self.gossip_peer
+    }
+
+    /// Set the service group
+    pub fn set_service_group(&mut self, sg: String) -> &mut Config {
+        self.service_group = sg;
+        self
+    }
+
+    /// Return the service group
+    pub fn service_group(&self) -> &str {
+        &self.service_group
+    }
+
+    /// Set the file path
+    pub fn set_file_path(&mut self, fp: String) -> &mut Config {
+        self.file_path = fp;
+        self
+    }
+
+    /// Return the file path
+    pub fn file_path(&self) -> &str {
+        &self.file_path
+    }
+
+    /// Set the version number
+    pub fn set_version_number(&mut self, vn: u64) -> &mut Config {
+        self.version_number = vn;
+        self
+    }
+
+    /// Return the version number
+    pub fn version_number(&self) -> &u64 {
+        &self.version_number
     }
 
     pub fn set_gossip_peer(&mut self, mut gp: Vec<String>) -> &mut Config {

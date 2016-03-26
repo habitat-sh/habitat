@@ -142,10 +142,12 @@ pub enum ErrorKind {
     UuidParseError(uuid::ParseError),
     InvalidPackageIdent(String),
     InvalidKeyParameter(String),
+    InvalidServiceGroupString(String),
     JsonEncode(json::EncoderError),
     JsonDecode(json::DecoderError),
     InitialPeers,
     InvalidPidFile,
+    ConfigFileRelativePath(String),
 }
 
 /// Our result type alias, for easy coding.
@@ -250,11 +252,17 @@ impl fmt::Display for BldrError {
             ErrorKind::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
+            ErrorKind::InvalidServiceGroupString(ref e) => {
+                format!("Invalid service group string: {}", e)
+            }
             ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             ErrorKind::InitialPeers => format!("Failed to contact initial peers"),
             ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
-
+            ErrorKind::ConfigFileRelativePath(ref s) => {
+                format!("Path for configuration file cannot have relative components (eg: ..): {}",
+                        s)
+            }
         };
         let cstring = Red.bold().paint(content).to_string();
         let mut so = StructuredOutput::new("bldr",
@@ -324,8 +332,10 @@ impl Error for BldrError {
             ErrorKind::UuidParseError(_) => "Uuid Parse Error",
             ErrorKind::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
+            ErrorKind::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
             ErrorKind::JsonEncode(_) => "JSON encoding error",
             ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
+            ErrorKind::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
             ErrorKind::InitialPeers => "Failed to contact initial peers",
             ErrorKind::InvalidPidFile => "Invalid child process PID file",
         }

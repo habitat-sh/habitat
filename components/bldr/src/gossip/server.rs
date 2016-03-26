@@ -28,6 +28,7 @@ use gossip::rumor::{Peer, Protocol, Rumor, RumorList, Message};
 use gossip::detector::Detector;
 use election::ElectionList;
 use census::{Census, CensusEntry, CensusList};
+use config_file::{ConfigFileList, ServiceGroup};
 use error::BldrResult;
 use util;
 
@@ -55,6 +56,8 @@ pub struct Server {
     pub detector: Arc<RwLock<Detector>>,
     /// The list of elections
     pub election_list: Arc<RwLock<ElectionList>>,
+    /// The list of config files
+    pub config_file_list: Arc<RwLock<ConfigFileList>>,
     /// Our 'peer' entry, used to generate SWIM protocol messages.
     pub peer: Peer,
 }
@@ -77,7 +80,7 @@ impl Server {
         let member = Member::new(hostname, ip, peer_listen2, permanent);
 
         let service_group = format!("{}.{}", service, group);
-        let mut ce = CensusEntry::new(service, group, member.id.clone());
+        let mut ce = CensusEntry::new(service.clone(), group.clone(), member.id.clone());
         ce.exposes = exposes;
         ce.port = port;
         let my_id = member.id.clone();
@@ -95,6 +98,8 @@ impl Server {
             peer: Peer::new(my_id, peer_listen),
             detector: Arc::new(RwLock::new(Detector::new())),
             election_list: Arc::new(RwLock::new(ElectionList::new(service_group, leader_id))),
+            config_file_list:
+                Arc::new(RwLock::new(ConfigFileList::new(ServiceGroup::new(service, group)))),
         };
 
         // Write our Alive Rumor
@@ -127,10 +132,11 @@ impl Server {
         let my_peer = self.peer.clone();
         let detector = self.detector.clone();
         let el = self.election_list.clone();
+        let cfl = self.config_file_list.clone();
         let listener = try!(UtpListener::bind(&self.listen[..]));
         let _t = thread::Builder::new()
                      .name("inbound".to_string())
-                     .spawn(move || inbound(listener, my_peer, ml, rl, cl, detector, el));
+                     .spawn(move || inbound(listener, my_peer, ml, rl, cl, detector, el, cfl));
         Ok(())
     }
 
@@ -225,7 +231,8 @@ pub fn inbound(listener: UtpListener,
                rumor_list: Arc<RwLock<RumorList>>,
                census_list: Arc<RwLock<CensusList>>,
                detector: Arc<RwLock<Detector>>,
-               election_list: Arc<RwLock<ElectionList>>) {
+               election_list: Arc<RwLock<ElectionList>>,
+               config_file_list: Arc<RwLock<ConfigFileList>>) {
     let pool = ThreadPool::new(INBOUND_MAX_THREADS);
     for connection in listener.incoming() {
         loop {
@@ -251,8 +258,9 @@ pub fn inbound(listener: UtpListener,
                 let cl = census_list.clone();
                 let d1 = detector.clone();
                 let el = election_list.clone();
+                let cfl = config_file_list.clone();
 
-                pool.execute(move || receive(socket, src, my_peer, ml, rl, cl, d1, el));
+                pool.execute(move || receive(socket, src, my_peer, ml, rl, cl, d1, el, cfl));
             }
             _ => {}
         }
@@ -284,7 +292,8 @@ fn receive(socket: UtpSocket,
            rumor_list: Arc<RwLock<RumorList>>,
            census_list: Arc<RwLock<CensusList>>,
            detector: Arc<RwLock<Detector>>,
-           election_list: Arc<RwLock<ElectionList>>) {
+           election_list: Arc<RwLock<ElectionList>>,
+           config_file_list: Arc<RwLock<ConfigFileList>>) {
     let mut client = Client::from_socket(socket);
     let msg = match client.recv_message() {
         Ok(msg) => msg,
@@ -357,7 +366,8 @@ fn receive(socket: UtpSocket,
                            rumor_list,
                            member_list,
                            census_list,
-                           election_list);
+                           election_list,
+                           config_file_list);
         }
         Protocol::Ack(mut from_peer, remote_rumor_list) => {
             // If this is a proxy ack, forward the results on
@@ -390,7 +400,8 @@ fn receive(socket: UtpSocket,
                                rumor_list,
                                member_list,
                                census_list,
-                               election_list);
+                               election_list,
+                               config_file_list);
             }
         }
         Protocol::PingReq(from_peer, remote_rumor_list) => {
@@ -421,6 +432,15 @@ fn receive(socket: UtpSocket,
                 }
             }
         }
+        Protocol::Inject(remote_rumor_list) => {
+            debug!("Incoming rumor injection: {:?}", remote_rumor_list);
+            process_rumors(remote_rumor_list,
+                           rumor_list,
+                           member_list,
+                           census_list,
+                           election_list,
+                           config_file_list);
+        }
     }
 }
 
@@ -428,7 +448,8 @@ pub fn process_rumors(remote_rumors: RumorList,
                       rumor_list: Arc<RwLock<RumorList>>,
                       member_list: Arc<RwLock<MemberList>>,
                       census_list: Arc<RwLock<CensusList>>,
-                      election_list: Arc<RwLock<ElectionList>>) {
+                      election_list: Arc<RwLock<ElectionList>>,
+                      config_file_list: Arc<RwLock<ConfigFileList>>) {
     for (id, remote_rumor) in remote_rumors.rumors.into_iter() {
         match remote_rumor.payload {
             Message::Member(m) => {
@@ -483,6 +504,18 @@ pub fn process_rumors(remote_rumors: RumorList,
                     let mut rl = rumor_list.write().unwrap();
                     rl.prune_elections_for(&elector.service_group());
                     rl.add_rumor(Rumor::election(elector));
+                }
+            }
+            Message::ConfigFile(config_file) => {
+                debug!("Processing Config File {}", config_file);
+                let processed = {
+                    let mut cf = config_file_list.write().unwrap();
+                    cf.process(config_file.clone())
+                };
+                if processed {
+                    let mut rl = rumor_list.write().unwrap();
+                    rl.prune_config_files_for(&config_file);
+                    rl.add_rumor(Rumor::config_file(config_file));
                 }
             }
             Message::Blank => {}

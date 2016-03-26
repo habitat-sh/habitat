@@ -244,6 +244,7 @@ impl Cfg {
         };
         try!(cfg.load_default(pkg));
         try!(cfg.load_user(pkg));
+        try!(cfg.load_gossip(pkg));
         try!(cfg.load_environment(pkg));
         Ok(cfg)
     }
@@ -311,6 +312,31 @@ impl Cfg {
             Err(e) => {
                 outputln!("Failed to load user.toml: {}", e);
                 self.user = None;
+            }
+        }
+        Ok(())
+    }
+
+    fn load_gossip(&mut self, pkg: &Package) -> BldrResult<()> {
+        let mut file = match File::open(pkg.srvc_join_path("gossip.toml")) {
+            Ok(file) => file,
+            Err(e) => {
+                debug!("Failed to open gossip.toml: {}", e);
+                self.gossip = None;
+                return Ok(());
+            }
+        };
+        let mut config = String::new();
+        match file.read_to_string(&mut config) {
+            Ok(_) => {
+                let mut toml_parser = toml::Parser::new(&config);
+                let toml = try!(toml_parser.parse()
+                                .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
+                self.gossip = Some(toml::Value::Table(toml));
+            }
+            Err(e) => {
+                outputln!("Failed to load gossip.toml: {}", e);
+                self.gossip = None;
             }
         }
         Ok(())

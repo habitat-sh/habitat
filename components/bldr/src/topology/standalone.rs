@@ -71,7 +71,7 @@ fn child_reader(child: &mut Child, package_name: String) -> BldrResult<()> {
             }
             _ => {
                 // Write the buffer to the BufWriter on the Heap
-                let buf_string = String::from_utf8_lossy(&buf[0 .. len]);
+                let buf_string = String::from_utf8_lossy(&buf[0..len]);
                 line.push_str(&buf_string);
                 if line.contains("\n") {
                     print!("{}", line);
@@ -129,7 +129,7 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
 
 pub fn state_running(worker: &mut Worker) -> BldrResult<(State, u64)> {
     if let Some(state) = worker.return_state {
-        Ok((state,0))
+        Ok((state, 0))
     } else {
         Ok((State::Running, 0))
     }

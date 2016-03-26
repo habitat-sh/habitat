@@ -173,26 +173,4 @@ mod tests {
                            Cyan.paint("bldr"),
                            White.bold().paint("SOT")));
     }
-
-    #[test]
-    fn format_verbose() {
-        let mut so = so("bldr", "opeth is amazing");
-        so.verbose = Some(true);
-        so.color = Some(false);
-        assert_eq!(format!("{}", so),
-                   "bldr(SOT)[components/bldr/src/output.rs:1:2]: opeth is amazing");
-    }
-
-    #[test]
-    fn format_verbose_color() {
-        let mut so = so("bldr", "opeth is amazing");
-        so.verbose = Some(true);
-        so.color = Some(true);
-        assert_eq!(format!("{}", so),
-                   format!("{}({})[{}]: opeth is amazing",
-                   Cyan.paint("bldr"),
-                   White.bold().paint("SOT"),
-                   White.underline().paint("components/bldr/src/output.rs:1:2"),
-                   ));
-    }
 }

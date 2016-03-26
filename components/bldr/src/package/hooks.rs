@@ -24,6 +24,7 @@ static LOGKEY: &'static str = "PH";
 pub enum HookType {
     HealthCheck,
     Reconfigure,
+    FileUpdated,
     Run,
     Init,
 }
@@ -33,6 +34,7 @@ impl fmt::Display for HookType {
         match self {
             &HookType::Init => write!(f, "init"),
             &HookType::HealthCheck => write!(f, "health_check"),
+            &HookType::FileUpdated => write!(f, "file_updated"),
             &HookType::Reconfigure => write!(f, "reconfigure"),
             &HookType::Run => write!(f, "run"),
         }
@@ -70,7 +72,8 @@ impl Hook {
                                                                  String::from("Failed"))));
                 }
             };
-            let mut line = output_format!(preamble "hook", "{}", &self.htype);
+            let preamble_str = format!("{}", &self.htype);
+            let mut line = output_format!(preamble & preamble_str, "");
             loop {
                 let mut buf = [0u8; 1]; // Our byte buffer
                 let len = try!(c_stdout.read(&mut buf));
@@ -85,7 +88,7 @@ impl Hook {
                         line.push_str(&buf_string);
                         if line.contains("\n") {
                             print!("{}", line);
-                            line = output_format!(preamble "hook", "{}", &self.htype);
+                            line = output_format!(preamble & preamble_str, "");
                         }
                     }
                 }
@@ -130,6 +133,7 @@ pub struct HookTable<'a> {
     pub init_hook: Option<Hook>,
     pub health_check_hook: Option<Hook>,
     pub reconfigure_hook: Option<Hook>,
+    pub file_updated_hook: Option<Hook>,
     pub run_hook: Option<Hook>,
 }
 
@@ -140,6 +144,7 @@ impl<'a> HookTable<'a> {
             init_hook: None,
             health_check_hook: None,
             reconfigure_hook: None,
+            file_updated_hook: None,
             run_hook: None,
         }
     }
@@ -151,6 +156,7 @@ impl<'a> HookTable<'a> {
             Ok(meta) => {
                 if meta.is_dir() {
                     self.init_hook = self.load_hook(HookType::Init);
+                    self.file_updated_hook = self.load_hook(HookType::FileUpdated);
                     self.reconfigure_hook = self.load_hook(HookType::Reconfigure);
                     self.health_check_hook = self.load_hook(HookType::HealthCheck);
                     self.run_hook = self.load_hook(HookType::Run);

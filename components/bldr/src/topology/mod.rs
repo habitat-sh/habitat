@@ -40,6 +40,7 @@ use user_config;
 use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
+use config_file::ConfigFileList;
 use election::ElectionList;
 use time::{SteadyTime, Timespec};
 use util::signals;
@@ -166,6 +167,7 @@ pub struct Worker<'a> {
     pub rumor_list: Arc<RwLock<RumorList>>,
     pub election_list: Arc<RwLock<ElectionList>>,
     pub member_list: Arc<RwLock<MemberList>>,
+    pub config_file_list: Arc<RwLock<ConfigFileList>>,
     /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
     /// Our User Configuration; reads the config periodically
@@ -244,6 +246,7 @@ impl<'a> Worker<'a> {
             census_list: gossip_server.census_list.clone(),
             rumor_list: gossip_server.rumor_list.clone(),
             election_list: gossip_server.election_list.clone(),
+            config_file_list: gossip_server.config_file_list.clone(),
             member_list: gossip_server.member_list.clone(),
             gossip_server: gossip_server,
             service_config: service_config_lock,
@@ -439,7 +442,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                                 try!(send_unix_signal(pid, signals::Signal::SIGTERM));
                                 // try to kill the process, but don't fail if things
                                 // don't work out. Don't feel bad, it happens to the best.
-                                let _result = kill_after_timeout(pid, MAXIMUM_WAIT_MILLIS_BEFORE_KILL);
+                                let _result = kill_after_timeout(pid,
+                                                                 MAXIMUM_WAIT_MILLIS_BEFORE_KILL);
                             }
                             try!(worker.join_supervisor());
                             {
@@ -469,6 +473,13 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
             try!(check_child_process(worker));
         }
 
+        // This section, and the following really need to be refactored:
+        //
+        // 1. We check to see if we are in an event a bunch of times
+        // 2. We potentially restart 3 different times - twice for reconfigure, and once for
+        //    file_udpated. That's pretty yucky.
+        //
+        // Love, Adam
         {
             // Manage the census
             let (write_census, in_event, write_rumor, me_clone) = {
@@ -495,22 +506,6 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                 cl.written();
             }
 
-            // Manage the user configuration from discovery
-            // {
-            //     match try!(user_config::UserActor::config_string(&worker.user_actor)) {
-            //         Some(user_string) => service_config.user(user_string),
-            //         None => service_config.user(String::new()),
-            //     }
-            // }
-
-            // Manage the watch configuration from discovery
-            // {
-            //     match try!(watch_config::WatchActor::config_string(&worker.watch_actor)) {
-            //         Some(watch_string) => service_config.watch(watch_string),
-            //         None => service_config.watch(String::new()),
-            //     }
-            // }
-
             // Don't bother trying to reconfigure if we are in an event - just wait till
             // everything settles down.
             {
@@ -532,6 +527,41 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
                             }
                         }
                     }
+                }
+            }
+        }
+
+        {
+            let in_event = {
+                let census_list = worker.census_list.read().unwrap();
+                let census = census_list.local_census();
+                census.in_event
+            };
+            let (needs_file_updated, needs_reconfigure) = if in_event {
+                (false, false)
+            } else {
+                let mut config_file_list = worker.config_file_list.write().unwrap();
+                let needs_write = {
+                    config_file_list.needs_write()
+                };
+                if needs_write {
+                    try!(config_file_list.write())
+                } else {
+                    (false, false)
+                }
+            };
+            if needs_file_updated {
+                let service_config = worker.service_config.read().unwrap();
+                let package = worker.package.read().unwrap();
+                try!(package.file_updated(&service_config));
+            }
+            if needs_reconfigure {
+                let mut service_config = worker.service_config.write().unwrap();
+                let package = worker.package.read().unwrap();
+                service_config.cfg(&package);
+                if try!(service_config.write(&package)) {
+                    try!(package.copy_run(&service_config));
+                    try!(package.reconfigure(&service_config));
                 }
             }
         }

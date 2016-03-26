@@ -13,6 +13,7 @@ use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
 use census::CensusEntry;
+use config_file::ConfigFile;
 use election::Election;
 
 use rustc_serialize::Encodable;
@@ -51,6 +52,7 @@ pub enum Protocol {
     Ping(Peer, RumorList),
     Ack(Peer, RumorList),
     PingReq(Peer, RumorList),
+    Inject(RumorList),
 }
 
 /// Rumors contain Messages as their payload, which are then processed by the correct internal
@@ -60,6 +62,7 @@ pub enum Message {
     Member(Member),
     CensusEntry(CensusEntry),
     Election(Election),
+    ConfigFile(ConfigFile),
     Blank,
 }
 
@@ -98,6 +101,13 @@ impl Rumor {
         }
     }
 
+    /// Create a new rumor with a `Message::ConfigFile` payload.
+    pub fn config_file(cf: ConfigFile) -> Rumor {
+        Rumor {
+            id: Uuid::new_v4(),
+            payload: Message::ConfigFile(cf),
+        }
+    }
 
     /// Create a new rumor with a 'Blank' payload.
     pub fn blank() -> Rumor {
@@ -255,6 +265,22 @@ impl RumorList {
             self.rumors.remove(&rid);
         }
     }
+
+    pub fn prune_config_files_for(&mut self, config_file: &ConfigFile) {
+        let mut prune_list: Vec<RumorId> = Vec::new();
+        for (rid, rumor) in self.rumors.iter() {
+            if let Message::ConfigFile(ref cf) = rumor.payload {
+                if config_file.service_group == cf.service_group &&
+                   config_file.file_name == cf.file_name {
+                    prune_list.push(rid.clone());
+                }
+            }
+        }
+        for rid in prune_list.iter() {
+            self.rumors.remove(&rid);
+        }
+    }
+
 
     pub fn remove_rumor(&mut self, rumor_id: &RumorId) {
         self.rumors.remove(rumor_id);
