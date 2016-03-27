@@ -1,10 +1,10 @@
 pkg_name=rust
 pkg_origin=chef
-pkg_version=1.6.0
+pkg_version=1.7.0
 pkg_license=('Apache-2.0' 'MIT')
 pkg_source=https://static.rust-lang.org/dist/${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu.tar.gz
 pkg_dirname=${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu
-pkg_shasum=8630cc02432b4423d64eeae4ef071ec58e5dd1f3d555a3a3cc34b759202813f6
+pkg_shasum=d36634bd8df3d7565487b70af03dfda1c43c635cd6f2993f47cd61fda00d890a
 pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
 pkg_lib_dirs=(lib)
