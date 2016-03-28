@@ -140,7 +140,7 @@
 # ### pkg_service_run
 # The command to start the service, if needed. Should not fork!
 # ```
-# pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
+# pkg_service_run="bin/haproxy -f /opt/bldr/svc/haproxy/config/haproxy.conf"
 # ```
 #
 # ### pkg_expose
@@ -175,11 +175,11 @@
 #
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
-# * `$pkg_srvc`: Where the running service is; `/opt/bldr/srvc/$pkg_name`
-# * `$pkg_srvc_data`: Service data; `/opt/bldr/srvc/$pkg_name/data`
-# * `$pkg_srvc_var`: Variable state; `/opt/bldr/srvc/$pkg_name/var`
-# * `$pkg_srvc_config`: Configuration; `/opt/bldr/srvc/$pkg_name/config`
-# * `$pkg_srvc_static`: Static data; `/opt/bldr/srvc/$pkg_name/static`
+# * `$pkg_svc`: Where the running service is; `/opt/bldr/svc/$pkg_name`
+# * `$pkg_svc_data`: Service data; `/opt/bldr/svc/$pkg_name/data`
+# * `$pkg_svc_var`: Variable state; `/opt/bldr/svc/$pkg_name/var`
+# * `$pkg_svc_config`: Configuration; `/opt/bldr/svc/$pkg_name/config`
+# * `$pkg_svc_static`: Static data; `/opt/bldr/svc/$pkg_name/static`
 # * `$BLDR_SRC_CACHE`: The path to all the package sources
 # * `$BLDR_PKG_CACHE`: The path to all generated packages
 # * `$CFLAGS`: C compiler options
@@ -212,7 +212,7 @@
 # pkg_gpg_key=3853DA6B
 # pkg_binary_path=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
-# pkg_service_run="bin/haproxy -f /opt/bldr/srvc/haproxy/config/haproxy.conf"
+# pkg_service_run="bin/haproxy -f /opt/bldr/svc/haproxy/config/haproxy.conf"
 # pkg_expose=(80 443)
 #
 # do_build() {
@@ -1805,7 +1805,7 @@ do_default_build_service() {
       if [[ "${pkg_service_user}" = "bldr" ]]; then
         cat <<EOT >> $pkg_path/run
 #!/bin/sh
-cd $BLDR_ROOT/srvc/$pkg_name
+cd $BLDR_ROOT/svc/$pkg_name
 
 if [ "\$(whoami)" = "root" ]; then
   exec chpst \\
@@ -1819,7 +1819,7 @@ EOT
       else
         cat <<EOT >> $pkg_path/run
 #!/bin/sh
-cd $BLDR_ROOT/srvc/$pkg_name
+cd $BLDR_ROOT/svc/$pkg_name
 
 exec $pkg_path/$pkg_service_run 2>&1
 EOT
@@ -1991,12 +1991,12 @@ if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
-# Set $pkg_srvc variables.
-pkg_srvc="$BLDR_ROOT/srvc/$pkg_name"
-pkg_srvc_data="$BLDR_ROOT/srvc/$pkg_name/data"
-pkg_srvc_var="$BLDR_ROOT/srvc/$pkg_name/var"
-pkg_srvc_config="$BLDR_ROOT/srvc/$pkg_name/config"
-pkg_srvc_static="$BLDR_ROOT/srvc/$pkg_name/static"
+# Set $pkg_svc variables.
+pkg_svc="$BLDR_ROOT/svc/$pkg_name"
+pkg_svc_data="$BLDR_ROOT/svc/$pkg_name/data"
+pkg_svc_var="$BLDR_ROOT/svc/$pkg_name/var"
+pkg_svc_config="$BLDR_ROOT/svc/$pkg_name/config"
+pkg_svc_static="$BLDR_ROOT/svc/$pkg_name/static"
 
 # Run `do_begin`
 build_line "Bldr setup"

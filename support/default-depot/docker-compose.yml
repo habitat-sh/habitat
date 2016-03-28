@@ -10,4 +10,4 @@ data:
   image: tianon/true
   command: /true
   volumes:
-    - /opt/bldr/srvc
+    - /opt/bldr/svc

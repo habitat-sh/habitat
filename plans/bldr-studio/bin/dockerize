@@ -117,7 +117,7 @@ FROM scratch
 ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH)
 WORKDIR /
 ADD rootfs /
-VOLUME $BLDR_ROOT/srvc/${pkg_name}/data $BLDR_ROOT/srvc/${pkg_name}/config
+VOLUME $BLDR_ROOT/svc/${pkg_name}/data $BLDR_ROOT/svc/${pkg_name}/config
 EXPOSE 9631 $(package_exposes $1)
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]

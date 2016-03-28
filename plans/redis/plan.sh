@@ -9,7 +9,7 @@ pkg_gpg_key=3853DA6B
 pkg_binary_path=(bin)
 pkg_build_deps=(chef/make chef/gcc)
 pkg_deps=(chef/glibc)
-pkg_service_run="bin/redis-server /opt/bldr/srvc/redis/config/redis.config"
+pkg_service_run="bin/redis-server /opt/bldr/svc/redis/config/redis.config"
 pkg_expose=(6379)
 
 do_build() {

@@ -16,7 +16,7 @@ do_build() {
   ./configure \
     --prefix=$pkg_prefix \
     --sbindir=$pkg_prefix/bin \
-    --localstatedir=$pkg_srvc_var/run \
+    --localstatedir=$pkg_svc_var/run \
     --without-python \
     --without-slang \
     --without-systemd \

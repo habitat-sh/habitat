@@ -51,7 +51,6 @@ fi
 BUSYBOX_ROOT=$(latest_package chef/busybox)
 BLDR_ROOT=$(latest_package chef/bldr)
 GPG_ROOT=$(latest_package chef/gnupg)
-RUNIT_ROOT=$(latest_package chef/runit)
 
 WORKDIR="$(pwd)"
 ROOTFS=${TMPDIR:-/var/tmp}/rootfs-busybox-$$-$RANDOM
@@ -93,7 +92,6 @@ copy_package chef/openssl
 copy_package chef/bzip2
 copy_package chef/xz
 copy_package chef/libarchive
-copy_package chef/runit
 copy_package chef/rngd
 copy_package chef/bldr
 
@@ -106,15 +104,6 @@ ln -s $GPG_ROOT/bin/gpg bin/gpg
 ln -s $GPG_ROOT/bin/gpg-zip bin/gpg-zip
 ln -s $GPG_ROOT/bin/gpgsplit bin/gpgsplit
 ln -s $GPG_ROOT/bin/gpgv bin/gpgv
-ln -sf $RUNIT_ROOT/bin/chpst bin/chpst
-ln -sf $RUNIT_ROOT/bin/runit bin/runit
-ln -sf $RUNIT_ROOT/bin/runit-init bin/runit-init
-ln -sf $RUNIT_ROOT/bin/runsv bin/runsv
-ln -sf $RUNIT_ROOT/bin/runsvchdir bin/runsvchdir
-ln -sf $RUNIT_ROOT/bin/runsvdir bin/runsvdir
-ln -sf $RUNIT_ROOT/bin/sv bin/sv
-ln -sf $RUNIT_ROOT/bin/svlogd bin/svlogd
-ln -sf $RUNIT_ROOT/bin/utmpset bin/utmpset
 
 cp /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 lib
 for X in null ptmx random stdin stdout stderr tty urandom zero

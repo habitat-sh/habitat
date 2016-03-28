@@ -420,7 +420,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
     {
         let package = worker.package.read().unwrap();
         let service_config = worker.service_config.read().unwrap();
-        try!(package.create_srvc_path());
+        try!(package.create_svc_path());
         try!(package.copy_run(&service_config));
     }
     let handler = wonder::actor::Builder::new(SignalNotifier)
