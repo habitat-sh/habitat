@@ -16,6 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-execute 'make clean docs force=true' do
+execute 'make distclean docs force=true' do
   cwd node['delivery']['workspace']['repo']
+  environment(
+    'IN_DOCKER' => 'true'
+  )
 end

@@ -30,11 +30,12 @@ makelog = ::File.join(Chef::Config[:file_cache_path],
 # otherwise :)
 Chef::Log.warn("`make` will log output to #{makelog}")
 
-execute "make clean functional force=true 2>&1 | tee #{makelog}" do
+execute "make distclean functional force=true 2>&1 | tee #{makelog}" do
   cwd node['delivery']['workspace']['repo']
   # set a two hour time out because this compiles :allthethings:
   timeout 7200
   environment(
+    'IN_DOCKER' => 'true',
     'GITHUB_DEPLOY_KEY' => ssh_key,
     'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
     'DOCKER_TLS_VERIFY' => '1',
