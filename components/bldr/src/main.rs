@@ -39,7 +39,7 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
-static DEFAULT_PATH: &'static str = "/opt/bldr/srvc/bldr/data";
+static DEFAULT_PATH: &'static str = "/opt/bldr/svc/bldr/data";
 static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
 static DEFAULT_DEPOT_URL: &'static str = "http://52.37.151.35:9632";
 

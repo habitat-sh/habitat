@@ -17,19 +17,19 @@ pkg_expose=(80 443)
 
 do_build() {
   ./configure --prefix=$pkg_prefix \
-    --conf-path="$pkg_srvc_config/nginx.conf" \
+    --conf-path="$pkg_svc_config/nginx.conf" \
     --sbin-path="$pkg_prefix/bin/nginx" \
-    --pid-path="$pkg_srvc_var/nginx.pid" \
-    --lock-path="$pkg_srvc_var/nginx.lock" \
+    --pid-path="$pkg_svc_var/nginx.pid" \
+    --lock-path="$pkg_svc_var/nginx.lock" \
     --user=bldr \
     --group=bldr \
     --http-log-path=/dev/stdout \
     --error-log-path=stderr \
-    --http-client-body-temp-path="$pkg_srvc_var/client-body" \
-    --http-proxy-temp-path="$pkg_srvc_var/proxy" \
-    --http-fastcgi-temp-path="$pkg_srvc_var/fastcgi" \
-    --http-scgi-temp-path="$pkg_srvc_var/scgi" \
-    --http-uwsgi-temp-path="$pkg_srvc_var/uwsgi" \
+    --http-client-body-temp-path="$pkg_svc_var/client-body" \
+    --http-proxy-temp-path="$pkg_svc_var/proxy" \
+    --http-fastcgi-temp-path="$pkg_svc_var/fastcgi" \
+    --http-scgi-temp-path="$pkg_svc_var/scgi" \
+    --http-uwsgi-temp-path="$pkg_svc_var/uwsgi" \
     --with-ipv6 \
     --with-pcre-jit \
     --with-file-aio \

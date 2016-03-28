@@ -108,7 +108,7 @@ impl ServiceConfig {
     pub fn write(&mut self, pkg: &Package) -> BldrResult<bool> {
         let final_toml = try!(self.to_toml());
         {
-            let mut last_toml = try!(File::create(pkg.srvc_join_path("config.toml")));
+            let mut last_toml = try!(File::create(pkg.svc_join_path("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
 
@@ -120,7 +120,7 @@ impl ServiceConfig {
             let template = try!(mustache::compile_path(pkg.join_path(&format!("config/{}",
                                                                               config))));
             let mut config_vec = Vec::new();
-            let filename = pkg.srvc_join_path(&format!("config/{}", config));
+            let filename = pkg.svc_join_path(&format!("config/{}", config));
             template.render_data(&mut config_vec, &final_data);
             let file_hash = openssl_hash::hash(openssl_hash::Type::SHA256, &config_vec);
             if self.config_hash.contains_key(&filename) {
@@ -293,7 +293,7 @@ impl Cfg {
     }
 
     fn load_user(&mut self, pkg: &Package) -> BldrResult<()> {
-        let mut file = match File::open(pkg.srvc_join_path("user.toml")) {
+        let mut file = match File::open(pkg.svc_join_path("user.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open user.toml: {}", e);
@@ -318,7 +318,7 @@ impl Cfg {
     }
 
     fn load_gossip(&mut self, pkg: &Package) -> BldrResult<()> {
-        let mut file = match File::open(pkg.srvc_join_path("gossip.toml")) {
+        let mut file = match File::open(pkg.svc_join_path("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open gossip.toml: {}", e);
@@ -396,7 +396,7 @@ impl Pkg {
             deps: deps,
             exposes: package.exposes(),
             path: package.path(),
-            svc_path: package.srvc_path(),
+            svc_path: package.svc_path(),
         }
     }
 

@@ -1,4 +1,4 @@
-doc_root = '/opt/bldr/srvc/bldr-web/static'
+doc_root = '/opt/bldr/svc/bldr-web/static'
 worker_processes = 1
 
 [events]

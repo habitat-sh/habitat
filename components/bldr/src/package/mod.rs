@@ -353,7 +353,7 @@ impl Package {
     }
 
     pub fn hook_path(&self, hook_type: &HookType) -> PathBuf {
-        let base = PathBuf::from(self.srvc_join_path("hooks"));
+        let base = PathBuf::from(self.svc_join_path("hooks"));
         match *hook_type {
             HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
@@ -384,59 +384,59 @@ impl Package {
                 join)
     }
 
-    /// The on disk srvc path for this package.
-    pub fn srvc_path(&self) -> String {
+    /// The on disk svc path for this package.
+    pub fn svc_path(&self) -> String {
         format!("{}/{}", SERVICE_HOME, self.name)
     }
 
-    /// Join a string to the on disk srvc path for this package.
-    pub fn srvc_join_path(&self, join: &str) -> String {
+    /// Join a string to the on disk svc path for this package.
+    pub fn svc_join_path(&self, join: &str) -> String {
         format!("{}/{}/{}", SERVICE_HOME, self.name, join)
     }
 
     /// Create the service path for this package.
-    pub fn create_srvc_path(&self) -> BldrResult<()> {
-        debug!("Creating srvc paths");
-        try!(fs::create_dir_all(self.srvc_join_path("config")));
-        try!(fs::create_dir_all(self.srvc_join_path("hooks")));
-        try!(fs::create_dir_all(self.srvc_join_path("toml")));
-        try!(fs::create_dir_all(self.srvc_join_path("data")));
-        try!(fs::create_dir_all(self.srvc_join_path("var")));
-        try!(fs::create_dir_all(self.srvc_join_path("files")));
-        try!(util::perm::set_permissions(&self.srvc_join_path("files"), "0700"));
-        try!(util::perm::set_owner(&self.srvc_join_path("files"), "bldr:bldr"));
-        try!(util::perm::set_permissions(&self.srvc_join_path("toml"), "0700"));
-        try!(util::perm::set_owner(&self.srvc_join_path("data"), "bldr:bldr"));
-        try!(util::perm::set_permissions(&self.srvc_join_path("data"), "0700"));
-        try!(util::perm::set_owner(&self.srvc_join_path("var"), "bldr:bldr"));
-        try!(util::perm::set_permissions(&self.srvc_join_path("var"), "0700"));
+    pub fn create_svc_path(&self) -> BldrResult<()> {
+        debug!("Creating svc paths");
+        try!(fs::create_dir_all(self.svc_join_path("config")));
+        try!(fs::create_dir_all(self.svc_join_path("hooks")));
+        try!(fs::create_dir_all(self.svc_join_path("toml")));
+        try!(fs::create_dir_all(self.svc_join_path("data")));
+        try!(fs::create_dir_all(self.svc_join_path("var")));
+        try!(fs::create_dir_all(self.svc_join_path("files")));
+        try!(util::perm::set_permissions(&self.svc_join_path("files"), "0700"));
+        try!(util::perm::set_owner(&self.svc_join_path("files"), "bldr:bldr"));
+        try!(util::perm::set_permissions(&self.svc_join_path("toml"), "0700"));
+        try!(util::perm::set_owner(&self.svc_join_path("data"), "bldr:bldr"));
+        try!(util::perm::set_permissions(&self.svc_join_path("data"), "0700"));
+        try!(util::perm::set_owner(&self.svc_join_path("var"), "bldr:bldr"));
+        try!(util::perm::set_permissions(&self.svc_join_path("var"), "0700"));
         Ok(())
     }
 
-    /// Copy the "run" file to the srvc path.
+    /// Copy the "run" file to the svc path.
     pub fn copy_run(&self, context: &ServiceConfig) -> BldrResult<()> {
         debug!("Copying the run file");
-        let srvc_run = self.srvc_join_path(RUN_FILENAME);
+        let svc_run = self.svc_join_path(RUN_FILENAME);
         if let Some(hook) = self.hooks().run_hook {
             try!(hook.compile(Some(context)));
-            match fs::read_link(&srvc_run) {
+            match fs::read_link(&svc_run) {
                 Ok(path) => {
                     if path != hook.path {
                         try!(util::perm::set_permissions(hook.path.to_str().unwrap(), "0755"));
-                        try!(fs::remove_file(&srvc_run));
-                        try!(unix::fs::symlink(hook.path, &srvc_run));
+                        try!(fs::remove_file(&svc_run));
+                        try!(unix::fs::symlink(hook.path, &svc_run));
                     }
                 }
-                Err(_) => try!(unix::fs::symlink(hook.path, &srvc_run)),
+                Err(_) => try!(unix::fs::symlink(hook.path, &svc_run)),
             }
         } else {
             let run = self.join_path(RUN_FILENAME);
             try!(util::perm::set_permissions(&run, "0755"));
-            match fs::metadata(&srvc_run) {
-                Ok(_) => try!(fs::remove_file(&srvc_run)),
+            match fs::metadata(&svc_run) {
+                Ok(_) => try!(fs::remove_file(&svc_run)),
                 Err(_) => {}
             }
-            try!(unix::fs::symlink(&run, &srvc_run));
+            try!(unix::fs::symlink(&run, &svc_run));
         }
         Ok(())
     }
@@ -563,7 +563,7 @@ impl Package {
     }
 
     pub fn last_config(&self) -> BldrResult<String> {
-        let mut file = try!(File::open(self.srvc_join_path("config.toml")));
+        let mut file = try!(File::open(self.svc_join_path("config.toml")));
         let mut result = String::new();
         try!(file.read_to_string(&mut result));
         Ok(result)

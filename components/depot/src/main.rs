@@ -19,7 +19,7 @@ use depot::{server, Config, Error, Result};
 use depot::data_store::{self, Cursor, Database, Transaction};
 use depot_core::data_object;
 
-const DEFAULT_PATH: &'static str = "/opt/bldr/srvc/bldr-depot/data";
+const DEFAULT_PATH: &'static str = "/opt/bldr/svc/bldr-depot/data";
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn main() {

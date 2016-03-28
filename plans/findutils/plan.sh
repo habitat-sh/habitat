@@ -24,7 +24,7 @@ do_prepare() {
 do_build() {
   ./configure \
     --prefix=$pkg_prefix \
-    --localstatedir=$pkg_srvc_var/locate
+    --localstatedir=$pkg_svc_var/locate
   make
 }
 
