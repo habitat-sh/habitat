@@ -1,0 +1,14 @@
+pkg_name=libsodium
+pkg_version=1.0.8
+pkg_origin=chef
+pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_license=('libsodium')
+pkg_source=https://download.libsodium.org/libsodium/releases/${pkg_name}-${pkg_version}.tar.gz
+pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+pkg_shasum=c0f191d2527852641e0a996b7b106d2e04cbc76ea50731b2d0babd3409301926
+pkg_gpg_key=3853DA6B
+pkg_deps=(chef/glibc)
+pkg_lib_dirs=(lib)
+pkg_include_dirs=(include)
+pkg_deps=(chef/glibc)
+pkg_build_deps=(chef/autoconf chef/automake chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/glibc)
