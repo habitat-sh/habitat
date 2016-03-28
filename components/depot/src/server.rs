@@ -11,9 +11,8 @@ use std::path::{Path, PathBuf};
 use depot_core::{ETag, XFileName};
 use depot_core::data_object::{self, DataObject};
 use iron::prelude::*;
-use iron::status;
+use iron::{status, headers, AfterMiddleware};
 use iron::request::Body;
-use iron::headers;
 use router::{Params, Router};
 use rustc_serialize::json;
 use urlencoded::UrlEncodedQuery;
@@ -405,6 +404,15 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
+struct Cors;
+
+impl AfterMiddleware for Cors {
+    fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
+        res.headers.set(headers::AccessControlAllowOrigin::Any);
+        Ok(res)
+    }
+}
+
 pub fn run(config: &Config) -> Result<()> {
     let depot = try!(Depot::new(config.path.clone()));
     let depot1 = depot.clone();
@@ -448,7 +456,10 @@ pub fn run(config: &Config) -> Result<()> {
         post "/keys/:key" => move |r: &mut Request| upload_key(&depot16, r),
         get "/keys/:key" => move |r: &mut Request| download_key(&depot17, r)
     );
-    Iron::new(router).http(config.depot_addr()).unwrap();
+    let mut chain = Chain::new(router);
+    chain.link_after(Cors);
+
+    Iron::new(chain).http(config.depot_addr()).unwrap();
     Ok(())
 }
 
