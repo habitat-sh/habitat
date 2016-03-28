@@ -7,6 +7,13 @@
   </head>
   <body>
     <hab>
+    <script>
+        window.Habitat = { config: {} };
+        function habitatConfig(options) {
+            window.Habitat.config = options || {};
+        };
+    </script>
+    <script src="/habitat.conf.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>

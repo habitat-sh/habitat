@@ -12,6 +12,20 @@ Run `npm install` to install dependencies.
 
 To run a development web server, run `npm start`.
 
+### Configuration
+
+Copy habitat.conf.sample.js to habitat.conf.js to enable runtime configuration
+in development.
+
+The configuration file looks like:
+
+```js
+habitatConfig({
+    depotUrl: "https://my-depot-url:1234",
+    someOtherConfigOption: true,
+});
+```
+
 ### Tests
 
 Run all the tests with `npm test`.
