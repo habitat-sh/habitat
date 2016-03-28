@@ -92,17 +92,27 @@ by having a convention cover it. When we do need to configure things, we set san
    Toolbox)
 1. [Install VMWare Fusion](https://www.vmware.com/products/fusion)
 1. Delete the default docker-machine image: `docker-machine rm default`
-1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, Ram, or Disk space as needed. (Adam used 4 cpu, 8gb of ram)
+1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, RAM, or Disk space as needed. This determines how fast you can compile the project and build software. (Adam uses 4 CPUs, 8GB of RAM)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
-1. Run `make build`
+1. Run `make` (or `make all` to be explicit)
 1. Run `make test`
 
 Everything should come up green. Congratulations - you have a working Bldr development environment.
 
-**Note:** The Makefile targets are documented. Run `make` or `make help` to show the output. Requires `perl`.
+**Note:** The Makefile targets are documented. Run `make help` to show the output. Requires `perl`.
 
-**Optional:** This project compiles and runs inside Docker containers so while installing the Rust language isn't strictly necessary, you might want a local copy of Rust on your workstation (some editors' language support require an installed version). To [install stable Rust](https://www.rust-lang.org/install.html), run: `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
+**Optional:** This project compiles and runs inside Docker containers so while
+installing the Rust language isn't strictly necessary, you might want a local
+copy of Rust on your workstation (some editors' language support require an
+installed version). To [install stable
+Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
+https://static.rust-lang.org/rustup.sh | sh`. Additionally, the project
+maintainers use [rustfmt](https://github.com/rust-lang-nursery/rustfmt) for
+code formatting. If you are submitting changes, please ensure that your work
+has been run through rustfmt. An easy way to install it (assuming you have Rust
+installed as above), is to run `cargo install rustfmt` and adding
+`$HOME/.cargo/bin` to your `PATH`.
 
 **Optional:** This project currently uses GitHub integration with Delivery so
 while the delivery-cli tool is not strictly necessary to initiate reviews, it
@@ -116,14 +126,24 @@ install it, and you're done!
 1. [Install Docker](https://docs.docker.com/linux/step_one/) **Note: You may need to logout and then login again after this step**
 1. [Install Docker Compose](https://docs.docker.com/compose/install/)
 1. Checkout the source by running `git clone git@github.com:chef/bldr.git; cd bldr`
-1. Run `make build`
+1. Run `make` (or `make all` to be explicit)
 1. Run `make test`
 
 Everything should come up green. Congratulations - you have a working Bldr development environment.
 
-**Note:** The Makefile targets are documented. Run `make` or `make help` to show the output. Requires `perl`.
+**Note:** The Makefile targets are documented. Run `make help` to show the output. Requires `perl`.
 
-**Optional:** This project compiles and runs inside Docker containers so while installing the Rust language isn't strictly necessary, you might want a local copy of Rust on your workstation (some editors' language support require an installed version). To [install stable Rust](https://www.rust-lang.org/install.html), run: `curl -sSf https://static.rust-lang.org/rustup.sh | sh`
+**Optional:** This project compiles and runs inside Docker containers so while
+installing the Rust language isn't strictly necessary, you might want a local
+copy of Rust on your workstation (some editors' language support require an
+installed version). To [install stable
+Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
+https://static.rust-lang.org/rustup.sh | sh`. Additionally, the project
+maintainers use [rustfmt](https://github.com/rust-lang-nursery/rustfmt) for
+code formatting. If you are submitting changes, please ensure that your work
+has been run through rustfmt. An easy way to install it (assuming you have Rust
+installed as above), is to run `cargo install rustfmt` and adding
+`$HOME/.cargo/bin` to your `PATH`.
 
 **Optional:** This project currently uses GitHub integration with Delivery so
 while the delivery-cli tool is not strictly necessary to initiate reviews, it
@@ -137,8 +157,9 @@ install it, and you're done!
 
 Run `make docs` to build the internal documentation for bldr.
 
-Run `make docs-serve` to run a small web server that exposes the documentation on port `9633`. You can then
-read the docs at `http://<DOCKER_HOST>:9633/` (with working JavaScript-based search).
+Run `make serve-docs` to run a small web server that exposes the documentation
+on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
+(with working JavaScript-based search).
 
 ## Writing new features
 
