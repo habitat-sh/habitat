@@ -1,5 +1,5 @@
 #!/bin/sh
-#
-path_to_nginx=`cat /opt/bldr/pkgs/{{bldr.origin}}/{{bldr.name}}/{{bldr.version}}/{{bldr.release}}/DEPS | grep nginx`
+path_to_nginx=`cat /opt/bldr/pkgs/{{pkg.origin}}/{{pkg.name}}/{{pkg.version}}/{{pkg.release}}/DEPS | grep nginx`
+
 exec 2>&1
-exec /opt/bldr/pkgs/$path_to_nginx/sbin/nginx -c /opt/bldr/srvc/bldr-web/config/nginx.conf
+exec /opt/bldr/pkgs/$path_to_nginx/sbin/nginx -c /opt/bldr/srvc/{{pkg.name}}/config/nginx.conf
