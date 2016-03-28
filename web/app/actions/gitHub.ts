@@ -93,7 +93,7 @@ export function requestGitHubAuthToken(params = {}, stateKey = "") {
                 } else {
                     dispatch(addNotification({
                         title: "Authentication Failed",
-                        body: data["error"],
+                        body: `[err=${data["code"]}] ${data["msg"]}`,
                         type: DANGER,
                     }));
                 }

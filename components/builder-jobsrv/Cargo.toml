@@ -1,0 +1,29 @@
+[package]
+name = "habitat_builder_jobsrv"
+version = "0.1.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+description = "Habitat-Builder Job Server"
+
+[[bin]]
+name = "bldr-job-srv"
+doc = false
+
+[dependencies]
+env_logger = "*"
+log = "*"
+protobuf = "*"
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.zmq]
+# git = "https://github.com/erickt/rust-zmq.git"
+git = "https://github.com/reset/rust-zmq.git"
+branch = "build-rs"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
+[dependencies.habitat_net]
+path = "../net"

@@ -1,0 +1,56 @@
+[root]
+name = "habitat_net"
+version = "0.1.0"
+dependencies = [
+ "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=build-rs)",
+]
+
+[[package]]
+name = "bitflags"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "libc"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "log"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "pkg-config"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "protobuf"
+version = "1.0.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "zmq"
+version = "0.7.0"
+source = "git+https://github.com/reset/rust-zmq.git?branch=build-rs#edacfbffb8d966a8b5ac1c98eb3a7e29378fa78c"
+dependencies = [
+ "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq-sys 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=build-rs)",
+]
+
+[[package]]
+name = "zmq-sys"
+version = "0.7.0"
+source = "git+https://github.com/reset/rust-zmq.git?branch=build-rs#edacfbffb8d966a8b5ac1c98eb3a7e29378fa78c"
+dependencies = [
+ "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+

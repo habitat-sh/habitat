@@ -1,0 +1,13 @@
+package net;
+
+enum ErrCode {
+  BUG = 0;
+  TIMEOUT = 1;
+  REMOTE_REJECTED = 2;
+  BAD_REMOTE_REPLY = 3;
+}
+
+message NetError {
+    required ErrCode code = 1;
+    required string msg = 2;
+}
