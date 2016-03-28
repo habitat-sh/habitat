@@ -5,7 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 pub const PACKAGE_HOME: &'static str = "/opt/bldr/pkgs";
-pub const SERVICE_HOME: &'static str = "/opt/bldr/srvc";
+pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
 pub const PACKAGE_CACHE: &'static str = "/opt/bldr/cache/pkgs";
 pub const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
 pub const KEY_CACHE: &'static str = "/opt/bldr/cache/keys";
