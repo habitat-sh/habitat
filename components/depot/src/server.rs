@@ -199,12 +199,19 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     if let Some(view) = params.find("repo") {
         list_packages_scoped_to_repo(depot, view)
     } else {
-        let ident: data_object::PackageIdent = extract_data_ident(params);
-        let mut packages: Vec<package::PackageIdent> = vec![];
+        let ident: String = if params.find("pkg").is_none() {
+            match params.find("origin") {
+                Some(origin) => origin.to_string(),
+                None => return Ok(Response::with(status::BadRequest)),
+            }
+        } else {
+            extract_data_ident(params).ident().to_owned()
+        };
 
+        let mut packages: Vec<package::PackageIdent> = vec![];
         let txn = try!(depot.datastore.packages.index.txn_ro());
         let mut cursor = try!(txn.cursor_ro());
-        let result = match cursor.set_key(ident.ident()) {
+        let result = match cursor.set_key(&ident) {
             Ok((_, value)) => {
                 packages.push(value.into());
                 loop {
