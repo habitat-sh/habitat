@@ -1,0 +1,4 @@
+{
+	"MOTD": "{{cfg.MOTD}}",
+	"PORT": "{{cfg.PORT}}"
+}
