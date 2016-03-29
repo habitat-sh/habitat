@@ -1,3 +1,30 @@
+module BldrDocker
+  class << self
+    include Chef::Mixin::ShellOut
+  end
+
+  def self.image_exists?(repository)
+    !shell_out!(%{docker images -q #{repository}}).stdout.empty?
+  end
+
+  def self.fresh_image?(repository)
+    if image_exists?(repository)
+      require 'time'
+
+      output = shell_out!(
+        %{docker inspect --format='{{.Created}}' #{repository}}
+      ).stdout
+      created = Time.parse(output).utc
+      now = Time.new.utc
+
+      # Has this image been created in the last 24 hours?
+      (now - created) < (60 * 60 * 24)
+    else
+      false
+    end
+  end
+end
+
 module BldrDockerMachine
   def self.available?(port = 2376)
     require 'socket'

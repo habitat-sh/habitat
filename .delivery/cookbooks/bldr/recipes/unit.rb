@@ -16,7 +16,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-execute 'make distclean unit force=true' do
+execute 'make distclean' do
+  cwd node['delivery']['workspace']['repo']
+  environment(
+    'IN_DOCKER' => 'true'
+  )
+  not_if { BldrDocker.fresh_image?("bldr/devshell:latest") }
+end
+
+execute 'make unit refresh=true' do
   cwd node['delivery']['workspace']['repo']
   environment(
     'IN_DOCKER' => 'true'
