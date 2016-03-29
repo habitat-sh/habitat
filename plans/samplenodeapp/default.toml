@@ -1,7 +1,7 @@
 # Default values that can be updated.
 
 # Message of the Day
-MOTD = "Hello, World!"
+message = "Hello, World!"
 
 # The port number that is listening for requests.
-PORT = 8080
+port = 8080
