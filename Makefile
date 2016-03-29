@@ -18,9 +18,10 @@ ifneq ($(IN_DOCKER),)
 	dimage := bldr/devshell
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
-	run := $(compose_cmd) run --rm $(run_args) shell
+	common_run := $(compose_cmd) run --rm $(run_args)
+	run := $(common_run) shell
 	docs_host := ${DOCKER_HOST}
-	docs_run := $(run) -p 9633:9633
+	docs_run := $(common_run) -p 9633:9633 shell
 else
 	run :=
 	docs_host := 127.0.0.1
