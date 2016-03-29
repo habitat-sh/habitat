@@ -247,3 +247,5 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   backline
   bldr-studio
 _PLANS_
+
+_on_exit 0
