@@ -20,7 +20,7 @@ do_build () {
 do_install() {
     
   # Copy our source files from BLDR_SRC_CACHE to the samplenodeapp package. 
-  # This is so that when bldr calls "npm start" at start-up, we have the source files 
+  # This is so that when Habitat calls "npm start" at start-up, we have the source files 
   # included in the package.
   cp package.json ${pkg_path}
   cp server.js ${pkg_path}
