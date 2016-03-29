@@ -1,4 +1,4 @@
 {
-	"MOTD": "{{cfg.MOTD}}",
-	"PORT": "{{cfg.PORT}}"
+	"MOTD": "{{cfg.message}}",
+	"PORT": "{{cfg.port}}"
 }
