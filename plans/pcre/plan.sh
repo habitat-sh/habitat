@@ -30,7 +30,7 @@ do_install() {
   do_default_install
 
   # Install license file
-  install -Dm644 LICENCE $pkg_path/share/licenses/LICENSE
+  install -Dm644 LICENCE $pkg_prefix/share/licenses/LICENSE
 }
 
 

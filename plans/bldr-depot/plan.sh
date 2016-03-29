@@ -25,7 +25,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../../components/depot/target/debug/bldr-depot $pkg_path/bin/bldr-depot
+  install -v -D $PLAN_CONTEXT/../../components/depot/target/debug/bldr-depot $pkg_prefix/bin/bldr-depot
 }
 
 # Turn the remaining default phases into no-ops

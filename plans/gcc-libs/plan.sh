@@ -32,23 +32,23 @@ _gcc_libs=(
 )
 
 do_install() {
-  mkdir -pv $pkg_path/lib
+  mkdir -pv $pkg_prefix/lib
   for lib in "${_gcc_libs[@]}"; do
-    cp -av $(pkg_path_for gcc)/lib/${lib}.* $pkg_path/lib/
+    cp -av $(pkg_path_for gcc)/lib/${lib}.* $pkg_prefix/lib/
   done
-  rm -fv $pkg_path/lib/*.spec $pkg_path/lib/*.py
+  rm -fv $pkg_prefix/lib/*.spec $pkg_prefix/lib/*.py
 
-  mkdir -pv $pkg_path/share/licenses
+  mkdir -pv $pkg_prefix/share/licenses
   cp -av $(pkg_path_for gcc)/share/licenses/RUNTIME.LIBRARY.EXCEPTION \
-    $pkg_path/share/licenses/
+    $pkg_prefix/share/licenses/
 
   # Due to the copy-from-package trick above, the resulting `RUNPATH` entries
   # have more path entries than are actually being used (for mpfr, libmpc,
   # etc), so we'll use `patchelf` trim these unused path entries for each
   # shared library.
-  find $pkg_path/lib -type f -name '*.so.*' \
-    -exec patchelf --set-rpath $(pkg_path_for glibc)/lib:$pkg_path/lib {} \;
-  find $pkg_path/lib -type f -name '*.so.*' -exec patchelf --shrink-rpath {} \;
+  find $pkg_prefix/lib -type f -name '*.so.*' \
+    -exec patchelf --set-rpath $(pkg_path_for glibc)/lib:$pkg_prefix/lib {} \;
+  find $pkg_prefix/lib -type f -name '*.so.*' -exec patchelf --shrink-rpath {} \;
 }
 
 # Turn the remaining default phases into no-ops

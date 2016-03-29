@@ -68,7 +68,7 @@ do_install() {
   do_default_install
 
   # An empty `bin/` directory gets made, which we don't need and is confusing
-  rm -rf $pkg_path/bin
+  rm -rf $pkg_prefix/bin
 }
 
 

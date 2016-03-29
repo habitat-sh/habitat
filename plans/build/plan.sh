@@ -39,7 +39,7 @@ do_build() {
 }
 
 do_install() {
-  install -D $program $pkg_path/bin/build
+  install -D $program $pkg_prefix/bin/build
 }
 
 # Turn the remaining default phases into no-ops

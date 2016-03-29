@@ -85,27 +85,27 @@ do_check() {
 }
 
 do_install() {
-  cp -av bin src lib doc misc $pkg_path/
+  cp -av bin src lib doc misc $pkg_prefix/
 
-  mkdir -pv $pkg_path/bin $pkg_path/pkg
-  cp -av pkg/{linux_$GOARCH,tool} $pkg_path/pkg/
+  mkdir -pv $pkg_prefix/bin $pkg_prefix/pkg
+  cp -av pkg/{linux_$GOARCH,tool} $pkg_prefix/pkg/
   if [[ -d "pkg/linux_${GOARCH}_race" ]]; then
-    cp -av pkg/linux_${GOARCH}_race $pkg_path/pkg/
+    cp -av pkg/linux_${GOARCH}_race $pkg_prefix/pkg/
   fi
 
   # For godoc
-  install -v -Dm644 favicon.ico $pkg_path/favicon.ico
+  install -v -Dm644 favicon.ico $pkg_prefix/favicon.ico
 
   # Install the license
-  install -v -Dm644 LICENSE $pkg_path/share/licenses/LICENSE
+  install -v -Dm644 LICENSE $pkg_prefix/share/licenses/LICENSE
 
   # Remove unneeded Windows files
-  rm -fv $pkg_path/src/*.bat
+  rm -fv $pkg_prefix/src/*.bat
 }
 
 do_strip() {
   # Strip manually since `strip` will not process Go's static libraries.
-  for f in $pkg_path/bin/* $pkg_path/pkg/tool/linux_$GOARCH/*; do
+  for f in $pkg_prefix/bin/* $pkg_prefix/pkg/tool/linux_$GOARCH/*; do
     strip -s "$f"
   done
 }

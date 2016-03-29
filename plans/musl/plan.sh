@@ -23,7 +23,7 @@ do_install() {
   do_default_install
 
   # Install license
-  install -Dm0644 COPYRIGHT $pkg_path/share/licenses/COPYRIGHT
+  install -Dm0644 COPYRIGHT $pkg_prefix/share/licenses/COPYRIGHT
 }
 
 

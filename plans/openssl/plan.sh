@@ -66,7 +66,7 @@ do_install() {
   do_default_install
 
   # Remove dependency on Perl at runtime
-  rm -rfv $pkg_path/ssl/misc $pkg_path/bin/c_rehash
+  rm -rfv $pkg_prefix/ssl/misc $pkg_prefix/bin/c_rehash
 }
 
 

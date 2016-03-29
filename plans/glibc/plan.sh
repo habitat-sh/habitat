@@ -181,49 +181,49 @@ do_check() {
 do_install() {
   pushd ../${pkg_name}-build > /dev/null
     # Prevent a `make install` warning of a missing `ld.so.conf`.
-    mkdir -p $pkg_path/etc
-    touch $pkg_path/etc/ld.so.conf
+    mkdir -p $pkg_prefix/etc
+    touch $pkg_prefix/etc/ld.so.conf
 
     # To ensure the `make install` checks at the end succeed. Unfortunately,
     # a multilib installation is assumed (i.e. 32-bit and 64-bit). We will
     # fool this check by symlinking a "32-bit" file to the real loader.
-    mkdir -p $pkg_path/lib
-    ln -sv ld-2.22.so $pkg_path/lib/ld-linux.so.2
+    mkdir -p $pkg_prefix/lib
+    ln -sv ld-2.22.so $pkg_prefix/lib/ld-linux.so.2
 
     # Add a `lib64` -> `lib` symlink for `bin/ldd` to work correctly.
     #
     # Thanks to: https://github.com/NixOS/nixpkgs/blob/55b03266cfc25ae019af3cdd2cfcad0facdc68f2/pkgs/development/libraries/glibc/builder.sh#L43-L47
-    ln -sv lib $pkg_path/lib64
+    ln -sv lib $pkg_prefix/lib64
 
     if [[ "$STUDIO_TYPE" = "stage1" ]]; then
       # When building glibc using a build toolchain, we need libgcc_s at
       # `$RPATH` which gets us by until we can link against this for real
       if [ -f /tools/lib/libgcc_s.so.1 ]; then
-        cp -v /tools/lib/libgcc_s.so.1 $pkg_path/lib/
+        cp -v /tools/lib/libgcc_s.so.1 $pkg_prefix/lib/
         # the .so file used to be a symlink, but now it is a script
-        cp -av /tools/lib/libgcc_s.so $pkg_path/lib/
+        cp -av /tools/lib/libgcc_s.so $pkg_prefix/lib/
       fi
     fi
 
-    make install sysconfdir=$pkg_path/etc sbindir=$pkg_path/bin
+    make install sysconfdir=$pkg_prefix/etc sbindir=$pkg_prefix/bin
 
     # Move all remaining binaries in `sbin/` into `bin/`, namely `ldconfig`
-    mv $pkg_path/sbin/* $pkg_path/bin/
-    rm -rf $pkg_path/sbin
+    mv $pkg_prefix/sbin/* $pkg_prefix/bin/
+    rm -rf $pkg_prefix/sbin
 
     # Remove unneeded files from `include/rpcsvc`
-    rm -fv $pkg_path/include/rpcsvc/*.x
+    rm -fv $pkg_prefix/include/rpcsvc/*.x
 
     # Remove the `make install` check symlink
-    rm -fv $pkg_path/lib/ld-linux.so.2
+    rm -fv $pkg_prefix/lib/ld-linux.so.2
 
     # Remove `sln` (statically built ln)--not needed
-    rm -f $pkg_path/bin/sln
+    rm -f $pkg_prefix/bin/sln
 
     # Update the shebangs of a few shell scripts that have a fully-qualified
     # path to `/bin/sh` so they will work in a minimal busybox
     for b in ldd sotruss tzselect xtrace; do
-      sed -e 's,^#!.*$,#! /bin/sh,' -i $pkg_path/bin/$b
+      sed -e 's,^#!.*$,#! /bin/sh,' -i $pkg_prefix/bin/$b
     done
 
     # Include the Linux kernel headers in Glibc, except the `scsi/` directory,
@@ -239,11 +239,11 @@ do_install() {
     # sad, sad situation.
     #
     # Thanks to: https://github.com/NixOS/nixpkgs/blob/55b03266cfc25ae019af3cdd2cfcad0facdc68f2/pkgs/development/libraries/glibc/builder.sh#L25-L32
-    pushd $pkg_path/include > /dev/null
+    pushd $pkg_prefix/include > /dev/null
       ln -sv $(ls -d $(pkg_path_for linux-headers)/include/* | grep -v 'scsi$') .
     popd > /dev/null
 
-    mkdir -pv $pkg_path/lib/locale
+    mkdir -pv $pkg_prefix/lib/locale
     localedef -i cs_CZ -f UTF-8 cs_CZ.UTF-8
     localedef -i de_DE -f ISO-8859-1 de_DE
     localedef -i de_DE@euro -f ISO-8859-15 de_DE@euro
@@ -257,9 +257,9 @@ do_install() {
     localedef -i it_IT -f ISO-8859-1 it_IT
     localedef -i ja_JP -f EUC-JP ja_JP
 
-    cp -v ../$pkg_dirname/nscd/nscd.conf $pkg_path/etc/
+    cp -v ../$pkg_dirname/nscd/nscd.conf $pkg_prefix/etc/
 
-    cat > $pkg_path/etc/nsswitch.conf << "EOF"
+    cat > $pkg_prefix/etc/nsswitch.conf << "EOF"
 passwd: files
 group: files
 shadow: files
@@ -275,7 +275,7 @@ EOF
 
     extract_src tzdata
     pushd ./tzdata > /dev/null
-      ZONEINFO=$pkg_path/share/zoneinfo
+      ZONEINFO=$pkg_prefix/share/zoneinfo
       mkdir -p $ZONEINFO/{posix,right}
       for tz in etcetera southamerica northamerica europe africa antarctica \
           asia australasia backward pacificnew systemv; do
@@ -287,7 +287,7 @@ EOF
       zic -d $ZONEINFO -p America/New_York
       unset ZONEINFO
     popd > /dev/null
-    cp -v $pkg_path/share/zoneinfo/UTC $pkg_path/etc/localtime
+    cp -v $pkg_prefix/share/zoneinfo/UTC $pkg_prefix/etc/localtime
   popd > /dev/null
 }
 

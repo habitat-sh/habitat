@@ -90,7 +90,7 @@ do_install() {
   do_default_install
 
   # Add an `sh` which symlinks to `bash`
-  ln -sv bash $pkg_path/bin/sh
+  ln -sv bash $pkg_prefix/bin/sh
 }
 
 

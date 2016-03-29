@@ -36,9 +36,9 @@ do_install() {
   make install PREFIX="$pkg_prefix"
 
   # Replace some hard links with symlinks
-  rm -fv $pkg_path/bin/{bunzip2,bzcat}
-  ln -sv bzip2 $pkg_path/bin/bunzip2
-  ln -sv bzip2 $pkg_path/bin/bzcat
+  rm -fv $pkg_prefix/bin/{bunzip2,bzcat}
+  ln -sv bzip2 $pkg_prefix/bin/bunzip2
+  ln -sv bzip2 $pkg_prefix/bin/bzcat
 
   # Install the shared library and its symlinks
   cp -v $BLDR_SRC_CACHE/$pkg_dirname/libbz2.so.$pkg_version $pkg_prefix/lib

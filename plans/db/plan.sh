@@ -30,7 +30,7 @@ do_install() {
   popd > /dev/null
 
   # Install license file
-  install -Dm644 LICENSE "$pkg_path/share/licenses/LICENSE"
+  install -Dm644 LICENSE "$pkg_prefix/share/licenses/LICENSE"
 }
 
 

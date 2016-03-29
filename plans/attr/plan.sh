@@ -14,7 +14,7 @@ pkg_gpg_key=3853DA6B
 
 do_install() {
   make install install-dev install-lib
-  chmod -v 755 $pkg_path/lib/libattr.so
+  chmod -v 755 $pkg_prefix/lib/libattr.so
 }
 
 

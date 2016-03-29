@@ -16,7 +16,7 @@ do_install() {
   do_default_install
 
   # Clean up extra files
-  rm -rfv $pkg_path/share/info/dir $pkg_path/share/doc/check/*ChangeLog*
+  rm -rfv $pkg_prefix/share/info/dir $pkg_prefix/share/doc/check/*ChangeLog*
 }
 
 

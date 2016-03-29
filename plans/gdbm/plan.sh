@@ -27,10 +27,10 @@ do_install() {
   do_default_install
 
   # create symlinks for compatibility
-  install -dm755 ${pkg_path}/include/gdbm
-  ln -sf ../gdbm.h ${pkg_path}/include/gdbm/gdbm.h
-  ln -sf ../ndbm.h ${pkg_path}/include/gdbm/ndbm.h
-  ln -sf ../dbm.h  ${pkg_path}/include/gdbm/dbm.h
+  install -dm755 ${pkg_prefix}/include/gdbm
+  ln -sf ../gdbm.h ${pkg_prefix}/include/gdbm/gdbm.h
+  ln -sf ../ndbm.h ${pkg_prefix}/include/gdbm/ndbm.h
+  ln -sf ../dbm.h  ${pkg_prefix}/include/gdbm/dbm.h
 }
 
 

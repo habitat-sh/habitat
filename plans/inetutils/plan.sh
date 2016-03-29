@@ -38,7 +38,7 @@ do_install() {
   do_default_install
 
   # `libexec/` directory is not used
-  rm -rfv $pkg_path/libexec
+  rm -rfv $pkg_prefix/libexec
 }
 
 

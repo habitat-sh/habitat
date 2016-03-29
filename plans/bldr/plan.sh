@@ -24,7 +24,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../../components/bldr/target/debug/bldr $pkg_path/bin/bldr
+  install -v -D $PLAN_CONTEXT/../../components/bldr/target/debug/bldr $pkg_prefix/bin/bldr
 }
 
 # Turn the remaining default phases into no-ops

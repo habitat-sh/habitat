@@ -20,5 +20,5 @@ do_build() {
 }
 
 do_install() {
-  install -D $BLDR_SRC_CACHE/$pkg_filename $pkg_path/bin/jq
+  install -D $BLDR_SRC_CACHE/$pkg_filename $pkg_prefix/bin/jq
 }

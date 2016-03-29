@@ -28,10 +28,10 @@ do_build() {
 }
 
 do_install() {
-  install -Dm755 busybox $pkg_path/bin/busybox
+  install -Dm755 busybox $pkg_prefix/bin/busybox
 
   # Generate the symlinks back to the `busybox` executable
-  for l in $($pkg_path/bin/busybox --list); do
-    ln -sv busybox $pkg_path/bin/$l
+  for l in $($pkg_prefix/bin/busybox --list); do
+    ln -sv busybox $pkg_prefix/bin/$l
   done
 }

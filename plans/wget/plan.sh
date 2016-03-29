@@ -26,7 +26,7 @@ do_build() {
 do_install() {
   do_default_install
 
-  cat <<EOF >> $pkg_path/etc/wgetrc
+  cat <<EOF >> $pkg_prefix/etc/wgetrc
 
 # Default root CA certs location
 ca_certificate=$(pkg_path_for cacerts)/ssl/certs/cacert.pem

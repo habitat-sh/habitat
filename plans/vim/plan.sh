@@ -35,7 +35,7 @@ do_install() {
   do_default_install
 
   # Install license file
-  install -Dm644 runtime/doc/uganda.txt $pkg_path/share/licenses/license.txt
+  install -Dm644 runtime/doc/uganda.txt $pkg_prefix/share/licenses/license.txt
 }
 
 

@@ -47,11 +47,11 @@ do_install() {
 
   # Move all binaries in `sbin/` into `bin/` as this isn't handled by
   # `./configure`.
-  mv $pkg_path/sbin/* $pkg_path/bin/
-  rm -rf $pkg_path/sbin
+  mv $pkg_prefix/sbin/* $pkg_prefix/bin/
+  rm -rf $pkg_prefix/sbin
 
   # Install the license
-  install -Dm644 COPYING $pkg_path/share/licenses/COPYING
+  install -Dm644 COPYING $pkg_prefix/share/licenses/COPYING
 }
 
 

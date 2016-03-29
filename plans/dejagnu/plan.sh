@@ -27,7 +27,7 @@ do_install() {
   # Set an absolute path `expect` in the `runtest` binary
   sed \
     -e "s,expectbin=expect,expectbin=$(pkg_path_for expect)/bin/expect,g" \
-    -i $pkg_path/bin/runtest
+    -i $pkg_prefix/bin/runtest
 }
 
 

@@ -22,36 +22,36 @@ do_build() {
 }
 
 do_install() {
-  install -v -D bpm $pkg_path/bin/bpm
+  install -v -D bpm $pkg_prefix/bin/bpm
 
   # Install a copy of a statically built busybox under `libexec/` and add
   # symlinks
   install -v -D $(pkg_path_for busybox-static)/bin/busybox \
-    $pkg_path/libexec/busybox
+    $pkg_prefix/libexec/busybox
   for l in "${bb_cmds[@]}"; do
-    ln -sv busybox $pkg_path/libexec/$l
+    ln -sv busybox $pkg_prefix/libexec/$l
   done
 
   install -v -D $(pkg_path_for coreutils-static)/bin/coreutils \
-    $pkg_path/libexec/coreutils
+    $pkg_prefix/libexec/coreutils
 
   install -v -D $(pkg_path_for gnupg-static)/bin/gpg \
-    $pkg_path/libexec/gpg
+    $pkg_prefix/libexec/gpg
 
   install -v -D $(pkg_path_for jq-static)/bin/jq \
-    $pkg_path/libexec/jq
+    $pkg_prefix/libexec/jq
 
   install -v -D $(pkg_path_for wget-static)/bin/wget \
-    $pkg_path/libexec/wget
+    $pkg_prefix/libexec/wget
 }
 
 do_end() {
   build_line "Creating slim tarball"
   pushd $BLDR_SRC_CACHE > /dev/null
-    dir="$(cat $pkg_path/IDENT | tr '/' '-')"
+    dir="$(cat $pkg_prefix/IDENT | tr '/' '-')"
     rm -rfv $dir
     mkdir -pv $dir
-    cp -rpv $pkg_path/* $dir/
+    cp -rpv $pkg_prefix/* $dir/
     tar cpf $BLDR_PKG_CACHE/${dir}.tar $dir
     xz -z -9 -T 0 --verbose $BLDR_PKG_CACHE/${dir}.tar
   popd > /dev/null

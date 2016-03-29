@@ -32,7 +32,7 @@ do_install() {
   do_default_install
 
   # Install license file from README
-  install -Dm644 README "$pkg_path/share/licenses/README"
+  install -Dm644 README "$pkg_prefix/share/licenses/README"
 }
 
 

@@ -33,7 +33,7 @@ do_build() {
 }
 
 do_install() {
-    cp -vR dist ${pkg_path}/dist
+    cp -vR dist ${pkg_prefix}/dist
 }
 
 do_verify() {

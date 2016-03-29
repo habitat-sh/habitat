@@ -33,7 +33,7 @@ do_build() {
 }
 
 do_install() {
-  make install usrsbin_execdir=$pkg_path/bin
+  make install usrsbin_execdir=$pkg_prefix/bin
 }
 
 

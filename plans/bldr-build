@@ -1397,9 +1397,9 @@ _set_path() {
   local path_part=""
   for path in "${pkg_binary_path[@]}"; do
     if [[ -z $path_part ]]; then
-      path_part="$pkg_path/$path"
+      path_part="$pkg_prefix/$path"
     else
-      path_part="$path_part:$pkg_path/$path"
+      path_part="$path_part:$pkg_prefix/$path"
     fi
   done
   for dep_path in "${pkg_all_tdeps_resolved[@]}"; do
@@ -1484,8 +1484,8 @@ do_default_unpack() {
 # defined in `$pkg_lib_dirs` to `LD_RUN_PATH`. Then, for each dependency in
 # `$pkg_deps`, and `$pkg_build_deps`, find the latest package, then add it's
 # `LD_RUN_PATH`, `CFLAGS`, `LDFLAGS`, and `PATH` to ours. Also, set
-# `PREFIX=$pkg_path`, ensuring that most software will install into the correct
-# location.
+# `PREFIX=$pkg_prefix`, ensuring that most software will install into the
+# correct location.
 _build_environment() {
   build_line "Setting build environment"
 
@@ -1498,9 +1498,9 @@ _build_environment() {
   local ld_run_path_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
     if [[ -z $ld_run_path_part ]]; then
-      ld_run_path_part="$pkg_path/$lib"
+      ld_run_path_part="$pkg_prefix/$lib"
     else
-      ld_run_path_part="$ld_run_path_part:$pkg_path/$lib"
+      ld_run_path_part="$ld_run_path_part:$pkg_prefix/$lib"
     fi
   done
   export LD_RUN_PATH=$ld_run_path_part
@@ -1545,7 +1545,7 @@ _build_environment() {
   mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
 
   # Set PREFIX for maximum default software build support
-  export PREFIX=$pkg_path
+  export PREFIX=$pkg_prefix
   build_line "Setting PREFIX=$PREFIX"
   build_line "Setting LD_RUN_PATH=$LD_RUN_PATH"
   build_line "Setting CFLAGS=$CFLAGS"
@@ -1641,7 +1641,7 @@ do_check_wrapper() {
 # working directory for the install_files step is correct.
 do_install_wrapper() {
   build_line "Installing"
-  mkdir -pv $pkg_path
+  mkdir -pv $pkg_prefix
   pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
@@ -1661,58 +1661,58 @@ do_default_install() {
 
 # **Internal** Write out the package data to files:
 #
-# * `$pkg_path/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
-# * `$pkg_path/LDFLAGS` - Any LDFLAGS for things that link against us
-# * `$pkg_path/CFLAGS` - Any CFLAGS for things that link against us
-# * `$pkg_path/PATH` - Any PATH entries for things that link against us
-# * `$pkg_path/EXPOSES` - Any ports we expose
-# * `$pkg_path/BUILD_DEPS` - Any dependencies we need build the package
-# * `$pkg_path/DEPS` - Any dependencies we need to use the package at runtime
+# * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
+# * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
+# * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
+# * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
+# * `$pkg_prefix/EXPOSES` - Any ports we expose
+# * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
+# * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
 _build_metadata() {
   build_line "Building package metadata"
   local ld_run_path_part=""
   local ld_lib_part=""
   for lib in "${pkg_lib_dirs[@]}"; do
     if [[ -z "$ld_run_path_part" ]]; then
-      ld_run_path_part="${pkg_path}/$lib"
+      ld_run_path_part="${pkg_prefix}/$lib"
     else
-      ld_run_path_part="$ld_run_path_part:${pkg_path}/$lib"
+      ld_run_path_part="$ld_run_path_part:${pkg_prefix}/$lib"
     fi
     if [[ -z "$ld_lib_part" ]]; then
-      ld_lib_part="-L${pkg_path}/$lib"
+      ld_lib_part="-L${pkg_prefix}/$lib"
     else
-      ld_lib_part="$ld_lib_part -L${pkg_path}/$lib"
+      ld_lib_part="$ld_lib_part -L${pkg_prefix}/$lib"
     fi
   done
   if [[ -n "${ld_run_path_part}" ]]; then
-    echo $ld_run_path_part > $pkg_path/LD_RUN_PATH
+    echo $ld_run_path_part > $pkg_prefix/LD_RUN_PATH
   fi
   if [[ -n "${ld_lib_part}" ]]; then
-    echo $ld_lib_part > $pkg_path/LDFLAGS
+    echo $ld_lib_part > $pkg_prefix/LDFLAGS
   fi
 
   local cflags_part=""
   for inc in "${pkg_include_dirs[@]}"; do
     if [[ -z "$cflags_part" ]]; then
-      cflags_part="-I${pkg_path}/${inc}"
+      cflags_part="-I${pkg_prefix}/${inc}"
     else
-      cflags_part="$cflags_part -I${pkg_path}/${inc}"
+      cflags_part="$cflags_part -I${pkg_prefix}/${inc}"
     fi
   done
   if [[ -n "${cflags_part}" ]]; then
-    echo $cflags_part > $pkg_path/CFLAGS
+    echo $cflags_part > $pkg_prefix/CFLAGS
   fi
 
   local path_part=""
   for bin in "${pkg_binary_path[@]}"; do
     if [[ -z "$path_part" ]]; then
-      path_part="${pkg_path}/${bin}";
+      path_part="${pkg_prefix}/${bin}";
     else
-      path_part="$path_part:${pkg_path}/${bin}";
+      path_part="$path_part:${pkg_prefix}/${bin}";
     fi
   done
   if [[ -n "${path_part}" ]]; then
-    echo $path_part > $pkg_path/PATH
+    echo $path_part > $pkg_prefix/PATH
   fi
 
   local port_part=""
@@ -1724,12 +1724,12 @@ _build_metadata() {
     fi
   done
   if [[ -n "${port_part}" ]]; then
-    echo $port_part > $pkg_path/EXPOSES
+    echo $port_part > $pkg_prefix/EXPOSES
   fi
 
-  local interpreters="$(printf "${pkg_path}/%s\n" ${pkg_interpreters[@]})"
+  local interpreters="$(printf "${pkg_prefix}/%s\n" ${pkg_interpreters[@]})"
   if [[ -n $interpreters ]]; then
-    echo "$interpreters" > $pkg_path/INTERPRETERS
+    echo "$interpreters" > $pkg_prefix/INTERPRETERS
   fi
 
   local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
@@ -1737,27 +1737,27 @@ _build_metadata() {
 
   deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
   if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_path/BUILD_DEPS
+    echo "$deps" > $pkg_prefix/BUILD_DEPS
   fi
   deps="$(printf '%s\n' "${pkg_build_tdeps_resolved[@]}" | cut -d "/" -f ${cutn}- | sort)"
   if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_path/BUILD_TDEPS
+    echo "$deps" > $pkg_prefix/BUILD_TDEPS
   fi
   deps="$(printf '%s\n' "${pkg_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
   if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_path/DEPS
+    echo "$deps" > $pkg_prefix/DEPS
   fi
   deps="$(printf '%s\n' "${pkg_tdeps_resolved[@]}" | cut -d "/" -f ${cutn}- | sort)"
   if [[ -n "$deps" ]]; then
-    echo "$deps" > $pkg_path/TDEPS
+    echo "$deps" > $pkg_prefix/TDEPS
   fi
 
-  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_path/IDENT
+  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_prefix/IDENT
 
   return 0
 }
 
-# Copy the `./config` directory, relative to the Plan, to `$pkg_path/config`.
+# Copy the `./config` directory, relative to the Plan, to `$pkg_prefix/config`.
 # Do the same with `default.toml`. Delegates most of the implementation to the
 # `do_default_build_config()` function.
 do_build_config() {
@@ -1769,20 +1769,20 @@ do_build_config() {
 do_default_build_config() {
   build_line "Writing configuration"
   if [[ -d $PLAN_CONTEXT/config ]]; then
-    cp -r $PLAN_CONTEXT/config $pkg_path
-    chmod 755 $pkg_path/config
+    cp -r $PLAN_CONTEXT/config $pkg_prefix
+    chmod 755 $pkg_prefix/config
   fi
   if [[ -d $PLAN_CONTEXT/hooks ]]; then
-    cp -r $PLAN_CONTEXT/hooks $pkg_path
-    chmod 755 $pkg_path/hooks
+    cp -r $PLAN_CONTEXT/hooks $pkg_prefix
+    chmod 755 $pkg_prefix/hooks
   fi
   if [[ -f $PLAN_CONTEXT/default.toml ]]; then
-    cp $PLAN_CONTEXT/default.toml $pkg_path
+    cp $PLAN_CONTEXT/default.toml $pkg_prefix
   fi
   return 0
 }
 
-# Write out the `$pkg_path/run` file. If a file named `hooks/run` exists, we
+# Write out the `$pkg_prefix/run` file. If a file named `hooks/run` exists, we
 # skip this step. Otherwise, we look for `$pkg_service_run`, and use that.
 #
 # If the `$pkg_service_user` is set to `bldr`, we change the service to be run
@@ -1803,7 +1803,7 @@ do_default_build_service() {
   else
     if [[ -n "${pkg_service_run}" ]]; then
       if [[ "${pkg_service_user}" = "bldr" ]]; then
-        cat <<EOT >> $pkg_path/run
+        cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
 cd $BLDR_ROOT/svc/$pkg_name
 
@@ -1811,17 +1811,17 @@ if [ "\$(whoami)" = "root" ]; then
   exec chpst \\
     -U bldr:bldr \\
     -u bldr:bldr \\
-    $pkg_path/$pkg_service_run 2>&1
+    $pkg_prefix/$pkg_service_run 2>&1
 else
-  exec $pkg_path/$pkg_service_run 2>&1
+  exec $pkg_prefix/$pkg_service_run 2>&1
 fi
 EOT
       else
-        cat <<EOT >> $pkg_path/run
+        cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
 cd $BLDR_ROOT/svc/$pkg_name
 
-exec $pkg_path/$pkg_service_run 2>&1
+exec $pkg_prefix/$pkg_service_run 2>&1
 EOT
       fi
     fi
@@ -1839,16 +1839,16 @@ do_strip() {
 # Default implementation for the `do_strip()` phase.
 do_default_strip() {
   build_line "Stripping binaries"
-  find $pkg_path -type f -print0 \
+  find $pkg_prefix -type f -print0 \
     | xargs -0 file | grep ELF | cut -d ":" -f 1 \
     | xargs --no-run-if-empty strip --strip-debug \
     || true
 }
 
-# **Internal** Write the `$pkg_path/MANIFEST`.
+# **Internal** Write the `$pkg_prefix/MANIFEST`.
 _build_manifest() {
 build_line "Creating manifest"
-cat <<-EOT >> $pkg_path/MANIFEST
+cat <<-EOT >> $pkg_prefix/MANIFEST
 $pkg_origin $pkg_name
 =========================
 
@@ -1858,7 +1858,7 @@ Release: $pkg_rel
 License: $(printf "%s " ${pkg_license[@]})
 Source: [$pkg_source]($pkg_source)
 SHA: $pkg_shasum
-Path: $pkg_path
+Path: $pkg_prefix
 Build Dependencies: $(printf "%s " ${pkg_build_deps[@]})
 Dependencies: $(printf "%s " ${pkg_deps[@]})
 Interpreters $(printf "%s " ${pkg_interpreters[@]})
@@ -1879,7 +1879,7 @@ $(cat $PLAN_CONTEXT/plan.sh)
 
 Files
 -----
-$(find $pkg_path -type f -print0 | $_sort_cmd | xargs -0 $_shasum_cmd)
+$(find $pkg_prefix -type f -print0 | $_sort_cmd | xargs -0 $_shasum_cmd)
 EOT
   return 0
 }
@@ -1889,7 +1889,7 @@ EOT
 _generate_package() {
   build_line "Generating package"
   mkdir -p $BLDR_PKG_CACHE
-  $_tar_cmd -cf - "$pkg_path" | $_gpg_cmd \
+  $_tar_cmd -cf - "$pkg_prefix" | $_gpg_cmd \
     --set-filename x.tar \
     --local-user $pkg_gpg_key \
     --output $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
@@ -1979,11 +1979,6 @@ fi
 # already set by the `plan.sh`.
 if [[ -z "${pkg_dirname+xxx}" ]]; then
   pkg_dirname="${pkg_name}-${pkg_version}"
-fi
-
-# Set `$pkg_path` if it is not already set by the `plan.sh`.
-if [[ -z "${pkg_path+xxx}" ]]; then
-  pkg_path=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
@@ -2076,7 +2071,7 @@ do_end
 
 # Print the results
 build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
-build_line "Installed: $pkg_path"
+build_line "Installed: $pkg_prefix"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly

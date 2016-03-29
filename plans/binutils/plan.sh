@@ -107,10 +107,10 @@ do_install() {
     make prefix=$pkg_prefix tooldir=$pkg_prefix install
 
     # Remove unneeded files
-    rm -fv ${pkg_path}/share/man/man1/{dlltool,nlmconv,windres,windmc}*
+    rm -fv ${pkg_prefix}/share/man/man1/{dlltool,nlmconv,windres,windmc}*
 
     # No shared linking to these files outside binutils
-    rm -fv ${pkg_path}/lib/lib{bfd,opcodes}.so
+    rm -fv ${pkg_prefix}/lib/lib{bfd,opcodes}.so
 
     # Wrap key binaries so we can add some arguments and flags to the real
     # underlying binary.
@@ -136,7 +136,7 @@ _verify_tty() {
 }
 
 _wrap_binary() {
-  local bin="$pkg_path/bin/$1"
+  local bin="$pkg_prefix/bin/$1"
   build_line "Adding wrapper $bin to ${bin}.real"
   mv -v "$bin" "${bin}.real"
   sed $PLAN_CONTEXT/ld-wrapper.sh \

@@ -31,7 +31,7 @@ do_install() {
   # Going to want to write a cargo wrapper
   #    SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem \
 
-  find $pkg_path/lib -name *.so | xargs -I '%' patchelf --set-rpath "$LD_RUN_PATH" %
+  find $pkg_prefix/lib -name *.so | xargs -I '%' patchelf --set-rpath "$LD_RUN_PATH" %
 }
 
 do_strip() {

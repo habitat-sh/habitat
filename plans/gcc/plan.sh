@@ -188,8 +188,8 @@ do_check() {
 do_install() {
   pushd ../${pkg_name}-build > /dev/null
     # Make 'lib64' a symlink to 'lib'
-    mkdir -pv $pkg_path/lib
-    ln -sv lib $pkg_path/lib64
+    mkdir -pv $pkg_prefix/lib
+    ln -sv lib $pkg_prefix/lib64
 
     make install
 
@@ -199,30 +199,30 @@ do_install() {
     # potentially install `libiberty.a` which was confusing as to the "owner").
     #
     # Thanks to: https://projects.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/gcc
-    install -v -m644 libiberty/pic/libiberty.a $pkg_path/lib
+    install -v -m644 libiberty/pic/libiberty.a $pkg_prefix/lib
 
     # Install Runtime Library Exception
     install -Dm644 ../$pkg_dirname/COPYING.RUNTIME \
-      $pkg_path/share/licenses/RUNTIME.LIBRARY.EXCEPTION
+      $pkg_prefix/share/licenses/RUNTIME.LIBRARY.EXCEPTION
 
     # Replace hard links for x86_64-unknown-linux-gnu etc. with symlinks
     #
     # Thanks to: https://github.com/NixOS/nixpkgs/blob/release-15.09/pkgs/development/compilers/gcc/builder.sh
-    for bin in $pkg_path/bin/*-gcc*; do
-      if cmp -s $pkg_path/bin/gcc $bin; then
+    for bin in $pkg_prefix/bin/*-gcc*; do
+      if cmp -s $pkg_prefix/bin/gcc $bin; then
         ln -sfnv gcc $bin
       fi
     done
 
     # Replace hard links for x86_64-unknown-linux-g++ etc. with symlinks
-    for bin in $pkg_path/bin/c++ $pkg_path/bin/*-c++* $pkg_path/bin/*-g++*; do
-      if cmp -s $pkg_path/bin/g++ $bin; then
+    for bin in $pkg_prefix/bin/c++ $pkg_prefix/bin/*-c++* $pkg_prefix/bin/*-g++*; do
+      if cmp -s $pkg_prefix/bin/g++ $bin; then
         ln -sfn g++ $bin
       fi
     done
 
     # Many packages use the name cc to call the C compiler
-    ln -sv gcc $pkg_path/bin/cc
+    ln -sv gcc $pkg_prefix/bin/cc
 
     # Wrap key binaries so we can add some arguments and flags to the real
     # underlying binary. This should make Plan author's lives a bit easier
@@ -239,14 +239,14 @@ do_install() {
 }
 
 wrap_binary() {
-  local bin="$pkg_path/bin/$1"
+  local bin="$pkg_prefix/bin/$1"
   build_line "Adding wrapper $bin to ${bin}.real"
   mv -v "$bin" "${bin}.real"
   sed $PLAN_CONTEXT/cc-wrapper.sh \
     -e "s^@shell@^${bash}^g" \
     -e "s^@glibc@^${glibc}^g" \
     -e "s^@binutils@^${binutils}^g" \
-    -e "s^@gcc@^${pkg_path}^g" \
+    -e "s^@gcc@^${pkg_prefix}^g" \
     -e "s^@dynamic_linker@^${dynamic_linker}^g" \
     -e "s^@program@^${bin}.real^g" \
     > "$bin"

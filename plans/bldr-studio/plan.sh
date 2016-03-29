@@ -27,24 +27,24 @@ do_build() {
 }
 
 do_install() {
-  install -v -D studio $pkg_path/bin/studio
-  install -v -D dockerize $pkg_path/bin/dockerize
+  install -v -D studio $pkg_prefix/bin/studio
+  install -v -D dockerize $pkg_prefix/bin/dockerize
   for f in `ls bldr-studio-type-*.sh`; do
-    install -v -D $f $pkg_path/libexec/$f
+    install -v -D $f $pkg_prefix/libexec/$f
   done
 
-  lbb="$pkg_path/libexec/busybox"
+  lbb="$pkg_prefix/libexec/busybox"
 
   # Install a copy of a statically built busybox under `libexec/`
   install -v -D $(pkg_path_for busybox-static)/bin/busybox $lbb
 
   bpm_dir=$(cat $(pkg_path_for bpm)/IDENT | tr '/' '-')
   install -v -D $(pkg_path_for bpm)/bin/bpm \
-    $pkg_path/libexec/$bpm_dir/bin/bpm
+    $pkg_prefix/libexec/$bpm_dir/bin/bpm
   for f in `ls $(pkg_path_for bpm)/libexec/*`; do
-    install -v -D $f $pkg_path/libexec/$bpm_dir/libexec/$(basename $f)
+    install -v -D $f $pkg_prefix/libexec/$bpm_dir/libexec/$(basename $f)
   done
-  ln -sv $bpm_dir/bin/bpm $pkg_path/libexec/bpm
+  ln -sv $bpm_dir/bin/bpm $pkg_prefix/libexec/bpm
 }
 
 # Turn the remaining default phases into no-ops

@@ -37,7 +37,7 @@ do_install() {
   # distributions
   #
   # Source: https://github.com/file/file/blob/master/COPYING
-  install -v -Dm644 COPYING "$pkg_path/share/COPYING"
+  install -v -Dm644 COPYING "$pkg_prefix/share/COPYING"
 }
 
 

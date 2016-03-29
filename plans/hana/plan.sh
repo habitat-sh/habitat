@@ -41,7 +41,7 @@ do_install() {
   cat <<EOT >> $pkg_prefix/bin/instruntime/sdbrun
 #!/bin/sh
 
-export LD_LIBRARY_PATH=$LD_RUN_PATH:$pkg_path/bin/instruntime
+export LD_LIBRARY_PATH=$LD_RUN_PATH:$pkg_prefix/bin/instruntime
 exec $pkg_prefix/bin/instruntime/sdbrun-real "\$@"
 EOT
   chmod a+x $pkg_prefix/bin/instruntime/sdbrun
