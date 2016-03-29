@@ -8,7 +8,7 @@ pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}.t
 pkg_shasum=67f7b7b0f5c14db633e3b18f53172786c001e153d545cfc85d82759c5c2ffb37
 pkg_deps=(chef/glibc chef/libidn chef/zlib chef/openssl chef/cacerts)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/pkg-config)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_prepare() {

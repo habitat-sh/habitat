@@ -7,4 +7,4 @@ pkg_shasum=7d03ed29c22a7152be45b8e50431063736df9e1daa1ddf93f6a547ba7a28f67a
 pkg_gpg_key=3853DA6B
 pkg_build_deps=(chef/gcc chef/make chef/diffutils chef/coreutils chef/file)
 pkg_deps=(chef/glibc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)

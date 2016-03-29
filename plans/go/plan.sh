@@ -8,7 +8,7 @@ pkg_shasum=a96cce8ce43a9bf9b2a4c7d470bc7ee0cb00410da815980681c8353218dcf146
 pkg_dirname=$pkg_name
 pkg_deps=(chef/glibc chef/iana-etc chef/cacerts)
 pkg_build_deps=(chef/coreutils chef/inetutils chef/bash chef/patch chef/gcc chef/go/1.4.3 chef/perl)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_prepare() {

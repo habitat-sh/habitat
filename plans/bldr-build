@@ -129,12 +129,12 @@
 # pkg_include_dirs=(include)
 # ```
 #
-# ### pkg_binary_path
+# ### pkg_bin_dirs
 # An array of paths, relative to the final install of the software, where
 # binaries can be found. Used to populate `PATH` for software that depends on
 # your package.
 # ```
-# pkg_binary_path=(bin)
+# pkg_bin_dirs=(bin)
 # ```
 #
 # ### pkg_service_run
@@ -210,7 +210,7 @@
 # pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 # pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
 # pkg_gpg_key=3853DA6B
-# pkg_binary_path=(bin)
+# pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
 # pkg_service_run="bin/haproxy -f /opt/bldr/svc/haproxy/config/haproxy.conf"
 # pkg_expose=(80 443)
@@ -299,6 +299,8 @@ pkg_deps=()
 # The path inside a package that contains libraries - used in `LD_RUN_PATH` and
 # `LD_FLAGS`.
 pkg_lib_dirs=()
+# The path inside a package that contains binary programs - used in `PATH`
+pkg_bin_dirs=()
 # The path inside a package that contains header files - used in `CFLAGS`
 pkg_include_dirs=()
 # The command to run the service - must not fork or return
@@ -1389,13 +1391,13 @@ _resolve_dependencies() {
 }
 
 # **Internal**  Build `$PATH` containing each path in our own
-# `${pkg_binary_path[@]}` array, and then any dependency's `PATH` entry (direct
+# `${pkg_bin_dirs[@]}` array, and then any dependency's `PATH` entry (direct
 # or transitive) if one exists. The ordering of the path is specfic to
 # `${pkg_all_tdeps_resolved[@]}` which is further explained in the
 # `_resolve_dependencies()` function.
 _set_path() {
   local path_part=""
-  for path in "${pkg_binary_path[@]}"; do
+  for path in "${pkg_bin_dirs[@]}"; do
     if [[ -z $path_part ]]; then
       path_part="$pkg_prefix/$path"
     else
@@ -1704,7 +1706,7 @@ _build_metadata() {
   fi
 
   local path_part=""
-  for bin in "${pkg_binary_path[@]}"; do
+  for bin in "${pkg_bin_dirs[@]}"; do
     if [[ -z "$path_part" ]]; then
       path_part="${pkg_prefix}/${bin}";
     else

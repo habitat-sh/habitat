@@ -11,7 +11,7 @@ pkg_deps=(chef/glibc chef/ruby)
 pkg_build_deps=(chef/ruby)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_binary_path=(bin vendor/bundle/bin)
+pkg_bin_dirs=(bin vendor/bundle/bin)
 
 do_install() {
   export GEM_HOME=$pkg_prefix

@@ -8,7 +8,7 @@ pkg_source=http://www.busybox.net/downloads/${pkg_distname}-${pkg_version}.tar.b
 pkg_shasum=37d03132cc078937360b392170b7a1d0e5b322eee9f57c0b82292a8b1f0afe3d
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep chef/bash chef/gawk chef/libtool chef/diffutils chef/findutils chef/xz chef/gettext chef/gzip chef/make chef/patch chef/texinfo chef/util-linux chef/wget)
-pkg_binary_path=(bin sbin)
+pkg_bin_dirs=(bin sbin)
 pkg_gpg_key=3853DA6B
 pkg_interpreters=(bin/ash bin/awk bin/env bin/sh)
 

@@ -8,7 +8,7 @@ pkg_deps=()
 pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static
                 chef/coreutils-static chef/gnupg-static chef/jq-static
                 chef/wget-static)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_build() {

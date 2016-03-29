@@ -7,6 +7,6 @@ pkg_maintainer="The Bldr Maintainers (bldr@chef.io)"
 pkg_source=https://www.lcdf.org/gifsicle/gifsicle-${pkg_version}.tar.gz
 pkg_shasum=4585d2e683d7f68eb8fcb15504732d71d7ede48ab5963e61915201f9e68305be
 pkg_gpg_key=3853DA6B
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_deps=(chef/zlib chef/glibc)
 pkg_build_deps=(chef/zlib chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/glibc)

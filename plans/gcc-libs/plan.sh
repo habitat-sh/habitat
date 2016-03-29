@@ -9,7 +9,7 @@ pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/gcc/$pkg_version chef/patchelf)
 
 # Zero out the bin and include paths, as we're only shipping shared libs
-pkg_binary_path=()
+pkg_bin_dirs=()
 pkg_include_dirs=()
 
 pkg_gpg_key=3853DA6B

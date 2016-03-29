@@ -11,7 +11,7 @@ pkg_dirname=${pkg_distname}-$_base_version
 pkg_shasum=afc687a28e0e24dc21b988fa159ff9dbcf6b7caa92ade8645cc6d5605cd024d4
 pkg_deps=(chef/glibc chef/ncurses chef/readline)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 pkg_interpreters=(bin/bash bin/sh)
 

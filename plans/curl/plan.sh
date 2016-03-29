@@ -10,7 +10,7 @@ pkg_deps=(chef/glibc chef/openssl chef/zlib)
 pkg_build_deps=(chef/gcc chef/make chef/coreutils chef/perl)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 
 do_build() {
     fix_interpreter scripts/zsh.pl chef/perl bin/perl

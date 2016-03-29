@@ -5,7 +5,7 @@ pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_build_deps=()
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 pkg_deps=(

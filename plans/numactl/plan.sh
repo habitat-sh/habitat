@@ -8,7 +8,7 @@ pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 
 do_build() {
   ./autogen.sh

@@ -7,7 +7,7 @@ pkg_source=http://pkgconfig.freedesktop.org/releases/${pkg_name}-${pkg_version}.
 pkg_shasum=c8507705d2a10c67f385d66ca2aae31e81770cc0734b4191eb8c489e864a006b
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_build() {

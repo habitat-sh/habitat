@@ -5,7 +5,7 @@ pkg_license=('Apache2')
 pkg_maintainer="Adam Jacob <adam@chef.io>"
 pkg_source=nosuchfile.tar.gz
 pkg_gpg_key=3853DA6B
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_deps=()
 pkg_service_run="bin/simple_service"
 

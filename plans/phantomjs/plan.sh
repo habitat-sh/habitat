@@ -17,7 +17,7 @@ pkg_deps=(chef/glibc chef/freetype chef/fontconfig chef/patchelf
 # downloading from bitbucket URLs. Sometimes.
 pkg_build_deps=(chef/curl chef/cacerts)
 
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 
 do_download() {
   # downloading from bitbucket with wget results in a 403.

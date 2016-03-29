@@ -7,7 +7,7 @@ pkg_source=https://get.docker.com/builds/Linux/x86_64/docker-1.10.1.tgz
 pkg_shasum=2287bc5cbcd1cdad77f1c0c70c2b5b15f1d9c010900c3ffab059fb46fe81d141
 pkg_deps=()
 pkg_build_deps=()
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_unpack() {

@@ -7,7 +7,7 @@ pkg_shasum=6fd0160cb0cf1207de4e66754b6d39750cff14bb0aa66ab49490992c0c47ba18
 pkg_gpg_key=3853DA6B
 pkg_build_deps=(chef/coreutils chef/gcc chef/make)
 pkg_deps=(chef/glibc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 
 do_unpack() {
   mkdir -p $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}
