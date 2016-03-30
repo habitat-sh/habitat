@@ -35,10 +35,6 @@
 extern crate bldr_core as core;
 extern crate bldr_depot_client as depot_client;
 extern crate bldr_depot_core as depot_core;
-extern crate bincode;
-#[macro_use]
-extern crate bitflags;
-extern crate crypto;
 #[macro_use]
 extern crate hyper;
 #[macro_use]
@@ -49,15 +45,10 @@ extern crate rustc_serialize;
 extern crate toml;
 extern crate ansi_term;
 extern crate gpgme;
-#[macro_use]
-extern crate lazy_static;
-extern crate libarchive;
 extern crate regex;
 extern crate libc;
 extern crate url;
-extern crate fnv;
 extern crate iron;
-extern crate lmdb_sys;
 #[macro_use]
 extern crate router;
 extern crate time;
@@ -69,7 +60,6 @@ extern crate rand;
 extern crate threadpool;
 extern crate urlencoded;
 extern crate openssl;
-extern crate walkdir;
 
 #[macro_export]
 /// Creates a new BldrError, embedding the current file name, line number, column, and module path.
