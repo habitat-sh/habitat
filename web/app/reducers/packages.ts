@@ -4,9 +4,11 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+import * as marked from "marked";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
-import {List} from "immutable";
+import {Package} from "../records/Package";
+import {fromJS, List, Record} from "immutable";
 import query from "../query";
 
 export default function packages(state = initialState["packages"], action) {
@@ -18,19 +20,9 @@ export default function packages(state = initialState["packages"], action) {
 
         // Query the list of packages to set the currentPackage data.
         case actionTypes.SET_CURRENT_PACKAGE:
-            q = query(state.get("all"));
-            p = null;
-            const pkgEnumerable = q.fromParams(action.payload);
-
-            if (pkgEnumerable.count() > 0) {
-                p = pkgEnumerable.first();
-                p.versions = q.allReleasesForPackageVersion(p).toArray();
-                p.releases = q.allVersionsForPackage(p).toArray();
-                p.dependencies = p.dependencies || [];
-                p.buildDependencies = p.buildDependencies || [];
-            }
-
-            return state.set("current", p);
+            p = Object.assign({}, action.payload);
+            p.manifest = marked(p.manifest);
+            return state.set("current", Package(p));
 
         case actionTypes.SET_PACKAGES:
             return state.set("all", action.payload);

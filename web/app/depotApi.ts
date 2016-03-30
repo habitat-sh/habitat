@@ -1,12 +1,12 @@
 import "whatwg-fetch";
 import config from "./config";
+import {packageString} from "./util";
 
-debugger;
 const urlPrefix = config["depotUrl"] || "";
 
 // Get the JSON from a url from the fixtures directory.
-export function get(url: string) {
-    return fetch(`${urlPrefix}/fixtures/${url}`).then(response => {
+export function get(ident) {
+    return fetch(`${urlPrefix}/pkgs/${packageString(ident)}`).then(response => {
         const url = response.url;
 
         // Fail the promise if an error happens.
@@ -14,10 +14,6 @@ export function get(url: string) {
             return Promise.reject(new Error(response.statusText));
         }
 
-        if (url.endsWith(".json")) {
-            return response.json();
-        } else if (url.endsWith(".txt")) {
-            return response.text();
-        }
+        return response.json();
     });
 };

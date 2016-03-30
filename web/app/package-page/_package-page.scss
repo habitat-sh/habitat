@@ -19,4 +19,10 @@
       margin-top: $base-spacing;
     }
   }
+
+  &-manifest .manifest, &-config pre {
+    border-left: 1px solid $light-gray;
+    margin-left: $base-spacing;
+    padding-left: $small-spacing;
+  }
 }

@@ -4,7 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as api from "../api";
+import * as fakeApi from "../fakeApi";
 import {Observable} from "rxjs";
 import {addNotification} from "./notifications";
 import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
@@ -46,7 +46,7 @@ function appendToBuildLog(build, text) {
 // Fetch the list of builds for a package
 export function fetchBuilds(pkg) {
     return dispatch => {
-        api.get(`log/${packageString(pkg)}/builds.json`).then(response => {
+        fakeApi.get(`log/${packageString(pkg)}/builds.json`).then(response => {
             dispatch(populateBuilds(response));
             dispatch(fetchBuildLog(pkg, response));
         }).catch(error => {
@@ -59,7 +59,7 @@ export function fetchBuilds(pkg) {
 function fetchBuildLog(pkg, builds) {
     return dispatch => {
         builds.forEach(build => {
-            api.get(`log/${packageString(pkg)}/${build.id}.txt`).then(response => {
+            fakeApi.get(`log/${packageString(pkg)}/${build.id}.txt`).then(response => {
                 if (build.status === "running") {
                     dispatch(simulateLogStream(build, response));
                 } else {
@@ -74,7 +74,7 @@ function fetchBuildLog(pkg, builds) {
 
 export function fetchProject(params) {
     return dispatch => {
-        api.get(`projects/${params["origin"]}/${params["name"]}.json`).then(response => {
+        fakeApi.get(`projects/${params["origin"]}/${params["name"]}.json`).then(response => {
             dispatch(
                 setCurrentProject(
                     Object.assign({
@@ -92,7 +92,7 @@ export function fetchProject(params) {
 
 export function fetchProjects() {
     return dispatch => {
-        api.get("projects.json").then(response => {
+        fakeApi.get("projects.json").then(response => {
             dispatch(setProjects(response));
         });
     };
