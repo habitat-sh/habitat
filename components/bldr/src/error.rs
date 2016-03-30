@@ -32,7 +32,6 @@ use std::io;
 use std::result;
 use std::fmt;
 use std::error::Error;
-use std::num;
 use std::string;
 use std::ffi;
 use std::sync::mpsc;
@@ -41,7 +40,6 @@ use std::str;
 use core::{self, package};
 use depot_client;
 use gpgme;
-use libarchive;
 use uuid;
 use wonder::actor;
 use ansi_term::Colour::Red;
@@ -49,7 +47,6 @@ use rustc_serialize::json;
 use hyper;
 use toml;
 use mustache;
-use regex;
 
 use package::HookType;
 use output::StructuredOutput;
@@ -86,68 +83,50 @@ impl BldrError {
     }
 }
 
-#[derive(Debug)]
 /// All the kinds of errors we produce.
+#[derive(Debug)]
 pub enum ErrorKind {
+    ActorError(actor::ActorError),
     BldrCore(core::Error),
-    ArchiveReadFailed(String),
-    ArchiveError(libarchive::error::ArchiveError),
-    Io(io::Error),
     CommandNotImplemented,
+    ConfigFileRelativePath(String),
     DbInvalidPath,
     DepotClient(depot_client::Error),
-    InstallFailed,
-    WriteSyncFailed,
-    HyperError(hyper::error::Error),
-    HTTP(hyper::status::StatusCode),
-    CannotParseFileName,
-    PathUTF8,
-    GPGError(gpgme::Error),
-    UnpackFailed,
-    TomlParser(Vec<toml::ParserError>),
-    TomlEncode(toml::Error),
-    MustacheEncoderError(mustache::encoder::Error),
-    MetaFileNotFound(package::MetaFile),
-    MetaFileMalformed(package::MetaFile),
-    MetaFileIO(io::Error),
-    PackageArchiveMalformed(String),
-    RegexParse(regex::Error),
-    ParseIntError(num::ParseIntError),
     FileNameError,
     FileNotFound(String),
-    KeyNotFound(String),
-    PackageLoad(String),
-    PackageNotFound(package::PackageIdent),
-    PackageIdentMismatch(String, String),
-    RemotePackageNotFound(package::PackageIdent),
-    MustacheMergeOnlyMaps,
-    SignalFailed,
-    StringFromUtf8Error(string::FromUtf8Error),
-    StrFromUtf8Error(str::Utf8Error),
-    SupervisorDied,
-    NulError(ffi::NulError),
-    IPFailed,
-    HostnameFailed,
-    UnknownTopology(String),
-    NoConfiguration,
+    GPGError(gpgme::Error),
     HealthCheck(String),
     HookFailed(HookType, i32, String),
-    TryRecvError(mpsc::TryRecvError),
-    BadWatch(String),
-    NoXFilename,
-    NoFilePart,
-    SignalNotifierStarted,
-    ActorError(actor::ActorError),
-    CensusNotFound(String),
-    UuidParseError(uuid::ParseError),
-    InvalidPackageIdent(String),
+    HTTP(hyper::status::StatusCode),
+    /// TODO: once discovery/etcd.rs is purged, this error can be removed
+    HyperError(hyper::error::Error),
     InvalidKeyParameter(String),
-    InvalidServiceGroupString(String),
-    JsonEncode(json::EncoderError),
-    JsonDecode(json::DecoderError),
-    InitialPeers,
+    InvalidPackageIdent(String),
     InvalidPidFile,
-    ConfigFileRelativePath(String),
+    InvalidServiceGroupString(String),
+    Io(io::Error),
+    IPFailed,
+    JsonDecode(json::DecoderError),
+    JsonEncode(json::EncoderError),
+    KeyNotFound(String),
+    MetaFileMalformed(package::MetaFile),
+    MetaFileNotFound(package::MetaFile),
+    MetaFileIO(io::Error),
+    MustacheEncoderError(mustache::encoder::Error),
+    NulError(ffi::NulError),
+    PackageArchiveMalformed(String),
+    PackageNotFound(package::PackageIdent),
+    RemotePackageNotFound(package::PackageIdent),
+    SignalFailed,
+    SignalNotifierStarted,
+    StrFromUtf8Error(str::Utf8Error),
+    StringFromUtf8Error(string::FromUtf8Error),
+    TomlEncode(toml::Error),
+    TomlParser(Vec<toml::ParserError>),
+    TryRecvError(mpsc::TryRecvError),
+    UnknownTopology(String),
+    UnpackFailed,
+    UuidParseError(uuid::ParseError),
 }
 
 /// Our result type alias, for easy coding.
@@ -158,59 +137,65 @@ impl fmt::Display for BldrError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
+            ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
             ErrorKind::BldrCore(ref err) => format!("{}", err),
-            ErrorKind::ArchiveReadFailed(ref e) => format!("Failed to read package archive, {}", e),
-            ErrorKind::ArchiveError(ref err) => format!("{}", err),
-            ErrorKind::Io(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
-            ErrorKind::DepotClient(ref err) => format!("{}", err),
-            ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
-            ErrorKind::InstallFailed => format!("Could not install package!"),
-            ErrorKind::HyperError(ref err) => format!("{}", err),
-            ErrorKind::HTTP(ref e) => format!("{}", e),
-            ErrorKind::WriteSyncFailed => format!("Could not write to destination; perhaps the disk is full?"),
-            ErrorKind::CannotParseFileName => format!("Cannot determine the filename from the given URI"),
-            ErrorKind::PathUTF8 => format!("Paths must not contain non-UTF8 characters"),
-            ErrorKind::GPGError(ref e) => format!("{}", e),
-            ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
-            ErrorKind::TomlParser(ref errs) => {
-                format!("Failed to parse toml:\n{}", toml_parser_string(errs))
+            ErrorKind::ConfigFileRelativePath(ref s) => {
+                format!("Path for configuration file cannot have relative components (eg: ..): {}",
+                        s)
             }
-            ErrorKind::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
+            ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
+            ErrorKind::DepotClient(ref err) => format!("{}", err),
+            ErrorKind::FileNameError => format!("Failed to extract a filename"),
+            ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
+            ErrorKind::GPGError(ref e) => format!("{}", e),
+            ErrorKind::HealthCheck(ref e) => format!("Health Check failed: {}", e),
+            ErrorKind::HookFailed(ref t, ref e, ref o) => {
+                format!("Hook failed to run: {}, {}, {}", t, e, o)
+            }
+            ErrorKind::HTTP(ref e) => format!("{}", e),
+            ErrorKind::HyperError(ref err) => format!("{}", err),
+            ErrorKind::InvalidKeyParameter(ref e) => {
+                format!("Invalid parameter for key generation: {:?}", e)
+            }
+            ErrorKind::InvalidPackageIdent(ref e) => {
+                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
+                         origin/name (example: chef/redis)",
+                        e)
+            }
+            ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
+            ErrorKind::InvalidServiceGroupString(ref e) => {
+                format!("Invalid service group string: {}", e)
+            }
+            ErrorKind::Io(ref err) => format!("{}", err),
+            ErrorKind::IPFailed => format!("Failed to discover this hosts outbound IP address"),
+            ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
+            ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
+            ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
+            ErrorKind::MetaFileMalformed(ref e) => {
+                format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
+            }
+            ErrorKind::MetaFileNotFound(ref e) => {
+                format!("Couldn't read MetaFile: {}, not found", e)
+            }
+            ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
                     mustache::encoder::Error::IoError(ref e) => format!("{}", e),
                     _ => format!("Mustache encoder error: {:?}", me),
                 }
             }
-            ErrorKind::MetaFileNotFound(ref e) => {
-                format!("Couldn't read MetaFile: {}, not found", e)
-            }
-            ErrorKind::MetaFileMalformed(ref e) => {
-                format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
-            }
-            ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            ErrorKind::NulError(ref e) => format!("{}", e),
             ErrorKind::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
             }
-            ErrorKind::RegexParse(ref e) => format!("{}", e),
-            ErrorKind::ParseIntError(ref e) => format!("{}", e),
-            ErrorKind::FileNameError => format!("Failed to extract a filename"),
-            ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
-            ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
-            ErrorKind::PackageLoad(ref e) => format!("Unable to load package from: {}", e),
             ErrorKind::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
                 } else {
                     format!("Cannot find a release of package: {}", pkg)
                 }
-            }
-            ErrorKind::PackageIdentMismatch(ref expect, ref got) => {
-                format!("Encountered an unexpected package identity: expected={}, got={}",
-                        expect,
-                        got)
             }
             ErrorKind::RemotePackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
@@ -219,50 +204,18 @@ impl fmt::Display for BldrError {
                     format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
-            ErrorKind::MustacheMergeOnlyMaps => format!("Can only merge two Mustache::Data::Maps"),
             ErrorKind::SignalFailed => format!("Failed to send a signal to the child process"),
-            ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
+            ErrorKind::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
             ErrorKind::StrFromUtf8Error(ref e) => format!("{}", e),
-            ErrorKind::SupervisorDied => format!("The supervisor died"),
-            ErrorKind::NulError(ref e) => format!("{}", e),
-            ErrorKind::IPFailed => format!("Failed to discover this hosts outbound IP address"),
-            ErrorKind::HostnameFailed => format!("Failed to discover this hosts hostname"),
-            ErrorKind::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
-            ErrorKind::NoConfiguration => format!("No configuration data - cannot continue"),
-            ErrorKind::HealthCheck(ref e) => format!("Health Check failed: {}", e),
-            ErrorKind::HookFailed(ref t, ref e, ref o) => {
-                format!("Hook failed to run: {}, {}, {}", t, e, o)
+            ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
+            ErrorKind::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
+            ErrorKind::TomlParser(ref errs) => {
+                format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
             ErrorKind::TryRecvError(ref err) => format!("{}", err),
-            ErrorKind::BadWatch(ref e) => format!("Bad watch format: {} is not valid", e),
-            ErrorKind::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
-            ErrorKind::NoFilePart => {
-                format!("An invalid path was passed - we needed a filename, and this path does \
-                         not have one")
-            }
-            ErrorKind::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
-            ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
-            ErrorKind::CensusNotFound(ref s) => format!("Census entry not found: {:?}", s),
+            ErrorKind::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
+            ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
             ErrorKind::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
-            ErrorKind::InvalidPackageIdent(ref e) => {
-                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
-                         origin/name (example: chef/redis)",
-                        e)
-            }
-            ErrorKind::InvalidKeyParameter(ref e) => {
-                format!("Invalid parameter for key generation: {:?}", e)
-            }
-            ErrorKind::InvalidServiceGroupString(ref e) => {
-                format!("Invalid service group string: {}", e)
-            }
-            ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
-            ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
-            ErrorKind::InitialPeers => format!("Failed to contact initial peers"),
-            ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
-            ErrorKind::ConfigFileRelativePath(ref s) => {
-                format!("Path for configuration file cannot have relative components (eg: ..): {}",
-                        s)
-            }
         };
         let cstring = Red.bold().paint(content).to_string();
         let mut so = StructuredOutput::new("bldr",
@@ -279,65 +232,46 @@ impl fmt::Display for BldrError {
 impl Error for BldrError {
     fn description(&self) -> &str {
         match self.err {
+            ErrorKind::ActorError(_) => "A running actor responded with an error",
             ErrorKind::BldrCore(ref err) => err.description(),
-            ErrorKind::ArchiveError(ref err) => err.description(),
-            ErrorKind::ArchiveReadFailed(_) => "Failed to read contents of package archive",
-            ErrorKind::Io(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
+            ErrorKind::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
             ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             ErrorKind::DepotClient(ref err) => err.description(),
-            ErrorKind::InstallFailed => "Could not install package!",
-            ErrorKind::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
-            ErrorKind::CannotParseFileName => "Cannot determine the filename from the given URI",
-            ErrorKind::HyperError(ref err) => err.description(),
-            ErrorKind::HTTP(_) => "Received an HTTP error",
-            ErrorKind::PathUTF8 => "Paths must not contain non-UTF8 characters",
-            ErrorKind::GPGError(_) => "gpgme error",
-            ErrorKind::UnpackFailed => "Failed to unpack a package",
-            ErrorKind::TomlParser(_) => "Failed to parse toml!",
-            ErrorKind::TomlEncode(_) => "Failed to encode toml!",
-            ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
-            ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
-            ErrorKind::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
-            ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
-            ErrorKind::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
-            ErrorKind::RegexParse(_) => "Failed to parse a regular expression",
-            ErrorKind::ParseIntError(_) => "Failed to parse an integer from a string!",
             ErrorKind::FileNameError => "Failed to extract a filename from a path",
             ErrorKind::FileNotFound(_) => "File not found",
-            ErrorKind::KeyNotFound(_) => "Key not found in key cache",
-            ErrorKind::PackageLoad(_) => "Unable to load package from path",
-            ErrorKind::PackageNotFound(_) => "Cannot find a package",
-            ErrorKind::PackageIdentMismatch(_, _) => "Expected a package identity but received another",
-            ErrorKind::RemotePackageNotFound(_) => "Cannot find a package in any sources",
-            ErrorKind::MustacheMergeOnlyMaps => "Can only merge two Mustache::Data::Maps",
-            ErrorKind::SignalFailed => "Failed to send a signal to the child process",
-            ErrorKind::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
-            ErrorKind::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
-            ErrorKind::SupervisorDied => "The supervisor died",
-            ErrorKind::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
-            ErrorKind::IPFailed => "Failed to discover the outbound IP address",
-            ErrorKind::HostnameFailed => "Failed to discover this hosts hostname",
-            ErrorKind::UnknownTopology(_) => "Unknown topology",
-            ErrorKind::NoConfiguration => "No configuration data available",
+            ErrorKind::GPGError(_) => "gpgme error",
             ErrorKind::HealthCheck(_) => "Health Check returned an unknown status code",
             ErrorKind::HookFailed(_, _, _) => "Hook failed to run",
-            ErrorKind::TryRecvError(_) => "A channel failed to recieve a response",
-            ErrorKind::BadWatch(_) => "An invalid watch was specified",
-            ErrorKind::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
-            ErrorKind::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
-            ErrorKind::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
-            ErrorKind::ActorError(_) => "A running actor responded with an error",
-            ErrorKind::CensusNotFound(_) => "A census entry does not exist",
-            ErrorKind::UuidParseError(_) => "Uuid Parse Error",
-            ErrorKind::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
+            ErrorKind::HTTP(_) => "Received an HTTP error",
+            ErrorKind::HyperError(ref err) => err.description(),
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
-            ErrorKind::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
-            ErrorKind::JsonEncode(_) => "JSON encoding error",
-            ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
-            ErrorKind::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
-            ErrorKind::InitialPeers => "Failed to contact initial peers",
+            ErrorKind::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             ErrorKind::InvalidPidFile => "Invalid child process PID file",
+            ErrorKind::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
+            ErrorKind::Io(ref err) => err.description(),
+            ErrorKind::IPFailed => "Failed to discover the outbound IP address",
+            ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
+            ErrorKind::JsonEncode(_) => "JSON encoding error",
+            ErrorKind::KeyNotFound(_) => "Key not found in key cache",
+            ErrorKind::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
+            ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
+            ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
+            ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
+            ErrorKind::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            ErrorKind::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            ErrorKind::PackageNotFound(_) => "Cannot find a package",
+            ErrorKind::RemotePackageNotFound(_) => "Cannot find a package in any sources",
+            ErrorKind::SignalFailed => "Failed to send a signal to the child process",
+            ErrorKind::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
+            ErrorKind::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
+            ErrorKind::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            ErrorKind::TomlEncode(_) => "Failed to encode toml!",
+            ErrorKind::TomlParser(_) => "Failed to parse toml!",
+            ErrorKind::TryRecvError(_) => "A channel failed to recieve a response",
+            ErrorKind::UnknownTopology(_) => "Unknown topology",
+            ErrorKind::UnpackFailed => "Failed to unpack a package",
+            ErrorKind::UuidParseError(_) => "Uuid Parse Error",
         }
     }
 }
@@ -393,18 +327,6 @@ impl From<hyper::error::Error> for BldrError {
     }
 }
 
-impl From<regex::Error> for BldrError {
-    fn from(err: regex::Error) -> BldrError {
-        bldr_error!(ErrorKind::RegexParse(err))
-    }
-}
-
-impl From<num::ParseIntError> for BldrError {
-    fn from(err: num::ParseIntError) -> BldrError {
-        bldr_error!(ErrorKind::ParseIntError(err))
-    }
-}
-
 impl From<string::FromUtf8Error> for BldrError {
     fn from(err: string::FromUtf8Error) -> BldrError {
         bldr_error!(ErrorKind::StringFromUtf8Error(err))
@@ -426,12 +348,6 @@ impl From<mpsc::TryRecvError> for BldrError {
 impl From<gpgme::Error> for BldrError {
     fn from(err: gpgme::Error) -> BldrError {
         bldr_error!(ErrorKind::GPGError(err))
-    }
-}
-
-impl From<libarchive::error::ArchiveError> for BldrError {
-    fn from(err: libarchive::error::ArchiveError) -> BldrError {
-        bldr_error!(ErrorKind::ArchiveError(err))
     }
 }
 

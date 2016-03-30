@@ -19,19 +19,32 @@ use package;
 
 pub type Result<T> = result::Result<T, Error>;
 
+/// Core error types
 #[derive(Debug)]
 pub enum Error {
+    /// Occurs when a `bldr_core::package::PackageArchive` is being read.
     ArchiveError(libarchive::error::ArchiveError),
+    /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
+    /// When an error occurs in GpgME library calls.
     GPG(gpgme::Error),
+    /// Occurs when a required GPG key is not found.
     InvalidKeyParameter(String),
+    /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
+    /// Occurs when making lower level IO calls.
     IO(io::Error),
-    MetaFileNotFound(package::MetaFile),
+    /// Occurs when a package metadata file cannot be opened, read, or parsed.
     MetaFileMalformed(package::MetaFile),
+    /// Occurs when a particular package metadata file is not found.
+    MetaFileNotFound(package::MetaFile),
+    /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
+    /// Occurs when setting ownership or permissions on a file or directory fails.
     PermissionFailed,
+    /// When an error occurs parsing or compiling a regular expression.
     RegexParse(regex::Error),
+    /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
 }
 
