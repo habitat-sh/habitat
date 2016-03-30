@@ -22,8 +22,9 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
       AppStore.ts                #   The [Store](http://redux.js.org/docs/basics/Store.html) for the app.
       boot.ts                    #   Main entry point for the TypeScript.
       config.ts                  #   Provides configuration values specified in habitat.conf.js
+      depotApi.ts                #   API client for making requests to the depot.
+      fakeApi.ts                 #   API client for making fake requests.
       initialState.ts            #   The initial state of the app.
-      query.ts                   #   Object that lets you query for packages.
       tests-entry.ts             #   Main entry point for the tests.
       util.test.ts               #   Files that end in .test.ts are tests.
       util.ts                    #   Utility functions.
@@ -32,6 +33,7 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
       files.md                   #   This is the file you are reading now.
     fixtures/                    # Fixture data the app uses to make fake requests.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
+    records/                     # [Record](https://facebook.github.io/immutable-js/docs/#/Record) objects representing data types.
     reducers/                    # [Reducers](http://rackt.org/redux/docs/basics/Reducers.html) for redux
       app.ts                     #   Each reducer is responsible for a key in the app state (defined in app/initialState.ts.)
       index.ts                   #   The root Reducer.

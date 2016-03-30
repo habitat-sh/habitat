@@ -42,7 +42,6 @@
     "es6-promise": "^3.0.2",
     "es6-shim": "^0.33.3",
     "immutable": "^3.7.6",
-    "linq": "^3.0.5",
     "marked": "^0.3.5",
     "moment": "^2.11.2",
     "normalize-scss": "^4.0.3",

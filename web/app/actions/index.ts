@@ -32,7 +32,6 @@ export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
-export const SET_PACKAGES = packageActions.SET_PACKAGES;
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
 
 export const APPEND_TO_BUILD_LOG = projectActions.APPEND_TO_BUILD_LOG;
@@ -73,7 +72,6 @@ export const fetchPackage = packageActions.fetchPackage;
 export const filterPackagesBy = packageActions.filterPackagesBy;
 export const populateExplore = packageActions.populateExplore;
 export const setCurrentPackage = packageActions.setCurrentPackage;
-export const setPackages = packageActions.setPackages;
 export const setVisiblePackages = packageActions.setVisiblePackages;
 
 export const addProject = projectActions.addProject;
