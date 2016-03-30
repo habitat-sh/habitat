@@ -9,36 +9,19 @@ import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
 import {Package} from "../records/Package";
 import {fromJS, List, Record} from "immutable";
-import query from "../query";
 
 export default function packages(state = initialState["packages"], action) {
-    let p, q;
-
     switch (action.type) {
         case actionTypes.POPULATE_EXPLORE:
             return state.setIn(["explore"], List(action.payload));
 
-        // Query the list of packages to set the currentPackage data.
         case actionTypes.SET_CURRENT_PACKAGE:
-            p = Object.assign({}, action.payload);
+            let p = Object.assign({}, action.payload);
             p.manifest = marked(p.manifest);
             return state.set("current", Package(p));
 
-        case actionTypes.SET_PACKAGES:
-            return state.set("all", action.payload);
-
         case actionTypes.SET_VISIBLE_PACKAGES:
-            q = query(state.get("all"));
-            if (action.payload.filter === "mine") {
-                p = q.allMostRecentForOrigin("smith");
-            } else if (action.payload.origin) {
-                p = q.allMostRecentForOrigin(action.payload.origin);
-            } else if (action.payload.name) {
-                p = q.allForNameByStars(action.payload.name);
-            } else {
-                p = q.allMostRecent();
-            }
-            return state.set("visible", p.toArray());
+            return state.set("visible", List(action.payload));
 
         default:
             return state;

@@ -54,7 +54,6 @@ export default Record({
         })(),
     })(),
     packages: Record({
-        all: List(),
         current: undefined,
         explore: List(),
         visible: List(),

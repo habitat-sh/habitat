@@ -9,7 +9,6 @@ import * as fakeApi from "../fakeApi";
 
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
-export const SET_PACKAGES = "SET_PACKAGES";
 export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 
 // Fetch the explore endpoint
@@ -31,10 +30,15 @@ export function fetchPackage(pkg) {
 
 export function filterPackagesBy(params) {
     return dispatch => {
-        fakeApi.get("packages.json").then(response => {
-            dispatch(setPackages(response));
-            dispatch(setVisiblePackages(params));
-        });
+        if ("origin" in params) {
+            depotApi.get(params).then(response => {
+                dispatch(setVisiblePackages(response));
+            });
+        } else {
+            fakeApi.get("packages.json").then(response => {
+                dispatch(setVisiblePackages(response));
+            });
+        }
     };
 }
 
@@ -49,13 +53,6 @@ export function setCurrentPackage(pkg) {
     return {
         type: SET_CURRENT_PACKAGE,
         payload: pkg,
-    };
-}
-
-export function setPackages(packages) {
-    return {
-        type: SET_PACKAGES,
-        payload: packages,
     };
 }
 
