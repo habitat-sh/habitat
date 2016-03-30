@@ -1,0 +1,5 @@
+#!/bin/sh
+#
+
+cd /opt/bldr/svc/nodejs-tutorial-app/
+npm start 
