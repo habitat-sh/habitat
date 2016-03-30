@@ -21,6 +21,7 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
       AppComponent.ts            #   The top level component of the app.
       AppStore.ts                #   The [Store](http://redux.js.org/docs/basics/Store.html) for the app.
       boot.ts                    #   Main entry point for the TypeScript.
+      config.ts                  #   Provides configuration values specified in habitat.conf.js
       initialState.ts            #   The initial state of the app.
       query.ts                   #   Object that lets you query for packages.
       tests-entry.ts             #   Main entry point for the tests.
@@ -47,6 +48,8 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     app.js                       # The main JS file loaded by the browser.
     app.js.map                   # The source map for that JS, mapping to the TypeScript versions.
     favicon.ico                  # The favicon.
+    habitat.conf.js              # The Habitat configuration file.
+    habitat.conf.sample.js       # A sample version of the Habitat configuration file.
     index.html                   # The main HTML document.
     karma.conf.js                # The [Karma](https://karma-runner.github.io/0.13/index.html) config file.
     npm-debug.log                # Logs from npm debug output. Ignored by git.
