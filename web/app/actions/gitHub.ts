@@ -4,7 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as api from "../api";
+import * as fakeApi from "../fakeApi";
 import {requestRoute} from "./router";
 
 export const LINK_GITHUB_ACCOUNT = "LINK_GITHUB_ACCOUNT";
@@ -16,7 +16,7 @@ export const UNLINK_GITHUB_ACCOUNT_SUCCESS = "UNLINK_GITHUB_ACCOUNT";
 
 export function fetchGitHubRepos() {
     return dispatch => {
-        api.get("github/user/repos.json").then(response => {
+        fakeApi.get("github/user/repos.json").then(response => {
             dispatch(populateGitHubRepos(response));
         });
     };

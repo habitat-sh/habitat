@@ -19,7 +19,7 @@ export function icon(x: string): string {
 // Compare the identifying attributes of two packages to see if they are the
 // same
 export function isPackage(x = {}, y = {}) {
-    return packageString(x) === packageString(y);
+    return packageString(x["ident"]) === packageString(y["ident"]);
 }
 
 // Take a package and make a string separated by slashes of its identifying

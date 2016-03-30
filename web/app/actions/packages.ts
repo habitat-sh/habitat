@@ -4,7 +4,8 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import * as api from "../api";
+import * as depotApi from "../depotApi";
+import * as fakeApi from "../fakeApi";
 
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
@@ -14,7 +15,7 @@ export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 // Fetch the explore endpoint
 export function fetchExplore() {
     return dispatch => {
-        api.get("explore.json").then(response => {
+        fakeApi.get("explore.json").then(response => {
             dispatch(populateExplore(response));
         }).catch(error => console.error(error));
     };
@@ -22,16 +23,15 @@ export function fetchExplore() {
 
 export function fetchPackage(pkg) {
     return dispatch => {
-        api.get("packages.json").then(response => {
-            dispatch(setPackages(response));
-            dispatch(setCurrentPackage(pkg));
+        depotApi.get(pkg.ident).then(response => {
+            dispatch(setCurrentPackage(response));
         });
     };
 }
 
 export function filterPackagesBy(params) {
     return dispatch => {
-        api.get("packages.json").then(response => {
+        fakeApi.get("packages.json").then(response => {
             dispatch(setPackages(response));
             dispatch(setVisiblePackages(params));
         });
