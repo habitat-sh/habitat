@@ -85,6 +85,16 @@ import {removeNotification, routeChange} from "./actions/index";
         component: PackagesPageComponent
     },
     {
+        path: "/pkgs/:origin/:name",
+        name: "PackagesForOriginAndName",
+        component: PackagesPageComponent,
+    },
+    {
+        path: "/pkgs/:origin/:name/:version",
+        name: "PackagesForOriginAndNameAndVersion",
+        component: PackagesPageComponent,
+    },
+    {
         path: "/pkgs/:origin/:name/:version/:release",
         name: "Package",
         component: PackagePageComponent
