@@ -20,41 +20,25 @@ load_delivery_chef_config
 
 machine_dir = BldrDockerMachine.dbuild_machine_dir
 docker_machine_config = BldrDockerMachine.load_config
-
 ssh_key = data_bag_item('delivery-secrets', 'chef-bldr-acceptance')['github']
 
-makelog = ::File.join(Chef::Config[:file_cache_path],
-                      'make-functional.out')
-
-# warn level because we use doc formatter and this won't be displayed
-# otherwise :)
-Chef::Log.warn("`make` will log output to #{makelog}")
+env = {
+  'IN_DOCKER' => 'true',
+  'GITHUB_DEPLOY_KEY' => ssh_key,
+  'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
+  'DOCKER_TLS_VERIFY' => '1',
+  'DOCKER_CERT_PATH' => machine_dir,
+  'DOCKER_HOST' => "tcp://#{BldrDockerMachine.machine_ip}:2376",
+  'DOCKER_MACHINE_NAME' => 'bldr-docker-machine'
+}
 
 execute 'make distclean' do
   cwd node['delivery']['workspace']['repo']
-  environment(
-    'IN_DOCKER' => 'true',
-    'GITHUB_DEPLOY_KEY' => ssh_key,
-    'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
-    'DOCKER_TLS_VERIFY' => '1',
-    'DOCKER_CERT_PATH' => machine_dir,
-    'DOCKER_HOST' => "tcp://#{BldrDockerMachine.machine_ip}:2376",
-    'DOCKER_MACHINE_NAME' => 'bldr-docker-machine'
-  )
+  environment(env)
   not_if { BldrDocker.fresh_image?("bldr/devshell:latest") }
 end
 
-execute "make functional refresh=true 2>&1 | tee #{makelog}" do
+execute "make functional refresh=true" do
   cwd node['delivery']['workspace']['repo']
-  # set a two hour time out because this compiles :allthethings:
-  timeout 7200
-  environment(
-    'IN_DOCKER' => 'true',
-    'GITHUB_DEPLOY_KEY' => ssh_key,
-    'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
-    'DOCKER_TLS_VERIFY' => '1',
-    'DOCKER_CERT_PATH' => machine_dir,
-    'DOCKER_HOST' => "tcp://#{BldrDockerMachine.machine_ip}:2376",
-    'DOCKER_MACHINE_NAME' => 'bldr-docker-machine'
-  )
+  environment(env)
 end
