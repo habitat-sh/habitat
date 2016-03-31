@@ -7,13 +7,14 @@
 import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
 import {Package} from "../records/Package";
+import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {PackageListComponent} from "./PackageListComponent";
 import {RouteParams, RouterLink} from "angular2/router";
 import {isPackage, packageString} from "../util";
 import {fetchPackage} from "../actions/index";
 
 @Component({
-    directives: [PackageListComponent, RouterLink],
+    directives: [PackageBreadcrumbsComponent, PackageListComponent, RouterLink],
     template: `
     <div>
         <div *ngIf="!package" class="hab-package">
@@ -23,15 +24,8 @@ import {fetchPackage} from "../actions/index";
         </div>
         <div *ngIf="package" class="hab-package">
             <h2>
-                <a [routerLink]="['PackagesForOrigin', { origin: package.ident.origin }]">
-                    {{package.ident.origin}}
-                </a>
-                /
-                {{package.ident.name}}
-                /
-                {{package.ident.version}}
-                /
-                {{package.ident.release}}
+                <package-breadcrumbs [ident]="package.ident">
+                </package-breadcrumbs>
             </h2>
             <div class="hab-package-info">
                 <dl>

@@ -4,24 +4,20 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
+import {AppStore} from "../AppStore";
+import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {filterPackagesBy, requestRoute} from "../actions/index";
 
 @Component({
-    directives: [RouterLink],
+    directives: [PackageBreadcrumbsComponent, RouterLink],
     template: `
     <div class="hab-packages">
         <h2>
-            <span *ngIf="filter === 'mine'">My Packages</span>
-            <span *ngIf="showAll">All Packages</span>
-            <span *ngIf="origin">{{origin}}</span>
-            <span *ngIf="name">
-                <a [routerLink]="['Packages']">*</a>
-                /
-                {{name}}
-            </span>
+            <package-breadcrumbs [ident]="routeParams.params"
+                [params]="routeParams.params">
+            </package-breadcrumbs>
         </h2>
         <hr>
         <ul class="hab-packages-plan-list">
@@ -51,24 +47,8 @@ import {filterPackagesBy, requestRoute} from "../actions/index";
 export class PackagesPageComponent implements OnInit {
     constructor(private store: AppStore, private routeParams: RouteParams) { }
 
-    get origin() {
-        return this.routeParams.params["origin"];
-    }
-
-    get filter() {
-        return this.routeParams.params["filter"];
-    }
-
-    get name() {
-        return this.routeParams.params["name"];
-    }
-
     get packages() {
         return this.store.getState().packages.visible;
-    }
-
-    get showAll() {
-        return Object.keys(this.routeParams.params).length === 0;
     }
 
     ngOnInit() {
