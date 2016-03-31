@@ -6,7 +6,7 @@ pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=f551c24b30ce8bfb6e96d9f59b42fbea30fa3a6123384172f9e7284bcf647260
 pkg_deps=(chef/glibc chef/gcc-libs)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
@@ -42,17 +42,17 @@ do_install() {
   local maj=$(echo $pkg_version | cut -d "." -f 1)
   local maj_min=$(echo $pkg_version | cut -d "." -f 1-2)
   for x in curses ncurses form panel menu tinfo; do
-    echo "INPUT(-l${x}w)" > $pkg_path/lib/lib${x}.so
-    ln -sv lib${x}w.so $pkg_path/lib/lib${x}.so.$maj
-    ln -sv lib${x}w.so $pkg_path/lib/lib${x}.so.$maj_min
+    echo "INPUT(-l${x}w)" > $pkg_prefix/lib/lib${x}.so
+    ln -sv lib${x}w.so $pkg_prefix/lib/lib${x}.so.$maj
+    ln -sv lib${x}w.so $pkg_prefix/lib/lib${x}.so.$maj_min
   done
-  ln -sfv libncursesw.so $pkg_path/lib/libcursesw.so
-  ln -sfv libncursesw.a $pkg_path/lib/libcursesw.a
-  ln -sfv libncursesw.a $pkg_path/lib/libcurses.a
+  ln -sfv libncursesw.so $pkg_prefix/lib/libcursesw.so
+  ln -sfv libncursesw.a $pkg_prefix/lib/libcursesw.a
+  ln -sfv libncursesw.a $pkg_prefix/lib/libcurses.a
 
   # Install the license, which comes from the README
-  install -dv $pkg_path/share/licenses
-  grep -B 100 '$Id' README > $pkg_path/share/licenses/LICENSE
+  install -dv $pkg_prefix/share/licenses
+  grep -B 100 '$Id' README > $pkg_prefix/share/licenses/LICENSE
 }
 
 

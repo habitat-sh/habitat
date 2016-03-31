@@ -12,7 +12,7 @@ pkg_deps=(chef/glibc chef/ncurses chef/zlib chef/libedit chef/openssl chef/libya
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_interpreters=(bin/ruby)
 
 do_build() {

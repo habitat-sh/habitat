@@ -8,7 +8,7 @@ pkg_filename=SAP_HANA_DATABASE100_102_01_Linux_on_x86_64.SAR
 pkg_shasum=6addbc9e75cae2b2372276163cd79f5fcea29e5bce0764f222625a891adbdea3
 pkg_dirname=SAP_HANA_DATABASE
 pkg_gpg_key=3853DA6B
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/numactl chef/libltdl chef/libaio chef/libxml2 chef/libstdc++ chef/libgcc chef/zlib chef/linux-pam chef/util-linux chef/openssl-0.9.8)
 pkg_docker_build="auto"
 pkg_docker_from="ubuntu:latest"
@@ -41,7 +41,7 @@ do_install() {
   cat <<EOT >> $pkg_prefix/bin/instruntime/sdbrun
 #!/bin/sh
 
-export LD_LIBRARY_PATH=$LD_RUN_PATH:$pkg_path/bin/instruntime
+export LD_LIBRARY_PATH=$LD_RUN_PATH:$pkg_prefix/bin/instruntime
 exec $pkg_prefix/bin/instruntime/sdbrun-real "\$@"
 EOT
   chmod a+x $pkg_prefix/bin/instruntime/sdbrun

@@ -7,7 +7,7 @@ pkg_source=http://www.bzip.org/$pkg_version/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
@@ -36,9 +36,9 @@ do_install() {
   make install PREFIX="$pkg_prefix"
 
   # Replace some hard links with symlinks
-  rm -fv $pkg_path/bin/{bunzip2,bzcat}
-  ln -sv bzip2 $pkg_path/bin/bunzip2
-  ln -sv bzip2 $pkg_path/bin/bzcat
+  rm -fv $pkg_prefix/bin/{bunzip2,bzcat}
+  ln -sv bzip2 $pkg_prefix/bin/bunzip2
+  ln -sv bzip2 $pkg_prefix/bin/bzcat
 
   # Install the shared library and its symlinks
   cp -v $BLDR_SRC_CACHE/$pkg_dirname/libbz2.so.$pkg_version $pkg_prefix/lib

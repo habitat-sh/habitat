@@ -10,7 +10,7 @@ pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/gcc-libs chef/coreutils chef/make chef/ncurses chef/zlib chef/readline chef/openssl chef/bzip2)
 pkg_build_deps=(chef/linux-headers chef/gcc)
 pkg_lib_dirs=(lib)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include Include)
 pkg_interpreters=(bin/python bin/python2 bin/python2.7)
 

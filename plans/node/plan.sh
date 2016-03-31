@@ -13,7 +13,7 @@ pkg_deps=(chef/glibc chef/gcc-libs chef/coreutils/8.24/20160223204924)
 pkg_build_deps=(chef/python2 chef/gcc chef/make)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_interpreters=(bin/node)
 
 do_build() {

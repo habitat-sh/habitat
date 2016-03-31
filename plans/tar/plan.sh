@@ -7,7 +7,7 @@ pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de
 pkg_deps=(chef/glibc chef/acl chef/attr)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_build() {

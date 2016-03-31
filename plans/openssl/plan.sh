@@ -7,7 +7,7 @@ pkg_source=https://www.openssl.org/source/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=b784b1b3907ce39abf4098702dade6365522a253ad1552e267a9a0e89594aa33
 pkg_deps=(chef/glibc chef/zlib chef/cacerts)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/perl)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
@@ -66,7 +66,7 @@ do_install() {
   do_default_install
 
   # Remove dependency on Perl at runtime
-  rm -rfv $pkg_path/ssl/misc $pkg_path/bin/c_rehash
+  rm -rfv $pkg_prefix/ssl/misc $pkg_prefix/bin/c_rehash
 }
 
 

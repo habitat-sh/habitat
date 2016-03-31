@@ -30,9 +30,9 @@ do_build() {
 }
 
 do_install() {
-  mkdir -pv $pkg_path/ssl/certs
-  cp -v $pkg_filename $pkg_path/ssl/certs
-  ln -sv certs/cacert.pem $pkg_path/ssl/cert.pem
+  mkdir -pv $pkg_prefix/ssl/certs
+  cp -v $pkg_filename $pkg_prefix/ssl/certs
+  ln -sv certs/cacert.pem $pkg_prefix/ssl/cert.pem
 }
 
 update_pkg_version() {
@@ -49,5 +49,4 @@ update_pkg_version() {
   # so we must update these as well
   pkg_dirname=${pkg_name}-${pkg_version}
   pkg_prefix=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
-  pkg_path=$pkg_prefix
 }

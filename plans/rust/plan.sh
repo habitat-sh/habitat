@@ -6,7 +6,7 @@ pkg_source=https://static.rust-lang.org/dist/${pkg_name}-${pkg_version}-x86_64-u
 pkg_dirname=${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu
 pkg_shasum=d36634bd8df3d7565487b70af03dfda1c43c635cd6f2993f47cd61fda00d890a
 pkg_gpg_key=3853DA6B
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_deps=(chef/glibc chef/gcc-libs chef/zlib chef/gcc chef/cacerts)
 pkg_build_deps=(chef/patchelf chef/findutils chef/coreutils)
@@ -31,7 +31,7 @@ do_install() {
   # Going to want to write a cargo wrapper
   #    SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem \
 
-  find $pkg_path/lib -name *.so | xargs -I '%' patchelf --set-rpath "$LD_RUN_PATH" %
+  find $pkg_prefix/lib -name *.so | xargs -I '%' patchelf --set-rpath "$LD_RUN_PATH" %
 }
 
 do_strip() {

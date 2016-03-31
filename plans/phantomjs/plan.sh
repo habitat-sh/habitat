@@ -17,7 +17,7 @@ pkg_deps=(chef/glibc chef/freetype chef/fontconfig chef/patchelf
 # downloading from bitbucket URLs. Sometimes.
 pkg_build_deps=(chef/curl chef/cacerts)
 
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 
 do_download() {
   # downloading from bitbucket with wget results in a 403.
@@ -54,7 +54,7 @@ do_strip() {
 }
 
 do_install() {
-  cp -vR * ${pkg_path}
+  cp -vR * ${pkg_prefix}
 
   build_line "Setting interpreter for '${pkg_prefix}/bin/phantomjs' '$(pkg_path_for chef/glibc)/lib/ld-linux-x86-64.so.2'"
   build_line "Setting rpath for '${pkg_prefix}/bin/phantomjs' to '$LD_RUN_PATH'"

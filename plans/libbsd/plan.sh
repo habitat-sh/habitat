@@ -15,7 +15,7 @@ do_install() {
   do_default_install
 
   # Install license file from README
-  install -Dm644 COPYING "$pkg_path/share/licenses/LICENSE"
+  install -Dm644 COPYING "$pkg_prefix/share/licenses/LICENSE"
 }
 
 

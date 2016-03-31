@@ -10,7 +10,7 @@ pkg_deps=(chef/glibc chef/zlib chef/perl chef/curl chef/gettext chef/expat chef/
 pkg_build_deps=(chef/make chef/gcc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 
 do_prepare() {
   _perl_path="$(pkg_path_for chef/perl)/bin/perl"

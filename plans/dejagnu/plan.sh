@@ -7,7 +7,7 @@ pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=099b8e364ca1d6248f8e1d32168c4b12677abff4253bbbb4a8ac8cdd321e3f19
 pkg_deps=(chef/expect)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_gpg_key=3853DA6B
 
@@ -27,7 +27,7 @@ do_install() {
   # Set an absolute path `expect` in the `runtest` binary
   sed \
     -e "s,expectbin=expect,expectbin=$(pkg_path_for expect)/bin/expect,g" \
-    -i $pkg_path/bin/runtest
+    -i $pkg_prefix/bin/runtest
 }
 
 

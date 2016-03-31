@@ -7,7 +7,7 @@ pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=0bc7613389650ee6a24554b52572a272f7356164fd2c4132b0bcf13123e4fca5
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/bash chef/gettext chef/gzip chef/perl chef/binutils)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_gpg_key=3853DA6B
 

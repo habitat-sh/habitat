@@ -16,7 +16,7 @@ do_build() {
 }
 
 do_install() {
-  find $pkg_path/include \( -name ..install.cmd -o -name .install \) -print0 | xargs -0 rm -v
+  find $pkg_prefix/include \( -name ..install.cmd -o -name .install \) -print0 | xargs -0 rm -v
 }
 
 

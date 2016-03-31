@@ -7,7 +7,7 @@ pkg_source=http://pkg-shadow.alioth.debian.org/releases/${pkg_name}-${pkg_versio
 pkg_shasum=3b0893d1476766868cd88920f4f1231c4795652aa407569faff802bcda0f3d41
 pkg_deps=(chef/glibc chef/attr chef/acl)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_prepare() {
@@ -47,11 +47,11 @@ do_install() {
 
   # Move all binaries in `sbin/` into `bin/` as this isn't handled by
   # `./configure`.
-  mv $pkg_path/sbin/* $pkg_path/bin/
-  rm -rf $pkg_path/sbin
+  mv $pkg_prefix/sbin/* $pkg_prefix/bin/
+  rm -rf $pkg_prefix/sbin
 
   # Install the license
-  install -Dm644 COPYING $pkg_path/share/licenses/COPYING
+  install -Dm644 COPYING $pkg_prefix/share/licenses/COPYING
 }
 
 

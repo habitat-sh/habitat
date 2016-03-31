@@ -4,7 +4,7 @@ pkg_version=0.4.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
-pkg_binary_path=(bin)
+pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/gpgme chef/libarchive chef/libgpg-error chef/rngd)
 pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
 pkg_gpg_key=3853DA6B
@@ -24,7 +24,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../../components/bldr/target/debug/bldr $pkg_path/bin/bldr
+  install -v -D $PLAN_CONTEXT/../../components/bldr/target/debug/bldr $pkg_prefix/bin/bldr
 }
 
 # Turn the remaining default phases into no-ops
