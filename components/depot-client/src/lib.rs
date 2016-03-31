@@ -4,8 +4,8 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-extern crate bldr_core as bldr;
-extern crate bldr_depot_core as depot_core;
+extern crate habitat_core as hcore;
+extern crate habitat_depot_core as depot_core;
 #[macro_use]
 extern crate hyper;
 #[macro_use]
@@ -20,7 +20,7 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
-use bldr::package::{PackageArchive, PackageIdent};
+use hcore::package::{PackageArchive, PackageIdent};
 use depot_core::{XFileName, data_object};
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
@@ -50,10 +50,7 @@ pub fn fetch_key(depot: &str, key: &str, path: &str) -> Result<String> {
 /// * Package cannot be found
 /// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_package(depot: &str,
-                     package: &PackageIdent,
-                     store: &str)
-                     -> Result<PackageArchive> {
+pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result<PackageArchive> {
     let url = format!("{}/pkgs/{}/download", depot, package);
     match download(&package.name, &url, store) {
         Ok(file) => {

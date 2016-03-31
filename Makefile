@@ -28,37 +28,37 @@ else
 	docs_run :=
 endif
 
-.PHONY: help all shell docs-serve test unit functional clean image docs gpg
+.PHONY: help all shell serve-docs test unit functional clean image docs gpg
 .DEFAULT_GOAL := all
 
 all: image ## builds the project's Rust components
 	$(run) cargo build --manifest-path components/core/Cargo.toml
-	$(run) cargo build --manifest-path components/bldr/Cargo.toml
+	$(run) cargo build --manifest-path components/sup/Cargo.toml
 	$(run) cargo build --manifest-path components/depot-core/Cargo.toml
 	$(run) cargo build --manifest-path components/depot/Cargo.toml
 	$(run) cargo build --manifest-path components/depot-client/Cargo.toml
 
 test: image ## tests the project's Rust components
 	$(run) cargo test --manifest-path components/core/Cargo.toml
-	$(run) cargo test --manifest-path components/bldr/Cargo.toml
+	$(run) cargo test --manifest-path components/sup/Cargo.toml
 	$(run) cargo test --manifest-path components/depot-core/Cargo.toml
 	$(run) cargo test --manifest-path components/depot/Cargo.toml
 	$(run) cargo test --manifest-path components/depot-client/Cargo.toml
 
 unit: image ## executes the components' unit test suites
 	$(run) cargo test --lib --manifest-path components/core/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/bldr/Cargo.toml
+	$(run) cargo test --lib --manifest-path components/sup/Cargo.toml
 	$(run) cargo test --lib --manifest-path components/depot-core/Cargo.toml
 	$(run) cargo test --lib --manifest-path components/depot/Cargo.toml
 	$(run) cargo test --lib --manifest-path components/depot-client/Cargo.toml
 
 functional: image ## executes the components' functional test suites
-	$(run) cargo test --test functional --manifest-path components/bldr/Cargo.toml
+	$(run) cargo test --test functional --manifest-path components/sup/Cargo.toml
 	$(run) cargo test --test functional --manifest-path components/depot/Cargo.toml
 
 clean: ## cleans up the project tree
 	$(run) cargo clean --manifest-path components/core/Cargo.toml
-	$(run) cargo clean --manifest-path components/bldr/Cargo.toml
+	$(run) cargo clean --manifest-path components/sup/Cargo.toml
 	$(run) cargo clean --manifest-path components/depot-core/Cargo.toml
 	$(run) cargo clean --manifest-path components/depot/Cargo.toml
 	$(run) cargo clean --manifest-path components/depot-client/Cargo.toml
@@ -72,7 +72,7 @@ shell: image ## launches a development shell
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\
 		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
-	$(docs_run) sh -c 'set -e; cd ./components/bldr/target/doc; python -m SimpleHTTPServer 9633;'
+	$(docs_run) sh -c 'set -e; cd ./components/sup/target/doc; python -m SimpleHTTPServer 9633;'
 
 ifneq ($(IN_DOCKER),)
 distclean: ## fully cleans up project tree and any associated Docker images and containers
@@ -97,11 +97,11 @@ endif
 
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
-		cargo doc --manifest-path components/bldr/Cargo.toml; \
-		rustdoc --crate-name bldr README.md -o ./components/bldr/target/doc/bldr; \
-		docco -e .sh -o components/bldr/target/doc/bldr/bldr-build plans/bldr-build; \
-		cp -r images ./components/bldr/target/doc/bldr; \
-		echo "<meta http-equiv=refresh content=0;url=bldr/index.html>" > components/bldr/target/doc/index.html;'
+		cargo doc --manifest-path components/sup/Cargo.toml; \
+		rustdoc --crate-name habitat_sup README.md -o ./components/sup/target/doc/habitat_sup; \
+		docco -e .sh -o components/sup/target/doc/habitat_sup/bldr-build plans/bldr-build; \
+		cp -r images ./components/sup/target/doc/habitat_sup; \
+		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
 
 gpg: ## installs gpg signing keys, only run this in a Studio
 	(cd plans && make gpg)

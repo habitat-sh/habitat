@@ -8,7 +8,7 @@ use std::fmt;
 use std::result;
 use std::slice;
 
-use bldr::{package, Error, Result};
+use hcore::{package, Error, Result};
 use libc::c_void;
 use lmdb_sys;
 use rustc_serialize::{Encoder, Decoder, Encodable, Decodable};
