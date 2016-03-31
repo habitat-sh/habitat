@@ -9,8 +9,8 @@ use std::io;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use bldr;
-use bldr::package::{self, PackageArchive};
+use hcore;
+use hcore::package::{self, PackageArchive};
 use depot_core::data_object::{self, DataObject};
 use time;
 use walkdir::WalkDir;
@@ -112,7 +112,7 @@ pub enum OperationType {
 #[derive(Debug)]
 pub enum Reason {
     BadArchive,
-    BadMetadata(bldr::Error),
+    BadMetadata(hcore::Error),
     BadPermissions,
     IO(io::Error),
     FileExists,

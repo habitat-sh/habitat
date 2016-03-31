@@ -21,7 +21,7 @@ use super::Depot;
 use config::Config;
 use data_store::{self, Cursor, Database, Transaction};
 use error::{Error, Result};
-use bldr::package::{self, PackageArchive};
+use hcore::package::{self, PackageArchive};
 
 fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     let path = filename.parent().unwrap();
@@ -91,8 +91,8 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             // This should never happen. Writing the package to disk and recording it's existence
             // in the metadata is a transactional operation and one cannot exist without the other.
             //
-            // JW TODO: write the depot repair tool and wire it into the `bldr-depot repair` command
-            panic!("Inconsistent package metadata! Exit and run `bldr-depot repair` to fix data integrity.");
+            // JW TODO: write the depot repair tool and wire it into the `hab-depot repair` command
+            panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
         }
     }
 
@@ -182,8 +182,8 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 // This should never happen. Writing the package to disk and recording it's existence
                 // in the metadata is a transactional operation and one cannot exist without the other.
                 //
-                // JW TODO: write the depot repair tool and wire it into the `bldr-depot repair` command
-                panic!("Inconsistent package metadata! Exit and run `bldr-depot repair` to fix data integrity.");
+                // JW TODO: write the depot repair tool and wire it into the `hab-depot repair` command
+                panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
             }
         }
         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
@@ -474,7 +474,7 @@ impl From<Error> for IronError {
     fn from(err: Error) -> IronError {
         IronError {
             error: Box::new(err),
-            response: Response::with((status::InternalServerError, "Internal bldr error")),
+            response: Response::with((status::InternalServerError, "Internal Habitat error")),
         }
     }
 }

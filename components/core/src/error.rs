@@ -22,7 +22,7 @@ pub type Result<T> = result::Result<T, Error>;
 /// Core error types
 #[derive(Debug)]
 pub enum Error {
-    /// Occurs when a `bldr_core::package::PackageArchive` is being read.
+    /// Occurs when a `habitat_core::package::PackageArchive` is being read.
     ArchiveError(libarchive::error::ArchiveError),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),

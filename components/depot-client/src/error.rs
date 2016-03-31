@@ -11,11 +11,11 @@ use std::result;
 
 use hyper;
 
-use bldr::{self, package};
+use hcore::{self, package};
 
 #[derive(Debug)]
 pub enum Error {
-    BldrCore(bldr::Error),
+    HabitatCore(hcore::Error),
     HTTP(hyper::status::StatusCode),
     HyperError(hyper::error::Error),
     IO(io::Error),
@@ -30,7 +30,7 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::BldrCore(ref e) => format!("{}", e),
+            Error::HabitatCore(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
@@ -55,7 +55,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::BldrCore(ref err) => err.description(),
+            Error::HabitatCore(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
@@ -67,9 +67,9 @@ impl error::Error for Error {
     }
 }
 
-impl From<bldr::Error> for Error {
-    fn from(err: bldr::Error) -> Error {
-        Error::BldrCore(err)
+impl From<hcore::Error> for Error {
+    fn from(err: hcore::Error) -> Error {
+        Error::HabitatCore(err)
     }
 }
 

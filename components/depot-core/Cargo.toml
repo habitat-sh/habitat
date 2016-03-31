@@ -1,5 +1,5 @@
 [package]
-name = "bldr_depot_core"
+name = "habitat_depot_core"
 version = "0.4.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 
@@ -9,5 +9,5 @@ libc = "*"
 lmdb-sys = "*"
 rustc-serialize = "*"
 
-[dependencies.bldr_core]
+[dependencies.habitat_core]
 path = "../core"

@@ -4,8 +4,8 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-extern crate bldr_depot as depot;
-extern crate bldr_depot_core as depot_core;
+extern crate habitat_depot as depot;
+extern crate habitat_depot_core as depot_core;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
@@ -162,7 +162,7 @@ fn repo_list(config: &Config) -> Result<()> {
     let mut cursor = try!(txn.cursor_ro());
     match cursor.first() {
         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-            println!("No repositories. Create one with `bldr-depot repo create`.");
+            println!("No repositories. Create one with `hab-depot repo create`.");
             return Ok(());
         }
         Err(e) => return Err(e),

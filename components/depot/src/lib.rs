@@ -4,8 +4,8 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-extern crate bldr_core as bldr;
-extern crate bldr_depot_core as depot_core;
+extern crate habitat_core as hcore;
+extern crate habitat_depot_core as depot_core;
 extern crate bincode;
 #[macro_use]
 extern crate bitflags;
@@ -44,7 +44,7 @@ use crypto::sha2::Sha256;
 use crypto::digest::Digest;
 
 use self::data_store::{DataStore, Database};
-use bldr::package::{self, PackageArchive};
+use hcore::package::{self, PackageArchive};
 
 pub struct Depot {
     pub path: String,

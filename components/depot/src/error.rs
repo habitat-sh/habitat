@@ -10,7 +10,7 @@ use std::io;
 use std::fmt;
 use std::result;
 
-use bldr::{self, package};
+use hcore::{self, package};
 use hyper;
 
 use data_store;
@@ -18,8 +18,8 @@ use data_store;
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    BldrCore(bldr::Error),
     DbInvalidPath,
+    HabitatCore(hcore::Error),
     HTTP(hyper::status::StatusCode),
     InvalidPackageIdent(String),
     IO(io::Error),
@@ -37,8 +37,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::BldrCore(ref e) => format!("{}", e),
             Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
+            Error::HabitatCore(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
@@ -70,8 +70,8 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::BldrCore(ref err) => err.description(),
             Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
+            Error::HabitatCore(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             Error::IO(ref err) => err.description(),
@@ -85,9 +85,9 @@ impl error::Error for Error {
     }
 }
 
-impl From<bldr::Error> for Error {
-    fn from(err: bldr::Error) -> Error {
-        Error::BldrCore(err)
+impl From<hcore::Error> for Error {
+    fn from(err: hcore::Error) -> Error {
+        Error::HabitatCore(err)
     }
 }
 

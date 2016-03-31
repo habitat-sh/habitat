@@ -1631,7 +1631,7 @@ mod tests {
     use super::*;
     use error::Error;
     use depot_core::data_object::*;
-    use bldr::package;
+    use hcore::package;
 
     // JW TODO: This test is ignored while I track down a bug preventing multiple transactions
     // being opened from different threads.

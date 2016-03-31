@@ -8,7 +8,7 @@ extern crate regex;
 extern crate time;
 extern crate hyper;
 extern crate url;
-extern crate bldr_core as core;
+extern crate habitat_core as core;
 extern crate uuid;
 extern crate rustc_serialize;
 
