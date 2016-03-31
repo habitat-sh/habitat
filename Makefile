@@ -32,25 +32,22 @@ endif
 .DEFAULT_GOAL := all
 
 all: image ## builds the project's Rust components
-	$(run) cargo build --manifest-path components/core/Cargo.toml
 	$(run) cargo build --manifest-path components/sup/Cargo.toml
-	$(run) cargo build --manifest-path components/depot-core/Cargo.toml
 	$(run) cargo build --manifest-path components/depot/Cargo.toml
-	$(run) cargo build --manifest-path components/depot-client/Cargo.toml
 
 test: image ## tests the project's Rust components
 	$(run) cargo test --manifest-path components/core/Cargo.toml
-	$(run) cargo test --manifest-path components/sup/Cargo.toml
 	$(run) cargo test --manifest-path components/depot-core/Cargo.toml
-	$(run) cargo test --manifest-path components/depot/Cargo.toml
 	$(run) cargo test --manifest-path components/depot-client/Cargo.toml
+	$(run) cargo test --manifest-path components/sup/Cargo.toml
+	$(run) cargo test --manifest-path components/depot/Cargo.toml
 
 unit: image ## executes the components' unit test suites
 	$(run) cargo test --lib --manifest-path components/core/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/sup/Cargo.toml
 	$(run) cargo test --lib --manifest-path components/depot-core/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/depot/Cargo.toml
 	$(run) cargo test --lib --manifest-path components/depot-client/Cargo.toml
+	$(run) cargo test --lib --manifest-path components/sup/Cargo.toml
+	$(run) cargo test --lib --manifest-path components/depot/Cargo.toml
 
 functional: image ## executes the components' functional test suites
 	$(run) cargo test --test functional --manifest-path components/sup/Cargo.toml
@@ -58,10 +55,10 @@ functional: image ## executes the components' functional test suites
 
 clean: ## cleans up the project tree
 	$(run) cargo clean --manifest-path components/core/Cargo.toml
-	$(run) cargo clean --manifest-path components/sup/Cargo.toml
 	$(run) cargo clean --manifest-path components/depot-core/Cargo.toml
-	$(run) cargo clean --manifest-path components/depot/Cargo.toml
 	$(run) cargo clean --manifest-path components/depot-client/Cargo.toml
+	$(run) cargo clean --manifest-path components/sup/Cargo.toml
+	$(run) cargo clean --manifest-path components/depot/Cargo.toml
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
