@@ -32,6 +32,7 @@ endif
 .DEFAULT_GOAL := all
 
 all: image ## builds the project's Rust components
+	$(run) cargo build --manifest-path components/hab/Cargo.toml
 	$(run) cargo build --manifest-path components/sup/Cargo.toml
 	$(run) cargo build --manifest-path components/depot/Cargo.toml
 
