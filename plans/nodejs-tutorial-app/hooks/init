@@ -1,3 +1,5 @@
-cp {{pkg.path}}/package.json /opt/bldr/svc/nodejs-tutorial-app/
-cp {{pkg.path}}/server.js /opt/bldr/svc/nodejs-tutorial-app/
-cp -r {{pkg.path}}/node_modules/ /opt/bldr/svc/nodejs-tutorial-app/
+#!/bin/sh
+#
+cp {{pkg.path}}/package.json {{pkg.svc_path}}
+cp {{pkg.path}}/server.js {{pkg.svc_path}}
+cp -r {{pkg.path}}/node_modules {{pkg.svc_path}}
