@@ -1,0 +1,12 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+production:
+  <<: *default
+  database: {{cfg.database_name}}
+  username: {{cfg.database_username}}
+  password: {{cfg.database_password}}
+  host: {{cfg.database_host}}
+  port: {{cfg.database_port}}

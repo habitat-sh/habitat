@@ -1,0 +1,7 @@
+database_name = "ruby-rails-sample_production"
+database_username = "ruby-rails-sample"
+database_password = ""
+database_host = "localhost"
+database_port = 5432
+rails_binding_ip = "0.0.0.0"
+rails_port = 3000
