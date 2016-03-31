@@ -63,7 +63,8 @@ impl Supervisor {
 
     pub fn with_peer_permanent_topology(peer: &Supervisor, topology: &str) -> Supervisor {
         Supervisor::from_docker(docker::run_with_peer_permanent_topology("test/simple_service_gossip",
-                                                                &peer.peer_addr, topology))
+                                                                         &peer.peer_addr,
+                                                                         topology))
     }
 
     pub fn from_docker(sup: Docker) -> Supervisor {
@@ -304,11 +305,13 @@ impl Supervisor {
         self.wait_for_it(Duration::seconds(5), || {
             let election = self.election();
             match election.find_path(&["mine", "status"]) {
-                Some(status) => match status.as_string() {
-                    Some("Finished") => true,
-                    Some(_) => false,
-                    None => false,
-                },
+                Some(status) => {
+                    match status.as_string() {
+                        Some("Finished") => true,
+                        Some(_) => false,
+                        None => false,
+                    }
+                }
                 None => false,
             }
         })
@@ -318,11 +321,13 @@ impl Supervisor {
         self.wait_for_it(Duration::seconds(5), || {
             let election = self.election();
             match election.find_path(&["mine", "status"]) {
-                Some(status) => match status.as_string() {
-                    Some("Running") => true,
-                    Some(_) => false,
-                    None => false,
-                },
+                Some(status) => {
+                    match status.as_string() {
+                        Some("Running") => true,
+                        Some(_) => false,
+                        None => false,
+                    }
+                }
                 None => false,
             }
         })

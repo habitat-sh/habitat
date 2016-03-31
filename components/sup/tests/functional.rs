@@ -72,15 +72,17 @@ mod setup {
     pub fn simple_service() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let mut simple_service = match util::command::bldr_build(&util::path::fixture_as_string("simple_service")) {
-                Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e),
-            };
+            let mut simple_service =
+                match util::command::bldr_build(&util::path::fixture_as_string("simple_service")) {
+                    Ok(cmd) => cmd,
+                    Err(e) => panic!("{:?}", e),
+                };
             simple_service.wait_with_output();
             if !simple_service.status.unwrap().success() {
                 panic!("Failed to build simple service");
             }
-            let mut docker = match util::command::studio_run("dockerize", &["test/simple_service"]) {
+            let mut docker = match util::command::studio_run("dockerize",
+                                                             &["test/simple_service"]) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };

@@ -45,7 +45,6 @@ impl fmt::Display for ElectionStatus {
         };
         write!(f, "{}", output)
     }
-
 }
 
 /// The election struct.

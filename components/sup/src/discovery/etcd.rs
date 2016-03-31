@@ -183,40 +183,39 @@ pub fn watch_mock_thread(key: &str,
                          watcher_tx: Sender<Option<String>>,
                          watcher_rx: Receiver<bool>) {
     let key = String::from(key);
-    let _newthread =
-        thread::Builder::new().name(format!("etcdmock:{}", key)).spawn(move || {
-            let preamble = format!("etcd:{}", key);
-            if let Err(_e) = watcher_tx.send(None) {
-                debug!("{}: aborting watch on failed send - peer went away",
-                       preamble);
-                return;
-            }
-            loop {
-                let stop_time = util::stop_time(reconnect_interval as i64);
+    let _newthread = thread::Builder::new().name(format!("etcdmock:{}", key)).spawn(move || {
+        let preamble = format!("etcd:{}", key);
+        if let Err(_e) = watcher_tx.send(None) {
+            debug!("{}: aborting watch on failed send - peer went away",
+                   preamble);
+            return;
+        }
+        loop {
+            let stop_time = util::stop_time(reconnect_interval as i64);
 
-                loop {
-                    match watcher_rx.try_recv() {
-                        Ok(_stop) => {
-                            debug!("   {}: Watch exiting", preamble);
-                            return;
-                        }
-                        Err(TryRecvError::Empty) => {}
-                        Err(e) => {
-                            debug!("   {}: Watch exiting - watcher disappeared - {:?}",
-                                   preamble,
-                                   e);
-                            return;
-                        }
+            loop {
+                match watcher_rx.try_recv() {
+                    Ok(_stop) => {
+                        debug!("   {}: Watch exiting", preamble);
+                        return;
                     }
-                    let time = time::now_utc().to_timespec();
-                    if time > stop_time {
-                        break;
-                    } else {
-                        thread::sleep(Duration::from_millis(100));
+                    Err(TryRecvError::Empty) => {}
+                    Err(e) => {
+                        debug!("   {}: Watch exiting - watcher disappeared - {:?}",
+                               preamble,
+                               e);
+                        return;
                     }
                 }
+                let time = time::now_utc().to_timespec();
+                if time > stop_time {
+                    break;
+                } else {
+                    thread::sleep(Duration::from_millis(100));
+                }
             }
-        });
+        }
+    });
 }
 
 pub fn watch_thread(key: &str,

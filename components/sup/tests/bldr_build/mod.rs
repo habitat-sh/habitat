@@ -13,11 +13,10 @@ use setup;
 fn builds_a_service() {
     setup::gpg_import();
 
-    let mut simple_service =
-        match util::command::bldr_build(&util::path::fixture_as_string("bldr_build")) {
-            Ok(cmd) => cmd,
-            Err(e) => panic!("{:?}", e),
-        };
+    let mut simple_service = match util::command::bldr_build(&util::path::fixture_as_string("bldr_build")) {
+        Ok(cmd) => cmd,
+        Err(e) => panic!("{:?}", e),
+    };
 
     simple_service.wait_with_output();
     assert_cmd_exit_code!(simple_service, [0]);
