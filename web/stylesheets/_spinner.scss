@@ -1,0 +1,30 @@
+.hab-spinner {
+  background-image: hab-icon("sync");
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  background-size: 50%;
+
+  height: 32px;
+  width: 32px;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &.spinning {
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-name: spinner-rotate;
+    animation-timing-function: linear;
+  }
+
+  @keyframes spinner-rotate {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

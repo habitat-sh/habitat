@@ -57,6 +57,18 @@ export default Record({
         current: undefined,
         explore: List(),
         visible: List(),
+        ui: Record({
+            current: Record({
+                errorMessage: undefined,
+                exists: false,
+                loading: true,
+            })(),
+            visible: Record({
+                errorMessage: undefined,
+                exists: false,
+                loading: true,
+            })(),
+        })(),
     })(),
     projects: Record({
         // This is a temporary hack that lets us add projects, and gets

@@ -6,14 +6,18 @@ const urlPrefix = config["depotUrl"] || "";
 
 // Get the JSON from a url from the fixtures directory.
 export function get(ident) {
-    return fetch(`${urlPrefix}/pkgs/${packageString(ident)}`).then(response => {
-        const url = response.url;
+    return new Promise((resolve, reject) => {
+        fetch(`${urlPrefix}/pkgs/${packageString(ident)}`).then(response => {
+            // Fail the promise if an error happens.
+            //
+            // If we're hitting the fake api, the 4xx response will show up
+            // here, but if we're hitting the real depot, it will show up in the
+            // catch below.
+            if (response.status >= 400) {
+                reject(new Error(response.statusText));
+            }
 
-        // Fail the promise if an error happens.
-        if (response.status >= 400) {
-            return Promise.reject(new Error(response.statusText));
-        }
-
-        return response.json();
+            resolve(response.json());
+        }).catch(error => reject(error));
     });
 };

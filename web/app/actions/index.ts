@@ -30,6 +30,7 @@ export const PERFORM_ORG_MEMBER_SEARCH = orgActions.PERFORM_ORG_MEMBER_SEARCH;
 export const POPULATE_ORG = orgActions.POPULATE_ORG;
 export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
+export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
