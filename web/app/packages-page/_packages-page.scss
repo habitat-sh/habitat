@@ -5,6 +5,10 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 .hab-packages {
+  .hab-spinner {
+    float: right;
+  }
+
   &-plan-list {
     li a {
       @extend .hab-item-list;

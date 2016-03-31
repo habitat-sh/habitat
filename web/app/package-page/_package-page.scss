@@ -5,6 +5,10 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 .hab-package {
+  .hab-spinner {
+      float: right;
+  }
+
   &-info {
     @include outer-container;
     margin-bottom: $base-spacing;

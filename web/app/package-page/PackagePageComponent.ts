@@ -4,29 +4,36 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
+import {RouteParams, RouterLink} from "angular2/router";
+import {AppStore} from "../AppStore";
 import {Package} from "../records/Package";
 import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {PackageListComponent} from "./PackageListComponent";
-import {RouteParams, RouterLink} from "angular2/router";
+import {SpinnerComponent} from "../SpinnerComponent";
 import {isPackage, packageString} from "../util";
 import {fetchPackage} from "../actions/index";
 
 @Component({
-    directives: [PackageBreadcrumbsComponent, PackageListComponent, RouterLink],
+    directives: [PackageBreadcrumbsComponent, PackageListComponent, RouterLink,
+        SpinnerComponent],
     template: `
-    <div>
-        <div *ngIf="!package" class="hab-package">
-            <h2>Not Found</h2>
-            <p>{{packageString(package)}} does not exist.</p>
-            <p>Here's how you would make it: &hellip;</p>
+    <div class="hab-package">
+        <h2>
+            <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
+            </hab-spinner>
+            <package-breadcrumbs [ident]="package.ident">
+            </package-breadcrumbs>
+        </h2>
+        <div *ngIf="!ui.exists && !ui.loading">
+            <p>
+                Failed to load package.
+                <span *ngIf="ui.errorMessage">
+                    Error: {{ui.errorMessage}}
+                </span>
+            </p>
         </div>
-        <div *ngIf="package" class="hab-package">
-            <h2>
-                <package-breadcrumbs [ident]="package.ident">
-                </package-breadcrumbs>
-            </h2>
+        <div *ngIf="ui.exists && !ui.loading">
             <div class="hab-package-info">
                 <dl>
                     <dt>Version</dt>
@@ -52,21 +59,23 @@ import {fetchPackage} from "../actions/index";
             <div class="hab-package-deps-build">
                 <h3>Dependencies</h3>
                 <package-list [currentPackage]="package"
-                              [packages]="package.deps"></package-list>
+                            [packages]="package.deps"></package-list>
             </div>
             <div class="hab-package-deps-runtime">
                 <h3>Transitive Dependencies</h3>
                 <package-list [currentPackage]="package"
-                              [packages]="package.tdeps"></package-list>
+                            [packages]="package.tdeps"></package-list>
             </div>
-      </div>
-  </div>`,
+        </div>
+    </div>`,
 })
 
 export class PackagePageComponent implements OnInit {
-    private markdown;
+    private spinnerFetchPackage: Function;
 
-    constructor(private routeParams: RouteParams, private store: AppStore) { }
+    constructor(private routeParams: RouteParams, private store: AppStore) {
+        this.spinnerFetchPackage = this.fetchPackage.bind(this);
+    }
 
     // Initially set up the package to be whatever comes from the params,
     // so we can query for its versions and releases. In ngOnInit, we'll
@@ -84,9 +93,17 @@ export class PackagePageComponent implements OnInit {
         }
     }
 
-    ngOnInit() {
+    get ui() {
+        return this.store.getState().packages.ui.current;
+    }
+
+    public ngOnInit() {
+        this.fetchPackage();
+    }
+
+    private fetchPackage () {
         this.store.dispatch(fetchPackage(this.package));
     }
 
-    packageString(params) { return packageString(params); }
+    private packageString(params) { return packageString(params); }
 }
