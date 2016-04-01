@@ -21,6 +21,7 @@ h3,
 h4,
 h5,
 h6 {
+  color: $hab-blue-dark;
   font-family: $heading-font-family;
   font-size: $base-font-size;
   line-height: $heading-line-height;
@@ -29,15 +30,19 @@ h6 {
 }
 
 h1 {
-  font-size: 175%;
+  font-size: 200%;
 }
 
 h2 {
-  font-size: 150%;
+  font-size: 125%;
+
+  .page-title & {
+    margin-bottom: 0;
+  }
 }
 
 h3 {
-  font-size: 125%;
+  font-size: 100%;
 }
 
 h3.hero {
@@ -49,6 +54,12 @@ h3.hero {
 h4 {
   color: $medium-gray;
   text-transform: uppercase;
+
+  .bldr-side-nav & {
+    font-size: 75%;
+    letter-spacing: 0.4px;
+    line-height: 1.5em;
+  }
 }
 
 p {

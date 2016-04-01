@@ -28,11 +28,13 @@ import {removeNotification, routeChange} from "./actions/index";
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
     selector: "hab",
     template: `
-    <div class="hab-container">
+    <div class="hab-topbar">
         <hab-notifications [notifications]="state.notifications.all"
                             [removeNotification]="removeNotification">
         </hab-notifications>
         <hab-header [appName]="state.app.name"></hab-header>
+    </div>
+    <div class="hab-container">
         <hab-side-nav [route]="state.router.route"></hab-side-nav>
         <section class="hab-main">
             <router-outlet></router-outlet>

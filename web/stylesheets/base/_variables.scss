@@ -5,8 +5,8 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 // Typography
-$base-font-family: $helvetica;
-$heading-font-family: $base-font-family;
+$base-font-family: "Titillium Web", $helvetica;
+$heading-font-family: "Montserrat", $verdana;
 $monospace-font-family: "Source Code Pro", Menlo, Consolas, monospace;
 
 // Font Sizes
@@ -23,15 +23,24 @@ $small-spacing: $base-spacing / 2;
 $base-z-index: 0;
 
 // Colors
-$black: black;
+$white: #FFF;
+$off-white: #F8F9F9;
+$black: #222;
 $blue: #1565c0;
 $dark-gray: #333;
 $medium-gray: #999;
-$light-gray: #ddd;
+$light-gray: #D8D8D8;
 $success-color: green;
 $failure-color: red;
 $queued-color: $blue;
 $white-slightly-transparent: rgba(255, 255, 255, 0.95);
+
+// Habitat Brand Colors
+$hab-blue: #7FADCB;
+$hab-blue-dark: #394B5A;
+$hab-blue-light: #E9F1F7;
+$hab-orange: #F58151;
+$hab-orange-dark: #C96135;
 
 // Notification colors
 $notification-danger-color: #fbe3e4;
@@ -48,7 +57,7 @@ $base-border-color: $light-gray;
 $base-border: 1px solid $base-border-color;
 
 // Background Colors
-$base-background-color: #fff;
+$base-background-color: $off-white;
 $secondary-background-color: tint($base-border-color, 75%);
 
 // Forms

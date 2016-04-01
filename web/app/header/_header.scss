@@ -2,8 +2,10 @@
   @include outer-container;
 
   h1 {
-    @include span-columns(11);
+    @include span-columns(4);
+    color: $white;
     display: inline;
+    margin: .5em 0 0;
   }
 
   // Temporarily there's nothing in here, but links to things like help

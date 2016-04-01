@@ -32,12 +32,33 @@
 @import "sign-in-page/sign-in-page";
 @import "sign-up-form/sign-up-form";
 
+body {
+  background-color: $off-white;
+  margin: 0;
+}
+
+.hab-topbar {
+  @include linear-gradient(205deg, #f59b51 5%, #f58251 100%);
+  background-color: $hab-orange;
+  height: 80px;
+}
+
 .hab-container {
   @include outer-container;
 }
 
 .hab-main {
-  @include span-columns(9);
+  @include span-columns(10);
+  background-color: $white;
+}
+
+.page-title {
+  @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
+  padding: 1em 1.5em;
+}
+
+.page-body {
+  padding: 1.5em;
 }
 
 .hab-footer {

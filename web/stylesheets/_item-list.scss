@@ -4,21 +4,20 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-$item-list-bg: rgba(255, 255, 255, 0.9);
-
 // For lists of things like packages or projects
 .hab-item-list {
+  @include row;
+  @include transition(all .6s);
   background-blend-mode: overlay;
-  background-color: $white-slightly-transparent;
-  background-image: hab-icon("chevron-right");
-  background-position: 98% 50%;
-  background-repeat: no-repeat;
-  background-size: $base-spacing;
+  background-color: $white;
 
-  border-bottom: 1px solid $light-gray;
+  border: 1px solid $light-gray;
+  border-color: $hab-blue-light;
   color: inherit;
   display: block;
-  padding: $small-spacing;
+  margin-bottom: .5em;
+  padding: 1em 1.5em;
+  position: relative;
 
   .count {
     float: right;
@@ -26,8 +25,52 @@ $item-list-bg: rgba(255, 255, 255, 0.9);
     margin: auto $base-spacing * 2 0 auto;
   }
 
+  img {
+    @include transition(opacity .6s);
+    height: 1.5em;
+    opacity: .1;
+    position: absolute;
+    right: 0;
+  }
+
   .hab-gravatar {
     float: left;
     margin-right: $small-spacing;
+  }
+
+  .item-title {
+    @include span-columns(6);
+
+    h3 {
+      line-height: 1em;
+    }
+
+    h4 {
+      color: $hab-blue;
+      font-size: 75%;
+      margin-bottom: 0;
+    }
+  }
+
+  .item-info {
+    @include span-columns(6);
+    padding-top: .5em;
+    position: relative;
+  }
+
+  &:hover {
+    @include transform(scale(1.01));
+    @include transition(all .2s ease-in-out);
+    //border-color: $hab-blue;
+    box-shadow: 0 1px 14px 0 $hab-blue-light;
+
+    img {
+      @include transition(opacity .2s ease-in-out);
+      opacity: .2;
+    }
+  }
+
+  li:last-child & {
+    margin-bottom: 0;
   }
 }
