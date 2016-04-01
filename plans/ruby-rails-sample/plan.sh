@@ -77,9 +77,9 @@ do_build() {
 }
 
 do_install() {
-  cp -R . ${pkg_path}/dist
+  cp -R . ${pkg_prefix}/dist
 
-  for binstub in ${pkg_path}/dist/bin/*; do
+  for binstub in ${pkg_prefix}/dist/bin/*; do
     build_line "Setting shebang for ${binstub} to 'chef/ruby'"
     [[ -f $binstub ]] && sed -e "s#/usr/bin/env ruby#$(pkg_path_for chef/ruby)/bin/ruby#" -i $binstub
   done
