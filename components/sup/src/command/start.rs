@@ -86,12 +86,13 @@ pub fn package(config: &Config) -> BldrResult<()> {
                         //
                         // If the operator does not specify a version number they will automatically receive
                         // updates for any releases, regardless of version number, for the started  package.
-                        let latest_pkg: Package =
-                            try!(depot_client::show_package(&url, config.package())).into();
-                        if latest_pkg > package {
-                            outputln!("Downloading latest version from remote: {}", &latest_pkg);
+                        let latest_pkg_data = try!(depot_client::show_package(&url,
+                                                                              config.package()));
+                        let latest_ident = latest_pkg_data.ident.as_ref();
+                        if latest_ident > package.ident() {
+                            outputln!("Downloading latest version from remote: {}", latest_ident);
                             let archive = try!(depot_client::fetch_package(&url,
-                                                                           &latest_pkg.into(),
+                                                                           latest_ident,
                                                                            PACKAGE_CACHE));
                             try!(archive.verify());
                             try!(archive.unpack());
@@ -111,7 +112,8 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     outputln!("Searching for {} in remote {}",
                               Yellow.bold().paint(config.package().to_string()),
                               url);
-                    let package: Package = try!(install::from_url(url, config.package())).into();
+                    let new_pkg_data = try!(install::from_url(url, config.package()));
+                    let package = try!(Package::load(new_pkg_data.ident.as_ref(), None));
                     start_package(package, config)
                 }
                 None => Err(bldr_error!(ErrorKind::PackageNotFound(config.package().clone()))),

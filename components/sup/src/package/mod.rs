@@ -10,23 +10,19 @@ pub mod updater;
 pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
 pub use self::hooks::HookType;
 
-use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
-use std::fs::{self, DirEntry, File};
+use std::fs::{self, File};
 use std::os::unix;
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 use std::string::ToString;
 use std::io::prelude::*;
-use std::env;
 use std::os::unix::fs::MetadataExt;
 
 use time;
 use time::Timespec;
 
-use depot_core::data_object;
-use hcore::fs::{PACKAGE_CACHE, PACKAGE_HOME, SERVICE_HOME};
-use hcore::package::{version_sort, MetaFile, PackageIdent};
+use hcore::fs::{PACKAGE_CACHE, SERVICE_HOME};
+use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
 use self::hooks::HookTable;
@@ -42,7 +38,7 @@ const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
 const PIDFILE_NAME: &'static str = "PID";
 
-#[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
+#[derive(Debug, Clone)]
 pub struct Package {
     pub origin: String,
     pub name: String,
@@ -50,71 +46,11 @@ pub struct Package {
     pub release: String,
     pub deps: Vec<PackageIdent>,
     pub tdeps: Vec<PackageIdent>,
+    pub pkg_install: PackageInstall,
 }
 
 
 impl Package {
-    pub fn deps<P: AsRef<Path>>(ident: &PackageIdent, home: P) -> BldrResult<Vec<PackageIdent>> {
-        Self::read_deps(home.as_ref().join(ident.to_string()), MetaFile::Deps)
-    }
-
-    pub fn tdeps<P: AsRef<Path>>(ident: &PackageIdent, home: P) -> BldrResult<Vec<PackageIdent>> {
-        Self::read_deps(home.as_ref().join(ident.to_string()), MetaFile::TDeps)
-    }
-
-    /// Helper function for reading metafiles containing dependencies represented by package
-    /// identifiers separated by new lines
-    ///
-    /// # Failures
-    ///
-    /// * Metafile could not be found
-    /// * Contents of the metafile could not be read
-    /// * Contents of the metafile are unreadable or malformed
-    fn read_deps<P: AsRef<Path>>(path: P, file: MetaFile) -> BldrResult<Vec<PackageIdent>> {
-        let mut deps: Vec<PackageIdent> = vec![];
-        match Self::read_metadata(path.as_ref(), file) {
-            Ok(body) => {
-                let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
-                for id in &ids {
-                    let package = try!(PackageIdent::from_str(id));
-                    if !package.fully_qualified() {
-                        return Err(bldr_error!(ErrorKind::InvalidPackageIdent(package.to_string())));
-                    }
-                    deps.push(package);
-                }
-                Ok(deps)
-            }
-            Err(BldrError{err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(deps),
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Read the contents of the given metafile from a package at the given filepath.
-    ///
-    /// # Failures
-    ///
-    /// * A metafile could not be found
-    /// * Contents of the metafile could not be read
-    /// * Contents of the metafile are unreadable or malformed
-    fn read_metadata<P: AsRef<Path>>(path: P, file: MetaFile) -> BldrResult<String> {
-        let filepath = path.as_ref().join(file.to_string());
-        match fs::metadata(&filepath) {
-            Ok(_) => {
-                match File::open(&filepath) {
-                    Ok(mut f) => {
-                        let mut data = String::new();
-                        if f.read_to_string(&mut data).is_err() {
-                            return Err(bldr_error!(ErrorKind::MetaFileMalformed(file)));
-                        }
-                        Ok(data.trim().to_string())
-                    }
-                    Err(e) => Err(bldr_error!(ErrorKind::MetaFileIO(e))),
-                }
-            }
-            Err(_) => Err(bldr_error!(ErrorKind::MetaFileNotFound(file))),
-        }
-    }
-
     /// Verifies a package is within the package home and returns a struct representing that
     /// package.
     ///
@@ -124,52 +60,22 @@ impl Package {
     ///
     /// An optional `home` path may be provided to search for a package in a non-default path.
     pub fn load(ident: &PackageIdent, home: Option<&str>) -> BldrResult<Package> {
-        let path = home.unwrap_or(PACKAGE_HOME);
-        let pl = try!(Self::package_list(path));
-        if ident.fully_qualified() {
-            if pl.iter().any(|ref p| p.satisfies(ident)) {
-                Ok(Package {
-                    origin: ident.origin.clone(),
-                    name: ident.name.clone(),
-                    version: ident.version.as_ref().unwrap().clone(),
-                    release: ident.release.as_ref().unwrap().clone(),
-                    deps: try!(Self::deps(ident, path)),
-                    tdeps: try!(Self::tdeps(ident, path)),
-                })
-            } else {
-                Err(bldr_error!(ErrorKind::PackageNotFound(ident.clone())))
-            }
-        } else {
-            let latest: Option<PackageIdent> = pl.iter()
-                                                 .filter(|&p| p.satisfies(ident))
-                                                 .fold(None, |winner, b| {
-                                                     match winner {
-                                                         Some(a) => {
-                                                             match a.partial_cmp(&b) {
-                                                                 Some(Ordering::Greater) => Some(a),
-                                                                 Some(Ordering::Equal) => Some(a),
-                                                                 Some(Ordering::Less) => {
-                                                                     Some(b.clone())
-                                                                 }
-                                                                 None => Some(a),
-                                                             }
-                                                         }
-                                                         None => Some(b.clone()),
-                                                     }
-                                                 });
-            if let Some(id) = latest {
-                Ok(Package {
-                    deps: try!(Self::deps(&id, path)),
-                    tdeps: try!(Self::tdeps(&id, path)),
-                    origin: id.origin,
-                    name: id.name,
-                    version: id.version.unwrap(),
-                    release: id.release.unwrap(),
-                })
-            } else {
-                Err(bldr_error!(ErrorKind::PackageNotFound(ident.clone())))
-            }
-        }
+        // Shim in `PackageInstall` to provide the same original `Package` struct even though some
+        // data is duplicated
+        let home_path = match home {
+            Some(p) => Some(Path::new(p)),
+            None => None,
+        };
+        let pkg_install = try!(PackageInstall::load(ident, home_path));
+        Ok(Package {
+            origin: pkg_install.ident().origin.clone(),
+            name: pkg_install.ident().name.clone(),
+            version: pkg_install.ident().version.as_ref().unwrap().clone(),
+            release: pkg_install.ident().release.as_ref().unwrap().clone(),
+            deps: try!(pkg_install.deps()).clone(),
+            tdeps: try!(pkg_install.tdeps()).clone(),
+            pkg_install: pkg_install,
+        })
     }
 
     /// Create a pid file for a package
@@ -268,22 +174,12 @@ impl Package {
 
     /// A vector of ports we expose
     pub fn exposes(&self) -> Vec<String> {
-        match fs::metadata(self.join_path("EXPOSES")) {
-            Ok(_) => {
-                let mut exposed_file = File::open(self.join_path("EXPOSES")).unwrap();
-                let mut exposed_string = String::new();
-                exposed_file.read_to_string(&mut exposed_string).unwrap();
-                let v: Vec<String> = exposed_string.split(' ')
-                                                   .map(|x| {
-                                                       String::from(x.trim_right_matches('\n'))
-                                                   })
-                                                   .collect();
-                return v;
-            }
-            Err(_) => {
-                let v: Vec<String> = Vec::new();
-                return v;
-            }
+        // This function really should be returning a `BldrResult` as it could fail for a gaggle of
+        // IO-related reasons. However, in order to preseve the function contract (for now), we're
+        // going to potentially swallow some stuff... - FIN
+        match self.pkg_install.exposes() {
+            Ok(vec) => vec,
+            Err(_) => Vec::new(),
         }
     }
 
@@ -294,55 +190,14 @@ impl Package {
     /// This means we work on any operating system, as long as you can call 'bldr', without having
     /// to worry much about context.
     pub fn run_path(&self) -> BldrResult<String> {
-        let mut run_path = String::new();
-        if let Some(path) = try!(self.path_meta()) {
-            run_path = format!("{}", path);
-        }
-        let tdeps: Vec<Package> = try!(self.load_tdeps());
-        for dep in tdeps.iter() {
-            if let Some(path) = try!(dep.path_meta()) {
-                run_path = format!("{}:{}", run_path, path);
-            }
-        }
-        if self.name != "bldr" {
-            let bldr_pkg = try!(Package::load(&PackageIdent::new("chef", "bldr", None, None),
-                                              None));
-            if let Some(path) = try!(bldr_pkg.path_meta()) {
-                run_path = format!("{}:{}", run_path, path);
-            }
-            let tdeps: Vec<Package> = try!(bldr_pkg.load_tdeps());
-            for dep in tdeps.iter() {
-                if let Some(path) = try!(dep.path_meta()) {
-                    run_path = format!("{}:{}", run_path, path);
-                }
-            }
-        }
-        match env::var_os("PATH") {
-            Some(val) => {
-                run_path = format!("{}:{}",
-                                   run_path,
-                                   String::from(val.to_string_lossy().into_owned()));
-            }
-            None => outputln!("PATH is not defined in the environment; good luck, cowboy!"),
-        }
-        Ok(run_path)
-    }
-
-    /// Return the PATH string from the package metadata, if it exists
-    ///
-    /// # Failures
-    ///
-    /// * The package contains a Path metafile but it could not be read or it was malformed
-    pub fn path_meta(&self) -> BldrResult<Option<String>> {
-        match Self::read_metadata(self.path(), MetaFile::Path) {
-            Ok(data) => Ok(Some(data)),
-            Err(BldrError {err: ErrorKind::MetaFileNotFound(_), ..}) => Ok(None),
-            Err(e) => Err(e),
+        match self.pkg_install.runtime_path() {
+            Ok(r) => Ok(r),
+            Err(e) => Err(bldr_error!(ErrorKind::HabitatCore(e))),
         }
     }
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
-        let base = PathBuf::from(self.join_path("hooks"));
+        let base = self.pkg_install.installed_path().join("hooks");
         match *hook_type {
             HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
@@ -365,23 +220,12 @@ impl Package {
 
     /// The path to the package on disk.
     pub fn path(&self) -> String {
-        format!("{}/{}/{}/{}/{}",
-                PACKAGE_HOME,
-                self.origin,
-                self.name,
-                self.version,
-                self.release)
+        self.pkg_install.installed_path().to_string_lossy().into_owned()
     }
 
     /// Join a string to the path on disk.
     pub fn join_path(&self, join: &str) -> String {
-        format!("{}/{}/{}/{}/{}/{}",
-                PACKAGE_HOME,
-                self.origin,
-                self.name,
-                self.version,
-                self.release,
-                join)
+        self.pkg_install.installed_path().join(join).to_string_lossy().into_owned()
     }
 
     /// The on disk svc path for this package.
@@ -463,12 +307,8 @@ impl Package {
         Ok(files)
     }
 
-    pub fn ident(&self) -> String {
-        format!("{}/{}/{}/{}",
-                self.origin,
-                self.name,
-                self.version,
-                self.release)
+    pub fn ident(&self) -> &PackageIdent {
+        self.pkg_install.ident()
     }
 
     /// Run initialization hook if present
@@ -523,16 +363,16 @@ impl Package {
         if let Some(hook) = self.hooks().health_check_hook {
             match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
-                Err(BldrError{err: ErrorKind::HookFailed(_, 1, output), ..}) => {
+                Err(BldrError { err: ErrorKind::HookFailed(_, 1, output), .. }) => {
                     Ok(health_check::CheckResult::warning(output))
                 }
-                Err(BldrError{err: ErrorKind::HookFailed(_, 2, output), ..}) => {
+                Err(BldrError { err: ErrorKind::HookFailed(_, 2, output), .. }) => {
                     Ok(health_check::CheckResult::critical(output))
                 }
-                Err(BldrError{err: ErrorKind::HookFailed(_, 3, output), ..}) => {
+                Err(BldrError { err: ErrorKind::HookFailed(_, 3, output), .. }) => {
                     Ok(health_check::CheckResult::unknown(output))
                 }
-                Err(BldrError{err: ErrorKind::HookFailed(_, code, output), ..}) => {
+                Err(BldrError { err: ErrorKind::HookFailed(_, code, output), .. }) => {
                     Err(bldr_error!(ErrorKind::HealthCheck(format!("hook exited code={}, \
                                                                     output={}",
                                                                    code,
@@ -568,93 +408,6 @@ impl Package {
         try!(file.read_to_string(&mut result));
         Ok(result)
     }
-
-    /// Attempts to load the extracted package for each transitive dependency and returns a
-    /// `Package` struct representation of each in the returned vector.
-    ///
-    /// # Failures
-    ///
-    /// * Any transitive dependency could not be located or it's contents could not be read
-    ///   from disk
-    fn load_tdeps(&self) -> BldrResult<Vec<Package>> {
-        let mut deps = Vec::with_capacity(self.tdeps.len());
-        for dep in self.tdeps.iter() {
-            let package = try!(Package::load(dep, None));
-            deps.push(package);
-        }
-        Ok(deps)
-    }
-
-    /// Returns a list of package structs built from the contents of the given directory.
-    fn package_list(path: &str) -> BldrResult<Vec<PackageIdent>> {
-        let mut package_list: Vec<PackageIdent> = vec![];
-        if try!(fs::metadata(path)).is_dir() {
-            try!(Self::walk_origins(&path, &mut package_list));
-        }
-        Ok(package_list)
-    }
-
-    /// Helper function for package_list. Walks the given path for origin directories
-    /// and builds on the given package list by recursing into name, version, and release
-    /// directories.
-    fn walk_origins(path: &str, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
-        for entry in try!(fs::read_dir(path)) {
-            let origin = try!(entry);
-            if try!(fs::metadata(origin.path())).is_dir() {
-                try!(Self::walk_names(&origin, packages));
-            }
-        }
-        Ok(())
-    }
-
-    /// Helper function for walk_origins. Walks the given origin DirEntry for name
-    /// directories and recurses into them to find version and release directories.
-    fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> BldrResult<()> {
-        for name in try!(fs::read_dir(origin.path())) {
-            let name = try!(name);
-            let origin = origin.file_name().to_string_lossy().into_owned().to_string();
-            if try!(fs::metadata(name.path())).is_dir() {
-                try!(Self::walk_versions(&origin, &name, packages));
-            }
-        }
-        Ok(())
-    }
-
-    /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
-    /// into them to find release directories.
-    fn walk_versions(origin: &String,
-                     name: &DirEntry,
-                     packages: &mut Vec<PackageIdent>)
-                     -> BldrResult<()> {
-        for version in try!(fs::read_dir(name.path())) {
-            let version = try!(version);
-            let name = name.file_name().to_string_lossy().into_owned().to_string();
-            if try!(fs::metadata(version.path())).is_dir() {
-                try!(Self::walk_releases(origin, &name, &version, packages));
-            }
-        }
-        Ok(())
-    }
-
-    /// Helper function for walk_versions. Walks the given release DirEntry for directories and recurses
-    /// into them to find version directories. Finally, a Package struct is built and concatenated onto
-    /// the given packages vector with the origin, name, version, and release of each.
-    fn walk_releases(origin: &String,
-                     name: &String,
-                     version: &DirEntry,
-                     packages: &mut Vec<PackageIdent>)
-                     -> BldrResult<()> {
-        for release in try!(fs::read_dir(version.path())) {
-            let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
-            let version = version.file_name().to_string_lossy().into_owned().to_string();
-            let ident = PackageIdent::new(origin.clone(),
-                                          name.clone(),
-                                          Some(version),
-                                          Some(release));
-            packages.push(ident)
-        }
-        Ok(())
-    }
 }
 
 impl Into<PackageIdent> for Package {
@@ -666,69 +419,8 @@ impl Into<PackageIdent> for Package {
     }
 }
 
-impl From<data_object::Package> for Package {
-    fn from(val: data_object::Package) -> Package {
-        let ident: &PackageIdent = val.ident.as_ref();
-        Package {
-            origin: ident.origin.clone(),
-            name: ident.name.clone(),
-            version: ident.version.as_ref().unwrap().clone(),
-            release: ident.release.as_ref().unwrap().clone(),
-            deps: val.deps.into_iter().map(|d| d.into()).collect(),
-            tdeps: val.tdeps.into_iter().map(|d| d.into()).collect(),
-        }
-    }
-}
-
 impl fmt::Display for Package {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.ident())
-    }
-}
-
-impl PartialEq for Package {
-    fn eq(&self, other: &Package) -> bool {
-        if self.origin != other.origin {
-            return false;
-        } else if self.name != other.name {
-            return false;
-        } else if self.version != other.version {
-            return false;
-        } else if self.release != other.release {
-            return false;
-        } else {
-            return true;
-        }
-    }
-}
-
-impl PartialOrd for Package {
-    /// Packages can be compared according to the following:
-    ///
-    /// * origin is ignored in the comparison - my redis and
-    ///   your redis compare the same.
-    /// * If the names are not equal, they cannot be compared.
-    /// * If the versions are greater/lesser, return that as
-    ///   the ordering.
-    /// * If the versions are equal, return the greater/lesser
-    ///   for the release.
-    fn partial_cmp(&self, other: &Package) -> Option<Ordering> {
-        if self.name != other.name {
-            return None;
-        }
-        let ord = match version_sort(&self.version, &other.version) {
-            Ok(ord) => ord,
-            Err(e) => {
-                error!("This was a very bad version number: {:?}", e);
-                return None;
-            }
-        };
-        match ord {
-            Ordering::Greater => return Some(Ordering::Greater),
-            Ordering::Less => return Some(Ordering::Less),
-            Ordering::Equal => {
-                return Some(self.release.cmp(&other.release));
-            }
-        }
     }
 }

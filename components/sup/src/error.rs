@@ -101,7 +101,6 @@ pub enum ErrorKind {
     /// TODO: once discovery/etcd.rs is purged, this error can be removed
     HyperError(hyper::error::Error),
     InvalidKeyParameter(String),
-    InvalidPackageIdent(String),
     InvalidPidFile,
     InvalidServiceGroupString(String),
     Io(io::Error),
@@ -109,8 +108,6 @@ pub enum ErrorKind {
     JsonDecode(json::DecoderError),
     JsonEncode(json::EncoderError),
     KeyNotFound(String),
-    MetaFileMalformed(package::MetaFile),
-    MetaFileNotFound(package::MetaFile),
     MetaFileIO(io::Error),
     MustacheEncoderError(mustache::encoder::Error),
     NulError(ffi::NulError),
@@ -158,11 +155,6 @@ impl fmt::Display for BldrError {
             ErrorKind::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
-            ErrorKind::InvalidPackageIdent(ref e) => {
-                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
-                         origin/name (example: chef/redis)",
-                        e)
-            }
             ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
             ErrorKind::InvalidServiceGroupString(ref e) => {
                 format!("Invalid service group string: {}", e)
@@ -172,12 +164,6 @@ impl fmt::Display for BldrError {
             ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
-            ErrorKind::MetaFileMalformed(ref e) => {
-                format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
-            }
-            ErrorKind::MetaFileNotFound(ref e) => {
-                format!("Couldn't read MetaFile: {}, not found", e)
-            }
             ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
@@ -246,7 +232,6 @@ impl Error for BldrError {
             ErrorKind::HTTP(_) => "Received an HTTP error",
             ErrorKind::HyperError(ref err) => err.description(),
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
-            ErrorKind::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             ErrorKind::InvalidPidFile => "Invalid child process PID file",
             ErrorKind::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
             ErrorKind::Io(ref err) => err.description(),
@@ -254,8 +239,6 @@ impl Error for BldrError {
             ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
             ErrorKind::JsonEncode(_) => "JSON encoding error",
             ErrorKind::KeyNotFound(_) => "Key not found in key cache",
-            ErrorKind::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
-            ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
