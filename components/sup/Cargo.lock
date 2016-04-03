@@ -6,6 +6,7 @@ dependencies = [
  "clap 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "gpgme 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_common 0.4.0",
  "habitat_core 0.4.0",
  "habitat_depot_client 0.4.0",
  "habitat_depot_core 0.4.0",
@@ -167,6 +168,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libc 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "libgpg-error-sys 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "habitat_common"
+version = "0.4.0"
+dependencies = [
+ "habitat_core 0.4.0",
+ "habitat_depot_client 0.4.0",
+ "habitat_depot_core 0.4.0",
 ]
 
 [[package]]

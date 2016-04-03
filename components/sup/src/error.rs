@@ -38,6 +38,7 @@ use std::sync::mpsc;
 use std::str;
 
 use hcore::{self, package};
+use common;
 use depot_client;
 use gpgme;
 use uuid;
@@ -94,6 +95,7 @@ pub enum ErrorKind {
     FileNameError,
     FileNotFound(String),
     GPGError(gpgme::Error),
+    HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     HealthCheck(String),
     HookFailed(HookType, i32, String),
@@ -135,6 +137,7 @@ impl fmt::Display for BldrError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
+            ErrorKind::HabitatCommon(ref err) => format!("{}", err),
             ErrorKind::HabitatCore(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
             ErrorKind::ConfigFileRelativePath(ref s) => {
@@ -219,6 +222,7 @@ impl Error for BldrError {
     fn description(&self) -> &str {
         match self.err {
             ErrorKind::ActorError(_) => "A running actor responded with an error",
+            ErrorKind::HabitatCommon(ref err) => err.description(),
             ErrorKind::HabitatCore(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
             ErrorKind::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
@@ -266,6 +270,12 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str("\n");
     }
     return errors;
+}
+
+impl From<common::Error> for BldrError {
+    fn from(err: common::Error) -> BldrError {
+        bldr_error!(ErrorKind::HabitatCommon(err))
+    }
 }
 
 impl From<hcore::Error> for BldrError {

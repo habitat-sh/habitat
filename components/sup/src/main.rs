@@ -183,13 +183,6 @@ fn main() {
             .help("The update strategy; [default: none].")
     };
 
-    let sub_install = SubCommand::with_name("install")
-                          .about("Install a bldr package from a depot")
-                          .arg(Arg::with_name("package")
-                                   .index(1)
-                                   .required(true)
-                                   .help("Name of bldr package to install"))
-                          .arg(arg_url());
     let sub_start = SubCommand::with_name("start")
                         .about("Start a bldr package")
                         .arg(Arg::with_name("package")
@@ -377,7 +370,6 @@ fn main() {
                             .long("no-color")
                             .global(true)
                             .help("Turn ANSI color off :("))
-                   .subcommand(sub_install)
                    .subcommand(sub_start)
                    .subcommand(sub_sh)
                    .subcommand(sub_bash)
@@ -416,7 +408,6 @@ fn main() {
         Command::GenerateUserKey => generate_user_key(&config),
         Command::ImportKey => import_key(&config),
         Command::InjectConfigFile => inject_config_file(&config),
-        Command::Install => install(&config),
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
         Command::UploadDepotKey => upload_depot_key(&config),
@@ -454,15 +445,6 @@ fn shell(_config: &Config) -> BldrResult<()> {
 #[allow(dead_code)]
 fn configure(config: &Config) -> BldrResult<()> {
     try!(configure::display(config));
-    Ok(())
-}
-
-/// Install a package
-#[allow(dead_code)]
-fn install(config: &Config) -> BldrResult<()> {
-    outputln!("Installing {}",
-              Yellow.bold().paint(config.package().to_string()));
-    try!(install::from_url(&config.url().as_ref().unwrap(), config.package()));
     Ok(())
 }
 

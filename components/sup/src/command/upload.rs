@@ -58,8 +58,8 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     let mut dpa = PackageArchive::new(dep_path);
                     match upload(&mut dpa, &url) {
                         Ok(()) => {}
-                        Err(e @ BldrError{ err: ErrorKind::HTTP(_), .. }) => return Err(e),
-                        Err(e @ BldrError{ err: ErrorKind::PackageArchiveMalformed(_), .. }) => {
+                        Err(e @ BldrError { err: ErrorKind::HTTP(_), .. }) => return Err(e),
+                        Err(e @ BldrError { err: ErrorKind::PackageArchiveMalformed(_), .. }) => {
                             return Err(e)
                         }
                         Err(_) => {

@@ -33,6 +33,7 @@
 //!
 
 extern crate habitat_core as hcore;
+extern crate habitat_common as common;
 extern crate habitat_depot_client as depot_client;
 extern crate habitat_depot_core as depot_core;
 #[macro_use]

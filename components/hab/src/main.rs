@@ -124,7 +124,7 @@ fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
-    let ident_or_archive = m.value_of("PKG_IDENT").unwrap();
+    let ident_or_archive = m.value_of("PKG_IDENT_OR_ARCHIVE").unwrap();
 
     if Path::new(ident_or_archive).is_file() {
         try!(package::from_archive(url, &ident_or_archive));
