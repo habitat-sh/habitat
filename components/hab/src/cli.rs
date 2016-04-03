@@ -54,9 +54,10 @@ fn sub_pkg_install() -> App<'static, 'static> {
     };
 
     clap_app!(@subcommand install =>
-        (about: "Installs a package from a repo (or locally from an archive...)")
+        (about: "Installs a package from a repo or locally from an archive file")
         (@arg REPO_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
-        (@arg PKG_IDENT: +required "A package identifier (ex: chef/redis)")
+        (@arg PKG_IDENT_OR_ARCHIVE: +required "A package identifier (ex: chef/redis) \
+         or path to archive file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
     )
 }
 

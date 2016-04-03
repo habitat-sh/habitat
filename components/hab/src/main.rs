@@ -18,6 +18,7 @@ use std::path::PathBuf;
 use std::env;
 use std::ffi::{CString, OsString};
 use std::os::unix::ffi::OsStringExt;
+use std::path::Path;
 use std::ptr;
 use std::str::FromStr;
 
@@ -122,8 +123,14 @@ fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
-    try!(package::from_url(url, &ident));
+    let ident_or_archive = m.value_of("PKG_IDENT").unwrap();
+
+    if Path::new(ident_or_archive).is_file() {
+        try!(package::from_archive(url, &ident_or_archive));
+    } else {
+        let ident = try!(PackageIdent::from_str(ident_or_archive));
+        try!(package::from_url(url, &ident));
+    }
     Ok(())
 }

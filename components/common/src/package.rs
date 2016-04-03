@@ -28,9 +28,10 @@
 //!
 
 use std::fs;
+use std::path::{Path, PathBuf};
 
 use hcore::fs::PACKAGE_CACHE;
-use hcore::package::{PackageIdent, PackageInstall};
+use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use depot_core::data_object;
 use depot_client;
 
@@ -44,24 +45,58 @@ use error::Result;
 /// * Fails if it cannot create `/opt/bldr/cache/pkgs`
 /// * Fails if it cannot download the package from the upstream
 pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> Result<data_object::Package> {
-    let package = try!(depot_client::show_package(url, ident.as_ref()));
+    println!("Installing {}", ident.as_ref());
+    let pkg_data = try!(depot_client::show_package(url, ident.as_ref()));
     try!(fs::create_dir_all(PACKAGE_CACHE));
-    for dep in &package.tdeps {
-        try!(install(url, &dep));
+    for dep in &pkg_data.tdeps {
+        try!(install_from_depot(url, &dep, dep.as_ref()));
     }
-    try!(install(url, &package.ident));
-    Ok(package)
+    try!(install_from_depot(url, &pkg_data.ident, ident.as_ref()));
+    Ok(pkg_data)
 }
 
-fn install<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> Result<()> {
+pub fn from_archive<P: AsRef<Path>>(url: &str, path: &P) -> Result<()> {
+    println!("Installing from {}", path.as_ref().display());
+    let mut archive = PackageArchive::new(PathBuf::from(path.as_ref()));
+    let ident = try!(archive.ident());
+    try!(fs::create_dir_all(PACKAGE_CACHE));
+    for dep in try!(archive.tdeps()) {
+        try!(install_from_depot(url, &dep, dep.as_ref()));
+    }
+    try!(install_from_archive(archive, &ident));
+    Ok(())
+}
+
+fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
+                                              ident: &P,
+                                              given_ident: &PackageIdent)
+                                              -> Result<()> {
     match PackageInstall::load(ident.as_ref(), None) {
         Ok(_) => {
-            println!("Package that satisfies {} already installed",
-                     ident.as_ref());
+            if given_ident.fully_qualified() {
+                println!("Package {} already installed", ident.as_ref());
+            } else {
+                println!("Package that satisfies {} ({}) already installed",
+                         given_ident,
+                         ident.as_ref());
+            }
         }
         Err(_) => {
             let mut archive = try!(depot_client::fetch_package(url, ident.as_ref(), PACKAGE_CACHE));
             let ident = try!(archive.ident());
+            try!(archive.unpack());
+            println!("Installed {}", ident);
+        }
+    }
+    Ok(())
+}
+
+fn install_from_archive(archive: PackageArchive, ident: &PackageIdent) -> Result<()> {
+    match PackageInstall::load(ident.as_ref(), None) {
+        Ok(_) => {
+            println!("Package {} already installed", ident);
+        }
+        Err(_) => {
             try!(archive.unpack());
             println!("Installed {}", ident);
         }
