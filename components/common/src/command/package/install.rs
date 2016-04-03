@@ -29,6 +29,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use hcore::fs::PACKAGE_CACHE;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
@@ -36,6 +37,16 @@ use depot_core::data_object;
 use depot_client;
 
 use error::Result;
+
+pub fn start(url: &str, ident_or_archive: &str) -> Result<()> {
+    if Path::new(ident_or_archive).is_file() {
+        try!(from_archive(url, &ident_or_archive));
+    } else {
+        let ident = try!(PackageIdent::from_str(ident_or_archive));
+        try!(from_url(url, &ident));
+    }
+    Ok(())
+}
 
 /// Given a package name and a base url, downloads the package
 /// to `/opt/bldr/cache/pkgs`. Returns the filename in the cache as a String

@@ -6,25 +6,20 @@
 
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate habitat_depot_client as depot_client;
 #[macro_use]
 extern crate clap;
-extern crate libc;
+extern crate hyper;
 extern crate url;
 
 mod cli;
+mod command;
 mod error;
+mod exec;
 
-use std::path::PathBuf;
 use std::env;
-use std::ffi::{CString, OsString};
-use std::os::unix::ffi::OsStringExt;
-use std::path::Path;
-use std::ptr;
-use std::str::FromStr;
 
 use clap::ArgMatches;
-use common::package;
-use hcore::package::PackageIdent;
 use hcore::url::DEFAULT_DEPOT_URL;
 
 use error::{Error, Result};
@@ -46,13 +41,33 @@ fn run_hab() -> Result<()> {
     match app_matches.subcommand() {
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
-                ("install", Some(m)) => try!(sub_pkg_install(m)),
+                ("install", Some(m)) => try!(sub_package_install(m)),
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => try!(sub_pkg_install(m)),
+        ("archive", Some(matches)) => {
+            match matches.subcommand() {
+                ("upload", Some(m)) => try!(sub_archive_upload(m)),
+                _ => unreachable!(),
+            }
+        }
+        ("install", Some(m)) => try!(sub_package_install(m)),
         _ => unreachable!(),
     };
+    Ok(())
+}
+
+fn sub_archive_upload(m: &ArgMatches) -> Result<()> {
+    let url = m.value_of("DEPOT_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let archive_path = m.value_of("ARCHIVE").unwrap();
+    try!(command::archive::upload::start(&url, &archive_path));
+    Ok(())
+}
+
+fn sub_package_install(m: &ArgMatches) -> Result<()> {
+    let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let ident_or_archive = m.value_of("PKG_IDENT_OR_ARCHIVE").unwrap();
+    try!(common::command::package::install::start(url, ident_or_archive));
     Ok(())
 }
 
@@ -70,8 +85,8 @@ fn exec_subcommand_if_called() -> Result<()> {
                     Err(_) => SUP_CMD.to_string(),
                 };
 
-                if let Some(cmd) = find_command(&command) {
-                    try!(exec_command(cmd, env::args_os().skip(skip_n).collect()));
+                if let Some(cmd) = exec::find_command(&command) {
+                    try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
                 } else {
                     return Err(Error::ExecCommandNotFound(command));
                 }
@@ -79,58 +94,5 @@ fn exec_subcommand_if_called() -> Result<()> {
             _ => return Ok(()),
         }
     };
-    Ok(())
-}
-
-fn find_command(command: &str) -> Option<PathBuf> {
-    // If the command path is absolute and a file exists, then use that.
-    let candidate = PathBuf::from(command);
-    if candidate.is_absolute() && candidate.is_file() {
-        return Some(candidate);
-    }
-
-    // Find the command by checking each entry in `PATH`. If we still can't find it, give up and
-    // return `None`.
-    match env::var_os("PATH") {
-        Some(paths) => {
-            for path in env::split_paths(&paths) {
-                let candidate = PathBuf::from(&path).join(command);
-                if candidate.is_file() {
-                    return Some(candidate);
-                }
-            }
-            None
-        }
-        None => None,
-    }
-}
-
-fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    let prog = try!(CString::new(command.into_os_string().into_vec()));
-    let mut argv: Vec<*const i8> = Vec::with_capacity(args.len() + 2);
-    argv.push(prog.as_ptr());
-    for arg in args {
-        argv.push(try!(CString::new(arg.into_vec())).as_ptr());
-    }
-    argv.push(ptr::null());
-
-    // Calls `execv(3)` so this will not return, but rather become the program with the given
-    // arguments.
-    unsafe {
-        libc::execv(prog.as_ptr(), argv.as_mut_ptr());
-    }
-    Ok(())
-}
-
-fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
-    let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
-    let ident_or_archive = m.value_of("PKG_IDENT_OR_ARCHIVE").unwrap();
-
-    if Path::new(ident_or_archive).is_file() {
-        try!(package::from_archive(url, &ident_or_archive));
-    } else {
-        let ident = try!(PackageIdent::from_str(ident_or_archive));
-        try!(package::from_url(url, &ident));
-    }
     Ok(())
 }

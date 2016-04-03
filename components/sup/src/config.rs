@@ -38,7 +38,6 @@ pub enum Command {
     Encrypt,
     Decrypt,
     Shell,
-    Upload,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,7 +78,6 @@ impl FromStr for Command {
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
             "upload-depot-key" => Ok(Command::UploadDepotKey),
-            "upload" => Ok(Command::Upload),
             _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
         }
     }

@@ -216,13 +216,6 @@ fn main() {
                                  .long("gossip-permanent")
                                  .help("If this service is a permanent gossip peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
-    let sub_upload = SubCommand::with_name("upload")
-                         .about("Upload an archive to a bldr depot")
-                         .arg(Arg::with_name("archive")
-                                  .index(1)
-                                  .required(true)
-                                  .help("Path to the archive to upload"))
-                         .arg(arg_url());
     let sub_generate_user_key = SubCommand::with_name("generate-user-key")
                                     .about("Generate a bldr user key")
                                     .arg(Arg::with_name("user")
@@ -371,7 +364,6 @@ fn main() {
                             .help("Turn ANSI color off :("))
                    .subcommand(sub_start)
                    .subcommand(sub_sh)
-                   .subcommand(sub_upload)
                    .subcommand(sub_generate_user_key)
                    .subcommand(sub_generate_service_key)
                    .subcommand(sub_encrypt)
@@ -409,7 +401,6 @@ fn main() {
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
         Command::UploadDepotKey => upload_depot_key(&config),
-        Command::Upload => upload(&config),
     };
 
     match result {
@@ -454,16 +445,6 @@ fn start(config: &Config) -> BldrResult<()> {
     try!(start::package(config));
     outputln!("Finished with {}",
               Yellow.bold().paint(config.package().to_string()));
-    Ok(())
-}
-
-/// Upload a package
-#[allow(dead_code)]
-fn upload(config: &Config) -> BldrResult<()> {
-    outputln!("Upload Bldr Package {}",
-              Yellow.bold().paint(config.archive()));
-    try!(upload::package(&config));
-    outputln!("Finished with {}", Yellow.bold().paint(config.archive()));
     Ok(())
 }
 

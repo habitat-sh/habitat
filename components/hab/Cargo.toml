@@ -6,6 +6,8 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 [dependencies]
 libc = "*"
 url = "*"
+# Used to handle responses code back from depot-core
+hyper = "*"
 
 [dependencies.clap]
 features = [ "suggestions", "color", "unstable" ]
@@ -15,3 +17,6 @@ path = "../core"
 
 [dependencies.habitat_common]
 path = "../common"
+
+[dependencies.habitat_depot_client]
+path = "../depot-client"

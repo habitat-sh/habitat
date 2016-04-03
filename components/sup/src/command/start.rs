@@ -51,9 +51,9 @@
 use std::env;
 
 use ansi_term::Colour::Yellow;
-use hcore::fs::PACKAGE_CACHE;
+use common::command::package::install;
 use depot_client;
-use common;
+use hcore::fs::PACKAGE_CACHE;
 
 use error::{BldrResult, ErrorKind};
 use config::{Config, UpdateStrategy};
@@ -112,7 +112,7 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     outputln!("Searching for {} in remote {}",
                               Yellow.bold().paint(config.package().to_string()),
                               url);
-                    let new_pkg_data = try!(common::package::from_url(url, config.package()));
+                    let new_pkg_data = try!(install::from_url(url, config.package()));
                     let package = try!(Package::load(new_pkg_data.ident.as_ref(), None));
                     start_package(package, config)
                 }

@@ -10,5 +10,5 @@ extern crate habitat_depot_client as depot_client;
 
 pub use self::error::{Error, Result};
 
-pub mod package;
+pub mod command;
 pub mod error;
