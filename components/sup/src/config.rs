@@ -66,7 +66,6 @@ impl FromStr for Command {
     type Err = BldrError;
     fn from_str(s: &str) -> Result<Command, BldrError> {
         match s {
-            "bash" => Ok(Command::Shell),
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
             "download-depot-key" => Ok(Command::DownloadDepotKey),

@@ -216,7 +216,6 @@ fn main() {
                                  .long("gossip-permanent")
                                  .help("If this service is a permanent gossip peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
-    let sub_bash = SubCommand::with_name("bash").about("Start an interactive shell");
     let sub_upload = SubCommand::with_name("upload")
                          .about("Upload an archive to a bldr depot")
                          .arg(Arg::with_name("archive")
@@ -372,7 +371,6 @@ fn main() {
                             .help("Turn ANSI color off :("))
                    .subcommand(sub_start)
                    .subcommand(sub_sh)
-                   .subcommand(sub_bash)
                    .subcommand(sub_upload)
                    .subcommand(sub_generate_user_key)
                    .subcommand(sub_generate_service_key)
