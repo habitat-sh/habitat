@@ -5,9 +5,11 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 extern crate habitat_core as hcore;
+extern crate habitat_common as common;
 #[macro_use]
 extern crate clap;
 extern crate libc;
+extern crate url;
 
 mod cli;
 mod error;
@@ -20,7 +22,9 @@ use std::ptr;
 use std::str::FromStr;
 
 use clap::ArgMatches;
+use common::package;
 use hcore::package::PackageIdent;
+use hcore::url::DEFAULT_DEPOT_URL;
 
 use error::{Error, Result};
 
@@ -41,10 +45,11 @@ fn run_hab() -> Result<()> {
     match app_matches.subcommand() {
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
-                ("install", Some(m)) => sub_pkg_install(m),
+                ("install", Some(m)) => try!(sub_pkg_install(m)),
                 _ => unreachable!(),
             }
         }
+        ("install", Some(m)) => try!(sub_pkg_install(m)),
         _ => unreachable!(),
     };
     Ok(())
@@ -117,7 +122,8 @@ fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
-    println!("I GOT: {}", m.value_of("PKG_IDENT").unwrap());
-    let pkg_ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    try!(package::from_url(url, &ident));
     Ok(())
 }

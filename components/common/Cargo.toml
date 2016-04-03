@@ -1,17 +1,13 @@
 [package]
-name = "hab"
+name = "habitat_common"
 version = "0.4.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-
-[dependencies]
-libc = "*"
-url = "*"
-
-[dependencies.clap]
-features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.habitat_core]
 path = "../core"
 
-[dependencies.habitat_common]
-path = "../common"
+[dependencies.habitat_depot_core]
+path = "../depot-core"
+
+[dependencies.habitat_depot_client]
+path = "../depot-client"

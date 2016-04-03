@@ -5,32 +5,29 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::error;
-use std::ffi;
+use std::io;
 use std::fmt;
 use std::result;
 
+use depot_client;
 use hcore;
-use common;
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    ExecCommandNotFound(String),
-    FFINulError(ffi::NulError),
-    HabitatCommon(common::Error),
+    DepotClient(depot_client::Error),
     HabitatCore(hcore::Error),
+    /// Occurs when making lower level IO calls.
+    IO(io::Error),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::ExecCommandNotFound(ref c) => {
-                format!("`{}' was not found on the filesystem or in PATH", c)
-            }
-            Error::FFINulError(ref e) => format!("{}", e),
-            Error::HabitatCommon(ref e) => format!("{}", e),
+            Error::DepotClient(ref err) => format!("{}", err),
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::IO(ref err) => format!("{}", err),
         };
         write!(f, "{}", msg)
     }
@@ -39,27 +36,27 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
-            Error::FFINulError(ref err) => err.description(),
-            Error::HabitatCommon(ref err) => err.description(),
+            Error::DepotClient(ref err) => err.description(),
+            Error::IO(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
         }
     }
 }
 
-impl From<common::Error> for Error {
-    fn from(err: common::Error) -> Error {
-        Error::HabitatCommon(err)
-    }
-}
-impl From<ffi::NulError> for Error {
-    fn from(err: ffi::NulError) -> Error {
-        Error::FFINulError(err)
+impl From<depot_client::Error> for Error {
+    fn from(err: depot_client::Error) -> Error {
+        Error::DepotClient(err)
     }
 }
 
 impl From<hcore::Error> for Error {
     fn from(err: hcore::Error) -> Error {
         Error::HabitatCore(err)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::IO(err)
     }
 }

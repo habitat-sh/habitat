@@ -4,21 +4,11 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-extern crate crypto;
-extern crate gpgme;
-#[macro_use]
-extern crate lazy_static;
-extern crate libarchive;
-#[macro_use]
-extern crate log;
-extern crate regex;
-extern crate rustc_serialize;
+extern crate habitat_core as hcore;
+extern crate habitat_depot_core as depot_core;
+extern crate habitat_depot_client as depot_client;
 
 pub use self::error::{Error, Result};
 
-pub mod error;
-pub mod fs;
-pub mod gpg;
 pub mod package;
-pub mod url;
-pub mod util;
+pub mod error;

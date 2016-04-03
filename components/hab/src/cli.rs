@@ -5,6 +5,7 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use clap::{App, AppSettings};
+use url::Url;
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
@@ -44,8 +45,17 @@ pub fn get() -> App<'static, 'static> {
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 fn sub_pkg_install() -> App<'static, 'static> {
+    let valid_url = |url| {
+        let url = String::from(url);
+        match Url::parse(&url) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(format!("URL: '{}' is not valid", &url))
+        }
+    };
+
     clap_app!(@subcommand install =>
         (about: "Installs a package from a repo (or locally from an archive...)")
+        (@arg REPO_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
         (@arg PKG_IDENT: +required "A package identifier (ex: chef/redis)")
     )
 }
