@@ -30,8 +30,6 @@ pub enum Command {
     ImportKey,
     InjectConfigFile,
     ExportKey,
-    UploadDepotKey,
-    DownloadDepotKey,
     GenerateUserKey,
     GenerateServiceKey,
     ListKeys,
@@ -67,7 +65,6 @@ impl FromStr for Command {
         match s {
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
-            "download-depot-key" => Ok(Command::DownloadDepotKey),
             "encrypt" => Ok(Command::Encrypt),
             "export-key" => Ok(Command::ExportKey),
             "generate-service-key" => Ok(Command::GenerateServiceKey),
@@ -77,7 +74,6 @@ impl FromStr for Command {
             "list-keys" => Ok(Command::ListKeys),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
-            "upload-depot-key" => Ok(Command::UploadDepotKey),
             _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
         }
     }

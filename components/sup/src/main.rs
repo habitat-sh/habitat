@@ -301,18 +301,6 @@ fn main() {
                                         .args(&["user", "service"]))
                              .arg(arg_outfile().required(true))
                              .arg(arg_group());
-    let sub_download_depot_key = SubCommand::with_name("download-depot-key")
-                                     .about("Not implemented")
-                                     .arg(Arg::with_name("key")
-                                              .index(1)
-                                              .required(true)
-                                              .help("Name of key"));
-    let sub_upload_depot_key = SubCommand::with_name("upload-depot-key")
-                                   .about("Not implemented")
-                                   .arg(Arg::with_name("key")
-                                            .index(1)
-                                            .required(true)
-                                            .help("Name of key"));
     let sub_list_keys = SubCommand::with_name("list-keys").about("List user and service keys");
     let sub_inject_config_file =
         SubCommand::with_name("inject-config-file")
@@ -370,8 +358,6 @@ fn main() {
                    .subcommand(sub_decrypt)
                    .subcommand(sub_import_key)
                    .subcommand(sub_export_key)
-                   .subcommand(sub_download_depot_key)
-                   .subcommand(sub_upload_depot_key)
                    .subcommand(sub_list_keys)
                    .subcommand(sub_inject_config_file)
                    .subcommand(sub_config);
@@ -391,7 +377,6 @@ fn main() {
         Command::Shell => shell(&config),
         Command::Config => configure(&config),
         Command::Decrypt => decrypt(&config),
-        Command::DownloadDepotKey => download_depot_key(&config),
         Command::Encrypt => encrypt(&config),
         Command::ExportKey => export_key(&config),
         Command::GenerateServiceKey => generate_service_key(&config),
@@ -400,7 +385,6 @@ fn main() {
         Command::InjectConfigFile => inject_config_file(&config),
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
-        Command::UploadDepotKey => upload_depot_key(&config),
     };
 
     match result {
@@ -462,16 +446,6 @@ fn export_key(config: &Config) -> BldrResult<()> {
     try!(key::export(&config));
     outputln!("Finished exporting key");
     Ok(())
-}
-
-/// Upload a key to a depot
-fn upload_depot_key(_config: &Config) -> BldrResult<()> {
-    panic!("Not implemented");
-}
-
-/// Download a key from a depot
-fn download_depot_key(_config: &Config) -> BldrResult<()> {
-    panic!("Not implemented");
 }
 
 /// Generate a key for a user
