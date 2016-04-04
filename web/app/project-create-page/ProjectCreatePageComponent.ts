@@ -14,43 +14,47 @@ import {RouteParams, RouterLink} from "angular2/router";
     directives: [RouterLink],
     template: `
     <div class="hab-project-create">
-        <h2>Add Project</h2>
-        <p>
-            All projects require a origin (your username or organization
-            name) and a path to the plan in the source code repository.
-        </p>
-        <form [ngFormModel]="form" (ngSubmit)="addProject(form.value)" #formValues="ngForm">
-            <div class="scm-repo-fields">
-                <label>GitHub Repository</label>
-                <div *ngIf="repo">
-                    {{repo}}
-                    <a [routerLink]='["SCMRepos"]' href="#">(change)</a>
-                </div>
-                <div *ngIf="!repo">
-                    <a [routerLink]='["SCMRepos"]' href="#">
-                        (select a GitHub repository)
-                    </a>
-                </div>
-            </div>
-            <div class="project-fields">
-                <div class="origin">
-                    <label for="origin">Project Origin</label>
-                    <input ngControl="origin" disabled id="origin" name="origin">
-                </div>
-                <div class="name">
-                    <label for="name">Project Name</label>
-                    <input ngControl="name" id="name" name="name" placeholder="Required. Max 40 characters." required>
-                </div>
-                <div class="plan">
-                    <label for="plan">Path to Plan file</label>
-                    <small>The location in the repository of the plan.sh that will build this project.</small>
-                    <input ngControl="plan" id="plan" name="plan" required>
-                </div>
-                <div class="submit">
-                    <button type="submit">Save Project</button>
-                </div>
-            </div>
-        </form>
+      <div class="page-title">
+          <h2>Add Project</h2>
+          <p>
+              All projects require a origin (your username or organization
+              name) and a path to the plan in the source code repository.
+          </p>
+      </div>
+      <div class="page-body">
+          <form [ngFormModel]="form" (ngSubmit)="addProject(form.value)" #formValues="ngForm">
+              <div class="scm-repo-fields">
+                  <label>GitHub Repository</label>
+                  <div *ngIf="repo">
+                      {{repo}}
+                      <a [routerLink]='["SCMRepos"]' href="#">(change)</a>
+                  </div>
+                  <div *ngIf="!repo">
+                      <a [routerLink]='["SCMRepos"]' href="#">
+                          (select a GitHub repository)
+                      </a>
+                  </div>
+              </div>
+              <div class="project-fields">
+                  <div class="origin">
+                      <label for="origin">Project Origin</label>
+                      <input ngControl="origin" disabled id="origin" name="origin">
+                  </div>
+                  <div class="name">
+                      <label for="name">Project Name</label>
+                      <input ngControl="name" id="name" name="name" placeholder="Required. Max 40 characters." required>
+                  </div>
+                  <div class="plan">
+                      <label for="plan">Path to Plan file</label>
+                      <small>The location in the repository of the plan.sh that will build this project.</small>
+                      <input ngControl="plan" id="plan" name="plan" required>
+                  </div>
+                  <div class="submit">
+                      <button type="submit">Save Project</button>
+                  </div>
+              </div>
+          </form>
+      </div>
     </div>`
 })
 

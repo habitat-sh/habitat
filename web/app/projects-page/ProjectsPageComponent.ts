@@ -18,7 +18,7 @@ import {fetchProjects} from "../actions/index";
             <a class="button create" [routerLink]="['ProjectCreate']">Add Project</a>
         </div>
         <div class="page-body">
-            <ul>
+            <ul class="hab-projects-list">
                 <li *ngIf="projects.size === 0">
                     You do not have any Projects yet. Why not
                     <a [routerLink]="['ProjectCreate']">create one</a>?

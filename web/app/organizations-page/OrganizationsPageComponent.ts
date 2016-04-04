@@ -16,7 +16,7 @@ import {icon} from "../util";
     <div class="hab-organizations">
       <div class="page-title">
           <h2>Organizations</h2>
-          <a *ngIf="orgs.size > 0" class="button" href="#"
+          <a *ngIf="orgs.size > 0" class="button create" href="#"
              [routerLink]='["OrganizationCreate"]'>
               Add Organization
           </a>
@@ -56,12 +56,18 @@ import {icon} from "../util";
               <ul>
                   <li *ngFor="#org of orgs">
                       <a href="#" class="hab-item-list">
-                          <gravatar size=32 email="{{org.email}}"></gravatar>
-                          {{org.name}}
-                          <span class="count">
-                              <img src='{{icon("organization")}}'>
-                              {{org.members.size}}
-                          </span>
+                          <div class="item-title">
+                              <gravatar size=32 email="{{org.email}}"></gravatar>
+                              <h3>
+                                  {{org.name}}
+                              </h3>
+                          </div>
+                          <div class="item-info">
+                              <span class="count">
+                                  <img src='{{icon("organization")}}'>
+                                  {{org.members.size}}
+                              </span>
+                          </div>
                       </a>
                   </li>
               </ul>

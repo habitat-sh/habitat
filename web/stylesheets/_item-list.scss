@@ -25,17 +25,9 @@
     margin: auto $base-spacing * 2 0 auto;
   }
 
-  img {
-    @include transition(opacity .6s);
-    height: 1.5em;
-    opacity: .1;
-    position: absolute;
-    right: 0;
-  }
-
   .hab-gravatar {
     float: left;
-    margin-right: $small-spacing;
+    margin-right: 1em;
   }
 
   .item-title {
@@ -56,6 +48,14 @@
     @include span-columns(6);
     padding-top: .5em;
     position: relative;
+
+      img {
+        @include transition(opacity .6s);
+        height: 1.5em;
+        opacity: .1;
+        position: absolute;
+        right: 0;
+      }
   }
 
   &:hover {
@@ -63,11 +63,6 @@
     @include transition(all .2s ease-in-out);
     //border-color: $hab-blue;
     box-shadow: 0 1px 14px 0 $hab-blue-light;
-
-    img {
-      @include transition(opacity .2s ease-in-out);
-      opacity: .2;
-    }
   }
 
   li:last-child & {
