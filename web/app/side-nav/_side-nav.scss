@@ -31,14 +31,14 @@
     margin-bottom: 2em;
 
     a {
-      color: $hab-blue-dark;
+      color: $base-font-color;
 
       &:hover {
-        color: $hab-orange;
+        color: $hover-color;
       }
 
       &.active {
-        color: $hab-orange;
+        color: $hover-color;
         font-weight: bold;
       }
     }

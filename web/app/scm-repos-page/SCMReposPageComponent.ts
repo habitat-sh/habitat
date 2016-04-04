@@ -14,30 +14,33 @@ import {fetchGitHubRepos, onGitHubRepoSelect, setSelectedGitHubOrg}
     directives: [GitHubRepoPickerComponent],
     template: `
     <div class="hab-scm-repos">
-        <h2>
-            GitHub Repositories
-            <span *ngIf="gitHub.username">
-                for <em>{{gitHub.username}}</em>
-            </span>
-        </h2>
-        <p>
-            Select a repository that contains a plan.sh file. In the next step,
-            you'll set the path to the plan file.
-        </p>
-        <hr>
-        <github-repo-picker [repos]="gitHub.repos"
-                            [onOrgSelect]="onOrgSelect"
-                            [onRepoSelect]="onRepoSelect"
-                            [selectedOrg]="gitHub.selectedOrg">
-        </github-repo-picker>
-        <p *ngIf="!gitHub.isLinked">
-            You do not have a linked GitHub account.
-            <a href="#">Try linking one now</a>.
-        </p>
-        <p *ngIf="gitHub.repos.size === 0">
-            You have no GitHub repositories. You might need to
-            <a target="_blank" href="https://github.com/new">create one on GitHub</a>.
-        </p>
+      <div class="page-title">
+          <h2>
+              GitHub Repositories
+              <span *ngIf="gitHub.username">
+                  for <em>{{gitHub.username}}</em>
+              </span>
+          </h2>
+          <p>
+              Select a repository that contains a plan.sh file. In the next step,
+              you'll set the path to the plan file.
+          </p>
+      </div>
+      <div class="page-body">
+          <github-repo-picker [repos]="gitHub.repos"
+                              [onOrgSelect]="onOrgSelect"
+                              [onRepoSelect]="onRepoSelect"
+                              [selectedOrg]="gitHub.selectedOrg">
+          </github-repo-picker>
+          <p *ngIf="!gitHub.isLinked">
+              You do not have a linked GitHub account.
+              <a href="#">Try linking one now</a>.
+          </p>
+          <p *ngIf="gitHub.repos.size === 0">
+              You have no GitHub repositories. You might need to
+              <a target="_blank" href="https://github.com/new">create one on GitHub</a>.
+          </p>
+      </div>
     </div>`
 })
 

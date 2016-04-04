@@ -43,12 +43,11 @@ h2 {
 
 h3 {
   font-size: 100%;
-}
 
-h3.hero {
-  font-size: 150%;
-  padding: $base-spacing * 2 0;
-  text-align: center;
+  &.hero {
+    padding: 2em 0;
+    text-align: center;
+  }
 }
 
 h4 {
@@ -74,7 +73,7 @@ a {
   &:active,
   &:focus,
   &:hover {
-    color: shade($action-color, 25%);
+    color: $hover-color;
   }
 
   &.active {

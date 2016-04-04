@@ -4,8 +4,9 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-.hab-header-user {
-  @include span-columns(1);
+
+.hab-header nav {
+  @include span-columns(8);
   @include omega();
 
   text-align: right;
@@ -14,9 +15,27 @@
     font-size: 75%;
   }
 
-  li {
-    display: inline;
-    white-space: nowrap;
+  ul {
+    height: 80px;
+    width: 100%;
+
+    li {
+      display: inline-block;
+    }
+
+    li a {
+      @include transition(color .2s ease-in-out);
+      color: $hab-blue-dark;
+      line-height: 80px;
+      margin-left: 1.5em;
+
+      &:active,
+      &:focus,
+      &:hover {
+        @include transition(color .2s ease-in-out);
+        color: $hab-blue-light;
+      }
+    }
   }
 
   li.sign-in-button {

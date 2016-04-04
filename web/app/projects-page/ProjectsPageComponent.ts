@@ -13,20 +13,23 @@ import {fetchProjects} from "../actions/index";
     directives: [RouterLink],
     template: `
     <div class="hab-projects">
-        <h2>Projects</h2>
-        <a class="button create" [routerLink]="['ProjectCreate']">Add Project</a>
-        <hr>
-        <ul>
-            <li *ngIf="projects.size === 0">
-                You do not have any Projects yet. Why not
-                <a [routerLink]="['ProjectCreate']">create one</a>?
-            </li>
-            <li *ngFor="#project of projects">
-                <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="hab-item-list" href="#">
-                    {{project.origin}} / {{project.name}}
-                </a>
-            </li>
-        </ul>
+        <div class="page-title">
+            <h2>Projects</h2>
+            <a class="button create" [routerLink]="['ProjectCreate']">Add Project</a>
+        </div>
+        <div class="page-body">
+            <ul>
+                <li *ngIf="projects.size === 0">
+                    You do not have any Projects yet. Why not
+                    <a [routerLink]="['ProjectCreate']">create one</a>?
+                </li>
+                <li *ngFor="#project of projects">
+                    <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="bldr-item-list" href="#">
+                        {{project.origin}} / {{project.name}}
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>`
 })
 
