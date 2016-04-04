@@ -32,7 +32,8 @@
 @import "sign-in-page/sign-in-page";
 @import "sign-up-form/sign-up-form";
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -42,7 +43,7 @@ body {
 }
 
 .hab-topbar {
-  @include background(url("/app/assets/images/bg-pattern.png"),linear-gradient(205deg, #f59b51 5%, #f58251 100%), center);
+  @include background(url("/app/assets/images/bg-pattern.png"), linear-gradient(205deg, #f59b51 5%, #f58251 100%), center);
   background-color: $hab-orange;
   box-shadow: 1px 0 8px 0 $light-gray;
   height: 80px;
@@ -63,9 +64,11 @@ body {
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
   padding: 1em 1.5em;
 
-  h2 + a.create {
-    margin-bottom: .5em;
-    margin-top: 1.5em;
+  a {
+    &.create {
+      margin-bottom: .5em;
+      margin-top: 1.5em;
+    }
   }
 
   p {
