@@ -26,17 +26,19 @@ mod error;
 mod exec;
 
 use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use clap::ArgMatches;
 use hcore::service::ServiceGroup;
+use hcore::package::PackageIdent;
 use hcore::url::DEFAULT_DEPOT_URL;
 
 use error::{Error, Result};
 
 const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HABITAT_SUP_BINARY";
+const SUP_PACKAGE_IDENT: &'static str = "chef/hab-sup";
 
 fn main() {
     if let Err(e) = run_hab() {
@@ -120,15 +122,19 @@ fn exec_subcommand_if_called() -> Result<()> {
                 } else {
                     1
                 };
+
                 let command = match env::var(SUP_CMD_ENVVAR) {
-                    Ok(value) => value,
-                    Err(_) => SUP_CMD.to_string(),
+                    Ok(command) => PathBuf::from(command),
+                    Err(_) => {
+                        let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
+                        try!(exec::command_from_pkg(SUP_CMD, &ident, 0))
+                    }
                 };
 
-                if let Some(cmd) = exec::find_command(&command) {
+                if let Some(cmd) = exec::find_command(command.to_string_lossy().as_ref()) {
                     try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
                 } else {
-                    return Err(Error::ExecCommandNotFound(command));
+                    return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
                 }
             }
             _ => return Ok(()),
