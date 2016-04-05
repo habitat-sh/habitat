@@ -52,7 +52,7 @@ unit: image ## executes the components' unit test suites
 
 functional: image ## executes the components' functional test suites
 	$(run) cargo test --test functional --manifest-path components/sup/Cargo.toml
-	$(run) cargo test --test functional --manifest-path components/depot/Cargo.toml
+	$(run) cargo test --test server --manifest-path components/depot/Cargo.toml
 
 clean: ## cleans up the project tree
 	$(run) cargo clean --manifest-path components/core/Cargo.toml
