@@ -32,6 +32,8 @@ pub enum Error {
     InvalidKeyParameter(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
+    /// Occurs when a service group string cannot be successfully parsed.
+    InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Occurs when a package metadata file cannot be opened, read, or parsed.
@@ -66,6 +68,11 @@ impl fmt::Display for Error {
                          origin/name (example: chef/redis)",
                         e)
             }
+            Error::InvalidServiceGroup(ref e) => {
+                format!("Invalid service group: {:?}. A valid service group string is in the form \
+                         service.group (example: redis.production)",
+                        e)
+            }
             Error::IO(ref err) => format!("{}", err),
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
@@ -96,6 +103,7 @@ impl error::Error for Error {
             Error::GPG(_) => "gpgme error",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
+            Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
             Error::IO(ref err) => err.description(),
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
