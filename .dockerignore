@@ -1,10 +1,11 @@
 .delivery/cookbooks
 .delivery/config.json
 .git
+components
 demo
 images
 plans
-src
 target
 tests
 vendor
+web
