@@ -7,6 +7,7 @@
 use std::error;
 use std::ffi;
 use std::fmt;
+use std::io;
 use std::result;
 
 use depot_client;
@@ -23,6 +24,7 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
+    IO(io::Error),
     PackageArchiveMalformed(String),
 }
 
@@ -37,6 +39,7 @@ impl fmt::Display for Error {
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HabitatCommon(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::IO(ref err) => format!("{}", err),
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
@@ -55,6 +58,7 @@ impl error::Error for Error {
             Error::FileNotFound(_) => "File not found",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
+            Error::IO(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
         }
     }
@@ -81,5 +85,11 @@ impl From<ffi::NulError> for Error {
 impl From<hcore::Error> for Error {
     fn from(err: hcore::Error) -> Error {
         Error::HabitatCore(err)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::IO(err)
     }
 }

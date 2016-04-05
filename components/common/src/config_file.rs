@@ -11,49 +11,14 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
 use hcore::fs::SERVICE_HOME;
+use hcore::service::ServiceGroup;
 use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::hex::ToHex;
 use time::{SteadyTime, Duration};
 
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 
-static LOGKEY: &'static str = "CF";
 const IDEMPOTENCY_INTERVAL_MINUTES: i64 = 5;
-
-/// Temporary home for a candiate `ServiceGroup` tuple
-#[derive(Clone, Debug, Eq, Hash, PartialEq, RustcDecodable, RustcEncodable)]
-pub struct ServiceGroup {
-    service: String,
-    group: String,
-}
-
-impl ServiceGroup {
-    pub fn new(service: String, group: String) -> ServiceGroup {
-        ServiceGroup {
-            service: service,
-            group: group,
-        }
-    }
-
-    pub fn from(sg_str: &str) -> BldrResult<ServiceGroup> {
-        let parts: Vec<&str> = sg_str.split(".").collect();
-        if parts.len() != 2 {
-            return Err(bldr_error!(ErrorKind::InvalidServiceGroupString(sg_str.to_string())));
-        }
-
-        let sg = ServiceGroup {
-            service: parts[0].to_string(),
-            group: parts[1].to_string(),
-        };
-        Ok(sg)
-    }
-}
-
-impl fmt::Display for ServiceGroup {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}.{}", self.service, self.group)
-    }
-}
 
 /// The config file struct.
 #[derive(Clone, Debug, Eq, RustcDecodable, RustcEncodable)]
@@ -70,20 +35,20 @@ impl ConfigFile {
     pub fn from_file<P: AsRef<Path>>(service_group: ServiceGroup,
                                      file_path: P,
                                      version_number: u64)
-                                     -> BldrResult<ConfigFile> {
+                                     -> Result<ConfigFile> {
         let path = file_path.as_ref();
         for part in path.components() {
             let pstr = format!("{}", part.as_os_str().to_string_lossy().into_owned());
             if &pstr == ".." {
-                return Err(bldr_error!(ErrorKind::ConfigFileRelativePath(path.to_string_lossy()
-                                                                             .into_owned())));
+                return Err(Error::ConfigFileRelativePath(path.to_string_lossy()
+                                                             .into_owned()));
             }
         }
         let mut f = try!(File::open(&path));
         let mut body = Vec::new();
         try!(f.read_to_end(&mut body));
 
-        let file_name = try!(path.file_name().ok_or(bldr_error!(ErrorKind::FileNameError)));
+        let file_name = try!(path.file_name().ok_or(Error::FileNameError));
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
 
         let cf = ConfigFile {
@@ -97,12 +62,11 @@ impl ConfigFile {
         Ok(cf)
     }
 
-    #[allow(dead_code)]
-    fn from_body(service_group: ServiceGroup,
-                 file_name: String,
-                 body: Vec<u8>,
-                 version_number: u64)
-                 -> BldrResult<ConfigFile> {
+    pub fn from_body(service_group: ServiceGroup,
+                     file_name: String,
+                     body: Vec<u8>,
+                     version_number: u64)
+                     -> Result<ConfigFile> {
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
 
         let cf = ConfigFile {
@@ -131,14 +95,14 @@ impl ConfigFile {
         } else if self.version_number == other.version_number && *self != other {
             // We have a big problem: this means that the 2 config files are *not* the same but
             // they have the same `version_number`. This is probably irreconcilable at present.
-            outputln!("This config file has the same version number ({}) as \
+            println!("This config file has the same version number ({}) as \
                   the other  ConfigFile but our data is different, meaning \
                   that we can't pick a winner. We will trust our data and \
                   hope a higher version is published later. \
                   (My data: {}, other data: {})",
-                      self.version_number,
-                      self,
-                      &other);
+                     self.version_number,
+                     self,
+                     &other);
             false
         } else {
             false
@@ -159,7 +123,7 @@ impl ConfigFile {
         }
     }
 
-    pub fn checksum_file(&self) -> BldrResult<String> {
+    pub fn checksum_file(&self) -> Result<String> {
         let mut file = try!(File::open(self.on_disk_path()));
         let mut buf = [0u8; 1024];
         let mut h = openssl_hash::Hasher::new(openssl_hash::Type::SHA256);
@@ -173,7 +137,7 @@ impl ConfigFile {
         Ok(h.finish().as_slice().to_hex())
     }
 
-    pub fn write(&self) -> BldrResult<bool> {
+    pub fn write(&self) -> Result<bool> {
         let current_checksum = match self.checksum_file() {
             Ok(checksum) => checksum,
             Err(_) => String::new(),
@@ -184,8 +148,8 @@ impl ConfigFile {
             Ok(false)
         } else {
             let filename = self.on_disk_path();
-            outputln!("Writing new config file from gossip: {}",
-                      filename.to_string_lossy());
+            println!("Writing new config file from gossip: {}",
+                     filename.to_string_lossy());
             let new_filename = format!("{}.write", filename.to_string_lossy());
             {
                 let mut new_file = try!(File::create(&new_filename));
@@ -256,7 +220,7 @@ impl ConfigFileList {
     /// `needs_file_updated`, which means a file has changed, and we run the file_updated hook. The
     /// second is `needs_reconfigure`, which means the `gossip.toml` has changed, and we need to
     /// reconfigure the daemon and the `service_config`.
-    pub fn write(&mut self) -> BldrResult<(bool, bool)> {
+    pub fn write(&mut self) -> Result<(bool, bool)> {
         let mut needs_file_updated = false;
         let mut needs_reconfigure = false;
         for (&(ref sg, _), ref cf) in self.config_files.iter() {

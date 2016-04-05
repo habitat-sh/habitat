@@ -5,6 +5,10 @@ dependencies = [
  "habitat_core 0.4.0",
  "habitat_depot_client 0.4.0",
  "habitat_depot_core 0.4.0",
+ "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "openssl 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

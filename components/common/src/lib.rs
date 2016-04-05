@@ -7,8 +7,14 @@
 extern crate habitat_core as hcore;
 extern crate habitat_depot_core as depot_core;
 extern crate habitat_depot_client as depot_client;
+#[macro_use]
+extern crate log;
+extern crate openssl;
+extern crate rustc_serialize;
+extern crate time;
 
 pub use self::error::{Error, Result};
 
 pub mod command;
+pub mod config_file;
 pub mod error;

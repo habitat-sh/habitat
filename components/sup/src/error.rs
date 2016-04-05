@@ -89,10 +89,8 @@ impl BldrError {
 pub enum ErrorKind {
     ActorError(actor::ActorError),
     CommandNotImplemented,
-    ConfigFileRelativePath(String),
     DbInvalidPath,
     DepotClient(depot_client::Error),
-    FileNameError,
     FileNotFound(String),
     GPGError(gpgme::Error),
     HabitatCommon(common::Error),
@@ -140,13 +138,8 @@ impl fmt::Display for BldrError {
             ErrorKind::HabitatCommon(ref err) => format!("{}", err),
             ErrorKind::HabitatCore(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
-            ErrorKind::ConfigFileRelativePath(ref s) => {
-                format!("Path for configuration file cannot have relative components (eg: ..): {}",
-                        s)
-            }
             ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             ErrorKind::DepotClient(ref err) => format!("{}", err),
-            ErrorKind::FileNameError => format!("Failed to extract a filename"),
             ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
             ErrorKind::GPGError(ref e) => format!("{}", e),
             ErrorKind::HealthCheck(ref e) => format!("Health Check failed: {}", e),
@@ -225,10 +218,8 @@ impl Error for BldrError {
             ErrorKind::HabitatCommon(ref err) => err.description(),
             ErrorKind::HabitatCore(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
-            ErrorKind::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
             ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             ErrorKind::DepotClient(ref err) => err.description(),
-            ErrorKind::FileNameError => "Failed to extract a filename from a path",
             ErrorKind::FileNotFound(_) => "File not found",
             ErrorKind::GPGError(_) => "gpgme error",
             ErrorKind::HealthCheck(_) => "Health Check returned an unknown status code",

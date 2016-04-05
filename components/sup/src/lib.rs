@@ -267,7 +267,6 @@ pub mod service_config;
 pub mod census;
 pub mod gossip;
 pub mod election;
-pub mod config_file;
 
 #[allow(dead_code)]
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");

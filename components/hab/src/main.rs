@@ -10,7 +10,15 @@ extern crate habitat_depot_client as depot_client;
 #[macro_use]
 extern crate clap;
 extern crate hyper;
+#[macro_use]
+extern crate log;
+// Temporary depdency for gossip/rumor injection code duplication.
+extern crate rustc_serialize;
 extern crate url;
+// Temporary depdency for gossip/rumor injection code duplication.
+extern crate utp;
+// Temporary depdency for gossip/rumor injection code duplication.
+extern crate uuid;
 
 mod cli;
 mod command;
@@ -18,8 +26,11 @@ mod error;
 mod exec;
 
 use std::env;
+use std::path::Path;
+use std::str::FromStr;
 
 use clap::ArgMatches;
+use hcore::service::ServiceGroup;
 use hcore::url::DEFAULT_DEPOT_URL;
 
 use error::{Error, Result};
@@ -39,18 +50,25 @@ fn run_hab() -> Result<()> {
 
     let app_matches = cli::get().get_matches();
     match app_matches.subcommand() {
-        ("pkg", Some(matches)) => {
-            match matches.subcommand() {
-                ("install", Some(m)) => try!(sub_package_install(m)),
-                _ => unreachable!(),
-            }
-        }
         ("archive", Some(matches)) => {
             match matches.subcommand() {
                 ("upload", Some(m)) => try!(sub_archive_upload(m)),
                 _ => unreachable!(),
             }
         }
+        ("pkg", Some(matches)) => {
+            match matches.subcommand() {
+                ("install", Some(m)) => try!(sub_package_install(m)),
+                _ => unreachable!(),
+            }
+        }
+        ("rumor", Some(matches)) => {
+            match matches.subcommand() {
+                ("inject", Some(m)) => try!(sub_rumor_inject(m)),
+                _ => unreachable!(),
+            }
+        }
+        ("inject", Some(m)) => try!(sub_rumor_inject(m)),
         ("install", Some(m)) => try!(sub_package_install(m)),
         _ => unreachable!(),
     };
@@ -60,6 +78,7 @@ fn run_hab() -> Result<()> {
 fn sub_archive_upload(m: &ArgMatches) -> Result<()> {
     let url = m.value_of("DEPOT_URL").unwrap_or(DEFAULT_DEPOT_URL);
     let archive_path = m.value_of("ARCHIVE").unwrap();
+
     try!(command::archive::upload::start(&url, &archive_path));
     Ok(())
 }
@@ -67,7 +86,28 @@ fn sub_archive_upload(m: &ArgMatches) -> Result<()> {
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
     let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
     let ident_or_archive = m.value_of("PKG_IDENT_OR_ARCHIVE").unwrap();
+
     try!(common::command::package::install::start(url, ident_or_archive));
+    Ok(())
+}
+
+fn sub_rumor_inject(m: &ArgMatches) -> Result<()> {
+    let peers_str = m.value_of("PEERS").unwrap_or("127.0.0.1");
+    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
+    for p in peers.iter_mut() {
+        if p.find(':').is_none() {
+            p.push(':');
+            p.push_str(&command::rumor::inject::hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
+        }
+    }
+    let sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
+    let file_path = match m.value_of("FILE") {
+        Some("-") | None => None,
+        Some(p) => Some(Path::new(p)),
+    };
+
+    try!(command::rumor::inject::start(&peers, sg, number, file_path));
     Ok(())
 }
 

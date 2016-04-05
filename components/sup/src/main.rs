@@ -302,36 +302,6 @@ fn main() {
                              .arg(arg_outfile().required(true))
                              .arg(arg_group());
     let sub_list_keys = SubCommand::with_name("list-keys").about("List user and service keys");
-    let sub_inject_config_file =
-        SubCommand::with_name("inject-config-file")
-            .about("Inject a config file")
-            .arg(Arg::with_name("service-group")
-                     .help("Target service group for this configuration (Ex: redis.default)")
-                     .long("service-group")
-                     .short("s")
-                     .value_name("SERVICE_GROUP")
-                     .takes_value(true)
-                     .required(true))
-            .arg(Arg::with_name("gossip-peer")
-                     .help("The listen string of gossip peer (Ex: ip:port)")
-                     .long("gossip-peer")
-                     .short("p")
-                     .value_name("PEER")
-                     .takes_value(true)
-                     .multiple(true)
-                     .required(true))
-            .arg(Arg::with_name("version-number")
-                     .help("Version number for the config file (Ex: 42)")
-                     .long("version-number")
-                     .short("n")
-                     .value_name("VERSION")
-                     .takes_value(true)
-                     .required(true))
-            .arg(Arg::with_name("file-path")
-                     .help("Path to local config file on disk (Ex: /tmp/config.toml)")
-                     .index(1)
-                     .value_name("PATH")
-                     .required(true));
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
                          .arg(Arg::with_name("package")
@@ -359,7 +329,6 @@ fn main() {
                    .subcommand(sub_import_key)
                    .subcommand(sub_export_key)
                    .subcommand(sub_list_keys)
-                   .subcommand(sub_inject_config_file)
                    .subcommand(sub_config);
     let matches = args.get_matches();
 
@@ -382,7 +351,6 @@ fn main() {
         Command::GenerateServiceKey => generate_service_key(&config),
         Command::GenerateUserKey => generate_user_key(&config),
         Command::ImportKey => import_key(&config),
-        Command::InjectConfigFile => inject_config_file(&config),
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
     };
@@ -489,15 +457,5 @@ fn decrypt(config: &Config) -> BldrResult<()> {
     outputln!("Decrypting");
     try!(key::decrypt_and_verify(&config));
     outputln!("Finished decrypting");
-    Ok(())
-}
-
-/// Inject a config file
-fn inject_config_file(config: &Config) -> BldrResult<()> {
-    outputln!("Injecting {} into {}",
-              config.file_path(),
-              config.service_group());
-    try!(inject::inject(&config));
-    outputln!("Finished injecting");
     Ok(())
 }
