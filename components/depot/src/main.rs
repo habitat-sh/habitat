@@ -4,6 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+extern crate habitat_core as hcore;
 extern crate habitat_depot as depot;
 extern crate habitat_depot_core as depot_core;
 #[macro_use]
@@ -12,14 +13,16 @@ extern crate env_logger;
 #[macro_use]
 extern crate log;
 
+use std::env;
+use std::path::PathBuf;
 use std::process;
 use std::str::FromStr;
 
 use depot::{server, Config, Error, Result};
 use depot::data_store::{self, Cursor, Database, Transaction};
 use depot_core::data_object;
+use hcore::fs;
 
-const DEFAULT_PATH: &'static str = "/opt/bldr/svc/bldr-depot/data";
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn main() {
@@ -73,7 +76,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
             return Err(Error::BadPort(port.to_string()));
         }
     }
-    config.path = args.value_of("path").unwrap_or(DEFAULT_PATH).to_string();
+    config.path = args.value_of("path").unwrap_or(&default_path()).to_string();
     Ok(config)
 }
 
@@ -179,6 +182,12 @@ fn repo_list(config: &Config) -> Result<()> {
         println!("     {}", view);
     }
     Ok(())
+}
+
+fn default_path() -> String {
+    let arg0 = env::args().next().map(|p| PathBuf::from(p));
+    let progname = arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap();
+    format!("{}/{}/data", fs::SERVICE_HOME, progname)
 }
 
 fn exit_with(err: Error, code: i32) {

@@ -1,4 +1,4 @@
-pkg_name=bldr
+pkg_name=hab-sup
 pkg_origin=chef
 pkg_version=0.4.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
@@ -10,7 +10,7 @@ pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
 pkg_gpg_key=3853DA6B
 
 do_build() {
-  pushd $PLAN_CONTEXT/../../components/bldr > /dev/null
+  pushd $PLAN_CONTEXT/../../components/sup > /dev/null
   cargo clean
   env OPENSSL_LIB_DIR=$(pkg_path_for chef/openssl)/lib \
       OPENSSL_INCLUDE_DIR=$(pkg_path_for chef/openssl)/include \
@@ -24,7 +24,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../../components/bldr/target/debug/bldr $pkg_prefix/bin/bldr
+  install -v -D $PLAN_CONTEXT/../../components/sup/target/debug/hab-sup $pkg_prefix/bin/hab-sup
 }
 
 # Turn the remaining default phases into no-ops
