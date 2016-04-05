@@ -32,47 +32,50 @@ const sidebar = `
     directives: [OrganizationMembersComponent],
     template: `
     <div class="hab-organization-create">
-        <h2>
-            Add Organization
-            <span *ngIf="saved">Members</span>
-        </h2>
-        <p>
-            A namespace, name, and email are required to create an
-            organization. All organization projects are public.
-        </p>
-        <hr>
-        <div class="step1" *ngIf="!saved">
-            <form [ngFormModel]="form"
-                (ngSubmit)="addOrg(form.value)"
-                #formValues="ngForm">
-                <div class="ns">
-                    <label for="namespace">Namespace</label>
-                    <input ngControl="namespace" required id="namespace">
-                </div>
-                <div class="name">
-                    <label for="name">Full Name</label>
-                    <input ngControl="name" required id="name">
-                </div>
-                <label for="email">Email Address</label>
-                <small>Default is your user email address</small>
-                <input ngControl="email" id="email" type="email" required>
-                <label for="website">Website</label>
-                <input ngControl="website" id="website" type="url">
-                <button>Save & Add Members</button>
-            </form>
-            ${sidebar}
+        <div class="page-title">
+            <h2>
+                Add Organization
+                <span *ngIf="saved">Members</span>
+            </h2>
+            <p>
+                A namespace, name, and email are required to create an
+                organization. All organization projects are public.
+            </p>
         </div>
-        <div class="step2" *ngIf="saved">
-            <form (ngSubmit)="finishAddingOrg()">
-                <hab-org-members [org]="org"
-                                 [cancelInvitation]="cancelOrgInvitation"
-                                 [inviteMemberToOrg]="inviteMemberToOrg"
-                                 [performSearch]="performOrgMemberSearch"
-                                 [toggleMemberActionMenu]="toggleMemberActionMenu">
-                </hab-org-members>
-                <button>Finish</button>
-            </form>
-            ${sidebar}
+        <div class="page-body">
+            <div class="step1" *ngIf="!saved">
+                <form [ngFormModel]="form"
+                    (ngSubmit)="addOrg(form.value)"
+                    #formValues="ngForm">
+                    <div class="ns">
+                        <label for="namespace">Namespace</label>
+                        <input ngControl="namespace" required id="namespace">
+                    </div>
+                    <div class="name">
+                        <label for="name">Full Name</label>
+                        <input ngControl="name" required id="name">
+                    </div>
+                    <label for="email">Email Address</label>
+                    <small>Default is your user email address</small>
+                    <input ngControl="email" id="email" type="email" required>
+                    <label for="website">Website</label>
+                    <input ngControl="website" id="website" type="url">
+                    <button>Save & Add Members</button>
+                </form>
+                ${sidebar}
+            </div>
+            <div class="step2" *ngIf="saved">
+                <form (ngSubmit)="finishAddingOrg()">
+                    <hab-org-members [org]="org"
+                                     [cancelInvitation]="cancelOrgInvitation"
+                                     [inviteMemberToOrg]="inviteMemberToOrg"
+                                     [performSearch]="performOrgMemberSearch"
+                                     [toggleMemberActionMenu]="toggleMemberActionMenu">
+                    </hab-org-members>
+                    <button>Finish</button>
+                </form>
+                ${sidebar}
+            </div>
         </div>
     </div>`
 })

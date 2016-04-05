@@ -1,5 +1,7 @@
 .hab-projects {
-  a.create {
-    display: inline-block;
+  &-list {
+    li a {
+      @extend .hab-item-list;
+    }
   }
 }

@@ -1,19 +1,7 @@
 .hab-explore {
-  li a {
-    @include span-columns(3);
-    @include pad($small-spacing);
-
-    margin: $base-spacing;
-    border: 1px solid;
-    display: block;
-
-    .title {
-      display: block;
-      font-size: 120%;
-    }
-
-    .info {
-      text-align: right;
+  &-plan-list {
+    li a {
+      @extend .bldr-item-list;
     }
   }
 }

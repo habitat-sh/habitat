@@ -13,6 +13,7 @@ import {RouterLink} from "angular2/router";
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
+        <div class="switcher">originname</div>
         <ul>
             <li><a [class.active]='routeMatch("projects")'
                    [routerLink]="['Projects']">Projects</a></li>

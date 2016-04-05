@@ -13,8 +13,8 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
     selector: "hab-header",
     template: `
     <header class="hab-header">
-        <h1>{{appName}}</h1>
-        <nav class="hab-header-user">
+        <h1 class="logo">{{appName}}</h1>
+        <nav>
             <user-nav></user-nav>
         </nav>
     </header>`,

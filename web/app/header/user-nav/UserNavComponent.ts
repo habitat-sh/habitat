@@ -13,21 +13,23 @@ import {requestRoute, signOut, toggleUserNavMenu} from "../../actions/index";
     directives: [RouterLink],
     selector: "user-nav",
     template: `
-    <nav>
-        <ul>
-            <li><a class="button" *ngIf="isSignUpLinkVisible" [routerLink]="['Home']">Sign Up</a></li>
-            <li><a *ngIf="!isSignedIn" [routerLink]="['SignIn']">Sign In</a></li>
-            <li class="sign-in-button" [class.active]="isOpen" *ngIf="isSignedIn">
-                <a class="username" href="#" (click)="toggleMenu()">{{username}}
-                    <span *ngIf="!isOpen">▼</span>
-                    <span *ngIf="isOpen">▲</span>
-                </a>
-                <ul *ngIf="isOpen">
-                    <li><a href="#" (click)="signOut()">Sign Out</a></li>
-                </ul>
-            </li>
-        </ul>
-    </nav>`,
+    <ul>
+        <li><a href="">Packages</a></li>
+        <li><a href="">Docs</a></li>
+        <li><a href="">Tutorials</a></li>
+        <li><a href="">Community</a></li>
+        <li><a class="button" *ngIf="isSignUpLinkVisible" [routerLink]="['Home']">Sign Up</a></li>
+        <li><a *ngIf="!isSignedIn" [routerLink]="['SignIn']">Sign In</a></li>
+        <li *ngIf="isSignedIn">
+            <a class="username" href="#" (click)="toggleMenu()">{{username}}
+                <span *ngIf="!isOpen">▼</span>
+                <span *ngIf="isOpen">▲</span>
+            </a>
+            <ul *ngIf="isOpen">
+                <li><a href="#" (click)="signOut()">Sign Out</a></li>
+            </ul>
+        </li>
+    </ul>`,
 })
 
 export class UserNavComponent {

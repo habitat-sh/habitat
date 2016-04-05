@@ -1,13 +1,16 @@
 .hab-header {
   @include outer-container;
 
-  h1 {
-    @include span-columns(11);
+  h1.logo {
+    @include hide-text;
+    @include span-columns(4);
+    background-image: url("/app/assets/images/habitat-logo.svg");
+    background-repeat: no-repeat;
+    color: $white;
     display: inline;
+    margin: .5em 0 0;
   }
 
-  // Temporarily there's nothing in here, but links to things like help
-  // and docs will be later.
   &-links {
     padding: 0.3em;
     @include span-columns(0);

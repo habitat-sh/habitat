@@ -1,4 +1,5 @@
 .hab-notifications {
+  @include outer-container;
   position: fixed;
   right: $small-spacing;
   bottom: 0;
