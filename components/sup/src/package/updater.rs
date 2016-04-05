@@ -5,7 +5,6 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::sync::{Arc, RwLock};
-use std::str::FromStr;
 
 use depot_client;
 use hcore::fs::PACKAGE_CACHE;
@@ -90,19 +89,18 @@ impl GenServer for PackageUpdater {
         let ident = PackageIdent::new(package.origin.clone(), package.name.clone(), None, None);
         match depot_client::show_package(&state.depot, &ident) {
             Ok(remote) => {
-                let latest: Package = remote.into();
-                if latest > *package {
-                    match depot_client::fetch_package(&state.depot,
-                                                      &PackageIdent::from_str(&latest.ident())
-                                                           .unwrap(),
-                                                      PACKAGE_CACHE) {
+                let latest_ident: &PackageIdent = remote.ident.as_ref();
+                if latest_ident > &*package.ident() {
+                    match depot_client::fetch_package(&state.depot, latest_ident, PACKAGE_CACHE) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
                             archive.verify().unwrap();
                             archive.unpack().unwrap();
+                            let latest_package = Package::load(latest_ident, None).unwrap();
                             state.status = UpdaterStatus::Stopped;
-                            let msg = wonder::actor::Message::Cast(UpdaterMessage::Update(latest));
+                            let msg =
+                                wonder::actor::Message::Cast(UpdaterMessage::Update(latest_package));
                             tx.send(msg).unwrap();
                             HandleResult::NoReply(None)
                         }

@@ -40,6 +40,9 @@ openssl = "*"
 [dependencies.habitat_core]
 path = "../core"
 
+[dependencies.habitat_common]
+path = "../common"
+
 [dependencies.habitat_depot_core]
 path = "../depot-core"
 

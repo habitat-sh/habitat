@@ -20,6 +20,8 @@ use std::time::Duration;
 use std::sync::{Arc, RwLock};
 use std::net;
 
+use common::config_file::ConfigFileList;
+use hcore::service::ServiceGroup;
 use utp::{UtpListener, UtpSocket};
 
 use gossip::client::Client;
@@ -28,7 +30,6 @@ use gossip::rumor::{Peer, Protocol, Rumor, RumorList, Message};
 use gossip::detector::Detector;
 use election::ElectionList;
 use census::{Census, CensusEntry, CensusList};
-use config_file::{ConfigFileList, ServiceGroup};
 use error::BldrResult;
 use util;
 

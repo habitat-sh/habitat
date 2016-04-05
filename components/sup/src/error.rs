@@ -38,6 +38,7 @@ use std::sync::mpsc;
 use std::str;
 
 use hcore::{self, package};
+use common;
 use depot_client;
 use gpgme;
 use uuid;
@@ -88,12 +89,11 @@ impl BldrError {
 pub enum ErrorKind {
     ActorError(actor::ActorError),
     CommandNotImplemented,
-    ConfigFileRelativePath(String),
     DbInvalidPath,
     DepotClient(depot_client::Error),
-    FileNameError,
     FileNotFound(String),
     GPGError(gpgme::Error),
+    HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     HealthCheck(String),
     HookFailed(HookType, i32, String),
@@ -101,7 +101,6 @@ pub enum ErrorKind {
     /// TODO: once discovery/etcd.rs is purged, this error can be removed
     HyperError(hyper::error::Error),
     InvalidKeyParameter(String),
-    InvalidPackageIdent(String),
     InvalidPidFile,
     InvalidServiceGroupString(String),
     Io(io::Error),
@@ -109,8 +108,6 @@ pub enum ErrorKind {
     JsonDecode(json::DecoderError),
     JsonEncode(json::EncoderError),
     KeyNotFound(String),
-    MetaFileMalformed(package::MetaFile),
-    MetaFileNotFound(package::MetaFile),
     MetaFileIO(io::Error),
     MustacheEncoderError(mustache::encoder::Error),
     NulError(ffi::NulError),
@@ -138,15 +135,11 @@ impl fmt::Display for BldrError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
+            ErrorKind::HabitatCommon(ref err) => format!("{}", err),
             ErrorKind::HabitatCore(ref err) => format!("{}", err),
             ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
-            ErrorKind::ConfigFileRelativePath(ref s) => {
-                format!("Path for configuration file cannot have relative components (eg: ..): {}",
-                        s)
-            }
             ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             ErrorKind::DepotClient(ref err) => format!("{}", err),
-            ErrorKind::FileNameError => format!("Failed to extract a filename"),
             ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
             ErrorKind::GPGError(ref e) => format!("{}", e),
             ErrorKind::HealthCheck(ref e) => format!("Health Check failed: {}", e),
@@ -158,11 +151,6 @@ impl fmt::Display for BldrError {
             ErrorKind::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
-            ErrorKind::InvalidPackageIdent(ref e) => {
-                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
-                         origin/name (example: chef/redis)",
-                        e)
-            }
             ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
             ErrorKind::InvalidServiceGroupString(ref e) => {
                 format!("Invalid service group string: {}", e)
@@ -172,12 +160,6 @@ impl fmt::Display for BldrError {
             ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
-            ErrorKind::MetaFileMalformed(ref e) => {
-                format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
-            }
-            ErrorKind::MetaFileNotFound(ref e) => {
-                format!("Couldn't read MetaFile: {}, not found", e)
-            }
             ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             ErrorKind::MustacheEncoderError(ref me) => {
                 match *me {
@@ -233,12 +215,11 @@ impl Error for BldrError {
     fn description(&self) -> &str {
         match self.err {
             ErrorKind::ActorError(_) => "A running actor responded with an error",
+            ErrorKind::HabitatCommon(ref err) => err.description(),
             ErrorKind::HabitatCore(ref err) => err.description(),
             ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
-            ErrorKind::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
             ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             ErrorKind::DepotClient(ref err) => err.description(),
-            ErrorKind::FileNameError => "Failed to extract a filename from a path",
             ErrorKind::FileNotFound(_) => "File not found",
             ErrorKind::GPGError(_) => "gpgme error",
             ErrorKind::HealthCheck(_) => "Health Check returned an unknown status code",
@@ -246,7 +227,6 @@ impl Error for BldrError {
             ErrorKind::HTTP(_) => "Received an HTTP error",
             ErrorKind::HyperError(ref err) => err.description(),
             ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
-            ErrorKind::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             ErrorKind::InvalidPidFile => "Invalid child process PID file",
             ErrorKind::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
             ErrorKind::Io(ref err) => err.description(),
@@ -254,8 +234,6 @@ impl Error for BldrError {
             ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
             ErrorKind::JsonEncode(_) => "JSON encoding error",
             ErrorKind::KeyNotFound(_) => "Key not found in key cache",
-            ErrorKind::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
-            ErrorKind::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
             ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
             ErrorKind::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
@@ -283,6 +261,12 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str("\n");
     }
     return errors;
+}
+
+impl From<common::Error> for BldrError {
+    fn from(err: common::Error) -> BldrError {
+        bldr_error!(ErrorKind::HabitatCommon(err))
+    }
 }
 
 impl From<hcore::Error> for BldrError {

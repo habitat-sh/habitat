@@ -1,4 +1,4 @@
-pkg_name=bldr-depot
+pkg_name=hab-depot
 pkg_origin=chef
 pkg_version=0.4.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
@@ -7,7 +7,7 @@ pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/gpgme chef/libarchive chef/libgpg-error chef/rngd)
 pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
-pkg_service_run="bin/bldr-depot start"
+pkg_service_run="bin/hab-depot start"
 pkg_gpg_key=3853DA6B
 
 do_build() {
@@ -25,7 +25,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../../components/depot/target/debug/bldr-depot $pkg_prefix/bin/bldr-depot
+  install -v -D $PLAN_CONTEXT/../../components/depot/target/debug/hab-depot $pkg_prefix/bin/hab-depot
 }
 
 # Turn the remaining default phases into no-ops

@@ -30,6 +30,7 @@ use wonder;
 
 use state_machine::StateMachine;
 use census::{self, CensusList};
+use common::config_file::ConfigFileList;
 use package::{self, Package, PackageUpdaterActor};
 use util::signals::SignalNotifier;
 use error::{BldrResult, BldrError};
@@ -40,7 +41,6 @@ use user_config;
 use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
-use config_file::ConfigFileList;
 use election::ElectionList;
 use time::{SteadyTime, Timespec};
 use util::signals;

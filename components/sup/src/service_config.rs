@@ -392,7 +392,7 @@ impl Pkg {
             name: package.name.clone(),
             version: package.version.clone(),
             release: package.release.clone(),
-            ident: package.ident(),
+            ident: package.ident().to_string(),
             deps: deps,
             exposes: package.exposes(),
             path: package.path(),
@@ -466,7 +466,10 @@ impl Bldr {
 
 #[cfg(test)]
 mod test {
+    use hcore::package::{PackageIdent, PackageInstall};
     use regex::Regex;
+    use std::path::PathBuf;
+    use std::str::FromStr;
     use service_config::ServiceConfig;
     use package::Package;
     use gossip::member::MemberId;
@@ -474,6 +477,10 @@ mod test {
     use VERSION;
 
     fn gen_pkg() -> Package {
+        let pkg_install = PackageInstall::new_from_parts(
+            PackageIdent::from_str("neurosis/soverign/2000/20160222201258").unwrap(),
+            PathBuf::from("/fakeo/here"),
+            PathBuf::from("/fakeo"));
         Package {
             origin: String::from("neurosis"),
             name: String::from("sovereign"),
@@ -481,6 +488,7 @@ mod test {
             release: String::from("20160222201258"),
             deps: Vec::new(),
             tdeps: Vec::new(),
+            pkg_install: pkg_install,
         }
     }
 

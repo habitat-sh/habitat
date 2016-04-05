@@ -20,4 +20,6 @@ pub mod error;
 pub mod fs;
 pub mod gpg;
 pub mod package;
+pub mod service;
+pub mod url;
 pub mod util;

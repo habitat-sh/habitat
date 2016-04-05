@@ -183,13 +183,6 @@ fn main() {
             .help("The update strategy; [default: none].")
     };
 
-    let sub_install = SubCommand::with_name("install")
-                          .about("Install a bldr package from a depot")
-                          .arg(Arg::with_name("package")
-                                   .index(1)
-                                   .required(true)
-                                   .help("Name of bldr package to install"))
-                          .arg(arg_url());
     let sub_start = SubCommand::with_name("start")
                         .about("Start a bldr package")
                         .arg(Arg::with_name("package")
@@ -223,14 +216,6 @@ fn main() {
                                  .long("gossip-permanent")
                                  .help("If this service is a permanent gossip peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
-    let sub_bash = SubCommand::with_name("bash").about("Start an interactive shell");
-    let sub_upload = SubCommand::with_name("upload")
-                         .about("Upload an archive to a bldr depot")
-                         .arg(Arg::with_name("archive")
-                                  .index(1)
-                                  .required(true)
-                                  .help("Path to the archive to upload"))
-                         .arg(arg_url());
     let sub_generate_user_key = SubCommand::with_name("generate-user-key")
                                     .about("Generate a bldr user key")
                                     .arg(Arg::with_name("user")
@@ -316,49 +301,7 @@ fn main() {
                                         .args(&["user", "service"]))
                              .arg(arg_outfile().required(true))
                              .arg(arg_group());
-    let sub_download_depot_key = SubCommand::with_name("download-depot-key")
-                                     .about("Not implemented")
-                                     .arg(Arg::with_name("key")
-                                              .index(1)
-                                              .required(true)
-                                              .help("Name of key"));
-    let sub_upload_depot_key = SubCommand::with_name("upload-depot-key")
-                                   .about("Not implemented")
-                                   .arg(Arg::with_name("key")
-                                            .index(1)
-                                            .required(true)
-                                            .help("Name of key"));
     let sub_list_keys = SubCommand::with_name("list-keys").about("List user and service keys");
-    let sub_inject_config_file =
-        SubCommand::with_name("inject-config-file")
-            .about("Inject a config file")
-            .arg(Arg::with_name("service-group")
-                     .help("Target service group for this configuration (Ex: redis.default)")
-                     .long("service-group")
-                     .short("s")
-                     .value_name("SERVICE_GROUP")
-                     .takes_value(true)
-                     .required(true))
-            .arg(Arg::with_name("gossip-peer")
-                     .help("The listen string of gossip peer (Ex: ip:port)")
-                     .long("gossip-peer")
-                     .short("p")
-                     .value_name("PEER")
-                     .takes_value(true)
-                     .multiple(true)
-                     .required(true))
-            .arg(Arg::with_name("version-number")
-                     .help("Version number for the config file (Ex: 42)")
-                     .long("version-number")
-                     .short("n")
-                     .value_name("VERSION")
-                     .takes_value(true)
-                     .required(true))
-            .arg(Arg::with_name("file-path")
-                     .help("Path to local config file on disk (Ex: /tmp/config.toml)")
-                     .index(1)
-                     .value_name("PATH")
-                     .required(true));
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
                          .arg(Arg::with_name("package")
@@ -377,21 +320,15 @@ fn main() {
                             .long("no-color")
                             .global(true)
                             .help("Turn ANSI color off :("))
-                   .subcommand(sub_install)
                    .subcommand(sub_start)
                    .subcommand(sub_sh)
-                   .subcommand(sub_bash)
-                   .subcommand(sub_upload)
                    .subcommand(sub_generate_user_key)
                    .subcommand(sub_generate_service_key)
                    .subcommand(sub_encrypt)
                    .subcommand(sub_decrypt)
                    .subcommand(sub_import_key)
                    .subcommand(sub_export_key)
-                   .subcommand(sub_download_depot_key)
-                   .subcommand(sub_upload_depot_key)
                    .subcommand(sub_list_keys)
-                   .subcommand(sub_inject_config_file)
                    .subcommand(sub_config);
     let matches = args.get_matches();
 
@@ -409,18 +346,13 @@ fn main() {
         Command::Shell => shell(&config),
         Command::Config => configure(&config),
         Command::Decrypt => decrypt(&config),
-        Command::DownloadDepotKey => download_depot_key(&config),
         Command::Encrypt => encrypt(&config),
         Command::ExportKey => export_key(&config),
         Command::GenerateServiceKey => generate_service_key(&config),
         Command::GenerateUserKey => generate_user_key(&config),
         Command::ImportKey => import_key(&config),
-        Command::InjectConfigFile => inject_config_file(&config),
-        Command::Install => install(&config),
         Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
-        Command::UploadDepotKey => upload_depot_key(&config),
-        Command::Upload => upload(&config),
     };
 
     match result {
@@ -457,15 +389,6 @@ fn configure(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-/// Install a package
-#[allow(dead_code)]
-fn install(config: &Config) -> BldrResult<()> {
-    outputln!("Installing {}",
-              Yellow.bold().paint(config.package().to_string()));
-    try!(install::from_url(&config.url().as_ref().unwrap(), config.package()));
-    Ok(())
-}
-
 /// Start a service
 #[allow(dead_code)]
 fn start(config: &Config) -> BldrResult<()> {
@@ -474,16 +397,6 @@ fn start(config: &Config) -> BldrResult<()> {
     try!(start::package(config));
     outputln!("Finished with {}",
               Yellow.bold().paint(config.package().to_string()));
-    Ok(())
-}
-
-/// Upload a package
-#[allow(dead_code)]
-fn upload(config: &Config) -> BldrResult<()> {
-    outputln!("Upload Bldr Package {}",
-              Yellow.bold().paint(config.archive()));
-    try!(upload::package(&config));
-    outputln!("Finished with {}", Yellow.bold().paint(config.archive()));
     Ok(())
 }
 
@@ -501,16 +414,6 @@ fn export_key(config: &Config) -> BldrResult<()> {
     try!(key::export(&config));
     outputln!("Finished exporting key");
     Ok(())
-}
-
-/// Upload a key to a depot
-fn upload_depot_key(_config: &Config) -> BldrResult<()> {
-    panic!("Not implemented");
-}
-
-/// Download a key from a depot
-fn download_depot_key(_config: &Config) -> BldrResult<()> {
-    panic!("Not implemented");
 }
 
 /// Generate a key for a user
@@ -554,15 +457,5 @@ fn decrypt(config: &Config) -> BldrResult<()> {
     outputln!("Decrypting");
     try!(key::decrypt_and_verify(&config));
     outputln!("Finished decrypting");
-    Ok(())
-}
-
-/// Inject a config file
-fn inject_config_file(config: &Config) -> BldrResult<()> {
-    outputln!("Injecting {} into {}",
-              config.file_path(),
-              config.service_group());
-    try!(inject::inject(&config));
-    outputln!("Finished injecting");
     Ok(())
 }

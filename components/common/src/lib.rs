@@ -4,11 +4,17 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-//! The CLI commands.
-//!
-//! Bldr's command line actions are defined here; one module per command. Their names map 1:1 to
-//! the actual command line arguments, with one exception - `_` is translated to `-` on the CLI.
+extern crate habitat_core as hcore;
+extern crate habitat_depot_core as depot_core;
+extern crate habitat_depot_client as depot_client;
+#[macro_use]
+extern crate log;
+extern crate openssl;
+extern crate rustc_serialize;
+extern crate time;
 
-pub mod start;
-pub mod key;
-pub mod configure;
+pub use self::error::{Error, Result};
+
+pub mod command;
+pub mod config_file;
+pub mod error;

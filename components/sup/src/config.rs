@@ -25,21 +25,16 @@ static LOGKEY: &'static str = "CFG";
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// An enum with the various CLI commands. Used to keep track of what command was called.
 pub enum Command {
-    Install,
     Config,
     Start,
     ImportKey,
-    InjectConfigFile,
     ExportKey,
-    UploadDepotKey,
-    DownloadDepotKey,
     GenerateUserKey,
     GenerateServiceKey,
     ListKeys,
     Encrypt,
     Decrypt,
     Shell,
-    Upload,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -67,22 +62,16 @@ impl FromStr for Command {
     type Err = BldrError;
     fn from_str(s: &str) -> Result<Command, BldrError> {
         match s {
-            "bash" => Ok(Command::Shell),
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
-            "download-depot-key" => Ok(Command::DownloadDepotKey),
             "encrypt" => Ok(Command::Encrypt),
             "export-key" => Ok(Command::ExportKey),
             "generate-service-key" => Ok(Command::GenerateServiceKey),
             "generate-user-key" => Ok(Command::GenerateUserKey),
             "import-key" => Ok(Command::ImportKey),
-            "inject-config-file" => Ok(Command::InjectConfigFile),
-            "install" => Ok(Command::Install),
             "list-keys" => Ok(Command::ListKeys),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
-            "upload-depot-key" => Ok(Command::UploadDepotKey),
-            "upload" => Ok(Command::Upload),
             _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
         }
     }
@@ -91,7 +80,7 @@ impl FromStr for Command {
 // We provide a default command primarily so the Config struct can have sane defaults.
 impl Default for Command {
     fn default() -> Command {
-        Command::Install
+        Command::Start
     }
 }
 
@@ -392,8 +381,8 @@ mod tests {
     #[test]
     fn command() {
         let mut c = Config::new();
-        c.set_command(Command::Install);
-        assert_eq!(c.command(), Command::Install);
+        c.set_command(Command::Start);
+        assert_eq!(c.command(), Command::Start);
     }
 
     #[test]

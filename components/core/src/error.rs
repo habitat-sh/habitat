@@ -32,12 +32,18 @@ pub enum Error {
     InvalidKeyParameter(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
+    /// Occurs when a service group string cannot be successfully parsed.
+    InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Occurs when a package metadata file cannot be opened, read, or parsed.
     MetaFileMalformed(package::MetaFile),
     /// Occurs when a particular package metadata file is not found.
     MetaFileNotFound(package::MetaFile),
+    /// When an IO error while accessing a MetaFile.
+    MetaFileIO(io::Error),
+    /// Occurs when a suitable installed pacakge cannot be found.
+    PackageNotFound(package::PackageIdent),
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
     /// Occurs when setting ownership or permissions on a file or directory fails.
@@ -62,10 +68,23 @@ impl fmt::Display for Error {
                          origin/name (example: chef/redis)",
                         e)
             }
+            Error::InvalidServiceGroup(ref e) => {
+                format!("Invalid service group: {:?}. A valid service group string is in the form \
+                         service.group (example: redis.production)",
+                        e)
+            }
             Error::IO(ref err) => format!("{}", err),
-            Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
+            }
+            Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
+            Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            Error::PackageNotFound(ref pkg) => {
+                if pkg.fully_qualified() {
+                    format!("Cannot find package: {}", pkg)
+                } else {
+                    format!("Cannot find a release of package: {}", pkg)
+                }
             }
             Error::ParseIntError(ref e) => format!("{}", e),
             Error::PermissionFailed => format!("Failed to set permissions"),
@@ -84,9 +103,12 @@ impl error::Error for Error {
             Error::GPG(_) => "gpgme error",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
+            Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
             Error::IO(ref err) => err.description(),
-            Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
+            Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
+            Error::MetaFileIO(_) => "MetaFile could not be read or written to",
+            Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
             Error::PermissionFailed => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",

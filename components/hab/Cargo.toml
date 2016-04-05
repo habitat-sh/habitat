@@ -1,0 +1,29 @@
+[package]
+name = "hab"
+version = "0.4.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+
+[dependencies]
+# Used to handle responses code back from depot-core
+hyper = "*"
+libc = "*"
+log = "*"
+# Temporary depdency for gossip/rumor injection code duplication.
+rustc-serialize = "*"
+# Temporary depdency for gossip/rumor injection code duplication.
+temp_utp = "*"
+url = "*"
+# Temporary depdency for gossip/rumor injection code duplication.
+uuid = "0.1"
+
+[dependencies.clap]
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_common]
+path = "../common"
+
+[dependencies.habitat_depot_client]
+path = "../depot-client"

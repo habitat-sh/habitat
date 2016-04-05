@@ -12,12 +12,12 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
-use census::CensusEntry;
-use config_file::ConfigFile;
-use election::Election;
-
+use common::config_file::ConfigFile;
 use rustc_serialize::Encodable;
 use uuid::Uuid;
+
+use census::CensusEntry;
+use election::Election;
 
 /// How many times does a rumor get shared with a member before we stop sharing it?
 pub const COLD_AFTER: usize = 3;
