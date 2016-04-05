@@ -17,10 +17,37 @@
 
   ul {
     height: 80px;
+    position: relative;
     width: 100%;
 
     li {
       display: inline-block;
+    }
+
+
+    ul {
+      background-color: $white;
+      border-radius: 3px;
+      box-shadow: 0 1px 24px 0 rgba($hab-blue-dark, .15);
+      height: auto;
+      padding: 1em 0;
+      position: absolute;
+      right: 0;
+      top: 58px;
+      width: 8em;
+
+      li {
+        float: left;
+      }
+
+      li a {
+        line-height: 1.5em;
+
+        &:hover {
+          color: $hab-orange;
+        }
+      }
+
     }
 
     li a {
