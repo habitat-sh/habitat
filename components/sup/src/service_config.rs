@@ -167,9 +167,15 @@ impl Svc {
         let mut top = service_entry(cl.local_census());
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::Table::new();
-        for (sg, c) in cl.iter() {
+        for (_sg, c) in cl.iter() {
             all.push(toml::Value::Table(service_entry(c)));
-            named.insert(sg.clone(), toml::Value::Table(service_entry(c)));
+            let mut group = if named.contains_key(&c.service) {
+                named.get(&c.service).unwrap().as_table().unwrap().clone()
+            } else {
+                toml::Table::new()
+            };
+            group.insert(c.group.clone(), toml::Value::Table(service_entry(c)));
+            named.insert(c.service.clone(), toml::Value::Table(group));
         }
         top.insert("all".to_string(), toml::Value::Array(all));
         top.insert("named".to_string(), toml::Value::Table(named));
