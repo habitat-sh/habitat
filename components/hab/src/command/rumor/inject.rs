@@ -17,6 +17,7 @@ pub fn start(peers: &Vec<String>,
              number: u64,
              file_path: Option<&Path>)
              -> Result<()> {
+    let sg1 = sg.clone();
     let file = match file_path {
         Some(p) => try!(ConfigFile::from_file(sg, p, number)),
         None => {
@@ -25,14 +26,14 @@ pub fn start(peers: &Vec<String>,
             try!(ConfigFile::from_body(sg, "config.toml".to_string(), body, number))
         }
     };
-    println!("Injecting {} into {}", &file, &sg);
+    println!("Injecting {} into {}", &file, &sg1);
     let rumor = hab_gossip::Rumor::config_file(file);
 
     let mut list = hab_gossip::RumorList::new();
     list.add_rumor(rumor);
 
     try!(initial_peers(&peers, &list));
-    outputln!("Finished injecting");
+    println!("Finished injecting");
     Ok(())
 }
 

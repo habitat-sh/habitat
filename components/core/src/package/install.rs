@@ -122,10 +122,16 @@ impl PackageInstall {
     /// # Failures
     ///
     /// * The package contains a Path metafile but it could not be read or it was malformed
-    pub fn path(&self) -> Result<Option<PathBuf>> {
+    pub fn paths(&self) -> Result<Vec<PathBuf>> {
         match self.read_metafile(MetaFile::Path) {
-            Ok(body) => Ok(Some(PathBuf::from(body))),
-            Err(Error::MetaFileNotFound(MetaFile::Path)) => Ok(None),
+            Ok(body) => {
+                let v = env::split_paths(&body).map(|p| PathBuf::from(&p)).collect();
+                Ok(v)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::Path)) => {
+                let v: Vec<PathBuf> = Vec::new();
+                Ok(v)
+            }
             Err(e) => Err(e),
         }
     }
@@ -138,12 +144,12 @@ impl PackageInstall {
     /// without having to worry much about context.
     pub fn runtime_path(&self) -> Result<String> {
         let mut run_path = String::new();
-        if let Some(path) = try!(self.path()) {
+        for path in try!(self.paths()) {
             run_path.push_str(&path.to_string_lossy());
         }
         let tdeps: Vec<PackageInstall> = try!(self.load_tdeps());
         for dep in tdeps.iter() {
-            if let Some(path) = try!(dep.path()) {
+            for path in try!(dep.paths()) {
                 run_path.push(':');
                 run_path.push_str(&path.to_string_lossy());
             }
@@ -154,13 +160,13 @@ impl PackageInstall {
                                                              None,
                                                              None),
                                           Some(&self.package_root_path)));
-            if let Some(path) = try!(sup_pkg.path()) {
+            for path in try!(sup_pkg.paths()) {
                 run_path.push(':');
                 run_path.push_str(&path.to_string_lossy());
             }
             let tdeps: Vec<PackageInstall> = try!(sup_pkg.load_tdeps());
             for dep in tdeps.iter() {
-                if let Some(path) = try!(dep.path()) {
+                for path in try!(dep.paths()) {
                     run_path.push(':');
                     run_path.push_str(&path.to_string_lossy());
                 }
