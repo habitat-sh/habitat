@@ -732,7 +732,8 @@ impl CensusList {
         }
     }
 
-    pub fn process(&mut self, remote_ce: CensusEntry) -> bool {
+    pub fn process(&mut self, mut remote_ce: CensusEntry) -> bool {
+        remote_ce.needs_write = Some(true);
         if let Some(mut current_ce) = self.get_mut(&remote_ce.id, &remote_ce.service_group()) {
             return current_ce.update_via(remote_ce);
         }
@@ -744,6 +745,15 @@ impl CensusList {
         for (_sg, mut census) in self.censuses.iter_mut() {
             census.written();
         }
+    }
+
+    pub fn needs_write(&self) -> bool {
+        for (_sg, census) in self.censuses.iter() {
+            if census.needs_write() {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
