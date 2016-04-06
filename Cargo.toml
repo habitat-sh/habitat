@@ -11,3 +11,8 @@ log = "*"
 regex = "*"
 rust-crypto = "*"
 rustc-serialize = "*"
+sodiumoxide = "*"
+libsodium-sys = "*"
+time = "*"
+
+
