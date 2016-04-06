@@ -6,17 +6,22 @@ are present when you first check out the app, but they may appear after running
 some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
 
     app/                         # The app/ directory contains the code that makes up the app.
-      home-page/                 #   The top level directories contain the app's components.
+      explore-page/              #   The top level directories contain the app's components.
       package-page/              #   For example, the package-page/ directory has
         _package.scss            #     [Sass](http://sass-lang.com/) SCSS stylesheet,
         PackagePageComponent.ts  #     a component that represents a page,
         PackageListComponent.ts  #     and possibly more components that are used by that one.
       packages-page/             #   Directories that end in -page/ contain
       sign-in-page/              #   components that act like pages.
-      sign-up-form/              #   But other directories have components that do not.
+      side-nav/                  #   But other directories have components that do not.
       actions/                   #   [Actions](http://redux.js.org/docs/basics/Actions.html).
         index.ts                 #     The main action creators entry point.
         notifications.ts         #     Other action creators live here too.
+      records/                   #   [Record](https://facebook.github.io/immutable-js/docs/#/Record) objects representing data types.
+      reducers/                  #   [Reducers](http://rackt.org/redux/docs/basics/Reducers.html) for redux
+      app.ts                     #   Each reducer is responsible for a key in the app state (defined in app/initialState.ts.)
+      index.ts                   #   The root Reducer.
+      notifications.ts           #
       app.scss                   #   Main entry point for the SCSS.
       AppComponent.ts            #   The top level component of the app.
       AppStore.ts                #   The [Store](http://redux.js.org/docs/basics/Store.html) for the app.
@@ -33,11 +38,6 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
       files.md                   #   This is the file you are reading now.
     fixtures/                    # Fixture data the app uses to make fake requests.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
-    records/                     # [Record](https://facebook.github.io/immutable-js/docs/#/Record) objects representing data types.
-    reducers/                    # [Reducers](http://rackt.org/redux/docs/basics/Reducers.html) for redux
-      app.ts                     #   Each reducer is responsible for a key in the app state (defined in app/initialState.ts.)
-      index.ts                   #   The root Reducer.
-      notifications.ts           #
     stylesheets/base/            # The SCSS files for the stylesheets.
     test/e2e/                    # End-to-end [Protractor](https://angular.github.io/protractor/#/) tests.
     typings/                     # Type definitions for [Typings](https://github.com/typings/typings). Ignored by git.

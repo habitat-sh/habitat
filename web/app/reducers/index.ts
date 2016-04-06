@@ -12,7 +12,7 @@ import orgs from "./orgs";
 import packages from "./packages";
 import projects from "./projects";
 import router from "./router";
-import user from "./user";
+import users from "./users";
 
 export default combineReducers({
     app,
@@ -22,5 +22,5 @@ export default combineReducers({
     packages,
     projects,
     router,
-    user,
+    users,
 });

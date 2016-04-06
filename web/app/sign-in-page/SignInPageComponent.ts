@@ -7,12 +7,14 @@
 import {Component} from "angular2/core";
 import {Router} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {attemptSignIn, requestRoute} from "../actions/index";
+import {attemptSignIn, goHome} from "../actions/index";
 
 @Component({
     template: `
     <div class="hab-sign-in">
-        <h2>Sign In</h2>
+        <div class="page-title">
+            <h2>Sign In</h2>
+        </div>
         <form (ngSubmit)="onSubmit(usernameOrEmail, password)">
             <input placeholder="Username or email" autofocus required #usernameOrEmail>
             <input type="password" placeholder="Password" required #password>
@@ -28,16 +30,8 @@ export class SignInPageComponent {
         return this.store.getState().user.username;
     }
 
-    ngOnInit() {
-        if (this.store.getState().user.isSignedIn) {
-            this.store.dispatch(
-                requestRoute(["Packages", { filter: "mine" }])
-            );
-        }
-    }
-
     onSubmit(username) {
         this.store.dispatch(attemptSignIn(username.value));
-        this.store.dispatch(requestRoute(["Packages", { filter: "mine" }]));
+        this.store.dispatch(goHome());
     }
 }

@@ -8,7 +8,6 @@ import {AppStore} from "./AppStore";
 import {Component} from "angular2/core";
 import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
-import {HomePageComponent} from "./home-page/HomePageComponent";
 import {LinkedAccountsPageComponent} from "./linked-accounts-page/LinkedAccountsPageComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
@@ -22,7 +21,8 @@ import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {removeNotification, routeChange} from "./actions/index";
+import {removeNotification, routeChange, signOutViaUserNavMenu,
+    toggleUserNavMenu} from "./actions/index";
 
 @Component({
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
@@ -30,12 +30,20 @@ import {removeNotification, routeChange} from "./actions/index";
     template: `
     <div class="hab-topbar">
         <hab-notifications [notifications]="state.notifications.all"
-                            [removeNotification]="removeNotification">
+                           [removeNotification]="removeNotification">
         </hab-notifications>
-        <hab-header [appName]="state.app.name"></hab-header>
+        <hab-header [appName]="state.app.name"
+                    [isUserNavOpen]="user.isUserNavOpen"
+                    [isSignedIn]="user.isSignedIn"
+                    [username]="user.username"
+                    [avatarUrl]="user.avatarUrl"
+                    [signOutViaUserNavMenu]="signOutViaUserNavMenu"
+                    [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
     </div>
     <div class="hab-container">
-        <hab-side-nav [route]="state.router.route"></hab-side-nav>
+        <hab-side-nav [isSignedIn]="user.isSignedIn"
+                      [origin]="origin"
+                      [route]="state.router.route"></hab-side-nav>
         <section class="hab-main">
             <router-outlet></router-outlet>
         </section>
@@ -48,8 +56,7 @@ import {removeNotification, routeChange} from "./actions/index";
 @RouteConfig([
     {
         path: "/",
-        name: "Home",
-        component: HomePageComponent
+        redirectTo: ["Packages"],
     },
     {
         path: "/explore",
@@ -130,6 +137,8 @@ import {removeNotification, routeChange} from "./actions/index";
 
 export class AppComponent {
     removeNotification: Function;
+    signOutViaUserNavMenu: Function;
+    toggleUserNavMenu: Function;
 
     constructor(private router: Router, private store: AppStore) {
         // Whenever the Angular route has an event, dispatch an event with the new
@@ -148,7 +157,22 @@ export class AppComponent {
             this.store.dispatch(removeNotification(i));
             return false;
         }.bind(this);
+
+        this.signOutViaUserNavMenu = function() {
+            this.store.dispatch(signOutViaUserNavMenu());
+            return false;
+        }.bind(this);
+
+        this.toggleUserNavMenu = function() {
+            this.store.dispatch(toggleUserNavMenu());
+            return false;
+        }.bind(this);
+
     }
 
+    get origin() { return {}; }
+
     get state() { return this.store.getState(); }
+
+    get user() { return this.state.users.current; }
 }

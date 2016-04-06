@@ -1,4 +1,5 @@
 import * as moment from "moment";
+import {requestRoute} from "./actions/index";
 
 // Pretty print a time
 // Print a number of seconds as minutes and seconds
@@ -28,4 +29,11 @@ export function packageString(o = {}) {
     return ["origin", "name", "version", "release"]
         .map(part => o[part])
         .filter(part => part).join("/");
+}
+
+// Given a page component, check if the user is signed in and redirect if not
+export function requireSignIn(pageComponent) {
+    if (!pageComponent.store.getState().users.current.isSignedIn) {
+        pageComponent.store.dispatch(requestRoute(["SignIn"]));
+    }
 }

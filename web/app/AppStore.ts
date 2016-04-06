@@ -10,11 +10,15 @@ import {applyMiddleware, compose, createStore} from "redux";
 import rootReducer from "./reducers/index";
 import * as thunk from "redux-thunk";
 
+const resetMiddleware = require("redux-reset").default;
+
 const finalCreateStore = compose(
     // The thunk middleware allows an action to return a function that takes a
     // dispatch argument instead of returning an object directly. This allows
     // actions to make async calls.
     applyMiddleware(thunk),
+    // Allows resetting of the store
+    resetMiddleware(),
     // Enable dev tools if the extension is installed.
     window["devToolsExtension"] ? window["devToolsExtension"]() : (f) => f
 )(createStore);

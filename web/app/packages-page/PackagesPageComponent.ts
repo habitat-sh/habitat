@@ -10,7 +10,8 @@ import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
 import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {SpinnerComponent} from "../SpinnerComponent";
-import {filterPackagesBy, requestRoute} from "../actions/index";
+import {filterPackagesBy} from "../actions/index";
+import {requireSignIn} from "../util";
 
 @Component({
     directives: [PackageBreadcrumbsComponent, RouterLink, SpinnerComponent],
@@ -75,8 +76,8 @@ export class PackagesPageComponent implements OnInit {
     }
 
     public ngOnInit() {
-        if (!this.store.getState().user.isSignedIn) {
-            this.store.dispatch(requestRoute(["Home"]));
+        if (this.routeParams.params["filter"] === "mine") {
+            requireSignIn(this);
         }
 
         this.fetchPackages();

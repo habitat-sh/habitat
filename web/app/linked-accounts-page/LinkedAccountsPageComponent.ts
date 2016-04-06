@@ -6,9 +6,9 @@
 
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {RouteParams, RouterLink} from "angular2/router";
 import {linkGitHubAccount, unlinkGitHubAccount} from "../actions/index";
-import {icon} from "../util";
+import {icon, requireSignIn} from "../util";
 
 @Component({
     directives: [RouterLink],
@@ -59,7 +59,9 @@ import {icon} from "../util";
 })
 
 export class LinkedAccountsPageComponent {
-    constructor(private store: AppStore) { }
+    constructor(private routeParams: RouteParams, private store: AppStore) {
+        requireSignIn(this);
+    }
 
     get appName() { return this.store.getState().appName; }
     get gitHub() { return this.store.getState().gitHub; }

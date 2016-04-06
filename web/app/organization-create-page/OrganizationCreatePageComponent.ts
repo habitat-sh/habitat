@@ -10,7 +10,9 @@ import {addOrg, cancelOrgInvitation, inviteMemberToOrg, finishAddingOrg,
 import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
-import {OrganizationMembersComponent} from "../organization-members/OrganizationMembersComponent";
+import {OrganizationMembersComponent} from
+    "../organization-members/OrganizationMembersComponent";
+import {requireSignIn} from "../util";
 
 // This shows up on both steps. It could be broken out into a Component
 // is really too simple for that.
@@ -88,6 +90,8 @@ export class OrganizationCreatePageComponent {
     private toggleMemberActionMenu: Function;
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
+        requireSignIn(this);
+
         this.form = formBuilder.group({
             namespace: ["", Validators.required],
             name: ["", Validators.required],

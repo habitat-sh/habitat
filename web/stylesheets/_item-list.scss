@@ -50,13 +50,13 @@
     padding-top: .5em;
     position: relative;
 
-      img {
-        @include transition(opacity .6s);
-        height: 1.5em;
-        opacity: .1;
-        position: absolute;
-        right: 0;
-      }
+    img {
+      @include transition(opacity .6s);
+      height: 1.5em;
+      opacity: .1;
+      position: absolute;
+      right: 0;
+    }
   }
 
   &:hover {
@@ -66,7 +66,9 @@
     box-shadow: 0 1px 14px 0 $hab-blue-light;
   }
 
-  li:last-child & {
-    margin-bottom: 0;
+  li {
+    &:last-child & {
+      margin-bottom: 0;
+    }
   }
 }

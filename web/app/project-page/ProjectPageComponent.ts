@@ -11,7 +11,7 @@ import {RouterLink, RouteParams} from "angular2/router";
 import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
 import {fetchBuilds, fetchProject} from "../actions/index";
-import {friendlyTime} from "../util";
+import {friendlyTime, requireSignIn} from "../util";
 
 @Component({
     directives: [BuildListComponent, RouterLink, TabsComponent, TabComponent],
@@ -98,7 +98,9 @@ import {friendlyTime} from "../util";
 })
 
 export class ProjectPageComponent implements OnInit {
-    constructor(private routeParams: RouteParams, private store: AppStore) {}
+    constructor(private routeParams: RouteParams, private store: AppStore) {
+        requireSignIn(this);
+    }
 
     get project() {
         return this.store.getState().projects.current;
