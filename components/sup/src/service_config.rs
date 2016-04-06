@@ -350,7 +350,7 @@ impl Cfg {
     }
 
     fn load_environment(&mut self, pkg: &Package) -> BldrResult<()> {
-        let var_name = format!("BLDR_{}", pkg.name).to_ascii_uppercase();
+        let var_name = format!("BLDR_{}", pkg.name).to_ascii_uppercase().replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 let mut toml_parser = toml::Parser::new(&config);
