@@ -36,6 +36,7 @@ rand = "*"
 threadpool = "*"
 urlencoded = "*"
 openssl = "*"
+lazy_static = "*"
 
 [dependencies.habitat_core]
 path = "../core"

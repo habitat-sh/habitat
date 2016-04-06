@@ -62,6 +62,8 @@ extern crate rand;
 extern crate threadpool;
 extern crate urlencoded;
 extern crate openssl;
+#[macro_use]
+extern crate lazy_static;
 
 #[macro_export]
 /// Creates a new BldrError, embedding the current file name, line number, column, and module path.
@@ -80,7 +82,8 @@ macro_rules! output {
     ($content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new("bldr",
+            use $crate::PROGRAM_NAME;
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -104,8 +107,9 @@ macro_rules! output {
     ($content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
+            use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new("bldr",
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -135,7 +139,8 @@ macro_rules! outputln {
     ($content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new("bldr",
+            use $crate::PROGRAM_NAME;
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -159,8 +164,9 @@ macro_rules! outputln {
     ($content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
+            use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new("bldr",
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -190,7 +196,8 @@ macro_rules! output_format {
     ($content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new("bldr",
+            use $crate::PROGRAM_NAME;
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -227,8 +234,9 @@ macro_rules! output_format {
     ($content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
+            use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new("bldr",
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -268,6 +276,16 @@ pub mod service_config;
 pub mod census;
 pub mod gossip;
 pub mod election;
+
+use std::env;
+use std::path::PathBuf;
+
+lazy_static!{
+    pub static ref PROGRAM_NAME: String = {
+        let arg0 = env::args().next().map(|p| PathBuf::from(p));
+        arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
+    };
+}
 
 #[allow(dead_code)]
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");

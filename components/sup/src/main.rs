@@ -309,7 +309,7 @@ fn main() {
                                   .index(1)
                                   .required(true)
                                   .help("Name of package"));
-    let args = App::new("bldr")
+    let args = App::new(sup::PROGRAM_NAME.as_str())
                    .version(VERSION)
                    .setting(AppSettings::VersionlessSubcommands)
                    .setting(AppSettings::SubcommandRequiredElseHelp)

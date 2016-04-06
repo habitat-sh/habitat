@@ -23,6 +23,8 @@ use std::fmt;
 
 use ansi_term::Colour::{White, Cyan, Green};
 
+use PROGRAM_NAME;
+
 static mut VERBOSE: AtomicBool = ATOMIC_BOOL_INIT;
 // I am sorry this isn't named the other way; I can't get an atomic initializer that defaults to
 // true. Them's the breaks.
@@ -100,9 +102,10 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let verbose = self.verbose.unwrap_or(is_verbose());
         let color = self.color.unwrap_or(is_color());
-        let preamble_color = match self.preamble {
-            "bldr" => Cyan,
-            _ => Green,
+        let preamble_color = if self.preamble == PROGRAM_NAME.as_str() {
+            Cyan
+        } else {
+            Green
         };
         if verbose {
             if color {
@@ -142,6 +145,8 @@ mod tests {
     use super::StructuredOutput;
     use ansi_term::Colour::{White, Cyan};
 
+    use PROGRAM_NAME;
+
     static LOGKEY: &'static str = "SOT";
 
     fn so<'a>(preamble: &'a str, content: &'a str) -> StructuredOutput<'a> {
@@ -150,28 +155,29 @@ mod tests {
 
     #[test]
     fn new() {
-        let so = so("bldr", "opeth is amazing");
+        let so = so("soup", "opeth is amazing");
         assert_eq!(so.logkey, "SOT");
-        assert_eq!(so.preamble, "bldr");
+        assert_eq!(so.preamble, "soup");
         assert_eq!(so.content, "opeth is amazing");
     }
 
     #[test]
     fn format() {
-        let mut so = so("bldr", "opeth is amazing");
+        let mut so = so("soup", "opeth is amazing");
         so.verbose = Some(false);
         so.color = Some(false);
-        assert_eq!(format!("{}", so), "bldr(SOT): opeth is amazing");
+        assert_eq!(format!("{}", so), "soup(SOT): opeth is amazing");
     }
 
     #[test]
     fn format_color() {
-        let mut so = so("bldr", "opeth is amazing");
+        let progname = PROGRAM_NAME.as_str();
+        let mut so = so(progname, "opeth is amazing");
         so.verbose = Some(false);
         so.color = Some(true);
         assert_eq!(format!("{}", so),
                    format!("{}({}): opeth is amazing",
-                           Cyan.paint("bldr"),
+                           Cyan.paint(progname),
                            White.bold().paint("SOT")));
     }
 }
