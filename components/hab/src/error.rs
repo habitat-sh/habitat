@@ -27,6 +27,7 @@ pub enum Error {
     HabitatCore(hcore::Error),
     IO(io::Error),
     PackageArchiveMalformed(String),
+    CryptoCLI(String),
 }
 
 impl fmt::Display for Error {
@@ -44,7 +45,8 @@ impl fmt::Display for Error {
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
-            }
+            },
+            Error::CryptoCLI(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -61,6 +63,7 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            Error::CryptoCLI(_) => "A cryptographic error has occurred",
         }
     }
 }

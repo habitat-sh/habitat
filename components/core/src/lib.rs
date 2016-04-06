@@ -14,6 +14,9 @@ extern crate libarchive;
 extern crate log;
 extern crate regex;
 extern crate rustc_serialize;
+extern crate sodiumoxide;
+extern crate libsodium_sys;
+extern crate time;
 
 pub use self::error::{Error, Result};
 
@@ -24,3 +27,4 @@ pub mod package;
 pub mod service;
 pub mod url;
 pub mod util;
+pub mod hab_crypto;

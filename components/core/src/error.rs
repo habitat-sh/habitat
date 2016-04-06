@@ -53,6 +53,8 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
+    /// Crypto library error
+    CryptoError(String),
 }
 
 impl fmt::Display for Error {
@@ -91,6 +93,9 @@ impl fmt::Display for Error {
             Error::PermissionFailed => format!("Failed to set permissions"),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::CryptoError(ref e) => {
+                format!("Crypto error: {}", e)
+            }
         };
         write!(f, "{}", msg)
     }
@@ -114,6 +119,7 @@ impl error::Error for Error {
             Error::PermissionFailed => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            Error::CryptoError(_) => "Crypto error",
         }
     }
 }

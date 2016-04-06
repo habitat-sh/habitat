@@ -27,15 +27,43 @@ pub fn get() -> App<'static, 'static> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
-        (@subcommand archive =>
-            (about: "Runs Habitat package archive commands")
+        (@subcommand artifact =>
+            (about: "Runs Habitat package artifact commands")
             (@setting ArgRequiredElseHelp)
             (@subcommand upload =>
-                (about: "Uploads a local package archive to a depot")
+                (about: "Uploads a local package artifact to a depot")
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                  "Use a specific package depot URL")
-                (@arg ARCHIVE: +required {file_exists}
-                 "A path to an archive file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+                (@arg ARTIFACT: +required {file_exists}
+                 "A path to an artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+            )
+            (@subcommand sign =>
+                (about: "Signs a Habitat package with an origin key")
+                (@arg ORIGIN_KEY: +required --origin_key +takes_value {valid_origin_key}
+                 "Origin key used to create signature")
+                (@arg INFILE: +required {file_exists}
+                 "A path to an archive file (ex: /home/chef-redis-3.0.7-21120102031201.xz)")
+                (@arg ARTIFACT: +required
+                 "TODO")
+            )
+            (@subcommand verify =>
+                (about: "Verifies a Habitat package with an origin key")
+                (@arg ARTIFACT: +required {file_exists}
+                 "A path to a .hab artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+                (@arg OUTFILE: +required
+                 "TODO")
+            )
+        )
+        (@subcommand origin =>
+            (about: "Runs Habitat origin commands")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand key =>
+                 (about: "Runs Habitat for origin key maintenance")
+                 (@setting ArgRequiredElseHelp)
+                 (@subcommand generate =>
+                        (about: "Generates an origin key")
+                        (@arg ORIGIN_KEY: +required {valid_origin_key})
+                 )
             )
         )
         (@subcommand pkg =>
@@ -50,6 +78,15 @@ pub fn get() -> App<'static, 'static> {
         )
         (@subcommand sup =>
             (about: "Runs Habitat supervisor commands")
+        )
+        (@subcommand origin =>
+            (about: "Habitat origin commands")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand generate_key =>
+                (about: "Generates an origin key")
+                (@arg KEY_NAME: +required {valid_origin_key}
+                 "TODO: origin key name description")
+            )
         )
         (subcommand: alias_inject)
         (subcommand: alias_install)
@@ -117,4 +154,9 @@ fn valid_url(val: String) -> result::Result<(), String> {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("URL: '{}' is not valid", &val)),
     }
+}
+
+fn valid_origin_key(_val: String) -> result::Result<(), String> {
+    // TODO
+    Ok(())
 }
