@@ -4,11 +4,13 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {AppStore} from "../AppStore";
 import {Component, OnInit} from "angular2/core";
-import {GitHubRepoPickerComponent} from "../github-repo-picker/GitHubRepoPickerComponent";
+import {AppStore} from "../AppStore";
 import {fetchGitHubRepos, onGitHubRepoSelect, setSelectedGitHubOrg}
     from "../actions/index";
+import {GitHubRepoPickerComponent} from
+    "../github-repo-picker/GitHubRepoPickerComponent";
+import {requireSignIn} from "../util";
 
 @Component({
     directives: [GitHubRepoPickerComponent],
@@ -49,6 +51,8 @@ export class SCMReposPageComponent implements OnInit {
     private onRepoSelect: Function;
 
     constructor(private store: AppStore) {
+        requireSignIn(this);
+
         this.onOrgSelect = (org) => {
             this.store.dispatch(setSelectedGitHubOrg(org));
             return false;

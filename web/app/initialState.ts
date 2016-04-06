@@ -101,12 +101,12 @@ export default Record({
         requestedRoute: "",
         route: "",
     })(),
-    user: Record({
-        email: undefined,
-        isSignedIn: true,
-        isSignUpFormSubmitted: false,
-        isUserNavOpen: false,
-        password: undefined,
-        username: "smith",
+    users: Record({
+        current: Record({
+            email: undefined,
+            isSignedIn: false,
+            isUserNavOpen: false,
+            username: undefined,
+        })(),
     })(),
 })();

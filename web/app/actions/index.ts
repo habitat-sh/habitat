@@ -10,7 +10,7 @@ import * as orgActions from "./orgs";
 import * as packageActions from "./packages";
 import * as projectActions from "./projects";
 import * as routerActions from "./router";
-import * as userActions from "./user";
+import * as usersActions from "./users";
 
 // Action types
 export const LINK_GITHUB_ACCOUNT = gitHubActions.LINK_GITHUB_ACCOUNT;
@@ -46,10 +46,11 @@ export const SET_PROJECTS = projectActions.SET_PROJECTS;
 export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
 export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
 
-export const SIGN_IN_ATTEMPT = userActions.SIGN_IN_ATTEMPT;
-export const SIGN_UP_ATTEMPT = userActions.SIGN_UP_ATTEMPT;
-export const SIGN_OUT = userActions.SIGN_OUT;
-export const TOGGLE_USER_NAV_MENU = userActions.TOGGLE_USER_NAV_MENU;
+export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
+export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
+
+// Used by redux-reset to reset the app state
+export const RESET = "RESET";
 
 // Actions
 export const fetchGitHubRepos = gitHubActions.fetchGitHubRepos;
@@ -82,10 +83,16 @@ export const fetchProjects = projectActions.fetchProjects;
 export const populateBuildLog = projectActions.populateBuildLog;
 export const setCurrentProject = projectActions.setCurrentProject;
 
+export const goHome = routerActions.goHome;
 export const routeChange = routerActions.routeChange;
 export const requestRoute = routerActions.requestRoute;
 
-export const attemptSignIn = userActions.attemptSignIn;
-export const attemptSignUp = userActions.attemptSignUp;
-export const toggleUserNavMenu = userActions.toggleUserNavMenu;
-export const signOut = userActions.signOut;
+export const attemptSignIn = usersActions.attemptSignIn;
+export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
+export const signOutViaUserNavMenu = usersActions.signOutViaUserNavMenu;
+
+export function resetAppState() {
+    return {
+        type: RESET,
+    };
+}

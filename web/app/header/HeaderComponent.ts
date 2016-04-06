@@ -9,13 +9,19 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
 
 @Component({
     directives: [UserNavComponent],
-    inputs: ["appName"],
+    inputs: ["appName", "isUserNavOpen", "isSignedIn", "username", "avatarUrl",
+        "signOutViaUserNavMenu", "toggleUserNavMenu"],
     selector: "hab-header",
     template: `
     <header class="hab-header">
         <h1 class="logo">{{appName}}</h1>
         <nav>
-            <user-nav></user-nav>
+            <user-nav [isOpen]="isUserNavOpen"
+                      [isSignedIn]="isSignedIn"
+                      [username]="username"
+                      [avatarUrl]="avatarUrl"
+                      [signOutViaUserNavMenu]="signOutViaUserNavMenu"
+                      [toggleUserNavMenu]="toggleUserNavMenu"></user-nav>
         </nav>
     </header>`,
 })

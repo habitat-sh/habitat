@@ -9,12 +9,12 @@ import {RouterLink} from "angular2/router";
 
 @Component({
     directives: [RouterLink],
-    inputs: ["route"],
+    inputs: ["isSignedIn", "origin", "route"],
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
-        <div class="switcher">originname</div>
-        <ul>
+        <div class="switcher">{{origin.name}}</div>
+        <ul *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("projects")'
                    [routerLink]="['Projects']">Projects</a></li>
         </ul>
@@ -25,18 +25,22 @@ import {RouterLink} from "angular2/router";
                    [routerLink]="['Explore']">Explore</a></li>
             <li><a [class.active]='routeMatch("pkgs$")'
                    [routerLink]="['Packages']">All Packages</a></li>
-            <li><a [class.active]='routeMatch("pkgs.+filter=mine")'
-                   [routerLink]="['Packages', { filter: 'mine' }]">My Packages</a></li>
+            <li *ngIf="isSignedIn">
+                <a [class.active]='routeMatch("pkgs.+filter=mine")'
+                   [routerLink]="['Packages', { filter: 'mine' }]">
+                    My Packages
+                </a>
+            </li>
         </ul>
-        <h4>Linked Accounts</h4>
-        <ul>
+        <h4 *ngIf="isSignedIn">Linked Accounts</h4>
+        <ul *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("linked-accounts")'
                    [routerLink]='["LinkedAccounts"]'>Manage Accounts</a></li>
             <li><a [class.active]='routeMatch("scm-repos")'
                    [routerLink]="['SCMRepos']">GitHub Repos</a></li>
         </ul>
-        <h4>Organizations</h4>
-        <ul>
+        <h4 *ngIf="isSignedIn">Organizations</h4>
+        <ul *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("orgs")'
                    [routerLink]="['Organizations']">Manage Orgs</a></li>
         </ul>

@@ -8,7 +8,7 @@ import {AppStore} from "../AppStore";
 import {Component} from "angular2/core";
 import {GravatarComponent} from "../GravatarComponent";
 import {RouterLink} from "angular2/router";
-import {icon} from "../util";
+import {icon, requireSignIn} from "../util";
 
 @Component({
     directives: [GravatarComponent, RouterLink],
@@ -77,7 +77,9 @@ import {icon} from "../util";
 })
 
 export class OrganizationsPageComponent {
-    constructor(private store: AppStore) {}
+    constructor(private store: AppStore) {
+        requireSignIn(this);
+    }
 
     get orgs() { return this.store.getState().orgs.all; }
 
