@@ -632,8 +632,8 @@ _attach_whereami() {
 #   path to the binary.
 # * If a version of the `chef/bldr` package is installed on disk, use that
 #   version's `bin/bldr` as the command.
-# * If a version of the `chef/bpm` package is installed on disk, use that
-#   version's `bin/bpm` as the command.
+# * If a version of the `chef/hab-bpm` package is installed on disk, use that
+#   version's `bin/hab-bpm` as the command.
 # * If no other criteria match then set `$BLDR_BIN` to an empty/unset value.
 _determine_pkg_installer() {
   if [ -n "${NO_INSTALL_DEPS:-}" ]; then
@@ -646,12 +646,12 @@ _determine_pkg_installer() {
 #  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bldr"); then
 #    BLDR_BIN="$_pkg_for_bldr_install/bin/bldr"
 #    build_line "Using chef/bldr for dependency installs"
-  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bpm"); then
-    BLDR_BIN="$_pkg_for_bldr_install/bin/bpm"
-    build_line "Using chef/bpm for dependency installs"
+  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/hab-bpm"); then
+    BLDR_BIN="$_pkg_for_bldr_install/bin/hab-bpm"
+    build_line "Using chef/hab-bpm for dependency installs"
   else
     BLDR_BIN=
-    build_line "Could not find chef/bldr or chef/bpm for dependency installs"
+    build_line "Could not find chef/bldr or chef/hab-bpm for dependency installs"
   fi
 }
 

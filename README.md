@@ -307,7 +307,7 @@ for example, test that redis is working with your development version of
 the supervisor:
 
 ```bash
-$ bpm install chef/redis
+$ hab-bpm install chef/redis
 $ ./target/debug/bldr start chef/redis
 ```
 

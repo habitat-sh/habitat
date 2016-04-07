@@ -6,8 +6,8 @@ set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Download URL for the `chef/bpm` slim package
-bpm_tar_url="${BPM_TAR_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/chef-bpm-0.1.0-20160307233938.tar.xz}"
+# Download URL for the `chef/hab-bpm` slim package
+bpm_tar_url="${BPM_TAR_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/chef-hab-bpm-0.1.0-20160307233938.tar.xz}"
 # Shasum for the slim package, used to verify the download
 bpm_tar_sha="${BPM_TAR_SHASUM:-43e39868ab5da229457f6128bed2da58533326cb331589fec8ba6a0dd2f7f61d}"
 
@@ -37,14 +37,14 @@ xzcat $bpm_tar_file | tar xf - -C $(dirname $dir)
 
 # Add symlink for convenience
 mkdir -p /usr/bin
-ln -snf $dir/bin/bpm /usr/bin/bpm
+ln -snf $dir/bin/hab-bpm /usr/bin/hab-bpm
 
 # Clear the file download and extraction clean trap
 trap - INT TERM EXIT
 
 # Install Bldr Studio and add a `studio` symlink to `/usr/bin/studio`
 if ! command -v studio > /dev/null; then
-  bpm install chef/bldr-studio
-  bpm binlink chef/bldr-studio studio
+  hab-bpm install chef/bldr-studio
+  hab-bpm binlink chef/bldr-studio studio
 fi
 echo "$(/usr/bin/studio version) is installed."

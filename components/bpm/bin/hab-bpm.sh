@@ -3,8 +3,8 @@
 # # Usage
 #
 # ```sh
-# $ bpm install chef/bldr-studio
-# $ bpm exec chef/bash bash --version
+# $ hab-bpm install chef/bldr-studio
+# $ hab-bpm exec chef/bash bash --version
 # ```
 #
 # # Synopsis

@@ -697,7 +697,7 @@ unset PATH
 #
 bb="$libexec_path/busybox"
 #
-bpm="$libexec_path/bpm"
+bpm="$libexec_path/hab-bpm"
 # The current version of Bldr Studio
 version='@version@'
 # The author of this program

@@ -1,4 +1,4 @@
-pkg_name=bpm
+pkg_name=hab-bpm
 pkg_origin=chef
 pkg_version=0.1.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
@@ -18,11 +18,11 @@ do_build() {
   sed \
     -e "s,@author@,$pkg_maintainer,g" \
     -e "s,@version@,$pkg_version/$pkg_rel,g" \
-    $PLAN_CONTEXT/bin/bpm.sh > bpm
+    $PLAN_CONTEXT/bin/hab-bpm.sh > hab-bpm
 }
 
 do_install() {
-  install -v -D bpm $pkg_prefix/bin/bpm
+  install -v -D hab-bpm $pkg_prefix/bin/hab-bpm
 
   # Install a copy of a statically built busybox under `libexec/` and add
   # symlinks

@@ -238,7 +238,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   gnupg-static
   jq-static
   wget-static
-  bpm
+  ../components/bpm
   build
   vim
   libbsd

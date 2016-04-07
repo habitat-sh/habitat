@@ -135,7 +135,7 @@ author='@author@'
 program=$(basename $0)
 BLDR_ROOT="/opt/bldr"
 
-/opt/bldr/bin/bpm install chef/docker
+/opt/bldr/bin/hab-bpm install chef/docker
 find_system_commands
 build_docker_image $@
 

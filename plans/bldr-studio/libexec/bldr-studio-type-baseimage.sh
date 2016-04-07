@@ -5,11 +5,11 @@ studio_build_environment=
 studio_build_command="/opt/bldr/bin/build"
 studio_run_environment=
 
-bldr_pkgs="chef/bpm chef/bldr chef/busybox-static"
+bldr_pkgs="chef/hab-bpm chef/bldr chef/busybox-static"
 PKGS="$PKGS"
 
 finish_setup() {
-  if [ -x "$STUDIO_ROOT/opt/bldr/bin/bpm" ]; then
+  if [ -x "$STUDIO_ROOT/opt/bldr/bin/hab-bpm" ]; then
     return 0
   fi
 
@@ -33,7 +33,7 @@ finish_setup() {
     _bpm install $pkg
   done
 
-  local bpm_path=$(_pkgpath_for chef/bpm)
+  local bpm_path=$(_pkgpath_for chef/hab-bpm)
   local bldr_path=$(_pkgpath_for chef/bldr)
   local busybox_path=$(_pkgpath_for chef/busybox-static)
 
@@ -65,13 +65,13 @@ finish_setup() {
 
   $bb mkdir -p $v $STUDIO_ROOT/opt/bldr/bin
 
-  # Put `bpm` on the default `$PATH` and ensure that it gets a sane shell and
-  # initial `busybox` (sane being its own vendored version)
-  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/bpm
+  # Put `hab-bpm` on the default `$PATH` and ensure that it gets a sane shell
+  # and initial `busybox` (sane being its own vendored version)
+  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/hab-bpm
 #!$busybox_path/bin/sh
-exec $bpm_path/bin/bpm \$*
+exec $bpm_path/bin/hab-bpm \$*
 EOF
-  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/bpm
+  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/hab-bpm
   $bb ln -s $v $busybox_path/bin/sh $STUDIO_ROOT/bin/bash
   $bb ln -s $v $busybox_path/bin/sh $STUDIO_ROOT/bin/sh
   $bb ln -s $v $bldr_path/bin/bldr $STUDIO_ROOT/opt/bldr/bin/bldr
@@ -80,7 +80,7 @@ EOF
   $bb sed -e "s,/bin/sh,$busybox_path/bin/bash,g" -i $STUDIO_ROOT/etc/passwd
 
   $bb cat <<PROFILE > $STUDIO_ROOT/etc/profile
-# Add bpm to the default \$PATH at the front so any wrapping scripts will
+# Add hab-bpm to the default \$PATH at the front so any wrapping scripts will
 # be found and called first
 export PATH=$full_path:\$PATH
 
