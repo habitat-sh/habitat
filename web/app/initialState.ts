@@ -6,6 +6,7 @@ export default Record({
         currentYear: new Date().getFullYear(),
     })(),
     gitHub: Record({
+        authState: undefined,
         isLinked: false,
         repos: List(),
         selectedOrg: undefined,
@@ -51,6 +52,11 @@ export default Record({
             create: Record({
                 saved: false,
             })(),
+        })(),
+    })(),
+    origins: Record({
+        current: Record({
+            name: undefined,
         })(),
     })(),
     packages: Record({
@@ -107,6 +113,7 @@ export default Record({
             isSignedIn: false,
             isUserNavOpen: false,
             username: undefined,
+            gitHub: Map(),
         })(),
     })(),
 })();

@@ -2,7 +2,7 @@ import "whatwg-fetch";
 import config from "./config";
 import {packageString} from "./util";
 
-const urlPrefix = config["depotUrl"] || "";
+const urlPrefix = config["depot_url"] || "";
 
 // Get the JSON from a url from the fixtures directory.
 export function get(ident) {

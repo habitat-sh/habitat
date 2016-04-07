@@ -4,11 +4,16 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+import {fromJS} from "immutable";
 import * as actionTypes from "../actions/index";
 import initialState from "../initialState";
 
 export default function users(state = initialState["users"], action) {
     switch (action.type) {
+        case actionTypes.POPULATE_GITHUB_USER_DATA:
+            return state.
+                setIn(["current", "gitHub"], fromJS(action.payload));
+
         case actionTypes.SIGN_IN_ATTEMPT:
             return state.
                 setIn(["current", "username"], action.payload.username).

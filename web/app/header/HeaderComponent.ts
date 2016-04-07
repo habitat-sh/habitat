@@ -5,25 +5,35 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {Component} from "angular2/core";
+import {RouterLink} from "angular2/router";
+import config from "../config";
 import {UserNavComponent} from "./user-nav/UserNavComponent";
 
 @Component({
-    directives: [UserNavComponent],
+    directives: [RouterLink, UserNavComponent],
     inputs: ["appName", "isUserNavOpen", "isSignedIn", "username", "avatarUrl",
-        "signOutViaUserNavMenu", "toggleUserNavMenu"],
+        "signOut", "toggleUserNavMenu"],
     selector: "hab-header",
     template: `
     <header class="hab-header">
         <h1 class="logo">{{appName}}</h1>
         <nav>
-            <user-nav [isOpen]="isUserNavOpen"
-                      [isSignedIn]="isSignedIn"
-                      [username]="username"
-                      [avatarUrl]="avatarUrl"
-                      [signOutViaUserNavMenu]="signOutViaUserNavMenu"
-                      [toggleUserNavMenu]="toggleUserNavMenu"></user-nav>
+            <ul>
+                <li><a [routerLink]="['Packages']">Packages</a></li>
+                <li><a href="{{config['docs_url']}}">Docs</a></li>
+                <li><a href="{{config['tutorials_url']}}">Tutorials</a></li>
+                <li><a href="{{config['community_url']}}">Community</a></li>
+                <user-nav [isOpen]="isUserNavOpen"
+                        [isSignedIn]="isSignedIn"
+                        [username]="username"
+                        [avatarUrl]="avatarUrl"
+                        [signOut]="signOut"
+                        [toggleUserNavMenu]="toggleUserNavMenu"></user-nav>
+            </ul>
         </nav>
     </header>`,
 })
 
-export class HeaderComponent { }
+export class HeaderComponent {
+    get config() { return config; }
+}

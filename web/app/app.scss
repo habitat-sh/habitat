@@ -8,6 +8,7 @@
 @import "bourbon";
 @import "base/base";
 @import "neat";
+@import "octicons.scss";
 
 @import "drop-down";
 @import "item-list";
@@ -18,7 +19,6 @@
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
-@import "linked-accounts-page/linked-accounts-page";
 @import "notifications/notifications";
 @import "organization-create-page/organization-create-page";
 @import "organization-members/organization-members";

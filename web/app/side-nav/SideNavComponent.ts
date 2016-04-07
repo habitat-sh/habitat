@@ -34,8 +34,6 @@ import {RouterLink} from "angular2/router";
         </ul>
         <h4 *ngIf="isSignedIn">Linked Accounts</h4>
         <ul *ngIf="isSignedIn">
-            <li><a [class.active]='routeMatch("linked-accounts")'
-                   [routerLink]='["LinkedAccounts"]'>Manage Accounts</a></li>
             <li><a [class.active]='routeMatch("scm-repos")'
                    [routerLink]="['SCMRepos']">GitHub Repos</a></li>
         </ul>

@@ -22,7 +22,9 @@ export function toggleUserNavMenu() {
     };
 }
 
-export function signOutViaUserNavMenu() {
+export function signOut() {
+    sessionStorage.removeItem("gitHubAuthToken");
+
     return dispatch => {
         dispatch(resetAppState());
         dispatch(requestRoute(["SignIn"]));

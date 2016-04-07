@@ -9,6 +9,7 @@ import app from "./app";
 import gitHub from "./gitHub";
 import notifications from "./notifications";
 import orgs from "./orgs";
+import origins from "./origins";
 import packages from "./packages";
 import projects from "./projects";
 import router from "./router";
@@ -19,6 +20,7 @@ export default combineReducers({
     gitHub,
     notifications,
     orgs,
+    origins,
     packages,
     projects,
     router,

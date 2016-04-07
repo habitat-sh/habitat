@@ -4,34 +4,84 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-import {Component} from "angular2/core";
-import {Router} from "angular2/router";
+import {Component, OnInit} from "angular2/core";
+import {RouteParams, RouterLink, Router} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {attemptSignIn, goHome} from "../actions/index";
+import {attemptSignIn, goHome, requestGitHubAuthToken, setGitHubAuthState} from
+    "../actions/index";
+import config from "../config";
+import {createGitHubLoginUrl, icon} from "../util";
 
 @Component({
+    directives: [RouterLink],
     template: `
     <div class="hab-sign-in">
         <div class="page-title">
             <h2>Sign In</h2>
         </div>
-        <form (ngSubmit)="onSubmit(usernameOrEmail, password)">
-            <input placeholder="Username or email" autofocus required #usernameOrEmail>
-            <input type="password" placeholder="Password" required #password>
-            <button>Sign In</button>
-        </form>
+        <div class="main">
+            <div class="button-area">
+                <hr>
+                <a class="button" href="{{gitHubLoginUrl}}">
+                    <i class="octicon octicon-mark-github"></i>
+                    Sign In with GitHub
+                </a>
+                <hr>
+            </div>
+            <p>
+                New to {{appName}}? To sign up, simply click the GitHub button
+                above.
+            </p>
+            <p>
+                The {{appName}} project is maintained on GitHub and packages are
+                built from plan files stored in GitHub repositories. GitHub
+                accounts are free.
+                <a href="https://github.com/join" _target="blank">
+                    Create one now
+                </a>.
+            </p>
+            <p>
+                You can still browse the
+                <a href="{{sourceCodeUrl}}">
+                    {{appName}} source code
+                </a>,
+                <a [routerLink]="['Packages']">
+                    public packages
+                </a>,
+                and
+                <a href="{{docsUrl}}">
+                    documentation
+                </a>
+                without signing in.
+            </p>
+        </div>
     </div>`,
 })
 
-export class SignInPageComponent {
-    constructor(private store: AppStore) { }
+export class SignInPageComponent implements OnInit {
+    constructor(private routeParams: RouteParams, private store: AppStore) { }
 
-    get username() {
-        return this.store.getState().user.username;
+    get appName() { return this.store.getState().app.name; }
+
+    get docsUrl() { return config["docs_url"]; }
+
+    get gitHubLoginUrl() {
+        return createGitHubLoginUrl(this.store.getState().gitHub.authState);
     }
 
-    onSubmit(username) {
-        this.store.dispatch(attemptSignIn(username.value));
-        this.store.dispatch(goHome());
+    get sourceCodeUrl() { return config["source_code_url"]; }
+
+    ngOnInit() {
+        if (this.store.getState().users.current.isSignedIn) {
+            this.store.dispatch(goHome());
+        } else {
+            this.store.dispatch(setGitHubAuthState());
+            this.store.dispatch(requestGitHubAuthToken(
+                this.routeParams.params,
+                this.store.getState().gitHub.authState
+            ));
+        }
     }
+
+    private icon(name) { return icon(name); }
 }

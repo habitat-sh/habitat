@@ -5,7 +5,11 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-.hab-sign-in form {
+.hab-sign-in .main {
   @include span-columns(6);
   @include shift(3);
+
+  .button-area {
+    text-align: center;
+  }
 }
