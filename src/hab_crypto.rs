@@ -31,13 +31,13 @@ use util::perm;
 /// ### Concepts and terminology:
 /// - All public keys/certificates/signatures will be referred to as **public**.
 /// - All secret or private keys will be referred to as **secret**.
-/// - The word `key` by itself does not indicate **public** or **secret**. The only exception is if the word key appears as /// part of a file suffix, where it is then considered the **secret key** file.
+/// - The word `key` by itself does not indicate **public** or **secret**. The only exception is if the word key appears as part of a /// file suffix, where it is then considered the **secret key** file.
 /// - **Origin** -  refers to build-time operations, including signing and verifification of an artifact.
-/// - **Organization** - refers to run-time operations that can happen in Habitat, such as deploying a package signed in a /// different origin into your own organization.
-/// - **Signing keys** - aka **sig** keys. These are used to sign and verify packages. Contains a `sig.key` file suffix. Sig /// keys are NOT compatible with box keys.
-/// - **Box keys** - used for encryption/decryption of arbitrary data. Contains a `.box.key` file suffix. Box keys are NOT /// compatible with sig keys.
-/// - **Key revisions** - Habitat can use several keys for any given user, service, or origin via different revision numbers. /// Revision numbers appear following the key name and are in the format
-/// `{year}{month}{day}{hour24}{minute}{second}`. For all user-facing cryptographic operations (sign/verify/encrypt/decrypt), /// the latest key is tried first, and upon failure, Habitat will try keys in reverse chronological order until success or /// there are no more keys. ***TODO: key revisions are generated as part of a filename, but only the most recent key is used /// during crypto operations.***
+/// - **Organization** - refers to run-time operations that can happen in Habitat, such as deploying a package signed in a different /// origin into your own organization.
+/// - **Signing keys** - aka **sig** keys. These are used to sign and verify packages. Contains a `sig.key` file suffix. Sig keys are /// NOT compatible with box keys.
+/// - **Box keys** - used for encryption/decryption of arbitrary data. Contains a `.box.key` file suffix. Box keys are NOT compatible /// with sig keys.
+/// - **Key revisions** - Habitat can use several keys for any given user, service, or origin via different revision numbers. Revision /// numbers appear following the key name and are in the format
+/// `{year}{month}{day}{hour24}{minute}{second}`. For all user-facing cryptographic operations (sign/verify/encrypt/decrypt), the /// latest key is tried first, and upon failure, Habitat will try keys in reverse chronological order until success or there are no /// more keys. ***TODO: key revisions are generated as part of a filename, but only the most recent key is used during crypto operations/// .***
 ///
 ///
 /// Example origin key file names ("sig" keys):
@@ -68,13 +68,15 @@ use util::perm;
 /// A signed `.hab` artifact has 3 plaintext lines followed by a binary blob of data, which is the unsigned tarfile.
 ///
 /// - The first plaintext line is the name of the origin signing key that was used to sign this artifact.
-/// - The second plaintext line is the hashing algorithm used, which will be `BLAKE2b` unless our use of crypto is expanded /// some time in the future.
-/// - The third plaintext line is a base64 *signed* value of the binary blob's base64 file hash. Signing uses a secret origin /// key, while verifying uses the public origin key. Thus, it it safe to distribute public origin keys.
+/// - The second plaintext line is the hashing algorithm used, which will be `BLAKE2b` unless our use of crypto is expanded some time /// in the future.
+/// - The third plaintext line is a base64 *signed* value of the binary blob's base64 file hash. Signing uses a secret origin key, /// while verifying uses the public origin key. Thus, it it safe to distribute public origin keys.
 ///
+/// Example header:
 /// ```
+/// habitat-20160405144945
 /// BLAKE2b
 /// signed BLAKE2b signature
-/// binary-blob
+/// <binary-blob>
 /// ```
 ///
 /// https://download.libsodium.org/doc/hashing/generic_hashing.html
@@ -83,9 +85,9 @@ use util::perm;
 ///
 /// ```
 /// $ head -3 /opt/bldr/cache/pkgs/chef-glibc-2.22-20160310192356.bldr
-///
+/// habitat-20160405144945
 /// BLAKE2b
-/// w4yC7/QADdC+NfH/wgN5u4K94nMieb1TxTVzbSfpMwRQ4k+YwhLs1nDXSIbSC8jHdF/7/LqLWtgPvGDmoKIvBDI0aGpIcGdlNDJhMDBnQ3lsMVVFM0JvRlZGSH/// hXcnBuWWF0SllXTXo1ZDg9
+/// w4yC7/QADdC+NfH/wgN5u4K94nMieb1TxTVzbSfpMwRQ4k+YwhLs1nDXSIbSC8jHdF/7/LqLWtgPvGDmoKIvBDI0aGpIcGdlNDJhMDBnQ3lsMVVFM0JvRlZGSHhXcnBuWWF0/// SllXTXo1ZDg9
 /// # Note that this is an example signature only
 /// ```
 ///
@@ -95,6 +97,7 @@ use util::perm;
 /// tail -n +4 /tmp/somefile.hab > somefile.tar
 /// # start at line 4, skipping the first 3 plaintext lines.
 /// ```
+
 
 /// The suffix on the end of a public sig/box file
 static PUB_KEY_SUFFIX: &'static str = "pub";
