@@ -105,7 +105,17 @@ trap _on_exit 1 2 3 15 ERR
 # ```
 _build() {
   local plan="${1:-}"
+  local plan_dir="$plan"
   shift
+  # If the `$plan` value is a path/name combination like
+  # `../components/foobar:hab-foobar` then split the token into its requisite
+  # parts.
+  case $(echo "$plan" | grep -o ':' | wc -l) in
+    1)
+      plan_dir=$(echo $plan | cut -d ':' -f 1)
+      plan=$(echo $plan | cut -d ':' -f 2)
+      ;;
+  esac
   # If the `$STOP_BEFORE` environment variable is set, and its value is the
   # desired Plan, then we'll stop. This is a convenient way to build up to an
   # interesting Plan without steamrolling right over it.
@@ -151,9 +161,9 @@ _build() {
   # If extra args are passed to this function, we will treat them all as
   # environment variables.
   if [ -n "$*" ]; then
-    cmd="env $* $BUILD $plan"
+    cmd="env $* $BUILD $plan_dir"
   else
-    cmd="$BUILD $plan"
+    cmd="$BUILD $plan_dir"
   fi
   echo "[$plan] Building with: $cmd"
   eval $cmd
@@ -238,8 +248,8 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   gnupg-static
   jq-static
   wget-static
-  ../components/bpm
-  ../components/plan-build
+  ../components/bpm:hab-bpm
+  ../components/plan-build:hab-plan-build
   vim
   libbsd
   clens
