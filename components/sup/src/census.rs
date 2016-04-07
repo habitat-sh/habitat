@@ -35,7 +35,7 @@ use uuid::Uuid;
 
 use gossip::member::{MemberId, MemberList, Health};
 use gossip::lamport_clock::LamportClock;
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 use util;
 
 static LOGKEY: &'static str = "CN";
@@ -381,10 +381,10 @@ impl Census {
     /// # Failures
     ///
     /// * If we cannot parse the toml
-    pub fn update(&mut self, census_string: &str) -> BldrResult<()> {
+    pub fn update(&mut self, census_string: &str) -> Result<()> {
         let mut toml_parser = toml::Parser::new(census_string);
         let toml = try!(toml_parser.parse()
-                                   .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
+                                   .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
         let toml_value = toml::Value::Table(toml);
         let census_map: CensusMap = toml::decode(toml_value).unwrap();
         let current_uuids: Vec<Uuid> = self.population.keys().map(|&x| x.clone()).collect();
@@ -425,7 +425,7 @@ impl Census {
     /// # Failures
     ///
     /// * If we cannot parse a Uuid
-    pub fn to_toml(&self) -> BldrResult<String> {
+    pub fn to_toml(&self) -> Result<String> {
         let mut top = toml::Table::new();
         let mut census = toml::Table::new();
         census.insert("service".to_string(),
@@ -821,7 +821,7 @@ mod test {
         use census::{Census, CensusEntry};
 
         fn generate_ce() -> CensusEntry {
-            CensusEntry::new("bldr", "unit", MemberId::new_v4())
+            CensusEntry::new("soup", "unit", MemberId::new_v4())
         }
 
         fn generate_census() -> Census {

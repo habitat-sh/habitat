@@ -33,10 +33,6 @@ pub fn bldr_build() -> String {
     root().parent().unwrap().join("plans/bldr-build").to_string_lossy().into_owned()
 }
 
-pub fn bldr_plan() -> String {
-    root().parent().unwrap().join("plans/bldr").to_string_lossy().into_owned()
-}
-
-pub fn bldr() -> String {
+pub fn sup() -> String {
     root().parent().unwrap().join("target/debug/hab-sup").to_string_lossy().into_owned()
 }

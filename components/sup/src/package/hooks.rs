@@ -14,7 +14,7 @@ use std::process::{Command, Stdio};
 
 use mustache;
 
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 use package::Package;
 use service_config::ServiceConfig;
 use util::convert;
@@ -57,7 +57,7 @@ impl Hook {
         }
     }
 
-    pub fn run(&self, context: Option<&ServiceConfig>) -> BldrResult<String> {
+    pub fn run(&self, context: Option<&ServiceConfig>) -> Result<String> {
         try!(self.compile(context));
         let mut child = try!(Command::new(&self.path)
                                  .stdin(Stdio::null())
@@ -68,9 +68,9 @@ impl Hook {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,
                 None => {
-                    return Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
-                                                                 -1,
-                                                                 String::from("Failed"))));
+                    return Err(sup_error!(Error::HookFailed(self.htype.clone(),
+                                                            -1,
+                                                            String::from("Failed"))));
                 }
             };
             let preamble_str = format!("{}", &self.htype);
@@ -99,13 +99,13 @@ impl Hook {
         if exit_status.success() {
             Ok(String::from("Finished"))
         } else {
-            Err(bldr_error!(ErrorKind::HookFailed(self.htype.clone(),
-                                                  exit_status.code().unwrap_or(-1),
-                                                  String::from("Failed"))))
+            Err(sup_error!(Error::HookFailed(self.htype.clone(),
+                                             exit_status.code().unwrap_or(-1),
+                                             String::from("Failed"))))
         }
     }
 
-    pub fn compile(&self, context: Option<&ServiceConfig>) -> BldrResult<()> {
+    pub fn compile(&self, context: Option<&ServiceConfig>) -> Result<()> {
         if let Some(ctx) = context {
             let template = try!(mustache::compile_path(&self.template));
             let mut out = Vec::new();

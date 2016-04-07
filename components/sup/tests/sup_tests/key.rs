@@ -26,19 +26,19 @@ fn kt_upload_a_key_and_install_it() {
     setup::simple_service();
     let d = docker::depot("test/simple_service");
     let ipaddress = d.ipaddress();
-    let mut upload = command::bldr(&["upload-repo-key",
-                                     &util::path::fixture_as_string("chef-public.gpg"),
-                                     "-u",
-                                     &format!("http://{}:9632", ipaddress)])
+    let mut upload = command::sup(&["upload-repo-key",
+                                    &util::path::fixture_as_string("chef-public.gpg"),
+                                    "-u",
+                                    &format!("http://{}:9632", ipaddress)])
                          .unwrap();
     upload.wait_with_output();
     assert_cmd_exit_code!(upload, [0]);
-    assert_regex!(upload.stdout(), r"Upload Bldr key (.+)");
-    let mut install = command::bldr(&["import-key",
-                                      "--infile",
-                                      "chef-public.gpg",
-                                      "-u",
-                                      &format!("http://{}:9632", ipaddress)])
+    assert_regex!(upload.stdout(), r"Upload Habitat key (.+)");
+    let mut install = command::sup(&["import-key",
+                                     "--infile",
+                                     "chef-public.gpg",
+                                     "-u",
+                                     &format!("http://{}:9632", ipaddress)])
                           .unwrap();
     install.wait_with_output();
     assert_cmd_exit_code!(install, [0]);
@@ -59,8 +59,8 @@ fn kt_generate_service_key() {
     let gpg_cache = gpg_test_setup();
 
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key", &test_uuid],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-service-key", &test_uuid],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -68,7 +68,7 @@ fn kt_generate_service_key() {
     assert_regex!(generate.stdout(), r".*Fingerprint.*");
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}.*", test_uuid);
@@ -85,8 +85,8 @@ fn kt_generate_service_key_with_bldr_prefix() {
     let test_uuid = Uuid::new_v4().to_simple_string();
     let test_uuid_with_prefix = "bldr_".to_string() + &test_uuid;
 
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key", &test_uuid],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-service-key", &test_uuid],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -107,7 +107,7 @@ fn kt_generate_service_key_with_bldr_prefix() {
 
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}.*", test_uuid);
@@ -124,10 +124,10 @@ fn kt_generate_service_key_with_group() {
     let gpg_cache = gpg_test_setup();
 
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                           &test_uuid,
-                                                           "--group=foobar123"],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-service-key",
+                                                          &test_uuid,
+                                                          "--group=foobar123"],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -135,7 +135,7 @@ fn kt_generate_service_key_with_group() {
     assert_regex!(generate.stdout(), r".*Fingerprint.*");
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
     let re_string = format!(".*{}\\.foobar123.*", test_uuid);
     assert_cmd_exit_code!(listkeys, [0]);
@@ -148,10 +148,10 @@ fn kt_generate_service_key_with_expiration() {
     // also tests list-keys
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                           &test_uuid,
-                                                           "--expire-days=10"],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-service-key",
+                                                          &test_uuid,
+                                                          "--expire-days=10"],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -159,7 +159,7 @@ fn kt_generate_service_key_with_expiration() {
     assert_regex!(generate.stdout(), r".*Fingerprint.*");
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}.*", test_uuid);
@@ -172,11 +172,11 @@ fn kt_generate_service_key_with_expiration_and_group() {
     // also tests list-keys
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                           &test_uuid,
-                                                           "--expire-days=10",
-                                                           "--group=foobar123"],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-service-key",
+                                                          &test_uuid,
+                                                          "--expire-days=10",
+                                                          "--group=foobar123"],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -184,7 +184,7 @@ fn kt_generate_service_key_with_expiration_and_group() {
     assert_regex!(generate.stdout(), r".*Fingerprint.*");
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}\\.foobar123.*", test_uuid);
@@ -199,14 +199,14 @@ fn kt_generate_user_key() {
     // also tests list-keys
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                           "--user",
-                                                           &test_uuid,
-                                                           "--password",
-                                                           "password",
-                                                           "--email",
-                                                           "email@bldrtest"],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-user-key",
+                                                          "--user",
+                                                          &test_uuid,
+                                                          "--password",
+                                                          "password",
+                                                          "--email",
+                                                          "email@bldrtest"],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -214,7 +214,7 @@ fn kt_generate_user_key() {
     assert_regex!(generate.stdout(), r".*Fingerprint.*");
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}.*", test_uuid);
@@ -227,15 +227,15 @@ fn kt_generate_user_key_with_expiration() {
     // also tests list-keys
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                           "--user",
-                                                           &test_uuid,
-                                                           "--password",
-                                                           "password",
-                                                           "--email",
-                                                           "email@bldrtest",
-                                                           "--expire-days=10"],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-user-key",
+                                                          "--user",
+                                                          &test_uuid,
+                                                          "--password",
+                                                          "password",
+                                                          "--email",
+                                                          "email@bldrtest",
+                                                          "--expire-days=10"],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -243,7 +243,7 @@ fn kt_generate_user_key_with_expiration() {
     assert_regex!(generate.stdout(), r".*Fingerprint.*");
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}.*", test_uuid);
@@ -257,15 +257,15 @@ fn kt_generate_user_key_with_bldr_prefix() {
     let gpg_cache = gpg_test_setup();
     let test_uuid = Uuid::new_v4().to_simple_string();
     let test_uuid_with_prefix = "bldr_".to_string() + &test_uuid;
-    let mut generate = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                           "--user",
-                                                           &test_uuid_with_prefix,
-                                                           "--password",
-                                                           "password",
-                                                           "--email",
-                                                           "email@bldrtest",
-                                                           "--expire-days=10"],
-                                                         &gpg_cache)
+    let mut generate = command::sup_with_test_gpg_cache(&["generate-user-key",
+                                                          "--user",
+                                                          &test_uuid_with_prefix,
+                                                          "--password",
+                                                          "password",
+                                                          "--email",
+                                                          "email@bldrtest",
+                                                          "--expire-days=10"],
+                                                        &gpg_cache)
                            .unwrap();
 
     generate.wait_with_output();
@@ -284,7 +284,7 @@ fn kt_generate_user_key_with_bldr_prefix() {
 
 
     // check to see if the key is in the output
-    let mut listkeys = command::bldr_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
+    let mut listkeys = command::sup_with_test_gpg_cache(&["list-keys"], &gpg_cache).unwrap();
     listkeys.wait_with_output();
 
     let re_string = format!(".*{}.*", test_uuid);
@@ -307,15 +307,15 @@ fn kt_find_key() {
     // let cache_dir = "/opt/bldr/cache/gpg/";
     {
         // generate a test user
-        let mut generate_user = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                                    "--user",
-                                                                    "a",
-                                                                    "--password",
-                                                                    "password",
-                                                                    "--email",
-                                                                    "email@bldrtest",
-                                                                    "--expire-days=10"],
-                                                                  &cache_dir)
+        let mut generate_user = command::sup_with_test_gpg_cache(&["generate-user-key",
+                                                                   "--user",
+                                                                   "a",
+                                                                   "--password",
+                                                                   "password",
+                                                                   "--email",
+                                                                   "email@bldrtest",
+                                                                   "--expire-days=10"],
+                                                                 &cache_dir)
                                     .unwrap();
         generate_user.wait_with_output();
         println!("{}", generate_user.stdout());
@@ -325,15 +325,15 @@ fn kt_find_key() {
 
     {
         // generate a test user
-        let mut generate_user = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                                    "--user",
-                                                                    "aa",
-                                                                    "--password",
-                                                                    "password",
-                                                                    "--email",
-                                                                    "email@bldrtest",
-                                                                    "--expire-days=10"],
-                                                                  &cache_dir)
+        let mut generate_user = command::sup_with_test_gpg_cache(&["generate-user-key",
+                                                                   "--user",
+                                                                   "aa",
+                                                                   "--password",
+                                                                   "password",
+                                                                   "--email",
+                                                                   "email@bldrtest",
+                                                                   "--expire-days=10"],
+                                                                 &cache_dir)
                                     .unwrap();
         generate_user.wait_with_output();
         println!("{}", generate_user.stdout());

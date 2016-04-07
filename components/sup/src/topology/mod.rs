@@ -21,9 +21,10 @@ pub mod initializer;
 
 use std::mem;
 use std::ops::DerefMut;
-use std::thread;
+use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::TryRecvError;
+use std::thread;
 use std::time::Duration;
 
 use libc::{pid_t, c_int};
@@ -34,7 +35,7 @@ use census::{self, CensusList};
 use common::config_file::ConfigFileList;
 use package::{self, Package, PackageUpdaterActor};
 use util::signals::SignalNotifier;
-use error::{BldrResult, BldrError};
+use error::{Result, SupError};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
@@ -177,7 +178,7 @@ pub struct Worker<'a> {
     /// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
     /// A pointer to the supervisor thread
-    pub supervisor_thread: Option<thread::JoinHandle<Result<(), BldrError>>>,
+    pub supervisor_thread: Option<thread::JoinHandle<result::Result<(), SupError>>>,
     /// process info of child that we're supervising
     pub child_info: Option<ChildInfo>,
     pub return_state: Option<State>,
@@ -187,7 +188,7 @@ impl<'a> Worker<'a> {
     /// Create a new worker
     ///
     /// Automatically sets the backend to Etcd.
-    pub fn new(package: Package, topology: String, config: &'a Config) -> BldrResult<Worker<'a>> {
+    pub fn new(package: Package, topology: String, config: &'a Config) -> Result<Worker<'a>> {
         let mut pkg_updater = None;
 
         let package_name = package.name.clone();
@@ -270,7 +271,7 @@ impl<'a> Worker<'a> {
     }
 
     /// update a package, but does NOT restart the service
-    pub fn update_package(&self, updated: Package) -> BldrResult<()> {
+    pub fn update_package(&self, updated: Package) -> Result<()> {
         let service_config = self.service_config.read().unwrap();
         {
             let mut package = self.package.write().unwrap();
@@ -286,7 +287,7 @@ impl<'a> Worker<'a> {
     /// # Failures
     ///
     /// * Supervisor thread fails
-    pub fn join_supervisor(&mut self) -> BldrResult<()> {
+    pub fn join_supervisor(&mut self) -> Result<()> {
         if self.supervisor_thread.is_some() {
             outputln!("Waiting for supervisor to finish");
             let st = self.supervisor_thread.take().unwrap().join();
@@ -305,26 +306,26 @@ impl<'a> Worker<'a> {
 }
 
 /// Send a SIGTERM to a process
-pub fn stop(pid: u32) -> BldrResult<()> {
+pub fn stop(pid: u32) -> Result<()> {
     try!(signals::send_signal_to_pid(pid as i32, signals::Signal::SIGTERM));
     Ok(())
 }
 
 /// send a SIGKILL to a process
-pub fn force_stop(pid: u32) -> BldrResult<()> {
+pub fn force_stop(pid: u32) -> Result<()> {
     try!(signals::send_signal_to_pid(pid as i32, signals::Signal::SIGKILL));
     Ok(())
 }
 
 /// Pass through a Unix signal to a process
-pub fn send_unix_signal(pid: u32, sig: signals::Signal) -> BldrResult<()> {
+pub fn send_unix_signal(pid: u32, sig: signals::Signal) -> Result<()> {
     try!(signals::send_signal_to_pid(pid as i32, sig));
     Ok(())
 }
 
 
 /// if the child process exists, check it's status via waitpid()
-fn check_child_process<'a>(worker: &mut Worker<'a>) -> BldrResult<()> {
+fn check_child_process<'a>(worker: &mut Worker<'a>) -> Result<()> {
     if worker.child_info.is_none() {
         return Ok(());
     }
@@ -367,7 +368,7 @@ fn check_child_process<'a>(worker: &mut Worker<'a>) -> BldrResult<()> {
 }
 
 
-fn kill_after_timeout(cpid: u32, max_wait: u32) -> BldrResult<()> {
+fn kill_after_timeout(cpid: u32, max_wait: u32) -> Result<()> {
     debug!("waiting to kill process if it doesn't exit");
     let mut elapsed = 0;
     let wait_interval_millis = 1000;
@@ -415,9 +416,9 @@ fn kill_after_timeout(cpid: u32, max_wait: u32) -> BldrResult<()> {
 /// * The supervisor dies unexpectedly
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
-fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, BldrError>,
+fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     worker: &mut Worker<'a>)
-                    -> BldrResult<()> {
+                    -> Result<()> {
     {
         let package = worker.package.read().unwrap();
         let service_config = worker.service_config.read().unwrap();

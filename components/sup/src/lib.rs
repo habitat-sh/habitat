@@ -8,12 +8,12 @@
 //! Bldr helps you build, manage, and run applications - on bare metal, in the cloud, and in
 //! containers. You can [read more about it, including setup instructions, in the README](README.html).
 //!
-//! Bldr contains two main components:
+//! Habitat contains two main components:
 //!
-//! * `bldr-build`, takes a plan ('plan.sh'), a description of how to build a piece of software, written
-//! in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic package.
-//! * `bldr`, a run-time executable that knows how to download, install, serve, and manage services
-//! defined in packages.
+//! * `bldr-build`, takes a plan ('plan.sh'), a description of how to build a piece of software,
+//! written in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic
+//! package.  * `hab-sup`, a run-time executable that knows how to download, install, serve, and
+//! manage services defined in packages.
 //!
 //! # bldr-build
 //!
@@ -21,12 +21,12 @@
 //! found here](bldr-build/bldr-build.html). You can find it in the source tree at
 //! `plans/bldr-build`.
 //!
-//! # bldr
+//! # The Supervisor
 //!
-//! Bldr is primarily utilized through the `bldr` command; it can also be used from within Rust as
-//! a library. This documentation covers both uses; it explains how things are used from the
-//! command line in close proximity to the documentation of the library itself. A few useful
-//! starting points:
+//! The Supervisor is primarily utilized through the `hab-sup` command; it can also be used from
+//! within Rust as a library. This documentation covers both uses; it explains how things are used
+//! from the command line in close proximity to the documentation of the library itself. A few
+//! useful starting points:
 //!
 //! * [The bldr Command Line Reference](command)
 //! * [The bldr Sidecar; http interface to promises](sidecar)
@@ -62,14 +62,16 @@ extern crate rand;
 extern crate threadpool;
 extern crate urlencoded;
 extern crate openssl;
+#[macro_use]
+extern crate lazy_static;
 
 #[macro_export]
-/// Creates a new BldrError, embedding the current file name, line number, column, and module path.
-macro_rules! bldr_error {
+/// Creates a new SupError, embedding the current file name, line number, column, and module path.
+macro_rules! sup_error {
     ($p: expr) => {
         {
-            use $crate::error::BldrError;
-            BldrError::new($p, LOGKEY, file!(), line!(), column!())
+            use $crate::error::SupError;
+            SupError::new($p, LOGKEY, file!(), line!(), column!())
         }
     }
 }
@@ -80,7 +82,8 @@ macro_rules! output {
     ($content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new("bldr",
+            use $crate::PROGRAM_NAME;
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -104,8 +107,9 @@ macro_rules! output {
     ($content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
+            use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new("bldr",
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -135,7 +139,8 @@ macro_rules! outputln {
     ($content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new("bldr",
+            use $crate::PROGRAM_NAME;
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -159,8 +164,9 @@ macro_rules! outputln {
     ($content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
+            use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new("bldr",
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -190,7 +196,8 @@ macro_rules! output_format {
     ($content: expr) => {
         {
             use $crate::output::StructuredOutput;
-            let so = StructuredOutput::new("bldr",
+            use $crate::PROGRAM_NAME;
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -227,8 +234,9 @@ macro_rules! output_format {
     ($content: expr, $($arg:tt)*) => {
         {
             use $crate::output::StructuredOutput;
+            use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
-            let so = StructuredOutput::new("bldr",
+            let so = StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
                                            line!(),
                                            file!(),
@@ -268,6 +276,16 @@ pub mod service_config;
 pub mod census;
 pub mod gossip;
 pub mod election;
+
+use std::env;
+use std::path::PathBuf;
+
+lazy_static!{
+    pub static ref PROGRAM_NAME: String = {
+        let arg0 = env::args().next().map(|p| PathBuf::from(p));
+        arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap().to_string()
+    };
+}
 
 #[allow(dead_code)]
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");

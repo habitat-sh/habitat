@@ -5,12 +5,12 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 use std::process::Command;
 
 static LOGKEY: &'static str = "US";
 
-pub fn ip() -> BldrResult<String> {
+pub fn ip() -> Result<String> {
     debug!("Shelling out to determine IP address");
     let output = try!(Command::new("sh")
                           .arg("-c")
@@ -26,12 +26,12 @@ pub fn ip() -> BldrResult<String> {
             debug!("IP address command returned: OUT: {} ERR: {}",
                    String::from_utf8_lossy(&output.stdout),
                    String::from_utf8_lossy(&output.stderr));
-            Err(bldr_error!(ErrorKind::IPFailed))
+            Err(sup_error!(Error::IPFailed))
         }
     }
 }
 
-pub fn hostname() -> BldrResult<String> {
+pub fn hostname() -> Result<String> {
     debug!("Shelling out to determine IP address");
     let output = try!(Command::new("sh")
                           .arg("-c")
@@ -48,12 +48,12 @@ pub fn hostname() -> BldrResult<String> {
             debug!("Hostname address command returned: OUT: {} ERR: {}",
                    String::from_utf8_lossy(&output.stdout),
                    String::from_utf8_lossy(&output.stderr));
-            Err(bldr_error!(ErrorKind::IPFailed))
+            Err(sup_error!(Error::IPFailed))
         }
     }
 }
 
-pub fn to_toml() -> BldrResult<String> {
+pub fn to_toml() -> Result<String> {
     let mut toml_string = String::from("[sys]\n");
     let ip = try!(ip());
     toml_string.push_str(&format!("ip = \"{}\"\n", ip));

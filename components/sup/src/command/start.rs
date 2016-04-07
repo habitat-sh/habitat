@@ -5,42 +5,42 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Starts a service from an installed bldr package.
+//! Starts a service from an installed Habitat package.
 //!
-//! Services in bldr support one or more *topologies*, which are state machines that handle the
-//! lifecycle of a service; they are members of a *group*, which is a namespace for their
-//! configuration and state; and they can *watch* another service group, incorporating that groups
-//! configuration and state into their own.
+//! Services run by the Supervisor support one or more *topologies*, which are state machines that
+//! handle the lifecycle of a service; they are members of a *group*, which is a namespace for
+//! their configuration and state; and they can *watch* another service group, incorporating that
+//! groups configuration and state into their own.
 //!
 //! # Examples
 //!
 //! ```bash
-//! $ bldr start chef/redis
+//! $ hab-sup start chef/redis
 //! ```
 //!
 //! Will start the `redis` service in the `default` group, using the `standalone` topology.
 //!
 //! ```bash
-//! $ bldr start chef/redis -g production
+//! $ hab-sup start chef/redis -g production
 //! ```
 //!
 //! Will do the same, but in the `production` group.
 //!
 //! ```bash
-//! $ bldr start haproxy -w redis.production
+//! $ hab-sup start haproxy -w redis.production
 //! ```
 //!
 //! Will start the `haproxy` service, and have it watch the configuration for the `redis`
 //! `production` group (note the `.` as the separator.)
 //!
 //! ```bash
-//! $ bldr start chef/redis -t leader
+//! $ hab-sup start chef/redis -t leader
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology.
 //!
 //! ```bash
-//! $ bldr start chef/redis -t leader -g production -w haproxy.default
+//! $ hab-sup start chef/redis -t leader -g production -w haproxy.default
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology in the `production` group, while
@@ -56,7 +56,7 @@ use common::command::package::install;
 use depot_client;
 use hcore::fs::PACKAGE_CACHE;
 
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 use config::{Config, UpdateStrategy};
 use package::Package;
 use topology::{self, Topology};
@@ -71,7 +71,7 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if it cannot find a package with the given name
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
-pub fn package(config: &Config) -> BldrResult<()> {
+pub fn package(config: &Config) -> Result<()> {
     match Package::load(config.package(), None) {
         Ok(package) => {
             let update_strategy = config.update_strategy();
@@ -117,13 +117,13 @@ pub fn package(config: &Config) -> BldrResult<()> {
                     let package = try!(Package::load(new_pkg_data.ident.as_ref(), None));
                     start_package(package, config)
                 }
-                None => Err(bldr_error!(ErrorKind::PackageNotFound(config.package().clone()))),
+                None => Err(sup_error!(Error::PackageNotFound(config.package().clone()))),
             }
         }
     }
 }
 
-fn start_package(package: Package, config: &Config) -> BldrResult<()> {
+fn start_package(package: Package, config: &Config) -> Result<()> {
     let run_path = try!(package.run_path());
     debug!("Setting the PATH to {}", run_path);
     env::set_var("PATH", &run_path);

@@ -20,14 +20,16 @@ extern crate clap;
 use std::ffi::CString;
 use std::process;
 use std::ptr;
+use std::result;
 use std::str::FromStr;
 
 use ansi_term::Colour::Yellow;
 use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
 use hcore::package::PackageIdent;
+use hcore::fs;
 
 use sup::config::{Command, Config, UpdateStrategy};
-use sup::error::{BldrResult, BldrError, ErrorKind};
+use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::topology::Topology;
 
@@ -40,16 +42,12 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
-static DEFAULT_PATH: &'static str = "/opt/bldr/svc/bldr/data";
 static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
 static DEFAULT_DEPOT_URL: &'static str = "http://52.37.151.35:9632";
 
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
-fn config_from_args(args: &ArgMatches,
-                    subcommand: &str,
-                    sub_args: &ArgMatches)
-                    -> BldrResult<Config> {
+fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
@@ -95,7 +93,7 @@ fn config_from_args(args: &ArgMatches,
             "initializer" => {
                 config.set_topology(Topology::Initializer);
             }
-            t => return Err(bldr_error!(ErrorKind::UnknownTopology(String::from(t)))),
+            t => return Err(sup_error!(Error::UnknownTopology(String::from(t)))),
         }
     }
     if sub_args.value_of("expire-days").is_some() {
@@ -109,7 +107,12 @@ fn config_from_args(args: &ArgMatches,
         None => vec![],
     };
     config.set_watch(watches);
-    config.set_path(sub_args.value_of("path").unwrap_or(DEFAULT_PATH).to_string());
+    config.set_path(sub_args.value_of("path")
+                            .unwrap_or(fs::service_path(sup::PROGRAM_NAME.as_str())
+                                           .join("data")
+                                           .to_string_lossy()
+                                           .as_ref())
+                            .to_string());
     config.set_gossip_listen(sub_args.value_of("gossip-listen")
                                      .unwrap_or(DEFAULT_GOSSIP_LISTEN)
                                      .to_string());
@@ -138,9 +141,9 @@ fn config_from_args(args: &ArgMatches,
     Ok(config)
 }
 
-type Handler = fn(&Config) -> Result<(), sup::error::BldrError>;
+type Handler = fn(&Config) -> result::Result<(), sup::error::SupError>;
 
-/// The primary loop for bldr.
+/// The entrypoint for the Supervisor.
 ///
 /// * Set up the logger
 /// * Pull in the arguments from the Command Line, push through clap
@@ -185,7 +188,7 @@ fn main() {
     };
 
     let sub_start = SubCommand::with_name("start")
-                        .about("Start a bldr package")
+                        .about("Start a Habitat-supervised service from a package")
                         .arg(Arg::with_name("package")
                                  .index(1)
                                  .required(true)
@@ -218,7 +221,7 @@ fn main() {
                                  .help("If this service is a permanent gossip peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
     let sub_generate_user_key = SubCommand::with_name("generate-user-key")
-                                    .about("Generate a bldr user key")
+                                    .about("Generate a Habitat user key")
                                     .arg(Arg::with_name("user")
                                              .required(true)
                                              .long("user")
@@ -240,7 +243,7 @@ fn main() {
                                              .value_name("expire-days")
                                              .help("Number of days before a key expires"));
     let sub_generate_service_key = SubCommand::with_name("generate-service-key")
-                                       .about("Generate a bldr service key")
+                                       .about("Generate a Habitat service key")
                                        .arg(Arg::with_name("service")
                                                 .required(true)
                                                 .takes_value(true)
@@ -276,7 +279,7 @@ fn main() {
                           .arg(arg_infile().required(true))
                           .arg(arg_outfile().required(true));
     let sub_import_key = SubCommand::with_name("import-key")
-                             .about("Import a public bldr key")
+                             .about("Import a public Habitat key")
                              .arg(arg_infile())
                              .arg(Arg::with_name("key")
                                       .long("key")
@@ -288,7 +291,7 @@ fn main() {
                                         .required(true)
                                         .args(&["infile", "key"]));
     let sub_export_key = SubCommand::with_name("export-key")
-                             .about("Export a public bldr key")
+                             .about("Export a public Habitat key")
                              .arg(Arg::with_name("user")
                                       .long("user")
                                       .takes_value(true)
@@ -309,7 +312,7 @@ fn main() {
                                   .index(1)
                                   .required(true)
                                   .help("Name of package"));
-    let args = App::new("bldr")
+    let args = App::new(sup::PROGRAM_NAME.as_str())
                    .version(VERSION)
                    .setting(AppSettings::VersionlessSubcommands)
                    .setting(AppSettings::SubcommandRequiredElseHelp)
@@ -364,14 +367,14 @@ fn main() {
 
 /// Exit with an error message and the right status code
 #[allow(dead_code)]
-fn exit_with(e: BldrError, code: i32) {
+fn exit_with(e: SupError, code: i32) {
     println!("{}", e);
     process::exit(code)
 }
 
 /// Start a shell
 #[allow(dead_code)]
-fn shell(_config: &Config) -> BldrResult<()> {
+fn shell(_config: &Config) -> Result<()> {
     outputln!("Starting your shell; enjoy!");
     let shell_arg = try!(CString::new("sh"));
     let mut argv = [shell_arg.as_ptr(), ptr::null()];
@@ -385,14 +388,14 @@ fn shell(_config: &Config) -> BldrResult<()> {
 
 /// Show the configuration options for a service
 #[allow(dead_code)]
-fn configure(config: &Config) -> BldrResult<()> {
+fn configure(config: &Config) -> Result<()> {
     try!(configure::display(config));
     Ok(())
 }
 
 /// Start a service
 #[allow(dead_code)]
-fn start(config: &Config) -> BldrResult<()> {
+fn start(config: &Config) -> Result<()> {
     outputln!("Starting {}",
               Yellow.bold().paint(config.package().to_string()));
     try!(start::package(config));
@@ -402,7 +405,7 @@ fn start(config: &Config) -> BldrResult<()> {
 }
 
 /// Import a key
-fn import_key(config: &Config) -> BldrResult<()> {
+fn import_key(config: &Config) -> Result<()> {
     outputln!("Importing key {}", Yellow.bold().paint(config.key()));
     try!(key::import(&config));
     outputln!("Finished importing key");
@@ -410,7 +413,7 @@ fn import_key(config: &Config) -> BldrResult<()> {
 }
 
 /// Export a key
-fn export_key(config: &Config) -> BldrResult<()> {
+fn export_key(config: &Config) -> Result<()> {
     outputln!("Exporting key {}", Yellow.bold().paint(config.key()));
     try!(key::export(&config));
     outputln!("Finished exporting key");
@@ -418,7 +421,7 @@ fn export_key(config: &Config) -> BldrResult<()> {
 }
 
 /// Generate a key for a user
-fn generate_user_key(config: &Config) -> BldrResult<()> {
+fn generate_user_key(config: &Config) -> Result<()> {
     outputln!("Generate user key for {}",
               Yellow.bold().paint(config.key()));
     try!(key::generate_user_key(&config));
@@ -428,7 +431,7 @@ fn generate_user_key(config: &Config) -> BldrResult<()> {
 }
 
 /// Generate a key for a service
-fn generate_service_key(config: &Config) -> BldrResult<()> {
+fn generate_service_key(config: &Config) -> Result<()> {
     outputln!("Generate service key for {}",
               Yellow.bold().paint(config.key()));
     try!(key::generate_service_key(&config));
@@ -437,8 +440,8 @@ fn generate_service_key(config: &Config) -> BldrResult<()> {
     Ok(())
 }
 
-/// List bldr managed gpg keys
-fn list_keys(config: &Config) -> BldrResult<()> {
+/// List managed gpg keys
+fn list_keys(config: &Config) -> Result<()> {
     outputln!("Listing keys");
     try!(key::list(&config));
     outputln!("Finished listing keys");
@@ -446,7 +449,7 @@ fn list_keys(config: &Config) -> BldrResult<()> {
 }
 
 /// Encrypt a file
-fn encrypt(config: &Config) -> BldrResult<()> {
+fn encrypt(config: &Config) -> Result<()> {
     outputln!("Encrypting");
     try!(key::encrypt_and_sign(&config));
     outputln!("Finished encrypting");
@@ -454,7 +457,7 @@ fn encrypt(config: &Config) -> BldrResult<()> {
 }
 
 /// Decrypt a file
-fn decrypt(config: &Config) -> BldrResult<()> {
+fn decrypt(config: &Config) -> Result<()> {
     outputln!("Decrypting");
     try!(key::decrypt_and_verify(&config));
     outputln!("Finished decrypting");

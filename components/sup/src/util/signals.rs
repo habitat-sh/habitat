@@ -17,7 +17,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, AT
 use wonder::actor;
 use wonder::actor::{ActorSender, HandleResult, InitResult, StopReason};
 
-use error::{BldrResult, BldrError, ErrorKind};
+use error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "US";
 
@@ -73,10 +73,10 @@ pub enum Signal {
 pub struct SignalNotifier;
 
 impl SignalNotifier {
-    pub fn stop(actor: &actor::Actor<Message>) -> BldrResult<()> {
+    pub fn stop(actor: &actor::Actor<Message>) -> Result<()> {
         match actor.call(Message::Stop) {
             Ok(_) => Ok(()),
-            Err(err) => Err(BldrError::from(err)),
+            Err(err) => Err(SupError::from(err)),
         }
     }
 }
@@ -84,7 +84,7 @@ impl SignalNotifier {
 impl actor::GenServer for SignalNotifier {
     type T = Message;
     type S = ();
-    type E = BldrError;
+    type E = SupError;
 
     fn init(&self, _tx: &ActorSender<Self::T>, _: &mut Self::S) -> InitResult<Self::E> {
         unsafe {
@@ -94,7 +94,7 @@ impl actor::GenServer for SignalNotifier {
                 SIGNAL.store(0 as usize, Ordering::SeqCst);
             });
             if ALIVE.compare_and_swap(false, true, Ordering::Relaxed) {
-                return Err(bldr_error!(ErrorKind::SignalNotifierStarted));
+                return Err(sup_error!(Error::SignalNotifierStarted));
             }
         }
         Ok(Some(TIMEOUT_MS))
@@ -178,14 +178,14 @@ fn set_signal_handlers() {
 }
 
 /// send a Unix signal to a pid
-pub fn send_signal_to_pid(pid: i32, sig: Signal) -> BldrResult<()> {
+pub fn send_signal_to_pid(pid: i32, sig: Signal) -> Result<()> {
     let s = sig as u32;
     debug!("sending signal {} to pid {}", s, pid);
     unsafe {
         let result = kill(pid, s);
         match result {
             0 => Ok(()),
-            _ => return Err(bldr_error!(ErrorKind::SignalFailed)),
+            _ => return Err(sup_error!(Error::SignalFailed)),
         }
     }
 }

@@ -5,7 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! The http sidecar for bldr services. Provides an interface to verifying and validating
+//! The http sidecar for the Supervisor services. Provides an interface to verifying and validating
 //! promises.
 //!
 //! Supports:
@@ -24,7 +24,7 @@ use std::collections::HashMap;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, StopReason, ActorSender};
 
-use error::{BldrError, ErrorKind};
+use error::{Error, SupError};
 use health_check;
 use package::Package;
 use service_config::ServiceConfig;
@@ -110,7 +110,7 @@ impl Sidecar {
 impl GenServer for Sidecar {
     type T = SidecarMessage;
     type S = SidecarState;
-    type E = BldrError;
+    type E = SupError;
 
     fn init(&self, _tx: &ActorSender<Self::T>, _state: &mut Self::S) -> InitResult<Self::E> {
         Ok(Some(0))
@@ -172,7 +172,7 @@ fn election(election_list: &Arc<RwLock<ElectionList>>, _req: &mut Request) -> Ir
 
     let json_response = match json::encode(&er) {
         Ok(json_response) => json_response,
-        Err(e) => return Err(IronError::from(bldr_error!(ErrorKind::JsonEncode(e)))),
+        Err(e) => return Err(IronError::from(sup_error!(Error::JsonEncode(e)))),
     };
 
     Ok(Response::with((status::Ok, json_response)))
@@ -208,7 +208,7 @@ fn gossip(member_list: &Arc<RwLock<MemberList>>,
 
     let json_response = match json::encode(&gossip_response) {
         Ok(json_response) => json_response,
-        Err(e) => return Err(IronError::from(bldr_error!(ErrorKind::JsonEncode(e)))),
+        Err(e) => return Err(IronError::from(sup_error!(Error::JsonEncode(e)))),
     };
 
     Ok(Response::with((status::Ok, json_response)))
@@ -242,7 +242,7 @@ fn census(census_list: &Arc<RwLock<CensusList>>, _req: &mut Request) -> IronResu
 
     let json_response = match json::encode(&response) {
         Ok(json_response) => json_response,
-        Err(e) => return Err(IronError::from(bldr_error!(ErrorKind::JsonEncode(e)))),
+        Err(e) => return Err(IronError::from(sup_error!(Error::JsonEncode(e)))),
     };
 
     Ok(Response::with((status::Ok, json_response)))
@@ -305,12 +305,12 @@ fn health(package_lock: &Arc<RwLock<Package>>,
     }
 }
 
-/// Translates BldrErrors into IronErrors
-impl From<BldrError> for IronError {
-    fn from(err: BldrError) -> IronError {
+/// Translates SupErrors into IronErrors
+impl From<SupError> for IronError {
+    fn from(err: SupError) -> IronError {
         IronError {
             error: Box::new(err),
-            response: Response::with((status::InternalServerError, "Internal bldr error")),
+            response: Response::with((status::InternalServerError, "Internal Supervisor error")),
         }
     }
 }

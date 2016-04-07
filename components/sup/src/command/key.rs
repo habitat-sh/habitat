@@ -19,7 +19,7 @@ use rpassword::read_password;
 use regex::Regex;
 
 use config::Config;
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 use package::Package;
 
 static LOGKEY: &'static str = "KU"; // "key utils"
@@ -53,7 +53,7 @@ static BLDR_EMAIL_SUFFIX: &'static str = "@bldr";
 ///
 /// Will upload the key at `/tmp/chef-public.asc` to the depot url.
 ///
-pub fn upload(config: &Config) -> BldrResult<()> {
+pub fn upload(config: &Config) -> Result<()> {
     let url = config.url().as_ref().unwrap();
     let path = Path::new(config.key());
 
@@ -72,11 +72,11 @@ pub fn upload(config: &Config) -> BldrResult<()> {
                         try!(depot_client::put_key(url, cached));
                     }
                     Err(_) => {
-                        return Err(bldr_error!(ErrorKind::KeyNotFound(config.key().to_string())));
+                        return Err(sup_error!(Error::KeyNotFound(config.key().to_string())));
                     }
                 }
             } else {
-                return Err(bldr_error!(ErrorKind::FileNotFound(config.key().to_string())));
+                return Err(sup_error!(Error::FileNotFound(config.key().to_string())));
             }
         }
     }
@@ -109,7 +109,7 @@ pub fn upload(config: &Config) -> BldrResult<()> {
 ///
 /// Will install the key found in `/tmp/chef-public.asc`.
 ///
-pub fn import(config: &Config) -> BldrResult<()> {
+pub fn import(config: &Config) -> Result<()> {
     match *config.infile() {
         Some(ref infile) => {
             try!(gpg::import(infile));
@@ -143,7 +143,7 @@ pub fn import(config: &Config) -> BldrResult<()> {
 /// $ bldr export-key --service redis --group dev --outfile /tmp/redis.pubkey
 /// ```
 ///
-pub fn export(config: &Config) -> BldrResult<()> {
+pub fn export(config: &Config) -> Result<()> {
     // it's either a service key or a user key,
     // docopt will fail if you don't specify one or the other
     let keyname = if config.service_key().is_some() {
@@ -165,7 +165,7 @@ pub fn export(config: &Config) -> BldrResult<()> {
 /// The user key is used to sign the encrypted message.
 /// If a password is not specified for the user key with the `--password` flag,
 /// bldr will display an interactive prompt.
-pub fn encrypt_and_sign(config: &Config) -> BldrResult<()> {
+pub fn encrypt_and_sign(config: &Config) -> Result<()> {
     // these values are required per docopt, so they really *shouldn't* be empty
     let userkey = config.user_key().as_ref().unwrap();
     let servicekey = config.service_key().as_ref().unwrap();
@@ -210,7 +210,7 @@ pub fn encrypt_and_sign(config: &Config) -> BldrResult<()> {
 /// The private key of the service must reside in the current GPG cache.
 /// The public key of the user must reside in the current GPG cache to
 /// verify the signature.
-pub fn decrypt_and_verify(config: &Config) -> BldrResult<()> {
+pub fn decrypt_and_verify(config: &Config) -> Result<()> {
     let infile = config.infile().as_ref().unwrap();
     let outfile = config.outfile().as_ref().unwrap();
     let msg = format!("Attempting to decrypt {}, sending output to {}",
@@ -224,7 +224,7 @@ pub fn decrypt_and_verify(config: &Config) -> BldrResult<()> {
 }
 
 /// list ALL keys in gpg
-pub fn list(_config: &Config) -> BldrResult<()> {
+pub fn list(_config: &Config) -> Result<()> {
     let keys = try!(gpg::list());
     for key in &keys {
         for (_, user) in key.user_ids().enumerate() {
@@ -261,20 +261,20 @@ pub fn list(_config: &Config) -> BldrResult<()> {
 
 /// ensure parameters are correct before generating
 /// gpg "xml-ish" parameter string
-fn check_params(params: &gpg::KeygenParams) -> BldrResult<()> {
+fn check_params(params: &gpg::KeygenParams) -> Result<()> {
     // must be at least 5 characters
     if params.keyname.len() < 5 {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter("key name must be at least 5 \
+        return Err(sup_error!(Error::InvalidKeyParameter("key name must be at least 5 \
                                                                characters in length"
-                                                                  .to_string())));
+                                                             .to_string())));
     }
 
     // must contain an @ sign between 1 or more characters
     let re = Regex::new(r".+@.+").unwrap();
     if !re.is_match(&params.email) {
-        return Err(bldr_error!(ErrorKind::InvalidKeyParameter("key email address must contain \
+        return Err(sup_error!(Error::InvalidKeyParameter("key email address must contain \
                                                                an @ symbol"
-                                                                  .to_string())));
+                                                             .to_string())));
     }
     return Ok(());
 }
@@ -330,7 +330,7 @@ impl Drop for DroppableChildProcess {
 
 /// run rngd in the background to generate entropy while generating keys.
 /// The process is killed when it goes out of scope via `DroppableChildProcess`.
-fn run_rngd() -> BldrResult<DroppableChildProcess> {
+fn run_rngd() -> Result<DroppableChildProcess> {
     debug!("Spawning rngd in the background");
     let res = try!(Package::load(&PackageIdent::new("chef", "rngd", None, None), None));
     let rngdpath = res.join_path("sbin/rngd");
@@ -350,7 +350,7 @@ fn run_rngd() -> BldrResult<DroppableChildProcess> {
 /// generate a user key in gpg
 /// A user key requires a password and valid email address
 /// If the user key already exists in gpg, it will not be created.
-pub fn generate_user_key(config: &Config) -> BldrResult<()> {
+pub fn generate_user_key(config: &Config) -> Result<()> {
     let _child = try!(run_rngd());
     let email = config.email().as_ref().unwrap();
     // clap requires user_key to be specified for generate
@@ -386,7 +386,7 @@ pub fn generate_user_key(config: &Config) -> BldrResult<()> {
 /// A service key does NOT require a password
 /// A service key has an email address automatically generated, in
 /// the form: `service.group@bldr`
-pub fn generate_service_key(config: &Config) -> BldrResult<()> {
+pub fn generate_service_key(config: &Config) -> Result<()> {
     let _child = try!(run_rngd());
     let comment = SERVICE_KEY_COMMENT;
     // clap requires service_key to be specified

@@ -28,7 +28,7 @@ use time;
 use std::mem;
 use std::time::Duration;
 
-use error::BldrResult;
+use error::Result;
 use util;
 
 /// If the environment variable `$BLDR_CONFIG_ETCD` is set, returns the URL that it contains.
@@ -77,7 +77,7 @@ pub struct EtcdWrite {
 /// 1. Check for a stop signal from the `DiscoveryWriter`
 /// 1. Check if the timer has elapsed
 /// 1. Sleep or go back to the top of the outer loop.
-pub fn write(options: &EtcdWrite) -> BldrResult<(StatusCode, String)> {
+pub fn write(options: &EtcdWrite) -> Result<(StatusCode, String)> {
     if enabled().is_none() {
         return Ok((StatusCode::Continue, String::new()));
     }

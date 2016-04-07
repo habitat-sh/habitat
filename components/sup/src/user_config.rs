@@ -14,7 +14,7 @@ use std::sync::mpsc::{channel, Sender, Receiver, TryRecvError};
 use wonder::actor::{self, GenServer, HandleResult, InitResult, StopReason, ActorSender};
 use discovery::etcd;
 
-use error::{BldrError, BldrResult};
+use error::{SupError, Result};
 
 /// The timeout interval for the actor
 const TIMEOUT_MS: u64 = 200;
@@ -42,7 +42,7 @@ impl UserActor {
     /// # Failures
     ///
     /// * If the actor call fails.
-    pub fn config_string(actor: &actor::Actor<Message>) -> BldrResult<Option<String>> {
+    pub fn config_string(actor: &actor::Actor<Message>) -> Result<Option<String>> {
         match try!(actor.call(Message::Config)) {
             Message::ConfigToml(config_string) => Ok(config_string),
             _ => unreachable!(),
@@ -77,7 +77,7 @@ impl UserActorState {
 impl GenServer for UserActor {
     type T = Message;
     type S = UserActorState;
-    type E = BldrError;
+    type E = SupError;
 
     /// Set up the underlying etcd::watch, and store the channels in our state.
     fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E> {

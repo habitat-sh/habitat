@@ -5,19 +5,19 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Error handling for Bldr.
+//! Error handling for the Supervisor.
 //!
-//! Errors in bldr are of the type `BldrError`, which contains an `ErrorKind` along with
+//! Errors in the Supervisor are of the type `SupError`, which contains an `Error` along with
 //! information about where the error was created in the code base, in the same way that the
 //! `output` module does. To simplify the creation of these annotated errors, we provide the
-//! `bldr_error!` macro, which takes only an `ErrorKind` as its argument.
+//! `sup_error!` macro, which takes only an `Error` as its argument.
 //!
-//! To match on `ErrorKind`, do something like this:
+//! To match on `Error`, do something like this:
 //!
 //! ```ignore
-//! let error = bldr_error!(ErrorKind::CommandNotImplemented);
+//! let error = sup_error!(Error::CommandNotImplemented);
 //! let result = match error {
-//!     BldrError{err: ErrorKind::CommandNotImplemented, ..} => true,
+//!     SupError{err: Error::CommandNotImplemented, ..} => true,
 //!     _ => false
 //! };
 //! assert_eq!(result, true);
@@ -26,13 +26,13 @@
 //! When printing errors, we automatically create a `StructuredOutput` with the `verbose` flag set,
 //! ensuring that you can see the file, line number, and column it was created from.
 //!
-//! Also included in this module is `BldrResult<T>`, a type alias for `Result<T, BldrError>`. Use
+//! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
 use std::io;
 use std::result;
 use std::fmt;
-use std::error::Error;
+use std::error;
 use std::string;
 use std::ffi;
 use std::sync::mpsc;
@@ -52,30 +52,31 @@ use mustache;
 
 use package::HookType;
 use output::StructuredOutput;
+use PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
 
 #[derive(Debug)]
-/// All errors in Bldr are kept in this struct. We store `ErrorKind`, an enum with a variant for
-/// every type of error we produce. It also stores the location the error was created.
-pub struct BldrError {
-    pub err: ErrorKind,
+/// All errors in the Supervisor are kept in this struct. We store `Error`, an enum with a variant
+/// for every type of error we produce. It also stores the location the error was created.
+pub struct SupError {
+    pub err: Error,
     logkey: &'static str,
     file: &'static str,
     line: u32,
     column: u32,
 }
 
-impl BldrError {
-    /// Create a new `BldrError`. Usually accessed through the `bldr_error!` macro, rather than
+impl SupError {
+    /// Create a new `SupError`. Usually accessed through the `sup_error!` macro, rather than
     /// called directly.
-    pub fn new(err: ErrorKind,
+    pub fn new(err: Error,
                logkey: &'static str,
                file: &'static str,
                line: u32,
                column: u32)
-               -> BldrError {
-        BldrError {
+               -> SupError {
+        SupError {
             err: err,
             logkey: logkey,
             file: file,
@@ -87,7 +88,7 @@ impl BldrError {
 
 /// All the kinds of errors we produce.
 #[derive(Debug)]
-pub enum ErrorKind {
+pub enum Error {
     ActorError(actor::ActorError),
     CommandNotImplemented,
     DbInvalidPath,
@@ -128,80 +129,81 @@ pub enum ErrorKind {
 }
 
 /// Our result type alias, for easy coding.
-pub type BldrResult<T> = result::Result<T, BldrError>;
+pub type Result<T> = result::Result<T, SupError>;
 
-impl fmt::Display for BldrError {
+impl fmt::Display for SupError {
     // We create a string for each type of error, then create a `StructuedOutput` for it, flip
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
-            ErrorKind::ActorError(ref err) => format!("Actor returned error: {:?}", err),
-            ErrorKind::HabitatCommon(ref err) => format!("{}", err),
-            ErrorKind::HabitatCore(ref err) => format!("{}", err),
-            ErrorKind::CommandNotImplemented => format!("Command is not yet implemented!"),
-            ErrorKind::DbInvalidPath => format!("Invalid filepath to internal datastore"),
-            ErrorKind::DepotClient(ref err) => format!("{}", err),
-            ErrorKind::FileNotFound(ref e) => format!("File not found at: {}", e),
-            ErrorKind::GPGError(ref e) => format!("{}", e),
-            ErrorKind::HealthCheck(ref e) => format!("Health Check failed: {}", e),
-            ErrorKind::HookFailed(ref t, ref e, ref o) => {
+            Error::ActorError(ref err) => format!("Actor returned error: {:?}", err),
+            Error::HabitatCommon(ref err) => format!("{}", err),
+            Error::HabitatCore(ref err) => format!("{}", err),
+            Error::CommandNotImplemented => format!("Command is not yet implemented!"),
+            Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
+            Error::DepotClient(ref err) => format!("{}", err),
+            Error::FileNotFound(ref e) => format!("File not found at: {}", e),
+            Error::GPGError(ref e) => format!("{}", e),
+            Error::HealthCheck(ref e) => format!("Health Check failed: {}", e),
+            Error::HookFailed(ref t, ref e, ref o) => {
                 format!("Hook failed to run: {}, {}, {}", t, e, o)
             }
-            ErrorKind::HTTP(ref e) => format!("{}", e),
-            ErrorKind::HyperError(ref err) => format!("{}", err),
-            ErrorKind::InvalidKeyParameter(ref e) => {
+            Error::HTTP(ref e) => format!("{}", e),
+            Error::HyperError(ref err) => format!("{}", err),
+            Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
-            ErrorKind::InvalidPidFile => format!("Invalid child process PID file"),
-            ErrorKind::InvalidServiceGroupString(ref e) => {
+            Error::InvalidPidFile => format!("Invalid child process PID file"),
+            Error::InvalidServiceGroupString(ref e) => {
                 format!("Invalid service group string: {}", e)
             }
-            ErrorKind::Io(ref err) => format!("{}", err),
-            ErrorKind::IPFailed => format!("Failed to discover this hosts outbound IP address"),
-            ErrorKind::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
-            ErrorKind::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
-            ErrorKind::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
-            ErrorKind::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
-            ErrorKind::MustacheEncoderError(ref me) => {
+            Error::Io(ref err) => format!("{}", err),
+            Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
+            Error::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
+            Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
+            Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
+            Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            Error::MustacheEncoderError(ref me) => {
                 match *me {
                     mustache::encoder::Error::IoError(ref e) => format!("{}", e),
                     _ => format!("Mustache encoder error: {:?}", me),
                 }
             }
-            ErrorKind::NulError(ref e) => format!("{}", e),
-            ErrorKind::PackageArchiveMalformed(ref e) => {
+            Error::NulError(ref e) => format!("{}", e),
+            Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
             }
-            ErrorKind::PackageNotFound(ref pkg) => {
+            Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
                 } else {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
-            ErrorKind::RemotePackageNotFound(ref pkg) => {
+            Error::RemotePackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package in any sources: {}", pkg)
                 } else {
                     format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
-            ErrorKind::SignalFailed => format!("Failed to send a signal to the child process"),
-            ErrorKind::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
-            ErrorKind::StrFromUtf8Error(ref e) => format!("{}", e),
-            ErrorKind::StringFromUtf8Error(ref e) => format!("{}", e),
-            ErrorKind::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
-            ErrorKind::TomlParser(ref errs) => {
+            Error::SignalFailed => format!("Failed to send a signal to the child process"),
+            Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
+            Error::StrFromUtf8Error(ref e) => format!("{}", e),
+            Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
+            Error::TomlParser(ref errs) => {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
-            ErrorKind::TryRecvError(ref err) => format!("{}", err),
-            ErrorKind::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
-            ErrorKind::UnpackFailed => format!("Failed to unpack a package"),
-            ErrorKind::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
+            Error::TryRecvError(ref err) => format!("{}", err),
+            Error::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
+            Error::UnpackFailed => format!("Failed to unpack a package"),
+            Error::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
         };
         let cstring = Red.bold().paint(content).to_string();
-        let mut so = StructuredOutput::new("bldr",
+        let progname = PROGRAM_NAME.as_str();
+        let mut so = StructuredOutput::new(progname,
                                            self.logkey,
                                            self.line,
                                            self.file,
@@ -212,45 +214,45 @@ impl fmt::Display for BldrError {
     }
 }
 
-impl Error for BldrError {
+impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
-            ErrorKind::ActorError(_) => "A running actor responded with an error",
-            ErrorKind::HabitatCommon(ref err) => err.description(),
-            ErrorKind::HabitatCore(ref err) => err.description(),
-            ErrorKind::CommandNotImplemented => "Command is not yet implemented!",
-            ErrorKind::DbInvalidPath => "A bad filepath was provided for an internal datastore",
-            ErrorKind::DepotClient(ref err) => err.description(),
-            ErrorKind::FileNotFound(_) => "File not found",
-            ErrorKind::GPGError(_) => "gpgme error",
-            ErrorKind::HealthCheck(_) => "Health Check returned an unknown status code",
-            ErrorKind::HookFailed(_, _, _) => "Hook failed to run",
-            ErrorKind::HTTP(_) => "Received an HTTP error",
-            ErrorKind::HyperError(ref err) => err.description(),
-            ErrorKind::InvalidKeyParameter(_) => "Key parameter error",
-            ErrorKind::InvalidPidFile => "Invalid child process PID file",
-            ErrorKind::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
-            ErrorKind::Io(ref err) => err.description(),
-            ErrorKind::IPFailed => "Failed to discover the outbound IP address",
-            ErrorKind::JsonDecode(_) => "JSON decoding error: {:?}",
-            ErrorKind::JsonEncode(_) => "JSON encoding error",
-            ErrorKind::KeyNotFound(_) => "Key not found in key cache",
-            ErrorKind::MetaFileIO(_) => "MetaFile could not be read or written to",
-            ErrorKind::MustacheEncoderError(_) => "Failed to encode mustache template",
-            ErrorKind::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
-            ErrorKind::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
-            ErrorKind::PackageNotFound(_) => "Cannot find a package",
-            ErrorKind::RemotePackageNotFound(_) => "Cannot find a package in any sources",
-            ErrorKind::SignalFailed => "Failed to send a signal to the child process",
-            ErrorKind::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
-            ErrorKind::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
-            ErrorKind::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
-            ErrorKind::TomlEncode(_) => "Failed to encode toml!",
-            ErrorKind::TomlParser(_) => "Failed to parse toml!",
-            ErrorKind::TryRecvError(_) => "A channel failed to recieve a response",
-            ErrorKind::UnknownTopology(_) => "Unknown topology",
-            ErrorKind::UnpackFailed => "Failed to unpack a package",
-            ErrorKind::UuidParseError(_) => "Uuid Parse Error",
+            Error::ActorError(_) => "A running actor responded with an error",
+            Error::HabitatCommon(ref err) => err.description(),
+            Error::HabitatCore(ref err) => err.description(),
+            Error::CommandNotImplemented => "Command is not yet implemented!",
+            Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
+            Error::DepotClient(ref err) => err.description(),
+            Error::FileNotFound(_) => "File not found",
+            Error::GPGError(_) => "gpgme error",
+            Error::HealthCheck(_) => "Health Check returned an unknown status code",
+            Error::HookFailed(_, _, _) => "Hook failed to run",
+            Error::HTTP(_) => "Received an HTTP error",
+            Error::HyperError(ref err) => err.description(),
+            Error::InvalidKeyParameter(_) => "Key parameter error",
+            Error::InvalidPidFile => "Invalid child process PID file",
+            Error::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
+            Error::Io(ref err) => err.description(),
+            Error::IPFailed => "Failed to discover the outbound IP address",
+            Error::JsonDecode(_) => "JSON decoding error: {:?}",
+            Error::JsonEncode(_) => "JSON encoding error",
+            Error::KeyNotFound(_) => "Key not found in key cache",
+            Error::MetaFileIO(_) => "MetaFile could not be read or written to",
+            Error::MustacheEncoderError(_) => "Failed to encode mustache template",
+            Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            Error::PackageNotFound(_) => "Cannot find a package",
+            Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
+            Error::SignalFailed => "Failed to send a signal to the child process",
+            Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
+            Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
+            Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            Error::TomlEncode(_) => "Failed to encode toml!",
+            Error::TomlParser(_) => "Failed to parse toml!",
+            Error::TryRecvError(_) => "A channel failed to recieve a response",
+            Error::UnknownTopology(_) => "Unknown topology",
+            Error::UnpackFailed => "Failed to unpack a package",
+            Error::UuidParseError(_) => "Uuid Parse Error",
         }
     }
 }
@@ -264,98 +266,98 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
     return errors;
 }
 
-impl From<common::Error> for BldrError {
-    fn from(err: common::Error) -> BldrError {
-        bldr_error!(ErrorKind::HabitatCommon(err))
+impl From<common::Error> for SupError {
+    fn from(err: common::Error) -> SupError {
+        sup_error!(Error::HabitatCommon(err))
     }
 }
 
-impl From<hcore::Error> for BldrError {
-    fn from(err: hcore::Error) -> BldrError {
-        bldr_error!(ErrorKind::HabitatCore(err))
+impl From<hcore::Error> for SupError {
+    fn from(err: hcore::Error) -> SupError {
+        sup_error!(Error::HabitatCore(err))
     }
 }
 
-impl From<depot_client::Error> for BldrError {
-    fn from(err: depot_client::Error) -> BldrError {
-        bldr_error!(ErrorKind::DepotClient(err))
+impl From<depot_client::Error> for SupError {
+    fn from(err: depot_client::Error) -> SupError {
+        sup_error!(Error::DepotClient(err))
     }
 }
 
-impl From<uuid::ParseError> for BldrError {
-    fn from(err: uuid::ParseError) -> BldrError {
-        bldr_error!(ErrorKind::UuidParseError(err))
+impl From<uuid::ParseError> for SupError {
+    fn from(err: uuid::ParseError) -> SupError {
+        sup_error!(Error::UuidParseError(err))
     }
 }
 
-impl From<ffi::NulError> for BldrError {
-    fn from(err: ffi::NulError) -> BldrError {
-        bldr_error!(ErrorKind::NulError(err))
+impl From<ffi::NulError> for SupError {
+    fn from(err: ffi::NulError) -> SupError {
+        sup_error!(Error::NulError(err))
     }
 }
 
-impl From<mustache::encoder::Error> for BldrError {
-    fn from(err: mustache::encoder::Error) -> BldrError {
-        bldr_error!(ErrorKind::MustacheEncoderError(err))
+impl From<mustache::encoder::Error> for SupError {
+    fn from(err: mustache::encoder::Error) -> SupError {
+        sup_error!(Error::MustacheEncoderError(err))
     }
 }
 
-impl From<io::Error> for BldrError {
-    fn from(err: io::Error) -> BldrError {
-        bldr_error!(ErrorKind::Io(err))
+impl From<io::Error> for SupError {
+    fn from(err: io::Error) -> SupError {
+        sup_error!(Error::Io(err))
     }
 }
 
-impl From<hyper::error::Error> for BldrError {
-    fn from(err: hyper::error::Error) -> BldrError {
-        bldr_error!(ErrorKind::HyperError(err))
+impl From<hyper::error::Error> for SupError {
+    fn from(err: hyper::error::Error) -> SupError {
+        sup_error!(Error::HyperError(err))
     }
 }
 
-impl From<string::FromUtf8Error> for BldrError {
-    fn from(err: string::FromUtf8Error) -> BldrError {
-        bldr_error!(ErrorKind::StringFromUtf8Error(err))
+impl From<string::FromUtf8Error> for SupError {
+    fn from(err: string::FromUtf8Error) -> SupError {
+        sup_error!(Error::StringFromUtf8Error(err))
     }
 }
 
-impl From<str::Utf8Error> for BldrError {
-    fn from(err: str::Utf8Error) -> BldrError {
-        bldr_error!(ErrorKind::StrFromUtf8Error(err))
+impl From<str::Utf8Error> for SupError {
+    fn from(err: str::Utf8Error) -> SupError {
+        sup_error!(Error::StrFromUtf8Error(err))
     }
 }
 
-impl From<mpsc::TryRecvError> for BldrError {
-    fn from(err: mpsc::TryRecvError) -> BldrError {
-        bldr_error!(ErrorKind::TryRecvError(err))
+impl From<mpsc::TryRecvError> for SupError {
+    fn from(err: mpsc::TryRecvError) -> SupError {
+        sup_error!(Error::TryRecvError(err))
     }
 }
 
-impl From<gpgme::Error> for BldrError {
-    fn from(err: gpgme::Error) -> BldrError {
-        bldr_error!(ErrorKind::GPGError(err))
+impl From<gpgme::Error> for SupError {
+    fn from(err: gpgme::Error) -> SupError {
+        sup_error!(Error::GPGError(err))
     }
 }
 
-impl From<actor::ActorError> for BldrError {
+impl From<actor::ActorError> for SupError {
     fn from(err: actor::ActorError) -> Self {
-        bldr_error!(ErrorKind::ActorError(err))
+        sup_error!(Error::ActorError(err))
     }
 }
 
-impl From<json::EncoderError> for BldrError {
+impl From<json::EncoderError> for SupError {
     fn from(err: json::EncoderError) -> Self {
-        bldr_error!(ErrorKind::JsonEncode(err))
+        sup_error!(Error::JsonEncode(err))
     }
 }
 
-impl From<json::DecoderError> for BldrError {
+impl From<json::DecoderError> for SupError {
     fn from(err: json::DecoderError) -> Self {
-        bldr_error!(ErrorKind::JsonDecode(err))
+        sup_error!(Error::JsonDecode(err))
     }
 }
 
-impl From<toml::Error> for BldrError {
+impl From<toml::Error> for SupError {
     fn from(err: toml::Error) -> Self {
-        bldr_error!(ErrorKind::TomlEncode(err))
+        sup_error!(Error::TomlEncode(err))
     }
 }

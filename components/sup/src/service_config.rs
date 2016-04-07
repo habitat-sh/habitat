@@ -11,7 +11,7 @@ use rustc_serialize::Encodable;
 
 use toml;
 use VERSION;
-use error::{BldrResult, ErrorKind};
+use error::{Error, Result};
 use package::Package;
 use util;
 use std::io::prelude::*;
@@ -26,12 +26,13 @@ use mustache;
 use ansi_term::Colour::Purple;
 
 static LOGKEY: &'static str = "SC";
+static ENV_VAR_PREFIX: &'static str = "HAB";
 
 /// The top level struct for all our configuration - this corresponds to the top level namespaces
 /// available in `config.toml`.
 #[derive(Debug, RustcEncodable)]
 pub struct ServiceConfig {
-    bldr: Bldr,
+    hab: Hab,
     pkg: Pkg,
     sys: Sys,
     cfg: Cfg,
@@ -47,11 +48,11 @@ impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(package: &Package, cl: &CensusList) -> BldrResult<ServiceConfig> {
+    pub fn new(package: &Package, cl: &CensusList) -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         Ok(ServiceConfig {
             pkg: Pkg::new(package),
-            bldr: Bldr::new(),
+            hab: Hab::new(),
             sys: Sys::new(),
             cfg: cfg,
             svc: Svc::new(cl),
@@ -61,11 +62,11 @@ impl ServiceConfig {
     }
 
     /// Render this struct as toml.
-    pub fn to_toml(&self) -> BldrResult<toml::Value> {
+    pub fn to_toml(&self) -> Result<toml::Value> {
         let mut top = toml::Table::new();
 
-        let bldr = try!(self.bldr.to_toml());
-        top.insert(String::from("bldr"), bldr);
+        let hab = try!(self.hab.to_toml());
+        top.insert(String::from("hab"), hab);
 
         let pkg = try!(self.pkg.to_toml());
         top.insert(String::from("pkg"), pkg);
@@ -106,7 +107,7 @@ impl ServiceConfig {
     }
 
     /// Write the configuration to `config.toml`, and render the templated configuration files.
-    pub fn write(&mut self, pkg: &Package) -> BldrResult<bool> {
+    pub fn write(&mut self, pkg: &Package) -> Result<bool> {
         let final_toml = try!(self.to_toml());
         {
             let mut last_toml = try!(File::create(pkg.svc_join_path("config.toml")));
@@ -242,7 +243,7 @@ fn toml_merge(left: &toml::Table, right: &toml::Table) -> toml::Table {
 }
 
 impl Cfg {
-    fn new(pkg: &Package) -> BldrResult<Cfg> {
+    fn new(pkg: &Package) -> Result<Cfg> {
         let mut cfg = Cfg {
             default: None,
             user: None,
@@ -273,7 +274,7 @@ impl Cfg {
         toml::Value::Table(left)
     }
 
-    fn load_default(&mut self, pkg: &Package) -> BldrResult<()> {
+    fn load_default(&mut self, pkg: &Package) -> Result<()> {
         // Default
         let mut file = match File::open(pkg.join_path("default.toml")) {
             Ok(file) => file,
@@ -288,7 +289,7 @@ impl Cfg {
             Ok(_) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
+                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.default = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -299,7 +300,7 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_user(&mut self, pkg: &Package) -> BldrResult<()> {
+    fn load_user(&mut self, pkg: &Package) -> Result<()> {
         let mut file = match File::open(pkg.svc_join_path("user.toml")) {
             Ok(file) => file,
             Err(e) => {
@@ -313,7 +314,7 @@ impl Cfg {
             Ok(_) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
+                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.user = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -324,7 +325,7 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_gossip(&mut self, pkg: &Package) -> BldrResult<()> {
+    fn load_gossip(&mut self, pkg: &Package) -> Result<()> {
         let mut file = match File::open(pkg.svc_join_path("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
@@ -338,7 +339,7 @@ impl Cfg {
             Ok(_) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
+                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.gossip = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -349,13 +350,15 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment(&mut self, pkg: &Package) -> BldrResult<()> {
-        let var_name = format!("BLDR_{}", pkg.name).to_ascii_uppercase().replace("-", "_");
+    fn load_environment(&mut self, pkg: &Package) -> Result<()> {
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, pkg.name)
+                           .to_ascii_uppercase()
+                           .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(bldr_error!(ErrorKind::TomlParser(toml_parser.errors))));
+                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.environment = Some(toml::Value::Table(toml));
 
             }
@@ -402,12 +405,12 @@ impl Pkg {
             ident: package.ident().to_string(),
             deps: deps,
             exposes: package.exposes(),
-            path: package.path(),
-            svc_path: package.svc_path(),
+            path: package.path().to_string_lossy().into_owned(),
+            svc_path: package.svc_path().to_string_lossy().into_owned(),
         }
     }
 
-    fn to_toml(&self) -> BldrResult<toml::Value> {
+    fn to_toml(&self) -> Result<toml::Value> {
         let mut e = toml::Encoder::new();
         try!(self.encode(&mut e));
         let v = toml::Value::Table(e.toml);
@@ -445,7 +448,7 @@ impl Sys {
         }
     }
 
-    fn to_toml(&self) -> BldrResult<toml::Value> {
+    fn to_toml(&self) -> Result<toml::Value> {
         let mut e = toml::Encoder::new();
         try!(self.encode(&mut e));
         let v = toml::Value::Table(e.toml);
@@ -454,16 +457,16 @@ impl Sys {
 }
 
 #[derive(Debug, RustcEncodable)]
-pub struct Bldr {
+pub struct Hab {
     pub version: &'static str,
 }
 
-impl Bldr {
-    fn new() -> Bldr {
-        Bldr { version: VERSION }
+impl Hab {
+    fn new() -> Self {
+        Hab { version: VERSION }
     }
 
-    fn to_toml(&self) -> BldrResult<toml::Value> {
+    fn to_toml(&self) -> Result<toml::Value> {
         let mut e = toml::Encoder::new();
         try!(self.encode(&mut e));
         let v = toml::Value::Table(e.toml);
@@ -506,12 +509,12 @@ mod test {
     }
 
     #[test]
-    fn to_toml_bldr() {
+    fn to_toml_hab() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
         let sc = ServiceConfig::new(&pkg, &cl).unwrap();
         let toml = sc.to_toml().unwrap();
-        let version = toml.lookup("bldr.version").unwrap().as_str().unwrap();
+        let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
     }
 
@@ -564,20 +567,20 @@ mod test {
         }
     }
 
-    mod bldr {
+    mod hab {
         use VERSION;
-        use service_config::Bldr;
+        use service_config::Hab;
 
         #[test]
         fn version() {
-            let b = Bldr::new();
-            assert_eq!(b.version, VERSION);
+            let h = Hab::new();
+            assert_eq!(h.version, VERSION);
         }
 
         #[test]
         fn to_toml() {
-            let b = Bldr::new();
-            let version_toml = b.to_toml().unwrap();
+            let h = Hab::new();
+            let version_toml = h.to_toml().unwrap();
             let version = version_toml.lookup("version").unwrap().as_str().unwrap();
             assert_eq!(version, VERSION);
         }

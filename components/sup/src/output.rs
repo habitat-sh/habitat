@@ -5,13 +5,13 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Formats user-visible output for Bldr.
+//! Formats user-visible output for the Supervisor.
 //!
 //! Most of this module is used via the `output!`, `outputln!`, and `output_format!` macros. They
 //! create a `StructuredOutput` struct, which includes the line number, file name, and column it
 //! was called on. Additionally, it uses a standard constant called `LOGKEY` as a short hint as to
-//! where the output was generated within bldr. Also supported is a `preamble`, which is used to
-//! denote when output comes from a running service rather than bldr itself.
+//! where the output was generated within the Supervisor. Also supported is a `preamble`, which is
+//! used to denote when output comes from a running service rather than the Supervisor itself.
 //!
 //! The `StructuredOutput` struct supports two global options - verbosity and coloring. If verbose
 //! is turned on, then every line printed is annotated with its preamble, logkey, and precise
@@ -22,6 +22,8 @@ use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
 use std::fmt;
 
 use ansi_term::Colour::{White, Cyan, Green};
+
+use PROGRAM_NAME;
 
 static mut VERBOSE: AtomicBool = ATOMIC_BOOL_INIT;
 // I am sorry this isn't named the other way; I can't get an atomic initializer that defaults to
@@ -100,9 +102,10 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let verbose = self.verbose.unwrap_or(is_verbose());
         let color = self.color.unwrap_or(is_color());
-        let preamble_color = match self.preamble {
-            "bldr" => Cyan,
-            _ => Green,
+        let preamble_color = if self.preamble == PROGRAM_NAME.as_str() {
+            Cyan
+        } else {
+            Green
         };
         if verbose {
             if color {
@@ -142,6 +145,8 @@ mod tests {
     use super::StructuredOutput;
     use ansi_term::Colour::{White, Cyan};
 
+    use PROGRAM_NAME;
+
     static LOGKEY: &'static str = "SOT";
 
     fn so<'a>(preamble: &'a str, content: &'a str) -> StructuredOutput<'a> {
@@ -150,28 +155,29 @@ mod tests {
 
     #[test]
     fn new() {
-        let so = so("bldr", "opeth is amazing");
+        let so = so("soup", "opeth is amazing");
         assert_eq!(so.logkey, "SOT");
-        assert_eq!(so.preamble, "bldr");
+        assert_eq!(so.preamble, "soup");
         assert_eq!(so.content, "opeth is amazing");
     }
 
     #[test]
     fn format() {
-        let mut so = so("bldr", "opeth is amazing");
+        let mut so = so("soup", "opeth is amazing");
         so.verbose = Some(false);
         so.color = Some(false);
-        assert_eq!(format!("{}", so), "bldr(SOT): opeth is amazing");
+        assert_eq!(format!("{}", so), "soup(SOT): opeth is amazing");
     }
 
     #[test]
     fn format_color() {
-        let mut so = so("bldr", "opeth is amazing");
+        let progname = PROGRAM_NAME.as_str();
+        let mut so = so(progname, "opeth is amazing");
         so.verbose = Some(false);
         so.color = Some(true);
         assert_eq!(format!("{}", so),
                    format!("{}({}): opeth is amazing",
-                           Cyan.paint("bldr"),
+                           Cyan.paint(progname),
                            White.bold().paint("SOT")));
     }
 }

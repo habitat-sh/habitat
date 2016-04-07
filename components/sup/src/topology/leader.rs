@@ -7,7 +7,7 @@
 
 use topology::{self, standalone, State, Worker, stop};
 use state_machine::StateMachine;
-use error::{BldrResult, BldrError};
+use error::{Result, SupError};
 use package::Package;
 use config::Config;
 use census::MIN_QUORUM;
@@ -15,9 +15,9 @@ use gossip::server;
 
 static LOGKEY: &'static str = "TL";
 
-pub fn run(package: Package, config: &Config) -> BldrResult<()> {
+pub fn run(package: Package, config: &Config) -> Result<()> {
     let mut worker = try!(Worker::new(package, String::from("leader"), config));
-    let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Init);
+    let mut sm: StateMachine<State, Worker, SupError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::MinimumQuorum, state_minimum_quorum);
     sm.add_dispatch(State::WaitingForQuorum, state_waiting_for_quorum);
@@ -31,7 +31,7 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     topology::run_internal(&mut sm, &mut worker)
 }
 
-fn state_init(worker: &mut Worker) -> BldrResult<(State, u64)> {
+fn state_init(worker: &mut Worker) -> Result<(State, u64)> {
     let cl = worker.census_list.read().unwrap();
     let census = cl.local_census();
     if !census.minimum_quorum() {
@@ -53,7 +53,7 @@ fn state_init(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-fn state_minimum_quorum(worker: &mut Worker) -> BldrResult<(State, u64)> {
+fn state_minimum_quorum(worker: &mut Worker) -> Result<(State, u64)> {
     let cl = worker.census_list.read().unwrap();
     let census = cl.local_census();
     if census.minimum_quorum() {
@@ -65,7 +65,7 @@ fn state_minimum_quorum(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-fn state_waiting_for_quorum(worker: &mut Worker) -> BldrResult<(State, u64)> {
+fn state_waiting_for_quorum(worker: &mut Worker) -> Result<(State, u64)> {
     let cl = worker.census_list.read().unwrap();
     let census = cl.local_census();
     if census.has_quorum() {
@@ -76,7 +76,7 @@ fn state_waiting_for_quorum(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-fn state_restore_dataset(worker: &mut Worker) -> BldrResult<(State, u64)> {
+fn state_restore_dataset(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Restoring the dataset from a peer");
     {
         let mut cl = worker.census_list.write().unwrap();
@@ -86,7 +86,7 @@ fn state_restore_dataset(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::CheckForElection, 0))
 }
 
-fn state_check_for_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
+fn state_check_for_election(worker: &mut Worker) -> Result<(State, u64)> {
     let (has_quorum, am_leader, am_follower, has_leader) = {
         let cl = worker.census_list.read().unwrap();
         let census = cl.local_census();
@@ -147,7 +147,7 @@ fn state_check_for_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-pub fn state_start_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Starting election");
     let rumor_list = {
         let el = worker.election_list.read().unwrap();
@@ -163,7 +163,7 @@ pub fn state_start_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::Election, 200))
 }
 
-pub fn state_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_election(worker: &mut Worker) -> Result<(State, u64)> {
     let (alive_population, has_quorum) = {
         let cl = worker.census_list.read().unwrap();
         let census = cl.local_census();
@@ -211,7 +211,7 @@ pub fn state_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::Election, 200))
 }
 
-pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_become_leader(worker: &mut Worker) -> Result<(State, u64)> {
     {
         let mut cl = worker.census_list.write().unwrap();
         let mut census = cl.local_census_mut();
@@ -229,7 +229,7 @@ pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::Starting, 200))
 }
 
-pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_become_follower(worker: &mut Worker) -> Result<(State, u64)> {
     {
         let cl = worker.census_list.read().unwrap();
         let census = cl.local_census();
@@ -258,7 +258,7 @@ pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::Starting, 200))
 }
 
-pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_starting(worker: &mut Worker) -> Result<(State, u64)> {
     if worker.supervisor_thread.is_none() {
         try!(initialize(worker));
         try!(standalone::state_starting(worker));
@@ -267,7 +267,7 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
 }
 
 
-fn initialize(worker: &mut Worker) -> BldrResult<()> {
+fn initialize(worker: &mut Worker) -> Result<()> {
     let service_config = worker.service_config.read().unwrap();
     let package = worker.package.read().unwrap();
     match package.initialize(&service_config) {
