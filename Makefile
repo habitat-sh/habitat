@@ -32,34 +32,34 @@ endif
 .DEFAULT_GOAL := all
 
 all: image ## builds the project's Rust components
-	$(run) cargo build --manifest-path components/hab/Cargo.toml
-	$(run) cargo build --manifest-path components/sup/Cargo.toml
-	$(run) cargo build --manifest-path components/depot/Cargo.toml
+	$(run) sh -c 'cd components/hab && cargo build'
+	$(run) sh -c 'cd components/sup && cargo build'
+	$(run) sh -c 'cd components/depot && cargo build'
 
 test: image ## tests the project's Rust components
-	$(run) cargo test --manifest-path components/core/Cargo.toml
-	$(run) cargo test --manifest-path components/depot-core/Cargo.toml
-	$(run) cargo test --manifest-path components/depot-client/Cargo.toml
-	$(run) cargo test --manifest-path components/sup/Cargo.toml
-	$(run) cargo test --manifest-path components/depot/Cargo.toml
+	$(run) sh -c 'cd components/core && cargo test'
+	$(run) sh -c 'cd components/depot-core && cargo test'
+	$(run) sh -c 'cd components/depot-client && cargo test'
+	$(run) sh -c 'cd components/sup && cargo test '
+	$(run) sh -c 'cd components/depot && cargo test'
 
 unit: image ## executes the components' unit test suites
-	$(run) cargo test --lib --manifest-path components/core/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/depot-core/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/depot-client/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/sup/Cargo.toml
-	$(run) cargo test --lib --manifest-path components/depot/Cargo.toml
+	$(run) sh -c 'cd components/core && cargo test --lib'
+	$(run) sh -c 'cd components/depot-core && cargo test --lib'
+	$(run) sh -c 'cd components/depot-client && cargo test --lib'
+	$(run) sh -c 'cd components/sup && cargo test --lib'
+	$(run) sh -c 'cd components/depot && cargo test --lib'
 
 functional: image ## executes the components' functional test suites
-	$(run) cargo test --test functional --manifest-path components/sup/Cargo.toml
-	$(run) cargo test --test server --manifest-path components/depot/Cargo.toml
+	$(run) sh -c 'cd components/sup && cargo test --test functional'
+	$(run) sh -c 'cd components/depot && cargo test --test server'
 
 clean: ## cleans up the project tree
-	$(run) cargo clean --manifest-path components/core/Cargo.toml
-	$(run) cargo clean --manifest-path components/depot-core/Cargo.toml
-	$(run) cargo clean --manifest-path components/depot-client/Cargo.toml
-	$(run) cargo clean --manifest-path components/sup/Cargo.toml
-	$(run) cargo clean --manifest-path components/depot/Cargo.toml
+	$(run) sh -c 'cd components/core && cargo clean'
+	$(run) sh -c 'cd components/depot-core && cargo clean'
+	$(run) sh -c 'cd components/depot-client && cargo clean'
+	$(run) sh -c 'cd components/sup && cargo clean'
+	$(run) sh -c 'cd components/depot && cargo clean'
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
@@ -95,7 +95,7 @@ endif
 
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
-		cargo doc --manifest-path components/sup/Cargo.toml; \
+		cd components/sup && cargo doc && cd ../../ \
 		rustdoc --crate-name habitat_sup README.md -o ./components/sup/target/doc/habitat_sup; \
 		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
 		cp -r images ./components/sup/target/doc/habitat_sup; \

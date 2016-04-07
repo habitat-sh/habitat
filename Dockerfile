@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:wily
 MAINTAINER The Bldr Maintainers <bldr@chef.io>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,6 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     rsync \
     wget \
+    iproute2 \
+    libsodium-dev \
+    sudo \
+    vim \
   && rm -rf /var/lib/apt/lists/*
 
 ENV CARGO_HOME /cargo-cache
