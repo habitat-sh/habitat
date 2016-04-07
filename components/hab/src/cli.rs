@@ -29,6 +29,7 @@ pub fn get() -> App<'static, 'static> {
         (@setting ArgRequiredElseHelp)
         (@subcommand archive =>
             (about: "Runs Habitat package archive commands")
+            (@setting ArgRequiredElseHelp)
             (@subcommand upload =>
                 (about: "Uploads a local package archive to a depot")
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
@@ -39,10 +40,12 @@ pub fn get() -> App<'static, 'static> {
         )
         (@subcommand pkg =>
             (about: "Runs Habitat package commands")
+            (@setting ArgRequiredElseHelp)
             (subcommand: sub_package_install())
         )
         (@subcommand rumor =>
             (about: "Runs Habitat rumor commands")
+            (@setting ArgRequiredElseHelp)
             (subcommand: sub_rumor_inject())
         )
         (@subcommand sup =>
