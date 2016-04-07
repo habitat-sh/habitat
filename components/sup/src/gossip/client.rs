@@ -17,7 +17,7 @@ use utp::UtpSocket;
 use std::net::ToSocketAddrs;
 use std::str;
 
-use error::BldrResult;
+use error::Result;
 use gossip::rumor::{Protocol, Peer, RumorList};
 
 pub const BUFFER_SIZE: usize = 10000;
@@ -33,7 +33,7 @@ impl Client {
     /// # Errors
     ///
     /// * If we cannot connect the UTP socket
-    pub fn new<A: ToSocketAddrs>(dst: A) -> BldrResult<Client> {
+    pub fn new<A: ToSocketAddrs>(dst: A) -> Result<Client> {
         let socket = try!(UtpSocket::connect(dst));
         Ok(Client { socket: socket })
     }
@@ -48,7 +48,7 @@ impl Client {
     /// # Errors
     ///
     /// * If we cannot send a ping
-    pub fn ping(&mut self, my_peer: Peer, rumors_for_remote: RumorList) -> BldrResult<()> {
+    pub fn ping(&mut self, my_peer: Peer, rumors_for_remote: RumorList) -> Result<()> {
         try!(self.send_message(Protocol::Ping(my_peer, rumors_for_remote)));
         Ok(())
     }
@@ -58,7 +58,7 @@ impl Client {
     /// # Errors
     ///
     /// * If we cannot send a pingreq
-    pub fn pingreq(&mut self, through_peer: Peer, rumors_for_remote: RumorList) -> BldrResult<()> {
+    pub fn pingreq(&mut self, through_peer: Peer, rumors_for_remote: RumorList) -> Result<()> {
         try!(self.send_message(Protocol::PingReq(through_peer, rumors_for_remote)));
         Ok(())
     }
@@ -68,12 +68,12 @@ impl Client {
     /// # Errors
     ///
     /// * If we cannot send a Ack
-    pub fn ack(&mut self, my_peer: Peer, rumors_for_remote: RumorList) -> BldrResult<()> {
+    pub fn ack(&mut self, my_peer: Peer, rumors_for_remote: RumorList) -> Result<()> {
         try!(self.send_message(Protocol::Ack(my_peer, rumors_for_remote)));
         Ok(())
     }
 
-    pub fn inject(&mut self, rumors_for_remote: RumorList) -> BldrResult<()> {
+    pub fn inject(&mut self, rumors_for_remote: RumorList) -> Result<()> {
         try!(self.send_message(Protocol::Inject(rumors_for_remote)));
         Ok(())
     }
@@ -84,7 +84,7 @@ impl Client {
     ///
     /// * We cannot receive the data from the socket
     /// * We cannot decode the data into a `gossip::message::Protocol`
-    pub fn recv_message(&mut self) -> BldrResult<Protocol> {
+    pub fn recv_message(&mut self) -> Result<Protocol> {
         let mut buf = [0u8; BUFFER_SIZE];
         let mut json_str = String::new();
         let mut keep_reading_buffer = true;
@@ -114,7 +114,7 @@ impl Client {
     ///
     /// * We cannot encode the `Message`
     /// * We fail to send the encoded buffer to the remote
-    pub fn send_message(&mut self, msg: Protocol) -> BldrResult<()> {
+    pub fn send_message(&mut self, msg: Protocol) -> Result<()> {
         let encoded = try!(json::encode(&msg));
         debug!("Encoded message {:#?}", encoded);
         try!(self.socket.send_to(encoded.as_bytes()));

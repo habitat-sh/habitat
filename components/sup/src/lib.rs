@@ -8,12 +8,12 @@
 //! Bldr helps you build, manage, and run applications - on bare metal, in the cloud, and in
 //! containers. You can [read more about it, including setup instructions, in the README](README.html).
 //!
-//! Bldr contains two main components:
+//! Habitat contains two main components:
 //!
-//! * `bldr-build`, takes a plan ('plan.sh'), a description of how to build a piece of software, written
-//! in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic package.
-//! * `bldr`, a run-time executable that knows how to download, install, serve, and manage services
-//! defined in packages.
+//! * `bldr-build`, takes a plan ('plan.sh'), a description of how to build a piece of software,
+//! written in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic
+//! package.  * `hab-sup`, a run-time executable that knows how to download, install, serve, and
+//! manage services defined in packages.
 //!
 //! # bldr-build
 //!
@@ -21,12 +21,12 @@
 //! found here](bldr-build/bldr-build.html). You can find it in the source tree at
 //! `plans/bldr-build`.
 //!
-//! # bldr
+//! # The Supervisor
 //!
-//! Bldr is primarily utilized through the `bldr` command; it can also be used from within Rust as
-//! a library. This documentation covers both uses; it explains how things are used from the
-//! command line in close proximity to the documentation of the library itself. A few useful
-//! starting points:
+//! The Supervisor is primarily utilized through the `hab-sup` command; it can also be used from
+//! within Rust as a library. This documentation covers both uses; it explains how things are used
+//! from the command line in close proximity to the documentation of the library itself. A few
+//! useful starting points:
 //!
 //! * [The bldr Command Line Reference](command)
 //! * [The bldr Sidecar; http interface to promises](sidecar)
@@ -66,12 +66,12 @@ extern crate openssl;
 extern crate lazy_static;
 
 #[macro_export]
-/// Creates a new BldrError, embedding the current file name, line number, column, and module path.
-macro_rules! bldr_error {
+/// Creates a new SupError, embedding the current file name, line number, column, and module path.
+macro_rules! sup_error {
     ($p: expr) => {
         {
-            use $crate::error::BldrError;
-            BldrError::new($p, LOGKEY, file!(), line!(), column!())
+            use $crate::error::SupError;
+            SupError::new($p, LOGKEY, file!(), line!(), column!())
         }
     }
 }

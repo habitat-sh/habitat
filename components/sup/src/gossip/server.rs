@@ -31,7 +31,7 @@ use gossip::rumor::{Peer, Protocol, Rumor, RumorList, Message};
 use gossip::detector::Detector;
 use election::ElectionList;
 use census::{Census, CensusEntry, CensusList};
-use error::BldrResult;
+use error::Result;
 use util;
 
 static LOGKEY: &'static str = "GS";
@@ -126,7 +126,7 @@ impl Server {
     /// # Errors
     ///
     /// * If we cannot bind to the listener
-    pub fn start_inbound(&self) -> BldrResult<()> {
+    pub fn start_inbound(&self) -> Result<()> {
         outputln!("Starting inbound gossip listener");
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
@@ -171,7 +171,7 @@ impl Server {
     /// # Errors
     ///
     /// * If we cannot contact any of the given peers after 10 attempts through the list.
-    pub fn initial_peers(&self, peer_listeners: &[String]) -> BldrResult<()> {
+    pub fn initial_peers(&self, peer_listeners: &[String]) -> Result<()> {
 
         let fail_after = 10;
         let mut count = 0;

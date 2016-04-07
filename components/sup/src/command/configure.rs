@@ -18,7 +18,7 @@
 use std::io::prelude::*;
 use std::fs::File;
 
-use error::BldrResult;
+use error::Result;
 use config::Config;
 use package::Package;
 
@@ -29,7 +29,7 @@ use package::Package;
 /// * If the package cannot be found
 /// * If the default.toml does not exist, or cannot be read
 /// * If we can't read the file into a string
-pub fn display(config: &Config) -> BldrResult<()> {
+pub fn display(config: &Config) -> Result<()> {
     let package = try!(Package::load(config.package(), None));
     let mut file = try!(File::open(package.join_path("default.toml")));
     let mut s = String::new();

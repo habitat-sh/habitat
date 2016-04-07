@@ -215,22 +215,22 @@ pub fn bldr_build(to_build: &str) -> CmdResult<Cmd> {
     studio_run("/src/plans/bldr-build", &[to_build])
 }
 
-pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {
-    let bldr = util::path::bldr();
-    let command = command(&bldr, args);
+pub fn sup(args: &[&str]) -> CmdResult<Cmd> {
+    let sup = util::path::sup();
+    let command = command(&sup, args);
     spawn(command)
 }
 
-pub fn bldr_with_env(args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> {
-    let bldr = util::path::bldr();
-    let command = command_with_env(&bldr, args, Some(env));
+pub fn sup_with_env(args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> {
+    let sup = util::path::sup();
+    let command = command_with_env(&sup, args, Some(env));
     spawn(command)
 }
 
 /// some days, you just want to specify a directory instead of a hash.
 /// This function is for you!
-pub fn bldr_with_test_gpg_cache(args: &[&str], cache_dir: &str) -> CmdResult<Cmd> {
+pub fn sup_with_test_gpg_cache(args: &[&str], cache_dir: &str) -> CmdResult<Cmd> {
     let mut env: HashMap<&str, &str> = HashMap::new();
     env.insert("BLDR_GPG_CACHE", cache_dir);
-    bldr_with_env(args, &env)
+    sup_with_env(args, &env)
 }

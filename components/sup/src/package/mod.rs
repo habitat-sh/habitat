@@ -22,12 +22,13 @@ use std::os::unix::fs::MetadataExt;
 use time;
 use time::Timespec;
 
-use hcore::fs::{PACKAGE_CACHE, SERVICE_HOME};
+use hcore;
+use hcore::fs::SERVICE_HOME;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
 use self::hooks::HookTable;
-use error::{BldrResult, BldrError, ErrorKind};
+use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
 
@@ -38,6 +39,8 @@ const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
 const PIDFILE_NAME: &'static str = "PID";
+const SERVICE_PATH_OWNER: &'static str = "bldr";
+const SERVICE_PATH_GROUP: &'static str = "bldr";
 
 #[derive(Debug, Clone)]
 pub struct Package {
@@ -60,7 +63,7 @@ impl Package {
     /// specified, the latest release of that package origin, name, and version is returned.
     ///
     /// An optional `home` path may be provided to search for a package in a non-default path.
-    pub fn load(ident: &PackageIdent, home: Option<&str>) -> BldrResult<Package> {
+    pub fn load(ident: &PackageIdent, home: Option<&str>) -> Result<Package> {
         // Shim in `PackageInstall` to provide the same original `Package` struct even though some
         // data is duplicated
         let home_path = match home {
@@ -82,7 +85,7 @@ impl Package {
     /// Create a pid file for a package
     /// The existence of this file does not guarantee that a
     /// process exists at the PID contained within.
-    pub fn create_pidfile(&self, pid: u32) -> BldrResult<()> {
+    pub fn create_pidfile(&self, pid: u32) -> Result<()> {
         let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
         let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
         debug!("Creating PID file for child {} -> {}", pid_file, pid);
@@ -94,7 +97,7 @@ impl Package {
 
     /// Remove a pidfile for this package if it exists.
     /// Do NOT fail if there is an error removing the PIDFILE
-    pub fn cleanup_pidfile(&self) -> BldrResult<()> {
+    pub fn cleanup_pidfile(&self) -> Result<()> {
         let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
         let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
         debug!("Attempting to clean up pid file {}", &pid_file);
@@ -112,7 +115,7 @@ impl Package {
     /// attempt to read the pidfile for this package.
     /// If the pidfile does not exist, then return None,
     /// otherwise, return Some(pid, uptime_seconds).
-    pub fn read_pidfile(&self) -> BldrResult<Option<(u32, Timespec)>> {
+    pub fn read_pidfile(&self) -> Result<Option<(u32, Timespec)>> {
         let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
         let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
         debug!("Reading pidfile {}", &pid_file);
@@ -141,7 +144,7 @@ impl Package {
             Ok(pid) => pid,
             Err(e) => {
                 debug!("Error reading pidfile: {}", e);
-                return Err(bldr_error!(ErrorKind::InvalidPidFile));
+                return Err(sup_error!(Error::InvalidPidFile));
             }
         };
         Ok(Some((pid, start_time)))
@@ -156,7 +159,7 @@ impl Package {
     }
 
     /// return a "down" or "run" with uptime in seconds status message
-    pub fn status_from_pid(&self, childinfo: Option<(u32, Timespec)>) -> BldrResult<String> {
+    pub fn status_from_pid(&self, childinfo: Option<(u32, Timespec)>) -> Result<String> {
         match childinfo {
             Some((pid, start_time)) => {
                 let diff = Self::seconds_before_now(start_time);
@@ -168,14 +171,14 @@ impl Package {
     }
 
     /// read the pidfile to get a status
-    pub fn status_via_pidfile(&self) -> BldrResult<String> {
+    pub fn status_via_pidfile(&self) -> Result<String> {
         let pidinfo = try!(self.read_pidfile());
         self.status_from_pid(pidinfo)
     }
 
     /// A vector of ports we expose
     pub fn exposes(&self) -> Vec<String> {
-        // This function really should be returning a `BldrResult` as it could fail for a gaggle of
+        // This function really should be returning a `Result` as it could fail for a gaggle of
         // IO-related reasons. However, in order to preseve the function contract (for now), we're
         // going to potentially swallow some stuff... - FIN
         match self.pkg_install.exposes() {
@@ -185,15 +188,15 @@ impl Package {
     }
 
     /// Returns a string with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS, plus bldr or its TDEPS, plus the
-    /// existing value of the PATH variable.
+    /// binary paths specified by this package, or its TDEPS, plus the Supervisor or its TDEPS,
+    /// plus the existing value of the PATH variable.
     ///
-    /// This means we work on any operating system, as long as you can call 'bldr', without having
-    /// to worry much about context.
-    pub fn run_path(&self) -> BldrResult<String> {
+    /// This means we work on any operating system, as long as you can invoke the Supervisor,
+    /// without having to worry much about context.
+    pub fn run_path(&self) -> Result<String> {
         match self.pkg_install.runtime_path() {
             Ok(r) => Ok(r),
-            Err(e) => Err(bldr_error!(ErrorKind::HabitatCore(e))),
+            Err(e) => Err(sup_error!(Error::HabitatCore(e))),
         }
     }
 
@@ -220,8 +223,8 @@ impl Package {
     }
 
     /// The path to the package on disk.
-    pub fn path(&self) -> String {
-        self.pkg_install.installed_path().to_string_lossy().into_owned()
+    pub fn path(&self) -> &Path {
+        self.pkg_install.installed_path()
     }
 
     /// Join a string to the path on disk.
@@ -230,8 +233,8 @@ impl Package {
     }
 
     /// The on disk svc path for this package.
-    pub fn svc_path(&self) -> String {
-        format!("{}/{}", SERVICE_HOME, self.name)
+    pub fn svc_path(&self) -> PathBuf {
+        hcore::fs::service_path(&self.name)
     }
 
     /// Join a string to the on disk svc path for this package.
@@ -240,7 +243,7 @@ impl Package {
     }
 
     /// Create the service path for this package.
-    pub fn create_svc_path(&self) -> BldrResult<()> {
+    pub fn create_svc_path(&self) -> Result<()> {
         debug!("Creating svc paths");
         try!(fs::create_dir_all(self.svc_join_path("config")));
         try!(fs::create_dir_all(self.svc_join_path("hooks")));
@@ -249,17 +252,20 @@ impl Package {
         try!(fs::create_dir_all(self.svc_join_path("var")));
         try!(fs::create_dir_all(self.svc_join_path("files")));
         try!(util::perm::set_permissions(&self.svc_join_path("files"), "0700"));
-        try!(util::perm::set_owner(&self.svc_join_path("files"), "bldr:bldr"));
+        try!(util::perm::set_owner(&self.svc_join_path("files"),
+                                   &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
         try!(util::perm::set_permissions(&self.svc_join_path("toml"), "0700"));
-        try!(util::perm::set_owner(&self.svc_join_path("data"), "bldr:bldr"));
+        try!(util::perm::set_owner(&self.svc_join_path("data"),
+                                   &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
         try!(util::perm::set_permissions(&self.svc_join_path("data"), "0700"));
-        try!(util::perm::set_owner(&self.svc_join_path("var"), "bldr:bldr"));
+        try!(util::perm::set_owner(&self.svc_join_path("var"),
+                                   &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
         try!(util::perm::set_permissions(&self.svc_join_path("var"), "0700"));
         Ok(())
     }
 
     /// Copy the "run" file to the svc path.
-    pub fn copy_run(&self, context: &ServiceConfig) -> BldrResult<()> {
+    pub fn copy_run(&self, context: &ServiceConfig) -> Result<()> {
         debug!("Copying the run file");
         let svc_run = self.svc_join_path(RUN_FILENAME);
         if let Some(hook) = self.hooks().run_hook {
@@ -286,7 +292,7 @@ impl Package {
         Ok(())
     }
 
-    pub fn topology_leader() -> BldrResult<()> {
+    pub fn topology_leader() -> Result<()> {
         Ok(())
     }
 
@@ -294,7 +300,7 @@ impl Package {
     ///
     /// This does not return the full path, for convenience with the path
     /// helpers above.
-    pub fn config_files(&self) -> BldrResult<Vec<String>> {
+    pub fn config_files(&self) -> Result<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
         for config in try!(fs::read_dir(self.join_path("config"))) {
             let config = try!(config);
@@ -313,7 +319,7 @@ impl Package {
     }
 
     /// Run initialization hook if present
-    pub fn initialize(&self, context: &ServiceConfig) -> BldrResult<()> {
+    pub fn initialize(&self, context: &ServiceConfig) -> Result<()> {
         if let Some(hook) = self.hooks().init_hook {
             match hook.run(Some(context)) {
                 Ok(_) => Ok(()),
@@ -325,7 +331,7 @@ impl Package {
     }
 
     /// Run reconfigure hook if present, DOES NOT restart the package
-    pub fn reconfigure(&self, context: &ServiceConfig) -> BldrResult<()> {
+    pub fn reconfigure(&self, context: &ServiceConfig) -> Result<()> {
         if let Some(hook) = self.hooks().reconfigure_hook {
             match hook.run(Some(context)) {
                 Ok(_) => Ok(()),
@@ -337,7 +343,7 @@ impl Package {
     }
 
     /// Run file_updated hook if present
-    pub fn file_updated(&self, context: &ServiceConfig) -> BldrResult<()> {
+    pub fn file_updated(&self, context: &ServiceConfig) -> Result<()> {
         if let Some(hook) = self.hooks().file_updated_hook {
             match hook.run(Some(context)) {
                 Ok(_) => Ok(()),
@@ -360,26 +366,26 @@ impl Package {
         }
     }
 
-    pub fn health_check(&self, config: &ServiceConfig) -> BldrResult<CheckResult> {
+    pub fn health_check(&self, config: &ServiceConfig) -> Result<CheckResult> {
         if let Some(hook) = self.hooks().health_check_hook {
             match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
-                Err(BldrError { err: ErrorKind::HookFailed(_, 1, output), .. }) => {
+                Err(SupError { err: Error::HookFailed(_, 1, output), .. }) => {
                     Ok(health_check::CheckResult::warning(output))
                 }
-                Err(BldrError { err: ErrorKind::HookFailed(_, 2, output), .. }) => {
+                Err(SupError { err: Error::HookFailed(_, 2, output), .. }) => {
                     Ok(health_check::CheckResult::critical(output))
                 }
-                Err(BldrError { err: ErrorKind::HookFailed(_, 3, output), .. }) => {
+                Err(SupError { err: Error::HookFailed(_, 3, output), .. }) => {
                     Ok(health_check::CheckResult::unknown(output))
                 }
-                Err(BldrError { err: ErrorKind::HookFailed(_, code, output), .. }) => {
-                    Err(bldr_error!(ErrorKind::HealthCheck(format!("hook exited code={}, \
+                Err(SupError { err: Error::HookFailed(_, code, output), .. }) => {
+                    Err(sup_error!(Error::HealthCheck(format!("hook exited code={}, \
                                                                     output={}",
-                                                                   code,
-                                                                   output))))
+                                                              code,
+                                                              output))))
                 }
-                Err(e) => Err(BldrError::from(e)),
+                Err(e) => Err(SupError::from(e)),
             }
         } else {
             let status_output = try!(self.status_via_pidfile());
@@ -394,16 +400,7 @@ impl Package {
         hooks
     }
 
-    pub fn cache_file(&self) -> PathBuf {
-        PathBuf::from(format!("{}/{}-{}-{}-{}.bldr",
-                              PACKAGE_CACHE,
-                              self.origin,
-                              self.name,
-                              self.version,
-                              self.release))
-    }
-
-    pub fn last_config(&self) -> BldrResult<String> {
+    pub fn last_config(&self) -> Result<String> {
         let mut file = try!(File::open(self.svc_join_path("config.toml")));
         let mut result = String::new();
         try!(file.read_to_string(&mut result));

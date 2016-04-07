@@ -5,13 +5,13 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Formats user-visible output for Bldr.
+//! Formats user-visible output for the Supervisor.
 //!
 //! Most of this module is used via the `output!`, `outputln!`, and `output_format!` macros. They
 //! create a `StructuredOutput` struct, which includes the line number, file name, and column it
 //! was called on. Additionally, it uses a standard constant called `LOGKEY` as a short hint as to
-//! where the output was generated within bldr. Also supported is a `preamble`, which is used to
-//! denote when output comes from a running service rather than bldr itself.
+//! where the output was generated within the Supervisor. Also supported is a `preamble`, which is
+//! used to denote when output comes from a running service rather than the Supervisor itself.
 //!
 //! The `StructuredOutput` struct supports two global options - verbosity and coloring. If verbose
 //! is turned on, then every line printed is annotated with its preamble, logkey, and precise

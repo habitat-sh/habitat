@@ -21,7 +21,7 @@ use std::io::prelude::*;
 
 use hcore::fs::SERVICE_HOME;
 
-use error::{BldrResult, BldrError, ErrorKind};
+use error::{Error, Result, SupError};
 use package::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker, ChildInfo};
@@ -34,9 +34,9 @@ static LOGKEY: &'static str = "TS";
 ///
 /// Add's the state transitions to the state machine, sets up the signal handlers, and runs the
 /// `topology::run_internal` function.
-pub fn run(package: Package, config: &Config) -> BldrResult<()> {
+pub fn run(package: Package, config: &Config) -> Result<()> {
     let mut worker = try!(Worker::new(package, String::from("standalone"), config));
-    let mut sm: StateMachine<State, Worker, BldrError> = StateMachine::new(State::Initializing);
+    let mut sm: StateMachine<State, Worker, SupError> = StateMachine::new(State::Initializing);
     sm.add_dispatch(State::Initializing, state_initializing);
     sm.add_dispatch(State::Starting, state_starting);
     sm.add_dispatch(State::Running, state_running);
@@ -44,7 +44,7 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
 }
 
 /// Initialize the service.
-pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_initializing(worker: &mut Worker) -> Result<(State, u64)> {
     let service_config = worker.service_config.read().unwrap();
     let package = worker.package.read().unwrap();
     match package.initialize(&service_config) {
@@ -55,10 +55,10 @@ pub fn state_initializing(worker: &mut Worker) -> BldrResult<(State, u64)> {
 
 
 /// Consume output from a child process until EOF, then finish
-fn child_reader(child: &mut Child, package_name: String) -> BldrResult<()> {
+fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
     let mut c_stdout = match child.stdout {
         Some(ref mut s) => s,
-        None => return Err(bldr_error!(ErrorKind::UnpackFailed)),
+        None => return Err(sup_error!(Error::UnpackFailed)),
     };
 
     let mut line = output_format!(preamble &package_name, logkey "SO");
@@ -96,7 +96,7 @@ fn child_reader(child: &mut Child, package_name: String) -> BldrResult<()> {
 /// * If we cannot find the package
 /// * If we cannot start the supervisor
 #[cfg_attr(rustfmt, rustfmt_skip)]
-pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_starting(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!(preamble &worker.package_name, "Starting");
     let package_name = worker.package_name.clone();
     let service_dir = format!("{}/{}", SERVICE_HOME, worker.package_name);
@@ -121,14 +121,14 @@ pub fn state_starting(worker: &mut Worker) -> BldrResult<(State, u64)> {
     try!(package.create_pidfile(child.id()));
     let supervisor_thread = try!(thread::Builder::new()
                                  .name(String::from("supervisor"))
-                                 .spawn(move || -> BldrResult<()> {
+                                 .spawn(move || -> Result<()> {
                                     child_reader(&mut child, package_name)
                                  }));
     worker.supervisor_thread = Some(supervisor_thread);
     Ok((State::Running, 0))
 }
 
-pub fn state_running(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_running(worker: &mut Worker) -> Result<(State, u64)> {
     if let Some(state) = worker.return_state {
         Ok((state, 0))
     } else {

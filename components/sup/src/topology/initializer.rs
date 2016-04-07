@@ -14,7 +14,7 @@
 //! followers attempt to run thier initialization sequences.
 
 use config::Config;
-use error::{BldrResult, BldrError};
+use error::{Result, SupError};
 use state_machine::StateMachine;
 use topology::{self, standalone, State, Worker};
 use package::Package;
@@ -27,9 +27,9 @@ enum InitGate {
     Done,
 }
 
-pub fn run(package: Package, config: &Config) -> BldrResult<()> {
+pub fn run(package: Package, config: &Config) -> Result<()> {
     let mut worker = try!(Worker::new(package, String::from("initializer"), config));
-    let mut sm: StateMachine<State, Worker, BldrError> =
+    let mut sm: StateMachine<State, Worker, SupError> =
         StateMachine::new(State::DetermineViability);
     sm.add_dispatch(State::DetermineViability, state_determine_viability);
     sm.add_dispatch(State::StartElection, state_start_election);
@@ -41,7 +41,7 @@ pub fn run(package: Package, config: &Config) -> BldrResult<()> {
     topology::run_internal(&mut sm, &mut worker)
 }
 
-pub fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_determine_viability(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Determining viability as a leader");
     {
         let mut cl = worker.census_list.write().unwrap();
@@ -60,7 +60,7 @@ pub fn state_determine_viability(worker: &mut Worker) -> BldrResult<(State, u64)
     }
 }
 
-pub fn state_start_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Starting an election");
     {
         let mut cl = worker.census_list.write().unwrap();
@@ -84,7 +84,7 @@ pub fn state_start_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::InElection, 0))
 }
 
-pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_in_election(worker: &mut Worker) -> Result<(State, u64)> {
     let candidate = {
         worker.census_list
               .read()
@@ -135,7 +135,7 @@ pub fn state_in_election(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_become_leader(worker: &mut Worker) -> Result<(State, u64)> {
     let mut cl = worker.census_list.write().unwrap();
     let mut census = cl.local_census_mut();
     if census.has_leader() == false {
@@ -164,7 +164,7 @@ pub fn state_become_leader(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_become_follower(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Becoming a follower");
     {
         let mut cl = worker.census_list.write().unwrap();
@@ -183,7 +183,7 @@ pub fn state_become_follower(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-pub fn state_leader(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_leader(worker: &mut Worker) -> Result<(State, u64)> {
     if worker.supervisor_thread.is_none() {
         try!(initialize(worker));
         try!(standalone::state_starting(worker));
@@ -192,7 +192,7 @@ pub fn state_leader(worker: &mut Worker) -> BldrResult<(State, u64)> {
     Ok((State::Leader, 0))
 }
 
-pub fn state_follower(worker: &mut Worker) -> BldrResult<(State, u64)> {
+pub fn state_follower(worker: &mut Worker) -> Result<(State, u64)> {
     {
         let mut cl = worker.census_list.write().unwrap();
         let mut me = cl.me_mut();
@@ -244,7 +244,7 @@ pub fn state_follower(worker: &mut Worker) -> BldrResult<(State, u64)> {
     }
 }
 
-fn initialize(worker: &mut Worker) -> BldrResult<()> {
+fn initialize(worker: &mut Worker) -> Result<()> {
     let service_config = worker.service_config.read().unwrap();
     let package = worker.package.read().unwrap();
     match package.initialize(&service_config) {

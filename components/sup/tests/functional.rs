@@ -148,7 +148,7 @@ mod setup {
     pub fn key_install() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let mut cmd = match util::command::bldr(&["key",
+            let mut cmd = match util::command::sup(&["key",
                                                     &util::path::fixture_as_string("chef-public.asc")]) {
                                                         Ok(cmd) => cmd,
                                                         Err(e) => panic!("{:?}", e),
@@ -266,23 +266,23 @@ mod key_utils {
     pub fn export_service_key(key: &str, outfile: &str, cache: &str, group: Option<&str>) {
         let mut export = match group {
             Some(g) => {
-                command::bldr_with_test_gpg_cache(&["export-key",
-                                                    "--service",
-                                                    &key,
-                                                    "--outfile",
-                                                    &outfile,
-                                                    "--group",
-                                                    &g],
-                                                  &cache)
+                command::sup_with_test_gpg_cache(&["export-key",
+                                                   "--service",
+                                                   &key,
+                                                   "--outfile",
+                                                   &outfile,
+                                                   "--group",
+                                                   &g],
+                                                 &cache)
                     .unwrap()
             }
             None => {
-                command::bldr_with_test_gpg_cache(&["export-key",
-                                                    "--service",
-                                                    &key,
-                                                    "--outfile",
-                                                    &outfile],
-                                                  &cache)
+                command::sup_with_test_gpg_cache(&["export-key",
+                                                   "--service",
+                                                   &key,
+                                                   "--outfile",
+                                                   &outfile],
+                                                 &cache)
                     .unwrap()
             }
 
@@ -293,12 +293,12 @@ mod key_utils {
     }
 
     pub fn export_user_key(key: &str, outfile: &str, cache: &str) {
-        let mut export = command::bldr_with_test_gpg_cache(&["export-key",
-                                                             "--user",
-                                                             &key,
-                                                             "--outfile",
-                                                             &outfile],
-                                                           &cache)
+        let mut export = command::sup_with_test_gpg_cache(&["export-key",
+                                                            "--user",
+                                                            &key,
+                                                            "--outfile",
+                                                            &outfile],
+                                                          &cache)
                              .unwrap();
         export.wait_with_output();
         assert_cmd_exit_code!(export, [0]);
@@ -306,10 +306,10 @@ mod key_utils {
     }
 
     pub fn import(exported_user_key: &str, cache: &str) {
-        let mut import = command::bldr_with_test_gpg_cache(&["import-key",
-                                                             "--infile",
-                                                             &exported_user_key],
-                                                           &cache)
+        let mut import = command::sup_with_test_gpg_cache(&["import-key",
+                                                            "--infile",
+                                                            &exported_user_key],
+                                                          &cache)
                              .unwrap();
         import.wait_with_output();
         assert_cmd_exit_code!(import, [0]);
@@ -325,35 +325,35 @@ mod key_utils {
                    group: Option<&str>) {
         let mut encrypt = match group {
             Some(g) => {
-                command::bldr_with_test_gpg_cache(&["encrypt",
-                                                    "--user",
-                                                    &user,
-                                                    "--service",
-                                                    &service,
-                                                    "--infile",
-                                                    &file_to_encrypt,
-                                                    "--outfile",
-                                                    &encrypted_file,
-                                                    "--password",
-                                                    "password",
-                                                    "--group",
-                                                    g],
-                                                  &cache)
+                command::sup_with_test_gpg_cache(&["encrypt",
+                                                   "--user",
+                                                   &user,
+                                                   "--service",
+                                                   &service,
+                                                   "--infile",
+                                                   &file_to_encrypt,
+                                                   "--outfile",
+                                                   &encrypted_file,
+                                                   "--password",
+                                                   "password",
+                                                   "--group",
+                                                   g],
+                                                 &cache)
                     .unwrap()
             }
             None => {
-                command::bldr_with_test_gpg_cache(&["encrypt",
-                                                    "--user",
-                                                    &user,
-                                                    "--service",
-                                                    &service,
-                                                    "--infile",
-                                                    &file_to_encrypt,
-                                                    "--outfile",
-                                                    &encrypted_file,
-                                                    "--password",
-                                                    "password"],
-                                                  &cache)
+                command::sup_with_test_gpg_cache(&["encrypt",
+                                                   "--user",
+                                                   &user,
+                                                   "--service",
+                                                   &service,
+                                                   "--infile",
+                                                   &file_to_encrypt,
+                                                   "--outfile",
+                                                   &encrypted_file,
+                                                   "--password",
+                                                   "password"],
+                                                 &cache)
                     .unwrap()
             }
 
@@ -367,12 +367,12 @@ mod key_utils {
 
     pub fn decrypt(encrypted_file: &str, decrypted_file: &str, cache: &str, expected_status: i32) {
         // try to decrypt a file that's not meant for me
-        let mut decrypt = command::bldr_with_test_gpg_cache(&["decrypt",
-                                                              "--infile",
-                                                              &encrypted_file,
-                                                              "--outfile",
-                                                              &decrypted_file],
-                                                            &cache)
+        let mut decrypt = command::sup_with_test_gpg_cache(&["decrypt",
+                                                             "--infile",
+                                                             &encrypted_file,
+                                                             "--outfile",
+                                                             &decrypted_file],
+                                                           &cache)
                               .unwrap();
         decrypt.wait_with_output();
         println!("{}", decrypt.stdout());
@@ -380,7 +380,7 @@ mod key_utils {
     }
 
     pub fn list_keys(cache: &str, output_search: &str) {
-        let mut list_keys = command::bldr_with_test_gpg_cache(&["list-keys"], &cache).unwrap();
+        let mut list_keys = command::sup_with_test_gpg_cache(&["list-keys"], &cache).unwrap();
         list_keys.wait_with_output();
         assert_regex!(list_keys.stdout(), output_search);
         println!("{}", list_keys.stdout());
@@ -392,15 +392,15 @@ mod key_utils {
         let service_uuid = Uuid::new_v4().to_simple_string();
 
         // generate a test user
-        let mut generate_user = command::bldr_with_test_gpg_cache(&["generate-user-key",
-                                                                    "--user",
-                                                                    &user_uuid,
-                                                                    "--password",
-                                                                    "password",
-                                                                    "--email",
-                                                                    "email@bldrtest",
-                                                                    "--expire-days=10"],
-                                                                  cache_dir)
+        let mut generate_user = command::sup_with_test_gpg_cache(&["generate-user-key",
+                                                                   "--user",
+                                                                   &user_uuid,
+                                                                   "--password",
+                                                                   "password",
+                                                                   "--email",
+                                                                   "email@chucktesta",
+                                                                   "--expire-days=10"],
+                                                                 cache_dir)
                                     .unwrap();
         generate_user.wait_with_output();
         println!("{}", generate_user.stdout());
@@ -409,16 +409,16 @@ mod key_utils {
 
         let mut generate_service = match group {
             Some(g) => {
-                command::bldr_with_test_gpg_cache(&["generate-service-key",
-                                                    &service_uuid,
-                                                    "--group",
-                                                    &g],
-                                                  cache_dir)
+                command::sup_with_test_gpg_cache(&["generate-service-key",
+                                                   &service_uuid,
+                                                   "--group",
+                                                   &g],
+                                                 cache_dir)
                     .unwrap()
             }
             None => {
-                command::bldr_with_test_gpg_cache(&["generate-service-key", &service_uuid],
-                                                  cache_dir)
+                command::sup_with_test_gpg_cache(&["generate-service-key", &service_uuid],
+                                                 cache_dir)
                     .unwrap()
             }
         };
@@ -434,4 +434,4 @@ mod key_utils {
 
 // Include the actual test modules here!
 pub mod bldr_build;
-pub mod bldr;
+pub mod sup_tests;

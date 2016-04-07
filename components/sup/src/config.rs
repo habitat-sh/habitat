@@ -5,7 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Configuration for bldr.
+//! Configuration for the Supervisor.
 //!
 //! This module is populated from the CLI options in `main.rs`, and then passed through to the
 //! [command](../command) modules. Check out the `config_from_args(..)` function there for more
@@ -17,7 +17,7 @@ use std::str::FromStr;
 
 use hcore::package::PackageIdent;
 
-use error::{BldrError, ErrorKind};
+use error::{Error, SupError};
 use gossip::server::GOSSIP_DEFAULT_PORT;
 use topology::Topology;
 
@@ -60,8 +60,8 @@ impl Default for UpdateStrategy {
 }
 
 impl FromStr for Command {
-    type Err = BldrError;
-    fn from_str(s: &str) -> Result<Command, BldrError> {
+    type Err = SupError;
+    fn from_str(s: &str) -> Result<Command, SupError> {
         match s {
             "config" => Ok(Command::Config),
             "decrypt" => Ok(Command::Decrypt),
@@ -73,7 +73,7 @@ impl FromStr for Command {
             "list-keys" => Ok(Command::ListKeys),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
-            _ => Err(bldr_error!(ErrorKind::CommandNotImplemented)),
+            _ => Err(sup_error!(Error::CommandNotImplemented)),
         }
     }
 }

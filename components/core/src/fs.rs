@@ -5,8 +5,14 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::path::PathBuf;
+
 pub const PACKAGE_HOME: &'static str = "/opt/bldr/pkgs";
 pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
 pub const PACKAGE_CACHE: &'static str = "/opt/bldr/cache/pkgs";
 pub const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
 pub const KEY_CACHE: &'static str = "/opt/bldr/cache/keys";
+
+pub fn service_path(service_name: &str) -> PathBuf {
+    PathBuf::from(SERVICE_HOME).join(service_name)
+}

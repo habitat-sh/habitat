@@ -13,7 +13,7 @@ use hcore::package::PackageIdent;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
-use error::BldrError;
+use error::SupError;
 use package::Package;
 
 const TIMEOUT_MS: u64 = 60_000;
@@ -71,7 +71,7 @@ pub enum UpdaterStatus {
 impl GenServer for PackageUpdater {
     type T = UpdaterMessage;
     type S = UpdaterState;
-    type E = BldrError;
+    type E = SupError;
 
     fn init(&self, _tx: &ActorSender<Self::T>, state: &mut Self::S) -> InitResult<Self::E> {
         state.status = UpdaterStatus::Running;

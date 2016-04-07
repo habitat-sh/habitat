@@ -188,7 +188,7 @@ fn repo_list(config: &Config) -> Result<()> {
 fn default_path() -> String {
     let arg0 = env::args().next().map(|p| PathBuf::from(p));
     let progname = arg0.as_ref().and_then(|p| p.file_stem()).and_then(|p| p.to_str()).unwrap();
-    format!("{}/{}/data", fs::SERVICE_HOME, progname)
+    fs::service_path(progname).join("data").to_string_lossy().into_owned()
 }
 
 fn exit_with(err: Error, code: i32) {
