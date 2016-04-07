@@ -47,7 +47,7 @@ fi
 # ## Default variables
 
 # The build command to execute. Defaults to `build`, but could be overridden if
-# a full path to `bldr-build` is required.
+# a full path to `hab-plan-build` is required.
 : ${BUILD:=build}
 # The root of the Bldr directory tree.
 BLDR_ROOT=/opt/bldr
@@ -239,7 +239,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   jq-static
   wget-static
   ../components/bpm
-  build
+  ../components/plan-build
   vim
   libbsd
   clens

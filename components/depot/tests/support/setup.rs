@@ -36,7 +36,7 @@ pub fn simple_service() {
     static ONCE: Once = ONCE_INIT;
     ONCE.call_once(|| {
         let mut simple_service =
-            match super::command::bldr_build(&super::path::fixture_as_string("simple_service")) {
+            match super::command::plan_build(&super::path::fixture_as_string("simple_service")) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };

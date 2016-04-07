@@ -8,7 +8,7 @@ pkg_build_deps=()
 pkg_gpg_key=3853DA6B
 
 pkg_deps=(
-  chef/build
+  chef/hab-plan-build
   chef/diffutils
   chef/less
   chef/make

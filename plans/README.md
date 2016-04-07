@@ -9,7 +9,3 @@ make new-plan plan=zombocom
 ```
 
 This will create a `plans/zombocom` directory and copy the the `plan-tmpl.sh` to `plans/zombocom/plan.sh`.
-
-## bldr-build script
-
-This is the entry point for building software with `bldr`. The script itself is commented heavily.

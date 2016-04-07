@@ -24,7 +24,7 @@
 #    "stage1" build toolchain which will be extracted into the chroot's
 #    `/tools` directory
 # * `$TOOLS_EXTRA` (*Optional*): The path to a `.tar.xz` file containing a
-#    small number of ancillary programs required for the `bldr-build` program
+#    small number of ancillary programs required for the `hab-plan-build` program
 # * `$DEBUG` (*Optional*): If set, the program will output the shell commands
 #    as they are being executed
 #

@@ -3,16 +3,16 @@
 # # Usage
 #
 # ```
-# $ bldr-build [<PATH>]
+# $ hab-plan-build [<PATH>]
 # ```
 #
 # # Synopsis
 #
-# `bldr-build` handles creating bldr packages.
+# `hab-plan-build` handles creating bldr packages.
 #
 # # plan.sh
 #
-# The heart of `bldr-build` is the Plan. This file is a shell
+# The heart of `hab-plan-build` is the Plan. This file is a shell
 # script which defines how you download, configure, make, install,
 # and run software. Think of it as a cross between an rpm `spec` file
 # and a `Dockerfile`.
@@ -170,8 +170,8 @@
 #
 # ## Plan variables
 #
-# `bldr-build` sets a few useful variables for you, in addition to the ones you
-# define above. They are:
+# `hab-plan-build` sets a few useful variables for you, in addition to the ones
+# you define above. They are:
 #
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
@@ -189,8 +189,8 @@
 #
 # ## Plan Callbacks
 #
-# `bldr-build` allows you to alter its behavior by defining callbacks within
-# the `plan.sh`. While `zlib` is awesome and requires no callbacks, most
+# `hab-plan-build` allows you to alter its behavior by defining callbacks
+# within the `plan.sh`. While `zlib` is awesome and requires no callbacks, most
 # software isn't quite so simple to build. To define a callback, simply create
 # a shell function with its name - then write out your script.
 #

@@ -191,8 +191,9 @@ pub fn run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
     spawn(command)
 }
 
-pub fn bldr_build(to_build: &str) -> CmdResult<Cmd> {
-    studio_run("/src/plans/bldr-build", &[to_build])
+pub fn plan_build(to_build: &str) -> CmdResult<Cmd> {
+    studio_run("/src/components/plan-build/bin/hab-plan-build.sh",
+               &[to_build])
 }
 
 pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {

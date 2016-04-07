@@ -1,12 +1,12 @@
 studio_type="bldr-slim"
 studio_path="/opt/bldr/bin"
 studio_enter_environment=
-studio_enter_command="/opt/bldr/bin/hab-bpm exec chef/build bash --login +h"
+studio_enter_command="/opt/bldr/bin/hab-bpm exec chef/hab-build-plan bash --login +h"
 studio_build_environment=
 studio_build_command="/opt/bldr/bin/build"
-studio_run_environment="/opt/bldr/bin/hab-bpm exec chef/build bash -l"
+studio_run_environment="/opt/bldr/bin/hab-bpm exec chef/hab-build-plan bash -l"
 
-bldr_pkgs="chef/hab-bpm chef/build chef/bldr-studio"
+bldr_pkgs="chef/hab-bpm chef/hab-build-plan chef/bldr-studio"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT/opt/bldr/bin/hab-bpm" ]; then
@@ -39,7 +39,7 @@ EOF
   # `$PATH` is concerned.
   $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/build
 #!$bpm_path/libexec/busybox sh
-exec /opt/bldr/bin/hab-bpm exec chef/build build \$*
+exec /opt/bldr/bin/hab-bpm exec chef/hab-build-plan hab-build-plan \$*
 EOF
   $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/build
 
