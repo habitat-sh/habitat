@@ -11,6 +11,10 @@ log = "*"
 regex = "*"
 rust-crypto = "*"
 rustc-serialize = "*"
+
+### !!NOTE!! sodiumoxide and libsodium-sys are using an override, via the
+### .cargo/config file. When https://github.com/dnaq/sodiumoxide/pull/103
+### is merged, we can get rid of this hack.
 sodiumoxide = "*"
 libsodium-sys = "*"
 time = "*"
