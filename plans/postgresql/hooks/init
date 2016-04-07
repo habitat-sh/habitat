@@ -8,7 +8,7 @@ mkdir -p {{pkg.svc_path}}/var/pg_stat_tmp
 
 chown -R bldr:bldr {{pkg.svc_path}}/var
 
-if [[ ! -f "{{pkg.svc_path}}/data/PG_VERSION" && -z  ]]; then
+if [[ ! -f "{{pkg.svc_path}}/data/PG_VERSION" ]]; then
   echo " Database does not exist, creating with 'initdb'"
   chpst -u bldr:bldr initdb -U {{cfg.initdb_superuser_name}} \
                             -E {{cfg.initdb_encoding}} \
