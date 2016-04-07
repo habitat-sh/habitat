@@ -1,4 +1,4 @@
-pkg_name=backline
+pkg_name=hab-backline
 pkg_origin=chef
 pkg_version=0.1.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"

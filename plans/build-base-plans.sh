@@ -254,7 +254,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   libbsd
   clens
   mg
-  backline
+  hab-backline
   bldr-studio
 _PLANS_
 
