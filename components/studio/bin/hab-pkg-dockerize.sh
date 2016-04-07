@@ -3,12 +3,12 @@
 # # Usage
 #
 # ```
-# $ dockerize [PKG ...]
+# $ hab-pkg-dockerize [PKG ...]
 # ```
 #
 # # Synopsis
 #
-# Create a docker container from a set of bldr packages.
+# Create a Docker container from a set of Habitat packages.
 #
 # # License and Copyright
 #
@@ -47,7 +47,7 @@ print_help() {
 
 $author
 
-Dockerize - make docker containers from bldr packages
+Habitat Package Dockerize - Create a Docker container from a set of Habitat packages
 
 USAGE:
   $program [PKG ..]
@@ -70,7 +70,7 @@ find_system_commands() {
 # clean directory with native filesystem permissions which is outside the
 # source code tree.
 build_docker_image() {
-  DOCKER_CONTEXT="$($_mktemp_cmd -t -d "bldr-dockerize-XXXX")"
+  DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
   pushd $DOCKER_CONTEXT > /dev/null
   docker_image $@
   popd > /dev/null
@@ -108,7 +108,7 @@ package_latest_tag() {
 }
 
 docker_image() {
-  env PKGS="$@" NO_MOUNT=1 studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
+  env PKGS="$@" NO_MOUNT=1 hab-studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
   local pkg_name=$(package_name_for $1)
   local version_tag=$(package_version_tag $1)
   local latest_tag=$(package_latest_tag $1)
@@ -127,15 +127,17 @@ EOT
   $docker tag $version_tag $latest_tag
 }
 
-# The current version of Bldr Studio
+# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
+# otherwise it defaults to `/opt/bldr`.
+: ${BLDR_ROOT:=/opt/bldr}
+
+# The current version of Habitat Studio
 version='@version@'
 # The author of this program
 author='@author@'
 # The short version of the program name which is used in logging output
 program=$(basename $0)
-BLDR_ROOT="/opt/bldr"
 
-/opt/bldr/bin/hab-bpm install chef/docker
+hab-bpm install chef/docker
 find_system_commands
 build_docker_image $@
-

@@ -3,7 +3,7 @@
 # # Usage
 #
 # ```sh
-# $ studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ...]
+# $ hab-studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ...]
 # ```
 #
 # See the `print_help()` function below for complete usage instructions.
@@ -54,7 +54,7 @@ print_help() {
 
 $author
 
-Bldr Studios - Plan for success!
+Habitat Studios - Plan for success!
 
 USAGE:
         $program [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
@@ -101,7 +101,7 @@ EXAMPLES:
     # Run a command in the default Studio
     $program run wget --version
 
-    # Destroy the default studio
+    # Destroy the default Studio
     $program rm
 
     # Create and enter a busybox type Studio with a custom root
@@ -272,7 +272,7 @@ new_studio() {
   $bb chmod $v 600 $STUDIO_ROOT/var/log/btmp
 
   # Load the appropriate type strategy to complete the setup
-  . $libexec_path/bldr-studio-type-${STUDIO_TYPE}.sh
+  . $libexec_path/hab-studio-type-${STUDIO_TYPE}.sh
 
   # If `/etc/passwd` is not present, create a minimal version to satisfy
   # some software when being built
@@ -694,11 +694,19 @@ unset PATH
 
 # ## Default variables
 
+# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
+# otherwise it defaults to `/opt/bldr`.
+: ${BLDR_ROOT:=/opt/bldr}
+# Location containing installed packages
+BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
+# Where the resulting packages are
+BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
+
 #
 bb="$libexec_path/busybox"
 #
 bpm="$libexec_path/hab-bpm"
-# The current version of Bldr Studio
+# The current version of Habitat Studio
 version='@version@'
 # The author of this program
 author='@author@'

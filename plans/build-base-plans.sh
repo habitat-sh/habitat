@@ -255,7 +255,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   clens
   mg
   hab-backline
-  bldr-studio
+  ../components/studio:hab-studio
 _PLANS_
 
 _on_exit 0

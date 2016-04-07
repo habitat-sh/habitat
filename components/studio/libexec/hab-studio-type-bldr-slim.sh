@@ -1,15 +1,15 @@
 studio_type="bldr-slim"
-studio_path="/opt/bldr/bin"
+studio_path="$BLDR_ROOT/bin"
 studio_enter_environment=
-studio_enter_command="/opt/bldr/bin/hab-bpm exec chef/hab-build-plan bash --login +h"
+studio_enter_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash --login +h"
 studio_build_environment=
-studio_build_command="/opt/bldr/bin/build"
-studio_run_environment="/opt/bldr/bin/hab-bpm exec chef/hab-build-plan bash -l"
+studio_build_command="$BLDR_ROOT/bin/build"
+studio_run_environment="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash -l"
 
-bldr_pkgs="chef/hab-bpm chef/hab-build-plan chef/bldr-studio"
+bldr_pkgs="chef/hab-bpm chef/hab-plan-build chef/hab-studio"
 
 finish_setup() {
-  if [ -x "$STUDIO_ROOT/opt/bldr/bin/hab-bpm" ]; then
+  if [ -x "$STUDIO_ROOT$BLDR_ROOT/bin/hab-bpm" ]; then
     return 0
   fi
 
@@ -21,43 +21,43 @@ finish_setup() {
   local bash_path=$(_pkgpath_for chef/bash)
   local coreutils_path=$(_pkgpath_for chef/coreutils)
 
-  $bb mkdir -p $v $STUDIO_ROOT/opt/bldr/bin
+  $bb mkdir -p $v $STUDIO_ROOT$BLDR_ROOT/bin
 
   # Put `hab-bpm` on the default `$PATH` and ensure that it gets a sane shell
   # and initial `busybox` (sane being its own vendored version)
-  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/hab-bpm
+  $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/hab-bpm
 #!$bpm_path/libexec/busybox sh
 export BUSYBOX=$bpm_path/libexec/busybox
 exec \$BUSYBOX sh $bpm_path/bin/hab-bpm \$*
 EOF
-  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/hab-bpm
+  $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/hab-bpm
 
   # Create a wrapper to `build` so that any calls to it have a super-stripped
   # `$PATH` and not whatever augmented version is currently in use. This should
   # mean that running `build` from inside a `studio enter` and running `studio
   # build` leads to the exact same experience, at least as far as initial
   # `$PATH` is concerned.
-  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/build
+  $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/build
 #!$bpm_path/libexec/busybox sh
-exec /opt/bldr/bin/hab-bpm exec chef/hab-build-plan hab-build-plan \$*
+exec $BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build hab-plan-build \$*
 EOF
-  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/build
+  $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/build
 
   # Create a wrapper to dockerize
-  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/dockerize
+  $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/dockerize
 #!$bpm_path/libexec/busybox sh
-cmd=\$(find /opt/bldr/pkgs/chef/bldr-studio -name dockerize)
+cmd=\$(find $BLDR_PKG_ROOT/chef/hab-studio -name dockerize)
 exec \$cmd \$*
 EOF
-  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/dockerize
+  $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/dockerize
 
   # Create a wrapper to studio
-  $bb cat <<EOF > $STUDIO_ROOT/opt/bldr/bin/studio
+  $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/studio
 #!$bpm_path/libexec/busybox sh
-cmd=\$(find /opt/bldr/pkgs/chef/bldr-studio -name studio)
+cmd=\$(find $BLDR_PKG_ROOT/chef/hab-studio -name studio)
 exec \$cmd \$*
 EOF
-  $bb chmod $v 755 $STUDIO_ROOT/opt/bldr/bin/studio
+  $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/studio
 
   $bb ln -s $v $bash_path/bin/bash $STUDIO_ROOT/bin/bash
   $bb ln -s $v bash $STUDIO_ROOT/bin/sh

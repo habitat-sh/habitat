@@ -1,4 +1,4 @@
-pkg_name=bldr-studio
+pkg_name=hab-studio
 pkg_origin=chef
 pkg_version=0.1.0
 pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
@@ -10,26 +10,26 @@ pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_build() {
-  cp -v $PLAN_CONTEXT/bin/studio studio
-  cp -v $PLAN_CONTEXT/bin/dockerize dockerize
-  cp -v $PLAN_CONTEXT/libexec/bldr-studio-type-*.sh .
+  cp -v $PLAN_CONTEXT/bin/hab-studio.sh hab-studio
+  cp -v $PLAN_CONTEXT/bin/hab-pkg-dockerize.sh hab-pkg-dockerize
+  cp -v $PLAN_CONTEXT/libexec/hab-studio-type-*.sh .
 
   # Embed the release version and author information of the program.
   sed \
     -e "s,@author@,$pkg_maintainer,g" \
     -e "s,@version@,$pkg_version/$pkg_rel,g" \
-    -i studio
+    -i hab-studio
 
   sed \
     -e "s,@author@,$pkg_maintainer,g" \
     -e "s,@version@,$pkg_version/$pkg_rel,g" \
-    -i dockerize
+    -i hab-pkg-dockerize
 }
 
 do_install() {
-  install -v -D studio $pkg_prefix/bin/studio
-  install -v -D dockerize $pkg_prefix/bin/dockerize
-  for f in `ls bldr-studio-type-*.sh`; do
+  install -v -D hab-studio $pkg_prefix/bin/hab-studio
+  install -v -D hab-pkg-dockerize $pkg_prefix/bin/hab-pkg-dockerize
+  for f in `ls hab-studio-type-*.sh`; do
     install -v -D $f $pkg_prefix/libexec/$f
   done
 
