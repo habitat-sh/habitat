@@ -4,35 +4,52 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+import "whatwg-fetch";
+import config from "../config";
 import * as fakeApi from "../fakeApi";
-import {requestRoute} from "./router";
+import {attemptSignIn, addNotification, goHome, requestRoute, setCurrentOrigin,
+    signOut} from "./index";
+import {DANGER} from "./notifications";
 
-export const LINK_GITHUB_ACCOUNT = "LINK_GITHUB_ACCOUNT";
-export const LINK_GITHUB_ACCOUNT_SUCCESS = "LINK_GITHUB_ACCOUNT_SUCCESS";
+const uuid = require("node-uuid").v4;
+const gitHubTokenAuthUrl = config["github_token_auth_url"];
+
 export const POPULATE_GITHUB_REPOS = "POPULATE_GITHUB_REPOS";
+export const POPULATE_GITHUB_USER_DATA = "POPULATE_GITHUB_USER_DATA";
+export const SET_GITHUB_AUTH_STATE = "SET_GITHUB_AUTH_STATE";
 export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
-export const UNLINK_GITHUB_ACCOUNT = "UNLINK_GITHUB_ACCOUNT";
-export const UNLINK_GITHUB_ACCOUNT_SUCCESS = "UNLINK_GITHUB_ACCOUNT";
+
+export function authenticateWithGitHub(token = undefined) {
+    token = token || sessionStorage.getItem("gitHubAuthToken");
+
+    return dispatch => {
+        if (token) {
+            sessionStorage.setItem("gitHubAuthToken", token);
+
+            fetch(`https://api.github.com/user?access_token=${token}`).then(response => {
+                if (response["status"] === 401) {
+                    // When we get an unauthorized response, out token is no
+                    // longer valid, so sign out.
+                    dispatch(signOut());
+                    return false;
+                } else {
+                    return response.json();
+                }
+            }).then(data => {
+                dispatch(setCurrentOrigin({ name: data["login"]}));
+                dispatch(populateGitHubUserData(data));
+                dispatch(attemptSignIn(data["login"]));
+                dispatch(goHome());
+            });
+        }
+    };
+}
 
 export function fetchGitHubRepos() {
     return dispatch => {
         fakeApi.get("github/user/repos.json").then(response => {
             dispatch(populateGitHubRepos(response));
         });
-    };
-}
-
-export function linkGitHubAccount(username) {
-    return dispatch => {
-        window["githubWindow"] = window.open("/fixtures/authorizeGitHub.html");
-        dispatch(linkGitHubAccountSuccess(username));
-    };
-}
-
-function linkGitHubAccountSuccess(username) {
-    return {
-        type: LINK_GITHUB_ACCOUNT_SUCCESS,
-        payload: username,
     };
 }
 
@@ -51,21 +68,53 @@ function populateGitHubRepos(data) {
     };
 }
 
+function populateGitHubUserData(payload) {
+    return {
+        type: POPULATE_GITHUB_USER_DATA,
+        payload,
+    };
+}
+
+export function requestGitHubAuthToken(params = {}, stateKey = "") {
+    return dispatch => {
+        if (params["code"] && params["state"] === stateKey) {
+            fetch(`${gitHubTokenAuthUrl}/${params["code"]}`).then(response => {
+                return response.json();
+            }).catch(error => {
+                console.error(error);
+                dispatch(addNotification({
+                    title: "Authentication Failed",
+                    body: "Unable to retrieve GitHub token",
+                    type: DANGER,
+                }));
+            }).then(data => {
+                if (data["token"]) {
+                    dispatch(authenticateWithGitHub(data["token"]));
+                } else {
+                    dispatch(addNotification({
+                        title: "Authentication Failed",
+                        body: data["error"],
+                        type: DANGER,
+                    }));
+                }
+            });
+        }
+    };
+}
+
+export function setGitHubAuthState() {
+    let payload = sessionStorage.getItem("gitHubAuthState") || uuid();
+    sessionStorage.setItem("gitHubAuthState", payload);
+
+    return {
+        type: SET_GITHUB_AUTH_STATE,
+        payload
+    };
+}
+
 export function setSelectedGitHubOrg(org) {
     return {
         type: SET_SELECTED_GITHUB_ORG,
         payload: org,
-    };
-}
-
-export function unlinkGitHubAccount() {
-    return dispatch => {
-        dispatch(unlinkGitHubAccountSuccess());
-    };
-}
-
-function unlinkGitHubAccountSuccess() {
-    return {
-        type: UNLINK_GITHUB_ACCOUNT,
     };
 }

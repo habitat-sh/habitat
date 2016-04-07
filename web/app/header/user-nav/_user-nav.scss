@@ -12,8 +12,14 @@
 
   text-align: right;
 
-  .username span {
-    font-size: 75%;
+  .username {
+    img {
+      vertical-align: middle;
+    }
+
+    span {
+      font-size: 75%;
+    }
   }
 
   ul {

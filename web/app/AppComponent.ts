@@ -5,10 +5,9 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 import {AppStore} from "./AppStore";
-import {Component} from "angular2/core";
+import {Component, OnInit} from "angular2/core";
 import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
-import {LinkedAccountsPageComponent} from "./linked-accounts-page/LinkedAccountsPageComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
 import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
@@ -21,7 +20,7 @@ import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {removeNotification, routeChange, signOutViaUserNavMenu,
+import {authenticateWithGitHub, removeNotification, routeChange, signOut,
     toggleUserNavMenu} from "./actions/index";
 
 @Component({
@@ -36,8 +35,8 @@ import {removeNotification, routeChange, signOutViaUserNavMenu,
                     [isUserNavOpen]="user.isUserNavOpen"
                     [isSignedIn]="user.isSignedIn"
                     [username]="user.username"
-                    [avatarUrl]="user.avatarUrl"
-                    [signOutViaUserNavMenu]="signOutViaUserNavMenu"
+                    [avatarUrl]="user.gitHub.get('avatar_url')"
+                    [signOut]="signOut"
                     [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
     </div>
     <div class="hab-container">
@@ -62,11 +61,6 @@ import {removeNotification, routeChange, signOutViaUserNavMenu,
         path: "/explore",
         name: "Explore",
         component: ExplorePageComponent
-    },
-    {
-        path: "/linked-accounts",
-        name: "LinkedAccounts",
-        component: LinkedAccountsPageComponent,
     },
     {
         path: "/orgs",
@@ -135,9 +129,9 @@ import {removeNotification, routeChange, signOutViaUserNavMenu,
     },
 ])
 
-export class AppComponent {
+export class AppComponent implements OnInit {
     removeNotification: Function;
-    signOutViaUserNavMenu: Function;
+    signOut: Function;
     toggleUserNavMenu: Function;
 
     constructor(private router: Router, private store: AppStore) {
@@ -158,8 +152,8 @@ export class AppComponent {
             return false;
         }.bind(this);
 
-        this.signOutViaUserNavMenu = function() {
-            this.store.dispatch(signOutViaUserNavMenu());
+        this.signOut = function() {
+            this.store.dispatch(signOut());
             return false;
         }.bind(this);
 
@@ -170,9 +164,15 @@ export class AppComponent {
 
     }
 
-    get origin() { return {}; }
+    get origin() { return this.state.origins.current; }
 
     get state() { return this.store.getState(); }
 
     get user() { return this.state.users.current; }
+
+    ngOnInit() {
+        // When the page loads attempt to authenticate with GitHub. If there
+        // is no token stored in session storage, this won't do anything.
+        this.store.dispatch(authenticateWithGitHub());
+    }
 }

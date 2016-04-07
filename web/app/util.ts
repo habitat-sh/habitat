@@ -1,5 +1,21 @@
 import * as moment from "moment";
 import {requestRoute} from "./actions/index";
+import config from "./config";
+
+// Create a GitHub login URL
+export function createGitHubLoginUrl(state) {
+    const params = {
+        client_id: config["github_client_id"],
+        redirect_uri: `${window.location.protocol}//${window.location.host}${window.location.pathname}#/sign-in`,
+        scope: "user:email",
+        state
+    };
+    const urlPrefix = "https://github.com/login/oauth/authorize";
+    const queryString = Object.keys(params).map((k) =>
+        `${k}=${encodeURIComponent(params[k])}`).
+        join("&");
+    return `${urlPrefix}?${queryString}`;
+}
 
 // Pretty print a time
 // Print a number of seconds as minutes and seconds

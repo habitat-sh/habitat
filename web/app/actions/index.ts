@@ -7,18 +7,17 @@
 import * as gitHubActions from "./gitHub";
 import * as notificationActions from "./notifications";
 import * as orgActions from "./orgs";
+import * as originActions from "./origins";
 import * as packageActions from "./packages";
 import * as projectActions from "./projects";
 import * as routerActions from "./router";
 import * as usersActions from "./users";
 
 // Action types
-export const LINK_GITHUB_ACCOUNT = gitHubActions.LINK_GITHUB_ACCOUNT;
-export const LINK_GITHUB_ACCOUNT_SUCCESS = gitHubActions.LINK_GITHUB_ACCOUNT_SUCCESS;
 export const POPULATE_GITHUB_REPOS = gitHubActions.POPULATE_GITHUB_REPOS;
+export const POPULATE_GITHUB_USER_DATA = gitHubActions.POPULATE_GITHUB_USER_DATA;
+export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
 export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
-export const UNLINK_GITHUB_ACCOUNT = gitHubActions.UNLINK_GITHUB_ACCOUNT;
-export const UNLINK_GITHUB_ACCOUNT_SUCCESS = gitHubActions.UNLINK_GITHUB_ACCOUNT_SUCCESS;
 
 export const ADD_NOTIFICATION = notificationActions.ADD_NOTIFICATION;
 export const REMOVE_NOTIFICATION = notificationActions.REMOVE_NOTIFICATION;
@@ -29,6 +28,8 @@ export const ORG_INVITATION_CANCELLED = orgActions.ORG_INVITATION_CANCELLED;
 export const PERFORM_ORG_MEMBER_SEARCH = orgActions.PERFORM_ORG_MEMBER_SEARCH;
 export const POPULATE_ORG = orgActions.POPULATE_ORG;
 export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
+
+export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
@@ -47,17 +48,19 @@ export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
 export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
 
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
+
 export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
 
 // Used by redux-reset to reset the app state
 export const RESET = "RESET";
 
 // Actions
+export const authenticateWithGitHub = gitHubActions.authenticateWithGitHub;
 export const fetchGitHubRepos = gitHubActions.fetchGitHubRepos;
-export const linkGitHubAccount = gitHubActions.linkGitHubAccount;
 export const onGitHubRepoSelect = gitHubActions.onGitHubRepoSelect;
+export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
+export const setGitHubAuthState = gitHubActions.setGitHubAuthState;
 export const setSelectedGitHubOrg = gitHubActions.setSelectedGitHubOrg;
-export const unlinkGitHubAccount = gitHubActions.unlinkGitHubAccount;
 
 export const addNotification = notificationActions.addNotification;
 export const removeNotification = notificationActions.removeNotification;
@@ -68,6 +71,8 @@ export const finishAddingOrg = orgActions.finishAddingOrg;
 export const inviteMemberToOrg = orgActions.inviteMemberToOrg;
 export const performOrgMemberSearch = orgActions.performOrgMemberSearch;
 export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
+
+export const setCurrentOrigin = originActions.setCurrentOrigin;
 
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;
@@ -89,7 +94,7 @@ export const requestRoute = routerActions.requestRoute;
 
 export const attemptSignIn = usersActions.attemptSignIn;
 export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
-export const signOutViaUserNavMenu = usersActions.signOutViaUserNavMenu;
+export const signOut = usersActions.signOut;
 
 export function resetAppState() {
     return {
