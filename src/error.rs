@@ -25,6 +25,8 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     /// Occurs when a `habitat_core::package::PackageArchive` is being read.
     ArchiveError(libarchive::error::ArchiveError),
+    /// Crypto library error
+    CryptoError(String),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
     /// When an error occurs in GpgME library calls.
@@ -53,14 +55,15 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
-    /// Crypto library error
-    CryptoError(String),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::ArchiveError(ref err) => format!("{}", err),
+            Error::CryptoError(ref e) => {
+                format!("Crypto error: {}", e)
+            }
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::GPG(ref e) => format!("{}", e),
             Error::InvalidKeyParameter(ref e) => {
@@ -93,9 +96,6 @@ impl fmt::Display for Error {
             Error::PermissionFailed => format!("Failed to set permissions"),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::CryptoError(ref e) => {
-                format!("Crypto error: {}", e)
-            }
         };
         write!(f, "{}", msg)
     }
@@ -105,6 +105,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::ArchiveError(ref err) => err.description(),
+            Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
             Error::GPG(_) => "gpgme error",
             Error::InvalidKeyParameter(_) => "Key parameter error",
@@ -119,7 +120,6 @@ impl error::Error for Error {
             Error::PermissionFailed => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
-            Error::CryptoError(_) => "Crypto error",
         }
     }
 }
