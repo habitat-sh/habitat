@@ -391,12 +391,6 @@ pub fn mk_origin_sig_key_name(origin: &str, release: &str) -> String {
 }
 
 
-fn file_exists(fname: &str) -> Result<bool> {
-    match fs::metadata(fname) {
-        Ok(meta) => Ok(meta.is_file()),
-        Err(_) => Ok(false),
-    }
-}
 
 fn generate_sig_keypair_files(keyname: &str) -> Result<(SigPublicKey, SigSecretKey)> {
     let (pk, sk) = sign::gen_keypair();
@@ -419,11 +413,11 @@ fn write_keypair_files(public_keyfile: &str,
                        secret_content: &Vec<u8>)
                        -> Result<()> {
 
-    if try!(file_exists(public_keyfile)) {
+    if try!(fs::metadata(public_keyfile).map(|f| f.is_file())) {
         return Err(Error::CryptoError(format!("Public keyfile already exists {}", public_keyfile)));
     }
 
-    if try!(file_exists(secret_keyfile)) {
+    if try!(fs::metadata(secret_keyfile).map(|f| f.is_file())) {
         return Err(Error::CryptoError(format!("Secret keyfile already exists {}", secret_keyfile)));
     }
 
