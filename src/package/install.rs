@@ -17,7 +17,7 @@ use fs::PACKAGE_HOME;
 use package::{MetaFile, PackageIdent};
 
 const SUP_PKG_ORIGIN: &'static str = "chef";
-const SUP_PKG_NAME: &'static str = "bldr";
+const SUP_PKG_NAME: &'static str = "hab-sup";
 
 #[derive(Clone, Debug)]
 pub struct PackageInstall {
