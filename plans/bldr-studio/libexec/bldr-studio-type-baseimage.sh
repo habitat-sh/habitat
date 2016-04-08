@@ -6,14 +6,13 @@ studio_build_command="/opt/bldr/bin/build"
 studio_run_environment=
 
 bldr_pkgs="chef/bpm chef/bldr chef/busybox-static"
-PKGS="$PKGS"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT/opt/bldr/bin/bpm" ]; then
     return 0
   fi
 
-  for embed in $PKGS; do
+  for embed in $bldr_pkgs; do
     if [ -d "/opt/bldr/pkgs/$embed" ]; then
       echo "> Using local package for $embed"
       embed_path=$(_outside_pkgpath_for $embed)
@@ -38,7 +37,7 @@ finish_setup() {
   local busybox_path=$(_pkgpath_for chef/busybox-static)
 
   local full_path=""
-  for path_pkg in $PKGS chef/bldr chef/busybox-static; do
+  for path_pkg in $bldr_pkgs chef/bldr chef/busybox-static; do
     local path_file="$STUDIO_ROOT/$(_pkgpath_for $path_pkg)/PATH"
     if [ -f "$path_file" ]; then
       if [ -z "$full_path" ]; then
