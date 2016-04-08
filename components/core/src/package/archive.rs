@@ -11,8 +11,8 @@ use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::str::{self, FromStr};
 
-use crypto::sha2::Sha256;
-use crypto::digest::Digest;
+use rust_crypto::sha2::Sha256;
+use rust_crypto::digest::Digest;
 use libarchive::writer;
 use libarchive::reader::{self, Reader};
 use libarchive::archive::{Entry, ReadFilter, ReadFormat};

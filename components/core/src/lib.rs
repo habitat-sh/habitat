@@ -5,7 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-extern crate crypto;
+extern crate crypto as rust_crypto;
 extern crate gpgme;
 #[macro_use]
 extern crate lazy_static;
@@ -14,6 +14,9 @@ extern crate libarchive;
 extern crate log;
 extern crate regex;
 extern crate rustc_serialize;
+extern crate sodiumoxide;
+extern crate libsodium_sys;
+extern crate time;
 
 pub use self::error::{Error, Result};
 
@@ -24,3 +27,4 @@ pub mod package;
 pub mod service;
 pub mod url;
 pub mod util;
+pub mod crypto;

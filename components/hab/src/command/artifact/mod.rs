@@ -6,3 +6,4 @@
 // open source license such as the Apache 2.0 License.
 
 pub mod upload;
+pub mod crypto;

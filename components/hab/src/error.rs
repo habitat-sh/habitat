@@ -19,6 +19,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    CryptoCLI(String),
     DepotClient(depot_client::Error),
     ExecCommandNotFound(String),
     FFINulError(ffi::NulError),
@@ -32,6 +33,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::CryptoCLI(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
@@ -44,7 +46,7 @@ impl fmt::Display for Error {
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
-            }
+            },
         };
         write!(f, "{}", msg)
     }
@@ -53,6 +55,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::DepotClient(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::FFINulError(ref err) => err.description(),

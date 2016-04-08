@@ -5,8 +5,9 @@ pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
-pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/gpgme chef/libarchive chef/libgpg-error chef/rngd)
-pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
+pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/gpgme chef/libarchive
+          chef/libgpg-error chef/rngd chef/libsodium)
+pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc chef/libsodium)
 pkg_service_run="bin/hab-depot start"
 pkg_gpg_key=3853DA6B
 
@@ -20,6 +21,7 @@ do_build() {
       LIBARCHIVE_LIB_DIR=$(pkg_path_for chef/libarchive)/lib \
       LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for chef/libarchive)/include \
       SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem \
+      SODIUM_LIB_DIR=$(pkg_path_for chef/libsodium)/lib
       cargo build --verbose
   popd > /dev/null
 }

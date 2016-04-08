@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:wily
 MAINTAINER The Bldr Maintainers <bldr@chef.io>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -10,11 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gawk \
     gdb \
     gnupg \
+    iproute2 \
     libarchive-dev \
     libclang-dev \
     libncurses5-dev \
     libncursesw5-dev \
     libgpgme11-dev \
+    libsodium-dev \
     libssl-dev \
     libssl-doc \
     man \
@@ -23,7 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     patchutils \
     pkg-config \
     rsync \
+    sudo \
     wget \
+    vim \
   && rm -rf /var/lib/apt/lists/*
 
 ENV CARGO_HOME /cargo-cache
