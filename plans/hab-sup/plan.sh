@@ -5,7 +5,7 @@ pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
-pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/gpgme chef/libarchive chef/libgpg-error chef/rngd)
+pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/gpgme chef/libarchive chef/libgpg-error chef/rngd chef/busybox-static)
 pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
 pkg_gpg_key=3853DA6B
 

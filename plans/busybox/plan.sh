@@ -30,16 +30,25 @@ pkg_build_deps=(
   chef/xz
 )
 
-pkg_bin_dirs=(bin sbin)
+pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 pkg_interpreters=(bin/ash bin/awk bin/env bin/sh bin/bash)
+
+do_prepare() {
+  create_config
+}
 
 do_build() {
   make -j$(nproc)
 }
 
-do_prepare() {
-  create_config
+do_install() {
+  install -Dm755 busybox $pkg_prefix/bin/busybox
+
+  # Generate the symlinks back to the `busybox` executable
+  for l in $($pkg_prefix/bin/busybox --list); do
+    ln -sv busybox $pkg_prefix/bin/$l
+  done
 }
 
 create_config() {

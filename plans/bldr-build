@@ -377,34 +377,6 @@ _on_exit() {
 #   above.
 trap _on_exit 1 2 3 15 ERR
 
-# **Internal** Ensures that the correct versions of key initial system commands are able to be used by this program. Any commands here are required strictly for resolving dependencies. If we cannot find suitable versions, we will abort early.
-#
-# The following variables are set which contain an absolute path to the desired
-# command:
-#
-# * `$_sort_cmd` (GNU version from coreutils, needed for `--version-sort`)
-#
-# Note that all of the commands noted above are considered internal
-# implementation details and are subject to change with little to no notice,
-# which means the variables such as `$_tar_cmd` should **not** be used directly
-# by Plan authors. The leading underscore denotes an internal/private variable
-# or function.
-
-# If the commands are not found, `exit_with` is called and the program is
-# terminated.
-_find_initial_system_commands() {
-  if $(sort --version 2>&1 | grep -q 'GNU coreutils'); then
-    _sort_cmd=$(command -v sort)
-  else
-    if $(/usr/bin/sort --version 2>&1 | grep -q 'GNU coreutils'); then
-      _sort_cmd=/usr/bin/sort
-    else
-      exit_with "We require GNU sort to find the latest package; aborting" 1
-    fi
-  fi
-  debug "Setting _sort_cmd=$_sort_cmd"
-}
-
 # **Internal** Ensures that the correct versions of key system commands are
 # able to be used by this program. If we cannot find suitable versions, we will
 # abort early.
@@ -1999,7 +1971,8 @@ pkg_svc_static="$BLDR_ROOT/svc/$pkg_name/static"
 build_line "Bldr setup"
 do_begin
 
-_find_initial_system_commands
+# Determine if we have all the commands we need to work
+_find_system_commands
 
 _determine_pkg_installer
 
@@ -2007,9 +1980,6 @@ _determine_pkg_installer
 _resolve_dependencies
 
 _set_path
-
-# Determine if we have all the commands we need to work
-_find_system_commands
 
 # Ensure that the GPG secret key is loaded and ready for package signing.
 if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then

@@ -26,12 +26,3 @@ do_prepare() {
 do_build() {
   make -j$(nproc) CC=musl-gcc
 }
-
-do_install() {
-  install -Dm755 busybox $pkg_prefix/bin/busybox
-
-  # Generate the symlinks back to the `busybox` executable
-  for l in $($pkg_prefix/bin/busybox --list); do
-    ln -sv busybox $pkg_prefix/bin/$l
-  done
-}
