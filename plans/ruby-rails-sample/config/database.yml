@@ -8,5 +8,8 @@ production:
   database: {{cfg.database_name}}
   username: {{cfg.database_username}}
   password: {{cfg.database_password}}
-  host: {{cfg.database_host}}
+{{#cfg.database_discover}}
+{{#svc.named.postgresql.default.members}}  host: {{ip}}{{/svc.named.postgresql.default.members}}
+{{/cfg.database_discover}}
+{{^cfg.database_discover}}  host: {{cfg.database_host}}{{/cfg.database_discover}}
   port: {{cfg.database_port}}
