@@ -7,6 +7,7 @@ Regardless of their presence in this file, each individual contributor retains t
 # Humans
 
 * Adam Jacob <adam@chef.io>
+* Fletcher Nichol <fnichol@chef.io>
 
 # Companies
 
