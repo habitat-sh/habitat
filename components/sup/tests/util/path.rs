@@ -29,8 +29,13 @@ pub fn fixture_as_string(name: &str) -> String {
     fixture_string
 }
 
-pub fn bldr_build() -> String {
-    root().parent().unwrap().join("plans/bldr-build").to_string_lossy().into_owned()
+pub fn plan_build() -> String {
+    root()
+        .parent()
+        .unwrap()
+        .join("components/plan-build/bin/hab-plan-build.sh")
+        .to_string_lossy()
+        .into_owned()
 }
 
 pub fn sup() -> String {

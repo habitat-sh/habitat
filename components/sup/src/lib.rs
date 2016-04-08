@@ -10,16 +10,17 @@
 //!
 //! Habitat contains two main components:
 //!
-//! * `bldr-build`, takes a plan ('plan.sh'), a description of how to build a piece of software,
+//! * `hab-plan-build`, takes a plan ('plan.sh'), a description of how to build a piece of software,
 //! written in [bash](http://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html), which produces an atomic
-//! package.  * `hab-sup`, a run-time executable that knows how to download, install, serve, and
+//! package.
+//! * `hab-sup`, a run-time executable that knows how to download, install, serve, and
 //! manage services defined in packages.
 //!
-//! # bldr-build
+//! # hab-plan-build
 //!
-//! The documentation for bldr-build is generated automatically from the script itself, [and can be
-//! found here](bldr-build/bldr-build.html). You can find it in the source tree at
-//! `plans/bldr-build`.
+//! The documentation for hab-plan-build is generated automatically from the script itself, [and
+//! can be found here](hab-plan-build/hab-plan-build.html). You can find it in the source tree at
+//! `components/plan-build`.
 //!
 //! # The Supervisor
 //!

@@ -26,12 +26,12 @@ fi
 echo "$0: Set working tree to '${DELIVERY_GIT_SHASUM}'"
 (git rev-parse HEAD | grep -q "${DELIVERY_GIT_SHASUM}") || git checkout ${DELIVERY_GIT_SHASUM} || exit 1
 
-if [ -f /src/plans/bldr-build ]
+if [ -f /src/plans/bash/plan.sh ]
 then
-    echo "$0: /src/plans/bldr-build exists, success!"
+    echo "$0: /src/plans/bash/plan.sh exists, success!"
     exit 0
 else
-    echo "$0: /src/plans/bldr-build does not exist, failure!"
+    echo "$0: /src/plans/bash/plan.sh does not exist, failure!"
     exit 1
 fi
 

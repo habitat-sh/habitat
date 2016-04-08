@@ -12,8 +12,8 @@ cp -a ${RADIANT_HOME}/dist ${RADIANT_DATA}
 # ln -s {{pkg.svc_path}}/config/radiant.conf ${RADIANT_DATA}/dist/config/radiant.conf
 
 export GEM_HOME="${RADIANT_DATA}/dist/vendor/bundle"
-export GEM_PATH="$(bpm pkgpath chef/bundler)"
-export LD_LIBRARY_PATH="$(bpm pkgpath chef/gcc-libs)/lib"
+export GEM_PATH="$(hab-bpm pkgpath chef/bundler)"
+export LD_LIBRARY_PATH="$(hab-bpm pkgpath chef/gcc-libs)/lib"
 export PATH="$PATH:${RADIANT_DATA}/dist/bin"
 export RAILS_ENV="production"
 

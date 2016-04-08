@@ -56,7 +56,7 @@ With the same amount of effort required to put your application in a Dockerfile.
 
 ## How does it do this?
 
-Bldr provides a way to build an atomic `package` via `bldr-build`, and an
+Bldr provides a way to build an atomic `package` via `hab-plan-build`, and an
 optional `container image` that is automatically configured to run it. It also
 provides a supervisor, that handles running, configuring, and managing your
 services (`bldr`).
@@ -307,7 +307,7 @@ for example, test that redis is working with your development version of
 the supervisor:
 
 ```bash
-$ bpm install chef/redis
+$ hab-bpm install chef/redis
 $ ./target/debug/bldr start chef/redis
 ```
 

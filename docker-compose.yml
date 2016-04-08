@@ -1,5 +1,5 @@
 shell:
-  image: bldr/devshell
+  image: habitat/devshell
   privileged: true
   volumes:
     - .:/src
@@ -25,4 +25,4 @@ cargo:
   image: tianon/true
   command: /true
   volumes:
-    - /bldr-cargo-cache
+    - /cargo-cache

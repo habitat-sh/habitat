@@ -487,10 +487,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
             let (write_census, in_event, write_rumor, me_clone) = {
                 let cl = worker.census_list.read().unwrap();
                 let census = cl.local_census();
-                (cl.needs_write(),
-                 census.in_event,
-                 census.me().needs_write(),
-                 census.me().clone())
+                (cl.needs_write(), census.in_event, census.me().needs_write(), census.me().clone())
             };
 
             if write_census {

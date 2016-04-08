@@ -15,7 +15,7 @@ ifneq ($(IN_DOCKER),)
 		run_args := $(run_args) -e https_proxy="${https_proxy}"
 	endif
 
-	dimage := bldr/devshell
+	dimage := habitat/devshell
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
@@ -97,7 +97,7 @@ docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
 		cargo doc --manifest-path components/sup/Cargo.toml; \
 		rustdoc --crate-name habitat_sup README.md -o ./components/sup/target/doc/habitat_sup; \
-		docco -e .sh -o components/sup/target/doc/habitat_sup/bldr-build plans/bldr-build; \
+		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
 		cp -r images ./components/sup/target/doc/habitat_sup; \
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
 

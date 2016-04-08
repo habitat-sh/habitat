@@ -74,7 +74,7 @@ mod setup {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
             let mut simple_service =
-                match util::command::bldr_build(&util::path::fixture_as_string("simple_service")) {
+                match util::command::plan_build(&util::path::fixture_as_string("simple_service")) {
                     Ok(cmd) => cmd,
                     Err(e) => panic!("{:?}", e),
                 };
@@ -97,7 +97,7 @@ mod setup {
     pub fn simple_service_gossip() {
         static ONCE: Once = ONCE_INIT;
         ONCE.call_once(|| {
-            let mut simple_service = match util::command::bldr_build(&util::path::fixture_as_string("simple_service_gossip")) {
+            let mut simple_service = match util::command::plan_build(&util::path::fixture_as_string("simple_service_gossip")) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };
@@ -128,7 +128,7 @@ mod setup {
                                    .unwrap();
             copy_cmd.wait().unwrap();
 
-            let mut simple_service = match util::command::bldr_build(tempdir.path()
+            let mut simple_service = match util::command::plan_build(tempdir.path()
                                                                             .join(pkg)
                                                                             .to_str()
                                                                             .unwrap()) {
