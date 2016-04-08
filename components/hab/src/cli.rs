@@ -39,19 +39,17 @@ pub fn get() -> App<'static, 'static> {
             )
             (@subcommand sign =>
                 (about: "Signs a Habitat package with an origin key")
-                (@arg ORIGIN_KEY: +required --origin_key +takes_value {valid_origin_key}
+                (@arg ORIGIN: --origin +takes_value
                  "Origin key used to create signature")
-                (@arg INFILE: +required {file_exists}
+                (@arg SOURCE: +required {file_exists}
                  "A path to an archive file (ex: /home/chef-redis-3.0.7-21120102031201.xz)")
                 (@arg ARTIFACT: +required
-                 "TODO")
+                 "The generated artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat package with an origin key")
                 (@arg ARTIFACT: +required {file_exists}
                  "A path to a .hab artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
-                (@arg OUTFILE: +required
-                 "TODO")
             )
         )
         (@subcommand origin =>
@@ -62,7 +60,7 @@ pub fn get() -> App<'static, 'static> {
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
                         (about: "Generates an origin key")
-                        (@arg ORIGIN_KEY: +required {valid_origin_key})
+                        (@arg ORIGIN: +required)
                  )
             )
         )
@@ -84,8 +82,8 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@subcommand generate_key =>
                 (about: "Generates an origin key")
-                (@arg KEY_NAME: +required {valid_origin_key}
-                 "TODO: origin key name description")
+                (@arg ORIGIN: +required
+                 "Origin name")
             )
         )
         (subcommand: alias_inject)
@@ -105,8 +103,8 @@ fn sub_package_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
         (about: "Installs a package from a repo or locally from an archive file")
         (@arg REPO_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
-        (@arg PKG_IDENT_OR_ARCHIVE: +required "A package identifier (ex: chef/redis) \
-         or path to an archive file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+        (@arg PKG_IDENT_OR_ARTIFACT: +required "A package identifier (ex: chef/redis) \
+         or path to an artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
     )
 }
 
@@ -156,7 +154,3 @@ fn valid_url(val: String) -> result::Result<(), String> {
     }
 }
 
-fn valid_origin_key(_val: String) -> result::Result<(), String> {
-    // TODO
-    Ok(())
-}

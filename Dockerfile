@@ -10,11 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gawk \
     gdb \
     gnupg \
+    iproute2 \
     libarchive-dev \
     libclang-dev \
     libncurses5-dev \
     libncursesw5-dev \
     libgpgme11-dev \
+    libsodium-dev \
     libssl-dev \
     libssl-doc \
     man \
@@ -23,10 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     patchutils \
     pkg-config \
     rsync \
-    wget \
-    iproute2 \
-    libsodium-dev \
     sudo \
+    wget \
     vim \
   && rm -rf /var/lib/apt/lists/*
 

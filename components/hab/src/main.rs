@@ -41,6 +41,9 @@ const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HABITAT_SUP_BINARY";
 const SUP_PACKAGE_IDENT: &'static str = "chef/hab-sup";
 
+/// you can skip the --origin CLI param if you specify this env var
+const HABITAT_ORIGIN_ENVVAR: &'static str = "HABITAT_ORIGIN";
+
 fn main() {
     if let Err(e) = run_hab() {
         println!("{}", e);
@@ -100,14 +103,23 @@ fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
-    let origin_key = m.value_of("ORIGIN_KEY").unwrap_or("HABITAT");
+    let origin_key = m.value_of("ORIGIN").unwrap();
     try!(command::artifact::crypto::generate_origin_key(&origin_key));
     Ok(())
 }
 
 fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
-    let origin_key = m.value_of("ORIGIN_KEY").unwrap_or("HABITAT");
-    let infile = m.value_of("INFILE").unwrap();
+    let origin_key = match m.value_of("ORIGIN") {
+        Some(o) => o.to_string(),
+        None => {
+            match env::var(HABITAT_ORIGIN_ENVVAR) {
+                Ok(v) => v,
+                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string()))
+            }
+        }
+    };
+
+    let infile = m.value_of("SOURCE").unwrap();
     let outfile = m.value_of("ARTIFACT").unwrap();
     try!(command::artifact::crypto::sign(&origin_key, &infile, &outfile));
     Ok(())
@@ -115,14 +127,13 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
 
 fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
     let infile = m.value_of("ARTIFACT").unwrap();
-    let outfile = m.value_of("OUTFILE").unwrap();
-    try!(command::artifact::crypto::verify(&infile, &outfile));
+    try!(command::artifact::crypto::verify(&infile));
     Ok(())
 }
 
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
     let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
-    let ident_or_artifact = m.value_of("PKG_IDENT_OR_artifact").unwrap();
+    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
 
     try!(common::command::package::install::start(url, ident_or_artifact));
     Ok(())

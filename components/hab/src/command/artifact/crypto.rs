@@ -5,10 +5,11 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use error::{Error, Result};
-use hcore::hab_crypto;
+use hcore::crypto;
 
 pub fn sign(origin_key: &str, infile: &str, outfile: &str) -> Result<()> {
-    let key_pairs = try!(hab_crypto::read_sig_origin_keys(origin_key));
+
+    let key_pairs = try!(crypto::read_sig_origin_keys(origin_key));
 
     if key_pairs.len() < 1 {
         let msg = format!("Error: no origin keys found with the name: {}", &origin_key);
@@ -25,18 +26,18 @@ pub fn sign(origin_key: &str, infile: &str, outfile: &str) -> Result<()> {
             return Err(Error::CryptoCLI(msg));
         }
     };
-    try!(hab_crypto::artifact_sign(infile, outfile, &signing_key.rev, &sk));
+    try!(crypto::artifact_sign(infile, outfile, &signing_key.rev, &sk));
     Ok(())
 }
 
-pub fn verify(infile: &str, outfile: &str) -> Result<()> {
-    try!(hab_crypto::artifact_verify(infile, outfile));
+pub fn verify(infile: &str) -> Result<()> {
+    try!(crypto::artifact_verify(infile));
     Ok(())
 }
 
 
 pub fn generate_origin_key(origin_key: &str) -> Result<()> {
-    try!(hab_crypto::generate_origin_sig_key(origin_key));
+    try!(crypto::generate_origin_sig_key(origin_key));
     println!("Successfully generated {} origin key", origin_key);
     Ok(())
 }
