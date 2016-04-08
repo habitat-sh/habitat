@@ -11,7 +11,6 @@ pkg_gpg_key=3853DA6B
 
 do_build() {
   cp -v $PLAN_CONTEXT/bin/hab-studio.sh hab-studio
-  cp -v $PLAN_CONTEXT/bin/hab-pkg-dockerize.sh hab-pkg-dockerize
   cp -v $PLAN_CONTEXT/libexec/hab-studio-type-*.sh .
 
   # Embed the release version and author information of the program.
@@ -19,16 +18,10 @@ do_build() {
     -e "s,@author@,$pkg_maintainer,g" \
     -e "s,@version@,$pkg_version/$pkg_rel,g" \
     -i hab-studio
-
-  sed \
-    -e "s,@author@,$pkg_maintainer,g" \
-    -e "s,@version@,$pkg_version/$pkg_rel,g" \
-    -i hab-pkg-dockerize
 }
 
 do_install() {
   install -v -D hab-studio $pkg_prefix/bin/hab-studio
-  install -v -D hab-pkg-dockerize $pkg_prefix/bin/hab-pkg-dockerize
   for f in `ls hab-studio-type-*.sh`; do
     install -v -D $f $pkg_prefix/libexec/$f
   done
