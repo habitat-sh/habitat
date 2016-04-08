@@ -15,7 +15,7 @@ ifneq ($(IN_DOCKER),)
 		run_args := $(run_args) -e https_proxy="${https_proxy}"
 	endif
 
-	dimage := bldr/devshell
+	dimage := habitat/devshell
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)

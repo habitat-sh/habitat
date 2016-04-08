@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
   && rm -rf /var/lib/apt/lists/*
 
-ENV CARGO_HOME /bldr-cargo-cache
+ENV CARGO_HOME /cargo-cache
 
 ARG BLDR_REPO
 ENV BLDR_REPO ${BLDR_REPO:-}
@@ -35,13 +35,15 @@ RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y && rustc -V
 RUN curl -sSL https://get.docker.io | sh && docker -v
 RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
 
-RUN adduser --system bldr || true
-RUN addgroup --system bldr || true
+RUN (adduser --system bldr || true) && (addgroup --system bldr || true)
 
-COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin/ssh_wrapper.sh
-COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin/git_src_checkout.sh
-COPY studio/studio-install.sh /tmp
-RUN /tmp/studio-install.sh && bpm install chef/bldr && bpm install chef/bpm
+COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
+COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
+COPY components/studio/install.sh /tmp
+RUN /tmp/install.sh \
+  && hab-bpm install chef/hab-bpm \
+  && hab-bpm binlink chef/hab-bpm hab-bpm \
+  && rm -f /tmp/install.sh
 
 WORKDIR /src
 CMD ["bash"]
