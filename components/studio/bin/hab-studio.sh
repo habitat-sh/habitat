@@ -69,8 +69,8 @@ FLAGS:
 OPTIONS:
     -r <STUDIO_ROOT>  Sets a Studio root (default: /opt/studio)
     -s <SRC_PATH>     Sets the source path (default: \$PWD)
-    -t <STUDIO_TYPE>  Sets a Studio type when creating (default: bldr)
-                      Valid types: [baseimage bldr bldr-slim busybox stage1]
+    -t <STUDIO_TYPE>  Sets a Studio type when creating (default: default)
+                      Valid types: [default baseimage busybox stage1]
 
 SUBCOMMANDS:
     build     Build using a Studio
@@ -132,11 +132,11 @@ new_studio() {
 
   # Validate the type specified is valid and set a default if unset
   case "${STUDIO_TYPE:-unset}" in
-    unset|bldr)
+    unset|default)
       # Set the default/unset type
-      STUDIO_TYPE=bldr
+      STUDIO_TYPE=default
       ;;
-    bldr-slim|busybox|stage1|baseimage)
+    busybox|stage1|baseimage)
       # Confirmed valid types
       ;;
     *)
@@ -776,7 +776,7 @@ dir_name="$(echo $SRC_PATH | $bb sed -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g')
 # extra environment variables, etc. Note that a valid Studio will have this
 # file at the root of its filesystem.
 studio_config="$STUDIO_ROOT/.studio"
-# The type (flavor, variant, etc.) of Studio. Such types include `bldr`,
+# The type (flavor, variant, etc.) of Studio. Such types include `default`,
 # `stage1`, and `busybox` among others.
 : ${STUDIO_TYPE:=}
 # Whether or not to mount the `$SRC_PATH` into the Studio. An unset or empty

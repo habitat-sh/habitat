@@ -1,20 +1,20 @@
-studio_type="bldr-slim"
+studio_type="default"
 studio_path="$BLDR_ROOT/bin"
 studio_enter_environment=
-studio_enter_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash --login +h"
+studio_enter_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-backline bash --login +h"
 studio_build_environment=
-studio_build_command="$BLDR_ROOT/bin/build"
+studio_build_command="record \${1:-} $BLDR_ROOT/bin/build"
 studio_run_environment=
-studio_run_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash -l"
+studio_run_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-backline bash -l"
 
-bldr_pkgs="chef/hab-bpm chef/hab-plan-build chef/hab-studio"
+pkgs="chef/hab-bpm chef/hab-backline chef/hab-studio"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT$BLDR_ROOT/bin/hab-bpm" ]; then
     return 0
   fi
 
-  for pkg in $bldr_pkgs; do
+  for pkg in $pkgs; do
     _bpm install $pkg
   done
 
@@ -64,10 +64,10 @@ EOF
   # Set the login shell for any relevant user to be `/bin/bash`
   $bb sed -e "s,/bin/sh,$bash_path/bin/bash,g" -i $STUDIO_ROOT/etc/passwd
 
-  $bb cat >> $STUDIO_ROOT/etc/profile <<'PROFILE'
-# Add `hab-bpm` to the default `$PATH` at the front so any wrapping scripts will
+  $bb cat >> $STUDIO_ROOT/etc/profile <<PROFILE
+# Add hab-bpm to the default PATH at the front so any wrapping scripts will
 # be found and called first
-export PATH=/opt/bldr/bin:$PATH
+export PATH=$BLDR_ROOT/bin:\$PATH
 
 # Colorize grep/egrep/fgrep by default
 alias grep='grep --color=auto'

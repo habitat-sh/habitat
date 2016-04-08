@@ -2,16 +2,11 @@
 target
 .delivery/cli.toml
 .tags*
-/bldr_cache_pkgs/
-bldr-base/bldr-base.tar.bz2
-plans/**/*-cache
+log/
 plans/hana/SAP*
 plans/hana/sapcar.exe
 plans/hana/*.exe
 plans/hana/*.rar
 plans/log/
 plans/tmp/
-plans/support/chroot/lfs-tools/
-opt/
 .vagrant/
-support/**/*.tar
