@@ -462,9 +462,9 @@ build_studio() {
     set -x
   fi
 
-  # Become the `chroot` process
-  exec $bb chroot "$STUDIO_ROOT" \
-    $studio_env_command -i $env $studio_build_command $*
+  # Run the build command in the `chroot` environment
+  echo $studio_build_command $* | $bb chroot "$STUDIO_ROOT" \
+    $studio_env_command -i $env $studio_run_command
 }
 
 # **Internal** Run an arbitrary command in a Studio.
@@ -490,9 +490,9 @@ run_studio() {
     set -x
   fi
 
-  # Become the `chroot` process
+  # Run the command in the `chroot` environment
   echo $* | $bb chroot "$STUDIO_ROOT" \
-    $studio_env_command -i $env
+    $studio_env_command -i $env $studio_run_command
 }
 
 # **Internal** Destroy a Studio.

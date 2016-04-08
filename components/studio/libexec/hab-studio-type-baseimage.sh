@@ -4,6 +4,7 @@ studio_enter_environment=
 studio_build_environment=
 studio_build_command="$BLDR_ROOT/bin/build"
 studio_run_environment=
+studio_run_command=
 
 base_pkgs="chef/hab-bpm chef/hab-sup chef/busybox-static"
 : ${PKGS:=}

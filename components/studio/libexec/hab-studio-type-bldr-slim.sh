@@ -4,7 +4,8 @@ studio_enter_environment=
 studio_enter_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash --login +h"
 studio_build_environment=
 studio_build_command="$BLDR_ROOT/bin/build"
-studio_run_environment="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash -l"
+studio_run_environment=
+studio_run_command="$BLDR_ROOT/bin/hab-bpm exec chef/hab-plan-build bash -l"
 
 bldr_pkgs="chef/hab-bpm chef/hab-plan-build chef/hab-studio"
 

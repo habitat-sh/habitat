@@ -6,6 +6,7 @@ studio_enter_command="/opt/busybox/busybox sh -l"
 studio_build_environment=
 studio_build_command=
 studio_run_environment=
+studio_run_command="/opt/busybox/busybox sh -l"
 
 finish_setup() {
   # Copy in the busybox binary under `/opt/busybox`
