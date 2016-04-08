@@ -1,5 +1,5 @@
 pkg_name=bundler
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_version=1.11.2
 pkg_origin=chef
 pkg_license=('bundler')

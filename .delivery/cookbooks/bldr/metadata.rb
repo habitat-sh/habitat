@@ -1,6 +1,6 @@
 name 'bldr'
-maintainer 'Chef Software, Inc.'
-maintainer_email 'bldr@chef.io'
+maintainer 'The Habitat Maintainers'
+maintainer_email 'humans@habitat.sh'
 license 'apache2'
 description 'Delivery build cookbook for bldr'
 version '0.1.0'

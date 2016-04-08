@@ -1,7 +1,7 @@
 source ../busybox/plan.sh
 
 pkg_name=busybox-static
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_dirname=${pkg_distname}-${pkg_version}
 
 pkg_deps=()

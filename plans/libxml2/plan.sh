@@ -1,9 +1,9 @@
 pkg_name=libxml2
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_origin=chef
 pkg_version=2.9.2
 pkg_license=('MIT')
-pkg_maintainer="Jamie Winsor <reset@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://xmlsoft.org/sources/${pkg_name}-${pkg_version}.tar.gz
 pkg_deps=(chef/zlib chef/glibc)
 pkg_build_deps=(chef/coreutils chef/make chef/gcc chef/m4)

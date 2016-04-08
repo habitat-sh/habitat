@@ -1,7 +1,7 @@
 pkg_name=hab-depot
 pkg_origin=chef
 pkg_version=0.4.0
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)

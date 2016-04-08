@@ -2,7 +2,7 @@ pkg_name=radiant
 pkg_version=2.0.0-alpha-jt
 
 pkg_origin=chef
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('mit')
 
 pkg_source=https://github.com/jtimberman/radiant/archive/${pkg_version}.tar.gz

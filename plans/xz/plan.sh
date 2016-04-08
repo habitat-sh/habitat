@@ -1,7 +1,7 @@
 pkg_name=xz
 pkg_origin=chef
 pkg_version=5.2.2
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl2+' 'lgpl2+')
 pkg_source=http://tukaani.org/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz

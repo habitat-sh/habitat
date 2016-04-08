@@ -1,7 +1,7 @@
 pkg_name=pkg-config
 pkg_origin=chef
 pkg_version=0.29
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2+')
 pkg_source=http://pkgconfig.freedesktop.org/releases/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=c8507705d2a10c67f385d66ca2aae31e81770cc0734b4191eb8c489e864a006b
