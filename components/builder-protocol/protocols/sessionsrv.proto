@@ -1,0 +1,9 @@
+package sessionsrv;
+
+message GitHubAuth {
+  required string code = 1;
+}
+
+message AuthToken {
+  required string token = 1;
+}

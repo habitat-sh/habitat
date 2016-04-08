@@ -1,0 +1,12 @@
+pkg_name=protobuf
+pkg_origin=core
+pkg_version=2.6.1
+pkg_license=('BSD')
+pkg_source=https://github.com/google/${pkg_name}/releases/download/v${pkg_version}/${pkg_name}-${pkg_version}.tar.bz2
+pkg_shasum=ee445612d544d885ae240ffbcbf9267faa9f593b7b101f21d58beceb92661910
+pkg_gpg_key=3853DA6B
+pkg_deps=(chef/gcc chef/zlib)
+pkg_build_deps=(chef/make)
+pkg_bin_dirs=(bin)
+pkg_lib_dirs=(lib)
+pkg_include_dirs=(include)
