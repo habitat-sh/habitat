@@ -47,16 +47,14 @@ EOF
   # Create a wrapper to dockerize
   $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/dockerize
 #!$bpm_path/libexec/busybox sh
-cmd=\$(find $BLDR_PKG_ROOT/chef/hab-studio -name dockerize)
-exec \$cmd \$*
+exec $BLDR_ROOT/bin/hab-bpm exec chef/hab-studio hab-pkg-dockerize \$*
 EOF
   $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/dockerize
 
   # Create a wrapper to studio
   $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/studio
 #!$bpm_path/libexec/busybox sh
-cmd=\$(find $BLDR_PKG_ROOT/chef/hab-studio -name studio)
-exec \$cmd \$*
+exec $BLDR_ROOT/bin/hab-bpm exec chef/hab-studio hab-studio \$*
 EOF
   $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/studio
 
