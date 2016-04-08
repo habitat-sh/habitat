@@ -31,8 +31,6 @@
 //!
 //! * [The bldr Command Line Reference](command)
 //! * [The bldr Sidecar; http interface to promises](sidecar)
-//! * [The bldr Depot; http based package repository](depot)
-//!
 
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;

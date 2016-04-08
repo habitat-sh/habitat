@@ -197,8 +197,8 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
 
-    if let Some(view) = params.find("repo") {
-        list_packages_scoped_to_repo(depot, view)
+    if let Some(view) = params.find("view") {
+        list_packages_scoped_to_view(depot, view)
     } else {
         let ident: String = if params.find("pkg").is_none() {
             match params.find("origin") {
@@ -239,7 +239,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn list_packages_scoped_to_repo(depot: &Depot, view: &str) -> IronResult<Response> {
+fn list_packages_scoped_to_view(depot: &Depot, view: &str) -> IronResult<Response> {
     let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
     match cursor.set_key(&view.to_string()) {
@@ -263,17 +263,17 @@ fn list_packages_scoped_to_repo(depot: &Depot, view: &str) -> IronResult<Respons
     }
 }
 
-fn list_repos(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
+fn list_views(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
     let txn = try!(depot.datastore.views.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
-    let mut repos: Vec<data_object::View> = vec![];
+    let mut views: Vec<data_object::View> = vec![];
     loop {
         match cursor.next() {
-            Ok((_, data)) => repos.push(data),
+            Ok((_, data)) => views.push(data),
             Err(_) => break,
         }
     }
-    let body = json::encode(&repos).unwrap();
+    let body = json::encode(&views).unwrap();
     Ok(Response::with((status::Ok, body)))
 }
 
@@ -281,8 +281,8 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let ident: data_object::PackageIdent = extract_data_ident(params);
 
-    if let Some(repo) = params.find("repo") {
-        if let Some(pkg) = try!(latest_package_in_repo(&ident, depot, repo)) {
+    if let Some(view) = params.find("view") {
+        if let Some(pkg) = try!(latest_package_in_view(&ident, depot, view)) {
             let txn = try!(depot.datastore.packages.txn_ro());
             let package = try!(txn.get(&pkg.ident()));
             let body = json::encode(&package).unwrap();
@@ -327,14 +327,14 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn latest_package_in_repo<P: AsRef<package::PackageIdent>>
+fn latest_package_in_view<P: AsRef<package::PackageIdent>>
     (ident: P,
      depot: &Depot,
-     repo: &str)
+     view: &str)
      -> Result<Option<data_object::PackageIdent>> {
     let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
     let mut cursor = try!(txn.cursor_ro());
-    match cursor.set_key(&repo.to_string()) {
+    match cursor.set_key(&view.to_string()) {
         Ok(_) => {
             let mut pkg = try!(cursor.last_dup());
             loop {
@@ -363,10 +363,10 @@ fn latest_package_in_repo<P: AsRef<package::PackageIdent>>
 
 fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    let repo = params.find("repo").unwrap();
+    let view = params.find("view").unwrap();
 
     let txn = try!(depot.datastore.views.txn_rw());
-    match txn.get(&repo.to_string()) {
+    match txn.get(&view.to_string()) {
         Ok(view) => {
             let ident: package::PackageIdent = extract_ident(params);
             let nested = try!(txn.new_child_rw(&depot.datastore.packages));
@@ -442,14 +442,14 @@ pub fn run(config: &Config) -> Result<()> {
     let depot17 = depot.clone();
 
     let router = router!(
-        get "/repos" => move |r: &mut Request| list_repos(&depot1, r),
-        get "/repos/:repo/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot2, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot3, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot4, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot5, r),
-        get "/repos/:repo/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot6, r),
+        get "/views" => move |r: &mut Request| list_views(&depot1, r),
+        get "/views/:view/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot2, r),
+        get "/views/:view/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot3, r),
+        get "/views/:view/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot4, r),
+        get "/views/:view/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot5, r),
+        get "/views/:view/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot6, r),
 
-        post "/repos/:repo/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&depot7, r),
+        post "/views/:view/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&depot7, r),
 
         get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot8, r),
         get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot9, r),

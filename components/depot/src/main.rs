@@ -54,13 +54,13 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand repair =>
             (about: "Verify and repair data integrity of the package Depot")
         )
-        (@subcommand repo =>
+        (@subcommand view =>
             (@subcommand create =>
-                (about: "Create a new repository in the package Depot")
-                (@arg repo: <repo> +required "Name of the repository to create")
+                (about: "Create a new view over the package Depot")
+                (@arg view: <view> +required "Name of the view to create")
             )
             (@subcommand list =>
-                (about: "List repositories in the package Depot")
+                (about: "List views in the package Depot")
             )
         )
     )
@@ -85,15 +85,15 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
     match matches.subcommand_name() {
         Some("start") => start(&config),
         Some("repair") => repair(&config),
-        Some(cmd @ "repo") => {
+        Some(cmd @ "view") => {
             let args = matches.subcommand_matches(cmd).unwrap();
             match args.subcommand_name() {
                 Some(cmd @ "create") => {
                     let args = args.subcommand_matches(cmd).unwrap();
-                    let name = args.value_of("repo").unwrap();
-                    repo_create(name, &config)
+                    let name = args.value_of("view").unwrap();
+                    view_create(name, &config)
                 }
-                Some("list") => repo_list(&config),
+                Some("list") => view_list(&config),
                 Some(cmd) => {
                     debug!("Dispatch failed, no match for command: {:?}", cmd);
                     Ok(())
@@ -137,13 +137,13 @@ pub fn repair(config: &Config) -> Result<()> {
     Ok(())
 }
 
-/// Create a repository with the given name in the depot.
+/// Create a view with the given name in the depot.
 ///
 /// # Failures
 ///
 /// * The database cannot be read
 /// * A write transaction cannot be acquired.
-fn repo_create(name: &str, config: &Config) -> Result<()> {
+fn view_create(name: &str, config: &Config) -> Result<()> {
     // JW TODO: should pass config to depot, not this path
     let depot = try!(depot::Depot::new(config.path.clone()));
     let txn = try!(depot.datastore.views.txn_rw());
@@ -152,13 +152,13 @@ fn repo_create(name: &str, config: &Config) -> Result<()> {
     Ok(())
 }
 
-/// List all repositories in the database.
+/// List all views in the database.
 ///
 /// # Failures
 ///
 /// * The database cannot be read
 /// * A read transaction cannot be acquired.
-fn repo_list(config: &Config) -> Result<()> {
+fn view_list(config: &Config) -> Result<()> {
     // JW TODO: should pass config to depot, not this path
     let depot = try!(depot::Depot::new(config.path.clone()));
     let mut views: Vec<data_object::View> = vec![];
@@ -166,7 +166,7 @@ fn repo_list(config: &Config) -> Result<()> {
     let mut cursor = try!(txn.cursor_ro());
     match cursor.first() {
         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-            println!("No repositories. Create one with `hab-depot repo create`.");
+            println!("No views. Create one with `hab-depot view create`.");
             return Ok(());
         }
         Err(e) => return Err(e),
@@ -178,7 +178,7 @@ fn repo_list(config: &Config) -> Result<()> {
             Err(_) => break,
         }
     }
-    println!("Listing {} repositories", views.len());
+    println!("Listing {} views", views.len());
     for view in views.iter() {
         println!("     {}", view);
     }
