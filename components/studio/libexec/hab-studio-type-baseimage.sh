@@ -113,15 +113,17 @@ services:   files
 EOT
   echo "${run_user}:x:42:42:root:/:/bin/sh" >> $STUDIO_ROOT/etc/passwd
   echo "${run_group}:x:42:${run_user}" >> $STUDIO_ROOT/etc/group
-  for X in null ptmx random stdin stdout stderr tty urandom zero
-  do
-      $bb cp -a /dev/$X $STUDIO_ROOT/dev
-  done
 
+  local sup=$sup_path/bin/hab-sup
+  touch $STUDIO_ROOT/.hab_pkg
   $bb cat <<EOT > $STUDIO_ROOT/init.sh
 #!$busybox_path/bin/sh
 export PATH=$full_path
-exec $sup_path/bin/hab-sup "\$@"
+case \$1 in
+  -h|--help|help|-V|--version) exec $sup "\$@";;
+  -*) exec $sup start \$(cat /.hab_pkg) "\$@";;
+  *) exec $sup "\$@";;
+esac
 EOT
   $bb chmod a+x $STUDIO_ROOT/init.sh
 

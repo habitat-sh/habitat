@@ -112,6 +112,7 @@ docker_image() {
   local pkg_name=$(package_name_for $1)
   local version_tag=$(package_version_tag $1)
   local latest_tag=$(package_latest_tag $1)
+  echo "$1" > $DOCKER_CONTEXT/rootfs/.hab_pkg
   cat <<EOT > $DOCKER_CONTEXT/Dockerfile
 FROM scratch
 ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH)
