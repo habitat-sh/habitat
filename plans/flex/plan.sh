@@ -1,7 +1,7 @@
 pkg_name=flex
 pkg_origin=chef
 pkg_version=2.6.0
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('custom')
 pkg_source=http://downloads.sourceforge.net/sourceforge/${pkg_name}/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=d39b15a856906997ced252d76e9bfe2425d7503c6ed811669665627b248e4c73

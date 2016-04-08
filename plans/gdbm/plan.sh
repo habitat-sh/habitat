@@ -1,7 +1,7 @@
 pkg_name=gdbm
 pkg_origin=chef
 pkg_version=1.11
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=8d912f44f05d0b15a4a5d96a76f852e905d051bb88022fcdfd98b43be093e3c3

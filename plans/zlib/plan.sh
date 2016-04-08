@@ -1,7 +1,7 @@
 pkg_name=zlib
 pkg_origin=chef
 pkg_version=1.2.8
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('zlib')
 pkg_source=http://zlib.net/current/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d

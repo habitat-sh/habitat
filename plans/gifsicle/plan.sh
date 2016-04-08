@@ -1,9 +1,9 @@
 pkg_name=gifsicle
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_origin=chef
 pkg_version=1.88
 pkg_license=('GPLv2')
-pkg_maintainer="The Bldr Maintainers (bldr@chef.io)"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://www.lcdf.org/gifsicle/gifsicle-${pkg_version}.tar.gz
 pkg_shasum=4585d2e683d7f68eb8fcb15504732d71d7ede48ab5963e61915201f9e68305be
 pkg_gpg_key=3853DA6B

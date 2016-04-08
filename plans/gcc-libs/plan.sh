@@ -1,7 +1,7 @@
 source ../gcc/plan.sh
 
 pkg_name=gcc-libs
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 
 # The shared libraries only depend on chef/glibc
 pkg_deps=(chef/glibc)

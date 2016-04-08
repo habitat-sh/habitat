@@ -1,7 +1,7 @@
 pkg_name=openssl
 pkg_origin=chef
 pkg_version=1.0.2g
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=https://www.openssl.org/source/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=b784b1b3907ce39abf4098702dade6365522a253ad1552e267a9a0e89594aa33

@@ -1,7 +1,7 @@
 pkg_name=libsodium
 pkg_version=1.0.8
 pkg_origin=chef
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('libsodium')
 pkg_source=https://download.libsodium.org/libsodium/releases/${pkg_name}-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz

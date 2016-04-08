@@ -1,7 +1,7 @@
 pkg_name=docker
 pkg_origin=chef
 pkg_version=1.10.1
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2')
 pkg_source=https://get.docker.com/builds/Linux/x86_64/docker-1.10.1.tgz
 pkg_shasum=2287bc5cbcd1cdad77f1c0c70c2b5b15f1d9c010900c3ffab059fb46fe81d141

@@ -1,5 +1,5 @@
 FROM ubuntu:wily
-MAINTAINER The Bldr Maintainers <bldr@chef.io>
+MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \

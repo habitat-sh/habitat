@@ -1,7 +1,7 @@
 pkg_name=tar
 pkg_origin=chef
 pkg_version=1.28
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de

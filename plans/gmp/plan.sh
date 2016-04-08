@@ -1,7 +1,7 @@
 pkg_name=gmp
 pkg_origin=chef
 pkg_version=6.1.0
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=68dadacce515b0f8a54f510edf07c1b636492bcdb8e8d54c56eb216225d16989

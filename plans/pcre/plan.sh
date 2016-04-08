@@ -1,7 +1,7 @@
 pkg_name=pcre
 pkg_origin=chef
 pkg_version=8.38
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=http://ftp.csx.cam.ac.uk/pub/software/programming/${pkg_name}/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=b9e02d36e23024d6c02a2e5b25204b3a4fa6ade43e0a5f869f254f49535079df

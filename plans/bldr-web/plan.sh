@@ -1,7 +1,7 @@
 pkg_name=bldr-web
 pkg_version=0.4.0
 pkg_origin=chef
-pkg_maintainer="The Bldr Maintainers <bldr@chef.io>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache2')
 pkg_filename=${pkg_name}-${pkg_version}.tar.bz2
 pkg_gpg_key=3853DA6B
