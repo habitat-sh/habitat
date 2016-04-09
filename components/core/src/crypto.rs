@@ -57,25 +57,24 @@ use util::perm;
 ///
 /// Example origin key file names ("sig" keys):
 ///
+/// ```text
+/// habitat-201603312016.pub
+/// habitat-201603312016.sig.key
+/// your_company-201604021516.pub
+/// your_company-201604021516.sig.key
 /// ```
-///  habitat-201603312016.pub
-///  habitat-201603312016.sig.key
-///  your_company-201604021516.pub
-///  your_company-201604021516.sig.key
-/// ```
-///
 ///
 /// Example user keys ("box" keys)
 ///
-/// ```
-///  dave@habitat-201603312016.pub
-///  some_user@habitat-201603312016.pub
+/// ```text
+/// dave@habitat-201603312016.pub
+/// some_user@habitat-201603312016.pub
 /// ```
 ///
 /// Example Service keys:
 ///
-/// ```
-///  redis.default@habitat-box-201603312016.key
+/// ```text
+/// redis.default@habitat-box-201603312016.key
 /// ```
 ///
 /// ### Habitat signed artifact format
@@ -92,7 +91,7 @@ use util::perm;
 /// public origin key. Thus, it it safe to distribute public origin keys.
 ///
 /// Example header:
-/// ```
+/// ```text
 /// habitat-20160405144945
 /// BLAKE2b
 /// signed BLAKE2b signature
@@ -103,7 +102,7 @@ use util::perm;
 ///
 /// It's possible to examine the contents of a `.hab` file from a Linux shell:
 ///
-/// ```
+/// ```text
 /// $ head -3 /opt/bldr/cache/pkgs/chef-glibc-2.22-20160310192356.bldr
 /// habitat-20160405144945
 /// BLAKE2b
@@ -113,12 +112,10 @@ use util::perm;
 ///
 /// It is also possible to extract a plain tarball from a signed `.hab` artifact using the following command:
 ///
-/// ```
+/// ```text
 /// tail -n +4 /tmp/somefile.hab > somefile.tar
 /// # start at line 4, skipping the first 3 plaintext lines.
 /// ```
-///
-///
 
 /// The suffix on the end of a public sig/box file
 static PUB_KEY_SUFFIX: &'static str = "pub";
