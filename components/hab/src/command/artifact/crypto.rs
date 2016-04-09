@@ -7,6 +7,18 @@
 use error::{Error, Result};
 use hcore::crypto;
 
+pub fn generate_origin_key(origin_key: &str) -> Result<()> {
+    try!(crypto::generate_origin_sig_key(origin_key));
+    println!("Successfully generated {} origin key", origin_key);
+    Ok(())
+}
+
+pub fn hash(infile: &str) -> Result<()> {
+    let h = try!(crypto::hash_file(infile));
+    println!("{}", h);
+    Ok(())
+}
+
 pub fn sign(origin_key: &str, infile: &str, outfile: &str) -> Result<()> {
 
     let key_pairs = try!(crypto::read_sig_origin_keys(origin_key));
@@ -35,9 +47,3 @@ pub fn verify(infile: &str) -> Result<()> {
     Ok(())
 }
 
-
-pub fn generate_origin_key(origin_key: &str) -> Result<()> {
-    try!(crypto::generate_origin_sig_key(origin_key));
-    println!("Successfully generated {} origin key", origin_key);
-    Ok(())
-}

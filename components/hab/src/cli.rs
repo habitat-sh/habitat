@@ -51,6 +51,12 @@ pub fn get() -> App<'static, 'static> {
                 (@arg ARTIFACT: +required {file_exists}
                  "A path to a .hab artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
             )
+            (@subcommand hash=>
+                (about: "Generate a BLAKE2b hash for a file")
+                (@arg SOURCE : +required {file_exists}
+                 "Any existing file")
+            )
+
         )
         (@subcommand origin =>
             (about: "Runs Habitat origin commands")
