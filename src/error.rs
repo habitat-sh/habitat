@@ -25,6 +25,8 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     /// Occurs when a `habitat_core::package::PackageArchive` is being read.
     ArchiveError(libarchive::error::ArchiveError),
+    /// An invalid path to a keyfile was given.
+    BadKeyPath(String),
     /// Crypto library error
     CryptoError(String),
     /// Occurs when a file that should exist does not or could not be read.
@@ -61,9 +63,11 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::ArchiveError(ref err) => format!("{}", err),
-            Error::CryptoError(ref e) => {
-                format!("Crypto error: {}", e)
+            Error::BadKeyPath(ref e) => {
+                format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
+                        e)
             }
+            Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::GPG(ref e) => format!("{}", e),
             Error::InvalidKeyParameter(ref e) => {
@@ -105,6 +109,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::ArchiveError(ref err) => err.description(),
+            Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
             Error::GPG(_) => "gpgme error",
