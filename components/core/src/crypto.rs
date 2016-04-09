@@ -4,13 +4,13 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-
 use std::io::prelude::*;
 use std::fs;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::env;
 use std::mem;
+use std::path::Path;
 
 use libsodium_sys;
 use sodiumoxide::init as nacl_init;
@@ -137,14 +137,9 @@ static SIG_HASH_TYPE: &'static str = "BLAKE2b";
 /// at runtime. This is useful for testing.
 static HABITAT_KEY_CACHE_ENV_VAR: &'static str = "HABITAT_KEY_CACHE";
 
-
 /// Create secret key files with these permissions
 static PUBLIC_KEY_PERMISSIONS: &'static str = "0400";
 static SECRET_KEY_PERMISSIONS: &'static str = "0400";
-
-
-
-
 
 const BUF_SIZE: usize = 1024;
 
@@ -285,7 +280,8 @@ pub fn artifact_sign(infilename: &str,
         }
         let _result = writer.write(&buf[0..bytes_read]);
     }
-    println!("Successfully created signed binary artifact {}", outfilename);
+    println!("Successfully created signed binary artifact {}",
+             outfilename);
     Ok(())
 }
 
@@ -328,7 +324,7 @@ pub fn artifact_verify(infilename: &str) -> Result<()> {
         Ok(sig) => sig,
         Err(e) => {
             let msg = format!("Error converting signature to base64 {}", e);
-            return Err(Error::CryptoError(msg))
+            return Err(Error::CryptoError(msg));
         }
     };
 
@@ -355,7 +351,6 @@ pub fn artifact_verify(infilename: &str) -> Result<()> {
         Err(Error::CryptoError("Habitat package is invalid".to_string()))
     }
 }
-
 
 /// *********************************************
 /// Key generation functions
@@ -390,8 +385,6 @@ pub fn mk_origin_sig_key_name(origin: &str, release: &str) -> String {
     format!("{}-{}", origin, release)
 }
 
-
-
 fn generate_sig_keypair_files(keyname: &str) -> Result<(SigPublicKey, SigSecretKey)> {
     let (pk, sk) = sign::gen_keypair();
 
@@ -407,33 +400,44 @@ fn generate_sig_keypair_files(keyname: &str) -> Result<(SigPublicKey, SigSecretK
     Ok((pk, sk))
 }
 
-fn write_keypair_files(public_keyfile: &str,
-                       public_content: &Vec<u8>,
-                       secret_keyfile: &str,
-                       secret_content: &Vec<u8>)
-                       -> Result<()> {
-
-    if try!(fs::metadata(public_keyfile).map(|f| f.is_file())) {
-        return Err(Error::CryptoError(format!("Public keyfile already exists {}", public_keyfile)));
+fn write_keypair_files<K1: AsRef<Path>, K2: AsRef<Path>>(public_keyfile: K1,
+                                                         public_content: &Vec<u8>,
+                                                         secret_keyfile: K2,
+                                                         secret_content: &Vec<u8>)
+                                                         -> Result<()> {
+    if let Some(pk_dir) = public_keyfile.as_ref().parent() {
+        try!(fs::create_dir_all(pk_dir));
+    } else {
+        return Err(Error::BadKeyPath(public_keyfile.as_ref().to_string_lossy().into_owned()));
     }
 
-    if try!(fs::metadata(secret_keyfile).map(|f| f.is_file())) {
-        return Err(Error::CryptoError(format!("Secret keyfile already exists {}", secret_keyfile)));
+    if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
+        try!(fs::create_dir_all(sk_dir));
+    } else {
+        return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
     }
 
-    let public_file = try!(File::create(public_keyfile));
+    if public_keyfile.as_ref().exists() && public_keyfile.as_ref().is_file() {
+        return Err(Error::CryptoError(format!("Public keyfile already exists {}",
+                                              public_keyfile.as_ref().display())));
+    }
+
+    if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
+        return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
+                                              secret_keyfile.as_ref().display())));
+    }
+
+    let public_file = try!(File::create(public_keyfile.as_ref()));
     let mut public_writer = BufWriter::new(&public_file);
     let _result = try!(public_writer.write_all(public_content));
     try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
 
-    let secret_file = try!(File::create(secret_keyfile));
+    let secret_file = try!(File::create(secret_keyfile.as_ref()));
     let mut secret_writer = BufWriter::new(&secret_file);
     let _result = try!(secret_writer.write_all(secret_content));
     try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
     Ok(())
 }
-
-
 
 /// *********************************************
 /// Key reading functions
@@ -469,7 +473,6 @@ pub fn read_sig_origin_keys(origin_keyname: &str) -> Result<Vec<SigKeyPair>> {
     }
     Ok(key_pairs)
 }
-
 
 pub fn get_sig_secret_key(keyname: &str) -> Result<SigSecretKey> {
     let bytes = try!(get_sig_secret_key_bytes(keyname));
@@ -532,7 +535,6 @@ fn get_box_secret_key_bytes(keyname: &str) -> Result<Vec<u8>> {
     read_key_bytes(&secret_keyfile)
 }
 
-
 /// Read a file into a Vec<u8>
 fn read_key_bytes(keyfile: &str) -> Result<Vec<u8>> {
     let mut f = try!(File::open(keyfile));
@@ -545,7 +547,6 @@ fn read_key_bytes(keyfile: &str) -> Result<Vec<u8>> {
         }
     }
 }
-
 
 /// Take a key name (ex "habitat"), and find all revisions of that
 /// keyname in the nacl_key_dir().
@@ -565,19 +566,23 @@ pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
     for path in paths {
         match path {
             Ok(ref p) => p,
-            Err(e) =>  {
+            Err(e) => {
                 debug!("Error reading path {}", e);
-                return Err(Error::CryptoError(format!("Error reading key path {}", e)))
+                return Err(Error::CryptoError(format!("Error reading key path {}", e)));
             }
         };
 
         let p: fs::DirEntry = path.unwrap();
 
         match p.metadata() {
-            Ok(md) => if !md.is_file() { continue },
+            Ok(md) => {
+                if !md.is_file() {
+                    continue;
+                }
+            }
             Err(e) => {
                 debug!("Error checking file metadata {}", e);
-                continue
+                continue;
             }
         };
         let filename = match p.file_name().into_string() {
@@ -585,7 +590,7 @@ pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
             Err(e) => {
                 // filename is still an OsString, so print it as debug output
                 debug!("Invalid filename {:?}", e);
-                return Err(Error::CryptoError(format!("Invalid filename in key path")))
+                return Err(Error::CryptoError(format!("Invalid filename in key path")));
             }
         };
 
@@ -603,4 +608,3 @@ pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
     candidates.reverse();
     Ok(candidates)
 }
-
