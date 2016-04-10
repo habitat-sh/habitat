@@ -82,15 +82,7 @@ mod setup {
             if !simple_service.status.unwrap().success() {
                 panic!("Failed to build simple service");
             }
-            let mut docker = match util::command::studio_run("dockerize",
-                                                             &["test/simple_service"]) {
-                Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e),
-            };
-            docker.wait_with_output();
-            if !docker.status.unwrap().success() {
-                panic!("Failed to dockerize simple service");
-            }
+            util::command::dockerize("test/simple_service");
         });
     }
 
@@ -105,14 +97,7 @@ mod setup {
             if !simple_service.status.unwrap().success() {
                 panic!("Failed to build simple service gossip");
             }
-            let mut docker = match util::command::studio_run("dockerize", &["test/simple_service_gossip"]) {
-                Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e),
-            };
-            docker.wait_with_output();
-            if !docker.status.unwrap().success() {
-                panic!("Failed to dockerize simple service gossip");
-            }
+            util::command::dockerize("test/simple_service_gossip");
         });
     }
 
@@ -156,8 +141,6 @@ mod setup {
         cmd.wait_with_output();
         });
     }
-
-
 }
 
 
