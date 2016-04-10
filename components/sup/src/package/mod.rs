@@ -17,10 +17,6 @@ use std::os::unix;
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 use std::io::prelude::*;
-use std::os::unix::fs::MetadataExt;
-
-use time;
-use time::Timespec;
 
 use hcore;
 use hcore::fs::SERVICE_HOME;
@@ -31,6 +27,7 @@ use self::hooks::HookTable;
 use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
+use supervisor::Supervisor;
 
 static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
@@ -38,7 +35,6 @@ const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
-const PIDFILE_NAME: &'static str = "PID";
 const SERVICE_PATH_OWNER: &'static str = "bldr";
 const SERVICE_PATH_GROUP: &'static str = "bldr";
 
@@ -80,100 +76,6 @@ impl Package {
             tdeps: try!(pkg_install.tdeps()).clone(),
             pkg_install: pkg_install,
         })
-    }
-
-    /// Create a pid file for a package
-    /// The existence of this file does not guarantee that a
-    /// process exists at the PID contained within.
-    pub fn create_pidfile(&self, pid: u32) -> Result<()> {
-        let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
-        let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
-        debug!("Creating PID file for child {} -> {}", pid_file, pid);
-        let mut f = try!(File::create(pid_file));
-        try!(write!(f, "{}", pid));
-        Ok(())
-    }
-
-
-    /// Remove a pidfile for this package if it exists.
-    /// Do NOT fail if there is an error removing the PIDFILE
-    pub fn cleanup_pidfile(&self) -> Result<()> {
-        let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
-        let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
-        debug!("Attempting to clean up pid file {}", &pid_file);
-        match fs::remove_file(pid_file) {
-            Ok(_) => {
-                debug!("Removed pid file");
-            }
-            Err(e) => {
-                debug!("Error removing pidfile: {}, continuing", e);
-            }
-        };
-        Ok(())
-    }
-
-    /// attempt to read the pidfile for this package.
-    /// If the pidfile does not exist, then return None,
-    /// otherwise, return Some(pid, uptime_seconds).
-    pub fn read_pidfile(&self) -> Result<Option<(u32, Timespec)>> {
-        let service_dir = format!("{}/{}", SERVICE_HOME, self.name);
-        let pid_file = format!("{}/{}", service_dir, PIDFILE_NAME);
-        debug!("Reading pidfile {}", &pid_file);
-
-        // check to see if the file exists
-        // if it does, we'll return the start_time
-        let start_time = match fs::metadata(&pid_file) {
-            Ok(metadata) => {
-                if metadata.is_file() {
-                    Timespec::new(metadata.ctime(), 0 /* nanos */)
-                } else {
-                    return Ok(None);
-                }
-            }
-            Err(_) => {
-                debug!("No pidfile detected");
-                return Ok(None);
-            }
-        };
-
-        let mut f = try!(File::open(pid_file));
-        let mut contents = String::new();
-        try!(f.read_to_string(&mut contents));
-        debug!("pidfile contents = {}", contents);
-        let pid = match contents.parse::<u32>() {
-            Ok(pid) => pid,
-            Err(e) => {
-                debug!("Error reading pidfile: {}", e);
-                return Err(sup_error!(Error::InvalidPidFile));
-            }
-        };
-        Ok(Some((pid, start_time)))
-    }
-
-    /// take a timestamp in seconds since epoch,
-    /// calculate how many seconds before right now
-    /// this timestamp occurs.
-    fn seconds_before_now(t0: Timespec) -> i64 {
-        let now = time::now().to_timespec();
-        (now - t0).num_seconds()
-    }
-
-    /// return a "down" or "run" with uptime in seconds status message
-    pub fn status_from_pid(&self, childinfo: Option<(u32, Timespec)>) -> Result<String> {
-        match childinfo {
-            Some((pid, start_time)) => {
-                let diff = Self::seconds_before_now(start_time);
-                let s = format!("run: (pid {}) {}s\n", pid, diff);
-                Ok(s)
-            }
-            None => Ok("down".to_string()),
-        }
-    }
-
-    /// read the pidfile to get a status
-    pub fn status_via_pidfile(&self) -> Result<String> {
-        let pidinfo = try!(self.read_pidfile());
-        self.status_from_pid(pidinfo)
     }
 
     /// A vector of ports we expose
@@ -330,43 +232,35 @@ impl Package {
         }
     }
 
-    /// Run reconfigure hook if present, DOES NOT restart the package
-    pub fn reconfigure(&self, context: &ServiceConfig) -> Result<()> {
+    /// Run reconfigure hook if present. Return false if it is not present, to trigger default
+    /// restart behavior.
+    pub fn reconfigure(&self, context: &ServiceConfig) -> Result<bool> {
         if let Some(hook) = self.hooks().reconfigure_hook {
             match hook.run(Some(context)) {
-                Ok(_) => Ok(()),
+                Ok(_) => Ok(true),
                 Err(e) => Err(e),
             }
         } else {
-            Ok(())
+            Ok(false)
         }
     }
 
     /// Run file_updated hook if present
-    pub fn file_updated(&self, context: &ServiceConfig) -> Result<()> {
+    pub fn file_updated(&self, context: &ServiceConfig) -> Result<bool> {
         if let Some(hook) = self.hooks().file_updated_hook {
             match hook.run(Some(context)) {
-                Ok(_) => Ok(()),
+                Ok(_) => Ok(true),
                 Err(e) => Err(e),
             }
         } else {
-            Ok(())
+            Ok(false)
         }
     }
 
-    /// called from outside a topo worker, this will hit the pidfile
-    pub fn supervisor_running(&self) -> bool {
-        let res = self.status_via_pidfile();
-        match res {
-            Ok(_) => return true,
-            Err(e) => {
-                debug!("Supervisor not running?: {:?}", e);
-                return false;
-            }
-        }
-    }
-
-    pub fn health_check(&self, config: &ServiceConfig) -> Result<CheckResult> {
+    pub fn health_check(&self,
+                        config: &ServiceConfig,
+                        supervisor: &Supervisor)
+                        -> Result<CheckResult> {
         if let Some(hook) = self.hooks().health_check_hook {
             match hook.run(Some(config)) {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
@@ -388,9 +282,13 @@ impl Package {
                 Err(e) => Err(SupError::from(e)),
             }
         } else {
-            let status_output = try!(self.status_via_pidfile());
+            let (health, status) = supervisor.status();
             let last_config = try!(self.last_config());
-            Ok(health_check::CheckResult::ok(format!("{}\n{}", status_output, last_config)))
+            if health {
+                Ok(health_check::CheckResult::ok(format!("{}\n{}", status, last_config)))
+            } else {
+                Ok(health_check::CheckResult::critical(format!("{}\n{}", status, last_config)))
+            }
         }
     }
 

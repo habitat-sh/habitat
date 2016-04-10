@@ -277,6 +277,7 @@ pub mod service_config;
 pub mod census;
 pub mod gossip;
 pub mod election;
+pub mod supervisor;
 
 use std::env;
 use std::path::PathBuf;

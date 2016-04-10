@@ -184,7 +184,11 @@ pub fn state_become_follower(worker: &mut Worker) -> Result<(State, u64)> {
 }
 
 pub fn state_leader(worker: &mut Worker) -> Result<(State, u64)> {
-    if worker.supervisor_thread.is_none() {
+    let is_running = {
+        let supervisor = worker.supervisor.read().unwrap();
+        supervisor.pid.is_some()
+    };
+    if !is_running {
         try!(initialize(worker));
         try!(standalone::state_starting(worker));
     }
@@ -232,7 +236,11 @@ pub fn state_follower(worker: &mut Worker) -> Result<(State, u64)> {
         InitGate::NoLeader => return Ok((State::DetermineViability, 0)),
     }
 
-    if worker.supervisor_thread.is_none() {
+    let is_running = {
+        let supervisor = worker.supervisor.read().unwrap();
+        supervisor.pid.is_some()
+    };
+    if !is_running {
         try!(initialize(worker));
         try!(standalone::state_starting(worker));
     }

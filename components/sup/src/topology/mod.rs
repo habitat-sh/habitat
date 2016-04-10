@@ -21,13 +21,11 @@ pub mod initializer;
 
 use std::mem;
 use std::ops::DerefMut;
-use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::TryRecvError;
 use std::thread;
 use std::time::Duration;
 
-use libc::{pid_t, c_int};
 use wonder;
 
 use state_machine::StateMachine;
@@ -39,76 +37,17 @@ use error::{Result, SupError};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
+use supervisor::Supervisor;
 use user_config;
 use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
 use election::ElectionList;
-use time::{SteadyTime, Timespec};
+use time::SteadyTime;
 use util::signals;
 
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
-static MAXIMUM_WAIT_MILLIS_BEFORE_KILL: u32 = 7000;
-
-// Functions from POSIX libc.
-extern "C" {
-    fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
-}
-
-/// A simple compatability type for external functions
-#[allow(non_camel_case_types)]
-pub type idtype_t = c_int;
-
-pub const P_ALL: idtype_t = 0;
-pub const P_PID: idtype_t = 1;
-pub const P_PGID: idtype_t = 2;
-
-// Process flags
-pub const WCONTINUED: c_int = 8;
-pub const WNOHANG: c_int = 1;
-pub const WUNTRACED: c_int = 2;
-pub const WEXITED: c_int = 4;
-pub const WNOWAIT: c_int = 16777216;
-pub const WSTOPPED: c_int = 2;
-
-/// Get the exit status from waitpid's errno
-#[allow(non_snake_case)]
-pub fn WEXITSTATUS(status: c_int) -> c_int {
-    (status & 0xff00) >> 8
-}
-
-/// Get the exit status from waitpid's errno
-#[allow(non_snake_case)]
-pub fn WIFCONTINUED(status: c_int) -> bool {
-    status == 0xffff
-}
-
-#[allow(non_snake_case)]
-pub fn WIFEXITED(status: c_int) -> bool {
-    WTERMSIG(status) == 0
-}
-
-/// Has a value if our child was signaled
-#[allow(non_snake_case)]
-pub fn WIFSIGNALED(status: c_int) -> bool {
-    ((((status) & 0x7f) + 1) as i8 >> 1) > 0
-}
-
-#[allow(non_snake_case)]
-pub fn WIFSTOPPED(status: c_int) -> bool {
-    (status & 0xff) == 0x7f
-}
-
-#[allow(non_snake_case)]
-pub fn WSTOPSIG(status: c_int) -> c_int {
-    WEXITSTATUS(status)
-}
-
-#[allow(non_snake_case)]
-pub fn WTERMSIG(status: c_int) -> c_int {
-    status & 0x7f
-}
 
 #[derive(PartialEq, Eq, Debug, RustcEncodable)]
 pub enum Topology {
@@ -145,12 +84,6 @@ pub enum State {
     Running,
 }
 
-/// PID and start time of a child process
-pub struct ChildInfo {
-    pub pid: u32,
-    pub start_time: Timespec,
-}
-
 /// The topology `Worker` is where everything our state machine needs between states lives.
 pub struct Worker<'a> {
     /// The package we are supervising
@@ -177,10 +110,8 @@ pub struct Worker<'a> {
     /// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
     /// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
-    /// A pointer to the supervisor thread
-    pub supervisor_thread: Option<thread::JoinHandle<result::Result<(), SupError>>>,
-    /// process info of child that we're supervising
-    pub child_info: Option<ChildInfo>,
+    /// The service supervisor
+    pub supervisor: Arc<RwLock<Supervisor>>,
     pub return_state: Option<State>,
 }
 
@@ -194,6 +125,7 @@ impl<'a> Worker<'a> {
         let package_name = package.name.clone();
         let package_exposes = package.exposes().clone();
         let package_port = package_exposes.first().map(|e| e.clone());
+        let package_ident = package.ident().clone();
 
         // Setup the User Data Configuration
         let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config",
@@ -234,11 +166,14 @@ impl<'a> Worker<'a> {
         let service_config_lock = Arc::new(RwLock::new(service_config));
         let service_config_lock_1 = service_config_lock.clone();
 
+        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident)));
+
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();
         let sidecar_cl = gossip_server.census_list.clone();
         let sidecar_detector = gossip_server.detector.clone();
         let sidecar_el = gossip_server.election_list.clone();
+        let sidecar_sup = supervisor.clone();
 
         Ok(Worker {
             package: pkg_lock,
@@ -258,14 +193,14 @@ impl<'a> Worker<'a> {
                                                    sidecar_rl,
                                                    sidecar_cl,
                                                    sidecar_detector,
-                                                   sidecar_el),
+                                                   sidecar_el,
+                                                   sidecar_sup),
+            supervisor: supervisor,
             user_actor: wonder::actor::Builder::new(user_config::UserActor)
                             .name("user-config".to_string())
                             .start(user_actor_state)
                             .unwrap(),
             pkg_updater: pkg_updater,
-            supervisor_thread: None,
-            child_info: None,
             return_state: None,
         })
     }
@@ -281,123 +216,7 @@ impl<'a> Worker<'a> {
         try!(package.copy_run(&service_config));
         Ok(())
     }
-
-    /// Join the supervisor thread, and check for errors
-    ///
-    /// # Failures
-    ///
-    /// * Supervisor thread fails
-    pub fn join_supervisor(&mut self) -> Result<()> {
-        if self.supervisor_thread.is_some() {
-            outputln!("Waiting for supervisor to finish");
-            let st = self.supervisor_thread.take().unwrap().join();
-            match st {
-                Ok(result) => {
-                    match result {
-                        Ok(()) => outputln!("Supervisor has finished"),
-                        Err(_) => outputln!("Supervisor has an error"),
-                    }
-                }
-                Err(e) => outputln!("Supervisor thread paniced: {:?}", e),
-            }
-        }
-        Ok(())
-    }
 }
-
-/// Send a SIGTERM to a process
-pub fn stop(pid: u32) -> Result<()> {
-    try!(signals::send_signal_to_pid(pid as i32, signals::Signal::SIGTERM));
-    Ok(())
-}
-
-/// send a SIGKILL to a process
-pub fn force_stop(pid: u32) -> Result<()> {
-    try!(signals::send_signal_to_pid(pid as i32, signals::Signal::SIGKILL));
-    Ok(())
-}
-
-/// Pass through a Unix signal to a process
-pub fn send_unix_signal(pid: u32, sig: signals::Signal) -> Result<()> {
-    try!(signals::send_signal_to_pid(pid as i32, sig));
-    Ok(())
-}
-
-
-/// if the child process exists, check it's status via waitpid()
-fn check_child_process<'a>(worker: &mut Worker<'a>) -> Result<()> {
-    if worker.child_info.is_none() {
-        return Ok(());
-    }
-
-    unsafe {
-        let mut status: c_int = 0;
-        let cpid = worker.child_info.as_ref().unwrap().pid as pid_t;
-        match waitpid(cpid, &mut status, 1 as c_int) {
-            0 => {} // Nothing returned,
-            pid if pid == cpid => {
-                if WIFEXITED(status) {
-                    let exit_code = WEXITSTATUS(status);
-                    outputln!("The child {} died with exit code {}", pid, exit_code);
-                } else if WIFSIGNALED(status) {
-                    let exit_signal = WTERMSIG(status);
-                    outputln!("The child {} died with signal {}", pid, exit_signal);
-                } else {
-                    outputln!("The child {} died, but I don't know how.", pid);
-                }
-
-                debug!("Child exited, restarting");
-                worker.return_state = Some(State::Starting);
-                worker.child_info = None;
-            }
-            // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
-            pid => {
-                if WIFEXITED(status) {
-                    let exit_code = WEXITSTATUS(status);
-                    debug!("Process {} died with exit code {}", pid, exit_code);
-                } else if WIFSIGNALED(status) {
-                    let exit_signal = WTERMSIG(status);
-                    debug!("Process {} terminated with signal {}", pid, exit_signal);
-                } else {
-                    debug!("Process {} died, but I don't know how.", pid);
-                }
-            }
-        }
-    }
-    Ok(())
-}
-
-
-fn kill_after_timeout(cpid: u32, max_wait: u32) -> Result<()> {
-    debug!("waiting to kill process if it doesn't exit");
-    let mut elapsed = 0;
-    let wait_interval_millis = 1000;
-    let mut clean_exit = false;
-    loop {
-        let mut status: c_int = 0;
-        unsafe {
-            match waitpid(cpid as i32, &mut status, 1 as c_int) {
-                0 => {}
-                _ => {
-                    clean_exit = true;
-                    break;
-                }
-            }
-        }
-        thread::sleep(Duration::from_millis(wait_interval_millis as u64));
-        elapsed = elapsed + wait_interval_millis;
-        if elapsed == max_wait {
-            break;
-        }
-    }
-    if !clean_exit {
-        debug!("process still running, sending SIGKILL");
-        let _result = force_stop(cpid);
-        debug!("sent a sigkill, the fate of your planet rests in your hands");
-    }
-    Ok(())
-}
-
 
 /// The main loop of a topology.
 ///
@@ -437,30 +256,14 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 match sig {
                     signals::Signal::SIGINT |
                     signals::Signal::SIGTERM => {
-                        // SIGINT + SIGTERM just send a SIGTERM to the child
-                        if worker.child_info.is_some() {
-                            {
-                                let pid = worker.child_info.as_ref().unwrap().pid;
-                                try!(send_unix_signal(pid, signals::Signal::SIGTERM));
-                                // try to kill the process, but don't fail if things
-                                // don't work out. Don't feel bad, it happens to the best.
-                                let _result = kill_after_timeout(pid,
-                                                                 MAXIMUM_WAIT_MILLIS_BEFORE_KILL);
-                            }
-                            try!(worker.join_supervisor());
-                            {
-                                let package = worker.package.read().unwrap();
-                                let _ = package.cleanup_pidfile();
-                            }
-                        }
+                        let mut supervisor = worker.supervisor.write().unwrap();
+                        try!(supervisor.down());
                         break;
                     }
                     _ => {
-                        // just pass the signal through
-                        if worker.child_info.is_some() {
-                            let pid = worker.child_info.as_ref().unwrap().pid;
-                            try!(send_unix_signal(pid, sig.clone()));
-                        }
+                        outputln!("Forwarding {:?} on to the supervised process", sig);
+                        let supervisor = worker.supervisor.write().unwrap();
+                        try!(supervisor.send_unix_signal(sig.clone()));
                     }
                 };
             }
@@ -471,9 +274,12 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
             }
         }
 
-        if sm.state == State::Running {
-            try!(check_child_process(worker));
+        {
+            let mut supervisor = worker.supervisor.write().unwrap();
+            try!(supervisor.check_process());
         }
+
+        let mut restart_process = false;
 
         // This section, and the following really need to be refactored:
         //
@@ -518,12 +324,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                         if try!(service_config.write(&package)) {
                             try!(package.copy_run(&service_config));
                             try!(package.reconfigure(&service_config));
-                            // force the package to restart
-                            if sm.state == State::Running {
-                                debug!("Forcing package to restart due to service_config update");
-                                worker.return_state = Some(State::Starting);
-                                worker.child_info = None;
-                            }
+                            println!("Restarting because the service config was updated via the census");
+                            restart_process = true;
                         }
                     }
                 }
@@ -552,7 +354,10 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
             if needs_file_updated {
                 let service_config = worker.service_config.read().unwrap();
                 let package = worker.package.read().unwrap();
-                try!(package.file_updated(&service_config));
+                let existed = try!(package.file_updated(&service_config));
+                if !existed {
+                    restart_process = true;
+                }
             }
             if needs_reconfigure {
                 let mut service_config = worker.service_config.write().unwrap();
@@ -560,7 +365,10 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 service_config.cfg(&package);
                 if try!(service_config.write(&package)) {
                     try!(package.copy_run(&service_config));
-                    try!(package.reconfigure(&service_config));
+                    let existed = try!(package.reconfigure(&service_config));
+                    if !existed {
+                        restart_process = true;
+                    }
                 }
             }
         }
@@ -571,22 +379,36 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     debug!("Main loop received package update notification: {:?}",
                            &package);
                     try!(worker.update_package(package));
-                    if worker.child_info.is_some() {
-                        let pid = worker.child_info.as_ref().unwrap().pid;
-                        try!(stop(pid));
-                    }
                     try!(package::PackageUpdater::run(&updater));
                     // force the package to restart
-                    if sm.state == State::Running {
-                        debug!("Forcing package to restart due to pkg updater");
-                        worker.return_state = Some(State::Starting);
-                        worker.child_info = None;
-                    }
+                    println!("Restarting because the package was updated");
+                    restart_process = true;
                 }
                 Ok(_) => {}
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
                     panic!("package updater crashed!");
+                }
+            }
+        }
+
+        {
+            let mut supervisor = worker.supervisor.write().unwrap();
+            // If our target is that the process is up
+            if supervisor.is_up() {
+                // And no process is running
+                if supervisor.pid.is_none() {
+                    // Start a new one
+                    try!(supervisor.start());
+                } else {
+                    // If we were supposed to restart
+                    if restart_process {
+                        // And we have ever started before...
+                        if supervisor.has_started {
+                            // Restart
+                            try!(supervisor.restart());
+                        }
+                    }
                 }
             }
         }

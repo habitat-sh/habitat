@@ -33,6 +33,7 @@ use gossip::rumor::RumorList;
 use gossip::detector::Detector;
 use census::{CensusList, CensusEntry, CensusEntryId, Census};
 use election::{Election, ElectionList};
+use supervisor::Supervisor;
 
 static LOGKEY: &'static str = "SC";
 const GET_HEALTH: &'static str = "/health";
@@ -57,6 +58,7 @@ pub struct SidecarState {
     pub census_list: Arc<RwLock<CensusList>>,
     pub detector: Arc<RwLock<Detector>>,
     pub election_list: Arc<RwLock<ElectionList>>,
+    pub supervisor: Arc<RwLock<Supervisor>>,
 }
 
 #[derive(Debug)]
@@ -72,7 +74,8 @@ impl SidecarState {
                rumor_list: Arc<RwLock<RumorList>>,
                census_list: Arc<RwLock<CensusList>>,
                detector: Arc<RwLock<Detector>>,
-               election_list: Arc<RwLock<ElectionList>>)
+               election_list: Arc<RwLock<ElectionList>>,
+               supervisor: Arc<RwLock<Supervisor>>)
                -> Self {
         SidecarState {
             package: package,
@@ -82,6 +85,7 @@ impl SidecarState {
             census_list: census_list,
             detector: detector,
             election_list: election_list,
+            supervisor: supervisor,
         }
     }
 }
@@ -94,7 +98,8 @@ impl Sidecar {
                  rumor_list: Arc<RwLock<RumorList>>,
                  census_list: Arc<RwLock<CensusList>>,
                  detector: Arc<RwLock<Detector>>,
-                 election_list: Arc<RwLock<ElectionList>>)
+                 election_list: Arc<RwLock<ElectionList>>,
+                 supervisor: Arc<RwLock<Supervisor>>)
                  -> SidecarActor {
         let state = SidecarState::new(package,
                                       config,
@@ -102,7 +107,8 @@ impl Sidecar {
                                       rumor_list,
                                       census_list,
                                       detector,
-                                      election_list);
+                                      election_list,
+                                      supervisor);
         wonder::actor::Builder::new(Sidecar).name("sidecar".to_string()).start(state).unwrap()
     }
 }
@@ -124,13 +130,16 @@ impl GenServer for Sidecar {
         let mut router = Router::new();
         let package_1 = state.package.clone();
         let package_2 = state.package.clone();
-        let package_3 = state.package.clone();
         let config_1 = state.config.clone();
 
         router.get(GET_CONFIG, move |r: &mut Request| config(&package_1, r));
-        router.get(GET_STATUS, move |r: &mut Request| status(&package_2, r));
+
+        let supervisor_1 = state.supervisor.clone();
+        router.get(GET_STATUS, move |r: &mut Request| status(&supervisor_1, r));
+
+        let supervisor_2 = state.supervisor.clone();
         router.get(GET_HEALTH,
-                   move |r: &mut Request| health(&package_3, &config_1, r));
+                   move |r: &mut Request| health(&package_2, &config_1, &supervisor_2, r));
 
         let ml = state.member_list.clone();
         let rl = state.rumor_list.clone();
@@ -268,9 +277,9 @@ fn config(lock: &Arc<RwLock<Package>>, _req: &mut Request) -> IronResult<Respons
 /// # Failures
 ///
 /// * Fails if the supervisor cannot return the status.
-fn status(lock: &Arc<RwLock<Package>>, _req: &mut Request) -> IronResult<Response> {
-    let package = lock.read().unwrap();
-    let output = try!(package.status_via_pidfile());
+fn status(lock: &Arc<RwLock<Supervisor>>, _req: &mut Request) -> IronResult<Response> {
+    let supervisor = lock.read().unwrap();
+    let (_health, output) = supervisor.status();
     Ok(Response::with((status::Ok, output)))
 }
 
@@ -284,12 +293,14 @@ fn status(lock: &Arc<RwLock<Package>>, _req: &mut Request) -> IronResult<Respons
 /// * If the health_check cannot be run.
 fn health(package_lock: &Arc<RwLock<Package>>,
           config_lock: &Arc<RwLock<ServiceConfig>>,
+          supervisor_lock: &Arc<RwLock<Supervisor>>,
           _req: &mut Request)
           -> IronResult<Response> {
     let result = {
         let package = package_lock.read().unwrap();
         let config = config_lock.read().unwrap();
-        try!(package.health_check(&config))
+        let supervisor = supervisor_lock.read().unwrap();
+        try!(package.health_check(&config, &supervisor))
     };
 
     match result.status {
