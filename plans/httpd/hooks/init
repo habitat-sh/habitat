@@ -1,4 +1,4 @@
 #!/bin/sh
-mkdir -p /opt/bldr/svc/httpd/data/htdocs
-mkdir -p /opt/bldr/svc/httpd/data/cgi-bin
-mkdir -p /opt/bldr/svc/httpd/var/logs
+mkdir -p {{pkg.svc_path}}/data/htdocs
+mkdir -p {{pkg.svc_path}}/data/cgi-bin
+mkdir -p {{pkg.svc_path}}/var/logs

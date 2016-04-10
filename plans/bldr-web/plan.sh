@@ -18,7 +18,7 @@ do_begin() {
     tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 \
 		    --transform "s,^\./web,bldr-web-${pkg_version}," ./web
     popd
-    pkg_shasum=$(trim $(sha256sum /opt/bldr/cache/src/${pkg_filename} | cut -d " " -f 1))
+    pkg_shasum=$(trim $(sha256sum $BLDR_SRC_CACHE/${pkg_filename} | cut -d " " -f 1))
 }
 
 do_build() {

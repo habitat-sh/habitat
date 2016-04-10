@@ -32,7 +32,7 @@ static BLDR_EMAIL_SUFFIX: &'static str = "@bldr";
 /// Uploads a gpg key to a [depot](../depot).
 ///
 /// If the key starts with a `/`, we treat it as a path to a specific file; otherwise, it's a key
-/// to grab from the cache in `/opt/bldr/cache/keys`. Either way, we read the file and upload it to
+/// to grab from the cache in `KEY_CACHE`. Either way, we read the file and upload it to
 /// the depot.
 ///
 /// # Failures
@@ -87,11 +87,11 @@ pub fn upload(config: &Config) -> Result<()> {
 /// Imports a gpg key from a [depot](../depot) or a local file.
 /// If `config.infile() is not empty, we try to load from a file.
 /// Otherwise, we load the key `config.key()` from `config.url()`,
-/// drop it in `/opt/bldr/cache/keys`, and then import it into GPG.
+/// drop it in `KEY_CACHE`, and then import it into GPG.
 ///
 /// # Failures
 ///
-/// * If the directory `/opt/bldr/cache/keys` cannot be created
+/// * If the directory `KEY_CACHE` cannot be created
 /// * If the we fail to download the key from the depot
 /// * If the GPG import process fails
 ///

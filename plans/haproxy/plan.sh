@@ -9,7 +9,7 @@ pkg_gpg_key=3853DA6B
 pkg_bin_dirs=(bin)
 pkg_build_deps=(chef/make chef/gcc)
 pkg_deps=(chef/glibc chef/pcre chef/openssl chef/zlib)
-pkg_service_run="bin/haproxy -f /opt/bldr/svc/haproxy/config/haproxy.conf"
+pkg_service_run="bin/haproxy -f $pkg_svc_config/haproxy.conf"
 pkg_docker_build="auto"
 pkg_expose=(80 443)
 

@@ -1,5 +1,4 @@
 #!/bin/sh
-mkdir -p /opt/bldr/svc/nginx/var
-path_to_bldr_web="/opt/bldr/pkgs/{{pkg.origin}}/{{pkg.name}}/{{pkg.version}}/{{pkg.release}}"
+mkdir -p {{pkg.svc_path}}/var
 
-rm -rf /opt/bldr/svc/{{pkg.name}}/static* && cp -r $path_to_bldr_web/dist /opt/bldr/svc/{{pkg.name}}/static
+rm -rf {{pkg.svc_path}}/static* && cp -r {{pkg.path}}/dist {{pkg.svc_path}}/static

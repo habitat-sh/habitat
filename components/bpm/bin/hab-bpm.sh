@@ -3,7 +3,7 @@
 # # Usage
 #
 # ```sh
-# $ hab-bpm install chef/bldr-studio
+# $ hab-bpm install chef/hab-studio
 # $ hab-bpm exec chef/bash bash --version
 # ```
 #
@@ -52,7 +52,7 @@ print_help() {
 
 $author
 
-Bldr Package Manager
+Habitat Package Manager
 
 USAGE:
         $program [COMMON_FLAGS] <SUBCOMMAND> [ARG ..]
@@ -85,7 +85,7 @@ print_binlink_help() {
 
 $author
 
-Bldr Package Manager - create a symlink for a package binary into a common
+Habitat Package Manager - create a symlink for a package binary into a common
 'PATH' location
 
 USAGE:
@@ -116,7 +116,7 @@ print_exec_help() {
 
 $author
 
-Bldr Package Manager - execute a command using the 'PATH'
+Habitat Package Manager - execute a command using the 'PATH'
 context of an installed package
 
 USAGE:
@@ -141,7 +141,7 @@ print_install_help() {
 
 $author
 
-Bldr Package Manager - installing packages
+Habitat Package Manager - installing packages
 
 USAGE:
         $program [COMMON_FLAGS] install [FLAGS] [OPTIONS] <PKG_IDENT>
@@ -150,10 +150,10 @@ FLAGS:
     -h  Prints this message
 
 OPTIONS:
-    -u <BLDR_REPO>  Sets a Bldr repository URL
+    -u <BLDR_REPO>  Sets a Habitat repository URL
 
 ENVIRONMENT VARIABLES:
-    BLDR_REPO     Sets a Bldr repository (\`-u' option takes precedence)
+    BLDR_REPO     Sets a Habitat repository URL (\`-u' option takes precedence)
 
 EXAMPLES:
 
@@ -177,7 +177,7 @@ print_pkgpath_help() {
 
 $author
 
-Bldr Package Manager - print the path to an installed package
+Habitat Package Manager - print the path to an installed package
 
 USAGE:
         $program [COMMON_FLAGS] pkgpath <PKG_IDENT>
@@ -849,8 +849,8 @@ shift "$((OPTIND - 1))"
 # filesystem or chroot environment, this environment variable may need to be
 # set.
 : ${FS_ROOT:=}
-# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to `/opt/bldr`.
+# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
+# otherwise it defaults to the default path.
 : ${BLDR_ROOT:=$FS_ROOT/opt/bldr}
 # Location containing installed packages
 BLDR_PKG_ROOT=$BLDR_ROOT/pkgs

@@ -122,8 +122,8 @@ EOT
   docker tag $version_tag $latest_tag
 }
 
-# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to `/opt/bldr`.
+# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
+# otherwise it defaults to the default path.
 : ${BLDR_ROOT:=/opt/bldr}
 
 # The current version of Habitat Studio

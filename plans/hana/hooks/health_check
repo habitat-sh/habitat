@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sv status /opt/bldr/svc/hana
+sv status {{pkg.svc_path}}/hana
 rc=0
 /usr/sap/hostctrl/exe/sapcontrol -nr {{instance-id}} -function GetProcessList
 case $? in
@@ -15,7 +15,7 @@ case $? in
 esac
 
 echo
-cat /opt/bldr/svc/hana/config.toml
+cat {{pkg.svc_path}}/config.toml
 
 exit $rc
 

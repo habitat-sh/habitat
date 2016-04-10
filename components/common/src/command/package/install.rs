@@ -5,21 +5,21 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Installs a bldr package from a [depot](../depot).
+//! Installs a Habitat package from a [depot](../depot).
 //!
 //! # Examples
 //!
 //! ```bash
-//! $ bldr install chef/redis
+//! $ hab pkg install chef/redis
 //! ```
 //!
-//! Will install `chef/redis` package from the package depot at `http://bldr.co:9633`.
+//! Will install `chef/redis` package from a custom depot:
 //!
 //! ```bash
-//! $ bldr install chef/redis/3.0.1 redis -u http://bldr.co:9633
+//! $ hab pkg install chef/redis/3.0.1 redis -u http://depot.co:9633
 //! ```
 //!
-//! Will install the `3.0.1` version of redis.
+//! This would install the `3.0.1` version of redis.
 //!
 //! # Internals
 //!
@@ -50,11 +50,11 @@ pub fn start(url: &str, ident_or_archive: &str) -> Result<()> {
 }
 
 /// Given a package name and a base url, downloads the package
-/// to `/opt/bldr/cache/pkgs`. Returns the filename in the cache as a String
+/// to the `PACKAGE_CACHE`. Returns the filename in the cache as a String
 ///
 /// # Failures
 ///
-/// * Fails if it cannot create `/opt/bldr/cache/pkgs`
+/// * Fails if it cannot create the `PACKAGE_CACHE`
 /// * Fails if it cannot download the package from the upstream
 pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> Result<data_object::Package> {
     println!("Installing {}", ident.as_ref());

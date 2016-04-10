@@ -11,7 +11,7 @@ pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_gpg_key=3853DA6B
 pkg_expose=(80 443)
-pkg_service_run="bin/httpd -DFOREGROUND -f /opt/bldr/svc/httpd/config/httpd.conf"
+pkg_service_run="bin/httpd -DFOREGROUND -f $pkg_svc_config/httpd.conf"
 pkg_service_user="root"
 
 do_build() {

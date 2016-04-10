@@ -11,6 +11,7 @@ extern crate time;
 extern crate hyper;
 extern crate url;
 extern crate habitat_sup as sup;
+extern crate habitat_common as common;
 extern crate habitat_core as hcore;
 extern crate uuid;
 extern crate rustc_serialize;
@@ -22,7 +23,11 @@ mod setup {
     use tempdir::TempDir;
     use std::process::Command;
     use std::collections::HashMap;
+    use std::str::FromStr;
 
+    use hcore::package::PackageIdent;
+    use hcore::url;
+    use common;
     use util;
 
     pub fn gpg_import() {
@@ -69,6 +74,13 @@ mod setup {
         });
     }
 
+    pub fn install_rngd() {
+        static ONCE: Once = ONCE_INIT;
+        ONCE.call_once(|| {
+            let rpi = PackageIdent::from_str("chef/rngd").unwrap();
+            common::command::package::install::from_url(&url::DEFAULT_DEPOT_URL, &rpi).unwrap();
+        });
+    }
 
     pub fn simple_service() {
         static ONCE: Once = ONCE_INIT;

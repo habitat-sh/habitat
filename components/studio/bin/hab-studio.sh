@@ -624,7 +624,7 @@ chroot_env() {
   if [ -n "$extra_env" ]; then
     env="$env $extra_env"
   fi
-  # If a Bldr repository URL is set, then propagate it into the Studio's
+  # If a Habitat Depot URL is set, then propagate it into the Studio's
   # environment.
   if [ -n "${BLDR_REPO:-}" ]; then
     env="$env BLDR_REPO=$BLDR_REPO"
@@ -694,8 +694,8 @@ unset PATH
 
 # ## Default variables
 
-# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to `/opt/bldr`.
+# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
+# otherwise it defaults to the default path.
 : ${BLDR_ROOT:=/opt/bldr}
 # Location containing installed packages
 BLDR_PKG_ROOT=$BLDR_ROOT/pkgs

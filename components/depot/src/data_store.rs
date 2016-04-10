@@ -985,7 +985,7 @@ impl<T: Database> DatabaseBuilder<T> {
 }
 
 /// Common behaviour for databases
-pub trait Database : Sized {
+pub trait Database: Sized {
     type Object: DataObject + Any;
 
     /// Open the database
@@ -1031,7 +1031,7 @@ pub trait Database : Sized {
 }
 
 /// Common behaviour for transactions
-pub trait Transaction<'a, D: 'a + Database> : Sized {
+pub trait Transaction<'a, D: 'a + Database>: Sized {
     /// Begin a transaction
     fn begin(database: &'a D) -> Result<Self>;
 
@@ -1633,6 +1633,7 @@ mod tests {
     use error::Error;
     use depot_core::data_object::*;
     use hcore::package;
+    use hcore::fs;
 
     // JW TODO: This test is ignored while I track down a bug preventing multiple transactions
     // being opened from different threads.
@@ -1711,7 +1712,7 @@ mod tests {
     }
 
     fn open_datastore() -> DataStore {
-        let ds = DataStore::open(Path::new("/opt/bldr/test")).unwrap();
+        let ds = DataStore::open(Path::new(fs::ROOT).join("test").as_path()).unwrap();
         ds.clear().unwrap();
         ds
     }

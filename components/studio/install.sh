@@ -14,7 +14,7 @@ bpm_tar_sha="${BPM_TAR_SHASUM:-eb180e47b749f22de073cc19319ee1a44bcbe4dc1f4e29f84
 # Download location of the slim package
 bpm_tar_file="${TMPDIR:-/tmp}/$(basename $bpm_tar_url)"
 # The destination path for the extracted slim package
-dir="/opt/bldr/support/$(echo $(basename $bpm_tar_file)| sed 's,\.tar\.xz$,,')"
+dir="${BLDR_ROOT:-/opt/bldr}/support/$(echo $(basename $bpm_tar_file)| sed 's,\.tar\.xz$,,')"
 
 # Add a trap to clean up any interrupted file downloads
 trap 'rm -f $bpm_tar_file; exit $?' INT TERM EXIT
@@ -42,7 +42,7 @@ ln -snf $dir/bin/hab-bpm /usr/bin/hab-bpm
 # Clear the file download and extraction clean trap
 trap - INT TERM EXIT
 
-# Install Bldr Studio and add a `studio` symlink to `/usr/bin/studio`
+# Install Habitat Studio and add a `studio` symlink to `/usr/bin/studio`
 if ! command -v hab-studio > /dev/null; then
   hab-bpm install chef/hab-studio
   hab-bpm binlink chef/hab-studio hab-studio
