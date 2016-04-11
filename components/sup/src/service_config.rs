@@ -13,6 +13,7 @@ use toml;
 use VERSION;
 use error::{Error, Result};
 use package::Package;
+use hcore::package::PackageInstall;
 use util;
 use std::io::prelude::*;
 use std::fs::File;
@@ -51,7 +52,7 @@ impl ServiceConfig {
     pub fn new(package: &Package, cl: &CensusList) -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         Ok(ServiceConfig {
-            pkg: Pkg::new(package),
+            pkg: Pkg::new(&package.pkg_install),
             hab: Hab::new(),
             sys: Sys::new(),
             cfg: cfg,
@@ -84,8 +85,8 @@ impl ServiceConfig {
     }
 
     /// Replace the `pkg` data.
-    pub fn pkg(&mut self, package: &Package) {
-        self.pkg = Pkg::new(package);
+    pub fn pkg(&mut self, pkg_install: &PackageInstall) {
+        self.pkg = Pkg::new(pkg_install);
         self.needs_write = true
     }
 
@@ -377,29 +378,57 @@ pub struct Pkg {
     pub exposes: Vec<String>,
     pub path: String,
     pub svc_path: String,
+    pub svc_config_path: String,
 }
 
 impl Pkg {
-    fn new(package: &Package) -> Pkg {
+    fn new(pkg_install: &PackageInstall) -> Pkg {
+        let ident = pkg_install.ident();
+        let pkg_deps = match pkg_install.deps() {
+            Ok(deps) => deps,
+            Err(_) => {
+                outputln!("Failed to load deps for {} - it will be missing from the configuration",
+                          &ident);
+                Vec::new()
+            }
+        };
         let mut deps = Vec::new();
-        for d in package.deps.iter() {
-            if let Ok(p) = Package::load(d, None) {
+        for d in pkg_deps.iter() {
+            if let Ok(p) = PackageInstall::load(d, None) {
                 deps.push(Pkg::new(&p));
             } else {
                 outputln!("Failed to load {} - it will be missing from the configuration",
-                          d)
+                          &d)
             }
         }
+        let exposes: Vec<String> = match pkg_install.exposes() {
+            Ok(exposes) => exposes,
+            Err(_) => {
+                outputln!("Failed to load exposes metadata for {} - \
+                          it will be missing from the configuration",
+                          &ident);
+                Vec::new()
+            }
+        };
+        let version = match ident.version.as_ref() {
+            Some(v) => v.clone(),
+            None => "".to_string(),
+        };
+        let release = match ident.release.as_ref() {
+            Some(r) => r.clone(),
+            None => "".to_string(),
+        };
         Pkg {
-            origin: package.origin.clone(),
-            name: package.name.clone(),
-            version: package.version.clone(),
-            release: package.release.clone(),
-            ident: package.ident().to_string(),
+            origin: ident.origin.clone(),
+            name: ident.name.clone(),
+            version: version,
+            release: release,
+            ident: ident.to_string(),
             deps: deps,
-            exposes: package.exposes(),
-            path: package.path().to_string_lossy().into_owned(),
-            svc_path: package.svc_path().to_string_lossy().into_owned(),
+            exposes: exposes,
+            path: pkg_install.installed_path().to_string_lossy().into_owned(),
+            svc_path: pkg_install.svc_path().to_string_lossy().into_owned(),
+            svc_config_path: pkg_install.svc_config_path().to_string_lossy().into_owned(),
         }
     }
 
@@ -481,7 +510,7 @@ mod test {
 
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(
-            PackageIdent::from_str("neurosis/soverign/2000/20160222201258").unwrap(),
+            PackageIdent::from_str("neurosis/sovereign/2000/20160222201258").unwrap(),
             PathBuf::from("/fakeo/here"),
             PathBuf::from("/fakeo"));
         Package {
