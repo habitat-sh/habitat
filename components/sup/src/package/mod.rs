@@ -149,7 +149,7 @@ impl Package {
     pub fn create_svc_path(&self) -> Result<()> {
         debug!("Creating svc paths");
         try!(std::fs::create_dir_all(fs::svc_config_path(&self.name)));
-        try!(std::fs::create_dir_all(self.svc_join_path("hooks")));
+        try!(std::fs::create_dir_all(fs::svc_hooks_path(&self.name)));
         try!(std::fs::create_dir_all(self.svc_join_path("toml")));
         try!(std::fs::create_dir_all(fs::svc_data_path(&self.name)));
         try!(std::fs::create_dir_all(self.svc_join_path("var")));
