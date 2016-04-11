@@ -19,7 +19,7 @@ pub const CACHE_SRC_PATH: &'static str = "/opt/bldr/cache/src";
 /// The root path containing all locally installed packages
 pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
 /// The root path containing all runtime service directories and files
-pub const SVC_PATH: &'static str = "/opt/bldr/svc";
+const SVC_PATH: &'static str = "/opt/bldr/svc";
 
 /// Returns the root path for a given service's configuration, files, and data.
 pub fn svc_path(service_name: &str) -> PathBuf {
