@@ -44,14 +44,7 @@ pub fn simple_service() {
         if !simple_service.status.unwrap().success() {
             panic!("Failed to build simple service");
         }
-        let mut docker = match super::command::studio_run("dockerize", &["test/simple_service"]) {
-            Ok(cmd) => cmd,
-            Err(e) => panic!("{:?}", e),
-        };
-        docker.wait_with_output();
-        if !docker.status.unwrap().success() {
-            panic!("Failed to dockerize simple service");
-        }
+        dockerize("test/simple_service");
     });
 }
 
@@ -65,4 +58,28 @@ pub fn key_install() {
     };
     cmd.wait_with_output();
     });
+}
+
+fn dockerize(ident_str: &str) {
+    let mut install = match super::command::studio_run("hab-bpm",
+                                                       &["install", "chef/hab-pkg-dockerize"]) {
+        Ok(cmd) => cmd,
+        Err(e) => panic!("{:?}", e),
+    };
+    install.wait_with_output();
+    if !install.status.unwrap().success() {
+        panic!("Failed to install 'chef/hab-pkg-dockerize'");
+    }
+    let mut docker = match super::command::studio_run("hab-bpm",
+                                                      &["exec",
+                                                        "chef/hab-pkg-dockerize",
+                                                        "hab-pkg-dockerize",
+                                                        ident_str]) {
+        Ok(cmd) => cmd,
+        Err(e) => panic!("{:?}", e),
+    };
+    docker.wait_with_output();
+    if !docker.status.unwrap().success() {
+        panic!("Failed to dockerize simple service");
+    }
 }
