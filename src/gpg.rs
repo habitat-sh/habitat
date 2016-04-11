@@ -15,10 +15,10 @@ use gpgme;
 use gpgme::ops;
 
 use error::{Error, Result};
-use fs::GPG_CACHE;
+use fs::CACHE_GPG_PATH;
 use util::perm;
 
-static BLDR_GPG_CACHE_ENV_VAR: &'static str = "BLDR_GPG_CACHE";
+static CACHE_GPG_PATH_ENV_VAR: &'static str = "HAB_CACHE_GPG_PATH";
 
 static DEFAULT_KEY_TYPE: &'static str = "RSA";
 const DEFAULT_KEY_LENGTH: u16 = 2048;
@@ -91,11 +91,11 @@ impl<'a> KeygenParams<'a> {
 }
 
 /// Use either the hardcoded bldr GPG path
-/// or use the value from BLDR_GPG_CACHE_ENV_VAR
+/// or use the value from CACHE_GPG_PATH_ENV_VAR
 fn gpg_cache_dir() -> String {
-    let gpgcache = match env::var(BLDR_GPG_CACHE_ENV_VAR) {
+    let gpgcache = match env::var(CACHE_GPG_PATH_ENV_VAR) {
         Ok(val) => String::from(val),
-        Err(_) => String::from(GPG_CACHE),
+        Err(_) => String::from(CACHE_GPG_PATH),
     };
     debug!("GPG cache = {}", gpgcache);
     gpgcache

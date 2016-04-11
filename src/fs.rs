@@ -11,11 +11,12 @@ pub const ROOT_PATH: &'static str = "/opt/bldr";
 pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &'static str = "/opt/bldr/cache/artifacts";
+/// The default path where gpg keys are stored
+pub const CACHE_GPG_PATH: &'static str = "/opt/bldr/cache/gpg";
 /// The default path where cryptographic keys are stored
 pub const CACHE_KEY_PATH: &'static str = "/opt/bldr/cache/keys";
 /// The default path where source artifacts are downloaded, extracted, & compiled
 pub const CACHE_SRC_PATH: &'static str = "/opt/bldr/cache/src";
-pub const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
 /// The root path containing all locally installed packages
 pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
 
