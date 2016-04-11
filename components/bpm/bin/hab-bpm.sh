@@ -604,7 +604,7 @@ latest_installed_package() {
 install_package() {
   local pkg_ident=$1
   local pkg_source="$BLDR_REPO/pkgs/$pkg_ident/download"
-  local pkg_filename="$BLDR_PKG_CACHE/$(echo $pkg_ident | $bb tr '/' '-').bldr"
+  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').bldr"
 
   if [ -n "$QUIET" ]; then
     local v=
@@ -624,7 +624,7 @@ install_package() {
   else
     info "Installing $pkg_ident"
 
-    $bb mkdir -p $v $BLDR_PKG_CACHE
+    $bb mkdir -p $v $HAB_CACHE_ARTIFACT_PATH
 
     # Add a trap to clean up any interrupted file downloads and failed
     # extractions. These signal traps will be cleared once extraction is
@@ -854,8 +854,9 @@ shift "$((OPTIND - 1))"
 : ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
 # Location containing installed packages
 BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
-# Location containing cached packages
-BLDR_PKG_CACHE=$HAB_ROOT_PATH/cache/pkgs
+# The default download root path for package artifacts, used on package
+# installation
+HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # Location containing cached gpg keys
 BLDR_GPG_CACHE=$HAB_ROOT_PATH/cache/gpg
 # The default bldr package repository from where to download dependencies

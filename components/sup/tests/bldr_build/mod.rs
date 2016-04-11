@@ -28,9 +28,10 @@ fn builds_a_service() {
     assert_regex!(simple_service.stdout(),
                   &format!(r"{}/test/bldr_build/0.0.1/\d{{14}}", fs::PACKAGE_HOME));
     assert_regex!(simple_service.stdout(),
-                  &format!(r"{}/test-bldr_build-0.0.1-\d{{14}}.bldr", fs::PACKAGE_CACHE));
+                  &format!(r"{}/test-bldr_build-0.0.1-\d{{14}}.bldr",
+                           fs::CACHE_ARTIFACT_PATH));
     let pkg_re = Regex::new(&format!(r"({}/test-bldr_build-0.0.1-\d{{14}}.bldr)",
-                                     fs::PACKAGE_CACHE))
+                                     fs::CACHE_ARTIFACT_PATH))
                      .unwrap();
     let caps = pkg_re.captures(simple_service.stdout()).unwrap();
     if let Some(pkg_path) = caps.at(1) {

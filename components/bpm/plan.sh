@@ -52,10 +52,10 @@ do_end() {
     rm -rfv $dir
     mkdir -pv $dir
     cp -rpv $pkg_prefix/* $dir/
-    tar cpf $BLDR_PKG_CACHE/${dir}.tar $dir
-    xz -z -9 -T 0 --verbose $BLDR_PKG_CACHE/${dir}.tar
+    tar cpf $HAB_CACHE_ARTIFACT_PATH/${dir}.tar $dir
+    xz -z -9 -T 0 --verbose $HAB_CACHE_ARTIFACT_PATH/${dir}.tar
   popd > /dev/null
-  build_line "Slim tarball: $BLDR_PKG_CACHE/${dir}.tar.xz"
+  build_line "Slim tarball: $HAB_CACHE_ARTIFACT_PATH/${dir}.tar.xz"
 }
 
 # Turn the remaining default phases into no-ops

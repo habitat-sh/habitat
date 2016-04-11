@@ -699,8 +699,9 @@ unset PATH
 : ${HAB_ROOT_PATH:=/opt/bldr}
 # Location containing installed packages
 BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
-# Where the resulting packages are
-BLDR_PKG_CACHE=$HAB_ROOT_PATH/cache/pkgs
+# The default download root path for package artifacts, used on package
+# installation
+HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 
 #
 bb="$libexec_path/busybox"

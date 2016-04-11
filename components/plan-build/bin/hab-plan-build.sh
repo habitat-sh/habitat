@@ -181,7 +181,8 @@
 # * `$pkg_svc_config`: Configuration; `$pkg_svc/config`
 # * `$pkg_svc_static`: Static data; `$pkg_svc/static`
 # * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
-# * `$BLDR_PKG_CACHE`: The path to all generated packages
+# * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
+#      artifacts, used on package installation
 # * `$CFLAGS`: C compiler options
 # * `$LDFLAGS`: C linker options
 # * `$PREFIX`: Where to install the software; same as $pkg_prefix
@@ -278,8 +279,9 @@ BLDR_VERSION=0.0.1
 : ${HAB_ROOT_PATH:=/opt/bldr}
 # The default path where source artifacts are downloaded, extracted, & compiled
 HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
-# Where the resulting packages are
-BLDR_PKG_CACHE=$HAB_ROOT_PATH/cache/pkgs
+# The default download root path for package artifacts, used on package
+# installation
+HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # Location containing installed packages
 BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
@@ -1866,11 +1868,11 @@ EOT
 # `$pkg_gpg_key`.
 _generate_package() {
   build_line "Generating package"
-  mkdir -p $BLDR_PKG_CACHE
+  mkdir -p $HAB_CACHE_ARTIFACT_PATH
   $_tar_cmd -cf - "$pkg_prefix" | $_gpg_cmd \
     --set-filename x.tar \
     --local-user $pkg_gpg_key \
-    --output $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
+    --output $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
     --sign
   return 0
 }
@@ -2046,9 +2048,9 @@ build_line "$_program cleanup"
 do_end
 
 # Print the results
-build_line "Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
-build_line "Installed: $pkg_prefix"
-build_line "Package: $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
+build_line "Installed Path: $pkg_prefix"
+build_line "Artifact: $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
 build_line

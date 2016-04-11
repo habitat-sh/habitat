@@ -54,7 +54,7 @@ use std::env;
 use ansi_term::Colour::Yellow;
 use common::command::package::install;
 use depot_client;
-use hcore::fs::PACKAGE_CACHE;
+use hcore::fs::CACHE_ARTIFACT_PATH;
 
 use error::{Error, Result};
 use config::{Config, UpdateStrategy};
@@ -94,7 +94,7 @@ pub fn package(config: &Config) -> Result<()> {
                             outputln!("Downloading latest version from remote: {}", latest_ident);
                             let archive = try!(depot_client::fetch_package(&url,
                                                                            latest_ident,
-                                                                           PACKAGE_CACHE));
+                                                                           CACHE_ARTIFACT_PATH));
                             try!(archive.verify());
                             try!(archive.unpack());
                         } else {
