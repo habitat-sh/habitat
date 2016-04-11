@@ -25,6 +25,12 @@ pub fn svc_path(service_name: &str) -> PathBuf {
     PathBuf::from(SVC_PATH).join(service_name)
 }
 
+/// Returns the path to a given service's configuration
 pub fn svc_config_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("config")
+}
+
+/// Returns the path to a given service's data
+pub fn svc_data_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("data")
 }
