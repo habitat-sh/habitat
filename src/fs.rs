@@ -7,7 +7,7 @@
 
 use std::path::PathBuf;
 
-pub const ROOT: &'static str = "/opt/bldr";
+pub const ROOT_PATH: &'static str = "/opt/bldr";
 pub const PACKAGE_HOME: &'static str = "/opt/bldr/pkgs";
 pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
 pub const SOURCE_CACHE: &'static str = "/opt/bldr/cache/src";
