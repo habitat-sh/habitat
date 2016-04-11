@@ -5,13 +5,14 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std;
 use std::collections::HashMap;
 use std::fmt;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
-use hcore::fs::SVC_PATH;
+use hcore::fs;
 use hcore::service::ServiceGroup;
 use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::hex::ToHex;
@@ -112,15 +113,9 @@ impl ConfigFile {
 
     pub fn on_disk_path(&self) -> PathBuf {
         if &self.file_name == "gossip.toml" {
-            PathBuf::from(format!("{}/{}/{}",
-                                  SVC_PATH,
-                                  self.service_group.service,
-                                  self.file_name))
+            fs::svc_path(&self.service_group.service).join(&self.file_name)
         } else {
-            PathBuf::from(format!("{}/{}/files/{}",
-                                  SVC_PATH,
-                                  self.service_group.service,
-                                  self.file_name))
+            fs::svc_files_path(&self.service_group.service).join(&self.file_name)
         }
     }
 
@@ -156,7 +151,7 @@ impl ConfigFile {
                 let mut new_file = try!(File::create(&new_filename));
                 try!(new_file.write_all(&self.body));
             }
-            try!(fs::rename(new_filename, self.on_disk_path()));
+            try!(std::fs::rename(new_filename, self.on_disk_path()));
             Ok(true)
         }
     }

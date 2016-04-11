@@ -34,3 +34,8 @@ pub fn svc_config_path(service_name: &str) -> PathBuf {
 pub fn svc_data_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("data")
 }
+
+/// Returns the path to a given service's gossiped config files
+pub fn svc_files_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("files")
+}
