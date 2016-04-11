@@ -14,7 +14,7 @@ pub fn generate_origin_key(origin_key: &str) -> Result<()> {
 }
 
 pub fn hash(infile: &str) -> Result<()> {
-    let h = try!(crypto::hash_file(infile));
+    let h = try!(crypto::hash_file(&infile));
     println!("{}", h);
     Ok(())
 }
@@ -44,6 +44,7 @@ pub fn sign(origin_key: &str, infile: &str, outfile: &str) -> Result<()> {
 
 pub fn verify(infile: &str) -> Result<()> {
     try!(crypto::artifact_verify(infile));
+    println!("Habitat artifact is valid");
     Ok(())
 }
 

@@ -24,7 +24,7 @@ use std::result;
 use std::str::FromStr;
 
 use ansi_term::Colour::Yellow;
-use clap::{App, AppSettings, Arg, ArgGroup, ArgMatches, SubCommand};
+use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use hcore::package::PackageIdent;
 use hcore::fs;
 
@@ -166,18 +166,6 @@ fn main() {
             .takes_value(true)
             .help("The service group; shared config and topology [default: default].")
     };
-    let arg_infile = || {
-        Arg::with_name("infile")
-            .long("infile")
-            .takes_value(true)
-            .help("Input filename")
-    };
-    let arg_outfile = || {
-        Arg::with_name("outfile")
-            .long("outfile")
-            .takes_value(true)
-            .help("Output filename")
-    };
     let arg_strategy = || {
         Arg::with_name("strategy")
             .long("strategy")
@@ -220,92 +208,6 @@ fn main() {
                                  .long("gossip-permanent")
                                  .help("If this service is a permanent gossip peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
-    let sub_generate_user_key = SubCommand::with_name("generate-user-key")
-                                    .about("Generate a Habitat user key")
-                                    .arg(Arg::with_name("user")
-                                             .required(true)
-                                             .long("user")
-                                             .takes_value(true)
-                                             .help("Name of user key"))
-                                    .arg(Arg::with_name("password")
-                                             .required(false)
-                                             .long("password")
-                                             .takes_value(true)
-                                             .help("User key password"))
-                                    .arg(Arg::with_name("email")
-                                             .required(true)
-                                             .long("email")
-                                             .takes_value(true)
-                                             .help("User key email address"))
-                                    .arg(Arg::with_name("expire-days")
-                                             .long("expire-days")
-                                             .takes_value(true)
-                                             .value_name("expire-days")
-                                             .help("Number of days before a key expires"));
-    let sub_generate_service_key = SubCommand::with_name("generate-service-key")
-                                       .about("Generate a Habitat service key")
-                                       .arg(Arg::with_name("service")
-                                                .required(true)
-                                                .takes_value(true)
-                                                .help("Name of service key"))
-                                       .arg(arg_group())
-                                       .arg(Arg::with_name("expire-days")
-                                                .long("expire-days")
-                                                .takes_value(true)
-                                                .value_name("expire-days")
-                                                .help("Number of days before a key expires"));
-    let sub_encrypt = SubCommand::with_name("encrypt")
-                          .about("Encrypt and sign a message with a service as the recipient")
-                          .arg(Arg::with_name("user")
-                                   .required(true)
-                                   .long("user")
-                                   .takes_value(true)
-                                   .help("Name of user key"))
-                          .arg(Arg::with_name("service")
-                                   .required(true)
-                                   .long("service")
-                                   .takes_value(true)
-                                   .help("Name of service key"))
-                          .arg(arg_infile().required(true))
-                          .arg(arg_outfile().required(true))
-                          .arg(Arg::with_name("password")
-                                   .required(false)
-                                   .long("password")
-                                   .takes_value(true)
-                                   .help("User key password"))
-                          .arg(arg_group());
-    let sub_decrypt = SubCommand::with_name("decrypt")
-                          .about("Decrypt and verify a message")
-                          .arg(arg_infile().required(true))
-                          .arg(arg_outfile().required(true));
-    let sub_import_key = SubCommand::with_name("import-key")
-                             .about("Import a public Habitat key")
-                             .arg(arg_infile())
-                             .arg(Arg::with_name("key")
-                                      .long("key")
-                                      .takes_value(true)
-                                      .help("Public key filename")
-                                      .requires("url"))
-                             .arg(arg_url())
-                             .group(ArgGroup::with_name("input-method")
-                                        .required(true)
-                                        .args(&["infile", "key"]));
-    let sub_export_key = SubCommand::with_name("export-key")
-                             .about("Export a public Habitat key")
-                             .arg(Arg::with_name("user")
-                                      .long("user")
-                                      .takes_value(true)
-                                      .help("Name of user key"))
-                             .arg(Arg::with_name("service")
-                                      .long("service")
-                                      .takes_value(true)
-                                      .help("Name of service key"))
-                             .group(ArgGroup::with_name("user-or-service-key")
-                                        .required(true)
-                                        .args(&["user", "service"]))
-                             .arg(arg_outfile().required(true))
-                             .arg(arg_group());
-    let sub_list_keys = SubCommand::with_name("list-keys").about("List user and service keys");
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
                          .arg(Arg::with_name("package")
@@ -326,13 +228,6 @@ fn main() {
                             .help("Turn ANSI color off :("))
                    .subcommand(sub_start)
                    .subcommand(sub_sh)
-                   .subcommand(sub_generate_user_key)
-                   .subcommand(sub_generate_service_key)
-                   .subcommand(sub_encrypt)
-                   .subcommand(sub_decrypt)
-                   .subcommand(sub_import_key)
-                   .subcommand(sub_export_key)
-                   .subcommand(sub_list_keys)
                    .subcommand(sub_config);
     let matches = args.get_matches();
 
@@ -349,13 +244,6 @@ fn main() {
     let result = match config.command() {
         Command::Shell => shell(&config),
         Command::Config => configure(&config),
-        Command::Decrypt => decrypt(&config),
-        Command::Encrypt => encrypt(&config),
-        Command::ExportKey => export_key(&config),
-        Command::GenerateServiceKey => generate_service_key(&config),
-        Command::GenerateUserKey => generate_user_key(&config),
-        Command::ImportKey => import_key(&config),
-        Command::ListKeys => list_keys(&config),
         Command::Start => start(&config),
     };
 
@@ -404,62 +292,3 @@ fn start(config: &Config) -> Result<()> {
     Ok(())
 }
 
-/// Import a key
-fn import_key(config: &Config) -> Result<()> {
-    outputln!("Importing key {}", Yellow.bold().paint(config.key()));
-    try!(key::import(&config));
-    outputln!("Finished importing key");
-    Ok(())
-}
-
-/// Export a key
-fn export_key(config: &Config) -> Result<()> {
-    outputln!("Exporting key {}", Yellow.bold().paint(config.key()));
-    try!(key::export(&config));
-    outputln!("Finished exporting key");
-    Ok(())
-}
-
-/// Generate a key for a user
-fn generate_user_key(config: &Config) -> Result<()> {
-    outputln!("Generate user key for {}",
-              Yellow.bold().paint(config.key()));
-    try!(key::generate_user_key(&config));
-    outputln!("Finished generating user key for {}",
-              Yellow.bold().paint(config.key()));
-    Ok(())
-}
-
-/// Generate a key for a service
-fn generate_service_key(config: &Config) -> Result<()> {
-    outputln!("Generate service key for {}",
-              Yellow.bold().paint(config.key()));
-    try!(key::generate_service_key(&config));
-    outputln!("Finished generating service key for {}",
-              Yellow.bold().paint(config.key()));
-    Ok(())
-}
-
-/// List managed gpg keys
-fn list_keys(config: &Config) -> Result<()> {
-    outputln!("Listing keys");
-    try!(key::list(&config));
-    outputln!("Finished listing keys");
-    Ok(())
-}
-
-/// Encrypt a file
-fn encrypt(config: &Config) -> Result<()> {
-    outputln!("Encrypting");
-    try!(key::encrypt_and_sign(&config));
-    outputln!("Finished encrypting");
-    Ok(())
-}
-
-/// Decrypt a file
-fn decrypt(config: &Config) -> Result<()> {
-    outputln!("Decrypting");
-    try!(key::decrypt_and_verify(&config));
-    outputln!("Finished decrypting");
-    Ok(())
-}

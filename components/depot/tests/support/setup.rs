@@ -6,30 +6,10 @@
 // open source license such as the Apache 2.0 License.
 
 use std::sync::{Once, ONCE_INIT};
+use std::env;
 
-pub fn gpg_import() {
-    static ONCE: Once = ONCE_INIT;
-    ONCE.call_once(|| {
-        let mut gpg = match super::command::studio_run("gpg",
-                                               &["--import",
-                                               &super::path::fixture_as_string("chef-private.gpg")]) {
-                                                   Ok(cmd) => cmd,
-                                                   Err(e) => panic!("{:?}", e),
-    };
-        gpg.wait_with_output();
-        if !gpg.status.unwrap().success() {
-            match gpg.stderr {
-                Some(stderr) => {
-                    use regex::Regex;
-                    let re = Regex::new("already in secret keyring").unwrap();
-                    if !re.is_match(&stderr) {
-                        panic!("Failed to import gpg keys");
-                    }
-                }
-                None => panic!("Failed to import gpg keys")
-            }
-        }
-    });
+pub fn origin_setup() {
+    env::set_var("HABITAT_KEY_CACHE", super::path::key_cache());
 }
 
 pub fn simple_service() {

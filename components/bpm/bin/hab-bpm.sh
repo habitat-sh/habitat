@@ -635,9 +635,13 @@ install_package() {
     $wget $pkg_source -O $pkg_filename $wui
 
     info "Unpacking $($bb basename $pkg_filename)"
-    local gpg_cmd="$gpg --homedir $HAB_CACHE_GPG_PATH --decrypt $pkg_filename"
-    if [ -n "$VERBOSE" ]; then $gpg_cmd; else $gpg_cmd 2>/dev/null; fi \
-      | $bb tar x -C $FS_ROOT/
+
+    /src/components/hab/target/debug/hab verify $pkg_filename
+    if [ $? -ne 0 ]; then
+      exit_with "Error verifying artifact" 99
+    fi
+
+    tail -n +4 $pkg_filename | $bb tar Xj -C $FS_ROOT/
 
     # Clear the file download and extraction clean trap
     trap - INT TERM EXIT
@@ -798,8 +802,6 @@ unset PATH
 bb="$libexec_path/busybox"
 # Absolute path to the `coreutils` command
 cu="$libexec_path/coreutils"
-# Absolute path to the `gpg` command
-gpg="$libexec_path/gpg"
 # Absolute path to the `jq` command
 jq="$libexec_path/jq"
 # Absolute path to the `wget` command
@@ -857,8 +859,8 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
-# The default path where gpg keys are stored
-HAB_CACHE_GPG_PATH=$HAB_ROOT_PATH/cache/gpg
+# The default path where libsodium keys are stored
+HAB_CACHE_KEY_PATH=$HAB_ROOT_PATH/cache/keys
 # The default bldr package repository from where to download dependencies
 : ${BLDR_REPO:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty

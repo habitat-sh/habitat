@@ -20,6 +20,12 @@ pub fn fixtures() -> PathBuf {
     root().join("fixtures")
 }
 
+pub fn key_cache() -> PathBuf {
+    // same as the fixtures dir, for now
+    root().join("fixtures")
+}
+
+
 pub fn fixture(name: &str) -> PathBuf {
     fixtures().join(name)
 }

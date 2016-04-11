@@ -11,7 +11,7 @@ use util::supervisor::Supervisor;
 // Start two supervisors, and make sure they see each other
 #[test]
 fn two_supervisors_link() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new();
@@ -24,7 +24,7 @@ fn two_supervisors_link() {
 // Start two supervisors, stop one, make sure they see the failure
 #[test]
 fn two_supervisors_detect_failure() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new();
@@ -46,7 +46,7 @@ fn two_supervisors_detect_failure() {
 // see the other two members, even though they were not provided initially.
 #[test]
 fn members_are_gossiped() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new();
@@ -65,7 +65,7 @@ fn members_are_gossiped() {
 // as anything but alive, confirming they are routing their gossip through b.
 #[test]
 fn routes_around_failure() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new();
@@ -89,7 +89,7 @@ fn routes_around_failure() {
 // its incarnation and shares its Alive rumor. A and C then see B as alive again.
 #[test]
 fn incarnation_updates_on_suspicion() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new();
@@ -125,7 +125,7 @@ fn incarnation_updates_on_suspicion() {
 // their incarnation and are then marked alive.
 #[test]
 fn ressurection_of_permanent_members() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new_with_permanent();
@@ -159,7 +159,7 @@ fn ressurection_of_permanent_members() {
 // that never lands - and you wind up isolated.
 #[test]
 fn isolated_members_find_a_way_to_rejoin() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new();

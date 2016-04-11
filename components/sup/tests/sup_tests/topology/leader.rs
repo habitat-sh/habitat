@@ -12,7 +12,7 @@ use util::supervisor::Supervisor;
 // quorum reached.
 #[test]
 fn minimum_quorum() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new_with_topology("leader");
@@ -36,7 +36,7 @@ fn minimum_quorum() {
 // Start three supervisors. See that they elect one, and only one, leader.
 #[test]
 fn elects_a_leader() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new_with_topology("leader");
@@ -67,7 +67,7 @@ fn elects_a_leader() {
 #[test]
 #[ignore]
 fn elects_on_failure() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let mut sup_a = Supervisor::new_with_topology("leader");
@@ -123,7 +123,7 @@ fn elects_on_failure() {
 #[test]
 #[ignore]
 fn leader_without_quorum_stops_service_remainder_elects_new_leader() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service_gossip();
 
     let sup_a = Supervisor::new_with_permanent_topology("leader");

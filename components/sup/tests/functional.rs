@@ -18,68 +18,22 @@ extern crate rustc_serialize;
 
 pub mod util;
 
+
 mod setup {
     use std::sync::{Once, ONCE_INIT};
-    use tempdir::TempDir;
     use std::process::Command;
     use std::collections::HashMap;
     use std::str::FromStr;
+    use std::env;
+    use tempdir::TempDir;
 
     use hcore::package::PackageIdent;
     use hcore::url;
     use common;
     use util;
 
-    pub fn gpg_import() {
-        static ONCE: Once = ONCE_INIT;
-        ONCE.call_once(|| {
-            let mut gpg = match util::command::studio_run("gpg",
-                                                   &["--import",
-                                                   &util::path::fixture_as_string("chef-private.gpg")]) {
-                                                       Ok(cmd) => cmd,
-                                                       Err(e) => panic!("{:?}", e),
-        };
-            gpg.wait_with_output();
-            if !gpg.status.unwrap().success() {
-                match gpg.stderr {
-                    Some(stderr) => {
-                        use regex::Regex;
-                        let re = Regex::new("already in secret keyring").unwrap();
-                        if !re.is_match(&stderr) {
-                            panic!("Failed to import gpg keys");
-                        }
-                    }
-                    None => panic!("Failed to import gpg keys")
-                }
-            }
-        });
-    }
-
-    pub fn gpg_import_with_gpg_cache(cache_dir: &str) {
-        static ONCE: Once = ONCE_INIT;
-
-        let mut env: HashMap<&str, &str> = HashMap::new();
-        env.insert("HAB_CACHE_GPG_PATH", cache_dir);
-
-        ONCE.call_once(|| {
-            let mut gpg =
-                match util::command::run_with_env("gpg",
-                                                  &["--import",
-                                                  &util::path::fixture_as_string("chef-private.gpg")],
-                                                                                 &env) {
-                    Ok(cmd) => cmd,
-                    Err(e) => panic!("{:?}", e),
-                };
-            gpg.wait_with_output();
-        });
-    }
-
-    pub fn install_rngd() {
-        static ONCE: Once = ONCE_INIT;
-        ONCE.call_once(|| {
-            let rpi = PackageIdent::from_str("chef/rngd").unwrap();
-            common::command::package::install::from_url(&url::DEFAULT_DEPOT_URL, &rpi).unwrap();
-        });
+    pub fn origin_setup() {
+        env::set_var("HABITAT_KEY_CACHE", util::path::key_cache());
     }
 
     pub fn simple_service() {
@@ -142,17 +96,6 @@ mod setup {
         });
     }
 
-    pub fn key_install() {
-        static ONCE: Once = ONCE_INIT;
-        ONCE.call_once(|| {
-            let mut cmd = match util::command::sup(&["key",
-                                                    &util::path::fixture_as_string("chef-public.asc")]) {
-                                                        Ok(cmd) => cmd,
-                                                        Err(e) => panic!("{:?}", e),
-        };
-        cmd.wait_with_output();
-        });
-    }
 }
 
 
@@ -253,179 +196,6 @@ macro_rules! assert_file_exists_in_studio {
         }
     }
 }
-
-mod key_utils {
-    use util::command;
-    use uuid::Uuid;
-
-    pub fn export_service_key(key: &str, outfile: &str, cache: &str, group: Option<&str>) {
-        let mut export = match group {
-            Some(g) => {
-                command::sup_with_test_gpg_cache(&["export-key",
-                                                   "--service",
-                                                   &key,
-                                                   "--outfile",
-                                                   &outfile,
-                                                   "--group",
-                                                   &g],
-                                                 &cache)
-                    .unwrap()
-            }
-            None => {
-                command::sup_with_test_gpg_cache(&["export-key",
-                                                   "--service",
-                                                   &key,
-                                                   "--outfile",
-                                                   &outfile],
-                                                 &cache)
-                    .unwrap()
-            }
-
-        };
-        export.wait_with_output();
-        assert_cmd_exit_code!(export, [0]);
-        println!("{}", export.stdout());
-    }
-
-    pub fn export_user_key(key: &str, outfile: &str, cache: &str) {
-        let mut export = command::sup_with_test_gpg_cache(&["export-key",
-                                                            "--user",
-                                                            &key,
-                                                            "--outfile",
-                                                            &outfile],
-                                                          &cache)
-                             .unwrap();
-        export.wait_with_output();
-        assert_cmd_exit_code!(export, [0]);
-        println!("{}", export.stdout());
-    }
-
-    pub fn import(exported_user_key: &str, cache: &str) {
-        let mut import = command::sup_with_test_gpg_cache(&["import-key",
-                                                            "--infile",
-                                                            &exported_user_key],
-                                                          &cache)
-                             .unwrap();
-        import.wait_with_output();
-        assert_cmd_exit_code!(import, [0]);
-        println!("{}", import.stdout());
-    }
-
-
-    pub fn encrypt(user: &str,
-                   service: &str,
-                   file_to_encrypt: &str,
-                   encrypted_file: &str,
-                   cache: &str,
-                   group: Option<&str>) {
-        let mut encrypt = match group {
-            Some(g) => {
-                command::sup_with_test_gpg_cache(&["encrypt",
-                                                   "--user",
-                                                   &user,
-                                                   "--service",
-                                                   &service,
-                                                   "--infile",
-                                                   &file_to_encrypt,
-                                                   "--outfile",
-                                                   &encrypted_file,
-                                                   "--password",
-                                                   "password",
-                                                   "--group",
-                                                   g],
-                                                 &cache)
-                    .unwrap()
-            }
-            None => {
-                command::sup_with_test_gpg_cache(&["encrypt",
-                                                   "--user",
-                                                   &user,
-                                                   "--service",
-                                                   &service,
-                                                   "--infile",
-                                                   &file_to_encrypt,
-                                                   "--outfile",
-                                                   &encrypted_file,
-                                                   "--password",
-                                                   "password"],
-                                                 &cache)
-                    .unwrap()
-            }
-
-        };
-        encrypt.wait_with_output();
-        println!("{}", encrypt.stdout());
-        assert_cmd_exit_code!(encrypt, [0]);
-        assert_regex!(encrypt.stdout(), r".*Finished encrypting.*");
-    }
-
-
-    pub fn decrypt(encrypted_file: &str, decrypted_file: &str, cache: &str, expected_status: i32) {
-        // try to decrypt a file that's not meant for me
-        let mut decrypt = command::sup_with_test_gpg_cache(&["decrypt",
-                                                             "--infile",
-                                                             &encrypted_file,
-                                                             "--outfile",
-                                                             &decrypted_file],
-                                                           &cache)
-                              .unwrap();
-        decrypt.wait_with_output();
-        println!("{}", decrypt.stdout());
-        assert_cmd_exit_code!(decrypt, [expected_status]);
-    }
-
-    pub fn list_keys(cache: &str, output_search: &str) {
-        let mut list_keys = command::sup_with_test_gpg_cache(&["list-keys"], &cache).unwrap();
-        list_keys.wait_with_output();
-        assert_regex!(list_keys.stdout(), output_search);
-        println!("{}", list_keys.stdout());
-    }
-
-    /// generate user and service keys w/ a given path
-    pub fn make_user_and_service(cache_dir: &str, group: Option<&str>) -> (String, String) {
-        let user_uuid = Uuid::new_v4().to_simple_string();
-        let service_uuid = Uuid::new_v4().to_simple_string();
-
-        // generate a test user
-        let mut generate_user = command::sup_with_test_gpg_cache(&["generate-user-key",
-                                                                   "--user",
-                                                                   &user_uuid,
-                                                                   "--password",
-                                                                   "password",
-                                                                   "--email",
-                                                                   "email@chucktesta",
-                                                                   "--expire-days=10"],
-                                                                 cache_dir)
-                                    .unwrap();
-        generate_user.wait_with_output();
-        println!("{}", generate_user.stdout());
-        assert_cmd_exit_code!(generate_user, [0]);
-        assert_regex!(generate_user.stdout(), r".*Fingerprint.*");
-
-        let mut generate_service = match group {
-            Some(g) => {
-                command::sup_with_test_gpg_cache(&["generate-service-key",
-                                                   &service_uuid,
-                                                   "--group",
-                                                   &g],
-                                                 cache_dir)
-                    .unwrap()
-            }
-            None => {
-                command::sup_with_test_gpg_cache(&["generate-service-key", &service_uuid],
-                                                 cache_dir)
-                    .unwrap()
-            }
-        };
-        generate_service.wait_with_output();
-        assert_cmd_exit_code!(generate_service, [0]);
-        assert_regex!(generate_service.stdout(), r".*Fingerprint.*");
-        (user_uuid, service_uuid)
-    }
-
-
-}
-
 
 // Include the actual test modules here!
 pub mod bldr_build;
