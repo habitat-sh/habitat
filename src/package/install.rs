@@ -200,6 +200,11 @@ impl PackageInstall {
         fs::svc_data_path(&self.ident.name)
     }
 
+    /// Returns the path to the service's gossiped config files
+    pub fn svc_files_path(&self) -> PathBuf {
+        fs::svc_files_path(&self.ident.name)
+    }
+
     /// Read the contents of a given metafile.
     ///
     /// # Failures
