@@ -84,7 +84,7 @@ package_name_for() {
 
 package_exposes() {
   local pkg="$1"
-  local expose_file=$(find $DOCKER_CONTEXT/rootfs/$BLDR_ROOT/pkgs/$pkg -name EXPOSES)
+  local expose_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name EXPOSES)
   if [ -f "$expose_file" ]; then
     cat $expose_file
   fi
@@ -92,13 +92,13 @@ package_exposes() {
 
 package_version_tag() {
   local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$BLDR_ROOT/pkgs/$pkg -name IDENT)
+  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
   cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":" $3 "-" $4 }'
 }
 
 package_latest_tag() {
   local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$BLDR_ROOT/pkgs/$pkg -name IDENT)
+  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
   cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":latest" }'
 }
 
@@ -113,7 +113,7 @@ FROM scratch
 ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH)
 WORKDIR /
 ADD rootfs /
-VOLUME $BLDR_ROOT/svc/${pkg_name}/data $BLDR_ROOT/svc/${pkg_name}/config
+VOLUME $HAB_ROOT_PATH/svc/${pkg_name}/data $HAB_ROOT_PATH/svc/${pkg_name}/config
 EXPOSE 9631 $(package_exposes $1)
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
@@ -122,9 +122,13 @@ EOT
   docker tag $version_tag $latest_tag
 }
 
-# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to the default path.
-: ${BLDR_ROOT:=/opt/bldr}
+# The root of the filesystem. If the program is running on a seperate
+# filesystem or chroot environment, this environment variable may need to be
+# set.
+: ${FS_ROOT:=}
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
 
 # The current version of Habitat Studio
 version='@version@'

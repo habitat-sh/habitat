@@ -175,7 +175,7 @@
 #
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
-# * `$pkg_svc`: Where the running service is; `$BLDR_ROOT/svc/$pkg_name`
+# * `$pkg_svc`: Where the running service is; `$HAB_ROOT_PATH/svc/$pkg_name`
 # * `$pkg_svc_data`: Service data; `$pkg_svc/data`
 # * `$pkg_svc_var`: Variable state; `$pkg_svc/var`
 # * `$pkg_svc_config`: Configuration; `$pkg_svc/config`
@@ -273,15 +273,15 @@ fi
 _program=$(basename $0)
 # The current version of this program
 BLDR_VERSION=0.0.1
-# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to the default path.
-: ${BLDR_ROOT:=/opt/bldr}
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=/opt/bldr}
 # Where the source cache is
-BLDR_SRC_CACHE=$BLDR_ROOT/cache/src
+BLDR_SRC_CACHE=$HAB_ROOT_PATH/cache/src
 # Where the resulting packages are
-BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
+BLDR_PKG_CACHE=$HAB_ROOT_PATH/cache/pkgs
 # Location containing installed packages
-BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
+BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
@@ -1783,7 +1783,7 @@ do_default_build_service() {
       if [[ -n "$pkg_service_user" && "${pkg_service_user}" != "root" ]]; then
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
-cd $BLDR_ROOT/svc/$pkg_name
+cd $HAB_ROOT_PATH/svc/$pkg_name
 
 if [ "\$(whoami)" = "root" ]; then
   exec chpst \\
@@ -1797,7 +1797,7 @@ EOT
       else
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
-cd $BLDR_ROOT/svc/$pkg_name
+cd $HAB_ROOT_PATH/svc/$pkg_name
 
 exec $pkg_prefix/$pkg_service_run 2>&1
 EOT
@@ -1965,11 +1965,11 @@ if [[ -z "${pkg_prefix+xxx}" ]]; then
 fi
 
 # Set $pkg_svc variables.
-pkg_svc="$BLDR_ROOT/svc/$pkg_name"
-pkg_svc_data="$BLDR_ROOT/svc/$pkg_name/data"
-pkg_svc_var="$BLDR_ROOT/svc/$pkg_name/var"
-pkg_svc_config="$BLDR_ROOT/svc/$pkg_name/config"
-pkg_svc_static="$BLDR_ROOT/svc/$pkg_name/static"
+pkg_svc="$HAB_ROOT_PATH/svc/$pkg_name"
+pkg_svc_data="$HAB_ROOT_PATH/svc/$pkg_name/data"
+pkg_svc_var="$HAB_ROOT_PATH/svc/$pkg_name/var"
+pkg_svc_config="$HAB_ROOT_PATH/svc/$pkg_name/config"
+pkg_svc_static="$HAB_ROOT_PATH/svc/$pkg_name/static"
 
 # Run `do_begin`
 build_line "$_program setup"

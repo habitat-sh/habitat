@@ -849,15 +849,15 @@ shift "$((OPTIND - 1))"
 # filesystem or chroot environment, this environment variable may need to be
 # set.
 : ${FS_ROOT:=}
-# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to the default path.
-: ${BLDR_ROOT:=$FS_ROOT/opt/bldr}
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
 # Location containing installed packages
-BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
+BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
 # Location containing cached packages
-BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
+BLDR_PKG_CACHE=$HAB_ROOT_PATH/cache/pkgs
 # Location containing cached gpg keys
-BLDR_GPG_CACHE=$BLDR_ROOT/cache/gpg
+BLDR_GPG_CACHE=$HAB_ROOT_PATH/cache/gpg
 # The default bldr package repository from where to download dependencies
 : ${BLDR_REPO:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty

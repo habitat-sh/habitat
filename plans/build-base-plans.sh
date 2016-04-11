@@ -49,11 +49,11 @@ fi
 # The build command to execute. Defaults to `build`, but could be overridden if
 # a full path to `hab-plan-build` is required.
 : ${BUILD:=build}
-# The root of the Habitat tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to the default path.
-: ${BLDR_ROOT:=/opt/bldr}
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=/opt/bldr}
 # Location containing installed packages.
-BLDR_PKG_ROOT="$BLDR_ROOT/pkgs"
+BLDR_PKG_ROOT="$HAB_ROOT_PATH/pkgs"
 # The default package origin which was used to in the base Plans
 origin=chef
 

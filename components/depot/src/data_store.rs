@@ -1712,7 +1712,7 @@ mod tests {
     }
 
     fn open_datastore() -> DataStore {
-        let ds = DataStore::open(Path::new(fs::ROOT).join("test").as_path()).unwrap();
+        let ds = DataStore::open(Path::new(fs::ROOT_PATH).join("test").as_path()).unwrap();
         ds.clear().unwrap();
         ds
     }

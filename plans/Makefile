@@ -1,9 +1,11 @@
 .PHONY: base gpg help new-plan
 .DEFAULT_GOAL := base
 
-BLDR_ROOT ?= /opt/bldr
-BLDR_KEY_CACHE := $(BLDR_ROOT)/cache/keys
-BLDR_GPG_CACHE := $(BLDR_ROOT)/cache/gpg
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+HAB_ROOT_PATH ?= /opt/bldr
+BLDR_KEY_CACHE := $(HAB_ROOT_PATH)/cache/keys
+BLDR_GPG_CACHE := $(HAB_ROOT_PATH)/cache/gpg
 
 base: gpg ## builds all base packages in serial order
 	sh ./build-base-plans.sh
