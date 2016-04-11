@@ -4,13 +4,13 @@
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 HAB_ROOT_PATH ?= /opt/bldr
-BLDR_KEY_CACHE := $(HAB_ROOT_PATH)/cache/keys
+HAB_CACHE_KEY_PATH := $(HAB_ROOT_PATH)/cache/keys
 BLDR_GPG_CACHE := $(HAB_ROOT_PATH)/cache/gpg
 
 base: gpg ## builds all base packages in serial order
 	sh ./build-base-plans.sh
-	mkdir -pv $(BLDR_KEY_CACHE)
-	cp ./chef-public.gpg $(BLDR_KEY_CACHE)/chef-public.asc
+	mkdir -pv $(HAB_CACHE_KEY_PATH)
+	cp ./chef-public.gpg $(HAB_CACHE_KEY_PATH)/chef-public.asc
 
 gpg: ## imports (temporary) package signing keys
 	mkdir -pv $(BLDR_GPG_CACHE)

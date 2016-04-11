@@ -11,7 +11,7 @@ use std::process::{Command, Stdio, Child};
 
 use ansi_term::Colour::{Yellow, Red};
 use hcore::package::PackageIdent;
-use hcore::fs::KEY_CACHE;
+use hcore::fs::CACHE_KEY_PATH;
 use hcore::gpg;
 use depot_client;
 use time::strptime;
@@ -32,7 +32,7 @@ static BLDR_EMAIL_SUFFIX: &'static str = "@bldr";
 /// Uploads a gpg key to a [depot](../depot).
 ///
 /// If the key starts with a `/`, we treat it as a path to a specific file; otherwise, it's a key
-/// to grab from the cache in `KEY_CACHE`. Either way, we read the file and upload it to
+/// to grab from the cache in `CACHE_KEY_PATH`. Either way, we read the file and upload it to
 /// the depot.
 ///
 /// # Failures
@@ -64,7 +64,7 @@ pub fn upload(config: &Config) -> Result<()> {
         }
         Err(_) => {
             if path.components().count() == 1 {
-                let file = format!("{}/{}.asc", KEY_CACHE, config.key());
+                let file = format!("{}/{}.asc", CACHE_KEY_PATH, config.key());
                 let cached = Path::new(&file);
                 match fs::metadata(&cached) {
                     Ok(_) => {
@@ -87,11 +87,11 @@ pub fn upload(config: &Config) -> Result<()> {
 /// Imports a gpg key from a [depot](../depot) or a local file.
 /// If `config.infile() is not empty, we try to load from a file.
 /// Otherwise, we load the key `config.key()` from `config.url()`,
-/// drop it in `KEY_CACHE`, and then import it into GPG.
+/// drop it in `CACHE_KEY_PATH`, and then import it into GPG.
 ///
 /// # Failures
 ///
-/// * If the directory `KEY_CACHE` cannot be created
+/// * If the directory `CACHE_KEY_PATH` cannot be created
 /// * If the we fail to download the key from the depot
 /// * If the GPG import process fails
 ///
@@ -115,10 +115,10 @@ pub fn import(config: &Config) -> Result<()> {
             try!(gpg::import(infile));
         }
         None => {
-            try!(fs::create_dir_all(KEY_CACHE));
+            try!(fs::create_dir_all(CACHE_KEY_PATH));
             // docopt requires -u to be set, so we should be safe to unwrap here
             let url = config.url().as_ref().unwrap();
-            let filename = try!(depot_client::fetch_key(&url, &config.key(), KEY_CACHE));
+            let filename = try!(depot_client::fetch_key(&url, &config.key(), CACHE_KEY_PATH));
             try!(gpg::import(&filename));
         }
     }

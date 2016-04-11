@@ -34,7 +34,7 @@ fn generate_key_revisions_test() {
     fs::create_dir_all(&key_dir).unwrap();
 
     // override the location where Habitat wants to store keys
-    env::set_var("HABITAT_KEY_CACHE", &key_dir);
+    env::set_var("HAB_CACHE_KEY_PATH", &key_dir);
 
     let test_key_name = "habitat123";
 
