@@ -180,7 +180,7 @@
 # * `$pkg_svc_files_path`: Gossiped config files; `$pkg_svc_path/files`
 # * `$pkg_svc_var`: Variable state; `$pkg_svc_path/var`
 # * `$pkg_svc_config_path`: Configuration; `$pkg_svc_path/config`
-# * `$pkg_svc_static`: Static data; `$pkg_svc_path/static`
+# * `$pkg_svc_static_path`: Static content; `$pkg_svc_path/static`
 # * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
 # * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
 #      artifacts, used on package installation
@@ -1973,7 +1973,7 @@ pkg_svc_data_path="$pkg_svc_path/data"
 pkg_svc_files_path="$pkg_svc_path/files"
 pkg_svc_var="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
-pkg_svc_static="$pkg_svc_path/static"
+pkg_svc_static_path="$pkg_svc_path/static"
 
 # Run `do_begin`
 build_line "$_program setup"

@@ -48,3 +48,8 @@ pub fn svc_files_path(service_name: &str) -> PathBuf {
 pub fn svc_hooks_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("hooks")
 }
+
+/// Returns the path to a given service's static content.
+pub fn svc_static_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("static")
+}

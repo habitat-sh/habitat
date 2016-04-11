@@ -210,6 +210,11 @@ impl PackageInstall {
         fs::svc_hooks_path(&self.ident.name)
     }
 
+    /// Returns the path to the service static content.
+    pub fn svc_static_path(&self) -> PathBuf {
+        fs::svc_static_path(&self.ident.name)
+    }
+
     /// Read the contents of a given metafile.
     ///
     /// # Failures
