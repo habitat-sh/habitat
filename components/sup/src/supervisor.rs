@@ -17,7 +17,7 @@ use std::io::prelude::*;
 use std::process::{Command, Stdio, Child};
 use std::thread;
 
-use hcore::fs::SERVICE_HOME;
+use hcore::fs::SVC_PATH;
 use hcore::package::PackageIdent;
 use libc::{pid_t, c_int};
 use time::{Duration, SteadyTime};
@@ -306,7 +306,7 @@ impl Supervisor {
     }
 
     pub fn service_dir(&self) -> String {
-        format!("{}/{}", SERVICE_HOME, self.package_ident.name)
+        format!("{}/{}", SVC_PATH, self.package_ident.name)
     }
 
     pub fn pid_file(&self) -> String {
