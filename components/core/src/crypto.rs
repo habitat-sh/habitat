@@ -103,7 +103,7 @@ use util::perm;
 /// It's possible to examine the contents of a `.hab` file from a Linux shell:
 ///
 /// ```text
-/// $ head -3 /opt/bldr/cache/pkgs/chef-glibc-2.22-20160310192356.bldr
+/// $ head -3 /path/to/chef-glibc-2.22-20160310192356.bldr
 /// habitat-20160405144945
 /// BLAKE2b
 /// w4yC7/QADdC+NfH/wgN5u4K94nMieb1TxTVzbSfpMwRQ4k+YwhLs1nDXSIbSC8jHdF/7/LqLWtgPvGDmoKIvBDI0aGpIcGdlNDJhMDBnQ3lsMVVFM0JvRlZGSHhXcnBuWWF0/// SllXTXo1ZDg9
