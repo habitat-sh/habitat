@@ -7,7 +7,7 @@ pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/openssl chef/gcc-libs core/zeromq)
 pkg_build_deps=(core/protobuf core/protobuf-rust chef/coreutils chef/cacerts chef/rust chef/gcc chef/pkg-config)
-pkg_service_run="bin/bldr-job-srv ${pkg_svc}/config/app.cfg.toml"
+pkg_service_run="bin/bldr-job-srv ${pkg_svc_path}/config/app.cfg.toml"
 pkg_gpg_key=3853DA6B
 
 do_build() {

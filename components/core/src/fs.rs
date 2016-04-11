@@ -8,7 +8,6 @@
 use std::path::PathBuf;
 
 pub const ROOT_PATH: &'static str = "/opt/bldr";
-pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &'static str = "/opt/bldr/cache/artifacts";
 /// The default path where gpg keys are stored
@@ -19,7 +18,9 @@ pub const CACHE_KEY_PATH: &'static str = "/opt/bldr/cache/keys";
 pub const CACHE_SRC_PATH: &'static str = "/opt/bldr/cache/src";
 /// The root path containing all locally installed packages
 pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
+/// The root path containing all runtime service directories and files
+pub const SVC_PATH: &'static str = "/opt/bldr/svc";
 
 pub fn service_path(service_name: &str) -> PathBuf {
-    PathBuf::from(SERVICE_HOME).join(service_name)
+    PathBuf::from(SVC_PATH).join(service_name)
 }

@@ -11,7 +11,7 @@ use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 
-use hcore::fs::SERVICE_HOME;
+use hcore::fs::SVC_PATH;
 use hcore::service::ServiceGroup;
 use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::hex::ToHex;
@@ -113,12 +113,12 @@ impl ConfigFile {
     pub fn on_disk_path(&self) -> PathBuf {
         if &self.file_name == "gossip.toml" {
             PathBuf::from(format!("{}/{}/{}",
-                                  SERVICE_HOME,
+                                  SVC_PATH,
                                   self.service_group.service,
                                   self.file_name))
         } else {
             PathBuf::from(format!("{}/{}/files/{}",
-                                  SERVICE_HOME,
+                                  SVC_PATH,
                                   self.service_group.service,
                                   self.file_name))
         }

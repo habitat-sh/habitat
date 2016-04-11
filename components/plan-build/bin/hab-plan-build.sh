@@ -175,11 +175,11 @@
 #
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
-# * `$pkg_svc`: Where the running service is; `$HAB_ROOT_PATH/svc/$pkg_name`
-# * `$pkg_svc_data`: Service data; `$pkg_svc/data`
-# * `$pkg_svc_var`: Variable state; `$pkg_svc/var`
-# * `$pkg_svc_config`: Configuration; `$pkg_svc/config`
-# * `$pkg_svc_static`: Static data; `$pkg_svc/static`
+# * `$pkg_svc_path`: Where the running service is; `$HAB_ROOT_PATH/svc/$pkg_name`
+# * `$pkg_svc_data`: Service data; `$pkg_svc_path/data`
+# * `$pkg_svc_var`: Variable state; `$pkg_svc_path/var`
+# * `$pkg_svc_config`: Configuration; `$pkg_svc_path/config`
+# * `$pkg_svc_static`: Static data; `$pkg_svc_path/static`
 # * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
 # * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
 #      artifacts, used on package installation
@@ -1785,7 +1785,7 @@ do_default_build_service() {
       if [[ -n "$pkg_service_user" && "${pkg_service_user}" != "root" ]]; then
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
-cd $HAB_ROOT_PATH/svc/$pkg_name
+cd $pkg_svc_path
 
 if [ "\$(whoami)" = "root" ]; then
   exec chpst \\
@@ -1799,7 +1799,7 @@ EOT
       else
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
-cd $HAB_ROOT_PATH/svc/$pkg_name
+cd $pkg_svc_path
 
 exec $pkg_prefix/$pkg_service_run 2>&1
 EOT
@@ -1967,11 +1967,11 @@ if [[ -z "${pkg_prefix+xxx}" ]]; then
 fi
 
 # Set $pkg_svc variables.
-pkg_svc="$HAB_ROOT_PATH/svc/$pkg_name"
-pkg_svc_data="$HAB_ROOT_PATH/svc/$pkg_name/data"
-pkg_svc_var="$HAB_ROOT_PATH/svc/$pkg_name/var"
-pkg_svc_config="$HAB_ROOT_PATH/svc/$pkg_name/config"
-pkg_svc_static="$HAB_ROOT_PATH/svc/$pkg_name/static"
+pkg_svc_path="$HAB_ROOT_PATH/svc/$pkg_name"
+pkg_svc_data="$pkg_svc_path/data"
+pkg_svc_var="$pkg_svc_path/var"
+pkg_svc_config="$pkg_svc_path/config"
+pkg_svc_static="$pkg_svc_path/static"
 
 # Run `do_begin`
 build_line "$_program setup"

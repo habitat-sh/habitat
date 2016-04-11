@@ -15,7 +15,13 @@
 //! handle errors.
 //! * **Running**: The state for the 'normal' operating condition.
 
-use error::{Result, SupError};
+use std::thread;
+use std::process::{Command, Stdio, Child};
+use std::io::prelude::*;
+
+use hcore::fs::SVC_PATH;
+
+use error::{Error, Result, SupError};
 use package::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};

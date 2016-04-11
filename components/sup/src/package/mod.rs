@@ -19,7 +19,7 @@ use std::string::ToString;
 use std::io::prelude::*;
 
 use hcore;
-use hcore::fs::SERVICE_HOME;
+use hcore::fs::SVC_PATH;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
@@ -141,7 +141,7 @@ impl Package {
 
     /// Join a string to the on disk svc path for this package.
     pub fn svc_join_path(&self, join: &str) -> String {
-        format!("{}/{}/{}", SERVICE_HOME, self.name, join)
+        format!("{}/{}/{}", SVC_PATH, self.name, join)
     }
 
     /// Create the service path for this package.
