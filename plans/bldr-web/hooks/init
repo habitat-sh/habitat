@@ -1,4 +1,4 @@
 #!/bin/sh
-mkdir -p {{pkg.svc_path}}/var
+mkdir -p {{pkg.svc_var_path}}
 
 rm -rf {{pkg.svc_static_path}} && cp -r {{pkg.path}}/dist {{pkg.svc_static_path}}

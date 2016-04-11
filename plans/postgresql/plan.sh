@@ -34,7 +34,7 @@ do_build() {
               --with-openssl \
               --prefix=${pkg_prefix} \
               --sysconfdir=${pkg_svc_config_path} \
-              --localstatedir=${pkg_svc_var}
+              --localstatedir=${pkg_svc_var_path}
 	make
 }
 

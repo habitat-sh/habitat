@@ -215,6 +215,11 @@ impl PackageInstall {
         fs::svc_static_path(&self.ident.name)
     }
 
+    /// Returns the path to the service variable state.
+    pub fn svc_var_path(&self) -> PathBuf {
+        fs::svc_var_path(&self.ident.name)
+    }
+
     /// Read the contents of a given metafile.
     ///
     /// # Failures

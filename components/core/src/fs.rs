@@ -53,3 +53,8 @@ pub fn svc_hooks_path(service_name: &str) -> PathBuf {
 pub fn svc_static_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("static")
 }
+
+/// Returns the path to a given service's variable state.
+pub fn svc_var_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("var")
+}

@@ -1,4 +1,4 @@
 #!/bin/sh
 mkdir -p {{pkg.svc_data_path}}/htdocs
 mkdir -p {{pkg.svc_data_path}}/cgi-bin
-mkdir -p {{pkg.svc_path}}/var/logs
+mkdir -p {{pkg.svc_var_path}}/logs

@@ -152,7 +152,7 @@ impl Package {
         try!(std::fs::create_dir_all(fs::svc_hooks_path(&self.name)));
         try!(std::fs::create_dir_all(self.svc_join_path("toml")));
         try!(std::fs::create_dir_all(fs::svc_data_path(&self.name)));
-        try!(std::fs::create_dir_all(self.svc_join_path("var")));
+        try!(std::fs::create_dir_all(fs::svc_var_path(&self.name)));
         try!(std::fs::create_dir_all(fs::svc_files_path(&self.name)));
         try!(util::perm::set_permissions(fs::svc_files_path(&self.name), "0700"));
         try!(util::perm::set_owner(fs::svc_files_path(&self.name),
@@ -163,7 +163,7 @@ impl Package {
         try!(util::perm::set_permissions(&self.svc_join_path("data"), "0700"));
         try!(util::perm::set_owner(fs::svc_var_path(&self.name),
                                    &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
-        try!(util::perm::set_permissions(&self.svc_join_path("var"), "0700"));
+        try!(util::perm::set_permissions(fs::svc_var_path(&self.name), "0700"));
         Ok(())
     }
 

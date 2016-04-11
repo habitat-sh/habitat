@@ -4,9 +4,9 @@
 exec 2>&1
 
 mkdir -p {{pkg.svc_config_path}}/conf.d
-mkdir -p {{pkg.svc_path}}/var/pg_stat_tmp
+mkdir -p {{pkg.svc_var_path}}/pg_stat_tmp
 
-chown -R bldr:bldr {{pkg.svc_path}}/var
+chown -R bldr:bldr {{pkg.svc_var_path}}
 
 if [[ ! -f "{{pkg.svc_data_path}}/PG_VERSION" ]]; then
   echo " Database does not exist, creating with 'initdb'"
