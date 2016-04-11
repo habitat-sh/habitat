@@ -146,15 +146,8 @@ impl ServiceConfig {
                 should_restart = true
             }
         }
-        if pkg.supervisor_running() {
-            self.needs_write = false;
-            Ok(should_restart)
-        } else {
-            // If the supervisor isn't running yet, we don't have to worry about
-            // restarting it, obviously
-            self.needs_write = false;
-            Ok(false)
-        }
+        self.needs_write = false;
+        Ok(should_restart)
     }
 }
 

@@ -5,7 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-use topology::{self, standalone, State, Worker, stop};
+use topology::{self, standalone, State, Worker};
 use state_machine::StateMachine;
 use error::{Result, SupError};
 use package::Package;
@@ -125,11 +125,8 @@ fn state_check_for_election(worker: &mut Worker) -> Result<(State, u64)> {
             }
             outputln!("Stopping the service to ensure there is only one master");
             {
-                if worker.child_info.is_some() {
-                    if let Err(e) = stop(worker.child_info.as_ref().unwrap().pid) {
-                        outputln!("{}", e);
-                    }
-                }
+                let mut supervisor = worker.supervisor.write().unwrap();
+                try!(supervisor.down());
             }
         } else {
             outputln!("I have lost quorum - getting rid of any leader");
@@ -259,7 +256,11 @@ pub fn state_become_follower(worker: &mut Worker) -> Result<(State, u64)> {
 }
 
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u64)> {
-    if worker.supervisor_thread.is_none() {
+    let is_running = {
+        let supervisor = worker.supervisor.read().unwrap();
+        supervisor.pid.is_some()
+    };
+    if !is_running {
         try!(initialize(worker));
         try!(standalone::state_starting(worker));
     }

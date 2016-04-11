@@ -15,20 +15,11 @@
 //! handle errors.
 //! * **Running**: The state for the 'normal' operating condition.
 
-use std::thread;
-use std::process::{Command, Stdio, Child};
-use std::io::prelude::*;
-
-use hcore::fs::SERVICE_HOME;
-
-use error::{Error, Result, SupError};
+use error::{Result, SupError};
 use package::Package;
 use state_machine::StateMachine;
-use topology::{self, State, Worker, ChildInfo};
+use topology::{self, State, Worker};
 use config::Config;
-use time;
-
-static LOGKEY: &'static str = "TS";
 
 /// Sets up the topology and calls run_internal.
 ///
@@ -53,38 +44,6 @@ pub fn state_initializing(worker: &mut Worker) -> Result<(State, u64)> {
     }
 }
 
-
-/// Consume output from a child process until EOF, then finish
-fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
-    let mut c_stdout = match child.stdout {
-        Some(ref mut s) => s,
-        None => return Err(sup_error!(Error::UnpackFailed)),
-    };
-
-    let mut line = output_format!(preamble &package_name, logkey "SO");
-    loop {
-        let mut buf = [0u8; 1]; // Our byte buffer
-        let len = try!(c_stdout.read(&mut buf));
-        match len {
-            0 => {
-                // 0 == EOF, so stop writing and finish progress
-                break;
-            }
-            _ => {
-                // Write the buffer to the BufWriter on the Heap
-                let buf_string = String::from_utf8_lossy(&buf[0..len]);
-                line.push_str(&buf_string);
-                if line.contains("\n") {
-                    print!("{}", line);
-                    line = output_format!(preamble &package_name, logkey "O");
-                }
-            }
-        }
-    }
-    debug!("child_reader exiting");
-    Ok(())
-}
-
 /// Start the service.
 ///
 /// 1. Finds the package
@@ -95,36 +54,11 @@ fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
 ///
 /// * If we cannot find the package
 /// * If we cannot start the supervisor
-#[cfg_attr(rustfmt, rustfmt_skip)]
 pub fn state_starting(worker: &mut Worker) -> Result<(State, u64)> {
-    outputln!(preamble &worker.package_name, "Starting");
-    let package_name = worker.package_name.clone();
-    let service_dir = format!("{}/{}", SERVICE_HOME, worker.package_name);
-    // call the "run" script in the specified package
-    let cmd = format!("{}/run", service_dir);
-
-    // create a PID file so we can find the supervisor by
-    // package name elsewhere in the code.
-    let package = worker.package.read().unwrap();
-
-    // if we are restarting, then remove the previous pidfile just to
-    // be a good citizen
-    try!(package.cleanup_pidfile());
-
-    let mut child = try!(Command::new(cmd)
-                         .stdin(Stdio::null())
-                         .stdout(Stdio::piped())
-                         .stderr(Stdio::piped())
-                         .spawn());
-    let child_info = ChildInfo {pid: child.id(), start_time: time::now().to_timespec()};
-    worker.child_info = Some(child_info);
-    try!(package.create_pidfile(child.id()));
-    let supervisor_thread = try!(thread::Builder::new()
-                                 .name(String::from("supervisor"))
-                                 .spawn(move || -> Result<()> {
-                                    child_reader(&mut child, package_name)
-                                 }));
-    worker.supervisor_thread = Some(supervisor_thread);
+    {
+        let mut supervisor = worker.supervisor.write().unwrap();
+        try!(supervisor.start());
+    }
     Ok((State::Running, 0))
 }
 

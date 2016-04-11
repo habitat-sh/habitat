@@ -178,11 +178,11 @@ fn set_signal_handlers() {
 }
 
 /// send a Unix signal to a pid
-pub fn send_signal_to_pid(pid: i32, sig: Signal) -> Result<()> {
+pub fn send_signal_to_pid(pid: u32, sig: Signal) -> Result<()> {
     let s = sig as u32;
     debug!("sending signal {} to pid {}", s, pid);
     unsafe {
-        let result = kill(pid, s);
+        let result = kill(pid as i32, s);
         match result {
             0 => Ok(()),
             _ => return Err(sup_error!(Error::SignalFailed)),
