@@ -7,8 +7,8 @@ pkg_source=https://s3-us-west-2.amazonaws.com/${pkg_name}/${pkg_name}-${pkg_vers
 pkg_shasum=2ad73b78ef5e88e9e916873c0f762bbdf286e4de93e67cf211f9761a2876c7ef
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 pkg_gpg_key=3853DA6B
-pkg_deps=(chef/glibc chef/node)
-pkg_build_deps=(chef/node chef/coreutils chef/gcc chef/gcc-libs)
+pkg_deps=(chef/node)
+pkg_build_deps=(chef/node)
 pkg_expose=(8080)
 
 do_build () {
@@ -20,10 +20,10 @@ do_install() {
   # Copy our source files from BLDR_SRC_CACHE to the nodejs-tutorial-app package.
   # This is so that when Habitat calls "npm start" at start-up, we have the source files
   # included in the package.
-  cp package.json ${pkg_path}
-  cp server.js ${pkg_path}
+  cp package.json ${pkg_prefix}
+  cp server.js ${pkg_prefix}
 
   # Copy over the nconf module to the package that we installed in do_build().
-  mkdir -p ${pkg_path}/node_modules/
-  cp -vr node_modules/* ${pkg_path}/node_modules/
+  mkdir -p ${pkg_prefix}/node_modules/
+  cp -vr node_modules/* ${pkg_prefix}/node_modules/
 }
