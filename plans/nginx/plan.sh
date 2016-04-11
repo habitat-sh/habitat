@@ -17,7 +17,7 @@ pkg_expose=(80 443)
 
 do_build() {
   ./configure --prefix=$pkg_prefix \
-    --conf-path="$pkg_svc_config/nginx.conf" \
+    --conf-path="$pkg_svc_config_path/nginx.conf" \
     --sbin-path="$pkg_prefix/bin/nginx" \
     --pid-path="$pkg_svc_var/nginx.pid" \
     --lock-path="$pkg_svc_var/nginx.lock" \

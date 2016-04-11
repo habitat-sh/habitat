@@ -21,6 +21,10 @@ pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
 /// The root path containing all runtime service directories and files
 pub const SVC_PATH: &'static str = "/opt/bldr/svc";
 
-pub fn service_path(service_name: &str) -> PathBuf {
+pub fn svc_path(service_name: &str) -> PathBuf {
     PathBuf::from(SVC_PATH).join(service_name)
+}
+
+pub fn svc_config_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("config")
 }

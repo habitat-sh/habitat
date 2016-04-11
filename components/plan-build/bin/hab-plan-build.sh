@@ -140,7 +140,7 @@
 # ### pkg_service_run
 # The command to start the service, if needed. Should not fork!
 # ```
-# pkg_service_run="bin/haproxy -f $pkg_svc_config/haproxy.conf"
+# pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # ```
 #
 # ### pkg_expose
@@ -178,7 +178,7 @@
 # * `$pkg_svc_path`: Where the running service is; `$HAB_ROOT_PATH/svc/$pkg_name`
 # * `$pkg_svc_data`: Service data; `$pkg_svc_path/data`
 # * `$pkg_svc_var`: Variable state; `$pkg_svc_path/var`
-# * `$pkg_svc_config`: Configuration; `$pkg_svc_path/config`
+# * `$pkg_svc_config_path`: Configuration; `$pkg_svc_path/config`
 # * `$pkg_svc_static`: Static data; `$pkg_svc_path/static`
 # * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
 # * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
@@ -213,7 +213,7 @@
 # pkg_gpg_key=3853DA6B
 # pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
-# pkg_service_run="bin/haproxy -f $pkg_svc_config/haproxy.conf"
+# pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # pkg_expose=(80 443)
 #
 # do_build() {
@@ -1970,7 +1970,7 @@ fi
 pkg_svc_path="$HAB_ROOT_PATH/svc/$pkg_name"
 pkg_svc_data="$pkg_svc_path/data"
 pkg_svc_var="$pkg_svc_path/var"
-pkg_svc_config="$pkg_svc_path/config"
+pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static="$pkg_svc_path/static"
 
 # Run `do_begin`

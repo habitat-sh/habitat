@@ -33,7 +33,7 @@ do_build() {
 	./configure --disable-rpath \
               --with-openssl \
               --prefix=${pkg_prefix} \
-              --sysconfdir=${pkg_svc_config} \
+              --sysconfdir=${pkg_svc_config_path} \
               --localstatedir=${pkg_svc_var}
 	make
 }

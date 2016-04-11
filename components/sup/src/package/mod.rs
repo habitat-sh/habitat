@@ -11,15 +11,16 @@ pub mod updater;
 pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
 pub use self::hooks::HookType;
 
+use std;
 use std::fmt;
-use std::fs::{self, File};
+use std::fs::File;
 use std::os::unix;
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 use std::io::prelude::*;
 
 use hcore;
-use hcore::fs::SVC_PATH;
+use hcore::fs::{self, SVC_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
@@ -136,7 +137,7 @@ impl Package {
 
     /// The on disk svc path for this package.
     pub fn svc_path(&self) -> PathBuf {
-        hcore::fs::service_path(&self.name)
+        hcore::fs::svc_path(&self.name)
     }
 
     /// Join a string to the on disk svc path for this package.
@@ -147,12 +148,12 @@ impl Package {
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
         debug!("Creating svc paths");
-        try!(fs::create_dir_all(self.svc_join_path("config")));
-        try!(fs::create_dir_all(self.svc_join_path("hooks")));
-        try!(fs::create_dir_all(self.svc_join_path("toml")));
-        try!(fs::create_dir_all(self.svc_join_path("data")));
-        try!(fs::create_dir_all(self.svc_join_path("var")));
-        try!(fs::create_dir_all(self.svc_join_path("files")));
+        try!(std::fs::create_dir_all(fs::svc_config_path(&self.name)));
+        try!(std::fs::create_dir_all(self.svc_join_path("hooks")));
+        try!(std::fs::create_dir_all(self.svc_join_path("toml")));
+        try!(std::fs::create_dir_all(self.svc_join_path("data")));
+        try!(std::fs::create_dir_all(self.svc_join_path("var")));
+        try!(std::fs::create_dir_all(self.svc_join_path("files")));
         try!(util::perm::set_permissions(&self.svc_join_path("files"), "0700"));
         try!(util::perm::set_owner(&self.svc_join_path("files"),
                                    &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
@@ -172,11 +173,11 @@ impl Package {
         let svc_run = self.svc_join_path(RUN_FILENAME);
         if let Some(hook) = self.hooks().run_hook {
             try!(hook.compile(Some(context)));
-            match fs::read_link(&svc_run) {
+            match std::fs::read_link(&svc_run) {
                 Ok(path) => {
                     if path != hook.path {
                         try!(util::perm::set_permissions(hook.path.to_str().unwrap(), "0755"));
-                        try!(fs::remove_file(&svc_run));
+                        try!(std::fs::remove_file(&svc_run));
                         try!(unix::fs::symlink(hook.path, &svc_run));
                     }
                 }
@@ -185,8 +186,8 @@ impl Package {
         } else {
             let run = self.join_path(RUN_FILENAME);
             try!(util::perm::set_permissions(&run, "0755"));
-            match fs::metadata(&svc_run) {
-                Ok(_) => try!(fs::remove_file(&svc_run)),
+            match std::fs::metadata(&svc_run) {
+                Ok(_) => try!(std::fs::remove_file(&svc_run)),
                 Err(_) => {}
             }
             try!(unix::fs::symlink(&run, &svc_run));
@@ -204,7 +205,7 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> Result<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        for config in try!(fs::read_dir(self.join_path("config"))) {
+        for config in try!(std::fs::read_dir(self.join_path("config"))) {
             let config = try!(config);
             match config.path().file_name() {
                 Some(filename) => {
