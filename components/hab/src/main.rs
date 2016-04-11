@@ -61,6 +61,7 @@ fn run_hab() -> Result<()> {
                 ("upload", Some(m)) => try!(sub_artifact_upload(m)),
                 ("sign", Some(m)) => try!(sub_artifact_sign(m)),
                 ("verify", Some(m)) => try!(sub_artifact_verify(m)),
+                ("hash", Some(m)) => try!(sub_artifact_hash(m)),
                 _ => unreachable!(),
             }
         }
@@ -94,17 +95,9 @@ fn run_hab() -> Result<()> {
     Ok(())
 }
 
-fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
-    let url = m.value_of("DEPOT_URL").unwrap_or(DEFAULT_DEPOT_URL);
-    let artifact_path = m.value_of("ARTIFACT").unwrap();
-
-    try!(command::artifact::upload::start(&url, &artifact_path));
-    Ok(())
-}
-
-fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
-    let origin_key = m.value_of("ORIGIN").unwrap();
-    try!(command::artifact::crypto::generate_origin_key(&origin_key));
+fn sub_artifact_hash(m: &ArgMatches) -> Result<()> {
+    let source = m.value_of("SOURCE").unwrap();
+    try!(command::artifact::crypto::hash(&source));
     Ok(())
 }
 
@@ -125,9 +118,23 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
+    let url = m.value_of("DEPOT_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let artifact_path = m.value_of("ARTIFACT").unwrap();
+
+    try!(command::artifact::upload::start(&url, &artifact_path));
+    Ok(())
+}
+
 fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
     let infile = m.value_of("ARTIFACT").unwrap();
     try!(command::artifact::crypto::verify(&infile));
+    Ok(())
+}
+
+fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
+    let origin_key = m.value_of("ORIGIN").unwrap();
+    try!(command::artifact::crypto::generate_origin_key(&origin_key));
     Ok(())
 }
 
