@@ -255,6 +255,6 @@ pub fn sup_with_env(args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> 
 /// This function is for you!
 pub fn sup_with_test_gpg_cache(args: &[&str], cache_dir: &str) -> CmdResult<Cmd> {
     let mut env: HashMap<&str, &str> = HashMap::new();
-    env.insert("BLDR_GPG_CACHE", cache_dir);
+    env.insert("HAB_CACHE_GPG_PATH", cache_dir);
     sup_with_env(args, &env)
 }

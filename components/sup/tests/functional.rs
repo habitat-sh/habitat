@@ -59,7 +59,7 @@ mod setup {
         static ONCE: Once = ONCE_INIT;
 
         let mut env: HashMap<&str, &str> = HashMap::new();
-        env.insert("BLDR_GPG_CACHE", cache_dir);
+        env.insert("HAB_CACHE_GPG_PATH", cache_dir);
 
         ONCE.call_once(|| {
             let mut gpg =

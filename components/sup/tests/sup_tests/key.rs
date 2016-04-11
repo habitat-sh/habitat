@@ -50,8 +50,6 @@ fn gpg_test_setup() -> String {
     setup::install_rngd();
     let gpg_cache = gen_test_gpg_cache();
     setup::gpg_import_with_gpg_cache(&gpg_cache);
-    // leaving this in as it may be useful in future testing
-    // env::set_var("BLDR_GPG_CACHE", &gpg_cache);
     gpg_cache
 }
 
@@ -343,7 +341,7 @@ fn kt_find_key() {
         assert_regex!(generate_user.stdout(), r".*Fingerprint.*");
     }
 
-    env::set_var("BLDR_GPG_CACHE", cache_dir);
+    env::set_var("HAB_CACHE_GPG_PATH", cache_dir);
     match gpg::find_key("bldr_a") {
         Ok(result) => {
             let r = result.unwrap();
@@ -372,7 +370,7 @@ fn kt_find_key() {
         Ok(None) => assert!(true),
         Err(_) => assert!(false),
     };
-    env::remove_var("BLDR_GPG_CACHE");
+    env::remove_var("HAB_CACHE_GPG_PATH");
 }
 
 #[test]
