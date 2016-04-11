@@ -26,7 +26,7 @@ fn builds_a_service() {
     assert_regex!(simple_service.stdout(),
                   &format!(r"{}/bldr_build-0.0.1", fs::CACHE_SRC_PATH));
     assert_regex!(simple_service.stdout(),
-                  &format!(r"{}/test/bldr_build/0.0.1/\d{{14}}", fs::PACKAGE_HOME));
+                  &format!(r"{}/test/bldr_build/0.0.1/\d{{14}}", fs::PKG_PATH));
     assert_regex!(simple_service.stdout(),
                   &format!(r"{}/test-bldr_build-0.0.1-\d{{14}}.bldr",
                            fs::CACHE_ARTIFACT_PATH));

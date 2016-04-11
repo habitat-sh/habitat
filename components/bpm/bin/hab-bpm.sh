@@ -411,7 +411,7 @@ subcommand_pkgpath() {
     exit_with "Installed package could not be found for: $pkg_ident_arg" 6
   fi
 
-  echo "$BLDR_PKG_ROOT/$pkg_ident"
+  echo "$HAB_PKG_PATH/$pkg_ident"
 }
 
 
@@ -557,7 +557,7 @@ latest_remote_package() {
 # explaining that no package was found.
 latest_installed_package() {
   local quietly="${2:-}"
-  if [ ! -d "$BLDR_PKG_ROOT/$1" ]; then
+  if [ ! -d "$HAB_PKG_PATH/$1" ]; then
     if [ -z "$quietly" ]; then
       warn "No installed packages of '$1' were found"
     fi
@@ -570,14 +570,14 @@ latest_installed_package() {
   local result
   case $(trim $latest_package_flags) in
     "3")
-      result="$BLDR_PKG_ROOT/$1"
+      result="$HAB_PKG_PATH/$1"
       ;;
     "2")
-      result="$($bb find $BLDR_PKG_ROOT/$1 -maxdepth 1 -type d \
+      result="$($bb find $HAB_PKG_PATH/$1 -maxdepth 1 -type d \
         | $cu --coreutils-prog=sort --version-sort -r | $bb head -n 1)"
       ;;
     "1")
-      result="$($bb find $BLDR_PKG_ROOT/$1 -maxdepth 2 -type d \
+      result="$($bb find $HAB_PKG_PATH/$1 -maxdepth 2 -type d \
         | $cu --coreutils-prog=sort --version-sort -r | $bb head -n 1)"
       ;;
   esac
@@ -587,7 +587,7 @@ latest_installed_package() {
     fi
     return 1
   else
-    echo "$result" | $bb sed "s,^$BLDR_PKG_ROOT/,,"
+    echo "$result" | $bb sed "s,^$HAB_PKG_PATH/,,"
     return 0
   fi
 }
@@ -658,8 +658,8 @@ install_package_tdeps() {
 
   # Install each entry in the package's `TDEPS` file which constitute the
   # entire set of runtime dependencies--direct and transitive.
-  if [ -f "$BLDR_PKG_ROOT/$pkg_ident/TDEPS" ]; then
-    for dep_ident in $($bb cat $BLDR_PKG_ROOT/$pkg_ident/TDEPS); do
+  if [ -f "$HAB_PKG_PATH/$pkg_ident/TDEPS" ]; then
+    for dep_ident in $($bb cat $HAB_PKG_PATH/$pkg_ident/TDEPS); do
       install_package $dep_ident
     done
   fi
@@ -674,7 +674,7 @@ set_path() {
   local path_parts
   local dep_ident
   local dep_path
-  local pkg_path="$BLDR_PKG_ROOT/$1"
+  local pkg_path="$HAB_PKG_PATH/$1"
 
   # Start with the `PATH` entry from this package, if it exists
   if [ -f "$pkg_path/PATH" ]; then
@@ -688,8 +688,8 @@ set_path() {
     # Loop through each `DEPS` entry and add the `PATH` entry for each direct
     # dependency (if it exists)
     for dep_ident in $($bb cat $pkg_path/DEPS); do
-      if [ -f "$BLDR_PKG_ROOT/$dep_ident/PATH" ]; then
-        dep_path="$($bb cat $BLDR_PKG_ROOT/$dep_ident/PATH)"
+      if [ -f "$HAB_PKG_PATH/$dep_ident/PATH" ]; then
+        dep_path="$($bb cat $HAB_PKG_PATH/$dep_ident/PATH)"
         if [ -z "$path_parts" ]; then
           path_parts="$dep_path"
         else
@@ -700,8 +700,8 @@ set_path() {
     # Loop through each `TDEPS` entry and add the `PATH` entry for each
     # dependency (if it exists). If the entry already exists, skip it
     for dep_ident in $($bb cat $pkg_path/TDEPS); do
-      if [ -f "$BLDR_PKG_ROOT/$dep_ident/PATH" ]; then
-        dep_path="$($bb cat $BLDR_PKG_ROOT/$dep_ident/PATH)"
+      if [ -f "$HAB_PKG_PATH/$dep_ident/PATH" ]; then
+        dep_path="$($bb cat $HAB_PKG_PATH/$dep_ident/PATH)"
         if [ -z "$path_parts" ]; then
           path_parts="$dep_path"
         else
@@ -852,8 +852,8 @@ shift "$((OPTIND - 1))"
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 : ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
-# Location containing installed packages
-BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
+# The root path containing all locally installed packages
+HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts

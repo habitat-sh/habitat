@@ -697,8 +697,8 @@ unset PATH
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 : ${HAB_ROOT_PATH:=/opt/bldr}
-# Location containing installed packages
-BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
+# The root path containing all locally installed packages
+HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts

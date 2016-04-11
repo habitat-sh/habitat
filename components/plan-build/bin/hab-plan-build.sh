@@ -282,8 +282,8 @@ HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
-# Location containing installed packages
-BLDR_PKG_ROOT=$HAB_ROOT_PATH/pkgs
+# The root path containing all locally installed packages
+HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
@@ -467,7 +467,7 @@ _find_system_commands() {
 # found. A message will be printed to stderr explaining that no package was
 # found.
 _latest_installed_package() {
-  if [[ ! -d "$BLDR_PKG_ROOT/$1" ]]; then
+  if [[ ! -d "$HAB_PKG_PATH/$1" ]]; then
     warn "No installed packages of '$1' were found"
     return 1
   fi
@@ -482,7 +482,7 @@ _latest_installed_package() {
     2) depth=2 ;;
     1) depth=3 ;;
   esac
-  result=$(find $BLDR_PKG_ROOT/${1} -maxdepth $depth -type f -name MANIFEST \
+  result=$(find $HAB_PKG_PATH/${1} -maxdepth $depth -type f -name MANIFEST \
     | $_sort_cmd --version-sort -r | head -n 1)
   if [[ -z "$result" ]]; then
     warn "Could not find a suitable installed package for '$1'"
@@ -672,10 +672,10 @@ _determine_pkg_installer() {
 # resolve the situation before continuing.
 _validate_deps() {
   # Build the list of full runtime deps (one per line) without the
-  # `$BLDR_PKG_ROOT` prefix.
+  # `$HAB_PKG_PATH` prefix.
   local tdeps=$(echo ${pkg_tdeps_resolved[@]} \
     | tr ' ' '\n' \
-    | sed "s,^${BLDR_PKG_ROOT}/,,")
+    | sed "s,^${HAB_PKG_PATH}/,,")
   # Build the list of any runtime deps that appear more than once. That is,
   # `ORIGIN/NAME` token duplicates.
   local dupes=$(echo "$tdeps" \
@@ -718,7 +718,7 @@ _validate_deps() {
     printf "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}\n"
     echo ${pkg_deps_resolved[@]} \
       | tr ' ' '\n' \
-      | sed -e "s,^${BLDR_PKG_ROOT}/,," \
+      | sed -e "s,^${HAB_PKG_PATH}/,," \
       | _print_recursive_deps 1
     echo
     exit_with "Computed runtime dependency check failed, aborting" 31
@@ -790,8 +790,8 @@ _print_recursive_deps() {
     fi
     # If this dependency itself has direct dependencies, then recursively print
     # them.
-    if [[ -f $BLDR_PKG_ROOT/$dep/DEPS ]]; then
-      cat $BLDR_PKG_ROOT/$dep/DEPS | _print_recursive_deps $(($level + 1))
+    if [[ -f $HAB_PKG_PATH/$dep/DEPS ]]; then
+      cat $HAB_PKG_PATH/$dep/DEPS | _print_recursive_deps $(($level + 1))
     fi
   done
 }
@@ -927,7 +927,7 @@ trim() {
 pkg_path_for() {
   local dep="$1"
   local e
-  local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   for e in "${pkg_all_deps_resolved[@]}"; do
     if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
       echo "$e"
@@ -1315,7 +1315,7 @@ _resolve_dependencies() {
   for dep in "${pkg_build_deps_resolved[@]}"; do
     tdeps=($(_get_tdeps_for $dep))
     for tdep in "${tdeps[@]}"; do
-      tdep="$BLDR_PKG_ROOT/$tdep"
+      tdep="$HAB_PKG_PATH/$tdep"
       pkg_build_tdeps_resolved=(
         $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
       )
@@ -1332,7 +1332,7 @@ _resolve_dependencies() {
   for dep in "${pkg_deps_resolved[@]}"; do
     tdeps=($(_get_tdeps_for $dep))
     for tdep in "${tdeps[@]}"; do
-      tdep="$BLDR_PKG_ROOT/$tdep"
+      tdep="$HAB_PKG_PATH/$tdep"
       pkg_tdeps_resolved=(
         $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
       )
@@ -1712,7 +1712,7 @@ _build_metadata() {
     echo "$interpreters" > $pkg_prefix/INTERPRETERS
   fi
 
-  local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   local deps
 
   deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
@@ -1963,7 +1963,7 @@ fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set $pkg_svc variables.

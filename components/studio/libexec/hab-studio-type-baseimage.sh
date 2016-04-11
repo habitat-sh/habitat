@@ -18,15 +18,15 @@ finish_setup() {
   fi
 
   for embed in $PKGS; do
-    if [ -d "$BLDR_PKG_ROOT/$embed" ]; then
+    if [ -d "$HAB_PKG_PATH/$embed" ]; then
       echo "> Using local package for $embed"
       embed_path=$(_outside_pkgpath_for $embed)
       $bb mkdir -p $STUDIO_ROOT/$embed_path
       $bb cp -ra $embed_path/* $STUDIO_ROOT/$embed_path
       for tdep in $($bb cat $embed_path/TDEPS); do
         echo "> Using local package for $tdep via $embed"
-        $bb mkdir -p $STUDIO_ROOT$BLDR_PKG_ROOT/$tdep
-        $bb cp -ra $BLDR_PKG_ROOT/$tdep/* $STUDIO_ROOT$BLDR_PKG_ROOT/$tdep
+        $bb mkdir -p $STUDIO_ROOT$HAB_PKG_PATH/$tdep
+        $bb cp -ra $HAB_PKG_PATH/$tdep/* $STUDIO_ROOT$HAB_PKG_PATH/$tdep
       done
     else
       _bpm install $embed
