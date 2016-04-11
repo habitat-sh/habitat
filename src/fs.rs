@@ -21,21 +21,30 @@ pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
 /// The root path containing all runtime service directories and files
 pub const SVC_PATH: &'static str = "/opt/bldr/svc";
 
+/// Returns the root path for a given service's configuration, files, and data.
 pub fn svc_path(service_name: &str) -> PathBuf {
     PathBuf::from(SVC_PATH).join(service_name)
 }
 
-/// Returns the path to a given service's configuration
+/// Returns the path to a given service's configuration.
 pub fn svc_config_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("config")
 }
 
-/// Returns the path to a given service's data
+/// Returns the path to a given service's data.
 pub fn svc_data_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("data")
 }
 
-/// Returns the path to a given service's gossiped config files
+/// Returns the path to a given service's gossiped config files.
 pub fn svc_files_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("files")
+}
+
+/// Returns the path to a given service's hooks.
+///
+/// Note that this path is internal to the Supervisor and should not be directly accessed under
+/// normal circumstances.
+pub fn svc_hooks_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("hooks")
 }

@@ -190,19 +190,24 @@ impl PackageInstall {
         fs::svc_path(&self.ident.name)
     }
 
-    /// Returns the path to the service configuration
+    /// Returns the path to the service configuration.
     pub fn svc_config_path(&self) -> PathBuf {
         fs::svc_config_path(&self.ident.name)
     }
 
-    /// Returns the path to the service data
+    /// Returns the path to the service data.
     pub fn svc_data_path(&self) -> PathBuf {
         fs::svc_data_path(&self.ident.name)
     }
 
-    /// Returns the path to the service's gossiped config files
+    /// Returns the path to the service's gossiped config files.
     pub fn svc_files_path(&self) -> PathBuf {
         fs::svc_files_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service hooks.
+    pub fn svc_hooks_path(&self) -> PathBuf {
+        fs::svc_hooks_path(&self.ident.name)
     }
 
     /// Read the contents of a given metafile.
