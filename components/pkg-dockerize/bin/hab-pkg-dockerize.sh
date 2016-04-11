@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # # Usage
 #
@@ -77,11 +77,6 @@ build_docker_image() {
   rm -rf "$DOCKER_CONTEXT"
 }
 
-pkg_path_for() {
-  local dep="$1"
-  find $BLDR_ROOT/pkgs -mindepth 4 -maxdepth 4 -type d | grep $dep
-}
-
 package_name_for() {
   local pkg="$1"
   echo $(echo $pkg | cut -d "/" -f 2)
@@ -123,9 +118,8 @@ EXPOSE 9631 $(package_exposes $1)
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
-  local docker="$(pkg_path_for chef/docker)/bin/docker"
-  $docker build --force-rm --no-cache -t $version_tag .
-  $docker tag $version_tag $latest_tag
+  docker build --force-rm --no-cache -t $version_tag .
+  docker tag $version_tag $latest_tag
 }
 
 # The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
@@ -139,6 +133,5 @@ author='@author@'
 # The short version of the program name which is used in logging output
 program=$(basename $0)
 
-hab-bpm install chef/docker
 find_system_commands
 build_docker_image $@

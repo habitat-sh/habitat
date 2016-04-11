@@ -115,7 +115,7 @@ EOT
   echo "${run_group}:x:42:${run_user}" >> $STUDIO_ROOT/etc/group
 
   local sup=$sup_path/bin/hab-sup
-  touch $STUDIO_ROOT/.hab_pkg
+  $bb touch $STUDIO_ROOT/.hab_pkg
   $bb cat <<EOT > $STUDIO_ROOT/init.sh
 #!$busybox_path/bin/sh
 export PATH=$full_path
