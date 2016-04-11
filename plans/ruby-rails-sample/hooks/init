@@ -1,6 +1,6 @@
 #!/bin/sh
 export RAILS_SAMPLE_HOME="{{pkg.path}}"
-export RAILS_SAMPLE_DATA="{{pkg.svc_path}}/data"
+export RAILS_SAMPLE_DATA="{{pkg.svc_data_path}}"
 
 echo "Removing previous version deployed at ${RAILS_SAMPLE_DATA}"
 rm -rf ${RAILS_SAMPLE_DATA}/*
@@ -9,7 +9,7 @@ echo "Deploying new version from ${RAILS_SAMPLE_HOME} to ${RAILS_SAMPLE_DATA}"
 cp -a ${RAILS_SAMPLE_HOME}/dist ${RAILS_SAMPLE_DATA}/dist
 
 echo "Linking database.yml"
-ln -sf {{pkg.svc_path}}/config/database.yml ${RAILS_SAMPLE_DATA}/dist/config/database.yml
+ln -sf {{pkg.svc_config_path}}/database.yml ${RAILS_SAMPLE_DATA}/dist/config/database.yml
 
 export GEM_HOME="${RAILS_SAMPLE_DATA}/dist/vendor/bundle/ruby/2.3.0"
 export GEM_PATH="$(hab-bpm pkgpath chef/ruby)/lib/ruby/gems/2.3.0:$(hab-bpm pkgpath chef/bundler):$GEM_HOME"

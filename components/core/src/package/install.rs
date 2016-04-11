@@ -185,12 +185,19 @@ impl PackageInstall {
         &self.installed_path
     }
 
+    /// Returns the root path for service configuration, files, and data.
     pub fn svc_path(&self) -> PathBuf {
         fs::svc_path(&self.ident.name)
     }
 
+    /// Returns the path to the service configuration
     pub fn svc_config_path(&self) -> PathBuf {
         fs::svc_config_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service data
+    pub fn svc_data_path(&self) -> PathBuf {
+        fs::svc_data_path(&self.ident.name)
     }
 
     /// Read the contents of a given metafile.

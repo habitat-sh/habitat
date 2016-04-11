@@ -176,7 +176,7 @@
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
 # * `$pkg_svc_path`: Where the running service is; `$HAB_ROOT_PATH/svc/$pkg_name`
-# * `$pkg_svc_data`: Service data; `$pkg_svc_path/data`
+# * `$pkg_svc_data_path`: Service data; `$pkg_svc_path/data`
 # * `$pkg_svc_var`: Variable state; `$pkg_svc_path/var`
 # * `$pkg_svc_config_path`: Configuration; `$pkg_svc_path/config`
 # * `$pkg_svc_static`: Static data; `$pkg_svc_path/static`
@@ -1968,7 +1968,7 @@ fi
 
 # Set $pkg_svc variables.
 pkg_svc_path="$HAB_ROOT_PATH/svc/$pkg_name"
-pkg_svc_data="$pkg_svc_path/data"
+pkg_svc_data_path="$pkg_svc_path/data"
 pkg_svc_var="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static="$pkg_svc_path/static"

@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 
-export PGDATA={{pkg.svc_path}}/data
+export PGDATA={{pkg.svc_data_path}}
 
 exec 2>&1
 exec chpst -u bldr:bldr {{pkg.path}}/bin/postmaster \

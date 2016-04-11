@@ -151,17 +151,17 @@ impl Package {
         try!(std::fs::create_dir_all(fs::svc_config_path(&self.name)));
         try!(std::fs::create_dir_all(self.svc_join_path("hooks")));
         try!(std::fs::create_dir_all(self.svc_join_path("toml")));
-        try!(std::fs::create_dir_all(self.svc_join_path("data")));
+        try!(std::fs::create_dir_all(fs::svc_data_path(&self.name)));
         try!(std::fs::create_dir_all(self.svc_join_path("var")));
         try!(std::fs::create_dir_all(self.svc_join_path("files")));
         try!(util::perm::set_permissions(&self.svc_join_path("files"), "0700"));
         try!(util::perm::set_owner(&self.svc_join_path("files"),
                                    &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
         try!(util::perm::set_permissions(&self.svc_join_path("toml"), "0700"));
-        try!(util::perm::set_owner(&self.svc_join_path("data"),
+        try!(util::perm::set_owner(fs::svc_data_path(&self.name),
                                    &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
         try!(util::perm::set_permissions(&self.svc_join_path("data"), "0700"));
-        try!(util::perm::set_owner(&self.svc_join_path("var"),
+        try!(util::perm::set_owner(fs::svc_var_path(&self.name),
                                    &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
         try!(util::perm::set_permissions(&self.svc_join_path("var"), "0700"));
         Ok(())

@@ -379,6 +379,7 @@ pub struct Pkg {
     pub path: String,
     pub svc_path: String,
     pub svc_config_path: String,
+    pub svc_data_path: String,
 }
 
 impl Pkg {
@@ -429,6 +430,7 @@ impl Pkg {
             path: pkg_install.installed_path().to_string_lossy().into_owned(),
             svc_path: pkg_install.svc_path().to_string_lossy().into_owned(),
             svc_config_path: pkg_install.svc_config_path().to_string_lossy().into_owned(),
+            svc_data_path: pkg_install.svc_data_path().to_string_lossy().into_owned(),
         }
     }
 
