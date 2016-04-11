@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use error::{Error, Result};
-use fs::PACKAGE_HOME;
+use fs::PKG_PATH;
 use package::{MetaFile, PackageIdent};
 
 const SUP_PKG_ORIGIN: &'static str = "chef";
@@ -36,7 +36,7 @@ impl PackageInstall {
     ///
     /// An optional `home` path may be provided to search for a package in a non-default path.
     pub fn load(ident: &PackageIdent, home: Option<&Path>) -> Result<PackageInstall> {
-        let path = home.unwrap_or(Path::new(PACKAGE_HOME));
+        let path = home.unwrap_or(Path::new(PKG_PATH));
         let pl = try!(Self::package_list(path));
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
