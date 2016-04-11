@@ -10,8 +10,8 @@ pkg_deps=(chef/glibc)
 pkg_bin_dirs=(bin)
 
 do_unpack() {
-  mkdir -p $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}
-  tar zxf $BLDR_SRC_CACHE/$pkg_filename -C $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}
+  mkdir -p $HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}
+  tar zxf $HAB_CACHE_SRC_PATH/$pkg_filename -C $HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}
 }
 
 do_build() {

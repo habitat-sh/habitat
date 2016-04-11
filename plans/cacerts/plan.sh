@@ -21,8 +21,8 @@ do_verify() {
 }
 
 do_unpack() {
-  mkdir -pv $BLDR_SRC_CACHE/$pkg_dirname
-  cp -v $BLDR_SRC_CACHE/$pkg_filename $BLDR_SRC_CACHE/$pkg_dirname
+  mkdir -pv $HAB_CACHE_SRC_PATH/$pkg_dirname
+  cp -v $HAB_CACHE_SRC_PATH/$pkg_filename $HAB_CACHE_SRC_PATH/$pkg_dirname
 }
 
 do_build() {
@@ -37,7 +37,7 @@ do_install() {
 
 update_pkg_version() {
   # Extract the build date of the certificates file
-  local build_date=$(cat $BLDR_SRC_CACHE/$pkg_filename \
+  local build_date=$(cat $HAB_CACHE_SRC_PATH/$pkg_filename \
     | grep 'Certificate data from Mozilla' \
     | sed 's/^## Certificate data from Mozilla as of: //')
 

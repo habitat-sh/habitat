@@ -40,10 +40,10 @@ pkg_expose=(80 443 3000)
 #   pushd radiant
 #   git checkout $radiant_git_shasum
 #   popd
-#   tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 \
+#   tar -cjvf $HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2 \
 #       --transform "s,^\./radiant,radiant-${pkg_version}," ./radiant \
 #       --exclude radiant/.git --exclude radiant/spec
-#   pkg_shasum=$(trim $(sha256sum $BLDR_SRC_CACHE/${pkg_filename} | cut -d " " -f 1))
+#   pkg_shasum=$(trim $(sha256sum $HAB_CACHE_SRC_PATH/${pkg_filename} | cut -d " " -f 1))
 # }
 
 # The configure scripts for some RubyGems that build native extensions

@@ -47,7 +47,7 @@ do_install() {
 
 do_end() {
   build_line "Creating slim tarball"
-  pushd $BLDR_SRC_CACHE > /dev/null
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
     dir="$(cat $pkg_prefix/IDENT | tr '/' '-')"
     rm -rfv $dir
     mkdir -pv $dir

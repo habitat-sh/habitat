@@ -13,9 +13,9 @@ pkg_filename="$(basename $pkg_source)"
 pkg_dirname="${pkg_name}-${pkg_version}"
 
 do_unpack() {
-  mkdir -p "$BLDR_SRC_CACHE/$pkg_dirname"
-  pushd $BLDR_SRC_CACHE/$pkg_dirname > /dev/null
-    tar xzf "$BLDR_SRC_CACHE/$pkg_filename"
+  mkdir -p "$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  pushd $HAB_CACHE_SRC_PATH/$pkg_dirname > /dev/null
+    tar xzf "$HAB_CACHE_SRC_PATH/$pkg_filename"
   popd > /dev/null
 }
 

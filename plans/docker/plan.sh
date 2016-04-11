@@ -11,9 +11,9 @@ pkg_bin_dirs=(bin)
 pkg_gpg_key=3853DA6B
 
 do_unpack() {
-  pushd $BLDR_SRC_CACHE
+  pushd $HAB_CACHE_SRC_PATH
   mkdir -p $pkg_dirname
-  tar xf $pkg_filename -C $BLDR_SRC_CACHE/$pkg_dirname
+  tar xf $pkg_filename -C $HAB_CACHE_SRC_PATH/$pkg_dirname
 }
 
 do_build() {
@@ -22,6 +22,6 @@ do_build() {
 
 do_install() {
   mkdir -p $pkg_prefix/bin
-  cp $BLDR_SRC_CACHE/$pkg_dirname/usr/local/bin/docker $pkg_prefix/bin
+  cp $HAB_CACHE_SRC_PATH/$pkg_dirname/usr/local/bin/docker $pkg_prefix/bin
   chmod a+x $pkg_prefix/bin/docker
 }

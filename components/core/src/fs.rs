@@ -10,8 +10,9 @@ use std::path::PathBuf;
 pub const ROOT_PATH: &'static str = "/opt/bldr";
 pub const PACKAGE_HOME: &'static str = "/opt/bldr/pkgs";
 pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
-pub const SOURCE_CACHE: &'static str = "/opt/bldr/cache/src";
 pub const PACKAGE_CACHE: &'static str = "/opt/bldr/cache/pkgs";
+/// The default path where source artifacts are downloaded, extracted, & compiled
+pub const CACHE_SRC_PATH: &'static str = "/opt/bldr/cache/src";
 pub const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
 pub const KEY_CACHE: &'static str = "/opt/bldr/cache/keys";
 

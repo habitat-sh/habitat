@@ -180,7 +180,7 @@
 # * `$pkg_svc_var`: Variable state; `$pkg_svc/var`
 # * `$pkg_svc_config`: Configuration; `$pkg_svc/config`
 # * `$pkg_svc_static`: Static data; `$pkg_svc/static`
-# * `$BLDR_SRC_CACHE`: The path to all the package sources
+# * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
 # * `$BLDR_PKG_CACHE`: The path to all generated packages
 # * `$CFLAGS`: C compiler options
 # * `$LDFLAGS`: C linker options
@@ -276,8 +276,8 @@ BLDR_VERSION=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 : ${HAB_ROOT_PATH:=/opt/bldr}
-# Where the source cache is
-BLDR_SRC_CACHE=$HAB_ROOT_PATH/cache/src
+# The default path where source artifacts are downloaded, extracted, & compiled
+HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # Where the resulting packages are
 BLDR_PKG_CACHE=$HAB_ROOT_PATH/cache/pkgs
 # Location containing installed packages
@@ -1077,7 +1077,7 @@ download_file() {
   local dst="$2"
   local sha="$3"
 
-  pushd $BLDR_SRC_CACHE > /dev/null
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
   if [[ -f $dst && -n "$sha" ]]; then
     build_line "Found previous file '$dst', attempting to re-use"
     if verify_file $dst $sha; then
@@ -1107,7 +1107,7 @@ download_file() {
 # will be printed to stderr with the expected and computed shasum values.
 verify_file() {
   build_line "Verifying $1"
-  local checksum=($($_shasum_cmd $BLDR_SRC_CACHE/$1))
+  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$1))
   if [[ $2 = $checksum ]]; then
     build_line "Checksum verified for $1"
   else
@@ -1130,10 +1130,10 @@ verify_file() {
 # message will be printed to stderr to provide context.
 unpack_file() {
   build_line "Unpacking $1"
-  local unpack_file="$BLDR_SRC_CACHE/$1"
+  local unpack_file="$HAB_CACHE_SRC_PATH/$1"
   # Thanks to: http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
-    pushd $BLDR_SRC_CACHE > /dev/null
+    pushd $HAB_CACHE_SRC_PATH > /dev/null
     case $unpack_file in
       *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
         $_tar_cmd xf $unpack_file
@@ -1401,7 +1401,7 @@ _set_path() {
 }
 
 # Download the software from `$pkg_source` and place it in
-# `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already exists in the
+# `$HAB_CACHE_SRC_PATH/${$pkg_filename}`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
 # Delegates most of the implementation to the `do_default_download()` function.
 do_download() {
@@ -1414,8 +1414,8 @@ do_default_download() {
   download_file $pkg_source $pkg_filename $pkg_shasum
 }
 
-# Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename` has the
-# `$pkg_shasum` we expect. Delegates most of the implementation to the
+# Verify that the package we have in `$HAB_CACHE_SRC_PATH/$pkg_filename` has
+# the `$pkg_shasum` we expect. Delegates most of the implementation to the
 # `do_default_verify()` function.
 do_verify() {
   do_default_verify
@@ -1438,14 +1438,14 @@ do_clean() {
 # Default implementation for the `do_clean()` phase.
 do_default_clean() {
   build_line "Clean the cache"
-  rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
+  rm -rf "$HAB_CACHE_SRC_PATH/$pkg_dirname"
   return 0
 }
 
-# Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and unpacks
-# it, as long as the method of extraction can be determined.
+# Takes the `$HAB_CACHE_SRC_PATH/$pkg_filename` from the download step, and
+# unpacks it, as long as the method of extraction can be determined.
 #
-# This takes place in the $BLDR_SRC_CACHE directory.
+# This takes place in the $HAB_CACHE_SRC_PATH directory.
 #
 # Delegates most of the implementation to the `do_default_unpack()` function.
 do_unpack() {
@@ -1520,7 +1520,7 @@ _build_environment() {
   done
 
   # Create a working directory if it doesn't already exist from `do_unpack()`
-  mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
+  mkdir -pv "$HAB_CACHE_SRC_PATH/$pkg_dirname"
 
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_prefix
@@ -1535,7 +1535,7 @@ _build_environment() {
 # source to remove the default system search path of `/usr/lib`, etc. when
 # looking for shared libraries.
 _fix_libtool() {
-  find "$BLDR_SRC_CACHE/$pkg_dirname" -iname "ltmain.sh" | while read file; do
+  find "$HAB_CACHE_SRC_PATH/$pkg_dirname" -iname "ltmain.sh" | while read file; do
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
@@ -1545,7 +1545,7 @@ _fix_libtool() {
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
   build_line "Preparing to build"
-  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_prepare
   popd > /dev/null
 }
@@ -1566,10 +1566,10 @@ do_default_prepare() {
 
 # Since `build` is one of the most overriden functions, this wrapper makes sure
 # that no matter how it is changed, our `$cwd` is
-# `$BLDR_SRC_CACHE/$pkg_dirname`.
+# `$HAB_CACHE_SRC_PATH/$pkg_dirname`.
 do_build_wrapper() {
   build_line "Building"
-  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_build
   popd > /dev/null
 }
@@ -1609,7 +1609,7 @@ do_default_build() {
 do_check_wrapper() {
   if [[ "$(type -t do_check)" = "function" && -n "$DO_CHECK" ]]; then
     build_line "Running post-compile tests"
-    pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+    pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
     do_check
     popd > /dev/null
   fi
@@ -1620,7 +1620,7 @@ do_check_wrapper() {
 do_install_wrapper() {
   build_line "Installing"
   mkdir -pv $pkg_prefix
-  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
 }
@@ -1993,7 +1993,7 @@ if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
 fi
 
 # Download the source
-mkdir -pv $BLDR_SRC_CACHE
+mkdir -pv $HAB_CACHE_SRC_PATH
 do_download
 
 # Verify the source
@@ -2046,7 +2046,7 @@ build_line "$_program cleanup"
 do_end
 
 # Print the results
-build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
+build_line "Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed: $pkg_prefix"
 build_line "Package: $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 

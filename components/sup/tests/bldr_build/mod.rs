@@ -24,7 +24,7 @@ fn builds_a_service() {
     assert_cmd_exit_code!(simple_service, [0]);
     assert_regex!(simple_service.stdout(), r"Loading /.*/plan.sh");
     assert_regex!(simple_service.stdout(),
-                  &format!(r"{}/bldr_build-0.0.1", fs::SOURCE_CACHE));
+                  &format!(r"{}/bldr_build-0.0.1", fs::CACHE_SRC_PATH));
     assert_regex!(simple_service.stdout(),
                   &format!(r"{}/test/bldr_build/0.0.1/\d{{14}}", fs::PACKAGE_HOME));
     assert_regex!(simple_service.stdout(),

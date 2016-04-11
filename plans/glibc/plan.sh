@@ -311,7 +311,7 @@ extract_src() {
     do_clean
     build_line "Unpacking $pkg_filename"
     do_unpack
-    mv -v $BLDR_SRC_CACHE/$pkg_dirname $BLDR_SRC_CACHE/$build_dirname/$plan
+    mv -v $HAB_CACHE_SRC_PATH/$pkg_dirname $HAB_CACHE_SRC_PATH/$build_dirname/$plan
   )
 }
 

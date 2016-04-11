@@ -14,17 +14,17 @@ pkg_expose=(80 443)
 
 do_begin() {
     pushd ../../
-    mkdir -p $BLDR_SRC_CACHE
-    tar -cjvf $BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2 \
+    mkdir -p $HAB_CACHE_SRC_PATH
+    tar -cjvf $HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2 \
 		    --transform "s,^\./web,bldr-web-${pkg_version}," ./web
     popd
-    pkg_shasum=$(trim $(sha256sum $BLDR_SRC_CACHE/${pkg_filename} | cut -d " " -f 1))
+    pkg_shasum=$(trim $(sha256sum $HAB_CACHE_SRC_PATH/${pkg_filename} | cut -d " " -f 1))
 }
 
 do_build() {
   npm install
 
-  for b in ${BLDR_SRC_CACHE}/${pkg_name}-${pkg_version}/node_modules/.bin/*; do
+  for b in ${HAB_CACHE_SRC_PATH}/${pkg_name}-${pkg_version}/node_modules/.bin/*; do
     fix_interpreter $(readlink -f -n $b) chef/coreutils bin/env
   done
 
