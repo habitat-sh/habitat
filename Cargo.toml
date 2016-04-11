@@ -4,7 +4,6 @@ version = "0.4.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 
 [dependencies]
-gpgme = "*"
 lazy_static = "*"
 libarchive = "*"
 log = "*"

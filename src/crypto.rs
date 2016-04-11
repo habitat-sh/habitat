@@ -187,9 +187,9 @@ fn nacl_key_dir() -> String {
 
 /// Calculate the BLAKE2b hash of a file
 /// NOTE: the key is empty
-pub fn hash_file(filename: &str) -> Result<String> {
+pub fn hash_file<P: AsRef<Path>>(filename: &P) -> Result<String> {
     let key = [0u8; libsodium_sys::crypto_generichash_KEYBYTES];
-    let mut file = try!(File::open(filename));
+    let mut file = try!(File::open(filename.as_ref()));
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
     let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
     let pst = unsafe {
@@ -282,6 +282,19 @@ pub fn artifact_sign(infilename: &str,
     Ok(())
 }
 
+pub fn get_artifact_reader(infilename: &str) -> Result<BufReader<File>> {
+    let f = try!(File::open(infilename));
+    let mut your_key_name = String::new();
+    let mut your_hash_type = String::new();
+    let mut your_signature_raw = String::new();
+
+    let mut reader = BufReader::new(f);
+    let _result = reader.read_line(&mut your_key_name);
+    let _result = reader.read_line(&mut your_hash_type);
+    let _result = reader.read_line(&mut your_signature_raw);
+    Ok(reader)
+}
+
 pub fn artifact_verify(infilename: &str) -> Result<()> {
     nacl_init();
 
@@ -342,7 +355,6 @@ pub fn artifact_verify(infilename: &str) -> Result<()> {
     debug!("My hash {}", my_hash);
     debug!("Your hash {}", your_hash);
     if my_hash == your_hash {
-        println!("Habitat package is valid");
         Ok(())
     } else {
         Err(Error::CryptoError("Habitat package is invalid".to_string()))

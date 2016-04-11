@@ -12,7 +12,6 @@ use std::num;
 use std::result;
 use std::string;
 
-use gpgme;
 use libarchive;
 use regex;
 
@@ -31,10 +30,6 @@ pub enum Error {
     CryptoError(String),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
-    /// When an error occurs in GpgME library calls.
-    GPG(gpgme::Error),
-    /// Occurs when a required GPG key is not found.
-    InvalidKeyParameter(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
     /// Occurs when a service group string cannot be successfully parsed.
@@ -69,10 +64,6 @@ impl fmt::Display for Error {
             }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::GPG(ref e) => format!("{}", e),
-            Error::InvalidKeyParameter(ref e) => {
-                format!("Invalid parameter for key generation: {:?}", e)
-            }
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: chef/redis)",
@@ -112,8 +103,6 @@ impl error::Error for Error {
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
-            Error::GPG(_) => "gpgme error",
-            Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
             Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
             Error::IO(ref err) => err.description(),
@@ -135,11 +124,6 @@ impl From<string::FromUtf8Error> for Error {
     }
 }
 
-impl From<gpgme::Error> for Error {
-    fn from(err: gpgme::Error) -> Error {
-        Error::GPG(err)
-    }
-}
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {

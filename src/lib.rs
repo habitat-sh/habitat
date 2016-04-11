@@ -6,7 +6,6 @@
 // open source license such as the Apache 2.0 License.
 
 extern crate crypto as rust_crypto;
-extern crate gpgme;
 #[macro_use]
 extern crate lazy_static;
 extern crate libarchive;
@@ -22,7 +21,6 @@ pub use self::error::{Error, Result};
 
 pub mod error;
 pub mod fs;
-pub mod gpg;
 pub mod package;
 pub mod service;
 pub mod url;
