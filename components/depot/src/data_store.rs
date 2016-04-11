@@ -1449,7 +1449,7 @@ impl Drop for PkgIndex {
     }
 }
 
-/// Contains a mapping of repository names and the packages found within that repository.
+/// Contains a mapping of view names and the packages found within that view.
 ///
 /// This is how packages will be "promoted" between environments without duplicating data on disk.
 pub struct ViewDatabase {
