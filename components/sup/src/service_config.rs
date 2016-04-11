@@ -109,9 +109,10 @@ impl ServiceConfig {
 
     /// Write the configuration to `config.toml`, and render the templated configuration files.
     pub fn write(&mut self, pkg: &Package) -> Result<bool> {
+        let pi = &pkg.pkg_install;
         let final_toml = try!(self.to_toml());
         {
-            let mut last_toml = try!(File::create(pkg.svc_join_path("config.toml")));
+            let mut last_toml = try!(File::create(pi.svc_path().join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
 
@@ -120,10 +121,11 @@ impl ServiceConfig {
         let mut should_restart = false;
         let config_files = try!(pkg.config_files());
         for config in config_files {
-            let template = try!(mustache::compile_path(pkg.join_path(&format!("config/{}",
-                                                                              config))));
+            let template = try!(mustache::compile_path(pi.installed_path()
+                                                         .join("config")
+                                                         .join(&config)));
             let mut config_vec = Vec::new();
-            let filename = pkg.svc_join_path(&format!("config/{}", config));
+            let filename = pi.svc_config_path().join(&config).to_string_lossy().into_owned();
             template.render_data(&mut config_vec, &final_data);
             let file_hash = openssl_hash::hash(openssl_hash::Type::SHA256, &config_vec);
             if self.config_hash.contains_key(&filename) {
@@ -270,7 +272,7 @@ impl Cfg {
 
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
         // Default
-        let mut file = match File::open(pkg.join_path("default.toml")) {
+        let mut file = match File::open(pkg.path().join("default.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open default.toml: {}", e);
@@ -295,7 +297,7 @@ impl Cfg {
     }
 
     fn load_user(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_join_path("user.toml")) {
+        let mut file = match File::open(pkg.svc_path().join("user.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open user.toml: {}", e);
@@ -320,7 +322,7 @@ impl Cfg {
     }
 
     fn load_gossip(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_join_path("gossip.toml")) {
+        let mut file = match File::open(pkg.svc_path().join("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open gossip.toml: {}", e);

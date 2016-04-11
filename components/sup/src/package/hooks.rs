@@ -9,7 +9,7 @@ use std::fmt;
 use std::fs::{self, OpenOptions};
 use std::io::prelude::*;
 use std::os::unix::fs::OpenOptionsExt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use mustache;
@@ -151,8 +151,7 @@ impl<'a> HookTable<'a> {
     }
 
     pub fn load_hooks(&mut self) -> &mut Self {
-        let hook_path = self.package.join_path("hooks");
-        let path = Path::new(&hook_path);
+        let path = &self.package.path().join("hooks");
         match fs::metadata(path) {
             Ok(meta) => {
                 if meta.is_dir() {

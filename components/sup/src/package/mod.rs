@@ -19,8 +19,6 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 use std::io::prelude::*;
 
-use hcore;
-use hcore::fs::{self, SVC_PATH};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
@@ -115,7 +113,7 @@ impl Package {
     }
 
     pub fn hook_path(&self, hook_type: &HookType) -> PathBuf {
-        let base = PathBuf::from(self.svc_join_path("hooks"));
+        let base = self.pkg_install.svc_hooks_path();
         match *hook_type {
             HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
@@ -130,47 +128,37 @@ impl Package {
         self.pkg_install.installed_path()
     }
 
-    /// Join a string to the path on disk.
-    pub fn join_path(&self, join: &str) -> String {
-        self.pkg_install.installed_path().join(join).to_string_lossy().into_owned()
-    }
-
     /// The on disk svc path for this package.
     pub fn svc_path(&self) -> PathBuf {
-        hcore::fs::svc_path(&self.name)
-    }
-
-    /// Join a string to the on disk svc path for this package.
-    pub fn svc_join_path(&self, join: &str) -> String {
-        format!("{}/{}/{}", SVC_PATH, self.name, join)
+        self.pkg_install.svc_path()
     }
 
     /// Create the service path for this package.
     pub fn create_svc_path(&self) -> Result<()> {
+        let runas = format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP);
         debug!("Creating svc paths");
-        try!(std::fs::create_dir_all(fs::svc_config_path(&self.name)));
-        try!(std::fs::create_dir_all(fs::svc_hooks_path(&self.name)));
-        try!(std::fs::create_dir_all(self.svc_join_path("toml")));
-        try!(std::fs::create_dir_all(fs::svc_data_path(&self.name)));
-        try!(std::fs::create_dir_all(fs::svc_var_path(&self.name)));
-        try!(std::fs::create_dir_all(fs::svc_files_path(&self.name)));
-        try!(util::perm::set_permissions(fs::svc_files_path(&self.name), "0700"));
-        try!(util::perm::set_owner(fs::svc_files_path(&self.name),
-                                   &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
-        try!(util::perm::set_permissions(&self.svc_join_path("toml"), "0700"));
-        try!(util::perm::set_owner(fs::svc_data_path(&self.name),
-                                   &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
-        try!(util::perm::set_permissions(&self.svc_join_path("data"), "0700"));
-        try!(util::perm::set_owner(fs::svc_var_path(&self.name),
-                                   &format!("{}:{}", SERVICE_PATH_OWNER, SERVICE_PATH_GROUP)));
-        try!(util::perm::set_permissions(fs::svc_var_path(&self.name), "0700"));
+        try!(std::fs::create_dir_all(self.pkg_install.svc_config_path()));
+        try!(std::fs::create_dir_all(self.pkg_install.svc_data_path()));
+        try!(util::perm::set_owner(self.pkg_install.svc_data_path(), &runas));
+        try!(util::perm::set_permissions(self.pkg_install.svc_data_path(), "0700"));
+        try!(std::fs::create_dir_all(self.pkg_install.svc_files_path()));
+        try!(util::perm::set_owner(self.pkg_install.svc_files_path(), &runas));
+        try!(util::perm::set_permissions(self.pkg_install.svc_files_path(), "0700"));
+        try!(std::fs::create_dir_all(self.pkg_install.svc_hooks_path()));
+        try!(std::fs::create_dir_all(self.pkg_install.svc_var_path()));
+        try!(util::perm::set_owner(self.pkg_install.svc_var_path(), &runas));
+        try!(util::perm::set_permissions(self.pkg_install.svc_var_path(), "0700"));
+        // TODO: Not 100% if this directory is still needed, but for the moment it's still here -
+        // FIN
+        try!(std::fs::create_dir_all(self.pkg_install.svc_path().join("toml")));
+        try!(util::perm::set_permissions(self.pkg_install.svc_path().join("toml"), "0700"));
         Ok(())
     }
 
     /// Copy the "run" file to the svc path.
     pub fn copy_run(&self, context: &ServiceConfig) -> Result<()> {
         debug!("Copying the run file");
-        let svc_run = self.svc_join_path(RUN_FILENAME);
+        let svc_run = self.pkg_install.svc_path().join(RUN_FILENAME);
         if let Some(hook) = self.hooks().run_hook {
             try!(hook.compile(Some(context)));
             match std::fs::read_link(&svc_run) {
@@ -184,7 +172,7 @@ impl Package {
                 Err(_) => try!(unix::fs::symlink(hook.path, &svc_run)),
             }
         } else {
-            let run = self.join_path(RUN_FILENAME);
+            let run = self.path().join(RUN_FILENAME);
             try!(util::perm::set_permissions(&run, "0755"));
             match std::fs::metadata(&svc_run) {
                 Ok(_) => try!(std::fs::remove_file(&svc_run)),
@@ -205,7 +193,7 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> Result<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        for config in try!(std::fs::read_dir(self.join_path("config"))) {
+        for config in try!(std::fs::read_dir(self.path().join("config"))) {
             let config = try!(config);
             match config.path().file_name() {
                 Some(filename) => {
@@ -300,7 +288,7 @@ impl Package {
     }
 
     pub fn last_config(&self) -> Result<String> {
-        let mut file = try!(File::open(self.svc_join_path("config.toml")));
+        let mut file = try!(File::open(self.pkg_install.svc_path().join("config.toml")));
         let mut result = String::new();
         try!(file.read_to_string(&mut result));
         Ok(result)

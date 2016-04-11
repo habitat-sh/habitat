@@ -333,8 +333,8 @@ impl Drop for DroppableChildProcess {
 fn run_rngd() -> Result<DroppableChildProcess> {
     debug!("Spawning rngd in the background");
     let res = try!(Package::load(&PackageIdent::new("chef", "rngd", None, None), None));
-    let rngdpath = res.join_path("sbin/rngd");
-    debug!("RNGD path = {}", rngdpath);
+    let rngdpath = res.path().join("sbin/rngd");
+    debug!("RNGD path = {}", rngdpath.display());
     let child = Command::new(rngdpath)
                     .arg("-f")
                     .arg("-r")
