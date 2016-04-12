@@ -649,7 +649,9 @@ pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
             if filename.starts_with(keyname) {
                 // push filename without extension
                 // -1 for the '.' before 'pub'
-                let (stem, _) = filename.split_at(filename.chars().count() - PUB_KEY_SUFFIX.chars().count() - 1);
+                let (stem, _) = filename.split_at(filename.chars().count() -
+                                                  PUB_KEY_SUFFIX.chars().count() -
+                                                  1);
                 candidates.push(stem.to_string());
             }
         }
