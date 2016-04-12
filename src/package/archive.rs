@@ -6,20 +6,16 @@
 // open source license such as the Apache 2.0 License.
 
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::str::{self, FromStr};
 
-use rust_crypto::sha2::Sha256;
-use rust_crypto::digest::Digest;
 use libarchive::writer;
 use libarchive::reader::{self, Reader};
 use libarchive::archive::{Entry, ReadFilter, ReadFormat};
 use regex::Regex;
 
 use error::{Error, Result};
-use gpg;
+use crypto;
 use package::{PackageIdent, MetaFile};
 
 lazy_static! {
@@ -55,19 +51,13 @@ impl PackageArchive {
         }
     }
 
-    /// Calculate and return the checksum of the package archive in hexadecimal format.
+    /// Calculate and return the checksum of the package archive in base64 format.
     ///
     /// # Failures
     ///
     /// * If the archive cannot be read
     pub fn checksum(&self) -> Result<String> {
-        let mut digest = Sha256::new();
-        let mut file = try!(File::open(&self.path));
-        let mut buffer = Vec::new();
-        try!(file.read_to_end(&mut buffer));
-        digest.input(&buffer);
-        let hash = digest.result_str();
-        Ok(hash)
+        crypto::hash_file(&self.path)
     }
 
     pub fn cflags(&mut self) -> Result<Option<String>> {
@@ -164,16 +154,13 @@ impl PackageArchive {
     }
 
     /// Given a package name and a path to a file as an `&str`, verify
-    /// the files gpg signature.
+    /// the files signature.
     ///
     /// # Failures
     ///
-    /// * Fails if it cannot verify the GPG signature for any reason
+    /// * Fails if it cannot verify the signature for any reason
     pub fn verify(&self) -> Result<()> {
-        match gpg::verify(self.path.to_str().unwrap()) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(e),
-        }
+        crypto::artifact_verify(self.path.to_str().unwrap())
     }
 
     /// Given a package name and a path to a file as an `&str`, unpack
@@ -181,15 +168,14 @@ impl PackageArchive {
     ///
     /// # Failures
     ///
-    /// * If the package cannot be unpacked via gpg
+    /// * If the package cannot be unpacked
     pub fn unpack(&self) -> Result<()> {
         let file = self.path.to_str().unwrap().to_string();
-        let mut out = try!(gpg::verify(&file));
-        try!(out.seek(SeekFrom::Start(0)));
+        let tar_reader = try!(crypto::get_artifact_reader(&file));
         let mut builder = reader::Builder::new();
         try!(builder.support_format(ReadFormat::All));
         try!(builder.support_filter(ReadFilter::All));
-        let mut reader = try!(builder.open_stream(out));
+        let mut reader = try!(builder.open_stream(tar_reader));
         let writer = writer::Disk::new();
         try!(writer.set_standard_lookup());
         try!(writer.write(&mut reader, Some("/")));
@@ -228,12 +214,11 @@ impl PackageArchive {
         let mut metadata = Metadata::new();
         let mut matched_count = 0u8;
         let f = self.path.to_str().unwrap().to_string();
-        let mut out = try!(gpg::verify(&f));
-        try!(out.seek(SeekFrom::Start(0)));
+        let tar_reader = try!(crypto::get_artifact_reader(&f));
         let mut builder = reader::Builder::new();
         try!(builder.support_format(ReadFormat::All));
         try!(builder.support_filter(ReadFilter::All));
-        let mut reader = try!(builder.open_stream(out));
+        let mut reader = try!(builder.open_stream(tar_reader));
         loop {
             let mut matched_type: Option<MetaFile> = None;
             if let Some(entry) = reader.next_header() {
@@ -271,5 +256,6 @@ impl PackageArchive {
         }
         self.metadata = Some(metadata);
         Ok(self.metadata.as_ref().unwrap().get(&file))
+
     }
 }
