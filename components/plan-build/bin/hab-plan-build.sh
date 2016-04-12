@@ -1866,12 +1866,12 @@ _generate_package() {
   build_line "Signing artifact"
   /src/components/hab/target/debug/hab artifact sign \
             $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz \
-            $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.hab --origin ${HABITAT_ORIGIN}
+            $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --origin ${HABITAT_ORIGIN}
 
   build_line "Verifying artifact"
   ## TODO: pretty output
   /src/components/hab/target/debug/hab artifact verify \
-       $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.hab
+       $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr
 
   # TODO
   rm $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz
@@ -2044,7 +2044,7 @@ do_end
 # Print the results
 build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
-build_line "Artifact: $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.hab"
+build_line "Artifact: $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
 build_line
