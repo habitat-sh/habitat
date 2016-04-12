@@ -1,7 +1,0 @@
-sid = "BDR"
-instance-id = 42
-password = "Password1234"
-sapadm-password = "Password1234"
-system-user-password = "Password1234"
-root-password = "Password1234"
-role = "worker"
