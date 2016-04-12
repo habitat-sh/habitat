@@ -56,9 +56,14 @@ dependencies = [
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+<<<<<<< HEAD
  "regex 0.1.65 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust-crypto 0.2.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+=======
+ "regex 0.1.62 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
+>>>>>>> Remove rust-crypto dep from core.
  "sodiumoxide 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -311,6 +316,7 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+<<<<<<< HEAD
 name = "rust-crypto"
 version = "0.2.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -323,6 +329,8 @@ dependencies = [
 ]
 
 [[package]]
+=======
+>>>>>>> Remove rust-crypto dep from core.
 name = "rustc-serialize"
 version = "0.3.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"

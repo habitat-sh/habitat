@@ -5,7 +5,6 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-extern crate crypto as rust_crypto;
 #[macro_use]
 extern crate lazy_static;
 extern crate libarchive;
