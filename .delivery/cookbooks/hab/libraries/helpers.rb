@@ -1,4 +1,4 @@
-module BldrDocker
+module HabDocker
   class << self
     include Chef::Mixin::ShellOut
   end
@@ -29,7 +29,7 @@ module BldrDocker
   end
 end
 
-module BldrDockerMachine
+module HabDockerMachine
   def self.available?(port = 2376)
     require 'socket'
 

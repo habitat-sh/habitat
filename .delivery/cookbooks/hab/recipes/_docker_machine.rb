@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: bldr
+# Cookbook Name:: hab
 # Recipe:: _docker_machine
 #
 # Copyright 2015 Chef Software, Inc.
@@ -17,7 +17,7 @@
 # limitations under the License.
 
 if node.attribute?('delivery')
-  machine_dir = BldrDockerMachine.dbuild_machine_dir
+  machine_dir = HabDockerMachine.dbuild_machine_dir
   load_delivery_chef_config
 else
   chef_dir = ENV['CHEF_DIR'] || '.chef'

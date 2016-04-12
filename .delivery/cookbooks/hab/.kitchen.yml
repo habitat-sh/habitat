@@ -22,13 +22,13 @@ platforms:
 suites:
   - name: unit
     run_list:
-      - recipe[bldr]
-      - recipe[bldr::unit]
+      - recipe[hab]
+      - recipe[hab::unit]
   - name: lint
     run_list:
-      - recipe[bldr]
-      - recipe[bldr::lint]
+      - recipe[hab]
+      - recipe[hab::lint]
   - name: functional
     run_list:
-      - recipe[bldr]
-      - recipe[bldr::functional]
+      - recipe[hab]
+      - recipe[hab::functional]

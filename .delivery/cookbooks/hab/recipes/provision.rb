@@ -30,7 +30,7 @@ execute 'bldr-docker-machine' do
   sensitive true
   environment('AWS_ACCESS_KEY_ID'     => creds['aws_access_key_id'],
               'AWS_SECRET_ACCESS_KEY' => creds['aws_secret_access_key'])
-  not_if { BldrDockerMachine.available? }
+  not_if { HabDockerMachine.available? }
 end
 
 chef_gem 'aws-sdk-v1'
@@ -40,8 +40,8 @@ ruby_block 'save-docker-machine-state' do
     # We need to save the secrets created by
     # 'execute[bldr-docker-machine]' above somewhere that all builder
     # nodes in Delivery can access.
-    machine_home   = BldrDockerMachine.machine_home
-    config         = BldrDockerMachine.load_config
+    machine_home   = HabDockerMachine.machine_home
+    config         = HabDockerMachine.load_config
     ca_pem         = IO.read(File.join(machine_home, 'ca.pem'))
     server_pem     = IO.read(File.join(machine_home, 'server.pem'))
     server_key_pem = IO.read(File.join(machine_home, 'server-key.pem'))
@@ -80,7 +80,7 @@ end
 
 ruby_block 'tag-docker-machine' do
   block do
-    config = BldrDockerMachine.load_config
+    config = HabDockerMachine.load_config
     instance_id = config['Driver']['InstanceId']
 
     require 'aws-sdk-v1'

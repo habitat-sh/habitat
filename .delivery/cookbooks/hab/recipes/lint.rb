@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: bldr
+# Cookbook Name:: hab
 # Recipe:: lint
 #
 # Copyright 2015 Chef Software, Inc.
@@ -21,7 +21,7 @@ execute 'make distclean' do
   environment(
     'IN_DOCKER' => 'true'
   )
-  not_if { BldrDocker.fresh_image?(BldrDocker.devshell_name) }
+  not_if { HabDocker.fresh_image?(HabDocker.devshell_name) }
 end
 
 execute 'make docs refresh=true' do

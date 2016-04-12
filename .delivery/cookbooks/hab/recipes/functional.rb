@@ -1,6 +1,6 @@
 #
-# Cookbook Name:: bldr
-# Recipe:: unit
+# Cookbook Name:: hab
+# Recipe:: functional
 #
 # Copyright 2015 Chef Software, Inc.
 #
@@ -16,17 +16,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load_delivery_chef_config
+
+machine_dir = HabDockerMachine.dbuild_machine_dir
+docker_machine_config = HabDockerMachine.load_config
+ssh_key = data_bag_item('delivery-secrets', 'chef-bldr-acceptance')['github']
+
+env = {
+  'IN_DOCKER' => 'true',
+  'GITHUB_DEPLOY_KEY' => ssh_key,
+  'DELIVERY_GIT_SHASUM' => node['delivery']['change']['sha'],
+  'DOCKER_TLS_VERIFY' => '1',
+  'DOCKER_CERT_PATH' => machine_dir,
+  'DOCKER_HOST' => "tcp://#{HabDockerMachine.machine_ip}:2376",
+  'DOCKER_MACHINE_NAME' => 'bldr-docker-machine'
+}
+
 execute 'make distclean' do
   cwd node['delivery']['workspace']['repo']
-  environment(
-    'IN_DOCKER' => 'true'
-  )
-  not_if { BldrDocker.fresh_image?(BldrDocker.devshell_name) }
+  environment(env)
+  not_if { HabDocker.fresh_image?(HabDocker.devshell_name) }
 end
 
-execute 'make unit refresh=true' do
+execute "make functional refresh=true" do
   cwd node['delivery']['workspace']['repo']
-  environment(
-    'IN_DOCKER' => 'true'
-  )
+  environment(env)
 end
