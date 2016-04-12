@@ -98,6 +98,7 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
                                                                ident.as_ref(),
                                                                CACHE_ARTIFACT_PATH));
             let ident = try!(archive.ident());
+            try!(archive.verify());
             try!(archive.unpack());
             println!("Installed {}", ident);
         }
