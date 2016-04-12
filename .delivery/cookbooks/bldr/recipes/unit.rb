@@ -21,7 +21,7 @@ execute 'make distclean' do
   environment(
     'IN_DOCKER' => 'true'
   )
-  not_if { BldrDocker.fresh_image?("bldr/devshell:latest") }
+  not_if { BldrDocker.fresh_image?(BldrDocker.devshell_name) }
 end
 
 execute 'make unit refresh=true' do

@@ -35,7 +35,7 @@ env = {
 execute 'make distclean' do
   cwd node['delivery']['workspace']['repo']
   environment(env)
-  not_if { BldrDocker.fresh_image?("bldr/devshell:latest") }
+  not_if { BldrDocker.fresh_image?(BldrDocker.devshell_name) }
 end
 
 execute "make functional refresh=true" do

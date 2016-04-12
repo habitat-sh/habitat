@@ -3,6 +3,10 @@ module BldrDocker
     include Chef::Mixin::ShellOut
   end
 
+  def self.devshell_name
+    'habitat/devshell:latest'
+  end
+
   def self.image_exists?(repository)
     !shell_out!(%{docker images -q #{repository}}).stdout.empty?
   end
