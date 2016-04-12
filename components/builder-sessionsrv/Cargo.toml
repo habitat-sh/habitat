@@ -15,6 +15,7 @@ log = "*"
 protobuf = "*"
 redis = "*"
 rustc-serialize = "*"
+time = "*"
 
 [dependencies.clap]
 version = "*"
@@ -24,6 +25,9 @@ features = [ "suggestions", "color", "unstable" ]
 # git = "https://github.com/erickt/rust-zmq.git"
 git = "https://github.com/reset/rust-zmq.git"
 branch = "build-rs"
+
+[dependencies.habitat_builder_dbcache]
+path = "../builder-dbcache"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

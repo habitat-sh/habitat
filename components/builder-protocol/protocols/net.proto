@@ -5,9 +5,11 @@ enum ErrCode {
   TIMEOUT = 1;
   REMOTE_REJECTED = 2;
   BAD_REMOTE_REPLY = 3;
+  ENTITY_NOT_FOUND = 4;
+  INTERNAL = 5;
 }
 
 message NetError {
-    required ErrCode code = 1;
-    required string msg = 2;
+  required ErrCode code = 1;
+  required string msg = 2;
 }

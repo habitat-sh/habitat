@@ -4,18 +4,21 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::sync::{Arc, Mutex};
-use std::thread;
+use std::sync::{mpsc, Arc, Mutex};
+use std::thread::{self, JoinHandle};
 
 use iron::prelude::*;
-use iron::{headers, status, AfterMiddleware};
+use iron::{status, AfterMiddleware};
+use iron::headers::{self, Authorization, Bearer};
 use protobuf::{self, Message};
-use protocol::sessionsrv::{AuthToken, GitHubAuth};
+use protocol::sessionsrv::{Session, SessionGet, GitHubAuth};
+use protocol::vault::{Origin, OriginCreate, OriginGet};
 use protocol::net::NetError;
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
 use zmq;
 
+use broker::{SessionSrv, VaultSrv};
 use config::Config;
 use error::Result;
 
@@ -28,20 +31,31 @@ impl AfterMiddleware for Cors {
     }
 }
 
-pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<()> {
+pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<JoinHandle<()>> {
+    let (tx, rx) = mpsc::sync_channel(1);
     let ctx1 = context.clone();
+    let ctx2 = context.clone();
+    let ctx3 = context.clone();
+    let ctx4 = context.clone();
     let router = router!(
-        get "/authenticate/:code" => move |r: &mut Request| authenticate(r, &ctx1)
+        get "/authenticate/:code" => move |r: &mut Request| authenticate(r, &ctx1),
+
+        get "/origins/:origin" => move |r: &mut Request| origin_show(r, &ctx3),
+        post "/origins/:origin" => move |r: &mut Request| origin_create(r, &ctx4),
     );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
-    thread::Builder::new().name("http-srv".to_string()).spawn(move || {
-        let mut xmitter = context.lock().unwrap().socket(zmq::PAIR).unwrap();
-        xmitter.connect("inproc://rz-http").unwrap();
-        let server = Iron::new(chain).http(config.http_addr).unwrap();
-        xmitter.send(&[], 0).unwrap();
-    });
-    Ok(())
+    let handle = thread::Builder::new()
+                     .name("http-srv".to_string())
+                     .spawn(move || {
+                         let _server = Iron::new(chain).http(config.http_addr).unwrap();
+                         tx.send(()).unwrap();
+                     })
+                     .unwrap();
+    match rx.recv() {
+        Ok(()) => Ok(handle),
+        Err(e) => panic!("http-srv thread startup error, err={}", e),
+    }
 }
 
 fn authenticate(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
@@ -50,26 +64,23 @@ fn authenticate(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult
         Some(code) => code.to_string(),
         _ => return Ok(Response::with(status::BadRequest)),
     };
-    let mut xmitter = {
-        ctx.lock().unwrap().socket(zmq::REQ).unwrap()
-    };
-    xmitter.connect("inproc://login-queue").unwrap();
+    let mut conn = SessionSrv::connect(&ctx).unwrap();
     let mut request = GitHubAuth::new();
     request.set_code(code.to_string());
-    xmitter.send_str("LOGIN", zmq::SNDMORE).unwrap();
-    xmitter.send(&request.write_to_bytes().unwrap(), 0).unwrap();
+    conn.send_str("SessionCreate", zmq::SNDMORE).unwrap();
+    conn.send(&request.write_to_bytes().unwrap(), 0).unwrap();
 
-    match xmitter.recv_msg(0) {
+    match conn.recv_msg(0) {
         Ok(rep) => {
             match rep.as_str() {
-                Some("AuthToken") => {
-                    let msg = xmitter.recv_msg(0).unwrap();
-                    let token: AuthToken = protobuf::parse_from_bytes(&msg).unwrap();
+                Some("Session") => {
+                    let msg = conn.recv_msg(0).unwrap();
+                    let token: Session = protobuf::parse_from_bytes(&msg).unwrap();
                     let encoded = json::encode(&token.to_json()).unwrap();
                     Ok(Response::with((status::Ok, encoded)))
                 }
                 Some("NetError") => {
-                    let msg = xmitter.recv_msg(0).unwrap();
+                    let msg = conn.recv_msg(0).unwrap();
                     let err: NetError = protobuf::parse_from_bytes(&msg).unwrap();
                     let encoded = json::encode(&err.to_json()).unwrap();
                     Ok(Response::with((status::Ok, encoded)))
@@ -78,7 +89,116 @@ fn authenticate(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult
             }
         }
         Err(e) => {
-            println!("{:?}", e);
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+fn origin_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+    let mut conn = VaultSrv::connect(&ctx).unwrap();
+    let mut request = OriginGet::new();
+    request.set_name(origin);
+    conn.send_str("OriginGet", zmq::SNDMORE).unwrap();
+    conn.send(&request.write_to_bytes().unwrap(), 0).unwrap();
+    match conn.recv_msg(0) {
+        Ok(rep) => {
+            match rep.as_str() {
+                Some("Origin") => {
+                    let msg = conn.recv_msg(0).unwrap();
+                    let origin: Origin = protobuf::parse_from_bytes(&msg).unwrap();
+                    let encoded = json::encode(&origin.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                Some("NetError") => {
+                    let msg = conn.recv_msg(0).unwrap();
+                    let err: NetError = protobuf::parse_from_bytes(&msg).unwrap();
+                    let encoded = json::encode(&err.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                _ => Ok(Response::with(status::InternalServerError)),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+fn origin_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
+    let session: Session = match req.headers.get::<Authorization<Bearer>>() {
+        Some(&Authorization(Bearer {ref token})) => {
+            // ask session server for owner
+            let mut conn = SessionSrv::connect(&ctx).unwrap();
+            let mut request = SessionGet::new();
+            request.set_token(token.to_string());
+            conn.send_str("SessionGet", zmq::SNDMORE).unwrap();
+            conn.send(&request.write_to_bytes().unwrap(), 0).unwrap();
+            match conn.recv_msg(0) {
+                Ok(rep) => {
+                    match rep.as_str() {
+                        Some("Session") => {
+                            let msg = conn.recv_msg(0).unwrap();
+                            protobuf::parse_from_bytes(&msg).unwrap()
+                        }
+                        Some("NetError") => {
+                            let msg = conn.recv_msg(0).unwrap();
+                            let err: NetError = protobuf::parse_from_bytes(&msg).unwrap();
+                            let encoded = json::encode(&err.to_json()).unwrap();
+                            return Ok(Response::with((status::Ok, encoded)));
+                        }
+                        Some(msg) => {
+                            warn!("unexpected msg: {:?}", msg);
+                            return Ok(Response::with(status::InternalServerError));
+                        }
+                        None => return Ok(Response::with(status::Unauthorized)),
+                    }
+                }
+                Err(e) => {
+                    error!("session get, err={:?}", e);
+                    return Ok(Response::with(status::InternalServerError));
+                }
+            }
+        }
+        _ => return Ok(Response::with(status::Unauthorized)),
+    };
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+    let mut conn = VaultSrv::connect(&ctx).unwrap();
+    let mut request = OriginCreate::new();
+    request.set_name(origin);
+    request.set_owner_id(session.get_id());
+    conn.send_str("OriginCreate", zmq::SNDMORE).unwrap();
+    conn.send(&request.write_to_bytes().unwrap(), 0).unwrap();
+    match conn.recv_msg(0) {
+        Ok(rep) => {
+            match rep.as_str() {
+                Some("Origin") => {
+                    let msg = conn.recv_msg(0).unwrap();
+                    let origin: Origin = protobuf::parse_from_bytes(&msg).unwrap();
+                    let encoded = json::encode(&origin.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                Some("NetError") => {
+                    let msg = conn.recv_msg(0).unwrap();
+                    let err: NetError = protobuf::parse_from_bytes(&msg).unwrap();
+                    let encoded = json::encode(&err.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                _ => Ok(Response::with(status::InternalServerError)),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
             Ok(Response::with(status::ServiceUnavailable))
         }
     }

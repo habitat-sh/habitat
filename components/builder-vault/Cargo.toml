@@ -1,17 +1,19 @@
 [package]
-name = "habitat_builder_jobsrv"
+name = "habitat_builder_vault"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-description = "Habitat-Builder Job Server"
+description = "Habitat-Builder Vault Server"
 
 [[bin]]
-name = "bldr-job-srv"
+name = "bldr-vault"
 doc = false
 
 [dependencies]
 env_logger = "*"
 log = "*"
 protobuf = "*"
+redis = "*"
+rustc-serialize = "*"
 
 [dependencies.clap]
 version = "*"

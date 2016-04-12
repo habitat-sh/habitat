@@ -5,18 +5,12 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::sync::{Arc, Mutex};
-use std::thread;
-use std::time::Duration;
 
 use zmq;
 
-use hab_net::Conn;
-use protobuf::{self, Message};
-use protocol::{jobsrv, sessionsrv};
-
+use broker;
 use config::Config;
 use error::Result;
-use login_queue;
 use http;
 
 pub struct Server {
@@ -26,7 +20,7 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let mut ctx = zmq::Context::new();
+        let ctx = zmq::Context::new();
         Ok(Server {
             config: Arc::new(config),
             context: Arc::new(Mutex::new(ctx)),
@@ -34,48 +28,18 @@ impl Server {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        try!(self.start_conn());
-        try!(self.start_http());
-
-        loop {
-            thread::sleep(Duration::from_millis(5000));
-        }
-        Ok(())
-    }
-
-    fn start_conn(&mut self) -> Result<()> {
-        let mut receiver = {
-            let mut receiver = try!(self.context.lock().unwrap().socket(zmq::PAIR));
-            try!(receiver.bind("inproc://rz-login-queue"));
-            receiver
-        };
         let cfg1 = self.config.clone();
+        let cfg2 = self.config.clone();
+        let cfg3 = self.config.clone();
         let ctx1 = self.context.clone();
-        try!(login_queue::Server::run(cfg1, ctx1));
-        try!(receiver.recv_msg(0).map(|msg| {
-            match msg.as_str() {
-                Some(_) => println!("LoginQ conn ready"),
-                _ => panic!("error starting LoginQ conn"),
-            }
-        }));
-        Ok(())
-    }
+        let ctx2 = self.context.clone();
+        let ctx3 = self.context.clone();
+        try!(broker::SessionSrv::run(cfg1, ctx1));
+        try!(broker::VaultSrv::run(cfg2, ctx2));
+        let handle = try!(http::run(cfg3, ctx3));
 
-    fn start_http(&mut self) -> Result<()> {
-        let mut receiver = {
-            let mut receiver = try!(self.context.lock().unwrap().socket(zmq::PAIR));
-            try!(receiver.bind("inproc://rz-http"));
-            receiver
-        };
-        let cfg1 = self.config.clone();
-        let ctx1 = self.context.clone();
-        try!(http::run(cfg1, ctx1));
-        try!(receiver.recv_msg(0).map(|msg| {
-            match msg.as_str() {
-                Some(_) => println!("Builder API listening on {}", &self.config.http_addr),
-                _ => panic!("error starting http-srv"),
-            }
-        }));
+        println!("Builder API listening on {}", &self.config.http_addr);
+        handle.join().unwrap();
         Ok(())
     }
 }

@@ -9,6 +9,7 @@ use std::net;
 pub struct Config {
     pub http_addr: net::SocketAddrV4,
     sessionsrv_addr: net::SocketAddrV4,
+    vaultsrv_addr: net::SocketAddrV4,
 }
 
 impl Config {
@@ -22,6 +23,12 @@ impl Config {
                 self.sessionsrv_addr.port())
     }
 
+    pub fn vaultsrv_addr(&self) -> String {
+        format!("tcp://{}:{}",
+                self.vaultsrv_addr.ip(),
+                self.vaultsrv_addr.port())
+    }
+
     pub fn set_port(&mut self, port: u16) -> &mut Self {
         self.http_addr = net::SocketAddrV4::new(*self.http_addr.ip(), port);
         self
@@ -33,6 +40,7 @@ impl Default for Config {
         Config {
             http_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 9636),
             sessionsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5560),
+            vaultsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5561),
         }
     }
 }

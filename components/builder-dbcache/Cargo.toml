@@ -1,13 +1,12 @@
 [package]
-name = "habitat_net"
+name = "habitat_builder_dbcache"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+description = "Habitat-Builder Database Access Library"
 
 [dependencies]
+env_logger = "*"
 log = "*"
-protobuf = "*"
-
-[dependencies.zmq]
-# git = "https://github.com/erickt/rust-zmq.git"
-git = "https://github.com/reset/rust-zmq.git"
-branch = "build-rs"
+redis = "*"
+rustc-serialize = "*"
+time = "*"

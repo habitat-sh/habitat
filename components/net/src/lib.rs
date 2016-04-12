@@ -5,15 +5,12 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 #[macro_use]
-extern crate bitflags;
+extern crate log;
 extern crate protobuf;
 extern crate zmq;
 
-pub mod conn;
 pub mod error;
-pub mod message;
 pub mod server;
 
-pub use self::conn::Conn;
 pub use self::error::{Error, Result};
-pub use self::message::Message;
+pub use self::server::{Supervisor, Supervisable};

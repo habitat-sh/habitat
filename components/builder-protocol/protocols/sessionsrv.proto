@@ -4,6 +4,13 @@ message GitHubAuth {
   required string code = 1;
 }
 
-message AuthToken {
+message Session {
+  required uint64 id = 1;
+  required string email = 2;
+  required string name = 3;
+  required string token = 4;
+}
+
+message SessionGet {
   required string token = 1;
 }

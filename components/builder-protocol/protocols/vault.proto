@@ -1,0 +1,18 @@
+import "protocols/sessionsrv.proto";
+
+package vault;
+
+message Origin {
+  required uint64 id = 1;
+  required string name = 2;
+  required uint64 owner_id = 3;
+}
+
+message OriginCreate {
+  required string name = 1;
+  required uint64 owner_id = 2;
+}
+
+message OriginGet {
+  required string name = 1;
+}

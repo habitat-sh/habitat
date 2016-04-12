@@ -7,3 +7,4 @@
 pub mod jobsrv;
 pub mod net;
 pub mod sessionsrv;
+pub mod vault;
