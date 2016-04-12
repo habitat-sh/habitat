@@ -27,14 +27,13 @@
 # pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
 # pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 # pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
-# pkg_gpg_key=3853DA6B
 # pkg_deps=(glibc)
 # pkg_lib_dirs=(lib)
 # pkg_include_dirs=(include)
 # ```
 #
 # It has the name of the software, the version, where to download it, a
-# checksum to verify the contents are what we expect, a GPG key to sign the
+# checksum to verify the contents are what we expect, an origin key to sign the
 # resulting package with, a single dependency on glibc, and it has the
 # resulting libraries in `lib` and header files in `include`.
 #
@@ -47,7 +46,7 @@
 # 1. Run `./configure && make`
 # 1. Run `make install`
 # 1. Write out the data other packages need to depend on `zlib`
-# 1. Create a GPG signed tarball of the results
+# 1. Create a libsodium signed tarball of the results
 #
 # ## Plan Options
 #
@@ -95,11 +94,6 @@
 # pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
 # ```
 #
-# ### pkg_gpg_key
-# The GPG key to sign the package with.
-# ```
-# pkg_gpg_key=3853DA6B
-# ```
 #
 # ### pkg_deps
 # An array of the package dependencies needed at runtime.
@@ -211,7 +205,6 @@
 # pkg_source=http://www.haproxy.org/download/1.5/src/${pkg_name}-${pkg_version}.tar.gz
 # pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 # pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
-# pkg_gpg_key=3853DA6B
 # pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
 # pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
@@ -395,7 +388,6 @@ trap _on_exit 1 2 3 15 ERR
 # * `$_wget_cmd` (wget on system)
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
-# * `$_gpg_cmd` (GPG on system)
 # * `$_mktemp_cmd` (GNU version from coreutils)
 #
 # Note that all of the commands noted above are considered internal
@@ -445,12 +437,6 @@ _find_system_commands() {
   fi
   debug "Setting _tar_cmd=$_tar_cmd"
 
-  if exists gpg; then
-    _gpg_cmd=$(command -v gpg)
-  else
-    exit_with "We require gpg to sign packages; aborting" 1
-  fi
-  debug "Setting _gpg_cmd=$_gpg_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
@@ -1865,16 +1851,31 @@ EOT
   return 0
 }
 
-# **Internal** Create the package with `tar`/`gpg`, and sign it with
-# `$pkg_gpg_key`.
+# **Internal** Create the package with `tar`/`hab artifact sign`
 _generate_package() {
-  build_line "Generating package"
+  build_line "Generating artifact"
   mkdir -p $HAB_CACHE_ARTIFACT_PATH
-  $_tar_cmd -cf - "$pkg_prefix" | $_gpg_cmd \
-    --set-filename x.tar \
-    --local-user $pkg_gpg_key \
-    --output $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
-    --sign
+  local artifact_base=$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}
+  echo "dest   $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz"
+  echo "source ${pkg_prefix}"
+  # TODO: it would be nice to just stream to tar stuff to `hab artifact sign`
+  $_tar_cmd cJf $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz ${pkg_prefix}
+
+  # TODO: HABITAT_ORIGIN MUST be set, do we assume a default?
+  # TODO: env var for the path to `hab`?
+  build_line "Signing artifact"
+  /src/components/hab/target/debug/hab artifact sign \
+            $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz \
+            $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --origin ${HABITAT_ORIGIN}
+
+  build_line "Verifying artifact"
+  ## TODO: pretty output
+  /src/components/hab/target/debug/hab artifact verify \
+       $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr
+
+  # TODO
+  rm $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz
+
   return 0
 }
 
@@ -1945,10 +1946,6 @@ if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
-# `$pkg_gpg_key` is a required metadata key
-if [[ -z "${pkg_gpg_key}" ]]; then
-  exit_with "Failed to build. 'pkg_gpg_key' must be set." 1
-fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
 # set by the `plan.sh`.
@@ -1989,12 +1986,7 @@ _resolve_dependencies
 
 _set_path
 
-# Ensure that the GPG secret key is loaded and ready for package signing.
-if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
-  warn "GPG key for pkg_gpg_key=$pkg_gpg_key is not loaded in secret key ring."
-  warn "Did you forget to import your signing key with 'gpg --import <KEY>.gpg'?"
-  exit_with "Failed to build. GPG secret key must be loaded." 1
-fi
+# TODO: ensure origin is set via env
 
 # Download the source
 mkdir -pv $HAB_CACHE_SRC_PATH

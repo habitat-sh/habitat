@@ -13,7 +13,6 @@ use setup;
 
 #[test]
 fn builds_a_service() {
-    setup::gpg_import();
 
     let mut simple_service = match util::command::plan_build(&util::path::fixture_as_string("bldr_build")) {
         Ok(cmd) => cmd,

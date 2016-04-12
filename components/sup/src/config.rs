@@ -28,13 +28,6 @@ static LOGKEY: &'static str = "CFG";
 pub enum Command {
     Config,
     Start,
-    ImportKey,
-    ExportKey,
-    GenerateUserKey,
-    GenerateServiceKey,
-    ListKeys,
-    Encrypt,
-    Decrypt,
     Shell,
 }
 
@@ -64,13 +57,6 @@ impl FromStr for Command {
     fn from_str(s: &str) -> Result<Command, SupError> {
         match s {
             "config" => Ok(Command::Config),
-            "decrypt" => Ok(Command::Decrypt),
-            "encrypt" => Ok(Command::Encrypt),
-            "export-key" => Ok(Command::ExportKey),
-            "generate-service-key" => Ok(Command::GenerateServiceKey),
-            "generate-user-key" => Ok(Command::GenerateUserKey),
-            "import-key" => Ok(Command::ImportKey),
-            "list-keys" => Ok(Command::ListKeys),
             "sh" => Ok(Command::Shell),
             "start" => Ok(Command::Start),
             _ => Err(sup_error!(Error::CommandNotImplemented)),

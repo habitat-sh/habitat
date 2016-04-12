@@ -12,5 +12,4 @@
 //! CLI.
 
 pub mod start;
-pub mod key;
 pub mod configure;

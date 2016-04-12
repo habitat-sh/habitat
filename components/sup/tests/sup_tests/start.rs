@@ -13,7 +13,7 @@ use std::time::Duration;
 
 #[test]
 fn standalone_no_options() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service();
 
     let d = docker::run("test/simple_service");
@@ -26,7 +26,7 @@ fn standalone_no_options() {
 #[ignore]
 #[test]
 fn standalone_no_options_without_config() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::fixture_service("simple_service_without_config");
 
     let d = docker::run("test/simple_service_without_config");
@@ -42,7 +42,7 @@ fn standalone_no_options_without_config() {
 #[ignore]
 #[test]
 fn standalone_with_environment_config() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service();
 
     let d = docker::run_with_env("test/simple_service",
@@ -56,7 +56,7 @@ fn standalone_with_environment_config() {
 #[ignore]
 #[test]
 fn standalone_with_discovery_config() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service();
 
     util::discovery::clear("config");
@@ -69,7 +69,7 @@ fn standalone_with_discovery_config() {
 #[ignore]
 #[test]
 fn standalone_with_discovery_config_updates() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service();
 
     util::discovery::clear("config");
@@ -85,7 +85,7 @@ fn standalone_with_discovery_config_updates() {
 #[ignore]
 #[test]
 fn leader_with_discovery() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::simple_service();
 
     util::discovery::clear("config");

@@ -117,7 +117,7 @@ use support::{command, docker, setup};
 #[test]
 #[ignore]
 fn upload_a_package_and_then_install_it() {
-    setup::gpg_import();
+    setup::origin_setup();
     setup::key_install();
     setup::simple_service();
     let d = docker::depot("test/simple_service");

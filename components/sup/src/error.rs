@@ -41,7 +41,6 @@ use std::str;
 use hcore::{self, package};
 use common;
 use depot_client;
-use gpgme;
 use uuid;
 use wonder::actor;
 use ansi_term::Colour::Red;
@@ -94,7 +93,6 @@ pub enum Error {
     DbInvalidPath,
     DepotClient(depot_client::Error),
     FileNotFound(String),
-    GPGError(gpgme::Error),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     HealthCheck(String),
@@ -143,7 +141,6 @@ impl fmt::Display for SupError {
             Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             Error::DepotClient(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::GPGError(ref e) => format!("{}", e),
             Error::HealthCheck(ref e) => format!("Health Check failed: {}", e),
             Error::HookFailed(ref t, ref e, ref o) => {
                 format!("Hook failed to run: {}, {}, {}", t, e, o)
@@ -224,7 +221,6 @@ impl error::Error for SupError {
             Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             Error::DepotClient(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
-            Error::GPGError(_) => "gpgme error",
             Error::HealthCheck(_) => "Health Check returned an unknown status code",
             Error::HookFailed(_, _, _) => "Hook failed to run",
             Error::HTTP(_) => "Received an HTTP error",
@@ -329,12 +325,6 @@ impl From<str::Utf8Error> for SupError {
 impl From<mpsc::TryRecvError> for SupError {
     fn from(err: mpsc::TryRecvError) -> SupError {
         sup_error!(Error::TryRecvError(err))
-    }
-}
-
-impl From<gpgme::Error> for SupError {
-    fn from(err: gpgme::Error) -> SupError {
-        sup_error!(Error::GPGError(err))
     }
 }
 

@@ -20,6 +20,10 @@ pub fn fixtures() -> PathBuf {
     root().join("fixtures")
 }
 
+pub fn key_cache() -> PathBuf {
+    root().join("fixtures")
+}
+
 pub fn fixture_as_string(name: &str) -> String {
     let fixture_string = fixtures().join(name).to_string_lossy().into_owned();
     fixture_string
