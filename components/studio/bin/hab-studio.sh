@@ -624,7 +624,7 @@ chroot_env() {
   if [ -n "$extra_env" ]; then
     env="$env $extra_env"
   fi
-  # If a Bldr repository URL is set, then propagate it into the Studio's
+  # If a Habitat Depot URL is set, then propagate it into the Studio's
   # environment.
   if [ -n "${BLDR_REPO:-}" ]; then
     env="$env BLDR_REPO=$BLDR_REPO"
@@ -694,13 +694,14 @@ unset PATH
 
 # ## Default variables
 
-# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to `/opt/bldr`.
-: ${BLDR_ROOT:=/opt/bldr}
-# Location containing installed packages
-BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
-# Where the resulting packages are
-BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=/opt/bldr}
+# The root path containing all locally installed packages
+HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
+# The default download root path for package artifacts, used on package
+# installation
+HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 
 #
 bb="$libexec_path/busybox"

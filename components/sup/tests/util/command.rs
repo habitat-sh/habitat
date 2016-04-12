@@ -193,7 +193,7 @@ pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
 }
 
 pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
-    let real_cmd = "studio";
+    let real_cmd = "hab-studio";
     let mut real_args = vec!["-r", "/opt/studios/functional-tests", "run", cmd];
     real_args.extend_from_slice(args);
     let mut command = command(real_cmd, &real_args[..]);
@@ -255,6 +255,6 @@ pub fn sup_with_env(args: &[&str], env: &HashMap<&str, &str>) -> CmdResult<Cmd> 
 /// This function is for you!
 pub fn sup_with_test_gpg_cache(args: &[&str], cache_dir: &str) -> CmdResult<Cmd> {
     let mut env: HashMap<&str, &str> = HashMap::new();
-    env.insert("BLDR_GPG_CACHE", cache_dir);
+    env.insert("HAB_CACHE_GPG_PATH", cache_dir);
     sup_with_env(args, &env)
 }

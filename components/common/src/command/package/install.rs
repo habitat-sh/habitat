@@ -5,21 +5,21 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Installs a bldr package from a [depot](../depot).
+//! Installs a Habitat package from a [depot](../depot).
 //!
 //! # Examples
 //!
 //! ```bash
-//! $ bldr install chef/redis
+//! $ hab pkg install chef/redis
 //! ```
 //!
-//! Will install `chef/redis` package from the package depot at `http://bldr.co:9633`.
+//! Will install `chef/redis` package from a custom depot:
 //!
 //! ```bash
-//! $ bldr install chef/redis/3.0.1 redis -u http://bldr.co:9633
+//! $ hab pkg install chef/redis/3.0.1 redis -u http://depot.co:9633
 //! ```
 //!
-//! Will install the `3.0.1` version of redis.
+//! This would install the `3.0.1` version of redis.
 //!
 //! # Internals
 //!
@@ -32,7 +32,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use hcore::fs::PACKAGE_CACHE;
+use hcore::fs::CACHE_ARTIFACT_PATH;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use depot_core::data_object;
 use depot_client;
@@ -50,16 +50,16 @@ pub fn start(url: &str, ident_or_archive: &str) -> Result<()> {
 }
 
 /// Given a package name and a base url, downloads the package
-/// to `/opt/bldr/cache/pkgs`. Returns the filename in the cache as a String
+/// to the `CACHE_ARTIFACT_PATH`. Returns the filename in the cache as a String
 ///
 /// # Failures
 ///
-/// * Fails if it cannot create `/opt/bldr/cache/pkgs`
+/// * Fails if it cannot create the `CACHE_ARTIFACT_PATH`
 /// * Fails if it cannot download the package from the upstream
 pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> Result<data_object::Package> {
     println!("Installing {}", ident.as_ref());
     let pkg_data = try!(depot_client::show_package(url, ident.as_ref()));
-    try!(fs::create_dir_all(PACKAGE_CACHE));
+    try!(fs::create_dir_all(CACHE_ARTIFACT_PATH));
     for dep in &pkg_data.tdeps {
         try!(install_from_depot(url, &dep, dep.as_ref()));
     }
@@ -71,7 +71,7 @@ pub fn from_archive<P: AsRef<Path>>(url: &str, path: &P) -> Result<()> {
     println!("Installing from {}", path.as_ref().display());
     let mut archive = PackageArchive::new(PathBuf::from(path.as_ref()));
     let ident = try!(archive.ident());
-    try!(fs::create_dir_all(PACKAGE_CACHE));
+    try!(fs::create_dir_all(CACHE_ARTIFACT_PATH));
     for dep in try!(archive.tdeps()) {
         try!(install_from_depot(url, &dep, dep.as_ref()));
     }
@@ -94,7 +94,9 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
             }
         }
         Err(_) => {
-            let mut archive = try!(depot_client::fetch_package(url, ident.as_ref(), PACKAGE_CACHE));
+            let mut archive = try!(depot_client::fetch_package(url,
+                                                               ident.as_ref(),
+                                                               CACHE_ARTIFACT_PATH));
             let ident = try!(archive.ident());
             try!(archive.unpack());
             println!("Installed {}", ident);

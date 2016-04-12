@@ -22,7 +22,7 @@ pkg_bin_dirs=(bin)
 do_download() {
   # downloading from bitbucket with wget results in a 403.
   # So then we implement our own `do_download` with `curl`.
-  pushd $BLDR_SRC_CACHE > /dev/null
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
   if [[ -f $pkg_filename ]]; then
     build_line "Found previous file '${pkg_filename}', attempting to re-use"
     if verify_file $pkg_filename $pkg_shasum; then

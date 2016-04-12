@@ -7,12 +7,54 @@
 
 use std::path::PathBuf;
 
-pub const PACKAGE_HOME: &'static str = "/opt/bldr/pkgs";
-pub const SERVICE_HOME: &'static str = "/opt/bldr/svc";
-pub const PACKAGE_CACHE: &'static str = "/opt/bldr/cache/pkgs";
-pub const GPG_CACHE: &'static str = "/opt/bldr/cache/gpg";
-pub const KEY_CACHE: &'static str = "/opt/bldr/cache/keys";
+pub const ROOT_PATH: &'static str = "/opt/bldr";
+/// The default download root path for package artifacts, used on package installation
+pub const CACHE_ARTIFACT_PATH: &'static str = "/opt/bldr/cache/artifacts";
+/// The default path where gpg keys are stored
+pub const CACHE_GPG_PATH: &'static str = "/opt/bldr/cache/gpg";
+/// The default path where cryptographic keys are stored
+pub const CACHE_KEY_PATH: &'static str = "/opt/bldr/cache/keys";
+/// The default path where source artifacts are downloaded, extracted, & compiled
+pub const CACHE_SRC_PATH: &'static str = "/opt/bldr/cache/src";
+/// The root path containing all locally installed packages
+pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
+/// The root path containing all runtime service directories and files
+const SVC_PATH: &'static str = "/opt/bldr/svc";
 
-pub fn service_path(service_name: &str) -> PathBuf {
-    PathBuf::from(SERVICE_HOME).join(service_name)
+/// Returns the root path for a given service's configuration, files, and data.
+pub fn svc_path(service_name: &str) -> PathBuf {
+    PathBuf::from(SVC_PATH).join(service_name)
+}
+
+/// Returns the path to a given service's configuration.
+pub fn svc_config_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("config")
+}
+
+/// Returns the path to a given service's data.
+pub fn svc_data_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("data")
+}
+
+/// Returns the path to a given service's gossiped config files.
+pub fn svc_files_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("files")
+}
+
+/// Returns the path to a given service's hooks.
+///
+/// Note that this path is internal to the Supervisor and should not be directly accessed under
+/// normal circumstances.
+pub fn svc_hooks_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("hooks")
+}
+
+/// Returns the path to a given service's static content.
+pub fn svc_static_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("static")
+}
+
+/// Returns the path to a given service's variable state.
+pub fn svc_var_path(service_name: &str) -> PathBuf {
+    svc_path(service_name).join("var")
 }

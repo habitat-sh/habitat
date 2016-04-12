@@ -10,7 +10,7 @@ pkg_service_run="bin/simple_service_without_config"
 pkg_gpg_key=3853DA6B
 
 do_begin() {
-  archive="$BLDR_SRC_CACHE/${pkg_name}-${pkg_version}.tar.bz2"
+  archive="$HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2"
   tar -cjvf $archive --exclude 'plans' --exclude '.git' --exclude '.gitignore' --exclude 'target' --transform "s,^\.,simple_service_without_config-0.0.1," .
   pkg_shasum=$(trim $(sha256sum $archive | cut -d " " -f 1))
 }
@@ -25,7 +25,7 @@ do_build() {
 
 do_install() {
   cp -r /src/components/sup/target/debug/hab-sup $pkg_prefix/bin
-  cp -r $BLDR_SRC_CACHE/$pkg_dirname/bin $pkg_prefix
+  cp -r $HAB_CACHE_SRC_PATH/$pkg_dirname/bin $pkg_prefix
   chmod 755 $pkg_path/bin
   chmod 755 $pkg_path/bin/*
 }

@@ -1,8 +1,8 @@
 studio_type="baseimage"
-studio_path="$BLDR_ROOT/bin"
+studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment=
 studio_build_environment=
-studio_build_command="$BLDR_ROOT/bin/build"
+studio_build_command="$HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command=
 
@@ -13,20 +13,20 @@ run_user="bldr"
 run_group="bldr"
 
 finish_setup() {
-  if [ -x "$STUDIO_ROOT$BLDR_ROOT/bin/hab-sup" ]; then
+  if [ -x "$STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup" ]; then
     return 0
   fi
 
   for embed in $PKGS; do
-    if [ -d "$BLDR_PKG_ROOT/$embed" ]; then
+    if [ -d "$HAB_PKG_PATH/$embed" ]; then
       echo "> Using local package for $embed"
       embed_path=$(_outside_pkgpath_for $embed)
       $bb mkdir -p $STUDIO_ROOT/$embed_path
       $bb cp -ra $embed_path/* $STUDIO_ROOT/$embed_path
       for tdep in $($bb cat $embed_path/TDEPS); do
         echo "> Using local package for $tdep via $embed"
-        $bb mkdir -p $STUDIO_ROOT$BLDR_PKG_ROOT/$tdep
-        $bb cp -ra $BLDR_PKG_ROOT/$tdep/* $STUDIO_ROOT$BLDR_PKG_ROOT/$tdep
+        $bb mkdir -p $STUDIO_ROOT$HAB_PKG_PATH/$tdep
+        $bb cp -ra $HAB_PKG_PATH/$tdep/* $STUDIO_ROOT$HAB_PKG_PATH/$tdep
       done
     else
       _bpm install $embed
@@ -62,23 +62,23 @@ finish_setup() {
       done
     fi
   done
-  full_path="$full_path:$BLDR_ROOT/bin"
+  full_path="$full_path:$HAB_ROOT_PATH/bin"
 
   studio_path="$full_path"
   studio_enter_command="${busybox_path}/bin/sh --login"
 
-  $bb mkdir -p $v $STUDIO_ROOT$BLDR_ROOT/bin
+  $bb mkdir -p $v $STUDIO_ROOT$HAB_ROOT_PATH/bin
 
   # Put `hab-bpm` on the default `$PATH` and ensure that it gets a sane shell
   # and initial `busybox` (sane being its own vendored version)
-  $bb cat <<EOF > $STUDIO_ROOT$BLDR_ROOT/bin/hab-bpm
+  $bb cat <<EOF > $STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-bpm
 #!$busybox_path/bin/sh
 exec $bpm_path/bin/hab-bpm \$*
 EOF
-  $bb chmod $v 755 $STUDIO_ROOT$BLDR_ROOT/bin/hab-bpm
+  $bb chmod $v 755 $STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-bpm
   $bb ln -s $v $busybox_path/bin/sh $STUDIO_ROOT/bin/bash
   $bb ln -s $v $busybox_path/bin/sh $STUDIO_ROOT/bin/sh
-  $bb ln -s $v $sup_path/bin/hab-sup $STUDIO_ROOT$BLDR_ROOT/bin/hab-sup
+  $bb ln -s $v $sup_path/bin/hab-sup $STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup
 
   # Set the login shell for any relevant user to be `/bin/bash`
   $bb sed -e "s,/bin/sh,$busybox_path/bin/bash,g" -i $STUDIO_ROOT/etc/passwd
@@ -127,7 +127,7 @@ esac
 EOT
   $bb chmod a+x $STUDIO_ROOT/init.sh
 
-  $bb rm $STUDIO_ROOT$BLDR_PKG_CACHE/*
+  $bb rm $STUDIO_ROOT$HAB_CACHE_ARTIFACT_PATH/*
 
   studio_env_command="$busybox_path/bin/env"
 }

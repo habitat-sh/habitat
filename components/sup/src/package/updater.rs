@@ -8,7 +8,7 @@
 use std::sync::{Arc, RwLock};
 
 use depot_client;
-use hcore::fs::PACKAGE_CACHE;
+use hcore::fs::CACHE_ARTIFACT_PATH;
 use hcore::package::PackageIdent;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
@@ -92,7 +92,9 @@ impl GenServer for PackageUpdater {
             Ok(remote) => {
                 let latest_ident: &PackageIdent = remote.ident.as_ref();
                 if latest_ident > &*package.ident() {
-                    match depot_client::fetch_package(&state.depot, latest_ident, PACKAGE_CACHE) {
+                    match depot_client::fetch_package(&state.depot,
+                                                      latest_ident,
+                                                      CACHE_ARTIFACT_PATH) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results

@@ -22,6 +22,7 @@ fn gen_test_gpg_cache() -> String {
 #[ignore]
 #[test] // TODO
 fn kt_upload_a_key_and_install_it() {
+    setup::install_rngd();
     setup::gpg_import();
     setup::simple_service();
     let d = docker::depot("test/simple_service");
@@ -46,10 +47,9 @@ fn kt_upload_a_key_and_install_it() {
 
 
 fn gpg_test_setup() -> String {
+    setup::install_rngd();
     let gpg_cache = gen_test_gpg_cache();
     setup::gpg_import_with_gpg_cache(&gpg_cache);
-    // leaving this in as it may be useful in future testing
-    // env::set_var("BLDR_GPG_CACHE", &gpg_cache);
     gpg_cache
 }
 
@@ -302,9 +302,9 @@ fn mk_tmp_filename() -> String {
 #[test]
 fn kt_find_key() {
     use hcore::gpg;
+    setup::install_rngd();
 
     let cache_dir = gen_test_gpg_cache();
-    // let cache_dir = "/opt/bldr/cache/gpg/";
     {
         // generate a test user
         let mut generate_user = command::sup_with_test_gpg_cache(&["generate-user-key",
@@ -341,7 +341,7 @@ fn kt_find_key() {
         assert_regex!(generate_user.stdout(), r".*Fingerprint.*");
     }
 
-    env::set_var("BLDR_GPG_CACHE", cache_dir);
+    env::set_var("HAB_CACHE_GPG_PATH", cache_dir);
     match gpg::find_key("bldr_a") {
         Ok(result) => {
             let r = result.unwrap();
@@ -370,7 +370,7 @@ fn kt_find_key() {
         Ok(None) => assert!(true),
         Err(_) => assert!(false),
     };
-    env::remove_var("BLDR_GPG_CACHE");
+    env::remove_var("HAB_CACHE_GPG_PATH");
 }
 
 #[test]
@@ -389,6 +389,7 @@ fn test_gpg(group: Option<&str>) {
     use std::io::prelude::*;
     use std::fs::File;
     use key_utils::*;
+    setup::install_rngd();
     let file_to_encrypt = mk_tmp_filename();
     let encrypted_file = mk_tmp_filename();
     let decrypted_file = mk_tmp_filename();

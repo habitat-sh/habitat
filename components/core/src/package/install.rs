@@ -5,15 +5,16 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std;
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
-use std::fs::{self, DirEntry, File};
+use std::fs::{DirEntry, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use error::{Error, Result};
-use fs::PACKAGE_HOME;
+use fs::{self, PKG_PATH};
 use package::{MetaFile, PackageIdent};
 
 const SUP_PKG_ORIGIN: &'static str = "chef";
@@ -36,7 +37,7 @@ impl PackageInstall {
     ///
     /// An optional `home` path may be provided to search for a package in a non-default path.
     pub fn load(ident: &PackageIdent, home: Option<&Path>) -> Result<PackageInstall> {
-        let path = home.unwrap_or(Path::new(PACKAGE_HOME));
+        let path = home.unwrap_or(Path::new(PKG_PATH));
         let pl = try!(Self::package_list(path));
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
@@ -184,6 +185,41 @@ impl PackageInstall {
         &self.installed_path
     }
 
+    /// Returns the root path for service configuration, files, and data.
+    pub fn svc_path(&self) -> PathBuf {
+        fs::svc_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service configuration.
+    pub fn svc_config_path(&self) -> PathBuf {
+        fs::svc_config_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service data.
+    pub fn svc_data_path(&self) -> PathBuf {
+        fs::svc_data_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service's gossiped config files.
+    pub fn svc_files_path(&self) -> PathBuf {
+        fs::svc_files_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service hooks.
+    pub fn svc_hooks_path(&self) -> PathBuf {
+        fs::svc_hooks_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service static content.
+    pub fn svc_static_path(&self) -> PathBuf {
+        fs::svc_static_path(&self.ident.name)
+    }
+
+    /// Returns the path to the service variable state.
+    pub fn svc_var_path(&self) -> PathBuf {
+        fs::svc_var_path(&self.ident.name)
+    }
+
     /// Read the contents of a given metafile.
     ///
     /// # Failures
@@ -193,7 +229,7 @@ impl PackageInstall {
     /// * Contents of the metafile are unreadable or malformed
     fn read_metafile(&self, file: MetaFile) -> Result<String> {
         let filepath = self.installed_path.join(file.to_string());
-        match fs::metadata(&filepath) {
+        match std::fs::metadata(&filepath) {
             Ok(_) => {
                 match File::open(&filepath) {
                     Ok(mut f) => {
@@ -268,7 +304,7 @@ impl PackageInstall {
     /// Returns a list of package structs built from the contents of the given directory.
     fn package_list(path: &Path) -> Result<Vec<PackageIdent>> {
         let mut package_list: Vec<PackageIdent> = vec![];
-        if try!(fs::metadata(path)).is_dir() {
+        if try!(std::fs::metadata(path)).is_dir() {
             try!(Self::walk_origins(&path, &mut package_list));
         }
         Ok(package_list)
@@ -278,9 +314,9 @@ impl PackageInstall {
     /// and builds on the given package list by recursing into name, version, and release
     /// directories.
     fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
-        for entry in try!(fs::read_dir(path)) {
+        for entry in try!(std::fs::read_dir(path)) {
             let origin = try!(entry);
-            if try!(fs::metadata(origin.path())).is_dir() {
+            if try!(std::fs::metadata(origin.path())).is_dir() {
                 try!(Self::walk_names(&origin, packages));
             }
         }
@@ -290,10 +326,10 @@ impl PackageInstall {
     /// Helper function for walk_origins. Walks the given origin DirEntry for name
     /// directories and recurses into them to find version and release directories.
     fn walk_names(origin: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
-        for name in try!(fs::read_dir(origin.path())) {
+        for name in try!(std::fs::read_dir(origin.path())) {
             let name = try!(name);
             let origin = origin.file_name().to_string_lossy().into_owned().to_string();
-            if try!(fs::metadata(name.path())).is_dir() {
+            if try!(std::fs::metadata(name.path())).is_dir() {
                 try!(Self::walk_versions(&origin, &name, packages));
             }
         }
@@ -306,10 +342,10 @@ impl PackageInstall {
                      name: &DirEntry,
                      packages: &mut Vec<PackageIdent>)
                      -> Result<()> {
-        for version in try!(fs::read_dir(name.path())) {
+        for version in try!(std::fs::read_dir(name.path())) {
             let version = try!(version);
             let name = name.file_name().to_string_lossy().into_owned().to_string();
-            if try!(fs::metadata(version.path())).is_dir() {
+            if try!(std::fs::metadata(version.path())).is_dir() {
                 try!(Self::walk_releases(origin, &name, &version, packages));
             }
         }
@@ -324,7 +360,7 @@ impl PackageInstall {
                      version: &DirEntry,
                      packages: &mut Vec<PackageIdent>)
                      -> Result<()> {
-        for release in try!(fs::read_dir(version.path())) {
+        for release in try!(std::fs::read_dir(version.path())) {
             let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
             let version = version.file_name().to_string_lossy().into_owned().to_string();
             let ident = PackageIdent::new(origin.clone(),

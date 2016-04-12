@@ -7,6 +7,7 @@
 
 use regex::Regex;
 
+use hcore::fs;
 use util;
 use setup;
 
@@ -23,12 +24,15 @@ fn builds_a_service() {
     assert_cmd_exit_code!(simple_service, [0]);
     assert_regex!(simple_service.stdout(), r"Loading /.*/plan.sh");
     assert_regex!(simple_service.stdout(),
-                  r"/opt/bldr/cache/src/bldr_build-0.0.1");
+                  &format!(r"{}/bldr_build-0.0.1", fs::CACHE_SRC_PATH));
     assert_regex!(simple_service.stdout(),
-                  r"/opt/bldr/pkgs/test/bldr_build/0.0.1/\d{14}");
+                  &format!(r"{}/test/bldr_build/0.0.1/\d{{14}}", fs::PKG_PATH));
     assert_regex!(simple_service.stdout(),
-                  r"/opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr");
-    let pkg_re = Regex::new(r"(/opt/bldr/cache/pkgs/test-bldr_build-0.0.1-\d{14}.bldr)").unwrap();
+                  &format!(r"{}/test-bldr_build-0.0.1-\d{{14}}.bldr",
+                           fs::CACHE_ARTIFACT_PATH));
+    let pkg_re = Regex::new(&format!(r"({}/test-bldr_build-0.0.1-\d{{14}}.bldr)",
+                                     fs::CACHE_ARTIFACT_PATH))
+                     .unwrap();
     let caps = pkg_re.captures(simple_service.stdout()).unwrap();
     if let Some(pkg_path) = caps.at(1) {
         assert_file_exists_in_studio!(pkg_path);

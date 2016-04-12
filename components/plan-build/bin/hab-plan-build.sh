@@ -8,7 +8,7 @@
 #
 # # Synopsis
 #
-# `hab-plan-build` handles creating bldr packages.
+# `hab-plan-build` handles creating Habitat packages from Plan files.
 #
 # # plan.sh
 #
@@ -38,12 +38,12 @@
 # resulting package with, a single dependency on glibc, and it has the
 # resulting libraries in `lib` and header files in `include`.
 #
-# When executed, bldr will:
+# When executed, this program will:
 #
 # 1. Download the software
 # 1. Validate the checksum
 # 1. Uncompress it
-# 1. Set the build environment to depend on the `glibc` bldr package
+# 1. Set the build environment to depend on the `glibc` package
 # 1. Run `./configure && make`
 # 1. Run `make install`
 # 1. Write out the data other packages need to depend on `zlib`
@@ -140,7 +140,7 @@
 # ### pkg_service_run
 # The command to start the service, if needed. Should not fork!
 # ```
-# pkg_service_run="bin/haproxy -f /opt/bldr/svc/haproxy/config/haproxy.conf"
+# pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # ```
 #
 # ### pkg_expose
@@ -175,13 +175,15 @@
 #
 # * `$pkg_prefix`: This variable is the final path for your package.
 # * `$pkg_dirname`: Set to `${pkg_name}-${pkg_version}` by default
-# * `$pkg_svc`: Where the running service is; `/opt/bldr/svc/$pkg_name`
-# * `$pkg_svc_data`: Service data; `/opt/bldr/svc/$pkg_name/data`
-# * `$pkg_svc_var`: Variable state; `/opt/bldr/svc/$pkg_name/var`
-# * `$pkg_svc_config`: Configuration; `/opt/bldr/svc/$pkg_name/config`
-# * `$pkg_svc_static`: Static data; `/opt/bldr/svc/$pkg_name/static`
-# * `$BLDR_SRC_CACHE`: The path to all the package sources
-# * `$BLDR_PKG_CACHE`: The path to all generated packages
+# * `$pkg_svc_path`: Where the running service is; `$HAB_ROOT_PATH/svc/$pkg_name`
+# * `$pkg_svc_data_path`: Service data; `$pkg_svc_path/data`
+# * `$pkg_svc_files_path`: Gossiped config files; `$pkg_svc_path/files`
+# * `$pkg_svc_var_path`: Variable state; `$pkg_svc_path/var`
+# * `$pkg_svc_config_path`: Configuration; `$pkg_svc_path/config`
+# * `$pkg_svc_static_path`: Static content; `$pkg_svc_path/static`
+# * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
+# * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
+#      artifacts, used on package installation
 # * `$CFLAGS`: C compiler options
 # * `$LDFLAGS`: C linker options
 # * `$PREFIX`: Where to install the software; same as $pkg_prefix
@@ -212,7 +214,7 @@
 # pkg_gpg_key=3853DA6B
 # pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
-# pkg_service_run="bin/haproxy -f /opt/bldr/svc/haproxy/config/haproxy.conf"
+# pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # pkg_expose=(80 443)
 #
 # do_build() {
@@ -269,21 +271,24 @@ fi
 
 # ## Default variables
 
-# The current version of bldr
+# The short version of the program name which is used in logging output
+_program=$(basename $0)
+# The current version of this program
 BLDR_VERSION=0.0.1
-# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to `/opt/bldr`.
-: ${BLDR_ROOT:=/opt/bldr}
-# Where the source cache is
-BLDR_SRC_CACHE=$BLDR_ROOT/cache/src
-# Where the resulting packages are
-BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
-# Location containing installed packages
-BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=/opt/bldr}
+# The default path where source artifacts are downloaded, extracted, & compiled
+HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
+# The default download root path for package artifacts, used on package
+# installation
+HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+# The root path containing all locally installed packages
+HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
-# The default bldr package repository from where to download dependencies}. If
+# The default Habitat Depo repository from where to download dependencies. If
 # `BLDR_REPO` is set, this value is overridden.
 : ${BLDR_REPO:=http://52.37.151.35:9632}
 # The value of `$PATH` on initial start of this program
@@ -309,6 +314,8 @@ pkg_service_run=''
 pkg_expose=()
 # The user to run the service as
 pkg_service_user=bldr
+# The group to run the service as
+pkg_service_group=$pkg_service_user
 # Used to handle if we received a signal, or failed based on a bad status code.
 graceful_exit=true
 
@@ -449,19 +456,19 @@ _find_system_commands() {
 # **Internal** Return the path to the latest release of a package on stdout.
 #
 # ```
-# _latest_installed_package bldr/nginx
-# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
-# _latest_installed_package bldr/nginx/1.8.0
-# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
-# _latest_installed_package bldr/nginx/1.8.0/20150911120000
-# # /opt/bldr/pkgs/bldr/nginx/1.8.0/20150911120000
+# _latest_installed_package acme/nginx
+# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# _latest_installed_package acme/nginx/1.8.0
+# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# _latest_installed_package acme/nginx/1.8.0/20150911120000
+# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
 # ```
 #
 # Will return 0 if a package was found on disk, and 1 if a package cannot be
 # found. A message will be printed to stderr explaining that no package was
 # found.
 _latest_installed_package() {
-  if [[ ! -d "$BLDR_PKG_ROOT/$1" ]]; then
+  if [[ ! -d "$HAB_PKG_PATH/$1" ]]; then
     warn "No installed packages of '$1' were found"
     return 1
   fi
@@ -476,7 +483,7 @@ _latest_installed_package() {
     2) depth=2 ;;
     1) depth=3 ;;
   esac
-  result=$(find $BLDR_PKG_ROOT/${1} -maxdepth $depth -type f -name MANIFEST \
+  result=$(find $HAB_PKG_PATH/${1} -maxdepth $depth -type f -name MANIFEST \
     | $_sort_cmd --version-sort -r | head -n 1)
   if [[ -z "$result" ]]; then
     warn "Could not find a suitable installed package for '$1'"
@@ -489,16 +496,16 @@ _latest_installed_package() {
 
 # **Internal** Returns the path to the desired package on stdout, using the
 # constraints specified in `$pkg_deps` or `$pkg_build_deps`. If a package
-# cannot be found locally on disk, and the `chef/bldr` package is present,
-# `bldr` will attempt to install the package from a remote repository.
+# cannot be found locally on disk, and the `hab` CLI package is present,
+# this program will attempt to install the package from a remote repository.
 #
 # ```
-# _resolve_dependency chef/zlib
-# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
-# _resolve_dependency chef/zlib/1.2.8
-# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
-# _resolve_dependency chef/zlib/1.2.8/20151216221001
-# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+# _resolve_dependency acme/zlib
+# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# _resolve_dependency acme/zlib/1.2.8
+# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# _resolve_dependency acme/zlib/1.2.8/20151216221001
+# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
 # ```
 #
 # Will return 0 if a package was found or installed on disk, and 1 if a package
@@ -527,9 +534,9 @@ _resolve_dependency() {
 # and is intended to be "best effort".
 #
 # ```
-# _install_dependency chef/zlib
-# _install_dependency chef/zlib/1.2.8
-# _install_dependency chef/zlib/1.2.8/20151216221001
+# _install_dependency acme/zlib
+# _install_dependency acme/zlib/1.2.8
+# _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
   if [[ -x "$BLDR_BIN" ]]; then
@@ -545,13 +552,13 @@ _install_dependency() {
 # unset, or empty set.
 #
 # ```
-# _get_tdeps_for /opt/bldr/pkgs/chef/a/4.2.2/20160113044458
-# # /opt/bldr/pkgs/chef/dep-b/1.2.3/20160113033619
-# # /opt/bldr/pkgs/chef/dep-c/5.0.1/20160113033507
-# # /opt/bldr/pkgs/chef/dep-d/2.0.0/20160113033539
-# # /opt/bldr/pkgs/chef/dep-e/10.0.1/20160113033453
-# # /opt/bldr/pkgs/chef/dep-f/4.2.2/20160113033338
-# # /opt/bldr/pkgs/chef/dep-g/4.2.2/20160113033319
+# _get_tdeps_for /opt/bldr/pkgs/acme/a/4.2.2/20160113044458
+# # /opt/bldr/pkgs/acme/dep-b/1.2.3/20160113033619
+# # /opt/bldr/pkgs/acme/dep-c/5.0.1/20160113033507
+# # /opt/bldr/pkgs/acme/dep-d/2.0.0/20160113033539
+# # /opt/bldr/pkgs/acme/dep-e/10.0.1/20160113033453
+# # /opt/bldr/pkgs/acme/dep-f/4.2.2/20160113033338
+# # /opt/bldr/pkgs/acme/dep-g/4.2.2/20160113033319
 # ```
 #
 # Will return 0 in any case and the contents of `TDEPS` if the file exists.
@@ -630,8 +637,8 @@ _attach_whereami() {
 #   to an empty/unset value.
 # * If a `$BLDR_BIN` environment variable is set, then use this as the absolute
 #   path to the binary.
-# * If a version of the `chef/bldr` package is installed on disk, use that
-#   version's `bin/bldr` as the command.
+# * If a version of the `hab` CLI package is installed on disk, use that
+#   version's `bin/hab` as the command.
 # * If a version of the `chef/hab-bpm` package is installed on disk, use that
 #   version's `bin/hab-bpm` as the command.
 # * If no other criteria match then set `$BLDR_BIN` to an empty/unset value.
@@ -642,16 +649,16 @@ _determine_pkg_installer() {
   elif [ -n "${BLDR_BIN:-}" ]; then
     BLDR_BIN=$BLDR_BIN
     build_line "Using set BLDR_BIN=$BLDR_BIN for dependency installs"
-## We are bypassing bldr for now, while we get the system stable, then we come back
-#  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/bldr"); then
-#    BLDR_BIN="$_pkg_for_bldr_install/bin/bldr"
-#    build_line "Using chef/bldr for dependency installs"
-  elif _pkg_for_bldr_install=$(_latest_installed_package "chef/hab-bpm"); then
-    BLDR_BIN="$_pkg_for_bldr_install/bin/hab-bpm"
+## We are bypassing hab for now, while we get the system stable, then we come back
+#  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab"); then
+#    BLDR_BIN="$_pkg_for_pkg_install/bin/hab"
+#    build_line "Using chef/hab for dependency installs"
+  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab-bpm"); then
+    BLDR_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
     build_line "Using chef/hab-bpm for dependency installs"
   else
     BLDR_BIN=
-    build_line "Could not find chef/bldr or chef/hab-bpm for dependency installs"
+    build_line "Could not find chef/hab or chef/hab-bpm for dependency installs"
   fi
 }
 
@@ -666,10 +673,10 @@ _determine_pkg_installer() {
 # resolve the situation before continuing.
 _validate_deps() {
   # Build the list of full runtime deps (one per line) without the
-  # `$BLDR_PKG_ROOT` prefix.
+  # `$HAB_PKG_PATH` prefix.
   local tdeps=$(echo ${pkg_tdeps_resolved[@]} \
     | tr ' ' '\n' \
-    | sed "s,^${BLDR_PKG_ROOT}/,,")
+    | sed "s,^${HAB_PKG_PATH}/,,")
   # Build the list of any runtime deps that appear more than once. That is,
   # `ORIGIN/NAME` token duplicates.
   local dupes=$(echo "$tdeps" \
@@ -712,7 +719,7 @@ _validate_deps() {
     printf "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}\n"
     echo ${pkg_deps_resolved[@]} \
       | tr ' ' '\n' \
-      | sed -e "s,^${BLDR_PKG_ROOT}/,," \
+      | sed -e "s,^${HAB_PKG_PATH}/,," \
       | _print_recursive_deps 1
     echo
     exit_with "Computed runtime dependency check failed, aborting" 31
@@ -784,8 +791,8 @@ _print_recursive_deps() {
     fi
     # If this dependency itself has direct dependencies, then recursively print
     # them.
-    if [[ -f $BLDR_PKG_ROOT/$dep/DEPS ]]; then
-      cat $BLDR_PKG_ROOT/$dep/DEPS | _print_recursive_deps $(($level + 1))
+    if [[ -f $HAB_PKG_PATH/$dep/DEPS ]]; then
+      cat $HAB_PKG_PATH/$dep/DEPS | _print_recursive_deps $(($level + 1))
     fi
   done
 }
@@ -903,17 +910,17 @@ trim() {
 #
 # ```
 # pkg_all_deps_resolved=(
-#   /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
-#   /opt/bldr/pkgs/chef/nginx/1.8.0/20150911120000
-#   /opt/bldr/pkgs/chef/glibc/2.22/20151216221001
+#   /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+#   /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+#   /opt/bldr/pkgs/acme/glibc/2.22/20151216221001
 # )
 #
 # pkg_path_for chef/nginx
-# # /opt/bldr/pkgs/chef/nginx/1.8.0/20150911120000
+# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
 # pkg_path_for zlib
-# # /opt/bldr/pkgs/chef/zlib/1.2.8/20151216221001
+# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
 # pkg_path_for glibc/2.22
-# # /opt/bldr/pkgs/chef/glibc/2.22/20151216221001
+# # /opt/bldr/pkgs/acme/glibc/2.22/20151216221001
 # ```
 #
 # Will return 0 if a package is found locally on disk, and 1 if a package
@@ -921,7 +928,7 @@ trim() {
 pkg_path_for() {
   local dep="$1"
   local e
-  local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   for e in "${pkg_all_deps_resolved[@]}"; do
     if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
       echo "$e"
@@ -1073,7 +1080,7 @@ download_file() {
   local dst="$2"
   local sha="$3"
 
-  pushd $BLDR_SRC_CACHE > /dev/null
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
   if [[ -f $dst && -n "$sha" ]]; then
     build_line "Found previous file '$dst', attempting to re-use"
     if verify_file $dst $sha; then
@@ -1103,7 +1110,7 @@ download_file() {
 # will be printed to stderr with the expected and computed shasum values.
 verify_file() {
   build_line "Verifying $1"
-  local checksum=($($_shasum_cmd $BLDR_SRC_CACHE/$1))
+  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$1))
   if [[ $2 = $checksum ]]; then
     build_line "Checksum verified for $1"
   else
@@ -1126,10 +1133,10 @@ verify_file() {
 # message will be printed to stderr to provide context.
 unpack_file() {
   build_line "Unpacking $1"
-  local unpack_file="$BLDR_SRC_CACHE/$1"
+  local unpack_file="$HAB_CACHE_SRC_PATH/$1"
   # Thanks to: http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
-    pushd $BLDR_SRC_CACHE > /dev/null
+    pushd $HAB_CACHE_SRC_PATH > /dev/null
     case $unpack_file in
       *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
         $_tar_cmd xf $unpack_file
@@ -1169,18 +1176,18 @@ unpack_file() {
 # For example, to replace all the files in `node_modules/.bin` that
 # have `#!/usr/bin/env` with the `coreutils` path
 # to `bin/env` (which resolves to
-# /opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/bin/env), be sure
+# /opt/bldr/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
 # to quote the wildcard target:
 #
-#     fix_interpreter "node_modules/.bin/*" chef/coreutils bin/env
+#     fix_interpreter "node_modules/.bin/*" acme/coreutils bin/env
 #
 # For a single target:
 #
-#     fix_interpreter node_modules/.bin/concurrent chef/coreutils bin/env
+#     fix_interpreter node_modules/.bin/concurrent acme/coreutils bin/env
 #
 # To get the interpreters exposed by a package, look in that package's
 # INTERPRETERS metadata file, e.g.,
-# `/opt/bldr/pkgs/chef/coreutils/8.24/20160219013458/INTERPRETERS`
+# `/opt/bldr/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
 
 fix_interpreter() {
     local targets=$1
@@ -1309,7 +1316,7 @@ _resolve_dependencies() {
   for dep in "${pkg_build_deps_resolved[@]}"; do
     tdeps=($(_get_tdeps_for $dep))
     for tdep in "${tdeps[@]}"; do
-      tdep="$BLDR_PKG_ROOT/$tdep"
+      tdep="$HAB_PKG_PATH/$tdep"
       pkg_build_tdeps_resolved=(
         $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
       )
@@ -1326,7 +1333,7 @@ _resolve_dependencies() {
   for dep in "${pkg_deps_resolved[@]}"; do
     tdeps=($(_get_tdeps_for $dep))
     for tdep in "${tdeps[@]}"; do
-      tdep="$BLDR_PKG_ROOT/$tdep"
+      tdep="$HAB_PKG_PATH/$tdep"
       pkg_tdeps_resolved=(
         $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
       )
@@ -1388,7 +1395,7 @@ _set_path() {
     fi
   done
   # Insert all the package PATH fragments before the default PATH to ensure
-  # Bldr package binaries are used before any userland/operating system binaries
+  # package binaries are used before any userland/operating system binaries
   if [[ -n $path_part ]]; then
     export PATH="$path_part:$BLDR_INITIAL_PATH"
   fi
@@ -1397,7 +1404,7 @@ _set_path() {
 }
 
 # Download the software from `$pkg_source` and place it in
-# `$BLDR_SRC_CACHE/${$pkg_filename}`. If the source already exists in the
+# `$HAB_CACHE_SRC_PATH/${$pkg_filename}`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
 # Delegates most of the implementation to the `do_default_download()` function.
 do_download() {
@@ -1410,8 +1417,8 @@ do_default_download() {
   download_file $pkg_source $pkg_filename $pkg_shasum
 }
 
-# Verify that the package we have in `$BLDR_SRC_CACHE/$pkg_filename` has the
-# `$pkg_shasum` we expect. Delegates most of the implementation to the
+# Verify that the package we have in `$HAB_CACHE_SRC_PATH/$pkg_filename` has
+# the `$pkg_shasum` we expect. Delegates most of the implementation to the
 # `do_default_verify()` function.
 do_verify() {
   do_default_verify
@@ -1434,14 +1441,14 @@ do_clean() {
 # Default implementation for the `do_clean()` phase.
 do_default_clean() {
   build_line "Clean the cache"
-  rm -rf "$BLDR_SRC_CACHE/$pkg_dirname"
+  rm -rf "$HAB_CACHE_SRC_PATH/$pkg_dirname"
   return 0
 }
 
-# Takes the `$BLDR_SRC_CACHE/$pkg_filename` from the download step, and unpacks
-# it, as long as the method of extraction can be determined.
+# Takes the `$HAB_CACHE_SRC_PATH/$pkg_filename` from the download step, and
+# unpacks it, as long as the method of extraction can be determined.
 #
-# This takes place in the $BLDR_SRC_CACHE directory.
+# This takes place in the $HAB_CACHE_SRC_PATH directory.
 #
 # Delegates most of the implementation to the `do_default_unpack()` function.
 do_unpack() {
@@ -1516,7 +1523,7 @@ _build_environment() {
   done
 
   # Create a working directory if it doesn't already exist from `do_unpack()`
-  mkdir -pv "$BLDR_SRC_CACHE/$pkg_dirname"
+  mkdir -pv "$HAB_CACHE_SRC_PATH/$pkg_dirname"
 
   # Set PREFIX for maximum default software build support
   export PREFIX=$pkg_prefix
@@ -1531,7 +1538,7 @@ _build_environment() {
 # source to remove the default system search path of `/usr/lib`, etc. when
 # looking for shared libraries.
 _fix_libtool() {
-  find "$BLDR_SRC_CACHE/$pkg_dirname" -iname "ltmain.sh" | while read file; do
+  find "$HAB_CACHE_SRC_PATH/$pkg_dirname" -iname "ltmain.sh" | while read file; do
     build_line "Fixing libtool script $file"
     sed -i -e 's^eval sys_lib_.*search_path=.*^^' "$file"
   done
@@ -1541,7 +1548,7 @@ _fix_libtool() {
 # step is correct, that is inside the extracted source directory.
 do_prepare_wrapper() {
   build_line "Preparing to build"
-  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_prepare
   popd > /dev/null
 }
@@ -1562,10 +1569,10 @@ do_default_prepare() {
 
 # Since `build` is one of the most overriden functions, this wrapper makes sure
 # that no matter how it is changed, our `$cwd` is
-# `$BLDR_SRC_CACHE/$pkg_dirname`.
+# `$HAB_CACHE_SRC_PATH/$pkg_dirname`.
 do_build_wrapper() {
   build_line "Building"
-  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_build
   popd > /dev/null
 }
@@ -1605,7 +1612,7 @@ do_default_build() {
 do_check_wrapper() {
   if [[ "$(type -t do_check)" = "function" && -n "$DO_CHECK" ]]; then
     build_line "Running post-compile tests"
-    pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+    pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
     do_check
     popd > /dev/null
   fi
@@ -1616,7 +1623,7 @@ do_check_wrapper() {
 do_install_wrapper() {
   build_line "Installing"
   mkdir -pv $pkg_prefix
-  pushd "$BLDR_SRC_CACHE/$pkg_dirname" > /dev/null
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
 }
@@ -1706,7 +1713,7 @@ _build_metadata() {
     echo "$interpreters" > $pkg_prefix/INTERPRETERS
   fi
 
-  local cutn="$(($(echo $BLDR_PKG_ROOT | grep -o '/' | wc -l)+2))"
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   local deps
 
   deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
@@ -1759,8 +1766,8 @@ do_default_build_config() {
 # Write out the `$pkg_prefix/run` file. If a file named `hooks/run` exists, we
 # skip this step. Otherwise, we look for `$pkg_service_run`, and use that.
 #
-# If the `$pkg_service_user` is set to `bldr`, we change the service to be run
-# under the `bldr` user before we start it.
+# If the `$pkg_service_user` is set to a value that is not `root`, we change
+# the service to be run under that user before we start it.
 #
 # Delegates most of the implementation to the `do_default_build_server()`
 # function.
@@ -1776,15 +1783,15 @@ do_default_build_service() {
     return 0
   else
     if [[ -n "${pkg_service_run}" ]]; then
-      if [[ "${pkg_service_user}" = "bldr" ]]; then
+      if [[ -n "$pkg_service_user" && "${pkg_service_user}" != "root" ]]; then
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
-cd $BLDR_ROOT/svc/$pkg_name
+cd $pkg_svc_path
 
 if [ "\$(whoami)" = "root" ]; then
   exec chpst \\
-    -U bldr:bldr \\
-    -u bldr:bldr \\
+    -U ${pkg_service_user}:$pkg_service_group \\
+    -u ${pkg_service_user}:$pkg_service_group \\
     $pkg_prefix/$pkg_service_run 2>&1
 else
   exec $pkg_prefix/$pkg_service_run 2>&1
@@ -1793,7 +1800,7 @@ EOT
       else
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
-cd $BLDR_ROOT/svc/$pkg_name
+cd $pkg_svc_path
 
 exec $pkg_prefix/$pkg_service_run 2>&1
 EOT
@@ -1858,15 +1865,15 @@ EOT
   return 0
 }
 
-# **Internal** Create the bldr package with `tar`/`gpg`, and sign it with
+# **Internal** Create the package with `tar`/`gpg`, and sign it with
 # `$pkg_gpg_key`.
 _generate_package() {
   build_line "Generating package"
-  mkdir -p $BLDR_PKG_CACHE
+  mkdir -p $HAB_CACHE_ARTIFACT_PATH
   $_tar_cmd -cf - "$pkg_prefix" | $_gpg_cmd \
     --set-filename x.tar \
     --local-user $pkg_gpg_key \
-    --output $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
+    --output $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
     --sign
   return 0
 }
@@ -1886,7 +1893,7 @@ do_default_end() {
 
 # # Main Flow
 
-# Parse bldr repo flag (-u)
+# Parse depot flag (-u)
 OPTIND=2
 while getopts "u:" opt; do
   case "${opt}" in
@@ -1957,18 +1964,19 @@ fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=$BLDR_PKG_ROOT/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
 # Set $pkg_svc variables.
-pkg_svc="$BLDR_ROOT/svc/$pkg_name"
-pkg_svc_data="$BLDR_ROOT/svc/$pkg_name/data"
-pkg_svc_var="$BLDR_ROOT/svc/$pkg_name/var"
-pkg_svc_config="$BLDR_ROOT/svc/$pkg_name/config"
-pkg_svc_static="$BLDR_ROOT/svc/$pkg_name/static"
+pkg_svc_path="$HAB_ROOT_PATH/svc/$pkg_name"
+pkg_svc_data_path="$pkg_svc_path/data"
+pkg_svc_files_path="$pkg_svc_path/files"
+pkg_svc_var_path="$pkg_svc_path/var"
+pkg_svc_config_path="$pkg_svc_path/config"
+pkg_svc_static_path="$pkg_svc_path/static"
 
 # Run `do_begin`
-build_line "Bldr setup"
+build_line "$_program setup"
 do_begin
 
 # Determine if we have all the commands we need to work
@@ -1989,7 +1997,7 @@ if ! $_gpg_cmd --list-secret-keys | grep -q "/${pkg_gpg_key} " > /dev/null; then
 fi
 
 # Download the source
-mkdir -pv $BLDR_SRC_CACHE
+mkdir -pv $HAB_CACHE_SRC_PATH
 do_download
 
 # Verify the source
@@ -2038,13 +2046,13 @@ _build_manifest
 _generate_package
 
 # Cleanup
-build_line "Bldr cleanup"
+build_line "$_program cleanup"
 do_end
 
 # Print the results
-build_line "Cache: $BLDR_SRC_CACHE/$pkg_dirname"
-build_line "Installed: $pkg_prefix"
-build_line "Package: $BLDR_PKG_CACHE/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
+build_line "Installed Path: $pkg_prefix"
+build_line "Artifact: $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
 
 # Exit cleanly
 build_line

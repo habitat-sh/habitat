@@ -58,7 +58,7 @@ create_config() {
   cat $PLAN_CONTEXT/config \
     | sed \
       -e "s,@pkg_prefix@,$pkg_prefix,g" \
-      -e "s,@pkg_svc_var@,$pkg_svc_var,g" \
+      -e "s,@pkg_svc_var@,$pkg_svc_var_path,g" \
       -e "s,@cflags@,$CFLAGS,g" \
       -e "s,@ldflags@,$LDFLAGS,g" \
       -e "s,@osname@,bldr,g" \

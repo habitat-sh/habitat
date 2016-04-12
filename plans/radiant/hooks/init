@@ -1,6 +1,6 @@
 #!/bin/sh
 export RADIANT_HOME="{{pkg.path}}"
-export RADIANT_DATA="{{pkg.svc_path}}/data"
+export RADIANT_DATA="{{pkg.svc_data_path}}"
 
 echo "Removing previous version deployed at ${RADIANT_DATA}"
 rm -rf ${RADIANT_DATA}*
@@ -9,7 +9,7 @@ echo "Deploying new version from ${RADIANT_HOME} to ${RADIANT_DATA}"
 cp -a ${RADIANT_HOME}/dist ${RADIANT_DATA}
 
 # echo "Linking radiant.conf"
-# ln -s {{pkg.svc_path}}/config/radiant.conf ${RADIANT_DATA}/dist/config/radiant.conf
+# ln -s {{pkg.svc_config_path}}/radiant.conf ${RADIANT_DATA}/dist/config/radiant.conf
 
 export GEM_HOME="${RADIANT_DATA}/dist/vendor/bundle"
 export GEM_PATH="$(hab-bpm pkgpath chef/bundler)"

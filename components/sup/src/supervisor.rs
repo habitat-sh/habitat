@@ -14,10 +14,11 @@
 use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
+use std::path::PathBuf;
 use std::process::{Command, Stdio, Child};
 use std::thread;
 
-use hcore::fs::SERVICE_HOME;
+use hcore;
 use hcore::package::PackageIdent;
 use libc::{pid_t, c_int};
 use time::{Duration, SteadyTime};
@@ -301,16 +302,16 @@ impl Supervisor {
         Ok(())
     }
 
-    pub fn run_cmd(&self) -> String {
-        format!("{}/run", self.service_dir())
+    pub fn run_cmd(&self) -> PathBuf {
+        self.service_dir().join("run")
     }
 
-    pub fn service_dir(&self) -> String {
-        format!("{}/{}", SERVICE_HOME, self.package_ident.name)
+    pub fn service_dir(&self) -> PathBuf {
+        hcore::fs::svc_path(&self.package_ident.name)
     }
 
-    pub fn pid_file(&self) -> String {
-        format!("{}/{}", self.service_dir(), PIDFILE_NAME)
+    pub fn pid_file(&self) -> PathBuf {
+        self.service_dir().join(PIDFILE_NAME)
     }
 
     /// Create a pid file for a package
@@ -320,7 +321,9 @@ impl Supervisor {
         match self.pid {
             Some(ref pid) => {
                 let pid_file = self.pid_file();
-                debug!("Creating PID file for child {} -> {:?}", pid_file, pid);
+                debug!("Creating PID file for child {} -> {:?}",
+                       pid_file.display(),
+                       pid);
                 let mut f = try!(File::create(pid_file));
                 try!(write!(f, "{}", pid));
                 Ok(())
@@ -333,7 +336,7 @@ impl Supervisor {
     /// Do NOT fail if there is an error removing the PIDFILE
     pub fn cleanup_pidfile(&self) {
         let pid_file = self.pid_file();
-        debug!("Attempting to clean up pid file {}", &pid_file);
+        debug!("Attempting to clean up pid file {}", &pid_file.display());
         match fs::remove_file(pid_file) {
             Ok(_) => {
                 debug!("Removed pid file");
@@ -349,7 +352,7 @@ impl Supervisor {
     /// otherwise, return Some(pid, uptime_seconds).
     pub fn read_pidfile(&self) -> Result<Option<Pid>> {
         let pid_file = self.pid_file();
-        debug!("Reading pidfile {}", &pid_file);
+        debug!("Reading pidfile {}", &pid_file.display());
 
         let mut f = try!(File::open(pid_file));
         let mut contents = String::new();

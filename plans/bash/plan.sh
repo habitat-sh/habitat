@@ -53,7 +53,7 @@ do_prepare() {
   # Apply all patch files to the extracted source
   for p in "${_patch_files[@]}"; do
     build_line "Applying patch $(basename $p)"
-    patch -p0 -i $BLDR_SRC_CACHE/$(basename $p)
+    patch -p0 -i $HAB_CACHE_SRC_PATH/$(basename $p)
   done
 }
 

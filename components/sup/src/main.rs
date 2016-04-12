@@ -108,7 +108,7 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     };
     config.set_watch(watches);
     config.set_path(sub_args.value_of("path")
-                            .unwrap_or(fs::service_path(sup::PROGRAM_NAME.as_str())
+                            .unwrap_or(fs::svc_path(sup::PROGRAM_NAME.as_str())
                                            .join("data")
                                            .to_string_lossy()
                                            .as_ref())

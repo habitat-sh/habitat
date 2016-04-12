@@ -16,7 +16,7 @@ pkg_expose=(1129 6379)
 
 do_download() {
 # I'm particularly sorry about this.
-	ln -sf $PLAN_CONTEXT/$pkg_source $BLDR_SRC_CACHE
+	ln -sf $PLAN_CONTEXT/$pkg_source $HAB_CACHE_SRC_PATH
 }
 
 do_verify() {
@@ -24,7 +24,7 @@ do_verify() {
 }
 
 do_unpack() {
-	$PLAN_CONTEXT/sapcar.exe -xvf $pkg_filename -R $BLDR_SRC_CACHE
+	$PLAN_CONTEXT/sapcar.exe -xvf $pkg_filename -R $HAB_CACHE_SRC_PATH
 }
 
 do_build() {
@@ -36,7 +36,7 @@ do_build() {
 # due to HANA injecting its own internal shared version of perl.
 do_install() {
   mkdir -p $pkg_prefix/bin
-  mv $BLDR_SRC_CACHE/$pkg_dirname/* $pkg_prefix/bin
+  mv $HAB_CACHE_SRC_PATH/$pkg_dirname/* $pkg_prefix/bin
   mv $pkg_prefix/bin/instruntime/sdbrun $pkg_prefix/bin/instruntime/sdbrun-real
   cat <<EOT >> $pkg_prefix/bin/instruntime/sdbrun
 #!/bin/sh

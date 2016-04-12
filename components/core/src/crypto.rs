@@ -23,7 +23,7 @@ use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
 use time;
 
 use error::{Error, Result};
-use fs::KEY_CACHE;
+use fs::CACHE_KEY_PATH;
 use util::perm;
 
 /// Habitat uses [libsodium](https://github.com/jedisct1/libsodium) and it's Rust
@@ -103,7 +103,7 @@ use util::perm;
 /// It's possible to examine the contents of a `.hab` file from a Linux shell:
 ///
 /// ```text
-/// $ head -3 /opt/bldr/cache/pkgs/chef-glibc-2.22-20160310192356.bldr
+/// $ head -3 /path/to/chef-glibc-2.22-20160310192356.bldr
 /// habitat-20160405144945
 /// BLAKE2b
 /// w4yC7/QADdC+NfH/wgN5u4K94nMieb1TxTVzbSfpMwRQ4k+YwhLs1nDXSIbSC8jHdF/7/LqLWtgPvGDmoKIvBDI0aGpIcGdlNDJhMDBnQ3lsMVVFM0JvRlZGSHhXcnBuWWF0/// SllXTXo1ZDg9
@@ -130,9 +130,9 @@ static SECRET_BOX_KEY_SUFFIX: &'static str = "box.key";
 /// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
 static SIG_HASH_TYPE: &'static str = "BLAKE2b";
 
-/// This environment variable allows you to override the fs::KEY_CACHE
+/// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
-static HABITAT_KEY_CACHE_ENV_VAR: &'static str = "HABITAT_KEY_CACHE";
+static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
 
 /// Create secret key files with these permissions
 static PUBLIC_KEY_PERMISSIONS: &'static str = "0400";
@@ -179,10 +179,10 @@ fn env_var_or_default(env_var: &str, default: &str) -> String {
 }
 
 /// Return the canonical location for nacl keys
-/// This value can be overridden via HABITAT_KEY_CACHE_ENV_VAR,
+/// This value can be overridden via CACHE_KEY_PATH_ENV_VAR,
 /// which is useful for testing
 fn nacl_key_dir() -> String {
-    env_var_or_default(HABITAT_KEY_CACHE_ENV_VAR, KEY_CACHE)
+    env_var_or_default(CACHE_KEY_PATH_ENV_VAR, CACHE_KEY_PATH)
 }
 
 /// Calculate the BLAKE2b hash of a file

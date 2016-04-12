@@ -3,7 +3,7 @@
 # # Usage
 #
 # ```sh
-# $ hab-bpm install chef/bldr-studio
+# $ hab-bpm install chef/hab-studio
 # $ hab-bpm exec chef/bash bash --version
 # ```
 #
@@ -52,7 +52,7 @@ print_help() {
 
 $author
 
-Bldr Package Manager
+Habitat Package Manager
 
 USAGE:
         $program [COMMON_FLAGS] <SUBCOMMAND> [ARG ..]
@@ -85,7 +85,7 @@ print_binlink_help() {
 
 $author
 
-Bldr Package Manager - create a symlink for a package binary into a common
+Habitat Package Manager - create a symlink for a package binary into a common
 'PATH' location
 
 USAGE:
@@ -116,7 +116,7 @@ print_exec_help() {
 
 $author
 
-Bldr Package Manager - execute a command using the 'PATH'
+Habitat Package Manager - execute a command using the 'PATH'
 context of an installed package
 
 USAGE:
@@ -141,7 +141,7 @@ print_install_help() {
 
 $author
 
-Bldr Package Manager - installing packages
+Habitat Package Manager - installing packages
 
 USAGE:
         $program [COMMON_FLAGS] install [FLAGS] [OPTIONS] <PKG_IDENT>
@@ -150,10 +150,10 @@ FLAGS:
     -h  Prints this message
 
 OPTIONS:
-    -u <BLDR_REPO>  Sets a Bldr repository URL
+    -u <BLDR_REPO>  Sets a Habitat repository URL
 
 ENVIRONMENT VARIABLES:
-    BLDR_REPO     Sets a Bldr repository (\`-u' option takes precedence)
+    BLDR_REPO     Sets a Habitat repository URL (\`-u' option takes precedence)
 
 EXAMPLES:
 
@@ -177,7 +177,7 @@ print_pkgpath_help() {
 
 $author
 
-Bldr Package Manager - print the path to an installed package
+Habitat Package Manager - print the path to an installed package
 
 USAGE:
         $program [COMMON_FLAGS] pkgpath <PKG_IDENT>
@@ -411,7 +411,7 @@ subcommand_pkgpath() {
     exit_with "Installed package could not be found for: $pkg_ident_arg" 6
   fi
 
-  echo "$BLDR_PKG_ROOT/$pkg_ident"
+  echo "$HAB_PKG_PATH/$pkg_ident"
 }
 
 
@@ -557,7 +557,7 @@ latest_remote_package() {
 # explaining that no package was found.
 latest_installed_package() {
   local quietly="${2:-}"
-  if [ ! -d "$BLDR_PKG_ROOT/$1" ]; then
+  if [ ! -d "$HAB_PKG_PATH/$1" ]; then
     if [ -z "$quietly" ]; then
       warn "No installed packages of '$1' were found"
     fi
@@ -570,14 +570,14 @@ latest_installed_package() {
   local result
   case $(trim $latest_package_flags) in
     "3")
-      result="$BLDR_PKG_ROOT/$1"
+      result="$HAB_PKG_PATH/$1"
       ;;
     "2")
-      result="$($bb find $BLDR_PKG_ROOT/$1 -maxdepth 1 -type d \
+      result="$($bb find $HAB_PKG_PATH/$1 -maxdepth 1 -type d \
         | $cu --coreutils-prog=sort --version-sort -r | $bb head -n 1)"
       ;;
     "1")
-      result="$($bb find $BLDR_PKG_ROOT/$1 -maxdepth 2 -type d \
+      result="$($bb find $HAB_PKG_PATH/$1 -maxdepth 2 -type d \
         | $cu --coreutils-prog=sort --version-sort -r | $bb head -n 1)"
       ;;
   esac
@@ -587,7 +587,7 @@ latest_installed_package() {
     fi
     return 1
   else
-    echo "$result" | $bb sed "s,^$BLDR_PKG_ROOT/,,"
+    echo "$result" | $bb sed "s,^$HAB_PKG_PATH/,,"
     return 0
   fi
 }
@@ -604,7 +604,7 @@ latest_installed_package() {
 install_package() {
   local pkg_ident=$1
   local pkg_source="$BLDR_REPO/pkgs/$pkg_ident/download"
-  local pkg_filename="$BLDR_PKG_CACHE/$(echo $pkg_ident | $bb tr '/' '-').bldr"
+  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').bldr"
 
   if [ -n "$QUIET" ]; then
     local v=
@@ -624,7 +624,7 @@ install_package() {
   else
     info "Installing $pkg_ident"
 
-    $bb mkdir -p $v $BLDR_PKG_CACHE
+    $bb mkdir -p $v $HAB_CACHE_ARTIFACT_PATH
 
     # Add a trap to clean up any interrupted file downloads and failed
     # extractions. These signal traps will be cleared once extraction is
@@ -635,7 +635,7 @@ install_package() {
     $wget $pkg_source -O $pkg_filename $wui
 
     info "Unpacking $($bb basename $pkg_filename)"
-    local gpg_cmd="$gpg --homedir $BLDR_GPG_CACHE --decrypt $pkg_filename"
+    local gpg_cmd="$gpg --homedir $HAB_CACHE_GPG_PATH --decrypt $pkg_filename"
     if [ -n "$VERBOSE" ]; then $gpg_cmd; else $gpg_cmd 2>/dev/null; fi \
       | $bb tar x -C $FS_ROOT/
 
@@ -658,8 +658,8 @@ install_package_tdeps() {
 
   # Install each entry in the package's `TDEPS` file which constitute the
   # entire set of runtime dependencies--direct and transitive.
-  if [ -f "$BLDR_PKG_ROOT/$pkg_ident/TDEPS" ]; then
-    for dep_ident in $($bb cat $BLDR_PKG_ROOT/$pkg_ident/TDEPS); do
+  if [ -f "$HAB_PKG_PATH/$pkg_ident/TDEPS" ]; then
+    for dep_ident in $($bb cat $HAB_PKG_PATH/$pkg_ident/TDEPS); do
       install_package $dep_ident
     done
   fi
@@ -674,7 +674,7 @@ set_path() {
   local path_parts
   local dep_ident
   local dep_path
-  local pkg_path="$BLDR_PKG_ROOT/$1"
+  local pkg_path="$HAB_PKG_PATH/$1"
 
   # Start with the `PATH` entry from this package, if it exists
   if [ -f "$pkg_path/PATH" ]; then
@@ -688,8 +688,8 @@ set_path() {
     # Loop through each `DEPS` entry and add the `PATH` entry for each direct
     # dependency (if it exists)
     for dep_ident in $($bb cat $pkg_path/DEPS); do
-      if [ -f "$BLDR_PKG_ROOT/$dep_ident/PATH" ]; then
-        dep_path="$($bb cat $BLDR_PKG_ROOT/$dep_ident/PATH)"
+      if [ -f "$HAB_PKG_PATH/$dep_ident/PATH" ]; then
+        dep_path="$($bb cat $HAB_PKG_PATH/$dep_ident/PATH)"
         if [ -z "$path_parts" ]; then
           path_parts="$dep_path"
         else
@@ -700,8 +700,8 @@ set_path() {
     # Loop through each `TDEPS` entry and add the `PATH` entry for each
     # dependency (if it exists). If the entry already exists, skip it
     for dep_ident in $($bb cat $pkg_path/TDEPS); do
-      if [ -f "$BLDR_PKG_ROOT/$dep_ident/PATH" ]; then
-        dep_path="$($bb cat $BLDR_PKG_ROOT/$dep_ident/PATH)"
+      if [ -f "$HAB_PKG_PATH/$dep_ident/PATH" ]; then
+        dep_path="$($bb cat $HAB_PKG_PATH/$dep_ident/PATH)"
         if [ -z "$path_parts" ]; then
           path_parts="$dep_path"
         else
@@ -849,15 +849,16 @@ shift "$((OPTIND - 1))"
 # filesystem or chroot environment, this environment variable may need to be
 # set.
 : ${FS_ROOT:=}
-# The root of the bldr tree. If `BLDR_ROOT` is set, this value is overridden,
-# otherwise it defaults to `/opt/bldr`.
-: ${BLDR_ROOT:=$FS_ROOT/opt/bldr}
-# Location containing installed packages
-BLDR_PKG_ROOT=$BLDR_ROOT/pkgs
-# Location containing cached packages
-BLDR_PKG_CACHE=$BLDR_ROOT/cache/pkgs
-# Location containing cached gpg keys
-BLDR_GPG_CACHE=$BLDR_ROOT/cache/gpg
+# The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
+# variable is set, this value is overridden, otherwise it is set to its default
+: ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
+# The root path containing all locally installed packages
+HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
+# The default download root path for package artifacts, used on package
+# installation
+HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+# The default path where gpg keys are stored
+HAB_CACHE_GPG_PATH=$HAB_ROOT_PATH/cache/gpg
 # The default bldr package repository from where to download dependencies
 : ${BLDR_REPO:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty

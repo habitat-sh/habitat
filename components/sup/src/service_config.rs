@@ -13,6 +13,7 @@ use toml;
 use VERSION;
 use error::{Error, Result};
 use package::Package;
+use hcore::package::PackageInstall;
 use util;
 use std::io::prelude::*;
 use std::fs::File;
@@ -51,7 +52,7 @@ impl ServiceConfig {
     pub fn new(package: &Package, cl: &CensusList) -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         Ok(ServiceConfig {
-            pkg: Pkg::new(package),
+            pkg: Pkg::new(&package.pkg_install),
             hab: Hab::new(),
             sys: Sys::new(),
             cfg: cfg,
@@ -84,8 +85,8 @@ impl ServiceConfig {
     }
 
     /// Replace the `pkg` data.
-    pub fn pkg(&mut self, package: &Package) {
-        self.pkg = Pkg::new(package);
+    pub fn pkg(&mut self, pkg_install: &PackageInstall) {
+        self.pkg = Pkg::new(pkg_install);
         self.needs_write = true
     }
 
@@ -108,9 +109,10 @@ impl ServiceConfig {
 
     /// Write the configuration to `config.toml`, and render the templated configuration files.
     pub fn write(&mut self, pkg: &Package) -> Result<bool> {
+        let pi = &pkg.pkg_install;
         let final_toml = try!(self.to_toml());
         {
-            let mut last_toml = try!(File::create(pkg.svc_join_path("config.toml")));
+            let mut last_toml = try!(File::create(pi.svc_path().join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
 
@@ -119,10 +121,11 @@ impl ServiceConfig {
         let mut should_restart = false;
         let config_files = try!(pkg.config_files());
         for config in config_files {
-            let template = try!(mustache::compile_path(pkg.join_path(&format!("config/{}",
-                                                                              config))));
+            let template = try!(mustache::compile_path(pi.installed_path()
+                                                         .join("config")
+                                                         .join(&config)));
             let mut config_vec = Vec::new();
-            let filename = pkg.svc_join_path(&format!("config/{}", config));
+            let filename = pi.svc_config_path().join(&config).to_string_lossy().into_owned();
             template.render_data(&mut config_vec, &final_data);
             let file_hash = openssl_hash::hash(openssl_hash::Type::SHA256, &config_vec);
             if self.config_hash.contains_key(&filename) {
@@ -269,7 +272,7 @@ impl Cfg {
 
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
         // Default
-        let mut file = match File::open(pkg.join_path("default.toml")) {
+        let mut file = match File::open(pkg.path().join("default.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open default.toml: {}", e);
@@ -294,7 +297,7 @@ impl Cfg {
     }
 
     fn load_user(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_join_path("user.toml")) {
+        let mut file = match File::open(pkg.svc_path().join("user.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open user.toml: {}", e);
@@ -319,7 +322,7 @@ impl Cfg {
     }
 
     fn load_gossip(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_join_path("gossip.toml")) {
+        let mut file = match File::open(pkg.svc_path().join("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open gossip.toml: {}", e);
@@ -377,29 +380,65 @@ pub struct Pkg {
     pub exposes: Vec<String>,
     pub path: String,
     pub svc_path: String,
+    pub svc_config_path: String,
+    pub svc_data_path: String,
+    pub svc_files_path: String,
+    pub svc_static_path: String,
+    pub svc_var_path: String,
 }
 
 impl Pkg {
-    fn new(package: &Package) -> Pkg {
+    fn new(pkg_install: &PackageInstall) -> Pkg {
+        let ident = pkg_install.ident();
+        let pkg_deps = match pkg_install.deps() {
+            Ok(deps) => deps,
+            Err(_) => {
+                outputln!("Failed to load deps for {} - it will be missing from the configuration",
+                          &ident);
+                Vec::new()
+            }
+        };
         let mut deps = Vec::new();
-        for d in package.deps.iter() {
-            if let Ok(p) = Package::load(d, None) {
+        for d in pkg_deps.iter() {
+            if let Ok(p) = PackageInstall::load(d, None) {
                 deps.push(Pkg::new(&p));
             } else {
                 outputln!("Failed to load {} - it will be missing from the configuration",
-                          d)
+                          &d)
             }
         }
+        let exposes: Vec<String> = match pkg_install.exposes() {
+            Ok(exposes) => exposes,
+            Err(_) => {
+                outputln!("Failed to load exposes metadata for {} - \
+                          it will be missing from the configuration",
+                          &ident);
+                Vec::new()
+            }
+        };
+        let version = match ident.version.as_ref() {
+            Some(v) => v.clone(),
+            None => "".to_string(),
+        };
+        let release = match ident.release.as_ref() {
+            Some(r) => r.clone(),
+            None => "".to_string(),
+        };
         Pkg {
-            origin: package.origin.clone(),
-            name: package.name.clone(),
-            version: package.version.clone(),
-            release: package.release.clone(),
-            ident: package.ident().to_string(),
+            origin: ident.origin.clone(),
+            name: ident.name.clone(),
+            version: version,
+            release: release,
+            ident: ident.to_string(),
             deps: deps,
-            exposes: package.exposes(),
-            path: package.path().to_string_lossy().into_owned(),
-            svc_path: package.svc_path().to_string_lossy().into_owned(),
+            exposes: exposes,
+            path: pkg_install.installed_path().to_string_lossy().into_owned(),
+            svc_path: pkg_install.svc_path().to_string_lossy().into_owned(),
+            svc_config_path: pkg_install.svc_config_path().to_string_lossy().into_owned(),
+            svc_data_path: pkg_install.svc_data_path().to_string_lossy().into_owned(),
+            svc_files_path: pkg_install.svc_files_path().to_string_lossy().into_owned(),
+            svc_static_path: pkg_install.svc_static_path().to_string_lossy().into_owned(),
+            svc_var_path: pkg_install.svc_var_path().to_string_lossy().into_owned(),
         }
     }
 
@@ -481,7 +520,7 @@ mod test {
 
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(
-            PackageIdent::from_str("neurosis/soverign/2000/20160222201258").unwrap(),
+            PackageIdent::from_str("neurosis/sovereign/2000/20160222201258").unwrap(),
             PathBuf::from("/fakeo/here"),
             PathBuf::from("/fakeo"));
         Package {

@@ -29,8 +29,8 @@ glibc_path=$(latest_package chef/glibc)
 $glibc_path/sbin/ldconfig.real
 
 export LD_LIBRARY_PATH=$(find /opt/bldr/pkgs -name 'LD_RUN_PATH' | xargs cat | tr '\n' :)
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$hana_path/bin/instruntime
-pkg_prefix=$hana_path
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{{pkg.path}}/bin/instruntime
+pkg_prefix={{pkg.path}}
 # This needs to have the path be correct for hana
 
 if [[ -d "/usr/sap" ]]; then

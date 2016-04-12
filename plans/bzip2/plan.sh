@@ -41,7 +41,7 @@ do_install() {
   ln -sv bzip2 $pkg_prefix/bin/bzcat
 
   # Install the shared library and its symlinks
-  cp -v $BLDR_SRC_CACHE/$pkg_dirname/libbz2.so.$pkg_version $pkg_prefix/lib
+  cp -v $HAB_CACHE_SRC_PATH/$pkg_dirname/libbz2.so.$pkg_version $pkg_prefix/lib
   ln -sv libbz2.so.$pkg_version $pkg_prefix/lib/libbz2.so
   ln -sv libbz2.so.$pkg_version $pkg_prefix/lib/libbz2.so.$maj
   ln -sv libbz2.so.$pkg_version $pkg_prefix/lib/libbz2.so.$maj_min
