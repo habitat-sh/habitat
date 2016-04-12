@@ -35,9 +35,6 @@ do_install() {
   install -v -D $(pkg_path_for coreutils-static)/bin/coreutils \
     $pkg_prefix/libexec/coreutils
 
-  install -v -D $(pkg_path_for gnupg-static)/bin/gpg \
-    $pkg_prefix/libexec/gpg
-
   install -v -D $(pkg_path_for jq-static)/bin/jq \
     $pkg_prefix/libexec/jq
 
