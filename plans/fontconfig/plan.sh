@@ -5,7 +5,6 @@ pkg_license=('fontconfig')
 pkg_source=https://www.freedesktop.org/software/fontconfig/release/${pkg_name}-${pkg_version}.tar.bz2
 pkg_filename=${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=d763c024df434146f3352448bc1f4554f390c8a48340cef7aa9cc44716a159df
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/gcc chef/make chef/coreutils chef/python
                 chef/pkg-config chef/freetype chef/expat

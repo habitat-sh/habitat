@@ -6,7 +6,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://s3-us-west-2.amazonaws.com/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=2ad73b78ef5e88e9e916873c0f762bbdf286e4de93e67cf211f9761a2876c7ef
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/node)
 pkg_build_deps=(chef/node)
 pkg_expose=(8080)

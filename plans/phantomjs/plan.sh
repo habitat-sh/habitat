@@ -6,7 +6,6 @@ pkg_source=https://bitbucket.org/ariya/phantomjs/downloads/${pkg_name}-${pkg_ver
 pkg_filename=${pkg_name}-${pkg_version}-linux-x86_64.tar.bz2
 pkg_dirname=${pkg_name}-${pkg_version}-linux-x86_64
 pkg_shasum=86dd9a4bf4aee45f1a84c9f61cf1947c1d6dce9b9e8d2a907105da7852460d2f
-pkg_gpg_key=3853DA6B
 
 # Ensure we depend on all the libraries that the prebuilt phantomjs
 # links against here:

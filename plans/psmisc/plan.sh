@@ -8,7 +8,6 @@ pkg_shasum=97323cad619210845b696d7d722c383852b2acb5c49b5b0852c4f29c77a8145a
 pkg_deps=(chef/glibc chef/ncurses)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   do_default_prepare

@@ -6,7 +6,6 @@ pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_build_deps=()
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 pkg_deps=(
   chef/bash

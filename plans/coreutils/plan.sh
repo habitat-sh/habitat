@@ -9,7 +9,6 @@ pkg_shasum=a2d75286a4b9ef3a13039c2da3868a61be4ee9f17d8ae380a35a97e506972170
 pkg_deps=(chef/glibc chef/acl chef/attr chef/gmp chef/libcap)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/m4 chef/perl)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 pkg_interpreters=(bin/env)
 
 do_build() {

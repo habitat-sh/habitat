@@ -8,7 +8,6 @@ pkg_shasum=524effa5b9ecd4ed940f2581c5d3c1df4e4bd7e6f768aa033c1916f47dfc6e29
 pkg_deps=(chef/glibc chef/mpfr)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 pkg_interpreters=(bin/awk bin/gawk)
 
 do_check() {

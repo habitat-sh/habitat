@@ -9,7 +9,6 @@ pkg_dirname=kernel-headers-$pkg_version
 pkg_deps=()
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_include_dirs=(include)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   make \

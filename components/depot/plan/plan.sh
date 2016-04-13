@@ -8,7 +8,6 @@ pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/libarchive chef/libsodium)
 pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc chef/libsodium)
 pkg_service_run="bin/hab-depot start"
-pkg_gpg_key=3853DA6B
 
 do_build() {
   pushd $PLAN_CONTEXT/.. > /dev/null

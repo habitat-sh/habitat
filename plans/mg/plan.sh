@@ -8,7 +8,6 @@ pkg_shasum=26450b2564bec0b0afc465fd24a1917dc31508c5500c3a36823b9c763a2b8636
 pkg_deps=(chef/glibc chef/ncurses chef/libbsd)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/pkg-config chef/clens)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   cat $PLAN_CONTEXT/cleanup.patch \

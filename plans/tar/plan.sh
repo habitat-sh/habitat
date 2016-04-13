@@ -8,7 +8,6 @@ pkg_shasum=6a6b65bac00a127a508533c604d5bf1a3d40f82707d56f20cefd38a05e8237de
 pkg_deps=(chef/glibc chef/acl chef/attr)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   # * `FORCE_UNSAFE_CONFIGURE` forces the test for `mknod` to be run as root

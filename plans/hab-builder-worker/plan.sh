@@ -8,7 +8,6 @@ pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/openssl chef/gcc-libs core/zeromq)
 pkg_build_deps=(core/protobuf core/protobuf-rust chef/coreutils chef/cacerts chef/rust chef/gcc chef/pkg-config)
 pkg_service_run="bin/bldr-worker ${pkg_svc_config_path}/app.cfg.toml"
-pkg_gpg_key=3853DA6B
 
 do_build() {
   pushd $PLAN_CONTEXT/../../components/builder-worker > /dev/null

@@ -4,7 +4,6 @@ pkg_origin=chef
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache2')
 pkg_filename=${pkg_name}-${pkg_version}.tar.bz2
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/bldr chef/curl chef/pcre chef/nginx)
 pkg_build_deps=(chef/node chef/coreutils chef/phantomjs chef/python2
                 chef/make chef/gcc chef/gcc-libs)

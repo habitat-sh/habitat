@@ -8,7 +8,6 @@ pkg_shasum=64ebcec9f8ac5b2487125a86a7760d2591ac9e1d3dbd59489633f9de62a57684
 pkg_deps=(chef/m4 chef/perl)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/gawk)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 
 # ----------------------------------------------------------------------------

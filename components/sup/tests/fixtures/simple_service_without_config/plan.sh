@@ -7,7 +7,6 @@ pkg_source=nosuchfile.tar.gz
 pkg_deps=()
 pkg_bin_dirs=(bin)
 pkg_service_run="bin/simple_service_without_config"
-pkg_gpg_key=3853DA6B
 
 do_begin() {
   archive="$HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2"

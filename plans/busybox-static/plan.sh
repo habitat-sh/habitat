@@ -6,7 +6,6 @@ pkg_dirname=${pkg_distname}-${pkg_version}
 
 pkg_deps=()
 pkg_build_deps=(chef/linux-headers-musl chef/musl "${pkg_build_deps[@]}")
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   CFLAGS="-I$(pkg_path_for linux-headers-musl)/include -I$(pkg_path_for musl)/include"

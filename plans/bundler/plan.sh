@@ -6,7 +6,6 @@ pkg_license=('bundler')
 pkg_source=
 pkg_filename=nosuchfile.tar.gz
 pkg_shasum=
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/ruby)
 pkg_build_deps=(chef/ruby)
 pkg_lib_dirs=(lib)

@@ -9,7 +9,6 @@ pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef
 pkg_deps=(chef/glibc)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   do_default_prepare

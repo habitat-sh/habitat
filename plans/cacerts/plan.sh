@@ -7,7 +7,6 @@ pkg_source=http://curl.haxx.se/ca/cacert.pem
 pkg_shasum=nopenopebucketofnope
 pkg_deps=()
 pkg_build_deps=()
-pkg_gpg_key=3853DA6B
 
 do_download() {
   do_default_download

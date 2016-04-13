@@ -6,7 +6,6 @@ pkg_source=https://www.sqlite.org/2016/${pkg_name}-autoconf-${pkg_version}.tar.g
 pkg_filename=${pkg_name}-autoconf-${pkg_version}.tar.gz
 pkg_dirname=${pkg_name}-autoconf-${pkg_version}
 pkg_shasum=533ff1d0271c2e666f01591271cef01a31648563affa0c95e80ef735077d4377
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/readline)
 pkg_build_deps=(chef/gcc chef/make chef/coreutils)
 pkg_lib_dirs=(lib)

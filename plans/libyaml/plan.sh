@@ -7,7 +7,6 @@ pkg_dirname=yaml-${pkg_version}
 pkg_source=http://pyyaml.org/download/${pkg_name}/yaml-${pkg_version}.tar.gz
 pkg_filename=yaml-${pkg_version}.tar.gz
 pkg_shasum=7da6971b4bd08a986dd2a61353bc422362bd0edcc67d7ebaac68c95f74182749
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/make chef/gcc)
 pkg_lib_dirs=(lib)

@@ -12,7 +12,6 @@ pkg_build_deps=(chef/gcc/$pkg_version chef/patchelf)
 pkg_bin_dirs=()
 pkg_include_dirs=()
 
-pkg_gpg_key=3853DA6B
 
 # The list of GCC libraries to copy
 _gcc_libs=(

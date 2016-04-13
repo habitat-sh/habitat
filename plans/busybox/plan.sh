@@ -31,7 +31,6 @@ pkg_build_deps=(
 )
 
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 pkg_interpreters=(bin/ash bin/awk bin/env bin/sh bin/bash)
 
 do_prepare() {

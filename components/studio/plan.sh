@@ -7,7 +7,6 @@ pkg_source=nosuchfile.tar.gz
 pkg_deps=()
 pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static chef/hab-bpm)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   cp -v $PLAN_CONTEXT/bin/hab-studio.sh hab-studio
