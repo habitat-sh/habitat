@@ -39,8 +39,10 @@ use util::perm;
 /// considered the **secret key** file.
 /// - **Origin** -  refers to build-time operations, including signing and
 /// verifification of an artifact.
-/// - **Organization** - refers to run-time operations that can happen in Habitat,
+/// - **Organization** / **Org** - refers to run-time operations that can happen in Habitat,
 /// such as deploying a package signed in a different origin into your own organization.
+/// Abbreviated as "org" in CLI params and variable names.
+/// - **Org vs Origin** - Habitat packages come from an origin and run in an organization
 /// - **Signing keys** - aka **sig** keys. These are used to sign and verify
 /// packages. Contains a `sig.key` file suffix. Sig keys are NOT compatible with
 /// box keys.
@@ -374,19 +376,19 @@ pub fn generate_origin_sig_key(origin: &str) -> Result<String> {
     Ok(keyname)
 }
 
-// generate a service box key, return the name of the key we generated
-pub fn generate_service_box_key(origin: &str, service: &str, group: &str) -> Result<String> {
+/// generate a service box key, return the name of the key we generated
+pub fn generate_service_box_key(org: &str, service_group: &str) -> Result<String> {
     let revision = mk_revision_string();
-    let keyname = mk_service_box_key_name(origin, &revision, service, group);
+    let keyname = mk_service_box_key_name(org, &revision, service_group);
     debug!("new user sig key name = {}", &keyname);
     try!(generate_box_keypair_files(&keyname));
     Ok(keyname)
 }
 
-// generate a user box key, return the name of the key we generated
-pub fn generate_user_box_key(origin: &str, user: &str) -> Result<String> {
+/// generate a user box key, return the name of the key we generated
+pub fn generate_user_box_key(org: &str, user: &str) -> Result<String> {
     let revision = mk_revision_string();
-    let keyname = mk_user_box_key_name(origin, &revision, &user);
+    let keyname = mk_user_box_key_name(org, &revision, &user);
     debug!("new user sig key name = {}", &keyname);
     try!(generate_box_keypair_files(&keyname));
     Ok(keyname)
@@ -413,12 +415,12 @@ fn mk_origin_sig_key_name(origin: &str, revision: &str) -> String {
     format!("{}-{}", origin, revision)
 }
 
-fn mk_service_box_key_name(origin: &str, revision: &str, service: &str, group: &str) -> String {
-    format!("{}.{}@{}-{}", service, group, origin, revision)
+fn mk_service_box_key_name(org: &str, revision: &str, service_group: &str) -> String {
+    format!("{}@{}-{}", service_group, org, revision)
 }
 
-fn mk_user_box_key_name(origin: &str, revision: &str, user: &str) -> String {
-    format!("{}@{}-{}", user, origin, revision)
+fn mk_user_box_key_name(org: &str, revision: &str, user: &str) -> String {
+    format!("{}@{}-{}", user, org, revision)
 }
 
 fn generate_box_keypair_files(keyname: &str) -> Result<(BoxPublicKey, BoxSecretKey)> {

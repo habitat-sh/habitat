@@ -13,14 +13,14 @@ pub fn generate_origin_key(origin: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn generate_user_key(origin: &str, user: &str) -> Result<()> {
-    let keyname = try!(crypto::generate_user_box_key(origin, user));
+pub fn generate_user_key(org: &str, user: &str) -> Result<()> {
+    let keyname = try!(crypto::generate_user_box_key(org, user));
     println!("Successfully generated user key {}", keyname);
     Ok(())
 }
 
-pub fn generate_service_key(origin: &str, service: &str, group: &str) -> Result<()> {
-    let keyname = try!(crypto::generate_service_box_key(origin, service, group));
+pub fn generate_service_key(org: &str, service_group: &str) -> Result<()> {
+    let keyname = try!(crypto::generate_service_box_key(org, service_group));
     println!("Successfully generated service key {}", keyname);
     Ok(())
 }

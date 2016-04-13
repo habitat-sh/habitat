@@ -7,7 +7,7 @@
 
 use std::path::Path;
 use std::result;
-
+use regex::Regex;
 use clap::{App, AppSettings};
 use url::Url;
 
@@ -53,7 +53,7 @@ pub fn get() -> App<'static, 'static> {
             )
             (@subcommand hash=>
                 (about: "Generate a BLAKE2b hash for a file")
-                (@arg SOURCE : +required {file_exists}
+                (@arg SOURCE: +required {file_exists}
                  "Any existing file")
             )
 
@@ -66,7 +66,7 @@ pub fn get() -> App<'static, 'static> {
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
                         (about: "Generates an origin key")
-                        (@arg ORIGIN: --origin +required +takes_value)
+                        (@arg ORIGIN: "The origin name")
                  )
             )
         )
@@ -78,9 +78,8 @@ pub fn get() -> App<'static, 'static> {
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
                         (about: "Generates a service key")
-                        (@arg ORIGIN: --origin +takes_value)
-                        (@arg SERVICE: --service +required +takes_value)
-                        (@arg GROUP: --group +required +takes_value)
+                        (@arg SERVICE_GROUP: +required +takes_value {valid_service_group})
+                        (@arg ORG: "The user's organization")
                  )
             )
         )
@@ -92,8 +91,8 @@ pub fn get() -> App<'static, 'static> {
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
                         (about: "Generates a user key")
-                        (@arg ORIGIN: --origin +takes_value)
-                        (@arg USER: --user +required +takes_value)
+                        (@arg USER: +required +takes_value)
+                        (@arg ORG: "The service's organization")
                  )
             )
         )
@@ -176,6 +175,15 @@ fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+    }
+}
+
+fn valid_service_group(val: String) -> result::Result<(), String> {
+    let regex = Regex::new(".+\\..+").unwrap();
+    if regex.is_match(&val) {
+        Ok(())
+    } else {
+        Err(format!("SERVICE_GROUP: '{}' is not valid", &val))
     }
 }
 

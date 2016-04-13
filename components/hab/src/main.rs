@@ -13,6 +13,7 @@ extern crate clap;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+extern crate regex;
 // Temporary depdency for gossip/rumor injection code duplication.
 extern crate rustc_serialize;
 extern crate url;
@@ -31,11 +32,12 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use clap::ArgMatches;
+
+use error::{Error, Result};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::DEFAULT_DEPOT_URL;
 
-use error::{Error, Result};
 
 const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HABITAT_SUP_BINARY";
@@ -43,6 +45,9 @@ const SUP_PACKAGE_IDENT: &'static str = "chef/hab-sup";
 
 /// you can skip the --origin CLI param if you specify this env var
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HABITAT_ORIGIN";
+
+/// you can skip the org CLI param if you specify this env var
+const HABITAT_ORG_ENVVAR: &'static str = "HABITAT_ORG";
 
 fn main() {
     if let Err(e) = run_hab() {
@@ -147,10 +152,8 @@ fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
-    // here you MUST specify the origin on the CLI,
-    // it won't be read from the environment var
-    let origin_key = m.value_of("ORIGIN").unwrap();
-    try!(command::artifact::crypto::generate_origin_key(&origin_key));
+    let origin = try!(origin_param_or_env(&m));
+    try!(command::artifact::crypto::generate_origin_key(&origin));
     Ok(())
 }
 
@@ -182,20 +185,18 @@ fn sub_rumor_inject(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
-
 fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {
-    let origin = try!(origin_param_or_env(&m));
-    let service = m.value_of("SERVICE").unwrap(); // clap required
-    let group = m.value_of("GROUP").unwrap(); // clap required
-    try!(command::artifact::crypto::generate_service_key(&origin, service, group));
+    let org = try!(org_param_or_env(&m));
+    let service_group = m.value_of("SERVICE_GROUP").unwrap(); // clap required
+    try!(command::artifact::crypto::generate_service_key(&org, service_group));
     Ok(())
 
 }
 
 fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
-    let origin = try!(origin_param_or_env(&m));
+    let org = try!(org_param_or_env(&m));
     let user = m.value_of("USER").unwrap(); // clap required
-    try!(command::artifact::crypto::generate_user_key(&origin, user));
+    try!(command::artifact::crypto::generate_user_key(&org, user));
     Ok(())
 }
 
@@ -239,6 +240,22 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
             match env::var(HABITAT_ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string()))
+            }
+        }
+    }
+}
+
+
+// check to see if the user has passed in an ORG param
+// if not, check the HABITAT_ORG env var. If that's
+// empty too, then error
+fn org_param_or_env(m: &ArgMatches) -> Result<String> {
+    match m.value_of("ORG") {
+        Some(o) => Ok(o.to_string()),
+        None => {
+            match env::var(HABITAT_ORG_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string()))
             }
         }
     }

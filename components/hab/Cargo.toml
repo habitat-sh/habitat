@@ -8,6 +8,7 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 hyper = "*"
 libc = "*"
 log = "*"
+regex = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 rustc-serialize = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
