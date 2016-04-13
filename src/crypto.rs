@@ -15,6 +15,7 @@ use std::path::Path;
 use libsodium_sys;
 use sodiumoxide::init as nacl_init;
 use sodiumoxide::crypto::sign;
+use sodiumoxide::crypto::box_;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
 use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
@@ -74,7 +75,7 @@ use util::perm;
 /// Example Service keys:
 ///
 /// ```text
-/// redis.default@habitat-box-201603312016.key
+/// redis.default@habitat-201603312016.pub
 /// ```
 ///
 /// ### Habitat signed artifact format
@@ -365,12 +366,30 @@ pub fn artifact_verify(infilename: &str) -> Result<()> {
 /// Key generation functions
 /// *******************************************
 
-pub fn generate_origin_sig_key(origin: &str) -> Result<()> {
+pub fn generate_origin_sig_key(origin: &str) -> Result<String> {
     let revision = mk_revision_string();
     let keyname = mk_origin_sig_key_name(origin, &revision);
     debug!("new origin sig key name = {}", &keyname);
     try!(generate_sig_keypair_files(&keyname));
-    Ok(())
+    Ok(keyname)
+}
+
+// generate a service box key, return the name of the key we generated
+pub fn generate_service_box_key(origin: &str, service: &str, group: &str) -> Result<String> {
+    let revision = mk_revision_string();
+    let keyname = mk_service_box_key_name(origin, &revision, service, group);
+    debug!("new user sig key name = {}", &keyname);
+    try!(generate_box_keypair_files(&keyname));
+    Ok(keyname)
+}
+
+// generate a user box key, return the name of the key we generated
+pub fn generate_user_box_key(origin: &str, user: &str) -> Result<String> {
+    let revision = mk_revision_string();
+    let keyname = mk_user_box_key_name(origin, &revision, &user);
+    debug!("new user sig key name = {}", &keyname);
+    try!(generate_box_keypair_files(&keyname));
+    Ok(keyname)
 }
 
 fn mk_key_filename(dir: &str, keyname: &str, suffix: &str) -> String {
@@ -390,8 +409,30 @@ fn mk_revision_string() -> String {
     }
 }
 
-pub fn mk_origin_sig_key_name(origin: &str, release: &str) -> String {
-    format!("{}-{}", origin, release)
+fn mk_origin_sig_key_name(origin: &str, revision: &str) -> String {
+    format!("{}-{}", origin, revision)
+}
+
+fn mk_service_box_key_name(origin: &str, revision: &str, service: &str, group: &str) -> String {
+    format!("{}.{}@{}-{}", service, group, origin, revision)
+}
+
+fn mk_user_box_key_name(origin: &str, revision: &str, user: &str) -> String {
+    format!("{}@{}-{}", user, origin, revision)
+}
+
+fn generate_box_keypair_files(keyname: &str) -> Result<(BoxPublicKey, BoxSecretKey)> {
+    let (pk, sk) = box_::gen_keypair();
+
+    let public_keyfile = mk_key_filename(&nacl_key_dir(), keyname, PUB_KEY_SUFFIX);
+    let secret_keyfile = mk_key_filename(&nacl_key_dir(), keyname, SECRET_BOX_KEY_SUFFIX);
+    debug!("public box keyfile = {}", &public_keyfile);
+    debug!("secret box keyfile = {}", &secret_keyfile);
+    try!(write_keypair_files(&public_keyfile,
+                             &pk[..].to_base64(STANDARD).into_bytes(),
+                             &secret_keyfile,
+                             &sk[..].to_base64(STANDARD).into_bytes()));
+    Ok((pk, sk))
 }
 
 fn generate_sig_keypair_files(keyname: &str) -> Result<(SigPublicKey, SigSecretKey)> {
@@ -514,7 +555,6 @@ pub fn get_box_secret_key(keyname: &str) -> Result<BoxSecretKey> {
 }
 
 pub fn get_box_public_key(keyname: &str) -> Result<BoxPublicKey> {
-    println!("GETTING PUBLIC KEY WITH {}", keyname);
     let bytes = try!(get_box_public_key_bytes(keyname));
     match BoxPublicKey::from_slice(&bytes) {
         Some(sk) => Ok(sk),
@@ -524,16 +564,6 @@ pub fn get_box_public_key(keyname: &str) -> Result<BoxPublicKey> {
     }
 }
 
-fn get_sig_public_key_bytes(keyname: &str) -> Result<Vec<u8>> {
-    let public_keyfile = mk_key_filename(&nacl_key_dir(), keyname, PUB_KEY_SUFFIX);
-    read_key_bytes(&public_keyfile)
-}
-
-fn get_sig_secret_key_bytes(keyname: &str) -> Result<Vec<u8>> {
-    let secret_keyfile = mk_key_filename(&nacl_key_dir(), keyname, SECRET_SIG_KEY_SUFFIX);
-    read_key_bytes(&secret_keyfile)
-}
-
 fn get_box_public_key_bytes(keyname: &str) -> Result<Vec<u8>> {
     let public_keyfile = mk_key_filename(&nacl_key_dir(), keyname, PUB_KEY_SUFFIX);
     read_key_bytes(&public_keyfile)
@@ -541,6 +571,16 @@ fn get_box_public_key_bytes(keyname: &str) -> Result<Vec<u8>> {
 
 fn get_box_secret_key_bytes(keyname: &str) -> Result<Vec<u8>> {
     let secret_keyfile = mk_key_filename(&nacl_key_dir(), keyname, SECRET_BOX_KEY_SUFFIX);
+    read_key_bytes(&secret_keyfile)
+}
+
+fn get_sig_public_key_bytes(keyname: &str) -> Result<Vec<u8>> {
+    let public_keyfile = mk_key_filename(&nacl_key_dir(), keyname, PUB_KEY_SUFFIX);
+    read_key_bytes(&public_keyfile)
+}
+
+fn get_sig_secret_key_bytes(keyname: &str) -> Result<Vec<u8>> {
+    let secret_keyfile = mk_key_filename(&nacl_key_dir(), keyname, SECRET_SIG_KEY_SUFFIX);
     read_key_bytes(&secret_keyfile)
 }
 
