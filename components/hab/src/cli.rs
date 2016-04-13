@@ -62,11 +62,38 @@ pub fn get() -> App<'static, 'static> {
             (about: "Runs Habitat origin commands")
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Runs Habitat for origin key maintenance")
+                 (about: "Habitat origin key maintenance")
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
                         (about: "Generates an origin key")
-                        (@arg ORIGIN: +required)
+                        (@arg ORIGIN: --origin +required +takes_value)
+                 )
+            )
+        )
+        (@subcommand service =>
+            (about: "Runs Habitat service commands")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand key =>
+                 (about: "Habitat service key maintenance")
+                 (@setting ArgRequiredElseHelp)
+                 (@subcommand generate =>
+                        (about: "Generates a service key")
+                        (@arg ORIGIN: --origin +takes_value)
+                        (@arg SERVICE: --service +required +takes_value)
+                        (@arg GROUP: --group +required +takes_value)
+                 )
+            )
+        )
+        (@subcommand user =>
+            (about: "Runs Habitat user commands")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand key =>
+                 (about: "Habitat user key maintenance")
+                 (@setting ArgRequiredElseHelp)
+                 (@subcommand generate =>
+                        (about: "Generates a user key")
+                        (@arg ORIGIN: --origin +takes_value)
+                        (@arg USER: --user +required +takes_value)
                  )
             )
         )
@@ -83,15 +110,7 @@ pub fn get() -> App<'static, 'static> {
         (@subcommand sup =>
             (about: "Runs Habitat supervisor commands")
         )
-        (@subcommand origin =>
-            (about: "Habitat origin commands")
-            (@setting ArgRequiredElseHelp)
-            (@subcommand generate_key =>
-                (about: "Generates an origin key")
-                (@arg ORIGIN: +required
-                 "Origin name")
-            )
-        )
+
         (subcommand: alias_inject)
         (subcommand: alias_install)
         (subcommand: alias_start())

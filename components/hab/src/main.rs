@@ -65,6 +65,8 @@ fn run_hab() -> Result<()> {
                 _ => unreachable!(),
             }
         }
+        ("inject", Some(m)) => try!(sub_rumor_inject(m)),
+        ("install", Some(m)) => try!(sub_package_install(m)),
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -88,8 +90,29 @@ fn run_hab() -> Result<()> {
                 _ => unreachable!(),
             }
         }
-        ("inject", Some(m)) => try!(sub_rumor_inject(m)),
-        ("install", Some(m)) => try!(sub_package_install(m)),
+        ("service", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("generate", Some(sc)) => try!(sub_service_key_generate(sc)),
+                        _ => unreachable!(),
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
+        ("user", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("generate", Some(sc)) => try!(sub_user_key_generate(sc)),
+                        _ => unreachable!(),
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
+
         _ => unreachable!(),
     };
     Ok(())
@@ -102,19 +125,10 @@ fn sub_artifact_hash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
-    let origin_key = match m.value_of("ORIGIN") {
-        Some(o) => o.to_string(),
-        None => {
-            match env::var(HABITAT_ORIGIN_ENVVAR) {
-                Ok(v) => v,
-                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string()))
-            }
-        }
-    };
-
+    let origin = try!(origin_param_or_env(&m));
     let infile = m.value_of("SOURCE").unwrap();
     let outfile = m.value_of("ARTIFACT").unwrap();
-    try!(command::artifact::crypto::sign(&origin_key, &infile, &outfile));
+    try!(command::artifact::crypto::sign(&origin, &infile, &outfile));
     Ok(())
 }
 
@@ -133,6 +147,8 @@ fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
+    // here you MUST specify the origin on the CLI,
+    // it won't be read from the environment var
     let origin_key = m.value_of("ORIGIN").unwrap();
     try!(command::artifact::crypto::generate_origin_key(&origin_key));
     Ok(())
@@ -166,6 +182,23 @@ fn sub_rumor_inject(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+
+fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {
+    let origin = try!(origin_param_or_env(&m));
+    let service = m.value_of("SERVICE").unwrap(); // clap required
+    let group = m.value_of("GROUP").unwrap(); // clap required
+    try!(command::artifact::crypto::generate_service_key(&origin, service, group));
+    Ok(())
+
+}
+
+fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
+    let origin = try!(origin_param_or_env(&m));
+    let user = m.value_of("USER").unwrap(); // clap required
+    try!(command::artifact::crypto::generate_user_key(&origin, user));
+    Ok(())
+}
+
 fn exec_subcommand_if_called() -> Result<()> {
     if let Some(subcmd) = env::args().nth(1) {
         match subcmd.as_str() {
@@ -194,4 +227,19 @@ fn exec_subcommand_if_called() -> Result<()> {
         }
     };
     Ok(())
+}
+
+// check to see if the user has passed in an ORIGIN param
+// if not, check the HABITAT_ORIGIN env var. If that's
+// empty too, then error
+fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
+    match m.value_of("ORIGIN") {
+        Some(o) => Ok(o.to_string()),
+        None => {
+            match env::var(HABITAT_ORIGIN_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string()))
+            }
+        }
+    }
 }

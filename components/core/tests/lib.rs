@@ -11,10 +11,10 @@ extern crate time;
 use std::env;
 use std::fs;
 
-// call a closure in a loop until it returns Ok(()),
+// call a closure in a loop until it returns Ok(keyname),
 // or the 30 second timeout
 pub fn wait_until_ok<F>(some_fn: F) -> bool
-    where F: Fn() -> Result<(), hcore::error::Error>
+    where F: Fn() -> Result<String, hcore::error::Error>
 {
     let wait_duration = time::Duration::seconds(30);
     let current_time = time::now_utc().to_timespec();
@@ -75,4 +75,81 @@ fn generate_key_revisions_test() {
         Err(e) => panic!("Can't get key revisions {}", e),
     };
     assert!(first_rev != second_rev);
+}
+
+
+#[test]
+fn generate_box_keys_test() {
+    let key_dir = "/tmp/habitat_test_keys";
+    let _ = fs::remove_dir_all(&key_dir);
+    fs::create_dir_all(&key_dir).unwrap();
+
+    // override the location where Habitat wants to store keys
+    env::set_var("HAB_CACHE_KEY_PATH", &key_dir);
+
+    let test_origin = "myorigin";
+    let test_user = "foo";
+    let test_service = "bar";
+    let test_group = "testgroup";
+
+    // generated keys SHOULD be in the following 2 formats:
+    let test_user_key_name = format!("{}@{}", test_user, test_origin);
+    let test_service_key_name = format!("{}.{}@{}", test_service, test_group, test_origin);
+
+    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_origin, test_user)) {
+        panic!("Can't generate a user box key");
+    }
+
+    if !wait_until_ok(|| {
+        hcore::crypto::generate_service_box_key(test_origin, test_service, test_group)
+    }) {
+        panic!("Can't generate a service box key");
+    }
+
+    // we should only see a single revision
+    let first_user_rev = match hcore::crypto::get_key_revisions(&test_user_key_name) {
+        Ok(revs) => {
+            assert!(revs.len() == 1);
+            revs.first().unwrap().clone()
+        }
+        Err(e) => panic!("Can't get user key revisions {}", e),
+    };
+
+    let first_service_rev = match hcore::crypto::get_key_revisions(&test_service_key_name) {
+        Ok(revs) => {
+            assert!(revs.len() == 1);
+            revs.first().unwrap().clone()
+        }
+        Err(e) => panic!("Can't get service key revisions {}", e),
+    };
+
+    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_origin, test_user)) {
+        panic!("Can't generate a second user box key");
+    }
+
+    if !wait_until_ok(|| {
+        hcore::crypto::generate_service_box_key(test_origin, test_service, test_group)
+    }) {
+        panic!("Can't generate a second service box key");
+    }
+
+    let second_user_rev = match hcore::crypto::get_key_revisions(&test_user_key_name) {
+        Ok(revs) => {
+            assert!(revs.len() == 2);
+            revs.first().unwrap().clone()
+        }
+        Err(e) => panic!("Can't get user key revisions {}", e),
+    };
+    assert!(first_user_rev != second_user_rev);
+
+
+    let second_service_rev = match hcore::crypto::get_key_revisions(&test_service_key_name) {
+        Ok(revs) => {
+            assert!(revs.len() == 2);
+            revs.first().unwrap().clone()
+        }
+        Err(e) => panic!("Can't get service key revisions {}", e),
+    };
+    assert!(first_service_rev != second_service_rev);
+
 }
