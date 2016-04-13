@@ -80,6 +80,7 @@ fn generate_key_revisions_test() {
 
 #[test]
 fn generate_box_keys_test() {
+    // Note, user + service keys use org, not origin
     let key_dir = "/tmp/habitat_test_keys";
     let _ = fs::remove_dir_all(&key_dir);
     fs::create_dir_all(&key_dir).unwrap();
@@ -87,21 +88,20 @@ fn generate_box_keys_test() {
     // override the location where Habitat wants to store keys
     env::set_var("HAB_CACHE_KEY_PATH", &key_dir);
 
-    let test_origin = "myorigin";
+    let test_org = "someorg";
     let test_user = "foo";
-    let test_service = "bar";
-    let test_group = "testgroup";
+    let test_service_group = "bar.testgroup";
 
     // generated keys SHOULD be in the following 2 formats:
-    let test_user_key_name = format!("{}@{}", test_user, test_origin);
-    let test_service_key_name = format!("{}.{}@{}", test_service, test_group, test_origin);
+    let test_user_key_name = format!("{}@{}", test_user, test_org);
+    let test_service_key_name = format!("{}@{}", test_service_group, test_org);
 
-    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_origin, test_user)) {
+    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_org, test_user)) {
         panic!("Can't generate a user box key");
     }
 
     if !wait_until_ok(|| {
-        hcore::crypto::generate_service_box_key(test_origin, test_service, test_group)
+        hcore::crypto::generate_service_box_key(test_org, test_service_group)
     }) {
         panic!("Can't generate a service box key");
     }
@@ -123,12 +123,12 @@ fn generate_box_keys_test() {
         Err(e) => panic!("Can't get service key revisions {}", e),
     };
 
-    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_origin, test_user)) {
+    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_org, test_user)) {
         panic!("Can't generate a second user box key");
     }
 
     if !wait_until_ok(|| {
-        hcore::crypto::generate_service_box_key(test_origin, test_service, test_group)
+        hcore::crypto::generate_service_box_key(test_org, test_service_group)
     }) {
         panic!("Can't generate a second service box key");
     }
