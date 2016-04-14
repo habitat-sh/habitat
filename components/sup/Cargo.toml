@@ -28,7 +28,6 @@ url = "*"
 iron = "*"
 router = "*"
 time = "*"
-uuid = "*"
 temp_utp = "*"
 rpassword = "*"
 rand = "*"
@@ -49,6 +48,10 @@ path = "../depot-core"
 [dependencies.habitat_depot_client]
 path = "../depot-client"
 
+[dependencies.uuid]
+version = "*"
+features = ["rustc-serialize"]
+
 [dependencies.wonder]
 path = "../../vendor/wonder"
 
@@ -57,7 +60,8 @@ git = "https://github.com/adamhjk/rust-mustache"
 branch = "fallback_on_missing_extension"
 
 [dependencies.clap]
-features = [ "suggestions", "color" ]
+version = "*"
+features = ["suggestions", "color"]
 
 [profile.release]
 lto = true

@@ -13,6 +13,7 @@ env_logger = "*"
 log = "*"
 
 [dependencies.clap]
+version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.habitat_net]

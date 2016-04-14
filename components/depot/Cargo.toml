@@ -29,6 +29,7 @@ urlencoded = "*"
 walkdir = "*"
 
 [dependencies.clap]
+version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.habitat_core]
