@@ -48,13 +48,14 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@setting SubcommandRequiredElseHelp)
         (@arg path: -p --path +takes_value "Filepath to service storage for the Depot service")
         (@subcommand start =>
-            (about: "Run a bldr package Depot")
+            (about: "Run a Habitat package Depot")
             (@arg port: --port +takes_value "Listen port. [default: 9632]")
         )
         (@subcommand repair =>
             (about: "Verify and repair data integrity of the package Depot")
         )
         (@subcommand view =>
+            (about: "Creates or lists views in the package Depot")
             (@subcommand create =>
                 (about: "Create a new view over the package Depot")
                 (@arg view: <view> +required "Name of the view to create")
