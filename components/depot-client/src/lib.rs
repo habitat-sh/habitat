@@ -25,6 +25,7 @@ use hcore::package::{PackageArchive, PackageIdent};
 use depot_core::{XFileName, data_object};
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
+use hyper::Url;
 use rustc_serialize::json;
 
 /// Download a public key from a remote Depot to the given filepath.
@@ -35,8 +36,8 @@ use rustc_serialize::json;
 /// * Remote Depot is not available
 /// * File cannot be created and written to
 pub fn fetch_key(depot: &str, key: &str, path: &str) -> Result<String> {
-    let url = format!("{}/keys/{}", depot, key);
-    download(key, &url, path)
+    let url = Url::parse(&format!("{}/keys/{}", depot, key)).unwrap();
+    download(key, url, path)
 }
 
 /// Download the latest release of a package.
@@ -52,8 +53,8 @@ pub fn fetch_key(depot: &str, key: &str, path: &str) -> Result<String> {
 /// * Remote Depot is not available
 /// * File cannot be created and written to
 pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result<PackageArchive> {
-    let url = format!("{}/pkgs/{}/download", depot, package);
-    match download(&package.name, &url, store) {
+    let url = Url::parse(&format!("{}/pkgs/{}/download", depot, package)).unwrap();
+    match download(&package.name, url, store) {
         Ok(file) => {
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
@@ -100,8 +101,8 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Pa
 pub fn put_key(depot: &str, path: &Path) -> Result<()> {
     let mut file = try!(File::open(path));
     let file_name = try!(path.file_name().ok_or(Error::NoFilePart));
-    let url = format!("{}/keys/{}", depot, file_name.to_string_lossy());
-    upload(&url, &mut file)
+    let url = Url::parse(&format!("{}/keys/{}", depot, file_name.to_string_lossy())).unwrap();
+    upload(url, &mut file)
 }
 
 /// Upload a package to a remote Depot.
@@ -113,9 +114,9 @@ pub fn put_key(depot: &str, path: &Path) -> Result<()> {
 pub fn put_package(depot: &str, pa: &mut PackageArchive) -> Result<()> {
     let checksum = try!(pa.checksum());
     let ident = try!(pa.ident());
-    let url = format!("{}/pkgs/{}?checksum={}", depot, ident, checksum);
+    let url = Url::parse(&format!("{}/pkgs/{}?checksum={}", depot, ident, checksum)).unwrap();
     let mut file = try!(File::open(&pa.path));
-    upload(&url, &mut file)
+    upload(url, &mut file)
 }
 
 fn url_show_package(depot: &str, package: &PackageIdent) -> String {
@@ -126,7 +127,7 @@ fn url_show_package(depot: &str, package: &PackageIdent) -> String {
     }
 }
 
-fn download(status: &str, url: &str, path: &str) -> Result<String> {
+fn download(status: &str, url: Url, path: &str) -> Result<String> {
     debug!("Making request to url {}", url);
     let client = Client::new();
     let mut res = try!(client.get(url).send());
@@ -189,7 +190,7 @@ fn download(status: &str, url: &str, path: &str) -> Result<String> {
     Ok(finalfile)
 }
 
-fn upload(url: &str, file: &mut File) -> Result<()> {
+fn upload(url: Url, file: &mut File) -> Result<()> {
     debug!("Uploading to {}", url);
     try!(file.seek(SeekFrom::Start(0)));
     let client = Client::new();
