@@ -635,13 +635,7 @@ install_package() {
     $wget $pkg_source -O $pkg_filename $wui
 
     info "Unpacking $($bb basename $pkg_filename)"
-
-    /src/components/hab/target/debug/hab verify $pkg_filename
-    if [ $? -ne 0 ]; then
-      exit_with "Error verifying artifact" 99
-    fi
-
-    tail -n +4 $pkg_filename | $bb tar Xj -C $FS_ROOT/
+    tail -n +4 $pkg_filename | $bb tar x -C $FS_ROOT/
 
     # Clear the file download and extraction clean trap
     trap - INT TERM EXIT

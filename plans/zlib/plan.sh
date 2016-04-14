@@ -1,10 +1,12 @@
 pkg_name=zlib
+pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_version=1.2.8
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('zlib')
-pkg_source=http://zlib.net/current/${pkg_name}-${pkg_version}.tar.gz
+pkg_source=http://zlib.net/current/${pkg_distname}-${pkg_version}.tar.gz
 pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
+pkg_dirname=${pkg_distname}-${pkg_version}
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_lib_dirs=(lib)

@@ -1,15 +1,23 @@
 pkg_name=musl
 pkg_origin=chef
-pkg_version=1.1.12
+pkg_version=1.1.14
 pkg_license=('mit')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://www.musl-libc.org/releases/${pkg_name}-${pkg_version}.tar.gz
-pkg_shasum=720b83c7e276b4b679c0bffe9509340d5f81fd601508e607e708177df0d31c0e
+pkg_shasum=35f6c00c84a6091bd5dab29eedde7508dae755ead92dcc0239f3677d1055b9b5
 pkg_deps=()
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
+
+do_prepare() {
+  stack_size="2097152"
+  build_line "Setting default stack size to '$stack_size' from default of '81920'"
+  sed -i "s/#define DEFAULT_STACK_SIZE .*/#define DEFAULT_STACK_SIZE $stack_size/" \
+    src/internal/pthread_impl.h
+  return 0
+}
 
 do_build() {
   ./configure \

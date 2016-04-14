@@ -1,17 +1,19 @@
 pkg_name=bzip2
+pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_version=1.0.6
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bzip2')
 pkg_source=http://www.bzip.org/$pkg_version/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=a2848f34fcd5d6cf47def00461fcb528a0484d8edef8208d6d2e2909dc61d9cd
+pkg_dirname=${pkg_distname}-${pkg_version}
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
-do_prepare() {
+_common_prepare() {
   # Makes the symbolic links in installation relative vs. absolute
   sed -i 's@\(ln -s -f \)$(PREFIX)/bin/@\1@' Makefile
 
@@ -19,9 +21,16 @@ do_prepare() {
   sed -i "s@(PREFIX)/man@(PREFIX)/share/man@g" Makefile
 }
 
+do_prepare() {
+  _common_prepare
+
+  export CC=gcc
+  build_line "Setting CC=$CC"
+}
+
 do_build() {
-  make -f Makefile-libbz2_so PREFIX="$pkg_prefix"
-  make bzip2 bzip2recover
+  make -f Makefile-libbz2_so PREFIX="$pkg_prefix" CC="$CC"
+  make bzip2 bzip2recover CC="$CC" LDFLAGS="$LDFLAGS"
 }
 
 do_check() {

@@ -97,8 +97,10 @@ fn attempt_upload_dep(url: &str, ident: &PackageIdent, archives_dir: &PathBuf) -
         let mut archive = PackageArchive::new(candidate_path);
         match upload_into_depot(&url, &ident, &mut archive) {
             Ok(()) => Ok(()),
-            // Err(Error::HTTP(_)) => return Err(e),
-            // Err(Error::PackageArchiveMalformed(_)) => return Err(e),
+            Err(Error::DepotClient(depot_client::Error::HTTP(e))) => {
+                return Err(Error::DepotClient(depot_client::Error::HTTP(e)))
+            }
+            Err(Error::PackageArchiveMalformed(e)) => return Err(Error::PackageArchiveMalformed(e)),
             Err(_) => {
                 // This is because of a bug where the depot and client code seem to not
                 // correctly deal with conflicts.
