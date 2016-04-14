@@ -1,8 +1,8 @@
 {
   "version": "2",
   "build_cookbook": {
-    "path": ".delivery/cookbooks/bldr",
-    "name": "bldr"
+    "path": ".delivery/cookbooks/hab",
+    "name": "hab"
   },
   "skip_phases": [
     "deploy",

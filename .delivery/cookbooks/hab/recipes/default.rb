@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: bldr
+# Cookbook Name:: hab
 # Recipe:: default
 #
 # Copyright 2015-2016 Chef Software, Inc.
@@ -47,4 +47,4 @@ group 'docker' do
   members Array(node['delivery_builder']['build_user'])
 end
 
-include_recipe 'bldr::_docker_machine'
+include_recipe 'hab::_docker_machine'

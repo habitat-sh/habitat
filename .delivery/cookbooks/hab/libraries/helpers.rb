@@ -1,6 +1,10 @@
-module BldrDocker
+module HabDocker
   class << self
     include Chef::Mixin::ShellOut
+  end
+
+  def self.devshell_name
+    'habitat/devshell:latest'
   end
 
   def self.image_exists?(repository)
@@ -25,7 +29,7 @@ module BldrDocker
   end
 end
 
-module BldrDockerMachine
+module HabDockerMachine
   def self.available?(port = 2376)
     require 'socket'
 

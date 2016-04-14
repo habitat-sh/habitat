@@ -1,4 +1,4 @@
-# bldr Build Cookbook
+# The Habitat Build Cookbook
 
 This project is testable with [Test Kitchen](http://kitchen.ci) and assumes
 you have a [ChefDK](https://downloads.chef.io/chef-dk/) installation.

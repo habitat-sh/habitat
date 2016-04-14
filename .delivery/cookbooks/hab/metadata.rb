@@ -1,8 +1,8 @@
-name 'bldr'
+name 'hab'
 maintainer 'The Habitat Maintainers'
 maintainer_email 'humans@habitat.sh'
 license 'apache2'
-description 'Delivery build cookbook for bldr'
+description 'Delivery build cookbook for Habitat'
 version '0.1.0'
 
 depends 'build-essential'
