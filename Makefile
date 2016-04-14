@@ -28,13 +28,20 @@ else
 	docs_run :=
 endif
 
-.PHONY: help all shell serve-docs test unit functional clean image docs gpg
-.DEFAULT_GOAL := all
+.PHONY: help all bin shell serve-docs test unit functional clean image docs gpg
+.DEFAULT_GOAL := bin
 
-all: image ## builds the project's Rust components
+bin: image ## builds the project's main binaries
 	$(run) sh -c 'cd components/hab && cargo build'
 	$(run) sh -c 'cd components/sup && cargo build'
 	$(run) sh -c 'cd components/depot && cargo build'
+
+all: image ## builds all the project's Rust components
+	$(run) sh -c 'cd components/core && cargo build'
+	$(run) sh -c 'cd components/depot-core && cargo build'
+	$(run) sh -c 'cd components/depot-client && cargo build'
+	$(run) sh -c 'cd components/common && cargo build'
+	$(MAKE) bin
 
 test: image ## tests the project's Rust components
 	$(run) sh -c 'cd components/core && cargo test'
@@ -55,11 +62,13 @@ functional: image ## executes the components' functional test suites
 	$(run) sh -c 'cd components/depot && cargo test --test server'
 
 clean: ## cleans up the project tree
+	$(run) sh -c 'cd components/common && cargo clean'
 	$(run) sh -c 'cd components/core && cargo clean'
-	$(run) sh -c 'cd components/depot-core && cargo clean'
 	$(run) sh -c 'cd components/depot-client && cargo clean'
-	$(run) sh -c 'cd components/sup && cargo clean'
+	$(run) sh -c 'cd components/depot-core && cargo clean'
 	$(run) sh -c 'cd components/depot && cargo clean'
+	$(run) sh -c 'cd components/hab && cargo clean'
+	$(run) sh -c 'cd components/sup && cargo clean'
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
