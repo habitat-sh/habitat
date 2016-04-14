@@ -434,7 +434,7 @@ impl Census {
         let mut members = toml::Array::new();
         let mut sorted_keys: Vec<_> = self.population
                                           .keys()
-                                          .map(|&x| x.to_simple_string())
+                                          .map(|&x| x.simple().to_string())
                                           .collect();
         sorted_keys.sort();
         for key in sorted_keys {
@@ -547,8 +547,8 @@ impl Census {
                                                  if rce.suitability > lce.suitability {
                                                      Some(rce)
                                                  } else if lce.suitability == rce.suitability {
-                                                     if rce.id.to_simple_string() >
-                                                        lce.id.to_simple_string() {
+                                                     if rce.id.simple().to_string() >
+                                                        lce.id.simple().to_string() {
                                                          Some(rce)
                                                      } else {
                                                          Some(lce)

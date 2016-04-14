@@ -18,6 +18,7 @@ url = "*"
 uuid = "0.1"
 
 [dependencies.clap]
+version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.habitat_core]

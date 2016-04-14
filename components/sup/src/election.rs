@@ -157,13 +157,15 @@ impl Election {
             self.votes.insert(old_id);
             true
         } else {
-            if self.leader_id.to_simple_string() > remote_election.leader_id.to_simple_string() {
+            if self.leader_id.simple().to_string() >
+               remote_election.leader_id.simple().to_string() {
                 for x in remote_election.votes.iter() {
                     self.votes.insert(*x);
                 }
                 self.votes.insert(remote_election.leader_id);
                 true
-            } else if self.leader_id.to_simple_string() < remote_election.leader_id.to_simple_string() {
+            } else if self.leader_id.simple().to_string() <
+               remote_election.leader_id.simple().to_string() {
                 let old_votes = self.votes.clone();
                 let old_id = self.leader_id.clone();
                 *self = remote_election;
@@ -365,7 +367,7 @@ mod test {
 
             assert!(local_election.update_via(remote_election));
 
-            if local_id.to_simple_string() > remote_id.to_simple_string() {
+            if local_id.simple().to_string() > remote_id.simple().to_string() {
                 assert_eq!(local_election.leader_id, local_id);
                 assert!(local_election.votes.contains(&local_id));
                 assert!(local_election.votes.contains(&remote_id));

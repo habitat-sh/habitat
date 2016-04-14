@@ -18,18 +18,12 @@ extern crate rustc_serialize;
 
 pub mod util;
 
-
 mod setup {
     use std::sync::{Once, ONCE_INIT};
     use std::process::Command;
-    use std::collections::HashMap;
-    use std::str::FromStr;
     use std::env;
     use tempdir::TempDir;
 
-    use hcore::package::PackageIdent;
-    use hcore::url;
-    use common;
     use util;
 
     pub fn origin_setup() {
@@ -95,10 +89,7 @@ mod setup {
             }
         });
     }
-
 }
-
-
 
 macro_rules! poerr {
     ($expr:expr) => (
