@@ -113,15 +113,15 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
                                            .to_string_lossy()
                                            .as_ref())
                             .to_string());
-    config.set_gossip_listen(sub_args.value_of("gossip-listen")
+    config.set_gossip_listen(sub_args.value_of("listen-peer")
                                      .unwrap_or(DEFAULT_GOSSIP_LISTEN)
                                      .to_string());
-    let gossip_peers = match sub_args.values_of("gossip-peer") {
+    let gossip_peers = match sub_args.values_of("peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],
     };
     config.set_gossip_peer(gossip_peers);
-    if sub_args.value_of("gossip-permanent").is_some() {
+    if sub_args.value_of("permanent-peer").is_some() {
         config.set_gossip_permanent(true);
     }
     if let Some(sg) = sub_args.value_of("service-group") {
@@ -194,19 +194,19 @@ fn main() {
                                  .value_name("watch")
                                  .multiple(true)
                                  .help("One or more service groups to watch for updates"))
-                        .arg(Arg::with_name("gossip-peer")
-                                 .long("gossip-peer")
+                        .arg(Arg::with_name("peer")
+                                 .long("peer")
                                  .value_name("ip:port")
                                  .multiple(true)
-                                 .help("The listen string of an initial gossip peer"))
-                        .arg(Arg::with_name("gossip-listen")
-                                 .long("gossip-listen")
+                                 .help("The listen address of an initial peer"))
+                        .arg(Arg::with_name("listen-peer")
+                                 .long("listen-peer")
                                  .value_name("ip:port")
-                                 .help("The listen string for gossip [default: 0.0.0.0:9634]"))
-                        .arg(Arg::with_name("gossip-permanant")
+                                 .help("The listen address [default: 0.0.0.0:9634]"))
+                        .arg(Arg::with_name("permanent-peer")
                                  .short("I")
-                                 .long("gossip-permanent")
-                                 .help("If this service is a permanent gossip peer"));
+                                 .long("permanent-peer")
+                                 .help("If this service is a permanent peer"));
     let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
