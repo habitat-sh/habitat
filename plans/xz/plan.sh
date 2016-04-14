@@ -1,16 +1,17 @@
 pkg_name=xz
+pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_version=5.2.2
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl2+' 'lgpl2+')
-pkg_source=http://tukaani.org/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
-pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+pkg_source=http://tukaani.org/${pkg_distname}/${pkg_distname}-${pkg_version}.tar.gz
 pkg_shasum=73df4d5d34f0468bd57d09f2d8af363e95ed6cc3a4a86129d2f2c366259902a2
+pkg_dirname=${pkg_distname}-${pkg_version}
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_bin_dirs=(bin)
-pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
+pkg_lib_dirs=(lib)
 
 do_check() {
   make check
