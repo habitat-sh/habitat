@@ -3,7 +3,6 @@ source ../openssl/plan.sh
 pkg_name=openssl-musl
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_deps=(chef/musl chef/zlib-musl chef/cacerts)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   PLAN_CONTEXT=$(abspath $PLAN_CONTEXT/../openssl) _common_prepare

@@ -9,7 +9,6 @@ pkg_deps=(chef/glibc chef/readline chef/zlib chef/python)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/texinfo)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   ./configure \

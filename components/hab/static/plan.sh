@@ -9,7 +9,6 @@ pkg_build_deps=(
   chef/openssl-musl chef/libsodium-musl
   chef/coreutils chef/cacerts chef/rust chef/gcc
 )
-pkg_gpg_key=3853DA6B
 
 # Set the parent directory as the "root" of this plan.
 PLAN_CONTEXT=$(abspath ..)

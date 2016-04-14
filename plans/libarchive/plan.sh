@@ -11,7 +11,6 @@ pkg_deps=(chef/glibc chef/openssl chef/zlib chef/bzip2 chef/xz)
 pkg_build_deps=(chef/gcc chef/coreutils chef/make)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
-pkg_gpg_key=3853DA6B
 
 do_build() {
     ./configure \
