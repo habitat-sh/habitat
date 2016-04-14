@@ -15,9 +15,9 @@ pkg_deps=(
   chef/file
   chef/findutils
   chef/gawk
-  chef/gnupg
   chef/grep
   chef/gzip
+  chef/hab-static
   chef/sed
   chef/tar
   chef/wget

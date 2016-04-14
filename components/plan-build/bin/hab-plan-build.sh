@@ -1851,14 +1851,14 @@ EOT
   return 0
 }
 
-# **Internal** Create the package with `tar`/`hab artifact sign`
-_generate_package() {
-  build_line "Generating package"
+# **Internal** Create the package artifact with `tar`/`hab artifact sign`
+_generate_artifact() {
+  build_line "Generating package artifact"
   mkdir -p $HAB_CACHE_SRC_PATH
   $_tar_cmd -cf - "$pkg_prefix" | gpg \
     --set-filename x.tar \
     --local-user $pkg_gpg_key \
-    --output $HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
+    --output $_artifact \
     --sign
   return 0
 }
@@ -1956,6 +1956,9 @@ pkg_svc_var_path="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static_path="$pkg_svc_path/static"
 
+# Set the package artifact name
+_artifact=$HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr
+
 # Run `do_begin`
 build_line "$_program setup"
 do_begin
@@ -2019,7 +2022,7 @@ do_strip
 _build_manifest
 
 # Write the package
-_generate_package
+_generate_artifact
 
 # Cleanup
 build_line "$_program cleanup"
@@ -2028,7 +2031,7 @@ do_end
 # Print the results
 build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
-build_line "Artifact: $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+build_line "Artifact: $_artifact"
 
 # Exit cleanly
 build_line
