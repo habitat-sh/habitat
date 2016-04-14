@@ -72,7 +72,7 @@ pub fn run_with_peer(image: &str, peer: &str) -> Docker {
                  image,
                  "start",
                  image,
-                 &format!("--gossip-peer={}", peer),
+                 &format!("--peer={}", peer),
                  &format!("--group={}", thread::current().name().unwrap_or("main"))])
 }
 
@@ -83,9 +83,9 @@ pub fn run_with_peer_permanent(image: &str, peer: &str) -> Docker {
                  image,
                  "start",
                  image,
-                 &format!("--gossip-peer={}", peer),
+                 &format!("--peer={}", peer),
                  &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--gossip-permanent")])
+                 &format!("--permanent-peer")])
 }
 
 pub fn run_with_permanent(image: &str) -> Docker {
@@ -96,7 +96,7 @@ pub fn run_with_permanent(image: &str) -> Docker {
                  "start",
                  image,
                  &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--gossip-permanent")])
+                 &format!("--permanent-peer")])
 }
 
 pub fn run_with_peer_topology(image: &str, peer: &str, topology: &str) -> Docker {
@@ -107,7 +107,7 @@ pub fn run_with_peer_topology(image: &str, peer: &str, topology: &str) -> Docker
                  "start",
                  image,
                  &format!("--topology={}", topology),
-                 &format!("--gossip-peer={}", peer),
+                 &format!("--peer={}", peer),
                  &format!("--group={}", thread::current().name().unwrap_or("main"))])
 }
 
@@ -119,9 +119,9 @@ pub fn run_with_peer_permanent_topology(image: &str, peer: &str, topology: &str)
                  "start",
                  image,
                  &format!("--topology={}", topology),
-                 &format!("--gossip-peer={}", peer),
+                 &format!("--peer={}", peer),
                  &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--gossip-permanent")])
+                 &format!("--permanent-peer")])
 }
 
 pub fn run_with_permanent_topology(image: &str, topology: &str) -> Docker {
@@ -133,7 +133,7 @@ pub fn run_with_permanent_topology(image: &str, topology: &str) -> Docker {
                  image,
                  &format!("--topology={}", topology),
                  &format!("--group={}", thread::current().name().unwrap_or("main")),
-                 &format!("--gossip-permanent")])
+                 &format!("--permanent-peer")])
 }
 
 
