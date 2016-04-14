@@ -1853,29 +1853,13 @@ EOT
 
 # **Internal** Create the package with `tar`/`hab artifact sign`
 _generate_package() {
-  build_line "Generating artifact"
-  mkdir -p $HAB_CACHE_ARTIFACT_PATH
-  local artifact_base=$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}
-  echo "dest   $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz"
-  echo "source ${pkg_prefix}"
-  # TODO: it would be nice to just stream to tar stuff to `hab artifact sign`
-  $_tar_cmd cJf $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz ${pkg_prefix}
-
-  # TODO: HABITAT_ORIGIN MUST be set, do we assume a default?
-  # TODO: env var for the path to `hab`?
-  build_line "Signing artifact"
-  /src/components/hab/target/debug/hab artifact sign \
-            $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz \
-            $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr --origin ${HABITAT_ORIGIN}
-
-  build_line "Verifying artifact"
-  ## TODO: pretty output
-  /src/components/hab/target/debug/hab artifact verify \
-       $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr
-
-  # TODO
-  rm $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.xz
-
+  build_line "Generating package"
+  mkdir -p $HAB_CACHE_SRC_PATH
+  $_tar_cmd -cf - "$pkg_prefix" | gpg \
+    --set-filename x.tar \
+    --local-user $pkg_gpg_key \
+    --output $HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
+    --sign
   return 0
 }
 
