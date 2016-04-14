@@ -9,7 +9,6 @@ pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   ./configure --prefix=$pkg_prefix \

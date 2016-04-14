@@ -5,7 +5,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=http://nginx.org/download/nginx-1.8.0.tar.gz
 pkg_shasum=23cca1239990c818d8f6da118320c4979aadf5386deda691b1b7c2c96b9df3d5
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/libedit chef/ncurses chef/zlib chef/bzip2 chef/openssl chef/pcre)
 pkg_build_deps=(chef/gcc chef/make chef/coreutils)
 pkg_lib_dirs=(lib)

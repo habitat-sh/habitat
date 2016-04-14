@@ -6,7 +6,6 @@ pkg_license=('Apache2')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://www.imagemagick.org/download/releases/ImageMagick-${pkg_version}.tar.xz
 pkg_shasum=da2f6fba43d69f20ddb11783f13f77782b0b57783dde9cda39c9e5e733c2013c
-pkg_gpg_key=3853DA6B
 pkg_bin_dirs=(bin)
 pkg_deps=(chef/zlib chef/glibc)
 pkg_build_deps=(chef/zlib chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/glibc)

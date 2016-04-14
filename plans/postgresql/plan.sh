@@ -5,7 +5,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('PostgreSQL')
 pkg_source=https://ftp.postgresql.org/pub/source/v${pkg_version}/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=6b309d8506a39773a752ff074f47656e5424576ea090b04a24fe1725958c5bd2
-pkg_gpg_key=3853DA6B
 
 pkg_deps=(
   chef/glibc

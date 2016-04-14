@@ -10,5 +10,4 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_bin_dirs=(sbin)
 pkg_shasum=8e3f07fdbad5b1c030498fd6298e115e6f740d39d930390fc6937d14fa5c1b4a
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc)

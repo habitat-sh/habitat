@@ -5,7 +5,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://storage.googleapis.com/golang/${pkg_name}${pkg_version}.src.tar.gz
 pkg_shasum=9947fc705b0b841b5938c48b22dc33e9647ec0752bae66e50278df4f23f64959
 pkg_build_deps=(chef/coreutils chef/inetutils chef/bash chef/patch chef/gcc chef/diffutils)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   export GOOS=linux

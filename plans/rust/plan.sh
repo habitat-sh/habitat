@@ -5,7 +5,6 @@ pkg_license=('Apache-2.0' 'MIT')
 pkg_source=https://static.rust-lang.org/dist/${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu.tar.gz
 pkg_dirname=${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu
 pkg_shasum=d36634bd8df3d7565487b70af03dfda1c43c635cd6f2993f47cd61fda00d890a
-pkg_gpg_key=3853DA6B
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_deps=(chef/glibc chef/gcc-libs chef/zlib chef/gcc chef/cacerts)

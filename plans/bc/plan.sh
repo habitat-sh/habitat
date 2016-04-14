@@ -8,7 +8,6 @@ pkg_shasum=7ee4abbcfac03d8a6e1a8a3440558a3d239d6b858585063e745c760957725ecc
 pkg_deps=(chef/glibc chef/readline)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/texinfo)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   do_default_prepare

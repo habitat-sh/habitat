@@ -5,7 +5,6 @@ pkg_license=('gplv2')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://downloads.sourceforge.net/sourceforge/gkernel/rng-tools-${pkg_version}.tar.gz
 pkg_shasum=60a102b6603bbcce2da341470cad42eeaa9564a16b4490e7867026ca11a3078e
-pkg_gpg_key=3853DA6B
 pkg_bin_dirs=(bin sbin)
 pkg_build_deps=(chef/gcc chef/make)
 pkg_deps=(chef/glibc)

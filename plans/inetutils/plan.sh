@@ -8,7 +8,6 @@ pkg_shasum=849d96f136effdef69548a940e3e0ec0624fc0c81265296987986a0dd36ded37
 pkg_deps=(chef/glibc chef/libcap chef/ncurses)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   # Configure flag notes:

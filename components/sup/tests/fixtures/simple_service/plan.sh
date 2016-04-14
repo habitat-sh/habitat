@@ -7,7 +7,6 @@ pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=()
 pkg_service_run="bin/simple_service"
-pkg_gpg_key=3853DA6B
 
 do_download() {
   return 0

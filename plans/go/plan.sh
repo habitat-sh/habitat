@@ -9,7 +9,6 @@ pkg_dirname=$pkg_name
 pkg_deps=(chef/glibc chef/iana-etc chef/cacerts)
 pkg_build_deps=(chef/coreutils chef/inetutils chef/bash chef/patch chef/gcc chef/go/1.4.3 chef/perl)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   export GOOS=linux

@@ -8,7 +8,6 @@ pkg_shasum=3fa38f2cf5e9e040bb44fffaa6c76a84506e379e47f5a04686ab78102090dda5
 pkg_deps=(chef/glibc chef/ncurses chef/pcre)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   ./configure \

@@ -9,7 +9,6 @@ pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static
                 chef/coreutils-static chef/gnupg-static chef/jq-static
                 chef/wget-static)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   # Prepare the main program by embedding the full path to specific command

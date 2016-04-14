@@ -8,7 +8,6 @@ pkg_shasum=fea0a94d4b605894f3e2d5572e3f96e4413bcad3a085aae7367c2cf07908b2ff
 pkg_deps=(chef/glibc chef/acl)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_check() {
   make check

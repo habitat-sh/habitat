@@ -7,7 +7,6 @@ pkg_source=nosuchfile.tar.gz
 pkg_deps=(chef/coreutils chef/findutils chef/gawk chef/grep chef/bash chef/docker chef/hab-studio)
 pkg_build_deps=()
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 program=$pkg_name
 

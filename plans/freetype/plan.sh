@@ -5,7 +5,6 @@ pkg_license=('FreeType')
 pkg_source=http://download.savannah.gnu.org/releases/freetype/${pkg_name}-${pkg_version}.tar.bz2
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=371e707aa522acf5b15ce93f11183c725b8ed1ee8546d7b3af549863045863a2
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/libpng)
 pkg_build_deps=(chef/gcc chef/make chef/coreutils)
 pkg_lib_dirs=(lib)

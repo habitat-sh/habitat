@@ -4,7 +4,6 @@ pkg_version=4.1.4
 pkg_license=('LGPL')
 pkg_source=http://download.zeromq.org/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=e99f44fde25c2e4cb84ce440f87ca7d3fe3271c2b8cfbc67d55e4de25e6fe378
-pkg_gpg_key=3853DA6B
 pkg_deps=(chef/glibc chef/gcc-libs chef/libsodium)
 pkg_build_deps=(chef/gcc chef/coreutils chef/make chef/pkg-config chef/patchelf)
 pkg_lib_dirs=(lib)

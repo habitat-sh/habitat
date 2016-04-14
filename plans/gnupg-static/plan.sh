@@ -9,7 +9,6 @@ pkg_build_deps=("${pkg_deps[@]}" "${pkg_build_deps[@]}")
 # Empty out the run deps array
 pkg_deps=()
 
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   LDFLAGS="-static $LDFLAGS"

@@ -10,7 +10,6 @@ pkg_deps=(chef/glibc chef/gmp chef/mpfr)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/binutils)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
-pkg_gpg_key=3853DA6B
 pkg_dirname=${pkg_distname}-${pkg_version}
 
 do_prepare() {

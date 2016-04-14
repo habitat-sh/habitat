@@ -5,7 +5,6 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_build_deps=()
-pkg_gpg_key=3853DA6B
 
 pkg_deps=(
   chef/hab-plan-build

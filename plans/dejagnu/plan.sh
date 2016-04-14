@@ -9,7 +9,6 @@ pkg_deps=(chef/expect)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
-pkg_gpg_key=3853DA6B
 
 do_check() {
   # The test-suite needs to have a non-empty stdin, see:

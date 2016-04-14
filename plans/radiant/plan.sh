@@ -8,7 +8,6 @@ pkg_license=('mit')
 pkg_source=https://github.com/jtimberman/radiant/archive/${pkg_version}.tar.gz
 pkg_shasum=24e6527eec98df16f3857f3d0cdf630729b0b833117589c32b98b0078f1bea05
 
-pkg_gpg_key=3853DA6B
 pkg_deps=(
   chef/bundler
   chef/cacerts

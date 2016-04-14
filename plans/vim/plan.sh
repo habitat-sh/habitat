@@ -8,7 +8,6 @@ pkg_shasum=e52f7653a36b690441b47a273b1db72f0eb1e5f6729af25110a84088ca73e872
 pkg_deps=(chef/glibc chef/acl chef/ncurses)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/autoconf)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   pushd src > /dev/null

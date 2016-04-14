@@ -8,7 +8,6 @@ pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_shasum=bf4a457253cbaab215aea75cb6e18dc8d95bbd507e9920661ff9bdd288c8778d
-pkg_gpg_key=3853DA6B
 
 do_build() {
   make

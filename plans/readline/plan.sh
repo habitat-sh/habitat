@@ -11,7 +11,6 @@ pkg_deps=(chef/glibc chef/ncurses)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/bison chef/grep)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
-pkg_gpg_key=3853DA6B
 
 # The maintainer of Readline only releases these patches to fix serious issues,
 # so any new official patches will be part of this build, which will be

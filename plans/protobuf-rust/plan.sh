@@ -3,7 +3,6 @@ pkg_origin=core
 pkg_version=1.0.18
 pkg_license=('BSD')
 pkg_source=nosuchfile.tar.gz
-pkg_gpg_key=3853DA6B
 pkg_bin_dirs=(bin)
 pkg_deps=(chef/glibc chef/gcc)
 pkg_build_deps=(chef/rust chef/gcc chef/cacerts core/protobuf)

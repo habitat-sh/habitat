@@ -9,7 +9,6 @@ pkg_shasum=c6b3a7d7d3e7b70c6f51b706a3b90bd01833846c54d32ca32f0027f00226ff6d
 pkg_deps=()
 pkg_build_deps=(chef/coreutils chef/wget)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_unpack() {
   return 0

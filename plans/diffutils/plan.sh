@@ -8,7 +8,6 @@ pkg_shasum=a25e89a8ab65fded1731e4186be1bb25cda967834b6df973599cdcd5abdfc19c
 pkg_deps=(chef/glibc)
 pkg_build_deps=(chef/coreutils chef/patch chef/make chef/gcc chef/sed)
 pkg_bin_dirs=(bin)
-pkg_gpg_key=3853DA6B
 
 do_check() {
   # Fixes a broken test with either gcc 5.2.x and/or perl 5.22.x:

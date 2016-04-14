@@ -10,7 +10,6 @@ pkg_dirname=libtool-${pkg_version}
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_shasum=7c87a8c2c8c0fc9cd5019e402bed4292462d00a718a7cd5f11218153bf28b26f
-pkg_gpg_key=3853DA6B
 
 do_prepare() {
   # Drop the dependency on `help2man` by skipping the generation of a man page

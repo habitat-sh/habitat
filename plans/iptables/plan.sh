@@ -10,7 +10,6 @@ pkg_build_deps=(chef/make chef/gcc chef/bison chef/flex)
 pkg_bin_dirs=(bin sbin)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
-pkg_gpg_key=3853DA6B
 
 do_build() {
   ./configure \
