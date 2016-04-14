@@ -15,6 +15,9 @@ export default function users(state = initialState["users"], action) {
             return state.
                 setIn(["current", "gitHub"], fromJS(action.payload));
 
+        case actionTypes.SET_SIGNING_IN_FLAG:
+            return state.setIn(["current", "isSigningIn"], action.payload);
+
         case actionTypes.SIGN_IN_ATTEMPT:
             return state.
                 setIn(["current", "username"], action.payload.username).

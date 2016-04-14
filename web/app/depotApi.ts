@@ -11,7 +11,6 @@ import {packageString} from "./util";
 
 const urlPrefix = config["depot_url"] || "";
 
-// Get the JSON from a url from the fixtures directory.
 export function get(ident) {
     return new Promise((resolve, reject) => {
         fetch(`${urlPrefix}/pkgs/${packageString(ident)}`).then(response => {

@@ -6,10 +6,11 @@
 // open source license such as the Apache 2.0 License.
 
 import "whatwg-fetch";
+import {URLSearchParams} from "angular2/http";
 import config from "../config";
 import * as fakeApi from "../fakeApi";
 import {attemptSignIn, addNotification, goHome, requestRoute, setCurrentOrigin,
-    signOut} from "./index";
+    setSigningInFlag, signOut} from "./index";
 import {DANGER} from "./notifications";
 
 const uuid = require("node-uuid").v4;
@@ -22,13 +23,23 @@ export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
 
 export function authenticateWithGitHub(token = undefined) {
     const wasInitializedWithToken = !!token;
-    token = token || sessionStorage.getItem("gitHubAuthToken");
+    const isCodeInQueryString = new URLSearchParams(
+        window.location.search.slice(1)
+    ).has("code");
+    const existingToken = sessionStorage.getItem("gitHubAuthToken");
+    token = token || existingToken;
 
     return dispatch => {
+        if (isCodeInQueryString) {
+            dispatch(setSigningInFlag(true));
+        }
+
         if (token) {
             sessionStorage.setItem("gitHubAuthToken", token);
 
             fetch(`https://api.github.com/user?access_token=${token}`).then(response => {
+                dispatch(setSigningInFlag(false));
+
                 if (response["status"] === 401) {
                     // When we get an unauthorized response, out token is no
                     // longer valid, so sign out.
@@ -38,7 +49,6 @@ export function authenticateWithGitHub(token = undefined) {
                     return response.json();
                 }
             }).then(data => {
-                dispatch(setCurrentOrigin({ name: data["login"]}));
                 dispatch(populateGitHubUserData(data));
                 dispatch(attemptSignIn(data["login"]));
 
