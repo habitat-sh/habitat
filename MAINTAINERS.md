@@ -8,9 +8,10 @@ Regardless of their presence in this file, each individual contributor retains t
 
 * Adam Jacob <adam@chef.io>
 * Fletcher Nichol <fnichol@chef.io>
-* Jamie Winsor <reset@chef.io>
-* Joshua Timberman <joshua@chef.io>
 * Dave Parfitt <dparfitt@chef.io>
+* Nathan L Smith <smith@chef.io>
+* Joshua Timberman <joshua@chef.io>
+* Jamie Winsor <reset@chef.io>
 
 # Companies
 
