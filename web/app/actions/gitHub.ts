@@ -21,6 +21,7 @@ export const SET_GITHUB_AUTH_STATE = "SET_GITHUB_AUTH_STATE";
 export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
 
 export function authenticateWithGitHub(token = undefined) {
+    const wasInitializedWithToken = !!token;
     token = token || sessionStorage.getItem("gitHubAuthToken");
 
     return dispatch => {
@@ -40,7 +41,11 @@ export function authenticateWithGitHub(token = undefined) {
                 dispatch(setCurrentOrigin({ name: data["login"]}));
                 dispatch(populateGitHubUserData(data));
                 dispatch(attemptSignIn(data["login"]));
-                dispatch(goHome());
+
+                // If we started off with a token, that means we're in the
+                // process of signing in and should be redirected home. If not,
+                // it means we don't need to redirect
+                if (wasInitializedWithToken) { dispatch(goHome()); }
             });
         }
     };
