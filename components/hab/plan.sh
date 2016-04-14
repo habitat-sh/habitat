@@ -1,28 +1,64 @@
 pkg_name=hab
+pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_version=0.4.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
+pkg_deps=(
+  chef/glibc chef/zlib chef/xz chef/bzip2 chef/libarchive
+  chef/openssl chef/libsodium chef/gcc-libs
+)
+pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
 pkg_bin_dirs=(bin)
-pkg_deps=(chef/glibc chef/openssl chef/gcc-libs chef/libarchive chef/libsodium)
-pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc chef/libsodium)
+
+program=$pkg_distname
+
+_common_prepare() {
+  do_default_prepare
+
+  # Used by Cargo to fetch registries/crates/etc.
+  export SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem
+  build_line "Setting SSL_CERT_FILE=$SSL_CERT_FILE"
+
+  # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
+  # this used only at build time, we will use the version found in the gcc
+  # package proper--it won't find its way into the final binaries.
+  export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
+  build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+}
+
+do_prepare() {
+  _common_prepare
+
+  export rustc_target="x86_64-unknown-linux-gnu"
+  build_line "Setting rustc_target=$rustc_target"
+
+  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
+  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
+  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
+  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
+  export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+}
 
 do_build() {
   pushd $PLAN_CONTEXT > /dev/null
-  cargo clean
-  env OPENSSL_LIB_DIR=$(pkg_path_for chef/openssl)/lib \
-      OPENSSL_INCLUDE_DIR=$(pkg_path_for chef/openssl)/include \
-      LIBARCHIVE_LIB_DIR=$(pkg_path_for chef/libarchive)/lib \
-      LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for chef/libarchive)/include \
-      SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem \
-      SODIUM_LIB_DIR=$(pkg_path_for chef/libsodium)/lib \
-      cargo build -j $(nproc) --verbose
+  cargo clean --target=$rustc_target --verbose
+  cargo build \
+    -j $(nproc) \
+    --target=$rustc_target \
+    --release \
+    --verbose
   popd > /dev/null
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/target/debug/$pkg_name $pkg_prefix/bin/$pkg_name
+  install -v -D $PLAN_CONTEXT/target/$rustc_target/release/$program \
+    $pkg_prefix/bin/$program
+}
+
+do_strip() {
+  strip $pkg_prefix/bin/$program
 }
 
 # Turn the remaining default phases into no-ops
@@ -35,9 +71,5 @@ do_verify() {
 }
 
 do_unpack() {
-  return 0
-}
-
-do_prepare() {
   return 0
 }
