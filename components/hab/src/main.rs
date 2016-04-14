@@ -40,14 +40,14 @@ use hcore::url::DEFAULT_DEPOT_URL;
 
 
 const SUP_CMD: &'static str = "hab-sup";
-const SUP_CMD_ENVVAR: &'static str = "HABITAT_SUP_BINARY";
+const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 const SUP_PACKAGE_IDENT: &'static str = "chef/hab-sup";
 
 /// you can skip the --origin CLI param if you specify this env var
-const HABITAT_ORIGIN_ENVVAR: &'static str = "HABITAT_ORIGIN";
+const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 
 /// you can skip the org CLI param if you specify this env var
-const HABITAT_ORG_ENVVAR: &'static str = "HABITAT_ORG";
+const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
 
 fn main() {
     if let Err(e) = run_hab() {
