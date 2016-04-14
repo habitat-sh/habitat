@@ -8,6 +8,7 @@ Regardless of their presence in this file, each individual contributor retains t
 
 * Adam Jacob <adam@chef.io>
 * Fletcher Nichol <fnichol@chef.io>
+* Jamie Winsor <reset@chef.io>
 
 # Companies
 
