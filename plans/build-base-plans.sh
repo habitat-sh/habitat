@@ -240,13 +240,19 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   cacerts
   openssl
   wget
-  gnupg
   bash-static
   coreutils-static
+  rust
   linux-headers-musl
   musl
+  zlib-musl
+  bzip2-musl
+  xz-musl
+  libsodium-musl
+  openssl-musl
+  libarchive-musl
+  ../components/hab/static:hab-static
   busybox-static
-  gnupg-static
   jq-static
   wget-static
   ../components/bpm:hab-bpm

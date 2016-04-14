@@ -6,7 +6,7 @@ pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
 pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static
-                chef/coreutils-static chef/gnupg-static chef/jq-static
+                chef/coreutils-static chef/jq-static
                 chef/wget-static)
 pkg_bin_dirs=(bin)
 
