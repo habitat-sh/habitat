@@ -10,6 +10,7 @@ import {Component, OnInit} from "angular2/core";
 import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
+import {OriginCreatePageComponent} from "./origin-create-page/OriginCreatePageComponent";
 import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
 import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
@@ -62,6 +63,11 @@ import {authenticateWithGitHub, removeNotification, routeChange, signOut,
         path: "/explore",
         name: "Explore",
         component: ExplorePageComponent
+    },
+    {
+        path: "/origins/create",
+        name: "OriginCreate",
+        component: OriginCreatePageComponent,
     },
     {
         path: "/orgs",

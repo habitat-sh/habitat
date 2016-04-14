@@ -56,7 +56,17 @@ export function packageString(o = {}) {
 
 // Given a page component, check if the user is signed in and redirect if not
 export function requireSignIn(pageComponent) {
-    if (!pageComponent.store.getState().users.current.isSignedIn) {
-        pageComponent.store.dispatch(requestRoute(["SignIn"]));
+    const store = pageComponent.store;
+    const state = store.getState();
+    const user = state.users.current;
+    const isSigningIn = user.isSigningIn;
+    const isSignedIn = user.isSignedIn;
+    const currentOrigin = state.origins.current.name;
+
+    if (!isSigningIn ) {
+        if (!isSignedIn) { store.dispatch(requestRoute(["SignIn"])); }
+        if (isSignedIn && !currentOrigin) {
+            store.dispatch(requestRoute(["OriginCreate"]));
+        }
     }
 }

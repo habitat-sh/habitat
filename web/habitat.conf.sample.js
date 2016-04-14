@@ -1,4 +1,6 @@
 habitatConfig({
+    // The URL for the builder service
+    builder_url: "",
     // The URL for community information
     community_url: "https://www.habitat.sh/community",
     // The URL for the depot service

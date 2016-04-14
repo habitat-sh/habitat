@@ -31,7 +31,8 @@ export const POPULATE_ORG = orgActions.POPULATE_ORG;
 export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
-
+export const SET_CURRENT_ORIGIN_CREATING_FLAG =
+    originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
@@ -48,8 +49,8 @@ export const SET_PROJECTS = projectActions.SET_PROJECTS;
 export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
 export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
 
+export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
-
 export const TOGGLE_USER_NAV_MENU = usersActions.TOGGLE_USER_NAV_MENU;
 
 // Used by redux-reset to reset the app state
@@ -73,6 +74,7 @@ export const inviteMemberToOrg = orgActions.inviteMemberToOrg;
 export const performOrgMemberSearch = orgActions.performOrgMemberSearch;
 export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
 
+export const createOrigin = originActions.createOrigin;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
 
 export const fetchExplore = packageActions.fetchExplore;
@@ -94,6 +96,7 @@ export const routeChange = routerActions.routeChange;
 export const requestRoute = routerActions.requestRoute;
 
 export const attemptSignIn = usersActions.attemptSignIn;
+export const setSigningInFlag = usersActions.setSigningInFlag;
 export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
 export const signOut = usersActions.signOut;
 

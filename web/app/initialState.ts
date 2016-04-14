@@ -65,6 +65,11 @@ export default Record({
         current: Record({
             name: undefined,
         })(),
+        ui: Record({
+            current: Record({
+                creating: false,
+            })(),
+        })(),
     })(),
     packages: Record({
         current: undefined,
@@ -118,6 +123,7 @@ export default Record({
         current: Record({
             email: undefined,
             isSignedIn: false,
+            isSigningIn: false,
             isUserNavOpen: false,
             username: undefined,
             gitHub: Map(),

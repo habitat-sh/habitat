@@ -14,7 +14,13 @@ import {RouterLink} from "angular2/router";
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
-        <div class="switcher">{{origin.name}}</div>
+        <div class="switcher">
+            <a *ngIf="isSignedIn && !origin.name"
+               [routerLink]="['OriginCreate']">
+                Add Origin
+            </a>
+            <span *ngIf="origin.name">{{origin.name}}</span>
+        </div>
         <ul *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("projects")'
                    [routerLink]="['Projects']">Projects</a></li>

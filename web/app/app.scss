@@ -20,6 +20,7 @@
 @import "header/header";
 @import "header/user-nav/user-nav";
 @import "notifications/notifications";
+@import "origin-create-page/origin-create-page";
 @import "organization-create-page/organization-create-page";
 @import "organization-members/organization-members";
 @import "organizations-page/organizations-page";
@@ -56,7 +57,7 @@ body {
 .hab-main {
   @include span-columns(10);
   background-color: $white;
-  height: 100vh;
+  height: 100%;
 }
 
 .page-title {

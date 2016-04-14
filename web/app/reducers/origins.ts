@@ -13,6 +13,9 @@ export default function origins(state = initialState["origins"], action) {
         case actionTypes.SET_CURRENT_ORIGIN:
             return state.setIn(["current", "name"], action.payload.name);
 
+        case actionTypes.SET_CURRENT_ORIGIN_CREATING_FLAG:
+            return state.setIn(["ui", "current", "creating"], action.payload);
+
         default:
             return state;
     }

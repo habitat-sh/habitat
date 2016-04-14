@@ -39,7 +39,11 @@ export function fetchPackage(pkg) {
     };
 }
 
-export function filterPackagesBy(params) {
+export function filterPackagesBy(params, defaultOrigin = {}) {
+    if (params["filter"] === "mine" && "name" in defaultOrigin) {
+        params["origin"] = defaultOrigin["name"];
+    }
+
     return dispatch => {
         if ("origin" in params) {
             dispatch(clearPackages());

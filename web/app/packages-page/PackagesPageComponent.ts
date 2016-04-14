@@ -84,6 +84,9 @@ export class PackagesPageComponent implements OnInit {
     }
 
     private fetchPackages() {
-        this.store.dispatch(filterPackagesBy(this.routeParams.params));
+        this.store.dispatch(filterPackagesBy(
+            this.routeParams.params,
+            this.store.getState().origins.current
+        ));
     }
 }

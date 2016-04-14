@@ -23,9 +23,15 @@ import {createGitHubLoginUrl, icon} from "../util";
         <div class="main">
             <div class="button-area">
                 <hr>
-                <a class="button" href="{{gitHubLoginUrl}}">
+                <a [class.disabled]="isSigningIn"
+                   class="button" href="{{gitHubLoginUrl}}">
                     <i class="octicon octicon-mark-github"></i>
-                    Sign In with GitHub
+                    <span *ngIf="isSigningIn">
+                        Signing In&hellip;
+                    </span>
+                    <span *ngIf="!isSigningIn">
+                        Sign In with GitHub
+                    </span>
                 </a>
                 <hr>
             </div>
@@ -68,6 +74,10 @@ export class SignInPageComponent implements OnInit {
 
     get gitHubLoginUrl() {
         return createGitHubLoginUrl(this.store.getState().gitHub.authState);
+    }
+
+    get isSigningIn() {
+        return this.store.getState().users.current.isSigningIn;
     }
 
     get sourceCodeUrl() { return config["source_code_url"]; }
