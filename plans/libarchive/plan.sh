@@ -1,13 +1,17 @@
 pkg_name=libarchive
+pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_version=3.1.2
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('BSD')
-pkg_source=http://www.libarchive.org/downloads/${pkg_name}-${pkg_version}.tar.gz
+pkg_source=http://www.libarchive.org/downloads/${pkg_distname}-${pkg_version}.tar.gz
 pkg_shasum=eb87eacd8fe49e8d90c8fdc189813023ccc319c5e752b01fb6ad0cc7b2c53d5e
+pkg_dirname=${pkg_distname}-${pkg_version}
+pkg_deps=(chef/glibc chef/openssl chef/zlib chef/bzip2 chef/xz)
 pkg_build_deps=(chef/gcc chef/coreutils chef/make)
-pkg_deps=(chef/bzip2 chef/openssl chef/xz chef/zlib)
-pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
+pkg_lib_dirs=(lib)
+pkg_gpg_key=3853DA6B
 
 do_build() {
     ./configure \
