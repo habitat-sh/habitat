@@ -11,6 +11,14 @@ pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
+do_prepare() {
+  stack_size="2097152"
+  build_line "Setting default stack size to '$stack_size' from default of '81920'"
+  sed -i "s/#define DEFAULT_STACK_SIZE .*/#define DEFAULT_STACK_SIZE $stack_size/" \
+    src/internal/pthread_impl.h
+  return 0
+}
+
 do_build() {
   ./configure \
     --prefix=$pkg_prefix \
