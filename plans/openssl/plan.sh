@@ -1,17 +1,19 @@
 pkg_name=openssl
+pkg_distname=$pkg_name
 pkg_origin=chef
 pkg_version=1.0.2g
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
-pkg_source=https://www.openssl.org/source/${pkg_name}-${pkg_version}.tar.gz
+pkg_source=https://www.openssl.org/source/${pkg_distname}-${pkg_version}.tar.gz
 pkg_shasum=b784b1b3907ce39abf4098702dade6365522a253ad1552e267a9a0e89594aa33
+pkg_dirname=${pkg_distname}-${pkg_version}
 pkg_deps=(chef/glibc chef/zlib chef/cacerts)
 pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/perl)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
-do_prepare() {
+_common_prepare() {
   do_default_prepare
 
   # Set CA dir to `$pkg_prefix/ssl` by default and use the cacerts from the
@@ -29,6 +31,11 @@ do_prepare() {
   done
 }
 
+do_prepare() {
+  export BUILD_CC=gcc
+  build_line "Setting BUILD_CC=$BUILD_CC"
+}
+
 do_build() {
   ./config \
     --prefix=${pkg_prefix} \
@@ -41,8 +48,8 @@ do_build() {
     disable-gost \
     $CFLAGS \
     $LDFLAGS
-  make depend
-  make
+  env CC= make depend
+  make CC="$BUILD_CC"
 }
 
 do_check() {
