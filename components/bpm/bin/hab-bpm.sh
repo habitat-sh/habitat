@@ -604,7 +604,7 @@ latest_installed_package() {
 install_package() {
   local pkg_ident=$1
   local pkg_source="$BLDR_REPO/pkgs/$pkg_ident/download"
-  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').bldr"
+  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').hab"
 
   if [ -n "$QUIET" ]; then
     local v=
@@ -847,7 +847,7 @@ shift "$((OPTIND - 1))"
 : ${FS_ROOT:=}
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
+: ${HAB_ROOT_PATH:=$FS_ROOT/hab}
 # The root path containing all locally installed packages
 HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
@@ -855,7 +855,7 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # The default path where libsodium keys are stored
 HAB_CACHE_KEY_PATH=$HAB_ROOT_PATH/cache/keys
-# The default bldr package repository from where to download dependencies
+# The default depot url from where to download dependencies
 : ${BLDR_REPO:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.

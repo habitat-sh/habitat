@@ -128,7 +128,7 @@ EOT
 : ${FS_ROOT:=}
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
+: ${HAB_ROOT_PATH:=$FS_ROOT/hab}
 
 # The current version of Habitat Studio
 version='@version@'
