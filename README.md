@@ -176,7 +176,7 @@ on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
 1. Push your feature branch to GitHub, and create a Pull Request
 
 
-## Development environment with studio
+## Development environment with hab-studio
 
 The Habitat Studio provides an isolated environment with where packages can be
 built.
@@ -185,7 +185,7 @@ To build a package:
 
 ```bash
 $ make shell
-$ studio enter
+$ hab-studio enter
 $ (cd plans; make gpg)
 $ build plans/redis
 ```
@@ -193,14 +193,14 @@ $ build plans/redis
 To upload the resulting package
 
 ```bash
-$ studio enter
+$ hab-studio enter
 $ ./plans/support/cheap-upload.sh PKG
 ```
 
 To create a docker container of a package, either local or remote:
 
 ```bash
-$ studio enter
+$ hab-studio enter
 $ dockerize chef/redis
 ```
 
