@@ -33,7 +33,7 @@ do_build() {
   # release version of the program.
   sed \
     -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
-    -e "s,^BLDR_VERSION=.*$,BLDR_VERSION=$pkg_version/$pkg_rel," \
+    -e "s,^HAB_PLAN_BUILD=.*$,HAB_PLAN_BUILD=$pkg_version/$pkg_rel," \
     -i $program
 }
 

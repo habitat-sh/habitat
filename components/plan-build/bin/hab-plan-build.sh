@@ -268,7 +268,7 @@ fi
 # The short version of the program name which is used in logging output
 _program=$(basename $0)
 # The current version of this program
-BLDR_VERSION=0.0.1
+HAB_PLAN_BUILD=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 : ${HAB_ROOT_PATH:=/hab}
@@ -292,7 +292,7 @@ PLAN_CONTEXT=${1:-.}
 # `HAB_DEPOT_URL` is set, this value is overridden.
 : ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
 # The value of `$PATH` on initial start of this program
-BLDR_INITIAL_PATH="$PATH"
+INITIAL_PATH="$PATH"
 # The package's origin (i.e. chef)
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -544,7 +544,7 @@ _resolve_dependency() {
 }
 
 # **Internal** Attempts to download a package dependency. If the value of the
-# `$BLDR_BIN` variable is not set or the value does not resolve to an
+# `$HAB_BIN` variable is not set or the value does not resolve to an
 # executable binary, then no installation will be attempted. If an installation
 # is attempted but there is an error, this function will still return with `0`
 # and is intended to be "best effort".
@@ -555,8 +555,8 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-  if [[ -x "$BLDR_BIN" ]]; then
-    $BLDR_BIN install -u $HAB_DEPOT_URL "$dep" || true
+  if [[ -x "$HAB_BIN" ]]; then
+    $HAB_BIN install -u $HAB_DEPOT_URL "$dep" || true
   fi
   return 0
 }
@@ -633,7 +633,7 @@ _attach_whereami() {
   local src="${BASH_SOURCE[2]}"
   # If we are printing this program, use the absolute path version
   if [[ "$src" = "$0" ]]; then
-    src="$BLDR_BUILD"
+    src="$THIS_PROGRAM"
   fi
   echo
   echo "From: $src @ line $lnum :"
@@ -646,34 +646,34 @@ _attach_whereami() {
 }
 
 # **Internal** Determines what command/binary to use for installation of
-# package dependencies. The `$BLDR_BIN` variable will either be set or emptied
+# package dependencies. The `$HAB_BIN` variable will either be set or emptied
 # according to the following criteria (first match wins):
 #
-# * If a `$NO_INSTALL_DEPS` environment variable is set, then set `$BLDR_BIN`
+# * If a `$NO_INSTALL_DEPS` environment variable is set, then set `$HAB_BIN`
 #   to an empty/unset value.
-# * If a `$BLDR_BIN` environment variable is set, then use this as the absolute
+# * If a `$HAB_BIN` environment variable is set, then use this as the absolute
 #   path to the binary.
 # * If a version of the `hab` CLI package is installed on disk, use that
 #   version's `bin/hab` as the command.
 # * If a version of the `chef/hab-bpm` package is installed on disk, use that
 #   version's `bin/hab-bpm` as the command.
-# * If no other criteria match then set `$BLDR_BIN` to an empty/unset value.
+# * If no other criteria match then set `$HAB_BIN` to an empty/unset value.
 _determine_pkg_installer() {
   if [ -n "${NO_INSTALL_DEPS:-}" ]; then
-    BLDR_BIN=
+    HAB_BIN=
     build_line "NO_INSTALL_DEPS set: no package dependencies will be installed"
-  elif [ -n "${BLDR_BIN:-}" ]; then
-    BLDR_BIN=$BLDR_BIN
-    build_line "Using set BLDR_BIN=$BLDR_BIN for dependency installs"
+  elif [ -n "${HAB_BIN:-}" ]; then
+    HAB_BIN=$HAB_BIN
+    build_line "Using set HAB_BIN=$HAB_BIN for dependency installs"
 ## We are bypassing hab for now, while we get the system stable, then we come back
 #  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab"); then
-#    BLDR_BIN="$_pkg_for_pkg_install/bin/hab"
+#    HAB_BIN="$_pkg_for_pkg_install/bin/hab"
 #    build_line "Using chef/hab for dependency installs"
   elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab-bpm"); then
-    BLDR_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
+    HAB_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
     build_line "Using chef/hab-bpm for dependency installs"
   else
-    BLDR_BIN=
+    HAB_BIN=
     build_line "Could not find chef/hab or chef/hab-bpm for dependency installs"
   fi
 }
@@ -1413,7 +1413,7 @@ _set_path() {
   # Insert all the package PATH fragments before the default PATH to ensure
   # package binaries are used before any userland/operating system binaries
   if [[ -n $path_part ]]; then
-    export PATH="$path_part:$BLDR_INITIAL_PATH"
+    export PATH="$path_part:$INITIAL_PATH"
   fi
 
   build_line "Setting PATH=$PATH"
@@ -1932,7 +1932,7 @@ done
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
 # Expand the path of this program to an absolute path
-BLDR_BUILD=$(abspath $0)
+THIS_PROGRAM=$(abspath $0)
 
 # First we check if the provided path has a `plan.sh` in it. If not, we'll
 # quickly bail.
