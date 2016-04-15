@@ -46,7 +46,7 @@ do_prepare() {
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
   pkg_build_deps=(
     chef/gcc chef/coreutils chef/sed chef/grep chef/diffutils chef/make chef/cacerts
-    chef/musl chef/zlib-musl chef/bzip2-musl chef/xz-musl chef/libsodium-musl
+    chef/rust chef/musl chef/zlib-musl chef/bzip2-musl chef/xz-musl chef/libsodium-musl
     chef/openssl-musl chef/libarchive-musl
   )
 fi
