@@ -31,7 +31,7 @@ pub fn simple_service() {
 pub fn key_install() {
     static ONCE: Once = ONCE_INIT;
     ONCE.call_once(|| {
-        let mut cmd = match super::command::bldr(&["key",
+        let mut cmd = match super::command::sup(&["key",
                                                 &super::path::fixture_as_string("chef-public.asc")]) {
                                                     Ok(cmd) => cmd,
                                                     Err(e) => panic!("{:?}", e),

@@ -7,17 +7,17 @@
 
 use std::path::PathBuf;
 
-pub const ROOT_PATH: &'static str = "/opt/bldr";
+pub const ROOT_PATH: &'static str = "/hab";
 /// The default download root path for package artifacts, used on package installation
-pub const CACHE_ARTIFACT_PATH: &'static str = "/opt/bldr/cache/artifacts";
+pub const CACHE_ARTIFACT_PATH: &'static str = "/hab/cache/artifacts";
 /// The default path where cryptographic keys are stored
-pub const CACHE_KEY_PATH: &'static str = "/opt/bldr/cache/keys";
+pub const CACHE_KEY_PATH: &'static str = "/hab/cache/keys";
 /// The default path where source artifacts are downloaded, extracted, & compiled
-pub const CACHE_SRC_PATH: &'static str = "/opt/bldr/cache/src";
+pub const CACHE_SRC_PATH: &'static str = "/hab/cache/src";
 /// The root path containing all locally installed packages
-pub const PKG_PATH: &'static str = "/opt/bldr/pkgs";
+pub const PKG_PATH: &'static str = "/hab/pkgs";
 /// The root path containing all runtime service directories and files
-const SVC_PATH: &'static str = "/opt/bldr/svc";
+const SVC_PATH: &'static str = "/hab/svc";
 
 /// Returns the root path for a given service's configuration, files, and data.
 pub fn svc_path(service_name: &str) -> PathBuf {

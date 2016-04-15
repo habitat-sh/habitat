@@ -9,10 +9,10 @@ set_exit_now() {
 trap "set_exit_now" INT TERM HUP
 echo Shipping out to Boston
 echo "### Configuration file ###"
-cat /opt/bldr/svc/simple_service/config/simple.conf
+cat /hab/svc/simple_service/config/simple.conf
 echo "### End of configuration file ###"
 echo "### Running toml data ###"
-cat /opt/bldr/svc/simple_service/config.toml
+cat /hab/svc/simple_service/config.toml
 echo "### End running toml data ###"
 
 while [ 1 ]; do
