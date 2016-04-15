@@ -1892,7 +1892,6 @@ _generate_artifact() {
   $_tar_cmd -cf $tarf --format pax $pkg_prefix
   $_xz_cmd --compress -6 --threads=0 --verbose $tarf
   $_hab_cmd artifact sign --origin $pkg_origin $xzf $pkg_artifact
-  $_hab_cmd artifact verify $pkg_artifact
   rm -f $tarf $xzf
 }
 
