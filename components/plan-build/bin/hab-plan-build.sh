@@ -178,6 +178,7 @@
 # * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
 # * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
 #      artifacts, used on package installation
+# * `$HAB_CACHE_KEY_PATH`: The path where cryptographic keys are stored
 # * `$CFLAGS`: C compiler options
 # * `$LDFLAGS`: C linker options
 # * `$PREFIX`: Where to install the software; same as $pkg_prefix
@@ -276,6 +277,12 @@ HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+# The default path where cryptographic keys are stored. If the
+# `$HAB_CACHE_KEY_PATH` environment variable is set, this value is overridden,
+# otherwise it is set to its default.
+: ${HAB_CACHE_KEY_PATH:=$HAB_ROOT_PATH/cache/keys}
+# Export the key path for other programs and subshells to use
+export HAB_CACHE_KEY_PATH
 # The root path containing all locally installed packages
 HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
@@ -377,6 +384,15 @@ _on_exit() {
 #   above.
 trap _on_exit 1 2 3 15 ERR
 
+_ensure_origin_key_present() {
+  local cache="$HAB_CACHE_KEY_PATH"
+  local keys_found="$(find $cache -name "${pkg_origin}-*.sig.key" | wc -l)"
+  if [[ $keys_found -eq 0 ]]; then
+    exit_with "Signing origin key '$pkg_origin' not found in $cache, aborting" 35
+  fi
+  debug "At least one signing key for $pkg_origin found in $cache"
+}
+
 # **Internal** Ensures that the correct versions of key system commands are
 # able to be used by this program. If we cannot find suitable versions, we will
 # abort early.
@@ -389,6 +405,7 @@ trap _on_exit 1 2 3 15 ERR
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
 # * `$_mktemp_cmd` (GNU version from coreutils)
+# * `$_hab_cmd` (hab CLI for signing artifacts)
 #
 # Note that all of the commands noted above are considered internal
 # implementation details and are subject to change with little to no notice,
@@ -437,6 +454,19 @@ _find_system_commands() {
   fi
   debug "Setting _tar_cmd=$_tar_cmd"
 
+  if exists xz; then
+    _xz_cmd=$(command -v xz)
+  else
+    exit_with "We require xz to compress artifacts; aborting" 1
+  fi
+  debug "Setting _hab_cmd=$_hab_cmd"
+
+  if exists hab; then
+    _hab_cmd=$(command -v hab)
+  else
+    exit_with "We require hab to sign artifacts; aborting" 1
+  fi
+  debug "Setting _hab_cmd=$_hab_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
@@ -1854,13 +1884,16 @@ EOT
 # **Internal** Create the package artifact with `tar`/`hab artifact sign`
 _generate_artifact() {
   build_line "Generating package artifact"
-  mkdir -p $HAB_CACHE_SRC_PATH
-  $_tar_cmd -cf - "$pkg_prefix" | gpg \
-    --set-filename x.tar \
-    --local-user $pkg_gpg_key \
-    --output $_artifact \
-    --sign
-  return 0
+  local tarf="$(dirname $pkg_artifact)/.$(basename ${pkg_artifact/%.${_artifact_ext}/.tar})"
+  local xzf="${tarf}.xz"
+
+  mkdir -pv "$(dirname $pkg_artifact)"
+  rm -fv $tarf $xzf $pkg_artifact
+  $_tar_cmd -cf $tarf --format pax $pkg_prefix
+  $_xz_cmd --compress -6 --threads=0 --verbose $tarf
+  $_hab_cmd artifact sign --origin $pkg_origin $xzf $pkg_artifact
+  $_hab_cmd artifact verify $pkg_artifact
+  rm -f $tarf $xzf
 }
 
 # A function for cleaning up after yourself. Delegates most of the
@@ -1930,7 +1963,6 @@ if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
-
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
 # set by the `plan.sh`.
 if [[ -z "${pkg_filename+xxx}" ]]; then
@@ -1957,7 +1989,8 @@ pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static_path="$pkg_svc_path/static"
 
 # Set the package artifact name
-_artifact=$HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr
+_artifact_ext="bldr"
+pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.${_artifact_ext}"
 
 # Run `do_begin`
 build_line "$_program setup"
@@ -1966,14 +1999,15 @@ do_begin
 # Determine if we have all the commands we need to work
 _find_system_commands
 
+# Enure that the origin key is available for artifact signing
+_ensure_origin_key_present
+
 _determine_pkg_installer
 
 # Download and resolve the depdencies
 _resolve_dependencies
 
 _set_path
-
-# TODO: ensure origin is set via env
 
 # Download the source
 mkdir -pv $HAB_CACHE_SRC_PATH
@@ -2031,7 +2065,7 @@ do_end
 # Print the results
 build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
-build_line "Artifact: $_artifact"
+build_line "Artifact: $pkg_artifact"
 
 # Exit cleanly
 build_line
