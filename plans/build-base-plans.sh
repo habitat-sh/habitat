@@ -55,7 +55,7 @@ fi
 # Location containing installed packages.
 HAB_PKG_PATH="$HAB_ROOT_PATH/pkgs"
 # The default package origin which was used to in the base Plans
-origin=chef
+origin=core
 
 
 # ## Private/Internal helper functions

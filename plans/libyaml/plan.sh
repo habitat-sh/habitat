@@ -1,13 +1,13 @@
 pkg_name=libyaml
 pkg_version=0.1.6
-pkg_origin=chef
+pkg_origin=core
 pkg_license=('mit')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_dirname=yaml-${pkg_version}
 pkg_source=http://pyyaml.org/download/${pkg_name}/yaml-${pkg_version}.tar.gz
 pkg_filename=yaml-${pkg_version}.tar.gz
 pkg_shasum=7da6971b4bd08a986dd2a61353bc422362bd0edcc67d7ebaac68c95f74182749
-pkg_deps=(chef/glibc)
-pkg_build_deps=(chef/coreutils chef/make chef/gcc)
+pkg_deps=(core/glibc)
+pkg_build_deps=(core/coreutils core/make core/gcc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)

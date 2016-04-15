@@ -1,5 +1,5 @@
 pkg_name=readline
-pkg_origin=chef
+pkg_origin=core
 _base_version=6.3
 pkg_version=${_base_version}.8
 pkg_license=('gplv3+')
@@ -7,8 +7,8 @@ _url_base=http://ftp.gnu.org/gnu/$pkg_name
 pkg_source=$_url_base/${pkg_name}-${_base_version}.tar.gz
 pkg_dirname=${pkg_name}-$_base_version
 pkg_shasum=56ba6071b9462f980c5a72ab0023893b65ba6debb4eeb475d7a563dc65cafd43
-pkg_deps=(chef/glibc chef/ncurses)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/bison chef/grep)
+pkg_deps=(core/glibc core/ncurses)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/bison core/grep)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
@@ -79,5 +79,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/bison chef/grep)
+  pkg_build_deps=(core/gcc core/bison core/grep)
 fi

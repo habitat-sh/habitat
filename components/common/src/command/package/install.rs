@@ -10,13 +10,13 @@
 //! # Examples
 //!
 //! ```bash
-//! $ hab pkg install chef/redis
+//! $ hab pkg install core/redis
 //! ```
 //!
-//! Will install `chef/redis` package from a custom depot:
+//! Will install `core/redis` package from a custom depot:
 //!
 //! ```bash
-//! $ hab pkg install chef/redis/3.0.1 redis -u http://depot.co:9633
+//! $ hab pkg install core/redis/3.0.1 redis -u http://depot.co:9633
 //! ```
 //!
 //! This would install the `3.0.1` version of redis.

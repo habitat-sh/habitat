@@ -416,8 +416,8 @@ mod tests {
 
     #[test]
     fn check_fully_qualified_package_id() {
-        let partial = PackageIdent::new("chef", "libarchive", None, None);
-        let full = PackageIdent::new("chef", "libarchive", Some("1.2.3"), Some("1234"));
+        let partial = PackageIdent::new("acme", "rocket", None, None);
+        let full = PackageIdent::new("acme", "rocket", Some("1.2.3"), Some("1234"));
         assert!(!partial.fully_qualified());
         assert!(full.fully_qualified());
     }

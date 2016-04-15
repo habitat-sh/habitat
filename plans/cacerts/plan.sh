@@ -1,5 +1,5 @@
 pkg_name=cacerts
-pkg_origin=chef
+pkg_origin=core
 pkg_version=_set_from_downloaded_cacerts_file_
 pkg_license=('mplv1.1' 'gplV2' 'lgplv2.1')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"

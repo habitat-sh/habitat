@@ -41,7 +41,7 @@ use hcore::url::DEFAULT_DEPOT_URL;
 
 const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-const SUP_PACKAGE_IDENT: &'static str = "chef/hab-sup";
+const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
 
 /// you can skip the --origin CLI param if you specify this env var
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
@@ -239,7 +239,7 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
         None => {
             match env::var(HABITAT_ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string()))
+                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string())),
             }
         }
     }
@@ -255,7 +255,7 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
         None => {
             match env::var(HABITAT_ORG_ENVVAR) {
                 Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string()))
+                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
             }
         }
     }

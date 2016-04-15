@@ -6,7 +6,7 @@ diff -ur openssl-1.0.2e.orig/apps/CA.pl.in openssl-1.0.2e/apps/CA.pl.in
  $PKCS12="$openssl pkcs12";
  
 -$CATOP="./demoCA";
-+$CATOP="/opt/bldr/pkgs/chef/openssl/1.0.2e/20160120235806/ssl";
++$CATOP="@prefix@/ssl";
  $CAKEY="cakey.pem";
  $CAREQ="careq.pem";
  $CACERT="cacert.pem";
@@ -18,7 +18,7 @@ diff -ur openssl-1.0.2e.orig/apps/CA.sh openssl-1.0.2e/apps/CA.sh
  PKCS12="openssl pkcs12"
  
 -if [ -z "$CATOP" ] ; then CATOP=./demoCA ; fi
-+if [ -z "$CATOP" ] ; then CATOP=/opt/bldr/pkgs/chef/openssl/1.0.2e/20160120235806/ssl ; fi
++if [ -z "$CATOP" ] ; then CATOP=@prefix@/ssl ; fi
  CAKEY=./cakey.pem
  CAREQ=./careq.pem
  CACERT=./cacert.pem

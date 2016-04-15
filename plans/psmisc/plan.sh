@@ -1,12 +1,12 @@
 pkg_name=psmisc
-pkg_origin=chef
+pkg_origin=core
 pkg_version=22.21
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl')
 pkg_source=http://downloads.sourceforge.net/psmisc/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=97323cad619210845b696d7d722c383852b2acb5c49b5b0852c4f29c77a8145a
-pkg_deps=(chef/glibc chef/ncurses)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/ncurses)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 
 do_prepare() {
@@ -25,5 +25,5 @@ do_prepare() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc)
+  pkg_build_deps=(core/gcc)
 fi

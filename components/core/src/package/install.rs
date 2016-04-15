@@ -17,7 +17,7 @@ use error::{Error, Result};
 use fs::{self, PKG_PATH};
 use package::{MetaFile, PackageIdent};
 
-const SUP_PKG_ORIGIN: &'static str = "chef";
+const SUP_PKG_ORIGIN: &'static str = "core";
 const SUP_PKG_NAME: &'static str = "hab-sup";
 
 #[derive(Clone, Debug)]

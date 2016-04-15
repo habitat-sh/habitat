@@ -1,12 +1,12 @@
 pkg_name=binutils
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.25.1
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=b5b14added7d78a8d1ca70b5cb75fef57ce2197264f4f5835326b0df22ac9f22
-pkg_deps=(chef/glibc chef/zlib)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/texinfo chef/expect chef/dejagnu)
+pkg_deps=(core/glibc core/zlib)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/texinfo core/expect core/dejagnu)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -53,8 +53,8 @@ do_prepare() {
 
   cat $PLAN_CONTEXT/custom-libs.patch \
     | sed -e "s,@dynamic_linker@,$dynamic_linker,g" \
-      -e "s,@glibc_lib@,$(pkg_path_for chef/glibc)/lib,g" \
-      -e "s,@zlib_lib@,$(pkg_path_for chef/zlib)/lib,g" \
+      -e "s,@glibc_lib@,$(pkg_path_for glibc)/lib,g" \
+      -e "s,@zlib_lib@,$(pkg_path_for zlib)/lib,g" \
     | patch -p1
 
   # We don't want to search for libraries in system directories such as `/lib`,

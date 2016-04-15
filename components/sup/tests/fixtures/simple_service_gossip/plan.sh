@@ -5,7 +5,7 @@ pkg_license=('Apache2')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
-pkg_deps=(chef/iptables)
+pkg_deps=(core/iptables)
 pkg_service_run="bin/simple_service"
 
 do_download() {

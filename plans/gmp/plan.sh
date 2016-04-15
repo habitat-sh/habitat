@@ -1,12 +1,12 @@
 pkg_name=gmp
-pkg_origin=chef
+pkg_origin=core
 pkg_version=6.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=68dadacce515b0f8a54f510edf07c1b636492bcdb8e8d54c56eb216225d16989
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/binutils chef/m4)
-pkg_deps=(chef/glibc)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/binutils core/m4)
+pkg_deps=(core/glibc)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
@@ -38,5 +38,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/binutils chef/m4)
+  pkg_build_deps=(core/binutils core/m4)
 fi

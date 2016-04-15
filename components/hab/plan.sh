@@ -1,15 +1,15 @@
 pkg_name=hab
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.4.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=(
-  chef/glibc chef/zlib chef/xz chef/bzip2 chef/libarchive
-  chef/openssl chef/libsodium chef/gcc-libs
+  core/glibc core/zlib core/xz core/bzip2 core/libarchive
+  core/openssl core/libsodium core/gcc-libs
 )
-pkg_build_deps=(chef/coreutils chef/cacerts chef/rust chef/gcc)
+pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
 
 program=$pkg_distname
@@ -18,7 +18,7 @@ _common_prepare() {
   do_default_prepare
 
   # Used by Cargo to fetch registries/crates/etc.
-  export SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem
+  export SSL_CERT_FILE=$(pkg_path_for cacerts)/ssl/cert.pem
   build_line "Setting SSL_CERT_FILE=$SSL_CERT_FILE"
 
   # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since

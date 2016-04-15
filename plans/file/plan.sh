@@ -1,12 +1,12 @@
 pkg_name=file
-pkg_origin=chef
+pkg_origin=core
 pkg_version=5.24
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('custom')
 pkg_source=ftp://ftp.astron.com/pub/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=802cb3de2e49e88ef97cdcb52cd507a0f25458112752e398445cea102bc750ce
-pkg_deps=(chef/glibc chef/zlib)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/zlib)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -16,7 +16,7 @@ do_prepare() {
 
   # Add explicit linker instructions as the binutils we are using may have its
   # own dynamic linker defaults. This is necessary because this Plan is built
-  # before the `chef/binutils` Plan which will set the new `chef/glibc` dynamic
+  # before the `binutils` Plan which will set the new `glibc` dynamic
   # linker for all later Plans.
   dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
   LDFLAGS="$LDFLAGS -Wl,-rpath=${LD_RUN_PATH},--enable-new-dtags"

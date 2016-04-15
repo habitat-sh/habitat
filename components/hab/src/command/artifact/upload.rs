@@ -10,7 +10,7 @@
 //! # Examples
 //!
 //! ```bash
-//! $ hab artifact upload /path/to/chef-redis-2.0.7-2112010203120101.hab -u http://localhost:9632
+//! $ hab artifact upload /path/to/acme-redis-2.0.7-2112010203120101.hab -u http://localhost:9632
 //! ```
 //!
 //! Will upload a package to the Depot.

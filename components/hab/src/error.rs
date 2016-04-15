@@ -46,7 +46,7 @@ impl fmt::Display for Error {
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
-            },
+            }
         };
         write!(f, "{}", msg)
     }

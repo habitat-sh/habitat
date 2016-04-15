@@ -1,5 +1,5 @@
 pkg_name=man-pages
-pkg_origin=chef
+pkg_origin=core
 pkg_version=4.02
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2')

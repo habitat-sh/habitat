@@ -66,7 +66,7 @@ impl fmt::Display for Error {
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
-                         origin/name (example: chef/redis)",
+                         origin/name (example: acme/redis)",
                         e)
             }
             Error::InvalidServiceGroup(ref e) => {
@@ -103,7 +103,7 @@ impl error::Error for Error {
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
-            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
+            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
             Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
             Error::IO(ref err) => err.description(),
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",

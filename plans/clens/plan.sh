@@ -1,12 +1,12 @@
 pkg_name=clens
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.7.0
 pkg_license=('isc')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://opensource.conformal.com/snapshots/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=064ac9954d38633e2cff6b696fd049dedc3e90b79acffbee1a87754bcf604267
-pkg_deps=(chef/glibc)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/libbsd)
+pkg_deps=(core/glibc)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/libbsd)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
@@ -28,5 +28,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/diffutils chef/make chef/patch chef/libbsd)
+  pkg_build_deps=(core/gcc core/coreutils core/diffutils core/make core/patch core/libbsd)
 fi

@@ -1,12 +1,12 @@
 pkg_name=perl
-pkg_origin=chef
+pkg_origin=core
 pkg_version=5.22.1
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl' 'perlartistic')
 pkg_source=http://www.cpan.org/src/5.0/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=e98e4075a3167fa40524abe447c30bcca10c60e02a54ee1361eff278947a1221
-pkg_deps=(chef/glibc chef/zlib chef/bzip2 chef/gdbm chef/db chef/coreutils chef/less)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/procps-ng chef/inetutils chef/iana-etc)
+pkg_deps=(core/glibc core/zlib core/bzip2 core/gdbm core/db core/coreutils core/less)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/procps-ng core/inetutils core/iana-etc)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_interpreters=(bin/perl)
@@ -22,7 +22,7 @@ do_prepare() {
   # Skip the only failing test in the suite--not bad, eh?
   patch -p1 -i $PLAN_CONTEXT/skip-wide-character-test.patch
 
-  #  Make Cwd work with the `pwd` command from `chef/coreutils` (we cannot rely
+  #  Make Cwd work with the `pwd` command from `coreutils` (we cannot rely
   #  on `/bin/pwd` exisiting in an environment)
   sed -i "s,'/bin/pwd','$(pkg_path_for coreutils)/bin/pwd',g" \
     dist/PathTools/Cwd.pm
@@ -86,7 +86,7 @@ do_build() {
 
 do_check() {
   # If `/etc/services` and/or `/etc/protocols` does not exist, make temporary
-  # versions from the `chef/iana-etc` package. This is needed for several
+  # versions from the `iana-etc` package. This is needed for several
   # network-related tests to pass.
   if [[ ! -f /etc/services ]]; then
     cp -v $(pkg_path_for iana-etc)/etc/services /etc/services
@@ -118,5 +118,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/procps-ng chef/inetutils chef/iana-etc)
+  pkg_build_deps=(core/gcc core/procps-ng core/inetutils core/iana-etc)
 fi

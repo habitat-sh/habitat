@@ -43,7 +43,7 @@ impl fmt::Display for Error {
             Error::HTTP(ref e) => format!("{}", e),
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
-                         origin/name (example: chef/redis)",
+                         origin/name (example: acme/redis)",
                         e)
             }
             Error::IO(ref e) => format!("{}", e),
@@ -74,7 +74,7 @@ impl error::Error for Error {
             Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             Error::HabitatCore(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
-            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: chef/redis)",
+            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
             Error::IO(ref err) => err.description(),
             Error::MdbError(_) => "Database error",
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",

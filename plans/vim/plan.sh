@@ -1,12 +1,12 @@
 pkg_name=vim
-pkg_origin=chef
+pkg_origin=core
 pkg_version=7.4.1089
 pkg_license=('vim')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://github.com/$pkg_name/$pkg_name/archive/v${pkg_version}.tar.gz
 pkg_shasum=e52f7653a36b690441b47a273b1db72f0eb1e5f6729af25110a84088ca73e872
-pkg_deps=(chef/glibc chef/acl chef/ncurses)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/autoconf)
+pkg_deps=(core/glibc core/acl core/ncurses)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/autoconf)
 pkg_bin_dirs=(bin)
 
 do_prepare() {
@@ -46,5 +46,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/make chef/patch chef/autoconf)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/diffutils core/make core/patch core/autoconf)
 fi

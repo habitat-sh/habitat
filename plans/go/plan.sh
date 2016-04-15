@@ -1,13 +1,13 @@
 pkg_name=go
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.6
 pkg_license=('bsd')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://storage.googleapis.com/golang/${pkg_name}${pkg_version}.src.tar.gz
 pkg_shasum=a96cce8ce43a9bf9b2a4c7d470bc7ee0cb00410da815980681c8353218dcf146
 pkg_dirname=$pkg_name
-pkg_deps=(chef/glibc chef/iana-etc chef/cacerts)
-pkg_build_deps=(chef/coreutils chef/inetutils chef/bash chef/patch chef/gcc chef/go/1.4.3 chef/perl)
+pkg_deps=(core/glibc core/iana-etc core/cacerts)
+pkg_build_deps=(core/coreutils core/inetutils core/bash core/patch core/gcc core/go/1.4.3 core/perl)
 pkg_bin_dirs=(bin)
 
 do_prepare() {
@@ -34,17 +34,17 @@ do_prepare() {
   export GOROOT_BOOTSTRAP="$(pkg_path_for go)"
   build_line "Setting GOROOT_BOOTSTRAP=$GOROOT_BOOTSTRAP"
 
-  # Add `chef/cacerts` to the SSL certificate lookup chain
+  # Add `cacerts` to the SSL certificate lookup chain
   cat $PLAN_CONTEXT/cacerts.patch \
     | sed -e "s,@cacerts@,$(pkg_path_for cacerts)/ssl/cert.pem,g" \
     | patch -p1
 
-  # Set the dynamic linker from `chef/glibc`
+  # Set the dynamic linker from `glibc`
   dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
   sed -e "s,/lib64/ld-linux-x86-64.so.2,$dynamic_linker," \
     -i src/cmd/link/internal/amd64/obj.go
 
-  # Use the services database from `chef/iana-etc`
+  # Use the services database from `iana-etc`
   for f in src/net/port_unix.go src/net/parse_test.go; do
     sed -e "s,/etc/services,$(pkg_path_for iana-etc)/etc/services," -i $f
   done

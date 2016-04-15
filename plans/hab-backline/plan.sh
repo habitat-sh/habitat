@@ -1,5 +1,5 @@
 pkg_name=hab-backline
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
@@ -7,13 +7,13 @@ pkg_source=nosuchfile.tar.gz
 pkg_build_deps=()
 
 pkg_deps=(
-  chef/hab-plan-build
-  chef/diffutils
-  chef/less
-  chef/make
-  chef/mg
-  chef/util-linux
-  chef/vim
+  core/hab-plan-build
+  core/diffutils
+  core/less
+  core/make
+  core/mg
+  core/util-linux
+  core/vim
 )
 
 do_download() {

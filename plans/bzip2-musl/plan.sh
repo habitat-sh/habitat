@@ -2,7 +2,7 @@ source ../bzip2/plan.sh
 
 pkg_name=bzip2-musl
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_deps=(chef/musl)
+pkg_deps=(core/musl)
 
 do_prepare() {
   _common_prepare

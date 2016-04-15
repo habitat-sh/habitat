@@ -1,30 +1,30 @@
 pkg_name=ruby-rails-sample
 pkg_version=0.0.1
-pkg_origin=chef
+pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('mit')
 pkg_source=https://github.com/jtimberman/ruby-rails-sample/archive/${pkg_version}.tar.gz
 pkg_shasum=a4a6daf4c2637d37800de9b083d22d79367cd00ee9702478cdaff72f7d97dd75
 
 pkg_deps=(
-  chef/bundler
-  chef/cacerts
-  chef/glibc
-  chef/libffi
-  chef/libxml2
-  chef/libxslt
-  chef/libyaml
-  chef/node
-  chef/openssl
-  chef/postgresql
-  chef/ruby
-  chef/zlib
+  core/bundler
+  core/cacerts
+  core/glibc
+  core/libffi
+  core/libxml2
+  core/libxslt
+  core/libyaml
+  core/node
+  core/openssl
+  core/postgresql
+  core/ruby
+  core/zlib
 )
 
 pkg_build_deps=(
-  chef/coreutils
-  chef/gcc
-  chef/make
+  core/coreutils
+  core/gcc
+  core/make
 )
 
 pkg_lib_dirs=(lib)
@@ -39,20 +39,20 @@ pkg_expose=(3000)
 #
 # We clean this link up in `do_install`.
 do_prepare() {
-  build_line "Setting link for /usr/bin/env to chef/coreutils"
-  [[ ! -f /usr/bin/env ]] && ln -s $(pkg_path_for chef/coreutils)/bin/env /usr/bin/env
+  build_line "Setting link for /usr/bin/env to 'coreutils'"
+  [[ ! -f /usr/bin/env ]] && ln -s $(pkg_path_for coreutils)/bin/env /usr/bin/env
   return 0
 }
 
 do_build() {
   export CPPFLAGS="${CPPFLAGS} ${CFLAGS}"
 
-  local _bundler_dir=$(pkg_path_for chef/bundler)
-  local _libxml2_dir=$(pkg_path_for chef/libxml2)
-  local _libxslt_dir=$(pkg_path_for chef/libxslt)
-  local _postgresql_dir=$(pkg_path_for chef/postgresql)
+  local _bundler_dir=$(pkg_path_for bundler)
+  local _libxml2_dir=$(pkg_path_for libxml2)
+  local _libxslt_dir=$(pkg_path_for libxslt)
+  local _postgresql_dir=$(pkg_path_for postgresql)
   local _pgconfig=$_postgresql_dir/bin/pg_config
-  local _zlib_dir=$(pkg_path_for chef/zlib)
+  local _zlib_dir=$(pkg_path_for zlib)
 
   export GEM_HOME=${pkg_path}/vendor/bundle
   export GEM_PATH=${_bundler_dir}:${GEM_HOME}
@@ -79,11 +79,11 @@ do_install() {
   cp -R . ${pkg_prefix}/dist
 
   for binstub in ${pkg_prefix}/dist/bin/*; do
-    build_line "Setting shebang for ${binstub} to 'chef/ruby'"
-    [[ -f $binstub ]] && sed -e "s#/usr/bin/env ruby#$(pkg_path_for chef/ruby)/bin/ruby#" -i $binstub
+    build_line "Setting shebang for ${binstub} to 'ruby'"
+    [[ -f $binstub ]] && sed -e "s#/usr/bin/env ruby#$(pkg_path_for ruby)/bin/ruby#" -i $binstub
   done
 
-  if [[ `readlink /usr/bin/env` = "$(pkg_path_for chef/coreutils)/bin/env" ]]; then
+  if [[ `readlink /usr/bin/env` = "$(pkg_path_for coreutils)/bin/env" ]]; then
     build_line "Removing the symlink we created for '/usr/bin/env'"
     rm /usr/bin/env
   fi
