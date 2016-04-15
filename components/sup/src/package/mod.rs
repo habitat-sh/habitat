@@ -34,8 +34,8 @@ const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
-const SERVICE_PATH_OWNER: &'static str = "bldr";
-const SERVICE_PATH_GROUP: &'static str = "bldr";
+const SERVICE_PATH_OWNER: &'static str = "hab";
+const SERVICE_PATH_GROUP: &'static str = "hab";
 
 #[derive(Debug, Clone)]
 pub struct Package {
