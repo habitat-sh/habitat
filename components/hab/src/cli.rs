@@ -126,7 +126,7 @@ pub fn get() -> App<'static, 'static> {
 fn sub_package_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
         (about: "Installs a package from a repo or locally from an archive file")
-        (@arg REPO_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
+        (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
         (@arg PKG_IDENT_OR_ARTIFACT: +required "A package identifier (ex: acme/redis) \
          or path to an artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
     )

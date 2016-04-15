@@ -36,8 +36,7 @@ use clap::ArgMatches;
 use error::{Error, Result};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
-use hcore::url::DEFAULT_DEPOT_URL;
-
+use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
@@ -138,7 +137,8 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
-    let url = m.value_of("DEPOT_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let artifact_path = m.value_of("ARTIFACT").unwrap();
 
     try!(command::artifact::upload::start(&url, &artifact_path));
@@ -158,7 +158,8 @@ fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
-    let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
 
     try!(common::command::package::install::start(url, ident_or_artifact));
