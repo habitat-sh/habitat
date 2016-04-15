@@ -635,7 +635,7 @@ install_package() {
     $wget $pkg_source -O $pkg_filename $wui
 
     info "Unpacking $($bb basename $pkg_filename)"
-    tail -n +4 $pkg_filename | $bb tar x -C $FS_ROOT/
+    $bb tail -n +4 $pkg_filename | $bb xzcat | $bb tar x -C $FS_ROOT/
 
     # Clear the file download and extraction clean trap
     trap - INT TERM EXIT
