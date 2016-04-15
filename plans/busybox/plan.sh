@@ -60,7 +60,7 @@ create_config() {
       -e "s,@pkg_svc_var@,$pkg_svc_var_path,g" \
       -e "s,@cflags@,$CFLAGS,g" \
       -e "s,@ldflags@,$LDFLAGS,g" \
-      -e "s,@osname@,bldr,g" \
+      -e "s,@osname@,Habitat,g" \
       -e "s,@bash_is_ash@,y,g" \
     > .config
 }

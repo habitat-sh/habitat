@@ -21,7 +21,7 @@ do_prepare() {
 do_build() {
   ./configure \
     --prefix=$pkg_prefix \
-    --with-compiledby="bldr, vim release $pkg_version" \
+    --with-compiledby="Habitat, vim release $pkg_version" \
     --with-features=huge \
     --enable-acl \
     --with-x=no \

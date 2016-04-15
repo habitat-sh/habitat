@@ -17,12 +17,12 @@ export LD_LIBRARY_PATH="$(hab-bpm pkgpath chef/gcc-libs)/lib"
 export PATH="$PATH:${RAILS_SAMPLE_DATA}/dist/bin"
 export RAILS_ENV="production"
 
-chown -R bldr:bldr ${RAILS_SAMPLE_DATA}/dist
+chown -R hab:hab ${RAILS_SAMPLE_DATA}/dist
 cd ${RAILS_SAMPLE_DATA}/dist
 
 exec 2>&1
 
 if [[ ! -f ${RAILS_SAMPLE_DATA}/.migrations_complete ]]; then
   echo "Running 'rake bootstrap' in ${PWD}"
-  exec chpst -u bldr bin/rake bootstrap && touch $RAILS_SAMPLE_DATA/.migrations_complete
+  exec chpst -u hab bin/rake bootstrap && touch $RAILS_SAMPLE_DATA/.migrations_complete
 fi

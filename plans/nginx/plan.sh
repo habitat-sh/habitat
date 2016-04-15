@@ -20,8 +20,8 @@ do_build() {
     --sbin-path="$pkg_prefix/bin/nginx" \
     --pid-path="$pkg_svc_var_path/nginx.pid" \
     --lock-path="$pkg_svc_var_path/nginx.lock" \
-    --user=bldr \
-    --group=bldr \
+    --user=hab \
+    --group=hab \
     --http-log-path=/dev/stdout \
     --error-log-path=stderr \
     --http-client-body-temp-path="$pkg_svc_var_path/client-body" \

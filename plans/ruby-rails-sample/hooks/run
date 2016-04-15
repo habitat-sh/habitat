@@ -9,4 +9,4 @@ export RAILS_ENV="production"
 cd $RAILS_SAMPLE_DATA/dist
 
 exec 2>&1
-exec chpst -u bldr ./bin/rails server -b {{cfg.rails_binding_ip}} -p {{cfg.rails_port}}
+exec chpst -u hab ./bin/rails server -b {{cfg.rails_binding_ip}} -p {{cfg.rails_port}}

@@ -6,11 +6,11 @@ exec 2>&1
 mkdir -p {{pkg.svc_config_path}}/conf.d
 mkdir -p {{pkg.svc_var_path}}/pg_stat_tmp
 
-chown -R bldr:bldr {{pkg.svc_var_path}}
+chown -R hab:hab {{pkg.svc_var_path}}
 
 if [[ ! -f "{{pkg.svc_data_path}}/PG_VERSION" ]]; then
   echo " Database does not exist, creating with 'initdb'"
-  chpst -u bldr:bldr initdb -U {{cfg.initdb_superuser_name}} \
+  chpst -u hab:hab initdb -U {{cfg.initdb_superuser_name}} \
                             -E {{cfg.initdb_encoding}} \
                             -D {{pkg.svc_data_path}} \
                             --pwfile {{cfg.initdb_pwfile}} && \
