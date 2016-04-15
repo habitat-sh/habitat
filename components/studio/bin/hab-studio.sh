@@ -626,8 +626,8 @@ chroot_env() {
   fi
   # If a Habitat Depot URL is set, then propagate it into the Studio's
   # environment.
-  if [ -n "${BLDR_REPO:-}" ]; then
-    env="$env BLDR_REPO=$BLDR_REPO"
+  if [ -n "${HAB_DEPOT_URL:-}" ]; then
+    env="$env HAB_DEPOT_URL=$HAB_DEPOT_URL"
   fi
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.

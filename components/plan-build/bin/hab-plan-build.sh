@@ -288,9 +288,9 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
-# The default Habitat Depo repository from where to download dependencies. If
-# `BLDR_REPO` is set, this value is overridden.
-: ${BLDR_REPO:=http://52.37.151.35:9632}
+# The default Habitat Depot from where to download dependencies. If
+# `HAB_DEPOT_URL` is set, this value is overridden.
+: ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
 # The value of `$PATH` on initial start of this program
 BLDR_INITIAL_PATH="$PATH"
 # The package's origin (i.e. chef)
@@ -556,7 +556,7 @@ _resolve_dependency() {
 # ```
 _install_dependency() {
   if [[ -x "$BLDR_BIN" ]]; then
-    $BLDR_BIN install -u $BLDR_REPO "$dep" || true
+    $BLDR_BIN install -u $HAB_DEPOT_URL "$dep" || true
   fi
   return 0
 }
@@ -1916,7 +1916,7 @@ OPTIND=2
 while getopts "u:" opt; do
   case "${opt}" in
     u)
-      BLDR_REPO=$OPTARG
+      HAB_DEPOT_URL=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
