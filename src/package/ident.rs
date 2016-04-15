@@ -39,7 +39,7 @@ impl PackageIdent {
 
     pub fn archive_name(&self) -> Option<String> {
         if self.fully_qualified() {
-            Some(format!("{}-{}-{}-{}.bldr",
+            Some(format!("{}-{}-{}-{}.hab",
                          self.origin,
                          self.name,
                          self.version.as_ref().unwrap(),
@@ -282,12 +282,12 @@ mod tests {
 
     #[test]
     fn package_ident_partial_eq() {
-        let a = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
-        let b = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
         assert_eq!(a, b);
@@ -295,12 +295,12 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord() {
-        let a = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
                                   Some("1.0.1".to_string()),
                                   Some("20150521131555".to_string()));
-        let b = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
@@ -311,12 +311,12 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_bad_name() {
-        let a = PackageIdent::new("bldr".to_string(),
+        let a = PackageIdent::new("awesome".to_string(),
                                   "snoopy".to_string(),
                                   Some("1.0.1".to_string()),
                                   Some("20150521131555".to_string()));
-        let b = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let b = PackageIdent::new("awesome".to_string(),
+                                  "banana".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
@@ -328,11 +328,11 @@ mod tests {
     #[test]
     fn package_ident_partial_ord_different_origin() {
         let a = PackageIdent::new("adam".to_string(),
-                                  "bldr".to_string(),
+                                  "blueberry".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
-        let b = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let b = PackageIdent::new("banana".to_string(),
+                                  "blueberry".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
@@ -344,11 +344,11 @@ mod tests {
     #[test]
     fn package_ident_partial_ord_release() {
         let a = PackageIdent::new("adam".to_string(),
-                                  "bldr".to_string(),
+                                  "brown".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131556".to_string()));
-        let b = PackageIdent::new("bldr".to_string(),
-                                  "bldr".to_string(),
+        let b = PackageIdent::new("boulder".to_string(),
+                                  "brown".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
