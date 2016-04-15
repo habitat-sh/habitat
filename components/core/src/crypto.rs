@@ -251,6 +251,23 @@ pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
 
 }
 
+pub fn hash_vec(v: &Vec<u8>) -> Result<String> {
+    let key = [0u8; libsodium_sys::crypto_generichash_KEYBYTES];
+    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
+    let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
+    let pst = unsafe {
+        mem::transmute::<*mut u8, *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
+    };
+
+    unsafe {
+        libsodium_sys::crypto_generichash_init(pst, key.as_ptr(), key.len(), out.len());
+        libsodium_sys::crypto_generichash_update(pst, v.as_ptr(), v.len() as u64);
+        libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
+    }
+    Ok(out.to_base64(STANDARD))
+
+}
+
 /// Generate and sign a package
 pub fn artifact_sign(infilename: &str,
                      outfilename: &str,
