@@ -1,6 +1,6 @@
-# bldr plans
+# Habitat Plans
 
-This directory contains the plans for building software with bldr.
+This directory contains Plans that build software for the Habitat ecosystem.
 
 The Makefile has a target to create a new plan. Invoke it with:
 

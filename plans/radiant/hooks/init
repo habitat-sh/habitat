@@ -20,12 +20,12 @@ export RAILS_ENV="production"
 # mkdir -p ${RADIANT_DATA}/dist/log
 # touch ${RADIANT_DATA}/dist/log/production.log
 
-chown -R bldr:bldr ${RADIANT_DATA}/dist
+chown -R hab:hab ${RADIANT_DATA}/dist
 cd ${RADIANT_DATA}/dist
 
 exec 2>&1
 
 if [[ ! -f ${RADIANT_DATA}/.migrations_complete ]]; then
   echo "Running 'rake db:create db:migrate' in ${PWD}"
-  exec chpst -u bldr bin/rake db:create db:migrate && touch $RADIANT_DATA/.migrations_complete
+  exec chpst -u hab bin/rake db:create db:migrate && touch $RADIANT_DATA/.migrations_complete
 fi

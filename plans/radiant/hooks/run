@@ -10,4 +10,4 @@ export RAILS_ENV="production"
 cd $RADIANT_DATA/dist
 
 exec 2>&1
-exec chpst -u bldr ./bin/rails server
+exec chpst -u hab ./bin/rails server
