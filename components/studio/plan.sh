@@ -1,11 +1,11 @@
 pkg_name=hab-studio
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
-pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static chef/hab-bpm)
+pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox-static core/hab-bpm)
 pkg_bin_dirs=(bin)
 
 do_build() {

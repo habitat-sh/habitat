@@ -1,12 +1,12 @@
 pkg_name=iana-etc
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.30
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://sethwklein.net/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=b9a6874fb20012836efef75452ef2acae624022d680feeb1994d73facba3f20d
 pkg_deps=()
-pkg_build_deps=(chef/coreutils chef/make chef/gawk)
+pkg_build_deps=(core/coreutils core/make core/gawk)
 
 do_build() {
   make
@@ -25,5 +25,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/coreutils chef/gawk)
+  pkg_build_deps=(core/coreutils core/gawk)
 fi

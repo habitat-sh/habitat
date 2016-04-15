@@ -1,12 +1,12 @@
 pkg_name=procps-ng
-pkg_origin=chef
+pkg_origin=core
 pkg_version=3.3.11
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl' 'lgpl')
 pkg_source=http://downloads.sourceforge.net/project/${pkg_name}/Production/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=e9493169a2d2adc0bc045538707310c8e877b385e4e296143b62607d2bb044ed
-pkg_deps=(chef/glibc chef/ncurses)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/ncurses)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -33,5 +33,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc)
+  pkg_build_deps=(core/gcc)
 fi

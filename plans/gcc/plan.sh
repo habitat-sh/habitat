@@ -1,13 +1,13 @@
 pkg_name=gcc
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 pkg_version=5.2.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}/${pkg_distname}-${pkg_version}.tar.bz2
 pkg_shasum=5f835b04b5f7dd4f4d2dc96190ec1621b8d89f2dc6f638f9f8bc1b1014ba8cad
-pkg_deps=(chef/glibc chef/zlib chef/gmp chef/mpfr chef/libmpc chef/binutils)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/gawk chef/m4 chef/texinfo chef/perl chef/inetutils chef/expect chef/dejagnu)
+pkg_deps=(core/glibc core/zlib core/gmp core/mpfr core/libmpc core/binutils)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/gawk core/m4 core/texinfo core/perl core/inetutils core/expect core/dejagnu)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -119,13 +119,13 @@ do_build() {
   mkdir ../${pkg_name}-build
   pushd ../${pkg_name}-build > /dev/null
     SED=sed \
-    LD=$(pkg_path_for chef/binutils)/bin/ld \
-    AS=$(pkg_path_for chef/binutils)/bin/as \
+    LD=$(pkg_path_for binutils)/bin/ld \
+    AS=$(pkg_path_for binutils)/bin/as \
     ../$pkg_dirname/configure \
       --prefix=$pkg_prefix \
-      --with-gmp=$(pkg_path_for chef/gmp) \
-      --with-mpfr=$(pkg_path_for chef/mpfr) \
-      --with-mpc=$(pkg_path_for chef/libmpc) \
+      --with-gmp=$(pkg_path_for gmp) \
+      --with-mpfr=$(pkg_path_for mpfr) \
+      --with-mpc=$(pkg_path_for libmpc) \
       --with-native-system-header-dir=$headers \
       --enable-languages=c,c++ \
       --enable-lto \
@@ -261,5 +261,5 @@ wrap_binary() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/m4)
+  pkg_build_deps=(core/m4)
 fi

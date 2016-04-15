@@ -1,5 +1,5 @@
 pkg_name=rust
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.7.0
 pkg_license=('Apache-2.0' 'MIT')
 _url_base=http://static.rust-lang.org/dist
@@ -8,8 +8,8 @@ pkg_dirname=${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu
 pkg_shasum=d36634bd8df3d7565487b70af03dfda1c43c635cd6f2993f47cd61fda00d890a
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
-pkg_deps=(chef/glibc chef/gcc-libs chef/zlib chef/gcc chef/cacerts)
-pkg_build_deps=(chef/patchelf chef/findutils chef/coreutils)
+pkg_deps=(core/glibc core/gcc-libs core/zlib core/gcc core/cacerts)
+pkg_build_deps=(core/patchelf core/findutils core/coreutils)
 
 _target_sources=(
   $_url_base/${pkg_name}-std-${pkg_version}-x86_64-unknown-linux-musl.tar.gz
@@ -60,13 +60,13 @@ do_install() {
   # Update the dynamic linker & set `RUNPATH` for all ELF binaries under `bin/`
   for b in rustc cargo rustdoc; do
     patchelf \
-      --interpreter "$(pkg_path_for chef/glibc)/lib/ld-linux-x86-64.so.2" \
+      --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
       --set-rpath "$LD_RUN_PATH" \
       "$pkg_prefix/bin/$b"
   done; unset b
 
   # Going to want to write a cargo wrapper
-  #    SSL_CERT_FILE=$(pkg_path_for chef/cacerts)/ssl/cert.pem \
+  #    SSL_CERT_FILE=$(pkg_path_for cacerts)/ssl/cert.pem \
 
     # Set `RUNPATH` for all shared libraries under `lib/`
   find $pkg_prefix/lib -name *.so \
@@ -97,5 +97,5 @@ do_strip() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/patchelf chef/coreutils chef/sed chef/grep chef/diffutils chef/findutils chef/make chef/patch)
+  pkg_build_deps=(core/patchelf core/coreutils core/sed core/grep core/diffutils core/findutils core/make core/patch)
 fi

@@ -1,10 +1,10 @@
 pkg_name=hab-pkg-dockerize
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(chef/coreutils chef/findutils chef/gawk chef/grep chef/bash chef/docker chef/hab-studio)
+pkg_deps=(core/coreutils core/findutils core/gawk core/grep core/bash core/docker core/hab-studio)
 pkg_build_deps=()
 pkg_bin_dirs=(bin)
 

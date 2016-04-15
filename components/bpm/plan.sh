@@ -1,13 +1,13 @@
 pkg_name=hab-bpm
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
-pkg_build_deps=(chef/coreutils chef/tar chef/xz chef/wget chef/busybox-static
-                chef/coreutils-static chef/jq-static
-                chef/wget-static)
+pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox-static
+                core/coreutils-static core/jq-static
+                core/wget-static)
 pkg_bin_dirs=(bin)
 
 do_build() {

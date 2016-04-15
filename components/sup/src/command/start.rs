@@ -15,13 +15,13 @@
 //! # Examples
 //!
 //! ```bash
-//! $ hab-sup start chef/redis
+//! $ hab-sup start acme/redis
 //! ```
 //!
 //! Will start the `redis` service in the `default` group, using the `standalone` topology.
 //!
 //! ```bash
-//! $ hab-sup start chef/redis -g production
+//! $ hab-sup start acme/redis -g production
 //! ```
 //!
 //! Will do the same, but in the `production` group.
@@ -34,13 +34,13 @@
 //! `production` group (note the `.` as the separator.)
 //!
 //! ```bash
-//! $ hab-sup start chef/redis -t leader
+//! $ hab-sup start acme/redis -t leader
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology.
 //!
 //! ```bash
-//! $ hab-sup start chef/redis -t leader -g production -w haproxy.default
+//! $ hab-sup start acme/redis -t leader -g production -w haproxy.default
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology in the `production` group, while

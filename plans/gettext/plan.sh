@@ -1,12 +1,12 @@
 pkg_name=gettext
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.19.6
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2+' 'lgpl2+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=ed4b4c19bd3a3034eb6769500a3592ff616759ef43cf30586dbb7a17c9dd695d
-pkg_deps=(chef/glibc chef/gcc-libs chef/acl chef/xz)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/findutils)
+pkg_deps=(core/glibc core/gcc-libs core/acl core/xz)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/findutils)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
@@ -30,5 +30,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/findutils)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/diffutils core/findutils)
 fi

@@ -1,10 +1,10 @@
 pkg_name=libltdl
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.4.6
 pkg_license=('GPL')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://ftp.gnu.org/pub/gnu/libtool/libtool-${pkg_version}.tar.xz
-pkg_deps=(chef/glibc)
+pkg_deps=(core/glibc)
 pkg_filename=${pkg_name}-${pkg_version}.tar.xz
 pkg_dirname=libtool-${pkg_version}
 pkg_lib_dirs=(lib)

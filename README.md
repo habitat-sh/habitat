@@ -201,7 +201,7 @@ To create a docker container of a package, either local or remote:
 
 ```bash
 $ studio enter
-$ dockerize chef/redis
+$ dockerize core/redis
 ```
 
 To develop Habitat itself, just work like you always did. If you want to,
@@ -209,8 +209,8 @@ for example, test that Redis is working with your development version of
 the supervisor:
 
 ```bash
-$ hab-bpm install chef/redis
-$ ./target/debug/hab-sup start chef/redis
+$ hab-bpm install core/redis
+$ ./target/debug/hab-sup start core/redis
 ```
 
 Will work just fine (as will running Habitat on other host operating

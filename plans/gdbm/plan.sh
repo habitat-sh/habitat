@@ -1,12 +1,12 @@
 pkg_name=gdbm
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.11
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=8d912f44f05d0b15a4a5d96a76f852e905d051bb88022fcdfd98b43be093e3c3
-pkg_deps=(chef/glibc)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -41,5 +41,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils)
+  pkg_build_deps=(core/gcc core/coreutils)
 fi

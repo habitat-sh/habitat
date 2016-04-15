@@ -3,8 +3,8 @@
 # # Usage
 #
 # ```sh
-# $ hab-bpm install chef/hab-studio
-# $ hab-bpm exec chef/bash bash --version
+# $ hab-bpm install core/hab-studio
+# $ hab-bpm exec core/bash bash --version
 # ```
 #
 # # Synopsis
@@ -103,7 +103,7 @@ EXAMPLES:
     $program binlink acme/bash/4.3.42/20160126184157 bash
 
     # Symlink 'bin/busybox' to a custom path '/bin/busybox'
-    $program binlink -d /bin chef/busybox busybox
+    $program binlink -d /bin acme/busybox busybox
 
 GENERAL HELP:
         $program help
@@ -128,7 +128,7 @@ EXAMPLES:
     $program exec acme/bash/4.3.42/20160126184157 bash --version
 
     # Execute a command against the latest installed release of a package
-    $program exec chef/bootstrap-toolchain wget --version
+    $program exec acme/bootstrap-toolchain wget --version
 
 GENERAL HELP:
         $program help
@@ -158,13 +158,13 @@ ENVIRONMENT VARIABLES:
 EXAMPLES:
 
     # Install a specific release
-    $program install chef/zlib/1.2.8/20160104212444
+    $program install acme/zlib/1.2.8/20160104212444
 
     # Install the latest release of a package
-    $program install chef/bootstrap-toolchain
+    $program install acme/bootstrap-toolchain
 
     # Install the latest release of a package from a custom Depot
-    $program install -u http://127.0.0.1:9633 chef/bootstrap-toolchain
+    $program install -u http://127.0.0.1:9633 acme/bootstrap-toolchain
 
 GENERAL HELP:
         $program help
@@ -188,7 +188,7 @@ EXAMPLES:
     $program pkgpath acme/bash/4.3.42/20160126184157
 
     # Print the path to the latest installed release of a package
-    $program pkgpath chef/bootstrap-toolchain
+    $program pkgpath acme/bootstrap-toolchain
 
 GENERAL HELP:
         $program help
@@ -504,10 +504,10 @@ trim() {
 # it.
 #
 # ```sh
-# latest_remote_package chef/nginx
-# # chef/nginx/1.8.0/20150911120000
-# latest_remote_package chef/zlib/1.2.8/20160104212444
-# # chef/zlib/1.2.8/20160104212444
+# latest_remote_package acme/nginx
+# # acme/nginx/1.8.0/20150911120000
+# latest_remote_package acme/zlib/1.2.8/20160104212444
+# # acme/zlib/1.2.8/20160104212444
 # ```
 #
 # Will return 0 if a fully qualified package identifier could be determined,
@@ -599,7 +599,7 @@ latest_installed_package() {
 # `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
 #
 # ```sh
-# install_package chef/zlib/1.2.8/20160104212444
+# install_package acme/zlib/1.2.8/20160104212444
 # ```
 install_package() {
   local pkg_ident=$1
@@ -649,7 +649,7 @@ install_package() {
 # `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
 #
 # ```sh
-# install_package_tdeps chef/zlib/1.2.8/20160104212444
+# install_package_tdeps acme/zlib/1.2.8/20160104212444
 # ```
 install_package_tdeps() {
   local pkg_ident=$1

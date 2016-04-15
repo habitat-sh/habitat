@@ -1,12 +1,12 @@
 pkg_name=sed
-pkg_origin=chef
+pkg_origin=core
 pkg_version=4.2.2
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=fea0a94d4b605894f3e2d5572e3f96e4413bcad3a085aae7367c2cf07908b2ff
-pkg_deps=(chef/glibc chef/acl)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/acl)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 
 do_check() {
@@ -22,5 +22,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc)
+  pkg_build_deps=(core/gcc)
 fi

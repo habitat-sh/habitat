@@ -1641,8 +1641,8 @@ mod tests {
     #[ignore]
     fn read_write_composite_data_object() {
         let ds = open_datastore();
-        let key: package::PackageIdent = package::PackageIdent::new("chef",
-                                                                    "redis",
+        let key: package::PackageIdent = package::PackageIdent::new("acme",
+                                                                    "rocket",
                                                                     Some("3.0.1"),
                                                                     Some("1234"));
         {

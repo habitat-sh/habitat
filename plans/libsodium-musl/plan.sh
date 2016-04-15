@@ -2,7 +2,7 @@ source ../libsodium/plan.sh
 
 pkg_name=libsodium-musl
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_deps=(chef/musl)
+pkg_deps=(core/musl)
 
 do_prepare() {
   export CC=musl-gcc
@@ -18,5 +18,5 @@ do_prepare() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/make)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/diffutils core/make)
 fi

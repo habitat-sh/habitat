@@ -1,12 +1,12 @@
 pkg_name=libxslt
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_version=1.1.28
-pkg_origin=chef
+pkg_origin=core
 pkg_license=('libxslt')
 pkg_source=ftp://xmlsoft.org/libxslt/libxslt-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=5fc7151a57b89c03d7b825df5a0fae0a8d5f05674c0e7cf2937ecec4d54a028c
-pkg_deps=(chef/glibc chef/libxml2)
-pkg_build_deps=(chef/coreutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/libxml2)
+pkg_build_deps=(core/coreutils core/patch core/make core/gcc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)

@@ -148,7 +148,7 @@
 # package; when we resolve dependencies, we consider a version of a package to be equal
 # regardless of its origin - but you can specify what you prefer to use.
 # ```
-# pkg_origin=chef
+# pkg_origin=acme
 # ```
 #
 # ### pkg_interpreters
@@ -293,7 +293,7 @@ PLAN_CONTEXT=${1:-.}
 : ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
-# The package's origin (i.e. chef)
+# The package's origin (i.e. acme)
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_rel=$(date -u +%Y%m%d%H%M%S)
@@ -531,7 +531,7 @@ _resolve_dependency() {
   local dep="$1"
   local dep_path
   if ! echo "$dep" | grep -q '\/' > /dev/null; then
-    warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: chef/$dep)"
+    warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: acme/$dep)"
     return 1
   fi
 
@@ -655,7 +655,7 @@ _attach_whereami() {
 #   path to the binary.
 # * If a version of the `hab` CLI package is installed on disk, use that
 #   version's `bin/hab` as the command.
-# * If a version of the `chef/hab-bpm` package is installed on disk, use that
+# * If a version of the `core/hab-bpm` package is installed on disk, use that
 #   version's `bin/hab-bpm` as the command.
 # * If no other criteria match then set `$HAB_BIN` to an empty/unset value.
 _determine_pkg_installer() {
@@ -666,24 +666,24 @@ _determine_pkg_installer() {
     HAB_BIN=$HAB_BIN
     build_line "Using set HAB_BIN=$HAB_BIN for dependency installs"
 ## We are bypassing hab for now, while we get the system stable, then we come back
-#  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab"); then
+#  elif _pkg_for_pkg_install=$(_latest_installed_package "core/hab"); then
 #    HAB_BIN="$_pkg_for_pkg_install/bin/hab"
-#    build_line "Using chef/hab for dependency installs"
-  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab-bpm"); then
+#    build_line "Using core/hab for dependency installs"
+  elif _pkg_for_pkg_install=$(_latest_installed_package "core/hab-bpm"); then
     HAB_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
-    build_line "Using chef/hab-bpm for dependency installs"
+    build_line "Using core/hab-bpm for dependency installs"
   else
     HAB_BIN=
-    build_line "Could not find chef/hab or chef/hab-bpm for dependency installs"
+    build_line "Could not find core/hab or core/hab-bpm for dependency installs"
   fi
 }
 
 # **Internal** Validates that the computed dependencies are reasonable and that
 # the full runtime set is unique--that is, there are no duplicate entries of
 # the same `ORIGIN/NAME` tokens. An example would be a Plan which has a
-# dependency on `chef/glibc` and a dependency on `chef/pcre` which uses an
-# older version of `chef/glibc`. This leads to a package which would have 2
-# version of `chef/glibc` in the shared library `RUNPATH` (`RPATH`). Rather
+# dependency on `acme/glibc` and a dependency on `acme/pcre` which uses an
+# older version of `acme/glibc`. This leads to a package which would have 2
+# version of `acme/glibc` in the shared library `RUNPATH` (`RPATH`). Rather
 # than building a package which is destined to fail at runtime, this function
 # will fast-fail with dependency information which an end user can use to
 # resolve the situation before continuing.
@@ -755,19 +755,19 @@ _validate_deps() {
 #
 # ```
 # _dupes_qualified=$(cat <<EOF
-# chef/glibc/2.22/20160309153915
-# chef/glibc/2.22/20160308150809
-# chef/linux-headers/4.3/20160309153535
-# chef/linux-headers/4.3/20160308150438
+# acme/glibc/2.22/20160309153915
+# acme/glibc/2.22/20160308150809
+# acme/linux-headers/4.3/20160309153535
+# acme/linux-headers/4.3/20160308150438
 # EOF
 # )
 #
-# echo "chef/less/481/20160309165238"
+# echo "acme/less/481/20160309165238"
 #
 # cat <<EOF | _print_recursive_deps 1
-# chef/glibc/2.22/20160309153915
-# chef/ncurses/6.0/20160308165339
-# chef/pcre/8.38/20160308165506
+# acme/glibc/2.22/20160309153915
+# acme/ncurses/6.0/20160308165339
+# acme/pcre/8.38/20160308165506
 # EOF
 # ```
 #
@@ -775,21 +775,21 @@ _validate_deps() {
 # dependencies:
 #
 # ```
-# chef/less/481/20160309165238
-#     chef/glibc/2.22/20160309153915 (*)
-#         chef/linux-headers/4.3/20160309153535 (*)
-#     chef/ncurses/6.0/20160308165339
-#         chef/glibc/2.22/20160308150809 (*)
-#             chef/linux-headers/4.3/20160308150438 (*)
-#         chef/gcc-libs/5.2.0/20160308165030
-#             chef/glibc/2.22/20160308150809 (*)
-#                 chef/linux-headers/4.3/20160308150438 (*)
-#     chef/pcre/8.38/20160308165506
-#         chef/glibc/2.22/20160308150809 (*)
-#             chef/linux-headers/4.3/20160308150438 (*)
-#         chef/gcc-libs/5.2.0/20160308165030
-#             chef/glibc/2.22/20160308150809 (*)
-#                 chef/linux-headers/4.3/20160308150438 (*)
+# acme/less/481/20160309165238
+#     acme/glibc/2.22/20160309153915 (*)
+#         acme/linux-headers/4.3/20160309153535 (*)
+#     acme/ncurses/6.0/20160308165339
+#         acme/glibc/2.22/20160308150809 (*)
+#             acme/linux-headers/4.3/20160308150438 (*)
+#         acme/gcc-libs/5.2.0/20160308165030
+#             acme/glibc/2.22/20160308150809 (*)
+#                 acme/linux-headers/4.3/20160308150438 (*)
+#     acme/pcre/8.38/20160308165506
+#         acme/glibc/2.22/20160308150809 (*)
+#             acme/linux-headers/4.3/20160308150438 (*)
+#         acme/gcc-libs/5.2.0/20160308165030
+#             acme/glibc/2.22/20160308150809 (*)
+#                 acme/linux-headers/4.3/20160308150438 (*)
 # ```
 _print_recursive_deps() {
   local level=$1
@@ -931,7 +931,7 @@ trim() {
 #   /hab/pkgs/acme/glibc/2.22/20151216221001
 # )
 #
-# pkg_path_for chef/nginx
+# pkg_path_for acme/nginx
 # # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # pkg_path_for zlib
 # # /hab/pkgs/acme/zlib/1.2.8/20151216221001
@@ -1224,7 +1224,7 @@ fix_interpreter() {
 # live in `bin`, `sbin`, or `libexec`, depending on the software.
 #
 # ```
-# pkg_interpreter_for chef/coreutils bin/env
+# pkg_interpreter_for acme/coreutils bin/env
 # ```
 #
 # Will return 0 if the specified package and interpreter were found,
@@ -1326,8 +1326,8 @@ _resolve_dependencies() {
   # Copy all direct build dependencies into a new array
   pkg_build_tdeps_resolved=("${pkg_build_deps_resolved[@]}")
   # Append all non-direct (transitive) run dependencies for each direct build
-  # dependency. That's right, not a typo ;) This is how a `chef/gcc` build
-  # dependency could pull in `chef/binutils` for us, as an example. Any
+  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
+  # dependency could pull in `acme/binutils` for us, as an example. Any
   # duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_build_deps_resolved[@]}"; do
     tdeps=($(_get_tdeps_for $dep))

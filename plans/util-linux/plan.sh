@@ -1,12 +1,12 @@
 pkg_name=util-linux
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.27.1
 pkg_license=('GPLv2')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://ftp.kernel.org/pub/linux/utils/${pkg_name}/v${pkg_version%.?}/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=0a818fcdede99aec43ffe6ca5b5388bff80d162f2f7bd4541dca94fecb87a290
-pkg_deps=(chef/glibc chef/zlib chef/ncurses)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
+pkg_deps=(core/glibc core/zlib core/ncurses)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -44,5 +44,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/make chef/patch)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/diffutils core/make core/patch)
 fi

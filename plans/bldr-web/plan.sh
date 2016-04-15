@@ -1,12 +1,12 @@
 pkg_name=bldr-web
 pkg_version=0.4.0
-pkg_origin=chef
+pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache2')
 pkg_filename=${pkg_name}-${pkg_version}.tar.bz2
-pkg_deps=(chef/glibc chef/bldr chef/curl chef/pcre chef/nginx)
-pkg_build_deps=(chef/node chef/coreutils chef/phantomjs chef/python2
-                chef/make chef/gcc chef/gcc-libs)
+pkg_deps=(core/glibc core/bldr core/curl core/pcre core/nginx)
+pkg_build_deps=(core/node core/coreutils core/phantomjs core/python2
+                core/make core/gcc core/gcc-libs)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_expose=(80 443)
@@ -24,7 +24,7 @@ do_build() {
   npm install
 
   for b in ${HAB_CACHE_SRC_PATH}/${pkg_name}-${pkg_version}/node_modules/.bin/*; do
-    fix_interpreter $(readlink -f -n $b) chef/coreutils bin/env
+    fix_interpreter $(readlink -f -n $b) core/coreutils bin/env
   done
 
   npm run postinstall

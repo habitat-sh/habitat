@@ -1,33 +1,33 @@
 pkg_name=busybox
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.24.2
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2')
 pkg_source=http://www.busybox.net/downloads/${pkg_distname}-${pkg_version}.tar.bz2
 pkg_shasum=e71ef53ec656f31c42633918d301405d40dea1d97eca12f272217ae4a971c855
 
-pkg_deps=(chef/glibc)
+pkg_deps=(core/glibc)
 pkg_build_deps=(
-  chef/bash
-  chef/bison
-  chef/coreutils
-  chef/diffutils
-  chef/findutils
-  chef/flex
-  chef/gawk
-  chef/gcc
-  chef/gettext
-  chef/grep
-  chef/gzip
-  chef/libtool
-  chef/make
-  chef/patch
-  chef/sed
-  chef/texinfo
-  chef/util-linux
-  chef/wget
-  chef/xz
+  core/bash
+  core/bison
+  core/coreutils
+  core/diffutils
+  core/findutils
+  core/flex
+  core/gawk
+  core/gcc
+  core/gettext
+  core/grep
+  core/gzip
+  core/libtool
+  core/make
+  core/patch
+  core/sed
+  core/texinfo
+  core/util-linux
+  core/wget
+  core/xz
 )
 
 pkg_bin_dirs=(bin)

@@ -1,12 +1,12 @@
 pkg_name=libassuan
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.4.2
 pkg_license=('lgplv2+')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=ftp://ftp.gnupg.org/gcrypt/${pkg_name}/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=bb06dc81380b74bf1b64d5849be5c0409a336f3b4c45f20ac688e86d1b5bcb20
-pkg_deps=(chef/glibc chef/libgpg-error)
-pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/bison chef/flex chef/grep chef/bash chef/gawk chef/libtool chef/diffutils chef/findutils chef/xz chef/gettext chef/gzip chef/make chef/patch chef/texinfo chef/util-linux)
+pkg_deps=(core/glibc core/libgpg-error)
+pkg_build_deps=(core/gcc core/coreutils core/sed core/bison core/flex core/grep core/bash core/gawk core/libtool core/diffutils core/findutils core/xz core/gettext core/gzip core/make core/patch core/texinfo core/util-linux)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -14,7 +14,7 @@ pkg_lib_dirs=(lib)
 do_build() {
   ./configure \
     --prefix=$pkg_prefix \
-    --with-libgpg-error-prefix=$(pkg_path_for chef/libgpg-error) \
+    --with-libgpg-error-prefix=$(pkg_path_for libgpg-error) \
     --enable-static \
     --enable-shared
   make

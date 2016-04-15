@@ -1,23 +1,23 @@
 pkg_name=postgresql
 pkg_version=9.5.1
-pkg_origin=chef
+pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('PostgreSQL')
 pkg_source=https://ftp.postgresql.org/pub/source/v${pkg_version}/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=6b309d8506a39773a752ff074f47656e5424576ea090b04a24fe1725958c5bd2
 
 pkg_deps=(
-  chef/glibc
-  chef/openssl
-  chef/perl
-  chef/readline
-  chef/zlib
+  core/glibc
+  core/openssl
+  core/perl
+  core/readline
+  core/zlib
 )
 
 pkg_build_deps=(
-  chef/coreutils
-  chef/gcc
-  chef/make
+  core/coreutils
+  core/gcc
+  core/make
 )
 
 pkg_bin_dirs=(bin)

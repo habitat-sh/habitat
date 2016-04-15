@@ -12,8 +12,8 @@ echo "Linking database.yml"
 ln -sf {{pkg.svc_config_path}}/database.yml ${RAILS_SAMPLE_DATA}/dist/config/database.yml
 
 export GEM_HOME="${RAILS_SAMPLE_DATA}/dist/vendor/bundle/ruby/2.3.0"
-export GEM_PATH="$(hab-bpm pkgpath chef/ruby)/lib/ruby/gems/2.3.0:$(hab-bpm pkgpath chef/bundler):$GEM_HOME"
-export LD_LIBRARY_PATH="$(hab-bpm pkgpath chef/gcc-libs)/lib"
+export GEM_PATH="$(hab-bpm pkgpath core/ruby)/lib/ruby/gems/2.3.0:$(hab-bpm pkgpath core/bundler):$GEM_HOME"
+export LD_LIBRARY_PATH="$(hab-bpm pkgpath core/gcc-libs)/lib"
 export PATH="$PATH:${RAILS_SAMPLE_DATA}/dist/bin"
 export RAILS_ENV="production"
 

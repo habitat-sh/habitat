@@ -2,7 +2,7 @@ source ../libarchive/plan.sh
 
 pkg_name=libarchive-musl
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_deps=(chef/musl chef/openssl-musl chef/zlib-musl chef/bzip2-musl chef/xz-musl)
+pkg_deps=(core/musl core/openssl-musl core/zlib-musl core/bzip2-musl core/xz-musl)
 
 do_prepare() {
   export CC=musl-gcc
@@ -21,5 +21,5 @@ do_prepare() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/grep chef/diffutils chef/make)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/grep core/diffutils core/make)
 fi

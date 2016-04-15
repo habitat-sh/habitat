@@ -5,9 +5,9 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 # The result is a portible, static binary in a zero-dependency package.
 pkg_deps=()
 pkg_build_deps=(
-  chef/musl chef/zlib-musl chef/xz-musl chef/bzip2-musl chef/libarchive-musl
-  chef/openssl-musl chef/libsodium-musl
-  chef/coreutils chef/cacerts chef/rust chef/gcc
+  core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
+  core/openssl-musl core/libsodium-musl
+  core/coreutils core/cacerts core/rust core/gcc
 )
 
 # Set the parent directory as the "root" of this plan.
@@ -45,8 +45,8 @@ do_prepare() {
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
   pkg_build_deps=(
-    chef/gcc chef/coreutils chef/sed chef/grep chef/diffutils chef/make chef/cacerts
-    chef/rust chef/musl chef/zlib-musl chef/bzip2-musl chef/xz-musl chef/libsodium-musl
-    chef/openssl-musl chef/libarchive-musl
+    core/gcc core/coreutils core/sed core/grep core/diffutils core/make core/cacerts
+    core/rust core/musl core/zlib-musl core/bzip2-musl core/xz-musl core/libsodium-musl
+    core/openssl-musl core/libarchive-musl
   )
 fi

@@ -57,4 +57,3 @@ pub fn verify(infile: &str) -> Result<()> {
     println!("Habitat artifact is valid");
     Ok(())
 }
-
