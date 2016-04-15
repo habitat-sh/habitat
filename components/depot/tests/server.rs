@@ -123,20 +123,20 @@ fn upload_a_package_and_then_install_it() {
     let d = docker::depot("test/simple_service");
     let ipaddress = d.ipaddress();
 
-    let mut upload = command::bldr(&["upload",
-                                     "test/simple_service",
-                                     "-u",
-                                     &format!("http://{}:9632", ipaddress)])
+    let mut upload = command::sup(&["upload",
+                                    "test/simple_service",
+                                    "-u",
+                                    &format!("http://{}:9632", ipaddress)])
                          .unwrap();
     upload.wait_with_output();
     assert_cmd_exit_code!(upload, [0]);
     assert_regex!(upload.stdout(), r"Upload Bldr Package (.+)");
     assert_regex!(upload.stdout(), r"Uploading from (.+)");
     assert_regex!(upload.stdout(), r"Complete");
-    let mut install = command::bldr(&["install",
-                                      "test/simple_service",
-                                      "-u",
-                                      &format!("http://{}:9632", ipaddress)])
+    let mut install = command::sup(&["install",
+                                     "test/simple_service",
+                                     "-u",
+                                     &format!("http://{}:9632", ipaddress)])
                           .unwrap();
     install.wait_with_output();
     assert_cmd_exit_code!(install, [0]);
