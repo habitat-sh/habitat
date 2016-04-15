@@ -14,8 +14,7 @@ use std::path::{Path, PathBuf};
 
 use hcore::fs;
 use hcore::service::ServiceGroup;
-use openssl::crypto::hash as openssl_hash;
-use rustc_serialize::hex::ToHex;
+use hcore::crypto;
 use time::{SteadyTime, Duration};
 
 use error::{Error, Result};
@@ -51,13 +50,13 @@ impl ConfigFile {
         try!(f.read_to_end(&mut body));
 
         let file_name = try!(path.file_name().ok_or(Error::FileNameError));
-        let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
+        let checksum = try!(crypto::hash_file(&file_name));
 
         let cf = ConfigFile {
             service_group: service_group,
             file_name: file_name.to_string_lossy().to_string(),
             body: body,
-            checksum: checksum.as_slice().to_hex(),
+            checksum: checksum,
             version_number: version_number,
             written: false,
         };
@@ -69,13 +68,14 @@ impl ConfigFile {
                      body: Vec<u8>,
                      version_number: u64)
                      -> Result<ConfigFile> {
-        let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
+
+        let checksum = try!(crypto::hash_vec(&body));
 
         let cf = ConfigFile {
             service_group: service_group,
             file_name: file_name,
             body: body,
-            checksum: checksum.as_slice().to_hex(),
+            checksum: checksum,
             version_number: version_number,
             written: false,
         };
@@ -119,22 +119,8 @@ impl ConfigFile {
         }
     }
 
-    pub fn checksum_file(&self) -> Result<String> {
-        let mut file = try!(File::open(self.on_disk_path()));
-        let mut buf = [0u8; 1024];
-        let mut h = openssl_hash::Hasher::new(openssl_hash::Type::SHA256);
-        loop {
-            let bytes_read = try!(file.read(&mut buf));
-            if bytes_read == 0 {
-                break;
-            }
-            try!(h.write(&buf[0..bytes_read]));
-        }
-        Ok(h.finish().as_slice().to_hex())
-    }
-
     pub fn write(&self) -> Result<bool> {
-        let current_checksum = match self.checksum_file() {
+        let current_checksum = match crypto::hash_file(&self.on_disk_path()) {
             Ok(checksum) => checksum,
             Err(_) => String::new(),
         };
