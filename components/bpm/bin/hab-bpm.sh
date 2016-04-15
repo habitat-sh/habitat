@@ -150,10 +150,10 @@ FLAGS:
     -h  Prints this message
 
 OPTIONS:
-    -u <BLDR_REPO>  Sets a Habitat repository URL
+    -u <HAB_DEPOT_URL>  Sets a Habitat Depot URL
 
 ENVIRONMENT VARIABLES:
-    BLDR_REPO     Sets a Habitat repository URL (\`-u' option takes precedence)
+    HAB_DEPOT_URL   Sets a Habitat Depot URL (\`-u' option takes precedence)
 
 EXAMPLES:
 
@@ -163,7 +163,7 @@ EXAMPLES:
     # Install the latest release of a package
     $program install chef/bootstrap-toolchain
 
-    # Install the latest release of a package from a custom repository
+    # Install the latest release of a package from a custom Depot
     $program install -u http://127.0.0.1:9633 chef/bootstrap-toolchain
 
 GENERAL HELP:
@@ -329,7 +329,7 @@ subcommand_install() {
   while getopts ":u:h" opt; do
     case $opt in
       u)
-        BLDR_REPO=$OPTARG
+        HAB_DEPOT_URL=$OPTARG
         ;;
       h)
         print_install_help
@@ -499,7 +499,7 @@ trim() {
   echo "$var"
 }
 
-# **Internal** Return the latest release of a package in the remote repository
+# **Internal** Return the latest release of a package in the remote depot
 # on stdout. If a fully qualified package identifier is given, simply return
 # it.
 #
@@ -522,7 +522,7 @@ latest_remote_package() {
       ;;
     "2"|"1")
       local result="$(\
-        $bb env -u http_proxy $wget "$BLDR_REPO/pkgs/$1" -O- -q | \
+        $bb env -u http_proxy $wget "$HAB_DEPOT_URL/pkgs/$1" -O- -q | \
         $jq -r 'last | .origin + "/" + .name + "/" + .version + "/" + .release')"
       if [ -n "$result" ]; then
         echo $result
@@ -592,7 +592,7 @@ latest_installed_package() {
   fi
 }
 
-# **Internal** Installs a package from a package repository, represented by the
+# **Internal** Installs a package from a package Depot, represented by the
 # given package identifier.
 #
 # Note that a fully qualified package identifier must be provided, that is
@@ -603,7 +603,7 @@ latest_installed_package() {
 # ```
 install_package() {
   local pkg_ident=$1
-  local pkg_source="$BLDR_REPO/pkgs/$pkg_ident/download"
+  local pkg_source="$HAB_DEPOT_URL/pkgs/$pkg_ident/download"
   local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').hab"
 
   if [ -n "$QUIET" ]; then
@@ -643,7 +643,7 @@ install_package() {
 }
 
 # **Internal** Installs all direct and transitive dependencies for a package
-# from a package repository, represented by the given package identifier.
+# from a package Depot, represented by the given package identifier.
 #
 # Note that a fully qualified package identifier must be provided, that is
 # `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
@@ -856,7 +856,7 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # The default path where libsodium keys are stored
 HAB_CACHE_KEY_PATH=$HAB_ROOT_PATH/cache/keys
 # The default depot url from where to download dependencies
-: ${BLDR_REPO:=http://52.37.151.35:9632}
+: ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : ${VERBOSE:=}
