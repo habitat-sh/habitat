@@ -4,26 +4,50 @@ pkg_version=0.4.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
+pkg_deps=(
+  core/glibc core/zlib core/xz core/bzip2 core/libarchive
+  core/openssl core/libsodium core/gcc-libs
+)
+pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
-pkg_deps=(core/glibc core/openssl core/gcc-libs core/libarchive core/libsodium)
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc core/libsodium)
-pkg_service_run="bin/hab-depot start"
+
+program=$pkg_name
+
+pkg_service_run="bin/$program start"
+
+do_prepare() {
+  # Used by Cargo to fetch registries/crates/etc.
+  export SSL_CERT_FILE=$(pkg_path_for cacerts)/ssl/cert.pem
+  build_line "Setting SSL_CERT_FILE=$SSL_CERT_FILE"
+
+  export rustc_target="x86_64-unknown-linux-gnu"
+  build_line "Setting rustc_target=$rustc_target"
+
+  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
+  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
+  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
+  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
+  export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+}
 
 do_build() {
-  pushd $PLAN_CONTEXT/.. > /dev/null
-  cargo clean
-  env OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib \
-      OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include \
-      LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib \
-      LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include \
-      SSL_CERT_FILE=$(pkg_path_for cacerts)/ssl/cert.pem \
-      SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
-      cargo build --verbose
+  pushd $PLAN_CONTEXT > /dev/null
+  cargo clean --target=$rustc_target --verbose
+  cargo build \
+    -j $(nproc) \
+    --target=$rustc_target \
+    --release \
+    --verbose
   popd > /dev/null
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../target/debug/$pkg_name $pkg_prefix/bin/$pkg_name
+  install -v -D $PLAN_CONTEXT/../target/$rustc_target/release/$program \
+    $pkg_prefix/bin/$program
+}
+
+do_strip() {
+  strip $pkg_prefix/bin/$program
 }
 
 # Turn the remaining default phases into no-ops
@@ -36,9 +60,5 @@ do_verify() {
 }
 
 do_unpack() {
-  return 0
-}
-
-do_prepare() {
   return 0
 }
