@@ -9,8 +9,8 @@ studio_run_command=
 base_pkgs="chef/hab-bpm chef/hab-sup chef/busybox-static"
 : ${PKGS:=}
 
-run_user="bldr"
-run_group="bldr"
+run_user="hab"
+run_group="$run_group"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup" ]; then

@@ -271,7 +271,7 @@ _program=$(basename $0)
 BLDR_VERSION=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=/opt/bldr}
+: ${HAB_ROOT_PATH:=/hab}
 # The default path where source artifacts are downloaded, extracted, & compiled
 HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package
@@ -313,7 +313,7 @@ pkg_service_run=''
 # An array of ports to expose.
 pkg_expose=()
 # The user to run the service as
-pkg_service_user=bldr
+pkg_service_user=hab
 # The group to run the service as
 pkg_service_group=$pkg_service_user
 # Used to handle if we received a signal, or failed based on a bad status code.
@@ -473,11 +473,11 @@ _find_system_commands() {
 #
 # ```
 # _latest_installed_package acme/nginx
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # _latest_installed_package acme/nginx/1.8.0
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # _latest_installed_package acme/nginx/1.8.0/20150911120000
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # ```
 #
 # Will return 0 if a package was found on disk, and 1 if a package cannot be
@@ -517,11 +517,11 @@ _latest_installed_package() {
 #
 # ```
 # _resolve_dependency acme/zlib
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # _resolve_dependency acme/zlib/1.2.8
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # _resolve_dependency acme/zlib/1.2.8/20151216221001
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # ```
 #
 # Will return 0 if a package was found or installed on disk, and 1 if a package
@@ -568,13 +568,13 @@ _install_dependency() {
 # unset, or empty set.
 #
 # ```
-# _get_tdeps_for /opt/bldr/pkgs/acme/a/4.2.2/20160113044458
-# # /opt/bldr/pkgs/acme/dep-b/1.2.3/20160113033619
-# # /opt/bldr/pkgs/acme/dep-c/5.0.1/20160113033507
-# # /opt/bldr/pkgs/acme/dep-d/2.0.0/20160113033539
-# # /opt/bldr/pkgs/acme/dep-e/10.0.1/20160113033453
-# # /opt/bldr/pkgs/acme/dep-f/4.2.2/20160113033338
-# # /opt/bldr/pkgs/acme/dep-g/4.2.2/20160113033319
+# _get_tdeps_for /hab/pkgs/acme/a/4.2.2/20160113044458
+# # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
+# # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
+# # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
+# # /hab/pkgs/acme/dep-e/10.0.1/20160113033453
+# # /hab/pkgs/acme/dep-f/4.2.2/20160113033338
+# # /hab/pkgs/acme/dep-g/4.2.2/20160113033319
 # ```
 #
 # Will return 0 in any case and the contents of `TDEPS` if the file exists.
@@ -926,17 +926,17 @@ trim() {
 #
 # ```
 # pkg_all_deps_resolved=(
-#   /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
-#   /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
-#   /opt/bldr/pkgs/acme/glibc/2.22/20151216221001
+#   /hab/pkgs/acme/zlib/1.2.8/20151216221001
+#   /hab/pkgs/acme/nginx/1.8.0/20150911120000
+#   /hab/pkgs/acme/glibc/2.22/20151216221001
 # )
 #
 # pkg_path_for chef/nginx
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # pkg_path_for zlib
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # pkg_path_for glibc/2.22
-# # /opt/bldr/pkgs/acme/glibc/2.22/20151216221001
+# # /hab/pkgs/acme/glibc/2.22/20151216221001
 # ```
 #
 # Will return 0 if a package is found locally on disk, and 1 if a package
@@ -1192,7 +1192,7 @@ unpack_file() {
 # For example, to replace all the files in `node_modules/.bin` that
 # have `#!/usr/bin/env` with the `coreutils` path
 # to `bin/env` (which resolves to
-# /opt/bldr/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
+# /hab/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
 # to quote the wildcard target:
 #
 #     fix_interpreter "node_modules/.bin/*" acme/coreutils bin/env
@@ -1203,7 +1203,7 @@ unpack_file() {
 #
 # To get the interpreters exposed by a package, look in that package's
 # INTERPRETERS metadata file, e.g.,
-# `/opt/bldr/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
+# `/hab/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
 
 fix_interpreter() {
     local targets=$1
@@ -1989,7 +1989,7 @@ pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static_path="$pkg_svc_path/static"
 
 # Set the package artifact name
-_artifact_ext="bldr"
+_artifact_ext="hab"
 pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.${_artifact_ext}"
 
 # Run `do_begin`

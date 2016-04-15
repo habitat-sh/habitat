@@ -51,7 +51,7 @@ fi
 : ${BUILD:=build}
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=/opt/bldr}
+: ${HAB_ROOT_PATH:=/hab}
 # Location containing installed packages.
 HAB_PKG_PATH="$HAB_ROOT_PATH/pkgs"
 # The default package origin which was used to in the base Plans
