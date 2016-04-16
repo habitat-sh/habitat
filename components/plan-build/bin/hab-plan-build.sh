@@ -316,6 +316,20 @@ pkg_expose=()
 pkg_service_user=hab
 # The group to run the service as
 pkg_service_group=$pkg_service_user
+
+# Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
+# meaning that `$pkg_name` is not yet set. However, `$pkg_service_run` wants
+# to use these variables, so what to do? We'll set up these svc variables
+# with the `$pkg_service_run` variable as the customer-in-mind and pass over
+# it once the Plan has been loaded. For good meaure, all of these variables
+# will need to be set again.
+pkg_svc_path="$HAB_ROOT_PATH/svc/@__pkg_name__@"
+pkg_svc_data_path="$pkg_svc_path/data"
+pkg_svc_files_path="$pkg_svc_path/files"
+pkg_svc_var_path="$pkg_svc_path/var"
+pkg_svc_config_path="$pkg_svc_path/config"
+pkg_svc_static_path="$pkg_svc_path/static"
+
 # Used to handle if we received a signal, or failed based on a bad status code.
 graceful_exit=true
 
@@ -1962,6 +1976,12 @@ if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
+# Pass over `$pkg_service_run` to replace any `$pkg_name` placeholder tokens
+# from prior pkg_svc_* variables that were set before the Plan was loaded.
+if [[ -n "${pkg_service_run+xxx}" ]]; then
+  pkg_service_run="$(echo $pkg_service_run | sed "s|@__pkg_name__@|$pkg_name|g")"
+fi
+
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
 # set by the `plan.sh`.
 if [[ -z "${pkg_filename+xxx}" ]]; then
@@ -1979,7 +1999,8 @@ if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
-# Set $pkg_svc variables.
+# Set $pkg_svc variables a second time, now that the Plan has been sourced and
+# we have access to `$pkg_name`.
 pkg_svc_path="$HAB_ROOT_PATH/svc/$pkg_name"
 pkg_svc_data_path="$pkg_svc_path/data"
 pkg_svc_files_path="$pkg_svc_path/files"
