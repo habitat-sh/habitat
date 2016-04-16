@@ -10,22 +10,25 @@ extern crate time;
 
 use std::env;
 use std::fs;
+use std::collections::HashSet;
 
 // call a closure in a loop until it returns Ok(keyname),
-// or the 30 second timeout
-pub fn wait_until_ok<F>(some_fn: F) -> bool
+// or the 30 second timeout. Pass the return value out
+// as an option
+pub fn wait_until_ok<F>(some_fn: F) -> Option<String>
     where F: Fn() -> Result<String, hcore::error::Error>
 {
     let wait_duration = time::Duration::seconds(30);
     let current_time = time::now_utc().to_timespec();
     let stop_time = current_time + wait_duration;
     while time::now_utc().to_timespec() < stop_time {
-        if let Ok(_) = some_fn() {
-            return true;
+        if let Ok(s) = some_fn() {
+            return Some(s);
         }
     }
-    false
+    None
 }
+
 
 #[test]
 fn generate_key_revisions_test() {
@@ -63,7 +66,7 @@ fn generate_key_revisions_test() {
     // otherwise, the keys would have the same revision. Call
     // generate_origin_sig_key in a loop, and wait until it returns Ok(())
     // we generate another key to see if get_key_revisions() returns 2
-    if !wait_until_ok(|| hcore::crypto::generate_origin_sig_key(test_key_name)) {
+    if let None = wait_until_ok(|| hcore::crypto::generate_origin_sig_key(test_key_name)) {
         panic!("Failed to generate another key after 30 seconds");
     }
 
@@ -77,6 +80,55 @@ fn generate_key_revisions_test() {
     assert!(first_rev != second_rev);
 }
 
+
+#[test]
+fn mixed_key_revisions_test() {
+    // given a directory containing mixed public/secret key files
+    // (some missing public keys, some missing secret keys),
+    // do we reliabily pull back a list of key revisions?
+
+    let key_dir = "/tmp/habitat_test_keys";
+    let _ = fs::remove_dir_all(&key_dir);
+    fs::create_dir_all(&key_dir).unwrap();
+
+    // override the location where Habitat wants to store keys
+    env::set_var("HAB_CACHE_KEY_PATH", &key_dir);
+    let mut revisions = Vec::new();
+
+    for _ in 0..3 {
+        match wait_until_ok(|| {
+            hcore::crypto::generate_user_box_key("dillinger", "calculating_infinity")
+        }) {
+            None => panic!("Can't generate box key, operation timed out"),
+            Some(s) => revisions.push(s),
+        };
+    }
+
+    let remove_pub = format!("{}/{}.pub", &key_dir, &revisions[1]);
+    if let Err(e) = fs::remove_file(remove_pub) {
+        panic!("Can't remove public key {}", e);
+    }
+
+    let remove_secret = format!("{}/{}.box.key", &key_dir, &revisions[2]);
+    if let Err(e) = fs::remove_file(remove_secret) {
+        panic!("Can't remove secret key {}", e);
+    }
+
+    let keyname = "calculating_infinity@dillinger";
+
+    match hcore::crypto::get_key_revisions(keyname) {
+        Ok(revs) => {
+            assert!(revs.len() == 3);
+            let mut s = HashSet::new();
+            for r in &revs {
+                s.insert(r);
+            }
+            // we still get 3 revisions back
+            assert!(s.len() == 3);
+        }
+        Err(e) => panic!("Couldn't get key revisions {}", e),
+    };
+}
 
 #[test]
 fn generate_box_keys_test() {
@@ -96,11 +148,11 @@ fn generate_box_keys_test() {
     let test_user_key_name = format!("{}@{}", test_user, test_org);
     let test_service_key_name = format!("{}@{}", test_service_group, test_org);
 
-    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_org, test_user)) {
+    if let None = wait_until_ok(|| hcore::crypto::generate_user_box_key(test_org, test_user)) {
         panic!("Can't generate a user box key");
     }
 
-    if !wait_until_ok(|| {
+    if let None = wait_until_ok(|| {
         hcore::crypto::generate_service_box_key(test_org, test_service_group)
     }) {
         panic!("Can't generate a service box key");
@@ -123,11 +175,11 @@ fn generate_box_keys_test() {
         Err(e) => panic!("Can't get service key revisions {}", e),
     };
 
-    if !wait_until_ok(|| hcore::crypto::generate_user_box_key(test_org, test_user)) {
+    if let None = wait_until_ok(|| hcore::crypto::generate_user_box_key(test_org, test_user)) {
         panic!("Can't generate a second user box key");
     }
 
-    if !wait_until_ok(|| {
+    if let None = wait_until_ok(|| {
         hcore::crypto::generate_service_box_key(test_org, test_service_group)
     }) {
         panic!("Can't generate a second service box key");
