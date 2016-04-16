@@ -4,7 +4,7 @@ pkg_version=1.4.3
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://storage.googleapis.com/golang/${pkg_name}${pkg_version}.src.tar.gz
 pkg_shasum=9947fc705b0b841b5938c48b22dc33e9647ec0752bae66e50278df4f23f64959
-pkg_build_deps=(chef/coreutils chef/inetutils chef/bash chef/patch chef/gcc chef/diffutils)
+pkg_build_deps=(core/coreutils core/inetutils core/bash core/patch core/gcc core/diffutils)
 
 do_prepare() {
   export GOOS=linux
@@ -24,21 +24,21 @@ do_prepare() {
   PATH="$GOBIN:$PATH"
   build_line "Updating PATH=$PATH"
 
-  # Add `chef/cacerts` to the SSL certificate lookup chain
+  # Add `cacerts` to the SSL certificate lookup chain
   cat $PLAN_CONTEXT/cacerts.patch \
     | sed -e "s,@cacerts@,$(pkg_path_for cacerts)/ssl/cert.pem,g" \
     | patch -p1
 
-  # Set the dynamic linker from `chef/glibc`
+  # Set the dynamic linker from `glibc`
   dynamic_linker="$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2"
   find src/cmd -name asm.c -exec \
     sed -i "s,/lib/ld-linux.*\.so\.[0-9],$dynamic_linker," {} \;
 
-  # Use the protocols database from `chef/iana-etc`
+  # Use the protocols database from `iana-etc`
   sed -e "s,/etc/protocols,$(pkg_path_for iana-etc)/etc/protocols," \
     -i src/net/lookup_unix.go
 
-  # Use the services database from `chef/iana-etc`
+  # Use the services database from `iana-etc`
   for f in src/net/port_unix.go src/net/parse_test.go; do
     sed -e "s,/etc/services,$(pkg_path_for iana-etc)/etc/services," -i $f
   done

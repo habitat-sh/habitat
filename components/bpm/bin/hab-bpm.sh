@@ -3,8 +3,8 @@
 # # Usage
 #
 # ```sh
-# $ hab-bpm install chef/hab-studio
-# $ hab-bpm exec chef/bash bash --version
+# $ hab-bpm install core/hab-studio
+# $ hab-bpm exec core/bash bash --version
 # ```
 #
 # # Synopsis
@@ -103,7 +103,7 @@ EXAMPLES:
     $program binlink acme/bash/4.3.42/20160126184157 bash
 
     # Symlink 'bin/busybox' to a custom path '/bin/busybox'
-    $program binlink -d /bin chef/busybox busybox
+    $program binlink -d /bin acme/busybox busybox
 
 GENERAL HELP:
         $program help
@@ -128,7 +128,7 @@ EXAMPLES:
     $program exec acme/bash/4.3.42/20160126184157 bash --version
 
     # Execute a command against the latest installed release of a package
-    $program exec chef/bootstrap-toolchain wget --version
+    $program exec acme/bootstrap-toolchain wget --version
 
 GENERAL HELP:
         $program help
@@ -150,21 +150,21 @@ FLAGS:
     -h  Prints this message
 
 OPTIONS:
-    -u <BLDR_REPO>  Sets a Habitat repository URL
+    -u <HAB_DEPOT_URL>  Sets a Habitat Depot URL
 
 ENVIRONMENT VARIABLES:
-    BLDR_REPO     Sets a Habitat repository URL (\`-u' option takes precedence)
+    HAB_DEPOT_URL   Sets a Habitat Depot URL (\`-u' option takes precedence)
 
 EXAMPLES:
 
     # Install a specific release
-    $program install chef/zlib/1.2.8/20160104212444
+    $program install acme/zlib/1.2.8/20160104212444
 
     # Install the latest release of a package
-    $program install chef/bootstrap-toolchain
+    $program install acme/bootstrap-toolchain
 
-    # Install the latest release of a package from a custom repository
-    $program install -u http://127.0.0.1:9633 chef/bootstrap-toolchain
+    # Install the latest release of a package from a custom Depot
+    $program install -u http://127.0.0.1:9633 acme/bootstrap-toolchain
 
 GENERAL HELP:
         $program help
@@ -188,7 +188,7 @@ EXAMPLES:
     $program pkgpath acme/bash/4.3.42/20160126184157
 
     # Print the path to the latest installed release of a package
-    $program pkgpath chef/bootstrap-toolchain
+    $program pkgpath acme/bootstrap-toolchain
 
 GENERAL HELP:
         $program help
@@ -329,7 +329,7 @@ subcommand_install() {
   while getopts ":u:h" opt; do
     case $opt in
       u)
-        BLDR_REPO=$OPTARG
+        HAB_DEPOT_URL=$OPTARG
         ;;
       h)
         print_install_help
@@ -499,15 +499,15 @@ trim() {
   echo "$var"
 }
 
-# **Internal** Return the latest release of a package in the remote repository
+# **Internal** Return the latest release of a package in the remote depot
 # on stdout. If a fully qualified package identifier is given, simply return
 # it.
 #
 # ```sh
-# latest_remote_package chef/nginx
-# # chef/nginx/1.8.0/20150911120000
-# latest_remote_package chef/zlib/1.2.8/20160104212444
-# # chef/zlib/1.2.8/20160104212444
+# latest_remote_package acme/nginx
+# # acme/nginx/1.8.0/20150911120000
+# latest_remote_package acme/zlib/1.2.8/20160104212444
+# # acme/zlib/1.2.8/20160104212444
 # ```
 #
 # Will return 0 if a fully qualified package identifier could be determined,
@@ -522,7 +522,7 @@ latest_remote_package() {
       ;;
     "2"|"1")
       local result="$(\
-        $bb env -u http_proxy $wget "$BLDR_REPO/pkgs/$1" -O- -q | \
+        $bb env -u http_proxy $wget "$HAB_DEPOT_URL/pkgs/$1" -O- -q | \
         $jq -r 'last | .origin + "/" + .name + "/" + .version + "/" + .release')"
       if [ -n "$result" ]; then
         echo $result
@@ -592,19 +592,19 @@ latest_installed_package() {
   fi
 }
 
-# **Internal** Installs a package from a package repository, represented by the
+# **Internal** Installs a package from a package Depot, represented by the
 # given package identifier.
 #
 # Note that a fully qualified package identifier must be provided, that is
 # `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
 #
 # ```sh
-# install_package chef/zlib/1.2.8/20160104212444
+# install_package acme/zlib/1.2.8/20160104212444
 # ```
 install_package() {
   local pkg_ident=$1
-  local pkg_source="$BLDR_REPO/pkgs/$pkg_ident/download"
-  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').bldr"
+  local pkg_source="$HAB_DEPOT_URL/pkgs/$pkg_ident/download"
+  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').hab"
 
   if [ -n "$QUIET" ]; then
     local v=
@@ -635,7 +635,7 @@ install_package() {
     $wget $pkg_source -O $pkg_filename $wui
 
     info "Unpacking $($bb basename $pkg_filename)"
-    tail -n +4 $pkg_filename | $bb tar x -C $FS_ROOT/
+    $bb tail -n +4 $pkg_filename | $bb xzcat | $bb tar x -C $FS_ROOT/
 
     # Clear the file download and extraction clean trap
     trap - INT TERM EXIT
@@ -643,13 +643,13 @@ install_package() {
 }
 
 # **Internal** Installs all direct and transitive dependencies for a package
-# from a package repository, represented by the given package identifier.
+# from a package Depot, represented by the given package identifier.
 #
 # Note that a fully qualified package identifier must be provided, that is
 # `<ORIGIN>/<NAME>/<VERSION>/<RELEASE>`.
 #
 # ```sh
-# install_package_tdeps chef/zlib/1.2.8/20160104212444
+# install_package_tdeps acme/zlib/1.2.8/20160104212444
 # ```
 install_package_tdeps() {
   local pkg_ident=$1
@@ -847,7 +847,7 @@ shift "$((OPTIND - 1))"
 : ${FS_ROOT:=}
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=$FS_ROOT/opt/bldr}
+: ${HAB_ROOT_PATH:=$FS_ROOT/hab}
 # The root path containing all locally installed packages
 HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
@@ -855,8 +855,8 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # The default path where libsodium keys are stored
 HAB_CACHE_KEY_PATH=$HAB_ROOT_PATH/cache/keys
-# The default bldr package repository from where to download dependencies
-: ${BLDR_REPO:=http://52.37.151.35:9632}
+# The default depot url from where to download dependencies
+: ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : ${VERBOSE:=}

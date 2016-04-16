@@ -113,8 +113,11 @@ pub fn put_key(depot: &str, path: &Path) -> Result<()> {
 /// * File cannot be read
 pub fn put_package(depot: &str, pa: &mut PackageArchive) -> Result<()> {
     let checksum = try!(pa.checksum());
+    let params = [("checksum", checksum)];
     let ident = try!(pa.ident());
-    let url = Url::parse(&format!("{}/pkgs/{}?checksum={}", depot, ident, checksum)).unwrap();
+    let mut url = Url::parse(&format!("{}/pkgs/{}", depot, ident)).unwrap();
+    url.set_query_from_pairs(&params);
+
     let mut file = try!(File::open(&pa.path));
     upload(url, &mut file)
 }

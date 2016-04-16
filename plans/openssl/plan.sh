@@ -1,14 +1,14 @@
 pkg_name=openssl
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.0.2g
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=https://www.openssl.org/source/${pkg_distname}-${pkg_version}.tar.gz
 pkg_shasum=b784b1b3907ce39abf4098702dade6365522a253ad1552e267a9a0e89594aa33
 pkg_dirname=${pkg_distname}-${pkg_version}
-pkg_deps=(chef/glibc chef/zlib chef/cacerts)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/perl)
+pkg_deps=(core/glibc core/zlib core/cacerts)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/grep core/perl)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -17,7 +17,7 @@ _common_prepare() {
   do_default_prepare
 
   # Set CA dir to `$pkg_prefix/ssl` by default and use the cacerts from the
-  # `chef/cacerts` package. Note that `patch(1)` is making backups because
+  # `cacerts` package. Note that `patch(1)` is making backups because
   # we need an original for the test suite.
   cat $PLAN_CONTEXT/ca-dir.patch \
     | sed \
@@ -84,5 +84,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/grep chef/perl chef/diffutils chef/make chef/patch)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/grep core/perl core/diffutils core/make core/patch)
 fi

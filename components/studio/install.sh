@@ -6,7 +6,7 @@ set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Download URL for the `chef/hab-bpm` slim package
+# Download URL for the `core/hab-bpm` slim package
 bpm_tar_url="${BPM_TAR_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/chef-hab-bpm-0.1.0-20160408080725.tar.xz}"
 # Shasum for the slim package, used to verify the download
 bpm_tar_sha="${BPM_TAR_SHASUM:-eb180e47b749f22de073cc19319ee1a44bcbe4dc1f4e29f8498b2aaaf6b9354e}"
@@ -14,7 +14,7 @@ bpm_tar_sha="${BPM_TAR_SHASUM:-eb180e47b749f22de073cc19319ee1a44bcbe4dc1f4e29f84
 # Download location of the slim package
 bpm_tar_file="${TMPDIR:-/tmp}/$(basename $bpm_tar_url)"
 # The destination path for the extracted slim package
-dir="${HAB_ROOT_PATH:-/opt/bldr}/support/$(echo $(basename $bpm_tar_file)| sed 's,\.tar\.xz$,,')"
+dir="${HAB_ROOT_PATH:-/hab}/support/$(echo $(basename $bpm_tar_file)| sed 's,\.tar\.xz$,,')"
 
 # Add a trap to clean up any interrupted file downloads
 trap 'rm -f $bpm_tar_file; exit $?' INT TERM EXIT
@@ -44,7 +44,7 @@ trap - INT TERM EXIT
 
 # Install Habitat Studio and add a `studio` symlink to `/usr/bin/studio`
 if ! command -v hab-studio > /dev/null; then
-  hab-bpm install chef/hab-studio
-  hab-bpm binlink chef/hab-studio hab-studio
+  hab-bpm install core/hab-studio
+  hab-bpm binlink core/hab-studio hab-studio
 fi
 echo "$(/usr/bin/hab-studio version) is installed."

@@ -29,8 +29,8 @@
 //! from the command line in close proximity to the documentation of the library itself. A few
 //! useful starting points:
 //!
-//! * [The bldr Command Line Reference](command)
-//! * [The bldr Sidecar; http interface to promises](sidecar)
+//! * [The Habitat Command Line Reference](command)
+//! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;

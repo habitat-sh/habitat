@@ -29,6 +29,6 @@ pub fn fixture_as_string(name: &str) -> String {
     fixture_string
 }
 
-pub fn bldr() -> String {
-    root().parent().unwrap().join("target/debug/bldr").to_string_lossy().into_owned()
+pub fn sup() -> String {
+    root().parent().unwrap().join("target/debug/hab-sup").to_string_lossy().into_owned()
 }

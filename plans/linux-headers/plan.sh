@@ -1,5 +1,5 @@
 pkg_name=linux-headers
-pkg_origin=chef
+pkg_origin=core
 pkg_version=4.3
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2')
@@ -7,7 +7,7 @@ pkg_source=http://ftp.kernel.org/pub/linux/kernel/v4.x/linux-${pkg_version}.tar.
 pkg_shasum=4a622cc84b8a3c38d39bc17195b0c064d2b46945dfde0dae18f77b120bc9f3ae
 pkg_dirname=linux-$pkg_version
 pkg_deps=()
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_include_dirs=(include)
 
 do_build() {

@@ -1,12 +1,12 @@
 pkg_name=inetutils
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.9.4
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=849d96f136effdef69548a940e3e0ec0624fc0c81265296987986a0dd36ded37
-pkg_deps=(chef/glibc chef/libcap chef/ncurses)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep)
+pkg_deps=(core/glibc core/libcap core/ncurses)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/grep)
 pkg_bin_dirs=(bin)
 
 do_build() {
@@ -49,5 +49,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/grep)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/grep)
 fi

@@ -1,7 +1,7 @@
 pkg_name=radiant
 pkg_version=2.0.0-alpha-jt
 
-pkg_origin=chef
+pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('mit')
 
@@ -9,24 +9,24 @@ pkg_source=https://github.com/jtimberman/radiant/archive/${pkg_version}.tar.gz
 pkg_shasum=24e6527eec98df16f3857f3d0cdf630729b0b833117589c32b98b0078f1bea05
 
 pkg_deps=(
-  chef/bundler
-  chef/cacerts
-  chef/glibc
-  chef/libffi
-  chef/libxml2
-  chef/libxslt
-  chef/libyaml
-  chef/openssl
-  chef/postgresql
-  chef/ruby
-  chef/sqlite
-  chef/zlib
+  core/bundler
+  core/cacerts
+  core/glibc
+  core/libffi
+  core/libxml2
+  core/libxslt
+  core/libyaml
+  core/openssl
+  core/postgresql
+  core/ruby
+  core/sqlite
+  core/zlib
 )
 
 pkg_build_deps=(
-  chef/coreutils
-  chef/gcc
-  chef/make
+  core/coreutils
+  core/gcc
+  core/make
 )
 
 pkg_lib_dirs=(lib)
@@ -34,7 +34,7 @@ pkg_include_dirs=(include)
 pkg_expose=(80 443 3000)
 
 # do_download() {
-#   export GIT_SSL_CAINFO="$(pkg_path_for chef/cacerts)/ssl/certs/cacert.pem"
+#   export GIT_SSL_CAINFO="$(pkg_path_for cacerts)/ssl/certs/cacert.pem"
 #   git clone https://github.com/jtimberman/radiant
 #   pushd radiant
 #   git checkout $radiant_git_shasum
@@ -53,24 +53,24 @@ pkg_expose=(80 443 3000)
 #
 # We clean this link up in `do_install`.
 do_prepare() {
-  # build_line "Setting link for /usr/bin/file to chef/file"
-  # [[ ! -f /usr/bin/file ]] && ln -s $(pkg_path_for chef/file)/bin/file /usr/bin/file
+  # build_line "Setting link for /usr/bin/file to 'file'"
+  # [[ ! -f /usr/bin/file ]] && ln -s $(pkg_path_for file)/bin/file /usr/bin/file
 
-  build_line "Setting link for /usr/bin/env to chef/coreutils"
-  [[ ! -f /usr/bin/env ]] && ln -s $(pkg_path_for chef/coreutils)/bin/env /usr/bin/env
+  build_line "Setting link for /usr/bin/env to 'coreutils'"
+  [[ ! -f /usr/bin/env ]] && ln -s $(pkg_path_for coreutils)/bin/env /usr/bin/env
   return 0
 }
 
 do_build() {
   export CPPFLAGS="${CPPFLAGS} ${CFLAGS}"
 
-  local _bundler_dir=$(pkg_path_for chef/bundler)
-  local _libxml2_dir=$(pkg_path_for chef/libxml2)
-  local _libxslt_dir=$(pkg_path_for chef/libxslt)
-  local _postgresql_dir=$(pkg_path_for chef/postgresql)
+  local _bundler_dir=$(pkg_path_for bundler)
+  local _libxml2_dir=$(pkg_path_for libxml2)
+  local _libxslt_dir=$(pkg_path_for libxslt)
+  local _postgresql_dir=$(pkg_path_for postgresql)
   local _pgconfig=$_postgresql_dir/bin/pg_config
-  local _sqlite_dir=$(pkg_path_for chef/sqlite)
-  local _zlib_dir=$(pkg_path_for chef/zlib)
+  local _sqlite_dir=$(pkg_path_for sqlite)
+  local _zlib_dir=$(pkg_path_for zlib)
 
   export GEM_HOME=${pkg_path}/vendor/bundle
   export GEM_PATH=${_bundler_dir}:${GEM_HOME}
@@ -93,16 +93,16 @@ do_install() {
   cp -R . ${pkg_path}/dist
 
   for binstub in ${pkg_path}/dist/bin/*; do
-    build_line "Setting shebang for ${binstub} to 'chef/ruby'"
-    [[ -f $binstub ]] && sed -e "s#/usr/bin/env ruby#$(pkg_path_for chef/ruby)/bin/ruby#" -i $binstub
+    build_line "Setting shebang for ${binstub} to 'ruby'"
+    [[ -f $binstub ]] && sed -e "s#/usr/bin/env ruby#$(pkg_path_for ruby)/bin/ruby#" -i $binstub
   done
 
-  # if [[ `readlink /usr/bin/file` = "$(pkg_path_for chef/file)/bin/file" ]]; then
+  # if [[ `readlink /usr/bin/file` = "$(pkg_path_for file)/bin/file" ]]; then
   #   build_line "Removing the symlink we created for '/usr/bin/file'"
   #   rm /usr/bin/file
   # fi
 
-  if [[ `readlink /usr/bin/env` = "$(pkg_path_for chef/coreutils)/bin/env" ]]; then
+  if [[ `readlink /usr/bin/env` = "$(pkg_path_for coreutils)/bin/env" ]]; then
     build_line "Removing the symlink we created for '/usr/bin/env'"
     rm /usr/bin/env
   fi

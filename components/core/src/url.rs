@@ -7,3 +7,6 @@
 
 /// Default Depot URL
 pub const DEFAULT_DEPOT_URL: &'static str = "http://52.37.151.35:9632";
+
+/// Default Depot URL environment variable
+pub const DEPOT_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";

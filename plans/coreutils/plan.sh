@@ -1,13 +1,13 @@
 pkg_name=coreutils
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 pkg_version=8.24
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}.tar.xz
 pkg_shasum=a2d75286a4b9ef3a13039c2da3868a61be4ee9f17d8ae380a35a97e506972170
-pkg_deps=(chef/glibc chef/acl chef/attr chef/gmp chef/libcap)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/m4 chef/perl)
+pkg_deps=(core/glibc core/acl core/attr core/gmp core/libcap)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/m4 core/perl)
 pkg_bin_dirs=(bin)
 pkg_interpreters=(bin/env)
 
@@ -35,5 +35,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/m4)
+  pkg_build_deps=(core/gcc core/m4)
 fi

@@ -1,13 +1,13 @@
 studio_type="default"
 studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment=
-studio_enter_command="$HAB_ROOT_PATH/bin/hab-bpm exec chef/hab-backline bash --login +h"
+studio_enter_command="$HAB_ROOT_PATH/bin/hab-bpm exec core/hab-backline bash --login +h"
 studio_build_environment=
 studio_build_command="record \${1:-} $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
-studio_run_command="$HAB_ROOT_PATH/bin/hab-bpm exec chef/hab-backline bash -l"
+studio_run_command="$HAB_ROOT_PATH/bin/hab-bpm exec core/hab-backline bash -l"
 
-pkgs="chef/hab-bpm chef/hab-backline chef/hab-studio"
+pkgs="core/hab-bpm core/hab-backline core/hab-studio"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-bpm" ]; then
@@ -18,9 +18,9 @@ finish_setup() {
     _bpm install $pkg
   done
 
-  local bpm_path=$(_pkgpath_for chef/hab-bpm)
-  local bash_path=$(_pkgpath_for chef/bash)
-  local coreutils_path=$(_pkgpath_for chef/coreutils)
+  local bpm_path=$(_pkgpath_for core/hab-bpm)
+  local bash_path=$(_pkgpath_for core/bash)
+  local coreutils_path=$(_pkgpath_for core/coreutils)
 
   $bb mkdir -p $v $STUDIO_ROOT$HAB_ROOT_PATH/bin
 
@@ -40,14 +40,14 @@ EOF
   # `$PATH` is concerned.
   $bb cat <<EOF > $STUDIO_ROOT$HAB_ROOT_PATH/bin/build
 #!$bpm_path/libexec/busybox sh
-exec $HAB_ROOT_PATH/bin/hab-bpm exec chef/hab-plan-build hab-plan-build \$*
+exec $HAB_ROOT_PATH/bin/hab-bpm exec core/hab-plan-build hab-plan-build \$*
 EOF
   $bb chmod $v 755 $STUDIO_ROOT$HAB_ROOT_PATH/bin/build
 
   # Create a wrapper to studio
   $bb cat <<EOF > $STUDIO_ROOT$HAB_ROOT_PATH/bin/studio
 #!$bpm_path/libexec/busybox sh
-exec $HAB_ROOT_PATH/bin/hab-bpm exec chef/hab-studio hab-studio \$*
+exec $HAB_ROOT_PATH/bin/hab-bpm exec core/hab-studio hab-studio \$*
 EOF
   $bb chmod $v 755 $STUDIO_ROOT$HAB_ROOT_PATH/bin/studio
 

@@ -1,5 +1,5 @@
 pkg_name=libaio
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.3.109
 pkg_license=('LGPL')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"

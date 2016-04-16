@@ -62,7 +62,7 @@ impl Docker {
 impl Drop for Docker {
     fn drop(&mut self) {
         if thread::panicking() {
-            if let None = env::var_os("BLDR_DOCKER_KEEP") {
+            if let None = env::var_os("HAB_DOCKER_KEEP") {
                 let mut cmd = command::run("docker", &["rm", "-f", &self.container_id])
                                   .unwrap_or_else(|x| panic!("{:?}", x));
                 cmd.wait_with_output();

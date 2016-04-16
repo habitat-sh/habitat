@@ -1,5 +1,5 @@
 pkg_name=docker
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.10.1
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2')

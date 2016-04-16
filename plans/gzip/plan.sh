@@ -1,12 +1,12 @@
 pkg_name=gzip
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.6
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=37dfed1a485d53212c43b3fa2a7c7952f09bf5cd86e37121c222341ee1b27847
-pkg_deps=(chef/glibc chef/less chef/grep)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/xz)
+pkg_deps=(core/glibc core/less core/grep)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/xz)
 pkg_bin_dirs=(bin)
 
 do_prepare() {
@@ -42,5 +42,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/xz)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/diffutils core/xz)
 fi

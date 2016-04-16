@@ -6,11 +6,11 @@ studio_build_command="$HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command=
 
-base_pkgs="chef/hab-bpm chef/hab-sup chef/busybox-static"
+base_pkgs="core/hab-bpm core/hab-sup core/busybox-static"
 : ${PKGS:=}
 
-run_user="bldr"
-run_group="bldr"
+run_user="hab"
+run_group="$run_group"
 
 finish_setup() {
   if [ -x "$STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup" ]; then
@@ -37,12 +37,12 @@ finish_setup() {
     _bpm install $pkg
   done
 
-  local bpm_path=$(_pkgpath_for chef/hab-bpm)
-  local sup_path=$(_pkgpath_for chef/hab-sup)
-  local busybox_path=$(_pkgpath_for chef/busybox-static)
+  local bpm_path=$(_pkgpath_for core/hab-bpm)
+  local sup_path=$(_pkgpath_for core/hab-sup)
+  local busybox_path=$(_pkgpath_for core/busybox-static)
 
   local full_path=""
-  for path_pkg in $PKGS chef/hab-sup chef/busybox-static; do
+  for path_pkg in $PKGS core/hab-sup core/busybox-static; do
     local path_file="$STUDIO_ROOT/$(_pkgpath_for $path_pkg)/PATH"
     if [ -f "$path_file" ]; then
       if [ -z "$full_path" ]; then

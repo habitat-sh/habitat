@@ -1,5 +1,5 @@
 pkg_name=hab-plan-build
-pkg_origin=chef
+pkg_origin=core
 pkg_version=0.4.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
@@ -8,20 +8,20 @@ pkg_build_deps=()
 pkg_bin_dirs=(bin)
 
 pkg_deps=(
-  chef/bash
-  chef/binutils
-  chef/bzip2
-  chef/coreutils
-  chef/file
-  chef/findutils
-  chef/gawk
-  chef/gnupg
-  chef/grep
-  chef/gzip
-  chef/sed
-  chef/tar
-  chef/wget
-  chef/xz
+  core/bash
+  core/binutils
+  core/bzip2
+  core/coreutils
+  core/file
+  core/findutils
+  core/gawk
+  core/grep
+  core/gzip
+  core/hab-static
+  core/sed
+  core/tar
+  core/wget
+  core/xz
 )
 
 program=$pkg_name
@@ -33,7 +33,7 @@ do_build() {
   # release version of the program.
   sed \
     -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
-    -e "s,^BLDR_VERSION=.*$,BLDR_VERSION=$pkg_version/$pkg_rel," \
+    -e "s,^HAB_PLAN_BUILD=.*$,HAB_PLAN_BUILD=$pkg_version/$pkg_rel," \
     -i $program
 }
 

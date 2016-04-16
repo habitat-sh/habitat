@@ -148,7 +148,7 @@
 # package; when we resolve dependencies, we consider a version of a package to be equal
 # regardless of its origin - but you can specify what you prefer to use.
 # ```
-# pkg_origin=chef
+# pkg_origin=acme
 # ```
 #
 # ### pkg_interpreters
@@ -178,6 +178,7 @@
 # * `$HAB_CACHE_SRC_PATH`: The path to all the package sources
 # * `$HAB_CACHE_ARTIFACT_PATH`: The default download root path for package
 #      artifacts, used on package installation
+# * `$HAB_CACHE_KEY_PATH`: The path where cryptographic keys are stored
 # * `$CFLAGS`: C compiler options
 # * `$LDFLAGS`: C linker options
 # * `$PREFIX`: Where to install the software; same as $pkg_prefix
@@ -267,26 +268,32 @@ fi
 # The short version of the program name which is used in logging output
 _program=$(basename $0)
 # The current version of this program
-BLDR_VERSION=0.0.1
+HAB_PLAN_BUILD=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=/opt/bldr}
+: ${HAB_ROOT_PATH:=/hab}
 # The default path where source artifacts are downloaded, extracted, & compiled
 HAB_CACHE_SRC_PATH=$HAB_ROOT_PATH/cache/src
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+# The default path where cryptographic keys are stored. If the
+# `$HAB_CACHE_KEY_PATH` environment variable is set, this value is overridden,
+# otherwise it is set to its default.
+: ${HAB_CACHE_KEY_PATH:=$HAB_ROOT_PATH/cache/keys}
+# Export the key path for other programs and subshells to use
+export HAB_CACHE_KEY_PATH
 # The root path containing all locally installed packages
 HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The first argument to the script is a Plan context directory, containing a
 # `plan.sh` file
 PLAN_CONTEXT=${1:-.}
-# The default Habitat Depo repository from where to download dependencies. If
-# `BLDR_REPO` is set, this value is overridden.
-: ${BLDR_REPO:=http://52.37.151.35:9632}
+# The default Habitat Depot from where to download dependencies. If
+# `HAB_DEPOT_URL` is set, this value is overridden.
+: ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
 # The value of `$PATH` on initial start of this program
-BLDR_INITIAL_PATH="$PATH"
-# The package's origin (i.e. chef)
+INITIAL_PATH="$PATH"
+# The package's origin (i.e. acme)
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
 pkg_rel=$(date -u +%Y%m%d%H%M%S)
@@ -306,9 +313,23 @@ pkg_service_run=''
 # An array of ports to expose.
 pkg_expose=()
 # The user to run the service as
-pkg_service_user=bldr
+pkg_service_user=hab
 # The group to run the service as
 pkg_service_group=$pkg_service_user
+
+# Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
+# meaning that `$pkg_name` is not yet set. However, `$pkg_service_run` wants
+# to use these variables, so what to do? We'll set up these svc variables
+# with the `$pkg_service_run` variable as the customer-in-mind and pass over
+# it once the Plan has been loaded. For good meaure, all of these variables
+# will need to be set again.
+pkg_svc_path="$HAB_ROOT_PATH/svc/@__pkg_name__@"
+pkg_svc_data_path="$pkg_svc_path/data"
+pkg_svc_files_path="$pkg_svc_path/files"
+pkg_svc_var_path="$pkg_svc_path/var"
+pkg_svc_config_path="$pkg_svc_path/config"
+pkg_svc_static_path="$pkg_svc_path/static"
+
 # Used to handle if we received a signal, or failed based on a bad status code.
 graceful_exit=true
 
@@ -377,6 +398,15 @@ _on_exit() {
 #   above.
 trap _on_exit 1 2 3 15 ERR
 
+_ensure_origin_key_present() {
+  local cache="$HAB_CACHE_KEY_PATH"
+  local keys_found="$(find $cache -name "${pkg_origin}-*.sig.key" | wc -l)"
+  if [[ $keys_found -eq 0 ]]; then
+    exit_with "Signing origin key '$pkg_origin' not found in $cache, aborting" 35
+  fi
+  debug "At least one signing key for $pkg_origin found in $cache"
+}
+
 # **Internal** Ensures that the correct versions of key system commands are
 # able to be used by this program. If we cannot find suitable versions, we will
 # abort early.
@@ -389,6 +419,7 @@ trap _on_exit 1 2 3 15 ERR
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
 # * `$_mktemp_cmd` (GNU version from coreutils)
+# * `$_hab_cmd` (hab CLI for signing artifacts)
 #
 # Note that all of the commands noted above are considered internal
 # implementation details and are subject to change with little to no notice,
@@ -437,17 +468,30 @@ _find_system_commands() {
   fi
   debug "Setting _tar_cmd=$_tar_cmd"
 
+  if exists xz; then
+    _xz_cmd=$(command -v xz)
+  else
+    exit_with "We require xz to compress artifacts; aborting" 1
+  fi
+  debug "Setting _hab_cmd=$_hab_cmd"
+
+  if exists hab; then
+    _hab_cmd=$(command -v hab)
+  else
+    exit_with "We require hab to sign artifacts; aborting" 1
+  fi
+  debug "Setting _hab_cmd=$_hab_cmd"
 }
 
 # **Internal** Return the path to the latest release of a package on stdout.
 #
 # ```
 # _latest_installed_package acme/nginx
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # _latest_installed_package acme/nginx/1.8.0
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # _latest_installed_package acme/nginx/1.8.0/20150911120000
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # ```
 #
 # Will return 0 if a package was found on disk, and 1 if a package cannot be
@@ -487,11 +531,11 @@ _latest_installed_package() {
 #
 # ```
 # _resolve_dependency acme/zlib
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # _resolve_dependency acme/zlib/1.2.8
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # _resolve_dependency acme/zlib/1.2.8/20151216221001
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # ```
 #
 # Will return 0 if a package was found or installed on disk, and 1 if a package
@@ -501,7 +545,7 @@ _resolve_dependency() {
   local dep="$1"
   local dep_path
   if ! echo "$dep" | grep -q '\/' > /dev/null; then
-    warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: chef/$dep)"
+    warn "Origin required for '$dep' in plan '$pkg_origin/$pkg_name' (example: acme/$dep)"
     return 1
   fi
 
@@ -514,7 +558,7 @@ _resolve_dependency() {
 }
 
 # **Internal** Attempts to download a package dependency. If the value of the
-# `$BLDR_BIN` variable is not set or the value does not resolve to an
+# `$HAB_BIN` variable is not set or the value does not resolve to an
 # executable binary, then no installation will be attempted. If an installation
 # is attempted but there is an error, this function will still return with `0`
 # and is intended to be "best effort".
@@ -525,8 +569,8 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-  if [[ -x "$BLDR_BIN" ]]; then
-    $BLDR_BIN install -u $BLDR_REPO "$dep" || true
+  if [[ -x "$HAB_BIN" ]]; then
+    $HAB_BIN install -u $HAB_DEPOT_URL "$dep" || true
   fi
   return 0
 }
@@ -538,13 +582,13 @@ _install_dependency() {
 # unset, or empty set.
 #
 # ```
-# _get_tdeps_for /opt/bldr/pkgs/acme/a/4.2.2/20160113044458
-# # /opt/bldr/pkgs/acme/dep-b/1.2.3/20160113033619
-# # /opt/bldr/pkgs/acme/dep-c/5.0.1/20160113033507
-# # /opt/bldr/pkgs/acme/dep-d/2.0.0/20160113033539
-# # /opt/bldr/pkgs/acme/dep-e/10.0.1/20160113033453
-# # /opt/bldr/pkgs/acme/dep-f/4.2.2/20160113033338
-# # /opt/bldr/pkgs/acme/dep-g/4.2.2/20160113033319
+# _get_tdeps_for /hab/pkgs/acme/a/4.2.2/20160113044458
+# # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
+# # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
+# # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
+# # /hab/pkgs/acme/dep-e/10.0.1/20160113033453
+# # /hab/pkgs/acme/dep-f/4.2.2/20160113033338
+# # /hab/pkgs/acme/dep-g/4.2.2/20160113033319
 # ```
 #
 # Will return 0 in any case and the contents of `TDEPS` if the file exists.
@@ -603,7 +647,7 @@ _attach_whereami() {
   local src="${BASH_SOURCE[2]}"
   # If we are printing this program, use the absolute path version
   if [[ "$src" = "$0" ]]; then
-    src="$BLDR_BUILD"
+    src="$THIS_PROGRAM"
   fi
   echo
   echo "From: $src @ line $lnum :"
@@ -616,44 +660,44 @@ _attach_whereami() {
 }
 
 # **Internal** Determines what command/binary to use for installation of
-# package dependencies. The `$BLDR_BIN` variable will either be set or emptied
+# package dependencies. The `$HAB_BIN` variable will either be set or emptied
 # according to the following criteria (first match wins):
 #
-# * If a `$NO_INSTALL_DEPS` environment variable is set, then set `$BLDR_BIN`
+# * If a `$NO_INSTALL_DEPS` environment variable is set, then set `$HAB_BIN`
 #   to an empty/unset value.
-# * If a `$BLDR_BIN` environment variable is set, then use this as the absolute
+# * If a `$HAB_BIN` environment variable is set, then use this as the absolute
 #   path to the binary.
 # * If a version of the `hab` CLI package is installed on disk, use that
 #   version's `bin/hab` as the command.
-# * If a version of the `chef/hab-bpm` package is installed on disk, use that
+# * If a version of the `core/hab-bpm` package is installed on disk, use that
 #   version's `bin/hab-bpm` as the command.
-# * If no other criteria match then set `$BLDR_BIN` to an empty/unset value.
+# * If no other criteria match then set `$HAB_BIN` to an empty/unset value.
 _determine_pkg_installer() {
   if [ -n "${NO_INSTALL_DEPS:-}" ]; then
-    BLDR_BIN=
+    HAB_BIN=
     build_line "NO_INSTALL_DEPS set: no package dependencies will be installed"
-  elif [ -n "${BLDR_BIN:-}" ]; then
-    BLDR_BIN=$BLDR_BIN
-    build_line "Using set BLDR_BIN=$BLDR_BIN for dependency installs"
+  elif [ -n "${HAB_BIN:-}" ]; then
+    HAB_BIN=$HAB_BIN
+    build_line "Using set HAB_BIN=$HAB_BIN for dependency installs"
 ## We are bypassing hab for now, while we get the system stable, then we come back
-#  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab"); then
-#    BLDR_BIN="$_pkg_for_pkg_install/bin/hab"
-#    build_line "Using chef/hab for dependency installs"
-  elif _pkg_for_pkg_install=$(_latest_installed_package "chef/hab-bpm"); then
-    BLDR_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
-    build_line "Using chef/hab-bpm for dependency installs"
+#  elif _pkg_for_pkg_install=$(_latest_installed_package "core/hab"); then
+#    HAB_BIN="$_pkg_for_pkg_install/bin/hab"
+#    build_line "Using core/hab for dependency installs"
+  elif _pkg_for_pkg_install=$(_latest_installed_package "core/hab-bpm"); then
+    HAB_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
+    build_line "Using core/hab-bpm for dependency installs"
   else
-    BLDR_BIN=
-    build_line "Could not find chef/hab or chef/hab-bpm for dependency installs"
+    HAB_BIN=
+    build_line "Could not find core/hab or core/hab-bpm for dependency installs"
   fi
 }
 
 # **Internal** Validates that the computed dependencies are reasonable and that
 # the full runtime set is unique--that is, there are no duplicate entries of
 # the same `ORIGIN/NAME` tokens. An example would be a Plan which has a
-# dependency on `chef/glibc` and a dependency on `chef/pcre` which uses an
-# older version of `chef/glibc`. This leads to a package which would have 2
-# version of `chef/glibc` in the shared library `RUNPATH` (`RPATH`). Rather
+# dependency on `acme/glibc` and a dependency on `acme/pcre` which uses an
+# older version of `acme/glibc`. This leads to a package which would have 2
+# version of `acme/glibc` in the shared library `RUNPATH` (`RPATH`). Rather
 # than building a package which is destined to fail at runtime, this function
 # will fast-fail with dependency information which an end user can use to
 # resolve the situation before continuing.
@@ -725,19 +769,19 @@ _validate_deps() {
 #
 # ```
 # _dupes_qualified=$(cat <<EOF
-# chef/glibc/2.22/20160309153915
-# chef/glibc/2.22/20160308150809
-# chef/linux-headers/4.3/20160309153535
-# chef/linux-headers/4.3/20160308150438
+# acme/glibc/2.22/20160309153915
+# acme/glibc/2.22/20160308150809
+# acme/linux-headers/4.3/20160309153535
+# acme/linux-headers/4.3/20160308150438
 # EOF
 # )
 #
-# echo "chef/less/481/20160309165238"
+# echo "acme/less/481/20160309165238"
 #
 # cat <<EOF | _print_recursive_deps 1
-# chef/glibc/2.22/20160309153915
-# chef/ncurses/6.0/20160308165339
-# chef/pcre/8.38/20160308165506
+# acme/glibc/2.22/20160309153915
+# acme/ncurses/6.0/20160308165339
+# acme/pcre/8.38/20160308165506
 # EOF
 # ```
 #
@@ -745,21 +789,21 @@ _validate_deps() {
 # dependencies:
 #
 # ```
-# chef/less/481/20160309165238
-#     chef/glibc/2.22/20160309153915 (*)
-#         chef/linux-headers/4.3/20160309153535 (*)
-#     chef/ncurses/6.0/20160308165339
-#         chef/glibc/2.22/20160308150809 (*)
-#             chef/linux-headers/4.3/20160308150438 (*)
-#         chef/gcc-libs/5.2.0/20160308165030
-#             chef/glibc/2.22/20160308150809 (*)
-#                 chef/linux-headers/4.3/20160308150438 (*)
-#     chef/pcre/8.38/20160308165506
-#         chef/glibc/2.22/20160308150809 (*)
-#             chef/linux-headers/4.3/20160308150438 (*)
-#         chef/gcc-libs/5.2.0/20160308165030
-#             chef/glibc/2.22/20160308150809 (*)
-#                 chef/linux-headers/4.3/20160308150438 (*)
+# acme/less/481/20160309165238
+#     acme/glibc/2.22/20160309153915 (*)
+#         acme/linux-headers/4.3/20160309153535 (*)
+#     acme/ncurses/6.0/20160308165339
+#         acme/glibc/2.22/20160308150809 (*)
+#             acme/linux-headers/4.3/20160308150438 (*)
+#         acme/gcc-libs/5.2.0/20160308165030
+#             acme/glibc/2.22/20160308150809 (*)
+#                 acme/linux-headers/4.3/20160308150438 (*)
+#     acme/pcre/8.38/20160308165506
+#         acme/glibc/2.22/20160308150809 (*)
+#             acme/linux-headers/4.3/20160308150438 (*)
+#         acme/gcc-libs/5.2.0/20160308165030
+#             acme/glibc/2.22/20160308150809 (*)
+#                 acme/linux-headers/4.3/20160308150438 (*)
 # ```
 _print_recursive_deps() {
   local level=$1
@@ -896,17 +940,17 @@ trim() {
 #
 # ```
 # pkg_all_deps_resolved=(
-#   /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
-#   /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
-#   /opt/bldr/pkgs/acme/glibc/2.22/20151216221001
+#   /hab/pkgs/acme/zlib/1.2.8/20151216221001
+#   /hab/pkgs/acme/nginx/1.8.0/20150911120000
+#   /hab/pkgs/acme/glibc/2.22/20151216221001
 # )
 #
-# pkg_path_for chef/nginx
-# # /opt/bldr/pkgs/acme/nginx/1.8.0/20150911120000
+# pkg_path_for acme/nginx
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
 # pkg_path_for zlib
-# # /opt/bldr/pkgs/acme/zlib/1.2.8/20151216221001
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
 # pkg_path_for glibc/2.22
-# # /opt/bldr/pkgs/acme/glibc/2.22/20151216221001
+# # /hab/pkgs/acme/glibc/2.22/20151216221001
 # ```
 #
 # Will return 0 if a package is found locally on disk, and 1 if a package
@@ -1162,7 +1206,7 @@ unpack_file() {
 # For example, to replace all the files in `node_modules/.bin` that
 # have `#!/usr/bin/env` with the `coreutils` path
 # to `bin/env` (which resolves to
-# /opt/bldr/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
+# /hab/pkgs/acme/coreutils/8.24/20160219013458/bin/env), be sure
 # to quote the wildcard target:
 #
 #     fix_interpreter "node_modules/.bin/*" acme/coreutils bin/env
@@ -1173,7 +1217,7 @@ unpack_file() {
 #
 # To get the interpreters exposed by a package, look in that package's
 # INTERPRETERS metadata file, e.g.,
-# `/opt/bldr/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
+# `/hab/pkgs/acme/coreutils/8.24/20160219013458/INTERPRETERS`
 
 fix_interpreter() {
     local targets=$1
@@ -1194,7 +1238,7 @@ fix_interpreter() {
 # live in `bin`, `sbin`, or `libexec`, depending on the software.
 #
 # ```
-# pkg_interpreter_for chef/coreutils bin/env
+# pkg_interpreter_for acme/coreutils bin/env
 # ```
 #
 # Will return 0 if the specified package and interpreter were found,
@@ -1296,8 +1340,8 @@ _resolve_dependencies() {
   # Copy all direct build dependencies into a new array
   pkg_build_tdeps_resolved=("${pkg_build_deps_resolved[@]}")
   # Append all non-direct (transitive) run dependencies for each direct build
-  # dependency. That's right, not a typo ;) This is how a `chef/gcc` build
-  # dependency could pull in `chef/binutils` for us, as an example. Any
+  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
+  # dependency could pull in `acme/binutils` for us, as an example. Any
   # duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_build_deps_resolved[@]}"; do
     tdeps=($(_get_tdeps_for $dep))
@@ -1383,7 +1427,7 @@ _set_path() {
   # Insert all the package PATH fragments before the default PATH to ensure
   # package binaries are used before any userland/operating system binaries
   if [[ -n $path_part ]]; then
-    export PATH="$path_part:$BLDR_INITIAL_PATH"
+    export PATH="$path_part:$INITIAL_PATH"
   fi
 
   build_line "Setting PATH=$PATH"
@@ -1851,16 +1895,18 @@ EOT
   return 0
 }
 
-# **Internal** Create the package with `tar`/`hab artifact sign`
-_generate_package() {
-  build_line "Generating package"
-  mkdir -p $HAB_CACHE_SRC_PATH
-  $_tar_cmd -cf - "$pkg_prefix" | gpg \
-    --set-filename x.tar \
-    --local-user $pkg_gpg_key \
-    --output $HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr\
-    --sign
-  return 0
+# **Internal** Create the package artifact with `tar`/`hab artifact sign`
+_generate_artifact() {
+  build_line "Generating package artifact"
+  local tarf="$(dirname $pkg_artifact)/.$(basename ${pkg_artifact/%.${_artifact_ext}/.tar})"
+  local xzf="${tarf}.xz"
+
+  mkdir -pv "$(dirname $pkg_artifact)"
+  rm -fv $tarf $xzf $pkg_artifact
+  $_tar_cmd -cf $tarf --format pax $pkg_prefix
+  $_xz_cmd --compress -6 --threads=0 --verbose $tarf
+  $_hab_cmd artifact sign --origin $pkg_origin $xzf $pkg_artifact
+  rm -f $tarf $xzf
 }
 
 # A function for cleaning up after yourself. Delegates most of the
@@ -1883,7 +1929,7 @@ OPTIND=2
 while getopts "u:" opt; do
   case "${opt}" in
     u)
-      BLDR_REPO=$OPTARG
+      HAB_DEPOT_URL=$OPTARG
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -1899,7 +1945,7 @@ done
 # Expand the context path to an absolute path
 PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
 # Expand the path of this program to an absolute path
-BLDR_BUILD=$(abspath $0)
+THIS_PROGRAM=$(abspath $0)
 
 # First we check if the provided path has a `plan.sh` in it. If not, we'll
 # quickly bail.
@@ -1930,6 +1976,11 @@ if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
+# Pass over `$pkg_service_run` to replace any `$pkg_name` placeholder tokens
+# from prior pkg_svc_* variables that were set before the Plan was loaded.
+if [[ -n "${pkg_service_run+xxx}" ]]; then
+  pkg_service_run="$(echo $pkg_service_run | sed "s|@__pkg_name__@|$pkg_name|g")"
+fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
 # set by the `plan.sh`.
@@ -1948,13 +1999,18 @@ if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
 fi
 
-# Set $pkg_svc variables.
+# Set $pkg_svc variables a second time, now that the Plan has been sourced and
+# we have access to `$pkg_name`.
 pkg_svc_path="$HAB_ROOT_PATH/svc/$pkg_name"
 pkg_svc_data_path="$pkg_svc_path/data"
 pkg_svc_files_path="$pkg_svc_path/files"
 pkg_svc_var_path="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static_path="$pkg_svc_path/static"
+
+# Set the package artifact name
+_artifact_ext="hab"
+pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.${_artifact_ext}"
 
 # Run `do_begin`
 build_line "$_program setup"
@@ -1963,14 +2019,15 @@ do_begin
 # Determine if we have all the commands we need to work
 _find_system_commands
 
+# Enure that the origin key is available for artifact signing
+_ensure_origin_key_present
+
 _determine_pkg_installer
 
 # Download and resolve the depdencies
 _resolve_dependencies
 
 _set_path
-
-# TODO: ensure origin is set via env
 
 # Download the source
 mkdir -pv $HAB_CACHE_SRC_PATH
@@ -2019,7 +2076,7 @@ do_strip
 _build_manifest
 
 # Write the package
-_generate_package
+_generate_artifact
 
 # Cleanup
 build_line "$_program cleanup"
@@ -2028,7 +2085,7 @@ do_end
 # Print the results
 build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
-build_line "Artifact: $HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.bldr"
+build_line "Artifact: $pkg_artifact"
 
 # Exit cleanly
 build_line

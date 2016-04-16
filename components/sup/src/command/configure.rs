@@ -10,7 +10,7 @@
 //! # Examples
 //!
 //! ```bash
-//! $ bldr config redis
+//! $ hab-sup config redis
 //! ```
 //!
 //! Will show the `default.toml`.

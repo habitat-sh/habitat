@@ -3,10 +3,10 @@ source ../gcc/plan.sh
 pkg_name=gcc-libs
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 
-# The shared libraries only depend on chef/glibc
-pkg_deps=(chef/glibc)
+# The shared libraries only depend on core/glibc
+pkg_deps=(core/glibc)
 # Add the same version of the full gcc package as a build dep
-pkg_build_deps=(chef/gcc/$pkg_version chef/patchelf)
+pkg_build_deps=(core/gcc/$pkg_version core/patchelf)
 
 # Zero out the bin and include paths, as we're only shipping shared libs
 pkg_bin_dirs=()

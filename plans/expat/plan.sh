@@ -1,12 +1,12 @@
 pkg_name=expat
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('mit')
 pkg_source=http://downloads.sourceforge.net/sourceforge/expat/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=823705472f816df21c8f6aa026dd162b280806838bb55b3432b0fb1fcca7eb86
-pkg_deps=(chef/glibc chef/gcc-libs)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/gcc-libs)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -41,5 +41,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils)
+  pkg_build_deps=(core/gcc core/coreutils)
 fi

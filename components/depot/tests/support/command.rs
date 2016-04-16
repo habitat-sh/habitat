@@ -196,8 +196,8 @@ pub fn plan_build(to_build: &str) -> CmdResult<Cmd> {
                &[to_build])
 }
 
-pub fn bldr(args: &[&str]) -> CmdResult<Cmd> {
-    let bldr = super::path::bldr();
-    let command = command(&bldr, args);
+pub fn sup(args: &[&str]) -> CmdResult<Cmd> {
+    let sup = super::path::sup();
+    let command = command(&sup, args);
     spawn(command)
 }

@@ -1,13 +1,13 @@
 pkg_name=wget
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 pkg_version=1.16.3
 pkg_license=('gplv3+')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://ftp.gnu.org/gnu/$pkg_distname/${pkg_distname}-${pkg_version}.tar.xz
 pkg_shasum=67f7b7b0f5c14db633e3b18f53172786c001e153d545cfc85d82759c5c2ffb37
-pkg_deps=(chef/glibc chef/libidn chef/zlib chef/openssl chef/cacerts)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed chef/grep chef/pkg-config)
+pkg_deps=(core/glibc core/libidn core/zlib core/openssl core/cacerts)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/grep core/pkg-config)
 pkg_bin_dirs=(bin)
 
 do_prepare() {
@@ -54,5 +54,5 @@ _wget_common_prepare() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/pkg-config chef/coreutils chef/sed chef/grep chef/diffutils chef/make chef/patch)
+  pkg_build_deps=(core/gcc core/pkg-config core/coreutils core/sed core/grep core/diffutils core/make core/patch)
 fi

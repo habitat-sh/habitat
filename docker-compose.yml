@@ -13,13 +13,13 @@ cache_src:
   image: tianon/true
   command: /true
   volumes:
-    - /opt/bldr/cache/src
+    - /hab/cache/src
 
 cache_keys:
   image: tianon/true
   command: /true
   volumes:
-    - /opt/bldr/cache/keys
+    - /hab/cache/keys
 
 cargo:
   image: tianon/true

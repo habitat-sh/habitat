@@ -35,21 +35,21 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                  "Use a specific package depot URL")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to an artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+                 "A path to an artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
             )
             (@subcommand sign =>
                 (about: "Signs a Habitat package with an origin key")
                 (@arg ORIGIN: --origin +takes_value
                  "Origin key used to create signature")
                 (@arg SOURCE: +required {file_exists}
-                 "A path to an archive file (ex: /home/chef-redis-3.0.7-21120102031201.xz)")
+                 "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.xz)")
                 (@arg ARTIFACT: +required
-                 "The generated artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+                 "The generated artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat package with an origin key")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to a .hab artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+                 "A path to a .hab artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
             )
             (@subcommand hash=>
                 (about: "Generate a BLAKE2b hash for a file")
@@ -126,9 +126,9 @@ pub fn get() -> App<'static, 'static> {
 fn sub_package_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
         (about: "Installs a package from a repo or locally from an archive file")
-        (@arg REPO_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
-        (@arg PKG_IDENT_OR_ARTIFACT: +required "A package identifier (ex: chef/redis) \
-         or path to an artifact file (ex: /home/chef-redis-3.0.7-21120102031201.hab)")
+        (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
+        (@arg PKG_IDENT_OR_ARTIFACT: +required "A package identifier (ex: acme/redis) \
+         or path to an artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
     )
 }
 
@@ -186,4 +186,3 @@ fn valid_service_group(val: String) -> result::Result<(), String> {
         Err(format!("SERVICE_GROUP: '{}' is not valid", &val))
     }
 }
-

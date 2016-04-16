@@ -5,9 +5,9 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 # The result is a portible, static binary in a zero-dependency package.
 pkg_deps=()
 pkg_build_deps=(
-  chef/musl chef/zlib-musl chef/xz-musl chef/bzip2-musl chef/libarchive-musl
-  chef/openssl-musl chef/libsodium-musl
-  chef/coreutils chef/cacerts chef/rust chef/gcc
+  core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
+  core/openssl-musl core/libsodium-musl
+  core/coreutils core/cacerts core/rust core/gcc
 )
 
 # Set the parent directory as the "root" of this plan.
@@ -34,3 +34,19 @@ do_prepare() {
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium-musl)/lib
   export SODIUM_STATIC=true
 }
+
+
+# ----------------------------------------------------------------------------
+# **NOTICE:** What follows are implementation details required for building a
+# first-pass, "stage1" toolchain and environment. It is only used when running
+# in a "stage1" Studio and can be safely ignored by almost everyone. Having
+# said that, it performs a vital bootstrapping process and cannot be removed or
+# significantly altered. Thank you!
+# ----------------------------------------------------------------------------
+if [[ "$STUDIO_TYPE" = "stage1" ]]; then
+  pkg_build_deps=(
+    core/gcc core/coreutils core/sed core/grep core/diffutils core/make core/cacerts
+    core/rust core/musl core/zlib-musl core/bzip2-musl core/xz-musl core/libsodium-musl
+    core/openssl-musl core/libarchive-musl
+  )
+fi

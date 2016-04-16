@@ -1,12 +1,12 @@
 pkg_name=texinfo
-pkg_origin=chef
+pkg_origin=core
 pkg_version=6.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=11ba4358696e8be3b3c7cfc88b89cf69525791aeabf0ee0a59ca58ebbd3471e4
-pkg_deps=(chef/glibc chef/ncurses chef/perl)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/sed)
+pkg_deps=(core/glibc core/ncurses core/perl)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed)
 pkg_bin_dirs=(bin)
 
 do_check() {
@@ -22,5 +22,5 @@ do_check() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils chef/sed chef/diffutils chef/make chef/patch)
+  pkg_build_deps=(core/gcc core/coreutils core/sed core/diffutils core/make core/patch)
 fi

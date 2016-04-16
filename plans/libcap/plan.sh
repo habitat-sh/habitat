@@ -1,12 +1,12 @@
 pkg_name=libcap
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2.24
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2')
 pkg_source=http://ftp.kernel.org/pub/linux/libs/security/linux-privs/libcap2/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=cee4568f78dc851d726fc93f25f4ed91cc223b1fe8259daa4a77158d174e6c65
-pkg_deps=(chef/glibc chef/attr)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc chef/linux-headers chef/perl)
+pkg_deps=(core/glibc core/attr)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/linux-headers core/perl)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -35,5 +35,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/linux-headers)
+  pkg_build_deps=(core/gcc core/linux-headers)
 fi

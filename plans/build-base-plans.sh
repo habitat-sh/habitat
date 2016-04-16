@@ -51,11 +51,11 @@ fi
 : ${BUILD:=build}
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=/opt/bldr}
+: ${HAB_ROOT_PATH:=/hab}
 # Location containing installed packages.
 HAB_PKG_PATH="$HAB_ROOT_PATH/pkgs"
 # The default package origin which was used to in the base Plans
-origin=chef
+origin=core
 
 
 # ## Private/Internal helper functions
@@ -240,13 +240,19 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   cacerts
   openssl
   wget
-  gnupg
   bash-static
   coreutils-static
+  rust
   linux-headers-musl
   musl
+  zlib-musl
+  bzip2-musl
+  xz-musl
+  libsodium-musl
+  openssl-musl
+  libarchive-musl
+  ../components/hab/static:hab-static
   busybox-static
-  gnupg-static
   jq-static
   wget-static
   ../components/bpm:hab-bpm

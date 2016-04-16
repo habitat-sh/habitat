@@ -1,12 +1,12 @@
 pkg_name=shadow
-pkg_origin=chef
+pkg_origin=core
 pkg_version=4.2.1
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=http://pkg-shadow.alioth.debian.org/releases/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=3b0893d1476766868cd88920f4f1231c4795652aa407569faff802bcda0f3d41
-pkg_deps=(chef/glibc chef/attr chef/acl)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/attr core/acl)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 
 do_prepare() {
@@ -62,5 +62,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc)
+  pkg_build_deps=(core/gcc)
 fi

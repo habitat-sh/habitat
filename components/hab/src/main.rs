@@ -36,12 +36,11 @@ use clap::ArgMatches;
 use error::{Error, Result};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
-use hcore::url::DEFAULT_DEPOT_URL;
-
+use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-const SUP_PACKAGE_IDENT: &'static str = "chef/hab-sup";
+const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
 
 /// you can skip the --origin CLI param if you specify this env var
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
@@ -138,7 +137,8 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
-    let url = m.value_of("DEPOT_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let artifact_path = m.value_of("ARTIFACT").unwrap();
 
     try!(command::artifact::upload::start(&url, &artifact_path));
@@ -158,7 +158,8 @@ fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
-    let url = m.value_of("REPO_URL").unwrap_or(DEFAULT_DEPOT_URL);
+    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
 
     try!(common::command::package::install::start(url, ident_or_artifact));
@@ -239,7 +240,7 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
         None => {
             match env::var(HABITAT_ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string()))
+                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string())),
             }
         }
     }
@@ -255,7 +256,7 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
         None => {
             match env::var(HABITAT_ORG_ENVVAR) {
                 Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string()))
+                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
             }
         }
     }

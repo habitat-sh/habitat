@@ -1,5 +1,5 @@
 pkg_name=tzdata
-pkg_origin=chef
+pkg_origin=core
 pkg_version=2015f
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl')

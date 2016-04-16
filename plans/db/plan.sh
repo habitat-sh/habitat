@@ -1,12 +1,12 @@
 pkg_name=db
-pkg_origin=chef
+pkg_origin=core
 pkg_version=5.3.28
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('custom')
 pkg_source=http://download.oracle.com/berkeley-db/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=e0a992d740709892e81f9d93f06daf305cf73fb81b545afe72478043172c3628
-pkg_deps=(chef/glibc chef/gcc-libs)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/gcc-libs)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -41,5 +41,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils)
+  pkg_build_deps=(core/gcc core/coreutils)
 fi

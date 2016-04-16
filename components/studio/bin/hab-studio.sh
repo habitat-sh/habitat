@@ -626,8 +626,8 @@ chroot_env() {
   fi
   # If a Habitat Depot URL is set, then propagate it into the Studio's
   # environment.
-  if [ -n "${BLDR_REPO:-}" ]; then
-    env="$env BLDR_REPO=$BLDR_REPO"
+  if [ -n "${HAB_DEPOT_URL:-}" ]; then
+    env="$env HAB_DEPOT_URL=$HAB_DEPOT_URL"
   fi
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
@@ -696,7 +696,7 @@ unset PATH
 
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
-: ${HAB_ROOT_PATH:=/opt/bldr}
+: ${HAB_ROOT_PATH:=/hab}
 # The root path containing all locally installed packages
 HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package

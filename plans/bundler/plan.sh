@@ -1,13 +1,13 @@
 pkg_name=bundler
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_version=1.11.2
-pkg_origin=chef
+pkg_origin=core
 pkg_license=('bundler')
 pkg_source=
 pkg_filename=nosuchfile.tar.gz
 pkg_shasum=
-pkg_deps=(chef/glibc chef/ruby)
-pkg_build_deps=(chef/ruby)
+pkg_deps=(core/glibc core/ruby)
+pkg_build_deps=(core/ruby)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_bin_dirs=(bin vendor/bundle/bin)

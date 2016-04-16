@@ -1,4 +1,4 @@
-pkg_origin=chef
+pkg_origin=core
 pkg_name=linux-pam
 pkg_version=1.2.1
 pkg_license=('MIT', 'GPL')
@@ -10,4 +10,4 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 pkg_bin_dirs=(sbin)
 pkg_shasum=8e3f07fdbad5b1c030498fd6298e115e6f740d39d930390fc6937d14fa5c1b4a
-pkg_deps=(chef/glibc)
+pkg_deps=(core/glibc)

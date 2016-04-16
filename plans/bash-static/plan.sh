@@ -17,7 +17,7 @@ do_build() {
     --with-curses \
     --enable-readline \
     --without-bash-malloc \
-    --with-installed-readline=$(pkg_path_for chef/readline) \
+    --with-installed-readline=$(pkg_path_for core/readline) \
     LDFLAGS="-static $LDFLAGS"
 
   # Link `-ltinfow` rather than `-lcurses` as some symbols appear to have moved

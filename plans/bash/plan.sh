@@ -1,6 +1,6 @@
 pkg_name=bash
 pkg_distname=$pkg_name
-pkg_origin=chef
+pkg_origin=core
 _base_version=4.3
 pkg_version=${_base_version}.42
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
@@ -9,8 +9,8 @@ _url_base=http://ftp.gnu.org/gnu/$pkg_distname
 pkg_source=$_url_base/${pkg_distname}-${_base_version}.tar.gz
 pkg_dirname=${pkg_distname}-$_base_version
 pkg_shasum=afc687a28e0e24dc21b988fa159ff9dbcf6b7caa92ade8645cc6d5605cd024d4
-pkg_deps=(chef/glibc chef/ncurses chef/readline)
-pkg_build_deps=(chef/coreutils chef/diffutils chef/patch chef/make chef/gcc)
+pkg_deps=(core/glibc core/ncurses core/readline)
+pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_interpreters=(bin/bash bin/sh)
 
@@ -62,7 +62,7 @@ do_build() {
     --with-curses \
     --enable-readline \
     --without-bash-malloc \
-    --with-installed-readline=$(pkg_path_for chef/readline)
+    --with-installed-readline=$(pkg_path_for readline)
   make
 }
 
@@ -101,5 +101,5 @@ do_install() {
 # significantly altered. Thank you!
 # ----------------------------------------------------------------------------
 if [[ "$STUDIO_TYPE" = "stage1" ]]; then
-  pkg_build_deps=(chef/gcc chef/coreutils)
+  pkg_build_deps=(core/gcc core/coreutils)
 fi
