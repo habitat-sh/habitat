@@ -101,6 +101,13 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     try!(write_file(&filename, &mut req.body));
     let mut archive = PackageArchive::new(filename);
     debug!("Package Archive: {:#?}", archive);
+    let received_check = archive.checksum().unwrap();
+    if received_check != checksum {
+        debug!("Checksums did not match: expected={:?}, got={:?}",
+               checksum,
+               received_check);
+        return Ok(Response::with(status::UnprocessableEntity));
+    }
     let object = match data_object::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
@@ -108,12 +115,6 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
-    if object.checksum != checksum {
-        debug!("Checksums did not match: expected={:?}, got={:?}",
-               checksum,
-               object.checksum);
-        return Ok(Response::with(status::UnprocessableEntity));
-    }
     if ident.satisfies(&object.ident) {
         // JW TODO: handle write errors here. Storage full as a 507.
         try!(depot.datastore.packages.write(&txn, &object));

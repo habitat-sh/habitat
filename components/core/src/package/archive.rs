@@ -44,9 +44,9 @@ pub struct PackageArchive {
 }
 
 impl PackageArchive {
-    pub fn new(path: PathBuf) -> Self {
+    pub fn new<P: Into<PathBuf>>(path: P) -> Self {
         PackageArchive {
-            path: path,
+            path: path.into(),
             metadata: None,
         }
     }
@@ -113,7 +113,7 @@ impl PackageArchive {
 
     pub fn ident(&mut self) -> Result<PackageIdent> {
         match self.read_metadata(MetaFile::Ident) {
-            Ok(None) => Err(Error::MetaFileMalformed(MetaFile::Ident)),
+            Ok(None) => Err(Error::MetaFileNotFound(MetaFile::Ident)),
             Ok(Some(data)) => PackageIdent::from_str(&data),
             Err(e) => Err(e),
         }
@@ -135,7 +135,7 @@ impl PackageArchive {
 
     pub fn manifest(&mut self) -> Result<String> {
         match self.read_metadata(MetaFile::Manifest) {
-            Ok(None) => Err(Error::MetaFileMalformed(MetaFile::Manifest)),
+            Ok(None) => Err(Error::MetaFileNotFound(MetaFile::Manifest)),
             Ok(Some(data)) => Ok(data.clone()),
             Err(e) => Err(e),
         }
@@ -256,6 +256,35 @@ impl PackageArchive {
         }
         self.metadata = Some(metadata);
         Ok(self.metadata.as_ref().unwrap().get(&file))
+    }
+}
 
+#[cfg(test)]
+mod test {
+    use std::env;
+    use std::path::PathBuf;
+    use super::*;
+
+    #[test]
+    fn reading_artifact_metadata() {
+        let mut hart = PackageArchive::new(fixtures()
+                                               .join("core-hab-sup-0.4.0-20160416170100.hab"));
+        let ident = hart.ident().unwrap();
+        assert_eq!(ident.origin, "core");
+        assert_eq!(ident.name, "hab-sup");
+        assert_eq!(ident.version, Some("0.4.0".to_string()));
+        assert_eq!(ident.release, Some("20160416170100".to_string()));
+    }
+
+    pub fn exe_path() -> PathBuf {
+        env::current_exe().unwrap()
+    }
+
+    pub fn root() -> PathBuf {
+        exe_path().parent().unwrap().parent().unwrap().parent().unwrap().join("tests")
+    }
+
+    pub fn fixtures() -> PathBuf {
+        root().join("fixtures")
     }
 }
