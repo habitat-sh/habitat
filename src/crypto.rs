@@ -82,7 +82,7 @@ use util::perm;
 ///
 /// ### Habitat signed artifact format
 ///
-/// A signed `.hab` artifact has 3 plaintext lines followed by a binary blob
+/// A signed `.hart` artifact has 3 plaintext lines followed by a binary blob
 /// of data, which is the unsigned tarfile.
 ///
 /// - The first plaintext line is the name of the origin signing key that was used
@@ -103,20 +103,20 @@ use util::perm;
 ///
 /// https://download.libsodium.org/doc/hashing/generic_hashing.html
 ///
-/// It's possible to examine the contents of a `.hab` file from a Linux shell:
+/// It's possible to examine the contents of a `.hart` file from a Linux shell:
 ///
 /// ```text
-/// $ head -3 /path/to/acme-glibc-2.22-20160310192356.hab
+/// $ head -3 /path/to/acme-glibc-2.22-20160310192356.hart
 /// habitat-20160405144945
 /// BLAKE2b
 /// w4yC7/QADdC+NfH/wgN5u4K94nMieb1TxTVzbSfpMwRQ4k+YwhLs1nDXSIbSC8jHdF/7/LqLWtgPvGDmoKIvBDI0aGpIcGdlNDJhMDBnQ3lsMVVFM0JvRlZGSHhXcnBuWWF0/// SllXTXo1ZDg9
 /// # Note that this is an example signature only
 /// ```
 ///
-/// It is also possible to extract a plain tarball from a signed `.hab` artifact using the following command:
+/// It is also possible to extract a plain tarball from a signed `.hart` artifact using the following command:
 ///
 /// ```text
-/// tail -n +4 /tmp/somefile.hab > somefile.tar
+/// tail -n +4 /tmp/somefile.hart > somefile.tar
 /// # start at line 4, skipping the first 3 plaintext lines.
 /// ```
 
