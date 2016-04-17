@@ -28,86 +28,86 @@ pub fn get() -> App<'static, 'static> {
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
         (@subcommand artifact =>
-            (about: "Runs Habitat package artifact commands")
+            (about: "Commands relating to Habitat artifacts")
             (@setting ArgRequiredElseHelp)
             (@subcommand upload =>
-                (about: "Uploads a local package artifact to a depot")
+                (about: "Uploads a local Habitat artifact to a Depot")
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                 "Use a specific package depot URL")
+                 "Use a specific Depot URL")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to an artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
+                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
             )
             (@subcommand sign =>
-                (about: "Signs a Habitat package with an origin key")
+                (about: "Signs a archive file with with an origin key, creating a Habitat artifact")
                 (@arg ORIGIN: --origin +takes_value
                  "Origin key used to create signature")
                 (@arg SOURCE: +required {file_exists}
-                 "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.xz)")
+                 "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
                 (@arg ARTIFACT: +required
-                 "The generated artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
+                 "The path to the generated Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
             )
             (@subcommand verify =>
-                (about: "Verifies a Habitat package with an origin key")
+                (about: "Verifies a Habitat artifact with an origin key")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to a .hab artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
+                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
             )
             (@subcommand hash=>
                 (about: "Generate a BLAKE2b hash for a file")
                 (@arg SOURCE: +required {file_exists}
-                 "Any existing file")
+                 "A path to any local file")
             )
 
         )
         (@subcommand origin =>
-            (about: "Runs Habitat origin commands")
+            (about: "Commands relating to Habitat origin keys")
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Habitat origin key maintenance")
+                 (about: "Commands relating to Habitat origin key maintenance")
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
-                        (about: "Generates an origin key")
+                        (about: "Generates a Habitat origin key")
                         (@arg ORIGIN: "The origin name")
                  )
             )
         )
         (@subcommand service =>
-            (about: "Runs Habitat service commands")
+            (about: "Commands relating to Habitat services")
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Habitat service key maintenance")
+                 (about: "Commands relating to Habitat service keys")
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
-                        (about: "Generates a service key")
+                        (about: "Generates a Habitat service key")
                         (@arg SERVICE_GROUP: +required +takes_value {valid_service_group})
                         (@arg ORG: "The user's organization")
                  )
             )
         )
         (@subcommand user =>
-            (about: "Runs Habitat user commands")
+            (about: "Commands relating to Habitat users")
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Habitat user key maintenance")
+                 (about: "Commands relating to Habitat user keys")
                  (@setting ArgRequiredElseHelp)
                  (@subcommand generate =>
-                        (about: "Generates a user key")
+                        (about: "Generates a Habitat user key")
                         (@arg USER: +required +takes_value)
                         (@arg ORG: "The service's organization")
                  )
             )
         )
         (@subcommand pkg =>
-            (about: "Runs Habitat package commands")
+            (about: "Commands relating to Habitat packages")
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_package_install())
         )
         (@subcommand rumor =>
-            (about: "Runs Habitat rumor commands")
+            (about: "Commands relating to Habitat rumors")
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_rumor_inject())
         )
         (@subcommand sup =>
-            (about: "Runs Habitat supervisor commands")
+            (about: "Commands relating to the Habitat Supervisor")
         )
 
         (subcommand: alias_inject)
@@ -125,19 +125,19 @@ pub fn get() -> App<'static, 'static> {
 #[cfg_attr(rustfmt, rustfmt_skip)]
 fn sub_package_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
-        (about: "Installs a package from a repo or locally from an archive file")
-        (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific package repo URL")
-        (@arg PKG_IDENT_OR_ARTIFACT: +required "A package identifier (ex: acme/redis) \
-         or path to an artifact file (ex: /home/acme-redis-3.0.7-21120102031201.hab)")
+        (about: "Installs a Habitat package from a Depot or locally from a Habitat artifact")
+        (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
+        (@arg PKG_IDENT_OR_ARTIFACT: +required "A Habitat package identifier (ex: acme/redis) \
+         or path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
     )
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 fn sub_rumor_inject() -> App<'static, 'static> {
     clap_app!(@subcommand inject =>
-        (about: "Injects a configuration or configuration file into a group of Supervisors")
+        (about: "Injects a configuration or configuration file into a group of Habitat Supervisors")
         (@arg PEERS: -p --peers +takes_value
-         "A comma-delimited list of one or more gossip peers to infect (default: 127.0.0.1:9634)")
+         "A comma-delimited list of one or more Habitat Supervisor peers to infect (default: 127.0.0.1:9634)")
         (@arg SERVICE_GROUP: +required
          "Target service group for this injection (ex: redis.default)")
         (@arg VERSION_NUMBER: +required

@@ -2011,7 +2011,7 @@ pkg_svc_config_path="$pkg_svc_path/config"
 pkg_svc_static_path="$pkg_svc_path/static"
 
 # Set the package artifact name
-_artifact_ext="hab"
+_artifact_ext="hart"
 pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.${_artifact_ext}"
 
 # Run `do_begin`

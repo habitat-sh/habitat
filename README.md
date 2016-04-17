@@ -195,7 +195,7 @@ To upload the resulting package
 ```bash
 $ hab-studio enter
 $ hab-bpm install core/hab
-$ hab-bpm exec core/hab hab artifact upload /hab/cache/artifacts/<PKG>.hab
+$ hab-bpm exec core/hab hab artifact upload /hab/cache/artifacts/<PKG>.hart
 ```
 
 To create a docker container of a package, either local or remote:
