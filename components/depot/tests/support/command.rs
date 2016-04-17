@@ -179,7 +179,7 @@ pub fn spawn(mut command: Command) -> CmdResult<Cmd> {
 
 pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
     let real_cmd = "studio";
-    let mut real_args = vec!["-r", "/opt/studios/functional-tests", "run", cmd];
+    let mut real_args = vec!["-r", "/hab/studios/functional-tests", "run", cmd];
     real_args.extend_from_slice(args);
     let mut command = command(real_cmd, &real_args[..]);
     command.current_dir("/src");

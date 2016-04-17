@@ -100,7 +100,7 @@ macro_rules! assert_file_exists_in_studio {
     ($string:expr) => {
         {
             use std::fs;
-            let path = format!("/opt/studios/functional-tests{}", $string);
+            let path = format!("/hab/studios/functional-tests{}", $string);
             let meta = match fs::metadata(&path) {
                 Ok(meta) => meta,
                 Err(e) => panic!("{} does not exist - {:?}", path, e)
