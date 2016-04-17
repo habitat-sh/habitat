@@ -1890,7 +1890,9 @@ $(cat $PLAN_CONTEXT/plan.sh)
 
 Files
 -----
-$(find $pkg_prefix -type f -print0 | $_sort_cmd | xargs -0 $_shasum_cmd)
+$(find $pkg_prefix -type f \
+  | $_sort_cmd \
+  | while read file; do $_shasum_cmd $file; done)
 EOT
   return 0
 }
