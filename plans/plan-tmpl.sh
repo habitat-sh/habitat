@@ -1,8 +1,7 @@
-# Template plan.sh
 pkg_origin=core
 pkg_name=PACKAGE
 pkg_version=0.0.1
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="You <humans@example.com>"
 pkg_license=()
 pkg_source=http://example.com/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=sha256sum
