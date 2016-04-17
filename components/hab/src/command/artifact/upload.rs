@@ -101,11 +101,9 @@ fn attempt_upload_dep(url: &str, ident: &PackageIdent, archives_dir: &PathBuf) -
                 return Err(Error::DepotClient(depot_client::Error::HTTP(e)))
             }
             Err(Error::PackageArchiveMalformed(e)) => return Err(Error::PackageArchiveMalformed(e)),
-            Err(_) => {
-                // This is because of a bug where the depot and client code seem to not
-                // correctly deal with conflicts.
-                println!("Trying the next package anyway...");
-                Ok(())
+            Err(e) => {
+                println!("Unknown error encountered: {:?}", e);
+                return Err(e);
             }
         }
     } else {
