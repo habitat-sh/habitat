@@ -73,7 +73,7 @@ fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     info!("Upload {:?}", req);
-    let checksum = match extract_query_value("checksum", req) {
+    let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -101,17 +101,23 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     try!(write_file(&filename, &mut req.body));
     let mut archive = PackageArchive::new(filename);
     debug!("Package Archive: {:#?}", archive);
-    let received_check = archive.checksum().unwrap();
-    if received_check != checksum {
-        debug!("Checksums did not match: expected={:?}, got={:?}",
-               checksum,
-               received_check);
+    let checksum_from_artifact = match archive.checksum() {
+        Ok(cksum) => cksum,
+        Err(e) => {
+            warn!("Could not compute a checksum for {:#?}: {:#?}", archive, e);
+            return Ok(Response::with(status::UnprocessableEntity));
+        }
+    };
+    if checksum_from_param != checksum_from_artifact {
+        warn!("Checksums did not match: from_param={:?}, from_artifact={:?}",
+              checksum_from_param,
+              checksum_from_artifact);
         return Ok(Response::with(status::UnprocessableEntity));
     }
     let object = match data_object::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
-            debug!("Error building package from archive: {:#?}", e);
+            warn!("Error building package from archive: {:#?}", e);
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
@@ -119,6 +125,20 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         // JW TODO: handle write errors here. Storage full as a 507.
         try!(depot.datastore.packages.write(&txn, &object));
         try!(txn.commit());
+        // FIN TODO: A short term solution to detecting write failures is to perform an immediate
+        // read-back of the object to check if it deserializes correctly. If it can't, we have data
+        // corruption and future reads on this object will yield the same failure. So, throw up a
+        // flag and fail.
+        let txn = try!(depot.datastore.packages.txn_ro());
+        match txn.get(&ident.to_string()) {
+            Ok(_) => (),
+            Err(e) => {
+                warn!("[UPLOAD] Error reading package after write: {:#?}", e);
+                debug!("The package which failed to write to the packages datastore: {:?}",
+                       &object);
+                return Ok(Response::with(status::InternalServerError));
+            }
+        }
 
         let mut response = Response::with((status::Created,
                                            format!("/pkgs/{}/download", object.ident)));
@@ -129,7 +149,7 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
-        debug!("Ident failed to satisfy: {:#?}", ident);
+        warn!("Ident failed to satisfy: {:#?}", ident);
         Ok(Response::with(status::UnprocessableEntity))
     }
 }
@@ -191,7 +211,10 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
             Ok(Response::with((status::NotFound)))
         }
-        Err(_) => unreachable!("unknown error"),
+        Err(e) => {
+            error!("[DOWNLOAD] Unknown error encountered: {:?}", e);
+            Ok(Response::with(status::InternalServerError))
+        }
     }
 }
 
@@ -235,7 +258,10 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Err(Error::MdbError(data_store::MdbError::NotFound)) => {
                 Ok(Response::with((status::NotFound)))
             }
-            Err(_) => unreachable!("unknown error"),
+            Err(e) => {
+                error!("[LIST] Unknown error encountered: {:?}", e);
+                Ok(Response::with(status::InternalServerError))
+            }
         }
     }
 }
@@ -260,7 +286,10 @@ fn list_packages_scoped_to_view(depot: &Depot, view: &str) -> IronResult<Respons
         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
             Ok(Response::with((status::NotFound)))
         }
-        Err(_) => unreachable!("unknown error"),
+        Err(e) => {
+            error!("[LISTVIEW] Unknown error encountered: {:?}", e);
+            Ok(Response::with(status::InternalServerError))
+        }
     }
 }
 
@@ -323,7 +352,10 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Err(Error::MdbError(data_store::MdbError::NotFound)) => {
                 Ok(Response::with((status::NotFound)))
             }
-            Err(e) => unreachable!("unknown error: {:?}", e),
+            Err(e) => {
+                error!("[SHOW] Unknown error encountered: {:?}", e);
+                Ok(Response::with(status::InternalServerError))
+            }
         }
     }
 }
@@ -350,7 +382,10 @@ fn latest_package_in_view<P: AsRef<package::PackageIdent>>
                         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
                             return Ok(None);
                         }
-                        Err(_) => unreachable!("unknown error"),
+                        Err(e) => {
+                            error!("[LATEST1] Unknown error encountered: {:?}", e);
+                            return Err(e);
+                        }
                     }
                 }
             }
@@ -358,7 +393,10 @@ fn latest_package_in_view<P: AsRef<package::PackageIdent>>
         Err(Error::MdbError(data_store::MdbError::NotFound)) => {
             return Ok(None);
         }
-        Err(_) => unreachable!("unknown error"),
+        Err(e) => {
+            error!("[LATEST2] Unknown error encountered: {:?}", e);
+            return Err(e);
+        }
     }
 }
 
