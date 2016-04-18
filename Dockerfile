@@ -32,8 +32,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ENV CARGO_HOME /cargo-cache
 
-ARG BLDR_REPO
-ENV BLDR_REPO ${BLDR_REPO:-}
+ARG HAB_DEPOT_URL
+ENV HAB_DEPOT_URL ${HAB_DEPOT_URL:-}
 
 RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y && rustc -V
 RUN curl -sSL https://get.docker.io | sh && docker -v
