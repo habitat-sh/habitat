@@ -43,11 +43,11 @@ RUN (adduser --system hab || true) && (addgroup --system hab || true)
 
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
-COPY components/studio/install.sh /tmp
-RUN /tmp/install.sh \
-  && hab-bpm install chef/hab-bpm \
-  && hab-bpm binlink chef/hab-bpm hab-bpm \
-  && rm -f /tmp/install.sh
+# COPY components/studio/install.sh /tmp
+# RUN /tmp/install.sh \
+#   && hab-bpm install chef/hab-bpm \
+#   && hab-bpm binlink chef/hab-bpm hab-bpm \
+#   && rm -f /tmp/install.sh
 
 WORKDIR /src
 CMD ["bash"]
