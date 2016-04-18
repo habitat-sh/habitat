@@ -20,7 +20,7 @@ use urlencoded::UrlEncodedQuery;
 
 use super::Depot;
 use config::Config;
-use data_store::{self, Cursor, Database, Transaction};
+use data_store::{self, Cursor, Database, Transaction, MdbError};
 use error::{Error, Result};
 use hcore::package::{self, PackageArchive};
 
@@ -55,7 +55,7 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
 }
 
 fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    info!("Upload Key {:?}", req);
+    debug!("Upload Key {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
     let key = rext.find("key").unwrap();
     let file = depot.key_path(&key);
@@ -72,7 +72,7 @@ fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    info!("Upload {:?}", req);
+    debug!("Upload {:?}", req);
     let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
         None => return Ok(Response::with(status::BadRequest)),
@@ -91,8 +91,6 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         } else {
             // This should never happen. Writing the package to disk and recording it's existence
             // in the metadata is a transactional operation and one cannot exist without the other.
-            //
-            // JW TODO: write the depot repair tool and wire it into the `hab-depot repair` command
             panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
         }
     }
@@ -104,12 +102,12 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let checksum_from_artifact = match archive.checksum() {
         Ok(cksum) => cksum,
         Err(e) => {
-            warn!("Could not compute a checksum for {:#?}: {:#?}", archive, e);
+            info!("Could not compute a checksum for {:#?}: {:#?}", archive, e);
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
     if checksum_from_param != checksum_from_artifact {
-        warn!("Checksums did not match: from_param={:?}, from_artifact={:?}",
+        info!("Checksums did not match: from_param={:?}, from_artifact={:?}",
               checksum_from_param,
               checksum_from_artifact);
         return Ok(Response::with(status::UnprocessableEntity));
@@ -117,13 +115,20 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let object = match data_object::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
-            warn!("Error building package from archive: {:#?}", e);
+            info!("Error building package from archive: {:#?}", e);
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
     if ident.satisfies(&object.ident) {
         // JW TODO: handle write errors here. Storage full as a 507.
-        try!(depot.datastore.packages.write(&txn, &object));
+        match depot.datastore.packages.write(&txn, &object) {
+            Ok(()) => (),
+            Err(e @ Error::MdbError(MdbError::MapFull)) => {
+                error!("Database full, err={:?}", e);
+                return Ok(Response::with(status::InsufficientStorage));
+            }
+            Err(e) => panic!("Unhandled database error on upload, err={:?}", e),
+        }
         try!(txn.commit());
         // FIN TODO: A short term solution to detecting write failures is to perform an immediate
         // read-back of the object to check if it deserializes correctly. If it can't, we have data
@@ -149,13 +154,13 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
-        warn!("Ident failed to satisfy: {:#?}", ident);
+        info!("Ident failed to satisfy: {:#?}", ident);
         Ok(Response::with(status::UnprocessableEntity))
     }
 }
 
 fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    info!("Download {:?}", req);
+    debug!("Download {:?}", req);
     let rext = req.extensions.get::<Router>().unwrap();
 
     let key = match rext.find("key") {
@@ -174,7 +179,7 @@ fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    info!("Download {:?}", req);
+    debug!("Download {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
     let ident: data_object::PackageIdent = extract_data_ident(params);
 
@@ -203,8 +208,6 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             } else {
                 // This should never happen. Writing the package to disk and recording it's existence
                 // in the metadata is a transactional operation and one cannot exist without the other.
-                //
-                // JW TODO: write the depot repair tool and wire it into the `hab-depot repair` command
                 panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
             }
         }
@@ -212,7 +215,7 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Ok(Response::with((status::NotFound)))
         }
         Err(e) => {
-            error!("[DOWNLOAD] Unknown error encountered: {:?}", e);
+            info!("[DOWNLOAD] Unknown error encountered: {:?}", e);
             Ok(Response::with(status::InternalServerError))
         }
     }
@@ -259,7 +262,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 Ok(Response::with((status::NotFound)))
             }
             Err(e) => {
-                error!("[LIST] Unknown error encountered: {:?}", e);
+                info!("[LIST] Unknown error encountered: {:?}", e);
                 Ok(Response::with(status::InternalServerError))
             }
         }
@@ -287,7 +290,7 @@ fn list_packages_scoped_to_view(depot: &Depot, view: &str) -> IronResult<Respons
             Ok(Response::with((status::NotFound)))
         }
         Err(e) => {
-            error!("[LISTVIEW] Unknown error encountered: {:?}", e);
+            info!("[LISTVIEW] Unknown error encountered: {:?}", e);
             Ok(Response::with(status::InternalServerError))
         }
     }
@@ -353,7 +356,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 Ok(Response::with((status::NotFound)))
             }
             Err(e) => {
-                error!("[SHOW] Unknown error encountered: {:?}", e);
+                info!("[SHOW] Unknown error encountered: {:?}", e);
                 Ok(Response::with(status::InternalServerError))
             }
         }
@@ -383,7 +386,7 @@ fn latest_package_in_view<P: AsRef<package::PackageIdent>>
                             return Ok(None);
                         }
                         Err(e) => {
-                            error!("[LATEST1] Unknown error encountered: {:?}", e);
+                            info!("[LATEST1] Unknown error encountered: {:?}", e);
                             return Err(e);
                         }
                     }
@@ -394,7 +397,7 @@ fn latest_package_in_view<P: AsRef<package::PackageIdent>>
             return Ok(None);
         }
         Err(e) => {
-            error!("[LATEST2] Unknown error encountered: {:?}", e);
+            info!("[LATEST2] Unknown error encountered: {:?}", e);
             return Err(e);
         }
     }
