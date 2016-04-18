@@ -10,14 +10,34 @@ import config from "./config";
 
 const urlPrefix = config["builder_url"] || "";
 
-export function createOrigin(name) {
+export function createOrigin(origin) {
     return new Promise((resolve, reject) => {
         // FIXME: Remove this when we have a real api
-        resolve({ name });
+        resolve(origin);
         fetch(`${urlPrefix}/origins`, {
-            body: JSON.stringify({ name }),
-            method: "POST"
+            body: JSON.stringify(origin),
+            method: "POST",
         }).then(response => {
+            resolve(response.json());
+        }).catch(error => reject(error));
+    });
+}
+
+export function deleteOrigin(origin) {
+    return new Promise((resolve, reject) => {
+        // FIXME: Remove this when we have a real api
+        resolve(origin);
+        fetch(`${urlPrefix}/origins/${origin["name"]}`, {
+            method: "DELETE",
+        }).then(response => {
+            resolve(response.json());
+        }).catch(error => reject(error));
+    });
+}
+
+export function getMyOrigins() {
+    return new Promise((resolve, reject) => {
+        fetch(`${urlPrefix}/user/origins`).then(response => {
             resolve(response.json());
         }).catch(error => reject(error));
     });

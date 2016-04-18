@@ -71,12 +71,15 @@ export default Record({
     })(),
     origins: Record({
         current: Record({
-            name: undefined,
+            name: "smith",
         })(),
+     //   mine: List(),
+        mine: List([{ name: "smith", default: true }, { name: "core", default: false }, { name: "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", default: false }]),
         ui: Record({
             current: Record({
                 creating: false,
             })(),
+            isPickerOpen: false,
         })(),
     })(),
     packages: Record({

@@ -7,23 +7,30 @@
 
 import {addNotification, SUCCESS, DANGER} from "./notifications";
 import {requestRoute} from "./router";
-import {createOrigin} from "../builderApi";
+import * as api from "../builderApi";
 
+export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     "SET_CURRENT_ORIGIN_CREATING_FLAG";
+export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 
-export function createOrigin(name) {
+export function createOrigin(origin, isFirstOrigin = false) {
     return dispatch => {
         dispatch(setCurrentOriginCreatingFlag(true));
 
-        createOrigin(name).then(origin => {
-            dispatch(setCurrentOrigin(origin));
+        api.createOrigin(origin).then(origin => {
+            if (isFirstOrigin || origin["default"]) {
+                dispatch(setCurrentOrigin(origin));
+            }
+
+            dispatch(fetchMyOrigins());
             dispatch(setCurrentOriginCreatingFlag(false));
-            dispatch(requestRoute(["Packages"]));
+            dispatch(requestRoute(["Origins"]));
             dispatch(addNotification({
                 title: "Origin Created",
-                body: `'${name}' is now your default origin.`,
+                body: origin["default"] ?
+                    `'${origin["name"]}' is now the default origin` : "",
                 type: SUCCESS,
             }));
         }).catch(error => {
@@ -34,6 +41,41 @@ export function createOrigin(name) {
                 type: DANGER,
             }));
         });
+    };
+}
+
+export function deleteOrigin(origin) {
+    return dispatch => {
+        api.deleteOrigin(origin).then(() => {
+            dispatch(fetchMyOrigins());
+            dispatch(addNotification({
+                title: "Origin Deleted",
+                body: `'${origin["name"]}' has been deleted`,
+                type: SUCCESS,
+            }));
+        }).catch(error => {
+            dispatch(addNotification({
+                title: "Failed to Delete Origin",
+                body: error.message,
+                type: DANGER,
+            }));
+        });
+    };
+}
+
+export function fetchMyOrigins() {
+    return dispatch => {
+        api.getMyOrigins().then(origins => {
+            console.log(origins);
+            dispatch(populateMyOrigins(origins));
+        });
+    };
+}
+
+function populateMyOrigins(payload) {
+    return {
+        type: POPULATE_MY_ORIGINS,
+        payload,
     };
 }
 
@@ -48,5 +90,11 @@ function setCurrentOriginCreatingFlag(payload) {
     return {
         type: SET_CURRENT_ORIGIN_CREATING_FLAG,
         payload,
+    };
+}
+
+export function toggleOriginPicker() {
+    return {
+        type: TOGGLE_ORIGIN_PICKER,
     };
 }

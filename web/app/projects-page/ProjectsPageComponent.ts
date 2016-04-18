@@ -26,7 +26,7 @@ import {requireSignIn} from "../util";
                     <a [routerLink]="['ProjectCreate']">create one</a>?
                 </li>
                 <li *ngFor="#project of projects">
-                    <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="bldr-item-list" href="#">
+                    <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="hab-item-list" href="#">
                         {{project.origin}} / {{project.name}}
                     </a>
                 </li>

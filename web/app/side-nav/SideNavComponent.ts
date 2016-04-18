@@ -7,27 +7,30 @@
 
 import {Component, OnInit} from "angular2/core";
 import {RouterLink} from "angular2/router";
+import {OriginPickerComponent} from "./OriginPickerComponent";
 
 @Component({
-    directives: [RouterLink],
-    inputs: ["isSignedIn", "origin", "route"],
+    directives: [OriginPickerComponent, RouterLink],
+    inputs: ["fetchMyOrigins", "isSignedIn", "isOriginPickerOpen", "myOrigins",
+        "origin", "route", "setCurrentOrigin", "toggleOriginPicker"],
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
-        <div class="switcher">
-            <a *ngIf="isSignedIn && !origin.name"
-               [routerLink]="['OriginCreate']">
-                Add Origin
-            </a>
-            <span *ngIf="origin.name">{{origin.name}}</span>
-        </div>
-        <ul *ngIf="isSignedIn">
+        <hab-origin-picker [fetchMyOrigins]="fetchMyOrigins"
+                           [isSignedIn]="isSignedIn"
+                           [isOpen]="isOriginPickerOpen"
+                           [myOrigins]="myOrigins"
+                           [currentOrigin]="origin"
+                           [setCurrentOrigin]="setCurrentOrigin"
+                           [toggleOriginPicker]="toggleOriginPicker">
+        </hab-origin-picker>
+        <ul class="hab-side-nav--list" *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("projects")'
                    [routerLink]="['Projects']">Projects</a></li>
         </ul>
         <hr>
         <h4>Public Packages</h4>
-        <ul>
+        <ul class="hab-side-nav--list">
             <li><a [class.active]='routeMatch("explore")'
                    [routerLink]="['Explore']">Explore</a></li>
             <li><a [class.active]='routeMatch("pkgs$")'
@@ -40,7 +43,7 @@ import {RouterLink} from "angular2/router";
             </li>
         </ul>
         <h4 *ngIf="isSignedIn">Organizations</h4>
-        <ul *ngIf="isSignedIn">
+        <ul class="hab-side-nav--list" *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("orgs")'
                    [routerLink]="['Organizations']">Manage Orgs</a></li>
         </ul>

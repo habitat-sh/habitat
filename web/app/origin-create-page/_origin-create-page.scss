@@ -29,6 +29,14 @@ input.hab-origin-create--input {
 .hab-origin-create {
   @include outer-container;
 
+  &--checkbox {
+    margin-bottom: $small-spacing;
+
+    &--label {
+      display: inline;
+    }
+  }
+
   &--form {
     @include span-columns(8);
     @include shift(2);
