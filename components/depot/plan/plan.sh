@@ -35,18 +35,19 @@ do_build() {
   cargo build \
     -j $(nproc) \
     --target=$rustc_target \
-    --release \
     --verbose
   popd > /dev/null
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../target/$rustc_target/release/$program \
+  install -v -D $PLAN_CONTEXT/../target/$rustc_target/debug/$program \
     $pkg_prefix/bin/$program
 }
 
 do_strip() {
-  strip $pkg_prefix/bin/$program
+  return 0
+  # for the moment, we'll skip stripping
+  # strip $pkg_prefix/bin/$program
 }
 
 # Turn the remaining default phases into no-ops
