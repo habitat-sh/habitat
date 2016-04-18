@@ -1890,7 +1890,9 @@ $(cat $PLAN_CONTEXT/plan.sh)
 
 Files
 -----
-$(find $pkg_prefix -type f -print0 | $_sort_cmd | xargs -0 $_shasum_cmd)
+$(find $pkg_prefix -type f \
+  | $_sort_cmd \
+  | while read file; do $_shasum_cmd $file; done)
 EOT
   return 0
 }
@@ -1903,7 +1905,7 @@ _generate_artifact() {
 
   mkdir -pv "$(dirname $pkg_artifact)"
   rm -fv $tarf $xzf $pkg_artifact
-  $_tar_cmd -cf $tarf --format pax $pkg_prefix
+  $_tar_cmd -cf $tarf $pkg_prefix
   $_xz_cmd --compress -6 --threads=0 --verbose $tarf
   $_hab_cmd artifact sign --origin $pkg_origin $xzf $pkg_artifact
   rm -f $tarf $xzf

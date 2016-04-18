@@ -5,8 +5,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=(
-  core/glibc core/zlib core/xz core/bzip2 core/libarchive
-  core/openssl core/libsodium core/gcc-libs
+  core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl
 )
 pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
@@ -36,18 +35,19 @@ do_build() {
   cargo build \
     -j $(nproc) \
     --target=$rustc_target \
-    --release \
     --verbose
   popd > /dev/null
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../target/$rustc_target/release/$program \
+  install -v -D $PLAN_CONTEXT/../target/$rustc_target/debug/$program \
     $pkg_prefix/bin/$program
 }
 
 do_strip() {
-  strip $pkg_prefix/bin/$program
+  return 0
+  # for the moment, we'll skip stripping
+  # strip $pkg_prefix/bin/$program
 }
 
 # Turn the remaining default phases into no-ops
