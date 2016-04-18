@@ -48,6 +48,10 @@ COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
 #   && hab-bpm install chef/hab-bpm \
 #   && hab-bpm binlink chef/hab-bpm hab-bpm \
 #   && rm -f /tmp/install.sh
+RUN (cd /tmp && wget https://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-studio-0.1.0-20160415194717.tar.xz) \
+  && (cd / && tar xvJf /tmp/core-hab-studio-0.1.0-20160415194717.tar.xz) \
+  && ln -snfv /hab/pkgs/core/hab-studio/0.1.0/20160415194717/bin/hab-studio /usr/bin/hab-studio \
+  && rm -fv /tmp/core-hab-studio-0.1.0-20160415194717.tar.xz
 
 WORKDIR /src
 CMD ["bash"]
