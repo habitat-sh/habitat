@@ -3,9 +3,9 @@ import "protocols/sessionsrv.proto";
 package jobsrv;
 
 message Job {
-    required string id = 1;
+  required string id = 1;
 }
 
 message JobCreate {
-  required sessionsrv.AuthToken token = 1;
+  required string token = 1;
 }

@@ -5,17 +5,14 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::fmt;
-use std::io;
 use std::result;
 
-use protobuf;
-use zmq;
+use redis;
 
 #[derive(Debug)]
 pub enum Error {
-    IO(io::Error),
-    Protobuf(protobuf::ProtobufError),
-    Zmq(zmq::Error),
+    DataStore(redis::RedisError),
+    EntityNotFound,
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -23,28 +20,15 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::IO(ref e) => format!("{}", e),
-            Error::Protobuf(ref e) => format!("{}", e),
-            Error::Zmq(ref e) => format!("{}", e),
+            Error::DataStore(ref e) => format!("DataStore error, {}", e),
+            Error::EntityNotFound => format!("No value for key found"),
         };
         write!(f, "{}", msg)
     }
 }
 
-impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IO(err)
-    }
-}
-
-impl From<protobuf::ProtobufError> for Error {
-    fn from(err: protobuf::ProtobufError) -> Error {
-        Error::Protobuf(err)
-    }
-}
-
-impl From<zmq::Error> for Error {
-    fn from(err: zmq::Error) -> Error {
-        Error::Zmq(err)
+impl From<redis::RedisError> for Error {
+    fn from(err: redis::RedisError) -> Self {
+        Error::DataStore(err)
     }
 }

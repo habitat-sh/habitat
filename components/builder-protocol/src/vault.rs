@@ -8,15 +8,14 @@ use std::collections::BTreeMap;
 
 use rustc_serialize::json::{Json, ToJson};
 
-pub use message::sessionsrv::*;
+pub use message::vault::*;
 
-impl ToJson for Session {
+impl ToJson for Origin {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
-        m.insert("token".to_string(), self.get_token().to_json());
-        m.insert("email".to_string(), self.get_email().to_json());
-        m.insert("name".to_string(), self.get_name().to_json());
         m.insert("id".to_string(), self.get_id().to_json());
+        m.insert("name".to_string(), self.get_name().to_json());
+        m.insert("owner_id".to_string(), self.get_owner_id().to_json());
         Json::Object(m)
     }
 }

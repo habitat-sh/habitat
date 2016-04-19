@@ -4,17 +4,20 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::sync::{mpsc, Arc, Mutex};
+use std::ops::Deref;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::thread;
 
+use dbcache::{DataStore, Model};
+use hnet::{Supervisor, Supervisable};
 use protobuf::{parse_from_bytes, Message};
 use protocol::net::{self, ErrCode};
-use protocol::sessionsrv::{AuthToken, GitHubAuth};
+use protocol::sessionsrv::{self, SessionGet, GitHubAuth};
 use zmq;
 
 use config::Config;
-use data_store::DataStore;
+use data_model::{Account, Session};
 use error::{Error, Result};
 use oauth::github;
 
@@ -27,92 +30,164 @@ pub struct Worker {
 }
 
 impl Worker {
-    pub fn new(context: &mut zmq::Context, config: Arc<Mutex<Config>>) -> Result<Self> {
-        let sock = context.socket(zmq::DEALER).unwrap();
-        Ok(Worker {
-            config: config,
-            sock: sock,
-            datastore: DataStore::new(),
-        })
-    }
-
-    fn start(mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        loop {
-            {
-                let cfg = self.config.lock().unwrap();
-                match self.datastore.open(&cfg) {
-                    Ok(()) => break,
-                    Err(e) => {
-                        error!("{}", e);
-                        thread::sleep(Duration::from_millis(5000));
-                    }
-                }
-            }
-        }
-        try!(self.sock.connect(BE_LISTEN_ADDR));
-        let mut msg = zmq::Message::new().unwrap();
-        rz.send(()).unwrap();
-        loop {
-            // JW TODO: abstract this out to be more developer friendly
-            // pop client ident
-            let ident = try!(self.sock.recv_msg(0));
-            // pop lq ident
-            let ident2 = try!(self.sock.recv_msg(0));
-            // pop request frame
-            try!(self.sock.recv(&mut msg, 0));
-            // pop message-id
-            try!(self.sock.recv(&mut msg, 0));
-            // send reply
-            //  -> client ident
-            //  -> lq ident
-            //  -> empty rep frame
-            //  -> actual message
-            self.sock.send_msg(ident, zmq::SNDMORE).unwrap();
-            self.sock.send_msg(ident2, zmq::SNDMORE).unwrap();
-            self.sock.send(&[], zmq::SNDMORE).unwrap();
-            match self.dispatch(&msg) {
-                Ok(()) => continue,
-                Err(e) => return Err(e),
-            }
-        }
-    }
-
     fn dispatch(&mut self, msg: &zmq::Message) -> Result<()> {
+        // JW TOOD: refactor the dispatch loop into handlers
         match msg.as_str() {
-            Some("LOGIN") => {
+            Some("SessionCreate") => {
                 let request = try!(self.sock.recv_msg(0));
                 let req: GitHubAuth = parse_from_bytes(&request).unwrap();
                 match github::authenticate(&req.get_code()) {
                     Ok(token) => {
-                        let mut reply: AuthToken = AuthToken::new();
+                        // JW TODO: refactor this mess into a find and create routine
+                        let account: Account = match Session::get(&self.datastore, &token) {
+                            Ok(Session {owner_id: owner, ..}) => {
+                                // JW TODO: handle error. This should not ever happen since session
+                                // and account create will be transactional
+                                self.datastore.find(&owner).unwrap()
+                            }
+                            _ => {
+                                match github::user(&token) {
+                                    Ok(user) => {
+                                        // JW TODO: wrap session & account creation into a
+                                        // transaction and handle errors
+                                        let mut account: Account = user.into();
+                                        try!(account.save(&self.datastore));
+                                        let session = Session::new(token.clone(),
+                                                                   account.id.clone());
+                                        try!(session.create(&self.datastore));
+                                        account
+                                    }
+                                    Err(e @ Error::JsonDecode(_)) => {
+                                        debug!("github user get, err={:?}", e);
+                                        let reply = net::err(ErrCode::BAD_REMOTE_REPLY,
+                                                             "ss:auth:2");
+                                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
+                                        self.sock
+                                            .send(&reply.write_to_bytes().unwrap(), 0)
+                                            .unwrap();
+                                        return Ok(());
+                                    }
+                                    Err(e) => {
+                                        error!("github user get, err={:?}", e);
+                                        let reply = net::err(ErrCode::BUG, "ss:auth:3");
+                                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
+                                        self.sock
+                                            .send(&reply.write_to_bytes().unwrap(), 0)
+                                            .unwrap();
+                                        return Ok(());
+                                    }
+                                }
+                            }
+                        };
+                        let mut reply: sessionsrv::Session = account.into();
                         reply.set_token(token);
-                        self.sock.send_str("AuthToken", zmq::SNDMORE).unwrap();
+                        self.sock.send_str("Session", zmq::SNDMORE).unwrap();
                         self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
                     }
                     Err(Error::Auth(e)) => {
-                        debug!("login failure: {:?}", e);
+                        debug!("github authentication, err={:?}", e);
                         let reply = net::err(ErrCode::REMOTE_REJECTED, e.error);
                         self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
                         self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
                     }
                     Err(e @ Error::JsonDecode(_)) => {
-                        debug!("login failure: {:?}", e);
-                        let reply = net::err(ErrCode::BAD_REMOTE_REPLY, "ss::auth:1");
+                        debug!("github authentication, err={:?}", e);
+                        let reply = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
                         self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
                         self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
                     }
                     Err(e) => {
-                        error!("unhandled login failure: {:?}", e);
-                        let reply = net::err(ErrCode::BUG, "ss::auth:0");
+                        error!("github authentication, err={:?}", e);
+                        let reply = net::err(ErrCode::BUG, "ss:auth:0");
                         self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
                         self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
                     }
                 }
-
+            }
+            Some("SessionGet") => {
+                let request = try!(self.sock.recv_msg(0));
+                let req: SessionGet = parse_from_bytes(&request).unwrap();
+                match Session::get(&self.datastore, &req.get_token()) {
+                    Ok(Session {owner_id: owner, ..}) => {
+                        // JW TODO: handle error. This should not ever happen since session
+                        // and account create will be transactional
+                        let account: Account = self.datastore.find(&owner).unwrap();
+                        let mut reply: sessionsrv::Session = account.into();
+                        reply.set_token(req.get_token().to_string());
+                        self.sock.send_str("Session", zmq::SNDMORE).unwrap();
+                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                    }
+                    Err(Error::EntityNotFound) => {
+                        let reply = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:auth:4");
+                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
+                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                    }
+                    Err(e) => {
+                        error!("database error, err={:?}", e);
+                        let reply = net::err(ErrCode::INTERNAL, "ss:auth:5");
+                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
+                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                    }
+                }
             }
             _ => panic!("unexpected message: {:?}", msg.as_str()),
         }
         Ok(())
+    }
+}
+
+impl Supervisable for Worker {
+    type Config = Config;
+    type Error = Error;
+
+    fn new(context: &mut zmq::Context, config: Arc<Mutex<Config>>) -> Self {
+        let sock = context.socket(zmq::DEALER).unwrap();
+        Worker {
+            config: config,
+            sock: sock,
+            datastore: DataStore::new(),
+        }
+    }
+
+    fn init(&mut self) -> Result<()> {
+        loop {
+            let result = {
+                let cfg = self.config.lock().unwrap();
+                self.datastore.open(cfg.deref())
+            };
+            match result {
+                Ok(()) => break,
+                Err(e) => {
+                    error!("{}", e);
+                    thread::sleep(Duration::from_millis(5000));
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn on_message(&mut self, ident: zmq::Message) -> Result<()> {
+        // JW TODO: abstract this out to be more developer friendly
+        // pop lq ident
+        let ident2 = try!(self.sock.recv_msg(0));
+        let mut msg = zmq::Message::new().unwrap();
+        // pop request frame
+        try!(self.sock.recv(&mut msg, 0));
+        // pop message-id
+        try!(self.sock.recv(&mut msg, 0));
+        // send reply
+        //  -> client ident
+        //  -> lq ident
+        //  -> empty rep frame
+        //  -> actual message
+        self.sock.send_msg(ident, zmq::SNDMORE).unwrap();
+        self.sock.send_msg(ident2, zmq::SNDMORE).unwrap();
+        self.sock.send(&[], zmq::SNDMORE).unwrap();
+        self.dispatch(&msg)
+    }
+
+    fn socket(&mut self) -> &mut zmq::Socket {
+        &mut self.sock
     }
 }
 
@@ -163,8 +238,9 @@ impl Server {
 
         let ctx = self.ctx.clone();
         let cfg = self.config.clone();
-        let sup = Supervisor::new(ctx, cfg);
-        try!(sup.start());
+        let sup: Supervisor<Worker> = Supervisor::new(ctx, cfg);
+        // JW TODO: use config to determine worker count? I don't know if that's a good idea.
+        try!(sup.start(BE_LISTEN_ADDR, 8));
         try!(zmq::proxy(&mut self.fe_sock, &mut self.be_sock));
         Ok(())
     }
@@ -174,88 +250,6 @@ impl Drop for Server {
     fn drop(&mut self) {
         self.fe_sock.close().unwrap();
         self.be_sock.close().unwrap();
-    }
-}
-
-pub struct Supervisor {
-    context: Arc<Mutex<zmq::Context>>,
-    config: Arc<Mutex<Config>>,
-    workers: Vec<mpsc::Receiver<()>>,
-}
-
-impl Supervisor {
-    pub fn new(ctx: Arc<Mutex<zmq::Context>>, config: Arc<Mutex<Config>>) -> Self {
-        Supervisor {
-            context: ctx,
-            config: config,
-            workers: vec![],
-        }
-    }
-
-    pub fn start(mut self) -> Result<()> {
-        try!(self.init());
-        debug!("Supervisor ready");
-        self.run()
-    }
-
-    fn init(&mut self) -> Result<()> {
-        let count = {
-            self.config.lock().unwrap().worker_count
-        };
-        for _i in 0..count {
-            let rx = try!(self.spawn_worker());
-            self.workers.push(rx);
-        }
-        let mut success = 0;
-        while success != count {
-            match self.workers[success].recv() {
-                Ok(()) => {
-                    debug!("Worker {} ready", success);
-                    success += 1;
-                }
-                Err(_) => debug!("Worker {} failed to start", success),
-            }
-        }
-        Ok(())
-    }
-
-    fn run(mut self) -> Result<()> {
-        thread::spawn(move || {
-            loop {
-                let count = {
-                    self.config.lock().unwrap().worker_count
-                };
-                for i in 0..count {
-                    match self.workers[i].try_recv() {
-                        Err(mpsc::TryRecvError::Disconnected) => {
-                            println!("Worker {} restarting...", i);
-                            let rx = self.spawn_worker().unwrap();
-                            match rx.recv() {
-                                Ok(()) => self.workers[i] = rx,
-                                Err(_) => {
-                                    println!("Worker {} failed restart!", i);
-                                    self.workers.remove(i);
-                                }
-                            }
-                        }
-                        Ok(msg) => println!("Worker {} sent unexpected msg: {:?}", i, msg),
-                        Err(mpsc::TryRecvError::Empty) => continue,
-                    }
-                }
-                thread::sleep(Duration::from_millis(500));
-            }
-        });
-        Ok(())
-    }
-
-    fn spawn_worker(&self) -> Result<mpsc::Receiver<()>> {
-        let cfg = self.config.clone();
-        let (tx, rx) = mpsc::sync_channel(1);
-        let worker = try!(Worker::new(&mut self.context.lock().unwrap(), cfg));
-        thread::spawn(move || {
-            worker.start(tx).unwrap();
-        });
-        Ok(rx)
     }
 }
 

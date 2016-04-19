@@ -7,8 +7,8 @@
 use std::fmt;
 use std::io::Read;
 
-use hyper;
-use hyper::header::{Accept, qitem};
+use hyper::{self, Url};
+use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use rustc_serialize::json;
 
@@ -17,8 +17,51 @@ use error::{Error, Result};
 // JW TODO: do not hardcode these. Make available through configuration file.
 const GH_CLIENT_ID: &'static str = "e98d2a94787be9af9c00";
 const GH_CLIENT_SECRET: &'static str = "e5ff94188e3cf01d42f3e2bcbbe4faabe11c71ba";
+const USER_AGENT: &'static str = "Habitat-Builder";
 
-#[derive(RustcDecodable, RustcEncodable)]
+static GH_URL: &'static str = "https://api.github.com";
+
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct User {
+    pub login: String,
+    pub id: u64,
+    pub avatar_url: String,
+    pub gravatar_id: String,
+    pub url: String,
+    pub html_url: String,
+    pub followers_url: String,
+    pub following_url: String,
+    pub gists_url: String,
+    pub starred_url: String,
+    pub subscriptions_url: String,
+    pub organizations_url: String,
+    pub repos_url: String,
+    pub events_url: String,
+    pub received_events_url: String,
+    pub site_admin: bool,
+    pub name: String,
+    pub company: String,
+    pub blog: String,
+    pub location: String,
+    pub email: String,
+    pub hireable: Option<bool>,
+    pub bio: Option<String>,
+    pub public_repos: u32,
+    pub public_gists: u32,
+    pub followers: u32,
+    pub following: u32,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct Email {
+    pub email: String,
+    pub primary: bool,
+    pub verified: bool,
+}
+
+#[derive(Debug, RustcDecodable, RustcEncodable)]
 pub struct AuthOk {
     pub access_token: String,
     pub scope: String,
@@ -55,16 +98,16 @@ pub enum AuthResp {
 }
 
 pub fn authenticate(code: &str) -> Result<String> {
-    let client = hyper::Client::new();
-    let url = hyper::Url::parse(&format!("https://github.com/login/oauth/access_token?client_id={}&client_secret={}&code={}", GH_CLIENT_ID, GH_CLIENT_SECRET, code)).unwrap();
-    let request = client.post(url)
-                        .header(Accept(vec![qitem(Mime(TopLevel::Application,
-                                                       SubLevel::Json,
-                                                       vec![]))]));
-    let mut response = try!(request.send());
-    if response.status.is_success() {
+    let url =
+        Url::parse(&format!("https://github.com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
+                            GH_CLIENT_ID,
+                            GH_CLIENT_SECRET,
+                            code))
+            .unwrap();
+    let mut rep = try!(http_post(url));
+    if rep.status.is_success() {
         let mut encoded = String::new();
-        try!(response.read_to_string(&mut encoded));
+        try!(rep.read_to_string(&mut encoded));
         match json::decode(&encoded) {
             Ok(msg @ AuthOk {..}) => {
                 let scope = "user:email".to_string();
@@ -80,6 +123,33 @@ pub fn authenticate(code: &str) -> Result<String> {
             }
         }
     } else {
-        Err(Error::HTTP(response.status))
+        Err(Error::HTTP(rep.status))
     }
+}
+
+pub fn user(token: &str) -> Result<User> {
+    let url = Url::parse(&format!("{}/user", GH_URL)).unwrap();
+    let mut rep = try!(http_get(url, token));
+    let mut body = String::new();
+    try!(rep.read_to_string(&mut body));
+    let user: User = json::decode(&body).unwrap();
+    Ok(user)
+}
+
+fn http_get(url: Url, token: &str) -> Result<hyper::client::response::Response> {
+    hyper::Client::new()
+        .get(url)
+        .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
+        .header(Authorization(Bearer { token: token.to_owned() }))
+        .header(UserAgent(USER_AGENT.to_string()))
+        .send()
+        .map_err(|e| Error::from(e))
+}
+
+fn http_post(url: Url) -> Result<hyper::client::response::Response> {
+    hyper::Client::new()
+        .post(url)
+        .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
+        .send()
+        .map_err(|e| Error::from(e))
 }
