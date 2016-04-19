@@ -79,7 +79,7 @@ pub fn get() -> App<'static, 'static> {
                  (@subcommand generate =>
                         (about: "Generates a Habitat service key")
                         (@arg SERVICE_GROUP: +required +takes_value {valid_service_group})
-                        (@arg ORG: "The user's organization")
+                        (@arg ORG: "The service organization")
                  )
             )
         )
@@ -92,7 +92,6 @@ pub fn get() -> App<'static, 'static> {
                  (@subcommand generate =>
                         (about: "Generates a Habitat user key")
                         (@arg USER: +required +takes_value)
-                        (@arg ORG: "The service's organization")
                  )
             )
         )

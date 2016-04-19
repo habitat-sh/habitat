@@ -195,9 +195,8 @@ fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
-    let org = try!(org_param_or_env(&m));
     let user = m.value_of("USER").unwrap(); // clap required
-    try!(command::artifact::crypto::generate_user_key(&org, user));
+    try!(command::artifact::crypto::generate_user_key(user));
     Ok(())
 }
 
