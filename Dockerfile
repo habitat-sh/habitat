@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     rsync \
     sudo \
+    tmux \
     wget \
     vim \
   && rm -rf /var/lib/apt/lists/*
