@@ -8,6 +8,11 @@
 .hab-github-repo-picker {
   @include outer-container;
 
+  .hab-spinner {
+    float: right;
+    line-height: $base-spacing;
+  }
+
   li a {
     color: inherit;
     display: block;

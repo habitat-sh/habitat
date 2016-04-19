@@ -5,17 +5,34 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-import {Component} from "angular2/core";
+import {OnInit, Component} from "angular2/core";
 import {List, Map, OrderedSet} from "immutable";
+import {SpinnerComponent} from "../SpinnerComponent";
 
 @Component({
-    inputs: ["repos", "onOrgSelect", "onRepoSelect", "selectedOrg"],
+    directives: [SpinnerComponent],
+    inputs: ["areOrgsLoading", "areReposLoading", "fetchGitHubOrgs",
+        "fetchGitHubRepos", "onOrgSelect", "onRepoSelect", "orgs", "repos",
+        "selectedOrg", "user"],
     selector: "github-repo-picker",
     template: `
     <div class="hab-github-repo-picker">
         <div class="users">
-            <h4>Users/Organizations</h4>
+            <h4>
+                <hab-spinner [onClick]="fetchGitHubOrgs"
+                             [isSpinning]="areOrgsLoading">
+                </hab-spinner>
+                Users/Organizations
+            </h4>
             <ul>
+                <li>
+                    <a (click)='onOrgSelect(user.get("login"), user.get("login"))'
+                       href="#"
+                       [class.active]='user.get("login") === selectedOrg'>
+                        <img height=16 width=16 src='{{user.get("avatar_url")}}?s=32'>
+                        {{user.get("login")}}
+                    </a>
+                </li>
                 <li *ngFor="#org of orgs">
                     <a (click)='onOrgSelect(org.get("login"))' href="#"
                        [class.active]='org.get("login") === selectedOrg'>
@@ -26,9 +43,17 @@ import {List, Map, OrderedSet} from "immutable";
             </ul>
         </div>
         <div class="repos">
-            <h4>Repositories</h4>
+            <h4>
+                <hab-spinner [onClick]="clickFetchGitHubRepos"
+                             [isSpinning]="areReposLoading">
+                </hab-spinner>
+                Repositories
+            </h4>
             <ul>
-                <li *ngFor="#repo of reposForOrg(selectedOrg)">
+                <li *ngIf="repos.size === 0 && selectedOrg && !areReposLoading">
+                    No repositories found in '{{selectedOrg}}'
+                </li>
+                <li *ngFor="#repo of repos">
                     <a (click)='onRepoSelect(repo.get("full_name"))' href="#">
                         {{repo.get("name")}}
                     </a>
@@ -38,16 +63,25 @@ import {List, Map, OrderedSet} from "immutable";
     </div>`,
 })
 
-export class GitHubRepoPickerComponent {
-    private selectedOrg;
-    private repos;
+export class GitHubRepoPickerComponent implements OnInit {
+    private clickFetchGitHubRepos;
+    private fetchGitHubOrgs: Function;
+    private fetchGitHubRepos: Function;
+    private selectedOrg: String;
+    private user;
 
-    get orgs(): OrderedSet<Map<string, any>> {
-        return this.repos.map((repo) => repo.get("owner")).toOrderedSet();
+    constructor() {
+        this.clickFetchGitHubRepos = () => {
+            this.fetchGitHubRepos(
+                this.selectedOrg, 1,
+                this.selectedOrg === this.user.get("login") ?
+                    this.user.get("login") : undefined
+            );
+            return false;
+        };
     }
 
-    private reposForOrg(org) {
-        return this.repos.filter(
-            (repo) => repo.getIn(["owner", "login"]) === org);
+    public ngOnInit() {
+        this.fetchGitHubOrgs();
     }
 }

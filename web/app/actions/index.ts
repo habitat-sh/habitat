@@ -15,8 +15,15 @@ import * as routerActions from "./router";
 import * as usersActions from "./users";
 
 // Action types
+export const POPULATE_GITHUB_ORGS = gitHubActions.POPULATE_GITHUB_ORGS;
 export const POPULATE_GITHUB_REPOS = gitHubActions.POPULATE_GITHUB_REPOS;
 export const POPULATE_GITHUB_USER_DATA = gitHubActions.POPULATE_GITHUB_USER_DATA;
+export const RESET_GITHUB_ORGS = gitHubActions.RESET_GITHUB_ORGS;
+export const RESET_GITHUB_REPOS = gitHubActions.RESET_GITHUB_REPOS;
+export const SET_GITHUB_ORGS_LOADING_FLAG =
+    gitHubActions.SET_GITHUB_ORGS_LOADING_FLAG;
+export const SET_GITHUB_REPOS_LOADING_FLAG =
+    gitHubActions.SET_GITHUB_REPOS_LOADING_FLAG;
 export const SET_GITHUB_AUTH_STATE = gitHubActions.SET_GITHUB_AUTH_STATE;
 export const SET_SELECTED_GITHUB_ORG = gitHubActions.SET_SELECTED_GITHUB_ORG;
 
@@ -58,7 +65,9 @@ export const RESET = "RESET";
 
 // Actions
 export const authenticateWithGitHub = gitHubActions.authenticateWithGitHub;
+export const fetchGitHubOrgs = gitHubActions.fetchGitHubOrgs;
 export const fetchGitHubRepos = gitHubActions.fetchGitHubRepos;
+export const onGitHubOrgSelect = gitHubActions.onGitHubOrgSelect;
 export const onGitHubRepoSelect = gitHubActions.onGitHubRepoSelect;
 export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
 export const setGitHubAuthState = gitHubActions.setGitHubAuthState;

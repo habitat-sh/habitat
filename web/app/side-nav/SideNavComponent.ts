@@ -39,11 +39,6 @@ import {RouterLink} from "angular2/router";
                 </a>
             </li>
         </ul>
-        <h4 *ngIf="isSignedIn">Linked Accounts</h4>
-        <ul *ngIf="isSignedIn">
-            <li><a [class.active]='routeMatch("scm-repos")'
-                   [routerLink]="['SCMRepos']">GitHub Repos</a></li>
-        </ul>
         <h4 *ngIf="isSignedIn">Organizations</h4>
         <ul *ngIf="isSignedIn">
             <li><a [class.active]='routeMatch("orgs")'

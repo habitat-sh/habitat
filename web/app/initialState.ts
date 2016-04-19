@@ -14,10 +14,18 @@ export default Record({
     })(),
     gitHub: Record({
         authState: undefined,
-        isLinked: false,
+        orgs: List(),
         repos: List(),
         selectedOrg: undefined,
         username: undefined,
+        ui: Record({
+            orgs: Record({
+                loading: false,
+            })(),
+            repos: Record({
+                loading: false,
+            })()
+        })()
     })(),
     notifications: Record({
         all: List(),

@@ -40,7 +40,12 @@ import {requireSignIn} from "../util";
               <div class="project-fields">
                   <div class="origin">
                       <label for="origin">Project Origin</label>
-                      <input ngControl="origin" disabled id="origin" name="origin">
+                      <select ngControl="origin"
+                              id="origin">
+                          <option *ngFor="#origin of myOrigins">
+                              {{origin.name}}
+                          </option>
+                      </select>
                   </div>
                   <div class="name">
                       <label for="name">Project Name</label>
@@ -69,14 +74,23 @@ export class ProjectCreatePageComponent {
 
         this.form = formBuilder.group({
             repo: [this.repo || "", Validators.nullValidator],
-            origin: [this.store.getState().user.username, Validators.required],
+            origin: [this.store.getState().origins.current.name,
+                Validators.required],
             name: ["", Validators.required],
             plan: ["/plan.sh", Validators.required],
         });
     }
 
+    get myOrigins() {
+        return this.store.getState().origins.mine;
+    }
+
     get repo() {
-        return decodeURIComponent(this.routeParams.params["repo"]);
+        if (this.routeParams.params["repo"]) {
+            return decodeURIComponent(this.routeParams.params["repo"]);
+        } else {
+            return undefined;
+        }
     }
 
     private addProject(values) {
