@@ -39,7 +39,7 @@ impl PackageIdent {
 
     pub fn archive_name(&self) -> Option<String> {
         if self.fully_qualified() {
-            Some(format!("{}-{}-{}-{}.hab",
+            Some(format!("{}-{}-{}-{}.hart",
                          self.origin,
                          self.name,
                          self.version.as_ref().unwrap(),

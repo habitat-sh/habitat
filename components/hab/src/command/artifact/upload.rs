@@ -10,7 +10,7 @@
 //! # Examples
 //!
 //! ```bash
-//! $ hab artifact upload /path/to/acme-redis-2.0.7-2112010203120101.hab -u http://localhost:9632
+//! $ hab artifact upload /path/to/acme-redis-2.0.7-2112010203120101.hart -u http://localhost:9632
 //! ```
 //!
 //! Will upload a package to the Depot.
@@ -35,7 +35,7 @@ use error::{Error, Result};
 /// # Failures
 ///
 /// * Fails if it cannot find a package
-/// * Fails if the package doesn't have a `.hab` file in the cache
+/// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
 pub fn start<P: AsRef<Path>>(url: &str, archive_path: &P) -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));

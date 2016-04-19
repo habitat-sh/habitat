@@ -12,7 +12,7 @@ studio_run_command=
 : ${TAR_DIR:=/tmp}
 
 finish_setup() {
-  if [ -x "$STUDIO_ROOT/tools/bin/bash" ]; then
+  if [ -x "$HAB_STUDIO_ROOT/tools/bin/bash" ]; then
     return 0
   fi
 
@@ -26,30 +26,30 @@ finish_setup() {
   fi
 
   info "Extracting $($bb basename $tar_file)"
-  $bb xzcat $tar_file | $bb tar xf - -C $STUDIO_ROOT
+  $bb xzcat $tar_file | $bb tar xf - -C $HAB_STUDIO_ROOT
 
   # Create symlinks from the minimal toolchain installed under `/tools` into
   # the root of the chroot environment. This is done to satisfy tools such as
   # `make(1)` which expect `/bin/sh` to exist.
 
-  $bb ln -sf $v /tools/bin/bash $STUDIO_ROOT/bin
-  $bb ln -sf $v /tools/bin/cat $STUDIO_ROOT/bin
-  $bb ln -sf $v /tools/bin/echo $STUDIO_ROOT/bin
-  $bb ln -sf $v /tools/bin/pwd $STUDIO_ROOT/bin
-  $bb ln -sf $v /tools/bin/stty $STUDIO_ROOT/bin
+  $bb ln -sf $v /tools/bin/bash $HAB_STUDIO_ROOT/bin
+  $bb ln -sf $v /tools/bin/cat $HAB_STUDIO_ROOT/bin
+  $bb ln -sf $v /tools/bin/echo $HAB_STUDIO_ROOT/bin
+  $bb ln -sf $v /tools/bin/pwd $HAB_STUDIO_ROOT/bin
+  $bb ln -sf $v /tools/bin/stty $HAB_STUDIO_ROOT/bin
 
-  $bb ln -sf $v /tools/bin/perl $STUDIO_ROOT/usr/bin
-  $bb ln -sf $v /tools/lib/libgcc_s.so $STUDIO_ROOT/usr/lib
-  $bb ln -sf $v /tools/lib/libgcc_s.so.1 $STUDIO_ROOT/usr/lib
-  $bb ln -sf $v /tools/lib/libstdc++.so $STUDIO_ROOT/usr/lib
-  $bb ln -sf $v /tools/lib/libstdc++.so.6 $STUDIO_ROOT/usr/lib
-  $bb sed 's/tools/usr/' $STUDIO_ROOT/tools/lib/libstdc++.la > $STUDIO_ROOT/usr/lib/libstdc++.la
-  $bb ln -sf $v bash $STUDIO_ROOT/bin/sh
+  $bb ln -sf $v /tools/bin/perl $HAB_STUDIO_ROOT/usr/bin
+  $bb ln -sf $v /tools/lib/libgcc_s.so $HAB_STUDIO_ROOT/usr/lib
+  $bb ln -sf $v /tools/lib/libgcc_s.so.1 $HAB_STUDIO_ROOT/usr/lib
+  $bb ln -sf $v /tools/lib/libstdc++.so $HAB_STUDIO_ROOT/usr/lib
+  $bb ln -sf $v /tools/lib/libstdc++.so.6 $HAB_STUDIO_ROOT/usr/lib
+  $bb sed 's/tools/usr/' $HAB_STUDIO_ROOT/tools/lib/libstdc++.la > $HAB_STUDIO_ROOT/usr/lib/libstdc++.la
+  $bb ln -sf $v bash $HAB_STUDIO_ROOT/bin/sh
 
   # Set the login shell for any relevant user to be `/bin/bash`
-  $bb sed -e 's,/bin/sh,/bin/bash,g' -i $STUDIO_ROOT/etc/passwd
+  $bb sed -e 's,/bin/sh,/bin/bash,g' -i $HAB_STUDIO_ROOT/etc/passwd
 
-  $bb cat >> $STUDIO_ROOT/etc/profile <<'PROFILE'
+  $bb cat >> $HAB_STUDIO_ROOT/etc/profile <<'PROFILE'
 # Colorize grep/egrep/fgrep by default
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'

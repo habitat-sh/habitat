@@ -604,7 +604,7 @@ latest_installed_package() {
 install_package() {
   local pkg_ident=$1
   local pkg_source="$HAB_DEPOT_URL/pkgs/$pkg_ident/download"
-  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').hab"
+  local pkg_filename="$HAB_CACHE_ARTIFACT_PATH/$(echo $pkg_ident | $bb tr '/' '-').hart"
 
   if [ -n "$QUIET" ]; then
     local v=

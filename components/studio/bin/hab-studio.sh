@@ -67,10 +67,10 @@ FLAGS:
     -V  Prints version information
 
 OPTIONS:
-    -r <STUDIO_ROOT>  Sets a Studio root (default: /opt/studio)
-    -s <SRC_PATH>     Sets the source path (default: \$PWD)
-    -t <STUDIO_TYPE>  Sets a Studio type when creating (default: default)
-                      Valid types: [default baseimage busybox stage1]
+    -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
+    -s <SRC_PATH>         Sets the source path (default: \$PWD)
+    -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default)
+                          Valid types: [default baseimage busybox stage1]
 
 SUBCOMMANDS:
     build     Build using a Studio
@@ -82,13 +82,13 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
-    NO_SRC_PATH   If set, do not mount source path (\`-n' flag takes precedence)
-    QUIET         Prints less output (\`-q' flag takes precedence)
-    SRC_PATH      Sets the source path (\`-s' option takes precedence)
-    STUDIO_ROOT   Sets a Studio root (\`-r' option takes precedence)
-    STUDIO_TYPE   Sets a Studio type when creating (\`-t' option takes precedence)
-    STUDIOS_HOME  Sets a home path for all Studios (default: /opt/studios)
-    VERBOSE       Prints more verbose output (\`-v' flag takes precedence)
+    HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_ROOT   Sets a Studio root (\`-r' option overrides)
+    NO_SRC_PATH       If set, do not mount source path (\`-n' flag overrides)
+    QUIET             Prints less output (\`-q' flag overrides)
+    SRC_PATH          Sets the source path (\`-s' option overrides)
+    STUDIO_TYPE       Sets a Studio type when creating (\`-t' option overrides)
+    VERBOSE           Prints more verbose output (\`-v' flag overrides)
 
 EXAMPLES:
 
@@ -145,7 +145,7 @@ new_studio() {
       ;;
   esac
 
-  info "Creating Studio at $STUDIO_ROOT ($STUDIO_TYPE)"
+  info "Creating Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
   # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
   # mode was requested
@@ -157,130 +157,130 @@ new_studio() {
 
   # Mount filesystems
 
-  $bb mkdir -p $v $STUDIO_ROOT/dev
-  $bb mkdir -p $v $STUDIO_ROOT/proc
-  $bb mkdir -p $v $STUDIO_ROOT/sys
-  $bb mkdir -p $v $STUDIO_ROOT/run
-  $bb mkdir -p $v $STUDIO_ROOT/var/run
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/dev
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/proc
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/sys
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/run
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/run
 
   # Make  a `/dev/console` device, if it doesn't exist
-  if [ ! -r $STUDIO_ROOT/dev/console ]; then
-    $bb mknod -m 600 $STUDIO_ROOT/dev/console c 5 1
+  if [ ! -r $HAB_STUDIO_ROOT/dev/console ]; then
+    $bb mknod -m 600 $HAB_STUDIO_ROOT/dev/console c 5 1
   fi
   # Make  a `/dev/null` device, if it doesn't exist
-  if [ ! -r $STUDIO_ROOT/dev/null ]; then
-    $bb mknod -m 666 $STUDIO_ROOT/dev/null c 1 3
+  if [ ! -r $HAB_STUDIO_ROOT/dev/null ]; then
+    $bb mknod -m 666 $HAB_STUDIO_ROOT/dev/null c 1 3
   fi
 
   # Unless `$NO_MOUNT` is set, mount filesystems such as `/dev`, `/proc`, and
   # company. If the mount already exists, skip it to be all idempotent and
   # nerdy like that
   if [ -z "${NO_MOUNT}" ]; then
-    if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/dev type"; then
-      $bb mount $v --bind /dev $STUDIO_ROOT/dev
+    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
+      $bb mount $v --bind /dev $HAB_STUDIO_ROOT/dev
     fi
 
-    if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/dev/pts type"; then
-      $bb mount $v -t devpts devpts $STUDIO_ROOT/dev/pts -o gid=5,mode=620
+    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
+      $bb mount $v -t devpts devpts $HAB_STUDIO_ROOT/dev/pts -o gid=5,mode=620
     fi
-    if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/proc type"; then
-      $bb mount $v -t proc proc $STUDIO_ROOT/proc
+    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
+      $bb mount $v -t proc proc $HAB_STUDIO_ROOT/proc
     fi
-    if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/sys type"; then
-      $bb mount $v -t sysfs sysfs $STUDIO_ROOT/sys
+    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
+      $bb mount $v -t sysfs sysfs $HAB_STUDIO_ROOT/sys
     fi
-    if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/run type"; then
-      $bb mount $v -t tmpfs tmpfs $STUDIO_ROOT/run
+    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
+      $bb mount $v -t tmpfs tmpfs $HAB_STUDIO_ROOT/run
     fi
     if [ -e /var/run/docker.sock ]; then
-      if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/var/run/docker.sock type"; then
-        $bb touch $STUDIO_ROOT/var/run/docker.sock
-        $bb mount $v --bind /var/run/docker.sock $STUDIO_ROOT/var/run/docker.sock
+      if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
+        $bb touch $HAB_STUDIO_ROOT/var/run/docker.sock
+        $bb mount $v --bind /var/run/docker.sock $HAB_STUDIO_ROOT/var/run/docker.sock
       fi
     fi
 
-    if [ -h "$STUDIO_ROOT/dev/shm" ]; then
-      $bb mkdir -p $v $STUDIO_ROOT/$($bb readlink $STUDIO_ROOT/dev/shm)
+    if [ -h "$HAB_STUDIO_ROOT/dev/shm" ]; then
+      $bb mkdir -p $v $HAB_STUDIO_ROOT/$($bb readlink $HAB_STUDIO_ROOT/dev/shm)
     fi
   fi
 
   # Create root filesystem
 
-  $bb mkdir -p $v $STUDIO_ROOT/bin
-  $bb mkdir -p $v $STUDIO_ROOT/etc
-  $bb mkdir -p $v $STUDIO_ROOT/home
-  $bb mkdir -p $v $STUDIO_ROOT/lib
-  $bb mkdir -p $v $STUDIO_ROOT/mnt
-  $bb mkdir -p $v $STUDIO_ROOT/opt
-  $bb mkdir -p $v $STUDIO_ROOT/sbin
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/bin
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/etc
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/home
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/lib
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/mnt
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/opt
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/sbin
 
-  $bb install -d $v -m 0750 $STUDIO_ROOT/root
-  $bb install -d $v -m 1777 $STUDIO_ROOT/tmp $STUDIO_ROOT/var/tmp
+  $bb install -d $v -m 0750 $HAB_STUDIO_ROOT/root
+  $bb install -d $v -m 1777 $HAB_STUDIO_ROOT/tmp $HAB_STUDIO_ROOT/var/tmp
 
-  $bb mkdir -p $v $STUDIO_ROOT/usr/bin
-  $bb mkdir -p $v $STUDIO_ROOT/usr/include
-  $bb mkdir -p $v $STUDIO_ROOT/usr/lib
-  $bb mkdir -p $v $STUDIO_ROOT/usr/libexec
-  $bb mkdir -p $v $STUDIO_ROOT/usr/sbin
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/bin
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/include
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/lib
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/libexec
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/sbin
 
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/doc
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/info
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/locale
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man1
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man2
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man3
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man4
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man5
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man6
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man7
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/man/man8
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/misc
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/terminfo
-  $bb mkdir -p $v $STUDIO_ROOT/usr/share/zoneinfo
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/doc
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/info
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/locale
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man1
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man2
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man3
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man4
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man5
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man6
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man7
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/man/man8
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/misc
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/terminfo
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/usr/share/zoneinfo
 
   # If the system is 64-bit, a few symlinks will be required
   case $($bb uname -m) in
   x86_64)
-    $bb ln -sf $v lib $STUDIO_ROOT/lib64
-    $bb ln -sf $v lib $STUDIO_ROOT/usr/lib64
+    $bb ln -sf $v lib $HAB_STUDIO_ROOT/lib64
+    $bb ln -sf $v lib $HAB_STUDIO_ROOT/usr/lib64
     ;;
   esac
 
-  $bb mkdir -p $v $STUDIO_ROOT/var
-  $bb mkdir -p $v $STUDIO_ROOT/var/log
-  $bb mkdir -p $v $STUDIO_ROOT/var/mail
-  $bb mkdir -p $v $STUDIO_ROOT/var/spool
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/log
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/mail
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/spool
 
-  #$bb ln -sf $v /run $STUDIO_ROOT/var/run
-  $bb ln -sf $v /run/lock $STUDIO_ROOT/var/lock
+  #$bb ln -sf $v /run $HAB_STUDIO_ROOT/var/run
+  $bb ln -sf $v /run/lock $HAB_STUDIO_ROOT/var/lock
 
-  $bb mkdir -p $v $STUDIO_ROOT/var/opt
-  $bb mkdir -p $v $STUDIO_ROOT/var/cache
-  $bb mkdir -p $v $STUDIO_ROOT/var/lib/color
-  $bb mkdir -p $v $STUDIO_ROOT/var/lib/misc
-  $bb mkdir -p $v $STUDIO_ROOT/var/lib/locate
-  $bb mkdir -p $v $STUDIO_ROOT/var/local
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/opt
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/cache
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/lib/color
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/lib/misc
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/lib/locate
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/var/local
 
-  $bb ln -sf $v /proc/self/mounts $STUDIO_ROOT/etc/mtab
+  $bb ln -sf $v /proc/self/mounts $HAB_STUDIO_ROOT/etc/mtab
 
-  $bb touch $STUDIO_ROOT/var/log/btmp
-  $bb touch $STUDIO_ROOT/var/log/lastlog
-  $bb touch $STUDIO_ROOT/var/log/wtmp
-  $bb chgrp $v 13 $STUDIO_ROOT/var/log/lastlog
-  $bb chmod $v 664 $STUDIO_ROOT/var/log/lastlog
-  $bb chmod $v 600 $STUDIO_ROOT/var/log/btmp
+  $bb touch $HAB_STUDIO_ROOT/var/log/btmp
+  $bb touch $HAB_STUDIO_ROOT/var/log/lastlog
+  $bb touch $HAB_STUDIO_ROOT/var/log/wtmp
+  $bb chgrp $v 13 $HAB_STUDIO_ROOT/var/log/lastlog
+  $bb chmod $v 664 $HAB_STUDIO_ROOT/var/log/lastlog
+  $bb chmod $v 600 $HAB_STUDIO_ROOT/var/log/btmp
 
   # Load the appropriate type strategy to complete the setup
   . $libexec_path/hab-studio-type-${STUDIO_TYPE}.sh
 
   # If `/etc/passwd` is not present, create a minimal version to satisfy
   # some software when being built
-  if [ ! -f "$STUDIO_ROOT/etc/passwd" ]; then
+  if [ ! -f "$HAB_STUDIO_ROOT/etc/passwd" ]; then
     if [ -n "$VERBOSE" ]; then
       echo "> Creating minimal /etc/passwd"
     fi
-    $bb cat > $STUDIO_ROOT/etc/passwd << "EOF"
+    $bb cat > $HAB_STUDIO_ROOT/etc/passwd << "EOF"
 root:x:0:0:root:/root:/bin/sh
 bin:x:1:1:bin:/dev/null:/bin/false
 daemon:x:6:6:Daemon User:/dev/null:/bin/false
@@ -291,11 +291,11 @@ EOF
 
   # If `/etc/group` is not present, create a minimal version to satisfy
   # some software when being built
-  if [ ! -f "$STUDIO_ROOT/etc/group" ]; then
+  if [ ! -f "$HAB_STUDIO_ROOT/etc/group" ]; then
     if [ -n "$VERBOSE" ]; then
       echo "> Creating minimal /etc/group"
     fi
-    $bb cat > $STUDIO_ROOT/etc/group << "EOF"
+    $bb cat > $HAB_STUDIO_ROOT/etc/group << "EOF"
 root:x:0:
 bin:x:1:daemon
 sys:x:2:
@@ -326,7 +326,7 @@ EOF
   # Studio filesystem so that commands such as `wget(1)` will work
   for f in /etc/hosts /etc/resolv.conf; do
     $bb mkdir -p $v $($bb dirname $f)
-    $bb cp $v $f $STUDIO_ROOT$f
+    $bb cp $v $f $HAB_STUDIO_ROOT$f
   done
 
   # Invoke the type's implementation
@@ -350,7 +350,7 @@ EOF
 
   # If `/etc/profile` is not present, create a minimal version with convenient
   # helper functions
-  local pfile="$STUDIO_ROOT/etc/profile"
+  local pfile="$HAB_STUDIO_ROOT/etc/profile"
   if [ ! -f "$pfile" ] || ! $bb grep -q '^record() {$' "$pfile"; then
     if [ -n "$VERBOSE" ]; then
       echo "> Creating /etc/profile"
@@ -394,12 +394,12 @@ cd /src
 PROFILE
   fi
 
-  $bb mkdir -p $v $STUDIO_ROOT/src
+  $bb mkdir -p $v $HAB_STUDIO_ROOT/src
   # Mount the `$SRC_PATH` under `/src` in the Studio, unless either `$NO_MOUNT`
   # or `$NO_SRC_PATH` are set
   if [ -z "${NO_MOUNT}" -a -z "${NO_SRC_PATH}" ]; then
-    if ! $bb mount | $bb grep -q "on $STUDIO_ROOT/src type"; then
-      $bb mount $v --bind $SRC_PATH $STUDIO_ROOT/src
+    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
+      $bb mount $v --bind $SRC_PATH $HAB_STUDIO_ROOT/src
     fi
   fi
 }
@@ -407,8 +407,8 @@ PROFILE
 # **Internal** Interactively enter a Studio.
 enter_studio() {
   # If a non-zero sized Studio configuration is not found, exit the program.
-  if [ ! -s $STUDIO_ROOT/.studio ]; then
-    exit_with "Directory $STUDIO_ROOT does not appear to be a Studio, aborting" 5
+  if [ ! -s $HAB_STUDIO_ROOT/.studio ]; then
+    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
   fi
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
@@ -421,7 +421,7 @@ enter_studio() {
 
   local env="$(chroot_env "$studio_path" "$studio_enter_environment")"
 
-  info "Entering Studio at $STUDIO_ROOT ($STUDIO_TYPE)"
+  info "Entering Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
   echo
 
   if [ -n "$VERBOSE" ]; then
@@ -429,15 +429,15 @@ enter_studio() {
   fi
 
   # Become the `chroot` process
-  exec $bb chroot "$STUDIO_ROOT" \
+  exec $bb chroot "$HAB_STUDIO_ROOT" \
     $studio_env_command -i $env $studio_enter_command $*
 }
 
 # **Internal** Run a build command using a Studio.
 build_studio() {
   # If a non-zero sized Studio configuration is not found, exit the program.
-  if [ ! -s $STUDIO_ROOT/.studio ]; then
-    exit_with "Directory $STUDIO_ROOT does not appear to be a Studio, aborting" 5
+  if [ ! -s $HAB_STUDIO_ROOT/.studio ]; then
+    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
   fi
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
@@ -451,27 +451,27 @@ build_studio() {
   # If a build command is not set, then this type does not support the `build`
   # subcommand and should abort.
   if [ -z "$studio_build_command" ]; then
-    exit_with "Studio at $STUDIO_ROOT ($STUDIO_TYPE) does not support 'build'" 10
+    exit_with "Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE) does not support 'build'" 10
   fi
 
   local env="$(chroot_env "$studio_path" "$studio_build_environment")"
 
-  info "Building '$*' in Studio at $STUDIO_ROOT ($STUDIO_TYPE)"
+  info "Building '$*' in Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
   if [ -n "$VERBOSE" ]; then
     set -x
   fi
 
   # Run the build command in the `chroot` environment
-  echo $studio_build_command $* | $bb chroot "$STUDIO_ROOT" \
+  echo $studio_build_command $* | $bb chroot "$HAB_STUDIO_ROOT" \
     $studio_env_command -i $env $studio_run_command
 }
 
 # **Internal** Run an arbitrary command in a Studio.
 run_studio() {
   # If a non-zero sized Studio configuration is not found, exit the program.
-  if [ ! -s $STUDIO_ROOT/.studio ]; then
-    exit_with "Directory $STUDIO_ROOT does not appear to be a Studio, aborting" 5
+  if [ ! -s $HAB_STUDIO_ROOT/.studio ]; then
+    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
   fi
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
@@ -484,14 +484,14 @@ run_studio() {
 
   local env="$(chroot_env "$studio_path" "$studio_run_environment")"
 
-  info "Running '$*' in Studio at $STUDIO_ROOT ($STUDIO_TYPE)"
+  info "Running '$*' in Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
   if [ -n "$VERBOSE" ]; then
     set -x
   fi
 
   # Run the command in the `chroot` environment
-  echo $* | $bb chroot "$STUDIO_ROOT" \
+  echo $* | $bb chroot "$HAB_STUDIO_ROOT" \
     $studio_env_command -i $env $studio_run_command
 }
 
@@ -506,7 +506,7 @@ rm_studio() {
     STUDIO_TYPE=unknown
   fi
 
-  info "Destroying Studio at $STUDIO_ROOT ($STUDIO_TYPE)"
+  info "Destroying Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
 
   # Set the verbose flag (i.e. `-v`) for any coreutils-like commands if verbose
   # mode was requested
@@ -520,44 +520,44 @@ rm_studio() {
   # currently mounted. You know, so you can run this all day long, like, for
   # fun and stuff.
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/src type"; then
-    $bb umount $v -l $STUDIO_ROOT/src
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
+    $bb umount $v -l $HAB_STUDIO_ROOT/src
   fi
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/run type"; then
-    $bb umount $v $STUDIO_ROOT/run
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/run type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/run
   fi
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/sys type"; then
-    $bb umount $v $STUDIO_ROOT/sys
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/sys type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/sys
   fi
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/proc type"; then
-    $bb umount $v $STUDIO_ROOT/proc
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/proc type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/proc
   fi
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/dev/pts type"; then
-    $bb umount $v $STUDIO_ROOT/dev/pts
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev/pts type"; then
+    $bb umount $v $HAB_STUDIO_ROOT/dev/pts
   fi
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/dev type"; then
-    $bb umount $v -l $STUDIO_ROOT/dev
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/dev type"; then
+    $bb umount $v -l $HAB_STUDIO_ROOT/dev
   fi
 
-  if $bb mount | $bb grep -q "on $STUDIO_ROOT/var/run/docker.sock type"; then
-    $bb umount $v -l $STUDIO_ROOT/var/run/docker.sock
+  if $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/var/run/docker.sock type"; then
+    $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
   fi
 
   # If a Studio root directory exists, but does not contain a Studio
   # configuration, we're going to abort rather than let the program attempt to
   # recursively delete the directory tree. It's a super small detail, but
   # there's an attempt at safety.
-  if [ -d $STUDIO_ROOT -a ! -f $studio_config ]; then
-    exit_with "Directory $STUDIO_ROOT does not appear to be a Studio, aborting" 5
+  if [ -d $HAB_STUDIO_ROOT -a ! -f $studio_config ]; then
+    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
   fi
 
   # Remove remaining filesystem
-  $bb rm -rf $v $STUDIO_ROOT
+  $bb rm -rf $v $HAB_STUDIO_ROOT
 }
 
 
@@ -724,7 +724,7 @@ while getopts ":nr:s:t:vqVh" opt; do
       NO_SRC_PATH=true
       ;;
     r)
-      STUDIO_ROOT=$OPTARG
+      HAB_STUDIO_ROOT=$OPTARG
       ;;
     s)
       SRC_PATH=$OPTARG
@@ -763,20 +763,20 @@ shift "$((OPTIND - 1))"
 # The source path to be mounted into the Studio, which defaults to current
 # working directory
 : ${SRC_PATH:=$($bb pwd)}
-# The directory name of the Studio (which will live under `$STUDIOS_HOME`). It
-# is a directoy path turned into a single directory name that can be
+# The directory name of the Studio (which will live under `$HAB_STUDIOS_HOME`).
+# It is a directoy path turned into a single directory name that can be
 # deterministically re-constructed on next program invocation.
 dir_name="$(echo $SRC_PATH | $bb sed -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g')"
 # The base path udner which all Studios are created, which defaults to
-# `/opt/studios`.
-: ${STUDIOS_HOME:=/opt/studios}
+# `/hab/studios`.
+: ${HAB_STUDIOS_HOME:=/hab/studios}
 # The root path of the Studio, which defaults to
-# `$STUDIOS_HOME/<SRC_PATH_AS_STRING>`.
-: ${STUDIO_ROOT:=$STUDIOS_HOME/$dir_name}
+# `$HAB_STUDIOS_HOME/<SRC_PATH_AS_STRING>`.
+: ${HAB_STUDIO_ROOT:=$HAB_STUDIOS_HOME/$dir_name}
 # The Studio configuration file which is used to determine commands to run,
 # extra environment variables, etc. Note that a valid Studio will have this
 # file at the root of its filesystem.
-studio_config="$STUDIO_ROOT/.studio"
+studio_config="$HAB_STUDIO_ROOT/.studio"
 # The type (flavor, variant, etc.) of Studio. Such types include `default`,
 # `stage1`, and `busybox` among others.
 : ${STUDIO_TYPE:=}
