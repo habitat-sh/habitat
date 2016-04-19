@@ -1,0 +1,22 @@
+{
+  "maxReviewers": 5,
+  "numFilesToCheck": 10,
+  "alwaysNotifyForPaths": [
+    {
+      "name": "adamhjk",
+      "files": ["components/sup/**/*"]
+    }
+  ],
+  "fallbackNotifyForPaths": [
+    {
+      "name": "adamhjk",
+      "files": ["**/*"]
+    }
+  ],
+  "findPotentialReviewers": true,
+  "fileBlacklist": [""],
+  "userBlacklist": [],
+  "userBlacklistForPR": [],
+  "requiredOrgs": [],
+  "actions": ["opened"]
+}
