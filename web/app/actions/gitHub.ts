@@ -8,17 +8,22 @@
 import "whatwg-fetch";
 import {URLSearchParams} from "angular2/http";
 import config from "../config";
-import * as fakeApi from "../fakeApi";
 import {attemptSignIn, addNotification, goHome, requestRoute, setCurrentOrigin,
     setSigningInFlag, signOut} from "./index";
 import {DANGER} from "./notifications";
 
+const parseLinkHeader = require("parse-link-header");
 const uuid = require("node-uuid").v4;
 const gitHubTokenAuthUrl = config["github_token_auth_url"];
 
+export const POPULATE_GITHUB_ORGS = "POPULATE_GITHUB_ORGS";
 export const POPULATE_GITHUB_REPOS = "POPULATE_GITHUB_REPOS";
 export const POPULATE_GITHUB_USER_DATA = "POPULATE_GITHUB_USER_DATA";
+export const RESET_GITHUB_ORGS = "RESET_GITHUB_ORGS";
+export const RESET_GITHUB_REPOS = "RESET_GITHUB_REPOS";
 export const SET_GITHUB_AUTH_STATE = "SET_GITHUB_AUTH_STATE";
+export const SET_GITHUB_ORGS_LOADING_FLAG = "SET_GITHUB_ORGS_LOADING_FLAG";
+export const SET_GITHUB_REPOS_LOADING_FLAG = "SET_GITHUB_REPOS_LOADING_FLAG";
 export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
 
 export function authenticateWithGitHub(token = undefined) {
@@ -61,11 +66,58 @@ export function authenticateWithGitHub(token = undefined) {
     };
 }
 
-export function fetchGitHubRepos() {
+export function fetchGitHubOrgs(page = 1) {
+    const token = sessionStorage.getItem("gitHubAuthToken");
+
     return dispatch => {
-        fakeApi.get("github/user/repos.json").then(response => {
-            dispatch(populateGitHubRepos(response));
+        fetch(`https://api.github.com/user/orgs?access_token=${token}&per_page=100&page=${page}`).then(response => {
+            const links = parseLinkHeader(response.headers.get("Link"));
+
+            // When we get the first page, clear everything out
+            if (page === 1) { dispatch(resetGitHubOrgs()); }
+
+            if (links && links.next && links.next.page) {
+                dispatch(setGitHubOrgsLoadingFlag(true));
+                dispatch(fetchGitHubOrgs(links.next.page));
+            } else {
+                dispatch(setGitHubOrgsLoadingFlag(false));
+            }
+
+            response.json().then(data => dispatch(populateGitHubOrgs(data)));
         });
+    };
+};
+
+export function fetchGitHubRepos(org, page = 1, username) {
+    const token = sessionStorage.getItem("gitHubAuthToken");
+    const urlPath = username ? `users/${username}/repos` : `orgs/${org}/repos`;
+
+    return dispatch => {
+        if (page === 1) {
+            dispatch(setGitHubReposLoadingFlag(true));
+        }
+
+        fetch(`https://api.github.com/${urlPath}?access_token=${token}&per_page=100&page=${page}`).then(response => {
+            const links = parseLinkHeader(response.headers.get("Link"));
+
+            // When we get the first page, clear everything out
+            if (page === 1) { dispatch(resetGitHubRepos()); }
+
+            if (links && links.next && links.next.page) {
+                dispatch(fetchGitHubRepos(org, links.next.page, username));
+            } else {
+                dispatch(setGitHubReposLoadingFlag(false));
+            }
+
+            response.json().then(data => dispatch(populateGitHubRepos(data)));
+        });
+    };
+}
+
+export function onGitHubOrgSelect(org, username) {
+    return dispatch => {
+        dispatch(setSelectedGitHubOrg(org));
+        dispatch(fetchGitHubRepos(org, 1, username));
     };
 }
 
@@ -74,6 +126,13 @@ export function onGitHubRepoSelect(repo) {
         dispatch(requestRoute(
             ["ProjectCreate", { repo: encodeURIComponent(repo) }]
         ));
+    };
+}
+
+function populateGitHubOrgs(payload) {
+    return {
+        type: POPULATE_GITHUB_ORGS,
+        payload,
     };
 }
 
@@ -118,6 +177,18 @@ export function requestGitHubAuthToken(params = {}, stateKey = "") {
     };
 }
 
+function resetGitHubOrgs() {
+    return {
+        type: RESET_GITHUB_ORGS,
+    };
+}
+
+function resetGitHubRepos() {
+    return {
+        type: RESET_GITHUB_REPOS,
+    };
+}
+
 export function setGitHubAuthState() {
     let payload = sessionStorage.getItem("gitHubAuthState") || uuid();
     sessionStorage.setItem("gitHubAuthState", payload);
@@ -125,6 +196,20 @@ export function setGitHubAuthState() {
     return {
         type: SET_GITHUB_AUTH_STATE,
         payload
+    };
+}
+
+function setGitHubOrgsLoadingFlag(payload) {
+    return {
+        type: SET_GITHUB_ORGS_LOADING_FLAG,
+        payload,
+    };
+}
+
+function setGitHubReposLoadingFlag(payload) {
+    return {
+        type: SET_GITHUB_REPOS_LOADING_FLAG,
+        payload,
     };
 }
 

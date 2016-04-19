@@ -7,8 +7,8 @@
 
 import {Component, OnInit} from "angular2/core";
 import {AppStore} from "../AppStore";
-import {fetchGitHubRepos, onGitHubRepoSelect, setSelectedGitHubOrg}
-    from "../actions/index";
+import {fetchGitHubOrgs, fetchGitHubRepos, onGitHubOrgSelect,
+    onGitHubRepoSelect, setSelectedGitHubOrg} from "../actions/index";
 import {GitHubRepoPickerComponent} from
     "../github-repo-picker/GitHubRepoPickerComponent";
 import {requireSignIn} from "../util";
@@ -30,32 +30,40 @@ import {requireSignIn} from "../util";
           </p>
       </div>
       <div class="page-body">
-          <github-repo-picker [repos]="gitHub.repos"
+          <github-repo-picker [areOrgsLoading]="gitHub.ui.orgs.loading"
+                              [areReposLoading]="gitHub.ui.repos.loading"
+                              [fetchGitHubOrgs]="fetchGitHubOrgs"
+                              [fetchGitHubRepos]="fetchGitHubRepos"
+                              [orgs]="gitHub.orgs"
+                              [repos]="gitHub.repos"
                               [onOrgSelect]="onOrgSelect"
                               [onRepoSelect]="onRepoSelect"
-                              [selectedOrg]="gitHub.selectedOrg">
+                              [selectedOrg]="gitHub.selectedOrg"
+                              [user]="user">
           </github-repo-picker>
-          <p *ngIf="!gitHub.isLinked">
-              You do not have a linked GitHub account.
-              <a href="#">Try linking one now</a>.
-          </p>
-          <p *ngIf="gitHub.repos.size === 0">
-              You have no GitHub repositories. You might need to
-              <a target="_blank" href="https://github.com/new">create one on GitHub</a>.
-          </p>
       </div>
     </div>`
 })
 
 export class SCMReposPageComponent implements OnInit {
+    private fetchGitHubOrgs: Function;
+    private fetchGitHubRepos: Function;
     private onOrgSelect: Function;
     private onRepoSelect: Function;
 
     constructor(private store: AppStore) {
-        requireSignIn(this);
+        this.fetchGitHubOrgs = () => {
+            this.store.dispatch(fetchGitHubOrgs());
+            return false;
+        };
 
-        this.onOrgSelect = (org) => {
-            this.store.dispatch(setSelectedGitHubOrg(org));
+        this.fetchGitHubRepos = (org, page, username) => {
+            this.store.dispatch(fetchGitHubRepos(org, page, username));
+            return false;
+        };
+
+        this.onOrgSelect = (org, username) => {
+            this.store.dispatch(onGitHubOrgSelect(org, username));
             return false;
         };
 
@@ -66,10 +74,14 @@ export class SCMReposPageComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.store.dispatch(fetchGitHubRepos());
+        requireSignIn(this);
     }
 
     get gitHub() {
         return this.store.getState().gitHub;
+    }
+
+    get user() {
+        return this.store.getState().users.current.gitHub;
     }
 }
