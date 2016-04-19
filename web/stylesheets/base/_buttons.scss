@@ -40,4 +40,24 @@
       background-color: $action-color;
     }
   }
+
+  &.danger {
+    background-color: $hab-orange-dark;
+
+    &:focus,
+    &:hover {
+      background-color: shade($hab-orange-dark, 20%);
+    }
+
+    &:disabled,
+    &.disabled {
+      &:hover {
+        background-color: $hab-orange-dark;
+      }
+    }
+  }
+
+  &.small {
+    font-size: 50%;
+  }
 }

@@ -11,6 +11,7 @@ import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {OriginCreatePageComponent} from "./origin-create-page/OriginCreatePageComponent";
+import {OriginsPageComponent} from "./origins-page/OriginsPageComponent";
 import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
 import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
 import {PackagePageComponent} from "./package-page/PackagePageComponent";
@@ -22,8 +23,9 @@ import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {authenticateWithGitHub, removeNotification, routeChange, signOut,
-    toggleUserNavMenu} from "./actions/index";
+import {authenticateWithGitHub, fetchMyOrigins, removeNotification, routeChange,
+    setCurrentOrigin, signOut, toggleOriginPicker, toggleUserNavMenu}
+    from "./actions/index";
 
 @Component({
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
@@ -42,9 +44,15 @@ import {authenticateWithGitHub, removeNotification, routeChange, signOut,
                     [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
     </div>
     <div class="hab-container">
-        <hab-side-nav [isSignedIn]="user.isSignedIn"
+        <hab-side-nav [fetchMyOrigins]="fetchMyOrigins"
+                      [isOriginPickerOpen]="state.origins.ui.isPickerOpen"
+                      [isSignedIn]="user.isSignedIn"
+                      [myOrigins]="state.origins.mine"
                       [origin]="origin"
-                      [route]="state.router.route"></hab-side-nav>
+                      [route]="state.router.route"
+                      [setCurrentOrigin]="setCurrentOrigin"
+                      [toggleOriginPicker]="toggleOriginPicker">
+        </hab-side-nav>
         <section class="hab-main">
             <router-outlet></router-outlet>
         </section>
@@ -63,6 +71,11 @@ import {authenticateWithGitHub, removeNotification, routeChange, signOut,
         path: "/explore",
         name: "Explore",
         component: ExplorePageComponent
+    },
+    {
+        path: "/origins",
+        name: "Origins",
+        component: OriginsPageComponent,
     },
     {
         path: "/origins/create",
@@ -137,8 +150,11 @@ import {authenticateWithGitHub, removeNotification, routeChange, signOut,
 ])
 
 export class AppComponent implements OnInit {
+    fetchMyOrigins: Function;
     removeNotification: Function;
+    setCurrentOrigin: Function;
     signOut: Function;
+    toggleOriginPicker: Function;
     toggleUserNavMenu: Function;
 
     constructor(private router: Router, private store: AppStore) {
@@ -154,13 +170,28 @@ export class AppComponent implements OnInit {
             if (requestedRoute) { router.navigate(requestedRoute); }
         });
 
+        this.fetchMyOrigins = function() {
+            this.store.dispatch(fetchMyOrigins());
+            return false;
+        }.bind(this);
+
         this.removeNotification = function(i) {
             this.store.dispatch(removeNotification(i));
             return false;
         }.bind(this);
 
+        this.setCurrentOrigin = function (origin) {
+            this.store.dispatch(setCurrentOrigin(origin));
+            return false;
+        }.bind(this);
+
         this.signOut = function() {
             this.store.dispatch(signOut());
+            return false;
+        }.bind(this);
+
+        this.toggleOriginPicker = function() {
+            this.store.dispatch(toggleOriginPicker());
             return false;
         }.bind(this);
 

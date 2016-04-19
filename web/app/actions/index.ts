@@ -37,9 +37,12 @@ export const PERFORM_ORG_MEMBER_SEARCH = orgActions.PERFORM_ORG_MEMBER_SEARCH;
 export const POPULATE_ORG = orgActions.POPULATE_ORG;
 export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
+export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
+export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
+
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
@@ -84,6 +87,9 @@ export const performOrgMemberSearch = orgActions.performOrgMemberSearch;
 export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
 
 export const createOrigin = originActions.createOrigin;
+export const deleteOrigin = originActions.deleteOrigin;
+export const fetchMyOrigins = originActions.fetchMyOrigins;
+export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
 
 export const fetchExplore = packageActions.fetchExplore;

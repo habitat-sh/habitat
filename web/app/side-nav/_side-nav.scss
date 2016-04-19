@@ -8,16 +8,6 @@
 .hab-side-nav {
   @include span-columns(2);
 
-  .switcher {
-    background-color: $hab-blue-light;
-    font-size: 90%;
-    font-weight: 600;
-    line-height: 56px;
-    margin-bottom: 1em;
-    min-height: 56px;
-    padding: 0 1em;
-  }
-
   h4 {
     color: $hab-blue;
     font-size: 75%;
@@ -28,7 +18,7 @@
     width: 75%;
   }
 
-  ul {
+  &--list {
     line-height: $base-line-height * 1.333;
     margin-bottom: 2em;
 

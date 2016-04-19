@@ -8,7 +8,7 @@
 .hab-explore {
   &-plan-list {
     li a {
-      @extend .bldr-item-list;
+      @extend .hab-item-list;
     }
   }
 }
