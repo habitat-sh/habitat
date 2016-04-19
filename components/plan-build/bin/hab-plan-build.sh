@@ -1849,11 +1849,16 @@ do_strip() {
 
 # Default implementation for the `do_strip()` phase.
 do_default_strip() {
-  build_line "Stripping binaries"
-  find $pkg_prefix -type f -print0 \
-    | xargs -0 file | grep ELF | cut -d ":" -f 1 \
-    | xargs --no-run-if-empty strip --strip-debug \
-    || true
+  build_line "Stripping unneeded symbols from binaries and libraries"
+  find $pkg_prefix -type f -perm u+w -print0 2> /dev/null \
+    | while read -rd '' f; do
+      case "$(file -bi "$f")" in
+        *application/x-executable*) strip --strip-all "$f";;
+        *application/x-sharedlib*) strip --strip-unneeded "$f";;
+        *application/x-archive*) strip --strip-debug "$f";;
+        *) continue;;
+      esac
+    done
 }
 
 # **Internal** Write the `$pkg_prefix/MANIFEST`.
