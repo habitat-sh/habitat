@@ -4,11 +4,12 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::io::prelude::*;
+use std::collections::HashSet;
+use std::env;
 use std::fs;
 use std::fs::File;
+use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
-use std::env;
 use std::mem;
 use std::path::Path;
 
@@ -599,15 +600,48 @@ fn read_key_bytes(keyfile: &str) -> Result<Vec<u8>> {
     }
 }
 
+
+/// If a key "belongs" to a filename revision, then add the full stem of the
+/// file (without path, without .suffix)
+fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<String>) -> () {
+    if filename.ends_with(PUB_KEY_SUFFIX) {
+        if filename.starts_with(keyname) {
+            // push filename without extension
+            // -1 for the '.' before 'pub'
+            let (stem, _) = filename.split_at(filename.chars().count() -
+                                              PUB_KEY_SUFFIX.chars().count() -
+                                              1);
+            candidates.insert(stem.to_string());
+        }
+        // SECRET_SIG_KEY_SUFFIX and SECRET_BOX_KEY_SUFFIX are the same at the
+        // moment, but don't assume that they'll always be that way.
+    } else if filename.ends_with(SECRET_SIG_KEY_SUFFIX) {
+        if filename.starts_with(keyname) {
+            // -1 for the '.' before the suffix
+            let (stem, _) = filename.split_at(filename.chars().count() -
+                                              SECRET_SIG_KEY_SUFFIX.chars().count() -
+                                              1);
+            candidates.insert(stem.to_string());
+        }
+    } else if filename.ends_with(SECRET_BOX_KEY_SUFFIX) {
+            // -1 for the '.' before the suffix
+        if filename.starts_with(keyname) {
+            let (stem, _) = filename.split_at(filename.chars().count() -
+                                              SECRET_BOX_KEY_SUFFIX.chars().count() -
+                                              1);
+            candidates.insert(stem.to_string());
+        }
+    }
+}
+
 /// Take a key name (ex "habitat"), and find all revisions of that
 /// keyname in the nacl_key_dir().
 pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
     // look for .pub keys
     let dir = nacl_key_dir();
-
     // accumulator for files that match
-    let mut candidates = Vec::new();
-
+    // let mut candidates = Vec::new();
+    let mut candidates = HashSet::new();
     let paths = match fs::read_dir(&dir) {
         Ok(p) => p,
         Err(e) => {
@@ -645,19 +679,17 @@ pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
             }
         };
 
-        if filename.ends_with(PUB_KEY_SUFFIX) {
-            if filename.starts_with(keyname) {
-                // push filename without extension
-                // -1 for the '.' before 'pub'
-                let (stem, _) = filename.split_at(filename.chars().count() -
-                                                  PUB_KEY_SUFFIX.chars().count() -
-                                                  1);
-                candidates.push(stem.to_string());
-            }
-        }
+        debug!("checking file: {}", &filename);
+        check_filename(keyname, filename, &mut candidates);
     }
-    candidates.sort();
+
+    // traverse the candidates set and sort the entries
+    let mut candidate_vec = Vec::new();
+    for c in &candidates {
+        candidate_vec.push(c.clone());
+    }
+    candidate_vec.sort();
     // newest key first
-    candidates.reverse();
-    Ok(candidates)
+    candidate_vec.reverse();
+    Ok(candidate_vec)
 }
