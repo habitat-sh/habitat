@@ -1,8 +1,8 @@
 sudo: required
 language: bash
-branches:
-  only:
-    - master
+# branches:
+#  only:
+#    - master
 services:
   - docker
 before_install:
