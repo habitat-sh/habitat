@@ -324,7 +324,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                         if try!(service_config.write(&package)) {
                             try!(package.copy_run(&service_config));
                             try!(package.reconfigure(&service_config));
-                            println!("Restarting because the service config was updated via the census");
+                            outputln!("Restarting because the service config was updated via the census");
                             restart_process = true;
                         }
                     }
@@ -381,7 +381,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     try!(worker.update_package(package));
                     try!(package::PackageUpdater::run(&updater));
                     // force the package to restart
-                    println!("Restarting because the package was updated");
+                    outputln!("Restarting because the package was updated");
                     restart_process = true;
                 }
                 Ok(_) => {}
