@@ -835,103 +835,97 @@ impl Context {
     }
 
 
-    /// If a key "belongs" to a filename revision, then add the full stem of the
-    /// file (without path, without .suffix)
-    fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<String>) -> () {
-        if filename.ends_with(PUB_KEY_SUFFIX) {
-            if filename.starts_with(keyname) {
-                // push filename without extension
-                // -1 for the '.' before 'pub'
-                let (stem, _) = filename.split_at(filename.chars().count() -
-                                                  PUB_KEY_SUFFIX.chars().count() -
-                                                  1);
-                candidates.insert(stem.to_string());
-            }
-            // SECRET_SIG_KEY_SUFFIX and SECRET_BOX_KEY_SUFFIX are the same at the
-            // moment, but don't assume that they'll always be that way.
-        } else if filename.ends_with(SECRET_SIG_KEY_SUFFIX) {
-            if filename.starts_with(keyname) {
-                // -1 for the '.' before the suffix
-                let (stem, _) = filename.split_at(filename.chars().count() -
-                                                  SECRET_SIG_KEY_SUFFIX.chars().count() -
-                                                  1);
-                candidates.insert(stem.to_string());
-            }
-        } else if filename.ends_with(SECRET_BOX_KEY_SUFFIX) {
+
+/// If a key "belongs" to a filename revision, then add the full stem of the
+/// file (without path, without .suffix)
+fn check_filename(&self, keyname: &str, filename: String, candidates: &mut HashSet<String>) -> () {
+    if filename.ends_with(PUB_KEY_SUFFIX) {
+        if filename.starts_with(keyname) {
+            // push filename without extension
+            // -1 for the '.' before 'pub'
+            let (stem, _) = filename.split_at(filename.chars().count() -
+                                              PUB_KEY_SUFFIX.chars().count() -
+                                              1);
+            candidates.insert(stem.to_string());
+        }
+        // SECRET_SIG_KEY_SUFFIX and SECRET_BOX_KEY_SUFFIX are the same at the
+        // moment, but don't assume that they'll always be that way.
+    } else if filename.ends_with(SECRET_SIG_KEY_SUFFIX) {
+        if filename.starts_with(keyname) {
             // -1 for the '.' before the suffix
-            if filename.starts_with(keyname) {
-                let (stem, _) = filename.split_at(filename.chars().count() -
-                                                  SECRET_BOX_KEY_SUFFIX.chars().count() -
-                                                  1);
-                candidates.insert(stem.to_string());
-            }
+            let (stem, _) = filename.split_at(filename.chars().count() -
+                                              SECRET_SIG_KEY_SUFFIX.chars().count() -
+                                              1);
+            candidates.insert(stem.to_string());
         }
-    }
-
-    /// Take a key name (ex "habitat"), and find all revisions of that
-    /// keyname in the nacl_key_dir().
-    pub fn get_key_revisions(keyname: &str) -> Result<Vec<String>> {
-        // accumulator for files that match
-        let mut candidates = HashSet::new();
-        let paths = match fs::read_dir(&self.key_cache) {
-            Ok(p) => p,
-            Err(e) => {
-                return Err(Error::CryptoError(format!("Error reading key directory {}: {}", dir, e)))
-            }
-        };
-        for path in paths {
-            match path {
-                Ok(ref p) => p,
-                Err(e) => {
-                    return Err(Error::CryptoError(format!("Error reading key directory {}: {}",
-                                                          &self.key_cache,
-                                                          e)))
-                }
-            };
-            for path in paths {
-                match path {
-                    Ok(ref p) => p,
-                    Err(e) => {
-                        debug!("Error reading path {}", e);
-                        return Err(Error::CryptoError(format!("Error reading key path {}", e)));
-                    }
-                };
-
-                let p: fs::DirEntry = path.unwrap();
-
-                match p.metadata() {
-                    Ok(md) => {
-                        if !md.is_file() {
-                            continue;
-                        }
-                    }
-                    Err(e) => {
-                        debug!("Error checking file metadata {}", e);
-                        continue;
-                    }
-                }
-                let filename = match p.file_name().into_string() {
-                    Ok(f) => f,
-                    Err(e) => {
-                        // filename is still an OsString, so print it as debug output
-                        debug!("Invalid filename {:?}", e);
-                        return Err(Error::CryptoError(format!("Invalid filename in key path")));
-                    }
-                };
-
-                debug!("checking file: {}", &filename);
-                check_filename(keyname, filename, &mut candidates);
-            }
+    } else if filename.ends_with(SECRET_BOX_KEY_SUFFIX) {
+            // -1 for the '.' before the suffix
+        if filename.starts_with(keyname) {
+            let (stem, _) = filename.split_at(filename.chars().count() -
+                                              SECRET_BOX_KEY_SUFFIX.chars().count() -
+                                              1);
+            candidates.insert(stem.to_string());
         }
-
-        // traverse the candidates set and sort the entries
-        let mut candidate_vec = Vec::new();
-        for c in &candidates {
-            candidate_vec.push(c.clone());
-        }
-        candidate_vec.sort();
-        // newest key first
-        candidate_vec.reverse();
-        Ok(candidate_vec)
     }
 }
+
+/// Take a key name (ex "habitat"), and find all revisions of that
+/// keyname in the nacl_key_dir().
+pub fn get_key_revisions(&self, keyname: &str) -> Result<Vec<String>> {
+    // look for .pub keys
+    // accumulator for files that match
+    // let mut candidates = Vec::new();
+    let mut candidates = HashSet::new();
+    let paths = match fs::read_dir(&self.key_cache) {
+        Ok(p) => p,
+        Err(e) => {
+            return Err(Error::CryptoError(format!("Error reading key directory {}: {}", &self.key_cache, e)))
+        }
+    };
+    for path in paths {
+        match path {
+            Ok(ref p) => p,
+            Err(e) => {
+                debug!("Error reading path {}", e);
+                return Err(Error::CryptoError(format!("Error reading key path {}", e)));
+            }
+        };
+
+        let p: fs::DirEntry = path.unwrap();
+
+        match p.metadata() {
+            Ok(md) => {
+                if !md.is_file() {
+                    continue;
+                }
+            }
+            Err(e) => {
+                debug!("Error checking file metadata {}", e);
+                continue;
+            }
+        };
+        let filename = match p.file_name().into_string() {
+            Ok(f) => f,
+            Err(e) => {
+                // filename is still an OsString, so print it as debug output
+                debug!("Invalid filename {:?}", e);
+                return Err(Error::CryptoError(format!("Invalid filename in key path")));
+            }
+        };
+
+        debug!("checking file: {}", &filename);
+        self.check_filename(keyname, filename, &mut candidates);
+    }
+
+    // traverse the candidates set and sort the entries
+    let mut candidate_vec = Vec::new();
+    for c in &candidates {
+        candidate_vec.push(c.clone());
+    }
+    candidate_vec.sort();
+    // newest key first
+    candidate_vec.reverse();
+    Ok(candidate_vec)
+}
+
+  }
