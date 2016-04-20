@@ -57,6 +57,15 @@
     }
   }
 
+  &.secondary {
+    background-color: $medium-gray;
+
+    &:focus,
+    &:hover {
+      background-color: shade($medium-gray, 20%);
+    }
+  }
+
   &.small {
     font-size: 50%;
   }

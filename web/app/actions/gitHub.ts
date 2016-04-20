@@ -16,12 +16,14 @@ const parseLinkHeader = require("parse-link-header");
 const uuid = require("node-uuid").v4;
 const gitHubTokenAuthUrl = config["github_token_auth_url"];
 
+export const LOAD_SESSION_STATE = "LOAD_SESSION_STATE";
 export const POPULATE_GITHUB_ORGS = "POPULATE_GITHUB_ORGS";
 export const POPULATE_GITHUB_REPOS = "POPULATE_GITHUB_REPOS";
 export const POPULATE_GITHUB_USER_DATA = "POPULATE_GITHUB_USER_DATA";
 export const RESET_GITHUB_ORGS = "RESET_GITHUB_ORGS";
 export const RESET_GITHUB_REPOS = "RESET_GITHUB_REPOS";
 export const SET_GITHUB_AUTH_STATE = "SET_GITHUB_AUTH_STATE";
+export const SET_GITHUB_AUTH_TOKEN = "SET_GITHUB_AUTH_TOKEN";
 export const SET_GITHUB_ORGS_LOADING_FLAG = "SET_GITHUB_ORGS_LOADING_FLAG";
 export const SET_GITHUB_REPOS_LOADING_FLAG = "SET_GITHUB_REPOS_LOADING_FLAG";
 export const SET_SELECTED_GITHUB_ORG = "SET_SELECTED_GITHUB_ORG";
@@ -31,8 +33,6 @@ export function authenticateWithGitHub(token = undefined) {
     const isCodeInQueryString = new URLSearchParams(
         window.location.search.slice(1)
     ).has("code");
-    const existingToken = sessionStorage.getItem("gitHubAuthToken");
-    token = token || existingToken;
 
     return dispatch => {
         if (isCodeInQueryString) {
@@ -56,11 +56,6 @@ export function authenticateWithGitHub(token = undefined) {
             }).then(data => {
                 dispatch(populateGitHubUserData(data));
                 dispatch(attemptSignIn(data["login"]));
-
-                // If we started off with a token, that means we're in the
-                // process of signing in and should be redirected home. If not,
-                // it means we don't need to redirect
-                if (wasInitializedWithToken) { dispatch(goHome()); }
             });
         }
     };
@@ -114,6 +109,16 @@ export function fetchGitHubRepos(org, page = 1, username) {
     };
 }
 
+export function loadSessionState(sessionStorage) {
+    return {
+        type: LOAD_SESSION_STATE,
+        payload: {
+            gitHubAuthToken: sessionStorage.getItem("gitHubAuthToken"),
+            gitHubAuthState: sessionStorage.getItem("gitHubAuthState"),
+        },
+    };
+}
+
 export function onGitHubOrgSelect(org, username) {
     return dispatch => {
         dispatch(setSelectedGitHubOrg(org));
@@ -150,6 +155,13 @@ function populateGitHubUserData(payload) {
     };
 }
 
+export function removeSessionStorage() {
+    return dispatch => {
+        sessionStorage.removeItem("gitHubAuthState");
+        sessionStorage.removeItem("gitHubAuthToken");
+    };
+}
+
 export function requestGitHubAuthToken(params = {}, stateKey = "") {
     return dispatch => {
         if (params["code"] && params["state"] === stateKey) {
@@ -165,6 +177,7 @@ export function requestGitHubAuthToken(params = {}, stateKey = "") {
             }).then(data => {
                 if (data["token"]) {
                     dispatch(authenticateWithGitHub(data["token"]));
+                    dispatch(setGitHubAuthToken(data["token"]));
                 } else {
                     dispatch(addNotification({
                         title: "Authentication Failed",
@@ -195,6 +208,15 @@ export function setGitHubAuthState() {
 
     return {
         type: SET_GITHUB_AUTH_STATE,
+        payload
+    };
+}
+
+export function setGitHubAuthToken(payload) {
+    sessionStorage.setItem("gitHubAuthToken", payload);
+
+    return {
+        type: SET_GITHUB_AUTH_TOKEN,
         payload
     };
 }

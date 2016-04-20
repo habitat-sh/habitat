@@ -58,15 +58,12 @@ export function packageString(o = {}) {
 export function requireSignIn(pageComponent) {
     const store = pageComponent.store;
     const state = store.getState();
-    const user = state.users.current;
-    const isSigningIn = user.isSigningIn;
-    const isSignedIn = user.isSignedIn;
+    const hasToken = !!state.gitHub.authToken;
     const currentOrigin = state.origins.current.name;
 
-    if (!isSigningIn ) {
-        if (!isSignedIn) { store.dispatch(requestRoute(["SignIn"])); }
-        if (isSignedIn && !currentOrigin) {
-            store.dispatch(requestRoute(["OriginCreate"]));
-        }
+    if (!hasToken) { store.dispatch(requestRoute(["SignIn"])); }
+
+    if (hasToken && !currentOrigin) {
+        store.dispatch(requestRoute(["OriginCreate"]));
     }
 }

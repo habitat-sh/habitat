@@ -6,9 +6,9 @@
 // open source license such as the Apache 2.0 License.
 
 import {Component, OnInit} from "angular2/core";
-import {RouteParams, RouterLink, Router} from "angular2/router";
+import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {attemptSignIn, goHome, requestGitHubAuthToken, setGitHubAuthState} from
+import {requestGitHubAuthToken, setGitHubAuthState, signOut} from
     "../actions/index";
 import config from "../config";
 import {createGitHubLoginUrl, icon} from "../util";
@@ -23,15 +23,24 @@ import {createGitHubLoginUrl, icon} from "../util";
         <div class="main">
             <div class="button-area">
                 <hr>
-                <a [class.disabled]="isSigningIn"
+                <a [class.disabled]="isSigningIn || isSignedIn"
                    class="button" href="{{gitHubLoginUrl}}">
                     <i class="octicon octicon-mark-github"></i>
                     <span *ngIf="isSigningIn">
                         Signing In&hellip;
                     </span>
-                    <span *ngIf="!isSigningIn">
+                    <span *ngIf="!isSignedIn && !isSigningIn">
                         Sign In with GitHub
                     </span>
+                    <span *ngIf="isSignedIn && !isSigningIn">
+                        Signed In with GitHub
+                    </span>
+                </a>
+                <a *ngIf="isSignedIn"
+                   class="button secondary hab-sign-in--out"
+                   (click)="signOut()"
+                   href="#">
+                   Sign Out
                 </a>
                 <hr>
             </div>
@@ -76,6 +85,10 @@ export class SignInPageComponent implements OnInit {
         return createGitHubLoginUrl(this.store.getState().gitHub.authState);
     }
 
+    get isSignedIn() {
+        return this.store.getState().users.current.isSignedIn;
+    }
+
     get isSigningIn() {
         return this.store.getState().users.current.isSigningIn;
     }
@@ -83,16 +96,16 @@ export class SignInPageComponent implements OnInit {
     get sourceCodeUrl() { return config["source_code_url"]; }
 
     ngOnInit() {
-        if (this.store.getState().users.current.isSignedIn) {
-            this.store.dispatch(goHome());
-        } else {
-            this.store.dispatch(setGitHubAuthState());
-            this.store.dispatch(requestGitHubAuthToken(
-                this.routeParams.params,
-                this.store.getState().gitHub.authState
-            ));
-        }
+        this.store.dispatch(setGitHubAuthState());
+        this.store.dispatch(requestGitHubAuthToken(
+            this.routeParams.params,
+            this.store.getState().gitHub.authState
+        ));
     }
 
     private icon(name) { return icon(name); }
+
+    private signOut() {
+        this.store.dispatch(signOut());
+    }
 }
