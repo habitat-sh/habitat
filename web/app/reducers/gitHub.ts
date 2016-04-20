@@ -11,6 +11,10 @@ import initialState from "../initialState";
 
 export default function gitHub(state = initialState["gitHub"], action) {
     switch (action.type) {
+        case actionTypes.LOAD_SESSION_STATE:
+            return state.set("authState", action.payload.gitHubAuthState).
+                set("authToken", action.payload.gitHubAuthToken);
+
         case actionTypes.POPULATE_GITHUB_ORGS:
             return state.set("orgs",
                 state.get("orgs").concat(fromJS(action.payload)).
@@ -31,6 +35,9 @@ export default function gitHub(state = initialState["gitHub"], action) {
 
         case actionTypes.SET_GITHUB_AUTH_STATE:
             return state.set("authState", action.payload);
+
+        case actionTypes.SET_GITHUB_AUTH_TOKEN:
+            return state.set("authToken", action.payload);
 
         case actionTypes.SET_GITHUB_ORGS_LOADING_FLAG:
             return state.setIn(["ui", "orgs", "loading"], action.payload);

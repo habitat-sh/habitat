@@ -14,6 +14,7 @@ export default Record({
     })(),
     gitHub: Record({
         authState: undefined,
+        authToken: undefined,
         orgs: List(),
         repos: List(),
         selectedOrg: undefined,

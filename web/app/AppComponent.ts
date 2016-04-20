@@ -23,9 +23,9 @@ import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {authenticateWithGitHub, fetchMyOrigins, removeNotification, routeChange,
-    setCurrentOrigin, signOut, toggleOriginPicker, toggleUserNavMenu}
-    from "./actions/index";
+import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
+    removeNotification, routeChange, setCurrentOrigin, signOut,
+    toggleOriginPicker, toggleUserNavMenu} from "./actions/index";
 
 @Component({
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
@@ -209,8 +209,13 @@ export class AppComponent implements OnInit {
     get user() { return this.state.users.current; }
 
     ngOnInit() {
+        // Load up the session state from sessionStorage when we load the page
+        this.store.dispatch(loadSessionState(sessionStorage));
+
         // When the page loads attempt to authenticate with GitHub. If there
         // is no token stored in session storage, this won't do anything.
-        this.store.dispatch(authenticateWithGitHub());
+        this.store.dispatch(
+            authenticateWithGitHub(this.state.gitHub.authToken)
+        );
     }
 }

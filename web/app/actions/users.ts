@@ -5,7 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-import {requestRoute, resetAppState} from "./index";
+import {requestRoute, removeSessionStorage, resetAppState} from "./index";
 
 export const SET_SIGNING_IN_FLAG = "SET_SIGNING_IN_FLAG";
 export const SIGN_IN_ATTEMPT = "SIGN_IN_ATTEMPT";
@@ -32,9 +32,8 @@ export function toggleUserNavMenu() {
 }
 
 export function signOut() {
-    sessionStorage.removeItem("gitHubAuthToken");
-
     return dispatch => {
+        dispatch(removeSessionStorage());
         dispatch(resetAppState());
         dispatch(requestRoute(["SignIn"]));
     };
