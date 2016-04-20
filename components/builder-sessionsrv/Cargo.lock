@@ -10,6 +10,8 @@ dependencies = [
  "hyper 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2_redis 0.2.0 (git+https://github.com/chef/r2d2-redis.git?branch=update-r2d2)",
  "redis 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -96,6 +98,8 @@ version = "0.1.0"
 dependencies = [
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "r2d2_redis 0.2.0 (git+https://github.com/chef/r2d2-redis.git?branch=update-r2d2)",
  "redis 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -277,6 +281,23 @@ dependencies = [
 name = "protobuf"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "r2d2"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "r2d2_redis"
+version = "0.2.0"
+source = "git+https://github.com/chef/r2d2-redis.git?branch=update-r2d2#a137d2496e9720a6b1080dcb5cf49a101c2d8e7d"
+dependencies = [
+ "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "rand"

@@ -8,10 +8,10 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use dbcache;
 use hnet;
 use hyper;
 use protobuf;
-use redis;
 use rustc_serialize::json;
 use zmq;
 
@@ -21,7 +21,7 @@ use oauth;
 pub enum Error {
     Auth(oauth::github::AuthErr),
     BadPort(String),
-    DataStore(redis::RedisError),
+    DataStore(dbcache::Error),
     EntityNotFound,
     HTTP(hyper::status::StatusCode),
     HyperError(hyper::error::Error),
@@ -52,6 +52,12 @@ impl fmt::Display for Error {
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
+    }
+}
+
+impl From<dbcache::Error> for Error {
+    fn from(err: dbcache::Error) -> Self {
+        Error::DataStore(err)
     }
 }
 
@@ -88,12 +94,6 @@ impl From<oauth::github::AuthErr> for Error {
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Self {
         Error::Protobuf(err)
-    }
-}
-
-impl From<redis::RedisError> for Error {
-    fn from(err: redis::RedisError) -> Self {
-        Error::DataStore(err)
     }
 }
 

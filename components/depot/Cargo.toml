@@ -9,7 +9,6 @@ name = "hab-depot"
 doc = false
 
 [dependencies]
-bincode = "*"
 bitflags = "*"
 env_logger = "*"
 hyper = "*"
@@ -17,9 +16,10 @@ iron = "*"
 libc = "*"
 lazy_static = "*"
 libarchive = "*"
-lmdb-sys = "*"
 log = "*"
 openssl = "*"
+r2d2 = "*"
+redis = "*"
 regex = "*"
 router = "*"
 rust-crypto = "*"
@@ -32,6 +32,13 @@ walkdir = "*"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.r2d2_redis]
+git = "https://github.com/chef/r2d2-redis.git"
+branch = "update-r2d2"
+
+[dependencies.habitat_builder_dbcache]
+path = "../builder-dbcache"
 
 [dependencies.habitat_core]
 path = "../core"

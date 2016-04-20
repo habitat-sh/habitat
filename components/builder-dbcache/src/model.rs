@@ -6,21 +6,16 @@
 
 use rustc_serialize::{Decodable, Encodable};
 
-use data_store::{DataStore, DataRecord, InstaId};
+use data_store::{DataRecord, InstaId, Table};
 
 pub type Fields = Vec<(&'static str, String)>;
 
-pub trait Model : Encodable + Decodable + From<DataRecord> {
-    type Error;
+pub trait Model: Encodable + Decodable + From<DataRecord> {
+    type Table: Table;
 
-    fn key(id: &InstaId) -> String {
-        format!("{}:{}", Self::prefix(), id)
-    }
-    fn prefix() -> &'static str;
-    fn seq_id() -> &'static str;
     fn fields(&self) -> Fields;
     fn id(&self) -> &InstaId;
-    fn save(&mut self, &DataStore) -> Result<(), Self::Error>;
+    fn set_id(&mut self, InstaId) -> ();
 }
 
 #[cfg(test)]

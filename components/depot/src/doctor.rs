@@ -8,16 +8,15 @@
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use std::str::FromStr;
 
 use hcore;
-use hcore::package::{self, PackageArchive};
+use hcore::package::PackageArchive;
 use depot_core::data_object::{self, DataObject};
 use time;
 use walkdir::WalkDir;
 
 use super::Depot;
-use super::data_store::{Cursor, Database, Transaction};
+use data_store::DataStore;
 use error::Result;
 
 #[derive(Debug)]
@@ -106,8 +105,8 @@ pub enum OperationType {
     /// filesystem.
     InitDepotFs(String),
     /// Record of preparing the datastore for re-build. Contains the amount of records dropped from
-    /// the database.
-    TruncateDatabase(&'static str, usize),
+    /// the entire datastore.
+    TruncateDataStore(usize),
 }
 
 #[derive(Debug)]
@@ -147,21 +146,20 @@ impl<'a> Doctor<'a> {
 
     fn run(mut self) -> Result<Report> {
         try!(self.init_fs());
-        try!(self.truncate_database(&self.depot.datastore.packages));
+        try!(self.truncate_datastore(&self.depot.datastore));
         try!(self.rebuild_metadata());
-        try!(self.rebuild_indices());
         Ok(self.report.generate())
     }
 
     fn init_fs(&mut self) -> Result<()> {
-        match fs::metadata(&self.depot.path) {
+        match fs::metadata(&self.depot.config.path) {
             Ok(meta) => {
                 if meta.is_file() {
-                    self.report.failure(OperationType::InitDepotFs(self.depot.path.clone()),
+                    self.report.failure(OperationType::InitDepotFs(self.depot.config.path.clone()),
                                         Reason::FileExists);
                 }
                 if meta.permissions().readonly() {
-                    self.report.failure(OperationType::InitDepotFs(self.depot.path.clone()),
+                    self.report.failure(OperationType::InitDepotFs(self.depot.config.path.clone()),
                                         Reason::BadPermissions);
                 }
                 try!(fs::create_dir_all(&self.depot.packages_path()));
@@ -170,48 +168,6 @@ impl<'a> Doctor<'a> {
         }
         try!(fs::rename(&self.depot.packages_path(), &self.packages_path));
         try!(fs::create_dir_all(&self.depot.packages_path()));
-        Ok(())
-    }
-
-    fn rebuild_indices(&mut self) -> Result<()> {
-        let txn = try!(self.depot.datastore.views.pkg_view_idx.txn_rw());
-        {
-            let tx2 = try!(txn.new_child_rw(&self.depot.datastore.views.view_pkg_idx));
-            try!(tx2.clear());
-        }
-        let mut cursor = try!(txn.cursor_ro());
-        loop {
-            match cursor.next_nodup() {
-                Ok((key, view)) => {
-                    match package::PackageIdent::from_str(&key) {
-                        Ok(pkident) => {
-                            let ident = data_object::PackageIdent::new(pkident);
-                            let path = self.depot.archive_path(&ident);
-                            match fs::metadata(&path) {
-                                Ok(_) => {
-                                    let tx2 = try!(txn.new_child_rw(&self.depot
-                                                                         .datastore
-                                                                         .views
-                                                                         .view_pkg_idx));
-                                    try!(tx2.put(view.ident(), &ident));
-                                    loop {
-                                        match cursor.next_dup() {
-                                            Ok((_, view)) => {
-                                                try!(tx2.put(view.ident(), &ident));
-                                            }
-                                            Err(_) => break,
-                                        }
-                                    }
-                                }
-                                Err(_) => try!(txn.delete(&key, None)),
-                            }
-                        }
-                        Err(_) => try!(txn.delete(&key, None)),
-                    }
-                }
-                Err(_) => break,
-            }
-        }
         Ok(())
     }
 
@@ -226,10 +182,9 @@ impl<'a> Doctor<'a> {
             let mut archive = PackageArchive::new(PathBuf::from(entry.path()));
             match archive.ident() {
                 Ok(ident) => {
-                    let txn = try!(self.depot.datastore.packages.txn_rw());
                     match data_object::Package::from_archive(&mut archive) {
                         Ok(object) => {
-                            try!(self.depot.datastore.packages.write(&txn, &object));
+                            try!(self.depot.datastore.packages.write(&object));
                             let path = self.depot.archive_path(&ident);
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report
@@ -237,7 +192,6 @@ impl<'a> Doctor<'a> {
                                                                                .to_string_lossy()
                                                                                .to_string()),
                                              Reason::IO(e));
-                                txn.abort();
                                 break;
                             }
                             if let Some(e) = fs::rename(entry.path(), &path).err() {
@@ -246,7 +200,6 @@ impl<'a> Doctor<'a> {
                                                                                .to_string_lossy()
                                                                                .to_string()),
                                              Reason::IO(e));
-                                txn.abort();
                                 break;
                             }
                             self.report
@@ -286,14 +239,10 @@ impl<'a> Doctor<'a> {
         Ok(())
     }
 
-    fn truncate_database<D: Database>(&mut self, database: &D) -> Result<()> {
-        let count = {
-            let txn = try!(database.txn_rw());
-            let stats = try!(database.stat(&txn));
-            try!(database.clear(&txn));
-            stats.entries()
-        };
-        self.report.success(OperationType::TruncateDatabase(D::name(), count));
+    fn truncate_datastore(&mut self, datastore: &DataStore) -> Result<()> {
+        let count = try!(datastore.key_count());
+        try!(datastore.clear());
+        self.report.success(OperationType::TruncateDataStore(count));
         Ok(())
     }
 }

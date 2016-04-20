@@ -9,15 +9,15 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::thread;
 
-use dbcache::{DataStore, Model};
+use dbcache::{self, IndexTable, RecordTable};
 use hnet::{Supervisor, Supervisable};
 use protobuf::{parse_from_bytes, Message};
 use protocol::net::{self, ErrCode};
-use protocol::vault::{Origin, OriginCreate, OriginGet};
+use protocol::vault as proto;
 use zmq;
 
 use config::Config;
-use data_model;
+use data_store::{DataStore, Origin};
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
@@ -25,35 +25,52 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 pub struct Worker {
     config: Arc<Mutex<Config>>,
     sock: zmq::Socket,
-    datastore: DataStore,
+    datastore: Option<DataStore>,
 }
 
 impl Worker {
+    fn datastore(&self) -> &DataStore {
+        self.datastore.as_ref().unwrap()
+    }
+
     fn dispatch(&mut self, msg: &zmq::Message) -> Result<()> {
         match msg.as_str() {
             Some("OriginCreate") => {
                 let request = try!(self.sock.recv_msg(0));
-                let req: OriginCreate = parse_from_bytes(&request).unwrap();
-                let mut origin = data_model::Origin::from(req);
+                let req: proto::OriginCreate = parse_from_bytes(&request).unwrap();
+                let mut origin = Origin::from(req);
                 // JW TODO: handle db errors
-                try!(origin.save(&self.datastore));
-                let mut reply: Origin = origin.into();
+                try!(self.datastore().origins.write(&mut origin));
+                let reply: proto::Origin = origin.into();
                 self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
                 self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
             }
             Some("OriginGet") => {
                 let request = try!(self.sock.recv_msg(0));
-                let req: OriginGet = parse_from_bytes(&request).unwrap();
-                // JW TODO: handle error properly
-                let origin = try!(data_model::Origin::find_by_name(&self.datastore,
-                                                                   req.get_name()));
-                let mut reply: Origin = origin.into();
-                self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
-                self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                let req: proto::OriginGet = parse_from_bytes(&request).unwrap();
+                match self.datastore().origins.name_idx.find(req.get_name()) {
+                    Ok(origin_id) => {
+                        let origin = self.datastore().origins.find(&origin_id).unwrap();
+                        let reply: proto::Origin = origin.into();
+                        self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
+                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                    }
+                    Err(dbcache::Error::EntityNotFound) => {
+                        let reply = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-get:1");
+                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
+                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                    }
+                    Err(e) => {
+                        error!("OriginGet, err={:?}", e);
+                        let reply = net::err(ErrCode::BUG, "vt:origin-get:0");
+                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
+                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                    }
+                }
             }
             Some("OriginList") => {
-                let mut origin1: Origin = Origin::new();
-                let mut origin2: Origin = Origin::new();
+                let origin1 = proto::Origin::new();
+                let origin2 = proto::Origin::new();
                 let origins = vec![origin1, origin2];
                 for origin in origins {
                     self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
@@ -75,7 +92,7 @@ impl Supervisable for Worker {
         Worker {
             config: config,
             sock: sock,
-            datastore: DataStore::new(),
+            datastore: None,
         }
     }
 
@@ -83,10 +100,13 @@ impl Supervisable for Worker {
         loop {
             let result = {
                 let cfg = self.config.lock().unwrap();
-                self.datastore.open(cfg.deref())
+                DataStore::open(cfg.deref())
             };
             match result {
-                Ok(()) => break,
+                Ok(datastore) => {
+                    self.datastore = Some(datastore);
+                    break;
+                }
                 Err(e) => {
                     error!("{}", e);
                     thread::sleep(Duration::from_millis(5000));

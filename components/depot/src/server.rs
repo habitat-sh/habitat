@@ -7,8 +7,9 @@
 
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
+use dbcache;
 use depot_core::{ETag, XFileName};
 use depot_core::data_object::{self, DataObject};
 use iron::prelude::*;
@@ -20,7 +21,6 @@ use urlencoded::UrlEncodedQuery;
 
 use super::Depot;
 use config::Config;
-use data_store::{self, Cursor, Database, Transaction, MdbError};
 use error::{Error, Result};
 use hcore::package::{self, PackageArchive};
 
@@ -84,14 +84,16 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::BadRequest));
     }
 
-    let txn = try!(depot.datastore.packages.txn_rw());
-    if let Ok(_) = txn.get(&ident.to_string()) {
-        if let Some(_) = depot.archive(&ident) {
-            return Ok(Response::with((status::Conflict)));
-        } else {
-            // This should never happen. Writing the package to disk and recording it's existence
-            // in the metadata is a transactional operation and one cannot exist without the other.
-            panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
+    match depot.datastore.packages.get(&ident) {
+        Ok(_) |
+        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+            if let Some(_) = depot.archive(&ident) {
+                return Ok(Response::with((status::Conflict)));
+            }
+        }
+        Err(e) => {
+            error!("upload_package:1, err={:?}", e);
+            return Ok(Response::with(status::InternalServerError));
         }
     }
 
@@ -120,31 +122,7 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         }
     };
     if ident.satisfies(&object.ident) {
-        // JW TODO: handle write errors here. Storage full as a 507.
-        match depot.datastore.packages.write(&txn, &object) {
-            Ok(()) => (),
-            Err(e @ Error::MdbError(MdbError::MapFull)) => {
-                error!("Database full, err={:?}", e);
-                return Ok(Response::with(status::InsufficientStorage));
-            }
-            Err(e) => panic!("Unhandled database error on upload, err={:?}", e),
-        }
-        try!(txn.commit());
-        // FIN TODO: A short term solution to detecting write failures is to perform an immediate
-        // read-back of the object to check if it deserializes correctly. If it can't, we have data
-        // corruption and future reads on this object will yield the same failure. So, throw up a
-        // flag and fail.
-        let txn = try!(depot.datastore.packages.txn_ro());
-        match txn.get(&ident.to_string()) {
-            Ok(_) => (),
-            Err(e) => {
-                warn!("[UPLOAD] Error reading package after write: {:#?}", e);
-                debug!("The package which failed to write to the packages datastore: {:?}",
-                       &object);
-                return Ok(Response::with(status::InternalServerError));
-            }
-        }
-
+        depot.datastore.packages.write(&object).unwrap();
         let mut response = Response::with((status::Created,
                                            format!("/pkgs/{}/download", object.ident)));
         let mut base_url = req.url.clone();
@@ -154,7 +132,9 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
-        info!("Ident failed to satisfy: {:#?}", ident);
+        info!("Ident mismatch, expected={:?}, got={:?}",
+              ident,
+              &object.ident);
         Ok(Response::with(status::UnprocessableEntity))
     }
 }
@@ -168,9 +148,8 @@ fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let path = Path::new(&depot.path).join("keys");
     let short_filename = format!("{}.asc", key);
-    let filename = path.join(&short_filename);
+    let filename = depot.keys_path().join(&short_filename);
 
     let mut response = Response::with((status::Ok, filename));
     response.headers.set(XFileName(short_filename.clone()));
@@ -183,18 +162,7 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let ident: data_object::PackageIdent = extract_data_ident(params);
 
-    let result = {
-        let txn = try!(depot.datastore.packages.txn_ro());
-        match txn.get(&ident.to_string()) {
-            Ok(package) => {
-                let value: package::PackageIdent = package.ident.into();
-                Ok(value)
-            }
-            Err(e) => Err(e),
-        }
-    };
-
-    match result {
+    match depot.datastore.packages.get(&ident) {
         Ok(ident) => {
             if let Some(archive) = depot.archive(&ident) {
                 match fs::metadata(&archive.path) {
@@ -211,11 +179,11 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
             }
         }
-        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
+        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
             Ok(Response::with((status::NotFound)))
         }
         Err(e) => {
-            info!("[DOWNLOAD] Unknown error encountered: {:?}", e);
+            error!("download_package:1, err={:?}", e);
             Ok(Response::with(status::InternalServerError))
         }
     }
@@ -223,205 +191,160 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
+    let ident: String = if params.find("pkg").is_none() {
+        match params.find("origin") {
+            Some(origin) => origin.to_string(),
+            None => return Ok(Response::with(status::BadRequest)),
+        }
+    } else {
+        extract_data_ident(params).ident().to_owned()
+    };
 
     if let Some(view) = params.find("view") {
-        list_packages_scoped_to_view(depot, view)
-    } else {
-        let ident: String = if params.find("pkg").is_none() {
-            match params.find("origin") {
-                Some(origin) => origin.to_string(),
-                None => return Ok(Response::with(status::BadRequest)),
-            }
-        } else {
-            extract_data_ident(params).ident().to_owned()
-        };
-
-        let mut packages: Vec<package::PackageIdent> = vec![];
-        let txn = try!(depot.datastore.packages.index.txn_ro());
-        let mut cursor = try!(txn.cursor_ro());
-        let result = match cursor.set_key(&ident) {
-            Ok((_, value)) => {
-                packages.push(value.into());
-                loop {
-                    match cursor.next_dup() {
-                        Ok((_, value)) => packages.push(value.into()),
-                        Err(_) => break,
-                    }
-                }
-                Ok(())
-            }
-            Err(e) => Err(Error::from(e)),
-        };
-
-        match result {
-            Ok(()) => {
+        match depot.datastore.views.view_pkg_idx.all(view, &ident) {
+            Ok(packages) => {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             }
-            Err(Error::MdbError(data_store::MdbError::NotFound)) => {
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
                 Ok(Response::with((status::NotFound)))
             }
             Err(e) => {
-                info!("[LIST] Unknown error encountered: {:?}", e);
+                error!("list_packages:1, err={:?}", e);
+                Ok(Response::with(status::InternalServerError))
+            }
+        }
+    } else {
+        match depot.datastore.packages.index.all(&ident) {
+            Ok(packages) => {
+                let body = json::encode(&packages).unwrap();
+                Ok(Response::with((status::Ok, body)))
+            }
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                Ok(Response::with((status::NotFound)))
+            }
+            Err(e) => {
+                error!("list_packages:2, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
             }
         }
     }
 }
 
-fn list_packages_scoped_to_view(depot: &Depot, view: &str) -> IronResult<Response> {
-    let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
-    let mut cursor = try!(txn.cursor_ro());
-    match cursor.set_key(&view.to_string()) {
-        Ok((_, pkg)) => {
-            let mut packages: Vec<data_object::PackageIdent> = vec![];
-            packages.push(pkg);
-            loop {
-                if let Some((_, pkg)) = cursor.next_dup().ok() {
-                    packages.push(pkg);
-                } else {
-                    break;
-                }
-            }
-            let body = json::encode(&packages).unwrap();
-            Ok(Response::with((status::Ok, body)))
-        }
-        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-            Ok(Response::with((status::NotFound)))
-        }
-        Err(e) => {
-            info!("[LISTVIEW] Unknown error encountered: {:?}", e);
-            Ok(Response::with(status::InternalServerError))
-        }
-    }
-}
-
 fn list_views(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
-    let txn = try!(depot.datastore.views.txn_ro());
-    let mut cursor = try!(txn.cursor_ro());
-    let mut views: Vec<data_object::View> = vec![];
-    loop {
-        match cursor.next() {
-            Ok((_, data)) => views.push(data),
-            Err(_) => break,
-        }
-    }
+    let views = try!(depot.datastore.views.all());
     let body = json::encode(&views).unwrap();
     Ok(Response::with((status::Ok, body)))
 }
 
 fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: data_object::PackageIdent = extract_data_ident(params);
+    let mut ident: data_object::PackageIdent = extract_data_ident(params);
 
     if let Some(view) = params.find("view") {
-        if let Some(pkg) = try!(latest_package_in_view(&ident, depot, view)) {
-            let txn = try!(depot.datastore.packages.txn_ro());
-            let package = try!(txn.get(&pkg.ident()));
-            let body = json::encode(&package).unwrap();
-            Ok(Response::with((status::Ok, body)))
+        if !ident.fully_qualified() {
+            match depot.datastore.views.view_pkg_idx.latest(view, &ident.to_string()) {
+                Ok(ident) => {
+                    match depot.datastore.packages.get(&ident) {
+                        Ok(pkg) => render_package(&pkg),
+                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                            Ok(Response::with(status::NotFound))
+                        }
+                        Err(e) => {
+                            error!("show_package:1, err={:?}", e);
+                            Ok(Response::with(status::InternalServerError))
+                        }
+                    }
+                }
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                    Ok(Response::with(status::NotFound))
+                }
+                Err(e) => {
+                    error!("show_package:2, err={:?}", e);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
         } else {
-            Ok(Response::with((status::NotFound)))
+            match depot.datastore.views.view_pkg_idx.is_member(view, &ident) {
+                Ok(true) => {
+                    match depot.datastore.packages.get(&ident) {
+                        Ok(pkg) => render_package(&pkg),
+                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                            Ok(Response::with(status::NotFound))
+                        }
+                        Err(e) => {
+                            error!("show_package:3, err={:?}", e);
+                            Ok(Response::with(status::InternalServerError))
+                        }
+                    }
+                }
+                Ok(false) => Ok(Response::with(status::NotFound)),
+                Err(e) => {
+                    error!("show_package:4, err={:?}", e);
+                    Ok(Response::with(status::InternalServerError))
+                }
+            }
         }
     } else {
-        let result = if ident.fully_qualified() {
-            let txn = try!(depot.datastore.packages.txn_ro());
-            txn.get(&ident.to_string())
-        } else {
-            let r = {
-                let idx = try!(depot.datastore.packages.index.txn_ro());
-                let mut cursor = try!(idx.cursor_ro());
-                if let Some(e) = cursor.set_key(&ident.to_string()).err() {
-                    Err(e)
-                } else {
-                    cursor.last_dup()
+        if !ident.fully_qualified() {
+            match depot.datastore.packages.index.latest(&ident) {
+                Ok(id) => ident = id.into(),
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                    return Ok(Response::with(status::NotFound));
                 }
-            };
-            match r {
-                Ok(v) => {
-                    let txn = try!(depot.datastore.packages.txn_ro());
-                    txn.get(&v.ident())
+                Err(e) => {
+                    error!("show_package:5, err={:?}", e);
+                    return Ok(Response::with(status::InternalServerError));
                 }
-                Err(e) => Err(e),
             }
-        };
-        match result {
-            Ok(data) => {
-                let body = json::encode(&data).unwrap();
-                let mut response = Response::with((status::Ok, body));
-                response.headers.set(ETag(data.checksum));
-                Ok(response)
-            }
-            Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-                Ok(Response::with((status::NotFound)))
+        }
+
+        match depot.datastore.packages.get(&ident) {
+            Ok(pkg) => render_package(&pkg),
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                Ok(Response::with(status::NotFound))
             }
             Err(e) => {
-                info!("[SHOW] Unknown error encountered: {:?}", e);
+                error!("show_package:6, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
             }
         }
     }
 }
 
-fn latest_package_in_view<P: AsRef<package::PackageIdent>>
-    (ident: P,
-     depot: &Depot,
-     view: &str)
-     -> Result<Option<data_object::PackageIdent>> {
-    let txn = try!(depot.datastore.views.view_pkg_idx.txn_ro());
-    let mut cursor = try!(txn.cursor_ro());
-    match cursor.set_key(&view.to_string()) {
-        Ok(_) => {
-            let mut pkg = try!(cursor.last_dup());
-            loop {
-                if ident.as_ref().satisfies(&pkg) {
-                    return Ok(Some(pkg));
-                } else {
-                    match cursor.prev_dup() {
-                        Ok((_, next)) => {
-                            pkg = next;
-                            continue;
-                        }
-                        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-                            return Ok(None);
-                        }
-                        Err(e) => {
-                            info!("[LATEST1] Unknown error encountered: {:?}", e);
-                            return Err(e);
-                        }
-                    }
-                }
-            }
-        }
-        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-            return Ok(None);
-        }
-        Err(e) => {
-            info!("[LATEST2] Unknown error encountered: {:?}", e);
-            return Err(e);
-        }
-    }
+fn render_package(pkg: &data_object::Package) -> IronResult<Response> {
+    let body = json::encode(pkg).unwrap();
+    let mut response = Response::with((status::Ok, body));
+    response.headers.set(ETag(pkg.checksum.clone()));
+    Ok(response)
 }
 
 fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let view = params.find("view").unwrap();
 
-    let txn = try!(depot.datastore.views.txn_rw());
-    match txn.get(&view.to_string()) {
-        Ok(view) => {
+    match depot.datastore.views.is_member(view) {
+        Ok(true) => {
             let ident: package::PackageIdent = extract_ident(params);
-            let nested = try!(txn.new_child_rw(&depot.datastore.packages));
-            match nested.get(&ident.to_string()) {
+            match depot.datastore.packages.get(&ident) {
                 Ok(package) => {
-                    try!(depot.datastore.views.associate(&nested, &view, &package));
-                    try!(nested.commit());
-                    Ok(Response::with((status::Ok)))
+                    depot.datastore.views.associate(view, &package).unwrap();
+                    Ok(Response::with(status::Ok))
                 }
-                Err(_) => Ok(Response::with((status::NotFound))),
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                    Ok(Response::with(status::NotFound))
+                }
+                Err(e) => {
+                    error!("promote:2, err={:?}", e);
+                    return Ok(Response::with(status::InternalServerError));
+                }
             }
         }
-        Err(_) => Ok(Response::with((status::NotFound))),
+        Ok(false) => Ok(Response::with(status::NotFound)),
+        Err(e) => {
+            error!("promote:1, err={:?}", e);
+            return Ok(Response::with(status::InternalServerError));
+        }
     }
 }
 
@@ -463,8 +386,9 @@ impl AfterMiddleware for Cors {
     }
 }
 
-pub fn run(config: &Config) -> Result<()> {
-    let depot = try!(Depot::new(config.path.clone()));
+pub fn run(config: Config) -> Result<()> {
+    let listen_addr = config.depot_addr();
+    let depot = try!(Depot::new(config));
     let depot1 = depot.clone();
     let depot2 = depot.clone();
     let depot3 = depot.clone();
@@ -482,9 +406,11 @@ pub fn run(config: &Config) -> Result<()> {
     let depot15 = depot.clone();
     let depot16 = depot.clone();
     let depot17 = depot.clone();
+    let depot18 = depot.clone();
 
     let router = router!(
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
+        get "/views/:view/pkgs/:origin" => move |r: &mut Request| list_packages(&depot18, r),
         get "/views/:view/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot2, r),
         get "/views/:view/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot3, r),
         get "/views/:view/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot4, r),
@@ -509,7 +435,7 @@ pub fn run(config: &Config) -> Result<()> {
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
 
-    Iron::new(chain).http(config.depot_addr()).unwrap();
+    Iron::new(chain).http(listen_addr).unwrap();
     Ok(())
 }
 
