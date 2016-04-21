@@ -41,6 +41,7 @@ type Metadata = HashMap<MetaFile, String>;
 pub struct PackageArchive {
     pub path: PathBuf,
     metadata: Option<Metadata>,
+    crypto_ctx: crypto::Context,
 }
 
 impl PackageArchive {
@@ -48,6 +49,7 @@ impl PackageArchive {
         PackageArchive {
             path: path.into(),
             metadata: None,
+            crypto_ctx: crypto::Context::default(),
         }
     }
 
@@ -57,7 +59,7 @@ impl PackageArchive {
     ///
     /// * If the archive cannot be read
     pub fn checksum(&self) -> Result<String> {
-        crypto::hash_file(&self.path)
+        self.crypto_ctx.hash_file(&self.path)
     }
 
     pub fn cflags(&mut self) -> Result<Option<String>> {
@@ -160,7 +162,7 @@ impl PackageArchive {
     ///
     /// * Fails if it cannot verify the signature for any reason
     pub fn verify(&self) -> Result<()> {
-        crypto::artifact_verify(self.path.to_str().unwrap())
+        self.crypto_ctx.artifact_verify(self.path.to_str().unwrap())
     }
 
     /// Given a package name and a path to a file as an `&str`, unpack
@@ -171,7 +173,7 @@ impl PackageArchive {
     /// * If the package cannot be unpacked
     pub fn unpack(&self) -> Result<()> {
         let file = self.path.to_str().unwrap().to_string();
-        let tar_reader = try!(crypto::get_artifact_reader(&file));
+        let tar_reader = try!(self.crypto_ctx.get_artifact_reader(&file));
         let mut builder = reader::Builder::new();
         try!(builder.support_format(ReadFormat::All));
         try!(builder.support_filter(ReadFilter::All));
@@ -210,11 +212,10 @@ impl PackageArchive {
         if let Some(ref files) = self.metadata {
             return Ok(files.get(&file));
         }
-
         let mut metadata = Metadata::new();
         let mut matched_count = 0u8;
         let f = self.path.to_str().unwrap().to_string();
-        let tar_reader = try!(crypto::get_artifact_reader(&f));
+        let tar_reader = try!(self.crypto_ctx.get_artifact_reader(&f));
         let mut builder = reader::Builder::new();
         try!(builder.support_format(ReadFormat::All));
         try!(builder.support_filter(ReadFilter::All));

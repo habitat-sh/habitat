@@ -8,31 +8,36 @@ use error::{Error, Result};
 use hcore::crypto;
 
 pub fn generate_origin_key(origin: &str) -> Result<()> {
-    let keyname = try!(crypto::generate_origin_sig_key(origin));
+    let crypto_ctx = crypto::Context::default();
+    let keyname = try!(crypto_ctx.generate_origin_sig_key(origin));
     println!("Successfully generated origin key {}", keyname);
     Ok(())
 }
 
-pub fn generate_user_key(org: &str, user: &str) -> Result<()> {
-    let keyname = try!(crypto::generate_user_box_key(org, user));
+pub fn generate_user_key(user: &str) -> Result<()> {
+    let crypto_ctx = crypto::Context::default();
+    let keyname = try!(crypto_ctx.generate_user_box_key(user));
     println!("Successfully generated user key {}", keyname);
     Ok(())
 }
 
 pub fn generate_service_key(org: &str, service_group: &str) -> Result<()> {
-    let keyname = try!(crypto::generate_service_box_key(org, service_group));
+    let crypto_ctx = crypto::Context::default();
+    let keyname = try!(crypto_ctx.generate_service_box_key(org, service_group));
     println!("Successfully generated service key {}", keyname);
     Ok(())
 }
 
 pub fn hash(infile: &str) -> Result<()> {
-    let h = try!(crypto::hash_file(&infile));
+    let crypto_ctx = crypto::Context::default();
+    let h = try!(crypto_ctx.hash_file(&infile));
     println!("{}", h);
     Ok(())
 }
 
 pub fn sign(origin: &str, infile: &str, outfile: &str) -> Result<()> {
-    let key_pairs = try!(crypto::read_sig_origin_keys(origin));
+    let crypto_ctx = crypto::Context::default();
+    let key_pairs = try!(crypto_ctx.read_sig_origin_keys(origin));
     if key_pairs.len() < 1 {
         let msg = format!("Error: no origin keys found with the name: {}", &origin);
         return Err(Error::CryptoCLI(msg));
@@ -48,12 +53,14 @@ pub fn sign(origin: &str, infile: &str, outfile: &str) -> Result<()> {
             return Err(Error::CryptoCLI(msg));
         }
     };
-    try!(crypto::artifact_sign(infile, outfile, &signing_key.rev, &sk));
+    try!(crypto_ctx.artifact_sign(infile, outfile, &signing_key.name_with_rev, &sk));
+    println!("Successfully created signed binary artifact {}", outfile);
     Ok(())
 }
 
 pub fn verify(infile: &str) -> Result<()> {
-    try!(crypto::artifact_verify(infile));
+    let crypto_ctx = crypto::Context::default();
+    try!(crypto_ctx.artifact_verify(infile));
     println!("Habitat artifact is valid");
     Ok(())
 }
