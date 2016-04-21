@@ -20,11 +20,11 @@ import {createGitHubLoginUrl, icon} from "../util";
         <div class="page-title">
             <h2>Sign In</h2>
         </div>
-        <div class="main">
+        <div class="page-body">
             <div class="button-area">
                 <hr>
                 <a [class.disabled]="isSigningIn || isSignedIn"
-                   class="button" href="{{gitHubLoginUrl}}">
+                   class="button cta" href="{{gitHubLoginUrl}}">
                     <i class="octicon octicon-mark-github"></i>
                     <span *ngIf="isSigningIn">
                         Signing In&hellip;

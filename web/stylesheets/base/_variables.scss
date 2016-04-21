@@ -19,7 +19,8 @@ $base-line-height: 1.5;
 $heading-line-height: 1.2;
 
 // Other Sizes
-$base-border-radius: 3px;
+$base-border-radius: 2px;
+$global-radius: $base-border-radius;
 $base-spacing: $base-line-height * 1em;
 $small-spacing: $base-spacing / 2;
 $base-z-index: 0;
@@ -38,12 +39,21 @@ $queued-color: $blue;
 $white-slightly-transparent: rgba(255, 255, 255, 0.95);
 
 // Habitat Brand Colors
-$hab-blue: #7FADCB;
-$hab-blue-dark: #394B5A;
-$hab-blue-light: #E9F1F7;
-$hab-orange: #F58151;
-$hab-orange-dark: #C96135;
-$hab-green: #78B57D;
+$hab-white: #ffffff;
+$hab-blue-light: #e9f1f7;
+$hab-blue: #7fadcb;
+$hab-gray-light: #e9eaeb;
+$hab-orange-dark: #f58151;
+$hab-off-white: #f8f9f9;
+$hab-gray: #b6babe;
+$hab-gray-dark: #7d868c;
+$hab-orange: #f59b51;
+$hab-blue-dark: #394b5a;
+$hab-green: #82c587;
+$hab-green-dark: #78b57d;
+$hab-blue-medium: #dce6ed;
+$hab-gray-dark-15: rgba(125, 134, 140, 0.15);
+$hab-cta: $hab-green;
 
 // Notification colors
 $notification-danger-color: #fbe3e4;

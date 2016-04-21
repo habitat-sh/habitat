@@ -1,0 +1,22 @@
+// Sass Mixins
+// Shared between Habitat web properties
+
+@mixin shadow-float {
+  box-shadow: 0px 2px 14px 0px rgba(216,216,216,0.70);
+}
+
+@mixin primary-button {
+  border-radius: $global-radius;
+  background-image: linear-gradient(240deg, $hab-green, $hab-green-dark);
+  @include shadow-float;
+  font-size: rem-calc(16);
+  font-weight: 700;
+}
+
+@mixin primary-button {
+  border-radius: $global-radius;
+  background-image: linear-gradient(240deg, $hab-green, $hab-green-dark);
+  @include shadow-float;
+  font-size: rem-calc(16);
+  font-weight: 700;
+}

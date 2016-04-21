@@ -15,6 +15,7 @@
 @import "item-list";
 @import "spinner";
 @import "tabs";
+@import "mixins";
 
 @import "explore-page/explore-page";
 @import "github-repo-picker/github-repo-picker";
@@ -60,6 +61,16 @@ body {
   @include span-columns(10);
   background-color: $white;
   height: 100%;
+
+  &.centered {
+    @include span-columns(12);
+
+    @include media($medium-screen) {
+      @include span-columns(6);
+      @include shift(3);
+    }
+
+  }
 }
 
 .page-title {
@@ -91,4 +102,9 @@ body {
 
   bottom: $base-spacing;
   font-size: 75%;
+}
+
+// Buttons
+.button.cta {
+  @include primary-button;
 }

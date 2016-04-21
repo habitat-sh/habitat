@@ -51,9 +51,10 @@ import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
                       [origin]="origin"
                       [route]="state.router.route"
                       [setCurrentOrigin]="setCurrentOrigin"
-                      [toggleOriginPicker]="toggleOriginPicker">
+                      [toggleOriginPicker]="toggleOriginPicker"
+                      *ngIf="!hideNavCheck()">
         </hab-side-nav>
-        <section class="hab-main">
+        <section class="hab-main" [ngClass]="{centered: hideNavCheck()}">
             <router-outlet></router-outlet>
         </section>
         <footer class="hab-footer">
@@ -162,6 +163,15 @@ export class AppComponent implements OnInit {
         // route data.
         router.subscribe(value => store.dispatch(routeChange(value)));
 
+        // Check the route path for pages that exclude side nav
+        router.subscribe(url => {
+          this.hideNav = false;
+          this.path = url;
+          if (this.path === "sign-in") {
+            this.hideNav = true;
+          }
+        });
+
         // Listen for changes on the state.
         store.subscribe(state => {
             // If the state has a requestedRoute attribute, use the router to navigate
@@ -201,6 +211,8 @@ export class AppComponent implements OnInit {
         }.bind(this);
 
     }
+
+    hideNavCheck() { return this.hideNav; }
 
     get origin() { return this.state.origins.current; }
 

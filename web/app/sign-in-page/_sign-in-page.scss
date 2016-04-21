@@ -6,13 +6,10 @@
 // open source license such as the Apache 2.0 License.
 
 .hab-sign-in {
-  .main {
-    @include span-columns(6);
-    @include shift(3);
+  @include shadow-float;
 
-    .button-area {
-      text-align: center;
-    }
+  .button-area {
+    text-align: center;
   }
 }
 
