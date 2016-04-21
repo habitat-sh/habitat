@@ -17,9 +17,6 @@ use error::{Error, Result};
 use fs::{self, PKG_PATH};
 use package::{MetaFile, PackageIdent};
 
-const SUP_PKG_ORIGIN: &'static str = "core";
-const SUP_PKG_NAME: &'static str = "hab-sup";
-
 #[derive(Clone, Debug)]
 pub struct PackageInstall {
     ident: PackageIdent,
@@ -139,11 +136,7 @@ impl PackageInstall {
     }
 
     /// Returns a `String` with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS, plus the Supervisor or its TDEPS,
-    /// plus the existing value of the PATH variable.
-    ///
-    /// This means we work on any operating system, as long as you can invoke the Supervisor,
-    /// without having to worry much about context.
+    /// binary paths specified by this package, or its TDEPS.
     pub fn runtime_path(&self) -> Result<String> {
         let mut run_path = String::new();
         for path in try!(self.paths()) {
@@ -155,28 +148,6 @@ impl PackageInstall {
                 run_path.push(':');
                 run_path.push_str(&path.to_string_lossy());
             }
-        }
-        if self.ident.name != SUP_PKG_NAME {
-            let sup_pkg = try!(Self::load(&PackageIdent::new(SUP_PKG_ORIGIN,
-                                                             SUP_PKG_NAME,
-                                                             None,
-                                                             None),
-                                          Some(&self.package_root_path)));
-            for path in try!(sup_pkg.paths()) {
-                run_path.push(':');
-                run_path.push_str(&path.to_string_lossy());
-            }
-            let tdeps: Vec<PackageInstall> = try!(sup_pkg.load_tdeps());
-            for dep in tdeps.iter() {
-                for path in try!(dep.paths()) {
-                    run_path.push(':');
-                    run_path.push_str(&path.to_string_lossy());
-                }
-            }
-        }
-        if let Some(val) = env::var_os("PATH") {
-            run_path.push(':');
-            run_path.push_str(&val.to_string_lossy());
         }
         Ok(run_path)
     }
