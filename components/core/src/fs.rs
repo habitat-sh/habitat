@@ -5,7 +5,10 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::env;
 use std::path::PathBuf;
+
+use env as henv;
 
 pub const ROOT_PATH: &'static str = "/hab";
 /// The default download root path for package artifacts, used on package installation
@@ -55,4 +58,32 @@ pub fn svc_static_path(service_name: &str) -> PathBuf {
 /// Returns the path to a given service's variable state.
 pub fn svc_var_path(service_name: &str) -> PathBuf {
     svc_path(service_name).join("var")
+}
+
+/// Returns the absolute path for a given command, if it exists, by searching the `PATH`
+/// environment variable.
+///
+/// If the command represents an absolute path, then the `PATH` seaching will not be performed. If
+/// no absolute path can be found for the command, then `None` is returned.
+pub fn find_command(command: &str) -> Option<PathBuf> {
+    // If the command path is absolute and a file exists, then use that.
+    let candidate = PathBuf::from(command);
+    if candidate.is_absolute() && candidate.is_file() {
+        return Some(candidate);
+    }
+
+    // Find the command by checking each entry in `PATH`. If we still can't find it, give up and
+    // return `None`.
+    match henv::var_os("PATH") {
+        Some(paths) => {
+            for path in env::split_paths(&paths) {
+                let candidate = PathBuf::from(&path).join(command);
+                if candidate.is_file() {
+                    return Some(candidate);
+                }
+            }
+            None
+        }
+        None => None,
+    }
 }
