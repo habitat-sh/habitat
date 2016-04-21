@@ -14,9 +14,9 @@ use url::Url;
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 pub fn get() -> App<'static, 'static> {
-    let alias_inject = sub_rumor_inject()
-                           .about("Alias for 'rumor inject'")
-                           .setting(AppSettings::Hidden);
+    let alias_apply = sub_config_apply()
+                          .about("Alias for 'config apply'")
+                          .setting(AppSettings::Hidden);
     let alias_install = sub_package_install()
                             .about("Alias for 'pkg install'")
                             .setting(AppSettings::Hidden);
@@ -57,6 +57,11 @@ pub fn get() -> App<'static, 'static> {
                  "A path to any local file")
             )
 
+        )
+        (@subcommand config =>
+            (about: "Commands relating to Habitat runtime config")
+            (@setting ArgRequiredElseHelp)
+            (subcommand: sub_config_apply())
         )
         (@subcommand origin =>
             (about: "Commands relating to Habitat origin keys")
@@ -100,20 +105,15 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_package_install())
         )
-        (@subcommand rumor =>
-            (about: "Commands relating to Habitat rumors")
-            (@setting ArgRequiredElseHelp)
-            (subcommand: sub_rumor_inject())
-        )
         (@subcommand sup =>
             (about: "Commands relating to the Habitat Supervisor")
         )
 
-        (subcommand: alias_inject)
+        (subcommand: alias_apply)
         (subcommand: alias_install)
         (subcommand: alias_start())
         (after_help: "ALIASES:\
-             \n    inject      Alias for: 'rumor inject'\
+             \n    apply       Alias for: 'config apply'\
              \n    install     Alias for: 'pkg install'\
              \n    start       Alias for: 'sup start'\
              \n"
@@ -132,9 +132,9 @@ fn sub_package_install() -> App<'static, 'static> {
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
-fn sub_rumor_inject() -> App<'static, 'static> {
-    clap_app!(@subcommand inject =>
-        (about: "Injects a configuration or configuration file into a group of Habitat Supervisors")
+fn sub_config_apply() -> App<'static, 'static> {
+    clap_app!(@subcommand apply =>
+        (about: "Applies a configuration to a group of Habitat Supervisors")
         (@arg PEERS: -p --peers +takes_value
          "A comma-delimited list of one or more Habitat Supervisor peers to infect (default: 127.0.0.1:9634)")
         (@arg SERVICE_GROUP: +required

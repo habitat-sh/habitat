@@ -27,14 +27,14 @@ pub fn start(peers: &Vec<String>,
             try!(ConfigFile::from_body(sg, "config.toml".to_string(), body, number))
         }
     };
-    println!("Injecting {} into {}", &file, &sg1);
+    println!("Applying configuration {} to {}", &file, &sg1);
     let rumor = hab_gossip::Rumor::config_file(file);
 
     let mut list = hab_gossip::RumorList::new();
     list.add_rumor(rumor);
 
     try!(initial_peers(&peers, &list));
-    println!("Finished injecting");
+    println!("Finished applying configuration");
     Ok(())
 }
 
@@ -60,7 +60,7 @@ fn initial_peers(peer_listeners: &Vec<String>, rumor_list: &hab_gossip::RumorLis
 fn try_peers(peer_listeners: &Vec<String>, rumor_list: &hab_gossip::RumorList) -> bool {
     let mut initialized = false;
     for to in peer_listeners {
-        println!("Joining gossip peer at {}", to);
+        println!("Joining peer: {}", to);
         let mut c = match hab_gossip::Client::new(&to[..]) {
             Ok(c) => c,
             Err(e) => {
@@ -71,7 +71,7 @@ fn try_peers(peer_listeners: &Vec<String>, rumor_list: &hab_gossip::RumorList) -
         };
 
         match c.inject(rumor_list.clone()) {
-            Ok(_) => println!("Rumors injected at {}", to),
+            Ok(_) => println!("Configuration applied to: {}", to),
             Err(e) => {
                 println!("Failed to ping {:?}: {:?}", to, e);
                 continue;
