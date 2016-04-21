@@ -4,6 +4,7 @@ extern crate time;
 use std::collections::HashSet;
 use std::fs;
 use util::wait::wait_until_ok;
+use util::path;
 
 fn setup_key_env(test_name: &str) -> (hcore::crypto::Context, String) {
     let key_dir = &format!("/tmp/habitat_test_keys_{}", test_name);
@@ -240,5 +241,51 @@ fn crypto_encrypt_decrypt_test() {
     if crypto_ctx.decrypt(&mut payload).is_ok() {
         panic!("Shouldn't be able to decrypt without service secret key");
     }
+}
 
+
+#[test]
+fn crypto_verify_sign_test() {
+    // sign a file and then verify it
+    let (crypto_ctx, key_dir) = setup_key_env("crypto_verify_sign_test");
+
+    let test_key_name = "foo";
+    if let Err(e) = crypto_ctx.generate_origin_sig_key(test_key_name) {
+        panic!("Error generating keys {}", e)
+    };
+
+    let origin_keys = crypto_ctx.read_sig_origin_keys(test_key_name).unwrap();
+    let origin_key = &origin_keys[0];
+    let fixture = path::fixture("signme.dat");
+    let outfile = format!("{}/output.signed", key_dir);
+
+    // TODO DP crypto should do the AsRef Pathbuf thing
+    if let Err(e) = crypto_ctx.artifact_sign(&fixture.to_string_lossy(),
+                                             &outfile,
+                                             &origin_key.name_with_rev,
+                                             &origin_key.secret.as_ref().unwrap()) {
+        panic!("Can't sign artifact {}", e);
+    }
+
+    if let Err(e) = crypto_ctx.artifact_verify(&outfile) {
+        panic!("Can't verify artifact {}", e);
+    }
+}
+
+#[test]
+fn crypto_hash_file() {
+    // does our BLAKE2b hash_file function generate the same result
+    // as the b2sum cli?
+    let (crypto_ctx, _key_dir) = setup_key_env("crypto_verify_sign_test");
+
+    let fixture = path::fixture("signme.dat");
+    let h = match crypto_ctx.hash_file(&fixture) {
+        Ok(hash) => hash,
+        Err(e) => panic!("Can't hash file {}", e)
+    };
+    // note: the b2sum program takes the -l parameter as the # of BITS,
+    // BLAKE2b defaults to 32 BYTES, so we use 8 * 32 = 256
+    //b2sum -l 256 tests/fixtures/signme.dat
+    //20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233  ./signme.dat
+    assert!(&h == "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
 }
