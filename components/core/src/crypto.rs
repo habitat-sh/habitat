@@ -3,7 +3,7 @@
 // The terms of the Evaluation Agreement (Bldr) between Chef Software Inc. and the party accessing
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
-
+use std::ptr;
 use std::collections::HashSet;
 use std::env;
 use std::fs;
@@ -16,6 +16,7 @@ use std::path::Path;
 
 use libsodium_sys;
 use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
+use rustc_serialize::hex::{ToHex};
 use sodiumoxide::init as nacl_init;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::box_;
@@ -122,6 +123,7 @@ use util::perm;
 /// to sign this artifact.
 /// - The second plaintext line is the hashing algorithm used, which will be
 /// `BLAKE2b` unless our use of crypto is expanded some time in the future.
+/// - Our BLAKE2b hash functions use a digest length of 32 bytes (256 bits!).
 /// - The third plaintext line is a base64 *signed* value of the binary blob's
 /// base64 file hash. Signing uses a secret origin key, while verifying uses the
 /// public origin key. Thus, it it safe to distribute public origin keys.
@@ -192,7 +194,7 @@ static PUBLIC_KEY_PERMISSIONS: &'static str = "0400";
 static SECRET_KEY_PERMISSIONS: &'static str = "0400";
 
 
-static ENCRYPTED_PAYLOAD_VERSION: &'static str = "0.1.0";
+static ENCRYPTED_PAYLOAD_VERSION: &'static str = "BOX-0.1.0";
 
 const BUF_SIZE: usize = 1024;
 
@@ -260,42 +262,16 @@ impl Context {
         Context { key_cache: cache.to_string() }
     }
 
-    /// Calculate the BLAKE2b hash of a file
-    /// NOTE: the key is empty
-    /// TODO DP: This can be refactored to use hash_reader
+    /// Calculate the BLAKE2b hash of a file, return as a hex string
+    /// digest size = 32 BYTES
+    /// NOTE: the hashing is keyless
     pub fn hash_file<P: AsRef<Path>>(&self, filename: &P) -> Result<String> {
-        let key = [0u8; libsodium_sys::crypto_generichash_KEYBYTES];
-        let mut file = try!(File::open(filename.as_ref()));
-        let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
-        let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
-        let pst = unsafe {
-            mem::transmute::<*mut u8, *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
-        };
-
-        unsafe {
-            libsodium_sys::crypto_generichash_init(pst, key.as_ptr(), key.len(), out.len());
-        }
-
-        let mut buf = [0u8; BUF_SIZE];
-        loop {
-            let bytes_read = try!(file.read(&mut buf));
-            if bytes_read == 0 {
-                break;
-            }
-            let chunk = &buf[0..bytes_read];
-            unsafe {
-                libsodium_sys::crypto_generichash_update(pst, chunk.as_ptr(), chunk.len() as u64);
-            }
-        }
-        unsafe {
-            libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
-        }
-        Ok(out.to_base64(STANDARD))
+        let file = try!(File::open(filename.as_ref()));
+        let mut reader = BufReader::new(file);
+        self.hash_reader(&mut reader)
     }
 
-
     pub fn hash_reader(&self, reader: &mut BufReader<File>) -> Result<String> {
-        let key = [0u8; libsodium_sys::crypto_generichash_KEYBYTES];
         let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
         let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
         let pst = unsafe {
@@ -303,7 +279,7 @@ impl Context {
         };
 
         unsafe {
-            libsodium_sys::crypto_generichash_init(pst, key.as_ptr(), key.len(), out.len());
+            libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
         }
 
         let mut buf = [0u8; BUF_SIZE];
@@ -320,8 +296,7 @@ impl Context {
         unsafe {
             libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
         }
-        Ok(out.to_base64(STANDARD))
-
+        Ok(out.to_hex())
     }
 
     /// Generate and sign a package
