@@ -192,7 +192,7 @@ static PUBLIC_KEY_PERMISSIONS: &'static str = "0400";
 static SECRET_KEY_PERMISSIONS: &'static str = "0400";
 
 
-static ENCRYPTED_PAYLOAD_VERSION: &'static str = "0.1.0";
+static ENCRYPTED_PAYLOAD_VERSION: &'static str = "BOX-0.1.0";
 
 const BUF_SIZE: usize = 1024;
 
