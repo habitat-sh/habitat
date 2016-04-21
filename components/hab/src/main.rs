@@ -34,6 +34,7 @@ use std::str::FromStr;
 use clap::ArgMatches;
 
 use error::{Error, Result};
+use hcore::fs::find_command;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
@@ -218,7 +219,7 @@ fn exec_subcommand_if_called() -> Result<()> {
                     }
                 };
 
-                if let Some(cmd) = exec::find_command(command.to_string_lossy().as_ref()) {
+                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
                     try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
                 } else {
                     return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));

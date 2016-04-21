@@ -6,6 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 pub mod convert;
+pub mod path;
 pub mod sys;
 pub mod signals;
 

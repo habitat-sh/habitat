@@ -12,6 +12,7 @@ pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
 pub use self::hooks::HookType;
 
 use std;
+use std::env;
 use std::fmt;
 use std::fs::File;
 use std::os::unix;
@@ -27,6 +28,7 @@ use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
 use supervisor::Supervisor;
+use util::path::busybox_paths;
 
 static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
@@ -89,16 +91,25 @@ impl Package {
     }
 
     /// Returns a string with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS, plus the Supervisor or its TDEPS,
+    /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox,
     /// plus the existing value of the PATH variable.
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
     pub fn run_path(&self) -> Result<String> {
-        match self.pkg_install.runtime_path() {
-            Ok(r) => Ok(r),
-            Err(e) => Err(sup_error!(Error::HabitatCore(e))),
+        let mut paths = match self.pkg_install.runtime_path() {
+            Ok(r) => r,
+            Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
+        };
+        for path in try!(busybox_paths()).iter() {
+            paths.push(':');
+            paths.push_str(&path.to_string_lossy());
         }
+        if let Some(val) = env::var_os("PATH") {
+            paths.push(':');
+            paths.push_str(&val.to_string_lossy());
+        }
+        Ok(paths)
     }
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
