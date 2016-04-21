@@ -18,6 +18,7 @@ extern crate time;
 
 pub use self::error::{Error, Result};
 
+pub mod env;
 pub mod error;
 pub mod fs;
 pub mod package;
