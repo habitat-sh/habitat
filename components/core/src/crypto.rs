@@ -16,7 +16,7 @@ use std::path::Path;
 
 use libsodium_sys;
 use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
-use rustc_serialize::hex::{ToHex};
+use rustc_serialize::hex::ToHex;
 use sodiumoxide::init as nacl_init;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::box_;
@@ -305,24 +305,24 @@ impl Context {
                          outfilename: &str,
                          key_with_rev: &str,
                          sk: &SigSecretKey)
-        -> Result<()> {
-            nacl_init();
+                         -> Result<()> {
+        nacl_init();
 
-            let hash = try!(self.hash_file(&infilename));
-            debug!("File hash = {}", hash);
+        let hash = try!(self.hash_file(&infilename));
+        debug!("File hash = {}", hash);
 
-            let signature = sign::sign(&hash.as_bytes(), &sk);
-            let output_file = try!(File::create(outfilename));
-            let mut writer = BufWriter::new(&output_file);
-            let () = try!(write!(writer,
-                                 "{}\n{}\n{}\n",
-                                 key_with_rev,
-                                 SIG_HASH_TYPE,
-                                 signature.to_base64(STANDARD)));
-            let mut file = try!(File::open(infilename));
-            try!(io::copy(&mut file, &mut writer));
-            Ok(())
-        }
+        let signature = sign::sign(&hash.as_bytes(), &sk);
+        let output_file = try!(File::create(outfilename));
+        let mut writer = BufWriter::new(&output_file);
+        let () = try!(write!(writer,
+                             "{}\n{}\n{}\n",
+                             key_with_rev,
+                             SIG_HASH_TYPE,
+                             signature.to_base64(STANDARD)));
+        let mut file = try!(File::open(infilename));
+        try!(io::copy(&mut file, &mut writer));
+        Ok(())
+    }
 
     /// return a BufReader to the .tar bytestream, skipping the signed header
     pub fn get_artifact_reader(&self, infilename: &str) -> Result<BufReader<File>> {
@@ -356,7 +356,7 @@ impl Context {
         let mut reader = BufReader::new(f);
         if try!(reader.read_line(&mut your_key_name)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read origin key name"
-                                          .to_string()));
+                                              .to_string()));
         }
         if try!(reader.read_line(&mut your_hash_type)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read hash type".to_string()));
@@ -428,22 +428,22 @@ impl Context {
                    service_pk: &BoxPublicKey,
                    user_key_name: &str,
                    user_sk: &BoxSecretKey)
-        -> Result<Vec<u8>> {
-            nacl_init();
-            let nonce = gen_nonce();
-            let ciphertext = box_::seal(data, &nonce, service_pk, &user_sk);
+                   -> Result<Vec<u8>> {
+        nacl_init();
+        let nonce = gen_nonce();
+        let ciphertext = box_::seal(data, &nonce, service_pk, &user_sk);
 
-            debug!("User key [{}]", user_key_name);
-            debug!("Service key [{}]", service_key_name);
-            debug!("Nonce [{}]", nonce[..].to_base64(STANDARD));
-            let out = format!("{}\n{}\n{}\n{}\n{}",
-                              ENCRYPTED_PAYLOAD_VERSION,
-                              user_key_name,
-                              service_key_name,
-                              nonce[..].to_base64(STANDARD),
-                              &ciphertext.to_base64(STANDARD));
-            Ok(out.into_bytes())
-        }
+        debug!("User key [{}]", user_key_name);
+        debug!("Service key [{}]", service_key_name);
+        debug!("Nonce [{}]", nonce[..].to_base64(STANDARD));
+        let out = format!("{}\n{}\n{}\n{}\n{}",
+                          ENCRYPTED_PAYLOAD_VERSION,
+                          user_key_name,
+                          service_key_name,
+                          nonce[..].to_base64(STANDARD),
+                          &ciphertext.to_base64(STANDARD));
+        Ok(out.into_bytes())
+    }
 
     /// Decrypt data from a user that was received at a service
     /// Key names are embedded in the message payload which must
@@ -466,7 +466,7 @@ impl Context {
         }
         if try!(p.read_line(&mut service_key_name)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read service key name"
-                                          .to_string()));
+                                              .to_string()));
         }
         if try!(p.read_line(&mut raw_nonce)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read nonce".to_string()));
@@ -626,40 +626,40 @@ impl Context {
                                                              public_content: &Vec<u8>,
                                                              secret_keyfile: K2,
                                                              secret_content: &Vec<u8>)
-        -> Result<()> {
-            if let Some(pk_dir) = public_keyfile.as_ref().parent() {
-                try!(fs::create_dir_all(pk_dir));
-            } else {
-                return Err(Error::BadKeyPath(public_keyfile.as_ref().to_string_lossy().into_owned()));
-            }
-
-            if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
-                try!(fs::create_dir_all(sk_dir));
-            } else {
-                return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
-            }
-
-            if public_keyfile.as_ref().exists() && public_keyfile.as_ref().is_file() {
-                return Err(Error::CryptoError(format!("Public keyfile already exists {}",
-                                                      public_keyfile.as_ref().display())));
-            }
-
-            if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
-                return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
-                                                      secret_keyfile.as_ref().display())));
-            }
-
-            let public_file = try!(File::create(public_keyfile.as_ref()));
-            let mut public_writer = BufWriter::new(&public_file);
-            try!(public_writer.write_all(public_content));
-            try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
-
-            let secret_file = try!(File::create(secret_keyfile.as_ref()));
-            let mut secret_writer = BufWriter::new(&secret_file);
-            try!(secret_writer.write_all(secret_content));
-            try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
-            Ok(())
+                                                             -> Result<()> {
+        if let Some(pk_dir) = public_keyfile.as_ref().parent() {
+            try!(fs::create_dir_all(pk_dir));
+        } else {
+            return Err(Error::BadKeyPath(public_keyfile.as_ref().to_string_lossy().into_owned()));
         }
+
+        if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
+            try!(fs::create_dir_all(sk_dir));
+        } else {
+            return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
+        }
+
+        if public_keyfile.as_ref().exists() && public_keyfile.as_ref().is_file() {
+            return Err(Error::CryptoError(format!("Public keyfile already exists {}",
+                                                  public_keyfile.as_ref().display())));
+        }
+
+        if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
+            return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
+                                                  secret_keyfile.as_ref().display())));
+        }
+
+        let public_file = try!(File::create(public_keyfile.as_ref()));
+        let mut public_writer = BufWriter::new(&public_file);
+        try!(public_writer.write_all(public_content));
+        try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
+
+        let secret_file = try!(File::create(secret_keyfile.as_ref()));
+        let mut secret_writer = BufWriter::new(&secret_file);
+        try!(secret_writer.write_all(secret_content));
+        try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
+        Ok(())
+    }
 
     /// *********************************************
     /// Key reading functions
@@ -810,97 +810,101 @@ impl Context {
     }
 
 
-
-/// If a key "belongs" to a filename revision, then add the full stem of the
-/// file (without path, without .suffix)
-fn check_filename(&self, keyname: &str, filename: String, candidates: &mut HashSet<String>) -> () {
-    if filename.ends_with(PUB_KEY_SUFFIX) {
-        if filename.starts_with(keyname) {
-            // push filename without extension
-            // -1 for the '.' before 'pub'
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              PUB_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
-        }
-        // SECRET_SIG_KEY_SUFFIX and SECRET_BOX_KEY_SUFFIX are the same at the
-        // moment, but don't assume that they'll always be that way.
-    } else if filename.ends_with(SECRET_SIG_KEY_SUFFIX) {
-        if filename.starts_with(keyname) {
+    /// If a key "belongs" to a filename revision, then add the full stem of the
+    /// file (without path, without .suffix)
+    fn check_filename(&self,
+                      keyname: &str,
+                      filename: String,
+                      candidates: &mut HashSet<String>)
+                      -> () {
+        if filename.ends_with(PUB_KEY_SUFFIX) {
+            if filename.starts_with(keyname) {
+                // push filename without extension
+                // -1 for the '.' before 'pub'
+                let (stem, _) = filename.split_at(filename.chars().count() -
+                                                  PUB_KEY_SUFFIX.chars().count() -
+                                                  1);
+                candidates.insert(stem.to_string());
+            }
+            // SECRET_SIG_KEY_SUFFIX and SECRET_BOX_KEY_SUFFIX are the same at the
+            // moment, but don't assume that they'll always be that way.
+        } else if filename.ends_with(SECRET_SIG_KEY_SUFFIX) {
+            if filename.starts_with(keyname) {
+                // -1 for the '.' before the suffix
+                let (stem, _) = filename.split_at(filename.chars().count() -
+                                                  SECRET_SIG_KEY_SUFFIX.chars().count() -
+                                                  1);
+                candidates.insert(stem.to_string());
+            }
+        } else if filename.ends_with(SECRET_BOX_KEY_SUFFIX) {
             // -1 for the '.' before the suffix
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              SECRET_SIG_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
-        }
-    } else if filename.ends_with(SECRET_BOX_KEY_SUFFIX) {
-            // -1 for the '.' before the suffix
-        if filename.starts_with(keyname) {
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              SECRET_BOX_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
+            if filename.starts_with(keyname) {
+                let (stem, _) = filename.split_at(filename.chars().count() -
+                                                  SECRET_BOX_KEY_SUFFIX.chars().count() -
+                                                  1);
+                candidates.insert(stem.to_string());
+            }
         }
     }
-}
 
-/// Take a key name (ex "habitat"), and find all revisions of that
-/// keyname in the nacl_key_dir().
-pub fn get_key_revisions(&self, keyname: &str) -> Result<Vec<String>> {
-    // look for .pub keys
-    // accumulator for files that match
-    // let mut candidates = Vec::new();
-    let mut candidates = HashSet::new();
-    let paths = match fs::read_dir(&self.key_cache) {
-        Ok(p) => p,
-        Err(e) => {
-            return Err(Error::CryptoError(format!("Error reading key directory {}: {}", &self.key_cache, e)))
-        }
-    };
-    for path in paths {
-        match path {
-            Ok(ref p) => p,
+    /// Take a key name (ex "habitat"), and find all revisions of that
+    /// keyname in the nacl_key_dir().
+    pub fn get_key_revisions(&self, keyname: &str) -> Result<Vec<String>> {
+        // look for .pub keys
+        // accumulator for files that match
+        // let mut candidates = Vec::new();
+        let mut candidates = HashSet::new();
+        let paths = match fs::read_dir(&self.key_cache) {
+            Ok(p) => p,
             Err(e) => {
-                debug!("Error reading path {}", e);
-                return Err(Error::CryptoError(format!("Error reading key path {}", e)));
+                return Err(Error::CryptoError(format!("Error reading key directory {}: {}",
+                                                      &self.key_cache,
+                                                      e)))
             }
         };
+        for path in paths {
+            match path {
+                Ok(ref p) => p,
+                Err(e) => {
+                    debug!("Error reading path {}", e);
+                    return Err(Error::CryptoError(format!("Error reading key path {}", e)));
+                }
+            };
 
-        let p: fs::DirEntry = path.unwrap();
+            let p: fs::DirEntry = path.unwrap();
 
-        match p.metadata() {
-            Ok(md) => {
-                if !md.is_file() {
+            match p.metadata() {
+                Ok(md) => {
+                    if !md.is_file() {
+                        continue;
+                    }
+                }
+                Err(e) => {
+                    debug!("Error checking file metadata {}", e);
                     continue;
                 }
-            }
-            Err(e) => {
-                debug!("Error checking file metadata {}", e);
-                continue;
-            }
-        };
-        let filename = match p.file_name().into_string() {
-            Ok(f) => f,
-            Err(e) => {
-                // filename is still an OsString, so print it as debug output
-                debug!("Invalid filename {:?}", e);
-                return Err(Error::CryptoError(format!("Invalid filename in key path")));
-            }
-        };
+            };
+            let filename = match p.file_name().into_string() {
+                Ok(f) => f,
+                Err(e) => {
+                    // filename is still an OsString, so print it as debug output
+                    debug!("Invalid filename {:?}", e);
+                    return Err(Error::CryptoError(format!("Invalid filename in key path")));
+                }
+            };
 
-        debug!("checking file: {}", &filename);
-        self.check_filename(keyname, filename, &mut candidates);
-    }
+            debug!("checking file: {}", &filename);
+            self.check_filename(keyname, filename, &mut candidates);
+        }
 
-    // traverse the candidates set and sort the entries
-    let mut candidate_vec = Vec::new();
-    for c in &candidates {
-        candidate_vec.push(c.clone());
+        // traverse the candidates set and sort the entries
+        let mut candidate_vec = Vec::new();
+        for c in &candidates {
+            candidate_vec.push(c.clone());
+        }
+        candidate_vec.sort();
+        // newest key first
+        candidate_vec.reverse();
+        Ok(candidate_vec)
     }
-    candidate_vec.sort();
-    // newest key first
-    candidate_vec.reverse();
-    Ok(candidate_vec)
 }
-
-  }
