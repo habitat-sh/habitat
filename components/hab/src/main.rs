@@ -34,6 +34,7 @@ use std::str::FromStr;
 use clap::ArgMatches;
 
 use error::{Error, Result};
+use hcore::env as henv;
 use hcore::fs::find_command;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
@@ -138,7 +139,7 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
-    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let artifact_path = m.value_of("ARTIFACT").unwrap();
 
@@ -179,7 +180,7 @@ fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
-    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
 
@@ -211,7 +212,7 @@ fn exec_subcommand_if_called() -> Result<()> {
                     1
                 };
 
-                let command = match env::var(SUP_CMD_ENVVAR) {
+                let command = match henv::var(SUP_CMD_ENVVAR) {
                     Ok(command) => PathBuf::from(command),
                     Err(_) => {
                         let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
@@ -238,7 +239,7 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORIGIN") {
         Some(o) => Ok(o.to_string()),
         None => {
-            match env::var(HABITAT_ORIGIN_ENVVAR) {
+            match henv::var(HABITAT_ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string())),
             }
@@ -254,7 +255,7 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORG") {
         Some(o) => Ok(o.to_string()),
         None => {
-            match env::var(HABITAT_ORG_ENVVAR) {
+            match henv::var(HABITAT_ORG_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
             }

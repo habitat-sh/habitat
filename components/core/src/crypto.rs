@@ -5,7 +5,6 @@
 // is made available under an open source license such as the Apache 2.0 License.
 use std::ptr;
 use std::collections::HashSet;
-use std::env;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
@@ -27,6 +26,7 @@ use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecre
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{Nonce, gen_nonce};
 use time;
 
+use env as henv;
 use error::{Error, Result};
 use fs::CACHE_KEY_PATH;
 use util::perm;
@@ -228,7 +228,7 @@ pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 /// If an env var is set, then return it's value.
 /// If it's not, return the default
 fn env_var_or_default(env_var: &str, default: &str) -> String {
-    let value = match env::var(env_var) {
+    let value = match henv::var(env_var) {
         Ok(val) => String::from(val),
         Err(_) => String::from(default),
     };

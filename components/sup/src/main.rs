@@ -17,7 +17,6 @@ extern crate libc;
 #[macro_use]
 extern crate clap;
 
-use std::env;
 use std::ffi::CString;
 use std::process;
 use std::ptr;
@@ -27,6 +26,7 @@ use std::str::FromStr;
 use ansi_term::Colour::Yellow;
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use hcore::package::PackageIdent;
+use hcore::env as henv;
 use hcore::fs;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
@@ -101,7 +101,7 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         let ed = value_t!(sub_args.value_of("expire-days"), u16).unwrap_or_else(|e| e.exit());
         config.set_expire_days(ed);
     }
-    let env_or_default = env::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = sub_args.value_of("url").unwrap_or(&env_or_default);
     config.set_url(url.to_string());
     config.set_group(sub_args.value_of("group").unwrap_or(DEFAULT_GROUP).to_string());

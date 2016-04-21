@@ -8,6 +8,8 @@
 use std::env;
 use std::path::PathBuf;
 
+use env as henv;
+
 pub const ROOT_PATH: &'static str = "/hab";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &'static str = "/hab/cache/artifacts";
@@ -72,7 +74,7 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
 
     // Find the command by checking each entry in `PATH`. If we still can't find it, give up and
     // return `None`.
-    match env::var_os("PATH") {
+    match henv::var_os("PATH") {
         Some(paths) => {
             for path in env::split_paths(&paths) {
                 let candidate = PathBuf::from(&path).join(command);
