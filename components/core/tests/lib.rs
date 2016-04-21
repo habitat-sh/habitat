@@ -181,7 +181,7 @@ fn mixed_key_revisions_test() {
         panic!("Can't remove secret key {}", e);
     }
 
-    let keyname = "calculating_infinity@dillinger";
+    let keyname = "calculating_infinity";
 
     match crypto_ctx.get_key_revisions(keyname) {
         Ok(revs) => {

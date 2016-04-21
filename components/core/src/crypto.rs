@@ -71,21 +71,21 @@ use util::perm;
 ///
 /// - Origin key
 ///
-/// ```
+/// ```text
 /// <origin_name>-<revision>.pub
 /// <origin_name>-<revision>.sig.key
 /// ```
 ///
 /// - User key
 ///
-/// ```
+/// ```text
 /// <user_name>-<revision>.pub
 /// <user_name>-<revision>.box.key
 /// ```
 ///
 /// - Service key
 ///
-/// ```
+/// ```text
 /// <service_name>.<group>@<organization>-<revision>.pub
 /// <service_name>.<group>@<organization>-<revision>.box.key
 /// ```
@@ -162,7 +162,7 @@ use util::perm;
 /// 3. A nonce, in base64 format.
 /// 4. The encrypted message in base64 format.
 ///
-/// ```
+/// ```text
 /// 0.1.0\n
 /// signing key name\n
 /// recipient key name\n
