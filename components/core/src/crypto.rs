@@ -17,6 +17,8 @@ use libsodium_sys;
 use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
 use rustc_serialize::hex::ToHex;
 use sodiumoxide::init as nacl_init;
+use sodiumoxide::crypto::secretbox;
+use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::box_;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
@@ -181,6 +183,9 @@ static SECRET_SIG_KEY_SUFFIX: &'static str = "sig.key";
 /// The suffix on the end of a secret box file
 static SECRET_BOX_KEY_SUFFIX: &'static str = "box.key";
 
+/// The suffix on the end of a secret symmetric key file
+static SECRET_SYM_KEY_SUFFIX: &'static str = "sym.key";
+
 /// The hashing function we're using during sign/verify
 /// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
 static SIG_HASH_TYPE: &'static str = "BLAKE2b";
@@ -224,6 +229,7 @@ impl<P, S> KeyPair<P, S> {
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
+pub type SymKey = KeyPair<(), SymSecretKey>;
 
 /// If an env var is set, then return it's value.
 /// If it's not, return the default
@@ -562,6 +568,14 @@ impl Context {
         Ok(keyname)
     }
 
+    /// generate a ring key, return the name of the key we generated
+    pub fn generate_ring_sym_key(&self, ring: &str) -> Result<String> {
+        let revision = self.mk_revision_string();
+        let keyname = self.mk_ring_sym_key_name(&revision, &ring);
+        debug!("new ring key name = {}", &keyname);
+        let _ = try!(self.generate_sym_key_file(&keyname));
+        Ok(keyname)
+    }
 
     /// generates a revision string in the form:
     /// `{year}{month}{day}{hour24}{minute}{second}`
@@ -592,6 +606,10 @@ impl Context {
         format!("{}-{}", user, revision)
     }
 
+    fn mk_ring_sym_key_name(&self, revision: &str, ring: &str) -> String {
+        format!("{}-{}", ring, revision)
+    }
+
     fn generate_box_keypair_files(&self, keyname: &str) -> Result<(BoxPublicKey, BoxSecretKey)> {
         let (pk, sk) = box_::gen_keypair();
 
@@ -619,6 +637,18 @@ impl Context {
                                       &secret_keyfile,
                                       &sk[..].to_base64(STANDARD).into_bytes()));
         Ok((pk, sk))
+    }
+
+    fn generate_sym_key_file(&self, keyname: &str) -> Result<SymSecretKey> {
+        let sk = secretbox::gen_key();
+
+        let secret_keyfile = self.mk_key_filename(&self.key_cache, keyname, SECRET_SYM_KEY_SUFFIX);
+        debug!("secret ring keyfile = {}", &secret_keyfile);
+
+        try!(self.write_sym_key_file(&keyname,
+                                     &secret_keyfile,
+                                     &sk[..].to_base64(STANDARD).into_bytes()));
+        Ok(sk)
     }
 
     fn write_keypair_files<K1: AsRef<Path>, K2: AsRef<Path>>(&self,
@@ -656,6 +686,30 @@ impl Context {
 
         let secret_file = try!(File::create(secret_keyfile.as_ref()));
         let mut secret_writer = BufWriter::new(&secret_file);
+        try!(secret_writer.write_all(secret_content));
+        try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
+        Ok(())
+    }
+
+    fn write_sym_key_file<K: AsRef<Path>>(&self,
+                                          keyname: &str,
+                                          secret_keyfile: K,
+                                          secret_content: &Vec<u8>)
+                                          -> Result<()> {
+        if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
+            try!(fs::create_dir_all(sk_dir));
+        } else {
+            return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
+        }
+
+        if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
+            return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
+                                                  secret_keyfile.as_ref().display())));
+        }
+
+        let secret_file = try!(File::create(secret_keyfile.as_ref()));
+        let mut secret_writer = BufWriter::new(&secret_file);
+        try!(write!(secret_writer, "{}\n", keyname));
         try!(secret_writer.write_all(secret_content));
         try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
         Ok(())
