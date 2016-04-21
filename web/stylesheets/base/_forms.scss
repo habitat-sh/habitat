@@ -71,6 +71,16 @@ select[multiple] {
       border: $base-border;
     }
   }
+
+  &.ng-invalid:focus {
+    border-color: $failure-color;
+    box-shadow: $form-box-shadow-focus-failure;
+  }
+
+  &.ng-valid:focus {
+    border-color: $success-color;
+    border-color: $form-box-shadow-focus-success;
+  }
 }
 
 textarea {
@@ -97,3 +107,4 @@ select {
   max-width: 100%;
   width: auto;
 }
+

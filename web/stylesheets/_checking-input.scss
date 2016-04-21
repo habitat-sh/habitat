@@ -1,0 +1,77 @@
+// Copyright:: Copyright (c) 2015-2016 The Habitat Maintainers
+//
+// The terms of the Evaluation Agreement (Habitat) between Chef Software Inc.
+// and the party accessing this file ("Licensee") apply to Licensee's use of
+// the Software until such time that the Software is made available under an
+// open source license such as the Apache 2.0 License.
+
+// We're specifying this here because the base/_forms.scss selectors are too
+// strong and we have to override them.
+input.hab-checking-input--input {
+ padding-right: $base-spacing * 1.2;
+
+  &.loading:focus {
+    border-color: $light-gray;
+    box-shadow: $form-box-shadow-focus-loading;
+  }
+}
+
+.hab-checking-input {
+  &--input-wrapper {
+    position: relative;
+  }
+
+  &--input-icon {
+    @extend .octicon;
+    position: absolute;
+    right: $small-spacing;
+    top: $small-spacing;
+
+    &.loading {
+      @extend .octicon-sync;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-name: hab-checking-input-spinner-rotate;
+      animation-timing-function: linear;
+      color: $light-gray;
+    }
+
+    &.invalid {
+      @extend .octicon-circle-slash;
+      color: $failure-color;
+    }
+
+    &.valid {
+      @extend .octicon-check;
+      color: $success-color;
+    }
+  }
+
+  &--input-msg-wrap {
+    text-align: right;
+  }
+
+  &--input-msg {
+    > span {
+      margin-left: $base-spacing;
+    }
+
+    &.invalid {
+      color: $failure-color;
+    }
+
+    &.valid {
+      color: $success-color;
+    }
+  }
+}
+
+@keyframes hab-checking-input-spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

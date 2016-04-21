@@ -10,11 +10,13 @@ import {Component, OnInit} from "angular2/core";
 import {Observable} from "rxjs";
 import {AppStore} from "../AppStore";
 import {AsyncValidator} from "../AsyncValidator";
+import {CheckingInputComponent} from "../CheckingInputComponent";
 import {createOrigin} from "../actions/index";
 import {isOriginAvailable} from "../builderApi";
 import {requireSignIn} from "../util";
 
 @Component({
+    directives: [CheckingInputComponent],
     template: `
     <div class="hab-origin-create">
         <div class="page-title">
@@ -40,44 +42,13 @@ import {requireSignIn} from "../util";
                 <em>_</em>, and <em>-</em>.
                 No more than {{maxLength}} characters.
             </small>
-            <div class="hab-origin-create--input-wrapper">
-                <i class="hab-origin-create--input-icon"
-                   [class.loading]="name.pending"
-                   [class.invalid]="name.dirty && !name.pending && !name.valid"
-                   [class.valid]="!name.pending && name.valid">
-                </i>
-                <input class="hab-origin-create--input"
-                    [class.loading]="name.pending"
-                    [class.invalid]="name.dirty && !name.pending && !name.valid"
-                    [class.valid]="!name.pending && name.valid"
-                    autocomplete="off"
-                    id="name"
-                    ngControl="name"
-                    pattern="{{pattern}}"
-                    required>
-            </div>
-            <small class="hab-origin-create--input-msg-wrap">
-                &nbsp;
-                <span *ngIf="name.dirty && !name.pending && !name.valid"
-                      class="hab-origin-create--input-msg invalid">
-                    <span *ngIf="name.errors.invalidFormat">
-                        Name must match correct format
-                    </span>
-                    <span *ngIf="name.errors.required">
-                        Name is required
-                    </span>
-                    <span *ngIf="name.errors.taken">
-                        Name is already in use
-                    </span>
-                    <span *ngIf="name.errors.maxlength">
-                        Cannot be longer than {{maxLength}} characters
-                    </span>
-                </span>
-                <span *ngIf="!name.pending && name.valid"
-                      class="hab-origin-create--input-msg valid">
-                    Name is available
-                </span>
-            </small>
+            <hab-checking-input [form]="form"
+                                id="origin-name"
+                                [isAvailable]="isOriginAvailable"
+                                name="name"
+                                title="Name"
+                                [value]="isFirstOrigin ? username : ''">
+            </hab-checking-input>
             <div class="hab-origin-create--checkbox">
                 <input [disabled]="isFirstOrigin"
                        id="setAsDefault"
@@ -113,18 +84,7 @@ export class OriginCreatePageComponent implements OnInit {
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
         requireSignIn(this);
 
-        this.name = new Control(
-            this.isFirstOrigin ? this.username : "",
-            Validators.compose([
-                Validators.required,
-                Validators.maxLength(this.maxLength),
-                this.patternValidator.bind(this),
-            ]),
-            AsyncValidator.debounce(control => this.takenValidator(control))
-        );
-
         this.form = formBuilder.group({
-            name: this.name,
             default: new Control(this.isFirstOrigin),
         });
     }
@@ -134,6 +94,8 @@ export class OriginCreatePageComponent implements OnInit {
     get isFirstOrigin() {
         return this.store.getState().origins.mine.size === 0;
     }
+
+    private isOriginAvailable(origin) { return isOriginAvailable(origin); }
 
     get username() { return this.store.getState().users.current.username; }
 
@@ -148,31 +110,5 @@ export class OriginCreatePageComponent implements OnInit {
     private createOrigin(origin) {
         this.store.dispatch(createOrigin(origin, this.isFirstOrigin));
         return false;
-    }
-
-    private patternValidator(control) {
-        const name = control.value;
-
-        if (!name || name.match(this.pattern)) {
-            return null;
-        } else {
-            return { invalidFormat: true };
-        }
-    }
-
-    private takenValidator(control) {
-        const name = control.value;
-
-        return new Promise(resolve => {
-            // If we're empty or invalid, don't attempt to validate.
-            if ((control.errors && control.errors.required) ||
-                (control.errors && control.errors.invalidFormat)) {
-                resolve(null);
-            }
-
-            isOriginAvailable(name).
-                then(() => resolve(null)).
-                catch(() => resolve({ taken: true }));
-        });
     }
 }
