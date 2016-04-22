@@ -13,7 +13,7 @@
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
-use common::config_file::ConfigFile;
+use common::gossip_file::GossipFile;
 use rustc_serialize::Encodable;
 use uuid::Uuid;
 
@@ -63,7 +63,7 @@ pub enum Message {
     Member(Member),
     CensusEntry(CensusEntry),
     Election(Election),
-    ConfigFile(ConfigFile),
+    GossipFile(GossipFile),
     Blank,
 }
 
@@ -102,11 +102,11 @@ impl Rumor {
         }
     }
 
-    /// Create a new rumor with a `Message::ConfigFile` payload.
-    pub fn config_file(cf: ConfigFile) -> Rumor {
+    /// Create a new rumor with a `Message::GossipFile` payload.
+    pub fn gossip_file(cf: GossipFile) -> Rumor {
         Rumor {
             id: Uuid::new_v4(),
-            payload: Message::ConfigFile(cf),
+            payload: Message::GossipFile(cf),
         }
     }
 
@@ -267,12 +267,12 @@ impl RumorList {
         }
     }
 
-    pub fn prune_config_files_for(&mut self, config_file: &ConfigFile) {
+    pub fn prune_gossip_files_for(&mut self, gossip_file: &GossipFile) {
         let mut prune_list: Vec<RumorId> = Vec::new();
         for (rid, rumor) in self.rumors.iter() {
-            if let Message::ConfigFile(ref cf) = rumor.payload {
-                if config_file.service_group == cf.service_group &&
-                   config_file.file_name == cf.file_name {
+            if let Message::GossipFile(ref gf) = rumor.payload {
+                if gossip_file.service_group == gf.service_group &&
+                   gossip_file.file_name == gf.file_name {
                     prune_list.push(rid.clone());
                 }
             }

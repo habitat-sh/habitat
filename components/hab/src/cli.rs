@@ -63,6 +63,22 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_config_apply())
         )
+        (@subcommand file =>
+            (about: "Commands relating to Habitat files")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand upload =>
+                 (about: "Upload a file to the supervisor ring.")
+                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
+                      "Target service group for this injection (ex: redis.default)"
+                  )
+                 (@arg FILE: +required {file_exists} "Path to local file on disk")
+                 (@arg VERSION_NUMBER: +required
+                    "A version number (integer) for this configuration (ex: 42)")
+                 (@arg ORG: --org +takes_value "Name of service organization")
+                 (@arg USER: +takes_value)
+                 (@arg PEERS: -p --peers +takes_value
+                    "A comma-delimited list of one or more Habitat Supervisor peers to infect (default: 127.0.0.1:9634)"))
+        )
         (@subcommand origin =>
             (about: "Commands relating to Habitat origin keys")
             (@setting ArgRequiredElseHelp)
@@ -149,7 +165,7 @@ fn sub_config_apply() -> App<'static, 'static> {
         (about: "Applies a configuration to a group of Habitat Supervisors")
         (@arg PEERS: -p --peers +takes_value
          "A comma-delimited list of one or more Habitat Supervisor peers to infect (default: 127.0.0.1:9634)")
-        (@arg SERVICE_GROUP: +required
+        (@arg SERVICE_GROUP: +required {valid_service_group}
          "Target service group for this injection (ex: redis.default)")
         (@arg VERSION_NUMBER: +required
          "A version number (integer) for this configuration (ex: 42)")
@@ -190,10 +206,10 @@ fn valid_url(val: String) -> result::Result<(), String> {
 }
 
 fn valid_service_group(val: String) -> result::Result<(), String> {
-    let regex = Regex::new(".+\\..+").unwrap();
+    let regex = Regex::new(r"([A-Za-z_0-9]+)\.([A-Za-z_0-9]+)").unwrap();
     if regex.is_match(&val) {
         Ok(())
     } else {
-        Err(format!("SERVICE_GROUP: '{}' is not valid", &val))
+        Err(format!("SERVICE_GROUP: '{}' is invalid", &val))
     }
 }

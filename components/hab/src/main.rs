@@ -49,6 +49,9 @@ const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 
 /// you can skip the org CLI param if you specify this env var
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
+const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
+
+const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 fn main() {
     if let Err(e) = run_hab() {
@@ -75,6 +78,12 @@ fn run_hab() -> Result<()> {
         ("config", Some(matches)) => {
             match matches.subcommand() {
                 ("apply", Some(m)) => try!(sub_config_apply(m)),
+                _ => unreachable!(),
+            }
+        }
+        ("file", Some(matches)) => {
+            match matches.subcommand() {
+                ("upload", Some(m)) => try!(sub_file_upload(m)),
                 _ => unreachable!(),
             }
         }
@@ -184,6 +193,46 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_file_upload(m: &ArgMatches) -> Result<()> {
+    // this is mostly copy pasta from sub_config_apply
+    let peers_str = m.value_of("PEERS").unwrap_or("127.0.0.1");
+    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
+    for p in peers.iter_mut() {
+        if p.find(':').is_none() {
+            p.push(':');
+            p.push_str(&command::config::apply::hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
+        }
+    }
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
+    // FILE is required for upload, "safe" to unwrap
+    let file_path = Path::new(m.value_of("FILE").unwrap());
+
+    // make sure it's not a huge file, we don't want those floating around the ring
+    match file_path.metadata() {
+        Ok(md) => {
+            if md.len() > MAX_FILE_UPLOAD_SIZE_BYTES {
+                return Err(Error::CryptoCLI(format!("Maximum encrypted file size is {} bytes",
+                                                    MAX_FILE_UPLOAD_SIZE_BYTES)));
+            }
+        }
+        Err(e) => {
+            return Err(Error::CryptoCLI(format!("Error checking file metadata: {}", e)));
+
+        }
+    };
+    // apply the organization name to the service group, either
+    // from HAB_ORG or the --org param
+    let org = try!(org_param_or_env(&m));
+    sg.organization = Some(org.to_string());
+
+    let user = try!(user_param_or_env(&m));
+    // GossipFile loads in keys to encrypt/sign, so we'll defer to it for
+    // user secret/service public key not found errors
+    try!(command::config::apply::start_encrypted(&peers, sg, number, file_path, &user));
+    Ok(())
+}
+
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
     let origin = try!(origin_param_or_env(&m));
     try!(command::artifact::crypto::generate_origin_key(&origin));
@@ -248,9 +297,9 @@ fn exec_subcommand_if_called() -> Result<()> {
     Ok(())
 }
 
-// check to see if the user has passed in an ORIGIN param
-// if not, check the HABITAT_ORIGIN env var. If that's
-// empty too, then error
+/// Check to see if the user has passed in an ORIGIN param.
+/// If not, check the HABITAT_ORIGIN env var. If that's
+/// empty too, then error.
 fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORIGIN") {
         Some(o) => Ok(o.to_string()),
@@ -264,9 +313,9 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
 }
 
 
-// check to see if the user has passed in an ORG param
-// if not, check the HABITAT_ORG env var. If that's
-// empty too, then error
+/// Check to see if the user has passed in an ORG param.
+/// If not, check the HABITAT_ORG env var. If that's
+/// empty too, then error.
 fn org_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORG") {
         Some(o) => Ok(o.to_string()),
@@ -274,6 +323,23 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
             match henv::var(HABITAT_ORG_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
+            }
+        }
+    }
+}
+
+
+
+/// Check to see if the user has passed in a USER param.
+/// If not, check the HAB_USER env var. If that's
+/// empty too, then return an error.
+fn user_param_or_env(m: &ArgMatches) -> Result<String> {
+    match m.value_of("USER") {
+        Some(u) => Ok(u.to_string()),
+        None => {
+            match env::var(HABITAT_USER_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => return Err(Error::CryptoCLI("No user specified".to_string())),
             }
         }
     }

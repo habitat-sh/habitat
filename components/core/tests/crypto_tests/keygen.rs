@@ -211,10 +211,21 @@ fn crypto_encrypt_decrypt_test() {
                                          &user1_kp.secret.as_ref().unwrap())
                                 .unwrap();
 
+    // Lets try and get the key names from the box header,
+    // They should match the key names we passed in.
+    match crypto_ctx.get_box_user_and_service_keys(&mut payload) {
+        Ok((user_key_name, service_key_name)) => {
+            assert!(&user1_kp.name_with_rev == &user_key_name);
+            assert!(&service1_kp.name_with_rev == &service_key_name);
+        }
+        Err(e) => panic!("Couldn't get box key names: {}", e),
+    };
+
     let result = crypto_ctx.decrypt(&mut payload).unwrap();
     // we encrypted a value, and got the same value back upon decryption
     assert!(result == data);
 
+    // TODO DP: Path/PathBuf for building these key paths
     let user_public_keyfile = format!("{}/{}.pub", key_dir, &user1_kp.name_with_rev);
     let user_public_keyfile_backup = format!("{}/{}.bak", key_dir, &user1_kp.name_with_rev);
 
