@@ -19,6 +19,8 @@ use rustc_serialize::hex::ToHex;
 use sodiumoxide::init as nacl_init;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::box_;
+use sodiumoxide::crypto::secretbox;
+use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
 use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
@@ -38,6 +40,7 @@ use util::perm;
 /// ### Concepts and terminology:
 /// - All public keys/certificates/signatures will be referred to as **public**.
 /// - All secret or private keys will be referred to as **secret**.
+/// - All symmetric encryption keys will be referred to as **secret**.
 /// - The word `key` by itself does not indicate **public** or **secret**. The only
 /// exception is if the word key appears as part of a file suffix, where it is then
 /// considered the **secret key** file.
@@ -53,11 +56,17 @@ use util::perm;
 /// such as deploying a package signed in a different origin into your own organization.
 /// Abbreviated as "org" in CLI params and variable names.
 /// - **Org vs Origin** - Habitat packages come from an origin and run in an organization
+/// - **Ring** - The full set of Supervisors that communicate with each other.
 /// - **Signing keys** - aka **sig** keys. These are used to sign and verify
 /// packages. Contains a `sig.key` file suffix. Sig keys are NOT compatible with
 /// box keys.
 /// - **Box keys** - used for encryption/decryption of arbitrary data. Contains a
 /// `.box.key` file suffix. Box keys are NOT compatible with sig keys.
+/// - **Sym keys** - used for symmetric encryption, meaning that a shared secret is used to encrypt
+/// a message into a cyphertext and that same secret is used later to decryt the cyphertext into
+/// the original message.
+/// - **Ring key** - A Sym key used when sending messages between the Supervisors to prevent a
+/// third party from intercepting the traffic.
 /// - **Key revisions** - Habitat can use several keys for any given user, service,
 /// or origin via different revision numbers. Revision numbers appear following the
 /// key name and are in the format
@@ -91,6 +100,12 @@ use util::perm;
 /// <service_name>.<group>@<organization>-<revision>.box.key
 /// ```
 ///
+/// - Ring key
+///
+/// ```text
+/// <ring_name>-<revision>.sym.key
+/// ```
+///
 /// Example origin key file names ("sig" keys):
 ///
 /// ```text
@@ -111,6 +126,12 @@ use util::perm;
 ///
 /// ```text
 /// redis.default@habitat-201603312016.pub
+/// ```
+///
+/// Example Ring keys:
+///
+/// ```text
+/// staging-201603312016.sym.key
 /// ```
 ///
 ///
@@ -154,6 +175,7 @@ use util::perm;
 /// tail -n +4 /tmp/somefile.hart > somefile.tar
 /// # start at line 4, skipping the first 3 plaintext lines.
 /// ```
+///
 /// ### Habitat encrypted payload format
 ///
 /// The first 4 lines of an encrypted payload are as follows:
@@ -171,6 +193,21 @@ use util::perm;
 /// nonce_base64\n
 /// <ciphertext_base64>
 /// ```
+///
+/// ### Habitat Ring key format
+///
+/// There are 3 lines, that is 3 parts that are separtated by a newline character `\n`. They are as
+/// follows:
+///
+/// 0. Encrypted format version #, the current version is `1`
+/// 1. The ring key name, including revision
+/// 2. The key itself, which is base64-encoded
+///
+/// ```text
+/// SYM-1\n
+/// staging-20160405144945\n
+/// <symkey_base64>
+/// ```
 
 /// The suffix on the end of a public sig/box file
 static PUB_KEY_SUFFIX: &'static str = "pub";
@@ -180,6 +217,9 @@ static SECRET_SIG_KEY_SUFFIX: &'static str = "sig.key";
 
 /// The suffix on the end of a secret box file
 static SECRET_BOX_KEY_SUFFIX: &'static str = "box.key";
+
+/// The suffix on the end of a secret symmetric key file
+static SECRET_SYM_KEY_SUFFIX: &'static str = "sym.key";
 
 /// The hashing function we're using during sign/verify
 /// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
@@ -196,9 +236,12 @@ static SECRET_KEY_PERMISSIONS: &'static str = "0400";
 
 static ENCRYPTED_PAYLOAD_VERSION: &'static str = "BOX-0.1.0";
 
+static SYM_KEY_VERSION: &'static str = "SYM-1";
+
 const BUF_SIZE: usize = 1024;
 
 /// You can ask for both keys at once
+#[derive(Clone)]
 pub struct KeyPair<P, S> {
     /// The name of the key, ex: "habitat"
     pub name: String,
@@ -224,6 +267,7 @@ impl<P, S> KeyPair<P, S> {
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
+pub type SymKey = KeyPair<(), SymSecretKey>;
 
 /// If an env var is set, then return it's value.
 /// If it's not, return the default
@@ -562,6 +606,14 @@ impl Context {
         Ok(keyname)
     }
 
+    /// generate a ring key, return the name of the key we generated
+    pub fn generate_ring_sym_key(&self, ring: &str) -> Result<String> {
+        let revision = self.mk_revision_string();
+        let keyname = self.mk_ring_sym_key_name(&revision, &ring);
+        debug!("new ring key name = {}", &keyname);
+        let _ = try!(self.generate_sym_key_file(&keyname));
+        Ok(keyname)
+    }
 
     /// generates a revision string in the form:
     /// `{year}{month}{day}{hour24}{minute}{second}`
@@ -592,6 +644,10 @@ impl Context {
         format!("{}-{}", user, revision)
     }
 
+    fn mk_ring_sym_key_name(&self, revision: &str, ring: &str) -> String {
+        format!("{}-{}", ring, revision)
+    }
+
     fn generate_box_keypair_files(&self, keyname: &str) -> Result<(BoxPublicKey, BoxSecretKey)> {
         let (pk, sk) = box_::gen_keypair();
 
@@ -619,6 +675,18 @@ impl Context {
                                       &secret_keyfile,
                                       &sk[..].to_base64(STANDARD).into_bytes()));
         Ok((pk, sk))
+    }
+
+    fn generate_sym_key_file(&self, keyname: &str) -> Result<SymSecretKey> {
+        let sk = secretbox::gen_key();
+
+        let secret_keyfile = self.mk_key_filename(&self.key_cache, keyname, SECRET_SYM_KEY_SUFFIX);
+        debug!("secret ring keyfile = {}", &secret_keyfile);
+
+        try!(self.write_sym_key_file(&keyname,
+                                     &secret_keyfile,
+                                     &sk[..].to_base64(STANDARD).into_bytes()));
+        Ok(sk)
     }
 
     fn write_keypair_files<K1: AsRef<Path>, K2: AsRef<Path>>(&self,
@@ -656,6 +724,30 @@ impl Context {
 
         let secret_file = try!(File::create(secret_keyfile.as_ref()));
         let mut secret_writer = BufWriter::new(&secret_file);
+        try!(secret_writer.write_all(secret_content));
+        try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
+        Ok(())
+    }
+
+    fn write_sym_key_file<K: AsRef<Path>>(&self,
+                                          keyname: &str,
+                                          secret_keyfile: K,
+                                          secret_content: &Vec<u8>)
+                                          -> Result<()> {
+        if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
+            try!(fs::create_dir_all(sk_dir));
+        } else {
+            return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
+        }
+
+        if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
+            return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
+                                                  secret_keyfile.as_ref().display())));
+        }
+
+        let secret_file = try!(File::create(secret_keyfile.as_ref()));
+        let mut secret_writer = BufWriter::new(&secret_file);
+        try!(write!(secret_writer, "{}\n{}\n\n", SYM_KEY_VERSION, keyname));
         try!(secret_writer.write_all(secret_content));
         try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
         Ok(())
@@ -723,6 +815,25 @@ impl Context {
         Ok(key_pairs)
     }
 
+    pub fn read_sym_keys(&self, keyname: &str) -> Result<Vec<SymKey>> {
+        let revisions = try!(self.get_key_revisions(keyname));
+        let mut keys = Vec::new();
+        for rev in &revisions {
+            debug!("Attempting to read key rev {} for {}", rev, keyname);
+            let sk = match self.get_sym_secret_key(rev) {
+                Ok(k) => Some(k),
+                Err(e) => {
+                    // Not an error, just continue
+                    debug!("Can't find secret key for rev {}: {}", rev, e);
+                    None
+                }
+            };
+            let k = SymKey::new(keyname.to_string(), rev.clone(), None, sk);
+            keys.push(k);
+        }
+        Ok(keys)
+    }
+
 
     pub fn get_sig_secret_key(&self, key_with_rev: &str) -> Result<SigSecretKey> {
         let bytes = try!(self.get_sig_secret_key_bytes(key_with_rev));
@@ -768,6 +879,17 @@ impl Context {
         }
     }
 
+    pub fn get_sym_secret_key(&self, key_with_rev: &str) -> Result<SymSecretKey> {
+        let bytes = try!(self.get_sym_secret_key_bytes(key_with_rev));
+        match SymSecretKey::from_slice(&bytes) {
+            Some(sk) => Ok(sk),
+            None => {
+                return Err(Error::CryptoError(format!("Can't read sym secret key for {}",
+                                                      key_with_rev)))
+            }
+        }
+    }
+
     fn get_box_public_key_bytes(&self, key_with_rev: &str) -> Result<Vec<u8>> {
         let public_keyfile = self.mk_key_filename(&self.key_cache, key_with_rev, PUB_KEY_SUFFIX);
         self.read_key_bytes(&public_keyfile)
@@ -792,6 +914,13 @@ impl Context {
         self.read_key_bytes(&secret_keyfile)
     }
 
+    fn get_sym_secret_key_bytes(&self, key_with_rev: &str) -> Result<Vec<u8>> {
+        let secret_keyfile = self.mk_key_filename(&self.key_cache,
+                                                  key_with_rev,
+                                                  SECRET_SYM_KEY_SUFFIX);
+        self.read_key_bytes_after_header(&secret_keyfile)
+    }
+
     /// Read a file into a Vec<u8>
     fn read_key_bytes(&self, keyfile: &str) -> Result<Vec<u8>> {
         let mut f = try!(File::open(keyfile));
@@ -800,6 +929,29 @@ impl Context {
             return Err(Error::CryptoError("Can't read key bytes".to_string()));
         }
         match s.as_bytes().from_base64() {
+            Ok(keybytes) => Ok(keybytes),
+            Err(e) => {
+                return Err(Error::CryptoError(format!("Can't read raw key from {}: {}",
+                                                      keyfile,
+                                                      e)))
+            }
+        }
+    }
+
+    fn read_key_bytes_after_header(&self, keyfile: &str) -> Result<Vec<u8>> {
+        let mut f = try!(File::open(keyfile));
+        let mut s = String::new();
+        if try!(f.read_to_string(&mut s)) <= 0 {
+            return Err(Error::CryptoError("Can't read key bytes".to_string()));
+        }
+        let start_index = match s.find("\n\n") {
+            Some(i) => i + 1,
+            None => {
+                return Err(Error::CryptoError(format!("Malformed key contents for: {}", keyfile)))
+            }
+        };
+
+        match s[start_index..].as_bytes().from_base64() {
             Ok(keybytes) => Ok(keybytes),
             Err(e) => {
                 return Err(Error::CryptoError(format!("Can't read raw key from {}: {}",
@@ -841,6 +993,14 @@ impl Context {
             if filename.starts_with(keyname) {
                 let (stem, _) = filename.split_at(filename.chars().count() -
                                                   SECRET_BOX_KEY_SUFFIX.chars().count() -
+                                                  1);
+                candidates.insert(stem.to_string());
+            }
+        } else if filename.ends_with(SECRET_SYM_KEY_SUFFIX) {
+            // -1 for the '.' before the suffix
+            if filename.starts_with(keyname) {
+                let (stem, _) = filename.split_at(filename.chars().count() -
+                                                  SECRET_SYM_KEY_SUFFIX.chars().count() -
                                                   1);
                 candidates.insert(stem.to_string());
             }

@@ -105,6 +105,18 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_package_install())
         )
+        (@subcommand ring =>
+            (about: "Commands relating to Habitat rings")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand key =>
+                 (about: "Commands relating to Habitat ring keys")
+                 (@setting ArgRequiredElseHelp)
+                 (@subcommand generate =>
+                        (about: "Generates a Habitat ring key")
+                        (@arg RING: +required +takes_value)
+                 )
+            )
+        )
         (@subcommand sup =>
             (about: "Commands relating to the Habitat Supervisor")
         )

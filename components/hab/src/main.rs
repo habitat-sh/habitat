@@ -96,6 +96,17 @@ fn run_hab() -> Result<()> {
                 _ => unreachable!(),
             }
         }
+        ("ring", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("generate", Some(sc)) => try!(sub_ring_key_generate(sc)),
+                        _ => unreachable!(),
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
         ("service", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -186,6 +197,11 @@ fn sub_package_install(m: &ArgMatches) -> Result<()> {
 
     try!(common::command::package::install::start(url, ident_or_artifact));
     Ok(())
+}
+
+fn sub_ring_key_generate(m: &ArgMatches) -> Result<()> {
+    let ring = m.value_of("RING").unwrap();
+    command::ring::key::generate::start(ring)
 }
 
 fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {

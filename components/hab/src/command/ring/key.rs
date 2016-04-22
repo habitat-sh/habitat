@@ -5,6 +5,15 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-pub mod artifact;
-pub mod config;
-pub mod ring;
+pub mod generate {
+    use hcore::crypto;
+
+    use error::Result;
+
+    pub fn start(ring: &str) -> Result<()> {
+        let crypto_ctx = crypto::Context::default();
+        let keyname = try!(crypto_ctx.generate_ring_sym_key(ring));
+        println!("Successfully generated ring key {}", keyname);
+        Ok(())
+    }
+}
