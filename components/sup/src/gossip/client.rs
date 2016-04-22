@@ -11,11 +11,13 @@
 //! encoded with json.
 //!
 
-use rustc_serialize::json;
-use utp::UtpSocket;
-
 use std::net::ToSocketAddrs;
 use std::str;
+
+use common::wire_message::WireMessage;
+use hcore::crypto::{Context, SymKey};
+use rustc_serialize::json;
+use utp::UtpSocket;
 
 use error::Result;
 use gossip::rumor::{Protocol, Peer, RumorList};
@@ -25,6 +27,7 @@ pub const BUFFER_SIZE: usize = 10000;
 /// A Gossip Client.
 pub struct Client {
     pub socket: UtpSocket,
+    ring_key: Option<SymKey>,
 }
 
 impl Client {
@@ -33,14 +36,20 @@ impl Client {
     /// # Errors
     ///
     /// * If we cannot connect the UTP socket
-    pub fn new<A: ToSocketAddrs>(dst: A) -> Result<Client> {
+    pub fn new<A: ToSocketAddrs>(dst: A, ring_key: Option<SymKey>) -> Result<Client> {
         let socket = try!(UtpSocket::connect(dst));
-        Ok(Client { socket: socket })
+        Ok(Client {
+            socket: socket,
+            ring_key: ring_key,
+        })
     }
 
     /// Create a new client from a `UtpSocket`
-    pub fn from_socket(socket: UtpSocket) -> Client {
-        Client { socket: socket }
+    pub fn from_socket(socket: UtpSocket, ring_key: Option<SymKey>) -> Client {
+        Client {
+            socket: socket,
+            ring_key: ring_key,
+        }
     }
 
     /// Send a ping.
@@ -104,8 +113,9 @@ impl Client {
                self.socket.peer_addr(),
                json_str);
 
-        let msg: Protocol = try!(json::decode(&json_str));
-        Ok(msg)
+        let ctx = Context::default();
+        let wire_msg: WireMessage = try!(json::decode(&json_str));
+        Ok(try!(wire_msg.msg(&ctx, &self.ring_key)))
     }
 
     /// Send a message.
@@ -115,7 +125,14 @@ impl Client {
     /// * We cannot encode the `Message`
     /// * We fail to send the encoded buffer to the remote
     pub fn send_message(&mut self, msg: Protocol) -> Result<()> {
-        let encoded = try!(json::encode(&msg));
+        let encoded = {
+            let ctx = Context::default();
+            let wire_msg = match self.ring_key.as_ref() {
+                Some(key) => try!(WireMessage::encrypted(&msg, &ctx, &key)),
+                None => try!(WireMessage::plain(&msg)),
+            };
+            try!(json::encode(&wire_msg))
+        };
         debug!("Encoded message {:#?}", encoded);
         try!(self.socket.send_to(encoded.as_bytes()));
         debug!("Sent protocol: {:?}", msg);

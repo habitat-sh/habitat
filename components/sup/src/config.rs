@@ -98,6 +98,7 @@ pub struct Config {
     file_path: String,
     version_number: u64,
     organization: Option<String>,
+    ring: Option<String>,
 }
 
 impl Config {
@@ -354,7 +355,6 @@ impl Config {
         &self.package
     }
 
-
     pub fn set_organization(&mut self, org: String) -> &mut Config {
         self.organization = Some(org);
         self
@@ -364,6 +364,16 @@ impl Config {
         &self.organization
     }
 
+    /// Set the ring name
+    pub fn set_ring(&mut self, ring: String) -> &mut Config {
+        self.ring = Some(ring);
+        self
+    }
+
+    /// Return the ring name
+    pub fn ring(&self) -> &Option<String> {
+        &self.ring
+    }
 }
 
 #[cfg(test)]

@@ -133,6 +133,9 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         config.set_file_path(fp.to_string());
     }
     config.set_version_number(value_t!(sub_args, "version-number", u64).unwrap_or(0));
+    if let Some(ring) = sub_args.value_of("ring") {
+        config.set_ring(ring.to_string());
+    }
     if args.value_of("verbose").is_some() {
         sup::output::set_verbose(true);
     }
@@ -209,6 +212,11 @@ fn main() {
                                  .value_name("bind")
                                  .multiple(true)
                                  .help("One or more service groups to bind to a configuration"))
+                        .arg(Arg::with_name("ring")
+                                 .short("r")
+                                 .long("ring")
+                                 .value_name("ring")
+                                 .help("Ring key name"))
                         .arg(Arg::with_name("peer")
                                  .long("peer")
                                  .value_name("ip:port")
