@@ -245,7 +245,7 @@ use fs::CACHE_KEY_PATH;
 use util::perm;
 
 /// The suffix on the end of a public sig/box file
-static PUB_KEY_SUFFIX: &'static str = "pub";
+static PUBLIC_KEY_SUFFIX: &'static str = "pub";
 
 /// The suffix on the end of a public sig file
 static SECRET_SIG_KEY_SUFFIX: &'static str = "sig.key";
@@ -268,10 +268,8 @@ static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
 static PUBLIC_KEY_PERMISSIONS: &'static str = "0400";
 static SECRET_KEY_PERMISSIONS: &'static str = "0400";
 
-
 static HART_FORMAT_VERSION: &'static str = "HART-1";
-
-static ENCRYPTED_PAYLOAD_VERSION: &'static str = "BOX-0.1.0";
+static BOX_FORMAT_VERSION: &'static str = "BOX-1";
 
 static PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
 static SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";
@@ -402,7 +400,6 @@ impl Context {
                          key_with_rev: &str,
                          sk: &SigSecretKey)
                          -> Result<()> {
-        nacl_init();
 
         let hash = try!(self.hash_file(&infilename));
         debug!("File hash = {}", hash);
@@ -451,7 +448,6 @@ impl Context {
 
     /// verify the crypto signature of a .hart file
     pub fn artifact_verify(&self, infilename: &str) -> Result<()> {
-        nacl_init();
 
         let f = try!(File::open(infilename));
         let mut your_format_version = String::new();
@@ -552,7 +548,6 @@ impl Context {
                    user_key_name: &str,
                    user_sk: &BoxSecretKey)
                    -> Result<Vec<u8>> {
-        nacl_init();
         let nonce = gen_nonce();
         let ciphertext = box_::seal(data, &nonce, service_pk, &user_sk);
 
@@ -560,7 +555,7 @@ impl Context {
         debug!("Service key [{}]", service_key_name);
         debug!("Nonce [{}]", nonce[..].to_base64(STANDARD));
         let out = format!("{}\n{}\n{}\n{}\n{}",
-                          ENCRYPTED_PAYLOAD_VERSION,
+                          BOX_FORMAT_VERSION,
                           user_key_name,
                           service_key_name,
                           nonce[..].to_base64(STANDARD),
@@ -571,8 +566,8 @@ impl Context {
     /// Decrypt data from a user that was received at a service
     /// Key names are embedded in the message payload which must
     /// be present while decrypting.
-    pub fn decrypt(&self, payload: &mut Vec<u8>) -> Result<Vec<u8>> {
-        nacl_init();
+    pub fn decrypt(&self, payload: &Vec<u8>) -> Result<Vec<u8>> {
+        debug!("Decrypt key path = {}", &self.key_cache);
         let mut p = payload.as_slice();
         let mut file_version = String::new();
         let mut user_key_name = String::new();
@@ -583,7 +578,6 @@ impl Context {
         if try!(p.read_line(&mut file_version)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read file version".to_string()));
         }
-
         if try!(p.read_line(&mut user_key_name)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read user key name".to_string()));
         }
@@ -604,7 +598,7 @@ impl Context {
         let raw_nonce = raw_nonce.trim();
 
         // only check after file_version has been trimmed
-        if file_version != ENCRYPTED_PAYLOAD_VERSION {
+        if file_version != BOX_FORMAT_VERSION {
             return Err(Error::CryptoError("Invalid encrypted payload version ".to_string()));
         }
 
@@ -657,6 +651,36 @@ impl Context {
     // *******************************************
     // Key generation functions
     // *******************************************
+    /// given a box byte vec, read the keys (with rev) of the user and service.
+    pub fn get_box_user_and_service_keys(&self, payload: &Vec<u8>) -> Result<(String, String)> {
+        let mut p = payload.as_slice();
+        let mut file_version = String::new();
+        let mut user_key_name = String::new();
+        let mut service_key_name = String::new();
+
+        if try!(p.read_line(&mut file_version)) <= 0 {
+            return Err(Error::CryptoError("Corrupt payload, can't read file version".to_string()));
+        }
+
+        if try!(p.read_line(&mut user_key_name)) <= 0 {
+            return Err(Error::CryptoError("Corrupt payload, can't read user key name".to_string()));
+        }
+        if try!(p.read_line(&mut service_key_name)) <= 0 {
+            return Err(Error::CryptoError("Corrupt payload, can't read service key name"
+                                              .to_string()));
+        }
+        // all these values will have a newline at the end
+        let file_version = file_version.trim();
+        let user_key_name = user_key_name.trim();
+        let service_key_name = service_key_name.trim();
+
+        // only check after file_version has been trimmed
+        if file_version != BOX_FORMAT_VERSION {
+            return Err(Error::CryptoError("Invalid encrypted payload version ".to_string()));
+        }
+
+        Ok((user_key_name.to_string(), service_key_name.to_string()))
+    }
 
     pub fn generate_origin_sig_key(&self, origin: &str) -> Result<String> {
         let revision = self.mk_revision_string();
@@ -729,7 +753,7 @@ impl Context {
     fn generate_box_keypair_files(&self, keyname: &str) -> Result<(BoxPublicKey, BoxSecretKey)> {
         let (pk, sk) = box_::gen_keypair();
 
-        let public_keyfile = self.mk_key_filename(&self.key_cache, keyname, PUB_KEY_SUFFIX);
+        let public_keyfile = self.mk_key_filename(&self.key_cache, keyname, PUBLIC_KEY_SUFFIX);
         let secret_keyfile = self.mk_key_filename(&self.key_cache, keyname, SECRET_BOX_KEY_SUFFIX);
         debug!("public box keyfile = {}", &public_keyfile);
         debug!("secret box keyfile = {}", &secret_keyfile);
@@ -745,7 +769,7 @@ impl Context {
     fn generate_sig_keypair_files(&self, keyname: &str) -> Result<(SigPublicKey, SigSecretKey)> {
         let (pk, sk) = sign::gen_keypair();
 
-        let public_keyfile = self.mk_key_filename(&self.key_cache, keyname, PUB_KEY_SUFFIX);
+        let public_keyfile = self.mk_key_filename(&self.key_cache, keyname, PUBLIC_KEY_SUFFIX);
         let secret_keyfile = self.mk_key_filename(&self.key_cache, keyname, SECRET_SIG_KEY_SUFFIX);
         debug!("public sig keyfile = {}", &public_keyfile);
         debug!("secret sig keyfile = {}", &secret_keyfile);
@@ -972,7 +996,7 @@ impl Context {
     }
 
     fn get_box_public_key_bytes(&self, key_with_rev: &str) -> Result<Vec<u8>> {
-        let public_keyfile = self.mk_key_filename(&self.key_cache, key_with_rev, PUB_KEY_SUFFIX);
+        let public_keyfile = self.mk_key_filename(&self.key_cache, key_with_rev, PUBLIC_KEY_SUFFIX);
         self.read_key_bytes(&public_keyfile)
     }
 
@@ -984,7 +1008,7 @@ impl Context {
     }
 
     fn get_sig_public_key_bytes(&self, key_with_rev: &str) -> Result<Vec<u8>> {
-        let public_keyfile = self.mk_key_filename(&self.key_cache, key_with_rev, PUB_KEY_SUFFIX);
+        let public_keyfile = self.mk_key_filename(&self.key_cache, key_with_rev, PUBLIC_KEY_SUFFIX);
         self.read_key_bytes(&public_keyfile)
     }
 
@@ -1033,12 +1057,12 @@ impl Context {
                       filename: String,
                       candidates: &mut HashSet<String>)
                       -> () {
-        if filename.ends_with(PUB_KEY_SUFFIX) {
+        if filename.ends_with(PUBLIC_KEY_SUFFIX) {
             if filename.starts_with(keyname) {
                 // push filename without extension
                 // -1 for the '.' before 'pub'
                 let (stem, _) = filename.split_at(filename.chars().count() -
-                                                  PUB_KEY_SUFFIX.chars().count() -
+                                                  PUBLIC_KEY_SUFFIX.chars().count() -
                                                   1);
                 candidates.insert(stem.to_string());
             }
