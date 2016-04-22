@@ -139,6 +139,10 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     if args.value_of("no-color").is_some() {
         sup::output::set_no_color(true);
     }
+
+    if let Some(org) = sub_args.value_of("organization") {
+        config.set_organization(org.to_string());
+    }
     debug!("Config:\n{:?}", config);
     Ok(config)
 }
@@ -168,6 +172,14 @@ fn main() {
             .takes_value(true)
             .help("The service group; shared config and topology [default: default].")
     };
+
+    let arg_org = || {
+        Arg::with_name("organization")
+            .long("org")
+            .takes_value(true)
+            .help("The organization that a service is part of")
+    };
+
     let arg_strategy = || {
         Arg::with_name("strategy")
             .long("strategy")
@@ -185,6 +197,7 @@ fn main() {
                                  .help("Name of package to start"))
                         .arg(arg_url())
                         .arg(arg_group())
+                        .arg(arg_org())
                         .arg(arg_strategy())
                         .arg(Arg::with_name("topology")
                                  .short("t")

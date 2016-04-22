@@ -17,7 +17,8 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    ConfigFileRelativePath(String),
+    CryptoKeyError(String),
+    GossipFileRelativePath(String),
     DepotClient(depot_client::Error),
     FileNameError,
     HabitatCore(hcore::Error),
@@ -28,8 +29,11 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::ConfigFileRelativePath(ref s) => {
-                format!("Path for configuration file cannot have relative components (eg: ..): {}",
+            Error::CryptoKeyError(ref s) => {
+                format!("Missing or invalid key: {}", s)
+            }
+            Error::GossipFileRelativePath(ref s) => {
+                format!("Path for gossip file cannot have relative components (eg: ..): {}",
                         s)
             }
             Error::DepotClient(ref err) => format!("{}", err),
@@ -44,7 +48,8 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::ConfigFileRelativePath(_) => "Path for configuration file cannot have relative components (eg: ..)",
+            Error::CryptoKeyError(_) => "Missing or invalid key",
+            Error::GossipFileRelativePath(_) => "Path for gossip file cannot have relative components (eg: ..)",
             Error::DepotClient(ref err) => err.description(),
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::IO(ref err) => err.description(),

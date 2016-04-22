@@ -6,6 +6,7 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 [dependencies]
 log = "*"
 openssl = "*"
+regex = "*"
 rustc-serialize = "*"
 time = "*"
 

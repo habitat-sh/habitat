@@ -156,7 +156,7 @@ pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
                            worker.member_list.clone(),
                            worker.census_list.clone(),
                            worker.election_list.clone(),
-                           worker.config_file_list.clone());
+                           worker.gossip_file_list.clone());
     Ok((State::Election, 200))
 }
 
@@ -202,7 +202,7 @@ pub fn state_election(worker: &mut Worker) -> Result<(State, u64)> {
                                worker.member_list.clone(),
                                worker.census_list.clone(),
                                worker.election_list.clone(),
-                               worker.config_file_list.clone());
+                               worker.gossip_file_list.clone());
     }
 
     Ok((State::Election, 200))

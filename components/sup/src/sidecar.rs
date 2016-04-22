@@ -27,6 +27,7 @@ use wonder::actor::{GenServer, InitResult, HandleResult, StopReason, ActorSender
 use error::{Error, SupError};
 use health_check;
 use package::Package;
+use common::gossip_file::{GossipFileList, FileWriteRetry};
 use service_config::ServiceConfig;
 use gossip::member::{MemberList, MemberId};
 use gossip::rumor::RumorList;
@@ -59,6 +60,7 @@ pub struct SidecarState {
     pub detector: Arc<RwLock<Detector>>,
     pub election_list: Arc<RwLock<ElectionList>>,
     pub supervisor: Arc<RwLock<Supervisor>>,
+    pub gossip_file_list: Arc<RwLock<GossipFileList>>,
 }
 
 #[derive(Debug)]
@@ -75,7 +77,8 @@ impl SidecarState {
                census_list: Arc<RwLock<CensusList>>,
                detector: Arc<RwLock<Detector>>,
                election_list: Arc<RwLock<ElectionList>>,
-               supervisor: Arc<RwLock<Supervisor>>)
+               supervisor: Arc<RwLock<Supervisor>>,
+               gossip_file_list: Arc<RwLock<GossipFileList>>)
                -> Self {
         SidecarState {
             package: package,
@@ -86,6 +89,7 @@ impl SidecarState {
             detector: detector,
             election_list: election_list,
             supervisor: supervisor,
+            gossip_file_list: gossip_file_list,
         }
     }
 }
@@ -99,7 +103,8 @@ impl Sidecar {
                  census_list: Arc<RwLock<CensusList>>,
                  detector: Arc<RwLock<Detector>>,
                  election_list: Arc<RwLock<ElectionList>>,
-                 supervisor: Arc<RwLock<Supervisor>>)
+                 supervisor: Arc<RwLock<Supervisor>>,
+                 gossip_file_list: Arc<RwLock<GossipFileList>>)
                  -> SidecarActor {
         let state = SidecarState::new(package,
                                       config,
@@ -108,7 +113,8 @@ impl Sidecar {
                                       census_list,
                                       detector,
                                       election_list,
-                                      supervisor);
+                                      supervisor,
+                                      gossip_file_list);
         wonder::actor::Builder::new(Sidecar).name("sidecar".to_string()).start(state).unwrap()
     }
 }
@@ -147,9 +153,10 @@ impl GenServer for Sidecar {
         let id = {
             Arc::new(ml.read().unwrap().my_id.clone())
         };
+        let gfl = state.gossip_file_list.clone();
 
         router.get(GET_GOSSIP,
-                   move |r: &mut Request| gossip(&ml, &rl, &detector, &id, r));
+                   move |r: &mut Request| gossip(&ml, &rl, &gfl, &detector, &id, r));
 
         let cl1 = state.census_list.clone();
         router.get(GET_CENSUS, move |r: &mut Request| census(&cl1, r));
@@ -193,6 +200,7 @@ struct GossipResponse<'a> {
     member_list: &'a MemberList,
     rumor_list: &'a RumorList,
     detector: &'a Detector,
+    file_write_retries: &'a HashMap<String, FileWriteRetry>,
 }
 
 /// The /gossip callback.
@@ -200,6 +208,7 @@ struct GossipResponse<'a> {
 /// Returns information about the gossip ring.
 fn gossip(member_list: &Arc<RwLock<MemberList>>,
           rumor_list: &Arc<RwLock<RumorList>>,
+          gossip_file_list: &Arc<RwLock<GossipFileList>>,
           detector: &Arc<RwLock<Detector>>,
           id: &Arc<MemberId>,
           _req: &mut Request)
@@ -207,12 +216,14 @@ fn gossip(member_list: &Arc<RwLock<MemberList>>,
     let ml = member_list.read().unwrap();
     let rl = rumor_list.read().unwrap();
     let detector = detector.read().unwrap();
+    let gfl = gossip_file_list.read().unwrap();
 
     let gossip_response = GossipResponse {
         id: id,
         member_list: &*ml,
         rumor_list: &*rl,
         detector: &*detector,
+        file_write_retries: &gfl.file_write_retries,
     };
 
     let json_response = match json::encode(&gossip_response) {

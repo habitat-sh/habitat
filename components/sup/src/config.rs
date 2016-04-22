@@ -97,6 +97,7 @@ pub struct Config {
     service_group: String,
     file_path: String,
     version_number: u64,
+    organization: Option<String>,
 }
 
 impl Config {
@@ -352,6 +353,17 @@ impl Config {
     pub fn package(&self) -> &PackageIdent {
         &self.package
     }
+
+
+    pub fn set_organization(&mut self, org: String) -> &mut Config {
+        self.organization = Some(org);
+        self
+    }
+
+    pub fn organization(&self) -> &Option<String> {
+        &self.organization
+    }
+
 }
 
 #[cfg(test)]

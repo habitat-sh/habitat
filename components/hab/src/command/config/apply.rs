@@ -9,7 +9,8 @@ use std::path::Path;
 use std::io::{self, Read};
 
 use hcore::service::ServiceGroup;
-use common::config_file::ConfigFile;
+use hcore::crypto;
+use common::gossip_file::GossipFile;
 
 use error::Result;
 
@@ -18,17 +19,40 @@ pub fn start(peers: &Vec<String>,
              number: u64,
              file_path: Option<&Path>)
              -> Result<()> {
+
     let sg1 = sg.clone();
     let file = match file_path {
-        Some(p) => try!(ConfigFile::from_file(sg, p, number)),
+        Some(p) => try!(GossipFile::from_file(sg, p, number)),
         None => {
             let mut body = vec![0; 1024];
             try!(io::stdin().read_to_end(&mut body));
-            try!(ConfigFile::from_body(sg, "config.toml".to_string(), body, number))
+            try!(GossipFile::from_body(sg, "config.toml".to_string(), body, number))
         }
     };
     println!("Applying configuration {} to {}", &file, &sg1);
-    let rumor = hab_gossip::Rumor::config_file(file);
+    let rumor = hab_gossip::Rumor::gossip_file(file);
+
+    let mut list = hab_gossip::RumorList::new();
+    list.add_rumor(rumor);
+
+    try!(initial_peers(&peers, &list));
+    println!("Finished applying configuration");
+    Ok(())
+}
+
+pub fn start_encrypted(peers: &Vec<String>,
+                       sg: ServiceGroup,
+                       number: u64,
+                       file_path: &Path,
+                       user: &str)
+                       -> Result<()> {
+
+    let sg1 = sg.clone();
+    let crypto_ctx = crypto::Context::default();
+    let file = try!(GossipFile::from_file_encrypt(&crypto_ctx, sg, file_path, number, user));
+
+    println!("Uploading file {} to {}", &file, &sg1);
+    let rumor = hab_gossip::Rumor::gossip_file(file);
 
     let mut list = hab_gossip::RumorList::new();
     list.add_rumor(rumor);
@@ -95,7 +119,7 @@ pub mod hab_gossip {
     use std::io;
     use std::result;
 
-    use common::config_file::ConfigFile;
+    use common::gossip_file::GossipFile;
     use rustc_serialize::{json, Encodable};
     use utp::UtpSocket;
     use uuid::Uuid;
@@ -201,7 +225,7 @@ pub mod hab_gossip {
     /// sub-system.
     #[derive(Debug, RustcEncodable, Clone, PartialEq, Eq)]
     pub enum Message {
-        ConfigFile(ConfigFile),
+        GossipFile(GossipFile),
     }
 
     /// A UUID for Rumors. In practice, always matches the UUID of a message payload.
@@ -215,11 +239,11 @@ pub mod hab_gossip {
     }
 
     impl Rumor {
-        /// Create a new rumor with a `Message::ConfigFile` payload.
-        pub fn config_file(cf: ConfigFile) -> Rumor {
+        /// Create a new rumor with a `Message::GossipFile` payload.
+        pub fn gossip_file(cf: GossipFile) -> Rumor {
             Rumor {
                 id: Uuid::new_v4(),
-                payload: Message::ConfigFile(cf),
+                payload: Message::GossipFile(cf),
             }
         }
     }

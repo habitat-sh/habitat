@@ -30,7 +30,7 @@ use wonder;
 
 use state_machine::StateMachine;
 use census::{self, CensusList};
-use common::config_file::ConfigFileList;
+use common::gossip_file::GossipFileList;
 use package::{self, Package, PackageUpdaterActor};
 use util::signals::SignalNotifier;
 use error::{Result, SupError};
@@ -101,7 +101,7 @@ pub struct Worker<'a> {
     pub rumor_list: Arc<RwLock<RumorList>>,
     pub election_list: Arc<RwLock<ElectionList>>,
     pub member_list: Arc<RwLock<MemberList>>,
-    pub config_file_list: Arc<RwLock<ConfigFileList>>,
+    pub gossip_file_list: Arc<RwLock<GossipFileList>>,
     /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
     /// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
@@ -118,7 +118,6 @@ impl<'a> Worker<'a> {
     /// Automatically sets the backend to Etcd.
     pub fn new(package: Package, topology: String, config: &'a Config) -> Result<Worker<'a>> {
         let mut pkg_updater = None;
-
         let package_name = package.name.clone();
         let package_exposes = package.exposes().clone();
         let package_port = package_exposes.first().map(|e| e.clone());
@@ -136,6 +135,7 @@ impl<'a> Worker<'a> {
                                                         config.gossip_permanent(),
                                                         package_name.clone(),
                                                         config.group().to_string(),
+                                                        config.organization().clone(),
                                                         Some(package_exposes),
                                                         package_port);
 
@@ -161,6 +161,7 @@ impl<'a> Worker<'a> {
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();
         let sidecar_cl = gossip_server.census_list.clone();
+        let sidecar_gfl = gossip_server.gossip_file_list.clone();
         let sidecar_detector = gossip_server.detector.clone();
         let sidecar_el = gossip_server.election_list.clone();
         let sidecar_sup = supervisor.clone();
@@ -173,7 +174,7 @@ impl<'a> Worker<'a> {
             census_list: gossip_server.census_list.clone(),
             rumor_list: gossip_server.rumor_list.clone(),
             election_list: gossip_server.election_list.clone(),
-            config_file_list: gossip_server.config_file_list.clone(),
+            gossip_file_list: gossip_server.gossip_file_list.clone(),
             member_list: gossip_server.member_list.clone(),
             gossip_server: gossip_server,
             service_config: service_config_lock,
@@ -184,7 +185,8 @@ impl<'a> Worker<'a> {
                                                    sidecar_cl,
                                                    sidecar_detector,
                                                    sidecar_el,
-                                                   sidecar_sup),
+                                                   sidecar_sup,
+                                                   sidecar_gfl),
             supervisor: supervisor,
             pkg_updater: pkg_updater,
             return_state: None,
@@ -327,12 +329,12 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
             let (needs_file_updated, needs_reconfigure) = if in_event {
                 (false, false)
             } else {
-                let mut config_file_list = worker.config_file_list.write().unwrap();
+                let mut gossip_file_list = worker.gossip_file_list.write().unwrap();
                 let needs_write = {
-                    config_file_list.needs_write()
+                    gossip_file_list.needs_write()
                 };
                 if needs_write {
-                    try!(config_file_list.write())
+                    try!(gossip_file_list.write())
                 } else {
                     (false, false)
                 }
