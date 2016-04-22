@@ -6,21 +6,22 @@
 // open source license such as the Apache 2.0 License.
 
 .hab-tabs {
-  border-bottom: 1px solid $light-gray;
+  background-color: $hab-blue-light;
   display: block;
-  margin-bottom: $base-spacing;
-  padding-bottom: $small-spacing / 2;
+  padding: rem(10) rem(25);
 
   >li {
     border-bottom: $small-spacing / 4 solid transparent;
     cursor: pointer;
     display: inline;
-    margin-right: $base-spacing * 2;
-    padding-bottom: $small-spacing / 2;
+    font-family: $heading-font-family;
+    font-size: rem(12);
+    margin-right: rem(30);
+    padding-bottom: rem(12);
     text-transform: uppercase;
 
     &.active {
-      border-bottom-color: $black;
+      border-bottom-color: $hab-green;
     }
   }
 

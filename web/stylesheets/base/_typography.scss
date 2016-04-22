@@ -52,18 +52,19 @@ h3 {
 }
 
 h4 {
-  color: $medium-gray;
+  color: $hab-blue;
   text-transform: uppercase;
+  font-size: 75%;
+  letter-spacing: 0.4px;
+  line-height: 1.5em;
 
-  .bldr-side-nav & {
-    font-size: 75%;
-    letter-spacing: 0.4px;
-    line-height: 1.5em;
+  .page-title & {
+    margin-top: rem(20);
   }
 }
 
 p {
-  margin: 0 0 $small-spacing;
+  margin-bottom: $base-spacing * 1.5;
 }
 
 a {
@@ -97,6 +98,6 @@ picture {
   max-width: 100%;
 }
 
-label {
-  font-size: 75%;
+label, .small {
+  font-size: rem(12);
 }

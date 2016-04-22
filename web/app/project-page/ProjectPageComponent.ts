@@ -18,13 +18,14 @@ import {friendlyTime, requireSignIn} from "../util";
     directives: [BuildListComponent, RouterLink, TabsComponent, TabComponent],
     template: `
     <div *ngIf="!project.ui.loading" class="hab-project">
-        <div *ngIf="!project.ui.exists">
+        <div class="page-title" *ngIf="!project.ui.exists">
             <h2>Project Not Found</h2>
+            <p>The project you're looking for is not currently available. We apologize for the inconvenience and it should be back up soon.</p>
         </div>
         <div *ngIf="project.ui.exists">
-            <header>
+            <header class="page-title">
                 <h2>{{project.origin}} / {{project.name}}</h2>
-                <h3 *ngIf="project.latestBuild">
+                <h4 *ngIf="project.latestBuild">
                     <a [routerLink]="['Package', {
                         origin: project.origin,
                         name: project.name,
@@ -40,34 +41,42 @@ import {friendlyTime, requireSignIn} from "../util";
                             {{friendlyTime(project.latestBuild.finishTime)}}
                         </span>
                     </span>
-                </h3>
+                </h4>
             </header>
             <tabs>
                 <tab tabTitle="Info">
-                    <div class="info">
+                    <div class="info page-body">
                         <div class="l">
                             <h4>Description</h4>
                             <p>{{project.description}}</p>
-                            <h4>Source Repository</h4>
-                            <a href="{{project.sourceRepository.url}}"
-                               target="_blank">
-                                {{project.sourceRepository.slug}}
-                            </a>
                         </div>
                         <div class="r">
-                            <h4>Build Command</h4>
-                            <div class="build-command">
-                                hab install {{project.origin}}/{{project.name}}
-                                <a (click)="false" href="#">⎘</a>
-                            </div>
-                            <h4>Maintainer</h4>
-                            {{project.maintainer.name}}
-                            <a href="mailto:{{project.maintainer.email}}">{{project.maintainer.email}}</a>
+                            <ul>
+                                <li>
+                                    <h4>Build Command</h4>
+                                    <div class="build-command">
+                                        hab install {{project.origin}}/{{project.name}}
+                                        <a (click)="false" href="#">⎘</a>
+                                    </div>
+                                </li>
+                                <li>
+                                    <h4>Maintainer</h4>
+                                    {{project.maintainer.name}}<br>
+                                    <a href="mailto:{{project.maintainer.email}}">{{project.maintainer.email}}</a>
+                                </li>
+                                <li>
+                                    <h4>Source Repository</h4>
+                                    <a href="{{project.sourceRepository.url}}"
+                                       target="_blank">
+                                        {{project.sourceRepository.slug}}
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </tab>
                 <tab tabTitle="Builds">
-                    <div class="builds">
+                    <div class="builds page-body">
                         <div class="l">
                             <build-list [project]="project"
                                         [builds]="project.builds"
@@ -75,21 +84,31 @@ import {friendlyTime, requireSignIn} from "../util";
                             </build-list>
                         </div>
                         <div class="r">
-                            <h4>Build Command</h4>
-                            <div class="build-command">
-                                hab install {{project.origin}}/{{project.name}}
-                                <a (click)="false" href="#">⎘</a>
-                            </div>
-                            <h4>Build Dependencies</h4>
-                            <p>None</p>
-                            <h4>Runtime Dependencies</h4>
-                            <p>None</p>
-                            <h4>Source URL</h4>
-                            <a class="sourceUrl"
-                               title="{{project.sourceUrl}}"
-                               href="{{project.sourceUrl}}">
-                                {{project.sourceUrl}}
-                            </a>
+                            <ul>
+                                <li>
+                                    <h4>Build Command</h4>
+                                    <div class="build-command">
+                                        hab install {{project.origin}}/{{project.name}}
+                                        <a (click)="false" href="#">⎘</a>
+                                    </div>
+                                </li>
+                                <li>
+                                    <h4>Build Dependencies</h4>
+                                    <p>None</p>
+                                </li>
+                                <li>
+                                    <h4>Runtime Dependencies</h4>
+                                    <p>None</p>
+                                    </li>
+                                <li>
+                                    <h4>Source URL</h4>
+                                    <a class="sourceUrl"
+                                       title="{{project.sourceUrl}}"
+                                       href="{{project.sourceUrl}}">
+                                        {{project.sourceUrl}}
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </tab>

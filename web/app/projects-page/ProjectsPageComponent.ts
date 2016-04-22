@@ -17,7 +17,7 @@ import {requireSignIn} from "../util";
     <div class="hab-projects">
         <div class="page-title">
             <h2>Projects</h2>
-            <a class="button create" [routerLink]="['ProjectCreate']">Add Project</a>
+            <a class="button create cta" [routerLink]="['ProjectCreate']">Add Project</a>
         </div>
         <div class="page-body">
             <ul class="hab-projects-list">

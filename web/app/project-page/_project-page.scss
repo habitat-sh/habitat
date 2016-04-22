@@ -6,26 +6,39 @@
 // open source license such as the Apache 2.0 License.
 
 .hab-project {
-  h3 {
-    font-size: 100%;
 
-    .lastBuild {
-      color: $light-gray;
-      margin-left: $small-spacing;
-    }
+  .lastBuild {
+    color: $base-font-color;
+    font-family: $base-font-family;
+    font-weight: 400;
+    margin-left: rem(40);
+    text-transform: none;
   }
 
   .build-command {
-    background-color: $light-gray;
-    display: inline-block;
+    @include shadow-float;
+    background-color: $hab-gray-dark;
+    border-radius: $global-radius;
+    color: $hab-off-white;
     font-family: $monospace-font-family;
-    font-size: 75%;
-    margin-bottom: $base-spacing;
-    padding: $small-spacing;
+    font-size: $monospace-font-size;
+    padding: rem(10) rem(15);
+    position: relative;
     white-space: nowrap;
 
     a {
-      color: inherit;
+      background-color: $hab-orange;
+      border-radius: 0 $global-radius $global-radius 0;
+      box-shadow: -3px 0 4px -2px $black;
+      color: $hab-off-white;
+      display: inline-block;
+      font-size: rem(24);
+      height: 100%;
+      position: absolute;
+      right: 0;
+      text-align: center;
+      top: 0;
+      width: rem(40);
     }
   }
 
@@ -40,8 +53,12 @@
       @include span-columns(4);
       @include omega;
 
-      border-left: 1px solid $light-gray;
-      padding-left: $small-spacing;
+      border-left: 1px solid $hab-gray-light;
+      padding-left: $base-spacing;
+
+      li {
+        margin-bottom: $base-spacing * 1.5;
+      }
     }
   }
 
@@ -54,19 +71,20 @@
   }
 
   .hab-build-list {
+    margin-left: rem(-24);
+
     li {
-      border: 1px solid;
-      border-left: $small-spacing/2 solid;
-      margin: $small-spacing;
-      padding: $small-spacing;
+      border-left: 4px solid;
+      padding-left: $base-spacing;
 
       h1 {
         font-size: 100%;
       }
 
       .status {
+        border-left: 4px solid $success-color;
         float: right;
-        font-size: 75%;
+        padding: rem(2) rem(10) rem(4);
       }
 
       &.queued {
@@ -75,6 +93,10 @@
         .color {
           color: $queued-color;
         }
+
+        .status {
+          border-color: $queued-color;
+        }
       }
 
       &.failure {
@@ -82,6 +104,10 @@
 
         .color {
           color: $failure-color;
+        }
+
+        .status {
+          border-color: $failure-color;
         }
       }
 
@@ -99,9 +125,10 @@
 
       .output {
         font-family: $monospace-font-family;
-        font-size: 75%;
+        font-size: $monospace-font-size;
         @include pad($base-spacing);
-        background: black;
+        background: $hab-gray-dark;
+        border-radius: $global-radius;
         color: $medium-gray;
         overflow: auto;
       }

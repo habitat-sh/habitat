@@ -25,11 +25,17 @@ label {
   text-transform: uppercase;
 }
 
-form small {
-  color: $medium-gray;
-  display: block;
-  margin-bottom: $small-spacing / 2;
-  margin-top: -($small-spacing / 2);
+form {
+  small {
+    color: $medium-gray;
+    display: block;
+    margin-bottom: $small-spacing / 2;
+    margin-top: -($small-spacing / 2);
+  }
+
+  button {
+    margin-top: rem(20);
+  }
 }
 
 input,

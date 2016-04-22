@@ -58,7 +58,7 @@
 
     li a {
       @include transition(color .2s ease-in-out);
-      color: $hab-blue-dark;
+      color: $hab-green;
       line-height: 80px;
       margin-left: 1.5em;
 
@@ -66,7 +66,7 @@
       &:focus,
       &:hover {
         @include transition(color .2s ease-in-out);
-        color: $hab-blue-light;
+        color: lighten($hab-green, 10);;
       }
     }
   }

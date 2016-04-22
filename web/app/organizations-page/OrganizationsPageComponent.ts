@@ -17,7 +17,7 @@ import {icon, requireSignIn} from "../util";
     <div class="hab-organizations">
       <div class="page-title">
           <h2>Organizations</h2>
-          <a *ngIf="orgs.size > 0" class="button create" href="#"
+          <a *ngIf="orgs.size > 0" class="button create cta" href="#"
              [routerLink]='["OrganizationCreate"]'>
               Add Organization
           </a>
@@ -32,7 +32,7 @@ import {icon, requireSignIn} from "../util";
                       Create an organization, then start adding projects and users.
                   </p>
                   <p>
-                      <a class="button" [routerLink]='["OrganizationCreate"]'>
+                      <a class="button cta" [routerLink]='["OrganizationCreate"]'>
                           Add Organization
                       </a>
                   </p>

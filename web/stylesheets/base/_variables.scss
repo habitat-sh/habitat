@@ -13,6 +13,7 @@ $octicons-font-path: "/node_modules/octicons/octicons";
 
 // Font Sizes
 $base-font-size: 1em;
+$monospace-font-size: rem(12);
 
 // Line height
 $base-line-height: 1.5;
@@ -21,21 +22,18 @@ $heading-line-height: 1.2;
 // Other Sizes
 $base-border-radius: 2px;
 $global-radius: $base-border-radius;
-$base-spacing: $base-line-height * 1em;
+$base-spacing: rem(20);
 $small-spacing: $base-spacing / 2;
 $base-z-index: 0;
 
 // Colors
 $white: #FFF;
 $off-white: #F8F9F9;
-$black: #222;
+$black: #323330;
 $blue: #1565c0;
-$dark-gray: #6f6f6f;
+$dark-gray: #484846;
 $medium-gray: #999;
 $light-gray: #D8D8D8;
-$success-color: green;
-$failure-color: red;
-$queued-color: $blue;
 $white-slightly-transparent: rgba(255, 255, 255, 0.95);
 
 // Habitat Brand Colors
@@ -46,11 +44,11 @@ $hab-gray-light: #e9eaeb;
 $hab-orange-dark: #f58151;
 $hab-off-white: #f8f9f9;
 $hab-gray: #b6babe;
-$hab-gray-dark: #7d868c;
+$hab-gray-dark: $dark-gray;
 $hab-orange: #f59b51;
 $hab-blue-dark: #394b5a;
-$hab-green: #82c587;
-$hab-green-dark: #78b57d;
+$hab-green: #75af81;
+$hab-green-dark: #699171;
 $hab-blue-medium: #dce6ed;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-cta: $hab-green;
@@ -60,11 +58,14 @@ $notification-danger-color: #fbe3e4;
 $notification-info-color: #e5edf8;
 $notification-success-color: #e6efc2;
 $notification-warning-color: #fff6bf;
+$success-color: $hab-green;
+$failure-color: #c57e62;
+$queued-color: $hab-blue;
 
 // Font Colors
 $base-font-color: $dark-gray;
 $action-color: $hab-green;
-$hover-color: $hab-orange;
+$hover-color: $hab-green-dark;
 
 // Border
 $base-border-color: $light-gray;
