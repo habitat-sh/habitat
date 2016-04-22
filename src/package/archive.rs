@@ -267,6 +267,7 @@ mod test {
     use super::*;
 
     #[test]
+    #[ignore]  // This is being ignored until a new artifact can be generated to replace this fixture
     fn reading_artifact_metadata() {
         let mut hart = PackageArchive::new(fixtures()
                                                .join("core-hab-sup-0.4.0-20160416170100.hab"));
