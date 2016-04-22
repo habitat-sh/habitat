@@ -140,20 +140,25 @@ use util::perm;
 /// A signed `.hart` artifact has 3 plaintext lines followed by a binary blob
 /// of data, which is the unsigned tarfile.
 ///
-/// - The first plaintext line is the name of the origin signing key that was used
+/// - The first plaintext line is the version of the artifact format
+/// - The second plaintext line is the name of the origin signing key that was used
 /// to sign this artifact.
-/// - The second plaintext line is the hashing algorithm used, which will be
+/// - The third plaintext line is the hashing algorithm used, which will be
 /// `BLAKE2b` unless our use of crypto is expanded some time in the future.
 /// - Our BLAKE2b hash functions use a digest length of 32 bytes (256 bits!).
-/// - The third plaintext line is a base64 *signed* value of the binary blob's
+/// information from the binary data
+/// - The fourth plaintext line is a base64 *signed* value of the binary blob's
 /// base64 file hash. Signing uses a secret origin key, while verifying uses the
 /// public origin key. Thus, it it safe to distribute public origin keys.
+/// - The fifth line is left empty, meaning that 2 newline characters separate the header
 ///
 /// Example header:
 /// ```text
+/// HART-1
 /// habitat-20160405144945
 /// BLAKE2b
 /// signed BLAKE2b signature
+///
 /// <binary-blob>
 /// ```
 ///
@@ -162,7 +167,8 @@ use util::perm;
 /// It's possible to examine the contents of a `.hart` file from a Linux shell:
 ///
 /// ```text
-/// $ head -3 /path/to/acme-glibc-2.22-20160310192356.hart
+/// $ head -4 /path/to/acme-glibc-2.22-20160310192356.hart
+/// HART-1
 /// habitat-20160405144945
 /// BLAKE2b
 /// w4yC7/QADdC+NfH/wgN5u4K94nMieb1TxTVzbSfpMwRQ4k+YwhLs1nDXSIbSC8jHdF/7/LqLWtgPvGDmoKIvBDI0aGpIcGdlNDJhMDBnQ3lsMVVFM0JvRlZGSHhXcnBuWWF0/// SllXTXo1ZDg9
@@ -172,8 +178,8 @@ use util::perm;
 /// It is also possible to extract a plain tarball from a signed `.hart` artifact using the following command:
 ///
 /// ```text
-/// tail -n +4 /tmp/somefile.hart > somefile.tar
-/// # start at line 4, skipping the first 3 plaintext lines.
+/// tail -n +6 /tmp/somefile.hart > somefile.tar
+/// # start at line 6, skipping the first 5 plaintext lines.
 /// ```
 ///
 /// ### Habitat encrypted payload format
@@ -233,6 +239,8 @@ static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
 static PUBLIC_KEY_PERMISSIONS: &'static str = "0400";
 static SECRET_KEY_PERMISSIONS: &'static str = "0400";
 
+
+static HART_FORMAT_VERSION: &'static str = "HART-1";
 
 static ENCRYPTED_PAYLOAD_VERSION: &'static str = "BOX-0.1.0";
 
@@ -359,7 +367,8 @@ impl Context {
         let output_file = try!(File::create(outfilename));
         let mut writer = BufWriter::new(&output_file);
         let () = try!(write!(writer,
-                             "{}\n{}\n{}\n",
+                             "{}\n{}\n{}\n{}\n\n",
+                             HART_FORMAT_VERSION,
                              key_with_rev,
                              SIG_HASH_TYPE,
                              signature.to_base64(STANDARD)));
@@ -371,11 +380,16 @@ impl Context {
     /// return a BufReader to the .tar bytestream, skipping the signed header
     pub fn get_artifact_reader(&self, infilename: &str) -> Result<BufReader<File>> {
         let f = try!(File::open(infilename));
+        let mut your_format_version = String::new();
         let mut your_key_name = String::new();
         let mut your_hash_type = String::new();
         let mut your_signature_raw = String::new();
+        let mut empty_line = String::new();
 
         let mut reader = BufReader::new(f);
+        if try!(reader.read_line(&mut your_format_version)) <= 0 {
+            return Err(Error::CryptoError("Can't read format version".to_string()));
+        }
         if try!(reader.read_line(&mut your_key_name)) <= 0 {
             return Err(Error::CryptoError("Can't read keyname".to_string()));
         }
@@ -385,6 +399,9 @@ impl Context {
         if try!(reader.read_line(&mut your_signature_raw)) <= 0 {
             return Err(Error::CryptoError("Can't read signature".to_string()));
         }
+        if try!(reader.read_line(&mut empty_line)) <= 0 {
+            return Err(Error::CryptoError("Can't end of header".to_string()));
+        }
         Ok(reader)
     }
 
@@ -393,11 +410,17 @@ impl Context {
         nacl_init();
 
         let f = try!(File::open(infilename));
-
+        let mut your_format_version = String::new();
         let mut your_key_name = String::new();
         let mut your_hash_type = String::new();
         let mut your_signature_raw = String::new();
+        let mut empty_line = String::new();
+
         let mut reader = BufReader::new(f);
+        if try!(reader.read_line(&mut your_format_version)) <= 0 {
+            return Err(Error::CryptoError("Corrupt payload, can't read format version"
+                                              .to_string()));
+        }
         if try!(reader.read_line(&mut your_key_name)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read origin key name"
                                               .to_string()));
@@ -408,15 +431,27 @@ impl Context {
         if try!(reader.read_line(&mut your_signature_raw)) <= 0 {
             return Err(Error::CryptoError("Corrupt payload, can't read signature".to_string()));
         }
+        if try!(reader.read_line(&mut empty_line)) <= 0 {
+            return Err(Error::CryptoError("Corrupt payload, can't end of header".to_string()));
+        }
 
         // all input lines WILL have a newline at the end
+        let your_format_version = your_format_version.trim();
         let your_key_name = your_key_name.trim();
         let your_hash_type = your_hash_type.trim();
         let your_signature_raw = your_signature_raw.trim();
 
+        debug!("Your format version = [{}]", your_format_version);
         debug!("Your key name = [{}]", your_key_name);
         debug!("Your hash type = [{}]", your_hash_type);
         debug!("Your signature = [{}]", your_signature_raw);
+
+        if your_format_version.trim() != HART_FORMAT_VERSION {
+            let msg = format!("Unsupported format version: {}. Supported format versions: [{}]",
+                              &your_format_version,
+                              HART_FORMAT_VERSION);
+            return Err(Error::CryptoError(msg));
+        }
 
         let your_sig_pk = match self.get_sig_public_key(&your_key_name) {
             Ok(pk) => pk,

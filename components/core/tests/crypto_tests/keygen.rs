@@ -281,11 +281,11 @@ fn crypto_hash_file() {
     let fixture = path::fixture("signme.dat");
     let h = match crypto_ctx.hash_file(&fixture) {
         Ok(hash) => hash,
-        Err(e) => panic!("Can't hash file {}", e)
+        Err(e) => panic!("Can't hash file {}", e),
     };
     // note: the b2sum program takes the -l parameter as the # of BITS,
     // BLAKE2b defaults to 32 BYTES, so we use 8 * 32 = 256
-    //b2sum -l 256 tests/fixtures/signme.dat
-    //20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233  ./signme.dat
+    // b2sum -l 256 tests/fixtures/signme.dat
+    // 20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233  ./signme.dat
     assert!(&h == "20590a52c4f00588c500328b16d466c982a26fabaa5fa4dcc83052dd0a84f233");
 }
