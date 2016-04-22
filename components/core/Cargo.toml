@@ -17,3 +17,6 @@ toml = "*"
 sodiumoxide = "*"
 libsodium-sys = "*"
 time = "*"
+
+[dev-dependencies]
+tempdir = "*"

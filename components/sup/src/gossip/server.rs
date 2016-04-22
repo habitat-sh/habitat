@@ -22,6 +22,7 @@ use std::sync::{Arc, RwLock};
 use std::net;
 
 use common::gossip_file::GossipFileList;
+use hcore::crypto::SymKey;
 use hcore::service::ServiceGroup;
 use utp::{UtpListener, UtpSocket};
 
@@ -62,6 +63,8 @@ pub struct Server {
     pub gossip_file_list: Arc<RwLock<GossipFileList>>,
     /// Our 'peer' entry, used to generate SWIM protocol messages.
     pub peer: Peer,
+    /// An optional ring key used to encrypt messages with peers
+    ring_key: Option<SymKey>,
 }
 
 impl Server {
@@ -69,6 +72,7 @@ impl Server {
     /// a rumor that this server is alive.
     pub fn new(listen: String,
                permanent: bool,
+               ring_key: Option<SymKey>,
                service: String,
                group: String,
                organization: Option<String>,
@@ -102,7 +106,10 @@ impl Server {
             detector: Arc::new(RwLock::new(Detector::new())),
             election_list: Arc::new(RwLock::new(ElectionList::new(service_group, leader_id))),
             gossip_file_list:
-                Arc::new(RwLock::new(GossipFileList::new(ServiceGroup::new(service, group, organization)))),
+                Arc::new(RwLock::new(GossipFileList::new(ServiceGroup::new(service,
+                                                                           group,
+                                                                           organization)))),
+            ring_key: ring_key,
         };
 
         // Write our Alive Rumor
@@ -129,6 +136,7 @@ impl Server {
     /// * If we cannot bind to the listener
     pub fn start_inbound(&self) -> Result<()> {
         outputln!("Starting inbound gossip listener");
+        let key = self.ring_key.clone();
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
         let cl = self.census_list.clone();
@@ -139,32 +147,34 @@ impl Server {
         let listener = try!(UtpListener::bind(&self.listen[..]));
         let _t = thread::Builder::new()
                      .name("inbound".to_string())
-                     .spawn(move || inbound(listener, my_peer, ml, rl, cl, detector, el, gfl));
+                     .spawn(move || inbound(listener, key, my_peer, ml, rl, cl, detector, el, gfl));
         Ok(())
     }
 
     /// Starts the outbound gossip distributor.
     pub fn start_outbound(&self) {
         outputln!("Starting outbound gossip distributor");
+        let key = self.ring_key.clone();
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
         let my_peer = self.peer.clone();
         let detector = self.detector.clone();
         let _t = thread::Builder::new()
                      .name("outbound".to_string())
-                     .spawn(move || outbound(my_peer, ml, rl, detector));
+                     .spawn(move || outbound(key, my_peer, ml, rl, detector));
     }
 
     /// Starts the failure detector.
     pub fn start_failure_detector(&self) {
         outputln!("Starting gossip failure detector");
+        let ring_key = self.ring_key.clone();
         let my_peer = self.peer.clone();
         let ml = self.member_list.clone();
         let rl = self.rumor_list.clone();
         let detector = self.detector.clone();
         let _t = thread::Builder::new()
                      .name("failure_detector".to_string())
-                     .spawn(move || failure_detector(my_peer, ml, rl, detector));
+                     .spawn(move || failure_detector(ring_key, my_peer, ml, rl, detector));
     }
 
     /// Sends blocking SWIM requests to our initial gossip peers.
@@ -196,7 +206,7 @@ impl Server {
         let mut initialized = false;
         for to in peer_listeners {
             outputln!("Joining gossip peer at {}", to);
-            let mut c = match Client::new(&to[..]) {
+            let mut c = match Client::new(&to[..], self.ring_key.clone()) {
                 Ok(c) => c,
                 Err(e) => {
                     debug!("Error creating gossip client - {:?}", e);
@@ -229,6 +239,7 @@ impl Server {
 ///
 /// New requests are handled by passing them to `receive`.
 pub fn inbound(listener: UtpListener,
+               ring_key: Option<SymKey>,
                my_peer: Peer,
                member_list: Arc<RwLock<MemberList>>,
                rumor_list: Arc<RwLock<RumorList>>,
@@ -255,6 +266,7 @@ pub fn inbound(listener: UtpListener,
                        pool.active_count(),
                        pool.max_count());
 
+                let key = ring_key.clone();
                 let my_peer = my_peer.clone();
                 let ml = member_list.clone();
                 let rl = rumor_list.clone();
@@ -263,7 +275,7 @@ pub fn inbound(listener: UtpListener,
                 let el = election_list.clone();
                 let gfl = gossip_file_list.clone();
 
-                pool.execute(move || receive(socket, src, my_peer, ml, rl, cl, d1, el, gfl));
+                pool.execute(move || receive(socket, src, key, my_peer, ml, rl, cl, d1, el, gfl));
             }
             _ => {}
         }
@@ -290,6 +302,7 @@ pub fn inbound(listener: UtpListener,
 /// * Forward along the RumorList to that Peer as a Proxy Ping.
 fn receive(socket: UtpSocket,
            src: net::SocketAddr,
+           ring_key: Option<SymKey>,
            my_peer: Peer,
            member_list: Arc<RwLock<MemberList>>,
            rumor_list: Arc<RwLock<RumorList>>,
@@ -297,7 +310,7 @@ fn receive(socket: UtpSocket,
            detector: Arc<RwLock<Detector>>,
            election_list: Arc<RwLock<ElectionList>>,
            gossip_file_list: Arc<RwLock<GossipFileList>>) {
-    let mut client = Client::from_socket(socket);
+    let mut client = Client::from_socket(socket, ring_key.clone());
     let msg = match client.recv_message() {
         Ok(msg) => msg,
         Err(e) => {
@@ -325,7 +338,7 @@ fn receive(socket: UtpSocket,
             };
 
             // Create a client for that peer
-            let mut c = match Client::new(&respond_to[..]) {
+            let mut c = match Client::new(&respond_to[..], ring_key.clone()) {
                 Ok(c) => c,
                 Err(e) => {
                     debug!("Failed to create a gossip client for {:?}; aborting: {}",
@@ -377,7 +390,7 @@ fn receive(socket: UtpSocket,
             if from_peer.proxy_to.is_some() {
                 debug!("Proxy Ack for {:?}", from_peer);
                 let forward_to = from_peer.proxy_to.take().unwrap();
-                let mut c = match Client::new(&forward_to[..]) {
+                let mut c = match Client::new(&forward_to[..], ring_key) {
                     Ok(c) => c,
                     Err(e) => {
                         debug!("Failed to create a gossip client to forward for {:?}; aborting: \
@@ -416,7 +429,7 @@ fn receive(socket: UtpSocket,
                     return;
                 }
             };
-            let mut c = match Client::new(&proxy_to[..]) {
+            let mut c = match Client::new(&proxy_to[..], ring_key) {
                 Ok(c) => c,
                 Err(e) => {
                     debug!("Failed to create a gossip connection for sending ping-req to {} for \
@@ -532,7 +545,8 @@ pub fn process_rumors(remote_rumors: RumorList,
 ///
 /// Like inbound, it is backed by a thread pool - if we have more than OUTBOUND_MAX_THREADS running
 /// at once, we delay the next outbound message until a thread is free.
-pub fn outbound(my_peer: Peer,
+pub fn outbound(ring_key: Option<SymKey>,
+                my_peer: Peer,
                 member_list: Arc<RwLock<MemberList>>,
                 rumor_list: Arc<RwLock<RumorList>>,
                 detector: Arc<RwLock<Detector>>) {
@@ -574,6 +588,7 @@ pub fn outbound(my_peer: Peer,
         };
 
         if !running_request {
+            let key1 = ring_key.clone();
             let rl1 = rumor_list.clone();
             let ml1 = member_list.clone();
             let mp1 = my_peer.clone();
@@ -583,7 +598,7 @@ pub fn outbound(my_peer: Peer,
                    member,
                    pool.active_count(),
                    pool.max_count());
-            pool.execute(move || send_outbound(mp1, member, rl1, ml1, d1));
+            pool.execute(move || send_outbound(key1, mp1, member, rl1, ml1, d1));
         } else {
             debug!("Skipping ping of {} due to already running request",
                    member.id)
@@ -592,7 +607,8 @@ pub fn outbound(my_peer: Peer,
 }
 
 /// Send an outbound Ping. If we fail to send, we initiate a PingReq.
-pub fn send_outbound(my_peer: Peer,
+pub fn send_outbound(ring_key: Option<SymKey>,
+                     my_peer: Peer,
                      member: Member,
                      rumor_list: Arc<RwLock<RumorList>>,
                      member_list: Arc<RwLock<MemberList>>,
@@ -602,13 +618,18 @@ pub fn send_outbound(my_peer: Peer,
         d.start(member.id.clone());
     }
 
-    let mut c = match Client::new(&member.gossip_listener[..]) {
+    let mut c = match Client::new(&member.gossip_listener[..], ring_key.clone()) {
         Ok(c) => c,
         Err(e) => {
             debug!("Failed to create a gossip connection for {}; sending ping-req: {}",
                    member.id,
                    e);
-            send_pingreq(my_peer, member, rumor_list, member_list, detector);
+            send_pingreq(ring_key.clone(),
+                         my_peer,
+                         member,
+                         rumor_list,
+                         member_list,
+                         detector);
             return;
         }
     };
@@ -628,7 +649,7 @@ pub fn send_outbound(my_peer: Peer,
         Ok(_) => {}
         Err(e) => {
             debug!("Failed to ping {:?}: {:?}", my_peer, e);
-            send_pingreq(my_peer, member, rumor_list, member_list, detector);
+            send_pingreq(ring_key, my_peer, member, rumor_list, member_list, detector);
             return;
         }
     }
@@ -641,7 +662,8 @@ pub fn send_outbound(my_peer: Peer,
 
 /// Send a PingReq for a failed Ping. We pick targets from the Member List, and then send a PingReq
 /// to each of them, with our information filled in.
-pub fn send_pingreq(my_peer: Peer,
+pub fn send_pingreq(ring_key: Option<SymKey>,
+                    my_peer: Peer,
                     member: Member,
                     rumor_list: Arc<RwLock<RumorList>>,
                     member_list: Arc<RwLock<MemberList>>,
@@ -664,7 +686,7 @@ pub fn send_pingreq(my_peer: Peer,
         debug!("Sending pingreq to {} through {}",
                member.id,
                pingreq_member.id);
-        let mut c = match Client::new(&pingreq_member.gossip_listener[..]) {
+        let mut c = match Client::new(&pingreq_member.gossip_listener[..], ring_key.clone()) {
             Ok(c) => c,
             Err(e) => {
                 debug!("Failed to create a gossip connection for {}; aborting ping-req request: \
@@ -693,7 +715,8 @@ pub fn send_pingreq(my_peer: Peer,
 /// The failure detector. Every 100ms, we check for any failed for confirmed timeouts within the
 /// detector. If we find a timeout, we update our rumor and the members entry. Additionally, if we
 /// mark a member as Suspect through a rumor we were passed, we set up its entry in the detector.
-pub fn failure_detector(my_peer: Peer,
+pub fn failure_detector(ring_key: Option<SymKey>,
+                        my_peer: Peer,
                         member_list: Arc<RwLock<MemberList>>,
                         rumor_list: Arc<RwLock<RumorList>>,
                         detector: Arc<RwLock<Detector>>) {
@@ -756,7 +779,8 @@ pub fn failure_detector(my_peer: Peer,
         for member_id in pingreq.iter() {
             let ml = member_list.read().unwrap();
             let member = ml.get(&member_id).unwrap().clone();
-            send_pingreq(my_peer.clone(),
+            send_pingreq(ring_key.clone(),
+                         my_peer.clone(),
                          member,
                          rumor_list.clone(),
                          member_list.clone(),

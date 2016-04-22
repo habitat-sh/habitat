@@ -26,6 +26,7 @@ use std::sync::mpsc::TryRecvError;
 use std::thread;
 use std::time::Duration;
 
+use hcore::{self, crypto};
 use wonder;
 
 use state_machine::StateMachine;
@@ -33,7 +34,7 @@ use census::{self, CensusList};
 use common::gossip_file::GossipFileList;
 use package::{self, Package, PackageUpdaterActor};
 use util::signals::SignalNotifier;
-use error::{Result, SupError};
+use error::{Error, Result, SupError};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
@@ -131,8 +132,24 @@ impl<'a> Worker<'a> {
             pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
         }
 
+        let ring_key = match config.ring().as_ref() {
+            Some(name) => {
+                let ctx = crypto::Context::default();
+                let mut candidates = try!(ctx.read_sym_keys(&name));
+                match candidates.len() {
+                    1 => Some(candidates.remove(0)),
+                    _ => {
+                        return Err(sup_error!(Error::HabitatCore(hcore::Error::CryptoError(format!("Cannot find a suitable key for ring: {}",
+                                                                                 name)))))
+                    }
+                }
+            }
+            None => None,
+        };
+
         let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen()),
                                                         config.gossip_permanent(),
+                                                        ring_key,
                                                         package_name.clone(),
                                                         config.group().to_string(),
                                                         config.organization().clone(),

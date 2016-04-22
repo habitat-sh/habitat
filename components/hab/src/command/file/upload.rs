@@ -6,9 +6,8 @@
 // open source license such as the Apache 2.0 License.
 
 use std::path::Path;
-use std::io::{self, Read};
 
-use hcore::crypto::SymKey;
+use hcore::crypto::{Context, SymKey};
 use hcore::service::ServiceGroup;
 use common::gossip_file::GossipFile;
 
@@ -19,24 +18,20 @@ pub fn start(peers: &Vec<String>,
              ring_key: Option<SymKey>,
              sg: ServiceGroup,
              number: u64,
-             file_path: Option<&Path>)
+             file_path: &Path,
+             user: &str)
              -> Result<()> {
     let sg1 = sg.clone();
-    let file = match file_path {
-        Some(p) => try!(GossipFile::from_file(sg, p, number)),
-        None => {
-            let mut body = vec![0; 1024];
-            try!(io::stdin().read_to_end(&mut body));
-            try!(GossipFile::from_body(sg, "config.toml".to_string(), body, number))
-        }
-    };
-    println!("Applying configuration {} to {}", &file, &sg1);
+    let crypto_ctx = Context::default();
+    let file = try!(GossipFile::from_file_encrypt(&crypto_ctx, sg, file_path, number, user));
+
+    println!("Uploading file {} to {}", &file, &sg1);
     let rumor = hab_gossip::Rumor::gossip_file(file);
 
     let mut list = hab_gossip::RumorList::new();
     list.add_rumor(rumor);
 
     try!(gossip::send_rumors_to_peers(&peers, ring_key, &list));
-    println!("Finished applying configuration");
+    println!("Finished uploading file");
     Ok(())
 }

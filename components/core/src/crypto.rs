@@ -648,6 +648,106 @@ impl Context {
         }
     }
 
+    /// Encrypts a byte slice of data using a given `SymKey`.
+    ///
+    /// The return is a `Result` of a tuple of `Vec<u8>` structs, the first being the random nonce
+    /// value and the second being the ciphertext.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempdir;
+    ///
+    /// use habitat_core::crypto::Context;
+    /// use tempdir::TempDir;
+    ///
+    /// fn main() {
+    ///     let key_cache = TempDir::new("key_cache").unwrap();
+    ///     let ctx = Context { key_cache: key_cache.into_path().to_string_lossy().into_owned() };
+    ///     let name = ctx.generate_ring_sym_key("beyonce").unwrap();
+    ///     let keys = ctx.read_sym_keys(&name).unwrap();
+    ///     let sym_key = keys.first().unwrap();
+    ///
+    ///     let (nonce, ciphertext) = ctx.sym_encrypt(&sym_key, "Guess who?".as_bytes()).unwrap();
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If the secret key component of the `SymKey` is not present
+    pub fn sym_encrypt(&self, sym_key: &SymKey, data: &[u8]) -> Result<(Vec<u8>, Vec<u8>)> {
+        let key = match sym_key.secret.as_ref() {
+            Some(s) => s,
+            None => return Err(Error::CryptoError("Secret key not present to encrypt".to_string())),
+        };
+        let nonce = secretbox::gen_nonce();
+        Ok((nonce.as_ref().to_vec(), secretbox::seal(data, &nonce, &key)))
+    }
+
+    /// Decrypts a byte slice of ciphertext using a given nonce value and a `SymKey`.
+    ///
+    /// The return is a `Result` of a byte vector containing the original, unencrypted data.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempdir;
+    ///
+    /// use habitat_core::crypto::Context;
+    /// use tempdir::TempDir;
+    ///
+    /// fn main() {
+    ///     let key_cache = TempDir::new("key_cache").unwrap();
+    ///     let ctx = Context { key_cache: key_cache.into_path().to_string_lossy().into_owned() };
+    ///     let name = ctx.generate_ring_sym_key("beyonce").unwrap();
+    ///     let keys = ctx.read_sym_keys(&name).unwrap();
+    ///     let sym_key = keys.first().unwrap();
+    ///
+    ///     let (nonce, ciphertext) = ctx.sym_encrypt(&sym_key, "Guess who?".as_bytes()).unwrap();
+    ///     let message = ctx.sym_decrypt(&sym_key, &nonce, &ciphertext).unwrap();
+    ///
+    ///     // The original message is decrypted
+    ///     assert_eq!(message, "Guess who?".to_string().into_bytes());
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If the secret key component of the `SymKey` is not present
+    /// * If the size of the provided nonce data is not the required size
+    /// * If the ciphertext was not decryptable given the nonce and symmetric key
+    pub fn sym_decrypt(&self,
+                       sym_key: &SymKey,
+                       nonce: &[u8],
+                       ciphertext: &[u8])
+                       -> Result<Vec<u8>> {
+        let key = match sym_key.secret.as_ref() {
+            Some(s) => s,
+            None => return Err(Error::CryptoError("Secret key not present to decrypt".to_string())),
+        };
+        let nonce = match secretbox::Nonce::from_slice(&nonce) {
+            Some(n) => n,
+            None => {
+                return Err(Error::CryptoError("The length of the bytes isn't equal to \
+                                                  the length of a nonce"
+                                                  .to_string()))
+            }
+        };
+        match secretbox::open(ciphertext, &nonce, &key) {
+            Ok(msg) => Ok(msg),
+            Err(_) => {
+                Err(Error::CryptoError("Secret key and nonce could not decrypt ciphertext"
+                                           .to_string()))
+            }
+        }
+    }
+
     // *******************************************
     // Key generation functions
     // *******************************************

@@ -26,6 +26,7 @@ mod cli;
 mod command;
 mod error;
 mod exec;
+mod gossip;
 
 use std::env;
 use std::path::{Path, PathBuf};
@@ -35,10 +36,13 @@ use clap::ArgMatches;
 
 use error::{Error, Result};
 use hcore::env as henv;
+use hcore::crypto;
 use hcore::fs::find_command;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
+
+use gossip::hab_gossip;
 
 const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
@@ -179,9 +183,23 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     for p in peers.iter_mut() {
         if p.find(':').is_none() {
             p.push(':');
-            p.push_str(&command::config::apply::hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
+            p.push_str(&hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
         }
     }
+    let ring_key = match m.value_of("RING") {
+        Some(name) => {
+            let ctx = crypto::Context::default();
+            let mut candidates = try!(ctx.read_sym_keys(&name));
+            match candidates.len() {
+                1 => Some(candidates.remove(0)),
+                _ => {
+                    let msg = format!("Cannot find a suitable key for ring: {}", name);
+                    return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
+                }
+            }
+        }
+        None => None,
+    };
     let sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
     let file_path = match m.value_of("FILE") {
@@ -189,7 +207,7 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
         Some(p) => Some(Path::new(p)),
     };
 
-    try!(command::config::apply::start(&peers, sg, number, file_path));
+    try!(command::config::apply::start(&peers, ring_key, sg, number, file_path));
     Ok(())
 }
 
@@ -200,9 +218,23 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     for p in peers.iter_mut() {
         if p.find(':').is_none() {
             p.push(':');
-            p.push_str(&command::config::apply::hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
+            p.push_str(&hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
         }
     }
+    let ring_key = match m.value_of("RING") {
+        Some(name) => {
+            let ctx = crypto::Context::default();
+            let mut candidates = try!(ctx.read_sym_keys(&name));
+            match candidates.len() {
+                1 => Some(candidates.remove(0)),
+                _ => {
+                    let msg = format!("Cannot find a suitable key for ring: {}", name);
+                    return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
+                }
+            }
+        }
+        None => None,
+    };
     let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
     // FILE is required for upload, "safe" to unwrap
@@ -229,7 +261,7 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     let user = try!(user_param_or_env(&m));
     // GossipFile loads in keys to encrypt/sign, so we'll defer to it for
     // user secret/service public key not found errors
-    try!(command::config::apply::start_encrypted(&peers, sg, number, file_path, &user));
+    try!(command::file::upload::start(&peers, ring_key, sg, number, file_path, &user));
     Ok(())
 }
 
