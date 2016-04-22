@@ -193,10 +193,11 @@ use util::perm;
 /// 4. The encrypted message in base64 format.
 ///
 /// ```text
-/// 0.1.0\n
-/// signing key name\n
-/// recipient key name\n
-/// nonce_base64\n
+/// BOX-1
+/// signing key name
+/// recipient key name
+/// nonce_base64
+///
 /// <ciphertext_base64>
 /// ```
 ///
@@ -210,8 +211,9 @@ use util::perm;
 /// 2. The key itself, which is base64-encoded
 ///
 /// ```text
-/// SYM-1\n
-/// staging-20160405144945\n
+/// SYM-1
+/// staging-20160405144945
+///
 /// <symkey_base64>
 /// ```
 
@@ -244,7 +246,11 @@ static HART_FORMAT_VERSION: &'static str = "HART-1";
 
 static ENCRYPTED_PAYLOAD_VERSION: &'static str = "BOX-0.1.0";
 
-static SYM_KEY_VERSION: &'static str = "SYM-1";
+static PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
+static SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";
+static PUBLIC_BOX_KEY_VERSION: &'static str = "BOX-PUB-1";
+static SECRET_BOX_KEY_VERSION: &'static str = "BOX-SEC-1";
+static SECRET_SYM_KEY_VERSION: &'static str = "SYM-SEC-1";
 
 const BUF_SIZE: usize = 1024;
 
@@ -276,6 +282,12 @@ impl<P, S> KeyPair<P, S> {
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 pub type SymKey = KeyPair<(), SymSecretKey>;
+
+enum KeyType {
+    Sig,
+    Box,
+    Sym,
+}
 
 /// If an env var is set, then return it's value.
 /// If it's not, return the default
@@ -690,8 +702,10 @@ impl Context {
         let secret_keyfile = self.mk_key_filename(&self.key_cache, keyname, SECRET_BOX_KEY_SUFFIX);
         debug!("public box keyfile = {}", &public_keyfile);
         debug!("secret box keyfile = {}", &secret_keyfile);
-        try!(self.write_keypair_files(&public_keyfile,
-                                      &pk[..].to_base64(STANDARD).into_bytes(),
+        try!(self.write_keypair_files(KeyType::Box,
+                                      &keyname,
+                                      Some(&public_keyfile),
+                                      Some(&pk[..].to_base64(STANDARD).into_bytes()),
                                       &secret_keyfile,
                                       &sk[..].to_base64(STANDARD).into_bytes()));
         Ok((pk, sk))
@@ -705,8 +719,10 @@ impl Context {
         debug!("public sig keyfile = {}", &public_keyfile);
         debug!("secret sig keyfile = {}", &secret_keyfile);
 
-        try!(self.write_keypair_files(&public_keyfile,
-                                      &pk[..].to_base64(STANDARD).into_bytes(),
+        try!(self.write_keypair_files(KeyType::Sig,
+                                      &keyname,
+                                      Some(&public_keyfile),
+                                      Some(&pk[..].to_base64(STANDARD).into_bytes()),
                                       &secret_keyfile,
                                       &sk[..].to_base64(STANDARD).into_bytes()));
         Ok((pk, sk))
@@ -718,73 +734,73 @@ impl Context {
         let secret_keyfile = self.mk_key_filename(&self.key_cache, keyname, SECRET_SYM_KEY_SUFFIX);
         debug!("secret ring keyfile = {}", &secret_keyfile);
 
-        try!(self.write_sym_key_file(&keyname,
-                                     &secret_keyfile,
-                                     &sk[..].to_base64(STANDARD).into_bytes()));
+        try!(self.write_keypair_files(KeyType::Sym,
+                                      &keyname,
+                                      None,
+                                      None,
+                                      &secret_keyfile,
+                                      &sk[..].to_base64(STANDARD).into_bytes()));
         Ok(sk)
     }
 
-    fn write_keypair_files<K1: AsRef<Path>, K2: AsRef<Path>>(&self,
-                                                             public_keyfile: K1,
-                                                             public_content: &Vec<u8>,
-                                                             secret_keyfile: K2,
-                                                             secret_content: &Vec<u8>)
-                                                             -> Result<()> {
-        if let Some(pk_dir) = public_keyfile.as_ref().parent() {
-            try!(fs::create_dir_all(pk_dir));
-        } else {
-            return Err(Error::BadKeyPath(public_keyfile.as_ref().to_string_lossy().into_owned()));
+    fn write_keypair_files<P: AsRef<Path>>(&self,
+                                           key_type: KeyType,
+                                           keyname: &str,
+                                           public_keyfile: Option<P>,
+                                           public_content: Option<&Vec<u8>>,
+                                           secret_keyfile: P,
+                                           secret_content: &Vec<u8>)
+                                           -> Result<()> {
+        if let Some(public_keyfile) = public_keyfile {
+            let public_version = match key_type {
+                KeyType::Sig => PUBLIC_SIG_KEY_VERSION,
+                KeyType::Box => PUBLIC_BOX_KEY_VERSION,
+                KeyType::Sym => unreachable!("Sym keys do not have a public key"),
+            };
+
+            let public_content = match public_content {
+                Some(c) => c,
+                None => return Err(Error::CryptoError(format!("Invalid calling of this function"))),
+            };
+
+            if let Some(pk_dir) = public_keyfile.as_ref().parent() {
+                try!(fs::create_dir_all(pk_dir));
+            } else {
+                return Err(Error::BadKeyPath(public_keyfile.as_ref()
+                                                           .to_string_lossy()
+                                                           .into_owned()));
+            }
+            if public_keyfile.as_ref().exists() && public_keyfile.as_ref().is_file() {
+                return Err(Error::CryptoError(format!("Public keyfile already exists {}",
+                                                      public_keyfile.as_ref().display())));
+            }
+            let public_file = try!(File::create(public_keyfile.as_ref()));
+            let mut public_writer = BufWriter::new(&public_file);
+            try!(write!(public_writer, "{}\n{}\n\n", public_version, keyname));
+            try!(public_writer.write_all(public_content));
+            try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
         }
 
+        let secret_version = match key_type {
+            KeyType::Sig => SECRET_SIG_KEY_VERSION,
+            KeyType::Box => SECRET_BOX_KEY_VERSION,
+            KeyType::Sym => SECRET_SYM_KEY_VERSION,
+        };
         if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
             try!(fs::create_dir_all(sk_dir));
         } else {
             return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
         }
-
-        if public_keyfile.as_ref().exists() && public_keyfile.as_ref().is_file() {
-            return Err(Error::CryptoError(format!("Public keyfile already exists {}",
-                                                  public_keyfile.as_ref().display())));
-        }
-
         if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
             return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
                                                   secret_keyfile.as_ref().display())));
         }
-
-        let public_file = try!(File::create(public_keyfile.as_ref()));
-        let mut public_writer = BufWriter::new(&public_file);
-        try!(public_writer.write_all(public_content));
-        try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
-
         let secret_file = try!(File::create(secret_keyfile.as_ref()));
         let mut secret_writer = BufWriter::new(&secret_file);
+        try!(write!(secret_writer, "{}\n{}\n\n", secret_version, keyname));
         try!(secret_writer.write_all(secret_content));
         try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
-        Ok(())
-    }
 
-    fn write_sym_key_file<K: AsRef<Path>>(&self,
-                                          keyname: &str,
-                                          secret_keyfile: K,
-                                          secret_content: &Vec<u8>)
-                                          -> Result<()> {
-        if let Some(sk_dir) = secret_keyfile.as_ref().parent() {
-            try!(fs::create_dir_all(sk_dir));
-        } else {
-            return Err(Error::BadKeyPath(secret_keyfile.as_ref().to_string_lossy().into_owned()));
-        }
-
-        if secret_keyfile.as_ref().exists() && secret_keyfile.as_ref().is_file() {
-            return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
-                                                  secret_keyfile.as_ref().display())));
-        }
-
-        let secret_file = try!(File::create(secret_keyfile.as_ref()));
-        let mut secret_writer = BufWriter::new(&secret_file);
-        try!(write!(secret_writer, "{}\n{}\n\n", SYM_KEY_VERSION, keyname));
-        try!(secret_writer.write_all(secret_content));
-        try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
         Ok(())
     }
 
@@ -953,27 +969,11 @@ impl Context {
         let secret_keyfile = self.mk_key_filename(&self.key_cache,
                                                   key_with_rev,
                                                   SECRET_SYM_KEY_SUFFIX);
-        self.read_key_bytes_after_header(&secret_keyfile)
+        self.read_key_bytes(&secret_keyfile)
     }
 
     /// Read a file into a Vec<u8>
     fn read_key_bytes(&self, keyfile: &str) -> Result<Vec<u8>> {
-        let mut f = try!(File::open(keyfile));
-        let mut s = String::new();
-        if try!(f.read_to_string(&mut s)) <= 0 {
-            return Err(Error::CryptoError("Can't read key bytes".to_string()));
-        }
-        match s.as_bytes().from_base64() {
-            Ok(keybytes) => Ok(keybytes),
-            Err(e) => {
-                return Err(Error::CryptoError(format!("Can't read raw key from {}: {}",
-                                                      keyfile,
-                                                      e)))
-            }
-        }
-    }
-
-    fn read_key_bytes_after_header(&self, keyfile: &str) -> Result<Vec<u8>> {
         let mut f = try!(File::open(keyfile));
         let mut s = String::new();
         if try!(f.read_to_string(&mut s)) <= 0 {
