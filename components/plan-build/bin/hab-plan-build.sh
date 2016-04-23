@@ -290,7 +290,9 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 PLAN_CONTEXT=${1:-.}
 # The default Habitat Depot from where to download dependencies. If
 # `HAB_DEPOT_URL` is set, this value is overridden.
-: ${HAB_DEPOT_URL:=http://52.37.151.35:9632}
+: ${HAB_DEPOT_URL:=http://willem.habitat.sh:9632}
+# Export the Depot URL so all other programs and subshells use this same one
+export HAB_DEPOT_URL
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
 # The package's origin (i.e. acme)
