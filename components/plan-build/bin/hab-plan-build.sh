@@ -296,7 +296,7 @@ INITIAL_PATH="$PATH"
 # The package's origin (i.e. acme)
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
-pkg_rel=$(date -u +%Y%m%d%H%M%S)
+pkg_release=$(date -u +%Y%m%d%H%M%S)
 # The default build deps setting - an empty array
 pkg_build_deps=()
 # The default runtime deps setting - an empty array
@@ -746,7 +746,7 @@ _validate_deps() {
     warn 'with the problematic lines noted.'
     warn
     warn "Computed dependency graph (Lines with '*' denote a problematic entry):"
-    printf "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}\n"
+    printf "\n${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}\n"
     echo ${pkg_deps_resolved[@]} \
       | tr ' ' '\n' \
       | sed -e "s,^${HAB_PKG_PATH}/,," \
@@ -1763,7 +1763,7 @@ _build_metadata() {
     echo "$deps" > $pkg_prefix/TDEPS
   fi
 
-  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}" >> $pkg_prefix/IDENT
+  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" >> $pkg_prefix/IDENT
 
   return 0
 }
@@ -1870,7 +1870,7 @@ $pkg_origin $pkg_name
 
 Maintainer: $pkg_maintainer
 Version: $pkg_version
-Release: $pkg_rel
+Release: $pkg_release
 License: $(printf "%s " ${pkg_license[@]})
 Source: [$pkg_source]($pkg_source)
 SHA: $pkg_shasum
@@ -2003,7 +2003,7 @@ fi
 
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
-  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_rel}
+  pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 fi
 
 # Set $pkg_svc variables a second time, now that the Plan has been sourced and
@@ -2017,7 +2017,7 @@ pkg_svc_static_path="$pkg_svc_path/static"
 
 # Set the package artifact name
 _artifact_ext="hart"
-pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_rel}.${_artifact_ext}"
+pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}.${_artifact_ext}"
 
 # Run `do_begin`
 build_line "$_program setup"

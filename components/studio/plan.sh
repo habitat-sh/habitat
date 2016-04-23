@@ -15,7 +15,7 @@ do_build() {
   # Embed the release version and author information of the program.
   sed \
     -e "s,@author@,$pkg_maintainer,g" \
-    -e "s,@version@,$pkg_version/$pkg_rel,g" \
+    -e "s,@version@,$pkg_version/$pkg_release,g" \
     -i hab-studio
 }
 

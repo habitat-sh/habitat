@@ -16,7 +16,7 @@ do_build() {
   # none).
   sed \
     -e "s,@author@,$pkg_maintainer,g" \
-    -e "s,@version@,$pkg_version/$pkg_rel,g" \
+    -e "s,@version@,$pkg_version/$pkg_release,g" \
     $PLAN_CONTEXT/bin/hab-bpm.sh > hab-bpm
 }
 
