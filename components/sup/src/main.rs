@@ -39,8 +39,7 @@ use sup::topology::Topology;
 static LOGKEY: &'static str = "MN";
 
 /// The version number
-#[allow(dead_code)]
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";

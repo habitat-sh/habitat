@@ -18,7 +18,7 @@ do_build() {
   sed \
     -e "s,#!/bin/bash$,#!$(pkg_path_for bash)/bin/bash," \
     -e "s,@author@,$pkg_maintainer,g" \
-    -e "s,@version@,$pkg_version/$pkg_rel,g" \
+    -e "s,@version@,$pkg_version/$pkg_release,g" \
     -i $program
 }
 

@@ -14,6 +14,10 @@ pkg_bin_dirs=(bin)
 program=$pkg_name
 
 do_prepare() {
+  # Used by the `build.rs` program to set the version of the binaries
+  export PLAN_VERSION="${pkg_version}/${pkg_release}"
+  build_line "Setting PLAN_VERSION=$PLAN_VERSION"
+
   # Used by Cargo to fetch registries/crates/etc.
   export SSL_CERT_FILE=$(pkg_path_for cacerts)/ssl/cert.pem
   build_line "Setting SSL_CERT_FILE=$SSL_CERT_FILE"

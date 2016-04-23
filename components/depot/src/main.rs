@@ -24,7 +24,7 @@ use depot::data_store::{self, Cursor, Database, Transaction};
 use depot_core::data_object;
 use hcore::fs;
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 fn main() {
     env_logger::init().unwrap();

@@ -11,7 +11,7 @@ use regex::Regex;
 use clap::{App, AppSettings};
 use url::Url;
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
