@@ -1,15 +1,12 @@
 sudo: required
 language: bash
-branches:
-  only:
-    - master
 services:
-  - docker
+- docker
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install docker
+- sudo apt-get update
+- sudo apt-get install docker
 script:
-  - ./support/ci.sh
+- ./support/ci.sh
 notifications:
   slack:
-    secure: SkwqOJsHjIKmqD5gHiBW5C3yxUJWJ8IW9t8VXRPkr7+y+4aruuLZJ3YS+DsCILdSNSzhokWWC37gFFVqgUnUytvmWbIpADrG/92wRRk+uH2cG9HvG6cyu+hjv5GZ0dHViObOvXw88v0jz91XsnGFUJpiGCHHcb4nh6riwnVTVK059XVBZe7gqVk1FRi+9fKcMBm+oFyzWcg9Bq11+BJgq2CO6jHLwtie9g6yt+5BrFu5rWm1swI3nnMnuzw2zsXXqD4PZDPgKuQ9aCm3ThAvU48VN/d0IPMxB4rjPJ6m/3+BCy4v2oVLRyN665MN/1ejWDmrmcNEBpFKMypMeuz5CmHv4lGb5DyprY/hawK6JT/B2f8QkXNcFckEVd6rgocQFMtHdFTdV1Fr+jS4QlMb5xYr/7tH+tcyDZDt26aClag0rY0tc7VnBsvJGOXyN88OCs1VQ1Fxub3XtkZSbmdsciPBxc3+XmLng1h4hm0VV9UXXIhl0aOoy7kvOx8jxBsFzjTxtrQidoYWzTGxIKHH/1ekyDFKOZ9aIzntQKl89Tv3UOVFbbmIM64oHyHcM97yLmOJDcv+oKWox1iaWr5ItGfwnYQi2DuztTSMnGkif9rkIWxCwOd1LPBYHfA7gVMdzF49lGZf/svem+GWHndGMlUxVNsLKn04YgLyJ4odJdw=
+    secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
