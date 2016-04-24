@@ -267,15 +267,14 @@ mod test {
     use super::*;
 
     #[test]
-    #[ignore]  // This is being ignored until a new artifact can be generated to replace this fixture
     fn reading_artifact_metadata() {
-        let mut hart = PackageArchive::new(fixtures()
-                                               .join("core-hab-sup-0.4.0-20160416170100.hab"));
+        let mut hart =
+            PackageArchive::new(fixtures().join("happyhumans-possums-8.1.4-20160424223505.hart"));
         let ident = hart.ident().unwrap();
-        assert_eq!(ident.origin, "core");
-        assert_eq!(ident.name, "hab-sup");
-        assert_eq!(ident.version, Some("0.4.0".to_string()));
-        assert_eq!(ident.release, Some("20160416170100".to_string()));
+        assert_eq!(ident.origin, "happyhumans");
+        assert_eq!(ident.name, "possums");
+        assert_eq!(ident.version, Some("8.1.4".to_string()));
+        assert_eq!(ident.release, Some("20160424223505".to_string()));
     }
 
     pub fn exe_path() -> PathBuf {
