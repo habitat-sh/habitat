@@ -97,8 +97,8 @@ impl ConfigFile {
         } else if self.version_number == other.version_number && *self != other {
             // We have a big problem: this means that the 2 config files are *not* the same but
             // they have the same `version_number`. This is probably irreconcilable at present.
-            println!("This config file has the same version number ({}) as \
-                  the other  ConfigFile but our data is different, meaning \
+            outputln!("This config file has the same version number ({}) as \
+                  the other config file but our data is different, meaning \
                   that we can't pick a winner. We will trust our data and \
                   hope a higher version is published later. \
                   (My data: {}, other data: {})",
@@ -144,7 +144,7 @@ impl ConfigFile {
             Ok(false)
         } else {
             let filename = self.on_disk_path();
-            println!("Writing new config file from gossip: {}",
+            outputln!("Writing new config file from gossip: {}",
                      filename.to_string_lossy());
             let new_filename = format!("{}.write", filename.to_string_lossy());
             {
