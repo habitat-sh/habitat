@@ -10,6 +10,7 @@ pkg_deps=(
   core/bundler
   core/cacerts
   core/glibc
+  core/hab-bpm
   core/libffi
   core/libxml2
   core/libxslt
