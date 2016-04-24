@@ -6,6 +6,7 @@ components
 !components/studio/install.sh
 demo
 images
+log
 plans
 support
 vendor
