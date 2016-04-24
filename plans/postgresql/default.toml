@@ -223,9 +223,9 @@ include_dir = "/hab/svc/postgresql/config/conf.d"
 
 # options for initdb.
 #
-# We're using `bldr` instead of `postgres` because the `bldr` user is
+# We're using `hab` instead of `postgres` because the `hab` user is
 # created in our docker containers, the `postgres` user is not.
-initdb_superuser_name = "bldr"
+initdb_superuser_name = "hab"
 initdb_superuser_password = ""
 initdb_pwfile = "/hab/svc/postgresql/config/pwfile"
 initdb_encoding = "UTF8"
