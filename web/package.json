@@ -8,14 +8,14 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "concurrent \"npm run build-js\" \"npm run build-css\"",
-    "build-css": "npm run lint-css && node-sass --source-map=true --include-path=node_modules/bourbon-neat/app/assets/stylesheets --include-path=node_modules/bourbon/app/assets/stylesheets --include-path=node_modules/normalize-scss/sass --include-path=node_modules/normalize-scss/node_modules/support-for/sass --include-path=node_modules/octicons/octicons --include-path=stylesheets --output=. app/app.scss",
+    "build-css": "npm run lint-css && node-sass --output-style=compressed --source-map=true --include-path=node_modules/bourbon-neat/app/assets/stylesheets --include-path=node_modules/bourbon/app/assets/stylesheets --include-path=node_modules/normalize-scss/sass --include-path=node_modules/normalize-scss/node_modules/support-for/sass --include-path=node_modules/octicons/octicons --include-path=stylesheets --output=. app/app.scss",
     "build-css-watch": "npm run build-css && npm run build-css -- --watch",
     "build-js": "webpack --config webpack.conf.js",
     "build-js-watch": "npm run build-js -- --watch",
     "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
     "clean-css": "rm -fv app.css app.css.map",
     "clean-js": "rm -fv app.js app.js.map app**/*.js app**/*.js.map",
-    "dist": "mkdir -p dist && rm -rf dist/* && npm run build && cp -R app.css* app.js* favicon.ico fixtures index.html dist && mkdir -p dist/node_modules && cp -R node_modules/octicons dist/node_modules && cp habitat.conf.sample.js dist/habitat.conf.js",
+    "dist": "mkdir -p dist && rm -rf dist/* && npm run build && cp -R assets app.css* app.js* favicon.ico fixtures index.html dist && mkdir -p dist/node_modules && cp -R node_modules/octicons dist/node_modules && cp habitat.conf.sample.js dist/habitat.conf.js",
     "format-js": "tsfmt --replace app**/*.ts",
     "lint": "concurrent \"npm run lint-css\" \"npm run lint-js\"",
     "lint-css": "sass-lint --verbose stylesheets**/*.scss app**/*.scss",
@@ -34,7 +34,7 @@
     "test-unit-watch": "npm run test-unit -- --no-single-run"
   },
   "dependencies": {
-    "angular2": "^2.0.0-beta.6",
+    "angular2": "^2.0.0-beta.15",
     "ansi_up": "^1.3.0",
     "blueimp-md5": "^2.3.0",
     "bourbon": "^4.2.6",
@@ -54,7 +54,7 @@
     "reflect-metadata": "0.1.2",
     "rxjs": "5.0.0-beta.0",
     "whatwg-fetch": "^0.11.0",
-    "zone.js": "^0.5.14"
+    "zone.js": "^0.6.12"
   },
   "devDependencies": {
     "assertion-error": "^1.0.1",
@@ -85,7 +85,7 @@
     "type-detect": "^1.0.0",
     "typescript": "^1.7.3",
     "typescript-formatter": "^1.2.0",
-    "typings": "^0.6.8",
+    "typings": "^0.8.1",
     "watch": "^0.17.1",
     "webpack": "^1.12.11"
   }

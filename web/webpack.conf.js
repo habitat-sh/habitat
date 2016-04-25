@@ -1,3 +1,5 @@
+const webpack = require("webpack");
+
 module.exports = {
     devtool: "source-map",
     entry: "./app/boot.ts",
@@ -17,6 +19,15 @@ module.exports = {
         ],
         noParse: [/angular2\/bundles\/.+/],
     },
+    plugins: [
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                drop_debugger: false,
+            },
+            mangle: false,
+            sourceMap: true,
+        }),
+    ],
     tslint: {
         emitErrors: true,
         failOnHint: true,

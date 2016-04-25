@@ -11,9 +11,14 @@
 import "angular2/bundles/angular2-polyfills";
 import {AppComponent} from "./AppComponent";
 import {AppStore} from "./AppStore";
-import {bind} from "angular2/core";
+import {bind, enableProdMode} from "angular2/core";
 import {LocationStrategy, HashLocationStrategy, ROUTER_PROVIDERS} from "angular2/router";
 import {bootstrap} from "angular2/platform/browser";
+import config from "./config";
+
+if (config["environment"] === "production") {
+    enableProdMode();
+}
 
 bootstrap(AppComponent, [
     AppStore,

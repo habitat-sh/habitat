@@ -11,7 +11,7 @@
   h1.logo {
     @include hide-text;
     @include span-columns(4);
-    background-image: url("/app/assets/images/habitat-logo.svg");
+    background-image: url("/assets/images/habitat-logo.svg");
     background-repeat: no-repeat;
     color: $white;
     display: inline;
