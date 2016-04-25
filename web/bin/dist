@@ -1,0 +1,20 @@
+#!/bin/sh
+set -x
+mkdir -p dist && \
+rm -rf dist/* && \
+npm run build
+
+CSS_SHA=$(shasum -a 256 app.css | cut -d ' ' -f 1)
+export CSS_SHA
+cp app.css "dist/app-$CSS_SHA.css"
+cp app.css.map "dist/app-$CSS_SHA.css.map"
+JS_SHA=$(shasum -a 256 app.js | cut -d ' ' -f 1)
+export JS_SHA
+cp app.js "dist/app-$JS_SHA.js"
+cp app.js.map "dist/app-$JS_SHA.js.map"
+node bin/add-shas-to-index.js > dist/index.html
+
+cp -R assets favicon.ico fixtures dist && \
+mkdir -p dist/node_modules && \
+cp -R node_modules/octicons dist/node_modules && \
+cp habitat.conf.sample.js dist/habitat.conf.js
