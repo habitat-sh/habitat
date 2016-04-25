@@ -7,6 +7,9 @@ habitatConfig({
     depot_url: "",
     // The URL for documentation
     docs_url: "https://docs.habitat.sh",
+    // The environment in which we're running. If "production", enable
+    // production mode
+    environment: "production",
     // The URL for Habitat's source code
     // GitHub Client ID for OAuth2
     github_client_id: "",

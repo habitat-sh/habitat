@@ -44,7 +44,7 @@ body {
 }
 
 .hab-topbar {
-  @include background(url("/app/assets/images/bg-pattern.png"), linear-gradient(205deg, #f59b51 5%, #f58251 100%), center);
+  @include background(url("/assets/images/bg-pattern.png"), linear-gradient(205deg, #f59b51 5%, #f58251 100%), center);
   background-color: $hab-orange;
   box-shadow: 1px 0 8px 0 $light-gray;
   height: 80px;

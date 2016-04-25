@@ -4,7 +4,13 @@
 # Linter Options
 # Rule Configuration
 rules:
-  quotes:
-    style: double
+  clean-import-paths: 0
+  force-element-nesting: 0
   leading-zero:
     style: include_zero
+  nesting-depth: 3
+  no-qualifying-elements: 0
+  placeholder-in-extend: 0
+  quotes:
+    - 2
+    - style: double
