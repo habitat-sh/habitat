@@ -5,15 +5,18 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-import {Component} from "angular2/core";
+import {Component, OnInit} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
 import {RouteParams, RouterLink} from "angular2/router";
 import {addProject} from "../actions/index";
 import {AppStore} from "../AppStore";
+import {isProjectAvailable} from "../builderApi";
+import {CheckingInputComponent} from "../CheckingInputComponent";
+import {GitHubApiClient} from "../GitHubApiClient";
 import {requireSignIn} from "../util";
 
 @Component({
-    directives: [RouterLink],
+    directives: [CheckingInputComponent, RouterLink],
     template: `
     <div class="hab-project-create">
       <div class="page-title">
@@ -28,7 +31,9 @@ import {requireSignIn} from "../util";
               <div class="scm-repo-fields">
                   <label>GitHub Repository</label>
                   <div *ngIf="repo">
-                      {{repo}}
+                      <a href="https://github.com/{{ownerAndRepo}}" target="_blank">
+                          {{ownerAndRepo}}
+                      </a>
                       <a [routerLink]='["SCMRepos"]' href="#">(change)</a>
                   </div>
                   <div *ngIf="!repo">
@@ -49,15 +54,36 @@ import {requireSignIn} from "../util";
                   </div>
                   <div class="name">
                       <label for="name">Project Name</label>
-                      <input ngControl="name" id="name" name="name" placeholder="Required. Max 40 characters." required>
+                      <hab-checking-input autofocus=true
+                                          [form]="form"
+                                          id="name"
+                                          [isAvailable]="isProjectAvailable"
+                                          name="name"
+                                          placeholder="Required. Max 40 characters."
+                                          title="Name"
+                                          [value]="repo">
+                      </hab-checking-input>
                   </div>
                   <div class="plan">
                       <label for="plan">Path to Plan file</label>
                       <small>The location in the repository of the plan.sh that will build this project.</small>
-                      <input ngControl="plan" id="plan" name="plan" required>
+                      <hab-checking-input availableMessage="exists"
+                                          [form]="form"
+                                          id="plan"
+                                          [isAvailable]="doesFileExist"
+                                          [maxLength]="false"
+                                          name="plan"
+                                          notAvailableMessage="does not exist in repository"
+                                          [pattern]="false"
+                                          title="File"
+                                          value="/plan.sh">
+                      </hab-checking-input>
                   </div>
                   <div class="submit">
-                      <button type="submit">Save Project</button>
+                      <button type="submit"
+                              [disabled]="!form.valid">
+                          Save Project
+                      </button>
                   </div>
               </div>
           </form>
@@ -65,27 +91,34 @@ import {requireSignIn} from "../util";
     </div>`
 })
 
-export class ProjectCreatePageComponent {
+export class ProjectCreatePageComponent implements OnInit {
+    private doesFileExist: Function;
     private form: ControlGroup;
+    private isProjectAvailable: Function;
 
     constructor(private formBuilder: FormBuilder,
         private routeParams: RouteParams, private store: AppStore) {
-        requireSignIn(this);
-
         this.form = formBuilder.group({
-            repo: [this.repo || "", Validators.nullValidator],
+            repo: [this.repo || "", Validators.required],
             origin: [this.store.getState().origins.current.name,
                 Validators.required],
-            name: ["", Validators.required],
             plan: ["/plan.sh", Validators.required],
         });
+
+        this.doesFileExist = function (path) {
+            return new GitHubApiClient(
+                this.store.getState().gitHub.authToken
+            ).doesFileExist(this.repoOwner, this.repo, path);
+        }.bind(this);
+
+        this.isProjectAvailable = (name) => isProjectAvailable(name);
     }
 
     get myOrigins() {
         return this.store.getState().origins.mine;
     }
 
-    get repo() {
+    get ownerAndRepo() {
         if (this.routeParams.params["repo"]) {
             return decodeURIComponent(this.routeParams.params["repo"]);
         } else {
@@ -93,7 +126,28 @@ export class ProjectCreatePageComponent {
         }
     }
 
+    get repoOwner() {
+        return (this.ownerAndRepo || "").split("/")[0];
+    }
+
+    get repo() {
+        return (this.ownerAndRepo || "").split("/")[1];
+    }
+
     private addProject(values) {
         this.store.dispatch(addProject(values));
+        return false;
+    }
+
+    public ngOnInit() {
+        requireSignIn(this);
+
+        // Wait a second to set the fields as dirty to do validation on page
+        // load. Doing this later in the lifecycle causes a changed after it was
+        // checked error.
+        setTimeout(() => {
+            this.form.controls["plan"].markAsDirty();
+            this.form.controls["name"].markAsDirty();
+         } , 1000);
     }
 }
