@@ -11,9 +11,15 @@
 
 
   ul {
-    background-color: $white-slightly-transparent;
-    padding: $small-spacing;
+    @include dropdown-panel;
     position: absolute;
-    top: $base-spacing;
+    top: $base-spacing ;
   }
+}
+
+.actionsMenu {
+  @extend hab-drop-down;
+  right: 0;
+  top: rem(30);
+  z-index: 100;
 }

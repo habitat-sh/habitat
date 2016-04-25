@@ -6,18 +6,15 @@
 // open source license such as the Apache 2.0 License.
 
 #{$all-buttons}, a.button {
+  @include primary-button;
   appearance: none;
-  background-color: $action-color;
   border: 0;
-  border-radius: $base-border-radius;
-  color: #fff;
+  border-radius: $global-radius;
   cursor: pointer;
   display: inline-block;
   font-family: $base-font-family;
-  font-size: $base-font-size;
+  font-size: rem(16);
   -webkit-font-smoothing: antialiased;
-  font-weight: 600;
-  line-height: 1;
   padding: $small-spacing $base-spacing;
   text-decoration: none;
   transition: background-color $base-duration $base-timing;
@@ -57,8 +54,12 @@
     }
   }
 
+  &.cta {
+    @include primary-button($hab-orange, $hab-orange-dark);
+  }
+
   &.secondary {
-    background-color: $medium-gray;
+    @include secondary-button;
 
     &:focus,
     &:hover {
@@ -66,7 +67,31 @@
     }
   }
 
+  &.danger,
+  &.danger:disabled:hover {
+    background-color: white;
+    background-image: none;
+    color: $hab-red;
+  }
+
+  &.confirm,
+  &.confirm:disabled:hover {
+    background-color: white;
+    background-image: none;
+    color: $hab-green;
+  }
+
   &.small {
     font-size: 50%;
+  }
+
+  .hab-item-list & {
+    box-shadow: none;
+    font-size: rem(14);
+    padding: rem(6) rem(12);
+
+    &:hover {
+      background-color: $hab-off-white;
+    }
   }
 }

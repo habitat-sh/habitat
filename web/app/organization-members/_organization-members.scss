@@ -7,14 +7,19 @@
 
 .hab-org-members {
   margin-bottom: $small-spacing;
+  position: relative;
 
   .members>li {
     @include outer-container;
-    padding-bottom: $small-spacing / 2;
+    padding: rem(12) 0;
     border-bottom: 1px solid $light-gray;
 
     .hab-gravatar {
       @include span-columns(1);
+      height: 16px;
+      margin-left: rem(5);
+      margin-top: rem(5);
+      width: 16px;
     }
 
     .username {
@@ -36,20 +41,17 @@
       @extend .hab-drop-down;
       @include span-columns(1);
       @include omega;
+      float: right;
 
     }
   }
 
   .results {
-    background-color: $white-slightly-transparent;
-    background-blend-mode: overlay;
-
-    border: 1px solid $light-gray;
-    box-shadow: -2px 2px 2px $light-gray;
-    margin-top: -$small-spacing / 1.1;
-    padding: 0;
+    @include dropdown-panel;
+    left: 0;
     position: absolute;
-    width: 25%;
+    width: 100%;
+    top: 100;
     z-index: 20;
 
     &>li {
@@ -61,7 +63,7 @@
         color: inherit;
 
         &:hover {
-          background-color: lighten($blue, 50%);
+          background-color: $hab-blue-light;
           cursor: pointer;
         }
       }
@@ -70,6 +72,7 @@
       .grav {
         float: left;
         padding-right: $small-spacing;
+        padding-top: rem(3);
       }
 
       .username {
@@ -82,8 +85,8 @@
 
       .indicator {
         position: absolute;
-        right: $small-spacing;
-        top: $base-spacing / 1.5;
+        right: rem(10);
+        top: rem(8);
         img {
           vertical-align: middle;
         }

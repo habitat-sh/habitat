@@ -12,12 +12,22 @@
   text-align: right;
 
   .username {
+    background-color: lighten($dark-gray, 3);
+    border-radius: $global-radius;
+    color: $hab-off-white;
+    padding: rem(8) rem(10) rem(10);
+
     img {
+      border-radius: $global-radius;
       vertical-align: middle;
     }
 
     span {
       font-size: 75%;
+    }
+
+    &:hover {
+      color: $hab-white;
     }
   }
 
@@ -32,22 +42,28 @@
 
 
     ul {
-      background-color: $white;
-      border-radius: 3px;
-      box-shadow: 0 1px 24px 0 rgba($hab-blue-dark, .15);
-      height: auto;
-      padding: 1em 0;
+      @include dropdown-panel;
       position: absolute;
       right: 0;
-      top: 58px;
-      width: 8em;
+      top: 67px;
 
       li {
-        float: left;
+        display: block;
+        min-width: 8em;
+        padding-bottom: rem(10);
+        text-align: left;
+
+        &:last-child {
+          border-top: 1px solid $light-gray;
+          margin-top: rem(8);
+          padding-bottom: 0;
+          padding-top: rem(12);
+        }
       }
 
       li a {
         line-height: 1.5em;
+        margin-left: 0;
 
         &:hover {
           color: $hab-orange;

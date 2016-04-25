@@ -46,6 +46,7 @@ select {
 }
 
 #{$all-text-inputs},
+select,
 select[multiple] {
   background-color: $base-background-color;
   border: $base-border;
@@ -109,8 +110,10 @@ textarea {
 }
 
 select {
+  background: $base-background-color url("/node_modules/octicons/svg/chevron-down.svg") no-repeat right 15px center;
   margin-bottom: $base-spacing;
   max-width: 100%;
+  -webkit-appearance: none;
   width: auto;
 }
 

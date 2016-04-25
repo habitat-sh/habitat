@@ -45,8 +45,8 @@ h2 {
 h3 {
   font-size: 100%;
 
-  &.hero {
-    padding: 2em 0;
+  .hero & {
+    padding: 1.5em 0 1em;
     text-align: center;
   }
 }

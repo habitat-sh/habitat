@@ -24,28 +24,28 @@ import {RouterLink} from "angular2/router";
            href="#"
            (click)="toggleOriginPicker()">
             {{currentOrigin.name}}
-            <span *ngIf="!isOpen">▼</span>
-            <span *ngIf="isOpen">▲</span>
+            <span *ngIf="!isOpen"><img alt="icon arrow down" src="/node_modules/octicons/svg/chevron-down.svg" /></span>
+            <span *ngIf="isOpen"><img alt="icon arrow up" src="/node_modules/octicons/svg/chevron-up.svg" /></span>
         </a>
-        <ul class="hab-origin-picker--list"
-            *ngIf="isOpen">
-            <li *ngFor="#o of myOrigins">
-                <a href="#" (click)="clickSetCurrentOrigin(o)"
-                   [class.hab-origin-picker--list--current]="o.name == currentOrigin.name">
-                    {{o.name}}
-                    <span *ngIf="o.name == currentOrigin.name"
-                        class="hab-origin-picker--list--i">
-                        ✓
-                    </span>
-                </a>
-            </li>
-            <li class="hab-origin-picker--list--last">
-                <a (click)="toggleOriginPicker()" [routerLink]="['Origins']">
-                    Manage Origins&hellip;
-                </a>
-            </li>
-        </ul>
-    </div>`
+    </div>
+    <ul class="hab-origin-picker--list"
+        *ngIf="isOpen">
+        <li class="hab-origin-picker--list--item" *ngFor="#o of myOrigins">
+            <a href="#" (click)="clickSetCurrentOrigin(o)"
+               [class.hab-origin-picker--list--current]="o.name == currentOrigin.name">
+                {{o.name}}
+                <span *ngIf="o.name == currentOrigin.name"
+                    class="hab-origin-picker--list--i">
+                    <img alt="icon checkmark" src="/node_modules/octicons/svg/check.svg" />
+                </span>
+            </a>
+        </li>
+        <li class="hab-origin-picker--list--item">
+            <a (click)="toggleOriginPicker()" [routerLink]="['Origins']">
+                Manage Origins&hellip;
+            </a>
+        </li>
+    </ul>`
 })
 
 export class OriginPickerComponent implements OnInit {

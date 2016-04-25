@@ -23,23 +23,22 @@ import {icon} from "../util";
                 *ngFor="#result of org.memberSearchResults; #i = index"
                 [class.addable]="result.canBeAdded">
                 <span class="grav">
-                    <gravatar size=32 [email]="result.email"></gravatar>
+                    <gravatar size=16 [email]="result.email"></gravatar>
                 </span>
                 <p class="info">
                     <span class="username">{{result.username}}</span>
                     <span class="resultName">{{result.name}}</span>
-                    <br>
                     <span class="status">{{result.status}}&nbsp;</span>
                 </p>
                 <span class="indicator">
-                    <img height=32 *ngIf="result.canBeAdded" src='{{icon("plus")}}'>
-                    <img height=32 *ngIf="!result.canBeAdded" src='{{icon("check")}}'>
+                    <img height=16 *ngIf="result.canBeAdded" src='{{icon("plus")}}'>
+                    <img height=16 *ngIf="!result.canBeAdded" src='{{icon("check")}}'>
                 </span>
             </li>
         </ul>
         <ul class="members">
             <li *ngFor="#member of org.members; #i = index">
-                <gravatar size=32 [email]="member.email"></gravatar>
+                <gravatar size=16 [email]="member.email"></gravatar>
                 <span class="username">{{member.username}}</span>
                 <span class="name">{{member.name}}</span>
                 <span class="status">{{member.status}}</span>

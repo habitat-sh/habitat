@@ -11,9 +11,9 @@
   @include transition(all .6s);
   background-blend-mode: overlay;
   background-color: $white;
-
   border: 1px solid $light-gray;
   border-color: $hab-blue-light;
+  border-radius: $global-radius;
   color: inherit;
   display: block;
   margin-bottom: .5em;
@@ -37,6 +37,9 @@
 
     h3 {
       line-height: 1em;
+      max-width: rem(300);
+      overflow-x: hidden;
+      text-overflow: ellipsis;
     }
 
     h4 {

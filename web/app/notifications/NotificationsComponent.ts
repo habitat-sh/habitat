@@ -14,6 +14,7 @@ import {Component} from "angular2/core";
     <ul class="hab-notifications">
         <li *ngFor="#n of notifications; #i = index" class="{{n.type}}">
             <a class="dismiss" href="#" (click)="removeNotification(i)">&times;</a>
+            <small>{{n.type}}</small>
             <h1>{{n.title}}</h1>
             <p>{{n.body}}</p>
         </li>

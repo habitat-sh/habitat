@@ -52,14 +52,16 @@ $hab-green-dark: #699171;
 $hab-blue-medium: #dce6ed;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-cta: $hab-green;
+$hab-red: #D8574B;
+$hab-yellow: #EBE269;
 
 // Notification colors
-$notification-danger-color: #fbe3e4;
-$notification-info-color: #e5edf8;
-$notification-success-color: #e6efc2;
-$notification-warning-color: #fff6bf;
+$notification-danger-color: $hab-red;
+$notification-info-color: $hab-blue;
+$notification-success-color: $hab-green;
+$notification-warning-color: $hab-yellow;
 $success-color: $hab-green;
-$failure-color: #c57e62;
+$failure-color: $hab-red;
 $queued-color: $hab-blue;
 
 // Font Colors

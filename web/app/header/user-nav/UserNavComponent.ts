@@ -18,11 +18,9 @@ import {RouterLink} from "angular2/router";
     <li *ngIf="isSignedIn">
         <a class="username" href="#" (click)="toggleUserNavMenu()">
             <img height=24 src="{{avatarUrl}}" />
-            {{username}}
-            <span *ngIf="!isOpen">▼</span>
-            <span *ngIf="isOpen">▲</span>
         </a>
         <ul *ngIf="isOpen">
+            <li>{{username}}</li>
             <li><a href="#" (click)="signOut()">
                 Sign Out
             </a></li>

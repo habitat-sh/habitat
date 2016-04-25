@@ -7,6 +7,8 @@
 
 .hab-side-nav {
   @include span-columns(2);
+  padding-top: rem(65);
+  position: relative;
 
   .switcher {
     background-color: $hab-green;
@@ -26,17 +28,18 @@
   h4 {
     color: $hab-blue;
     font-size: 75%;
+    margin-left: rem(15);
     white-space: nowrap;
   }
 
   hr {
     border-color: light-gray;
-    margin-left: rem(-15);
   }
 
   &--list {
     line-height: $base-line-height * 1.333;
-    margin-bottom: 2em;
+    margin-bottom: $base-spacing;
+    margin-left: rem(15);
 
     a {
       color: $base-font-color;

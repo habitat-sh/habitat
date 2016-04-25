@@ -17,28 +17,23 @@ import {icon, requireSignIn} from "../util";
     <div class="hab-organizations">
       <div class="page-title">
           <h2>Organizations</h2>
-          <a *ngIf="orgs.size > 0" class="button create cta" href="#"
+          <a *ngIf="orgs.size > 0" class="button create" href="#"
              [routerLink]='["OrganizationCreate"]'>
               Add Organization
           </a>
       </div>
       <div class="page-body">
           <div *ngIf="orgs.size === 0">
-              <h3 class="hero">
-                  You don't currently have any organizations, let's add one now.
-              </h3>
-              <form>
-                  <p>
-                      Create an organization, then start adding projects and users.
-                  </p>
+              <div class="hero">
+                  <h3>You don't currently have any organizations, let's add one now.</h3>
                   <p>
                       <a class="button cta" [routerLink]='["OrganizationCreate"]'>
                           Add Organization
                       </a>
                   </p>
-              </form>
+              </div>
               <div class="info">
-                  <p>Organizations allow you to do the following:</p>
+                  <hr>
                   <ul>
                       <li>
                           Invite users to manage a project
@@ -47,7 +42,7 @@ import {icon, requireSignIn} from "../util";
                           List public projects under your organization profile
                       </li>
                       <li>
-                          Set admin permissions for users to edit organization
+                          Set admin permissions for members to edit organization
                           settings
                       </li>
                   </ul>

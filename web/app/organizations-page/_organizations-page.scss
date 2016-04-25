@@ -10,12 +10,18 @@
 
   form {
     @include span-columns(5);
+    background-color: $hab-blue-light;
+    border-radius: $global-radius;
+    padding: 0 rem(15);
   }
 
   .info {
-    @include span-columns(7);
-    @include omega;
-    border-left: 1px solid $light-gray;
-    padding-left: $base-spacing;
+    @include span-columns(6);
+    @include shift(3);
+    text-align: center;
+
+    p, li {
+      color: $medium-gray;
+    }
   }
 }

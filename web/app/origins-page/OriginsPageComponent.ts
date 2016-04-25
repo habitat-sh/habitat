@@ -32,21 +32,21 @@ import {requireSignIn} from "../util";
                         </div>
                         <div class="button hab-item-list--controls">
                             <button
-                               class="button small hab-origins-list--default"
+                               class="confirm hab-origins-list--default"
                                (click)="setCurrentOrigin(origin)"
                                [disabled]="origin.name === currentOrigin.name">
                                 <span *ngIf="origin.name === currentOrigin.name">
-                                    Default
+                                    <i class="octicon octicon-star"></i> Default
                                 </span>
                                 <span *ngIf="origin.name !== currentOrigin.name">
                                     Set as Default
                                 </span>
                         </button>
                         <button
-                            class="button small danger hab-origins-list--delete"
+                            class="danger hab-origins-list--delete"
                             (click)="deleteOrigin(origin)"
                             [disabled]="origin.name === currentOrigin.name">
-                            Delete
+                            <i class="octicon octicon-trashcan"></i> Delete
                         </button>
                         </div>
                     </a>

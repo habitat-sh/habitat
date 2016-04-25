@@ -14,12 +14,19 @@
   }
 
   li a {
-    color: inherit;
-    display: block;
-    padding: $small-spacing / 2;
+    @extend .hab-item-list;
+    padding: rem(5);
 
-    &.active, &:active {
-      background: $light-gray;
+    &.active, &:active {;
+      background-color: $hab-blue;
+      border: none;
+      box-shadow: none;
+      color: $hab-off-white;
+    }
+
+    img {
+      margin: rem(5);
+      vertical-align: middle;
     }
   }
 

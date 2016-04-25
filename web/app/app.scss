@@ -5,6 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+@import "mixins";
 @import "bourbon";
 @import "base/base";
 @import "neat";
@@ -15,7 +16,6 @@
 @import "item-list";
 @import "spinner";
 @import "tabs";
-@import "mixins";
 
 @import "explore-page/explore-page";
 @import "github-repo-picker/github-repo-picker";
@@ -67,6 +67,8 @@ body {
   border-radius: 0 0 $global-radius $global-radius;
   height: 100%;
   min-height: 100vh;
+  position: relative;
+  z-index: 50;
 
   &.centered {
     @include span-columns(12);
@@ -104,6 +106,13 @@ body {
 
 .page-body {
   padding: rem(30) rem(20);
+
+  .hero {
+    p {
+      margin-bottom: rem(15);
+      text-align: center;
+    }
+  }
 }
 
 .hab-footer {
@@ -113,9 +122,4 @@ body {
 
   bottom: $base-spacing;
   font-size: 75%;
-}
-
-// Buttons
-.button.cta {
-  @include primary-button;
 }

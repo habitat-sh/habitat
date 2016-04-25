@@ -165,7 +165,12 @@ export class AppComponent implements OnInit {
 
         // Check the route path for pages that exclude side nav
         router.subscribe(url => {
-          this.hideNav = url === "sign-in";
+          this.hideNav = false;
+
+          if (url.indexOf("sign-in") > -1) {
+            this.hideNav = true;
+          };
+
         });
 
         // Listen for changes on the state.
