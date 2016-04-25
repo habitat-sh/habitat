@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use std::thread;
 
-use dbcache::{DataStore, Model};
+use dbcache::{Model, RecordTable};
 use hnet::{Supervisor, Supervisable};
 use protobuf::{parse_from_bytes, Message};
 use protocol::net::{self, ErrCode};
@@ -17,7 +17,7 @@ use protocol::sessionsrv::{self, SessionGet, GitHubAuth};
 use zmq;
 
 use config::Config;
-use data_model::{Account, Session};
+use data_store::{DataStore, Account, Session};
 use error::{Error, Result};
 use oauth::github;
 
@@ -26,10 +26,14 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 pub struct Worker {
     config: Arc<Mutex<Config>>,
     sock: zmq::Socket,
-    datastore: DataStore,
+    datastore: Option<DataStore>,
 }
 
 impl Worker {
+    fn datastore(&self) -> &DataStore {
+        self.datastore.as_ref().unwrap()
+    }
+
     fn dispatch(&mut self, msg: &zmq::Message) -> Result<()> {
         // JW TOOD: refactor the dispatch loop into handlers
         match msg.as_str() {
@@ -39,11 +43,12 @@ impl Worker {
                 match github::authenticate(&req.get_code()) {
                     Ok(token) => {
                         // JW TODO: refactor this mess into a find and create routine
-                        let account: Account = match Session::get(&self.datastore, &token) {
+                        let account: Account = match Session::get(&self.datastore().sessions,
+                                                                  &token) {
                             Ok(Session {owner_id: owner, ..}) => {
                                 // JW TODO: handle error. This should not ever happen since session
                                 // and account create will be transactional
-                                self.datastore.find(&owner).unwrap()
+                                self.datastore().accounts.find(&owner).unwrap()
                             }
                             _ => {
                                 match github::user(&token) {
@@ -51,10 +56,10 @@ impl Worker {
                                         // JW TODO: wrap session & account creation into a
                                         // transaction and handle errors
                                         let mut account: Account = user.into();
-                                        try!(account.save(&self.datastore));
+                                        try!(self.datastore().accounts.write(&mut account));
                                         let session = Session::new(token.clone(),
                                                                    account.id.clone());
-                                        try!(session.create(&self.datastore));
+                                        try!(session.create(&self.datastore().sessions));
                                         account
                                     }
                                     Err(e @ Error::JsonDecode(_)) => {
@@ -107,11 +112,11 @@ impl Worker {
             Some("SessionGet") => {
                 let request = try!(self.sock.recv_msg(0));
                 let req: SessionGet = parse_from_bytes(&request).unwrap();
-                match Session::get(&self.datastore, &req.get_token()) {
+                match Session::get(&self.datastore().sessions, &req.get_token()) {
                     Ok(Session {owner_id: owner, ..}) => {
                         // JW TODO: handle error. This should not ever happen since session
                         // and account create will be transactional
-                        let account: Account = self.datastore.find(&owner).unwrap();
+                        let account: Account = self.datastore().accounts.find(&owner).unwrap();
                         let mut reply: sessionsrv::Session = account.into();
                         reply.set_token(req.get_token().to_string());
                         self.sock.send_str("Session", zmq::SNDMORE).unwrap();
@@ -123,7 +128,7 @@ impl Worker {
                         self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
                     }
                     Err(e) => {
-                        error!("database error, err={:?}", e);
+                        error!("datastore error, err={:?}", e);
                         let reply = net::err(ErrCode::INTERNAL, "ss:auth:5");
                         self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
                         self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
@@ -145,7 +150,7 @@ impl Supervisable for Worker {
         Worker {
             config: config,
             sock: sock,
-            datastore: DataStore::new(),
+            datastore: None,
         }
     }
 
@@ -153,10 +158,13 @@ impl Supervisable for Worker {
         loop {
             let result = {
                 let cfg = self.config.lock().unwrap();
-                self.datastore.open(cfg.deref())
+                DataStore::open(cfg.deref())
             };
             match result {
-                Ok(()) => break,
+                Ok(datastore) => {
+                    self.datastore = Some(datastore);
+                    break;
+                }
                 Err(e) => {
                     error!("{}", e);
                     thread::sleep(Duration::from_millis(5000));

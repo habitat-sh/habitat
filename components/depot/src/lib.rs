@@ -5,9 +5,9 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+extern crate habitat_builder_dbcache as dbcache;
 extern crate habitat_core as hcore;
 extern crate habitat_depot_core as depot_core;
-extern crate bincode;
 #[macro_use]
 extern crate bitflags;
 extern crate crypto;
@@ -19,7 +19,9 @@ extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
-extern crate lmdb_sys;
+extern crate r2d2;
+extern crate r2d2_redis;
+extern crate redis;
 #[macro_use]
 extern crate router;
 extern crate rustc_serialize;
@@ -43,29 +45,28 @@ use std::path::{Path, PathBuf};
 
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
-
-use self::data_store::{DataStore, Database};
 use hcore::package::{self, PackageArchive};
 
+use data_store::DataStore;
+
 pub struct Depot {
-    pub path: String,
+    pub config: Config,
     pub datastore: DataStore,
 }
 
 impl Depot {
-    pub fn new(path: String) -> Result<Arc<Depot>> {
-        let dbpath = Path::new(&path).join("datastore");
-        let datastore = try!(DataStore::open(dbpath.as_path()));
+    pub fn new(config: Config) -> Result<Arc<Depot>> {
+        let datastore = try!(DataStore::open(&config));
         Ok(Arc::new(Depot {
-            path: path,
+            config: config,
             datastore: datastore,
         }))
     }
 
     // Return a PackageArchive representing the given package. None is returned if the Depot
     // doesn't have an archive for the given package.
-    fn archive(&self, ident: &package::PackageIdent) -> Option<PackageArchive> {
-        let file = self.archive_path(&ident);
+    fn archive<P: AsRef<package::PackageIdent>>(&self, ident: P) -> Option<PackageArchive> {
+        let file = self.archive_path(ident);
         match fs::metadata(&file) {
             Ok(_) => Some(PackageArchive::new(file)),
             Err(_) => None,
@@ -95,11 +96,11 @@ impl Depot {
     }
 
     fn keys_path(&self) -> PathBuf {
-        Path::new(&self.path).join("keys")
+        Path::new(&self.config.path).join("keys")
     }
 
     fn packages_path(&self) -> PathBuf {
-        Path::new(&self.path).join("pkgs")
+        Path::new(&self.config.path).join("pkgs")
     }
 }
 

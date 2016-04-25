@@ -7,19 +7,17 @@
 
 use std::fmt;
 use std::result;
-use std::slice;
+use std::str::FromStr;
 
 use hcore::{package, Error, Result};
-use libc::c_void;
-use lmdb_sys;
+use redis;
 use rustc_serialize::{Encoder, Decoder, Encodable, Decodable};
 
-pub trait DataObject : Encodable + Decodable {
-    type Key: ToMdbValue + FromMdbValue + fmt::Display;
+pub trait DataObject: Encodable + Decodable {
+    type Key: redis::ToRedisArgs + redis::FromRedisValue + fmt::Display;
     fn ident(&self) -> &Self::Key;
 }
 
-#[repr(C)]
 #[derive(PartialEq, Debug, Clone)]
 pub struct PackageIdent(package::PackageIdent, String);
 
@@ -61,6 +59,20 @@ impl PackageIdent {
         } else {
             None
         }
+    }
+}
+
+impl redis::FromRedisValue for PackageIdent {
+    fn from_redis_value(value: &redis::Value) -> redis::RedisResult<PackageIdent> {
+        let val = try!(redis::from_redis_value::<String>(value));
+        let id = package::PackageIdent::from_str(&val).unwrap();
+        Ok(PackageIdent::new(id))
+    }
+}
+
+impl redis::ToRedisArgs for PackageIdent {
+    fn to_redis_args(&self) -> Vec<Vec<u8>> {
+        self.1.to_redis_args()
     }
 }
 
@@ -134,7 +146,6 @@ impl From<package::PackageIdent> for PackageIdent {
     }
 }
 
-#[repr(C)]
 #[derive(RustcEncodable, RustcDecodable, PartialEq, Debug)]
 pub struct View {
     pub ident: String,
@@ -160,7 +171,6 @@ impl fmt::Display for View {
     }
 }
 
-#[repr(C)]
 #[derive(RustcEncodable, RustcDecodable, PartialEq, Debug)]
 pub struct Package {
     pub ident: PackageIdent,
@@ -203,28 +213,8 @@ impl DataObject for Package {
     }
 }
 
-pub unsafe trait ToMdbValue {
-    fn to_mdb_value(&self) -> lmdb_sys::MDB_val;
-}
-
-unsafe impl ToMdbValue for String {
-    fn to_mdb_value(&self) -> lmdb_sys::MDB_val {
-        let t: &str = self;
-        lmdb_sys::MDB_val {
-            mv_data: t.as_ptr() as *mut c_void,
-            mv_size: t.len(),
-        }
-    }
-}
-
-pub unsafe trait FromMdbValue {
-    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self;
-}
-
-unsafe impl FromMdbValue for String {
-    unsafe fn from_mdb_value(value: &lmdb_sys::MDB_val) -> Self {
-        let bytes: Vec<u8> = slice::from_raw_parts(value.mv_data as *const u8, value.mv_size)
-                                 .to_vec();
-        String::from_utf8(bytes).unwrap()
+impl AsRef<package::PackageIdent> for Package {
+    fn as_ref(&self) -> &package::PackageIdent {
+        self.ident.as_ref()
     }
 }

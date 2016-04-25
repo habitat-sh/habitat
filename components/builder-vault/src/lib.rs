@@ -10,13 +10,15 @@ extern crate habitat_net as hnet;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate r2d2;
+extern crate r2d2_redis;
 extern crate redis;
 extern crate rustc_serialize;
 #[macro_use]
 extern crate zmq;
 
 pub mod config;
-pub mod data_model;
+pub mod data_store;
 pub mod error;
 pub mod server;
 

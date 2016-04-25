@@ -11,20 +11,19 @@ use std::io;
 use std::fmt;
 use std::result;
 
+use dbcache;
 use hcore::{self, package};
 use hyper;
-
-use data_store;
+use redis;
 
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    DbInvalidPath,
+    DataStore(dbcache::Error),
     HabitatCore(hcore::Error),
     HTTP(hyper::status::StatusCode),
     InvalidPackageIdent(String),
     IO(io::Error),
-    MdbError(data_store::MdbError),
     NoXFilename,
     NoFilePart,
     NulError(ffi::NulError),
@@ -38,7 +37,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
+            Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::InvalidPackageIdent(ref e) => {
@@ -47,7 +46,6 @@ impl fmt::Display for Error {
                         e)
             }
             Error::IO(ref e) => format!("{}", e),
-            Error::MdbError(ref err) => format!("{}", err),
             Error::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
             Error::NoFilePart => {
                 format!("An invalid path was passed - we needed a filename, and this path does \
@@ -71,12 +69,11 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
+            Error::DataStore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
             Error::IO(ref err) => err.description(),
-            Error::MdbError(_) => "Database error",
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
@@ -92,15 +89,16 @@ impl From<hcore::Error> for Error {
     }
 }
 
-impl From<data_store::MdbError> for Error {
-    fn from(err: data_store::MdbError) -> Error {
-        Error::MdbError(err)
-    }
-}
-
 impl From<ffi::NulError> for Error {
     fn from(err: ffi::NulError) -> Error {
         Error::NulError(err)
+    }
+}
+
+impl From<redis::RedisError> for Error {
+    fn from(err: redis::RedisError) -> Self {
+        let e = dbcache::Error::from(err);
+        Error::DataStore(e)
     }
 }
 

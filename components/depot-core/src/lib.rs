@@ -8,8 +8,7 @@
 extern crate habitat_core as hcore;
 #[macro_use]
 extern crate hyper;
-extern crate libc;
-extern crate lmdb_sys;
+extern crate redis;
 extern crate rustc_serialize;
 
 pub mod data_object;

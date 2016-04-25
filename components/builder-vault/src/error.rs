@@ -10,14 +10,14 @@ use std::result;
 
 use hnet;
 use protobuf;
-use redis;
+use dbcache;
 use rustc_serialize::json;
 use zmq;
 
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    DataStore(redis::RedisError),
+    DataStore(dbcache::Error),
     IO(io::Error),
     JsonDecode(json::DecoderError),
     MissingScope(String),
@@ -44,6 +44,12 @@ impl fmt::Display for Error {
     }
 }
 
+impl From<dbcache::Error> for Error {
+    fn from(err: dbcache::Error) -> Self {
+        Error::DataStore(err)
+    }
+}
+
 impl From<hnet::Error> for Error {
     fn from(err: hnet::Error) -> Self {
         Error::NetError(err)
@@ -65,12 +71,6 @@ impl From<json::DecoderError> for Error {
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Self {
         Error::Protobuf(err)
-    }
-}
-
-impl From<redis::RedisError> for Error {
-    fn from(err: redis::RedisError) -> Self {
-        Error::DataStore(err)
     }
 }
 

@@ -23,6 +23,11 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "byteorder"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "cookie"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -66,8 +71,7 @@ version = "0.4.0"
 dependencies = [
  "habitat_core 0.4.0",
  "hyper 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "lmdb-sys 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -160,16 +164,6 @@ name = "libsodium-sys"
 version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "lmdb-sys"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "gcc 0.3.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -268,6 +262,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "redis"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "rustc-serialize 0.3.18 (registry+https://github.com/rust-lang/crates.io-index)",
+ "sha1 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 0.5.7 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "regex"
 version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -300,6 +304,14 @@ dependencies = [
 name = "semver"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "sha1"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "byteorder 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "sodiumoxide"

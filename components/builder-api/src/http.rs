@@ -36,12 +36,11 @@ pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Joi
     let ctx1 = context.clone();
     let ctx2 = context.clone();
     let ctx3 = context.clone();
-    let ctx4 = context.clone();
     let router = router!(
         get "/authenticate/:code" => move |r: &mut Request| authenticate(r, &ctx1),
 
-        get "/origins/:origin" => move |r: &mut Request| origin_show(r, &ctx3),
-        post "/origins/:origin" => move |r: &mut Request| origin_create(r, &ctx4),
+        get "/origins/:origin" => move |r: &mut Request| origin_show(r, &ctx2),
+        post "/origins/:origin" => move |r: &mut Request| origin_create(r, &ctx3),
     );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);

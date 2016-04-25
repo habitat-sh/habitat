@@ -7,9 +7,12 @@
 use std::cmp::{Ordering, PartialOrd};
 use std::collections::HashMap;
 use std::fmt;
+use std::ops::Deref;
 use std::str::FromStr;
 
-use redis::{self, Commands};
+use r2d2;
+use r2d2_redis;
+use redis::{self, Commands, PipelineCommands};
 use time;
 
 use model::Model;
@@ -26,6 +29,8 @@ pub const MAX_SHARD_ID: u16 = 8192;
 
 const ID_MASK: u64 = 0x3FF;
 const SHARD_MASK: u64 = 0x1FFF;
+
+pub type ConnectionPool = r2d2::Pool<r2d2_redis::RedisConnectionManager>;
 
 #[derive(Clone, Copy, Debug, PartialEq, RustcEncodable, RustcDecodable)]
 pub struct InstaId(pub u64);
@@ -103,34 +108,97 @@ impl PartialOrd for InstaId {
     }
 }
 
+impl redis::FromRedisValue for InstaId {
+    fn from_redis_value(value: &redis::Value) -> redis::RedisResult<InstaId> {
+        let id = try!(redis::from_redis_value::<u64>(value));
+        Ok(InstaId(id))
+    }
+}
+
 impl redis::ToRedisArgs for InstaId {
     fn to_redis_args(&self) -> Vec<Vec<u8>> {
         self.0.to_redis_args()
     }
 }
 
-pub type DataRecord = (InstaId, HashMap<String, String>);
+pub type DataRecord = HashMap<String, String>;
 
-pub struct DataStore {
-    pub conn: Option<redis::Connection>,
+pub trait Table {
+    type IdType: fmt::Display;
+
+    fn pool(&self) -> &ConnectionPool;
+
+    fn key(id: &Self::IdType) -> String {
+        format!("{}:{}", Self::prefix(), id).to_lowercase()
+    }
+
+    fn prefix() -> &'static str;
 }
 
-impl DataStore {
-    pub fn new() -> Self {
-        DataStore { conn: None }
+pub trait RecordTable: Table<IdType = InstaId> {
+    type Record: Model;
+
+    fn seq_id() -> &'static str;
+
+    fn find(&self, id: &InstaId) -> Result<Self::Record> {
+        let key = Self::key(&id);
+        match try!(self.pool().get()).hgetall::<String, HashMap<String, String>>(key) {
+            Ok(mut map) => {
+                map.insert("id".to_string(), id.to_string());
+                Ok(Self::Record::from(map))
+            }
+            Err(e) => Err(Error::from(e)),
+        }
     }
 
-    pub fn open<C: redis::IntoConnectionInfo>(&mut self, config: C) -> Result<()> {
-        let client = try!(redis::Client::open(config));
-        let conn = try!(client.get_connection());
-        self.conn = Some(conn);
+    fn write(&self, record: &mut Self::Record) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+            let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
+                Ok(value) => value + 1,
+                _ => 0,
+            };
+            let insta_id = InstaId::generate(sequence_id);
+            record.set_id(insta_id);
+            txn.set(Self::seq_id(), record.id().0)
+               .ignore()
+               .hset_multiple(Self::key(record.id()), &record.fields())
+               .ignore()
+               .query(conn.deref())
+        }));
         Ok(())
     }
+}
 
-    pub fn find<M: Model>(&self, id: &InstaId) -> Result<M> {
-        let key = M::key(&id);
-        let map: HashMap<String, String> = self.conn.as_ref().unwrap().hgetall(key).unwrap();
-        Ok(M::from((id.clone(), map)))
+pub trait ValueTable: Table {
+    type Value: redis::ToRedisArgs + redis::FromRedisValue;
+
+    fn find(&self, id: &<Self as Table>::IdType) -> Result<Self::Value> {
+        let conn = try!(self.pool().get());
+        let value = try!(conn.get(Self::key(id)));
+        Ok(value)
+    }
+
+    fn write(&self, id: &<Self as Table>::IdType, value: Self::Value) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.set(Self::key(id), value));
+        Ok(())
+    }
+}
+
+pub trait IndexTable: Table<IdType = String> {
+    type Value: redis::FromRedisValue + redis::ToRedisArgs;
+
+    fn find(&self, id: &str) -> Result<Self::Value> {
+        let conn = try!(self.pool().get());
+        let value = try!(conn.hget(Self::prefix(), id));
+        Ok(value)
+    }
+
+    fn write(&self, id: &str, value: Self::Value) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.hset(Self::prefix(), id.clone(), value));
+        Ok(())
     }
 }
 

@@ -11,6 +11,8 @@ extern crate hyper;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate r2d2;
+extern crate r2d2_redis;
 extern crate redis;
 extern crate rustc_serialize;
 extern crate time;
@@ -18,7 +20,7 @@ extern crate time;
 extern crate zmq;
 
 pub mod config;
-pub mod data_model;
+pub mod data_store;
 pub mod error;
 pub mod oauth;
 pub mod server;

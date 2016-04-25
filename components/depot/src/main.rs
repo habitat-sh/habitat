@@ -20,8 +20,6 @@ use std::process;
 use std::str::FromStr;
 
 use depot::{server, Config, Error, Result};
-use depot::data_store::{self, Cursor, Database, Transaction};
-use depot_core::data_object;
 use hcore::fs;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -84,17 +82,17 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
 
 fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
     match matches.subcommand_name() {
-        Some("start") => start(&config),
-        Some("repair") => repair(&config),
+        Some("start") => start(config),
+        Some("repair") => repair(config),
         Some(cmd @ "view") => {
             let args = matches.subcommand_matches(cmd).unwrap();
             match args.subcommand_name() {
                 Some(cmd @ "create") => {
                     let args = args.subcommand_matches(cmd).unwrap();
                     let name = args.value_of("view").unwrap();
-                    view_create(name, &config)
+                    view_create(name, config)
                 }
-                Some("list") => view_list(&config),
+                Some("list") => view_list(config),
                 Some(cmd) => {
                     debug!("Dispatch failed, no match for command: {:?}", cmd);
                     Ok(())
@@ -115,10 +113,10 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
 /// # Failures
 ///
 /// * Fails if the depot server fails to start - canot bind to the port, etc.
-fn start(config: &Config) -> Result<()> {
+fn start(config: Config) -> Result<()> {
     println!("Starting package Depot at {}", &config.path);
     println!("Depot listening on {:?}", config.depot_addr());
-    server::run(&config)
+    server::run(config)
 }
 
 /// Analyzes the integrity of the depot's metadata by comparing the metadata with the packages
@@ -130,9 +128,8 @@ fn start(config: &Config) -> Result<()> {
 ///
 /// * The database cannot be read
 /// * A write transaction cannot be acquired
-pub fn repair(config: &Config) -> Result<()> {
-    // JW TODO: should pass config to depot, not this path
-    let depot = try!(depot::Depot::new(config.path.clone()));
+pub fn repair(config: Config) -> Result<()> {
+    let depot = try!(depot::Depot::new(config));
     let report = try!(depot::doctor::repair(&depot));
     println!("Report: {:?}", &report);
     Ok(())
@@ -144,12 +141,9 @@ pub fn repair(config: &Config) -> Result<()> {
 ///
 /// * The database cannot be read
 /// * A write transaction cannot be acquired.
-fn view_create(name: &str, config: &Config) -> Result<()> {
-    // JW TODO: should pass config to depot, not this path
-    let depot = try!(depot::Depot::new(config.path.clone()));
-    let txn = try!(depot.datastore.views.txn_rw());
-    let object = data_object::View::new(name);
-    try!(depot.datastore.views.write(&txn, &object));
+fn view_create(view: &str, config: Config) -> Result<()> {
+    let depot = try!(depot::Depot::new(config));
+    try!(depot.datastore.views.write(&view));
     Ok(())
 }
 
@@ -159,28 +153,16 @@ fn view_create(name: &str, config: &Config) -> Result<()> {
 ///
 /// * The database cannot be read
 /// * A read transaction cannot be acquired.
-fn view_list(config: &Config) -> Result<()> {
-    // JW TODO: should pass config to depot, not this path
-    let depot = try!(depot::Depot::new(config.path.clone()));
-    let mut views: Vec<data_object::View> = vec![];
-    let txn = try!(depot.datastore.views.txn_ro());
-    let mut cursor = try!(txn.cursor_ro());
-    match cursor.first() {
-        Err(Error::MdbError(data_store::MdbError::NotFound)) => {
-            println!("No views. Create one with `hab-depot view create`.");
-            return Ok(());
-        }
-        Err(e) => return Err(e),
-        Ok((_, value)) => views.push(value),
+fn view_list(config: Config) -> Result<()> {
+    let depot = try!(depot::Depot::new(config));
+    let views = try!(depot.datastore.views.all());
+    if views.is_empty() {
+        println!("No views. Create one with `hab-depot view create`.");
+        return Ok(());
     }
-    loop {
-        match cursor.next() {
-            Ok((_, value)) => views.push(value),
-            Err(_) => break,
-        }
-    }
-    println!("Listing {} views", views.len());
-    for view in views.iter() {
+    let iter = views.iter();
+    println!("Listing {} view(s)", iter.len());
+    for view in iter {
         println!("     {}", view);
     }
     Ok(())
