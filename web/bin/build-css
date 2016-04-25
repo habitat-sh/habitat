@@ -1,0 +1,15 @@
+#!/bin/sh
+set -x
+
+npm run lint-css && \
+node-sass \
+  --include-path=node_modules/bourbon-neat/app/assets/stylesheets \
+  --include-path=node_modules/bourbon/app/assets/stylesheets \
+  --include-path=node_modules/normalize-scss/sass \
+  --include-path=node_modules/normalize-scss/node_modules/support-for/sass \
+  --include-path=node_modules/octicons/octicons \
+  --include-path=stylesheets \
+  --output=. \
+  --output-style=compressed \
+  --source-map=true \
+  app/app.scss

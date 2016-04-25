@@ -33,7 +33,7 @@ export function addProject(project) {
             dispatch(requestRoute(["Projects"]));
             dispatch(addNotification({
                 title: "Project Created",
-                body: `${project.origin}/${project.name}`,
+                body: `${project["origin"]}/${project["name"]}`,
                 type: SUCCESS,
             }));
         }).catch(error => {
