@@ -26,6 +26,7 @@ extern crate redis;
 extern crate router;
 extern crate rustc_serialize;
 extern crate time;
+extern crate toml;
 extern crate urlencoded;
 extern crate walkdir;
 
