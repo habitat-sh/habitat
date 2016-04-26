@@ -163,12 +163,8 @@ export class AppComponent implements OnInit {
         // Whenever the Angular route has an event, dispatch an event with the new
         // route data.
         router.subscribe(value => {
-            if (value.indexOf("sign-in") > -1) {
-              this.hideNav = true;
-            } else {
-              this.hideNav = false;
-            };
-
+            // Don't show the side nav on the Sign In screen
+            this.hideNav = value.indexOf("sign-in") !== -1;
             store.dispatch(routeChange(value));
         });
 
