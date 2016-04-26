@@ -10,7 +10,7 @@ base_pkgs="core/hab-bpm core/hab-sup core/busybox-static"
 : ${PKGS:=}
 
 run_user="hab"
-run_group="$run_group"
+run_group="$run_user"
 
 finish_setup() {
   if [ -x "$HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup" ]; then
