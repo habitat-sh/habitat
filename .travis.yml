@@ -1,12 +1,21 @@
 sudo: required
-language: bash
+language: rust
+branches:
+  only:
+    - master
+    - auto
+cache:
+  directories:
+  - $HOME/.cargo
 services:
 - docker
 before_install:
+- sudo add-apt-repository -y ppa:chris-lea/libsodium
 - sudo apt-get update
-- sudo apt-get install docker
+- sudo apt-get -y install docker build-essential ca-certificates curl file gdb iproute2 libarchive-dev libprotobuf-dev libsodium-dev libssl-dev libzmq-dev man npm pkg-config protobuf-compiler sudo tmux vim wget
 script:
 - ./support/ci.sh
 notifications:
   slack:
     secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
+  webhooks: http://willem.habitat.sh:54856/travis
