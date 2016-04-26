@@ -255,8 +255,11 @@ impl ConfigFileList {
 mod test {
     use std::env;
     use std::path::PathBuf;
+    use std::str::FromStr;
 
-    use config_file::{ConfigFile, ServiceGroup};
+    use hcore::service::ServiceGroup;
+
+    use config_file::ConfigFile;
 
     fn fixture(name: &str) -> PathBuf {
         env::current_exe()
@@ -272,32 +275,31 @@ mod test {
             .join(name)
     }
 
-    /*
-     * DP TODO: GPG -> NaCl
-    #[test]
-    fn new_from_file() {
-        let cf = ConfigFile::from_file(ServiceGroup::from("petty.gunslingers").unwrap(),
-                                       fixture("chef-public.gpg").as_path(),
-                                       2)
-                     .unwrap();
-        assert_eq!(cf.service_group,
-                   ServiceGroup::from("petty.gunslingers").unwrap());
-        assert_eq!(cf.file_name, "chef-public.gpg");
-        assert_eq!(cf.checksum,
-                   "437ee1b702f1d14b9e2b322810b510bb25d43a260098b7820b85f3b0c09c45fa");
-        assert_eq!(cf.version_number, 2);
-    }
-    */
+    // DP TODO: GPG -> NaCl
+    // #[test]
+    // fn new_from_file() {
+    // let cf = ConfigFile::from_file(ServiceGroup::from("petty.gunslingers").unwrap(),
+    // fixture("chef-public.gpg").as_path(),
+    // 2)
+    // .unwrap();
+    // assert_eq!(cf.service_group,
+    // ServiceGroup::from("petty.gunslingers").unwrap());
+    // assert_eq!(cf.file_name, "chef-public.gpg");
+    // assert_eq!(cf.checksum,
+    // "437ee1b702f1d14b9e2b322810b510bb25d43a260098b7820b85f3b0c09c45fa");
+    // assert_eq!(cf.version_number, 2);
+    // }
+    //
 
     #[test]
     fn new_from_body() {
-        let cf = ConfigFile::from_body(ServiceGroup::from("chromeo.footwork").unwrap(),
+        let cf = ConfigFile::from_body(ServiceGroup::from_str("chromeo.footwork").unwrap(),
                                        "tracks.txt".to_string(),
                                        "Rage\n".as_bytes().to_vec(),
                                        45)
                      .unwrap();
         assert_eq!(cf.service_group,
-                   ServiceGroup::from("chromeo.footwork").unwrap());
+                   ServiceGroup::from_str("chromeo.footwork").unwrap());
         assert_eq!(cf.file_name, "tracks.txt");
         assert_eq!(cf.body, "Rage\n".as_bytes().to_vec());
         assert_eq!(cf.checksum,
@@ -307,13 +309,14 @@ mod test {
 
     #[test]
     fn update_via_when_other_version_is_higher() {
-        let mut me = ConfigFile::from_body(ServiceGroup::from("foofighters.arlandria").unwrap(),
+        let mut me = ConfigFile::from_body(ServiceGroup::from_str("foofighters.arlandria")
+                                               .unwrap(),
                                            "wasted_light.csv".to_string(),
                                            "rope\n".as_bytes().to_vec(),
                                            20)
                          .unwrap();
 
-        let other = ConfigFile::from_body(ServiceGroup::from("foofighters.arlandria").unwrap(),
+        let other = ConfigFile::from_body(ServiceGroup::from_str("foofighters.arlandria").unwrap(),
                                           "wasted_light.csv".to_string(),
                                           "rope\n".as_bytes().to_vec(),
                                           99)
@@ -325,13 +328,14 @@ mod test {
 
     #[test]
     fn update_via_when_other_is_older_and_not_equal() {
-        let mut me = ConfigFile::from_body(ServiceGroup::from("heart.barracuda").unwrap(),
+        let mut me = ConfigFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                            "greatest_hits.db".to_string(),
                                            "woot\n".as_bytes().to_vec(),
                                            99)
                          .unwrap();
 
-        let other_service = ConfigFile::from_body(ServiceGroup::from("oops.barracuda").unwrap(),
+        let other_service = ConfigFile::from_body(ServiceGroup::from_str("oops.barracuda")
+                                                      .unwrap(),
                                                   "greatest_hits.db".to_string(),
                                                   "woot\n".as_bytes().to_vec(),
                                                   20)
@@ -339,7 +343,7 @@ mod test {
         assert_eq!(me.update_via(other_service.clone()), false);
         assert_eq!(me == other_service, false);
 
-        let other_group = ConfigFile::from_body(ServiceGroup::from("heart.oops").unwrap(),
+        let other_group = ConfigFile::from_body(ServiceGroup::from_str("heart.oops").unwrap(),
                                                 "greatest_hits.db".to_string(),
                                                 "woot\n".as_bytes().to_vec(),
                                                 20)
@@ -347,7 +351,8 @@ mod test {
         assert_eq!(me.update_via(other_group.clone()), false);
         assert_eq!(me == other_group, false);
 
-        let other_file_name = ConfigFile::from_body(ServiceGroup::from("heart.barracuda").unwrap(),
+        let other_file_name = ConfigFile::from_body(ServiceGroup::from_str("heart.barracuda")
+                                                        .unwrap(),
                                                     "oops".to_string(),
                                                     "woot\n".as_bytes().to_vec(),
                                                     20)
@@ -355,7 +360,7 @@ mod test {
         assert_eq!(me.update_via(other_file_name.clone()), false);
         assert_eq!(me == other_file_name, false);
 
-        let other_body = ConfigFile::from_body(ServiceGroup::from("heart.barracuda").unwrap(),
+        let other_body = ConfigFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                                "greatest_hits.db".to_string(),
                                                "oops".as_bytes().to_vec(),
                                                20)
@@ -366,13 +371,13 @@ mod test {
 
     #[test]
     fn update_via_when_same_version_but_different_data() {
-        let other = ConfigFile::from_body(ServiceGroup::from("soundgarden.badmotorfinger")
+        let other = ConfigFile::from_body(ServiceGroup::from_str("soundgarden.badmotorfinger")
                                               .unwrap(),
                                           "rusty.cage".to_string(),
                                           "tracks\n".as_bytes().to_vec(),
                                           42)
                         .unwrap();
-        let mut me = ConfigFile::from_body(ServiceGroup::from("heart.barracuda").unwrap(),
+        let mut me = ConfigFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                            "greatest_hits.db".to_string(),
                                            "tracks\n".as_bytes().to_vec(),
                                            42)
@@ -383,12 +388,12 @@ mod test {
 
     #[test]
     fn update_via_when_other_is_equal() {
-        let other = ConfigFile::from_body(ServiceGroup::from("heart.barracuda").unwrap(),
+        let other = ConfigFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                           "greatest_hits.db".to_string(),
                                           "woot\n".as_bytes().to_vec(),
                                           20)
                         .unwrap();
-        let mut me = ConfigFile::from_body(ServiceGroup::from("heart.barracuda").unwrap(),
+        let mut me = ConfigFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                            "greatest_hits.db".to_string(),
                                            "woot\n".as_bytes().to_vec(),
                                            20)

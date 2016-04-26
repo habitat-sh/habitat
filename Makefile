@@ -47,6 +47,7 @@ test: image ## tests the project's Rust components
 	$(run) sh -c 'cd components/core && cargo test'
 	$(run) sh -c 'cd components/depot-core && cargo test'
 	$(run) sh -c 'cd components/depot-client && cargo test'
+	$(run) sh -c 'cd components/common && cargo test'
 	$(run) sh -c 'cd components/sup && cargo test '
 	$(run) sh -c 'cd components/depot && cargo test'
 
@@ -54,6 +55,7 @@ unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/core && cargo test --lib'
 	$(run) sh -c 'cd components/depot-core && cargo test --lib'
 	$(run) sh -c 'cd components/depot-client && cargo test --lib'
+	$(run) sh -c 'cd components/common && cargo test --lib'
 	$(run) sh -c 'cd components/sup && cargo test --lib'
 	$(run) sh -c 'cd components/depot && cargo test --lib'
 
