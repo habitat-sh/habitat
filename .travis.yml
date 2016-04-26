@@ -7,6 +7,13 @@ branches:
 cache:
   directories:
   - $HOME/.cargo
+  - components/core/target
+  - components/depot-core/target
+  - components/depot-client/target
+  - components/common/target
+  - components/sup/target
+  - components/depot/target
+  - components/hab/target
 services:
 - docker
 before_install:
