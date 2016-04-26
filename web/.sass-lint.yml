@@ -7,7 +7,8 @@ rules:
   clean-import-paths: 0
   force-element-nesting: 0
   leading-zero:
-    style: include_zero
+    - 2
+    - include: true
   nesting-depth: 3
   no-qualifying-elements: 0
   placeholder-in-extend: 0

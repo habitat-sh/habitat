@@ -42,11 +42,11 @@ import {requireSignIn} from "../util";
                 <em>_</em>, and <em>-</em>.
                 No more than {{maxLength}} characters.
             </small>
-            <hab-checking-input [form]="form"
+            <hab-checking-input displayName="Name"
+                                [form]="form"
                                 id="origin-name"
                                 [isAvailable]="isOriginAvailable"
                                 name="name"
-                                title="Name"
                                 [value]="isFirstOrigin ? username : ''">
             </hab-checking-input>
             <div class="hab-origin-create--checkbox">
