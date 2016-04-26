@@ -1,9 +1,9 @@
 #!/bin/bash
-#
 
 set -ev
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
-  env IN_DOCKER=true make test refresh=true
+  #env IN_DOCKER=true make test refresh=true
+  make unit
 else
-  env IN_DOCKER=true make unit refresh=true
+  make unit
 fi
