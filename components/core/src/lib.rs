@@ -15,9 +15,11 @@ extern crate rustc_serialize;
 extern crate sodiumoxide;
 extern crate libsodium_sys;
 extern crate time;
+extern crate toml;
 
 pub use self::error::{Error, Result};
 
+pub mod config;
 pub mod env;
 pub mod error;
 pub mod fs;

@@ -26,6 +26,10 @@ pub enum Error {
     ArchiveError(libarchive::error::ArchiveError),
     /// An invalid path to a keyfile was given.
     BadKeyPath(String),
+    /// Error reading raw contents of configuration file.
+    ConfigFileIO(io::Error),
+    /// Parsing error while reading a configuratino file.
+    ConfigFileSyntax(String),
     /// Crypto library error
     CryptoError(String),
     /// Occurs when a file that should exist does not or could not be read.
@@ -60,6 +64,11 @@ impl fmt::Display for Error {
             Error::ArchiveError(ref err) => format!("{}", err),
             Error::BadKeyPath(ref e) => {
                 format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
+                        e)
+            }
+            Error::ConfigFileIO(ref e) => format!("Error reading configuration file: {}", e),
+            Error::ConfigFileSyntax(ref e) => {
+                format!("Syntax errors while parsing TOML configuration file:\n\n{}",
                         e)
             }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
@@ -101,6 +110,8 @@ impl error::Error for Error {
         match *self {
             Error::ArchiveError(ref err) => err.description(),
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
+            Error::ConfigFileIO(_) => "Unable to read the raw contents of a configuration file",
+            Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",

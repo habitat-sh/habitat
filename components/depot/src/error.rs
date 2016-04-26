@@ -19,7 +19,6 @@ use redis;
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    ConfigFileSyntax(String),
     DataStore(dbcache::Error),
     HabitatCore(hcore::Error),
     HTTP(hyper::status::StatusCode),
@@ -38,10 +37,6 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::ConfigFileSyntax(ref e) => {
-                format!("Syntax errors while parsing TOML configuration file:\n\n{}",
-                        e)
-            }
             Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
@@ -74,7 +69,6 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
             Error::DataStore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
