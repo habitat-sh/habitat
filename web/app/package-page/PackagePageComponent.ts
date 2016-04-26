@@ -19,13 +19,16 @@ import {fetchPackage} from "../actions/index";
     directives: [PackageBreadcrumbsComponent, PackageListComponent, RouterLink,
         SpinnerComponent],
     template: `
-    <div class="hab-package">
-        <h2>
-            <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
-            </hab-spinner>
+    <div class="hab-package page-title">
+        <h2>Package</h2>
+        <h4>
             <package-breadcrumbs [ident]="package.ident">
             </package-breadcrumbs>
-        </h2>
+        </h4>
+        <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
+        </hab-spinner>
+    </div>
+    <div class="page-body">
         <div *ngIf="!ui.exists && !ui.loading">
             <p>
                 Failed to load package.

@@ -6,8 +6,12 @@
 // open source license such as the Apache 2.0 License.
 
 .hab-package {
+  position: relative;
+
   .hab-spinner {
-      float: right;
+      position: absolute;
+      right: rem(12);
+      top: rem(12);
   }
 
   &-info {

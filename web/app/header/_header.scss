@@ -7,6 +7,7 @@
 
 .hab-header {
   @include outer-container;
+  max-width: rem(1200);
 
   h1.logo {
     @include hide-text;
@@ -15,6 +16,7 @@
     background-repeat: no-repeat;
     color: $white;
     display: inline;
+    height: 44px;
     margin: .5em 0 0;
   }
 

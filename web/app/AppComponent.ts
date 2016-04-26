@@ -51,9 +51,10 @@ import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
                       [origin]="origin"
                       [route]="state.router.route"
                       [setCurrentOrigin]="setCurrentOrigin"
-                      [toggleOriginPicker]="toggleOriginPicker">
+                      [toggleOriginPicker]="toggleOriginPicker"
+                      *ngIf="!hideNav">
         </hab-side-nav>
-        <section class="hab-main">
+        <section class="hab-main" [ngClass]="{centered: hideNav}">
             <router-outlet></router-outlet>
         </section>
         <footer class="hab-footer">
@@ -156,11 +157,16 @@ export class AppComponent implements OnInit {
     signOut: Function;
     toggleOriginPicker: Function;
     toggleUserNavMenu: Function;
+    hideNav: boolean;
 
     constructor(private router: Router, private store: AppStore) {
         // Whenever the Angular route has an event, dispatch an event with the new
         // route data.
-        router.subscribe(value => store.dispatch(routeChange(value)));
+        router.subscribe(value => {
+            // Don't show the side nav on the Sign In screen
+            this.hideNav = value.indexOf("sign-in") !== -1;
+            store.dispatch(routeChange(value));
+        });
 
         // Listen for changes on the state.
         store.subscribe(state => {

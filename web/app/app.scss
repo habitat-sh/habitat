@@ -5,6 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+@import "mixins";
 @import "bourbon";
 @import "base/base";
 @import "neat";
@@ -45,26 +46,44 @@ body {
 }
 
 .hab-topbar {
-  @include background(url("/assets/images/bg-pattern.png"), linear-gradient(205deg, #f59b51 5%, #f58251 100%), center);
+  @include background(url("/assets/images/bg-pattern.png"), linear-gradient(205deg, #484846 15%, #323330 100%), center);
   background-color: $hab-orange;
-  box-shadow: 1px 0 8px 0 $light-gray;
+  box-shadow: 1px 0 14px 0 $medium-gray;
   height: 80px;
+  position: relative;
+  z-index: 100;
 }
 
 .hab-container {
   @include outer-container;
+  max-width: rem(1200);
   min-height: 100%;
 }
 
 .hab-main {
+  @include shadow-float;
   @include span-columns(10);
   background-color: $white;
+  border-radius: 0 0 $global-radius $global-radius;
   height: 100%;
+  min-height: 100vh;
+  position: relative;
+  z-index: 50;
+
+  &.centered {
+    @include media($medium-screen) {
+      @include span-columns(6);
+      @include shift(3);
+    }
+
+    @include span-columns(12);
+    min-height: inherit;
+  }
 }
 
 .page-title {
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
-  padding: 1em 1.5em;
+  padding: rem(16) rem(20);
 
   a {
     &.create {
@@ -75,13 +94,24 @@ body {
 
   p {
     color: $dark-gray;
-    margin-top: 1em;
+    margin-top: rem(20);
     max-width: 32em;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 }
 
 .page-body {
-  padding: 1.5em;
+  padding: rem(30) rem(20);
+
+  .hero {
+    p {
+      margin-bottom: rem(15);
+      text-align: center;
+    }
+  }
 }
 
 .hab-footer {

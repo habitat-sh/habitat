@@ -24,21 +24,16 @@ import {icon, requireSignIn} from "../util";
       </div>
       <div class="page-body">
           <div *ngIf="orgs.size === 0">
-              <h3 class="hero">
-                  You don't currently have any organizations, let's add one now.
-              </h3>
-              <form>
+              <div class="hero">
+                  <h3>You don't currently have any organizations, let's add one now.</h3>
                   <p>
-                      Create an organization, then start adding projects and users.
-                  </p>
-                  <p>
-                      <a class="button" [routerLink]='["OrganizationCreate"]'>
+                      <a class="button cta" [routerLink]='["OrganizationCreate"]'>
                           Add Organization
                       </a>
                   </p>
-              </form>
+              </div>
               <div class="info">
-                  <p>Organizations allow you to do the following:</p>
+                  <hr>
                   <ul>
                       <li>
                           Invite users to manage a project
@@ -47,7 +42,7 @@ import {icon, requireSignIn} from "../util";
                           List public projects under your organization profile
                       </li>
                       <li>
-                          Set admin permissions for users to edit organization
+                          Set admin permissions for members to edit organization
                           settings
                       </li>
                   </ul>
