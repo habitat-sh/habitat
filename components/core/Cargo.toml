@@ -9,6 +9,7 @@ libarchive = "*"
 log = "*"
 regex = "*"
 rustc-serialize = "*"
+toml = "*"
 
 ### !!NOTE!! sodiumoxide and libsodium-sys are using an override, via the
 ### .cargo/config file. When https://github.com/dnaq/sodiumoxide/pull/103
@@ -16,5 +17,3 @@ rustc-serialize = "*"
 sodiumoxide = "*"
 libsodium-sys = "*"
 time = "*"
-
-

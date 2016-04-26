@@ -18,6 +18,7 @@ use std::process;
 use std::str::FromStr;
 
 use depot::{server, Config, Error, Result};
+use hcore::config::ConfigFile;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-depot/config/server.cfg.toml";
