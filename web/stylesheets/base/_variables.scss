@@ -50,10 +50,14 @@ $hab-blue-dark: #394b5a;
 $hab-green: #75af81;
 $hab-green-dark: #699171;
 $hab-blue-medium: #dce6ed;
-$hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-cta: $hab-green;
 $hab-red: #D8574B;
 $hab-yellow: #EBE269;
+
+// Transparent colors
+$hab-gray-dark-15: rgba(125, 134, 140, .15);
+$medium-gray-20: rgba($medium-gray, .2);
+$medium-gray-40: rgba($medium-gray, .4);
 
 // Notification colors
 $notification-danger-color: $hab-red;

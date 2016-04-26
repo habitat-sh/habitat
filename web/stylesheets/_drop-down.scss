@@ -13,11 +13,11 @@
   ul {
     @include dropdown-panel;
     position: absolute;
-    top: $base-spacing ;
+    top: $base-spacing;
   }
 }
 
-.actionsMenu {
+.actions--menu {
   @extend hab-drop-down;
   right: 0;
   top: rem(30);

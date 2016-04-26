@@ -48,7 +48,7 @@ import {icon} from "../util";
                         <img *ngIf="!isMemberActionMenuOpenAt(i)" src='{{icon("triangle-down")}}'>
                         <img *ngIf="isMemberActionMenuOpenAt(i)" src='{{icon("triangle-up")}}'>
                     </a>
-                    <ul *ngIf="isMemberActionMenuOpenAt(i)" class="actionsMenu">
+                    <ul *ngIf="isMemberActionMenuOpenAt(i)" class="actionsMenu actions--menu">
                         <li>
                             <a (click)="cancelInvitationClick(i)" href="#">
                                 Cancel invitation
