@@ -522,8 +522,8 @@ latest_remote_package() {
       ;;
     "2"|"1")
       local result="$(\
-        $bb env -u http_proxy $wget "$HAB_DEPOT_URL/pkgs/$1" -O- -q | \
-        $jq -r 'last | .origin + "/" + .name + "/" + .version + "/" + .release')"
+        $bb env -u http_proxy $wget "$HAB_DEPOT_URL/pkgs/$1/latest" -O- -q | \
+        $jq -r '.ident | .origin + "/" + .name + "/" + .version + "/" + .release')"
       if [ -n "$result" ]; then
         echo $result
       else
