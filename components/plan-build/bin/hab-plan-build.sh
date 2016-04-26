@@ -829,6 +829,45 @@ _print_recursive_deps() {
   done
 }
 
+# **Internal** Returns the path for the desired runtime package dependency
+# on stdout from the resolved dependency set. Note that this function will
+# only look for resolved runtime dependencies--build dependencies are not
+# included in search.
+#
+# ```
+# pkg_deps_resolved=(
+#   /hab/pkgs/acme/zlib/1.2.8/20151216221001
+#   /hab/pkgs/acme/nginx/1.8.0/20150911120000
+#   /hab/pkgs/acme/glibc/2.22/20151216221001
+# )
+#
+# _pkg_path_for_deps_resolved acme/nginx
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
+# _pkg_path_for_deps_resolved zlib
+# # /hab/pkgs/acme/zlib/1.2.8/20151216221001
+# _pkg_path_for_deps_resolved glibc/2.22
+# # /hab/pkgs/acme/glibc/2.22/20151216221001
+# ```
+#
+# Will return 0 if a package is found locally on disk, and 1 if a package
+# cannot be found. A message will be printed to stderr to provide context.
+_pkg_path_for_deps_resolved() {
+  local dep="$1"
+  local e
+  local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
+  for e in "${pkg_deps_resolved[@]}"; do
+    if echo $e | cut -d "/" -f ${cutn}- | egrep -q "(^|/)${dep}(/|$)"; then
+      echo "$e"
+      return 0
+    fi
+  done
+  if [[ "${FUNCNAME[1]}" != "pkg_interpreter_for" ]]; then
+    warn "No runtime dependency found for '$dep'"
+    warn "Resolved runtime package set: ${pkg_deps_resolved[*]}"
+  fi
+  return 1
+}
+
 
 # ## Public helper functions
 #
@@ -1227,6 +1266,13 @@ fix_interpreter() {
     local int=$3
     local interpreter_old=".*${int}"
     local interpreter_new="$(pkg_interpreter_for ${pkg} ${int})"
+    if [[ -z $interpreter_new || $? -ne 0 ]]; then
+      warn "fix_interpreter() '$pkg' is not a runtime dependency"
+      warn "Only runtime packages may be used as your interpreter must travel"
+      warn "with the '$pkg_name' in order to run."
+      warn "Resolved runtime package set: ${pkg_deps_resolved[*]}"
+      return 1
+    fi
 
     for t in ${targets}; do
       build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
@@ -1249,7 +1295,7 @@ fix_interpreter() {
 pkg_interpreter_for() {
     local pkg=$1
     local int=$2
-    local path=$(pkg_path_for $pkg)
+    local path=$(_pkg_path_for_deps_resolved $pkg)
     if [[ -z $path || $? -ne 0 ]]; then
       warn "Could not resolve the path for ${pkg}, is it specified in 'pkg_deps'?"
       return 1
