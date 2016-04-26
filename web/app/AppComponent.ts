@@ -157,20 +157,19 @@ export class AppComponent implements OnInit {
     signOut: Function;
     toggleOriginPicker: Function;
     toggleUserNavMenu: Function;
+    hideNav: boolean;
 
     constructor(private router: Router, private store: AppStore) {
         // Whenever the Angular route has an event, dispatch an event with the new
         // route data.
-        router.subscribe(value => store.dispatch(routeChange(value)));
+        router.subscribe(value => {
+            if (value.indexOf("sign-in") > -1) {
+              this.hideNav = true;
+            } else {
+              this.hideNav = false;
+            };
 
-        // Check the route path for pages that exclude side nav
-        router.subscribe(url => {
-          this.hideNav = false;
-
-          if (url.indexOf("sign-in") > -1) {
-            this.hideNav = true;
-          };
-
+            store.dispatch(routeChange(value));
         });
 
         // Listen for changes on the state.
