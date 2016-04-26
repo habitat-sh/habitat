@@ -10,9 +10,9 @@ import {ChangeDetectorRef, Component, OnInit} from "angular2/core";
 import {AsyncValidator} from "./AsyncValidator";
 
 @Component({
-    inputs: ["autofocus", "availableMessage", "form", "id", "isAvailable",
-        "maxLength", "name", "notAvailableMessage", "pattern", "placeholder",
-        "title", "value"],
+    inputs: ["autofocus", "availableMessage", "displayName", "form", "id",
+        "isAvailable", "maxLength", "name", "notAvailableMessage", "pattern",
+        "placeholder", "value"],
     selector: "hab-checking-input",
     template: `
     <div class="hab-checking-input">
@@ -35,13 +35,13 @@ import {AsyncValidator} from "./AsyncValidator";
             <span *ngIf="control.dirty && !control.pending && !control.valid"
                     class="hab-checking-input--input-msg invalid">
                 <span *ngIf="control.errors.invalidFormat">
-                    {{title}} must match correct format
+                    {{displayName}} must match correct format
                 </span>
                 <span *ngIf="control.errors.required">
-                    {{title}} is required
+                    {{displayName}} is required
                 </span>
                 <span *ngIf="control.errors.taken">
-                    {{title}} {{notAvailableMessage}}
+                    {{displayName}} {{notAvailableMessage}}
                 </span>
                 <span *ngIf="control.errors.maxlength">
                     Cannot be longer than {{maxLength}} characters
@@ -49,7 +49,7 @@ import {AsyncValidator} from "./AsyncValidator";
             </span>
             <span *ngIf="!control.pending && control.valid"
                     class="hab-checking-input--input-msg valid">
-                {{title}} {{availableMessage}}
+                {{displayName}} {{availableMessage}}
             </span>
         </small>
     </div>`

@@ -55,12 +55,12 @@ import {requireSignIn} from "../util";
                   <div class="name">
                       <label for="name">Project Name</label>
                       <hab-checking-input autofocus=true
+                                          displayName="Name"
                                           [form]="form"
                                           id="name"
                                           [isAvailable]="isProjectAvailable"
                                           name="name"
                                           placeholder="Required. Max 40 characters."
-                                          title="Name"
                                           [value]="repo">
                       </hab-checking-input>
                   </div>
@@ -68,6 +68,7 @@ import {requireSignIn} from "../util";
                       <label for="plan">Path to Plan file</label>
                       <small>The location in the repository of the plan.sh that will build this project.</small>
                       <hab-checking-input availableMessage="exists"
+                                          displayName="File"
                                           [form]="form"
                                           id="plan"
                                           [isAvailable]="doesFileExist"
@@ -75,7 +76,6 @@ import {requireSignIn} from "../util";
                                           name="plan"
                                           notAvailableMessage="does not exist in repository"
                                           [pattern]="false"
-                                          title="File"
                                           value="/plan.sh">
                       </hab-checking-input>
                   </div>

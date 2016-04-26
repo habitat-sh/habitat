@@ -22,14 +22,14 @@
 // Buttons
 @mixin primary-button($color1: $hab-green, $color2: $hab-green-dark) {
   @include shadow-float;
-  @include transition(all .2s ease-in-out);
+  @include transition(all 0.2s ease-in-out);
   background-color: $color2;
   background-image: linear-gradient(240deg, $color1, $color2);
   color: $hab-off-white;
 
   &:hover {
     @include shadow-float-more;
-    @include transition(all .2s ease-in-out);
+    @include transition(all 0.2s ease-in-out);
     background-color: $color1;
     color: $hab-white;
   }

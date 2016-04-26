@@ -8,7 +8,7 @@
 // For lists of things like packages or projects
 .hab-item-list {
   @include row;
-  @include transition(all .6s);
+  @include transition(all 0.6s);
   background-blend-mode: overlay;
   background-color: $white;
   border: 1px solid $light-gray;
@@ -16,7 +16,7 @@
   border-radius: $global-radius;
   color: inherit;
   display: block;
-  margin-bottom: .5em;
+  margin-bottom: 0.5em;
   padding: 1em 1.5em;
   position: relative;
 
@@ -56,13 +56,13 @@
   &--info,
   .item-info {
     @include span-columns(6);
-    padding-top: .5em;
+    padding-top: 0.5em;
     position: relative;
 
     img {
-      @include transition(opacity .6s);
+      @include transition(opacity 0.6s);
       height: 1.5em;
-      opacity: .1;
+      opacity: 0.1;
       position: absolute;
       right: 0;
     }
@@ -71,7 +71,7 @@
   &:hover,
   &.active {
     @include transform(scale(1.01));
-    @include transition(all .2s ease-in-out);
+    @include transition(all 0.2s ease-in-out);
     //border-color: $hab-blue;
     box-shadow: 0 1px 14px 0 $hab-blue-light;
   }
