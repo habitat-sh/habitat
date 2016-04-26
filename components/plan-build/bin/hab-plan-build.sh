@@ -1740,9 +1740,10 @@ _build_metadata() {
     echo $port_part > $pkg_prefix/EXPOSES
   fi
 
-  local interpreters="$(printf "${pkg_prefix}/%s\n" ${pkg_interpreters[@]})"
-  if [[ -n $interpreters ]]; then
-    echo "$interpreters" > $pkg_prefix/INTERPRETERS
+  if [[ ${#pkg_interpreters[@]} -gt 0 ]]; then
+    local interpreters="$(printf "${pkg_prefix}/%s\n" ${pkg_interpreters[@]})"
+    printf "%s\n" ${pkg_interpreters[@]} \
+      | sed "s|^|${pkg_prefix}/|" > $pkg_prefix/INTERPRETERS
   fi
 
   local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
