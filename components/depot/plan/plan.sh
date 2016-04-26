@@ -4,15 +4,11 @@ pkg_version=0.4.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(
-  core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl
-)
+pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl)
 pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
-
-program=$pkg_name
-
-pkg_service_run="bin/$program start"
+srv_bin="hab-depot"
+pkg_service_run="bin/$srv_bin start -c $pkg_svc_config_path/server.cfg.toml"
 
 do_prepare() {
   # Used by the `build.rs` program to set the version of the binaries
@@ -44,17 +40,14 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../target/$rustc_target/debug/$program \
-    $pkg_prefix/bin/$program
+  install -v -D $PLAN_CONTEXT/../target/$rustc_target/debug/$srv_bin \
+    $pkg_prefix/bin/$srv_bin
 }
 
 do_strip() {
   return 0
-  # for the moment, we'll skip stripping
-  # strip $pkg_prefix/bin/$program
 }
 
-# Turn the remaining default phases into no-ops
 do_download() {
   return 0
 }
