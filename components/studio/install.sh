@@ -7,9 +7,9 @@ set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 # Download URL for the `core/hab-bpm` Habitat artifact
-hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-bpm-0.1.0-20160426214022.hart}"
+hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-bpm-0.1.0-20160427212821-x86_64-linux.hart}"
 # Shasum for the Habitat artifact, used to verify the download
-hart_sha="${BPM_HART_SHASUM:-1af87054db1c9666bf43892e96774a78887568f56d7debd3db06bacc58cece19}"
+hart_sha="${BPM_HART_SHASUM:-0577cd569006f82bea1c99c80b727b272b2d4e78492d1bff620e936041b13571}"
 # Download location of the Habitat artifact
 hart_file="${TMPDIR:-/tmp}/$(basename $hart_url)"
 
@@ -37,12 +37,5 @@ trap - INT TERM EXIT
 rm -f $hart_file
 
 # Install Habitat Studio and add a `studio` symlink to `/usr/bin/studio`
-if ! command -v hab-studio > /dev/null; then
-  (cd /tmp && wget http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-studio-0.1.0-20160426214233.hart)
-  tail -n +6 /tmp/core-hab-studio-0.1.0-20160426214233.hart | xzcat | tar x -C /
-  (cd /tmp && wget http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-busybox-static-1.24.2-20160423215816.hart)
-  tail -n +6 /tmp/core-busybox-static-1.24.2-20160423215816.hart | xzcat | tar x -C /
-  rm -fv /tmp/*.hart
-  # hab-bpm install core/hab-studio
-  hab-bpm binlink core/hab-studio hab-studio
-fi
+hab-bpm install core/hab-studio
+hab-bpm binlink core/hab-studio hab-studio
