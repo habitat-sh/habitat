@@ -81,7 +81,7 @@ pub struct Config {
     group: String,
     path: String,
     archive: String,
-    watch: Vec<String>,
+    bind: Vec<String>,
     key: String,
     password: Option<String>,
     email: Option<String>,
@@ -246,15 +246,15 @@ impl Config {
         &self.group
     }
 
-    /// Set the watch
-    pub fn set_watch(&mut self, watch: Vec<String>) -> &mut Config {
-        self.watch = watch;
+    /// Set the bindings
+    pub fn set_bind(&mut self, bind: Vec<String>) -> &mut Config {
+        self.bind = bind;
         self
     }
 
-    /// Return the watch
-    pub fn watch(&self) -> &[String] {
-        &self.watch
+    /// Return the bindings
+    pub fn bind(&self) -> Vec<String> {
+        self.bind.clone()
     }
 
     /// Set the url

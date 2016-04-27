@@ -304,9 +304,8 @@ fn health(package_lock: &Arc<RwLock<Package>>,
     };
 
     match result.status {
-        health_check::Status::Ok | health_check::Status::Warning => {
-            Ok(Response::with((status::Ok, format!("{}", result))))
-        }
+        health_check::Status::Ok |
+        health_check::Status::Warning => Ok(Response::with((status::Ok, format!("{}", result)))),
         health_check::Status::Critical => {
             Ok(Response::with((status::ServiceUnavailable, format!("{}", result))))
         }

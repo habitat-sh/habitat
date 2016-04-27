@@ -100,6 +100,7 @@ pub enum Error {
     HTTP(hyper::status::StatusCode),
     /// TODO: once discovery/etcd.rs is purged, this error can be removed
     HyperError(hyper::error::Error),
+    InvalidBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
     InvalidServiceGroupString(String),
@@ -147,6 +148,9 @@ impl fmt::Display for SupError {
             }
             Error::HTTP(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
+            Error::InvalidBinding(ref binding) => {
+                format!("Invalid binding - must be ':' delimited: {}", binding)
+            }
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
@@ -225,6 +229,7 @@ impl error::Error for SupError {
             Error::HookFailed(_, _, _) => "Hook failed to run",
             Error::HTTP(_) => "Received an HTTP error",
             Error::HyperError(ref err) => err.description(),
+            Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
