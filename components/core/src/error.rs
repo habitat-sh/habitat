@@ -14,6 +14,7 @@ use std::string;
 
 use libarchive;
 use regex;
+use toml;
 
 use package;
 
@@ -30,6 +31,12 @@ pub enum Error {
     ConfigFileIO(io::Error),
     /// Parsing error while reading a configuratino file.
     ConfigFileSyntax(String),
+    /// Expected a valid Ipv4 network address for configuration field value.
+    ConfigInvalidIpv4Addr(&'static str, toml::Value),
+    /// Expected a valid SocketAddrV4 address pair for configuration field value.
+    ConfigInvalidSocketAddrV4(&'static str, toml::Value),
+    /// Expected a string for configuration field value.
+    ConfigInvalidString(&'static str, toml::Value),
     /// Crypto library error
     CryptoError(String),
     /// Occurs when a file that should exist does not or could not be read.
@@ -70,6 +77,19 @@ impl fmt::Display for Error {
             Error::ConfigFileSyntax(ref e) => {
                 format!("Syntax errors while parsing TOML configuration file:\n\n{}",
                         e)
+            }
+            Error::ConfigInvalidIpv4Addr(ref f, ref v) => {
+                format!("Invalid Ipv4 address in config, field={}, value={}. (example: \"127.0.0.0\")",
+                        f,
+                        v)
+            }
+            Error::ConfigInvalidSocketAddrV4(ref f, ref v) => {
+                format!("Invalid Ipv4 network address pair in config, field={}, value={}. (example: \"127.0.0.0:8080\")",
+                        f,
+                        v)
+            }
+            Error::ConfigInvalidString(ref f, ref v) => {
+                format!("Invalid string value in config, field={}, value={}", f, v)
             }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
@@ -112,6 +132,9 @@ impl error::Error for Error {
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::ConfigFileIO(_) => "Unable to read the raw contents of a configuration file",
             Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
+            Error::ConfigInvalidIpv4Addr(_, _) => "Invalid Ipv4 network address encountered while parsing a configuration file",
+            Error::ConfigInvalidSocketAddrV4(_, _) => "Invalid Ipv4 network address pair encountered while parsing a configuration file",
+            Error::ConfigInvalidString(_, _) => "Invalid string value encountered while parsing a configuration file",
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
             Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",

@@ -387,7 +387,7 @@ impl AfterMiddleware for Cors {
 }
 
 pub fn run(config: Config) -> Result<()> {
-    let listen_addr = config.depot_addr();
+    let listen_addr = config.listen_addr.clone();
     let depot = try!(Depot::new(config));
     let depot1 = depot.clone();
     let depot2 = depot.clone();
