@@ -104,11 +104,11 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     let url = sub_args.value_of("url").unwrap_or(&env_or_default);
     config.set_url(url.to_string());
     config.set_group(sub_args.value_of("group").unwrap_or(DEFAULT_GROUP).to_string());
-    let watches = match sub_args.values_of("watch") {
-        Some(ws) => ws.map(|s| s.to_string()).collect(),
+    let bindings = match sub_args.values_of("bind") {
+        Some(bind) => bind.map(|s| s.to_string()).collect(),
         None => vec![],
     };
-    config.set_watch(watches);
+    config.set_bind(bindings);
     config.set_path(sub_args.value_of("path")
                             .unwrap_or(fs::svc_path(sup::PROGRAM_NAME.as_str())
                                            .join("data")
@@ -191,11 +191,11 @@ fn main() {
                                  .long("topology")
                                  .value_name("topology")
                                  .help("Service topology"))
-                        .arg(Arg::with_name("watch")
-                                 .long("watch")
-                                 .value_name("watch")
+                        .arg(Arg::with_name("bind")
+                                 .long("bind")
+                                 .value_name("bind")
                                  .multiple(true)
-                                 .help("One or more service groups to watch for updates"))
+                                 .help("One or more service groups to bind to a configuration"))
                         .arg(Arg::with_name("peer")
                                  .long("peer")
                                  .value_name("ip:port")

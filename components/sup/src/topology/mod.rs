@@ -38,7 +38,6 @@ use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
 use supervisor::Supervisor;
-use user_config;
 use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
@@ -105,8 +104,6 @@ pub struct Worker<'a> {
     pub config_file_list: Arc<RwLock<ConfigFileList>>,
     /// Our Sidecar Actor; exposes a restful HTTP interface to the outside world
     pub sidecar_actor: sidecar::SidecarActor,
-    /// Our User Configuration; reads the config periodically
-    pub user_actor: wonder::actor::Actor<user_config::Message>,
     /// Watches a package Depot for updates and signals the main thread when an update is available. Optionally
     /// started if a value is passed for the url option on startup.
     pub pkg_updater: Option<PackageUpdaterActor>,
@@ -126,13 +123,6 @@ impl<'a> Worker<'a> {
         let package_exposes = package.exposes().clone();
         let package_port = package_exposes.first().map(|e| e.clone());
         let package_ident = package.ident().clone();
-
-        // Setup the User Data Configuration
-        let user_actor_state = user_config::UserActorState::new(format!("{}/{}/config",
-                                                                        package_name,
-                                                                        config.group()));
-
-
         let pkg_lock = Arc::new(RwLock::new(package));
         let pkg_lock_1 = pkg_lock.clone();
 
@@ -160,7 +150,7 @@ impl<'a> Worker<'a> {
         let service_config = {
             let cl = gossip_server.census_list.read().unwrap();
             let pkg = pkg_lock.read().unwrap();
-            let sc = try!(ServiceConfig::new(&pkg, &cl));
+            let sc = try!(ServiceConfig::new(&pkg, &cl, config.bind()));
             sc
         };
         let service_config_lock = Arc::new(RwLock::new(service_config));
@@ -196,10 +186,6 @@ impl<'a> Worker<'a> {
                                                    sidecar_el,
                                                    sidecar_sup),
             supervisor: supervisor,
-            user_actor: wonder::actor::Builder::new(user_config::UserActor)
-                            .name("user-config".to_string())
-                            .start(user_actor_state)
-                            .unwrap(),
             pkg_updater: pkg_updater,
             return_state: None,
         })
@@ -254,8 +240,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
             Ok(wonder::actor::Message::Cast(signals::Message::Signal(sig))) => {
                 debug!("SIG = {:?}", sig);
                 match sig {
-                    signals::Signal::SIGINT |
-                    signals::Signal::SIGTERM => {
+                    signals::Signal::SIGINT | signals::Signal::SIGTERM => {
                         let mut supervisor = worker.supervisor.write().unwrap();
                         try!(supervisor.down());
                         break;
@@ -301,6 +286,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     let mut service_config = worker.service_config.write().unwrap();
                     let cl = worker.census_list.read().unwrap();
                     service_config.svc(&cl);
+                    service_config.bind(worker.config.bind(), &cl);
                 }
                 if write_rumor {
                     outputln!("Writing our census rumor: {:#?}", me_clone);

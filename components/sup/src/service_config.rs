@@ -38,6 +38,7 @@ pub struct ServiceConfig {
     sys: Sys,
     cfg: Cfg,
     svc: Svc,
+    bind: Bind,
     // Keeps a list of the configuration files we have renders, and only re-writes them if they
     // have changed.
     config_hash: HashMap<String, Vec<u8>>,
@@ -49,14 +50,16 @@ impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(package: &Package, cl: &CensusList) -> Result<ServiceConfig> {
+    pub fn new(package: &Package, cl: &CensusList, bindings: Vec<String>) -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
+        let bind = try!(Bind::new(bindings, &cl));
         Ok(ServiceConfig {
             pkg: Pkg::new(&package.pkg_install),
             hab: Hab::new(),
             sys: Sys::new(),
             cfg: cfg,
             svc: Svc::new(cl),
+            bind: bind,
             config_hash: HashMap::new(),
             needs_write: true,
         })
@@ -81,6 +84,9 @@ impl ServiceConfig {
         let svc = self.svc.to_toml();
         top.insert(String::from("svc"), svc);
 
+        let bind = self.bind.to_toml();
+        top.insert(String::from("bind"), bind);
+
         Ok(toml::Value::Table(top))
     }
 
@@ -93,6 +99,14 @@ impl ServiceConfig {
     /// Replace the `svc` data.
     pub fn svc(&mut self, cl: &CensusList) {
         self.svc = Svc::new(cl);
+        self.needs_write = true
+    }
+
+    /// Replace the `svc` data.
+    pub fn bind(&mut self, bindings: Vec<String>, cl: &CensusList) {
+        // This is only safe because we will fail the first time if the bindings are badly
+        // formatted - so we know we can't fail here.
+        self.bind = Bind::new(bindings, cl).unwrap();
         self.needs_write = true
     }
 
@@ -151,6 +165,47 @@ impl ServiceConfig {
         }
         self.needs_write = false;
         Ok(should_restart)
+    }
+}
+
+#[derive(Debug, RustcEncodable)]
+struct Bind {
+    toml: toml::Table,
+}
+
+impl Bind {
+    fn new(binding_cfg: Vec<String>, cl: &CensusList) -> Result<Bind> {
+        let mut top = toml::Table::new();
+        let bindings = try!(Bind::split_bindings(binding_cfg));
+        for (bind, service_group) in bindings {
+            match cl.get(&service_group) {
+                Some(census) => {
+                    top.insert(format!("has_{}", bind), toml::Value::Boolean(true));
+                    top.insert(bind, toml::Value::Table(service_entry(census)));
+                }
+                None => {
+                    top.insert(format!("has_{}", bind), toml::Value::Boolean(false));
+                }
+            }
+        }
+        Ok(Bind { toml: top })
+    }
+
+    fn split_bindings(bindings: Vec<String>) -> Result<Vec<(String, String)>> {
+        let mut bresult = Vec::new();
+        for bind in bindings.into_iter() {
+            let values: Vec<&str> = bind.splitn(2, ':').collect();
+            if values.len() != 2 {
+                return Err(sup_error!(Error::InvalidBinding(bind.clone())));
+            } else {
+                bresult.push((values[0].to_string(), values[1].to_string()));
+            }
+        }
+        Ok(bresult)
+    }
+
+    fn to_toml(&self) -> toml::Value {
+        toml::Value::Table(self.toml.clone())
     }
 }
 
@@ -544,7 +599,7 @@ mod test {
     fn to_toml_hab() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl).unwrap();
+        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -554,7 +609,7 @@ mod test {
     fn to_toml_pkg() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl).unwrap();
+        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
         assert_eq!(name, "sovereign");
@@ -564,7 +619,7 @@ mod test {
     fn to_toml_sys() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl).unwrap();
+        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
