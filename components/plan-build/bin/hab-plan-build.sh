@@ -1054,6 +1054,10 @@ attach() {
   local replno=1
   # Print out our current code context (source file, line number, etc.)
   _attach_whereami
+  # Clear on exit traps and allow for non-zero returning commands as we're
+  # entering a debugging session, remember?
+  trap - 1 2 3 15 ERR
+  set +e
   # Loop through input, REPL-style until either `"exit"` or `"quit"` is found
   while [[ "$cmd" != "exit" && "$cmd" != "quit" ]]; do
     read -p "[$replno] ${pkg_name}($fname)> " cmd
@@ -1093,6 +1097,9 @@ Aliases
     # Increment our REPL command line count, cause that's helpful
     replno=$((${replno}+1))
   done
+  # Re-enable on exit trap and restore exit-on-non-zero behavior
+  trap _on_exit 1 2 3 15 ERR
+  set -e
   printf "\n### Leaving debugging session\n\n"
   return 0
 }
