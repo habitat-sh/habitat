@@ -1936,7 +1936,7 @@ SHA: $pkg_shasum
 Path: $pkg_prefix
 Build Dependencies: $(printf "%s " ${pkg_build_deps[@]})
 Dependencies: $(printf "%s " ${pkg_deps[@]})
-Interpreters $(printf "%s " ${pkg_interpreters[@]})
+Interpreters: $(printf "%s " ${pkg_interpreters[@]})
 
 Plan
 ========
