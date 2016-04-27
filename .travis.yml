@@ -23,7 +23,7 @@ branches:
     - master
     - auto
 cache:
-  - apt
+  apt: true
   directories:
   - $HOME/.cargo
   - components/core/target
