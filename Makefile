@@ -37,13 +37,21 @@ bin: image ## builds the project's main binaries
 	$(run) sh -c 'cd components/depot && cargo build'
 
 all: image ## builds all the project's Rust components
+	$(run) sh -c 'cd components/builder-api && cargo build'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo build'
+	$(run) sh -c 'cd components/builder-vault && cargo build'
+	$(run) sh -c 'cd components/common && cargo build'
 	$(run) sh -c 'cd components/core && cargo build'
 	$(run) sh -c 'cd components/depot-core && cargo build'
 	$(run) sh -c 'cd components/depot-client && cargo build'
-	$(run) sh -c 'cd components/common && cargo build'
 	$(MAKE) bin
 
 test: image ## tests the project's Rust components
+	$(run) sh -c 'cd components/builder-api && cargo test'
+	$(run) sh -c 'cd components/builder-dbcache && cargo test'
+	$(run) sh -c 'cd components/builder-protocol && cargo test'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo test'
+	$(run) sh -c 'cd components/builder-vault && cargo test'
 	$(run) sh -c 'cd components/core && cargo test'
 	$(run) sh -c 'cd components/depot-core && cargo test'
 	$(run) sh -c 'cd components/depot-client && cargo test'
@@ -52,6 +60,11 @@ test: image ## tests the project's Rust components
 	$(run) sh -c 'cd components/depot && cargo test'
 
 unit: image ## executes the components' unit test suites
+	$(run) sh -c 'cd components/builder-api && cargo test --lib'
+	$(run) sh -c 'cd components/builder-dbcache && cargo test --lib'
+	$(run) sh -c 'cd components/builder-protocol && cargo test --lib'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo test --lib'
+	$(run) sh -c 'cd components/builder-vault && cargo test --lib'
 	$(run) sh -c 'cd components/core && cargo test --lib'
 	$(run) sh -c 'cd components/depot-core && cargo test --lib'
 	$(run) sh -c 'cd components/depot-client && cargo test --lib'
@@ -64,12 +77,19 @@ functional: image ## executes the components' functional test suites
 	$(run) sh -c 'cd components/depot && cargo test --test server'
 
 clean: ## cleans up the project tree
+	$(run) sh -c 'cd components/builder-api && cargo clean'
+	$(run) sh -c 'cd components/builder-dbcache && cargo clean'
+	$(run) sh -c 'cd components/builder-protocol && cargo clean'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo clean'
+	$(run) sh -c 'cd components/builder-vault && cargo clean'
 	$(run) sh -c 'cd components/common && cargo clean'
 	$(run) sh -c 'cd components/core && cargo clean'
 	$(run) sh -c 'cd components/depot-client && cargo clean'
 	$(run) sh -c 'cd components/depot-core && cargo clean'
 	$(run) sh -c 'cd components/depot && cargo clean'
 	$(run) sh -c 'cd components/hab && cargo clean'
+	$(run) sh -c 'cd components/net && cargo clean'
+	$(run) sh -c 'cd components/sodiumoxide && cargo clean'
 	$(run) sh -c 'cd components/sup && cargo clean'
 
 help:
