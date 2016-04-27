@@ -39,7 +39,6 @@ pub mod server;
 pub use self::config::Config;
 pub use self::error::{Error, Result};
 
-use std::net;
 use std::sync::Arc;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -102,22 +101,5 @@ impl Depot {
 
     fn packages_path(&self) -> PathBuf {
         Path::new(&self.config.path).join("pkgs")
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub struct ListenAddr(pub net::Ipv4Addr);
-#[derive(Debug, PartialEq, Eq)]
-pub struct ListenPort(pub u16);
-
-impl Default for ListenAddr {
-    fn default() -> Self {
-        ListenAddr(net::Ipv4Addr::new(0, 0, 0, 0))
-    }
-}
-
-impl Default for ListenPort {
-    fn default() -> Self {
-        ListenPort(9632)
     }
 }
