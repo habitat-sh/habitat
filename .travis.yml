@@ -1,10 +1,29 @@
 sudo: required
 language: rust
+addons:
+  apt:
+    packages:
+      - build-essential
+      - ca-certificates
+      - curl
+      - file
+      - gdb
+      - libarchive-dev
+      - libprotobuf-dev
+      - libssl-dev
+      - libzmq-dev
+      - pkg-config
+      - protobuf-compiler
+      - sudo
+      - tmux
+      - vim
+      - wget
 branches:
   only:
     - master
     - auto
 cache:
+  - apt
   directories:
   - $HOME/.cargo
   - components/core/target
@@ -19,7 +38,8 @@ services:
 before_install:
 - sudo add-apt-repository -y ppa:chris-lea/libsodium
 - sudo apt-get update
-- sudo apt-get -y install docker build-essential ca-certificates curl file gdb iproute2 libarchive-dev libprotobuf-dev libsodium-dev libssl-dev libzmq-dev man npm pkg-config protobuf-compiler sudo tmux vim wget
+- sudo apt-get -y install docker iproute2 libsodium-dev man npm
+- cargo install protobuf
 script:
 - ./support/ci.sh
 notifications:
