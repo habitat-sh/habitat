@@ -269,12 +269,12 @@ mod test {
     #[test]
     fn reading_artifact_metadata() {
         let mut hart =
-            PackageArchive::new(fixtures().join("happyhumans-possums-8.1.4-20160424223505.hart"));
+            PackageArchive::new(fixtures().join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
         let ident = hart.ident().unwrap();
         assert_eq!(ident.origin, "happyhumans");
         assert_eq!(ident.name, "possums");
         assert_eq!(ident.version, Some("8.1.4".to_string()));
-        assert_eq!(ident.release, Some("20160424223505".to_string()));
+        assert_eq!(ident.release, Some("20160427165340".to_string()));
     }
 
     pub fn exe_path() -> PathBuf {

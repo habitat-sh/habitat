@@ -295,6 +295,12 @@ PLAN_CONTEXT=${1:-.}
 export HAB_DEPOT_URL
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
+# The target architecture this plan will be built for
+pkg_arch=$(uname -m | tr [[:upper:]] [[:lower:]])
+# The target system (i.e. operating system variant) this plan will be built for
+pkg_sys=$(uname -s | tr [[:upper:]] [[:lower:]])
+# The full target tuple this plan will be built for
+pkg_target="${pkg_arch}-${pkg_sys}"
 # The package's origin (i.e. acme)
 pkg_origin=""
 # Each release is a timestamp - `YYYYMMDDhhmmss`
@@ -1822,6 +1828,7 @@ _build_metadata() {
     echo "$deps" > $pkg_prefix/TDEPS
   fi
 
+  echo "$pkg_target" > $pkg_prefix/TARGET
   echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" >> $pkg_prefix/IDENT
 
   return 0
@@ -1930,6 +1937,9 @@ $pkg_origin $pkg_name
 Maintainer: $pkg_maintainer
 Version: $pkg_version
 Release: $pkg_release
+Architecture: $pkg_arch
+System: $pkg_sys
+Target: $pkg_target
 License: $(printf "%s " ${pkg_license[@]})
 Source: [$pkg_source]($pkg_source)
 SHA: $pkg_shasum
@@ -2076,7 +2086,7 @@ pkg_svc_static_path="$pkg_svc_path/static"
 
 # Set the package artifact name
 _artifact_ext="hart"
-pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}.${_artifact_ext}"
+pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
 
 # Run `do_begin`
 build_line "$_program setup"
