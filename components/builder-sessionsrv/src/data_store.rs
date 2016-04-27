@@ -90,7 +90,6 @@ impl Account {
 }
 
 impl Model for Account {
-    type Error = Error;
     type Table = AccountTable;
 
     fn fields(&self) -> Fields {

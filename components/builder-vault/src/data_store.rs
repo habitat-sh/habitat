@@ -15,7 +15,7 @@ use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
 use rustc_serialize::Encodable;
 
-use error::{Error, Result};
+use error::Result;
 
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
@@ -138,7 +138,6 @@ impl Origin {
 }
 
 impl Model for Origin {
-    type Error = Error;
     type Table = OriginTable;
 
     fn fields(&self) -> Fields {
