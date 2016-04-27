@@ -35,7 +35,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                  "Use a specific Depot URL")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
+                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand sign =>
                 (about: "Signs a archive file with with an origin key, creating a Habitat artifact")
@@ -44,12 +44,12 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SOURCE: +required {file_exists}
                  "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
                 (@arg ARTIFACT: +required
-                 "The path to the generated Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
+                 "The path to the generated Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat artifact with an origin key")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
+                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand hash=>
                 (about: "Generate a BLAKE2b hash for a file")
@@ -139,7 +139,7 @@ fn sub_package_install() -> App<'static, 'static> {
         (about: "Installs a Habitat package from a Depot or locally from a Habitat artifact")
         (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
         (@arg PKG_IDENT_OR_ARTIFACT: +required "A Habitat package identifier (ex: acme/redis) \
-         or path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201.hart)")
+         or path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
     )
 }
 

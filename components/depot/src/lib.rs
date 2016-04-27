@@ -85,7 +85,7 @@ impl Depot {
         self.packages_path()
             .join(format!("{:x}", output[0]))
             .join(format!("{:x}", output[1]))
-            .join(format!("{}-{}-{}-{}.hart",
+            .join(format!("{}-{}-{}-{}-x86_64-linux.hart",
                           &ident.origin,
                           &ident.name,
                           ident.version.as_ref().unwrap(),
