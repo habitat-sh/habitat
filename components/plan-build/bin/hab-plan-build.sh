@@ -367,6 +367,9 @@ umask 0022
 # Would also exit 1.
 _on_exit() {
   local exit_status=${1:-$?}
+  if [[ $BASH_SUBSHELL -gt 0 ]]; then
+    exit $exit_status
+  fi
   : ${pkg_name:=unknown}
   elapsed=$SECONDS
   elapsed=$(echo $elapsed | awk '{printf "%dm%ds", $1/60, $1%60}')
