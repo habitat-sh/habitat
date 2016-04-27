@@ -167,7 +167,7 @@ use util::perm;
 /// It's possible to examine the contents of a `.hart` file from a Linux shell:
 ///
 /// ```text
-/// $ head -4 /path/to/acme-glibc-2.22-20160310192356.hart
+/// $ head -4 /path/to/acme-glibc-2.22-20160310192356-x86_64-linux.hart
 /// HART-1
 /// habitat-20160405144945
 /// BLAKE2b
