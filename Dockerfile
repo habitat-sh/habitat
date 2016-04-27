@@ -40,7 +40,9 @@ RUN cargo install protobuf
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
 COPY components/studio/install.sh /tmp
-RUN /tmp/install.sh && rm -f /tmp/install.sh
+RUN /tmp/install.sh \
+  && hab-bpm install core/busybox-static \
+  && rm -f /tmp/install.sh /hab/cache/artifacts/*
 
 WORKDIR /src
 CMD ["bash"]
