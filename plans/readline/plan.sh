@@ -12,15 +12,17 @@ pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
 
-# The maintainer of Readline only releases these patches to fix serious issues,
-# so any new official patches will be part of this build, which will be
-# reflected in the "tiny" or "patch" number of the version coordinate. In other
-# words, given 6 patches, the version of this Readline package would be
-# `MAJOR.MINOR.6`.
+do_begin() {
+  # The maintainer of Readline only releases these patches to fix serious issues,
+  # so any new official patches will be part of this build, which will be
+  # reflected in the "tiny" or "patch" number of the version coordinate. In other
+  # words, given 6 patches, the version of this Readline package would be
+  # `MAJOR.MINOR.6`.
 
-# Source a file containing an array of patch URLs and an array of patch file
-# shasums
-source $PLAN_CONTEXT/readline-patches.sh
+  # Source a file containing an array of patch URLs and an array of patch file
+  # shasums
+  source $PLAN_CONTEXT/readline-patches.sh
+}
 
 do_download() {
   do_default_download

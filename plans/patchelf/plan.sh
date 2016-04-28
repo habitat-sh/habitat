@@ -13,10 +13,15 @@ if [[ -n "$FIRST_PASS" ]]; then
   # this package to prepare gcc-libs, we'll do the cheap version first
   # that relies on the full gcc version of these shared libraries
   pkg_deps=(core/glibc core/gcc)
-  build_line "Using libgcc and libstdc++ from core/gcc"
 else
   pkg_deps=(core/glibc core/gcc-libs)
 fi
+
+do_begin() {
+  if [[ -n "$FIRST_PASS" ]]; then
+    build_line "Using libgcc and libstdc++ from core/gcc"
+  fi
+}
 
 
 # ----------------------------------------------------------------------------

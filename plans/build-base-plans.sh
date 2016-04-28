@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # # Usage
 #
@@ -77,6 +77,9 @@ origin=core
 # ```
 _on_exit() {
   local exit_status=${1:-$?}
+  if [ -n "${PRINT_IDENTS_ONLY:-}" ]; then
+    exit $?
+  fi
   local elapsed=$SECONDS
   elapsed=$(echo $elapsed | awk '{printf "%dm%ds", $1/60, $1%60}')
   printf -- "\n$(basename $0) run time: $elapsed\n\n"
@@ -111,12 +114,16 @@ _build() {
   # If the `$plan` value is a path/name combination like
   # `../components/foobar:hab-foobar` then split the token into its requisite
   # parts.
-  case $(echo "$plan" | grep -o ':' | wc -l) in
+  case $(echo "$plan" | grep -o ':' | wc -l | sed 's,^[^0-9]*,,') in
     1)
       plan_dir=$(echo $plan | cut -d ':' -f 1)
       plan=$(echo $plan | cut -d ':' -f 2)
       ;;
   esac
+  if [ -n "${PRINT_IDENTS_ONLY:-}" ]; then
+    echo "${origin}/$plan"
+    return 0
+  fi
   # If the `$STOP_BEFORE` environment variable is set, and its value is the
   # desired Plan, then we'll stop. This is a convenient way to build up to an
   # interesting Plan without steamrolling right over it.

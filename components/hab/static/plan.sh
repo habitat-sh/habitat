@@ -10,8 +10,10 @@ pkg_build_deps=(
   core/coreutils core/cacerts core/rust core/gcc
 )
 
-# Set the parent directory as the "root" of this plan.
-PLAN_CONTEXT=$(abspath ..)
+do_begin() {
+  # Set the parent directory as the "root" of this plan.
+  PLAN_CONTEXT=$(abspath ..)
+}
 
 do_prepare() {
   _common_prepare
