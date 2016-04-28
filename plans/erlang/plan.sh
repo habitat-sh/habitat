@@ -7,22 +7,39 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://www.erlang.org/download/otp_src_${pkg_version}.tar.gz
 pkg_filename=otp_src_${pkg_version}.tar.gz
 pkg_shasum=82d76ebfeeda5db64ea5b0f1a04aa0e9ac63380b278722e0e6052249bd3fe39a
-pkg_deps=(core/glibc core/zlib)
-pkg_lib_dirs=(lib)
+pkg_deps=(core/glibc core/zlib core/ncurses)
+pkg_build_deps=(core/coreutils core/gcc core/make core/perl)
+pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
+pkg_lib_dirs=(lib)
+
+do_prepare() {
+  # The `/bin/pwd` path is hardcoded, so we'll add a symlink if needed.
+  if [[ ! -r /bin/pwd ]]; then
+    ln -sv $(pkg_path_for coreutils)/bin/pwd /bin/pwd
+    _clean_pwd=true
+  fi
+}
 
 do_build() {
-    ./configure --prefix=${pkg_prefix} \
-                --enable-threads \
-                --enable-smp-support \
-                --enable-kernel-poll \
-                --enable-threads \
-                --enable-smp-support \
-                --enable-kernel-poll \
-                --enable-dynamic-ssl-lib \
-                --enable-shared-zlib \
-                --enable-hipe \
-                --without-javac \
-                --disable-debug
-    make
+  ./configure --prefix=${pkg_prefix} \
+              --enable-threads \
+              --enable-smp-support \
+              --enable-kernel-poll \
+              --enable-threads \
+              --enable-smp-support \
+              --enable-kernel-poll \
+              --enable-dynamic-ssl-lib \
+              --enable-shared-zlib \
+              --enable-hipe \
+              --without-javac \
+              --disable-debug
+  make
+}
+
+do_end() {
+  # Clean up the `pwd` link, if we set it up.
+  if [[ -n "$_clean_pwd" ]]; then
+    rm -fv /bin/pwd
+  fi
 }
