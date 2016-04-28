@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 ENV CARGO_HOME /cargo-cache
-ENV PATH /cargo-cache/bin:$PATH
+ENV PATH $PATH:$CARGO_HOME/bin:/root/.cargo/bin
 
 ARG HAB_DEPOT_URL
 ENV HAB_DEPOT_URL ${HAB_DEPOT_URL:-}
@@ -35,7 +35,7 @@ RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco
 
 RUN (adduser --system hab || true) && (addgroup --system hab || true)
 
-RUN cargo install protobuf
+RUN env -u CARGO_HOME cargo install protobuf && rm -rf /root/.cargo/registry
 
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
