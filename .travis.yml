@@ -18,6 +18,7 @@ addons:
       - tmux
       - vim
       - wget
+      - python-yaml
 branches:
   only:
     - master

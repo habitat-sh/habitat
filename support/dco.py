@@ -41,3 +41,6 @@ if failed_commits > 0:
 
 print 'All commits have a valid "{0}" marker.'.format(DCO)
 exit(0)
+
+
+# https://github.com/docker/docker/commit/561d1db074edd4e7e7d8b02401abd3fc11b9d51c
