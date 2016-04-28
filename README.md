@@ -224,7 +224,7 @@ Each commit must include a DCO which looks like this
 
 The project requires that the name used is your real name.  No contributions utilizing pseudonyms will be accepted nor will anonymous contributions.
 
-Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and `user.email` are set in your git configs.  Use the `-s` or `--signoff` to add the Signed-off-by line tp the end of the commit message.
+Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and `user.email` are set in your git configs.  Use `-s` or `--signoff` to add the Signed-off-by line to the end of the commit message.
 
 ## Development environment with hab-studio
 
@@ -271,7 +271,7 @@ systems, cause thats all we're up to).
 ## Web Application
 
 The Habitat web application is in the web/ directory. See
-[its README](web/README) for more information.
+[its README](web/README.md) for more information.
 
 ## Pull Request Review and Merge Automation
 
