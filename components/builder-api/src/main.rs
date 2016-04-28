@@ -7,6 +7,7 @@
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
+extern crate habitat_core as core;
 extern crate habitat_builder_api as api;
 #[macro_use]
 extern crate log;
@@ -14,9 +15,12 @@ extern crate log;
 use std::process;
 use std::str::FromStr;
 
+use core::config::ConfigFile;
+
 use api::{Config, Error, Result};
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-api/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -35,12 +39,13 @@ fn main() {
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap_app!(BuilderApi =>
         (version: VERSION)
-        (about: "Manage a Habitat builder-api")
+        (about: "Habitat builder-api")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
+        (@arg config: -c --config +takes_value +global "Filepath to configuration file. [default: /hab/svc/hab-builder-api/config.toml]")
+        (@arg port: --port +takes_value +global "Listen port. [default: 9632]")
         (@subcommand start =>
-            (about: "Run a Habitat builder-api")
-            (@arg port: --port +takes_value "Listen port. [default: 9632]")
+            (about: "Run the builder-api server")
         )
     )
 }
@@ -48,7 +53,10 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
 fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
-    let mut config = Config::new();
+    let mut config = match args.value_of("config") {
+        Some(cfg_path) => try!(Config::from_file(cfg_path)),
+        None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
+    };
     if let Some(port) = args.value_of("port") {
         if u16::from_str(port).map(|p| config.set_port(p)).is_err() {
             return Err(Error::BadPort(port.to_string()));
@@ -58,7 +66,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
 }
 
 fn exit_with(err: Error, code: i32) {
-    println!("{:?}", err);
+    println!("{}", err);
     process::exit(code)
 }
 

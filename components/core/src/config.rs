@@ -101,6 +101,21 @@ impl ParseInto<String> for toml::Table {
     }
 }
 
+impl ParseInto<usize> for toml::Table {
+    fn parse_into(&self, field: &'static str, out: &mut usize) -> Result<bool> {
+        if let Some(val) = self.get(field) {
+            if let Some(v) = val.as_integer() {
+                *out = v as usize;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidString(field, val.clone()))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
 fn format_errors(parser: &toml::Parser) -> String {
     let mut msg = String::new();
     for err in &parser.errors {

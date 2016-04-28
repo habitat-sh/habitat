@@ -6,6 +6,11 @@
 
 use std::net;
 
+use core::config::{ConfigFile, ParseInto};
+use toml;
+
+use error::{Error, Result};
+
 pub struct Config {
     pub http_addr: net::SocketAddrV4,
     sessionsrv_addr: net::SocketAddrV4,
@@ -13,10 +18,6 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new() -> Self {
-        Config::default()
-    }
-
     pub fn sessionsrv_addr(&self) -> String {
         format!("tcp://{}:{}",
                 self.sessionsrv_addr.ip(),
@@ -42,5 +43,17 @@ impl Default for Config {
             sessionsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5560),
             vaultsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5561),
         }
+    }
+}
+
+impl ConfigFile for Config {
+    type Error = Error;
+
+    fn from_toml(toml: toml::Table) -> Result<Self> {
+        let mut cfg = Config::default();
+        try!(toml.parse_into("cfg.http_addr", &mut cfg.http_addr));
+        try!(toml.parse_into("cfg.sessionsrv_addr", &mut cfg.sessionsrv_addr));
+        try!(toml.parse_into("cfg.vaultsrv_addr", &mut cfg.vaultsrv_addr));
+        Ok(cfg)
     }
 }

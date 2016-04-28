@@ -4,10 +4,12 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::error;
 use std::fmt;
 use std::io;
 use std::result;
 
+use core;
 use dbcache;
 use hnet;
 use hyper;
@@ -23,6 +25,7 @@ pub enum Error {
     BadPort(String),
     DataStore(dbcache::Error),
     EntityNotFound,
+    HabitatCore(core::Error),
     HTTP(hyper::status::StatusCode),
     HyperError(hyper::error::Error),
     IO(io::Error),
@@ -42,6 +45,7 @@ impl fmt::Display for Error {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::EntityNotFound => format!("No value for key found"),
+            Error::HabitatCore(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::HyperError(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
@@ -52,6 +56,32 @@ impl fmt::Display for Error {
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::Auth(_) => "GitHub authorization error.",
+            Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
+            Error::DataStore(ref err) => err.description(),
+            Error::EntityNotFound => "Entity not found in database.",
+            Error::HabitatCore(ref err) => err.description(),
+            Error::HTTP(_) => "Non-200 HTTP response.",
+            Error::HyperError(ref err) => err.description(),
+            Error::IO(ref err) => err.description(),
+            Error::NetError(ref err) => err.description(),
+            Error::JsonDecode(ref err) => err.description(),
+            Error::MissingScope(_) => "Missing GitHub authorization scope.",
+            Error::Protobuf(ref err) => err.description(),
+            Error::Zmq(ref err) => err.description(),
+        }
+    }
+}
+
+impl From<core::Error> for Error {
+    fn from(err: core::Error) -> Error {
+        Error::HabitatCore(err)
     }
 }
 

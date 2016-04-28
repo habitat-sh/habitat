@@ -7,15 +7,18 @@
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
+extern crate habitat_core as core;
 extern crate habitat_builder_worker as worker;
 #[macro_use]
 extern crate log;
 
 use std::process;
 
+use core::config::ConfigFile;
 use worker::{Config, Error, Result};
 
-const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-worker/config.toml";
 
 fn main() {
     env_logger::init().unwrap();
@@ -37,6 +40,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (about: "Manage a Habitat-Builder worker")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
+        (@arg config: -c --config +takes_value +global "Filepath to configuration file. [default: /hab/svc/hab-builder-worker/config.toml]")
         (@subcommand start =>
             (about: "Run a Habitat-Builder worker")
         )
@@ -46,12 +50,15 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
 fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
-    let mut config = Config::new();
+    let config = match args.value_of("config") {
+        Some(cfg_path) => try!(Config::from_file(cfg_path)),
+        None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
+    };
     Ok(config)
 }
 
 fn exit_with(err: Error, code: i32) {
-    println!("{:?}", err);
+    println!("{}", err);
     process::exit(code)
 }
 

@@ -4,6 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::error;
 use std::fmt;
 use std::io;
 use std::result;
@@ -28,6 +29,16 @@ impl fmt::Display for Error {
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::IO(ref err) => err.description(),
+            Error::Protobuf(ref err) => err.description(),
+            Error::Zmq(ref err) => err.description(),
+        }
     }
 }
 
