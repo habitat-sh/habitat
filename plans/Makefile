@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := base
 
 base: ## builds all base packages in serial order
-	sh ./build-base-plans.sh
+	bash ./build-base-plans.sh
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

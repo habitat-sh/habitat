@@ -9,7 +9,9 @@ pkg_build_deps=("${pkg_deps[@]}" "${pkg_build_deps[@]}")
 # Empty out the run deps array
 pkg_deps=()
 
-PLAN_CONTEXT=$(abspath ../bash)
+do_begin() {
+  PLAN_CONTEXT=$(abspath ../bash)
+}
 
 do_build() {
   ./configure \
