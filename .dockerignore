@@ -9,6 +9,7 @@ images
 log
 plans
 support
+!support/init.sh
 vendor
 web
 *.md
