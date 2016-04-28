@@ -4,10 +4,12 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::error;
 use std::fmt;
 use std::io;
 use std::result;
 
+use core;
 use hnet;
 use protobuf;
 use dbcache;
@@ -18,9 +20,9 @@ use zmq;
 pub enum Error {
     BadPort(String),
     DataStore(dbcache::Error),
+    HabitatCore(core::Error),
     IO(io::Error),
     JsonDecode(json::DecoderError),
-    MissingScope(String),
     NetError(hnet::Error),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
@@ -33,14 +35,35 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::DataStore(ref e) => format!("DataStore error, {}", e),
+            Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
-            Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
+            Error::DataStore(ref err) => err.description(),
+            Error::HabitatCore(ref err) => err.description(),
+            Error::IO(ref err) => err.description(),
+            Error::JsonDecode(ref err) => err.description(),
+            Error::NetError(ref err) => err.description(),
+            Error::Protobuf(ref err) => err.description(),
+            Error::Zmq(ref err) => err.description(),
+        }
+    }
+}
+
+impl From<core::Error> for Error {
+    fn from(err: core::Error) -> Error {
+        Error::HabitatCore(err)
     }
 }
 

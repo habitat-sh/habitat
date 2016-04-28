@@ -3,6 +3,7 @@ name = "habitat_builder_vault"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder Vault Server"
+build = "build.rs"
 
 [[bin]]
 name = "bldr-vault"
@@ -15,6 +16,7 @@ protobuf = "*"
 r2d2 = "*"
 redis = "*"
 rustc-serialize = "*"
+toml = "*"
 
 [dependencies.clap]
 version = "*"
@@ -28,6 +30,9 @@ branch = "update-r2d2"
 # git = "https://github.com/erickt/rust-zmq.git"
 git = "https://github.com/reset/rust-zmq.git"
 branch = "build-rs"
+
+[dependencies.habitat_core]
+path = "../core"
 
 [dependencies.habitat_builder_dbcache]
 path = "../builder-dbcache"

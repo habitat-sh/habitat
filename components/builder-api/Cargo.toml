@@ -3,6 +3,7 @@ name = "habitat_builder_api"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder HTTP API gateway"
+build = "build.rs"
 
 [[bin]]
 name = "bldr-api"
@@ -16,6 +17,7 @@ protobuf = "*"
 redis = "*"
 router = "*"
 rustc-serialize = "*"
+toml = "*"
 urlencoded = "*"
 
 [dependencies.clap]
@@ -26,6 +28,9 @@ features = [ "suggestions", "color", "unstable" ]
 # git = "https://github.com/erickt/rust-zmq.git"
 git = "https://github.com/reset/rust-zmq.git"
 branch = "build-rs"
+
+[dependencies.habitat_core]
+path = "../core"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

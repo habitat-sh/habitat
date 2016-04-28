@@ -1,0 +1,3 @@
+listen_addr = "0.0.0.0:5560"
+datastore_addr = "127.0.0.1:6397"
+worker_count = 8

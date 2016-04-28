@@ -6,18 +6,35 @@
 
 use std::net;
 
+use core::config::{ConfigFile, ParseInto};
+use toml;
+
+use error::{Error, Result};
+
 pub struct Config {
     pub jobsrv_addr: net::SocketAddrV4,
 }
 
 impl Config {
-    pub fn new() -> Self {
-        Config::default()
+    pub fn jobsrv_addr(&self) -> String {
+        format!("tcp://{}:{}",
+                self.jobsrv_addr.ip(),
+                self.jobsrv_addr.port())
     }
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Config { jobsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 5560) }
+        Config { jobsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562) }
+    }
+}
+
+impl ConfigFile for Config {
+    type Error = Error;
+
+    fn from_toml(toml: toml::Table) -> Result<Self> {
+        let mut cfg = Config::default();
+        try!(toml.parse_into("cfg.jobsrv_addr", &mut cfg.jobsrv_addr));
+        Ok(cfg)
     }
 }

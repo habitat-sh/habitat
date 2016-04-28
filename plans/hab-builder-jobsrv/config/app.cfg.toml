@@ -1,7 +1,0 @@
-[http]
-ip = {{cfg.http.ip}}
-port = {{cfg.http.port}}
-
-[sessionsrv]
-ip = {{cfg.sessionsrv.ip}}
-port = {{cfg.sessionsrv.port}}

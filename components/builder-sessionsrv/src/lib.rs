@@ -7,6 +7,7 @@
 extern crate habitat_builder_dbcache as dbcache;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_net as hnet;
+extern crate habitat_core as core;
 extern crate hyper;
 #[macro_use]
 extern crate log;
@@ -16,6 +17,7 @@ extern crate r2d2_redis;
 extern crate redis;
 extern crate rustc_serialize;
 extern crate time;
+extern crate toml;
 #[macro_use]
 extern crate zmq;
 
