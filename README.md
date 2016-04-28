@@ -231,12 +231,17 @@ Git makes it easy to add this line to your commit messages.  Make sure the `user
 The Habitat Studio provides an isolated environment with where packages can be
 built.
 
+Because all Habitat packages are cryptographically signed, you'll
+need to make sure you have the signing key on hand for the origin your
+package belongs to, and that it's installed in `/hab/cache/keys` inside
+the Studio.
+
 To build a package:
 
 ```bash
 $ make shell
 $ hab-studio enter
-$ (cd plans; make gpg)
+# Install the signing key in /hab/cache/keys before running the next step.
 $ build plans/redis
 ```
 
