@@ -172,9 +172,59 @@ on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
 1. Change directory to a component `cd components/x`
 1. Build with `cargo build` or `cargo test`
 1. You can use `cargo run -- foobar` to pass options to the built binary
-1. Commit your change
+1. Sign and commit your change
 1. Push your feature branch to GitHub, and create a Pull Request
 
+### Signing Your Commits
+
+This project utilizes a Developer Certificate of Origin (DCO) to ensure that each commit was written by the author or that the author has the appropriate rights necessary to contribute the change.  The project utilizes [Developer Certificate of Origin, Version 1.1](http://developercertificate.org/)
+
+```
+Developer Certificate of Origin
+Version 1.1
+
+Copyright (C) 2004, 2006 The Linux Foundation and its contributors.
+660 York Street, Suite 102,
+San Francisco, CA 94110 USA
+
+Everyone is permitted to copy and distribute verbatim copies of this
+license document, but changing it is not allowed.
+
+
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the best
+    of my knowledge, is covered under an appropriate open source
+    license and I have the right under that license to submit that
+    work with modifications, whether created in whole or in part
+    by me, under the same open source license (unless I am
+    permitted to submit under a different license), as indicated
+    in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including all
+    personal information I submit with it, including my sign-off) is
+    maintained indefinitely and may be redistributed consistent with
+    this project or the open source license(s) involved.
+```
+
+Each commit must include a DCO which looks like this
+
+`Signed-off-by: Joe Smith <joe.smith@email.com>`
+
+The project requires that the name used is your real name.  No contributions utilizing pseudonyms will be accepted nor will anonymous contributions.
+
+Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and `user.email` are set in your git configs.  Use the `-s` or `--signoff` to add the Signed-off-by line tp the end of the commit message.
 
 ## Development environment with hab-studio
 
