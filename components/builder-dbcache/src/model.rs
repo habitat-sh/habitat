@@ -17,28 +17,3 @@ pub trait Model: Encodable + Decodable + From<DataRecord> {
     fn id(&self) -> &InstaId;
     fn set_id(&mut self, InstaId) -> ();
 }
-
-#[cfg(test)]
-mod test {
-    use config::Config;
-    use super::*;
-    use super::super::DataStore;
-
-    fn data_store() -> DataStore {
-        let cfg = Config::new();
-        let mut ds = DataStore::new();
-        ds.open(&cfg).unwrap();
-        ds
-    }
-
-    #[test]
-    fn store_and_retrieve_model() {
-        let ds = data_store();
-        let mut account = Account::new("reset".to_string(), "reset@chef.io".to_string());
-        account.save(&ds).unwrap();
-        let record: Account = ds.find(&account.id).unwrap();
-        assert_eq!(record.id, account.id);
-        assert_eq!(record.email, account.email);
-        assert_eq!(record.name, account.name);
-    }
-}
