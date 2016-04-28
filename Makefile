@@ -61,8 +61,7 @@ test: image ## tests the project's Rust components
 
 unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/builder-api && cargo test --lib'
-	# FIXME
-	# $(run) sh -c 'cd components/builder-dbcache && cargo test --lib'
+	$(run) sh -c 'cd components/builder-dbcache && cargo test --lib'
 	$(run) sh -c 'cd components/builder-protocol && cargo test --lib'
 	$(run) sh -c 'cd components/builder-sessionsrv && cargo test --lib'
 	$(run) sh -c 'cd components/builder-vault && cargo test --lib'
