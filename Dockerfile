@@ -40,9 +40,14 @@ RUN cargo install protobuf
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
 COPY components/studio/install.sh /tmp
+COPY support/init.sh /init.sh
 RUN /tmp/install.sh \
   && hab-bpm install core/busybox-static \
+  && (cd /tmp && curl -sLO https://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-20160423193745.pub) \
+  && chmod 755 /init.sh \
   && rm -f /tmp/install.sh /hab/cache/artifacts/*
 
 WORKDIR /src
+# This entrypoint is temporary until origin key download on install is implemented
+ENTRYPOINT ["/init.sh"]
 CMD ["bash"]
