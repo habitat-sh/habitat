@@ -42,7 +42,7 @@ before_install:
 - sudo add-apt-repository -y ppa:chris-lea/libsodium
 - sudo apt-get update
 - sudo apt-get -y install docker iproute2 libsodium-dev man npm
-- cargo install protobuf
+- command -v protoc-gen-rust || cargo install protobuf
 script:
 - ./support/ci.sh
 notifications:
