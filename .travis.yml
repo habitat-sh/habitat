@@ -26,13 +26,22 @@ cache:
   apt: true
   directories:
   - $HOME/.cargo
+  - components/builder-api/target
+  - components/builder-dbcache/target
+  - components/builder-jobsrv/target
+  - components/builder-protocol/target
+  - components/builder-sessionsrv/target
+  - components/builder-vault/target
+  - components/builder-worker/target
+  - components/common/target
   - components/core/target
   - components/depot-core/target
   - components/depot-client/target
-  - components/common/target
-  - components/sup/target
   - components/depot/target
   - components/hab/target
+  - components/net/target
+  - components/sodiumoxide/target
+  - components/sup/target
 env:
   global:
     - PATH=$HOME/.cargo/bin:$PATH
