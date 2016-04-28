@@ -222,3 +222,15 @@ systems, cause thats all we're up to).
 
 The Habitat web application is in the web/ directory. See
 [its README](web/README) for more information.
+
+## Pull Request Review and Merge Automation
+
+Habitat uses several bots to automate the review and merging of pull
+requests. Messages to and from the bots are brokered via the account
+@thesentinels. First, we use Facebook's [mention bot](https://github.com/facebook/mention-bot)
+to identify potential reviewers for a pull request based on the `blame`
+information in the relevant diff. @thesentinels can also receive
+incoming commands from reviewers to approve PRs. These commands are
+routed to a [homu](https://github.com/barosl/homu) bot that will
+automatically merge a PR when sufficient reviewers have provided a +1
+(or r+ in homu terminology).
