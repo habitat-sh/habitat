@@ -19,8 +19,8 @@ do_install() {
   # Copy our source files from HAB_CACHE_SRC_PATH to the nodejs-tutorial-app
   # package.  This is so that when Habitat calls "npm start" at start-up, we
   # have the source files included in the package.
-  cp package.json ${pkg_path}
-  cp server.js ${pkg_path}
+  cp package.json $pkg_prefix/
+  cp server.js $pkg_prefix/
 
   # Copy over the nconf module to the package that we installed in do_build().
   mkdir -p ${pkg_prefix}/node_modules/
