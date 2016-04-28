@@ -69,6 +69,10 @@ alias fgrep='fgrep --color=auto'
 
 PROFILE
 
+  # TODO FIN: Remove when public origin keys are downloaded on package installation
+  $bb mkdir -p $HAB_STUDIO_ROOT$HAB_ROOT_PATH/cache/keys
+  (cd $HAB_STUDIO_ROOT$HAB_ROOT_PATH/cache/keys; $bb wget http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-20160423193745.pub)
+
   studio_env_command="$coreutils_path/bin/env"
 }
 
