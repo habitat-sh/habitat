@@ -18,6 +18,7 @@ addons:
       - tmux
       - vim
       - wget
+      - python-yaml
 branches:
   only:
     - master
@@ -54,6 +55,7 @@ before_install:
 - command -v protoc-gen-rust || cargo install protobuf
 script:
 - ./support/ci.sh
+- ./support/dco.py
 notifications:
   slack:
     secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
