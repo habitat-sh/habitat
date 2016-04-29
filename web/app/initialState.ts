@@ -74,8 +74,7 @@ export default Record({
         current: Record({
             name: "smith",
         })(),
-     //   mine: List(),
-        mine: List([{ name: "smith", default: true }, { name: "core", default: false }, { name: "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo", default: false }]),
+        mine: List(),
         ui: Record({
             current: Record({
                 creating: false,

@@ -18,7 +18,12 @@ redis = "*"
 router = "*"
 rustc-serialize = "*"
 toml = "*"
+unicase = "*"
 urlencoded = "*"
+
+[dependencies.bodyparser]
+
+git = "https://github.com/iron/body-parser.git"
 
 [dependencies.clap]
 version = "*"

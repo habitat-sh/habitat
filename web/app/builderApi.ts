@@ -10,19 +10,6 @@ import config from "./config";
 
 const urlPrefix = config["builder_url"] || "";
 
-export function createOrigin(origin) {
-    return new Promise((resolve, reject) => {
-        // FIXME: Remove this when we have a real api
-        resolve(origin);
-        fetch(`${urlPrefix}/origins`, {
-            body: JSON.stringify(origin),
-            method: "POST",
-        }).then(response => {
-            resolve(response.json());
-        }).catch(error => reject(error));
-    });
-}
-
 export function createProject(project) {
     return new Promise((resolve, reject) => {
         // FIXME: Remove this when we have a real api
@@ -38,8 +25,6 @@ export function createProject(project) {
 
 export function deleteOrigin(origin) {
     return new Promise((resolve, reject) => {
-        // FIXME: Remove this when we have a real api
-        resolve(origin);
         fetch(`${urlPrefix}/origins/${origin["name"]}`, {
             method: "DELETE",
         }).then(response => {
@@ -59,9 +44,6 @@ export function getMyOrigins() {
 export function isOriginAvailable(name) {
     return new Promise((resolve, reject) => {
         fetch(`${urlPrefix}/origins/${name}`).then(response => {
-            // FIXME: FAKE!
-            if (name === "smith") { resolve(true); }
-
             // Getting a 200 means it exists and is already taken.
             if (response.status === 200) {
                 reject(false);
@@ -70,9 +52,6 @@ export function isOriginAvailable(name) {
                 resolve(true);
             }
         }).catch(error => {
-            // FIXME: FAKE!
-            if (name === "smith") { resolve(true); }
-
             // This happens when there is a network error. We'll say that it is
             // not available.
             reject(false);

@@ -6,7 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 import {Control, ControlGroup, FormBuilder, Validators} from "angular2/common";
-import {Component, OnInit} from "angular2/core";
+import {AfterViewInit, Component, OnInit} from "angular2/core";
 import {Observable} from "rxjs";
 import {AppStore} from "../AppStore";
 import {AsyncValidator} from "../AsyncValidator";
@@ -75,15 +75,13 @@ import {requireSignIn} from "../util";
     </div>`
 })
 
-export class OriginCreatePageComponent implements OnInit {
+export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     private form: ControlGroup;
     private maxLength = 255;
     private name: Control;
     private pattern = "^[a-z0-9\-_]+$";
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
-        requireSignIn(this);
-
         this.form = formBuilder.group({
             default: new Control(this.isFirstOrigin),
         });
@@ -99,16 +97,23 @@ export class OriginCreatePageComponent implements OnInit {
 
     get username() { return this.store.getState().users.current.username; }
 
-
-    ngOnInit() {
+    ngAfterViewInit() {
         // Attempt to validate when the page loads.
         if (this.isFirstOrigin) {
-            this.name.markAsDirty();
+            setTimeout(() => this.form.controls["name"].markAsDirty(), 1000);
         }
     }
 
+    ngOnInit() {
+        requireSignIn(this);
+    }
+
     private createOrigin(origin) {
-        this.store.dispatch(createOrigin(origin, this.isFirstOrigin));
+        this.store.dispatch(createOrigin(
+            origin,
+            this.store.getState().gitHub.authToken,
+            this.isFirstOrigin
+        ));
         return false;
     }
 }

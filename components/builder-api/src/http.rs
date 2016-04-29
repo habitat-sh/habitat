@@ -4,6 +4,8 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+extern crate bodyparser;
+
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, JoinHandle};
 
@@ -13,9 +15,10 @@ use iron::headers::{self, Authorization, Bearer};
 use protobuf::{self, Message};
 use protocol::sessionsrv::{Session, SessionGet, GitHubAuth};
 use protocol::vault::{Origin, OriginCreate, OriginGet};
-use protocol::net::NetError;
+use protocol::net::{NetError, ErrCode};
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
+use unicase::UniCase;
 use zmq;
 
 use broker::{SessionSrv, VaultSrv};
@@ -27,6 +30,8 @@ struct Cors;
 impl AfterMiddleware for Cors {
     fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
+        res.headers
+           .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
         Ok(res)
     }
 }
@@ -40,7 +45,7 @@ pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Joi
         get "/authenticate/:code" => move |r: &mut Request| authenticate(r, &ctx1),
 
         get "/origins/:origin" => move |r: &mut Request| origin_show(r, &ctx2),
-        post "/origins/:origin" => move |r: &mut Request| origin_create(r, &ctx3),
+        post "/origins" => move |r: &mut Request| origin_create(r, &ctx3),
     );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
@@ -117,8 +122,11 @@ fn origin_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<
                 Some("NetError") => {
                     let msg = conn.recv_msg(0).unwrap();
                     let err: NetError = protobuf::parse_from_bytes(&msg).unwrap();
-                    let encoded = json::encode(&err.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
+
+                    match err.get_code() {
+                        ErrCode::ENTITY_NOT_FOUND => Ok(Response::with(status::NotFound)),
+                        _ => Ok(Response::with(status::InternalServerError)),
+                    }
                 }
                 _ => Ok(Response::with(status::InternalServerError)),
             }
@@ -132,7 +140,7 @@ fn origin_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<
 
 fn origin_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
     let session: Session = match req.headers.get::<Authorization<Bearer>>() {
-        Some(&Authorization(Bearer {ref token})) => {
+        Some(&Authorization(Bearer { ref token })) => {
             // ask session server for owner
             let mut conn = SessionSrv::connect(&ctx).unwrap();
             let mut request = SessionGet::new();
@@ -167,14 +175,20 @@ fn origin_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResul
         }
         _ => return Ok(Response::with(status::Unauthorized)),
     };
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
+
+    let mut request = OriginCreate::new();
+
+    match req.get::<bodyparser::Json>() {
+        Ok(Some(body)) => {
+            match body.find("name") {
+                Some(origin) => request.set_name(origin.as_string().unwrap().to_owned()),
+                _ => return Ok(Response::with(status::BadRequest)),
+            }
+        }
         _ => return Ok(Response::with(status::BadRequest)),
     };
+
     let mut conn = VaultSrv::connect(&ctx).unwrap();
-    let mut request = OriginCreate::new();
-    request.set_name(origin);
     request.set_owner_id(session.get_id());
     conn.send_str("OriginCreate", zmq::SNDMORE).unwrap();
     conn.send(&request.write_to_bytes().unwrap(), 0).unwrap();
@@ -185,7 +199,7 @@ fn origin_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResul
                     let msg = conn.recv_msg(0).unwrap();
                     let origin: Origin = protobuf::parse_from_bytes(&msg).unwrap();
                     let encoded = json::encode(&origin.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
+                    Ok(Response::with((status::Created, encoded)))
                 }
                 Some("NetError") => {
                     let msg = conn.recv_msg(0).unwrap();
