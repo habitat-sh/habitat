@@ -8,6 +8,7 @@
 import {addNotification, SUCCESS, DANGER} from "./notifications";
 import {requestRoute} from "./router";
 import * as api from "../builderApi";
+import {BuilderApiClient} from "../BuilderApiClient";
 
 export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
@@ -15,11 +16,11 @@ export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     "SET_CURRENT_ORIGIN_CREATING_FLAG";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 
-export function createOrigin(origin, isFirstOrigin = false) {
+export function createOrigin(origin, token, isFirstOrigin = false) {
     return dispatch => {
         dispatch(setCurrentOriginCreatingFlag(true));
 
-        api.createOrigin(origin).then(origin => {
+        new BuilderApiClient(token).createOrigin(origin).then(origin => {
             if (isFirstOrigin || origin["default"]) {
                 dispatch(setCurrentOrigin(origin));
             }

@@ -23,35 +23,47 @@ import {requireSignIn} from "../util";
                [routerLink]="['OriginCreate']">Add Origin</a>
         </div>
         <div class="page-body">
-            <ul class="hab-origins-list">
-                <li *ngFor="#origin of origins">
-                    <a class="hab-item-list hab-no-select"
-                       [class.active]="origin.name === currentOrigin.name">
-                        <div class="hab-item-list--title">
-                            <h3>{{origin.name}}</h3>
-                        </div>
-                        <div class="button hab-item-list--controls">
+            <div *ngIf="origins.size === 0">
+                <div class="hero">
+                    <h3>You don't currently have any origins, let's add one now.</h3>
+                    <p>
+                        <a class="button cta" [routerLink]='["OriginCreate"]'>
+                            Add Origin
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <div *ngIf="origins.size > 0">
+                <ul class="hab-origins-list">
+                    <li *ngFor="#origin of origins">
+                        <a class="hab-item-list hab-no-select"
+                        [class.active]="origin.name === currentOrigin.name">
+                            <div class="hab-item-list--title">
+                                <h3>{{origin.name}}</h3>
+                            </div>
+                            <div class="button hab-item-list--controls">
+                                <button
+                                class="confirm hab-origins-list--default"
+                                (click)="setCurrentOrigin(origin)"
+                                [disabled]="origin.name === currentOrigin.name">
+                                    <span *ngIf="origin.name === currentOrigin.name">
+                                        <i class="octicon octicon-star"></i> Default
+                                    </span>
+                                    <span *ngIf="origin.name !== currentOrigin.name">
+                                        Set as Default
+                                    </span>
+                            </button>
                             <button
-                               class="confirm hab-origins-list--default"
-                               (click)="setCurrentOrigin(origin)"
-                               [disabled]="origin.name === currentOrigin.name">
-                                <span *ngIf="origin.name === currentOrigin.name">
-                                    <i class="octicon octicon-star"></i> Default
-                                </span>
-                                <span *ngIf="origin.name !== currentOrigin.name">
-                                    Set as Default
-                                </span>
-                        </button>
-                        <button
-                            class="danger hab-origins-list--delete"
-                            (click)="deleteOrigin(origin)"
-                            [disabled]="origin.name === currentOrigin.name">
-                            <i class="octicon octicon-trashcan"></i> Delete
-                        </button>
-                        </div>
-                    </a>
-                </li>
-            </ul>
+                                class="danger hab-origins-list--delete"
+                                (click)="deleteOrigin(origin)"
+                                [disabled]="origin.name === currentOrigin.name">
+                                <i class="octicon octicon-trashcan"></i> Delete
+                            </button>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>`,
 })
