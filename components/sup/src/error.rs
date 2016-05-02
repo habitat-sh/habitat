@@ -111,6 +111,7 @@ pub enum Error {
     KeyNotFound(String),
     MetaFileIO(io::Error),
     MustacheEncoderError(mustache::encoder::Error),
+    NoRunFile,
     NulError(ffi::NulError),
     PackageArchiveMalformed(String),
     PackageNotFound(package::PackageIdent),
@@ -170,6 +171,7 @@ impl fmt::Display for SupError {
                     _ => format!("Mustache encoder error: {:?}", me),
                 }
             }
+            Error::NoRunFile => format!("No run file is present for this package; specify a run hook or $pkg_service_run in your plan"),
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
@@ -240,6 +242,7 @@ impl error::Error for SupError {
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::MustacheEncoderError(_) => "Failed to encode mustache template",
+            Error::NoRunFile => "No run file is present for this package; specify a run hook or $pkg_service_run in your plan",
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
             Error::PackageNotFound(_) => "Cannot find a package",
