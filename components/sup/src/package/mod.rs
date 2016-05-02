@@ -184,12 +184,20 @@ impl Package {
             }
         } else {
             let run = self.path().join(RUN_FILENAME);
-            try!(util::perm::set_permissions(&run, "0755"));
-            match std::fs::metadata(&svc_run) {
-                Ok(_) => try!(std::fs::remove_file(&svc_run)),
-                Err(_) => {}
+            match std::fs::metadata(&run) {
+                Ok(_) => {
+                    try!(util::perm::set_permissions(&run, "0755"));
+                    match std::fs::metadata(&svc_run) {
+                        Ok(_) => try!(std::fs::remove_file(&svc_run)),
+                        Err(_) => {}
+                    }
+                    try!(unix::fs::symlink(&run, &svc_run));
+                }
+                Err(e) => {
+                    outputln!("Error finding the run file: {}", e);
+                    return Err(sup_error!(Error::NoRunFile));
+                }
             }
-            try!(unix::fs::symlink(&run, &svc_run));
         }
         Ok(())
     }
@@ -204,13 +212,20 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> Result<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        for config in try!(std::fs::read_dir(self.path().join("config"))) {
-            let config = try!(config);
-            match config.path().file_name() {
-                Some(filename) => {
-                    files.push(filename.to_string_lossy().into_owned().to_string());
+        match std::fs::read_dir(self.path().join("config")) {
+            Ok(config_dir) => {
+                for config in config_dir {
+                    let config = try!(config);
+                    match config.path().file_name() {
+                        Some(filename) => {
+                            files.push(filename.to_string_lossy().into_owned().to_string());
+                        }
+                        None => unreachable!(),
+                    }
                 }
-                None => unreachable!(),
+            }
+            Err(e) => {
+                debug!("No config directory in package: {}", e);
             }
         }
         Ok(files)
