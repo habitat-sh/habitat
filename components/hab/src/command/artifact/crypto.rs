@@ -4,8 +4,33 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::path::{Path};
+
+use depot_client;
 use error::{Error, Result};
 use hcore::crypto;
+
+
+pub fn download_origin_keys(depot: &str, origin: &str, revision: Option<&str>) -> Result<()> {
+    let outdir = crypto::nacl_key_dir();
+    match revision {
+        Some(rev) => {
+            try!(depot_client::get_origin_key(depot, origin, rev, &outdir));
+        }
+        None => {
+             try!(depot_client::get_origin_keys(depot, origin, &outdir));
+        }
+    };
+    println!("Successfully downloaded origin key(s)");
+    Ok(())
+}
+
+pub fn upload_origin_key(depot: &str, keyfile: &Path) -> Result<()> {
+    let (origin, revision) = try!(crypto::parse_origin_key_filename(keyfile));
+    try!(depot_client::post_origin_key(depot, &origin, &revision, keyfile));
+    println!("Successfully uploaded origin key");
+    Ok(())
+}
 
 pub fn generate_origin_key(origin: &str) -> Result<()> {
     let crypto_ctx = crypto::Context::default();

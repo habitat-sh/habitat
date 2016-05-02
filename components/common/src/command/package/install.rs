@@ -32,6 +32,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use hcore::crypto;
 use hcore::fs::CACHE_ARTIFACT_PATH;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use depot_core::data_object;
@@ -75,7 +76,7 @@ pub fn from_archive<P: AsRef<Path>>(url: &str, path: &P) -> Result<()> {
     for dep in try!(archive.tdeps()) {
         try!(install_from_depot(url, &dep, dep.as_ref()));
     }
-    try!(install_from_archive(archive, &ident));
+    try!(install_from_archive(url, archive, &ident));
     Ok(())
 }
 
@@ -98,7 +99,7 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
                                                                ident.as_ref(),
                                                                CACHE_ARTIFACT_PATH));
             let ident = try!(archive.ident());
-            try!(archive.verify());
+            try!(verify(url, &archive, &ident));
             try!(archive.unpack());
             println!("Installed {}", ident);
         }
@@ -106,15 +107,40 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
     Ok(())
 }
 
-fn install_from_archive(archive: PackageArchive, ident: &PackageIdent) -> Result<()> {
+fn install_from_archive(url: &str, archive: PackageArchive, ident: &PackageIdent) -> Result<()> {
     match PackageInstall::load(ident.as_ref(), None) {
         Ok(_) => {
             println!("Package {} already installed", ident);
         }
         Err(_) => {
+            try!(verify(url, &archive, &ident));
             try!(archive.unpack());
             println!("Installed {}", ident);
         }
     }
+    Ok(())
+}
+
+/// get the signer for the artifact and see if we have the key locally.
+/// If we don't, attempt to download it from the depot.
+fn verify(url: &str, archive: &PackageArchive, ident: &PackageIdent) -> Result<()> {
+    let crypto_ctx = crypto::Context::default();
+    let (signer_origin, signer_revision) = try!(crypto_ctx.get_artifact_signer(&archive.path));
+    let signer_key_with_rev = format!("{}-{}", signer_origin, signer_revision);
+
+    if let Err(_) = crypto_ctx.get_sig_public_key(&signer_key_with_rev) {
+        // we don't have the key locally, so try and download it before verification
+        println!("Can't find {} origin key in local key cache, fetching it from the depot", &signer_key_with_rev);
+        try!(depot_client::get_origin_key(url,
+                                          &signer_origin,
+                                          &signer_revision,
+                                          &crypto::nacl_key_dir()));
+    }
+
+    try!(archive.verify());
+    println!("Successful verification of {}/{} signed by {}",
+             &ident.origin,
+             &ident.name,
+             &signer_key_with_rev);
     Ok(())
 }

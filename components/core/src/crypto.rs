@@ -15,9 +15,12 @@
 //! - All public keys, certificates, and signatures are to be referred to as **public**.
 //! - All secret or private keys are to be referred to as **secret**.
 //! - All symmetric encryption keys are to be referred to as **secret**.
-//! - The word `key` by itself does not indicate whether it is **public** or **secret**. The only
-//! exception is if the word `key` appears as part of a file suffix, where it is then considered as
-//! a **secret key** file.
+//! - In general, the word `key` by itself does not indicate something as
+//! **public** or **secret**. The exceptions to this rule are as follows:
+//!     - if the word key appears in a URL, then we are referring to a public key to
+//!       conform to other API's that offer similar public key downloading functionality.
+//!     - the word `key` appears as part of a file suffix, where it is then considered as
+//!       a **secret key** file.
 //! - Referring to keys (by example):
 //!     - A key name: `habitat`
 //!     - A key rev: `201603312016`
@@ -314,7 +317,8 @@ pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 pub type SymKey = KeyPair<(), SymSecretKey>;
 
-enum KeyType {
+#[derive(PartialEq, Eq)]
+pub enum KeyType {
     Sig,
     Box,
     Sym,
@@ -333,9 +337,82 @@ fn env_var_or_default(env_var: &str, default: &str) -> String {
 /// Return the canonical location for nacl keys
 /// This value can be overridden via CACHE_KEY_PATH_ENV_VAR,
 /// which is useful for testing
-fn nacl_key_dir() -> String {
+pub fn nacl_key_dir() -> String {
     env_var_or_default(CACHE_KEY_PATH_ENV_VAR, CACHE_KEY_PATH)
 }
+
+/// takes a Path to a key, and returns the origin and revision in a tuple
+/// ex: /src/foo/core-xyz-20160423193745.pub yields ("core", "20160423193745")
+/// TODO DP: this should be in a crypto::utils package
+pub fn parse_origin_key_filename<P: AsRef<Path>>(keyfile: P) -> Result<(String, String)> {
+    let stem = match keyfile.as_ref().file_stem().and_then(|s| s.to_str()) {
+        Some(s) => s,
+        None => return Err(Error::CryptoError("Can't parse key filename".to_string()))
+    };
+
+    parse_origin_key_name(stem)
+}
+
+/// takes a string in the form origin-revision and returns a
+/// tuple in the form (origin, revision)
+pub fn parse_origin_key_name(origin_rev: &str) -> Result<(String, String)> {
+    let mut chunks: Vec<&str> = origin_rev.split("-").collect();
+    if chunks.len() < 2 {
+        return Err(Error::CryptoError("Invalid origin key name".to_string()))
+    }
+    let rev = match chunks.pop() {
+        Some(r) => r,
+        None => return Err(Error::CryptoError("Invalid origin key revision".to_string()))
+    };
+    let origin = chunks.join("-").trim().to_owned();
+    Ok((origin, rev.trim().to_owned()))
+}
+
+#[test]
+fn test_parse_origin_key_name() {
+    assert!(parse_origin_key_name("foo").is_ok() == false);
+    match parse_origin_key_name("foo-20160423193745\n") {
+        Ok((origin, rev)) => {
+            assert!(origin == "foo");
+            assert!(rev == "20160423193745");
+        }
+        Err(_) => panic!("Fail!")
+    };
+
+
+    match parse_origin_key_name("foo-bar-baz-20160423193745") {
+        Ok((origin, rev)) => {
+            assert!(origin == "foo-bar-baz");
+            assert!(rev == "20160423193745");
+        }
+        Err(_) => panic!("Fail!")
+    };
+}
+
+#[test]
+fn test_parse_origin_key_filename() {
+    if parse_origin_key_filename(Path::new("/tmp/foo.pub")).is_ok() {
+        panic!("Shouldn't match")
+    };
+
+
+    match parse_origin_key_filename(Path::new("/tmp/core-20160423193745.pub")) {
+        Ok((origin, rev)) => {
+            assert!(origin == "core");
+            assert!(rev == "20160423193745");
+        }
+        Err(_) => panic!("Bad filename")
+    };
+
+    match parse_origin_key_filename(Path::new("/tmp/multi-dash-origin-20160423193745.pub")) {
+        Ok((origin, rev)) => {
+            assert!(origin == "multi-dash-origin");
+            assert!(rev == "20160423193745");
+        }
+        Err(_) => panic!("Bad filename")
+    };
+}
+
 
 /// A Context makes crypto operations available centered on a given
 /// key cache directory.
@@ -445,6 +522,23 @@ impl Context {
             return Err(Error::CryptoError("Can't end of header".to_string()));
         }
         Ok(reader)
+    }
+
+    /// opens up a .hart file and returns the name of the (key, revision)
+    /// of the signer
+    pub fn get_artifact_signer<P: AsRef<Path>>(&self, infilename: P) -> Result<(String, String)> {
+        let f = try!(File::open(infilename));
+        let mut your_format_version = String::new();
+        let mut your_key_name = String::new();
+        let mut reader = BufReader::new(f);
+        if try!(reader.read_line(&mut your_format_version)) <= 0 {
+            return Err(Error::CryptoError("Can't read format version".to_string()));
+        }
+        if try!(reader.read_line(&mut your_key_name)) <= 0 {
+            return Err(Error::CryptoError("Can't read keyname".to_string()));
+        }
+        let origin_rev_pair = try!(parse_origin_key_name(&your_key_name));
+        Ok(origin_rev_pair)
     }
 
     /// verify the crypto signature of a .hart file

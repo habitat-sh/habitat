@@ -218,3 +218,34 @@ impl AsRef<package::PackageIdent> for Package {
         self.ident.as_ref()
     }
 }
+
+
+#[derive(RustcEncodable, RustcDecodable, Eq, PartialEq, Debug, Clone)]
+pub struct OriginKeyIdent {
+    pub origin: String,
+    pub revision: String,
+    pub location: String,
+}
+
+impl OriginKeyIdent {
+    pub fn new(origin: String, revision: String, location: String) -> OriginKeyIdent {
+        OriginKeyIdent {
+            origin: origin,
+            revision: revision,
+            location: location,
+        }
+    }
+}
+
+impl fmt::Display for OriginKeyIdent {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}-{}", self.origin, self.revision)
+    }
+}
+
+impl AsRef<OriginKeyIdent> for OriginKeyIdent {
+    fn as_ref(&self) -> &OriginKeyIdent {
+        self
+    }
+}
+

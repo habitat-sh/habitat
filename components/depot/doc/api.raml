@@ -1,0 +1,167 @@
+#%RAML 1.0
+title: Depot API
+version: v1
+baseUri: http://api.samplehost.com
+# in alphabetical order
+/origins:
+  /{origin}:
+    /keys:
+      get:
+        description: Return a list of key revisions for an organization.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  [
+                    {
+                      "origin": "core",
+                      "revision": "20160423193732",
+                      "location": "/origins/core/keys/20160423193732"
+                    },
+                    {
+                      "origin": "core",
+                      "revision": "20160423193733",
+                      "location": "/origins/core/keys/20160423193733"
+                    }
+                  ]
+      /{revision}:
+          get:
+            description: Get a key revision for a specific origin
+            responses:
+              200:
+                body:
+                  text/plain:
+                    example: |
+                      SIG-PUB-1
+                      core-20160423193745
+
+                      Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+          post:
+            description: Upload a new key revision for an origin
+            body:
+              text/plain:
+                example: |
+                  SIG-PUB-1
+                  core-20160423193745
+
+                  Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+
+/pkgs:
+  /{origin}:
+    get:
+      description: List packages for an origin
+      responses:
+        200:
+        400:
+        404:
+        500:
+    /{pkg}:
+      description: TODO
+      get:
+        description: TODO
+        responses:
+          200:
+          400:
+          404:
+          500:
+      /latest:
+        get:
+          description: TODO
+          responses:
+            200:
+            404:
+            500:
+      /{version}:
+        get:
+          description: TODO
+          responses:
+            200:
+            400:
+            404:
+            500:
+        /latest:
+          get:
+            responses:
+              200:
+              404:
+              500:
+        /{release}:
+          get:
+            responses:
+              200:
+              404:
+              500:
+          post:
+            responses:
+              200:
+              400:
+              422:
+              409:
+          /download:
+            get:
+              responses:
+                200:
+                400:
+                500:
+/views:
+  get:
+    description: List all views
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {}
+  /{view}:
+    /pkgs:
+      /{origin}:
+        get:
+          description: List packages for an origin
+          responses:
+            200:
+              description: Return a list of packages for an origin
+            400:
+              description: Origin not supplied
+            404:
+              description: Origin does not exist
+            500:
+              description: Datastore error
+        /{pkg}:
+          get:
+            description: TODO
+            responses:
+              200:
+                description: Return a list of packages for an origin
+              400:
+                description: Origin not supplied
+              404:
+                description: Origin does not exist
+              500:
+                description: Datastore error
+          /latest:
+            get:
+              responses:
+                200:
+                404:
+                500:
+          /{version}:
+            get:
+            /latest:
+              get:
+                responses:
+                  200:
+                  404:
+                  500:
+            /{release}:
+              get:
+                responses:
+                  200:
+                  404:
+                  500:
+              /promote:
+                post:
+                  responses:
+                    200:
+                    404:
+                    500:

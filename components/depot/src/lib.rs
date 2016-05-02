@@ -92,8 +92,16 @@ impl Depot {
                           ident.release.as_ref().unwrap()))
     }
 
-    fn key_path(&self, name: &str) -> PathBuf {
-        self.keys_path().join(format!("{}.asc", name))
+    fn key_path(&self, key: &str, rev: &str) -> PathBuf {
+        let mut digest = Sha256::new();
+        let mut output = [0; 64];
+        let key_with_rev = format!("{}-{}.pub", key, rev);
+        digest.input_str(&key_with_rev.to_string());
+        digest.result(&mut output);
+        self.keys_path()
+            .join(format!("{:x}", output[0]))
+            .join(format!("{:x}", output[1]))
+            .join(format!("{}-{}.pub", key, rev))
     }
 
     fn keys_path(&self) -> PathBuf {

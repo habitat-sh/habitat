@@ -22,6 +22,7 @@ pub enum Error {
     IO(io::Error),
     NoFilePart,
     NoXFilename,
+    RemoteOriginKeyNotFound(String),
     RemotePackageNotFound(package::PackageIdent),
     WriteSyncFailed,
 }
@@ -40,6 +41,7 @@ impl fmt::Display for Error {
                          not have one")
             }
             Error::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
+            Error::RemoteOriginKeyNotFound(ref e) => format!("{}", e),
             Error::RemotePackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package in any sources: {}", pkg)
@@ -62,6 +64,7 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
+            Error::RemoteOriginKeyNotFound(_) => "Remote origin key not found",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
         }

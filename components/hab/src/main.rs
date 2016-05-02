@@ -99,7 +99,9 @@ fn start() -> Result<()> {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
+                        ("download", Some(sc)) => try!(sub_origin_key_download(sc)),
                         ("generate", Some(sc)) => try!(sub_origin_key_generate(sc)),
+                        ("upload", Some(sc)) => try!(sub_origin_key_upload(sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -270,9 +272,27 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     Ok(())
 }
 
+fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
+    let origin = m.value_of("ORIGIN").unwrap();
+    let revision = m.value_of("REVISION");
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    try!(command::artifact::crypto::download_origin_keys(&url, &origin, revision));
+    Ok(())
+}
+
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
     let origin = try!(origin_param_or_env(&m));
     try!(command::artifact::crypto::generate_origin_key(&origin));
+    Ok(())
+}
+
+fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    // required field
+    let keyfile = Path::new(m.value_of("FILE").unwrap());
+    try!(command::artifact::crypto::upload_origin_key(url, &keyfile));
     Ok(())
 }
 
