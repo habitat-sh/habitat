@@ -13,6 +13,7 @@ doc = false
 env_logger = "*"
 iron = "*"
 log = "*"
+mount = "*"
 protobuf = "*"
 redis = "*"
 router = "*"
@@ -36,6 +37,9 @@ branch = "build-rs"
 
 [dependencies.habitat_core]
 path = "../core"
+
+[dependencies.habitat_depot]
+path = "../depot"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

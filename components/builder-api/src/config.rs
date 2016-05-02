@@ -7,12 +7,14 @@
 use std::net;
 
 use core::config::{ConfigFile, ParseInto};
+use depot;
 use toml;
 
 use error::{Error, Result};
 
 pub struct Config {
     pub http_addr: net::SocketAddrV4,
+    pub depot: depot::Config,
     sessionsrv_addr: net::SocketAddrV4,
     vaultsrv_addr: net::SocketAddrV4,
 }
@@ -42,6 +44,7 @@ impl Default for Config {
             http_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 9636),
             sessionsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5560),
             vaultsrv_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5561),
+            depot: depot::Config::default(),
         }
     }
 }
@@ -54,6 +57,8 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.http_addr", &mut cfg.http_addr));
         try!(toml.parse_into("cfg.sessionsrv_addr", &mut cfg.sessionsrv_addr));
         try!(toml.parse_into("cfg.vaultsrv_addr", &mut cfg.vaultsrv_addr));
+        try!(toml.parse_into("cfg.depot.path", &mut cfg.depot.path));
+        try!(toml.parse_into("cfg.depot.datastore_addr", &mut cfg.depot.datastore_addr));
         Ok(cfg)
     }
 }

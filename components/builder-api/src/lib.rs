@@ -5,11 +5,13 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 extern crate habitat_core as core;
+extern crate habitat_depot as depot;
 extern crate habitat_net as hab_net;
 extern crate habitat_builder_protocol as protocol;
 extern crate iron;
 #[macro_use]
 extern crate log;
+extern crate mount;
 extern crate protobuf;
 extern crate redis;
 #[macro_use]

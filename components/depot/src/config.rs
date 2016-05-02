@@ -13,7 +13,7 @@ use toml;
 
 use error::{Error, Result};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Config {
     pub path: String,
     pub listen_addr: net::SocketAddrV4,
