@@ -2042,6 +2042,10 @@ else
   exit_with "Failed to load Plan" $ret
 fi
 
+if [[ -n "$HAB_ORIGIN" ]]; then
+  pkg_origin="$HAB_ORIGIN"
+fi
+
 # `$pkg_origin` is a required metadata key
 if [[ -z "${pkg_origin}" ]]; then
   exit_with "Failed to build. 'pkg_origin' must be set." 1
