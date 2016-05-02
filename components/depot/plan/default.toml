@@ -1,5 +1,3 @@
 path = "/hab/svc/hab-depot/data"
-bind_addr = "0.0.0.0"
-port = 9632
-datastore_addr = "127.0.0.1"
-datastore_port = 6379
+bind_addr = "0.0.0.0:9632"
+datastore_addr = "127.0.0.1:6379"
