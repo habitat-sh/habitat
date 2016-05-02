@@ -386,8 +386,7 @@ impl AfterMiddleware for Cors {
     }
 }
 
-pub fn run(config: Config) -> Result<()> {
-    let listen_addr = config.listen_addr.clone();
+pub fn router(config: Config) -> Result<Chain> {
     let depot = try!(Depot::new(config));
     let depot1 = depot.clone();
     let depot2 = depot.clone();
@@ -434,7 +433,12 @@ pub fn run(config: Config) -> Result<()> {
     );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
+    Ok(chain)
+}
 
+pub fn run(config: Config) -> Result<()> {
+    let listen_addr = config.listen_addr.clone();
+    let chain = try!(router(config));
     Iron::new(chain).http(listen_addr).unwrap();
     Ok(())
 }

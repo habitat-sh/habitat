@@ -43,7 +43,8 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg config: -c --config +takes_value +global "Filepath to configuration file. [default: /hab/svc/hab-builder-api/config.toml]")
-        (@arg port: --port +takes_value +global "Listen port. [default: 9632]")
+        (@arg path: -p --path +takes_value +global "Filepath to service storage for the Depot service")
+        (@arg port: --port +takes_value +global "Listen port. [default: 9636]")
         (@subcommand start =>
             (about: "Run the builder-api server")
         )
@@ -61,6 +62,9 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
         if u16::from_str(port).map(|p| config.set_port(p)).is_err() {
             return Err(Error::BadPort(port.to_string()));
         }
+    }
+    if let Some(path) = args.value_of("path") {
+        config.depot.path = path.to_string();
     }
     Ok(config)
 }

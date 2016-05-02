@@ -9,9 +9,11 @@ extern crate bodyparser;
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, JoinHandle};
 
+use depot;
 use iron::prelude::*;
 use iron::{status, AfterMiddleware};
 use iron::headers::{self, Authorization, Bearer};
+use mount::Mount;
 use protobuf::{self, Message};
 use protocol::sessionsrv::{Session, SessionGet, GitHubAuth};
 use protocol::vault::{Origin, OriginCreate, OriginGet};
@@ -36,8 +38,7 @@ impl AfterMiddleware for Cors {
     }
 }
 
-pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<JoinHandle<()>> {
-    let (tx, rx) = mpsc::sync_channel(1);
+pub fn router(context: Arc<Mutex<zmq::Context>>) -> Result<Chain> {
     let ctx1 = context.clone();
     let ctx2 = context.clone();
     let ctx3 = context.clone();
@@ -49,10 +50,19 @@ pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Joi
     );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
+    Ok(chain)
+}
+
+pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<JoinHandle<()>> {
+    let (tx, rx) = mpsc::sync_channel(1);
+    let depot = try!(depot::server::router(config.depot.clone()));
+    let chain = try!(router(context));
+    let mut mount = Mount::new();
+    mount.mount("/", chain).mount("/depot", depot);
     let handle = thread::Builder::new()
                      .name("http-srv".to_string())
                      .spawn(move || {
-                         let _server = Iron::new(chain).http(config.http_addr).unwrap();
+                         let _server = Iron::new(mount).http(config.http_addr).unwrap();
                          tx.send(()).unwrap();
                      })
                      .unwrap();
