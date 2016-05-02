@@ -1,7 +1,0 @@
-path = "{{cfg.path}}"
-bind_addr = "{{cfg.bind_addr}}"
-port = {{cfg.port}}
-{{#svc.named.redis.default.members}}
-datastore_addr = "{{ip}}"
-datastore_port = {{port}}
-{{/svc.named.redis.default.members}}
