@@ -58,7 +58,7 @@ pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Joi
     let depot = try!(depot::server::router(config.depot.clone()));
     let chain = try!(router(context));
     let mut mount = Mount::new();
-    mount.mount("/", chain).mount("/depot", depot);
+    mount.mount("/v1", chain).mount("/v1/depot", depot);
     let handle = thread::Builder::new()
                      .name("http-srv".to_string())
                      .spawn(move || {

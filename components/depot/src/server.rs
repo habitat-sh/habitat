@@ -15,6 +15,7 @@ use depot_core::data_object::{self, DataObject};
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
 use iron::request::Body;
+use mount::Mount;
 use router::{Params, Router};
 use rustc_serialize::json;
 use urlencoded::UrlEncodedQuery;
@@ -438,8 +439,10 @@ pub fn router(config: Config) -> Result<Chain> {
 
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
-    let chain = try!(router(config));
-    Iron::new(chain).http(listen_addr).unwrap();
+    let v1 = try!(router(config));
+    let mut mount = Mount::new();
+    mount.mount("/v1", v1);
+    Iron::new(mount).http(listen_addr).unwrap();
     Ok(())
 }
 
