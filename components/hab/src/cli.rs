@@ -91,6 +91,19 @@ pub fn get() -> App<'static, 'static> {
                         (about: "Generates a Habitat origin key")
                         (@arg ORIGIN: "The origin name")
                  )
+                 (@subcommand download =>
+                        (about: "Download origin key(s) to HAB_CACHE_KEY_PATH")
+                        (@arg ORIGIN: +required "The origin name")
+                        (@arg REVISION: "The key revision")
+                        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                         "Use a specific Depot URL")
+                 )
+                 (@subcommand upload =>
+                        (about: "Upload a public origin key to the depot")
+                        (@arg FILE: +required {file_exists} "Path to a local public origin key file on disk")
+                        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                         "Use a specific Depot URL")
+                 )
             )
         )
         (@subcommand service =>

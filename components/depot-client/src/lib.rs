@@ -35,9 +35,38 @@ use rustc_serialize::json;
 /// * Key cannot be found
 /// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_key(depot: &str, key: &str, path: &str) -> Result<String> {
-    let url = Url::parse(&format!("{}/keys/{}", depot, key)).unwrap();
-    download(key, url, path)
+pub fn get_origin_key(depot: &str, origin: &str, revision: &str, path: &str) -> Result<String> {
+    let url = Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)).unwrap();
+    debug!("get_origin_key URL = {}", &url);
+    let fname = format!("{}/{}-{}.pub", &path, &origin, &revision);
+    debug!("Output filename = {}", &fname);
+    download(&fname, url, path)
+}
+
+/// Download all public keys for a given origin.
+///
+/// # Failures
+///
+/// * Origin cannot be found
+/// * Remote Depot is not available
+/// * File write errors
+pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
+    let url = format!("{}/origins/{}/keys", depot, origin);
+    debug!("URL = {}", &url);
+    let client = Client::new();
+    let request = client.get(&url);
+    let mut res = try!(request.send());
+    if res.status != hyper::status::StatusCode::Ok {
+        return Err(Error::RemoteOriginKeyNotFound(origin.to_string()))
+    };
+
+    let mut encoded = String::new();
+    try!(res.read_to_string(&mut encoded));
+    let revisions: Vec<data_object::OriginKeyIdent> = json::decode(&encoded).unwrap();
+    for rev in &revisions {
+        try!(get_origin_key(depot, origin, &rev.revision, path));
+    }
+    Ok(())
 }
 
 /// Download the latest release of a package.
@@ -92,16 +121,15 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Pa
     Ok(package)
 }
 
-/// Upload a public key to a remote Depot.
+/// Upload a public origin key to a remote Depot.
 ///
 /// # Failures
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_key(depot: &str, path: &Path) -> Result<()> {
+pub fn post_origin_key(depot: &str, origin: &str, revision: &str, path: &Path) -> Result<()> {
     let mut file = try!(File::open(path));
-    let file_name = try!(path.file_name().ok_or(Error::NoFilePart));
-    let url = Url::parse(&format!("{}/keys/{}", depot, file_name.to_string_lossy())).unwrap();
+    let url = Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)).unwrap();
     upload(url, &mut file)
 }
 

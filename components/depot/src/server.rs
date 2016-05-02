@@ -10,7 +10,7 @@ use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 
 use dbcache;
-use depot_core::{ETag, XFileName};
+use depot_core::{ETag, XFileName, set_disposition};
 use depot_core::data_object::{self, DataObject};
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
@@ -55,19 +55,35 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     Ok(true)
 }
 
-fn upload_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("Upload Key {:?}", req);
-    let rext = req.extensions.get::<Router>().unwrap();
-    let key = rext.find("key").unwrap();
-    let file = depot.key_path(&key);
+fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    debug!("Upload Origin Key {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
 
-    try!(write_file(&file, &mut req.body));
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
-    let short_name = file.file_name().unwrap().to_string_lossy();
-    let mut response = Response::with((status::Created, format!("/key/{}", &short_name)));
+    let revision = match params.find("revision") {
+        Some(revision) => revision,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let origin_keyfile = depot.key_path(&origin, &revision);
+    debug!("Writing key file {}", origin_keyfile.to_string_lossy());
+    if origin_keyfile.is_file() {
+        return Ok(Response::with(status::Conflict));
+    }
+
+    depot.datastore.origin_keys.write(&origin, &revision).unwrap();
+
+    try!(write_file(&origin_keyfile, &mut req.body));
+
+    let mut response = Response::with((status::Created,
+                                       format!("/origins/{}/keys/{}", &origin, &revision)));
 
     let mut base_url = req.url.clone();
-    base_url.path = vec![String::from("key"), String::from(key)];
+    base_url.path = vec![String::from("key"), format!("{}-{}", &origin, &revision)];
     response.headers.set(headers::Location(format!("{}", base_url)));
     Ok(response)
 }
@@ -140,21 +156,77 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn download_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("Download {:?}", req);
-    let rext = req.extensions.get::<Router>().unwrap();
+fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    debug!("Download origin key {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
 
-    let key = match rext.find("key") {
-        Some(key) => key,
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let short_filename = format!("{}.asc", key);
-    let filename = depot.keys_path().join(&short_filename);
+    let revision = match params.find("revision") {
+        Some(revision) => revision,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    debug!("Trying to retreive origin key {}-{}", &origin, &revision);
+    let origin_keyfile = depot.key_path(&origin, &revision);
+    debug!("Looking for {}", &origin_keyfile.to_string_lossy());
+    match origin_keyfile.metadata() {
+        Ok(md) => {
+            if !md.is_file() {
+                return Ok(Response::with(status::NotFound));
+            };
+        }
+        Err(e) => {
+            println!("Can't read key file {}: {}",
+                     &origin_keyfile.to_string_lossy(),
+                     e);
+            return Ok(Response::with(status::NotFound));
+        }
+    };
 
-    let mut response = Response::with((status::Ok, filename));
-    response.headers.set(XFileName(short_filename.clone()));
+    let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
+    let mut response = Response::with((status::Ok, origin_keyfile));
+    response.headers.set(XFileName(xfilename.clone()));
+    set_disposition(&mut response.headers,
+                    xfilename,
+                    headers::Charset::Ext("utf-8".to_string()));
+    Ok(response)
+}
 
+fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    debug!("Download latest origin key {:?}", req);
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    debug!("Trying to retreive latest origin key for {}", &origin);
+    let latest_rev = depot.datastore.origin_keys.latest(&origin).unwrap();
+    let origin_keyfile = depot.key_path(&origin, &latest_rev);
+    debug!("Looking for {}", &origin_keyfile.to_string_lossy());
+    match origin_keyfile.metadata() {
+        Ok(md) => {
+            if !md.is_file() {
+                return Ok(Response::with(status::NotFound));
+            };
+        }
+        Err(e) => {
+            println!("Can't read key file {}: {}",
+                     &origin_keyfile.to_string_lossy(),
+                     e);
+            return Ok(Response::with(status::NotFound));
+        }
+    };
+
+    let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
+    let mut response = Response::with((status::Ok, origin_keyfile));
+    response.headers.set(XFileName(xfilename.clone()));
+    set_disposition(&mut response.headers,
+                    xfilename,
+                    headers::Charset::Ext("utf-8".to_string()));
     Ok(response)
 }
 
@@ -170,6 +242,10 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                     Ok(_) => {
                         let mut response = Response::with((status::Ok, archive.path.clone()));
                         response.headers.set(XFileName(archive.file_name()));
+
+                        set_disposition(&mut response.headers,
+                                        archive.file_name(),
+                                        headers::Charset::Ext("utf-8".to_string()));
                         Ok(response)
                     }
                     Err(_) => Ok(Response::with(status::NotFound)),
@@ -188,6 +264,26 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Ok(Response::with(status::InternalServerError))
         }
     }
+}
+
+fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    match depot.datastore.origin_keys.all(origin) {
+        Ok(revisions) => {
+            let body = json::encode(&revisions).unwrap();
+            Ok(Response::with((status::Ok, body)))
+        }
+        Err(e) => {
+            error!("list_origin_keys:1, err={:?}", e);
+            Ok(Response::with(status::InternalServerError))
+        }
+    }
+
 }
 
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
@@ -407,31 +503,36 @@ pub fn router(config: Config) -> Result<Chain> {
     let depot16 = depot.clone();
     let depot17 = depot.clone();
     let depot18 = depot.clone();
+    let depot19 = depot.clone();
+    let depot20 = depot.clone();
 
     let router = router!(
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
-        get "/views/:view/pkgs/:origin" => move |r: &mut Request| list_packages(&depot18, r),
-        get "/views/:view/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot2, r),
-        get "/views/:view/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot3, r),
-        get "/views/:view/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot4, r),
-        get "/views/:view/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot5, r),
-        get "/views/:view/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot6, r),
+        get "/views/:view/pkgs/:origin" => move |r: &mut Request| list_packages(&depot2, r),
+        get "/views/:view/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot3, r),
+        get "/views/:view/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot4, r),
+        get "/views/:view/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot5, r),
+        get "/views/:view/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot6, r),
+        get "/views/:view/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot7, r),
 
-        post "/views/:view/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&depot7, r),
+        post "/views/:view/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&depot8, r),
 
-        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot8, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot9, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot10, r),
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot11, r),
-        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot12, r),
-        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot13, r),
+        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot9, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot10, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot11, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot12, r),
+        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot13, r),
+        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot14, r),
 
-        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&depot14, r),
-        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&depot15, r),
+        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&depot15, r),
+        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&depot16, r),
 
-        post "/keys/:key" => move |r: &mut Request| upload_key(&depot16, r),
-        get "/keys/:key" => move |r: &mut Request| download_key(&depot17, r)
-    );
+
+        get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot17, r),
+        get "/origins/:origin/keys/latest" => move |r: &mut Request| download_latest_origin_key(&depot19, r),
+        get "/origins/:origin/keys/:revision" => move |r: &mut Request| download_origin_key(&depot18, r),
+        post "/origins/:origin/keys/:revision" => move |r: &mut Request| upload_origin_key(&depot20, r)
+        );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
     Ok(chain)

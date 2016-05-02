@@ -9,7 +9,7 @@ use std::sync::{Once, ONCE_INIT};
 use std::env;
 
 pub fn origin_setup() {
-    env::set_var("HABITAT_KEY_CACHE", super::path::key_cache());
+    env::set_var("HAB_CACHE_KEY_PATH", super::path::key_cache());
 }
 
 pub fn simple_service() {
@@ -29,15 +29,7 @@ pub fn simple_service() {
 }
 
 pub fn key_install() {
-    static ONCE: Once = ONCE_INIT;
-    ONCE.call_once(|| {
-        let mut cmd = match super::command::sup(&["key",
-                                                &super::path::fixture_as_string("chef-public.asc")]) {
-                                                    Ok(cmd) => cmd,
-                                                    Err(e) => panic!("{:?}", e),
-    };
-    cmd.wait_with_output();
-    });
+    // TODO DP: is there a relatively static pub key I can use?
 }
 
 fn dockerize(ident_str: &str) {
