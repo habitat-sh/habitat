@@ -6,7 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 /// Default Depot URL
-pub const DEFAULT_DEPOT_URL: &'static str = "http://willem.habitat.sh:9632";
+pub const DEFAULT_DEPOT_URL: &'static str = "http://willem.habitat.sh:9636/v1/depot";
 
 /// Default Depot URL environment variable
 pub const DEPOT_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";

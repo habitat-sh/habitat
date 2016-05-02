@@ -856,7 +856,7 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 # The default path where libsodium keys are stored
 HAB_CACHE_KEY_PATH=$HAB_ROOT_PATH/cache/keys
 # The default depot url from where to download dependencies
-: ${HAB_DEPOT_URL:=http://willem.habitat.sh:9632}
+: ${HAB_DEPOT_URL:=http://willem.habitat.sh:9636/v1/depot}
 # Whether or not more verbose output has been requested. An unset or empty
 # value means it is set to false and any other value is considered set or true.
 : ${VERBOSE:=}
