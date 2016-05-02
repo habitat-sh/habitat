@@ -43,6 +43,8 @@ See [app/util.test.ts](app/util.test.ts) for an example.
 
 #### End-to-end Tests
 
+*THESE DO NOT PASS AND NEED TO BE REMOVED OR FIXED.*
+
 Run the end-to-end tests with `npm run test-e2e`.
 
 Files ending with .test.ts in the test/e2e directory are tested. We use
@@ -79,6 +81,7 @@ TASK_NAME`.
 * `test-watch`
 * `test-unit`: Run the unit tests
 * `test-unit-watch`
+* `travis`: For running the build and tests on Travis CI
 
 ### Code Style Conventions
 

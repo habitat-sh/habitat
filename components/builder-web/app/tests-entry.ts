@@ -5,6 +5,8 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+import "reflect-metadata";
+
 // Expose chai.expect globally for tests
 declare var expect: Function;
 expect = chai.expect;

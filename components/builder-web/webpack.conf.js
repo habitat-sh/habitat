@@ -4,7 +4,7 @@ module.exports = {
     devtool: "source-map",
     entry: "./app/boot.ts",
     output: {
-        filename: "app.js",
+        filename: "assets/app.js",
     },
     resolve: {
         extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"],
@@ -23,11 +23,15 @@ module.exports = {
         new webpack.optimize.UglifyJsPlugin({
             compress: {
                 drop_debugger: false,
+                warnings: false,
             },
             mangle: false,
             sourceMap: true,
         }),
     ],
+    stats: {
+        chunks: false,
+    },
     tslint: {
         emitErrors: true,
         failOnHint: true,

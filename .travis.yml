@@ -42,6 +42,8 @@ cache:
   - components/net/target
   - components/sodiumoxide/target
   - components/sup/target
+  - components/builder-web/node_modules
+  - components/builder-web/typings
 env:
   global:
   - PATH=$HOME/.cargo/bin:$PATH
@@ -56,6 +58,7 @@ before_install:
 - sudo apt-get -y install docker iproute2 libsodium-dev man npm ruby2.3 ruby2.3-dev
 - command -v protoc-gen-rust || cargo install protobuf
 - sudo gem install bundler
+- (cd components/builder-web && npm install)
 script:
 - "./support/ci.sh"
 - "./support/website.sh"

@@ -1,4 +1,11 @@
 #!/bin/sh
-mkdir -p {{pkg.svc_var_path}}
+
+# These paths need to exist for nginx to run
+mkdir -p \
+  {{pkg.svc_var_path}}/nginx/fastcgi \
+  {{pkg.svc_var_path}}/nginx/proxy \
+  {{pkg.svc_var_path}}/nginx/scgi \
+  {{pkg.svc_var_path}}/nginx/uwsgi
 
 rm -rf {{pkg.svc_static_path}} && cp -r {{pkg.path}}/dist {{pkg.svc_static_path}}
+ln -sf {{pkg.svc_config_path}}/habitat.conf.js {{pkg.svc_static_path}}

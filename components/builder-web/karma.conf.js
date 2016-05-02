@@ -9,6 +9,7 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
+            "node_modules/es6-shim/es6-shim.js",
             "app/tests-entry.ts",
         ],
 
@@ -35,7 +36,7 @@ module.exports = function (config) {
         reporters: ["spec"],
 
         webpack: {
-            devtool: "source-map",
+            devtool: "inline-source-map",
             resolve: {
                 extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"]
             },
@@ -44,8 +45,11 @@ module.exports = function (config) {
                     { test: /\.ts$/, loader: "ts", exclude: /node_modules/ },
                 ],
             },
-            stats: { colors: true, reasons: true },
             debug: false
+        },
+
+        webpackMiddleware: {
+            noInfo: true
         },
 
         // web server port
