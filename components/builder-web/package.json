@@ -10,11 +10,11 @@
     "build": "concurrent \"npm run build-js\" \"npm run build-css\"",
     "build-css": "bin/build-css",
     "build-css-watch": "npm run build-css && npm run build-css -- --watch",
-    "build-js": "webpack --config webpack.conf.js",
+    "build-js": "npm run lint-js && webpack --config webpack.conf.js",
     "build-js-watch": "npm run build-js -- --watch",
     "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
-    "clean-css": "rm -fv app.css app.css.map",
-    "clean-js": "rm -fv app.js app.js.map app**/*.js app**/*.js.map",
+    "clean-css": "rm -fv assets/app.css assets/app.css.map",
+    "clean-js": "rm -fv assets/app.js assets/app.js.map app**/*.js app**/*.js.map",
     "dist": "bin/dist",
     "format-js": "tsfmt --replace app**/*.ts",
     "lint": "concurrent \"npm run lint-css\" \"npm run lint-js\"",
@@ -31,7 +31,8 @@
     "test-e2e": "webdriver-manager update && ts-node node_modules/.bin/protractor",
     "test-e2e-watch": "watch 'npm run test-e2e'",
     "test-unit": "karma start",
-    "test-unit-watch": "npm run test-unit -- --no-single-run"
+    "test-unit-watch": "npm run test-unit -- --no-single-run",
+    "travis": "npm run dist && npm run test-unit"
   },
   "dependencies": {
     "angular2": "^2.0.0-beta.15",

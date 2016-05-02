@@ -33,10 +33,13 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
       tests-entry.ts             #   Main entry point for the tests.
       util.test.ts               #   Files that end in .test.ts are tests.
       util.ts                    #   Utility functions.
+    config/                      # Configuration files for Habitat package.
+    default.toml                 # Default config file used in Habitat package.
     dist/                        # Where the app prepared for production distribution goes. `npm run dist` to create it. Ignored by git.
     doc/                         # Documentation.
       files.md                   #   This is the file you are reading now.
     fixtures/                    # Fixture data the app uses to make fake requests.
+    hooks/                       # Hooks used in Habitat package.
     node_modules/                # Modules installed by [npm](https://www.npmjs.com/). Ignored by git.
     stylesheets/base/            # The SCSS files for the stylesheets.
     test/e2e/                    # End-to-end [Protractor](https://angular.github.io/protractor/#/) tests.
@@ -45,10 +48,12 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     .gitignore                   # Tells git which files it should ignore.
     .nvmrc                       # Shows the version of [node](https://nodejs.org/en/) you should be using, possibly with [NVM](https://github.com/creationix/nvm).
     .sass-lint.yml               # [Configuration](https://github.com/brigade/scss-lint#configuration) for `scss-lint`.
-    app.css                      # The main CSS file loaded by the browser.
-    app.css.map                  # The source map for that CSS, mapping to the SCSS versions.
-    app.js                       # The main JS file loaded by the browser.
-    app.js.map                   # The source map for that JS, mapping to the TypeScript versions.
+    assets/                      # Static resources used by the app
+      app.css                    #   The main CSS file loaded by the browser.
+      app.css.map                #   The source map for that CSS, mapping to the SCSS versions.
+      app.js                     #   The main JS file loaded by the browser.
+      app.js.map                 #   The source map for that JS, mapping to the TypeScript versions.
+      images/                    # Images.
     favicon.ico                  # The favicon.
     habitat.conf.js              # The Habitat configuration file.
     habitat.conf.sample.js       # A sample version of the Habitat configuration file.
@@ -57,6 +62,7 @@ some `npm` scripts (`npm install`, `npm start`, etc.) and using the app.
     npm-debug.log                # Logs from npm debug output. Ignored by git.
     npm-shrinkwrap.json          # [`npm-shrinkwrap`](https://docs.npmjs.com/cli/shrinkwrap) file for locking npm dependencies.
     package.json                 # A [package.json](https://docs.npmjs.com/files/package.json).
+    plan.sh                      # Plan for creating Habitat package.
     protractor.conf.js           # Configuration for Protractor.
     README.md                    # The README.
     tsconfig.json                # [Configuration for TypeScript](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json).

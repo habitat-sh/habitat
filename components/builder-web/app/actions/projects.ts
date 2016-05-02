@@ -155,7 +155,7 @@ function simulateLogStream(build, response) {
     return dispatch => {
         // This is where we simulate a streaming build
         if (build.status === "running") {
-            const o = Observable.from(response.split("\n")).concatMap(x =>
+            const o = Observable.fromArray(response.split("\n")).concatMap(x =>
                 Observable.of(x).delay((() => Math.floor(Math.random() * 300))())
             );
             o.subscribe(

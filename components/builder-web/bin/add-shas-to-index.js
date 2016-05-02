@@ -9,9 +9,9 @@ const readFileSync = require("fs").readFileSync;
 let doc = jsdom.jsdom(readFileSync(path.join(__dirname, "..", "index.html")));
 
 let linkTag = doc.getElementById("hab-css");
-linkTag.href = `/app-${process.env.CSS_SHA}.css`;
+linkTag.href = `/assets/app-${process.env.CSS_SHA}.css`;
 
 let scriptTag = doc.getElementById("hab-js");
-scriptTag.src = `/app-${process.env.JS_SHA}.js`;
+scriptTag.src = `/assets/app-${process.env.JS_SHA}.js`;
 
 console.log(jsdom.serializeDocument(doc));
