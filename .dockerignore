@@ -11,7 +11,7 @@ plans
 support
 !support/init.sh
 vendor
-web
+www
 *.md
 *.yml
 *.toml
