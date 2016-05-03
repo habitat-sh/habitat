@@ -10,4 +10,4 @@ protobuf = "*"
 [dependencies.zmq]
 # git = "https://github.com/erickt/rust-zmq.git"
 git = "https://github.com/reset/rust-zmq.git"
-branch = "build-rs"
+branch = "habitat"

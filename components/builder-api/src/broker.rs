@@ -14,6 +14,8 @@ use error::Result;
 
 pub const SESSION_LISTEN_ADDR: &'static str = "inproc://sessionsrv-broker";
 pub const VAULT_LISTEN_ADDR: &'static str = "inproc://vault-broker";
+pub const RECV_TIMEOUT_MS: i32 = 5000;
+pub const SEND_TIMEOUT_MS: i32 = 5000;
 
 pub struct SessionSrv {
     config: Arc<Config>,
@@ -41,6 +43,8 @@ impl SessionSrv {
 
     pub fn connect(ctx: &Arc<Mutex<zmq::Context>>) -> Result<zmq::Socket> {
         let mut socket = ctx.lock().unwrap().socket(zmq::REQ).unwrap();
+        socket.set_rcvtimeo(RECV_TIMEOUT_MS).unwrap();
+        socket.set_sndtimeo(SEND_TIMEOUT_MS).unwrap();
         socket.connect(SESSION_LISTEN_ADDR).unwrap();
         Ok(socket)
     }
@@ -96,6 +100,8 @@ impl VaultSrv {
 
     pub fn connect(ctx: &Arc<Mutex<zmq::Context>>) -> Result<zmq::Socket> {
         let mut socket = ctx.lock().unwrap().socket(zmq::REQ).unwrap();
+        socket.set_rcvtimeo(RECV_TIMEOUT_MS).unwrap();
+        socket.set_sndtimeo(SEND_TIMEOUT_MS).unwrap();
         socket.connect(VAULT_LISTEN_ADDR).unwrap();
         Ok(socket)
     }
