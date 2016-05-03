@@ -1,0 +1,26 @@
+---
+title: Try Habitat - Step 2
+step: 2
+total_steps: 9
+---
+h2.page-body--title Ask the Supervisor What's Configurable
+
+p
+  | One powerful aspect of Habitat is that services are managed by a
+    <a href="/docs/concepts-supervisor/">Supervisor</a>. The Supervisor handles
+    many things including, as we'll see here, reporting on what is configurable
+    within our running service.
+p
+  | From the beginning, Habitat was built with configuration in mind. Instead
+    of constantly destroying, re-building and re-deploying packages for each
+    change, Habitat produces an immutable package artifact with common
+    configuration settings exposed via the Supervisor.
+
+code
+  | hab sup config habitat/postgresql
+
+#success
+  = partial "partials/advance_button" do
+    | Next - Make a configuration change
+
+= partial "partials/terminal" do

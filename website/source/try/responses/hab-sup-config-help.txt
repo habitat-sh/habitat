@@ -1,0 +1,4 @@
+Placeholder text.
+Please check your spelling.
+The only available config command in the emulator is
+`hab sup config chef/postgresql`

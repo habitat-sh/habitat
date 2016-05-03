@@ -1,0 +1,19 @@
+pre {
+  color: $hab-gray-dark;
+  background-color: $hab-gray-light;
+  border: 1px solid $hab-gray-dark;
+  padding: 0.125rem 0.3125rem 0.0625rem;
+  margin-bottom: 15px;
+
+  code {
+    background-color: transparent;
+    border: none;
+    word-wrap: break-word;
+  }
+
+  // customization for CodeMirror's line numbers
+  .line-numbers {
+    margin-right: 15px;
+    user-select: none;
+  }
+}

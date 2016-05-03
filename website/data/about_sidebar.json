@@ -1,0 +1,17 @@
+{
+  "sidebar_links": [
+    {
+      "title": "About",
+      "links": [
+        {
+          "title": "What is Habitat",
+          "link": "#"
+        },
+        {
+          "title": "Who should use Habitat",
+          "link": "#"
+        }
+      ]
+    }
+  ]
+}
