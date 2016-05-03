@@ -2,8 +2,8 @@
 
 set -e
 
-cd website
+cd www
 bundle install
 bundle exec middleman build --clean --verbose
 
-echo "Website Built!"
+echo "habitat.sh built!"

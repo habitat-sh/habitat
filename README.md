@@ -62,9 +62,7 @@ services (`hab-sup`).
 ## Documentation
 
 The documentation for Habitat is hosted at https://www.habitat.sh/docs and
-lives in the
-[habitat-sh/habitat-web-www](https://github.com/habitat-sh/habitat-web-www/tree/master/source/docs)
-GitHub repository.
+lives in [www](www).
 
 # Working on Habitat
 
@@ -275,8 +273,8 @@ systems, cause thats all we're up to).
 
 ## Web Application
 
-The Habitat web application is in the web/ directory. See
-[its README](web/README.md) for more information.
+The Habitat Builder web application is in the components/builder-web directory. See
+[its README](components/builder-web/README.md) for more information.
 
 ## Pull Request Review and Merge Automation
 

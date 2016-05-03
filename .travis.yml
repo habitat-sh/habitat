@@ -69,7 +69,7 @@ deploy:
   secret_access_key:
     secure: U1oAoekCDu6Qa94sANnJH9dfa6g0E9GpvDPwnE6Kv2/d8uprXapWtLvVJ8rnrB/4fLgDntqgMpZYbmETbsCkfnX1olxlch6J06Tel/xJPX//mPG7v3ZEYcpyKAfdI1X9je9jP23ijkEnFMtkjlJ/JDOd9nHqsbECeeUY3U8ZiUk=
   bucket: habitat-web-www
-  local-dir: website/build
+  local-dir: www/build
   skip_cleanup: true
   acl: public_read
   on:
