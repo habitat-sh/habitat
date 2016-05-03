@@ -1,0 +1,26 @@
+---
+title: Try Habitat - Step 1
+step: 1
+total_steps: 9
+---
+p.page-body--tip
+  | Got 10 minutes? See what Habitat can do.
+
+h2.page-body--title Start a Service Using Habitat
+
+p
+  | This  demo will provide an introductory overview of Habitat
+    from the comfort of your browser. By the end, you will have a
+    better understanding of what Habitat is and how it addresses some common pain points.
+p
+  | Habitat centralizes application configuration, management, and behavior around
+    the application itself, not the infrastructure that the app runs on. First, let's
+    start a service from a Habitat package.
+code
+  | hab start habitat/postgresql
+
+#success
+  = partial "partials/advance_button" do
+    | Next - Ask the service what's configurable
+
+= partial "partials/terminal" do

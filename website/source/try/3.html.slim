@@ -1,0 +1,27 @@
+---
+title: Try Habitat - Step 3
+step: 3
+total_steps: 9
+---
+h2.page-body--title Configure the Service Through Environment Variables
+
+p
+  | Now that we've seen what is configurable, let's go ahead and make a change.
+p
+  | There are a couple of ways to make config changes to your service. The first
+    method utilizes environment variables that are set when you start the service,
+    as you'll see below. In the next step, we'll learn about editing the config
+    files directly.
+p
+  | Let's suppose you need to run your database on a different port than the default.
+    No problem, we'll just define the new port value using an environment
+    variable when we start the service.
+
+code
+  | HAB_POSTGRESQL="port=5433" hab start habitat/postgresql
+
+#success
+  = partial "partials/advance_button" do
+    | Next - Update the configuration file
+
+= partial "partials/terminal" do

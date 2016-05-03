@@ -1,0 +1,98 @@
+$main-nav-breakpoint: 670px;
+
+#main-nav {
+  background: url("../images/bg-pattern.png"), linear-gradient(205deg, #f59b51 5%, #f58251 100%), center;
+  background-color: $hab-orange;
+  box-shadow: 1px 0 8px 0 $light-gray;
+  min-height: $header-height;
+  width: 100%;
+}
+
+.main-nav--container {
+  max-width: rem-calc(1200);
+  margin: 0 auto;
+}
+
+.main-nav--logo {
+  @include grid-column(4);
+
+  a {
+    display: block;
+  }
+
+  h1 {
+    @include hide-text;
+    background: url("../images/habitat-logo.svg") no-repeat -10px 14px;
+    color: $white;
+    height: $header-height;
+    margin-bottom: 0;
+  }
+}
+
+.main-nav--links-wrap {
+  @include grid-column(8);
+}
+
+.main-nav--links {
+  position: relative;
+  display: none;
+  clear: both;
+  height: $header-height;
+  margin: 0;
+  padding-top: 18px;
+
+  & > li {
+    padding: 0 0 0 15px;
+
+    &.main-nav--link {
+      margin-top: 0;
+
+      a {
+        color: $hab-blue-dark;
+      }
+    }
+  }
+
+  @media (min-width: $main-nav-breakpoint) {
+    display: block;
+    float: right;
+    clear: none;
+
+    & > li {
+      display: inline-block;
+      padding: 0 15px 0 0;
+      vertical-align: middle;
+    }
+  }
+}
+
+.main-nav--link {
+  margin-top: -17px;
+}
+
+.main-nav--cta .button {
+  @include primary-button;
+  box-shadow: 0 1px 8px 1px rgba(201, 97, 53, 0.43);
+  margin: 7px 0 0 0;
+
+  @media (min-width: $main-nav-breakpoint) {
+    margin: 0;
+  }
+}
+
+.main-nav--toggle {
+  position: absolute;
+  top: 40px;
+  right: 17px;
+  display: none;
+  width: 30px;
+  cursor: pointer;
+
+  @media (max-width: $main-nav-breakpoint) {
+    display: inline-block;
+  }
+}
+
+.main-nav--toggle--icon {
+  width: 100%;
+}

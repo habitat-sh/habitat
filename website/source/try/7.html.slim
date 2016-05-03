@@ -1,0 +1,28 @@
+---
+title: Try Habitat - Step 7
+step: 7
+total_steps: 9
+---
+h2.page-body--title Adding Services to an Existing Group
+
+p
+  | Now that we've got our leader topology established, let's see what it takes
+    to add an additional service to this group.
+p
+  | It's common for an application to consist of many services, and it's also
+    common for it to require additional nodes as it grows. As discussed previously,
+    there is a great benefit to keeping things connected and talking to one another
+    when the inevitable change rolls around or when we need to share state.
+p
+  | Adding a new service is as simple as setting a flag that references any existing
+    peer (by IP address) in the target Service Group. Let's start a new database
+    service and simultaneously add it to the existing group.
+
+code
+  | hab start -t leader habitat/postgresql --gossip-peer 172.17.0.4:9634
+
+#success
+  = partial "partials/advance_button" do
+    | Next - Add an update strategy
+
+= partial "partials/terminal" do

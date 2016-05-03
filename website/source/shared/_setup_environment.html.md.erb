@@ -1,0 +1,30 @@
+To start building artifacts in Habitat, you first need to clone the Habitat repository. The repository allows you to build the Habitat binaries, make new plans, and access the studio environment used to build artifacts.
+
+1.  Open a terminal window. Change directory to the directory where you want to clone the repo and clone it.
+
+    ~~~
+    cd /some/path && git clone https://github.com/somenamespace/habitat.git
+    ~~~
+2.  After you have successfully cloned the repo, change directory over to the local instance.
+
+    ~~~
+    cd /path/to/habitat
+    ~~~
+
+3. If you haven't done so already, connect your shell to the Docker VM you created when you setup Docker on your host machine. The following example is for connecting to the Docker machine named `default`.
+
+       eval "$(docker-machine env default)"
+
+4. From the root of your local repo, run `make shell`. This will build the Docker container that contains a basic development environment for building the Habitat binaries including the studio environment. During the initial creation process, the Docker container will be built from scratch. This can take several minutes.
+
+    Once `make shell` completes, you will be at a bash prompt inside the habitat/devshell container. You should see a prompt like the following:
+
+    `root@622a476a8d66:/src#`
+
+5. Enter into the studio environment by typing `hab-studio enter`. Because the studio itself is a Habitat artifact, it will download, unpack, and install all of the artifacts it needs to run. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat artifacts.
+
+Because there are several dependencies that also need to be installed, this operation can also take several minutes.
+
+    If successful, you should see another bash prompt like this:
+
+    `[1][default:/src:0]$`

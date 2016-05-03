@@ -1,0 +1,17 @@
+{
+  "sidebar_links": [
+    {
+      "title": "Legal",
+      "links": [
+        {
+          "title": "Licensing",
+          "link": "#"
+        },
+        {
+          "title": "Terms &amp; Conditions",
+          "link": "#"
+        }
+      ]
+    }
+  ]
+}

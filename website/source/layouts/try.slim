@@ -1,0 +1,12 @@
+- content_for :js do
+  = javascript_include_tag "try"
+
+= wrap_layout :layout do
+  .container
+    .main-content
+      .page-title
+        h1.page-title--heading Try Habitat
+        .progress-container
+          = partial "try/partials/progress"
+      .page-body
+        = yield

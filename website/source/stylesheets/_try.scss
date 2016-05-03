@@ -1,0 +1,71 @@
+// CSS for Try Habitat
+
+.page-title--heading {
+  @include grid-column(6);
+}
+
+.progress-container {
+  @include grid-column(6);
+
+  .progress {
+    margin-bottom: 0;
+    margin-top: rem-calc(10);
+  }
+}
+
+h2,
+p {
+  max-width: rem-calc(760);
+}
+
+.CodeMirror,
+#shell-panel {
+  margin-bottom: rem-calc(40);
+}
+
+.CodeMirror {
+  border: 1px solid $light-gray;
+  font-family: $font-family-monospace;
+}
+
+code {
+  display: inline-block;
+}
+
+#shell-panel {
+  background-color: black;
+  color: #c7c7c7;
+  font-family: 'Source Code Pro', monospace;
+  font-size: rem-calc(14);
+  padding: 1em;
+
+  height: 400px;
+  width: 100%;
+
+  overflow-y: scroll;
+  overflow-x: scroll;
+
+  pre {
+    background-color: inherit;
+    border: 0;
+    color: inherit;
+    overflow: hidden;
+  }
+}
+
+.ansi-black { color: rgb(0, 0, 0); }
+.ansi-red { color: rgb(187, 0, 0); }
+.ansi-green { color: rgb(0, 187, 0); }
+.ansi-yellow { color: rgb(187, 187, 0); }
+.ansi-blue { color: rgb(0, 0, 187); }
+.ansi-magenta { color: rgb(187, 0, 187); }
+.ansi-cyan { color: rgb(0, 187, 187); }
+.ansi-white { color: rgb(255, 255, 255); }
+.ansi-bright-black { color: rgb(85, 85, 85); }
+.ansi-bright-red { color: rgb(255, 85, 85); }
+.ansi-bright-green { color: rgb(0, 255, 0); }
+.ansi-bright-yellow { color: rgb(255, 255, 85); }
+.ansi-bright-blue { color: rgb(85, 85, 255); }
+.ansi-bright-magenta { color: rgb(255, 85, 255); }
+.ansi-bright-cyan { color: rgb(85, 255, 255); }
+.ansi-bright-white { color: rgb(255, 255, 255); }

@@ -1,0 +1,89 @@
+{
+  "sidebar_links": [
+    {
+      "title": "Docs",
+      "links": [
+        {
+          "title": "Tutorials",
+          "link": "/tutorials/"
+        },
+        {
+          "title": "Concepts",
+          "link": "/docs/concepts-overview/",
+          "sub_links": [
+            {
+              "title": "Supervisor",
+              "link": "/docs/concepts-supervisor/"
+            },
+            {
+              "title": "Plans",
+              "link": "/docs/concepts-plans/"
+            },
+            {
+              "title": "Packages and artifacts",
+              "link": "/docs/concepts-packages/"
+            },
+            {
+              "title": "Studio",
+              "link": "/docs/concepts-studio/"
+            },
+            {
+              "title": "Service communication",
+              "link": "/docs/concepts-communication/"
+            },
+            {
+              "title": "Depot",
+              "link": "/docs/concepts-depot/"
+            }
+          ]
+        },
+        {
+          "title": "Create packages",
+          "link": "/docs/create-packages-overview/",
+          "sub_links": [
+            {
+              "title": "Create plans",
+              "link": "/docs/create-plans/"
+            },
+            {
+              "title": "Add configuration",
+              "link": "/docs/configure-packages/"
+            },
+            {
+              "title": "Plan syntax guide",
+              "link": "/docs/plan-syntax/"
+            }
+          ]
+        },
+        {
+          "title": "Build artifacts",
+          "link": "/docs/build-artifacts-overview/",
+          "sub_links": [
+            {
+              "title": "Package contents",
+              "link": "/docs/package-contents/"
+            }
+          ]
+        },
+        {
+          "title": "Run services",
+          "link": "/docs/run-services/"
+        }
+      ]
+    },
+    {
+      "title": "Reference",
+      "link": "/docs/reference/overview/",
+      "links": [
+        {
+          "title": "CLI reference",
+          "link": "/docs/reference/habitat-cli/"
+        },
+        {
+          "title": "Habitat modules",
+          "link": "/docs/reference/habitat-modules/"
+        }
+      ]
+    }
+  ]
+}

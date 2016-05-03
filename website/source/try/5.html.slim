@@ -1,0 +1,28 @@
+---
+title: Try Habitat - Step 5
+step: 5
+total_steps: 9
+---
+h2.page-body--title Configure the Service Through Discovery
+
+p
+  | We've updated our config file, tested it, and pushed it up to the repo. Now
+    comes the stressful, time-consuming task of rolling it out to all of our database nodes.
+    Imagine if we could simply tell one node of the change and the remainder could
+    discover and apply it on their own? Habitat has you covered.
+p
+  | Before we dive into the topic of topology and connecting nodes, let's imagine
+    you've already got a large service group up and running that contains many
+    database instances.
+p
+  | Go ahead and inject one of those instances with the updated gossip.toml file
+    and watch the magic happen as the peers discover and apply the change.
+
+code
+  | hab inject postgresql.default 1 /tmp/gossip.toml --peers 172.17.0.4:9634
+
+#success
+  = partial "partials/advance_button" do
+    | Next - Set up a service group
+
+= partial "partials/terminal" do
