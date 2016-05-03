@@ -19,7 +19,7 @@ dependencies = [
  "toml 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=build-rs)",
+ "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=habitat)",
 ]
 
 [[package]]
@@ -221,7 +221,7 @@ version = "0.1.0"
 dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.18 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=build-rs)",
+ "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=habitat)",
 ]
 
 [[package]]
@@ -820,17 +820,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "zmq"
 version = "0.7.0"
-source = "git+https://github.com/reset/rust-zmq.git?branch=build-rs#edacfbffb8d966a8b5ac1c98eb3a7e29378fa78c"
+source = "git+https://github.com/reset/rust-zmq.git?branch=habitat#a72dbba780614273f2fab5e2a95dfa26b3f28ea8"
 dependencies = [
  "libc 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq-sys 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=build-rs)",
+ "zmq-sys 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=habitat)",
 ]
 
 [[package]]
 name = "zmq-sys"
 version = "0.7.0"
-source = "git+https://github.com/reset/rust-zmq.git?branch=build-rs#edacfbffb8d966a8b5ac1c98eb3a7e29378fa78c"
+source = "git+https://github.com/reset/rust-zmq.git?branch=habitat#a72dbba780614273f2fab5e2a95dfa26b3f28ea8"
 dependencies = [
  "libc 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
