@@ -16,6 +16,6 @@ Before starting this tutorial, you need to have the following:
 *   An active GitHub account. If you don't already have an account, [sign up](https://github.com/) for one now.
 *   Your favorite text editor.
 *   Docker Toolbox installed and Docker running on your local VM. See the [Get Started documentation](https://docs.docker.com/mac/) for instructions on how to install them. The toolbox also installs Oracle VM VirtualBox, which will run and manage the Linux VM where the Docker daemon resides. Make sure you have a Docker VM running before proceeding through the tutorial.
-*   TCP port 9632 open. This is needed to upload and download artifacts from the public depot.
+*   TCP port 9636 open. This is needed to upload and download artifacts from the public depot.
 
 Now that you have the prerequisites out of the way, let's start off by learning some key Habitat concepts in the [next step](/tutorials/getting-started-basic-concepts).
