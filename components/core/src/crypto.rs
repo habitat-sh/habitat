@@ -237,6 +237,7 @@ use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecretKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::{Nonce, gen_nonce};
+use sodiumoxide::randombytes::randombytes;
 use time;
 
 use env as henv;
@@ -1254,5 +1255,246 @@ impl Context {
         // newest key first
         candidate_vec.reverse();
         Ok(candidate_vec)
+    }
+
+    /// Writes a sym key to the key cache from the contents of a string slice.
+    ///
+    /// The return is a `Result` of a `String` containing the key's name with revision.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempdir;
+    ///
+    /// use habitat_core::crypto::Context;
+    /// use tempdir::TempDir;
+    ///
+    /// fn main() {
+    ///     let key_cache = TempDir::new("key_cache").unwrap();
+    ///     let ctx = Context { key_cache: key_cache.path().to_string_lossy().into_owned() };
+    ///     let content = "SYM-SEC-1
+    /// beyonce-20160504220722
+    ///
+    /// RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
+    ///
+    ///     let keyname = ctx.write_sym_key_from_str(content).unwrap();
+    ///     assert_eq!(keyname, "beyonce-20160504220722");
+    ///     assert!(key_cache.path().join("beyonce-20160504220722.sym.key").is_file());
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If there is a key version mismatch
+    /// * If the key version is missing
+    /// * If the key name with revision is missing
+    /// * If the key value (the Bas64 payload) is missing
+    /// * If the key file cannot be written to disk
+    /// * If an existing key is already installed, but the new content is different from the
+    /// existing
+    pub fn write_sym_key_from_str(&self, content: &str) -> Result<String> {
+        let mut lines = content.lines();
+        let _ = match lines.next() {
+            Some(val) => {
+                if val != SECRET_SYM_KEY_VERSION {
+                    return Err(Error::CryptoError(format!("Unsupported key version: {}", val)));
+                }
+                ()
+            }
+            None => {
+                let msg = format!("write_sym_key_from_str:1 Malformed sym key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let keyname = match lines.next() {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_sym_key_from_str:2 Malformed sym key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let sk = match lines.nth(1) {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_sym_key_from_str:3 Malformed sym key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let secret_keyfile = self.mk_key_filename(&self.key_cache, &keyname, SECRET_SYM_KEY_SUFFIX);
+        let tmpfile = {
+            let mut t = secret_keyfile.clone();
+            t.push('.');
+            t.push_str(&randombytes(6).as_slice().to_hex());
+            t
+        };
+
+        debug!("Writing temp key file {}", &tmpfile);
+        try!(self.write_keypair_files(KeyType::Sym,
+                                      &keyname,
+                                      None,
+                                      None,
+                                      &tmpfile,
+                                      &sk.as_bytes().to_vec()));
+
+        if Path::new(&secret_keyfile).is_file() {
+            let existing_hash = try!(self.hash_file(&secret_keyfile));
+            let new_hash = try!(self.hash_file(&tmpfile));
+            if existing_hash != new_hash {
+                let msg = format!("Existing key file {} found but new version hash is different, \
+                                  failing to write new file over existing. ({} = {}, {} = {})",
+                                  secret_keyfile,
+                                  secret_keyfile,
+                                  existing_hash,
+                                  tmpfile,
+                                  new_hash);
+                return Err(Error::CryptoError(msg));
+            } else {
+                // Otherwise, hashes match and we can skip writing over the exisiting file
+                debug!("New content hash matches existing file {} hash, removing temp key file {}.",
+                       secret_keyfile,
+                       tmpfile);
+                try!(fs::remove_file(tmpfile));
+            }
+        } else {
+            debug!("Moving {} to {}", tmpfile, secret_keyfile);
+            try!(fs::rename(tmpfile, secret_keyfile));
+        }
+
+        Ok(keyname.to_string())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    mod write_sym_key_from_str {
+        use std::env;
+        use std::fs::{self, File};
+        use std::io::Read;
+        use std::path::{Path, PathBuf};
+
+        use tempdir::TempDir;
+
+        use crypto::Context;
+
+        static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
+        static VALID_NAME: &'static str = "ring-key-valid-20160504220722";
+
+        fn random_ctx() -> (TempDir, Context) {
+            let tempdir = TempDir::new("key_cache").unwrap();
+            let ctx = Context { key_cache: tempdir.path().to_string_lossy().into_owned() };
+            (tempdir, ctx)
+        }
+
+        fn fixture(name: &str) -> PathBuf {
+            let file = env::current_exe()
+                           .unwrap()
+                           .parent()
+                           .unwrap()
+                           .parent()
+                           .unwrap()
+                           .parent()
+                           .unwrap()
+                           .join("tests")
+                           .join("fixtures")
+                           .join(name);
+            if !file.is_file() {
+                panic!("No fixture {} exists!", file.display());
+            }
+            file
+        }
+
+        fn fixture_as_string(name: &str) -> String {
+            let mut file = File::open(fixture(name)).unwrap();
+            let mut content = String::new();
+            file.read_to_string(&mut content).unwrap();
+            content
+        }
+
+        #[test]
+        fn writes_new_key_file() {
+            let (cache, ctx) = random_ctx();
+            let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
+            let new_key_file = Path::new(cache.path()).join(VALID_KEY);
+
+            assert_eq!(new_key_file.is_file(), false);
+            let keyname = ctx.write_sym_key_from_str(&content).unwrap();
+            assert_eq!(keyname, VALID_NAME);
+            assert!(new_key_file.is_file());
+
+            let new_content = {
+                let mut new_content_file = File::open(new_key_file).unwrap();
+                let mut new_content = String::new();
+                new_content_file.read_to_string(&mut new_content).unwrap();
+                new_content
+            };
+
+            assert_eq!(new_content, content);
+        }
+
+        #[test]
+        fn doesnt_error_when_key_exists_and_is_identical() {
+            let (cache, ctx) = random_ctx();
+            let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
+            let new_key_file = Path::new(cache.path()).join(VALID_KEY);
+
+            // install the key into the cache
+            fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
+
+            let keyname = ctx.write_sym_key_from_str(&content).unwrap();
+            assert_eq!(keyname, VALID_NAME);
+            assert!(new_key_file.is_file());
+        }
+
+        #[test]
+        #[should_panic(expected = "Unsupported key version")]
+        fn error_when_version_is_supported() {
+            let (_, ctx) = random_ctx();
+            let content = fixture_as_string("keys/ring-key-invalid-version-20160504221247.sym.key");
+
+            ctx.write_sym_key_from_str(&content).unwrap();
+        }
+
+        #[test]
+        #[should_panic(expected = "write_sym_key_from_str:1 Malformed sym key string")]
+        fn error_when_missing_version() {
+            let (_, ctx) = random_ctx();
+
+            ctx.write_sym_key_from_str("").unwrap();
+        }
+
+        #[test]
+        #[should_panic(expected = "write_sym_key_from_str:2 Malformed sym key string")]
+        fn error_when_missing_name() {
+            let (_, ctx) = random_ctx();
+
+            ctx.write_sym_key_from_str("SYM-SEC-1\n").unwrap();
+        }
+
+        #[test]
+        #[should_panic(expected = "write_sym_key_from_str:3 Malformed sym key string")]
+        fn error_when_missing_key() {
+            let (_, ctx) = random_ctx();
+
+            ctx.write_sym_key_from_str("SYM-SEC-1\nim-in-trouble-123\n").unwrap();
+        }
+
+        #[test]
+        #[should_panic(expected = "Existing key file")]
+        fn error_when_key_exists_and_hashes_differ() {
+            let (cache, ctx) = random_ctx();
+            let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
+            fs::copy(key,
+                     cache.path().join("ring-key-valid-20160504220722.sym.key"))
+                .unwrap();
+
+            ctx.write_sym_key_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething")
+               .unwrap();
+        }
     }
 }
