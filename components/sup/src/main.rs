@@ -45,6 +45,8 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 static DEFAULT_GROUP: &'static str = "default";
 static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
 
+static RING_ENVVAR: &'static str = "HAB_RING";
+
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
 fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
@@ -133,8 +135,17 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         config.set_file_path(fp.to_string());
     }
     config.set_version_number(value_t!(sub_args, "version-number", u64).unwrap_or(0));
-    if let Some(ring) = sub_args.value_of("ring") {
-        config.set_ring(ring.to_string());
+    let ring = match sub_args.value_of("ring") {
+        Some(val) => Some(val.to_string()),
+        None => {
+            match henv::var(RING_ENVVAR) {
+                Ok(val) => Some(val),
+                Err(_) => None,
+            }
+        }
+    };
+    if let Some(ring) = ring {
+        config.set_ring(ring);
     }
     if args.value_of("verbose").is_some() {
         sup::output::set_verbose(true);
