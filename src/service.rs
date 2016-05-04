@@ -61,7 +61,7 @@ impl FromStr for ServiceGroup {
         // you can't specify a key with an "@", but without an org
         // ex: "foo.bar@"
         if value.ends_with('@') {
-            return Err(Error::InvalidServiceGroup(value.to_string()))
+            return Err(Error::InvalidServiceGroup(value.to_string()));
         };
 
         Ok(ServiceGroup::new(name, group, caps.at(4).map(|s| s.to_string())))

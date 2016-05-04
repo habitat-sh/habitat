@@ -14,6 +14,8 @@ extern crate regex;
 extern crate rustc_serialize;
 extern crate sodiumoxide;
 extern crate libsodium_sys;
+#[cfg(test)]
+extern crate tempdir;
 extern crate time;
 extern crate toml;
 
