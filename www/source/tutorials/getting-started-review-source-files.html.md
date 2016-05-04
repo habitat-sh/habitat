@@ -7,7 +7,7 @@ The Node.js application in this tutorial is a simple web app that displays a mes
 
 **server.js**
 
-This is the main file in our web app. It uses the [nconf module](https://github.com/indexzero/nconf) to retrieve the `message` and `port` configuration values that are set in the config.json file.  
+This is the main file in our web app. It uses the [nconf module](https://github.com/indexzero/nconf) to retrieve the `message` and `port` configuration values that are set in the config.json file.
 
 ~~~ javascript
 var http = require('http'),
@@ -16,16 +16,15 @@ var http = require('http'),
 
 nconf.file({ file: 'config/config.json' });
 
-var port = nconf.get('port');
-
 var handleRequest = function(request, response) {
     response.writeHead(200, {"Content-Type": "text/plain"});
-    response.end(nconf.get('message'));    
+    response.end(nconf.get('message'));
 }
 
 var www = http.createServer(handleRequest);
+var port = nconf.get('port');
 www.listen(port, function() {
-    console.log("Running on http://0.0.0.0:%d", port);  
+    console.log("Running on http://0.0.0.0:%d", port);
 });
 ~~~
 
@@ -62,4 +61,4 @@ Because we are using npm to start up our Node.js web app, the npm binary looks f
 }
 ~~~
 
-Now that you know how the source files are defined, it's time to [create your first plan](/tutorials/getting-started-create-plan).   
+Now that you know how the source files are defined, it's time to [create your first plan](/tutorials/getting-started-create-plan).
