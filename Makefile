@@ -131,6 +131,3 @@ docs: image ## build the docs
 		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
 		cp -r images ./components/sup/target/doc/habitat_sup; \
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
-
-gpg: ## installs gpg signing keys, only run this in a Studio
-	(cd plans && make gpg)
