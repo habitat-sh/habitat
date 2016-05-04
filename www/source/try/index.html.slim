@@ -1,7 +1,7 @@
 ---
 title: Try Habitat - Step 1
 step: 1
-total_steps: 9
+total_steps: 7
 ---
 p.page-body--tip
   | Got 10 minutes? See what Habitat can do.
@@ -17,10 +17,10 @@ p
     the application itself, not the infrastructure that the app runs on. First, let's
     start a service from a Habitat package.
 code
-  | hab start habitat/postgresql
+  | hab start core/redis
+
+= partial "partials/terminal" do
 
 #success
   = partial "partials/advance_button" do
     | Next - Ask the service what's configurable
-
-= partial "partials/terminal" do

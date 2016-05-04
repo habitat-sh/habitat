@@ -1,20 +1,20 @@
 ---
 title: Try Habitat - Step 6
 step: 6
-total_steps: 9
+total_steps: 7
 ---
 h2.page-body--title Setting Up a Service Group Topology
 
 p
-  | So that last step was pretty powerful, but you're probably wondering how things
-    were set up to talk to one another in the first place. It's actually not as
+  | That last step was powerful, but you're probably wondering how these services
+    were set up to communicate with each other. It's actually not as
     complicated as you might suspect thanks to some built-in Habitat features.
 p
   | By default, Habitat places running services into a
     <a href="/docs/concepts-communication/">Service Group</a> with a
     standalone topology. However, as we'll see below, you can explicitly start
-    services in a user-defined group that can optionally apply an alternative
-    topology.
+    services in a user-defined group that can optionally apply alternative
+    topologies.
 p
   | Suppose your application needs to share state and requires a certain start
     order for its services. In this situation, you can leverage a leader/follower
@@ -22,10 +22,10 @@ p
     <code>hab start</code> command.
 
 code
-  | hab start -t leader habitat/postgresql
+  | hab start -t leader core/redis
+
+= partial "partials/terminal" do
 
 #success
   = partial "partials/advance_button" do
     | Next - Connect additional services
-
-= partial "partials/terminal" do

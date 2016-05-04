@@ -1,43 +1,42 @@
 ---
 title: Try Habitat - Step 4
 step: 4
-total_steps: 9
+total_steps: 7
 ---
 h2.page-body--title Making Permanent Changes via Configuration Files
 
 p
   | In the previous step, we made our change while starting the service. That
-    was handy but what if we want to bake this change into our source code
-    permanently and then distribute it across a group of nodes? <br>This is
-    where Habitat really shines.
+    was convenient, but what if we want to bake this change into our source code
+    and distribute it across a group of nodes? This is where Habitat excels.
 p
-  | Earlier, we asked the Supervisor to report on what was configurable. That
-    information is stored in two files that you write when creating your
-    <a href="/docs/concepts-packages/">packages</a> - 1) a
-    <a href="/docs/concepts-plans/">plan file</a> and 2)
-    a .toml settings file.
+  | Habitat deals with configuration settings in a couple of places. First, you
+    write a <a href="/docs/concepts-plans/">plan file</a> that describes how to build
+    your artifact and, second, Habitat looks for a .toml settings file.
 p
-  | The gossip.toml file for our current project is displayed below. Presume you're
-    working on this file locally and storing it with the rest of your source code
-    in a GitHub repo. Let's increase the <code>max_connections</code> for our
-    database and proceed to distribute this change to all of our production nodes
-    in then next step.
+  | Earlier, the supervisor read the contents of the .toml file for us when we asked
+    about what was configurable. A snippet of that file is displayed below.
+
+p
+  | Presume you're working on this file locally and storing it with the rest of your
+    source code in a GitHub repo. Let's change the <code>tcp-backlog</code> setting
+    to 128. In the next step, we'll apply the change to a running service.
 
 code
-  | max_connections = 300
+  | tcp-backlog = 128
+
+= partial "partials/editor" do
+  | # snippet of .toml file
+    #
+    # TCP listen() backlog.
+    #
+    # In high requests-per-second environments you need an high backlog in order
+    # to avoid slow clients connections issues. Note that the Linux kernel
+    # will silently truncate it to the value of /proc/sys/net/core/somaxconn so
+    # make sure to raise both the value of somaxconn and tcp_max_syn_backlog
+    # in order to get the desired effect.
+    tcp-backlog = 511
 
 #success
   = partial "partials/advance_button" do
     | Next - Apply changes through discovery
-
-= partial "partials/editor" do
-  | # gossip.toml
-    listen_addresses = "*"
-    port = 5432
-    superuser_reserved_connections = 3
-    unix_socket_directories = "/tmp"
-    unix_socket_group = ""
-    unix_socket_permissions = "0777"
-    bonjour = "off"
-    bonjour_name = ""
-    max_connections = 100
