@@ -25,9 +25,10 @@ use std::str::FromStr;
 
 use ansi_term::Colour::Yellow;
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
-use hcore::package::PackageIdent;
 use hcore::env as henv;
 use hcore::fs;
+use hcore::crypto::Context;
+use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use sup::config::{Command, Config, UpdateStrategy};
@@ -46,6 +47,7 @@ static DEFAULT_GROUP: &'static str = "default";
 static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
 
 static RING_ENVVAR: &'static str = "HAB_RING";
+static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
@@ -138,9 +140,17 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     let ring = match sub_args.value_of("ring") {
         Some(val) => Some(val.to_string()),
         None => {
-            match henv::var(RING_ENVVAR) {
-                Ok(val) => Some(val),
-                Err(_) => None,
+            match henv::var(RING_KEY_ENVVAR) {
+                Ok(val) => {
+                    let ctx = Context::default();
+                    Some(try!(ctx.write_sym_key_from_str(&val)))
+                }
+                Err(_) => {
+                    match henv::var(RING_ENVVAR) {
+                        Ok(val) => Some(val),
+                        Err(_) => None,
+                    }
+                }
             }
         }
     };
