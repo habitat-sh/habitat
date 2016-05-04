@@ -1,7 +1,7 @@
 ---
 title: Try Habitat - Step 2
 step: 2
-total_steps: 9
+total_steps: 7
 ---
 h2.page-body--title Ask the Supervisor What's Configurable
 
@@ -17,10 +17,10 @@ p
     configuration settings exposed via the Supervisor.
 
 code
-  | hab sup config habitat/postgresql
+  | hab sup config core/redis
+
+= partial "partials/terminal" do
 
 #success
   = partial "partials/advance_button" do
     | Next - Make a configuration change
-
-= partial "partials/terminal" do

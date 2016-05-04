@@ -21,8 +21,11 @@
         return $.get("/try/responses/" + name + ".txt");
     }
 
-    function success() {
+    function success(display) {
         $("#success .button").removeClass("disabled").addClass("success");
+        if(display === "hide") {
+          $("#shell-cli").hide();
+        }
     }
 
     var editor;
@@ -99,8 +102,8 @@
             if (args[0] === "start") {
 
                 // Start a service
-                if (args[1] === "habitat/postgresql") {
-                  getResponse("hab-start-habitat-postresql").then(function (txt) {
+                if (args[1] === "core/redis") {
+                  getResponse("hab-start-service").then(function (txt) {
                       inStudio = true;
                       callback(format(txt));
                       shell.setPrompt(studioPrompt);
@@ -114,7 +117,7 @@
 
                 // Adding a leader/follower topology
                 } else if (args[1] + ' ' + args[2] === "-t leader") {
-                  if (args[3] === 'habitat/postgresql') {
+                  if (args[3] === 'core/redis') {
 
                     // adding the first/leader node
                     if ((args[4] == null) && (step === 6)) {
@@ -127,11 +130,11 @@
                               callback(studioPrompt);
                           });
 
-                          if (step === 6) { success(); }
+                          if (step === 6) { success('hide'); }
                       });
 
                     // adding an additional/follower node
-                    } else if (args[4] + ' ' + args[5] === "--gossip-peer 172.17.0.4:9634") {
+                    } else if (args[4] + ' ' + args[5] === "--peer 172.17.0.4") {
                       getResponse("hab-start-additional-node").then(function (txt) {
                           inStudio = true;
                           callback(format(txt));
@@ -140,8 +143,15 @@
                               promptCounter += 1;
                               callback(studioPrompt);
                           });
+                          //change button text to reflect resulting status
+                          //show badge on window buttons
+                          //show full updated cli output
+                          if (step === 7) {
+                            success();
 
-                          if (step === 7) { success(); }
+                            $(".node-status").html("connected").parent().addClass("updated");
+                            $(".button-badge, .full-output").show();
+                          }
                       });
 
                     // they could be on step 6 or 7 since the command/subcommand is the same
@@ -171,8 +181,8 @@
             } else if (args[0] === "sup") {
 
               // Ask what is configurable
-              if (args.join(" ") === "sup config habitat/postgresql") {
-                getResponse("hab-sup-config-habitat-postgresql").then(function (txt) {
+              if (args.join(" ") === "sup config core/redis") {
+                getResponse("hab-sup-config-service").then(function (txt) {
                     inStudio = true;
                     callback(format(txt));
                     shell.setPrompt(studioPrompt);
@@ -192,10 +202,10 @@
               };
 
             // hab inject (alias)
-            } else if (args[0] === "inject") {
+            } else if (args[0] === "config") {
               // inject the gossip.toml into the group
-              if (args.join(" ") === "inject postgresql.default 1 /tmp/gossip.toml --peers 172.17.0.4:9634") {
-                getResponse("hab-inject-gossip-postgresql").then(function (txt) {
+              if (args.join(" ") === "config apply redis.default 1 /tmp/gossip.toml --peers 172.17.0.4") {
+                getResponse("hab-config-apply").then(function (txt) {
                     inStudio = true;
                     callback(format(txt));
                     shell.setPrompt(studioPrompt);
@@ -204,12 +214,20 @@
                         callback(studioPrompt);
                     });
                     // step is pulled from the progress bar attribute in the DOM
-                    if (step === 5) { success(); }
+                    if (step === 5) {
+                      success();
+
+                      //change button text to reflect resulting status
+                      //show badge on window buttons
+                      //show full updated cli output
+                      $(".node-status").html("changed applied").parent().addClass("updated");
+                      $(".button-badge, .full-output").show();
+                    }
                 });
 
               // show the 'hab inject' help
               } else {
-                getResponse("hab-inject-help").then(function (txt) {
+                getResponse("hab-config-apply-help").then(function (txt) {
                     callback(format(txt));
                 });
               };
@@ -281,14 +299,14 @@
     });
 
     // Configuration change through environment variable
-    shell.setCommandHandler('HAB_POSTGRESQL="port=5433"', {
+    shell.setCommandHandler('HAB_REDIS="tcp-backlog=128"', {
         exec: function(cmd, args, callback) {
 
             if (args[0] === "hab") {
 
               // Reconfigure service via environment variable
-              if (args.join(" ") === "hab start habitat/postgresql") {
-                getResponse("port-hab-start-habitat-postgresql").then(function (txt) {
+              if (args.join(" ") === "hab start core/redis") {
+                getResponse("hab-start-env-var").then(function (txt) {
                     inStudio = true;
                     callback(format(txt));
                     shell.setPrompt(studioPrompt);
@@ -301,7 +319,7 @@
                 });
 
             // if user tries to start anything else, then show the 'hab start' help
-            } else if ((args[1] === "start") && (args[2] !== "habitat/postgresql")) {
+          } else if ((args[1] === "start") && (args[2] !== "core/redis")) {
               getResponse("hab-start-help").then(function (txt) {
                   callback(format(txt));
               });
@@ -346,9 +364,22 @@
 
         editor.on("changes", function (instance, changes) {
             if (step === 4 &&
-                instance.getValue().match(/max_connections\s\=\s*300\s*/)) {
+                instance.getValue().match(/tcp-backlog\s\=\s*128\s*/)) {
                 success();
             }
         });
     }
+
+    // Switching windows when adding services
+    $(".window-buttons .button").click(function(event) {
+        var targetID = $(this).attr("data-target");
+
+        // set button classes
+        $(".window-buttons .button").removeClass("active");
+        $(this).addClass("active");
+
+        // show/hide windows
+        $(".window-node").hide();
+        $("#" + targetID).show();
+    });
 }());

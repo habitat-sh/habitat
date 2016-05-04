@@ -3,29 +3,18 @@ title: Try Habitat - Step 10
 step: 10
 total_steps: 9
 ---
-p.page-body--tip
-  | Done! You've completed the Habitat demo.
-
-h2.page-body--title Learning More About Habitat
+h2.page-body--title Add an update strategy
 
 p
-  | Thanks for taking some time to get familiar with Habitat. We hope you've seen
-    some things that would benefit your own workflow and that you'll continue
-    learning more about using Habitat with your own projects.
+  | First paragraph
 p
-  | Following is a list of additional resources that will provide more depth and
-    hands-on experience:
-ul
-  li
-    a href="/tutorials" Habitat Tutorials
-  li
-    a href="/docs" Habitat Docs
-  li
-    a href="/community" Habitat Open Source Community
+  | Second paragraph
 
-p
-  | If you've got more time now, then we'd recommend you complete the Getting Started
-    tutorial where you'll install Habitat and start building your first plan.
+code
+  | hab -strategy
 
-a.button.cta href="/tutorials/getting-started-overview/"
-  | Tutorial - Getting Started with Habitat
+= partial "partials/terminal" do
+
+#success
+  = partial "partials/advance_button" do
+    | Next - Bind services

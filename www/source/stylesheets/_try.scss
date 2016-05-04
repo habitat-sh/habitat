@@ -32,7 +32,8 @@ code {
   display: inline-block;
 }
 
-#shell-panel {
+#shell-panel,
+.shell-panel {
   background-color: black;
   color: #c7c7c7;
   font-family: 'Source Code Pro', monospace;
@@ -69,3 +70,50 @@ code {
 .ansi-bright-magenta { color: rgb(255, 85, 255); }
 .ansi-bright-cyan { color: rgb(85, 255, 255); }
 .ansi-bright-white { color: rgb(255, 255, 255); }
+
+.window-buttons {
+  ul {
+    margin: 0;
+    li {
+      display: inline-block;
+      list-style: none;
+      margin-right: rem-calc(10);
+      position: relative;
+
+      a.active {
+        background-color: $hab-blue !important;
+      }
+
+      a.updated {
+        background-color: $hab-orange;
+      }
+
+      a.active:hover {
+        background-color: darken($hab-blue, 6);
+      }
+
+      .button-badge {
+        background-color: $hab-green;
+        border: 1px solid $hab-green-dark;
+        border-radius: 100%;
+        box-shadow: 0 0 4px $hab-green-dark;
+        display: none;
+        height: 10px;
+        position: absolute;
+        right: -5px;
+        top: -5px;
+        width: 10px;
+      }
+    }
+  }
+}
+
+.shell-panel {
+  margin-bottom: 2.5rem;
+}
+
+pre.full-output {
+  @extend .ansi-bright-cyan;
+  display: none;
+  margin-top: rem-calc(-32);
+}
