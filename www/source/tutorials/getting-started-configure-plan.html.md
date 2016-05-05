@@ -3,16 +3,19 @@ title: Add configuration to your plan
 ---
 
 # Add configuration to your plan
-When you create a plan, you can optionally define what configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you can use a [mustache](https://mustache.github.io/)-based version of the native app configuration file and then update the settings in a corresponding TOML file.
+When you create a plan, you may optionally define which configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you may use a [mustache](https://mustache.github.io/)-based version of the native app configuration file and then update the settings in a corresponding TOML file.
 
-For example, the archive for our Node.js app already has a configuration file called config.json that populates a message of the day and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
+For example, the archive for our Node.js app already has a configuration file called `config.json` that populates a message of the day and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
 
 1. In your `plans/mytutorialapp` directory, create a new directory named "config" and add a new file to it named "config.json" to match the name of the configuration file that server.js references.
 
-       [default:/src/plans/mytutorialapp:0]$mkdir config && touch config/config.json
+       [9][default:/src/plans/mytutorialapp/hooks:0]$cd ..
+       [10][default:/src/plans/mytutorialapp:0]$mkdir config
+       [11][default:/src/plans/mytutorialapp:0]$touch config/config.json
+
 
 2. Open `config/config.json` in your text editor.
-3. Copy the contents from the original config.json into `config/config.json` as shown below.
+3. Copy the contents from the original `config.json` into `config/config.json` as shown below.
 
        {
            "message": "Hello, World!",
@@ -21,7 +24,7 @@ For example, the archive for our Node.js app already has a configuration file ca
 
     Because we want to be able to configure both of the settings above, we are going to replace the existing values in the file with references to mustache tags. Those tags will look to a TOML file to define an initial set of values if they are not overridden at start up.
 
-4. Replace the values in config.json with the mustache tags **cfg.message** and **cfg.port**.
+4. Replace the values in `config.json` with the mustache tags **cfg.message** and **cfg.port**.
 
        {
            "message": "{{cfg.message}}",
@@ -30,15 +33,15 @@ For example, the archive for our Node.js app already has a configuration file ca
 
 5. Save the file.
 
-All user-defined tags must have the "cfg" prefix. For general service settings, Habitat also defines several system tags that you can use to configure your service at runtime. See the [Run-time configuration settings](/docs/plan-syntax#runtime-configuration-settings) section of the Plan syntax guide for more information.
+All user-defined tags must have the "**cfg**" prefix. For general service settings, Habitat also defines several system tags that you may use to configure your service at runtime. See the [Run-time configuration settings](/docs/plan-syntax#runtime-configuration-settings) section of the Plan syntax guide for more information.
 
-As we said, a TOML file is associated with your configuration file and specifies the default values for your service at start up. If you have a templatized configuration file, then you must include a default.toml file in your plan folder.
+As we said, a TOML file is associated with your configuration file and specifies the default values for your service at start up. If you have a templatized configuration file, then you must include a `default.toml` file in your plan folder.
 
 1. Create a file named "default.toml" and include it in the root of your plan directory.
 
-       [44][default:/src/plans/mytutorialapp:0]$touch default.toml
+       [12][default:/src/plans/mytutorialapp:0]$touch default.toml
 
-2. Open default.toml in your text editor and add the default values.
+2. Open `default.toml` in your text editor and add the default values.
 
        # Message of the Day
        message = "Hello, World!"
@@ -46,7 +49,7 @@ As we said, a TOML file is associated with your configuration file and specifies
        # The port number that is listening for requests.
        port = 8080
 
-    We use the same values as the ones specified in the original config.json file to keep the initial start up experience the same. Also, the port value specified is specific to the Node.js app and it will bind to the port of its host. In this case, the host is the Docker container you will create in the next step.
+    We use the same values as the ones specified in the original `config.json` file to keep the initial start up experience the same. Also, the port value specified is specific to the Node.js app and it will bind to the port of its host. In this case, the host is the Docker container you will create in the next step.
 
 3. Save the file.
 
@@ -54,7 +57,8 @@ As we said, a TOML file is associated with your configuration file and specifies
 Now that you have defined how your source files should be installed and configured in your artifact, it's time to build it in the studio. Change directory to `/src` and enter the following command to create the artifact.
 
 ~~~ bash
-[23][default:/src:0]$build plans/mytutorialapp
+[13][default:/src/plans/mytutorialapp:0]$cd ../..
+[14][default:/src:0]$build plans/mytutorialapp
 
 ...
 
@@ -77,7 +81,7 @@ Successfully created signed binary artifact /hab/cache/artifacts/sample-mytutori
    mytutorialapp: I love it when a plan.sh comes together.
    mytutorialapp:
    mytutorialapp: Build time: 0m24s
-[4][default:/src/plans:0]$
+[15][default:/src:0]$
 ~~~
 
 The next step will show you how to install your artifact and run your service for local testing.
