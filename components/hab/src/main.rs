@@ -10,6 +10,7 @@ extern crate habitat_common as common;
 extern crate habitat_depot_client as depot_client;
 #[macro_use]
 extern crate clap;
+extern crate env_logger;
 extern crate hyper;
 #[macro_use]
 extern crate log;
@@ -29,6 +30,7 @@ mod exec;
 mod gossip;
 
 use std::env;
+use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
@@ -58,13 +60,14 @@ const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 fn main() {
-    if let Err(e) = run_hab() {
+    if let Err(e) = start() {
         println!("{}", e);
         std::process::exit(1)
     }
 }
 
-fn run_hab() -> Result<()> {
+fn start() -> Result<()> {
+    env_logger::init().unwrap();
     try!(exec_subcommand_if_called());
 
     let app_matches = cli::get().get_matches();
@@ -113,6 +116,8 @@ fn run_hab() -> Result<()> {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
+                        ("export", Some(sc)) => try!(sub_ring_key_export(sc)),
+                        ("import", Some(_)) => try!(sub_ring_key_import()),
                         ("generate", Some(sc)) => try!(sub_ring_key_generate(sc)),
                         _ => unreachable!(),
                     }
@@ -278,6 +283,17 @@ fn sub_package_install(m: &ArgMatches) -> Result<()> {
 
     try!(common::command::package::install::start(url, ident_or_artifact));
     Ok(())
+}
+
+fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
+    let ring = m.value_of("RING").unwrap();
+    command::ring::key::export::start(ring)
+}
+
+fn sub_ring_key_import() -> Result<()> {
+    let mut content = String::new();
+    try!(io::stdin().read_to_string(&mut content));
+    command::ring::key::import::start(&content)
 }
 
 fn sub_ring_key_generate(m: &ArgMatches) -> Result<()> {

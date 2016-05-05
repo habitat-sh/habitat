@@ -5,6 +5,7 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 build = "build.rs"
 
 [dependencies]
+env_logger = "*"
 # Used to handle responses code back from depot-core
 hyper = "*"
 libc = "*"
