@@ -41,9 +41,9 @@ To create a plan, do the following:
 
 We now have a skeleton plan, but we need to modify some of its settings before we can continue.
 
-1. Change the `pkg_origin` value to something such as `mysample`. The "core" origin is reserved for the Habitat team.
+1. Change the `pkg_origin` value to `myorigin`. The "core" origin is reserved for the Habitat team.
 
-2. Change the `pkg_maintainer` value to your email name and address.
+2. Change the `pkg_maintainer` value to `"Your Name <your email address>"`.
 
 3. Change the `pkg_source` value to point to the source file archive from the previous step.
 
@@ -164,7 +164,7 @@ As part of building an artifact, you need to have an origin key installed in you
 This subcommand will place myorigin-_timestamp.sig.key and myorigin-_timestamp_.pub files in the `/hab/cache/keys` directory. As we said earlier, you use the signature key as part of the artifact signing process and should not be shared freely with anyone; however, if anyone wants to download and use your artifact, then they must have your .pub key installed in their local `/hab/cache/keys` directory.
 
 ## Do an initial build (optional)
-If you want to see your package build in the studio, go back to your terminal window where your studio environment is open and run the following command:
+If you want to see your package build in the studio, go back to your terminal window where your studio environment is open, switch to the `/src/plans` directory, and run the following command:
 
 ~~~ bash
 [155][default:/src/plans:0]$build mytutorialapp
@@ -172,4 +172,10 @@ If you want to see your package build in the studio, go back to your terminal wi
 
 The hab-plan-build.sh script checks dependencies, sets variables, creates a tarball (.hart file) of your package and installs your source files in `/hab/pkgs/origin/packagename/version/release` and your artifact file in `/hab/cache/artifacts`. The artifact is signed using the origin signature key and must match the pkg_origin value in your plan. If you navigate to that folder you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
 
-Right now, your package builds, but will not do anything at runtime. The next step is to [add hooks](/tutorials/getting-started-add-hooks) to your plan. These will copy over the correct files during initialization and start the npm binary.
+Right now, your package builds, but will not do anything at runtime. The next step is to add hooks to your plan. These will copy over the correct files during initialization and start the npm binary.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/getting-started-add-hooks" class="button cta">Next - Add hooks to your plan</a></li>
+  <li><a href="/tutorials/getting-started-review-source-files/">Back to previous step</a></li>
+</ul>

@@ -61,4 +61,10 @@ Because we are using npm to start up our Node.js web app, the npm binary looks f
 }
 ~~~
 
-Now that you know how the source files are defined, it's time to [create your first plan](/tutorials/getting-started-create-plan).
+Now that you know how the source files are defined, it's time to create your first plan.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/getting-started-create-plan" class="button cta">Next - Create your first plan</a></li>
+  <li><a href="/tutorials/getting-started-setup-environment/">Back to previous step</a></li>
+</ul>

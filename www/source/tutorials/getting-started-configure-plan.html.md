@@ -51,7 +51,7 @@ As we said, a TOML file is associated with your configuration file and specifies
 3. Save the file.
 
 ## Build the artifact
-Now that you have defined how your source files should be installed and configured in your artifact, it's time to build it in the studio. Enter the following command to create the artifact.
+Now that you have defined how your source files should be installed and configured in your artifact, it's time to build it in the studio. Change directory to `/src` and enter the following command to create the artifact.
 
 ~~~ bash
 [23][default:/src:0]$build plans/mytutorialapp
@@ -65,7 +65,7 @@ Now that you have defined how your source files should be installed and configur
    mytutorialapp: Stripping unneeded symbols from binaries and libraries
    mytutorialapp: Creating manifest
    mytutorialapp: Generating package artifact
-/hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/' from member names
+/hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/` from member names
 /hab/cache/artifacts/.sample-mytutorialapp-0.0.1-20160428191007-x86_64-linux.tar (1/1)
   100 %       120.8 KiB / 900.0 KiB = 0.134
 Successfully created signed binary artifact /hab/cache/artifacts/sample-mytutorialapp-0.0.1-20160428191007-x86_64-linux.hart
@@ -80,4 +80,10 @@ Successfully created signed binary artifact /hab/cache/artifacts/sample-mytutori
 [4][default:/src/plans:0]$
 ~~~
 
-The [next step](/tutorials/getting-started-process-build) will show you how to install your artifact and run your service for local testing.
+The next step will show you how to install your artifact and run your service for local testing.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/getting-started-process-build" class="button cta">Next - Process your build</a></li>
+  <li><a href="/tutorials/getting-started-add-hooks/">Back to previous step</a></li>
+</ul>

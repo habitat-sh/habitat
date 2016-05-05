@@ -7,7 +7,7 @@ Now that you have copied over the correct files into the correct build-time loca
 
 The **init** and **run** hooks are responsible for defining behavior during initialization and when the child service/application starts up. We use these hooks to ensure our Node.js app runs correctly.
 
-To add in the hooks, complete the following steps either inside or outside of the studio and the main Habitat development container.
+Perform the following operations in the same directory where the `plan.sh` file is located.
 
 1. If you are inside the studio, change directory to `src/plans/mytutorialapp` and make a new sub-directory called `hooks`.
 
@@ -39,4 +39,10 @@ To add in the hooks, complete the following steps either inside or outside of th
 
 7. Save the **run** hook file.
 
-This application would almost work except the config.json file that was originally part of the source files was not copied over in our plan. This was on purpose. In the [next step](/tutorials/getting-started-configure-plan), you'll learn how to create a templatized version of a configuration file for your app that you can use to modify the configuration settings at start or runtime.
+This application would almost work except the config.json file that was originally part of the source files was not copied over in our plan. This was on purpose. In the next step, you'll learn how to create a templatized version of a configuration file for your app that you can use to modify the configuration settings at start or runtime.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/getting-started-configure-plan" class="button cta">Next - Add configuration to your plan</a></li>
+  <li><a href="/tutorials/getting-started-create-plan/">Back to previous step</a></li>
+</ul>
