@@ -3,11 +3,11 @@ title: Review the client source files
 ---
 
 # Review the source files
-The Node.js application in this tutorial is a simple web app that displays a message to anyone who connects to the app's endpoint. You can configure both the listening port and the message that gets displayed. The application contains three files: server.js, package.json, and config.json. You are not expected to take any action in this step; however, it's helpful to understand the source files first before learning how to build, install, and configure them in your plan.
+The Node.js application in this tutorial is a simple web app that displays a message to anyone who connects to the app's endpoint. You can configure both the listening port and the message that gets displayed. The application contains three files: `server.js`, `package.json`, and `config.json`. You are not expected to take any action in this step; however, it's helpful to understand the source files first before learning how to build, install, and configure them in your plan.
 
 **server.js**
 
-This is the main file in our web app. It uses the [nconf module](https://github.com/indexzero/nconf) to retrieve the `message` and `port` configuration values that are set in the config.json file.
+This is the main file in our web app. It uses the [nconf module](https://github.com/indexzero/nconf) to retrieve the `message` and `port` configuration values that are set in the `config.json` file.
 
 ~~~ javascript
 var http = require('http'),
@@ -41,7 +41,7 @@ You can think of this file as the default configuration file that you would use 
 
 **package.json**
 
-Because we are using npm to start up our Node.js web app, the npm binary looks for a package.json file to describe the Node.js app project and its dependencies.
+Because we are using npm to start up our Node.js web app, the npm binary looks for a `package.json` file to describe the Node.js app project and its dependencies.
 
 ~~~ javascript
 {
