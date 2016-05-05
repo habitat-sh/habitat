@@ -12,4 +12,10 @@ Here are the basic concepts that you will learn about in this tutorial:
 -   **Plan**: A shell script that defines what your package contains and how it is built.
 -   **Depot**: A repository of packages where you can upload and download application and dependency packages. You can connect to the public Habitat depot as well as create a local depot.
 
-In the [next step](/tutorials/getting-started-setup-environment), you will set up your Habitat development environment.
+In the next step, you will set up your Habitat development environment.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/getting-started-setup-environment" class="button cta">Next - Set up your environment</a></li>
+  <li><a href="/tutorials/getting-started-overview/">Back to previous step</a></li>
+</ul>
