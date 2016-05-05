@@ -3,6 +3,7 @@ name = "hab"
 version = "0.4.0"
 dependencies = [
  "clap 2.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_common 0.4.0",
  "habitat_core 0.4.0",
  "habitat_depot_client 0.4.0",

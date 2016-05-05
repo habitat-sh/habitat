@@ -222,7 +222,7 @@ use std::io::prelude::*;
 use std::io;
 use std::io::{BufReader, BufWriter};
 use std::mem;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use libsodium_sys;
 use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
@@ -1127,6 +1127,46 @@ impl Context {
         self.read_key_bytes(&secret_keyfile)
     }
 
+    /// Returns the full path to the secret sym key given a key name with revision.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempdir;
+    ///
+    /// use habitat_core::crypto::Context;
+    /// use std::fs::File;
+    /// use tempdir::TempDir;
+    ///
+    /// fn main() {
+    ///     let key_cache = TempDir::new("key_cache").unwrap();
+    ///     let ctx = Context { key_cache: key_cache.path().to_string_lossy().into_owned() };
+    ///     let keyfile = key_cache.path().join("beyonce-20160504220722.sym.key");
+    ///     let _ = File::create(&keyfile).unwrap();
+    ///
+    ///     let path = ctx.get_sym_secret_key_path("beyonce-20160504220722").unwrap();
+    ///     assert_eq!(path, keyfile);
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If no file exists at the the computed file path
+    pub fn get_sym_secret_key_path(&self, key_with_rev: &str) -> Result<PathBuf> {
+        let secret_keyfile = self.mk_key_filename(&self.key_cache,
+                                                  key_with_rev,
+                                                  SECRET_SYM_KEY_SUFFIX);
+        let path = PathBuf::from(secret_keyfile);
+        if !path.is_file() {
+            return Err(Error::CryptoError(format!("No sym secret key found at {}",
+                                                  path.display())));
+        }
+        Ok(path)
+    }
+
     /// Read a file into a Vec<u8>
     fn read_key_bytes(&self, keyfile: &str) -> Result<Vec<u8>> {
         let mut f = try!(File::open(keyfile));
@@ -1372,49 +1412,80 @@ impl Context {
 
 #[cfg(test)]
 mod test {
+    use std::env;
+    use std::fs::File;
+    use std::io::Read;
+    use std::path::PathBuf;
+
+    use tempdir::TempDir;
+
+    use crypto::Context;
+
+    pub static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
+    pub static VALID_NAME: &'static str = "ring-key-valid-20160504220722";
+
+    pub fn random_ctx() -> (TempDir, Context) {
+        let tempdir = TempDir::new("key_cache").unwrap();
+        let ctx = Context { key_cache: tempdir.path().to_string_lossy().into_owned() };
+        (tempdir, ctx)
+    }
+
+    pub fn fixture(name: &str) -> PathBuf {
+        let file = env::current_exe()
+                       .unwrap()
+                       .parent()
+                       .unwrap()
+                       .parent()
+                       .unwrap()
+                       .parent()
+                       .unwrap()
+                       .join("tests")
+                       .join("fixtures")
+                       .join(name);
+        if !file.is_file() {
+            panic!("No fixture {} exists!", file.display());
+        }
+        file
+    }
+
+    pub fn fixture_as_string(name: &str) -> String {
+        let mut file = File::open(fixture(name)).unwrap();
+        let mut content = String::new();
+        file.read_to_string(&mut content).unwrap();
+        content
+    }
+
+    mod get_sym_secret_key_path {
+        use super::*;
+
+        use std::fs;
+
+        #[test]
+        fn returns_a_path() {
+            let (cache, ctx) = random_ctx();
+            fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
+                     cache.path().join(VALID_KEY))
+                .unwrap();
+
+            let result = ctx.get_sym_secret_key_path(VALID_NAME).unwrap();
+            assert_eq!(result, cache.path().join(VALID_KEY));
+        }
+
+        #[test]
+        #[should_panic(expected = "No sym secret key found at")]
+        fn errors_when_key_doesnt_exist() {
+            let (_, ctx) = random_ctx();
+
+            ctx.get_sym_secret_key_path("nope-nope").unwrap();
+        }
+    }
+
     mod write_sym_key_from_str {
-        use std::env;
+        use super::*;
+
         use std::fs::{self, File};
         use std::io::Read;
-        use std::path::{Path, PathBuf};
-
-        use tempdir::TempDir;
-
-        use crypto::Context;
-
-        static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
-        static VALID_NAME: &'static str = "ring-key-valid-20160504220722";
-
-        fn random_ctx() -> (TempDir, Context) {
-            let tempdir = TempDir::new("key_cache").unwrap();
-            let ctx = Context { key_cache: tempdir.path().to_string_lossy().into_owned() };
-            (tempdir, ctx)
-        }
-
-        fn fixture(name: &str) -> PathBuf {
-            let file = env::current_exe()
-                           .unwrap()
-                           .parent()
-                           .unwrap()
-                           .parent()
-                           .unwrap()
-                           .parent()
-                           .unwrap()
-                           .join("tests")
-                           .join("fixtures")
-                           .join(name);
-            if !file.is_file() {
-                panic!("No fixture {} exists!", file.display());
-            }
-            file
-        }
-
-        fn fixture_as_string(name: &str) -> String {
-            let mut file = File::open(fixture(name)).unwrap();
-            let mut content = String::new();
-            file.read_to_string(&mut content).unwrap();
-            content
-        }
+        use std::path::Path;
 
         #[test]
         fn writes_new_key_file() {

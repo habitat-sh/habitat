@@ -129,6 +129,13 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand key =>
                  (about: "Commands relating to Habitat ring keys")
                  (@setting ArgRequiredElseHelp)
+                 (@subcommand export =>
+                        (about: "Outputs the latest ring key contents to stdout")
+                        (@arg RING: +required +takes_value)
+                 )
+                 (@subcommand import =>
+                        (about: "Reads a stdin stream containing ring key contents and writes the key to disk")
+                 )
                  (@subcommand generate =>
                         (about: "Generates a Habitat ring key")
                         (@arg RING: +required +takes_value)
