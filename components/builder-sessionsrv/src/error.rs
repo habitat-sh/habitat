@@ -9,10 +9,10 @@ use std::fmt;
 use std::io;
 use std::result;
 
-use core;
+use hab_core;
 use dbcache;
-use hnet;
 use hyper;
+use hab_net;
 use protobuf;
 use rustc_serialize::json;
 use zmq;
@@ -25,11 +25,11 @@ pub enum Error {
     BadPort(String),
     DataStore(dbcache::Error),
     EntityNotFound,
-    HabitatCore(core::Error),
+    HabitatCore(hab_core::Error),
     HTTP(hyper::status::StatusCode),
     HyperError(hyper::error::Error),
     IO(io::Error),
-    NetError(hnet::Error),
+    NetError(hab_net::Error),
     JsonDecode(json::DecoderError),
     MissingScope(String),
     Protobuf(protobuf::ProtobufError),
@@ -79,8 +79,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<core::Error> for Error {
-    fn from(err: core::Error) -> Error {
+impl From<hab_core::Error> for Error {
+    fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
     }
 }
@@ -109,8 +109,8 @@ impl From<json::DecoderError> for Error {
     }
 }
 
-impl From<hnet::Error> for Error {
-    fn from(err: hnet::Error) -> Self {
+impl From<hab_net::Error> for Error {
+    fn from(err: hab_net::Error) -> Self {
         Error::NetError(err)
     }
 }

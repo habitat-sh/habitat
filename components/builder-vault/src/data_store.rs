@@ -8,9 +8,9 @@ use std::ops::Deref;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use dbcache::{self, ConnectionPool, DataRecord, InstaId, IndexTable, RecordTable, Table};
+use dbcache::{self, ConnectionPool, DataRecord, IndexTable, RecordTable, Table};
 use dbcache::model::{Fields, Model};
-use protocol;
+use protocol::{self, InstaId};
 use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
 use rustc_serialize::Encodable;
@@ -171,10 +171,12 @@ impl From<protocol::vault::OriginCreate> for Origin {
 
 impl From<DataRecord> for Origin {
     fn from(record: DataRecord) -> Origin {
+        let id = u64::from_str(&record["id"]).unwrap();
+        let owner_id = u64::from_str(&record["owner_id"]).unwrap();
         Origin {
-            id: InstaId::from_str(&record["id"]).unwrap(),
+            id: InstaId(id),
             name: record["name"].to_string(),
-            owner_id: InstaId::from_str(&record["owner_id"]).unwrap(),
+            owner_id: InstaId(owner_id),
         }
     }
 }

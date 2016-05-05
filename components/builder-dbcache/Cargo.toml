@@ -13,5 +13,8 @@ redis = "*"
 rustc-serialize = "*"
 time = "*"
 
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
 [features]
 functional = []

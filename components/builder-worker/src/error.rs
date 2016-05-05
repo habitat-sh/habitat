@@ -9,13 +9,13 @@ use std::fmt;
 use std::io;
 use std::result;
 
-use core;
+use hab_core;
 use protobuf;
 use zmq;
 
 #[derive(Debug)]
 pub enum Error {
-    HabitatCore(core::Error),
+    HabitatCore(hab_core::Error),
     IO(io::Error),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
@@ -46,8 +46,8 @@ impl error::Error for Error {
     }
 }
 
-impl From<core::Error> for Error {
-    fn from(err: core::Error) -> Error {
+impl From<hab_core::Error> for Error {
+    fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
     }
 }

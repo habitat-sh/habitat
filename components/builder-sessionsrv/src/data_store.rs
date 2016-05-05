@@ -7,10 +7,9 @@
 use std::str::FromStr;
 use std::sync::Arc;
 
-use dbcache::{self, ConnectionPool, DataRecord, ValueTable, InstaId, IndexTable, RecordTable,
-              Table};
+use dbcache::{self, ConnectionPool, DataRecord, ValueTable, IndexTable, RecordTable, Table};
 use dbcache::model::{Fields, Model};
-use protocol::sessionsrv;
+use protocol::{sessionsrv, InstaId};
 use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
 use rustc_serialize::Encodable;
@@ -113,8 +112,9 @@ impl From<github::User> for Account {
 
 impl From<DataRecord> for Account {
     fn from(record: DataRecord) -> Account {
+        let id = u64::from_str(&record["id"]).unwrap();
         Account {
-            id: InstaId::from_str(&record["id"]).unwrap(),
+            id: InstaId(id),
             email: record["email"].to_string(),
             name: record["name"].to_string(),
         }

@@ -4,10 +4,11 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-extern crate habitat_core as core;
+extern crate bodyparser;
+extern crate habitat_builder_protocol as protocol;
+extern crate habitat_core as hab_core;
 extern crate habitat_depot as depot;
 extern crate habitat_net as hab_net;
-extern crate habitat_builder_protocol as protocol;
 extern crate iron;
 #[macro_use]
 extern crate log;
@@ -25,7 +26,6 @@ extern crate zmq;
 pub mod config;
 pub mod error;
 pub mod http;
-pub mod broker;
 pub mod server;
 
 pub use self::config::Config;

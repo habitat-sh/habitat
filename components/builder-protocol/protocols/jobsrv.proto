@@ -1,11 +1,39 @@
-import "protocols/sessionsrv.proto";
-
 package jobsrv;
 
+enum Os {
+  Linux = 1;
+  Darwin = 2;
+  Windows = 3;
+}
+
+enum WorkerState {
+  Ready = 0;
+  Busy = 1;
+}
+
+enum JobState {
+  Pending = 0;
+  Processing = 1;
+  Complete = 2;
+  Rejected = 3;
+  Failed = 4;
+}
+
+message Heartbeat {
+  required string endpoint = 1;
+  required Os os = 2;
+  required WorkerState state = 3;
+}
+
 message Job {
-  required string id = 1;
+  required uint64 id = 1;
+  required JobState state = 2;
+}
+
+message JobGet {
+  required uint64 id = 1;
 }
 
 message JobCreate {
-  required string token = 1;
+  required uint64 owner_id = 1;
 }

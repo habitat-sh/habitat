@@ -8,7 +8,30 @@ use std::collections::BTreeMap;
 
 use rustc_serialize::json::{Json, ToJson};
 
+use message::Routable;
+
 pub use message::sessionsrv::*;
+
+impl Routable for SessionCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        // JW TODO: define a suitable route hash for creating sessions. The gateway should probably
+        // perform the oauth authentication to retrieve the ID of the oauth user and then we should
+        // route on that.
+        None
+    }
+}
+
+impl Routable for SessionGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        // JW TODO: how do we know the shard from the session key? Is it embedded? Is this a
+        // composite key that contains the shard plus the token?
+        None
+    }
+}
 
 impl ToJson for Session {
     fn to_json(&self) -> Json {
