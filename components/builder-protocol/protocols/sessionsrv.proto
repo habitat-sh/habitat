@@ -1,7 +1,14 @@
 package sessionsrv;
 
-message GitHubAuth {
-  required string code = 1;
+message Message {
+  enum Type {
+    Session = 1;
+    SessionCreate = 2;
+    SessionGet = 3;
+  }
+
+  required Type type = 1;
+  required bytes body = 2;
 }
 
 message Session {
@@ -9,6 +16,10 @@ message Session {
   required string email = 2;
   required string name = 3;
   required string token = 4;
+}
+
+message SessionCreate {
+  required string code = 1;
 }
 
 message SessionGet {

@@ -1,7 +1,3 @@
-[http]
-ip = "127.0.0.1"
-port = 9636
-
-[sessionsrv]
-ip = "127.0.0.1"
-port = 5560
+job_servers = [
+  "127.0.0.1:5566"
+]

@@ -7,16 +7,15 @@
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
-extern crate habitat_core as core;
 extern crate habitat_builder_api as api;
+extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate log;
 
 use std::process;
 use std::str::FromStr;
 
-use core::config::ConfigFile;
-
+use hab_core::config::ConfigFile;
 use api::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

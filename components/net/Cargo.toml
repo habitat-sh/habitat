@@ -4,13 +4,19 @@ version = "0.6.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 
 [dependencies]
+fnv = "*"
+libc = "*"
 log = "*"
 protobuf = "*"
+time = "*"
 
 [dependencies.zmq]
 # git = "https://github.com/erickt/rust-zmq.git"
 git = "https://github.com/reset/rust-zmq.git"
 branch = "habitat"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
 
 [features]
 functional = []

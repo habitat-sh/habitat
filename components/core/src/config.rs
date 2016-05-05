@@ -142,6 +142,21 @@ impl ParseInto<usize> for toml::Value {
     }
 }
 
+impl ParseInto<u16> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut u16) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_integer() {
+                *out = v as u16;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidString(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
 impl ParseInto<Vec<u16>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u16>) -> Result<bool> {
         if let Some(val) = self.lookup(field) {

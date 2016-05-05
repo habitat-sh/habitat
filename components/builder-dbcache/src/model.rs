@@ -4,9 +4,10 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use protocol::InstaId;
 use rustc_serialize::{Decodable, Encodable};
 
-use data_store::{DataRecord, InstaId, Table};
+use data_store::{DataRecord, Table};
 
 pub type Fields = Vec<(&'static str, String)>;
 

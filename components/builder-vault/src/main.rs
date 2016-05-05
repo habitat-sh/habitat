@@ -7,15 +7,14 @@
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
-extern crate habitat_core as core;
 extern crate habitat_builder_vault as vault;
+extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate log;
 
 use std::process;
-use std::str::FromStr;
 
-use core::config::ConfigFile;
+use hab_core::config::ConfigFile;
 use vault::{Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -42,7 +41,6 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg config: -c --config +takes_value +global "Filepath to configuration file. [default: /hab/svc/hab-builder-vault/config.toml]")
-        (@arg port: --port +takes_value +global "Listen port. [default: 5561]")
         (@subcommand start =>
             (about: "Run a Habitat-Builder vault server")
         )
@@ -52,15 +50,10 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
 fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     let cmd = matches.subcommand_name().unwrap();
     let args = matches.subcommand_matches(cmd).unwrap();
-    let mut config = match args.value_of("config") {
+    let config = match args.value_of("config") {
         Some(cfg_path) => try!(Config::from_file(cfg_path)),
         None => Config::from_file(CFG_DEFAULT_PATH).unwrap_or(Config::default()),
     };
-    if let Some(port) = args.value_of("port") {
-        if u16::from_str(port).map(|p| config.set_port(p)).is_err() {
-            return Err(Error::BadPort(port.to_string()));
-        }
-    }
     Ok(config)
 }
 

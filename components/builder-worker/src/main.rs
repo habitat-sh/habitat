@@ -7,15 +7,15 @@
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
-extern crate habitat_core as core;
 extern crate habitat_builder_worker as worker;
+extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate log;
 
 use std::process;
 
-use core::config::ConfigFile;
-use worker::{Config, Error, Result};
+use hab_core::config::ConfigFile;
+use worker::{server, Config, Error, Result};
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-builder-worker/config.toml";
@@ -68,5 +68,5 @@ fn exit_with(err: Error, code: i32) {
 ///
 /// * Fails if the depot server fails to start - canot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
-    Ok(())
+    server::run(config)
 }

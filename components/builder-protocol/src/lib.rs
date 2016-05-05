@@ -7,10 +7,17 @@
 #[macro_use]
 extern crate bitflags;
 extern crate protobuf;
+extern crate redis;
 extern crate rustc_serialize;
+extern crate time;
 
 pub mod jobsrv;
 pub mod net;
+pub mod routesrv;
 pub mod sessionsrv;
+pub mod sharding;
 pub mod vault;
 mod message;
+
+pub use self::message::{Message, Routable, RouteKey};
+pub use self::sharding::InstaId;

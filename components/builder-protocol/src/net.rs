@@ -32,3 +32,15 @@ impl ToJson for NetError {
         Json::Object(m)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use protobuf::Message;
+    use super::*;
+
+    #[test]
+    fn message_id() {
+        let msg = Ping::new();
+        assert_eq!(msg.descriptor().name(), "Ping");
+    }
+}

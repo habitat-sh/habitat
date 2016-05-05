@@ -1,7 +1,8 @@
-[http]
-ip = "127.0.0.1"
-port = 9636
-
-[sessionsrv]
-ip = "127.0.0.1"
-port = 5560
+routers = [
+  "127.0.0.1:5562"
+]
+heartbeat_port = 5563
+worker_command_addr = "0.0.0.0:5566"
+worker_heartbeat_port = "0.0.0.0:5567"
+datastore_addr = "127.0.0.1:6379"
+shards = []

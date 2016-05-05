@@ -11,8 +11,14 @@ doc = false
 
 [dependencies]
 env_logger = "*"
+linked-hash-map = "*"
 log = "*"
+num_cpus = "*"
 protobuf = "*"
+r2d2 = "*"
+r2d2_redis = "*"
+redis = "*"
+rustc-serialize = "*"
 toml = "*"
 
 [dependencies.clap]

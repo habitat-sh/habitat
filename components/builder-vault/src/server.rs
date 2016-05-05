@@ -5,13 +5,13 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::ops::Deref;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use std::thread;
 
 use dbcache::{self, IndexTable, RecordTable};
-use hnet::{Supervisor, Supervisable};
-use protobuf::{parse_from_bytes, Message};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
+                      Supervisable};
 use protocol::net::{self, ErrCode};
 use protocol::vault as proto;
 use zmq;
@@ -23,7 +23,7 @@ use error::{Error, Result};
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
 pub struct Worker {
-    config: Arc<Mutex<Config>>,
+    config: Arc<RwLock<Config>>,
     sock: zmq::Socket,
     datastore: Option<DataStore>,
 }
@@ -33,51 +33,48 @@ impl Worker {
         self.datastore.as_ref().unwrap()
     }
 
-    fn dispatch(&mut self, msg: &zmq::Message) -> Result<()> {
-        match msg.as_str() {
-            Some("OriginCreate") => {
-                let request = try!(self.sock.recv_msg(0));
-                let req: proto::OriginCreate = parse_from_bytes(&request).unwrap();
-                let mut origin = Origin::from(req);
+    fn dispatch(&mut self, req: &mut Envelope) -> Result<()> {
+        match req.message_id() {
+            "OriginCreate" => {
+                let msg: proto::OriginCreate = try!(req.parse_msg());
+                let mut origin = Origin::from(msg);
                 // JW TODO: handle db errors
                 try!(self.datastore().origins.write(&mut origin));
                 let reply: proto::Origin = origin.into();
-                self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
-                self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                try!(req.reply_complete(&mut self.sock, &reply));
             }
-            Some("OriginGet") => {
-                let request = try!(self.sock.recv_msg(0));
-                let req: proto::OriginGet = parse_from_bytes(&request).unwrap();
-                match self.datastore().origins.name_idx.find(req.get_name()) {
+            "OriginGet" => {
+                let msg: proto::OriginGet = try!(req.parse_msg());
+                match self.datastore().origins.name_idx.find(msg.get_name()) {
                     Ok(origin_id) => {
-                        let origin = self.datastore().origins.find(&origin_id).unwrap();
+                        let origin = self.datastore().origins.find(origin_id).unwrap();
                         let reply: proto::Origin = origin.into();
-                        self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
-                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                        try!(req.reply_complete(&mut self.sock, &reply));
                     }
                     Err(dbcache::Error::EntityNotFound) => {
-                        let reply = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-get:1");
-                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
-                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                        let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-get:1");
+                        try!(req.reply_complete(&mut self.sock, &err));
                     }
                     Err(e) => {
                         error!("OriginGet, err={:?}", e);
-                        let reply = net::err(ErrCode::BUG, "vt:origin-get:0");
-                        self.sock.send_str("NetError", zmq::SNDMORE).unwrap();
-                        self.sock.send(&reply.write_to_bytes().unwrap(), 0).unwrap();
+                        let err = net::err(ErrCode::BUG, "vt:origin-get:0");
+                        try!(req.reply_complete(&mut self.sock, &err));
                     }
                 }
             }
-            Some("OriginList") => {
+            "OriginList" => {
                 let origin1 = proto::Origin::new();
                 let origin2 = proto::Origin::new();
                 let origins = vec![origin1, origin2];
-                for origin in origins {
-                    self.sock.send_str("Origin", zmq::SNDMORE).unwrap();
-                    self.sock.send(&origin.write_to_bytes().unwrap(), 0).unwrap();
+                for (i, origin) in origins.iter().enumerate() {
+                    if i == origins.len() {
+                        try!(req.reply_complete(&mut self.sock, origin));
+                    } else {
+                        try!(req.reply(&mut self.sock, origin));
+                    }
                 }
             }
-            _ => panic!("unexpected message: {:?}", msg.as_str()),
+            _ => panic!("unexpected message: {}", req.message_id()),
         }
         Ok(())
     }
@@ -87,7 +84,7 @@ impl Supervisable for Worker {
     type Config = Config;
     type Error = Error;
 
-    fn new(context: &mut zmq::Context, config: Arc<Mutex<Config>>) -> Self {
+    fn new(context: &mut zmq::Context, config: Arc<RwLock<Config>>) -> Self {
         let sock = context.socket(zmq::DEALER).unwrap();
         Worker {
             config: config,
@@ -99,7 +96,7 @@ impl Supervisable for Worker {
     fn init(&mut self) -> Result<()> {
         loop {
             let result = {
-                let cfg = self.config.lock().unwrap();
+                let cfg = self.config.read().unwrap();
                 DataStore::open(cfg.deref())
             };
             match result {
@@ -116,24 +113,8 @@ impl Supervisable for Worker {
         Ok(())
     }
 
-    fn on_message(&mut self, ident: zmq::Message) -> Result<()> {
-        // JW TODO: abstract this out to be more developer friendly
-        // pop lq ident
-        let ident2 = try!(self.sock.recv_msg(0));
-        let mut msg = zmq::Message::new().unwrap();
-        // pop request frame
-        try!(self.sock.recv(&mut msg, 0));
-        // pop message-id
-        try!(self.sock.recv(&mut msg, 0));
-        // send reply
-        //  -> client ident
-        //  -> lq ident
-        //  -> empty rep frame
-        //  -> actual message
-        self.sock.send_msg(ident, zmq::SNDMORE).unwrap();
-        self.sock.send_msg(ident2, zmq::SNDMORE).unwrap();
-        self.sock.send(&[], zmq::SNDMORE).unwrap();
-        self.dispatch(&msg)
+    fn on_message(&mut self, req: &mut Envelope) -> Result<()> {
+        self.dispatch(req)
     }
 
     fn socket(&mut self) -> &mut zmq::Socket {
@@ -148,28 +129,28 @@ impl Drop for Worker {
 }
 
 pub struct Server {
-    config: Arc<Mutex<Config>>,
-    ctx: Arc<Mutex<zmq::Context>>,
-    fe_sock: zmq::Socket,
+    config: Arc<RwLock<Config>>,
+    ctx: Arc<RwLock<zmq::Context>>,
+    router: RouteConn,
     be_sock: zmq::Socket,
 }
 
 impl Server {
-    pub fn new(config: Config) -> Self {
+    pub fn new(config: Config) -> Result<Self> {
         let mut ctx = zmq::Context::new();
-        let fe = ctx.socket(zmq::ROUTER).unwrap();
-        let be = ctx.socket(zmq::DEALER).unwrap();
-        Server {
-            config: Arc::new(Mutex::new(config)),
-            ctx: Arc::new(Mutex::new(ctx)),
-            fe_sock: fe,
+        let router = try!(RouteConn::new(Self::net_ident(), &mut ctx));
+        let be = try!(ctx.socket(zmq::DEALER));
+        Ok(Server {
+            config: Arc::new(RwLock::new(config)),
+            ctx: Arc::new(RwLock::new(ctx)),
+            router: router,
             be_sock: be,
-        }
+        })
     }
 
     pub fn reconfigure(&self, config: Config) -> Result<()> {
         {
-            let mut cfg = self.config.lock().unwrap();
+            let mut cfg = self.config.write().unwrap();
             *cfg = config;
         }
         // obtain lock and replace our config
@@ -177,32 +158,50 @@ impl Server {
         // notify sockets to reconnect if changes
         Ok(())
     }
+}
 
-    pub fn run(&mut self) -> Result<()> {
-        {
-            let cfg = self.config.lock().unwrap();
-            try!(self.fe_sock.bind(&cfg.fe_addr()));
-            try!(self.be_sock.bind(BE_LISTEN_ADDR));
-            println!("Listening on ({})", cfg.fe_addr());
-        }
+impl Application for Server {
+    type Error = Error;
 
+    fn run(&mut self) -> Result<()> {
+        try!(self.be_sock.bind(BE_LISTEN_ADDR));
         let ctx = self.ctx.clone();
         let cfg = self.config.clone();
         let sup: Supervisor<Worker> = Supervisor::new(ctx, cfg);
-        // JW TODO: use config to determine worker count? I don't know if that's a good idea.
-        try!(sup.start(BE_LISTEN_ADDR, 8));
-        try!(zmq::proxy(&mut self.fe_sock, &mut self.be_sock));
+        {
+            let cfg = self.config.read().unwrap();
+            try!(sup.start(BE_LISTEN_ADDR, cfg.worker_threads));
+        }
+        try!(self.connect());
+        try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         Ok(())
     }
 }
 
-impl Drop for Server {
-    fn drop(&mut self) {
-        self.fe_sock.close().unwrap();
-        self.be_sock.close().unwrap();
+impl Service for Server {
+    type Application = Self;
+    type Config = Config;
+    type Error = Error;
+
+    fn protocol() -> net::Protocol {
+        net::Protocol::VaultSrv
+    }
+
+    fn config(&self) -> &Arc<RwLock<Self::Config>> {
+        &self.config
+    }
+
+    fn conn(&self) -> &RouteConn {
+        &self.router
+    }
+
+    fn conn_mut(&mut self) -> &mut RouteConn {
+        &mut self.router
     }
 }
 
+impl NetIdent for Server {}
+
 pub fn run(config: Config) -> Result<()> {
-    Server::new(config).run()
+    try!(Server::new(config)).run()
 }

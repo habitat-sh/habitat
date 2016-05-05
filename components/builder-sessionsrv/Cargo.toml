@@ -13,6 +13,7 @@ doc = false
 env_logger = "*"
 hyper = "*"
 log = "*"
+num_cpus = "*"
 protobuf = "*"
 r2d2 = "*"
 r2d2_redis = "*"

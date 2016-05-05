@@ -15,7 +15,9 @@ use zmq;
 #[derive(Debug)]
 pub enum Error {
     IO(io::Error),
+    MaxHops,
     Protobuf(protobuf::ProtobufError),
+    Sys,
     Zmq(zmq::Error),
 }
 
@@ -25,7 +27,9 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::IO(ref e) => format!("{}", e),
+            Error::MaxHops => format!("Received a message containing too many network hops"),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::Sys => format!("Internal system error"),
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -36,7 +40,9 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::IO(ref err) => err.description(),
+            Error::MaxHops => "Received a message containing too many network hops",
             Error::Protobuf(ref err) => err.description(),
+            Error::Sys => "Internal system error",
             Error::Zmq(ref err) => err.description(),
         }
     }

@@ -1,3 +1,6 @@
-listen_addr = "0.0.0.0:5561"
+routers = [
+  "127.0.0.1:5562"
+]
+heartbeat_port = 5563
 datastore_addr = "127.0.0.1:6379"
-worker_count = 8
+shards = []

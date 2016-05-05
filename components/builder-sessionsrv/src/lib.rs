@@ -6,11 +6,12 @@
 
 extern crate habitat_builder_dbcache as dbcache;
 extern crate habitat_builder_protocol as protocol;
-extern crate habitat_net as hnet;
-extern crate habitat_core as core;
+extern crate habitat_core as hab_core;
+extern crate habitat_net as hab_net;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+extern crate num_cpus;
 extern crate protobuf;
 extern crate r2d2;
 extern crate r2d2_redis;

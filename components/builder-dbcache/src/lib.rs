@@ -4,6 +4,7 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate log;
 extern crate r2d2;
@@ -16,6 +17,6 @@ pub mod data_store;
 pub mod error;
 pub mod model;
 
-pub use self::data_store::{ConnectionPool, DataRecord, ValueTable, InstaId, IndexTable, RecordTable, Table};
+pub use self::data_store::{ConnectionPool, DataRecord, ValueTable, IndexTable, RecordTable, Table};
 pub use self::model::Model;
 pub use self::error::{Error, Result};

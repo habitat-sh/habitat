@@ -8,7 +8,9 @@ build = "build.rs"
 [dependencies]
 bitflags = "*"
 protobuf = "*"
+redis = "*"
 rustc-serialize = "*"
+time = "*"
 
 [build-dependencies]
 pkg-config = "0.3"

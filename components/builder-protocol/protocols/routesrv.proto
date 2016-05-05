@@ -1,0 +1,15 @@
+import "protocols/net.proto";
+package routesrv;
+
+message Connect {
+  required Registration registration = 1;
+}
+
+message ConnectOk {}
+message Disconnect {}
+
+message Registration {
+  required net.Protocol protocol = 1;
+  required string endpoint = 2;
+  repeated uint32 shards = 3 [packed=true];
+}
