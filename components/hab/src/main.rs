@@ -38,7 +38,7 @@ use clap::ArgMatches;
 
 use error::{Error, Result};
 use hcore::env as henv;
-use hcore::crypto;
+use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
 use hcore::fs::find_command;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
@@ -157,16 +157,19 @@ fn start() -> Result<()> {
 
 fn sub_artifact_hash(m: &ArgMatches) -> Result<()> {
     let source = m.value_of("SOURCE").unwrap();
-    try!(command::artifact::crypto::hash(&source));
-    Ok(())
+
+    init();
+    command::artifact::hash::start(&source)
 }
 
 fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
-    let origin = try!(origin_param_or_env(&m));
-    let infile = m.value_of("SOURCE").unwrap();
-    let outfile = m.value_of("ARTIFACT").unwrap();
-    try!(command::artifact::crypto::sign(&origin, &infile, &outfile));
-    Ok(())
+    let src = Path::new(m.value_of("SOURCE").unwrap());
+    let dst = Path::new(m.value_of("ARTIFACT").unwrap());
+    init();
+    let pair = try!(SigKeyPair::get_latest_pair_for(&try!(origin_param_or_env(&m)),
+                                                    &default_cache_key_path()));
+
+    command::artifact::sign::start(&pair, &src, &dst)
 }
 
 fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
@@ -174,14 +177,14 @@ fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let artifact_path = m.value_of("ARTIFACT").unwrap();
 
-    try!(command::artifact::upload::start(&url, &artifact_path));
-    Ok(())
+    command::artifact::upload::start(&url, &artifact_path)
 }
 
 fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
-    let infile = m.value_of("ARTIFACT").unwrap();
-    try!(command::artifact::crypto::verify(&infile));
-    Ok(())
+    let src = Path::new(m.value_of("ARTIFACT").unwrap());
+    init();
+
+    command::artifact::verify::start(&src, &default_cache_key_path())
 }
 
 fn sub_config_apply(m: &ArgMatches) -> Result<()> {
@@ -193,33 +196,24 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
             p.push_str(&hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
         }
     }
-    let ring_key = match m.value_of("RING") {
-        Some(name) => {
-            let ctx = crypto::Context::default();
-            let mut candidates = try!(ctx.read_sym_keys(&name));
-            match candidates.len() {
-                1 => Some(candidates.remove(0)),
-                _ => {
-                    let msg = format!("Cannot find a suitable key for ring: {}", name);
-                    return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
-                }
-            }
-        }
-        None => None,
-    };
-    let sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
     let file_path = match m.value_of("FILE") {
         Some("-") | None => None,
         Some(p) => Some(Path::new(p)),
     };
 
-    try!(command::config::apply::start(&peers, ring_key, sg, number, file_path));
-    Ok(())
+    init();
+    let cache = default_cache_key_path();
+    let ring_key = match m.value_of("RING") {
+        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        None => None,
+    };
+    let sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+
+    command::config::apply::start(&peers, ring_key.as_ref(), &sg, number, file_path)
 }
 
 fn sub_file_upload(m: &ArgMatches) -> Result<()> {
-    // this is mostly copy pasta from sub_config_apply
     let peers_str = m.value_of("PEERS").unwrap_or("127.0.0.1");
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
@@ -228,26 +222,8 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
             p.push_str(&hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
         }
     }
-    let ring_key = match m.value_of("RING") {
-        Some(name) => {
-            let ctx = crypto::Context::default();
-            let mut candidates = try!(ctx.read_sym_keys(&name));
-            match candidates.len() {
-                1 => Some(candidates.remove(0)),
-                _ => {
-                    let msg = format!("Cannot find a suitable key for ring: {}", name);
-                    return Err(Error::HabitatCore(hcore::Error::CryptoError(msg)));
-                }
-            }
-        }
-        None => None,
-    };
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
-    // FILE is required for upload, "safe" to unwrap
     let file_path = Path::new(m.value_of("FILE").unwrap());
-
-    // make sure it's not a huge file, we don't want those floating around the ring
     match file_path.metadata() {
         Ok(md) => {
             if md.len() > MAX_FILE_UPLOAD_SIZE_BYTES {
@@ -260,16 +236,30 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
 
         }
     };
+
+    init();
+    let cache = default_cache_key_path();
+    let ring_key = match m.value_of("RING") {
+        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
+        None => None,
+    };
+
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     // apply the organization name to the service group, either
     // from HAB_ORG or the --org param
     let org = try!(org_param_or_env(&m));
     sg.organization = Some(org.to_string());
+    let service_pair = try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache));
 
     let user = try!(user_param_or_env(&m));
-    // GossipFile loads in keys to encrypt/sign, so we'll defer to it for
-    // user secret/service public key not found errors
-    try!(command::file::upload::start(&peers, ring_key, sg, number, file_path, &user));
-    Ok(())
+    let user_pair = try!(BoxKeyPair::get_latest_pair_for(&user, &cache));
+
+    command::file::upload::start(&peers,
+                                 ring_key.as_ref(),
+                                 &user_pair,
+                                 &service_pair,
+                                 number,
+                                 file_path)
 }
 
 fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
@@ -277,62 +267,73 @@ fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
     let revision = m.value_of("REVISION");
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    try!(command::artifact::crypto::download_origin_keys(&url, &origin, revision));
-    Ok(())
+
+    command::origin::key::download::start(&url, &origin, revision, &default_cache_key_path())
 }
 
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
     let origin = try!(origin_param_or_env(&m));
-    try!(command::artifact::crypto::generate_origin_key(&origin));
-    Ok(())
+    init();
+
+    command::origin::key::generate::start(&origin, &default_cache_key_path())
 }
 
 fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    // required field
     let keyfile = Path::new(m.value_of("FILE").unwrap());
-    try!(command::artifact::crypto::upload_origin_key(url, &keyfile));
-    Ok(())
+    init();
+
+    command::origin::key::upload::start(url, &keyfile)
 }
 
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+    init();
 
-    try!(common::command::package::install::start(url, ident_or_artifact));
+    try!(common::command::package::install::start(url,
+                                                  ident_or_artifact,
+                                                  &default_cache_key_path()));
     Ok(())
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
     let ring = m.value_of("RING").unwrap();
-    command::ring::key::export::start(ring)
+    init();
+
+    command::ring::key::export::start(ring, &default_cache_key_path())
+}
+
+fn sub_ring_key_generate(m: &ArgMatches) -> Result<()> {
+    let ring = m.value_of("RING").unwrap();
+    init();
+
+    command::ring::key::generate::start(ring, &default_cache_key_path())
 }
 
 fn sub_ring_key_import() -> Result<()> {
     let mut content = String::new();
     try!(io::stdin().read_to_string(&mut content));
-    command::ring::key::import::start(&content)
-}
+    init();
 
-fn sub_ring_key_generate(m: &ArgMatches) -> Result<()> {
-    let ring = m.value_of("RING").unwrap();
-    command::ring::key::generate::start(ring)
+    command::ring::key::import::start(&content, &default_cache_key_path())
 }
 
 fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {
     let org = try!(org_param_or_env(&m));
-    let service_group = m.value_of("SERVICE_GROUP").unwrap(); // clap required
-    try!(command::artifact::crypto::generate_service_key(&org, service_group));
-    Ok(())
+    let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    init();
 
+    command::service::key::generate::start(&org, &service_group, &default_cache_key_path())
 }
 
 fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
     let user = m.value_of("USER").unwrap(); // clap required
-    try!(command::artifact::crypto::generate_user_key(user));
-    Ok(())
+    init();
+
+    command::user::key::generate::start(user, &default_cache_key_path())
 }
 
 fn exec_subcommand_if_called() -> Result<()> {
@@ -348,8 +349,9 @@ fn exec_subcommand_if_called() -> Result<()> {
                 let command = match henv::var(SUP_CMD_ENVVAR) {
                     Ok(command) => PathBuf::from(command),
                     Err(_) => {
+                        init();
                         let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
-                        try!(exec::command_from_pkg(SUP_CMD, &ident, 0))
+                        try!(exec::command_from_pkg(SUP_CMD, &ident, &default_cache_key_path(), 0))
                     }
                 };
 
@@ -380,7 +382,6 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
     }
 }
 
-
 /// Check to see if the user has passed in an ORG param.
 /// If not, check the HABITAT_ORG env var. If that's
 /// empty too, then error.
@@ -395,8 +396,6 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
         }
     }
 }
-
-
 
 /// Check to see if the user has passed in a USER param.
 /// If not, check the HAB_USER env var. If that's

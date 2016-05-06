@@ -11,8 +11,9 @@ use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
-use hcore::crypto;
+use hcore::crypto::{BoxKeyPair, default_cache_key_path};
 use hcore::fs;
 use hcore::service::ServiceGroup;
 use openssl::crypto::hash as openssl_hash;
@@ -69,12 +70,11 @@ impl GossipFile {
     }
 
 
-    pub fn from_file_encrypt<P: AsRef<Path>>(crypto_ctx: &crypto::Context,
-                                             service_group: ServiceGroup,
-                                             file_path: P,
-                                             version_number: u64,
-                                             user: &str)
-                                             -> Result<GossipFile> {
+    pub fn from_file_encrypt<P: AsRef<Path> + ?Sized>(user_pair: &BoxKeyPair,
+                                                      service_pair: &BoxKeyPair,
+                                                      file_path: &P,
+                                                      version_number: u64)
+                                                      -> Result<GossipFile> {
         let path = file_path.as_ref();
         for part in path.components() {
             let pstr = format!("{}", part.as_os_str().to_string_lossy().into_owned());
@@ -87,43 +87,12 @@ impl GossipFile {
         let mut body = Vec::new();
         try!(f.read_to_end(&mut body));
 
-        let user_keys = try!(crypto_ctx.read_box_keys(user));
-        let service_group_name = service_group.to_string();
-        let service_keys = try!(crypto_ctx.read_box_keys(&service_group_name));
-
-        if user_keys.len() < 1 {
-            return Err(Error::CryptoKeyError(format!("No keys for user {}", &user)));
-        }
-
-        if service_keys.len() < 1 {
-            return Err(Error::CryptoKeyError(format!("No keys for service {}",
-                                                     &service_group_name)));
-        }
-
-        // TODO DP: it might be nice to have a get_latest_key in the crypto api
-        let user_key = &user_keys[0];
-        let service_key = &service_keys[0];
-
-        if let None = user_key.secret {
-            return Err(Error::CryptoKeyError(format!("Can't find a user secret key for {}", user)));
-        }
-
-        if let None = service_key.public {
-            return Err(Error::CryptoKeyError(format!("Can't find a service public key for {}",
-                                                     service_group_name)));
-        }
-
-        let encrypted_body = try!(crypto_ctx.encrypt(&body,
-                                                     &service_key.name_with_rev,
-                                                     &service_key.public.as_ref().unwrap(),
-                                                     &user_key.name_with_rev,
-                                                     &user_key.secret.as_ref().unwrap()));
-
+        let encrypted_body = try!(user_pair.encrypt(&body, service_pair));
 
         let file_name = try!(path.file_name().ok_or(Error::FileNameError));
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
         let cf = GossipFile {
-            service_group: service_group,
+            service_group: try!(ServiceGroup::from_str(&service_pair.name)),
             file_name: file_name.to_string_lossy().to_string(),
             body: encrypted_body,
             checksum: checksum.as_slice().to_hex(),
@@ -222,13 +191,13 @@ impl GossipFile {
             {
                 if self.encrypted {
                     let mut new_file = try!(File::create(&new_filename));
-                    let crypto_ctx = crypto::Context::default();
                     // I'm the recipient, because GossipFileList::write()
                     // checks before calling this function.
                     // However, if decrypt() can't find user/service keys,
                     // this write will fail.
                     println!("Attempting to decrypt {}", &self.file_name);
-                    let decrypted_bytes = try!(crypto_ctx.decrypt(&self.body));
+                    let decrypted_bytes = try!(BoxKeyPair::decrypt(&self.body,
+                                                                   &default_cache_key_path()));
                     println!("Successfully decrypted {}", &self.file_name);
                     try!(new_file.write_all(&decrypted_bytes));
                 } else {
@@ -437,17 +406,17 @@ impl GossipFileList {
 mod test {
     use std::env;
     use std::io::prelude::*;
-    use std::fs::{self, File};
+    use std::fs::File;
     use std::path::PathBuf;
     use std::str::FromStr;
 
     use rustc_serialize::json;
+    use tempdir::TempDir;
     use time::SteadyTime;
 
-    use hcore::crypto;
+    use hcore::crypto::BoxKeyPair;
     use hcore::service::ServiceGroup;
     use gossip_file::{GossipFile, FileWriteRetry};
-
 
     fn fixture(name: &str) -> PathBuf {
         env::current_exe()
@@ -477,28 +446,18 @@ mod test {
         assert_eq!(cf.version_number, 2);
     }
 
-    fn setup_key_env(test_name: &str) -> (crypto::Context, String) {
-        let key_dir = &format!("/tmp/habitat_test_keys_{}", test_name);
-        // don't unwrap this, the directory might not be present
-        let _ = fs::remove_dir_all(&key_dir);
-        fs::create_dir_all(&key_dir).unwrap();
-        (crypto::Context::new(&key_dir), key_dir.to_string())
-    }
-
-
     #[test]
     fn new_from_file_encrypt() {
-        let (crypto_ctx, _key_dir) = setup_key_env("new_from_file_encrypt");
-        let sg = ServiceGroup::from_str("petty.gunslingers@someorg").unwrap();
-
-        let user_key_name = crypto_ctx.generate_user_box_key("testuser").unwrap();
-        let service_key_name = crypto_ctx.generate_service_box_key("someorg", "petty.gunslingers")
-                                         .unwrap();
-        let gf = GossipFile::from_file_encrypt(&crypto_ctx,
-                                               sg,
+        let cache = TempDir::new("key_cache").unwrap();
+        let user_pair = BoxKeyPair::generate_pair_for_user("testuser", cache.path()).unwrap();
+        let service_pair = BoxKeyPair::generate_pair_for_service("someorg",
+                                                                 "petty.gunslingers",
+                                                                 cache.path())
+                               .unwrap();
+        let gf = GossipFile::from_file_encrypt(&user_pair,
+                                               &service_pair,
                                                fixture("foo.bar").as_path(),
-                                               1,
-                                               "testuser")
+                                               1)
                      .unwrap();
         assert_eq!(gf.service_group,
                    ServiceGroup::from_str("petty.gunslingers@someorg").unwrap());
@@ -507,14 +466,8 @@ mod test {
         assert_eq!(gf.checksum,
                    "f34fe622a8fe7565fc15be3ce8bc43d7e32a0dd744ebef509fa0bdb130c0ac31");
         assert_eq!(gf.version_number, 1);
-        let (boxed_user_key, boxed_service_key) =
-            crypto_ctx.get_box_user_and_service_keys(&gf.body).unwrap();
 
-        // do the keys in the box payload match what we passed in?
-        assert!(user_key_name == boxed_user_key);
-        assert!(service_key_name == boxed_service_key);
-
-        let val_bytes = crypto_ctx.decrypt(&gf.body).unwrap();
+        let val_bytes = BoxKeyPair::decrypt(&gf.body, cache.path()).unwrap();
         let decrypted = String::from_utf8(val_bytes).unwrap();
 
         // does the decrypted text match whats in the fixture?

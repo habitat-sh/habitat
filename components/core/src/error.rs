@@ -10,6 +10,7 @@ use std::io;
 use std::fmt;
 use std::num;
 use std::result;
+use std::str;
 use std::string;
 
 use libarchive;
@@ -63,6 +64,8 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
+    /// When an error occurs attempting to interpret a sequence of u8 as a string.
+    Utf8Error(str::Utf8Error),
 }
 
 impl fmt::Display for Error {
@@ -120,6 +123,7 @@ impl fmt::Display for Error {
             Error::PermissionFailed => format!("Failed to set permissions"),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::Utf8Error(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -148,37 +152,43 @@ impl error::Error for Error {
             Error::PermissionFailed => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
         }
     }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Error {
+    fn from(err: string::FromUtf8Error) -> Self {
         Error::StringFromUtf8Error(err)
     }
 }
 
+impl From<str::Utf8Error> for Error {
+    fn from(err: str::Utf8Error) -> Self {
+        Error::Utf8Error(err)
+    }
+}
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
+    fn from(err: io::Error) -> Self {
         Error::IO(err)
     }
 }
 
 impl From<libarchive::error::ArchiveError> for Error {
-    fn from(err: libarchive::error::ArchiveError) -> Error {
+    fn from(err: libarchive::error::ArchiveError) -> Self {
         Error::ArchiveError(err)
     }
 }
 
 impl From<num::ParseIntError> for Error {
-    fn from(err: num::ParseIntError) -> Error {
+    fn from(err: num::ParseIntError) -> Self {
         Error::ParseIntError(err)
     }
 }
 
 impl From<regex::Error> for Error {
-    fn from(err: regex::Error) -> Error {
+    fn from(err: regex::Error) -> Self {
         Error::RegexParse(err)
     }
 }

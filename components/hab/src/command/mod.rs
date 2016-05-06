@@ -8,4 +8,7 @@
 pub mod artifact;
 pub mod config;
 pub mod file;
+pub mod origin;
 pub mod ring;
+pub mod service;
+pub mod user;

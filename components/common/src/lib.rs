@@ -13,6 +13,8 @@ extern crate log;
 extern crate openssl;
 extern crate regex;
 extern crate rustc_serialize;
+#[cfg(test)]
+extern crate tempdir;
 extern crate time;
 
 pub use self::error::{Error, Result};

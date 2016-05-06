@@ -15,7 +15,7 @@ use std::net::ToSocketAddrs;
 use std::str;
 
 use common::wire_message::WireMessage;
-use hcore::crypto::{Context, SymKey};
+use hcore::crypto::SymKey;
 use rustc_serialize::json;
 use utp::UtpSocket;
 
@@ -25,18 +25,18 @@ use gossip::rumor::{Protocol, Peer, RumorList};
 pub const BUFFER_SIZE: usize = 10000;
 
 /// A Gossip Client.
-pub struct Client {
+pub struct Client<'a> {
     pub socket: UtpSocket,
-    ring_key: Option<SymKey>,
+    ring_key: Option<&'a SymKey>,
 }
 
-impl Client {
+impl<'a> Client<'a> {
     /// Create a new client from anything that can become a `SocketAddr`.
     ///
     /// # Errors
     ///
     /// * If we cannot connect the UTP socket
-    pub fn new<A: ToSocketAddrs>(dst: A, ring_key: Option<SymKey>) -> Result<Client> {
+    pub fn new<A: ToSocketAddrs>(dst: A, ring_key: Option<&'a SymKey>) -> Result<Client> {
         let socket = try!(UtpSocket::connect(dst));
         Ok(Client {
             socket: socket,
@@ -45,7 +45,7 @@ impl Client {
     }
 
     /// Create a new client from a `UtpSocket`
-    pub fn from_socket(socket: UtpSocket, ring_key: Option<SymKey>) -> Client {
+    pub fn from_socket(socket: UtpSocket, ring_key: Option<&'a SymKey>) -> Client {
         Client {
             socket: socket,
             ring_key: ring_key,
@@ -113,9 +113,8 @@ impl Client {
                self.socket.peer_addr(),
                json_str);
 
-        let ctx = Context::default();
         let wire_msg: WireMessage = try!(json::decode(&json_str));
-        Ok(try!(wire_msg.msg(&ctx, &self.ring_key)))
+        Ok(try!(wire_msg.msg(self.ring_key)))
     }
 
     /// Send a message.
@@ -126,9 +125,8 @@ impl Client {
     /// * We fail to send the encoded buffer to the remote
     pub fn send_message(&mut self, msg: Protocol) -> Result<()> {
         let encoded = {
-            let ctx = Context::default();
             let wire_msg = match self.ring_key.as_ref() {
-                Some(key) => try!(WireMessage::encrypted(&msg, &ctx, &key)),
+                Some(key) => try!(WireMessage::encrypted(&msg, &key)),
                 None => try!(WireMessage::plain(&msg)),
             };
             try!(json::encode(&wire_msg))

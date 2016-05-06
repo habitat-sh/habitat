@@ -10,7 +10,7 @@ use hcore::crypto::SymKey;
 use error::Result;
 
 pub fn send_rumors_to_peers(peer_listeners: &Vec<String>,
-                            ring_key: Option<SymKey>,
+                            ring_key: Option<&SymKey>,
                             rumor_list: &hab_gossip::RumorList)
                             -> Result<()> {
     let fail_after = 10;
@@ -18,7 +18,7 @@ pub fn send_rumors_to_peers(peer_listeners: &Vec<String>,
 
     if peer_listeners.len() > 0 {
         while count < fail_after {
-            if try_peers(peer_listeners, ring_key.clone(), rumor_list) {
+            if try_peers(peer_listeners, ring_key, rumor_list) {
                 return Ok(());
             } else {
                 count = count + 1;
@@ -32,7 +32,7 @@ pub fn send_rumors_to_peers(peer_listeners: &Vec<String>,
 }
 
 fn try_peers(peer_listeners: &Vec<String>,
-             ring_key: Option<SymKey>,
+             ring_key: Option<&SymKey>,
              rumor_list: &hab_gossip::RumorList)
              -> bool {
     let mut initialized = false;
@@ -76,7 +76,7 @@ pub mod hab_gossip {
     use common;
     use common::gossip_file::GossipFile;
     use common::wire_message::WireMessage;
-    use hcore::crypto::{Context, SymKey};
+    use hcore::crypto::SymKey;
     use rustc_serialize::{json, Encodable};
     use utp::UtpSocket;
     use uuid::Uuid;
@@ -133,18 +133,18 @@ pub mod hab_gossip {
     }
 
     /// A Gossip Client.
-    pub struct Client {
+    pub struct Client<'a> {
         pub socket: UtpSocket,
-        ring_key: Option<SymKey>,
+        ring_key: Option<&'a SymKey>,
     }
 
-    impl Client {
+    impl<'a> Client<'a> {
         /// Create a new client from anything that can become a `SocketAddr`.
         ///
         /// # Errors
         ///
         /// * If we cannot connect the UTP socket
-        pub fn new<A: ToSocketAddrs>(dst: A, ring_key: Option<SymKey>) -> Result<Client> {
+        pub fn new<A: ToSocketAddrs>(dst: A, ring_key: Option<&'a SymKey>) -> Result<Client> {
             let socket = try!(UtpSocket::connect(dst));
             Ok(Client {
                 socket: socket,
@@ -165,9 +165,8 @@ pub mod hab_gossip {
         /// * We fail to send the encoded buffer to the remote
         pub fn send_message(&mut self, msg: Protocol) -> Result<()> {
             let encoded = {
-                let ctx = Context::default();
                 let wire_msg = match self.ring_key.as_ref() {
-                    Some(key) => try!(WireMessage::encrypted(&msg, &ctx, &key)),
+                    Some(key) => try!(WireMessage::encrypted(&msg, &key)),
                     None => try!(WireMessage::plain(&msg)),
                 };
                 try!(json::encode(&wire_msg))

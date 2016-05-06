@@ -54,6 +54,7 @@ use std::env;
 use ansi_term::Colour::Yellow;
 use common::command::package::install;
 use depot_client;
+use hcore::crypto::default_cache_key_path;
 use hcore::fs::CACHE_ARTIFACT_PATH;
 
 use error::{Error, Result};
@@ -95,7 +96,7 @@ pub fn package(config: &Config) -> Result<()> {
                             let archive = try!(depot_client::fetch_package(&url,
                                                                            latest_ident,
                                                                            CACHE_ARTIFACT_PATH));
-                            try!(archive.verify());
+                            try!(archive.verify(&default_cache_key_path()));
                             try!(archive.unpack());
                         } else {
                             outputln!("Already running latest.");
@@ -113,7 +114,9 @@ pub fn package(config: &Config) -> Result<()> {
                     outputln!("Searching for {} in remote {}",
                               Yellow.bold().paint(config.package().to_string()),
                               url);
-                    let new_pkg_data = try!(install::from_url(url, config.package()));
+                    let new_pkg_data = try!(install::from_url(url,
+                                                              config.package(),
+                                                              &default_cache_key_path()));
                     let package = try!(Package::load(new_pkg_data.ident.as_ref(), None));
                     start_package(package, config)
                 }

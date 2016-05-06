@@ -15,7 +15,7 @@
 
 use std::str;
 
-use hcore::crypto::{Context, SymKey};
+use hcore::crypto::SymKey;
 use rustc_serialize::{Decodable, Encodable, json};
 
 use error::{Error, Result};
@@ -111,7 +111,7 @@ impl WireMessage {
     /// extern crate rustc_serialize;
     /// extern crate tempdir;
     ///
-    /// use habitat_core::crypto::Context;
+    /// use habitat_core::crypto::SymKey;
     /// use habitat_common::wire_message::{MessageFormat, WireMessage};
     /// use rustc_serialize::{Decodable, Encodable};
     /// use tempdir::TempDir;
@@ -123,14 +123,11 @@ impl WireMessage {
     /// }
     ///
     /// fn main() {
-    ///     let key_cache = TempDir::new("key_cache").unwrap();
-    ///     let ctx = Context { key_cache: key_cache.into_path().to_string_lossy().into_owned() };
-    ///     let name = ctx.generate_ring_sym_key("beyonce").unwrap();
-    ///     let keys = ctx.read_sym_keys(&name).unwrap();
-    ///     let sym_key = keys.first().unwrap();
+    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let sym_key = SymKey::generate_pair_for_ring("beyonce", cache.path()).unwrap();
     ///
     ///     let tabor = Person { given_name: "Ty".to_string(), surname: "Tabor".to_string() };
-    ///     let encrypted = WireMessage::encrypted(&tabor, &ctx, &sym_key).unwrap();
+    ///     let encrypted = WireMessage::encrypted(&tabor, &sym_key).unwrap();
     ///
     ///     // The message is encrypted
     ///     assert_eq!(encrypted.format, MessageFormat::Encrypted);
@@ -143,16 +140,12 @@ impl WireMessage {
     ///
     /// * If the message can't be encoded to bytes
     /// * If a crypto error occurs when encrypting
-    pub fn encrypted<T: Encodable>(msg: &T,
-                                   ctx: &Context,
-                                   sym_key: &SymKey)
-                                   -> Result<WireMessage> {
-        let (nonce, ciphertext) = try!(ctx.sym_encrypt(sym_key,
-                                                       try!(json::encode(&msg)).as_bytes()));
+    pub fn encrypted<T: Encodable>(msg: &T, sym_key: &SymKey) -> Result<WireMessage> {
+        let (nonce, ciphertext) = try!(sym_key.encrypt(try!(json::encode(&msg)).as_bytes()));
         Ok(WireMessage {
             format: MessageFormat::Encrypted,
             version: WIRE_VERSION.to_string(),
-            key: Some(sym_key.name_with_rev.clone()),
+            key: Some(sym_key.name_with_rev()),
             nonce: Some(nonce),
             msg_bytes: ciphertext,
         })
@@ -168,7 +161,7 @@ impl WireMessage {
     /// extern crate rustc_serialize;
     /// extern crate tempdir;
     ///
-    /// use habitat_core::crypto::Context;
+    /// use habitat_core::crypto::SymKey;
     /// use habitat_common::wire_message::{MessageFormat, WireMessage};
     /// use rustc_serialize::{Decodable, Encodable};
     /// use tempdir::TempDir;
@@ -180,15 +173,12 @@ impl WireMessage {
     /// }
     ///
     /// fn main() {
-    ///     let key_cache = TempDir::new("key_cache").unwrap();
-    ///     let ctx = Context { key_cache: key_cache.into_path().to_string_lossy().into_owned() };
-    ///     let name = ctx.generate_ring_sym_key("beyonce").unwrap();
-    ///     let keys = ctx.read_sym_keys(&name).unwrap();
-    ///     let sym_key = keys.first().unwrap();
+    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let sym_key = SymKey::generate_pair_for_ring("beyonce", cache.path()).unwrap();
     ///
     ///     let bonham = Person { given_name: "John".to_string(), surname: "Bonham".to_string() };
-    ///     let encrypted = WireMessage::encrypted(&bonham, &ctx, &sym_key).unwrap();
-    ///     let result: Person = encrypted.msg(&ctx, &Some(sym_key.clone())).unwrap();
+    ///     let encrypted = WireMessage::encrypted(&bonham, &sym_key).unwrap();
+    ///     let result: Person = encrypted.msg(Some(&sym_key)).unwrap();
     ///
     ///     // The result message matches the input message
     ///     assert_eq!(result, bonham);
@@ -200,7 +190,7 @@ impl WireMessage {
     /// * If the message can't be decoded from bytes
     /// * If the wire message is malformed, that is, missing fields required for encrypted messages
     /// * If a required key with revision is not present for decrypting
-    pub fn msg<T: Decodable>(&self, ctx: &Context, sym_key: &Option<SymKey>) -> Result<T> {
+    pub fn msg<T: Decodable>(&self, sym_key: Option<&SymKey>) -> Result<T> {
         match self.format {
             MessageFormat::Plain => {
                 let msg_str = try!(str::from_utf8(&self.msg_bytes));
@@ -231,13 +221,13 @@ impl WireMessage {
                         return Err(Error::WireDecode(msg));
                     }
                 };
-                if key_name_with_rev != &sym_key.name_with_rev {
+                if key_name_with_rev != &sym_key.name_with_rev() {
                     let msg = format!("Loaded key {} does not match message encrypted with key {}",
-                                      &sym_key.name_with_rev,
+                                      &sym_key.name_with_rev(),
                                       key_name_with_rev);
                     return Err(Error::WireDecode(msg));
                 }
-                let msg = try!(ctx.sym_decrypt(sym_key, &nonce[..], &self.msg_bytes[..]));
+                let msg = try!(sym_key.decrypt(&nonce[..], &self.msg_bytes[..]));
                 let msg_str = try!(str::from_utf8(&msg));
                 let decoded: T = try!(json::decode(msg_str));
                 Ok(decoded)

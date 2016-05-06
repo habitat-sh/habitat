@@ -9,7 +9,7 @@ extern crate libc;
 
 use std::ffi::{CString, OsString};
 use std::os::unix::ffi::OsStringExt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::ptr;
 
 use common;
@@ -56,7 +56,11 @@ pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub fn command_from_pkg(command: &str, ident: &PackageIdent, retry: u8) -> Result<PathBuf> {
+pub fn command_from_pkg(command: &str,
+                        ident: &PackageIdent,
+                        cache_key_path: &Path,
+                        retry: u8)
+                        -> Result<PathBuf> {
     if retry > MAX_RETRIES {
         return Err(Error::ExecCommandNotFound(command.to_string()));
     }
@@ -70,8 +74,10 @@ pub fn command_from_pkg(command: &str, ident: &PackageIdent, retry: u8) -> Resul
         }
         Err(hcore::Error::PackageNotFound(_)) => {
             println!("Package for {} not found, installing from depot", &ident);
-            try!(common::command::package::install::from_url(DEFAULT_DEPOT_URL, ident));
-            command_from_pkg(&command, &ident, retry + 1)
+            try!(common::command::package::install::from_url(DEFAULT_DEPOT_URL,
+                                                             ident,
+                                                             cache_key_path));
+            command_from_pkg(&command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => return Err(Error::from(e)),
     }
