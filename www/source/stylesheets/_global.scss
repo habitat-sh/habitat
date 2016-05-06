@@ -8,6 +8,7 @@
 //  3. Buttons
 //  4. Typography
 //  5. Links
+//  6. Images
 
 
 // 1. Global
@@ -120,6 +121,16 @@ code {
   @include primary-button;
 }
 
+.button.slack {
+  background-image: url(../images/slack_mark_white_web.png);
+  background-repeat: no-repeat;
+  background-size: rem-calc(42);
+  font-size: rem-calc(16);
+  font-weight: bold;
+  min-height: rem-calc(44);
+  padding-left: rem-calc(40);
+}
+
 // 4. Typography Overrides
 // ---------
 .main-sidebar--heading h4 {
@@ -137,4 +148,11 @@ h2:not(:first-child) {
 .back-link {
   display: block;
   margin-top: rem-calc(10);
+}
+
+// 5. Images
+// ---------
+
+.logo-inline {
+  max-height: 2rem;
 }
