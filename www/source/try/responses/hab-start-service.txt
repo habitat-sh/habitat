@@ -39,7 +39,7 @@ redis(O): 4749:M 29 Apr 20:28:26.268 # WARNING overcommit_memory is set to 0! Ba
 redis(O): 4749:M 29 Apr 20:28:26.269 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
 redis(O): 4749:M 29 Apr 20:28:26.269 * The server is now ready to accept connections on port 6379
 
-[1;32mSuccess! In a single command, you've downloaded the Redis package (including it's dependencies) and started the service.
+[1;32mSuccess! In a single command, you've downloaded the Redis package (including its dependencies) and started the service.
 [1;33mNote the WARNING regarding the TCP backlog setting... we'll resolve that in just a bit.
 
 [1;36mNext, we'll ask the supervisor what is configurable in this service.

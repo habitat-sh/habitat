@@ -38,7 +38,7 @@
     var step = parseInt($("#try-habitat-progress").data("step"), 10);
     var studioPrompt = "<span class='ansi-green'>[</span>" +
         "<span class='ansi-cyan'>" + promptCounter +
-        "</span><span class='ansi-green'>][bldr:</span>" +
+        "</span><span class='ansi-green'>][habitat:</span>" +
         "<span class='ansi-magenta'>/src</span>" +
         "<span class='ansi-green'>:</span>0<span class='ansi-green'>]$</span>";
     var initialPrompt = step === 0 ? rootPrompt : studioPrompt;

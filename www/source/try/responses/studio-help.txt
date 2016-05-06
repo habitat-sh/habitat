@@ -1,8 +1,8 @@
 studio 0.1.0/20160310211938
 
-The Bldr Maintainers <bldr@chef.io>
+The Habitat Maintainers <maintainers@habitat.sh>
 
-Bldr Studios - Plan for success!
+Habitat Studios - Plan for success!
 
 USAGE:
         studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
@@ -17,8 +17,8 @@ FLAGS:
 OPTIONS:
     -r <STUDIO_ROOT>  Sets a Studio root (default: /opt/studio)
     -s <SRC_PATH>     Sets the source path (default: $PWD)
-    -t <STUDIO_TYPE>  Sets a Studio type when creating (default: bldr)
-                      Valid types: [baseimage bldr bldr-slim busybox stage1]
+    -t <STUDIO_TYPE>  Sets a Studio type when creating (default: habitat)
+                      Valid types: [baseimage habitat habitat-slim busybox stage1]
 
 SUBCOMMANDS:
     build     Build using a Studio
