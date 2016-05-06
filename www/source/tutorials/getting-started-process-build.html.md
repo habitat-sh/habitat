@@ -15,11 +15,20 @@ To create a Docker container for your artifact, perform the following steps:
 
 1. If you are not in the studio environment, enter it from the dev shell container with the `hab-studio enter` command.
 2. Change directory to the `/src/plans` directory.
+
+        [15][default:/src:0]$cd plans
+
 3. Build your version of the mytutorialapp artifact.
+
+        [16][default:/src/plans:0]$build mytutorialapp
+
 4. Run `hab-bpm install core/hab-pkg-dockerize` to unpack and install the artifact that creates docker images for other Habitat artifacts.
+
+        [17][default:/src/plans:0]$hab-bpm install core/hab-pkg-dockerize
+
 5. Run `hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your artifact. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
-        22][default:/src:1]$hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize myorigin/mytutorialapp
+        [18][default:/src:0]$hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize myorigin/mytutorialapp
 
     Habitat will proceed to unpack and install all necessary Habitat artifacts, the Habitat command-line interface (CLI) tools and binaries, the mytutorialapp artifact, and all of its dependencies. Then it will create an image using the Docker scratch image as the base image and build up the rest of the image from there.
 
@@ -52,7 +61,7 @@ To create a Docker container for your artifact, perform the following steps:
 
     ![Screen shot of node.js tutorial output](/images/nodejs-tutorial-output.png)
 
-5. Finally, because of the configuration capabilities in Habitat, you can now re-run your docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: HAB_PACKAGENAME='keyname=newvalue'.
+5. Finally, because of the configuration capabilities in Habitat, you can now re-run your docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname=newvalue'`.
 
     > Note: The package name in the environment variable must be uppercase and any dashes must be replaced with underscores.
 
