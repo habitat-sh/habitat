@@ -57,7 +57,7 @@ pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
     let request = client.get(&url);
     let mut res = try!(request.send());
     if res.status != hyper::status::StatusCode::Ok {
-        return Err(Error::RemoteOriginKeyNotFound(origin.to_string()))
+        return Err(Error::RemoteOriginKeyNotFound(origin.to_string()));
     };
 
     let mut encoded = String::new();

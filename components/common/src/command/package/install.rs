@@ -32,7 +32,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use hcore::crypto;
+use hcore::crypto::{artifact, SigKeyPair};
+use hcore::crypto::keys::parse_name_with_rev;
 use hcore::fs::CACHE_ARTIFACT_PATH;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use depot_core::data_object;
@@ -40,12 +41,14 @@ use depot_client;
 
 use error::Result;
 
-pub fn start(url: &str, ident_or_archive: &str) -> Result<()> {
+pub fn start<P: ?Sized>(url: &str, ident_or_archive: &str, cache_key_path: &P) -> Result<()>
+    where P: AsRef<Path>
+{
     if Path::new(ident_or_archive).is_file() {
-        try!(from_archive(url, &ident_or_archive));
+        try!(from_archive(url, &ident_or_archive, cache_key_path));
     } else {
         let ident = try!(PackageIdent::from_str(ident_or_archive));
-        try!(from_url(url, &ident));
+        try!(from_url(url, &ident, cache_key_path));
     }
     Ok(())
 }
@@ -57,32 +60,45 @@ pub fn start(url: &str, ident_or_archive: &str) -> Result<()> {
 ///
 /// * Fails if it cannot create the `CACHE_ARTIFACT_PATH`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url<P: AsRef<PackageIdent>>(url: &str, ident: &P) -> Result<data_object::Package> {
+pub fn from_url<I, P: ?Sized>(url: &str,
+                              ident: &I,
+                              cache_key_path: &P)
+                              -> Result<data_object::Package>
+    where I: AsRef<PackageIdent>,
+          P: AsRef<Path>
+{
     println!("Installing {}", ident.as_ref());
     let pkg_data = try!(depot_client::show_package(url, ident.as_ref()));
     try!(fs::create_dir_all(CACHE_ARTIFACT_PATH));
     for dep in &pkg_data.tdeps {
-        try!(install_from_depot(url, &dep, dep.as_ref()));
+        try!(install_from_depot(url, &dep, dep.as_ref(), cache_key_path.as_ref()));
     }
-    try!(install_from_depot(url, &pkg_data.ident, ident.as_ref()));
+    try!(install_from_depot(url,
+                            &pkg_data.ident,
+                            ident.as_ref(),
+                            cache_key_path.as_ref()));
     Ok(pkg_data)
 }
 
-pub fn from_archive<P: AsRef<Path>>(url: &str, path: &P) -> Result<()> {
+pub fn from_archive<P1: ?Sized, P2: ?Sized>(url: &str, path: &P1, cache_key_path: &P2) -> Result<()>
+    where P1: AsRef<Path>,
+          P2: AsRef<Path>
+{
     println!("Installing from {}", path.as_ref().display());
     let mut archive = PackageArchive::new(PathBuf::from(path.as_ref()));
     let ident = try!(archive.ident());
     try!(fs::create_dir_all(CACHE_ARTIFACT_PATH));
     for dep in try!(archive.tdeps()) {
-        try!(install_from_depot(url, &dep, dep.as_ref()));
+        try!(install_from_depot(url, &dep, dep.as_ref(), cache_key_path.as_ref()));
     }
-    try!(install_from_archive(url, archive, &ident));
+    try!(install_from_archive(url, archive, &ident, cache_key_path.as_ref()));
     Ok(())
 }
 
 fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
                                               ident: &P,
-                                              given_ident: &PackageIdent)
+                                              given_ident: &PackageIdent,
+                                              cache_key_path: &Path)
                                               -> Result<()> {
     match PackageInstall::load(ident.as_ref(), None) {
         Ok(_) => {
@@ -99,7 +115,7 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
                                                                ident.as_ref(),
                                                                CACHE_ARTIFACT_PATH));
             let ident = try!(archive.ident());
-            try!(verify(url, &archive, &ident));
+            try!(verify(url, &archive, &ident, cache_key_path));
             try!(archive.unpack());
             println!("Installed {}", ident);
         }
@@ -107,13 +123,17 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
     Ok(())
 }
 
-fn install_from_archive(url: &str, archive: PackageArchive, ident: &PackageIdent) -> Result<()> {
+fn install_from_archive(url: &str,
+                        archive: PackageArchive,
+                        ident: &PackageIdent,
+                        cache_key_path: &Path)
+                        -> Result<()> {
     match PackageInstall::load(ident.as_ref(), None) {
         Ok(_) => {
             println!("Package {} already installed", ident);
         }
         Err(_) => {
-            try!(verify(url, &archive, &ident));
+            try!(verify(url, &archive, &ident, cache_key_path));
             try!(archive.unpack());
             println!("Installed {}", ident);
         }
@@ -123,24 +143,26 @@ fn install_from_archive(url: &str, archive: PackageArchive, ident: &PackageIdent
 
 /// get the signer for the artifact and see if we have the key locally.
 /// If we don't, attempt to download it from the depot.
-fn verify(url: &str, archive: &PackageArchive, ident: &PackageIdent) -> Result<()> {
-    let crypto_ctx = crypto::Context::default();
-    let (signer_origin, signer_revision) = try!(crypto_ctx.get_artifact_signer(&archive.path));
-    let signer_key_with_rev = format!("{}-{}", signer_origin, signer_revision);
-
-    if let Err(_) = crypto_ctx.get_sig_public_key(&signer_key_with_rev) {
+fn verify(url: &str,
+          archive: &PackageArchive,
+          ident: &PackageIdent,
+          cache_key_path: &Path)
+          -> Result<()> {
+    let name_with_rev = try!(artifact::artifact_signer(&archive.path));
+    if let Err(_) = SigKeyPair::get_public_key_path(&name_with_rev, cache_key_path) {
         // we don't have the key locally, so try and download it before verification
-        println!("Can't find {} origin key in local key cache, fetching it from the depot", &signer_key_with_rev);
+        println!("Can't find {} origin key in local key cache, fetching it from the depot",
+                 &name_with_rev);
+        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
         try!(depot_client::get_origin_key(url,
-                                          &signer_origin,
-                                          &signer_revision,
-                                          &crypto::nacl_key_dir()));
+                                          &name,
+                                          &rev,
+                                          cache_key_path.to_string_lossy().as_ref()));
     }
 
-    try!(archive.verify());
-    println!("Successful verification of {}/{} signed by {}",
-             &ident.origin,
-             &ident.name,
-             &signer_key_with_rev);
+    try!(archive.verify(&cache_key_path));
+    println!("Successful verification of {} signed by {}",
+             &ident,
+             &name_with_rev);
     Ok(())
 }

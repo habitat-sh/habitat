@@ -8,6 +8,7 @@
 use std::sync::{Arc, RwLock};
 
 use depot_client;
+use hcore::crypto::default_cache_key_path;
 use hcore::fs::CACHE_ARTIFACT_PATH;
 use hcore::package::PackageIdent;
 use wonder;
@@ -98,7 +99,7 @@ impl GenServer for PackageUpdater {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
-                            archive.verify().unwrap();
+                            archive.verify(&default_cache_key_path()).unwrap();
                             archive.unpack().unwrap();
                             let latest_package = Package::load(latest_ident, None).unwrap();
                             state.status = UpdaterStatus::Stopped;

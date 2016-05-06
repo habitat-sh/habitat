@@ -27,7 +27,8 @@ use ansi_term::Colour::Yellow;
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use hcore::env as henv;
 use hcore::fs;
-use hcore::crypto::Context;
+use hcore::crypto::{default_cache_key_path, SymKey};
+use hcore::crypto::init as crypto_init;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
@@ -150,16 +151,15 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     }
     config.set_version_number(value_t!(sub_args, "version-number", u64).unwrap_or(0));
     let ring = match sub_args.value_of("ring") {
-        Some(val) => Some(val.to_string()),
+        Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path()))),
         None => {
             match henv::var(RING_KEY_ENVVAR) {
-                Ok(val) => {
-                    let ctx = Context::default();
-                    Some(try!(ctx.write_sym_key_from_str(&val)))
-                }
+                Ok(val) => Some(try!(SymKey::write_file_from_str(&val, &default_cache_key_path()))),
                 Err(_) => {
                     match henv::var(RING_ENVVAR) {
-                        Ok(val) => Some(val),
+                        Ok(val) => {
+                            Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path())))
+                        }
                         Err(_) => None,
                     }
                 }
@@ -167,7 +167,7 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         }
     };
     if let Some(ring) = ring {
-        config.set_ring(ring);
+        config.set_ring(ring.name_with_rev());
     }
     if args.value_of("verbose").is_some() {
         sup::output::set_verbose(true);
@@ -194,6 +194,7 @@ type Handler = fn(&Config) -> result::Result<(), sup::error::SupError>;
 #[allow(dead_code)]
 fn main() {
     env_logger::init().unwrap();
+    crypto_init();
 
     let arg_url = || {
         Arg::with_name("url")

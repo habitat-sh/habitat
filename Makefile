@@ -65,7 +65,7 @@ unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/builder-protocol && cargo test --lib'
 	$(run) sh -c 'cd components/builder-sessionsrv && cargo test --lib'
 	$(run) sh -c 'cd components/builder-vault && cargo test --lib'
-	$(run) sh -c 'cd components/core && cargo test --lib'
+	$(run) sh -c 'cd components/core && cargo test'
 	$(run) sh -c 'cd components/depot-core && cargo test --lib'
 	$(run) sh -c 'cd components/depot-client && cargo test --lib'
 	$(run) sh -c 'cd components/common && cargo test --lib'
@@ -74,6 +74,7 @@ unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/builder-web && npm run travis'
 
 functional: image ## executes the components' functional test suites
+	$(run) sh -c 'cd components/core && cargo test --features functional'
 	$(run) sh -c 'cd components/sup && cargo test --test functional'
 	$(run) sh -c 'cd components/depot && cargo test --test server'
 

@@ -9,6 +9,7 @@ plans/hana/*.exe
 plans/hana/*.rar
 plans/log/
 plans/tmp/
+tmp/
 .vagrant/
 *.sig.key
 *.box.key

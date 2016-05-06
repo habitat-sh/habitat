@@ -20,3 +20,10 @@ time = "*"
 
 [dev-dependencies]
 tempdir = "*"
+
+[dev-dependencies.hyper]
+version = "*"
+default-features = false
+
+[features]
+functional = []
