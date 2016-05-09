@@ -147,7 +147,8 @@ impl<'a> Worker<'a> {
             None => None,
         };
 
-        let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen()),
+        let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen_ip()),
+                                                        config.gossip_listen_port(),
                                                         config.gossip_permanent(),
                                                         ring_key,
                                                         package_name.clone(),
@@ -195,7 +196,8 @@ impl<'a> Worker<'a> {
             member_list: gossip_server.member_list.clone(),
             gossip_server: gossip_server,
             service_config: service_config_lock,
-            sidecar_actor: sidecar::Sidecar::start(pkg_lock_1,
+            sidecar_actor: sidecar::Sidecar::start(config.sidecar_listen().to_string(),
+                                                   pkg_lock_1,
                                                    service_config_lock_1,
                                                    sidecar_ml,
                                                    sidecar_rl,

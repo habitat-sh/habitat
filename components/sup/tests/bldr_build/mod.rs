@@ -9,7 +9,6 @@ use regex::Regex;
 
 use hcore::fs;
 use util;
-use setup;
 
 #[test]
 fn builds_a_service() {

@@ -55,7 +55,6 @@ extern crate time;
 extern crate wonder;
 extern crate uuid;
 extern crate utp;
-extern crate rpassword;
 extern crate rand;
 extern crate threadpool;
 extern crate urlencoded;
