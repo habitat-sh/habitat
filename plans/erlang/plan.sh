@@ -1,12 +1,12 @@
 pkg_name=erlang
 pkg_origin=core
-pkg_version=18.2.1
+pkg_version=18.3
 pkg_dirname=otp_src_${pkg_version}
 pkg_license=('erlang')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://www.erlang.org/download/otp_src_${pkg_version}.tar.gz
 pkg_filename=otp_src_${pkg_version}.tar.gz
-pkg_shasum=82d76ebfeeda5db64ea5b0f1a04aa0e9ac63380b278722e0e6052249bd3fe39a
+pkg_shasum=fdab8129a1cb935db09f1832e3a7d511a4aeb2b9bb3602ca6a7ccb9730d5c9c3
 pkg_deps=(core/glibc core/zlib core/ncurses)
 pkg_build_deps=(core/coreutils core/gcc core/make core/perl)
 pkg_bin_dirs=(bin)
