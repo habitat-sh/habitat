@@ -8,7 +8,7 @@
 use error::{Error, Result};
 use std::process::Command;
 
-static LOGKEY: &'static str = "US";
+static LOGKEY: &'static str = "SY";
 
 pub fn ip() -> Result<String> {
     debug!("Shelling out to determine IP address");
