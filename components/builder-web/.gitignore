@@ -4,7 +4,8 @@ assets/app.css
 assets/app.css.map
 assets/app.js
 assets/app.js.map
-habitat.conf.js
+assets/habitat.conf.js
+/habitat.conf.js
 node_modules
 npm-debug.log*
 /dist
