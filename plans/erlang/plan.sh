@@ -7,8 +7,8 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=http://www.erlang.org/download/otp_src_${pkg_version}.tar.gz
 pkg_filename=otp_src_${pkg_version}.tar.gz
 pkg_shasum=fdab8129a1cb935db09f1832e3a7d511a4aeb2b9bb3602ca6a7ccb9730d5c9c3
-pkg_deps=(core/glibc core/zlib core/ncurses)
-pkg_build_deps=(core/coreutils core/gcc core/make core/perl)
+pkg_deps=(core/glibc core/zlib core/ncurses core/openssl)
+pkg_build_deps=(core/coreutils core/gcc core/make core/openssl core/perl)
 pkg_bin_dirs=(bin)
 pkg_include_dirs=(include)
 pkg_lib_dirs=(lib)
@@ -32,6 +32,8 @@ do_build() {
               --enable-dynamic-ssl-lib \
               --enable-shared-zlib \
               --enable-hipe \
+              --with-ssl=$(pkg_path_for openssl)/lib \
+              --with-ssl-include=$(pkg_path_for openssl)/include \
               --without-javac \
               --disable-debug
   make
