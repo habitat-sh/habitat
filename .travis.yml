@@ -44,6 +44,7 @@ cache:
   - components/sup/target
   - components/builder-web/node_modules
   - components/builder-web/typings
+  - /hab
 env:
   global:
   - PATH=$HOME/.cargo/bin:$PATH
@@ -58,10 +59,13 @@ before_install:
 - sudo apt-get -y install docker iproute2 libsodium-dev man npm ruby2.3 ruby2.3-dev
 - command -v protoc-gen-rust || cargo install protobuf
 - sudo gem install bundler
+- npm config set spin=false
 - (cd components/builder-web && npm install)
+- openssl aes-256-cbc -K $encrypted_c4f852370b68_key -iv $encrypted_c4f852370b68_iv -in core-20160423193745.sig.key.enc -out core-20160423193745.sig.key -d
 script:
-- "./support/ci.sh"
-- "./support/website.sh"
+- ./support/ci.sh
+- ./support/website.sh
+- sudo -E bash -c "./support/publish.sh"
 notifications:
   slack:
     secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
