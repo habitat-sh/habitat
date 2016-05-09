@@ -36,7 +36,7 @@ use census::{CensusList, CensusEntry, CensusEntryId, Census};
 use election::{Election, ElectionList};
 use supervisor::Supervisor;
 
-static LOGKEY: &'static str = "SC";
+static LOGKEY: &'static str = "SI";
 const GET_HEALTH: &'static str = "/health";
 const GET_CONFIG: &'static str = "/config";
 const GET_STATUS: &'static str = "/status";
