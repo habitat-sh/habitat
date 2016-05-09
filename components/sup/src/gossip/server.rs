@@ -70,7 +70,8 @@ pub struct Server {
 impl Server {
     /// Creates a new Server. Creates our own entry in the census and membership lists, and writes
     /// a rumor that this server is alive.
-    pub fn new(listen: String,
+    pub fn new(listen_ip: String,
+               listen_port: u16,
                permanent: bool,
                ring_key: Option<SymKey>,
                service: String,
@@ -79,12 +80,13 @@ impl Server {
                exposes: Option<Vec<String>>,
                port: Option<String>)
                -> Server {
-        let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
-        let ip = util::sys::ip().unwrap_or(String::from("127.0.0.1"));
 
-        let peer_listen = format!("{}:{}", ip, GOSSIP_DEFAULT_PORT);
+        let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
+        let listen = format!("{}:{}", listen_ip, listen_port);
+        let peer_listen = listen.clone();
         let peer_listen2 = peer_listen.clone();
-        let member = Member::new(hostname, ip, peer_listen2, permanent);
+
+        let member = Member::new(hostname, listen_ip, peer_listen2, permanent);
 
         let service_group = format!("{}.{}", service, group);
         let mut ce = CensusEntry::new(service.clone(), group.clone(), member.id.clone());

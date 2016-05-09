@@ -43,13 +43,14 @@ const GET_STATUS: &'static str = "/status";
 const GET_GOSSIP: &'static str = "/gossip";
 const GET_CENSUS: &'static str = "/census";
 const GET_ELECTION: &'static str = "/election";
-const LISTEN_ADDR: &'static str = "0.0.0.0:9631";
 
 pub type SidecarActor = wonder::actor::Actor<SidecarMessage>;
 
 pub struct Sidecar;
 
 pub struct SidecarState {
+    /// The IP:Port where the sidecar listens
+    pub listen: String,
     /// The package this sidecar is helping out
     pub package: Arc<RwLock<Package>>,
     /// The configuration of the supervised service
@@ -70,7 +71,8 @@ pub enum SidecarMessage {
 }
 
 impl SidecarState {
-    pub fn new(package: Arc<RwLock<Package>>,
+    pub fn new(listen: String,
+               package: Arc<RwLock<Package>>,
                config: Arc<RwLock<ServiceConfig>>,
                member_list: Arc<RwLock<MemberList>>,
                rumor_list: Arc<RwLock<RumorList>>,
@@ -81,6 +83,7 @@ impl SidecarState {
                gossip_file_list: Arc<RwLock<GossipFileList>>)
                -> Self {
         SidecarState {
+            listen: listen,
             package: package,
             config: config,
             member_list: member_list,
@@ -96,7 +99,8 @@ impl SidecarState {
 
 impl Sidecar {
     /// Start the sidecar.
-    pub fn start(package: Arc<RwLock<Package>>,
+    pub fn start(listen: String,
+                 package: Arc<RwLock<Package>>,
                  config: Arc<RwLock<ServiceConfig>>,
                  member_list: Arc<RwLock<MemberList>>,
                  rumor_list: Arc<RwLock<RumorList>>,
@@ -106,7 +110,8 @@ impl Sidecar {
                  supervisor: Arc<RwLock<Supervisor>>,
                  gossip_file_list: Arc<RwLock<GossipFileList>>)
                  -> SidecarActor {
-        let state = SidecarState::new(package,
+        let state = SidecarState::new(listen,
+                                      package,
                                       config,
                                       member_list,
                                       rumor_list,
@@ -164,7 +169,7 @@ impl GenServer for Sidecar {
         let el = state.election_list.clone();
         router.get(GET_ELECTION, move |r: &mut Request| election(&el, r));
 
-        match Iron::new(router).http(LISTEN_ADDR) {
+        match Iron::new(router).http(state.listen.as_str()) {
             Ok(_) => HandleResult::NoReply(None),
             Err(_) => {
                 HandleResult::Stop(StopReason::Fatal("couldn't start router".to_string()), None)

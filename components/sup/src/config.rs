@@ -83,10 +83,11 @@ pub struct Config {
     archive: String,
     bind: Vec<String>,
     key: String,
-    password: Option<String>,
     email: Option<String>,
     expire_days: Option<u16>,
-    gossip_listen: String,
+    gossip_listen_ip: String,
+    gossip_listen_port: u16,
+    sidecar_listen: String,
     userkey: Option<String>,
     servicekey: Option<String>,
     infile: Option<String>,
@@ -148,17 +149,6 @@ impl Config {
     /// Return the key
     pub fn key(&self) -> &str {
         &self.key
-    }
-
-    /// Set the password
-    pub fn set_password(&mut self, password: String) -> &mut Config {
-        self.password = Some(password);
-        self
-    }
-
-    /// Return the password
-    pub fn password(&self) -> &Option<String> {
-        &self.password
     }
 
     /// Set the email address
@@ -281,12 +271,30 @@ impl Config {
         &self.topology
     }
 
-    pub fn gossip_listen(&self) -> &str {
-        &self.gossip_listen
+    pub fn gossip_listen_ip(&self) -> &str {
+        &self.gossip_listen_ip
     }
 
-    pub fn set_gossip_listen(&mut self, gl: String) -> &mut Config {
-        self.gossip_listen = gl;
+    pub fn set_gossip_listen_ip(&mut self, ip: String) -> &mut Config {
+        self.gossip_listen_ip = ip;
+        self
+    }
+
+    pub fn gossip_listen_port(&self) -> u16 {
+        self.gossip_listen_port
+    }
+
+    pub fn set_gossip_listen_port(&mut self, port: u16) -> &mut Config {
+        self.gossip_listen_port = port;
+        self
+    }
+
+    pub fn sidecar_listen(&self) -> &str {
+        &self.sidecar_listen
+    }
+
+    pub fn set_sidecar_listen(&mut self, sl: String) -> &mut Config {
+        self.sidecar_listen = sl;
         self
     }
 

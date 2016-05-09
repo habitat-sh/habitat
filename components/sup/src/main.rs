@@ -35,6 +35,8 @@ use sup::config::{Command, Config, UpdateStrategy};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::topology::Topology;
+use sup::util::parse_ip_port_with_defaults;
+use sup::util::sys::ip;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -44,7 +46,9 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
-static DEFAULT_GOSSIP_LISTEN: &'static str = "0.0.0.0:9634";
+static DEFAULT_SIDECAR_LISTEN_IP_PORT: &'static str = "0.0.0.0:9631";
+
+const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634;
 
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
@@ -67,9 +71,6 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     }
     if let Some(key) = sub_args.value_of("key") {
         config.set_key(key.to_string());
-    }
-    if let Some(password) = sub_args.value_of("password") {
-        config.set_password(password.to_string());
     }
     if let Some(email) = sub_args.value_of("email") {
         config.set_email(email.to_string());
@@ -119,8 +120,19 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
                                            .to_string_lossy()
                                            .as_ref())
                             .to_string());
-    config.set_gossip_listen(sub_args.value_of("listen-peer")
-                                     .unwrap_or(DEFAULT_GOSSIP_LISTEN)
+
+    let default_gossip_ip = try!(ip());
+    let (gossip_ip, gossip_port) = try!(parse_ip_port_with_defaults(
+                                        sub_args.value_of("listen-peer"),
+                                        &default_gossip_ip,
+                                        DEFAULT_GOSSIP_LISTEN_PORT));
+
+    debug!("Gossip IP = {}", &gossip_ip);
+    debug!("Gossip Port = {}", &gossip_port);
+    config.set_gossip_listen_ip(gossip_ip);
+    config.set_gossip_listen_port(gossip_port);
+    config.set_sidecar_listen(sub_args.value_of("listen-sidecar")
+                                     .unwrap_or(DEFAULT_SIDECAR_LISTEN_IP_PORT)
                                      .to_string());
     let gossip_peers = match sub_args.values_of("peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
@@ -246,7 +258,11 @@ fn main() {
                         .arg(Arg::with_name("listen-peer")
                                  .long("listen-peer")
                                  .value_name("ip:port")
-                                 .help("The listen address [default: 0.0.0.0:9634]"))
+                                 .help("The listen address [default: ip_with_default_route:9634]"))
+                        .arg(Arg::with_name("listen-sidecar")
+                                 .long("listen-sidecar")
+                                 .value_name("ip:port")
+                                 .help("The sidecar listen address [default: 0.0.0.0:9631]"))
                         .arg(Arg::with_name("permanent-peer")
                                  .short("I")
                                  .long("permanent-peer")
