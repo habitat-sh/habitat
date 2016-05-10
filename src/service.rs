@@ -36,6 +36,11 @@ impl ServiceGroup {
             organization: organization,
         }
     }
+
+    // returns ".org" if self.organization is Some, otherwise an empty string
+    pub fn dotted_org_or_empty(&self) -> String {
+        self.organization.as_ref().map_or("".to_string(), |s| format!(".{}", &s))
+    }
 }
 
 impl fmt::Display for ServiceGroup {
@@ -148,5 +153,28 @@ mod test {
     #[should_panic(expected = "oh-noes")]
     fn from_str_not_enough_periods() {
         ServiceGroup::from_str("oh-noes").unwrap();
+    }
+
+    #[test]
+    fn service_groups_with_org() {
+        let x = ServiceGroup::from_str("foo.bar").unwrap();
+        assert!(x.service == "foo".to_string());
+        assert!(x.group == "bar".to_string());
+        assert!(x.organization.is_none());
+
+        let y = ServiceGroup::from_str("foo.bar@baz").unwrap();
+        assert!(y.service == "foo".to_string());
+        assert!(y.group == "bar".to_string());
+        assert!(y.organization.unwrap() == "baz");
+
+        assert!(ServiceGroup::from_str("foo.bar@").is_err());
+        assert!(ServiceGroup::from_str("f.oo.bar@baz").is_err());
+        assert!(ServiceGroup::from_str("foo@baz").is_err());
+    }
+
+    #[test]
+    fn org_or_empty() {
+        assert!("" == ServiceGroup::from_str("foo.bar").unwrap().dotted_org_or_empty());
+        assert!(".baz" == ServiceGroup::from_str("foo.bar@baz").unwrap().dotted_org_or_empty());
     }
 }
