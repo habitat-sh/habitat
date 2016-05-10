@@ -23,12 +23,25 @@ use time::{SteadyTime, Duration};
 use error::{Error, Result};
 
 const IDEMPOTENCY_INTERVAL_MINUTES: i64 = 5;
+const GOSSIP_TOML: &'static str = "gossip.toml";
+
+
+/// Determines if this GossipFile payload is gossip.toml or a
+/// "regular" file. Does not include the notion of encryption.
+#[derive(Clone, Debug, PartialEq, Eq, RustcDecodable, RustcEncodable)]
+pub enum GossipFileType {
+    /// This file will be rendered as gossip.toml
+    GossipToml,
+    /// This file will be rendered using GossipFile.file_name
+    File,
+}
 
 /// The gossip file struct.
 #[derive(Clone, Debug, Eq, RustcDecodable, RustcEncodable)]
 pub struct GossipFile {
     pub service_group: ServiceGroup,
     pub file_name: String,
+    pub file_type: GossipFileType,
     body: Vec<u8>,
     checksum: String,
     version_number: u64,
@@ -39,7 +52,8 @@ pub struct GossipFile {
 impl GossipFile {
     pub fn from_file<P: AsRef<Path>>(service_group: ServiceGroup,
                                      file_path: P,
-                                     version_number: u64)
+                                     version_number: u64,
+                                     as_gossip: bool)
                                      -> Result<GossipFile> {
         let path = file_path.as_ref();
         for part in path.components() {
@@ -52,13 +66,21 @@ impl GossipFile {
         let mut f = try!(File::open(&path));
         let mut body = Vec::new();
         try!(f.read_to_end(&mut body));
-
         let file_name = try!(path.file_name().ok_or(Error::FileNameError));
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
 
+        let (file_type, file_name) = if as_gossip {
+            // override the filename so users don't have to know the file
+            // is named gossip.toml internally
+            (GossipFileType::GossipToml, GOSSIP_TOML.to_string())
+        } else {
+            (GossipFileType::File, file_name.to_string_lossy().to_string())
+        };
+
         let cf = GossipFile {
             service_group: service_group,
-            file_name: file_name.to_string_lossy().to_string(),
+            file_name: file_name,
+            file_type: file_type,
             body: body,
             checksum: checksum.as_slice().to_hex(),
             version_number: version_number,
@@ -125,6 +147,7 @@ impl GossipFile {
         let cf = GossipFile {
             service_group: service_group,
             file_name: file_name.to_string_lossy().to_string(),
+            file_type: GossipFileType::File, // Doesn't allow an encrypted gossip.toml
             body: encrypted_body,
             checksum: checksum.as_slice().to_hex(),
             version_number: version_number,
@@ -134,7 +157,6 @@ impl GossipFile {
         Ok(cf)
     }
 
-
     pub fn from_body(service_group: ServiceGroup,
                      file_name: String,
                      body: Vec<u8>,
@@ -142,9 +164,15 @@ impl GossipFile {
                      -> Result<GossipFile> {
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
 
+        let file_type = if file_name == GOSSIP_TOML {
+            GossipFileType::GossipToml
+        } else {
+            GossipFileType::File
+        };
         let cf = GossipFile {
             service_group: service_group,
             file_name: file_name,
+            file_type: file_type,
             body: body,
             checksum: checksum.as_slice().to_hex(),
             version_number: version_number,
@@ -184,7 +212,7 @@ impl GossipFile {
     }
 
     pub fn on_disk_path(&self) -> PathBuf {
-        if &self.file_name == "gossip.toml" {
+        if self.file_type == GossipFileType::GossipToml {
             fs::svc_path(&self.service_group.service).join(&self.file_name)
         } else {
             fs::svc_files_path(&self.service_group.service).join(&self.file_name)
@@ -409,7 +437,7 @@ impl GossipFileList {
             if needs_file_updated == false && written == true {
                 needs_file_updated = true;
             }
-            if gf.file_name == "gossip.toml" {
+            if gf.file_type == GossipFileType::GossipToml {
                 needs_reconfigure = true;
             }
         }
@@ -446,7 +474,7 @@ mod test {
 
     use hcore::crypto;
     use hcore::service::ServiceGroup;
-    use gossip_file::{GossipFile, FileWriteRetry};
+    use gossip_file::{GossipFile, FileWriteRetry, GossipFileType};
 
 
     fn fixture(name: &str) -> PathBuf {
@@ -467,7 +495,7 @@ mod test {
     fn new_from_file() {
         let cf = GossipFile::from_file(ServiceGroup::from_str("petty.gunslingers").unwrap(),
                                        fixture("foo.bar").as_path(),
-                                       2)
+                                       2, false)
                      .unwrap();
         assert_eq!(cf.service_group,
                    ServiceGroup::from_str("petty.gunslingers").unwrap());
@@ -475,6 +503,22 @@ mod test {
         assert_eq!(cf.checksum,
                    "f34fe622a8fe7565fc15be3ce8bc43d7e32a0dd744ebef509fa0bdb130c0ac31");
         assert_eq!(cf.version_number, 2);
+        assert_eq!(cf.file_type, GossipFileType::File);
+    }
+
+    #[test]
+    fn new_from_file_as_gossip() {
+        let cf = GossipFile::from_file(ServiceGroup::from_str("petty.gunslingers").unwrap(),
+                                       fixture("foo.bar").as_path(),
+                                       2, true)
+                     .unwrap();
+        assert_eq!(cf.service_group,
+                   ServiceGroup::from_str("petty.gunslingers").unwrap());
+        assert_eq!(cf.file_name, "gossip.toml");
+        assert_eq!(cf.checksum,
+                   "f34fe622a8fe7565fc15be3ce8bc43d7e32a0dd744ebef509fa0bdb130c0ac31");
+        assert_eq!(cf.version_number, 2);
+        assert_eq!(cf.file_type, GossipFileType::GossipToml);
     }
 
     fn setup_key_env(test_name: &str) -> (crypto::Context, String) {
@@ -507,6 +551,7 @@ mod test {
         assert_eq!(gf.checksum,
                    "f34fe622a8fe7565fc15be3ce8bc43d7e32a0dd744ebef509fa0bdb130c0ac31");
         assert_eq!(gf.version_number, 1);
+        assert_eq!(gf.file_type, GossipFileType::File);
         let (boxed_user_key, boxed_service_key) =
             crypto_ctx.get_box_user_and_service_keys(&gf.body).unwrap();
 
@@ -538,7 +583,26 @@ mod test {
         assert_eq!(cf.checksum,
                    "8347123270c1b97dd06de84921b3eb7babd41cb4fd8b2f78a4651903f8904bb1");
         assert_eq!(cf.version_number, 45);
+        assert_eq!(cf.file_type, GossipFileType::File);
     }
+
+    #[test]
+    fn new_from_body_as_gossip() {
+        let cf = GossipFile::from_body(ServiceGroup::from_str("chromeo.footwork").unwrap(),
+                                       "gossip.toml".to_string(),
+                                       "Rage\n".as_bytes().to_vec(),
+                                       45)
+                     .unwrap();
+        assert_eq!(cf.service_group,
+                   ServiceGroup::from_str("chromeo.footwork").unwrap());
+        assert_eq!(cf.file_name, "gossip.toml");
+        assert_eq!(cf.body, "Rage\n".as_bytes().to_vec());
+        assert_eq!(cf.checksum,
+                   "8347123270c1b97dd06de84921b3eb7babd41cb4fd8b2f78a4651903f8904bb1");
+        assert_eq!(cf.version_number, 45);
+        assert_eq!(cf.file_type, GossipFileType::GossipToml);
+    }
+
 
     #[test]
     fn update_via_when_other_version_is_higher() {

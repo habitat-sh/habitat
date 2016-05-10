@@ -214,7 +214,8 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
         Some(p) => Some(Path::new(p)),
     };
 
-    try!(command::config::apply::start(&peers, ring_key, sg, number, file_path));
+    let as_gossip = m.is_present("AS_GOSSIP");
+    try!(command::config::apply::start(&peers, ring_key, sg, number, file_path, as_gossip));
     Ok(())
 }
 
