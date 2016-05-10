@@ -45,6 +45,7 @@ all: image ## builds all the project's Rust components
 	$(run) sh -c 'cd components/core && cargo build'
 	$(run) sh -c 'cd components/depot-core && cargo build'
 	$(run) sh -c 'cd components/depot-client && cargo build'
+	$(run) sh -c 'cd components/director && cargo build'
 	$(MAKE) bin
 
 test: image ## tests the project's Rust components
@@ -59,6 +60,7 @@ test: image ## tests the project's Rust components
 	$(run) sh -c 'cd components/common && cargo test'
 	$(run) sh -c 'cd components/sup && cargo test '
 	$(run) sh -c 'cd components/depot && cargo test'
+	$(run) sh -c 'cd components/director && cargo test'
 
 unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/builder-api && cargo test --lib'
@@ -69,6 +71,7 @@ unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/core && cargo test'
 	$(run) sh -c 'cd components/depot-core && cargo test --lib'
 	$(run) sh -c 'cd components/depot-client && cargo test --lib'
+	$(run) sh -c 'cd components/director && cargo test --lib'
 	$(run) sh -c 'cd components/common && cargo test --lib'
 	$(run) sh -c 'cd components/sup && cargo test --lib'
 	$(run) sh -c 'cd components/depot && cargo test --lib'
@@ -89,6 +92,7 @@ clean: ## cleans up the project tree
 	$(run) sh -c 'cd components/depot-client && cargo clean'
 	$(run) sh -c 'cd components/depot-core && cargo clean'
 	$(run) sh -c 'cd components/depot && cargo clean'
+	$(run) sh -c 'cd components/director && cargo clean'
 	$(run) sh -c 'cd components/hab && cargo clean'
 	$(run) sh -c 'cd components/net && cargo clean'
 	$(run) sh -c 'cd components/sodiumoxide && cargo clean'

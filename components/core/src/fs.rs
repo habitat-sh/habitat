@@ -49,6 +49,11 @@ pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
     }
 }
 
+/// Returns the root path containing all runtime service directories and files
+pub fn svc_root() -> PathBuf {
+    Path::new("/").join(SVC_PATH).to_path_buf()
+}
+
 /// Returns the root path for a given service's configuration, files, and data.
 pub fn svc_path(service_name: &str) -> PathBuf {
     Path::new("/").join(SVC_PATH).join(service_name)
