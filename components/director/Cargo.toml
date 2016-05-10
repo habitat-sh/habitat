@@ -1,0 +1,48 @@
+[package]
+name = "habitat_director"
+version = "0.5.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "build.rs"
+
+[lib]
+name = "habitat_director"
+
+[[bin]]
+name = "hab-director"
+doc = false
+
+[[test]]
+name = "functional"
+
+[dependencies]
+ansi_term = "*"
+env_logger = "*"
+libc = "*"
+log = "*"
+regex = "*"
+rustc-serialize = "*"
+time = "*"
+toml = "*"
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_sup]
+path = "../sup"
+
+[dependencies.uuid]
+version = "*"
+features = ["rustc-serialize"]
+
+[dependencies.wonder]
+path = "../../vendor/wonder"
+
+[dev-dependencies]
+tempdir = "*"
+
+[profile.release]
+lto = true

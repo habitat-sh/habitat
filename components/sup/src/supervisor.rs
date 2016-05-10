@@ -13,6 +13,7 @@
 
 use std::fmt;
 use std::fs::{self, File};
+use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::{Command, Stdio, Child};
@@ -377,30 +378,19 @@ impl Drop for Supervisor {
 
 /// Consume output from a child process until EOF, then finish
 fn child_reader(child: &mut Child, package_name: String) -> Result<()> {
-    let mut c_stdout = match child.stdout {
+    let c_stdout = match child.stdout {
         Some(ref mut s) => s,
         None => return Err(sup_error!(Error::UnpackFailed)),
     };
 
-    let mut line = output_format!(preamble &package_name, logkey "O");
-    loop {
-        let mut buf = [0u8; 1]; // Our byte buffer
-        let len = try!(c_stdout.read(&mut buf));
-        match len {
-            0 => {
-                // 0 == EOF, so stop writing and finish progress
-                break;
-            }
-            _ => {
-                // Write the buffer to the BufWriter on the Heap
-                let buf_string = String::from_utf8_lossy(&buf[0..len]);
-                line.push_str(&buf_string);
-                if line.contains("\n") {
-                    print!("{}", line);
-                    line = output_format!(preamble &package_name, logkey "O");
-                }
-            }
-        }
+    let mut reader = BufReader::new(c_stdout);
+    let mut buffer = String::new();
+
+    while reader.read_line(&mut buffer).unwrap() > 0 {
+        let mut line = output_format!(preamble &package_name, logkey "O");
+        line.push_str(&buffer);
+        print!("{}", line);
+        buffer.clear();
     }
     debug!("child_reader exiting");
     Ok(())
