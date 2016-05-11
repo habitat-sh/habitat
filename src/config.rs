@@ -29,36 +29,62 @@ pub trait ConfigFile: Sized {
             Ok(_) => (),
             Err(e) => return Err(Self::Error::from(Error::ConfigFileIO(e))),
         }
-        let mut parser = toml::Parser::new(&raw);
-        match parser.parse() {
-            Some(toml) => Self::from_toml(toml),
-            None => {
-                let msg = format_errors(&parser);
+        match raw.parse() {
+            Ok(toml) => Self::from_toml(toml),
+            Err(e) => {
+                let msg = format_errors(&e);
                 Err(Self::Error::from(Error::ConfigFileSyntax(msg)))
             }
         }
     }
 
-    fn from_toml(toml: toml::Table) -> result::Result<Self, Self::Error>;
+    fn from_toml(toml: toml::Value) -> result::Result<Self, Self::Error>;
 }
 
 pub trait ParseInto<T> {
     fn parse_into(&self, field: &'static str, out: &mut T) -> Result<bool>;
 }
 
-impl ParseInto<net::SocketAddrV4> for toml::Table {
+impl ParseInto<Vec<net::SocketAddrV4>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut Vec<net::SocketAddrV4>) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(slice) = val.as_slice() {
+                let mut buf = vec![];
+                for entry in slice.iter() {
+                    if let Some(v) = entry.as_str() {
+                        match net::SocketAddrV4::from_str(v) {
+                            Ok(addr) => buf.push(addr),
+                            Err(_) => return Err(Error::ConfigInvalidSocketAddrV4(field)),
+                        }
+                    } else {
+                        return Err(Error::ConfigInvalidSocketAddrV4(field));
+                    }
+                }
+                *out = buf;
+                Ok(true)
+            } else {
+                // error, expected array
+                Ok(false)
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl ParseInto<net::SocketAddrV4> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut net::SocketAddrV4) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = self.lookup(field) {
             if let Some(v) = val.as_str() {
                 match net::SocketAddrV4::from_str(v) {
                     Ok(addr) => {
                         *out = addr;
                         Ok(true)
                     }
-                    Err(_) => Err(Error::ConfigInvalidSocketAddrV4(field, val.clone())),
+                    Err(_) => Err(Error::ConfigInvalidSocketAddrV4(field)),
                 }
             } else {
-                Err(Error::ConfigInvalidSocketAddrV4(field, val.clone()))
+                Err(Error::ConfigInvalidSocketAddrV4(field))
             }
         } else {
             Ok(false)
@@ -66,19 +92,19 @@ impl ParseInto<net::SocketAddrV4> for toml::Table {
     }
 }
 
-impl ParseInto<net::Ipv4Addr> for toml::Table {
+impl ParseInto<net::Ipv4Addr> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut net::Ipv4Addr) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = self.lookup(field) {
             if let Some(v) = val.as_str() {
                 match net::Ipv4Addr::from_str(v) {
                     Ok(addr) => {
                         *out = addr;
                         Ok(true)
                     }
-                    Err(_) => Err(Error::ConfigInvalidIpv4Addr(field, val.clone())),
+                    Err(_) => Err(Error::ConfigInvalidIpv4Addr(field)),
                 }
             } else {
-                Err(Error::ConfigInvalidIpv4Addr(field, val.clone()))
+                Err(Error::ConfigInvalidIpv4Addr(field))
             }
         } else {
             Ok(false)
@@ -86,14 +112,14 @@ impl ParseInto<net::Ipv4Addr> for toml::Table {
     }
 }
 
-impl ParseInto<String> for toml::Table {
+impl ParseInto<String> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut String) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = self.lookup(field) {
             if let Some(v) = val.as_str() {
                 *out = v.to_string();
                 Ok(true)
             } else {
-                Err(Error::ConfigInvalidString(field, val.clone()))
+                Err(Error::ConfigInvalidString(field))
             }
         } else {
             Ok(false)
@@ -101,14 +127,14 @@ impl ParseInto<String> for toml::Table {
     }
 }
 
-impl ParseInto<usize> for toml::Table {
+impl ParseInto<usize> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut usize) -> Result<bool> {
-        if let Some(val) = self.get(field) {
+        if let Some(val) = self.lookup(field) {
             if let Some(v) = val.as_integer() {
                 *out = v as usize;
                 Ok(true)
             } else {
-                Err(Error::ConfigInvalidString(field, val.clone()))
+                Err(Error::ConfigInvalidString(field))
             }
         } else {
             Ok(false)
@@ -116,17 +142,56 @@ impl ParseInto<usize> for toml::Table {
     }
 }
 
-fn format_errors(parser: &toml::Parser) -> String {
+impl ParseInto<Vec<u16>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut Vec<u16>) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_slice() {
+                let mut buf = vec![];
+                for int in v.iter() {
+                    if let Some(i) = int.as_integer() {
+                        buf.push(i as u16);
+                    } else {
+                        return Err(Error::ConfigInvalidArray(field));
+                    }
+                }
+                *out = buf;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidArray(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl ParseInto<Vec<u32>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut Vec<u32>) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_slice() {
+                let mut buf = vec![];
+                for int in v.iter() {
+                    if let Some(i) = int.as_integer() {
+                        buf.push(i as u32);
+                    } else {
+                        return Err(Error::ConfigInvalidArray(field));
+                    }
+                }
+                *out = buf;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidArray(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+fn format_errors(errors: &Vec<toml::ParserError>) -> String {
     let mut msg = String::new();
-    for err in &parser.errors {
-        let (loline, locol) = parser.to_linecol(err.lo);
-        let (hiline, hicol) = parser.to_linecol(err.hi);
-        msg.push_str(&format!("\t{}:{}-{}:{} error: {}\n",
-                              loline,
-                              locol,
-                              hiline,
-                              hicol,
-                              err.desc));
+    for err in errors {
+        msg.push_str(&format!("\terror: {}\n", err.desc));
     }
     msg
 }
