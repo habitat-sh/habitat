@@ -2167,6 +2167,13 @@ build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
 build_line "Artifact: $pkg_artifact"
 
+# Write results to a output file users can process, e.g., in CI
+cat <<-EOF > $HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-build-output
+source-cache:$HAB_CACHE_SRC_PATH/$pkg_dirname
+installed-path:$pkg_prefix
+artifact:$pkg_artifact
+EOF
+
 # Exit cleanly
 build_line
 build_line "I love it when a plan.sh comes together."
