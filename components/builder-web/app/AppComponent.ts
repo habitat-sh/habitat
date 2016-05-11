@@ -24,8 +24,9 @@ import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
 import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
-    removeNotification, routeChange, setCurrentOrigin, signOut,
-    toggleOriginPicker, toggleUserNavMenu} from "./actions/index";
+    removeNotification, requestGitHubAuthToken, routeChange, setCurrentOrigin,
+    setGitHubAuthState, signOut, toggleOriginPicker, toggleUserNavMenu}
+    from "./actions/index";
 
 @Component({
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
@@ -215,8 +216,19 @@ export class AppComponent implements OnInit {
     get user() { return this.state.users.current; }
 
     ngOnInit() {
+        // Populate the GitHub authstate (used to get a token) in SessionStorage
+        // either with what's there already, or with a new UUID.
+        this.store.dispatch(setGitHubAuthState());
+
         // Load up the session state from sessionStorage when we load the page
         this.store.dispatch(loadSessionState(sessionStorage));
+
+        // Request an auth token from GitHub. This doesn't do anything if the
+        // "code" and "state" query parameters are not present.
+        this.store.dispatch(requestGitHubAuthToken(
+            window.location.search,
+            this.store.getState().gitHub.authState
+        ));
 
         // When the page loads attempt to authenticate with GitHub. If there
         // is no token stored in session storage, this won't do anything.

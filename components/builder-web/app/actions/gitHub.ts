@@ -162,10 +162,12 @@ export function removeSessionStorage() {
     };
 }
 
-export function requestGitHubAuthToken(params = {}, stateKey = "") {
+export function requestGitHubAuthToken(params, stateKey = "") {
+    params = new URLSearchParams(params.slice(1));
+
     return dispatch => {
-        if (params["code"] && params["state"] === stateKey) {
-            fetch(`${gitHubTokenAuthUrl}/${params["code"]}`).then(response => {
+        if (params.has("code") && params.get("state") === stateKey) {
+            fetch(`${gitHubTokenAuthUrl}/${params.get("code")}`).then(response => {
                 return response.json();
             }).catch(error => {
                 console.error(error);
