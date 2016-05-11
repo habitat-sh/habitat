@@ -5,6 +5,9 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 description = "Habitat-Builder Network Server Protocol"
 build = "build.rs"
 
+[features]
+protocols = []
+
 [dependencies]
 bitflags = "*"
 protobuf = "*"
