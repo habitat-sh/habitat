@@ -1,9 +1,16 @@
 #!/bin/bash
 
+git log HEAD~1..HEAD | grep -q '!!! Temporary Commit !!!'
+is_tmp_commit=$?
 studio_path=/hab/studios/travis-build
 studio="hab-studio -r $studio_path"
 
-if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "auto" ]; then
+# If we are not on a pull request, on the "auto" branch (which homu uses when
+# auto-merging master), and not on a temporary commit, then run the publish
+# script.
+if [ "${TRAVIS_PULL_REQUEST}" = "false" ] &&
+   [ "${TRAVIS_BRANCH}" = "auto" ] &&
+   [[ $is_tmp_commit = 1 ]]; then
   set -x
   components/studio/install.sh
   $studio new
