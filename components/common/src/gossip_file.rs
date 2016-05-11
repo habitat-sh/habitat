@@ -20,10 +20,12 @@ use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::{Encodable, Encoder};
 use rustc_serialize::hex::ToHex;
 use time::{SteadyTime, Duration};
-
+use toml;
 use error::{Error, Result};
 
 const IDEMPOTENCY_INTERVAL_MINUTES: i64 = 5;
+
+pub const GOSSIP_TOML: &'static str = "gossip.toml";
 
 /// The gossip file struct.
 #[derive(Clone, Debug, Eq, RustcDecodable, RustcEncodable)]
@@ -38,6 +40,10 @@ pub struct GossipFile {
 }
 
 impl GossipFile {
+
+    /// creates a GossipFile with file containing valid TOML
+    /// The file name that's passed in isn't retained,
+    /// it's changed to `gossip.toml`.
     pub fn from_file<P: AsRef<Path>>(service_group: ServiceGroup,
                                      file_path: P,
                                      version_number: u64)
@@ -54,12 +60,13 @@ impl GossipFile {
         let mut body = Vec::new();
         try!(f.read_to_end(&mut body));
 
-        let file_name = try!(path.file_name().ok_or(Error::FileNameError));
+        let toml_body = try!(String::from_utf8(body.clone()));
+        try!(is_data_toml(toml_body));
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
 
         let cf = GossipFile {
             service_group: service_group,
-            file_name: file_name.to_string_lossy().to_string(),
+            file_name: GOSSIP_TOML.to_string(),
             body: body,
             checksum: checksum.as_slice().to_hex(),
             version_number: version_number,
@@ -69,13 +76,20 @@ impl GossipFile {
         Ok(cf)
     }
 
-
+    /// Creates an encrypted GossipFile.  The file does NOT need to
+    /// contain TOML. Note, this file is NOT remaned to `gossip.toml`
+    /// internally. It will be gossiped around the ring and stored in the
+    /// `/hab/svc/<service>/files/file_name` directory, where file_name
+    /// is `GossipFile.file_name`.
     pub fn from_file_encrypt<P: AsRef<Path> + ?Sized>(user_pair: &BoxKeyPair,
                                                       service_pair: &BoxKeyPair,
                                                       file_path: &P,
                                                       version_number: u64)
                                                       -> Result<GossipFile> {
         let path = file_path.as_ref();
+        if path.file_name().unwrap() == GOSSIP_TOML {
+            return Err(Error::CantUploadGossipToml);
+        }
         for part in path.components() {
             let pstr = format!("{}", part.as_os_str().to_string_lossy().into_owned());
             if &pstr == ".." {
@@ -104,16 +118,20 @@ impl GossipFile {
     }
 
 
+    /// creates a GossipFile with a Vec<u8> containing valid TOML
+    /// The GossipFile.file_name is automatically assigned to `gossip.toml`.
     pub fn from_body(service_group: ServiceGroup,
-                     file_name: String,
                      body: Vec<u8>,
                      version_number: u64)
                      -> Result<GossipFile> {
         let checksum = openssl_hash::hash(openssl_hash::Type::SHA256, &body);
 
+        let toml_body = try!(String::from_utf8(body.clone()));
+        try!(is_data_toml(toml_body));
+
         let cf = GossipFile {
             service_group: service_group,
-            file_name: file_name,
+            file_name: GOSSIP_TOML.to_string(),
             body: body,
             checksum: checksum.as_slice().to_hex(),
             version_number: version_number,
@@ -153,7 +171,7 @@ impl GossipFile {
     }
 
     pub fn on_disk_path(&self) -> PathBuf {
-        if &self.file_name == "gossip.toml" {
+        if &self.file_name == GOSSIP_TOML {
             fs::svc_path(&self.service_group.service).join(&self.file_name)
         } else {
             fs::svc_files_path(&self.service_group.service).join(&self.file_name)
@@ -228,6 +246,34 @@ impl PartialEq for GossipFile {
         self.checksum == other.checksum && self.version_number == other.version_number
     }
 }
+
+
+/// try to parse the string as Toml
+fn is_data_toml(body: String) -> Result<()> {
+    let mut parser = toml::Parser::new(&body);
+    if let None = parser.parse() {
+        return Err(Error::InvalidTomlError(format_errors(&parser)));
+    };
+    Ok(())
+}
+
+
+/// generate a string from toml parser errors
+fn format_errors(parser: &toml::Parser) -> String {
+    let mut msg = String::new();
+    for err in &parser.errors {
+        let (loline, locol) = parser.to_linecol(err.lo);
+        let (hiline, hicol) = parser.to_linecol(err.hi);
+        msg.push_str(&format!("\t{}:{}-{}:{} error: {}\n",
+                              loline,
+                              locol,
+                              hiline,
+                              hicol,
+                              err.desc));
+    }
+    msg
+}
+
 
 #[derive(Clone, Debug)]
 pub struct FileWriteRetry {
@@ -378,7 +424,7 @@ impl GossipFileList {
             if needs_file_updated == false && written == true {
                 needs_file_updated = true;
             }
-            if gf.file_name == "gossip.toml" {
+            if gf.file_name == GOSSIP_TOML {
                 needs_reconfigure = true;
             }
         }
@@ -416,7 +462,7 @@ mod test {
 
     use hcore::crypto::BoxKeyPair;
     use hcore::service::ServiceGroup;
-    use gossip_file::{GossipFile, FileWriteRetry};
+    use gossip_file::{GossipFile, FileWriteRetry, GOSSIP_TOML};
 
     fn fixture(name: &str) -> PathBuf {
         env::current_exe()
@@ -435,15 +481,25 @@ mod test {
     #[test]
     fn new_from_file() {
         let cf = GossipFile::from_file(ServiceGroup::from_str("petty.gunslingers").unwrap(),
-                                       fixture("foo.bar").as_path(),
+                                       fixture("foo.toml").as_path(),
                                        2)
                      .unwrap();
         assert_eq!(cf.service_group,
                    ServiceGroup::from_str("petty.gunslingers").unwrap());
-        assert_eq!(cf.file_name, "foo.bar");
+        assert_eq!(cf.file_name, GOSSIP_TOML);
         assert_eq!(cf.checksum,
-                   "f34fe622a8fe7565fc15be3ce8bc43d7e32a0dd744ebef509fa0bdb130c0ac31");
+                   "9af65ddf16684e60cf5859d73d878d9607747632283d0d5d945c8c85ca85d420");
         assert_eq!(cf.version_number, 2);
+    }
+
+
+    #[test]
+    #[should_panic]
+    fn new_from_file_invalid_toml() {
+        GossipFile::from_file(ServiceGroup::from_str("petty.gunslingers").unwrap(),
+                                       fixture("bad.toml").as_path(),
+                                       2)
+                     .unwrap();
     }
 
     #[test]
@@ -456,22 +512,23 @@ mod test {
                                .unwrap();
         let gf = GossipFile::from_file_encrypt(&user_pair,
                                                &service_pair,
-                                               fixture("foo.bar").as_path(),
+                                               fixture("foo.toml").as_path(),
                                                1)
                      .unwrap();
         assert_eq!(gf.service_group,
                    ServiceGroup::from_str("petty.gunslingers@someorg").unwrap());
-        assert_eq!(gf.file_name, "foo.bar");
+        // keeps it's filename
+        assert_eq!(gf.file_name, "foo.toml");
         // unencrypted data checksum
         assert_eq!(gf.checksum,
-                   "f34fe622a8fe7565fc15be3ce8bc43d7e32a0dd744ebef509fa0bdb130c0ac31");
+                   "9af65ddf16684e60cf5859d73d878d9607747632283d0d5d945c8c85ca85d420");
         assert_eq!(gf.version_number, 1);
 
         let val_bytes = BoxKeyPair::decrypt(&gf.body, cache.path()).unwrap();
         let decrypted = String::from_utf8(val_bytes).unwrap();
 
         // does the decrypted text match whats in the fixture?
-        let mut f = File::open(fixture("foo.bar").as_path()).unwrap();
+        let mut f = File::open(fixture("foo.toml").as_path()).unwrap();
         let mut s = String::new();
         f.read_to_string(&mut s).unwrap();
         assert!(decrypted == s);
@@ -480,31 +537,39 @@ mod test {
     #[test]
     fn new_from_body() {
         let cf = GossipFile::from_body(ServiceGroup::from_str("chromeo.footwork").unwrap(),
-                                       "tracks.txt".to_string(),
-                                       "Rage\n".as_bytes().to_vec(),
+                                       "Rage=1\n".as_bytes().to_vec(),
                                        45)
                      .unwrap();
         assert_eq!(cf.service_group,
                    ServiceGroup::from_str("chromeo.footwork").unwrap());
-        assert_eq!(cf.file_name, "tracks.txt");
-        assert_eq!(cf.body, "Rage\n".as_bytes().to_vec());
+        assert_eq!(cf.file_name, GOSSIP_TOML);
+        assert_eq!(cf.body, "Rage=1\n".as_bytes().to_vec());
         assert_eq!(cf.checksum,
-                   "8347123270c1b97dd06de84921b3eb7babd41cb4fd8b2f78a4651903f8904bb1");
+                   "c14c4757090e7e734941d2b948484b84e4179404f6bab053b3ca21cbb7b0d6c8");
         assert_eq!(cf.version_number, 45);
     }
+
+
+    #[test]
+    #[should_panic]
+    fn new_from_body_invalid_toml() {
+        GossipFile::from_body(ServiceGroup::from_str("chromeo.footwork").unwrap(),
+                              "Rage\n".as_bytes().to_vec(),
+                              45)
+            .unwrap();
+    }
+
 
     #[test]
     fn update_via_when_other_version_is_higher() {
         let mut me = GossipFile::from_body(ServiceGroup::from_str("foofighters.arlandria")
                                                .unwrap(),
-                                           "wasted_light.csv".to_string(),
-                                           "rope\n".as_bytes().to_vec(),
+                                           "rope=1\n".as_bytes().to_vec(),
                                            20)
                          .unwrap();
 
         let other = GossipFile::from_body(ServiceGroup::from_str("foofighters.arlandria").unwrap(),
-                                          "wasted_light.csv".to_string(),
-                                          "rope\n".as_bytes().to_vec(),
+                                          "rope=1\n".as_bytes().to_vec(),
                                           99)
                         .unwrap();
         assert_eq!(me == other, false);
@@ -515,23 +580,20 @@ mod test {
     #[test]
     fn update_via_when_other_is_older_and_not_equal() {
         let mut me = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
-                                           "greatest_hits.db".to_string(),
-                                           "woot\n".as_bytes().to_vec(),
+                                           "woot=1\n".as_bytes().to_vec(),
                                            99)
                          .unwrap();
 
         let other_service = GossipFile::from_body(ServiceGroup::from_str("oops.barracuda")
                                                       .unwrap(),
-                                                  "greatest_hits.db".to_string(),
-                                                  "woot\n".as_bytes().to_vec(),
+                                                  "woot=1\n".as_bytes().to_vec(),
                                                   20)
                                 .unwrap();
         assert_eq!(me.update_via(other_service.clone()), false);
         assert_eq!(me == other_service, false);
 
         let other_group = GossipFile::from_body(ServiceGroup::from_str("heart.oops").unwrap(),
-                                                "greatest_hits.db".to_string(),
-                                                "woot\n".as_bytes().to_vec(),
+                                                "woot=1\n".as_bytes().to_vec(),
                                                 20)
                               .unwrap();
         assert_eq!(me.update_via(other_group.clone()), false);
@@ -539,16 +601,14 @@ mod test {
 
         let other_file_name = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda")
                                                         .unwrap(),
-                                                    "oops".to_string(),
-                                                    "woot\n".as_bytes().to_vec(),
+                                                    "woot=1\n".as_bytes().to_vec(),
                                                     20)
                                   .unwrap();
         assert_eq!(me.update_via(other_file_name.clone()), false);
         assert_eq!(me == other_file_name, false);
 
         let other_body = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
-                                               "greatest_hits.db".to_string(),
-                                               "oops".as_bytes().to_vec(),
+                                               "oops=1".as_bytes().to_vec(),
                                                20)
                              .unwrap();
         assert_eq!(me.update_via(other_body.clone()), false);
@@ -559,13 +619,11 @@ mod test {
     fn update_via_when_same_version_but_different_data() {
         let other = GossipFile::from_body(ServiceGroup::from_str("soundgarden.badmotorfinger")
                                               .unwrap(),
-                                          "rusty.cage".to_string(),
-                                          "tracks\n".as_bytes().to_vec(),
+                                          "tracks=1\n".as_bytes().to_vec(),
                                           42)
                         .unwrap();
         let mut me = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
-                                           "greatest_hits.db".to_string(),
-                                           "tracks\n".as_bytes().to_vec(),
+                                           "tracks=1\n".as_bytes().to_vec(),
                                            42)
                          .unwrap();
         assert_eq!(me.update_via(other.clone()), false);
@@ -575,13 +633,11 @@ mod test {
     #[test]
     fn update_via_when_other_is_equal() {
         let other = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
-                                          "greatest_hits.db".to_string(),
-                                          "woot\n".as_bytes().to_vec(),
+                                          "woot=1\n".as_bytes().to_vec(),
                                           20)
                         .unwrap();
         let mut me = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
-                                           "greatest_hits.db".to_string(),
-                                           "woot\n".as_bytes().to_vec(),
+                                           "woot=1\n".as_bytes().to_vec(),
                                            20)
                          .unwrap();
         assert_eq!(me.update_via(other.clone()), false);

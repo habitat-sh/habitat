@@ -1,6 +1,12 @@
 // This file is generated. Do not edit
 // @generated
 
+// https://github.com/Manishearth/rust-clippy/issues/702
+#![allow(unknown_lints)]
+#![allow(clippy)]
+
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
@@ -60,7 +66,7 @@ impl Job {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_id<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_id(&mut self) -> &mut ::std::string::String {
         if self.id.is_none() {
             self.id.set_default();
         };
@@ -72,7 +78,7 @@ impl Job {
         self.id.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_id<'a>(&'a self) -> &'a str {
+    pub fn get_id(&self) -> &str {
         match self.id.as_ref() {
             Some(v) => &v,
             None => "",
@@ -127,11 +133,11 @@ impl ::protobuf::Message for Job {
         self.cached_size.get()
     }
 
-    fn get_unknown_fields<'s>(&'s self) -> &'s ::protobuf::UnknownFields {
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
         &self.unknown_fields
     }
 
-    fn mut_unknown_fields<'s>(&'s mut self) -> &'s mut ::protobuf::UnknownFields {
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
         &mut self.unknown_fields
     }
 
@@ -246,7 +252,7 @@ impl JobCreate {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_token<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_token(&mut self) -> &mut ::std::string::String {
         if self.token.is_none() {
             self.token.set_default();
         };
@@ -258,7 +264,7 @@ impl JobCreate {
         self.token.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_token<'a>(&'a self) -> &'a str {
+    pub fn get_token(&self) -> &str {
         match self.token.as_ref() {
             Some(v) => &v,
             None => "",
@@ -313,11 +319,11 @@ impl ::protobuf::Message for JobCreate {
         self.cached_size.get()
     }
 
-    fn get_unknown_fields<'s>(&'s self) -> &'s ::protobuf::UnknownFields {
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
         &self.unknown_fields
     }
 
-    fn mut_unknown_fields<'s>(&'s mut self) -> &'s mut ::protobuf::UnknownFields {
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
         &mut self.unknown_fields
     }
 

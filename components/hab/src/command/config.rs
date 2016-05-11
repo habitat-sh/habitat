@@ -26,9 +26,9 @@ pub mod apply {
         let file = match file_path {
             Some(p) => try!(GossipFile::from_file(sg.clone(), p, number)),
             None => {
-                let mut body = vec![0; 1024];
-                try!(io::stdin().read_to_end(&mut body));
-                try!(GossipFile::from_body(sg.clone(), "config.toml".to_string(), body, number))
+                let mut body = String::new();
+                try!(io::stdin().read_to_string(&mut body));
+                try!(GossipFile::from_body(sg.clone(), body.into(), number))
             }
         };
         println!("Applying configuration {} to {}", &file, &sg1);

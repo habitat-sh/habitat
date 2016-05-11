@@ -54,6 +54,8 @@ pub enum Error {
     MetaFileNotFound(package::MetaFile),
     /// When an IO error while accessing a MetaFile.
     MetaFileIO(io::Error),
+    /// Occurs when we can't find an outbound IP address
+    NoOutboundAddr,
     /// Occurs when a suitable installed pacakge cannot be found.
     PackageNotFound(package::PackageIdent),
     /// When an error occurs parsing an integer.
@@ -112,6 +114,7 @@ impl fmt::Display for Error {
             }
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            Error::NoOutboundAddr => format!("Failed to discover this hosts outbound IP address"),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -147,6 +150,7 @@ impl error::Error for Error {
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
+            Error::NoOutboundAddr => "Failed to discover the outbound IP address",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
             Error::PermissionFailed => "Failed to set permissions",
