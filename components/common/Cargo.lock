@@ -1,10 +1,10 @@
 [root]
 name = "habitat_common"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
- "habitat_core 0.4.0",
- "habitat_depot_client 0.4.0",
- "habitat_depot_core 0.4.0",
+ "habitat_core 0.5.0",
+ "habitat_depot_client 0.5.0",
+ "habitat_depot_core 0.5.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.7.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.65 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -58,9 +58,9 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
- "lazy_static 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -73,10 +73,10 @@ dependencies = [
 
 [[package]]
 name = "habitat_depot_client"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
- "habitat_core 0.4.0",
- "habitat_depot_core 0.4.0",
+ "habitat_core 0.5.0",
+ "habitat_depot_core 0.5.0",
  "hyper 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -84,9 +84,9 @@ dependencies = [
 
 [[package]]
 name = "habitat_depot_core"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
- "habitat_core 0.4.0",
+ "habitat_core 0.5.0",
  "hyper 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -143,11 +143,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "lazy_static"
 version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "lazy_static"
-version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
