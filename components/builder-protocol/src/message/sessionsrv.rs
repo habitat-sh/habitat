@@ -1,6 +1,12 @@
 // This file is generated. Do not edit
 // @generated
 
+// https://github.com/Manishearth/rust-clippy/issues/702
+#![allow(unknown_lints)]
+#![allow(clippy)]
+
+#![cfg_attr(rustfmt, rustfmt_skip)]
+
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
@@ -60,7 +66,7 @@ impl GitHubAuth {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_code<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_code(&mut self) -> &mut ::std::string::String {
         if self.code.is_none() {
             self.code.set_default();
         };
@@ -72,7 +78,7 @@ impl GitHubAuth {
         self.code.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_code<'a>(&'a self) -> &'a str {
+    pub fn get_code(&self) -> &str {
         match self.code.as_ref() {
             Some(v) => &v,
             None => "",
@@ -127,11 +133,11 @@ impl ::protobuf::Message for GitHubAuth {
         self.cached_size.get()
     }
 
-    fn get_unknown_fields<'s>(&'s self) -> &'s ::protobuf::UnknownFields {
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
         &self.unknown_fields
     }
 
-    fn mut_unknown_fields<'s>(&'s mut self) -> &'s mut ::protobuf::UnknownFields {
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
         &mut self.unknown_fields
     }
 
@@ -250,7 +256,7 @@ impl Session {
         self.id = ::std::option::Option::Some(v);
     }
 
-    pub fn get_id<'a>(&self) -> u64 {
+    pub fn get_id(&self) -> u64 {
         self.id.unwrap_or(0)
     }
 
@@ -271,7 +277,7 @@ impl Session {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_email<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_email(&mut self) -> &mut ::std::string::String {
         if self.email.is_none() {
             self.email.set_default();
         };
@@ -283,7 +289,7 @@ impl Session {
         self.email.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_email<'a>(&'a self) -> &'a str {
+    pub fn get_email(&self) -> &str {
         match self.email.as_ref() {
             Some(v) => &v,
             None => "",
@@ -307,7 +313,7 @@ impl Session {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_name<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_name(&mut self) -> &mut ::std::string::String {
         if self.name.is_none() {
             self.name.set_default();
         };
@@ -319,7 +325,7 @@ impl Session {
         self.name.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_name<'a>(&'a self) -> &'a str {
+    pub fn get_name(&self) -> &str {
         match self.name.as_ref() {
             Some(v) => &v,
             None => "",
@@ -343,7 +349,7 @@ impl Session {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_token<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_token(&mut self) -> &mut ::std::string::String {
         if self.token.is_none() {
             self.token.set_default();
         };
@@ -355,7 +361,7 @@ impl Session {
         self.token.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_token<'a>(&'a self) -> &'a str {
+    pub fn get_token(&self) -> &str {
         match self.token.as_ref() {
             Some(v) => &v,
             None => "",
@@ -450,11 +456,11 @@ impl ::protobuf::Message for Session {
         self.cached_size.get()
     }
 
-    fn get_unknown_fields<'s>(&'s self) -> &'s ::protobuf::UnknownFields {
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
         &self.unknown_fields
     }
 
-    fn mut_unknown_fields<'s>(&'s mut self) -> &'s mut ::protobuf::UnknownFields {
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
         &mut self.unknown_fields
     }
 
@@ -590,7 +596,7 @@ impl SessionGet {
 
     // Mutable pointer to the field.
     // If field is not initialized, it is initialized with default value first.
-    pub fn mut_token<'a>(&'a mut self) -> &'a mut ::std::string::String {
+    pub fn mut_token(&mut self) -> &mut ::std::string::String {
         if self.token.is_none() {
             self.token.set_default();
         };
@@ -602,7 +608,7 @@ impl SessionGet {
         self.token.take().unwrap_or_else(|| ::std::string::String::new())
     }
 
-    pub fn get_token<'a>(&'a self) -> &'a str {
+    pub fn get_token(&self) -> &str {
         match self.token.as_ref() {
             Some(v) => &v,
             None => "",
@@ -657,11 +663,11 @@ impl ::protobuf::Message for SessionGet {
         self.cached_size.get()
     }
 
-    fn get_unknown_fields<'s>(&'s self) -> &'s ::protobuf::UnknownFields {
+    fn get_unknown_fields(&self) -> &::protobuf::UnknownFields {
         &self.unknown_fields
     }
 
-    fn mut_unknown_fields<'s>(&'s mut self) -> &'s mut ::protobuf::UnknownFields {
+    fn mut_unknown_fields(&mut self) -> &mut ::protobuf::UnknownFields {
         &mut self.unknown_fields
     }
 
