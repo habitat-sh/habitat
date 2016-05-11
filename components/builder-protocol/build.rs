@@ -6,6 +6,12 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
+    if env::var("CARGO_FEATURE_PROTOCOLS").is_ok() {
+        generate_protocols();
+    }
+}
+
+fn generate_protocols() {
     let prefix = match env::var("PROTOBUF_PREFIX").ok() {
         Some(prefix) => prefix,
         None => {
