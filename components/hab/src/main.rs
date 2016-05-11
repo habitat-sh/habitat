@@ -209,8 +209,8 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
         None => None,
     };
     let sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
-
-    command::config::apply::start(&peers, ring_key.as_ref(), &sg, number, file_path)
+    let as_gossip = m.is_present("AS_GOSSIP");
+    command::config::apply::start(&peers, ring_key.as_ref(), &sg, number, file_path, as_gossip)
 }
 
 fn sub_file_upload(m: &ArgMatches) -> Result<()> {

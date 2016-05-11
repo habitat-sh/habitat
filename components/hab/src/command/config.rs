@@ -20,11 +20,12 @@ pub mod apply {
                  ring_key: Option<&SymKey>,
                  sg: &ServiceGroup,
                  number: u64,
-                 file_path: Option<&Path>)
+                 file_path: Option<&Path>,
+                 as_gossip: bool)
                  -> Result<()> {
         let sg1 = sg.clone();
         let file = match file_path {
-            Some(p) => try!(GossipFile::from_file(sg.clone(), p, number)),
+            Some(p) => try!(GossipFile::from_file(sg.clone(), p, number, as_gossip)),
             None => {
                 let mut body = vec![0; 1024];
                 try!(io::stdin().read_to_end(&mut body));
