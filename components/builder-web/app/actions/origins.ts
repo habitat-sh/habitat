@@ -67,7 +67,6 @@ export function deleteOrigin(origin) {
 export function fetchMyOrigins() {
     return dispatch => {
         api.getMyOrigins().then(origins => {
-            console.log(origins);
             dispatch(populateMyOrigins(origins));
         });
     };

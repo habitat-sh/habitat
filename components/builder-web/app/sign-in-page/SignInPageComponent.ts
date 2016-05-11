@@ -8,8 +8,7 @@
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {requestGitHubAuthToken, setGitHubAuthState, signOut} from
-    "../actions/index";
+import {setGitHubAuthState, signOut} from "../actions/index";
 import config from "../config";
 import {createGitHubLoginUrl, icon} from "../util";
 
@@ -95,17 +94,15 @@ export class SignInPageComponent implements OnInit {
 
     get sourceCodeUrl() { return config["source_code_url"]; }
 
-    ngOnInit() {
-        this.store.dispatch(setGitHubAuthState());
-        this.store.dispatch(requestGitHubAuthToken(
-            this.routeParams.params,
-            this.store.getState().gitHub.authState
-        ));
-    }
-
     private icon(name) { return icon(name); }
 
     private signOut() {
         this.store.dispatch(signOut());
+    }
+
+    public ngOnInit() {
+        // Populate the GitHub authstate (used to get a token) in SessionStorage
+        // either with what's there already, or with a new UUID.
+        this.store.dispatch(setGitHubAuthState());
     }
 }
