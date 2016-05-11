@@ -52,7 +52,7 @@ impl Default for Config {
 impl ConfigFile for Config {
     type Error = Error;
 
-    fn from_toml(toml: toml::Table) -> Result<Self> {
+    fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
         try!(toml.parse_into("cfg.http_addr", &mut cfg.http_addr));
         try!(toml.parse_into("cfg.sessionsrv_addr", &mut cfg.sessionsrv_addr));
