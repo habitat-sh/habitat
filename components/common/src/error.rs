@@ -20,11 +20,13 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    CantUploadGossipToml,
     CryptoKeyError(String),
     GossipFileRelativePath(String),
     DepotClient(depot_client::Error),
     FileNameError,
     HabitatCore(hcore::Error),
+    InvalidTomlError(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     JsonDecode(json::DecoderError),
@@ -37,6 +39,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::CantUploadGossipToml => format!("Can't upload gossip.toml, it's a reserved file name"),
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
             Error::GossipFileRelativePath(ref s) => {
                 format!("Path for gossip file cannot have relative components (eg: ..): {}",
@@ -45,6 +48,7 @@ impl fmt::Display for Error {
             Error::DepotClient(ref err) => format!("{}", err),
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::InvalidTomlError(ref e) => format!("Invalid TOML: {}", e),
             Error::IO(ref err) => format!("{}", err),
             Error::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
@@ -59,11 +63,13 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::CryptoKeyError(_) => "Missing or invalid key",
             Error::GossipFileRelativePath(_) => "Path for gossip file cannot have relative components (eg: ..)",
             Error::DepotClient(ref err) => err.description(),
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
+            Error::InvalidTomlError(_) => "Invalid TOML",
             Error::IO(ref err) => err.description(),
             Error::JsonDecode(_) => "JSON decoding error: {:?}",
             Error::JsonEncode(_) => "JSON encoding error",

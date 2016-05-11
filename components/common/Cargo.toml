@@ -9,6 +9,7 @@ openssl = "*"
 regex = "*"
 rustc-serialize = "*"
 time = "*"
+toml = "*"
 
 [dependencies.habitat_core]
 path = "../core"

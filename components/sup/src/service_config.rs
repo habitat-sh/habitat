@@ -7,24 +7,26 @@
 
 /// Collect all the configuration data that is exposed to users, and render it.
 
-use rustc_serialize::Encodable;
-
-use toml;
-use VERSION;
-use error::{Error, Result};
-use package::Package;
-use hcore::package::PackageInstall;
-use util;
-use std::io::prelude::*;
-use std::fs::File;
-use std::env;
 use std::ascii::AsciiExt;
 use std::collections::HashMap;
-use util::convert;
-use openssl::crypto::hash as openssl_hash;
-use census::{Census, CensusList};
-use mustache;
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+
 use ansi_term::Colour::Purple;
+use mustache;
+use openssl::crypto::hash as openssl_hash;
+use rustc_serialize::Encodable;
+use toml;
+
+use common::gossip_file::GOSSIP_TOML;
+use census::{Census, CensusList};
+use error::{Error, Result};
+use hcore::package::PackageInstall;
+use package::Package;
+use util;
+use util::convert;
+use VERSION;
 
 static LOGKEY: &'static str = "SC";
 static ENV_VAR_PREFIX: &'static str = "HAB";
@@ -377,10 +379,10 @@ impl Cfg {
     }
 
     fn load_gossip(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_path().join("gossip.toml")) {
+        let mut file = match File::open(pkg.svc_path().join(GOSSIP_TOML)) {
             Ok(file) => file,
             Err(e) => {
-                debug!("Failed to open gossip.toml: {}", e);
+                debug!("Failed to open {}: {}", GOSSIP_TOML, e);
                 self.gossip = None;
                 return Ok(());
             }
@@ -394,7 +396,7 @@ impl Cfg {
                 self.gossip = Some(toml::Value::Table(toml));
             }
             Err(e) => {
-                outputln!("Failed to load gossip.toml: {}", e);
+                outputln!("Failed to load {}: {}", GOSSIP_TOML, e);
                 self.gossip = None;
             }
         }

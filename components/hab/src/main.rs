@@ -42,6 +42,7 @@ use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey
 use hcore::fs::find_command;
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
+use hcore::util::sys::ip;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use gossip::hab_gossip;
@@ -188,7 +189,8 @@ fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_config_apply(m: &ArgMatches) -> Result<()> {
-    let peers_str = m.value_of("PEERS").unwrap_or("127.0.0.1");
+    let default_ip = try!(ip());
+    let peers_str = m.value_of("PEERS").unwrap_or(&default_ip);
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
         if p.find(':').is_none() {
@@ -214,7 +216,8 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_file_upload(m: &ArgMatches) -> Result<()> {
-    let peers_str = m.value_of("PEERS").unwrap_or("127.0.0.1");
+    let default_ip = try!(ip());
+    let peers_str = m.value_of("PEERS").unwrap_or(&default_ip);
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
         if p.find(':').is_none() {

@@ -16,6 +16,7 @@ extern crate rustc_serialize;
 #[cfg(test)]
 extern crate tempdir;
 extern crate time;
+extern crate toml;
 
 pub use self::error::{Error, Result};
 
