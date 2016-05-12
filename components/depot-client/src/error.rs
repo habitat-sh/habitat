@@ -11,6 +11,7 @@ use std::fmt;
 use std::result;
 
 use hyper;
+use url;
 
 use hcore::{self, package};
 
@@ -24,6 +25,7 @@ pub enum Error {
     NoXFilename,
     RemoteOriginKeyNotFound(String),
     RemotePackageNotFound(package::PackageIdent),
+    UrlParseError(url::ParseError),
     WriteSyncFailed,
 }
 
@@ -49,6 +51,7 @@ impl fmt::Display for Error {
                     format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
+            Error::UrlParseError(ref e) => format!("{}", e),
             Error::WriteSyncFailed => format!("Could not write to destination; perhaps the disk is full?"),
         };
         write!(f, "{}", msg)
@@ -66,6 +69,7 @@ impl error::Error for Error {
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             Error::RemoteOriginKeyNotFound(_) => "Remote origin key not found",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
+            Error::UrlParseError(ref err) => err.description(),
             Error::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
         }
     }
@@ -86,5 +90,11 @@ impl From<hyper::error::Error> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::IO(err)
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Error {
+        Error::UrlParseError(err)
     }
 }
