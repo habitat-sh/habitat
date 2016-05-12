@@ -7,10 +7,12 @@
 
 extern crate habitat_core as hcore;
 extern crate habitat_depot_core as depot_core;
+extern crate broadcast;
 #[macro_use]
 extern crate hyper;
 #[macro_use]
 extern crate log;
+extern crate pbr;
 extern crate rustc_serialize;
 extern crate url;
 
@@ -19,15 +21,17 @@ pub mod error;
 pub use error::{Error, Result};
 
 use std::fs::{self, File};
-use std::io::{Read, Write, BufWriter, Seek, SeekFrom};
+use std::io::{self, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
+use broadcast::BroadcastWriter;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::env::http_proxy_unless_domain_exempted;
 use depot_core::{XFileName, data_object};
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
 use hyper::Url;
+use pbr::{ProgressBar, Units};
 use rustc_serialize::json;
 
 /// Download a public key from a remote Depot to the given filepath.
@@ -85,7 +89,7 @@ pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
 /// * File cannot be created and written to
 pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result<PackageArchive> {
     let url = try!(Url::parse(&format!("{}/pkgs/{}/download", depot, package)));
-    match download(&package.name, url, store) {
+    match download(&package.to_string(), url, store) {
         Ok(file) => {
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
@@ -164,7 +168,6 @@ fn download(status: &str, url: Url, path: &str) -> Result<String> {
     let client = try!(new_client(&url));
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);
-
     if res.status != hyper::status::StatusCode::Ok {
         return Err(Error::HTTP(res.status));
     }
@@ -173,50 +176,16 @@ fn download(status: &str, url: Url, path: &str) -> Result<String> {
         Some(filename) => format!("{}", filename),
         None => return Err(Error::NoXFilename),
     };
-    let length = res.headers
-                    .get::<hyper::header::ContentLength>()
-                    .map_or("Unknown".to_string(), |v| format!("{}", v));
-    // Here is a moment where you can really like Rust. We create
-    // a file, wrap it in a BufWriter - which understands how to
-    // safely batch writes into large buffer sizes on the heap,
-    // saving us the tax of frequent system calls. We then do
-    // what we would do in C - create a buffer of bytes, then
-    // read into that buffer, and write out to the other side.
-    //
-    // Under the hood, Hyper uses the "BufReader" to implement
-    // reading the request body - so on both ends, we are getting
-    // free buffering on the heap, using our stack buffer just to
-    // shuttle back and forth. This is essentially with the "tee"
-    // function does in the stdlib, but with error handling that
-    // a generic "tee" can't really provide easily.
-    //
-    // What you can't see is this - the compiler helped with
-    // making sure all the edge cases of the pattern were covered,
-    // and even though its a trivial case, it was pretty great.
     let tempfile = format!("{}/{}.tmp", path, file_name);
     let finalfile = format!("{}/{}", path, file_name);
-    let f = try!(File::create(&tempfile));
-    let mut writer = BufWriter::new(&f);
-    let mut written: i64 = 0;
-    let mut buf = [0u8; 100000]; // Our byte buffer
-    loop {
-        let len = try!(res.read(&mut buf)); // Raise IO errors
-        match len {
-            0 => {
-                // 0 == EOF, so stop writing and finish progress
-                progress(status, written, &length, true);
-                break;
-            }
-            _ => {
-                // Write the buffer to the BufWriter on the Heap
-                let bytes_written = try!(writer.write(&buf[0..len]));
-                if bytes_written == 0 {
-                    return Err(Error::WriteSyncFailed);
-                }
-                written = written + (bytes_written as i64);
-                progress(status, written, &length, false);
-            }
-        };
+    let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(0, |v| **v);
+    {
+        let mut f = try!(File::create(&tempfile));
+        let mut pb = ProgressBar::new(size);
+        pb.set_units(Units::Bytes);
+        let mut writer = BroadcastWriter::new(&mut f, &mut pb);
+        println!("Downloading {}", &status);
+        try!(io::copy(&mut res, &mut writer));
     }
     try!(fs::rename(&tempfile, &finalfile));
     Ok(finalfile)
@@ -236,47 +205,12 @@ fn upload(url: Url, file: &mut File) -> Result<()> {
     }
 }
 
-fn progress(status: &str, written: i64, length: &str, finished: bool) {
-    let progress = format!("{} {}/{}", status, written, length);
-    print!("{}", from_char(progress.len(), '\x08'));
-    if finished {
-        println!("{}", progress);
-    } else {
-        print!("{}", progress);
-    }
-}
-
-fn from_char(length: usize, ch: char) -> String {
-    if length == 0 {
-        return String::new();
-    }
-
-    let mut buf = String::new();
-    buf.push(ch);
-    let size = buf.len() * length;
-    buf.reserve(size);
-    for _ in 1..length {
-        buf.push(ch)
-    }
-    buf
-}
-
 fn new_client(url: &Url) -> Result<Client> {
     match try!(http_proxy_unless_domain_exempted(url.host_str().unwrap_or(""))) {
         Some((proxy_host, proxy_port)) => {
-            debug!("Using proxy {}:{}...", &proxy_host, &proxy_port);
+            println!("Using proxy {}:{}...", &proxy_host, &proxy_port);
             Ok(Client::with_http_proxy(proxy_host, proxy_port))
         }
         None => Ok(Client::new()),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::from_char;
-
-    #[test]
-    fn from_char_returns_the_correct_string() {
-        assert_eq!("xxxx", from_char(4, 'x'));
     }
 }
