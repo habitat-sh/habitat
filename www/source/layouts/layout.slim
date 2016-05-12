@@ -10,6 +10,8 @@ html
     == stylesheet_link_tag :site
 
   body class="#{current_page.data.classes}"
+    = partial "layouts/gtm"
+
     = partial "layouts/nav"
 
     #content-outer
