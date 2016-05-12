@@ -71,7 +71,6 @@ unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/common && cargo test --lib'
 	$(run) sh -c 'cd components/sup && cargo test --lib'
 	$(run) sh -c 'cd components/depot && cargo test --lib'
-	$(run) sh -c 'cd components/builder-web && npm run travis'
 
 functional: image ## executes the components' functional test suites
 	$(run) sh -c 'cd components/core && cargo test --features functional'
