@@ -12,6 +12,7 @@ extern crate hyper;
 #[macro_use]
 extern crate log;
 extern crate rustc_serialize;
+extern crate url;
 
 pub mod error;
 
@@ -22,6 +23,7 @@ use std::io::{Read, Write, BufWriter, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 
 use hcore::package::{PackageArchive, PackageIdent};
+use hcore::env::http_proxy_unless_domain_exempted;
 use depot_core::{XFileName, data_object};
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
@@ -36,7 +38,7 @@ use rustc_serialize::json;
 /// * Remote Depot is not available
 /// * File cannot be created and written to
 pub fn get_origin_key(depot: &str, origin: &str, revision: &str, path: &str) -> Result<String> {
-    let url = Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)).unwrap();
+    let url = try!(Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)));
     debug!("get_origin_key URL = {}", &url);
     let fname = format!("{}/{}-{}.pub", &path, &origin, &revision);
     debug!("Output filename = {}", &fname);
@@ -51,10 +53,10 @@ pub fn get_origin_key(depot: &str, origin: &str, revision: &str, path: &str) -> 
 /// * Remote Depot is not available
 /// * File write errors
 pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
-    let url = format!("{}/origins/{}/keys", depot, origin);
+    let url = try!(Url::parse(&format!("{}/origins/{}/keys", depot, origin)));
     debug!("URL = {}", &url);
-    let client = Client::new();
-    let request = client.get(&url);
+    let client = try!(new_client(&url));
+    let request = client.get(url);
     let mut res = try!(request.send());
     if res.status != hyper::status::StatusCode::Ok {
         return Err(Error::RemoteOriginKeyNotFound(origin.to_string()));
@@ -82,7 +84,7 @@ pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
 /// * Remote Depot is not available
 /// * File cannot be created and written to
 pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result<PackageArchive> {
-    let url = Url::parse(&format!("{}/pkgs/{}/download", depot, package)).unwrap();
+    let url = try!(Url::parse(&format!("{}/pkgs/{}/download", depot, package)));
     match download(&package.name, url, store) {
         Ok(file) => {
             let path = PathBuf::from(file);
@@ -105,9 +107,9 @@ pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result
 /// * Package cannot be found
 /// * Remote Depot is not available
 pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Package> {
-    let url = url_show_package(depot, ident);
-    let client = Client::new();
-    let request = client.get(&url);
+    let url = try!(url_show_package(depot, ident));
+    let client = try!(new_client(&url));
+    let request = client.get(url);
     let mut res = try!(request.send());
 
     if res.status != hyper::status::StatusCode::Ok {
@@ -129,7 +131,7 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Pa
 /// * File cannot be read
 pub fn post_origin_key(depot: &str, origin: &str, revision: &str, path: &Path) -> Result<()> {
     let mut file = try!(File::open(path));
-    let url = Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)).unwrap();
+    let url = try!(Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)));
     upload(url, &mut file)
 }
 
@@ -141,26 +143,25 @@ pub fn post_origin_key(depot: &str, origin: &str, revision: &str, path: &Path) -
 /// * File cannot be read
 pub fn put_package(depot: &str, pa: &mut PackageArchive) -> Result<()> {
     let checksum = try!(pa.checksum());
-    let params = [("checksum", checksum)];
     let ident = try!(pa.ident());
-    let mut url = Url::parse(&format!("{}/pkgs/{}", depot, ident)).unwrap();
-    url.set_query_from_pairs(&params);
+    let mut url = try!(Url::parse(&format!("{}/pkgs/{}", depot, ident)));
+    url.query_pairs_mut().append_pair("checksum", &checksum);
 
     let mut file = try!(File::open(&pa.path));
     upload(url, &mut file)
 }
 
-fn url_show_package(depot: &str, package: &PackageIdent) -> String {
+fn url_show_package(depot: &str, package: &PackageIdent) -> Result<Url> {
     if package.fully_qualified() {
-        format!("{}/pkgs/{}", depot, package)
+        Ok(try!(Url::parse(&format!("{}/pkgs/{}", depot, package))))
     } else {
-        format!("{}/pkgs/{}/latest", depot, package)
+        Ok(try!(Url::parse(&format!("{}/pkgs/{}/latest", depot, package))))
     }
 }
 
 fn download(status: &str, url: Url, path: &str) -> Result<String> {
-    debug!("Making request to url {}", url);
-    let client = Client::new();
+    debug!("Making request to url {}", &url);
+    let client = try!(new_client(&url));
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);
 
@@ -224,7 +225,7 @@ fn download(status: &str, url: Url, path: &str) -> Result<String> {
 fn upload(url: Url, file: &mut File) -> Result<()> {
     debug!("Uploading to {}", url);
     try!(file.seek(SeekFrom::Start(0)));
-    let client = Client::new();
+    let client = try!(new_client(&url));
     let metadata = try!(file.metadata());
     let response = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
     if response.status.is_success() {
@@ -258,6 +259,16 @@ fn from_char(length: usize, ch: char) -> String {
         buf.push(ch)
     }
     buf
+}
+
+fn new_client(url: &Url) -> Result<Client> {
+    match try!(http_proxy_unless_domain_exempted(url.host_str().unwrap_or(""))) {
+        Some((proxy_host, proxy_port)) => {
+            debug!("Using proxy {}:{}...", &proxy_host, &proxy_port);
+            Ok(Client::with_http_proxy(proxy_host, proxy_port))
+        }
+        None => Ok(Client::new()),
+    }
 }
 
 #[cfg(test)]
