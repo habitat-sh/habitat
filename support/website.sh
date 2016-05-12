@@ -3,7 +3,7 @@
 set -e
 
 cd www
-bundle install
-bundle exec middleman build --clean --verbose
+bundle install --deployment
+bundle exec middleman build
 
 echo "habitat.sh built!"
