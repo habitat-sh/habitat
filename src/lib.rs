@@ -20,6 +20,7 @@ extern crate libsodium_sys;
 extern crate tempdir;
 extern crate time;
 extern crate toml;
+extern crate url as extern_url;
 
 pub use self::error::{Error, Result};
 
