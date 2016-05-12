@@ -34,6 +34,10 @@
             {
               "title": "Process your build",
               "link": "/tutorials/getting-started-process-build/"
+            },
+            {
+              "title": "Next steps",
+              "link": "/tutorials/getting-started-next-steps/"
             }
           ]
         }
