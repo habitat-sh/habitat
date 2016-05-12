@@ -96,6 +96,6 @@ Now that you have played around with the basics of Habitat, go over to the Docs 
 
 <hr>
 <ul class="main-content--button-nav">
-  <li><a href="/docs" class="button cta">Go to the Docs</a></li>
+  <li><a href="/tutorials/getting-started-next-steps" class="button cta">Next Steps</a></li>
   <li><a href="/tutorials/getting-started-configure-plan/">Back to previous step</a></li>
 </ul>
