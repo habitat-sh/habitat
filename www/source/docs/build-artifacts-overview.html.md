@@ -17,3 +17,9 @@ Habitat artifacts are signed tarballs with a .hart extension that are built from
 For more information on how to define a plan and build an artifact, how to create origin keys, and how to run a Habitat service, see the [getting started tutorial](/tutorials/getting-started-overview).
 
 For information on the contents of an installed package, see [Package contents](/docs/package-contents).
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/package-contents">Package contents</a></li>
+</ul>

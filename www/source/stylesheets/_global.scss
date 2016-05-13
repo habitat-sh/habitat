@@ -9,6 +9,7 @@
 //  4. Typography
 //  5. Links
 //  6. Images
+//  7. Callout Boxes
 
 
 // 1. Global
@@ -82,6 +83,17 @@
     }
 }
 
+.main-content--link-nav {
+  list-style: none;
+  margin: 0;
+
+  li:first-child {
+    color: $hab-gray;
+    font-size: rem-calc(14);
+    margin: rem-calc(40) 0 rem-calc(10);
+  }
+}
+
 // 2. Code Overrides
 // ---------
 pre {
@@ -117,6 +129,20 @@ code {
 
 // 3. Buttons
 // ---------
+.button {
+  font-weight: bold;
+
+  &.secondary {
+    color: $hab-gray-dark;
+  }
+  &.secondary:hover {
+    @include shadow-float;
+    background-color: darken($hab-gray-light,5);
+    color: $hab-gray-dark;
+    transition: all .2s;
+  }
+}
+
 .button.cta{
   @include primary-button;
 }
@@ -150,9 +176,25 @@ h2:not(:first-child) {
   margin-top: rem-calc(10);
 }
 
-// 5. Images
+// 6. Images
 // ---------
 
 .logo-inline {
   max-height: 2rem;
+}
+
+// 7. Callout Boxes
+// ---------
+
+.callout-box--container {
+  padding: rem-calc(15) rem-calc(60);
+}
+
+.callout-box {
+  padding: rem-calc(15) rem-calc(30);
+  text-align: center;
+
+  p {
+    font-size: rem-calc(14);
+  }
 }

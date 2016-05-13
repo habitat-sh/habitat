@@ -10,3 +10,9 @@ This section is divided into the following areas:
 - [Create plans](/docs/create-plans/): Describes what a plan is and how to create one.
 - [Add configuration to plans](/docs/configure-packages/): Learn how to make your running service configurable by templatizing configuration files in your plan.
 - [Plan syntax guide](/docs/plan-syntax/): Lists the settings, variables, and functions that you can use when creating your plan.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/create-plans">Create plans</a></li>
+</ul>

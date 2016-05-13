@@ -1,11 +1,28 @@
 {
   "sidebar_links": [
     {
-      "title": "Docs",
+      "title": "Introduction",
       "links": [
+        {
+          "title": "Getting Started",
+          "link": "/docs/getting-started/"
+        },
         {
           "title": "Tutorials",
           "link": "/tutorials/"
+        }
+      ]
+    },
+    {
+      "title": "Docs",
+      "links": [
+        {
+          "title": "Home",
+          "link": "/docs/"
+        },
+        {
+          "title": "Get Habitat",
+          "link": "/docs/get-habitat"
         },
         {
           "title": "Concepts",
@@ -73,7 +90,6 @@
     },
     {
       "title": "Reference",
-      "link": "/docs/reference/overview/",
       "links": [
         {
           "title": "CLI reference",
