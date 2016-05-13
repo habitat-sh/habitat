@@ -11,10 +11,11 @@ studio="hab-studio -r $studio_path"
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ] &&
    [ "${TRAVIS_BRANCH}" = "auto" ] &&
    [[ $is_tmp_commit = 1 ]]; then
-  set -x
+  set -ex
   components/studio/install.sh
   $studio new
-  cp core-20160423193745.sig.key $studio_path/hab/cache/keys
+  # Use environment variables set by Travis to write out the origin key
+  openssl aes-256-cbc -K $encrypted_c4f852370b68_key -iv $encrypted_c4f852370b68_iv -in core-20160423193745.sig.key.enc -out $studio_path/hab/cache/keys/core-20160423193745.sig.key -d
   $studio build components/builder-web/plan
   $studio run "hab artifact upload /hab/cache/artifacts/core-habitat-builder-web-*"
 else echo "Not on master; skipping publish"; fi
