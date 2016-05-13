@@ -52,3 +52,9 @@ If you have defined a `config` subdirectory with a templatized configuration fil
 
 ## hooks directory
 If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-services">Run services</a></li>
+</ul>

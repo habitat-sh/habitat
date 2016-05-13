@@ -66,9 +66,11 @@ $hab-blue-medium: #dce6ed;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-cta: $hab-green;
 
+$hab-primary: $hab-orange-dark;
+
 $foundation-palette: (
   primary: $hab-orange-dark,
-  secondary: $hab-gray,
+  secondary: $hab-gray-light,
   success: $hab-green,
   warning: #ffae00,
   alert: #ec5840,
@@ -166,7 +168,7 @@ $anchor-text-decoration: none;
 $anchor-text-decoration-hover: none;
 $hr-width: $global-width;
 $hr-border: 1px solid $medium-gray;
-$hr-margin: rem-calc(20) auto;
+$hr-margin: rem-calc(40) auto;
 $list-lineheight: $paragraph-lineheight;
 $list-margin-bottom: $paragraph-margin-bottom;
 $list-style-type: disc;
@@ -265,7 +267,7 @@ $button-radius: $global-radius;
 $button-sizes: (
   tiny: 0.6rem,
   small: 0.75rem,
-  default: 0.9rem,
+  default: 1rem,
   large: 1.25rem,
 );
 $button-opacity-disabled: 0.25;

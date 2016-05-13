@@ -29,7 +29,7 @@ a checksum to verify the contents are what we expect, a single run dependency on
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
 
-1.  The build script ensures that the origin key is available to sign the artifact.  
+1.  The build script ensures that the origin key is available to sign the artifact.
 2.  The software is downloaded.
 3.  The checksum is validated.
 4.  The source is extracted from the archive file that the script downloaded in step two.
@@ -173,3 +173,9 @@ Similar to defining the setup and installation experience at buildtime, behavior
 If your service does not require custom behavior during the lifecycle of the running service, then you do not need to create hooks. Also, if you only need to start the client app or service when the Habitat service starts, you can instead use the `pkg_service_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Habitat.
 
 And, as mentioned above, you can use any of the [runtime configuration settings](/docs/plan-syntax#runtime-configuration-settings), either defined by you in your config file, or defined by Habitat.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/configure-packages">Add configuration</a></li>
+</ul>

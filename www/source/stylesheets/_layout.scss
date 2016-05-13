@@ -26,8 +26,12 @@ $sidebar-breakpoint: 720px;
   }
 }
 
+.main-sidebar--search {
+  margin-bottom: rem-calc(30);
+}
+
 .main-sidebar--list {
-  margin-bottom: rem-calc(20);
+  margin-bottom: rem-calc(30);
 }
 
 .main-sidebar--list--item--dropdown {

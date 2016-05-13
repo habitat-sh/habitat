@@ -16,4 +16,10 @@ The Habitat documentation is broken out into the following sections:
 
 
 ## Getting Habitat
-Currently, if you want to create and build plans in the studio or get the Habitat binaries, you will have to clone and build them from our GitHub repository: [https://github.com/habitat-sh/habitat]().
+Currently, if you want to create and build plans in the studio or get the Habitat binaries, you will have to clone and build them from our GitHub repository. Instructions for cloning the repo can be found on the [Get Habitat](/docs/get-habitat) page.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/get-habitat">Get Habitat</a></li>
+</ul>

@@ -25,3 +25,9 @@ If the package identifier isn't fully specified (having less than four component
 - `chef/glibc/2.22` assumes that the version of chef/glibc is 2.22 and that the release is for the latest version of chef/glibc/2.22.
 
 - `chef/glibc/2.22/20160310192356` only refers to the specific package 20160310192356.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/concepts-studio">Studio</a></li>
+</ul>

@@ -2,13 +2,19 @@
 title: Next steps
 ---
 
-# Go forth and conquer
+# You've learned a lot, so what's next?
 
 Thanks for taking some time to get hands-on with Habitat. We hope you're beginning to feel comfortable enough with
-the tooling that you can envision running your apps in a natural habitat of their own.
+the tooling that you can begin placing your apps in a natural habitat of their own.
 
-As you venture out, we recommend you keep the following resources nearby. The Docs are always being updated
-and we've got a great community that is ready and willing to help.
+In this tutorial you learned how to...
+
+- Set up your Habitat workspace
+- Create your first plan
+- Add hooks and configuration
+- Build and start your first package
+
+There are many more great features to explore in Habitat! As you venture out, we recommend you keep the following resources at your side. The Docs are always being updated and we've got a great community that is ready and willing to help.
 
 - [Habitat Docs](/docs)
 - [Habitat Open Source Community](/community)

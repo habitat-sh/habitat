@@ -47,3 +47,9 @@ An example is leader election; it's handled here by having a consistent (and sim
 ## Sidecar
 
 The Habitat sidecar is an http service that exposes cluster metadata, statistics, and general diagnostic information useful for monitoring and support in the form of a JSON document. The sidecar also keeps the latest result from any `health_check` hooks that are run as part of a service group.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/concepts-depot">Depot</a></li>
+</ul>
