@@ -1,5 +1,8 @@
 #!/bin/sh
-set -x
+set -ex
+
+NODE_ENV=production
+export NODE_ENV
 
 npm run clean
 rm -rf dist/*
