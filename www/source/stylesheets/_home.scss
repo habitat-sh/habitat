@@ -1,6 +1,10 @@
 .homepage {
 	@include shadow-float;
 	background-color: $hab-white;
+
+	hr {
+		margin: rem-calc(20) 0;
+	}
 }
 
 .homepage--h1 {
