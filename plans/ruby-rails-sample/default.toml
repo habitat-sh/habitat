@@ -9,15 +9,11 @@ database_username = "ruby-rails-sample"
 # servers running in the wild.
 database_password = ""
 
-# If this is false, then we use the value of database_host in the
-# database.yml, otherwise we're going to attempt to find the IP for
-# the postgresql server in the "postgresql.default" service group
-# (hard coded for now, :sadpanda:)
-database_discover = true
-
-# A "safe" fallback is using localhost - we recommend this only be
-# used for testing purposes, and instead run a postgresql service that
-# can be discovered using gossip
+# Normally you should use named service binding to bind the "database"
+# name to the database service group, and this app will connect to the
+# leader of that service group. If you do not use binding, this app
+# will fall back to using the database host specified here (localhost).
+# We recommend that this only be used for testing purposes.
 database_host = "localhost"
 
 # It's highly unlikely anyone would want to change this from the
