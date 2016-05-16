@@ -40,7 +40,6 @@ pub struct GossipFile {
 }
 
 impl GossipFile {
-
     /// creates a GossipFile with file containing valid TOML
     /// The file name that's passed in isn't retained,
     /// it's changed to `gossip.toml`.
@@ -497,9 +496,9 @@ mod test {
     #[should_panic]
     fn new_from_file_invalid_toml() {
         GossipFile::from_file(ServiceGroup::from_str("petty.gunslingers").unwrap(),
-                                       fixture("bad.toml").as_path(),
-                                       2)
-                     .unwrap();
+                              fixture("bad.toml").as_path(),
+                              2)
+            .unwrap();
     }
 
     #[test]
