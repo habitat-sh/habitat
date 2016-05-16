@@ -9,6 +9,7 @@ hyper = "*"
 log = "*"
 pbr = "*"
 rustc-serialize = "*"
+tee = "*"
 url = "*"
 
 [dependencies.habitat_core]

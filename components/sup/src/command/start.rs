@@ -52,6 +52,7 @@
 use std::env;
 
 use ansi_term::Colour::Yellow;
+use common::command::ProgressBar;
 use common::command::package::install;
 use depot_client;
 use hcore::crypto::default_cache_key_path;
@@ -93,9 +94,11 @@ pub fn package(config: &Config) -> Result<()> {
                         let latest_ident = latest_pkg_data.ident.as_ref();
                         if latest_ident > package.ident() {
                             outputln!("Downloading latest version from remote: {}", latest_ident);
+                            let mut progress = ProgressBar::default();
                             let archive = try!(depot_client::fetch_package(&url,
                                                                            latest_ident,
-                                                                           CACHE_ARTIFACT_PATH));
+                                                                           CACHE_ARTIFACT_PATH,
+                                                                           Some(&mut progress)));
                             try!(archive.verify(&default_cache_key_path()));
                             try!(archive.unpack());
                         } else {

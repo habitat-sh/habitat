@@ -7,6 +7,7 @@
 
 use std::sync::{Arc, RwLock};
 
+use common::command::ProgressBar;
 use depot_client;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::CACHE_ARTIFACT_PATH;
@@ -93,9 +94,11 @@ impl GenServer for PackageUpdater {
             Ok(remote) => {
                 let latest_ident: &PackageIdent = remote.ident.as_ref();
                 if latest_ident > &*package.ident() {
+                    let mut progress = ProgressBar::default();
                     match depot_client::fetch_package(&state.depot,
                                                       latest_ident,
-                                                      CACHE_ARTIFACT_PATH) {
+                                                      CACHE_ARTIFACT_PATH,
+                                                      Some(&mut progress)) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
