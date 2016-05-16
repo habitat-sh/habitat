@@ -7,45 +7,27 @@
 
 import {Component, OnInit} from "angular2/core";
 import {RouterLink} from "angular2/router";
-import {OriginPickerComponent} from "./OriginPickerComponent";
 
 @Component({
-    directives: [OriginPickerComponent, RouterLink],
-    inputs: ["fetchMyOrigins", "isSignedIn", "isOriginPickerOpen", "myOrigins",
-        "origin", "route", "setCurrentOrigin", "toggleOriginPicker"],
+    directives: [RouterLink],
+    inputs: ["isSignedIn", "route"],
     selector: "hab-side-nav",
     template: `
     <nav class="hab-side-nav">
-        <hab-origin-picker [fetchMyOrigins]="fetchMyOrigins"
-                           [isSignedIn]="isSignedIn"
-                           [isOpen]="isOriginPickerOpen"
-                           [myOrigins]="myOrigins"
-                           [currentOrigin]="origin"
-                           [setCurrentOrigin]="setCurrentOrigin"
-                           [toggleOriginPicker]="toggleOriginPicker">
-        </hab-origin-picker>
-        <ul class="hab-side-nav--list" *ngIf="isSignedIn">
-            <li><a [class.active]='routeMatch("projects")'
-                   [routerLink]="['Projects']">Projects</a></li>
-        </ul>
-        <hr>
-        <h4>Public Packages</h4>
+        <h4>Dashboard</h4>
         <ul class="hab-side-nav--list">
-            <li><a [class.active]='routeMatch("explore")'
-                   [routerLink]="['Explore']">Explore</a></li>
-            <li><a [class.active]='routeMatch("pkgs$")'
-                   [routerLink]="['Packages']">All Packages</a></li>
-            <li *ngIf="isSignedIn">
-                <a [class.active]='routeMatch("pkgs.+filter=mine")'
-                   [routerLink]="['Packages', { filter: 'mine' }]">
-                    My Packages
-                </a>
-            </li>
-        </ul>
-        <h4 *ngIf="isSignedIn">Organizations</h4>
-        <ul class="hab-side-nav--list" *ngIf="isSignedIn">
-            <li><a [class.active]='routeMatch("orgs")'
-                   [routerLink]="['Organizations']">Manage Orgs</a></li>
+            <li *ngIf="isSignedIn"><a [class.active]='routeMatch("projects")'
+                   [routerLink]="['Projects']">Projects</a></li>
+            <li *ngIf="isSignedIn"><a
+                   [class.active]='routeMatch("origins")'
+                   [routerLink]="['Origins']">Origins</a></li>
+            <li *ngIf="isSignedIn"><a
+                   [class.active]='routeMatch("orgs")'
+                   [routerLink]="['Organizations']">Organizations</a></li>
+            <li><a [class.active]='routeMatch("pkgs\/core")'
+                   [routerLink]="['PackagesForOrigin', { origin: 'core' }]">
+                Public Packages
+            </a></li>
         </ul>
     </nav>`
 })

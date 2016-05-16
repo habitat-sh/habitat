@@ -20,7 +20,9 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
         <h1 class="logo">{{appName}}</h1>
         <nav>
             <ul>
-                <li><a [routerLink]="['Packages']">Packages</a></li>
+                <li><a [routerLink]="['PackagesForOrigin', { origin: 'core' }]">
+                    Packages
+                </a></li>
                 <li><a href="{{config['docs_url']}}">Docs</a></li>
                 <li><a href="{{config['tutorials_url']}}">Tutorials</a></li>
                 <li><a href="{{config['community_url']}}">Community</a></li>

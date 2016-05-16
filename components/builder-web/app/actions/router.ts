@@ -10,7 +10,7 @@ export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
 
 export function goHome() {
     return dispatch => {
-        dispatch(requestRoute(["Packages"]));
+        dispatch(requestRoute(["PackagesForOrigin", { origin: "core" }]));
     };
 }
 

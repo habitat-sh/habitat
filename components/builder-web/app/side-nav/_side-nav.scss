@@ -7,7 +7,7 @@
 
 .hab-side-nav {
   @include span-columns(2);
-  padding-top: rem(65);
+  padding-top: $base-spacing;
   position: relative;
 
   .switcher {
