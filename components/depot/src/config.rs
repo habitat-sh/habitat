@@ -25,9 +25,9 @@ impl ConfigFile for Config {
 
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
-        try!(toml.parse_into("path", &mut cfg.path));
-        try!(toml.parse_into("bind_addr", &mut cfg.listen_addr));
-        try!(toml.parse_into("datastore_addr", &mut cfg.datastore_addr));
+        try!(toml.parse_into("cfg.path", &mut cfg.path));
+        try!(toml.parse_into("cfg.bind_addr", &mut cfg.listen_addr));
+        try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
         Ok(cfg)
     }
 }
