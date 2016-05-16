@@ -159,7 +159,7 @@ impl PackageArchive {
     /// # Failures
     ///
     /// * Fails if it cannot verify the signature for any reason
-    pub fn verify<P: AsRef<Path>>(&self, cache_key_path: &P) -> Result<()> {
+    pub fn verify<P: AsRef<Path>>(&self, cache_key_path: &P) -> Result<(String, String)> {
         artifact::verify(&self.path, cache_key_path)
     }
 

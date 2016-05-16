@@ -8,6 +8,7 @@
 pub mod upload {
     use std::path::Path;
 
+    use ansi_term::Colour::{Blue, Green, Yellow};
     use hcore::crypto::{BoxKeyPair, SymKey};
     use common::gossip_file::GossipFile;
 
@@ -21,19 +22,31 @@ pub mod upload {
                  number: u64,
                  file_path: &Path)
                  -> Result<()> {
+        println!("{}",
+                 Yellow.bold().paint(format!("» Uploading file {}", &file_path.display())));
         let file = try!(GossipFile::from_file_encrypt(&user_pair,
                                                       &service_pair,
                                                       file_path,
                                                       number));
 
-        println!("Uploading {} for use by {}", &file, &service_pair.name);
         let rumor = hab_gossip::Rumor::gossip_file(file);
-
         let mut list = hab_gossip::RumorList::new();
         list.add_rumor(rumor);
+        if let Some(ring_key) = ring_key {
+            println!("{} communication to \"{}\" ring with {}",
+                     Green.bold().paint("☛ Encrypting"),
+                     &ring_key.name,
+                     &ring_key.name_with_rev());
 
+        }
+        println!("{} {} for {} into ring via {:?}",
+                 Green.bold().paint("↑ Uploading"),
+                 &file_path.display(),
+                 &service_pair.name,
+                 &peers);
         try!(gossip::send_rumors_to_peers(&peers, ring_key, &list));
-        println!("Finished uploading file");
+        println!("{}",
+                 Blue.paint(format!("★ Upload of {} complete.", &file_path.display())));
         Ok(())
     }
 }

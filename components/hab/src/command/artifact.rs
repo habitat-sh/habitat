@@ -20,15 +20,22 @@ pub mod hash {
 pub mod sign {
     use std::path::Path;
 
+    use ansi_term::Colour::{Blue, Green, Yellow};
     use hcore::crypto::{artifact, SigKeyPair};
 
     use error::Result;
 
     pub fn start(origin: &SigKeyPair, src: &Path, dst: &Path) -> Result<()> {
-        debug!("Using key {}", origin.name_with_rev());
-        try!(artifact::sign(src, dst, origin));
-        println!("Successfully created signed binary artifact {}",
+        println!("{}",
+                 Yellow.bold().paint(format!("» Signing {}", src.display())));
+        println!("{} {} with {} to create {}",
+                 Green.paint("☛ Signing"),
+                 src.display(),
+                 &origin.name_with_rev(),
                  dst.display());
+        try!(artifact::sign(src, dst, origin));
+        println!("{}",
+                 Blue.paint(format!("★ Signed artifact {}.", dst.display())));
         Ok(())
     }
 }
@@ -52,6 +59,8 @@ pub mod upload {
 
     use std::path::{Path, PathBuf};
 
+    use ansi_term::Colour::{Blue, Green, Red, Yellow};
+    use common::command::ProgressBar;
     use hcore::package::{PackageArchive, PackageIdent};
     use depot_client;
     use hyper::status::StatusCode;
@@ -68,11 +77,12 @@ pub mod upload {
     /// * Fails if it cannot upload the file
     pub fn start<P: AsRef<Path>>(url: &str, archive_path: &P) -> Result<()> {
         let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
-        println!("Checking that all dependencies are in the depot...");
+        println!("{}",
+                 Yellow.bold().paint(format!("» Uploading {}", archive_path.as_ref().display())));
         let tdeps = try!(archive.tdeps());
         for dep in tdeps.iter() {
             match depot_client::show_package(url, dep) {
-                Ok(_) => println!("Package {} is present in the depot", dep),
+                Ok(_) => println!("{} {}", Green.paint("→ Exists"), dep),
                 Err(depot_client::Error::RemotePackageNotFound(_)) => {
                     let candidate_path = match archive_path.as_ref().parent() {
                         Some(p) => PathBuf::from(p),
@@ -85,12 +95,13 @@ pub mod upload {
         }
         let ident = try!(archive.ident());
         match depot_client::show_package(url, &ident) {
-            Ok(_) => println!("{} is present", ident),
+            Ok(_) => println!("{} {}", Green.paint("→ Exists"), &ident),
             Err(_) => {
                 try!(upload_into_depot(&url, &ident, &mut archive));
-                println!("Complete");
             }
         }
+        println!("{}",
+                 Blue.paint(format!("★ Upload of {} complete.", &ident)));
         Ok(())
     }
 
@@ -98,8 +109,11 @@ pub mod upload {
                          ident: &PackageIdent,
                          mut archive: &mut PackageArchive)
                          -> Result<()> {
-        println!("Uploading {} from {}", ident, archive.path.display());
-        match depot_client::put_package(url, &mut archive) {
+        println!("{} {}",
+                 Green.bold().paint("↑ Uploading"),
+                 archive.path.display());
+        let mut progress = ProgressBar::default();
+        match depot_client::put_package(url, &mut archive, Some(&mut progress)) {
             Ok(()) => (),
             Err(depot_client::Error::HTTP(StatusCode::Conflict)) => {
                 println!("Package already exists on remote; skipping.");
@@ -115,7 +129,8 @@ pub mod upload {
                 println!("The package might exist on the remote - we fast abort, so.. :)");
                 return Err(Error::from(e));
             }
-        }
+        };
+        println!("{} {}", Green.bold().paint("✓ Uploaded"), ident);
         Ok(())
     }
 
@@ -138,7 +153,8 @@ pub mod upload {
                 }
             }
         } else {
-            println!("Cannot find an archive for {} at {}",
+            println!("{} artifact for {} was not found in {}",
+                     Red.bold().paint("✗ Missing"),
                      ident.archive_name().unwrap(),
                      archives_dir.display());
             return Err(Error::FileNotFound(archives_dir.to_string_lossy()
@@ -150,13 +166,21 @@ pub mod upload {
 pub mod verify {
     use std::path::Path;
 
+    use ansi_term::Colour::{Blue, Green, Yellow};
     use hcore::crypto::artifact;
 
     use error::Result;
 
     pub fn start(src: &Path, cache: &Path) -> Result<()> {
-        try!(artifact::verify(src, cache));
-        println!("Habitat artifact is valid");
+        println!("{}",
+                 Yellow.bold().paint(format!("» Verifying artifact {}", &src.display())));
+        let (name_with_rev, hash) = try!(artifact::verify(src, cache));
+        println!("{} checksum {} signed with {}",
+                 Green.bold().paint("✓ Verifed"),
+                 &hash,
+                 &name_with_rev);
+        println!("{}",
+                 Blue.paint(format!("★ Verified artifact {}.", &src.display())));
         Ok(())
     }
 }

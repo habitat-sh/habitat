@@ -28,10 +28,10 @@
 //! * Unpack it
 //!
 
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use ansi_term::Colour::{Blue, Green, Yellow};
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::fs::CACHE_ARTIFACT_PATH;
@@ -39,6 +39,7 @@ use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use depot_core::data_object;
 use depot_client;
 
+use command::ProgressBar;
 use error::Result;
 
 pub fn start<P: ?Sized>(url: &str, ident_or_archive: &str, cache_key_path: &P) -> Result<()>
@@ -67,9 +68,9 @@ pub fn from_url<I, P: ?Sized>(url: &str,
     where I: AsRef<PackageIdent>,
           P: AsRef<Path>
 {
-    println!("Installing {}", ident.as_ref());
+    println!("{}",
+             Yellow.bold().paint(format!("» Installing {}", ident.as_ref())));
     let pkg_data = try!(depot_client::show_package(url, ident.as_ref()));
-    try!(fs::create_dir_all(CACHE_ARTIFACT_PATH));
     for dep in &pkg_data.tdeps {
         try!(install_from_depot(url, &dep, dep.as_ref(), cache_key_path.as_ref()));
     }
@@ -77,6 +78,10 @@ pub fn from_url<I, P: ?Sized>(url: &str,
                             &pkg_data.ident,
                             ident.as_ref(),
                             cache_key_path.as_ref()));
+    println!("{}",
+             Blue.paint(format!("★ Install of {} complete with {} packages installed.",
+                                ident.as_ref(),
+                                1 + &pkg_data.tdeps.len())));
     Ok(pkg_data)
 }
 
@@ -84,14 +89,19 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized>(url: &str, path: &P1, cache_key_path
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
-    println!("Installing from {}", path.as_ref().display());
+    println!("{}",
+             Yellow.bold().paint(format!("» Installing {}", path.as_ref().display())));
     let mut archive = PackageArchive::new(PathBuf::from(path.as_ref()));
     let ident = try!(archive.ident());
-    try!(fs::create_dir_all(CACHE_ARTIFACT_PATH));
-    for dep in try!(archive.tdeps()) {
+    let tdeps = try!(archive.tdeps());
+    for dep in &tdeps {
         try!(install_from_depot(url, &dep, dep.as_ref(), cache_key_path.as_ref()));
     }
     try!(install_from_archive(url, archive, &ident, cache_key_path.as_ref()));
+    println!("{}",
+             Blue.paint(format!("★ Install of {} complete with {} packages installed.",
+                                &ident,
+                                1 + &tdeps.len())));
     Ok(())
 }
 
@@ -103,21 +113,27 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
     match PackageInstall::load(ident.as_ref(), None) {
         Ok(_) => {
             if given_ident.fully_qualified() {
-                println!("Package {} already installed", ident.as_ref());
+                println!("{} {}", Green.paint("→ Using"), ident.as_ref());
             } else {
-                println!("Package that satisfies {} ({}) already installed",
+                println!("{} {} which satisfies {}",
+                         Green.paint("→ Using"),
                          given_ident,
                          ident.as_ref());
             }
         }
         Err(_) => {
+            println!("{} {}",
+                     Green.bold().paint("↓ Downloading"),
+                     ident.as_ref());
+            let mut progress = ProgressBar::default();
             let mut archive = try!(depot_client::fetch_package(url,
                                                                ident.as_ref(),
-                                                               CACHE_ARTIFACT_PATH));
+                                                               CACHE_ARTIFACT_PATH,
+                                                               Some(&mut progress)));
             let ident = try!(archive.ident());
             try!(verify(url, &archive, &ident, cache_key_path));
             try!(archive.unpack());
-            println!("Installed {}", ident);
+            println!("{} {}", Green.bold().paint("✓ Installed"), ident.as_ref());
         }
     }
     Ok(())
@@ -130,12 +146,15 @@ fn install_from_archive(url: &str,
                         -> Result<()> {
     match PackageInstall::load(ident.as_ref(), None) {
         Ok(_) => {
-            println!("Package {} already installed", ident);
+            println!("{} {}", Green.paint("→ Using"), ident);
         }
         Err(_) => {
+            println!("{} {} from cache",
+                     Green.bold().paint("← Extracting"),
+                     ident);
             try!(verify(url, &archive, &ident, cache_key_path));
             try!(archive.unpack());
-            println!("Installed {}", ident);
+            println!("{} {}", Green.bold().paint("✓ Installed"), ident);
         }
     }
     Ok(())
@@ -148,21 +167,20 @@ fn verify(url: &str,
           ident: &PackageIdent,
           cache_key_path: &Path)
           -> Result<()> {
-    let name_with_rev = try!(artifact::artifact_signer(&archive.path));
-    if let Err(_) = SigKeyPair::get_public_key_path(&name_with_rev, cache_key_path) {
-        // we don't have the key locally, so try and download it before verification
-        println!("Can't find {} origin key in local key cache, fetching it from the depot",
-                 &name_with_rev);
-        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-        try!(depot_client::get_origin_key(url,
-                                          &name,
-                                          &rev,
-                                          cache_key_path.to_string_lossy().as_ref()));
+    let nwr = try!(artifact::artifact_signer(&archive.path));
+    if let Err(_) = SigKeyPair::get_public_key_path(&nwr, cache_key_path) {
+        println!("{} {} public origin key",
+                 Green.bold().paint("↓ Downloading"),
+                 &nwr);
+        let (name, rev) = try!(parse_name_with_rev(&nwr));
+        let mut progress = ProgressBar::default();
+        try!(depot_client::fetch_origin_key(url, &name, &rev, cache_key_path, Some(&mut progress)));
+        println!("{} {} public origin key",
+                 Green.bold().paint("☑ Cached"),
+                 &nwr);
     }
 
     try!(archive.verify(&cache_key_path));
-    println!("Successful verification of {} signed by {}",
-             &ident,
-             &name_with_rev);
+    info!("Verified {} signed by {}", &ident, &nwr);
     Ok(())
 }

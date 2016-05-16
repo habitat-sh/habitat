@@ -14,6 +14,7 @@ extern crate hyper;
 extern crate log;
 extern crate pbr;
 extern crate rustc_serialize;
+extern crate tee;
 extern crate url;
 
 pub mod error;
@@ -21,7 +22,7 @@ pub mod error;
 pub use error::{Error, Result};
 
 use std::fs::{self, File};
-use std::io::{self, Read, Seek, SeekFrom};
+use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
 use broadcast::BroadcastWriter;
@@ -31,8 +32,12 @@ use depot_core::{XFileName, data_object};
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
 use hyper::Url;
-use pbr::{ProgressBar, Units};
 use rustc_serialize::json;
+use tee::TeeReader;
+
+pub trait DisplayProgress: Write {
+    fn size(&mut self, size: u64);
+}
 
 /// Download a public key from a remote Depot to the given filepath.
 ///
@@ -41,38 +46,52 @@ use rustc_serialize::json;
 /// * Key cannot be found
 /// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn get_origin_key(depot: &str, origin: &str, revision: &str, path: &str) -> Result<String> {
+pub fn fetch_origin_key<P: AsRef<Path> + ?Sized>(depot: &str,
+                                                 origin: &str,
+                                                 revision: &str,
+                                                 dst_path: &P,
+                                                 progress: Option<&mut DisplayProgress>)
+                                                 -> Result<PathBuf> {
     let url = try!(Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)));
-    debug!("get_origin_key URL = {}", &url);
-    let fname = format!("{}/{}-{}.pub", &path, &origin, &revision);
-    debug!("Output filename = {}", &fname);
-    download(&fname, url, path)
+    download(url, dst_path.as_ref(), progress)
 }
 
-/// Download all public keys for a given origin.
-///
-/// # Failures
-///
-/// * Origin cannot be found
-/// * Remote Depot is not available
-/// * File write errors
-pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
+pub fn show_origin_keys(depot: &str, origin: &str) -> Result<Vec<data_object::OriginKeyIdent>> {
     let url = try!(Url::parse(&format!("{}/origins/{}/keys", depot, origin)));
-    debug!("URL = {}", &url);
-    let client = try!(new_client(&url));
+    let (client, _) = try!(new_client(&url));
+    debug!("GET {} with {:?}", &url, &client);
     let request = client.get(url);
     let mut res = try!(request.send());
+    debug!("Response: {:?}", res);
+
     if res.status != hyper::status::StatusCode::Ok {
         return Err(Error::RemoteOriginKeyNotFound(origin.to_string()));
     };
 
     let mut encoded = String::new();
     try!(res.read_to_string(&mut encoded));
+    debug!("Response body: {:?}", encoded);
     let revisions: Vec<data_object::OriginKeyIdent> = json::decode(&encoded).unwrap();
-    for rev in &revisions {
-        try!(get_origin_key(depot, origin, &rev.revision, path));
-    }
-    Ok(())
+    Ok(revisions)
+}
+
+/// Upload a public origin key to a remote Depot.
+///
+/// # Failures
+///
+/// * Remote Depot is not available
+/// * File cannot be read
+pub fn put_origin_key(depot: &str,
+                      origin: &str,
+                      revision: &str,
+                      src_path: &Path,
+                      progress: Option<&mut DisplayProgress>)
+                      -> Result<()> {
+    let url = try!(Url::parse(&format!("{}/origins/{}/keys/{}", depot, &origin, &revision)));
+
+    let mut file = try!(File::open(src_path));
+    debug!("Reading from {}", src_path.display());
+    upload(url, &mut file, progress)
 }
 
 /// Download the latest release of a package.
@@ -87,9 +106,13 @@ pub fn get_origin_keys(depot: &str, origin: &str, path: &str) -> Result<()> {
 /// * Package cannot be found
 /// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result<PackageArchive> {
+pub fn fetch_package<P: AsRef<Path> + ?Sized>(depot: &str,
+                                              package: &PackageIdent,
+                                              dst_path: &P,
+                                              progress: Option<&mut DisplayProgress>)
+                                              -> Result<PackageArchive> {
     let url = try!(Url::parse(&format!("{}/pkgs/{}/download", depot, package)));
-    match download(&package.to_string(), url, store) {
+    match download(url, dst_path.as_ref(), progress) {
         Ok(file) => {
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
@@ -112,7 +135,7 @@ pub fn fetch_package(depot: &str, package: &PackageIdent, store: &str) -> Result
 /// * Remote Depot is not available
 pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Package> {
     let url = try!(url_show_package(depot, ident));
-    let client = try!(new_client(&url));
+    let (client, _) = try!(new_client(&url));
     let request = client.get(url);
     let mut res = try!(request.send());
 
@@ -127,32 +150,35 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Pa
     Ok(package)
 }
 
-/// Upload a public origin key to a remote Depot.
-///
-/// # Failures
-///
-/// * Remote Depot is not available
-/// * File cannot be read
-pub fn post_origin_key(depot: &str, origin: &str, revision: &str, path: &Path) -> Result<()> {
-    let mut file = try!(File::open(path));
-    let url = try!(Url::parse(&format!("{}/origins/{}/keys/{}", depot, origin, revision)));
-    upload(url, &mut file)
-}
-
 /// Upload a package to a remote Depot.
 ///
 /// # Failures
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(depot: &str, pa: &mut PackageArchive) -> Result<()> {
+pub fn put_package(depot: &str,
+                   pa: &mut PackageArchive,
+                   progress: Option<&mut DisplayProgress>)
+                   -> Result<()> {
     let checksum = try!(pa.checksum());
     let ident = try!(pa.ident());
     let mut url = try!(Url::parse(&format!("{}/pkgs/{}", depot, ident)));
     url.query_pairs_mut().append_pair("checksum", &checksum);
 
     let mut file = try!(File::open(&pa.path));
-    upload(url, &mut file)
+    debug!("Reading from {}", &pa.path.display());
+    upload(url, &mut file, progress)
+}
+
+fn new_client(url: &Url) -> Result<(Client, Option<(String, u16)>)> {
+    match try!(http_proxy_unless_domain_exempted(url.host_str().unwrap_or(""))) {
+        Some((proxy_host, proxy_port)) => {
+            debug!("Using proxy {}:{}...", &proxy_host, &proxy_port);
+            let proxy_info = Some((proxy_host.clone(), proxy_port.clone()));
+            Ok((Client::with_http_proxy(proxy_host, proxy_port), proxy_info))
+        }
+        None => Ok((Client::new(), None)),
+    }
 }
 
 fn url_show_package(depot: &str, package: &PackageIdent) -> Result<Url> {
@@ -163,54 +189,61 @@ fn url_show_package(depot: &str, package: &PackageIdent) -> Result<Url> {
     }
 }
 
-fn download(status: &str, url: Url, path: &str) -> Result<String> {
-    debug!("Making request to url {}", &url);
-    let client = try!(new_client(&url));
+fn download(url: Url, dst_path: &Path, progress: Option<&mut DisplayProgress>) -> Result<PathBuf> {
+    let (client, _) = try!(new_client(&url));
+    debug!("GET {} with {:?}", &url, &client);
     let mut res = try!(client.get(url).send());
     debug!("Response: {:?}", res);
+
     if res.status != hyper::status::StatusCode::Ok {
         return Err(Error::HTTP(res.status));
     }
+    try!(fs::create_dir_all(&dst_path));
 
     let file_name = match res.headers.get::<XFileName>() {
         Some(filename) => format!("{}", filename),
         None => return Err(Error::NoXFilename),
     };
-    let tempfile = format!("{}/{}.tmp", path, file_name);
-    let finalfile = format!("{}/{}", path, file_name);
-    let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(0, |v| **v);
-    {
-        let mut f = try!(File::create(&tempfile));
-        let mut pb = ProgressBar::new(size);
-        pb.set_units(Units::Bytes);
-        let mut writer = BroadcastWriter::new(&mut f, &mut pb);
-        println!("Downloading {}", &status);
-        try!(io::copy(&mut res, &mut writer));
-    }
-    try!(fs::rename(&tempfile, &finalfile));
-    Ok(finalfile)
+    let tmp_file_path = dst_path.join(format!("{}.tmp", file_name));
+    let dst_file_path = dst_path.join(file_name);
+    debug!("Writing to {}", &tmp_file_path.display());
+    let mut f = try!(File::create(&tmp_file_path));
+    match progress {
+        Some(progress) => {
+            let size: u64 = res.headers.get::<hyper::header::ContentLength>().map_or(0, |v| **v);
+            progress.size(size);
+            let mut writer = BroadcastWriter::new(&mut f, progress);
+            try!(io::copy(&mut res, &mut writer))
+        }
+        None => try!(io::copy(&mut res, &mut f)),
+    };
+    debug!("Moving {} to {}",
+           &tmp_file_path.display(),
+           &dst_file_path.display());
+    try!(fs::rename(&tmp_file_path, &dst_file_path));
+    Ok(dst_file_path)
 }
 
-fn upload(url: Url, file: &mut File) -> Result<()> {
-    debug!("Uploading to {}", url);
+fn upload(url: Url, file: &mut File, progress: Option<&mut DisplayProgress>) -> Result<()> {
     try!(file.seek(SeekFrom::Start(0)));
-    let client = try!(new_client(&url));
     let metadata = try!(file.metadata());
-    let response = try!(client.post(url).body(Body::SizedBody(file, metadata.len())).send());
+    let size = metadata.len();
+
+    let (client, _) = try!(new_client(&url));
+    debug!("POST {} with {:?}", &url, &client);
+    let response = match progress {
+        Some(progress) => {
+            progress.size(size);
+            let mut reader = TeeReader::new(file, progress);
+            try!(client.post(url).body(Body::SizedBody(&mut reader, size)).send())
+        }
+        None => try!(client.post(url).body(Body::SizedBody(file, size)).send()),
+    };
+
     if response.status.is_success() {
         Ok(())
     } else {
         debug!("Response {:?}", response);
         Err(Error::HTTP(response.status))
-    }
-}
-
-fn new_client(url: &Url) -> Result<Client> {
-    match try!(http_proxy_unless_domain_exempted(url.host_str().unwrap_or(""))) {
-        Some((proxy_host, proxy_port)) => {
-            println!("Using proxy {}:{}...", &proxy_host, &proxy_port);
-            Ok(Client::with_http_proxy(proxy_host, proxy_port))
-        }
-        None => Ok(Client::new()),
     }
 }

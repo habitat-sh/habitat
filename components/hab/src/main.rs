@@ -8,12 +8,14 @@
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate habitat_depot_client as depot_client;
+extern crate ansi_term;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
 extern crate hyper;
 #[macro_use]
 extern crate log;
+extern crate pbr;
 extern crate regex;
 // Temporary depdency for gossip/rumor injection code duplication.
 extern crate rustc_serialize;

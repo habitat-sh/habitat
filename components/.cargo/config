@@ -1,1 +1,1 @@
-paths = ["sodiumoxide"]
+paths = ["sodiumoxide", "../vendor/libc"]

@@ -5,11 +5,13 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 build = "build.rs"
 
 [dependencies]
+ansi_term = "*"
 env_logger = "*"
 # Used to handle responses code back from depot-core
 hyper = "*"
 libc = "*"
 log = "*"
+pbr = "*"
 regex = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 rustc-serialize = "*"

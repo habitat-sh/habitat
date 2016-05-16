@@ -8,9 +8,11 @@
 extern crate habitat_core as hcore;
 extern crate habitat_depot_core as depot_core;
 extern crate habitat_depot_client as depot_client;
+extern crate ansi_term;
 #[macro_use]
 extern crate log;
 extern crate openssl;
+extern crate pbr;
 extern crate regex;
 extern crate rustc_serialize;
 #[cfg(test)]

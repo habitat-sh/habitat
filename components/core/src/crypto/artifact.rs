@@ -69,7 +69,7 @@ pub fn get_archive_reader<P: AsRef<Path>>(src: &P) -> Result<BufReader<File>> {
 }
 
 /// verify the crypto signature of a .hart file
-pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<()>
+pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(String, String)>
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
@@ -158,7 +158,7 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
     debug!("Expected hash {}", expected_hash);
     debug!("My hash {}", computed_hash);
     if computed_hash == expected_hash {
-        Ok(())
+        Ok((pair.name_with_rev(), expected_hash))
     } else {
         let msg = format!("Habitat artifact is invalid, \
                           hashes don't match (expected: {}, computed: {})",

@@ -1,0 +1,16 @@
+# Cargo.toml which is used to just generate the all.{c,rs} files used to test
+# some platforms. These files are then combined with the overlay files commented
+# in the above directory as well to assemble a libc-test project which will
+# compile/run all tests.
+
+[package]
+name = "generate-files"
+version = "0.1.0"
+authors = ["Alex Crichton <alex@alexcrichton.com>"]
+
+[[bin]]
+name = "generate-files"
+path = "../build.rs"
+
+[dependencies]
+ctest = { git = "https://github.com/alexcrichton/ctest" }

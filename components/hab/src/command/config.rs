@@ -9,6 +9,7 @@ pub mod apply {
     use std::path::Path;
     use std::io::{self, Read};
 
+    use ansi_term::Colour::{Blue, Green, Yellow};
     use hcore::crypto::SymKey;
     use hcore::service::ServiceGroup;
     use common::gossip_file::GossipFile;
@@ -22,7 +23,8 @@ pub mod apply {
                  number: u64,
                  file_path: Option<&Path>)
                  -> Result<()> {
-        let sg1 = sg.clone();
+        println!("{}",
+                 Yellow.bold().paint(format!("» Applying configuration")));
         let file = match file_path {
             Some(p) => try!(GossipFile::from_file(sg.clone(), p, number)),
             None => {
@@ -31,14 +33,24 @@ pub mod apply {
                 try!(GossipFile::from_body(sg.clone(), body.into(), number))
             }
         };
-        println!("Applying configuration {} to {}", &file, &sg1);
         let rumor = hab_gossip::Rumor::gossip_file(file);
 
         let mut list = hab_gossip::RumorList::new();
         list.add_rumor(rumor);
 
+        if let Some(ring_key) = ring_key {
+            println!("{} communication to \"{}\" ring with {}",
+                     Green.bold().paint("☛ Encrypting"),
+                     &ring_key.name,
+                     &ring_key.name_with_rev());
+
+        }
+        println!("{} configuration for {} into ring via {:?}",
+                 Green.bold().paint("↑ Applying"),
+                 &sg,
+                 &peers);
         try!(gossip::send_rumors_to_peers(&peers, ring_key, &list));
-        println!("Finished applying configuration");
+        println!("{}", Blue.paint(format!("★ Applied configuration.")));
         Ok(())
     }
 }
