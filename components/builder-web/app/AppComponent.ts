@@ -23,10 +23,9 @@ import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
-    removeNotification, requestGitHubAuthToken, routeChange, setCurrentOrigin,
-    setGitHubAuthState, signOut, toggleOriginPicker, toggleUserNavMenu}
-    from "./actions/index";
+import {authenticateWithGitHub, loadSessionState, removeNotification,
+    requestGitHubAuthToken, routeChange, setGitHubAuthState, signOut,
+    toggleUserNavMenu} from "./actions/index";
 
 @Component({
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
@@ -45,14 +44,8 @@ import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
                     [toggleUserNavMenu]="toggleUserNavMenu"></hab-header>
     </div>
     <div class="hab-container">
-        <hab-side-nav [fetchMyOrigins]="fetchMyOrigins"
-                      [isOriginPickerOpen]="state.origins.ui.isPickerOpen"
-                      [isSignedIn]="user.isSignedIn"
-                      [myOrigins]="state.origins.mine"
-                      [origin]="origin"
+        <hab-side-nav [isSignedIn]="user.isSignedIn"
                       [route]="state.router.route"
-                      [setCurrentOrigin]="setCurrentOrigin"
-                      [toggleOriginPicker]="toggleOriginPicker"
                       *ngIf="!hideNav">
         </hab-side-nav>
         <section class="hab-main" [ngClass]="{centered: hideNav}">
@@ -67,7 +60,7 @@ import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
 @RouteConfig([
     {
         path: "/",
-        redirectTo: ["Packages"],
+        redirectTo: ["PackagesForOrigin", { origin: "core" }],
     },
     {
         path: "/explore",
@@ -152,11 +145,8 @@ import {authenticateWithGitHub, fetchMyOrigins, loadSessionState,
 ])
 
 export class AppComponent implements OnInit {
-    fetchMyOrigins: Function;
     removeNotification: Function;
-    setCurrentOrigin: Function;
     signOut: Function;
-    toggleOriginPicker: Function;
     toggleUserNavMenu: Function;
     hideNav: boolean;
 
@@ -177,28 +167,13 @@ export class AppComponent implements OnInit {
             if (requestedRoute) { router.navigate(requestedRoute); }
         });
 
-        this.fetchMyOrigins = function() {
-            this.store.dispatch(fetchMyOrigins());
-            return false;
-        }.bind(this);
-
         this.removeNotification = function(i) {
             this.store.dispatch(removeNotification(i));
             return false;
         }.bind(this);
 
-        this.setCurrentOrigin = function (origin) {
-            this.store.dispatch(setCurrentOrigin(origin));
-            return false;
-        }.bind(this);
-
         this.signOut = function() {
             this.store.dispatch(signOut());
-            return false;
-        }.bind(this);
-
-        this.toggleOriginPicker = function() {
-            this.store.dispatch(toggleOriginPicker());
             return false;
         }.bind(this);
 

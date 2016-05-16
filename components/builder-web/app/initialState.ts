@@ -79,7 +79,6 @@ export default Record({
             current: Record({
                 creating: false,
             })(),
-            isPickerOpen: false,
         })(),
     })(),
     packages: Record({

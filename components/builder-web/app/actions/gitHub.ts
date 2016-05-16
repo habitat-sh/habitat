@@ -8,8 +8,8 @@
 import "whatwg-fetch";
 import {URLSearchParams} from "angular2/http";
 import config from "../config";
-import {attemptSignIn, addNotification, goHome, requestRoute, setCurrentOrigin,
-    setSigningInFlag, signOut} from "./index";
+import {attemptSignIn, addNotification, goHome, requestRoute, setSigningInFlag,
+    signOut} from "./index";
 import {DANGER} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
