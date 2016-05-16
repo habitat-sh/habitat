@@ -248,4 +248,3 @@ impl AsRef<OriginKeyIdent> for OriginKeyIdent {
         self
     }
 }
-

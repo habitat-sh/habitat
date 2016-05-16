@@ -10,7 +10,6 @@ use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 
 use dbcache;
-use depot_core::{ETag, XFileName, set_disposition};
 use depot_core::data_object::{self, DataObject};
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
@@ -19,6 +18,7 @@ use mount::Mount;
 use router::{Params, Router};
 use rustc_serialize::json;
 use urlencoded::UrlEncodedQuery;
+
 
 use super::Depot;
 use config::Config;
@@ -188,12 +188,16 @@ fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response>
 
     let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
     let mut response = Response::with((status::Ok, origin_keyfile));
-    response.headers.set(XFileName(xfilename.clone()));
-    set_disposition(&mut response.headers,
-                    xfilename,
-                    headers::Charset::Ext("utf-8".to_string()));
+    // use set_raw because we're having problems with Iron's Hyper 0.8.x
+    // and the newer Hyper 0.9.4. TODO: change back to set() once
+    // Iron updates to Hyper 0.9.x.
+    response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
+    response.headers.set_raw("content-disposition",
+                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
+                                      .into_bytes()]);
     Ok(response)
 }
+
 
 fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     debug!("Download latest origin key {:?}", req);
@@ -223,10 +227,13 @@ fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Re
 
     let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
     let mut response = Response::with((status::Ok, origin_keyfile));
-    response.headers.set(XFileName(xfilename.clone()));
-    set_disposition(&mut response.headers,
-                    xfilename,
-                    headers::Charset::Ext("utf-8".to_string()));
+    // use set_raw because we're having problems with Iron's Hyper 0.8.x
+    // and the newer Hyper 0.9.4. TODO: change back to set() once
+    // Iron updates to Hyper 0.9.x.
+    response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
+    response.headers.set_raw("content-disposition",
+                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
+                                      .into_bytes()]);
     Ok(response)
 }
 
@@ -241,11 +248,16 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 match fs::metadata(&archive.path) {
                     Ok(_) => {
                         let mut response = Response::with((status::Ok, archive.path.clone()));
-                        response.headers.set(XFileName(archive.file_name()));
+                        // use set_raw because we're having problems with Iron's Hyper 0.8.x
+                        // and the newer Hyper 0.9.4. TODO: change back to set() once
+                        // Iron updates to Hyper 0.9.x.
 
-                        set_disposition(&mut response.headers,
-                                        archive.file_name(),
-                                        headers::Charset::Ext("utf-8".to_string()));
+                        response.headers.set_raw("X-Filename",
+                                                 vec![archive.file_name().clone().into_bytes()]);
+                        response.headers.set_raw("content-disposition",
+                                                 vec![format!("attachment; filename=\"{}\"",
+                                                              archive.file_name().clone())
+                                                          .into_bytes()]);
                         Ok(response)
                     }
                     Err(_) => Ok(Response::with(status::NotFound)),
@@ -409,10 +421,14 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
+
 fn render_package(pkg: &data_object::Package) -> IronResult<Response> {
     let body = json::encode(pkg).unwrap();
     let mut response = Response::with((status::Ok, body));
-    response.headers.set(ETag(pkg.checksum.clone()));
+    // use set_raw because we're having problems with Iron's Hyper 0.8.x
+    // and the newer Hyper 0.9.4. TODO: change back to set() once
+    // Iron updates to Hyper 0.9.x.
+    response.headers.set_raw("ETag", vec![pkg.checksum.clone().into_bytes()]);
     Ok(response)
 }
 
