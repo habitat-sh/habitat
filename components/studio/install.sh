@@ -7,9 +7,9 @@ set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 # Download URL for the `core/hab-bpm` Habitat artifact
-hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-bpm-0.1.0-20160427212821-x86_64-linux.hart}"
+hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-bpm-0.5.0-20160516163649-x86_64-linux.hart}"
 # Shasum for the Habitat artifact, used to verify the download
-hart_sha="${BPM_HART_SHASUM:-0577cd569006f82bea1c99c80b727b272b2d4e78492d1bff620e936041b13571}"
+hart_sha="${BPM_HART_SHASUM:-3c6410778f78fbead544202397b8bc3bb5cde058fa64d372a69c72dfedc13e8d}"
 # Download location of the Habitat artifact
 hart_file="${TMPDIR:-/tmp}/$(basename $hart_url)"
 
