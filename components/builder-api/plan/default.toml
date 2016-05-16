@@ -1,7 +1,7 @@
-http_addr = "127.0.0.1:9636"
+http_addr = "0.0.0.0:9636"
 sessionsrv_addr = "127.0.0.1:5560"
 vaultsrv_addr = "127.0.0.1:5561"
 
 [depot]
 path = "/hab/svc/hab-depot/data"
-datastore_addr = "127.0.0.1:6379"
+datastore_addr = "127.0.0.1:6397"
