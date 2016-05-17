@@ -17,9 +17,7 @@ extern crate libc;
 #[macro_use]
 extern crate clap;
 
-use std::ffi::CString;
 use std::process;
-use std::ptr;
 use std::result;
 use std::str::FromStr;
 
@@ -133,8 +131,8 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     config.set_gossip_listen_ip(gossip_ip);
     config.set_gossip_listen_port(gossip_port);
     config.set_sidecar_listen(sub_args.value_of("listen-sidecar")
-                                     .unwrap_or(DEFAULT_SIDECAR_LISTEN_IP_PORT)
-                                     .to_string());
+                                      .unwrap_or(DEFAULT_SIDECAR_LISTEN_IP_PORT)
+                                      .to_string());
     let gossip_peers = match sub_args.values_of("peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],
@@ -268,7 +266,8 @@ fn main() {
                                  .short("I")
                                  .long("permanent-peer")
                                  .help("If this service is a permanent peer"));
-    let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell");
+    let sub_bash = SubCommand::with_name("bash").about("Start an interactive shell (bash)");
+    let sub_sh = SubCommand::with_name("sh").about("Start an interactive shell (sh)");
     let sub_config = SubCommand::with_name("config")
                          .about("Print the default.toml for a given package")
                          .arg(Arg::with_name("package")
@@ -288,6 +287,7 @@ fn main() {
                             .global(true)
                             .help("Turn ANSI color off :("))
                    .subcommand(sub_start)
+                   .subcommand(sub_bash)
                    .subcommand(sub_sh)
                    .subcommand(sub_config);
     let matches = args.get_matches();
@@ -303,7 +303,8 @@ fn main() {
     };
 
     let result = match config.command() {
-        Command::Shell => shell(&config),
+        Command::ShellBash => shell_bash(&config),
+        Command::ShellSh => shell_sh(&config),
         Command::Config => configure(&config),
         Command::Start => start(&config),
     };
@@ -321,18 +322,16 @@ fn exit_with(e: SupError, code: i32) {
     process::exit(code)
 }
 
-/// Start a shell
+/// Start a sh shell
 #[allow(dead_code)]
-fn shell(_config: &Config) -> Result<()> {
-    outputln!("Starting your shell; enjoy!");
-    let shell_arg = try!(CString::new("sh"));
-    let mut argv = [shell_arg.as_ptr(), ptr::null()];
-    // Yeah, you don't know any better.. but we aren't coming back from
-    // what happens next.
-    unsafe {
-        libc::execvp(shell_arg.as_ptr(), argv.as_mut_ptr());
-    }
-    Ok(())
+fn shell_sh(_config: &Config) -> Result<()> {
+    shell::sh()
+}
+
+/// Start a bash shell
+#[allow(dead_code)]
+fn shell_bash(_config: &Config) -> Result<()> {
+    shell::bash()
 }
 
 /// Show the configuration options for a service
