@@ -14,6 +14,7 @@ use std::ptr;
 
 use common;
 use hcore;
+use hcore::fs::cache_artifact_path;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::DEFAULT_DEPOT_URL;
 
@@ -76,6 +77,8 @@ pub fn command_from_pkg(command: &str,
             println!("Package for {} not found, installing from depot", &ident);
             try!(common::command::package::install::from_url(DEFAULT_DEPOT_URL,
                                                              ident,
+                                                             Path::new("/"),
+                                                             &cache_artifact_path(None),
                                                              cache_key_path));
             command_from_pkg(&command, &ident, &cache_key_path, retry + 1)
         }

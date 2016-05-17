@@ -101,7 +101,7 @@ impl Server {
         let census_list = CensusList::new(Census::new(ce.clone()));
 
         let ring_key = match ring_name_with_rev {
-            Some(rnwr) => Some(SymKey::get_pair_for(&rnwr, &default_cache_key_path()).unwrap()),
+            Some(rnwr) => Some(SymKey::get_pair_for(&rnwr, &default_cache_key_path(None)).unwrap()),
             None => None,
         };
 

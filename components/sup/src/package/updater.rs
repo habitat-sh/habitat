@@ -6,11 +6,12 @@
 // open source license such as the Apache 2.0 License.
 
 use std::sync::{Arc, RwLock};
+use std::path::Path;
 
 use common::command::ProgressBar;
 use depot_client;
 use hcore::crypto::default_cache_key_path;
-use hcore::fs::CACHE_ARTIFACT_PATH;
+use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use hcore::package::PackageIdent;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
@@ -97,13 +98,14 @@ impl GenServer for PackageUpdater {
                     let mut progress = ProgressBar::default();
                     match depot_client::fetch_package(&state.depot,
                                                       latest_ident,
-                                                      CACHE_ARTIFACT_PATH,
+                                                      &Path::new(FS_ROOT_PATH)
+                                                           .join(CACHE_ARTIFACT_PATH),
                                                       Some(&mut progress)) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
-                            archive.verify(&default_cache_key_path()).unwrap();
-                            archive.unpack().unwrap();
+                            archive.verify(&default_cache_key_path(None)).unwrap();
+                            archive.unpack(None).unwrap();
                             let latest_package = Package::load(latest_ident, None).unwrap();
                             state.status = UpdaterStatus::Stopped;
                             let msg =

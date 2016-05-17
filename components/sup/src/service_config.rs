@@ -578,8 +578,9 @@ mod test {
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(
             PackageIdent::from_str("neurosis/sovereign/2000/20160222201258").unwrap(),
-            PathBuf::from("/fakeo/here"),
-            PathBuf::from("/fakeo"));
+            PathBuf::from("/"),
+            PathBuf::from("/fakeo"),
+            PathBuf::from("/fakeo/here"));
         Package {
             origin: String::from("neurosis"),
             name: String::from("sovereign"),
