@@ -381,7 +381,7 @@ record() {
     env="$($bb env \
       | $bb sed -e "s,^,'," -e "s,$,'," -e 's,0;32m,0;31m,g' \
       | $bb tr '\n' ' ')"
-    log="${LOGDIR:-/src/log}/${name}.$($bb date -u +%Y-%m-%d-%H%M%S).log"
+    log="${LOGDIR:-/src/results/logs}/${name}.$($bb date -u +%Y-%m-%d-%H%M%S).log"
     $bb mkdir -p $($bb dirname $log)
     unset BUSYBOX LOGDIR
 

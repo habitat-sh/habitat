@@ -16,6 +16,6 @@ if [ "${TRAVIS_PULL_REQUEST}" = "false" ] &&
   $studio new
   # Use environment variables set by Travis to write out the origin key
   openssl aes-256-cbc -K $encrypted_c4f852370b68_key -iv $encrypted_c4f852370b68_iv -in core-20160423193745.sig.key.enc -out $studio_path/hab/cache/keys/core-20160423193745.sig.key -d
-  $studio build components/builder-web/plan
+  $studio build components/builder-web/habitat
   $studio run "hab artifact upload /hab/cache/artifacts/core-habitat-builder-web-*"
 else echo "Not on master; skipping publish"; fi

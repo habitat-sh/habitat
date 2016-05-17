@@ -295,6 +295,8 @@ PLAN_CONTEXT=${1:-.}
 export HAB_DEPOT_URL
 # The value of `$PATH` on initial start of this program
 INITIAL_PATH="$PATH"
+# The value of `pwd` on initial start of this program
+INITIAL_PWD="$(pwd)"
 # The target architecture this plan will be built for
 pkg_arch=$(uname -m | tr [[:upper:]] [[:lower:]])
 # The target system (i.e. operating system variant) this plan will be built for
@@ -1985,6 +1987,20 @@ _generate_artifact() {
   rm -f $tarf $xzf
 }
 
+_prepare_build_outputs() {
+  mkdir -pv $pkg_output_path
+  cp -v $pkg_artifact $pkg_output_path/
+
+  cat <<-EOF > $pkg_output_path/last_build.env
+pkg_origin=$pkg_origin
+pkg_name=$pkg_name
+pkg_version=$pkg_version
+pkg_release=$pkg_release
+pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+pkg_artifact=$(basename $pkg_artifact)
+EOF
+}
+
 # A function for cleaning up after yourself. Delegates most of the
 # implementation to the `do_default_end()` function.
 do_end() {
@@ -2023,10 +2039,28 @@ PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
 # Expand the path of this program to an absolute path
 THIS_PROGRAM=$(abspath $0)
 
-# First we check if the provided path has a `plan.sh` in it. If not, we'll
-# quickly bail.
+# Now to ensure a `plan.sh` exists where we expect it. There are 2 possible
+# candidate locations relative to the `$PLAN_CONTEXT` directory: a `./plan.sh`
+# or a `./habitat/plan.sh`. Only one or the other location is allowed so that
+# a Plan author isn't confused if they edit one to have this program read
+# the other.
+
+# We'll make sure that both are not present, and if so abort.
+if [[ -f "$PLAN_CONTEXT/plan.sh" && -f "$PLAN_CONTEXT/habitat/plan.sh" ]];then
+  places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/plan.sh"
+  exit_with "A Plan file was found at $places. Only one is allowed at a time" 42
+fi
+# We check if the provided path has a `plan.sh` in it in either location. If
+# not, we'll quickly bail.
 if [[ ! -f "$PLAN_CONTEXT/plan.sh" ]]; then
-  exit_with "$PLAN_CONTEXT/plan.sh does not exist" 42
+  if [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then
+    # As the `plan.sh` is in a deeper subdirectory, we'll update the
+    # `$PLAN_CONTEXT` directory to be relative to the actual `plan.sh` file.
+    PLAN_CONTEXT="$PLAN_CONTEXT/habitat"
+  else
+    places="$PLAN_CONTEXT/plan.sh or $PLAN_CONTEXT/habitat/plan.sh"
+    exit_with "Plan file not found at $places" 42
+  fi
 fi
 
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
@@ -2034,7 +2068,7 @@ fi
 cd $PLAN_CONTEXT
 
 # Load the Plan
-echo "Loading $PLAN_CONTEXT/plan.sh"
+build_line "Loading $PLAN_CONTEXT/plan.sh"
 if source "$PLAN_CONTEXT/plan.sh"; then
   build_line "Plan loaded"
 else
@@ -2077,6 +2111,12 @@ fi
 # Set `$pkg_prefix` if not already set by the `plan.sh`.
 if [[ -z "${pkg_prefix+xxx}" ]]; then
   pkg_prefix=$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
+fi
+
+if [[ -n "$HAB_OUTPUT_PATH" ]]; then
+  pkg_output_path="$HAB_OUTPUT_PATH"
+else
+  pkg_output_path="$INITIAL_PWD/results"
 fi
 
 # Set $pkg_svc variables a second time, now that the Plan has been sourced and
@@ -2155,24 +2195,22 @@ do_strip
 # Write the manifest
 _build_manifest
 
-# Write the package
+# Generate the artifact and write to artifact cache
 _generate_artifact
+
+# Copy produced artifact to a local relative directory
+_prepare_build_outputs
 
 # Cleanup
 build_line "$_program cleanup"
 do_end
 
 # Print the results
+build_line
 build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
-build_line "Artifact: $pkg_artifact"
-
-# Write results to a output file users can process, e.g., in CI
-cat <<-EOF > $HAB_CACHE_SRC_PATH/${pkg_origin}-${pkg_name}-build-output
-source-cache:$HAB_CACHE_SRC_PATH/$pkg_dirname
-installed-path:$pkg_prefix
-artifact:$pkg_artifact
-EOF
+build_line "Artifact: $pkg_output_path/$(basename $pkg_artifact)"
+build_line "Build Report: $pkg_output_path/last_build.env"
 
 # Exit cleanly
 build_line
