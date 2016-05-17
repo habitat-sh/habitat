@@ -20,28 +20,32 @@ use package::{MetaFile, PackageIdent};
 #[derive(Clone, Debug)]
 pub struct PackageInstall {
     ident: PackageIdent,
-    installed_path: PathBuf,
+    fs_root_path: PathBuf,
     package_root_path: PathBuf,
+    installed_path: PathBuf,
 }
 
 impl PackageInstall {
-    /// Verifies an installation of a package is within the package home and returns a struct
+    /// Verifies an installation of a package is within the package path and returns a struct
     /// representing that package installation.
     ///
     /// Only the origin and name of a package are required - the latest version/release of a
     /// package will be returned if their optional value is not specified. If only a version is
     /// specified, the latest release of that package origin, name, and version is returned.
     ///
-    /// An optional `home` path may be provided to search for a package in a non-default path.
-    pub fn load(ident: &PackageIdent, home: Option<&Path>) -> Result<PackageInstall> {
-        let path = home.unwrap_or(Path::new(PKG_PATH));
-        let pl = try!(Self::package_list(path));
+    /// An optional `fs_root` path may be provided to search for a package that is mounted on a
+    /// filesystem not currently rooted at `/`.
+    pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
+        let fs_root_path = fs_root_path.unwrap_or(Path::new("/"));
+        let package_root_path = fs_root_path.join(PKG_PATH);
+        let pl = try!(Self::package_list(&package_root_path));
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
                 Ok(PackageInstall {
                     ident: ident.clone(),
-                    installed_path: try!(Self::calc_installed_path(ident, path)),
-                    package_root_path: PathBuf::from(path),
+                    fs_root_path: PathBuf::from(fs_root_path),
+                    package_root_path: package_root_path.clone(),
+                    installed_path: try!(Self::calc_installed_path(ident, &package_root_path)),
                 })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
@@ -67,8 +71,9 @@ impl PackageInstall {
             if let Some(id) = latest {
                 Ok(PackageInstall {
                     ident: id.clone(),
-                    installed_path: try!(Self::calc_installed_path(&id, path)),
-                    package_root_path: PathBuf::from(path),
+                    fs_root_path: PathBuf::from(fs_root_path),
+                    package_root_path: package_root_path.clone(),
+                    installed_path: try!(Self::calc_installed_path(&id, &package_root_path)),
                 })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
@@ -77,13 +82,15 @@ impl PackageInstall {
     }
 
     pub fn new_from_parts(ident: PackageIdent,
-                          installed_path: PathBuf,
-                          package_root_path: PathBuf)
+                          fs_root_path: PathBuf,
+                          package_root_path: PathBuf,
+                          installed_path: PathBuf)
                           -> PackageInstall {
         PackageInstall {
             ident: ident,
-            installed_path: installed_path,
+            fs_root_path: fs_root_path,
             package_root_path: package_root_path,
+            installed_path: installed_path,
         }
     }
 
@@ -255,7 +262,7 @@ impl PackageInstall {
         let tdeps = try!(self.tdeps());
         let mut deps = Vec::with_capacity(tdeps.len());
         for dep in tdeps.iter() {
-            let dep_install = try!(Self::load(dep, Some(&self.package_root_path)));
+            let dep_install = try!(Self::load(dep, Some(&self.fs_root_path)));
             deps.push(dep_install);
         }
         Ok(deps)

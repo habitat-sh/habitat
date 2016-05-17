@@ -133,8 +133,8 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     config.set_gossip_listen_ip(gossip_ip);
     config.set_gossip_listen_port(gossip_port);
     config.set_sidecar_listen(sub_args.value_of("listen-sidecar")
-                                     .unwrap_or(DEFAULT_SIDECAR_LISTEN_IP_PORT)
-                                     .to_string());
+                                      .unwrap_or(DEFAULT_SIDECAR_LISTEN_IP_PORT)
+                                      .to_string());
     let gossip_peers = match sub_args.values_of("peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],
@@ -151,14 +151,17 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     }
     config.set_version_number(value_t!(sub_args, "version-number", u64).unwrap_or(0));
     let ring = match sub_args.value_of("ring") {
-        Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path()))),
+        Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path(None)))),
         None => {
             match henv::var(RING_KEY_ENVVAR) {
-                Ok(val) => Some(try!(SymKey::write_file_from_str(&val, &default_cache_key_path()))),
+                Ok(val) => {
+                    Some(try!(SymKey::write_file_from_str(&val, &default_cache_key_path(None))))
+                }
                 Err(_) => {
                     match henv::var(RING_ENVVAR) {
                         Ok(val) => {
-                            Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path())))
+                            Some(try!(SymKey::get_latest_pair_for(&val,
+                                                                  &default_cache_key_path(None))))
                         }
                         Err(_) => None,
                     }

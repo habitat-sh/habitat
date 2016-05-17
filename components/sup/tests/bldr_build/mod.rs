@@ -22,14 +22,14 @@ fn builds_a_service() {
     assert_cmd_exit_code!(simple_service, [0]);
     assert_regex!(simple_service.stdout(), r"Loading /.*/plan.sh");
     assert_regex!(simple_service.stdout(),
-                  &format!(r"{}/bldr_build-0.0.1", fs::CACHE_SRC_PATH));
+                  &format!(r"{}/bldr_build-0.0.1", fs::cache_src_path(None)));
     assert_regex!(simple_service.stdout(),
-                  &format!(r"{}/test/bldr_build/0.0.1/\d{{14}}", fs::PKG_PATH));
+                  &format!(r"/{}/test/bldr_build/0.0.1/\d{{14}}", fs::PKG_PATH));
     assert_regex!(simple_service.stdout(),
                   &format!(r"{}/test-bldr_build-0.0.1-\d{{14}}.bldr",
-                           fs::CACHE_ARTIFACT_PATH));
+                           fs::cache_artifact_path(None)));
     let pkg_re = Regex::new(&format!(r"({}/test-bldr_build-0.0.1-\d{{14}}.bldr)",
-                                     fs::CACHE_ARTIFACT_PATH))
+                                     fs::cache_artifact_path(None)))
                      .unwrap();
     let caps = pkg_re.captures(simple_service.stdout()).unwrap();
     if let Some(pkg_path) = caps.at(1) {

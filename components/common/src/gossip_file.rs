@@ -214,7 +214,7 @@ impl GossipFile {
                     // this write will fail.
                     println!("Attempting to decrypt {}", &self.file_name);
                     let decrypted_bytes = try!(BoxKeyPair::decrypt(&self.body,
-                                                                   &default_cache_key_path()));
+                                                                   &default_cache_key_path(None)));
                     println!("Successfully decrypted {}", &self.file_name);
                     try!(new_file.write_all(&decrypted_bytes));
                 } else {

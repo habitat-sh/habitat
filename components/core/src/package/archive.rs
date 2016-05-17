@@ -169,7 +169,8 @@ impl PackageArchive {
     /// # Failures
     ///
     /// * If the package cannot be unpacked
-    pub fn unpack(&self) -> Result<()> {
+    pub fn unpack(&self, fs_root_path: Option<&Path>) -> Result<()> {
+        let root = fs_root_path.unwrap_or(Path::new("/"));
         let tar_reader = try!(artifact::get_archive_reader(&self.path));
         let mut builder = reader::Builder::new();
         try!(builder.support_format(ReadFormat::All));
@@ -177,7 +178,7 @@ impl PackageArchive {
         let mut reader = try!(builder.open_stream(tar_reader));
         let writer = writer::Disk::new();
         try!(writer.set_standard_lookup());
-        try!(writer.write(&mut reader, Some("/")));
+        try!(writer.write(&mut reader, Some(root.to_string_lossy().as_ref())));
         try!(writer.close());
         Ok(())
     }

@@ -34,7 +34,7 @@ use std::str::FromStr;
 use ansi_term::Colour::{Blue, Green, Yellow};
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::fs::CACHE_ARTIFACT_PATH;
+use hcore::fs::cache_artifact_path;
 use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use depot_core::data_object;
 use depot_client;
@@ -42,41 +42,66 @@ use depot_client;
 use command::ProgressBar;
 use error::Result;
 
-pub fn start<P: ?Sized>(url: &str, ident_or_archive: &str, cache_key_path: &P) -> Result<()>
-    where P: AsRef<Path>
+pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
+                                                 ident_or_archive: &str,
+                                                 fs_root_path: &P1,
+                                                 cache_artifact_path: &P2,
+                                                 cache_key_path: &P3)
+                                                 -> Result<()>
+    where P1: AsRef<Path>,
+          P2: AsRef<Path>,
+          P3: AsRef<Path>
 {
     if Path::new(ident_or_archive).is_file() {
-        try!(from_archive(url, &ident_or_archive, cache_key_path));
+        try!(from_archive(url,
+                          &ident_or_archive,
+                          fs_root_path,
+                          cache_artifact_path,
+                          cache_key_path));
     } else {
         let ident = try!(PackageIdent::from_str(ident_or_archive));
-        try!(from_url(url, &ident, cache_key_path));
+        try!(from_url(url,
+                      &ident,
+                      fs_root_path,
+                      cache_artifact_path,
+                      cache_key_path));
     }
     Ok(())
 }
 
 /// Given a package name and a base url, downloads the package
-/// to the `CACHE_ARTIFACT_PATH`. Returns the filename in the cache as a String
+/// to the cache artifact path. Returns the filename in the cache as a String
 ///
 /// # Failures
 ///
-/// * Fails if it cannot create the `CACHE_ARTIFACT_PATH`
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url<I, P: ?Sized>(url: &str,
-                              ident: &I,
-                              cache_key_path: &P)
-                              -> Result<data_object::Package>
+pub fn from_url<I, P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
+                                                       ident: &I,
+                                                       fs_root_path: &P1,
+                                                       cache_artifact_path: &P2,
+                                                       cache_key_path: &P3)
+                                                       -> Result<data_object::Package>
     where I: AsRef<PackageIdent>,
-          P: AsRef<Path>
+          P1: AsRef<Path>,
+          P2: AsRef<Path>,
+          P3: AsRef<Path>
 {
     println!("{}",
              Yellow.bold().paint(format!("» Installing {}", ident.as_ref())));
     let pkg_data = try!(depot_client::show_package(url, ident.as_ref()));
     for dep in &pkg_data.tdeps {
-        try!(install_from_depot(url, &dep, dep.as_ref(), cache_key_path.as_ref()));
+        try!(install_from_depot(url,
+                                &dep,
+                                dep.as_ref(),
+                                fs_root_path.as_ref(),
+                                cache_artifact_path.as_ref(),
+                                cache_key_path.as_ref()));
     }
     try!(install_from_depot(url,
                             &pkg_data.ident,
                             ident.as_ref(),
+                            fs_root_path.as_ref(),
+                            cache_artifact_path.as_ref(),
                             cache_key_path.as_ref()));
     println!("{}",
              Blue.paint(format!("★ Install of {} complete with {} packages installed.",
@@ -85,9 +110,16 @@ pub fn from_url<I, P: ?Sized>(url: &str,
     Ok(pkg_data)
 }
 
-pub fn from_archive<P1: ?Sized, P2: ?Sized>(url: &str, path: &P1, cache_key_path: &P2) -> Result<()>
+pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
+                                                                    path: &P1,
+                                                                    fs_root_path: &P2,
+                                                                    cache_artifact_path: &P3,
+                                                                    cache_key_path: &P4)
+                                                                    -> Result<()>
     where P1: AsRef<Path>,
-          P2: AsRef<Path>
+          P2: AsRef<Path>,
+          P3: AsRef<Path>,
+          P4: AsRef<Path>
 {
     println!("{}",
              Yellow.bold().paint(format!("» Installing {}", path.as_ref().display())));
@@ -95,9 +127,18 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized>(url: &str, path: &P1, cache_key_path
     let ident = try!(archive.ident());
     let tdeps = try!(archive.tdeps());
     for dep in &tdeps {
-        try!(install_from_depot(url, &dep, dep.as_ref(), cache_key_path.as_ref()));
+        try!(install_from_depot(url,
+                                &dep,
+                                dep.as_ref(),
+                                fs_root_path.as_ref(),
+                                cache_artifact_path.as_ref(),
+                                cache_key_path.as_ref()));
     }
-    try!(install_from_archive(url, archive, &ident, cache_key_path.as_ref()));
+    try!(install_from_archive(url,
+                              archive,
+                              &ident,
+                              fs_root_path.as_ref(),
+                              cache_key_path.as_ref()));
     println!("{}",
              Blue.paint(format!("★ Install of {} complete with {} packages installed.",
                                 &ident,
@@ -108,9 +149,11 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized>(url: &str, path: &P1, cache_key_path
 fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
                                               ident: &P,
                                               given_ident: &PackageIdent,
+                                              fs_root_path: &Path,
+                                              cache_artifact_path: &Path,
                                               cache_key_path: &Path)
                                               -> Result<()> {
-    match PackageInstall::load(ident.as_ref(), None) {
+    match PackageInstall::load(ident.as_ref(), Some(&fs_root_path)) {
         Ok(_) => {
             if given_ident.fully_qualified() {
                 println!("{} {}", Green.paint("→ Using"), ident.as_ref());
@@ -128,11 +171,11 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
             let mut progress = ProgressBar::default();
             let mut archive = try!(depot_client::fetch_package(url,
                                                                ident.as_ref(),
-                                                               CACHE_ARTIFACT_PATH,
+                                                               cache_artifact_path,
                                                                Some(&mut progress)));
             let ident = try!(archive.ident());
             try!(verify(url, &archive, &ident, cache_key_path));
-            try!(archive.unpack());
+            try!(archive.unpack(Some(fs_root_path)));
             println!("{} {}", Green.bold().paint("✓ Installed"), ident.as_ref());
         }
     }
@@ -142,9 +185,10 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
 fn install_from_archive(url: &str,
                         archive: PackageArchive,
                         ident: &PackageIdent,
+                        fs_root_path: &Path,
                         cache_key_path: &Path)
                         -> Result<()> {
-    match PackageInstall::load(ident.as_ref(), None) {
+    match PackageInstall::load(ident.as_ref(), Some(&fs_root_path)) {
         Ok(_) => {
             println!("{} {}", Green.paint("→ Using"), ident);
         }
@@ -153,7 +197,7 @@ fn install_from_archive(url: &str,
                      Green.bold().paint("← Extracting"),
                      ident);
             try!(verify(url, &archive, &ident, cache_key_path));
-            try!(archive.unpack());
+            try!(archive.unpack(Some(fs_root_path)));
             println!("{} {}", Green.bold().paint("✓ Installed"), ident);
         }
     }

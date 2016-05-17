@@ -41,7 +41,7 @@ use clap::ArgMatches;
 use error::{Error, Result};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
-use hcore::fs::find_command;
+use hcore::fs::{cache_artifact_path, find_command, FS_ROOT_PATH};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::util::sys::ip;
@@ -59,6 +59,8 @@ const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 /// you can skip the org CLI param if you specify this env var
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
 const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
+
+const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 
 const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
@@ -166,11 +168,13 @@ fn sub_artifact_hash(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let src = Path::new(m.value_of("SOURCE").unwrap());
     let dst = Path::new(m.value_of("ARTIFACT").unwrap());
     init();
     let pair = try!(SigKeyPair::get_latest_pair_for(&try!(origin_param_or_env(&m)),
-                                                    &default_cache_key_path()));
+                                                    &default_cache_key_path(fs_root_path)));
 
     command::artifact::sign::start(&pair, &src, &dst)
 }
@@ -184,13 +188,17 @@ fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let src = Path::new(m.value_of("ARTIFACT").unwrap());
     init();
 
-    command::artifact::verify::start(&src, &default_cache_key_path())
+    command::artifact::verify::start(&src, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_config_apply(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let default_ip = try!(ip());
     let peers_str = m.value_of("PEERS").unwrap_or(&default_ip);
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
@@ -207,7 +215,7 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     };
 
     init();
-    let cache = default_cache_key_path();
+    let cache = default_cache_key_path(fs_root_path);
     let ring_key = match m.value_of("RING") {
         Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
         None => None,
@@ -218,6 +226,8 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_file_upload(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let default_ip = try!(ip());
     let peers_str = m.value_of("PEERS").unwrap_or(&default_ip);
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
@@ -243,7 +253,7 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     };
 
     init();
-    let cache = default_cache_key_path();
+    let cache = default_cache_key_path(fs_root_path);
     let ring_key = match m.value_of("RING") {
         Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
         None => None,
@@ -268,19 +278,26 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let origin = m.value_of("ORIGIN").unwrap();
     let revision = m.value_of("REVISION");
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
 
-    command::origin::key::download::start(&url, &origin, revision, &default_cache_key_path())
+    command::origin::key::download::start(&url,
+                                          &origin,
+                                          revision,
+                                          &default_cache_key_path(fs_root_path))
 }
 
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let origin = try!(origin_param_or_env(&m));
     init();
 
-    command::origin::key::generate::start(&origin, &default_cache_key_path())
+    command::origin::key::generate::start(&origin, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
@@ -293,6 +310,8 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
 }
 
 fn sub_package_install(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
@@ -300,45 +319,59 @@ fn sub_package_install(m: &ArgMatches) -> Result<()> {
 
     try!(common::command::package::install::start(url,
                                                   ident_or_artifact,
-                                                  &default_cache_key_path()));
+                                                  Path::new(&fs_root),
+                                                  &cache_artifact_path(fs_root_path),
+                                                  &default_cache_key_path(fs_root_path)));
     Ok(())
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let ring = m.value_of("RING").unwrap();
     init();
 
-    command::ring::key::export::start(ring, &default_cache_key_path())
+    command::ring::key::export::start(ring, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_ring_key_generate(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let ring = m.value_of("RING").unwrap();
     init();
 
-    command::ring::key::generate::start(ring, &default_cache_key_path())
+    command::ring::key::generate::start(ring, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_ring_key_import() -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let mut content = String::new();
     try!(io::stdin().read_to_string(&mut content));
     init();
 
-    command::ring::key::import::start(&content, &default_cache_key_path())
+    command::ring::key::import::start(&content, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let org = try!(org_param_or_env(&m));
     let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     init();
 
-    command::service::key::generate::start(&org, &service_group, &default_cache_key_path())
+    command::service::key::generate::start(&org,
+                                           &service_group,
+                                           &default_cache_key_path(fs_root_path))
 }
 
 fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
     let user = m.value_of("USER").unwrap(); // clap required
     init();
 
-    command::user::key::generate::start(user, &default_cache_key_path())
+    command::user::key::generate::start(user, &default_cache_key_path(fs_root_path))
 }
 
 fn exec_subcommand_if_called() -> Result<()> {
@@ -356,7 +389,10 @@ fn exec_subcommand_if_called() -> Result<()> {
                     Err(_) => {
                         init();
                         let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
-                        try!(exec::command_from_pkg(SUP_CMD, &ident, &default_cache_key_path(), 0))
+                        try!(exec::command_from_pkg(SUP_CMD,
+                                                    &ident,
+                                                    &default_cache_key_path(None),
+                                                    0))
                     }
                 };
 
