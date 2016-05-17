@@ -217,12 +217,12 @@
 //! <symkey_base64>
 //! ```
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use sodiumoxide::init as nacl_init;
 
 use env as henv;
-use fs::CACHE_KEY_PATH;
+use fs::cache_key_path;
 
 /// The suffix on the end of a public sig/box file
 static PUBLIC_KEY_SUFFIX: &'static str = "pub";
@@ -265,8 +265,11 @@ pub mod artifact;
 pub mod hash;
 pub mod keys;
 
-pub fn default_cache_key_path() -> PathBuf {
-    PathBuf::from(henv::var(CACHE_KEY_PATH_ENV_VAR).unwrap_or(CACHE_KEY_PATH.to_string()))
+pub fn default_cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
+    match henv::var(CACHE_KEY_PATH_ENV_VAR) {
+        Ok(val) => PathBuf::from(val),
+        Err(_) => cache_key_path(fs_root_path),
+    }
 }
 
 pub fn init() {
