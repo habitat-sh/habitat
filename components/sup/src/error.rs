@@ -92,6 +92,7 @@ pub enum Error {
     CommandNotImplemented,
     DbInvalidPath,
     DepotClient(depot_client::Error),
+    ExecCommandNotFound(String),
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
@@ -137,6 +138,9 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::ActorError(ref err) => format!("Actor returned error: {:?}", err),
+            Error::ExecCommandNotFound(ref c) => {
+                format!("`{}' was not found on the filesystem or in PATH", c)
+            }
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::CommandNotImplemented => format!("Command is not yet implemented!"),
@@ -221,6 +225,7 @@ impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
             Error::ActorError(_) => "A running actor responded with an error",
+            Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::CommandNotImplemented => "Command is not yet implemented!",

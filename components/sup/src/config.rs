@@ -28,7 +28,8 @@ static LOGKEY: &'static str = "CFG";
 pub enum Command {
     Config,
     Start,
-    Shell,
+    ShellBash,
+    ShellSh,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -57,7 +58,8 @@ impl FromStr for Command {
     fn from_str(s: &str) -> Result<Command, SupError> {
         match s {
             "config" => Ok(Command::Config),
-            "sh" => Ok(Command::Shell),
+            "bash" => Ok(Command::ShellBash),
+            "sh" => Ok(Command::ShellSh),
             "start" => Ok(Command::Start),
             _ => Err(sup_error!(Error::CommandNotImplemented)),
         }
