@@ -6,6 +6,7 @@ endif
 ifneq ($(IN_DOCKER),)
 	build_args := --build-arg HAB_DEPOT_URL=$(HAB_DEPOT_URL)
 	run_args := -e HAB_DEPOT_URL=$(HAB_DEPOT_URL)
+	run_args := $(run_args) -e HAB_ORIGIN=$(HAB_ORIGIN)
 	ifneq (${http_proxy},)
 		build_args := $(build_args) --build-arg http_proxy="${http_proxy}"
 		run_args := $(run_args) -e http_proxy="${http_proxy}"
