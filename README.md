@@ -276,6 +276,16 @@ systems, cause thats all we're up to).
 The Habitat Builder web application is in the components/builder-web directory. See
 [its README](components/builder-web/README.md) for more information.
 
+## Deploying
+
+There is a [Terraform](https://www.terraform.io/) configuration in the terraform
+directory.
+
+This launches the habitat-builder-web app running on an instance behind a load
+balancer. It also creates a load balancer for the builder API.
+
+It current only works on the chef-aws account in the us-west-2 region.
+
 ## Pull Request Review and Merge Automation
 
 Habitat uses several bots to automate the review and merging of pull
@@ -288,7 +298,7 @@ routed to a [homu](https://github.com/barosl/homu) bot that will
 automatically merge a PR when sufficient reviewers have provided a +1
 (or r+ in homu terminology).
 
-# License
+## License
 
 Copyright:: Copyright (c) 2015-2016, Chef Software, Inc.
 
