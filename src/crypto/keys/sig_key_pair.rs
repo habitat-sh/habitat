@@ -5,17 +5,21 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use rustc_serialize::base64::{STANDARD, ToBase64};
+use rustc_serialize::hex::ToHex;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
 use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
+use sodiumoxide::randombytes::randombytes;
 
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, write_keypair_files, KeyPair, KeyType};
-use super::super::{PUBLIC_KEY_SUFFIX, SECRET_SIG_KEY_SUFFIX};
+            read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
+use super::super::{PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUFFIX,
+                   SECRET_SIG_KEY_VERSION, hash};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
@@ -52,8 +56,8 @@ impl SigKeyPair {
                                  &name_with_rev,
                                  Some(&public_keyfile),
                                  Some(&pk[..].to_base64(STANDARD).into_bytes()),
-                                 &secret_keyfile,
-                                 &sk[..].to_base64(STANDARD).into_bytes()));
+                                 Some(&secret_keyfile),
+                                 Some(&sk[..].to_base64(STANDARD).into_bytes())));
         Ok((pk, sk))
     }
 
@@ -141,6 +145,180 @@ impl SigKeyPair {
         Ok(path)
     }
 
+    /// Writes a sig key (public or secret) to the key cache from the contents of a string slice.
+    ///
+    /// The return is a `Result` of a `String` containing the key's name with revision.
+    ///
+    /// # Examples
+    ///
+    /// With a public key:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempdir;
+    ///
+    /// use std::fs::File;
+    /// use std::io::Read;
+    /// use habitat_core::crypto::SigKeyPair;
+    /// use habitat_core::crypto::keys::PairType;
+    /// use tempdir::TempDir;
+    ///
+    /// fn main() {
+    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let content = "SIG-PUB-1
+    /// unicorn-20160517220007
+    ///
+    /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
+    ///     let key_path = cache.path().join("unicorn-20160517220007.pub");
+    ///
+    ///     let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache.path()).unwrap();
+    ///     assert_eq!(pair_type, PairType::Public);
+    ///     assert_eq!(pair.name_with_rev(), "unicorn-20160517220007");
+    ///     assert!(key_path.is_file());
+    ///     let mut f = File::open(key_path).unwrap();
+    ///     let mut key_content = String::new();
+    ///     f.read_to_string(&mut key_content).unwrap();
+    ///     assert_eq!(&key_content, content);
+    /// }
+    /// ```
+    ///
+    /// With a secret key:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    /// extern crate tempdir;
+    ///
+    /// use std::fs::File;
+    /// use std::io::Read;
+    /// use habitat_core::crypto::SigKeyPair;
+    /// use habitat_core::crypto::keys::PairType;
+    /// use tempdir::TempDir;
+    ///
+    /// fn main() {
+    ///     let cache = TempDir::new("key_cache").unwrap();
+    ///     let content = "SIG-SEC-1
+    /// unicorn-20160517220007
+    ///
+    /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
+    ///     let key_path = cache.path().join("unicorn-20160517220007.sig.key");
+    ///
+    ///     let (pair, pair_type) = SigKeyPair::write_file_from_str(content, cache.path()).unwrap();
+    ///     assert_eq!(pair_type, PairType::Secret);
+    ///     assert_eq!(pair.name_with_rev(), "unicorn-20160517220007");
+    ///     assert!(key_path.is_file());
+    ///     let mut f = File::open(key_path).unwrap();
+    ///     let mut key_content = String::new();
+    ///     f.read_to_string(&mut key_content).unwrap();
+    ///     assert_eq!(&key_content, content);
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If there is a key version mismatch
+    /// * If the key version is missing
+    /// * If the key name with revision is missing
+    /// * If the key value (the Bas64 payload) is missing
+    /// * If the key file cannot be written to disk
+    /// * If an existing key is already installed, but the new content is different from the
+    /// existing
+    pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<(Self, PairType)> {
+        let mut lines = content.lines();
+        let pair_type = match lines.next() {
+            Some(val) => {
+                match val {
+                    PUBLIC_SIG_KEY_VERSION => PairType::Public,
+                    SECRET_SIG_KEY_VERSION => PairType::Secret,
+                    _ => {
+                        return Err(Error::CryptoError(format!("Unsupported key version: {}", val)))
+                    }
+                }
+            }
+            None => {
+                let msg = format!("write_sig_key_from_str:1 Malformed sig key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let name_with_rev = match lines.next() {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_sig_key_from_str:2 Malformed sig key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let key_body = match lines.nth(1) {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let suffix = match pair_type {
+            PairType::Public => PUBLIC_KEY_SUFFIX,
+            PairType::Secret => SECRET_SIG_KEY_SUFFIX,
+        };
+        let keyfile = mk_key_filename(cache_key_path.as_ref(), &name_with_rev, &suffix);
+        let tmpfile = {
+            let mut t = keyfile.clone();
+            t.set_file_name(format!("{}.{}",
+                                    &keyfile.file_name().unwrap().to_str().unwrap(),
+                                    &randombytes(6).as_slice().to_hex()));
+            TmpKeyfile { path: t }
+        };
+
+        debug!("Writing temp key file {}", tmpfile.path.display());
+        match pair_type {
+            PairType::Public => {
+                try!(write_keypair_files(KeyType::Sig,
+                                         &name_with_rev,
+                                         Some(&tmpfile.path),
+                                         Some(&key_body.as_bytes().to_vec()),
+                                         None,
+                                         None));
+            }
+            PairType::Secret => {
+                try!(write_keypair_files(KeyType::Sig,
+                                         &name_with_rev,
+                                         None,
+                                         None,
+                                         Some(&tmpfile.path),
+                                         Some(&key_body.as_bytes().to_vec())));
+            }
+        }
+
+        if Path::new(&keyfile).is_file() {
+            let existing_hash = try!(hash::hash_file(&keyfile));
+            let new_hash = try!(hash::hash_file(&tmpfile.path));
+            if existing_hash != new_hash {
+                let msg = format!("Existing key file {} found but new version hash is different, \
+                                  failing to write new file over existing. ({} = {}, {} = {})",
+                                  keyfile.display(),
+                                  keyfile.display(),
+                                  existing_hash,
+                                  tmpfile.path.display(),
+                                  new_hash);
+                return Err(Error::CryptoError(msg));
+            } else {
+                // Otherwise, hashes match and we can skip writing over the exisiting file
+                debug!("New content hash matches existing file {} hash, removing temp key file {}.",
+                       keyfile.display(),
+                       tmpfile.path.display());
+                try!(fs::remove_file(&tmpfile.path));
+            }
+        } else {
+            debug!("Moving {} to {}", tmpfile.path.display(), keyfile.display());
+            try!(fs::rename(&tmpfile.path, keyfile));
+        }
+
+        // Now load and return the pair to ensure everything wrote out
+        Ok((try!(Self::get_pair_for(&name_with_rev, cache_key_path)), pair_type))
+    }
+
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
         let public_keyfile = mk_key_filename(cache_key_path, key_with_rev, PUBLIC_KEY_SUFFIX);
         let bytes = try!(read_key_bytes(&public_keyfile));
@@ -168,11 +346,13 @@ impl SigKeyPair {
 
 #[cfg(test)]
 mod test {
-    use std::fs;
+    use std::fs::{self, File};
+    use std::io::Read;
 
     use tempdir::TempDir;
 
     use super::SigKeyPair;
+    use super::super::PairType;
     use super::super::super::test_support::*;
 
     static VALID_KEY: &'static str = "origin-key-valid-20160509190508.sig.key";
@@ -335,5 +515,165 @@ mod test {
     fn get_secret_key_path_nonexistant() {
         let cache = TempDir::new("key_cache").unwrap();
         SigKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
+    }
+
+    #[test]
+    fn write_file_from_str_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
+        let new_key_file = cache.path().join(VALID_KEY);
+
+        assert_eq!(new_key_file.is_file(), false);
+        let (pair, pair_type) = SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
+        assert_eq!(pair_type, PairType::Secret);
+        assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
+        assert!(new_key_file.is_file());
+
+        let new_content = {
+            let mut new_content_file = File::open(new_key_file).unwrap();
+            let mut new_content = String::new();
+            new_content_file.read_to_string(&mut new_content).unwrap();
+            new_content
+        };
+
+        assert_eq!(new_content, content);
+    }
+
+    #[test]
+    fn write_file_from_str_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let content = fixture_as_string(&format!("keys/{}", VALID_PUB));
+        let new_key_file = cache.path().join(VALID_PUB);
+
+        assert_eq!(new_key_file.is_file(), false);
+        let (pair, pair_type) = SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
+        assert_eq!(pair_type, PairType::Public);
+        assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
+        assert!(new_key_file.is_file());
+
+        let new_content = {
+            let mut new_content_file = File::open(new_key_file).unwrap();
+            let mut new_content = String::new();
+            new_content_file.read_to_string(&mut new_content).unwrap();
+            new_content
+        };
+
+        assert_eq!(new_content, content);
+    }
+
+    #[test]
+    fn write_file_from_str_with_exisiting_identical_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
+        let new_key_file = cache.path().join(VALID_KEY);
+
+        // install the key into the cache
+        fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
+
+        let (pair, pair_type) = SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
+        assert_eq!(pair_type, PairType::Secret);
+        assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
+        assert!(new_key_file.is_file());
+    }
+
+    #[test]
+    fn write_file_from_str_with_exisiting_identical_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let content = fixture_as_string(&format!("keys/{}", VALID_PUB));
+        let new_key_file = cache.path().join(VALID_PUB);
+
+        // install the key into the cache
+        fs::copy(fixture(&format!("keys/{}", VALID_PUB)), &new_key_file).unwrap();
+
+        let (pair, pair_type) = SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
+        assert_eq!(pair_type, PairType::Public);
+        assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
+        assert!(new_key_file.is_file());
+    }
+
+    #[test]
+    #[should_panic(expected = "Unsupported key version")]
+    fn write_file_from_str_unsupported_version_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let content = fixture_as_string("keys/origin-key-invalid-version-20160518021451.sig.key");
+
+        SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Unsupported key version")]
+    fn write_file_from_str_unsupported_version_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let content = fixture_as_string("keys/origin-key-invalid-version-20160518021451.pub");
+
+        SigKeyPair::write_file_from_str(&content, cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "write_sig_key_from_str:1 Malformed sig key string")]
+    fn write_file_from_str_missing_version() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("", cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "write_sig_key_from_str:2 Malformed sig key string")]
+    fn write_file_from_str_missing_name_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-SEC-1\n", cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "write_sig_key_from_str:2 Malformed sig key string")]
+    fn write_file_from_str_missing_name_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-PUB-1\n", cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    fn write_file_from_str_missing_key_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-SEC-1\nim-in-trouble-123\n", cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    fn write_file_from_str_missing_key_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-PUB-1\nim-in-trouble-123\n", cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Existing key file")]
+    fn write_file_from_str_key_exists_but_hashes_differ_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let key = fixture("keys/origin-key-valid-20160509190508.sig.key");
+        fs::copy(key,
+                 cache.path().join("origin-key-valid-20160509190508.sig.key"))
+            .unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\nsomething",
+                                        cache.path())
+            .unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "Existing key file")]
+    fn write_file_from_str_key_exists_but_hashes_differ_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let key = fixture("keys/origin-key-valid-20160509190508.pub");
+        fs::copy(key,
+                 cache.path().join("origin-key-valid-20160509190508.pub"))
+            .unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-PUB-1\norigin-key-valid-20160509190508\n\nsomething",
+                                        cache.path())
+            .unwrap();
     }
 }
