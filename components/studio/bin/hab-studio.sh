@@ -67,6 +67,7 @@ FLAGS:
     -V  Prints version information
 
 OPTIONS:
+    -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
     -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default)
@@ -82,6 +83,8 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
+    HAB_ORIGIN        Propagates this variable into any studios
+    HAB_ORIGIN_KEYS   Installs secret keys (\`-k' option overrides)
     HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
     HAB_STUDIO_ROOT   Sets a Studio root (\`-r' option overrides)
     NO_SRC_PATH       If set, do not mount source path (\`-n' flag overrides)
@@ -629,6 +632,11 @@ chroot_env() {
   if [ -n "${HAB_DEPOT_URL:-}" ]; then
     env="$env HAB_DEPOT_URL=$HAB_DEPOT_URL"
   fi
+  # If a Habitat origin name is set, then propagate it into the Studio's
+  # environment.
+  if [ -n "${HAB_ORIGIN:-}" ]; then
+    env="$env HAB_ORIGIN=$HAB_ORIGIN"
+  fi
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
   if [ -n "${http_proxy:-}" ]; then
@@ -707,6 +715,8 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 bb="$libexec_path/busybox"
 #
 bpm="$libexec_path/hab-bpm"
+#
+hab="$libexec_path/hab"
 # The current version of Habitat Studio
 version='@version@'
 # The author of this program
@@ -718,10 +728,13 @@ program=$($bb basename $0)
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts ":nr:s:t:vqVh" opt; do
+while getopts ":nk:r:s:t:vqVh" opt; do
   case $opt in
     n)
       NO_SRC_PATH=true
+      ;;
+    k)
+      HAB_ORIGIN_KEYS=$OPTARG
       ;;
     r)
       HAB_STUDIO_ROOT=$OPTARG
@@ -773,6 +786,10 @@ dir_name="$(echo $SRC_PATH | $bb sed -e 's,^/$,root,' -e 's,^/,,' -e 's,/,--,g')
 # The root path of the Studio, which defaults to
 # `$HAB_STUDIOS_HOME/<SRC_PATH_AS_STRING>`.
 : ${HAB_STUDIO_ROOT:=$HAB_STUDIOS_HOME/$dir_name}
+# A collection of comma-seperated keys to be copied into the Studio's key
+# cache directory. If this environment variable is not set, use the value
+# from `$HAB_ORIGIN` if set, otherwise, it's empty.
+: ${HAB_ORIGIN_KEYS:=${HAB_ORIGIN:-}}
 # The Studio configuration file which is used to determine commands to run,
 # extra environment variables, etc. Note that a valid Studio will have this
 # file at the root of its filesystem.

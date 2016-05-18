@@ -10,12 +10,23 @@ studio_run_command="$HAB_ROOT_PATH/bin/hab-bpm exec core/hab-backline bash -l"
 pkgs="core/hab-bpm core/hab-backline core/hab-studio"
 
 finish_setup() {
+  if [ -n "$HAB_ORIGIN_KEYS" ]; then
+    for key in $(echo $HAB_ORIGIN_KEYS | $bb tr ',' ' '); do
+      info "Importing $key secret origin key"
+      # There's a method to this madness: `$hab` is the raw path to `hab`
+      # will use the outside cache key path, whereas the `_hab` function has
+      # the `$FS_ROOT` set for the inside of the Studio. We're copying from
+      # the outside in, using `hab` twice. I love my job.
+      $hab origin key export --type secret $key | _hab origin key import
+    done
+  fi
+
   if [ -x "$HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-bpm" ]; then
     return 0
   fi
 
   for pkg in $pkgs; do
-    _bpm install $pkg
+    _hab install $pkg
   done
 
   local bpm_path=$(_pkgpath_for core/hab-bpm)
@@ -69,15 +80,15 @@ alias fgrep='fgrep --color=auto'
 
 PROFILE
 
-  # TODO FIN: Remove when public origin keys are downloaded on package installation
-  $bb mkdir -p $HAB_STUDIO_ROOT$HAB_ROOT_PATH/cache/keys
-  (cd $HAB_STUDIO_ROOT$HAB_ROOT_PATH/cache/keys; $bb wget http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-20160423193745.pub)
-
   studio_env_command="$coreutils_path/bin/env"
 }
 
 _bpm() {
   $bb env BUSYBOX=$bb FS_ROOT=$HAB_STUDIO_ROOT $bb sh $bpm $*
+}
+
+_hab() {
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT $hab $*
 }
 
 _pkgpath_for() {

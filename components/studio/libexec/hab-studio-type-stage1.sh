@@ -12,6 +12,17 @@ studio_run_command=
 : ${TAR_DIR:=/tmp}
 
 finish_setup() {
+  if [ -n "$HAB_ORIGIN_KEYS" ]; then
+    for key in $(echo $HAB_ORIGIN_KEYS | $bb tr ',' ' '); do
+      info "Importing $key secret origin key"
+      # There's a method to this madness: `$hab` is the raw path to `hab`
+      # will use the outside cache key path, whereas the `_hab` function has
+      # the `$FS_ROOT` set for the inside of the Studio. We're copying from
+      # the outside in, using `hab` twice. I love my job.
+      $hab origin key export --type secret $key | _hab origin key import
+    done
+  fi
+
   if [ -x "$HAB_STUDIO_ROOT/tools/bin/bash" ]; then
     return 0
   fi
@@ -56,4 +67,8 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 PROFILE
+}
+
+_hab() {
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT $hab $*
 }

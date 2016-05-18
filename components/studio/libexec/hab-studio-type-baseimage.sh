@@ -34,7 +34,7 @@ finish_setup() {
   done
 
   for pkg in $base_pkgs; do
-    _bpm install $pkg
+    _hab install $pkg
   done
 
   local bpm_path=$(_pkgpath_for core/hab-bpm)
@@ -129,15 +129,15 @@ EOT
 
   $bb rm $HAB_STUDIO_ROOT$HAB_CACHE_ARTIFACT_PATH/*
 
-  # TODO FIN: Remove when public origin keys are downloaded on package installation
-  $bb mkdir -p $HAB_STUDIO_ROOT$HAB_ROOT_PATH/cache/keys
-  (cd $HAB_STUDIO_ROOT$HAB_ROOT_PATH/cache/keys; $bb wget http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-20160423193745.pub)
-
   studio_env_command="$busybox_path/bin/env"
 }
 
 _bpm() {
   $bb env BUSYBOX=$bb FS_ROOT=$HAB_STUDIO_ROOT $bb sh $bpm $*
+}
+
+_hab() {
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT $hab $*
 }
 
 _pkgpath_for() {
