@@ -251,11 +251,11 @@ static SECRET_KEY_PERMISSIONS: &'static str = "0400";
 static HART_FORMAT_VERSION: &'static str = "HART-1";
 static BOX_FORMAT_VERSION: &'static str = "BOX-1";
 
-static PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
-static SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";
-static PUBLIC_BOX_KEY_VERSION: &'static str = "BOX-PUB-1";
-static SECRET_BOX_KEY_VERSION: &'static str = "BOX-SEC-1";
-static SECRET_SYM_KEY_VERSION: &'static str = "SYM-SEC-1";
+const PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
+const SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";
+const PUBLIC_BOX_KEY_VERSION: &'static str = "BOX-PUB-1";
+const SECRET_BOX_KEY_VERSION: &'static str = "BOX-SEC-1";
+const SECRET_SYM_KEY_VERSION: &'static str = "SYM-SEC-1";
 
 pub use self::keys::box_key_pair::BoxKeyPair;
 pub use self::keys::sym_key::SymKey;

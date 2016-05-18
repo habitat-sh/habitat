@@ -16,7 +16,7 @@ use sodiumoxide::randombytes::randombytes;
 
 use error::{Error, Result};
 use super::{get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev,
-            read_key_bytes, write_keypair_files, KeyPair, KeyType};
+            read_key_bytes, write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile};
 use super::super::{SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION, hash};
 
 pub type SymKey = KeyPair<(), SymSecretKey>;
@@ -246,6 +246,7 @@ impl SymKey {
     /// extern crate tempdir;
     ///
     /// use habitat_core::crypto::SymKey;
+    /// use habitat_core::crypto::keys::PairType;
     /// use tempdir::TempDir;
     ///
     /// fn main() {
@@ -255,7 +256,8 @@ impl SymKey {
     ///
     /// RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE=";
     ///
-    ///     let pair = SymKey::write_file_from_str(content, cache.path()).unwrap();
+    ///     let (pair, pair_type) = SymKey::write_file_from_str(content, cache.path()).unwrap();
+    ///     assert_eq!(pair_type, PairType::Secret);
     ///     assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
     ///     assert!(cache.path().join("beyonce-20160504220722.sym.key").is_file());
     /// }
@@ -272,7 +274,7 @@ impl SymKey {
     /// existing
     pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
                                                         cache_key_path: &P)
-                                                        -> Result<Self> {
+                                                        -> Result<(Self, PairType)> {
         let mut lines = content.lines();
         let _ = match lines.next() {
             Some(val) => {
@@ -311,45 +313,45 @@ impl SymKey {
             t.set_file_name(format!("{}.{}",
                                     &secret_keyfile.file_name().unwrap().to_str().unwrap(),
                                     &randombytes(6).as_slice().to_hex()));
-            t
+            TmpKeyfile { path: t }
         };
 
-        debug!("Writing temp key file {}", tmpfile.display());
+        debug!("Writing temp key file {}", tmpfile.path.display());
         try!(write_keypair_files(KeyType::Sym,
                                  &name_with_rev,
                                  None,
                                  None,
-                                 &tmpfile,
-                                 &sk.as_bytes().to_vec()));
+                                 Some(&tmpfile.path),
+                                 Some(&sk.as_bytes().to_vec())));
 
         if Path::new(&secret_keyfile).is_file() {
             let existing_hash = try!(hash::hash_file(&secret_keyfile));
-            let new_hash = try!(hash::hash_file(&tmpfile));
+            let new_hash = try!(hash::hash_file(&tmpfile.path));
             if existing_hash != new_hash {
                 let msg = format!("Existing key file {} found but new version hash is different, \
                                   failing to write new file over existing. ({} = {}, {} = {})",
                                   secret_keyfile.display(),
                                   secret_keyfile.display(),
                                   existing_hash,
-                                  tmpfile.display(),
+                                  tmpfile.path.display(),
                                   new_hash);
                 return Err(Error::CryptoError(msg));
             } else {
                 // Otherwise, hashes match and we can skip writing over the exisiting file
                 debug!("New content hash matches existing file {} hash, removing temp key file {}.",
                        secret_keyfile.display(),
-                       tmpfile.display());
-                try!(fs::remove_file(tmpfile));
+                       tmpfile.path.display());
+                try!(fs::remove_file(&tmpfile.path));
             }
         } else {
             debug!("Moving {} to {}",
-                   tmpfile.display(),
+                   tmpfile.path.display(),
                    secret_keyfile.display());
-            try!(fs::rename(tmpfile, secret_keyfile));
+            try!(fs::rename(&tmpfile.path, secret_keyfile));
         }
 
         // Now load and return the pair to ensure everything wrote out
-        Self::get_pair_for(&name_with_rev, cache_key_path)
+        Ok((try!(Self::get_pair_for(&name_with_rev, cache_key_path)), PairType::Secret))
     }
 
     fn mk_key_name_for_ring(name: &str, revision: &str) -> String {
@@ -369,8 +371,8 @@ impl SymKey {
                                  &name_with_rev,
                                  None,
                                  None,
-                                 &secret_keyfile,
-                                 &sk[..].to_base64(STANDARD).into_bytes()));
+                                 Some(&secret_keyfile),
+                                 Some(&sk[..].to_base64(STANDARD).into_bytes())));
         Ok((pk, sk))
     }
 }
@@ -383,6 +385,7 @@ mod test {
     use tempdir::TempDir;
 
     use super::SymKey;
+    use super::super::PairType;
     use super::super::super::test_support::*;
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
@@ -584,7 +587,8 @@ mod test {
         let new_key_file = cache.path().join(VALID_KEY);
 
         assert_eq!(new_key_file.is_file(), false);
-        let pair = SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        let (pair, pair_type) = SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        assert_eq!(pair_type, PairType::Secret);
         assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
 
@@ -607,7 +611,8 @@ mod test {
         // install the key into the cache
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &new_key_file).unwrap();
 
-        let pair = SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        let (pair, pair_type) = SymKey::write_file_from_str(&content, cache.path()).unwrap();
+        assert_eq!(pair_type, PairType::Secret);
         assert_eq!(pair.name_with_rev(), VALID_NAME_WITH_REV);
         assert!(new_key_file.is_file());
     }

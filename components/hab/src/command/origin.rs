@@ -66,6 +66,35 @@ pub mod key {
         }
     }
 
+    pub mod export {
+        use std::io;
+        use std::fs::File;
+        use std::path::Path;
+
+        use hcore::crypto::SigKeyPair;
+        use hcore::crypto::keys::PairType;
+
+        use error::Result;
+
+        pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
+            let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
+            let path = match pair_type {
+                PairType::Public => {
+                    try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(), cache))
+                }
+                PairType::Secret => {
+                    try!(SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache))
+                }
+            };
+            let mut file = try!(File::open(&path));
+            debug!("Streaming file contents of {} {} to standard out",
+                   &pair_type,
+                   &path.display());
+            try!(io::copy(&mut file, &mut io::stdout()));
+            Ok(())
+        }
+    }
+
     pub mod generate {
         use std::path::Path;
 
@@ -80,6 +109,26 @@ pub mod key {
             let pair = try!(SigKeyPair::generate_pair_for_origin(origin, cache));
             println!("{}",
                      Blue.paint(format!("★ Generated origin key pair {}.",
+                                        &pair.name_with_rev())));
+            Ok(())
+        }
+    }
+
+    pub mod import {
+        use std::path::Path;
+
+        use ansi_term::Colour::{Blue, Yellow};
+        use hcore::crypto::SigKeyPair;
+
+        use error::Result;
+
+        pub fn start(content: &str, cache: &Path) -> Result<()> {
+            println!("{}",
+                     Yellow.bold().paint(format!("» Importing origin key on standard in")));
+            let (pair, pair_type) = try!(SigKeyPair::write_file_from_str(content, cache));
+            println!("{}",
+                     Blue.paint(format!("★ Imported {} origin key {}.",
+                                        &pair_type,
                                         &pair.name_with_rev())));
             Ok(())
         }

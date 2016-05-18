@@ -235,8 +235,8 @@ impl BoxKeyPair {
                                  &name_with_rev,
                                  Some(&public_keyfile),
                                  Some(&pk[..].to_base64(STANDARD).into_bytes()),
-                                 &secret_keyfile,
-                                 &sk[..].to_base64(STANDARD).into_bytes()));
+                                 Some(&secret_keyfile),
+                                 Some(&sk[..].to_base64(STANDARD).into_bytes())));
         Ok((pk, sk))
     }
 

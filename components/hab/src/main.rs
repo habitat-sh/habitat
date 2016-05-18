@@ -41,6 +41,7 @@ use clap::ArgMatches;
 use error::{Error, Result};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
+use hcore::crypto::keys::PairType;
 use hcore::fs::{cache_artifact_path, find_command, FS_ROOT_PATH};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
@@ -105,7 +106,9 @@ fn start() -> Result<()> {
                 ("key", Some(m)) => {
                     match m.subcommand() {
                         ("download", Some(sc)) => try!(sub_origin_key_download(sc)),
+                        ("export", Some(sc)) => try!(sub_origin_key_export(sc)),
                         ("generate", Some(sc)) => try!(sub_origin_key_generate(sc)),
+                        ("import", Some(_)) => try!(sub_origin_key_import()),
                         ("upload", Some(sc)) => try!(sub_origin_key_upload(sc)),
                         _ => unreachable!(),
                     }
@@ -291,6 +294,16 @@ fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
                                           &default_cache_key_path(fs_root_path))
 }
 
+fn sub_origin_key_export(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+    let origin = m.value_of("ORIGIN").unwrap();
+    let pair_type = try!(PairType::from_str(m.value_of("PAIR_TYPE").unwrap()));
+    init();
+
+    command::origin::key::export::start(origin, pair_type, &default_cache_key_path(fs_root_path))
+}
+
 fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
@@ -298,6 +311,16 @@ fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
     init();
 
     command::origin::key::generate::start(&origin, &default_cache_key_path(fs_root_path))
+}
+
+fn sub_origin_key_import() -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+    let mut content = String::new();
+    try!(io::stdin().read_to_string(&mut content));
+    init();
+
+    command::origin::key::import::start(&content, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
