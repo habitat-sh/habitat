@@ -1,0 +1,8 @@
+[Unit]
+Description=Habitat Builder Web
+
+[Service]
+ExecStart=/usr/bin/hab start --strategy=at-once core/habitat-builder-web
+
+[Install]
+WantedBy=default.target

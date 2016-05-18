@@ -1,5 +1,6 @@
 .DS_Store
 target
+terraform.tfstate*
 .delivery/cli.toml
 .tags*
 log/

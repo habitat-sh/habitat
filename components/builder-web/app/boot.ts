@@ -9,21 +9,34 @@
 ///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
 
 import "angular2/bundles/angular2-polyfills";
-import {AppComponent} from "./AppComponent";
-import {AppStore} from "./AppStore";
-import {bind, enableProdMode} from "angular2/core";
-import {LocationStrategy, HashLocationStrategy, ROUTER_PROVIDERS} from "angular2/router";
-import {bootstrap} from "angular2/platform/browser";
+import { bind, enableProdMode } from "angular2/core";
+import { bootstrap } from "angular2/platform/browser";
+import { LocationStrategy, HashLocationStrategy, ROUTER_PROVIDERS }
+    from "angular2/router";
+
+import { AppComponent } from "./AppComponent";
+import { AppStore } from "./AppStore";
 import config from "./config";
+
+// This mess can be taken out once we're live.
+let goingToBoot = true;
 
 if (config["environment"] === "production") {
     enableProdMode();
+
+    // Don't load if we're on habitat.sh and the "friends" cookie is not set
+    if (window.location.host.endsWith("habitat.sh") &&
+        !document.cookie.includes("habitat_is_not_bldr")) {
+        goingToBoot = false;
+    }
 }
 
-bootstrap(AppComponent, [
-    AppStore,
-    ROUTER_PROVIDERS,
-    // Temporarily adding this until we have nginx handle routing non-existent
-    // pages.
-    bind(LocationStrategy).toClass(HashLocationStrategy)
-]);
+if (goingToBoot) {
+    bootstrap(AppComponent, [
+        AppStore,
+        ROUTER_PROVIDERS,
+        // Temporarily adding this until we have nginx handle routing non-existent
+        // pages.
+        bind(LocationStrategy).toClass(HashLocationStrategy)
+    ]);
+}
