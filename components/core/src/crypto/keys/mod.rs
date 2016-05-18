@@ -7,10 +7,13 @@
 
 use std::collections::HashSet;
 use std::fs;
+use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
+use std::result;
+use std::str::FromStr;
 
 use regex::Regex;
 use rustc_serialize::base64::FromBase64;
@@ -36,6 +39,48 @@ enum KeyType {
     Sig,
     Box,
     Sym,
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub enum PairType {
+    Public,
+    Secret,
+}
+
+impl fmt::Display for PairType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            PairType::Public => write!(f, "public"),
+            PairType::Secret => write!(f, "secret"),
+        }
+    }
+}
+
+impl FromStr for PairType {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        match value {
+            "public" => Ok(PairType::Public),
+            "secret" => Ok(PairType::Secret),
+            _ => {
+                return Err(Error::CryptoError(format!("Invalid PairType conversion from {}",
+                                                      value)))
+            }
+        }
+    }
+}
+
+struct TmpKeyfile {
+    pub path: PathBuf,
+}
+
+impl Drop for TmpKeyfile {
+    fn drop(&mut self) {
+        if self.path.is_file() {
+            let _ = fs::remove_file(&self.path);
+        }
+    }
 }
 
 /// A pair of related keys (public and secret) which have a name and revision.
@@ -270,8 +315,8 @@ fn write_keypair_files(key_type: KeyType,
                        keyname: &str,
                        public_keyfile: Option<&Path>,
                        public_content: Option<&Vec<u8>>,
-                       secret_keyfile: &Path,
-                       secret_content: &Vec<u8>)
+                       secret_keyfile: Option<&Path>,
+                       secret_content: Option<&Vec<u8>>)
                        -> Result<()> {
     if let Some(public_keyfile) = public_keyfile {
         let public_version = match key_type {
@@ -282,7 +327,7 @@ fn write_keypair_files(key_type: KeyType,
 
         let public_content = match public_content {
             Some(c) => c,
-            None => return Err(Error::CryptoError(format!("Invalid calling of this function"))),
+            None => panic!("Invalid calling of this function"),
         };
 
         if let Some(pk_dir) = public_keyfile.parent() {
@@ -290,8 +335,8 @@ fn write_keypair_files(key_type: KeyType,
         } else {
             return Err(Error::BadKeyPath(public_keyfile.to_string_lossy().into_owned()));
         }
-        if public_keyfile.exists() && public_keyfile.is_file() {
-            return Err(Error::CryptoError(format!("Public keyfile already exists {}",
+        if public_keyfile.exists() {
+            return Err(Error::CryptoError(format!("Public keyfile or a directory already exists {}",
                                                   public_keyfile.display())));
         }
         let public_file = try!(File::create(public_keyfile));
@@ -301,25 +346,33 @@ fn write_keypair_files(key_type: KeyType,
         try!(perm::set_permissions(public_keyfile, PUBLIC_KEY_PERMISSIONS));
     }
 
-    let secret_version = match key_type {
-        KeyType::Sig => SECRET_SIG_KEY_VERSION,
-        KeyType::Box => SECRET_BOX_KEY_VERSION,
-        KeyType::Sym => SECRET_SYM_KEY_VERSION,
-    };
-    if let Some(sk_dir) = secret_keyfile.parent() {
-        try!(fs::create_dir_all(sk_dir));
-    } else {
-        return Err(Error::BadKeyPath(secret_keyfile.to_string_lossy().into_owned()));
+    if let Some(secret_keyfile) = secret_keyfile {
+        let secret_version = match key_type {
+            KeyType::Sig => SECRET_SIG_KEY_VERSION,
+            KeyType::Box => SECRET_BOX_KEY_VERSION,
+            KeyType::Sym => SECRET_SYM_KEY_VERSION,
+        };
+
+        let secret_content = match secret_content {
+            Some(c) => c,
+            None => panic!("Invalid calling of this function"),
+        };
+
+        if let Some(sk_dir) = secret_keyfile.parent() {
+            try!(fs::create_dir_all(sk_dir));
+        } else {
+            return Err(Error::BadKeyPath(secret_keyfile.to_string_lossy().into_owned()));
+        }
+        if secret_keyfile.exists() {
+            return Err(Error::CryptoError(format!("Secret keyfile or a directory already exists {}",
+                                                  secret_keyfile.display())));
+        }
+        let secret_file = try!(File::create(secret_keyfile));
+        let mut secret_writer = BufWriter::new(&secret_file);
+        try!(write!(secret_writer, "{}\n{}\n\n", secret_version, keyname));
+        try!(secret_writer.write_all(secret_content));
+        try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
     }
-    if secret_keyfile.exists() && secret_keyfile.is_file() {
-        return Err(Error::CryptoError(format!("Secret keyfile already exists {}",
-                                              secret_keyfile.display())));
-    }
-    let secret_file = try!(File::create(secret_keyfile));
-    let mut secret_writer = BufWriter::new(&secret_file);
-    try!(write!(secret_writer, "{}\n{}\n\n", secret_version, keyname));
-    try!(secret_writer.write_all(secret_content));
-    try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
 
     Ok(())
 }
@@ -332,10 +385,36 @@ mod test {
     use tempdir::TempDir;
     use rustc_serialize::hex::ToHex;
 
+    use super::TmpKeyfile;
     use super::super::test_support::*;
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
     static VALID_KEY_AS_HEX: &'static str = "44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
+
+    #[test]
+    fn tmp_keyfile_delete_on_drop() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let path = cache.path().join("mykey");
+
+        {
+            let tmp_keyfile = TmpKeyfile { path: path.clone() };
+            File::create(&tmp_keyfile.path).unwrap();
+            assert!(tmp_keyfile.path.is_file());
+        }
+        assert_eq!(path.is_file(), false);
+    }
+
+    #[test]
+    fn tmp_keyfile_no_file_on_drop() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let path = cache.path().join("mykey");
+
+        {
+            let tmp_keyfile = TmpKeyfile { path: path.clone() };
+            assert_eq!(tmp_keyfile.path.is_file(), false);
+        }
+        assert_eq!(path.is_file(), false);
+    }
 
     #[test]
     fn parse_name_with_rev() {

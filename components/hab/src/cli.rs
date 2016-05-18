@@ -7,9 +7,12 @@
 
 use std::path::Path;
 use std::result;
+use std::str::FromStr;
+
 use regex::Regex;
 use clap::{App, AppSettings};
 use url::Url;
+use hcore::crypto::keys::PairType;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
@@ -35,7 +38,8 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                  "Use a specific Depot URL")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+                 "A path to a Habitat artifact \
+                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand sign =>
                 (about: "Signs a archive file with with an origin key, creating a Habitat artifact")
@@ -44,12 +48,14 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SOURCE: +required {file_exists}
                  "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
                 (@arg ARTIFACT: +required
-                 "The path to the generated Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+                 "The path to the generated Habitat artifact \
+                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand verify =>
                 (about: "Verifies a Habitat artifact with an origin key")
                 (@arg ARTIFACT: +required {file_exists}
-                 "A path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+                 "A path to a Habitat artifact \
+                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand hash=>
                 (about: "Generate a BLAKE2b hash for a file")
@@ -76,7 +82,8 @@ pub fn get() -> App<'static, 'static> {
                 (@arg ORG: --org +takes_value "Name of service organization")
                 (@arg USER: +takes_value)
                 (@arg PEERS: -p --peers +takes_value
-                 "A comma-delimited list of one or more Habitat Supervisor peers to infect (default: 127.0.0.1:9634)")
+                 "A comma-delimited list of one or more Habitat Supervisor peers to infect \
+                 (default: 127.0.0.1:9634)")
                 (@arg RING: -r --ring +takes_value
                  "Ring key name, which will encrypt communication messages")
             )
@@ -87,10 +94,6 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand key =>
                  (about: "Commands relating to Habitat origin key maintenance")
                  (@setting ArgRequiredElseHelp)
-                 (@subcommand generate =>
-                        (about: "Generates a Habitat origin key")
-                        (@arg ORIGIN: "The origin name")
-                 )
                  (@subcommand download =>
                         (about: "Download origin key(s) to HAB_CACHE_KEY_PATH")
                         (@arg ORIGIN: +required "The origin name")
@@ -98,9 +101,24 @@ pub fn get() -> App<'static, 'static> {
                         (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                          "Use a specific Depot URL")
                  )
+                 (@subcommand export =>
+                        (about: "Outputs the latest origin key contents to stdout")
+                        (@arg ORIGIN: +required +takes_value)
+                        (@arg PAIR_TYPE: -t --type +takes_value +required {valid_pair_type}
+                         "Export either the `public' or `secret' key")
+                 )
+                 (@subcommand generate =>
+                        (about: "Generates a Habitat origin key")
+                        (@arg ORIGIN: "The origin name")
+                 )
+                 (@subcommand import =>
+                        (about: "Reads a stdin stream containing a public or secret origin key \
+                         contents and writes the key to disk")
+                 )
                  (@subcommand upload =>
                         (about: "Upload a public origin key to the depot")
-                        (@arg FILE: +required {file_exists} "Path to a local public origin key file on disk")
+                        (@arg FILE: +required {file_exists}
+                         "Path to a local public origin key file on disk")
                         (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                          "Use a specific Depot URL")
                  )
@@ -147,7 +165,8 @@ pub fn get() -> App<'static, 'static> {
                         (@arg RING: +required +takes_value)
                  )
                  (@subcommand import =>
-                        (about: "Reads a stdin stream containing ring key contents and writes the key to disk")
+                        (about: "Reads a stdin stream containing ring key contents and writes \
+                         the key to disk")
                  )
                  (@subcommand generate =>
                         (about: "Generates a Habitat ring key")
@@ -177,7 +196,8 @@ fn sub_package_install() -> App<'static, 'static> {
         (about: "Installs a Habitat package from a Depot or locally from a Habitat artifact")
         (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
         (@arg PKG_IDENT_OR_ARTIFACT: +required "A Habitat package identifier (ex: acme/redis) \
-         or path to a Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+         or path to a Habitat artifact \
+         (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
     )
 }
 
@@ -186,7 +206,8 @@ fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
         (about: "Applies a configuration to a group of Habitat Supervisors")
         (@arg PEERS: -p --peers +takes_value
-         "A comma-delimited list of one or more Habitat Supervisor peers to infect (default: 127.0.0.1:9634)")
+         "A comma-delimited list of one or more Habitat Supervisor peers to infect \
+         (default: 127.0.0.1:9634)")
         (@arg RING: -r --ring +takes_value
          "Ring key name, which will encrypt communication messages")
         (@arg SERVICE_GROUP: +required {valid_service_group}
@@ -222,10 +243,13 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
     }
 }
 
-fn valid_url(val: String) -> result::Result<(), String> {
-    match Url::parse(&val) {
+fn valid_pair_type(val: String) -> result::Result<(), String> {
+    match PairType::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
+        Err(_) => {
+            Err(format!("PAIR_TYPE: {} is invalid, must be one of (public, secret)",
+                        &val))
+        }
     }
 }
 
@@ -235,5 +259,12 @@ fn valid_service_group(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         Err(format!("SERVICE_GROUP: '{}' is invalid", &val))
+    }
+}
+
+fn valid_url(val: String) -> result::Result<(), String> {
+    match Url::parse(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("URL: '{}' is not valid", &val)),
     }
 }
