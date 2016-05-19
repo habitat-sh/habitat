@@ -29,6 +29,7 @@ use super::{PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX,
 
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
+    static ref KEYFILE_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();
 }
 
 pub mod box_key_pair;
@@ -141,52 +142,60 @@ impl<P, S> KeyPair<P, S> {
 }
 
 /// If a key "belongs" to a filename revision, then add the full stem of the
-/// file (without path, without .suffix)
+/// file (without path, without .suffix) to the set. This function doesn't
+/// return an error on a "bad" file, the bad file key name just doesn't get
+/// added to the set.
 fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<String>) -> () {
-    if filename.ends_with(PUBLIC_KEY_SUFFIX) {
-        if filename.starts_with(keyname) {
-            // push filename without extension
-            // -1 for the '.' before 'pub'
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              PUBLIC_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
+    let caps = match KEYFILE_RE.captures(&filename) {
+        Some(c) => c,
+        None => {
+            debug!("check_filename: Cannot parse {}", &filename);
+            return;
         }
-        // SECRET_SIG_KEY_SUFFIX and SECRET_BOX_KEY_SUFFIX are the same at the
-        // moment, but don't assume that they'll always be that way.
-    } else if filename.ends_with(SECRET_SIG_KEY_SUFFIX) {
-        if filename.starts_with(keyname) {
-            // -1 for the '.' before the suffix
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              SECRET_SIG_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
+    };
+    let name = match caps.name("name") {
+        Some(r) => r,
+        None => {
+            debug!("check_filename: Cannot parse name from {}", &filename);
+            return;
         }
-    } else if filename.ends_with(SECRET_BOX_KEY_SUFFIX) {
-        // -1 for the '.' before the suffix
-        if filename.starts_with(keyname) {
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              SECRET_BOX_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
+    };
+
+    let rev = match caps.name("rev") {
+        Some(r) => r,
+        None => {
+            debug!("check_filename: Cannot parse rev from {}", &filename);
+            return;
         }
-    } else if filename.ends_with(SECRET_SYM_KEY_SUFFIX) {
-        // -1 for the '.' before the suffix
-        if filename.starts_with(keyname) {
-            let (stem, _) = filename.split_at(filename.chars().count() -
-                                              SECRET_SYM_KEY_SUFFIX.chars().count() -
-                                              1);
-            candidates.insert(stem.to_string());
+    };
+
+    let suffix = match caps.name("suffix") {
+        Some(r) => r,
+        None => {
+            debug!("check_filename: Cannot parse suffix from {}", &filename);
+            return;
         }
+    };
+
+    if suffix == PUBLIC_KEY_SUFFIX || suffix == SECRET_SIG_KEY_SUFFIX ||
+       suffix == SECRET_BOX_KEY_SUFFIX || suffix == SECRET_SYM_KEY_SUFFIX {
+        debug!("valid key suffix");
+    } else {
+        debug!("check_filename: Invalid key suffix from {}", &filename);
+        return;
+    };
+
+    if name == keyname {
+        let thiskey = format!("{}-{}", name, rev);
+        candidates.insert(thiskey);
     }
+
 }
 
 /// Take a key name (ex "habitat"), and find all revisions of that
 /// keyname in the default_cache_key_path().
 fn get_key_revisions(keyname: &str, cache_key_path: &Path) -> Result<Vec<String>> {
-    // look for .pub keys
     // accumulator for files that match
-    // let mut candidates = Vec::new();
     let mut candidates = HashSet::new();
     let paths = match fs::read_dir(cache_key_path) {
         Ok(p) => p,
@@ -226,7 +235,6 @@ fn get_key_revisions(keyname: &str, cache_key_path: &Path) -> Result<Vec<String>
                 return Err(Error::CryptoError(format!("Invalid filename in key path")));
             }
         };
-
         debug!("checking file: {}", &filename);
         check_filename(keyname, filename, &mut candidates);
     }
@@ -379,11 +387,16 @@ fn write_keypair_files(key_type: KeyType,
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashSet;
     use std::fs::{self, File};
     use std::io::Write;
-
     use tempdir::TempDir;
     use rustc_serialize::hex::ToHex;
+
+
+    use super::box_key_pair::BoxKeyPair;
+    use super::sig_key_pair::SigKeyPair;
+    use super::sym_key::SymKey;
 
     use super::TmpKeyfile;
     use super::super::test_support::*;
@@ -476,5 +489,117 @@ mod test {
         f.write_all("something\n\nI am not base64 content".as_bytes()).unwrap();
 
         super::read_key_bytes(keyfile.as_path()).unwrap();
+    }
+
+ 
+    #[test]
+    fn get_user_key_revisions() {
+        let cache = TempDir::new("key_cache").unwrap();
+        for _ in 0..3 {
+            wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()));
+        }
+        let _ = BoxKeyPair::generate_pair_for_user("wecoyote-foo", cache.path()).unwrap();
+
+        // we shouldn't see wecoyote-foo as a 4th revision
+        let revisions = super::get_key_revisions("wecoyote", cache.path()).unwrap();
+        assert_eq!(3, revisions.len());
+
+        let revisions = super::get_key_revisions("wecoyote-foo", cache.path()).unwrap();
+        assert_eq!(1, revisions.len());
+    }
+
+
+    #[test]
+    fn get_service_key_revisions() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        for _ in 0..3 {
+            wait_until_ok(|| BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path()));
+        }
+
+        let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path()).unwrap();
+
+        let revisions = super::get_key_revisions("tnt.default@acme", cache.path()).unwrap();
+        assert_eq!(3, revisions.len());
+
+        let revisions = super::get_key_revisions("tnt.default@acyou", cache.path()).unwrap();
+        assert_eq!(1, revisions.len());
+    }
+
+
+    #[test]
+    fn get_ring_key_revisions() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        for _ in 0..3 {
+            wait_until_ok(|| SymKey::generate_pair_for_ring("acme", cache.path()));
+        }
+
+        let _ = SymKey::generate_pair_for_ring("acme-you", cache.path()).unwrap();
+
+        let revisions = super::get_key_revisions("acme", cache.path()).unwrap();
+        assert_eq!(3, revisions.len());
+
+        let revisions = super::get_key_revisions("acme-you", cache.path()).unwrap();
+        assert_eq!(1, revisions.len());
+    }
+
+
+    #[test]
+    fn get_origin_key_revisions() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        for _ in 0..3 {
+            wait_until_ok(|| SigKeyPair::generate_pair_for_origin("mutants", cache.path()));
+        }
+
+        let _ = SigKeyPair::generate_pair_for_origin("mutants-x", cache.path()).unwrap();
+
+        let revisions = super::get_key_revisions("mutants", cache.path()).unwrap();
+        assert_eq!(3, revisions.len());
+
+        let revisions = super::get_key_revisions("mutants-x", cache.path()).unwrap();
+        assert_eq!(1, revisions.len());
+    }
+
+    #[test]
+    fn check_filename_key_without_dash() {
+        // look for a keyname that doesn't include a dash
+        let mut candidates = HashSet::new();
+        super::check_filename("wecoyote",
+                              "wecoyote-20160519203610.pub".to_string(),
+                              &mut candidates);
+        super::check_filename("wecoyote",
+                              "wecoyote-foo-20160519203610.pub".to_string(),
+                              &mut candidates);
+        super::check_filename("wecoyote",
+                              "wecoyote-20160519203610.box.key".to_string(),
+                              &mut candidates);
+        super::check_filename("wecoyote",
+                              "wecoyote-foo-20160519203610.box.key".to_string(),
+                              &mut candidates);
+        assert_eq!(1, candidates.len());
+
+    }
+
+
+    #[test]
+    fn check_filename_key_with_dash() {
+        // look for a keyname that includes a dash
+        let mut candidates = HashSet::new();
+        super::check_filename("wecoyote-foo",
+                              "wecoyote-20160519203610.pub".to_string(),
+                              &mut candidates);
+        super::check_filename("wecoyote-foo",
+                              "wecoyote-foo-20160519203610.pub".to_string(),
+                              &mut candidates);
+        super::check_filename("wecoyote-foo",
+                              "wecoyote-20160519203610.box.key".to_string(),
+                              &mut candidates);
+        super::check_filename("wecoyote-foo",
+                              "wecoyote-foo-20160519203610.box.key".to_string(),
+                              &mut candidates);
+        assert_eq!(1, candidates.len());
+
     }
 }
