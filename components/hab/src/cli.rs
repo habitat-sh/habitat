@@ -152,6 +152,15 @@ pub fn get() -> App<'static, 'static> {
         (@subcommand pkg =>
             (about: "Commands relating to Habitat packages")
             (@setting ArgRequiredElseHelp)
+            (@subcommand binlink =>
+                   (about: "Creates a symlink for a package binary in a common 'PATH' location")
+                   (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                   (@arg BINARY: +required +takes_value
+                    "The command to symlink (ex: bash)")
+                   (@arg DEST_DIR: -d --dest +takes_value
+                    "Sets the destination directory (default: /bin)")
+            )
             (@subcommand exec =>
                    (about: "Executes a command using the 'PATH' context of an installed package")
                    (@arg PKG_IDENT: +required +takes_value

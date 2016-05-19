@@ -93,7 +93,7 @@ pub fn command_from_pkg(command: &str,
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-fn find_command_in_pkg(command: &str, pkg_install: &PackageInstall) -> Result<Option<PathBuf>> {
+pub fn find_command_in_pkg(command: &str, pkg_install: &PackageInstall) -> Result<Option<PathBuf>> {
     for path in try!(pkg_install.paths()) {
         let candidate = path.join(command);
         if candidate.is_file() {

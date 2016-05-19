@@ -9,6 +9,7 @@ use std::error;
 use std::ffi;
 use std::fmt;
 use std::io;
+use std::path;
 use std::result;
 
 use depot_client;
@@ -19,6 +20,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     DepotClient(depot_client::Error),
     ExecCommandNotFound(String),
@@ -28,11 +30,17 @@ pub enum Error {
     HabitatCore(hcore::Error),
     IO(io::Error),
     PackageArchiveMalformed(String),
+    PathPrefixError(path::StripPrefixError),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::CommandNotFoundInPkg((ref p, ref c)) => {
+                format!("`{}' was not found under any 'PATH' directories in the {} package",
+                        c,
+                        p)
+            }
             Error::CryptoCLI(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
             Error::ExecCommandNotFound(ref c) => {
@@ -47,6 +55,7 @@ impl fmt::Display for Error {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
             }
+            Error::PathPrefixError(ref err) => format!("{}", err),
         };
         write!(f, "{}", msg)
     }
@@ -55,6 +64,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::CommandNotFoundInPkg(_) => "Command was not found under any 'PATH' directories in the package",
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::DepotClient(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
@@ -64,6 +74,7 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            Error::PathPrefixError(ref err) => err.description(),
         }
     }
 }
@@ -95,5 +106,11 @@ impl From<hcore::Error> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::IO(err)
+    }
+}
+
+impl From<path::StripPrefixError> for Error {
+    fn from(err: path::StripPrefixError) -> Error {
+        Error::PathPrefixError(err)
     }
 }
