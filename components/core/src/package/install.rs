@@ -6,6 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 use std;
+use std::collections::HashSet;
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fs::{DirEntry, File};
@@ -142,18 +143,34 @@ impl PackageInstall {
         }
     }
 
-    /// Returns a `String` with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS.
+    /// Returns a `String` with the full run path for this package. The `PATH` string will be
+    /// constructed by add all `PATH` metadata entries from the *direct* dependencies first (in
+    /// declared order) and then from any remaining transitive dependencies last (in lexically
+    /// sorted order).
     pub fn runtime_path(&self) -> Result<String> {
+        let mut idents = HashSet::new();
         let mut run_path = String::new();
         for path in try!(self.paths()) {
             run_path.push_str(&path.to_string_lossy());
+            idents.insert(self.ident().clone());
         }
-        let tdeps: Vec<PackageInstall> = try!(self.load_tdeps());
-        for dep in tdeps.iter() {
+        let deps: Vec<PackageInstall> = try!(self.load_deps());
+        for dep in deps.iter() {
             for path in try!(dep.paths()) {
                 run_path.push(':');
                 run_path.push_str(&path.to_string_lossy());
+                idents.insert(dep.ident().clone());
+            }
+        }
+        let tdeps: Vec<PackageInstall> = try!(self.load_tdeps());
+        for dep in tdeps.iter() {
+            if idents.contains(dep.ident()) {
+                continue;
+            }
+            for path in try!(dep.paths()) {
+                run_path.push(':');
+                run_path.push_str(&path.to_string_lossy());
+                idents.insert(dep.ident().clone());
             }
         }
         Ok(run_path)
@@ -249,6 +266,23 @@ impl PackageInstall {
             Err(Error::MetaFileNotFound(_)) => Ok(deps),
             Err(e) => Err(e),
         }
+    }
+
+    /// Attempts to load the extracted package for each direct dependency and returns a
+    /// `Package` struct representation of each in the returned vector.
+    ///
+    /// # Failures
+    ///
+    /// * Any direct dependency could not be located or it's contents could not be read
+    ///   from disk
+    fn load_deps(&self) -> Result<Vec<PackageInstall>> {
+        let ddeps = try!(self.deps());
+        let mut deps = Vec::with_capacity(ddeps.len());
+        for dep in ddeps.iter() {
+            let dep_install = try!(Self::load(dep, Some(&self.fs_root_path)));
+            deps.push(dep_install);
+        }
+        Ok(deps)
     }
 
     /// Attempts to load the extracted package for each transitive dependency and returns a

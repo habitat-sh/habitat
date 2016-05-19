@@ -32,6 +32,7 @@ mod exec;
 mod gossip;
 
 use std::env;
+use std::ffi::OsString;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -78,7 +79,10 @@ fn start() -> Result<()> {
     env_logger::init().unwrap();
     try!(exec_subcommand_if_called());
 
-    let app_matches = cli::get().get_matches();
+    let (args, remaining_args) = raw_parse_args();
+    debug!("clap cli args: {:?}", &args);
+    debug!("remaining cli args: {:?}", &remaining_args);
+    let app_matches = cli::get().get_matches_from(&mut args.iter());
     match app_matches.subcommand() {
         ("apply", Some(m)) => try!(sub_config_apply(m)),
         ("artifact", Some(matches)) => {
@@ -120,6 +124,7 @@ fn start() -> Result<()> {
         }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
+                ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
                 _ => unreachable!(),
@@ -335,6 +340,13 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     command::origin::key::upload::start(url, &keyfile)
 }
 
+fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let cmd = m.value_of("CMD").unwrap();
+
+    command::pkg::exec::start(&ident, cmd, cmd_args)
+}
+
 fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
@@ -469,6 +481,24 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
                 Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
             }
         }
+    }
+}
+
+/// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
+///
+/// **Note** with the current version of clap there is no clean way to ignore arguments after a
+/// certain point, especially if those arguments look like further options and flags.
+fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
+    let mut args = env::args();
+    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
+        ("pkg", "exec") => {
+            if args.by_ref().count() > 2 {
+                return (env::args_os().take(5).collect(), env::args_os().skip(5).collect());
+            } else {
+                (env::args_os().collect(), Vec::new())
+            }
+        }
+        _ => (env::args_os().collect(), Vec::new()),
     }
 }
 
