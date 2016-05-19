@@ -6,7 +6,7 @@ habitatConfig({
     // The URL for the depot service
     depot_url: "",
     // The URL for documentation
-    docs_url: "https://docs.habitat.sh",
+    docs_url: "https://www.habitat.sh/docs",
     // The environment in which we're running. If "production", enable
     // production mode
     environment: "production",
