@@ -65,6 +65,8 @@ const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 
 const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 
+const DEFAULT_BINLINK_DIR: &'static str = "/bin";
+
 const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 fn main() {
@@ -124,6 +126,7 @@ fn start() -> Result<()> {
         }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
+                ("binlink", Some(m)) => try!(sub_pkg_binlink(m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
@@ -338,6 +341,16 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     init();
 
     command::origin::key::upload::start(url, &keyfile)
+}
+
+fn sub_pkg_binlink(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Path::new(&fs_root);
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let binary = m.value_of("BINARY").unwrap();
+    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
+
+    command::pkg::binlink::start(&ident, &binary, &dest_dir, &fs_root_path)
 }
 
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {

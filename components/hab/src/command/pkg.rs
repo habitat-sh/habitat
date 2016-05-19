@@ -7,6 +7,61 @@
 
 // Looking for `pkg::install`? That's in the `common` crate. You're welcome :)
 
+pub mod binlink {
+    use std::fs;
+    use std::path::Path;
+    use std::os::unix;
+
+    use ansi_term::Colour::{Blue, Green, Yellow};
+    use hcore::package::{PackageIdent, PackageInstall};
+
+    use error::{Error, Result};
+    use exec::find_command_in_pkg;
+
+    pub fn start(ident: &PackageIdent,
+                 binary: &str,
+                 dest_path: &Path,
+                 fs_root_path: &Path)
+                 -> Result<()> {
+        let dst_path = fs_root_path.join(try!(dest_path.strip_prefix("/")));
+        let dst = dst_path.join(&binary);
+        println!("{}",
+                 Yellow.bold().paint(format!("» Symlinking {} from {} into {}",
+                                             &binary,
+                                             &ident,
+                                             dst_path.display())));
+        let pkg_install = try!(PackageInstall::load(&ident, None));
+        let src = match try!(find_command_in_pkg(binary, &pkg_install)) {
+            Some(c) => c,
+            None => {
+                return Err(Error::CommandNotFoundInPkg((pkg_install.ident().to_string(),
+                                                        binary.to_string())))
+            }
+        };
+        if !dst_path.is_dir() {
+            println!("{} parent directory {}",
+                     Green.paint("Ω Creating"),
+                     dst_path.display());
+            try!(fs::create_dir_all(&dst_path))
+        }
+        match fs::read_link(&dst) {
+            Ok(path) => {
+                if path != src {
+                    try!(fs::remove_file(&dst));
+                    try!(unix::fs::symlink(&src, &dst));
+                }
+            }
+            Err(_) => try!(unix::fs::symlink(&src, &dst)),
+        }
+        println!("{}",
+                 Blue.paint(format!("★ Binary {} from {} symlinked to {}",
+                                    &binary,
+                                    &pkg_install.ident(),
+                                    &dst.display())));
+        Ok(())
+    }
+}
+
 pub mod exec {
     use std::env;
     use std::ffi::OsString;
