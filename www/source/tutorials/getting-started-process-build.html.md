@@ -22,9 +22,9 @@ To create a Docker container for your artifact, perform the following steps:
 
         [16][default:/src/plans:0]$build mytutorialapp
 
-4. Run `hab-bpm install core/hab-pkg-dockerize` to unpack and install the artifact that creates docker images for other Habitat artifacts.
+4. Run `hab install core/hab-pkg-dockerize` to unpack and install the artifact that creates docker images for other Habitat artifacts.
 
-        [17][default:/src/plans:0]$hab-bpm install core/hab-pkg-dockerize
+        [17][default:/src/plans:0]$hab install core/hab-pkg-dockerize
 
 5. Run `hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your artifact. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
