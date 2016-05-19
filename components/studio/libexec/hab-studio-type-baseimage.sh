@@ -141,9 +141,9 @@ _hab() {
 }
 
 _pkgpath_for() {
-  _bpm pkgpath $1 | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"
+  _hab pkg path $1 | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"
 }
 
 _outside_pkgpath_for() {
-  $bb env BUSYBOX=$bb $bb sh $bpm pkgpath $1
+  $hab pkg path $1
 }

@@ -36,6 +36,7 @@ use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use ansi_term::Colour::Red;
 use clap::ArgMatches;
 
 use error::{Error, Result};
@@ -67,7 +68,8 @@ const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 fn main() {
     if let Err(e) = start() {
-        println!("{}", e);
+        println!("{}",
+                 Red.bold().paint(format!("✗✗✗\n✗✗✗ {}\n✗✗✗", e)));
         std::process::exit(1)
     }
 }
@@ -100,7 +102,7 @@ fn start() -> Result<()> {
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => try!(sub_package_install(m)),
+        ("install", Some(m)) => try!(sub_pkg_install(m)),
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -118,7 +120,8 @@ fn start() -> Result<()> {
         }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
-                ("install", Some(m)) => try!(sub_package_install(m)),
+                ("install", Some(m)) => try!(sub_pkg_install(m)),
+                ("path", Some(m)) => try!(sub_pkg_path(m)),
                 _ => unreachable!(),
             }
         }
@@ -332,7 +335,7 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     command::origin::key::upload::start(url, &keyfile)
 }
 
-fn sub_package_install(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
@@ -346,6 +349,14 @@ fn sub_package_install(m: &ArgMatches) -> Result<()> {
                                                   &cache_artifact_path(fs_root_path),
                                                   &default_cache_key_path(fs_root_path)));
     Ok(())
+}
+
+fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Path::new(&fs_root);
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+
+    command::pkg::path::start(&ident, &fs_root_path)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
