@@ -100,7 +100,6 @@ matrix:
     - sudo apt-get update
     - sudo apt-get -y install docker iproute2 libsodium-dev libzmq-dev
     - command -v protoc-gen-rust || cargo install protobuf
-    - openssl aes-256-cbc -K $encrypted_c4f852370b68_key -iv $encrypted_c4f852370b68_iv -in core-20160423193745.sig.key.enc -out core-20160423193745.sig.key -d
     script:
     - ./support/ci.sh
     - sudo -E bash -c "./support/publish.sh"
