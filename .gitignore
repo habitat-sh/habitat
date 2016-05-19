@@ -3,10 +3,6 @@ target
 .delivery/cli.toml
 .tags*
 log/
-plans/hana/SAP*
-plans/hana/sapcar.exe
-plans/hana/*.exe
-plans/hana/*.rar
 plans/log/
 plans/tmp/
 results/
