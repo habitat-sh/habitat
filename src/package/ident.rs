@@ -14,7 +14,7 @@ use regex::Regex;
 
 use error::{Error, Result};
 
-#[derive(RustcEncodable, RustcDecodable, Eq, PartialEq, Debug, Clone)]
+#[derive(RustcEncodable, RustcDecodable, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageIdent {
     pub origin: String,
     pub name: String,
