@@ -153,7 +153,9 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         None => {
             match henv::var(RING_KEY_ENVVAR) {
                 Ok(val) => {
-                    Some(try!(SymKey::write_file_from_str(&val, &default_cache_key_path(None))))
+                    let (key, _) = try!(SymKey::write_file_from_str(&val,
+                                                                    &default_cache_key_path(None)));
+                    Some(key)
                 }
                 Err(_) => {
                     match henv::var(RING_ENVVAR) {
