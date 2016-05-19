@@ -153,6 +153,11 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to Habitat packages")
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_package_install())
+             (@subcommand path =>
+                    (about: "Prints the path to a specific installed release of a package")
+                    (@arg PKG_IDENT: +required +takes_value
+                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+             )
         )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")
