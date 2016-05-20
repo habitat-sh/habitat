@@ -53,7 +53,7 @@ resource "aws_security_group" "habitat_api_elb" {
     Name           = "Habitat API ELB"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
@@ -118,7 +118,7 @@ resource "aws_elb" "habitat_api" {
     Name           = "Habitat API"
     X-Dept         = "eng"
     X-Contact      = "smith@chef.io"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
