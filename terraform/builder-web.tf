@@ -28,7 +28,7 @@ resource "aws_security_group" "habitat_web" {
     Name           = "Habitat Web"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
@@ -81,7 +81,7 @@ resource "aws_instance" "habitat_builder_web" {
     Name           = "Habitat Builder Web 0"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
@@ -117,7 +117,7 @@ resource "aws_elb" "habitat_web" {
     Name           = "Habitat Web"
     X-Dept         = "eng"
     X-Contact      = "smith@chef.io"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }

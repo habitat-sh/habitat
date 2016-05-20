@@ -9,7 +9,7 @@ resource "aws_vpc" "habitat_internal" {
     Name           = "Habitat Internal"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
@@ -45,7 +45,7 @@ resource "aws_security_group" "habitat_elb" {
     Name           = "Habitat ELB"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
@@ -58,7 +58,7 @@ resource "aws_internet_gateway" "habitat" {
     Name           = "Habitat"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
@@ -79,7 +79,7 @@ resource "aws_subnet" "habitat" {
     Name           = "Habitat"
     X-Dept         = "eng"
     X-Contact      = "Nathan L Smith <smith@chef.io>"
-    X-Produduction = true
+    X-Production = true
     X-Environment  = "production"
     X-Application  = "habitat"
   }
