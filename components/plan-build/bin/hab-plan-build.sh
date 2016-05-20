@@ -680,11 +680,8 @@ _attach_whereami() {
 #   to an empty/unset value.
 # * If a `$HAB_BIN` environment variable is set, then use this as the absolute
 #   path to the binary.
-# * If a version of the `hab` CLI package is installed on disk, use that
-#   version's `bin/hab` as the command.
-# * If a version of the `core/hab-bpm` package is installed on disk, use that
-#   version's `bin/hab-bpm` as the command.
-# * If no other criteria match then set `$HAB_BIN` to an empty/unset value.
+# * Otherwise `$_hab_cmd` is used, set in the `_find_system_commands()`
+#   function
 _determine_pkg_installer() {
   if [ -n "${NO_INSTALL_DEPS:-}" ]; then
     HAB_BIN=
@@ -692,16 +689,8 @@ _determine_pkg_installer() {
   elif [ -n "${HAB_BIN:-}" ]; then
     HAB_BIN=$HAB_BIN
     build_line "Using set HAB_BIN=$HAB_BIN for dependency installs"
-## We are bypassing hab for now, while we get the system stable, then we come back
-#  elif _pkg_for_pkg_install=$(_latest_installed_package "core/hab"); then
-#    HAB_BIN="$_pkg_for_pkg_install/bin/hab"
-#    build_line "Using core/hab for dependency installs"
-  elif _pkg_for_pkg_install=$(_latest_installed_package "core/hab-bpm"); then
-    HAB_BIN="$_pkg_for_pkg_install/bin/hab-bpm"
-    build_line "Using core/hab-bpm for dependency installs"
   else
-    HAB_BIN=
-    build_line "Could not find core/hab or core/hab-bpm for dependency installs"
+    HAB_BIN="$_hab_cmd"
   fi
 }
 
