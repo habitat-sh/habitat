@@ -18,8 +18,8 @@ env:
   matrix:
   - COMPONENT=common
   - COMPONENT=core
-install: "(cd components/$COMPONENT && make all)"
-script: "(cd components/$COMPONENT && make unit)"
+install: make all
+script: make unit
 matrix:
   include:
   # components/builder-web
