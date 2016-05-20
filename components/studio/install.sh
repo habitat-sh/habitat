@@ -6,10 +6,10 @@ set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Download URL for the `core/hab-bpm` Habitat artifact
-hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-hab-bpm-0.5.0-20160516163649-x86_64-linux.hart}"
+# Download URL for the `core/hab-static` Habitat artifact
+hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-static-0.5.0-20160520154538-x86_64-linux.hart}"
 # Shasum for the Habitat artifact, used to verify the download
-hart_sha="${BPM_HART_SHASUM:-3c6410778f78fbead544202397b8bc3bb5cde058fa64d372a69c72dfedc13e8d}"
+hart_sha="${BPM_HART_SHASUM:-46a63f405af2e138e40e3271dfc2ca4b0667cf3af573a0675596910ac7105006}"
 # Download location of the Habitat artifact
 hart_file="${TMPDIR:-/tmp}/$(basename $hart_url)"
 
@@ -28,14 +28,15 @@ fi
 
 # Extract hart into destination, ignoring the signed header info
 tail -n +6 $hart_file | xzcat | tar xf - -C /
-# Add symlink for convenience
-/$(tail -n +6 $hart_file | xzcat | tar t | head -n 1)bin/hab-bpm \
-  binlink core/hab-bpm hab-bpm
+# Add symlink for convenience under `/bin`
+/$(tail -n +6 $hart_file | xzcat | tar t | head -n 1)bin/hab \
+  pkg binlink core/hab-static hab
 
 # Clear the file download and extraction clean trap
 trap - INT TERM EXIT
 rm -f $hart_file
 
-# Install Habitat Studio and add a `studio` symlink to `/usr/bin/studio`
-hab-bpm install core/hab-studio
-hab-bpm binlink core/hab-studio hab-studio
+# Install latest hab release and add update symlink
+hab install core/hab-static && hab pkg binlink core/hab-static hab
+# Install Habitat Studio and add a `hab-studio` symlink under `/bin`
+hab install core/hab-studio && hab pkg binlink core/hab-studio hab-studio
