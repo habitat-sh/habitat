@@ -38,6 +38,9 @@ bin: image ## builds the project's main binaries
 	$(run) sh -c 'cd components/depot && cargo build'
 
 all: image ## builds all the project's Rust components
+ifneq ($(COMPONENT),)
+	$(run) sh -c 'cd components/$(COMPONENT) && cargo build'
+else
 	$(run) sh -c 'cd components/builder-api && cargo build'
 	$(run) sh -c 'cd components/builder-sessionsrv && cargo build'
 	$(run) sh -c 'cd components/builder-vault && cargo build'
@@ -46,6 +49,7 @@ all: image ## builds all the project's Rust components
 	$(run) sh -c 'cd components/depot-core && cargo build'
 	$(run) sh -c 'cd components/depot-client && cargo build'
 	$(MAKE) bin
+endif
 
 test: image ## tests the project's Rust components
 	$(run) sh -c 'cd components/builder-api && cargo test'
@@ -61,6 +65,9 @@ test: image ## tests the project's Rust components
 	$(run) sh -c 'cd components/depot && cargo test'
 
 unit: image ## executes the components' unit test suites
+ifneq ($(COMPONENT),)
+	$(run) sh -c 'cd components/$(COMPONENT) && cargo test --lib'
+else
 	$(run) sh -c 'cd components/builder-api && cargo test --lib'
 	$(run) sh -c 'cd components/builder-dbcache && cargo test --lib'
 	$(run) sh -c 'cd components/builder-protocol && cargo test --lib'
@@ -72,6 +79,7 @@ unit: image ## executes the components' unit test suites
 	$(run) sh -c 'cd components/common && cargo test --lib'
 	$(run) sh -c 'cd components/sup && cargo test --lib'
 	$(run) sh -c 'cd components/depot && cargo test --lib'
+endif
 
 functional: image ## executes the components' functional test suites
 	$(run) sh -c 'cd components/core && cargo test --features functional'
