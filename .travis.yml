@@ -1,14 +1,28 @@
+language: rust
+rust: nightly
+sudo: false
 branches:
   only:
   - master
   - auto
+cache:
+  cargo: true
+  directories:
+  - "$HOME/rust"
+  - "components/$COMPONENT/target"
 env:
   global:
   - PATH=$HOME/.cargo/bin:$PATH
   - secure: gdbeNjLU9smyegb7nNIwqi6oghu2TwQ9u0l0+BtqIUO6y3O/J9orkCGkWhwtaRkOtLVVakduC0qCCZDD24f/2aZoPN4XhHeNL6oDnq9TngKqi4/sOYRUQ5TB8xL+ja3H6Gx9bB1FhpohuMlfTbCnO3lLWP0Oj4btbcsfsYe8ytM=
   - secure: GoX6A9uqZ7avilS62w+Noju1ntmqK45C98apBrVnym0tDON3W7kJ5sUJiq6x3+oFOxn0QlaOX1Mku5GyesDE+NbGm4YlLLcucTv2gi9iab5HJsxhHNsLgyMWBPCj25n2qcaCQE0g7naRSThnpRFFV+U6wbqLBods0jKbL95yrPY=
+  matrix:
+  - COMPONENT=common
+  - COMPONENT=core
+install: "(cd components/$COMPONENT && make all)"
+script: "(cd components/$COMPONENT && make unit)"
 matrix:
   include:
+  # components/builder-web
   - language: node_js
     node_js: 4.2.6
     sudo: false
@@ -31,6 +45,7 @@ matrix:
     before_install: npm config set spin=false
     install: "(cd components/builder-web && npm install)"
     script: "(cd components/builder-web && npm run travis)"
+  #  www
   - language: ruby
     rvm: 2.3.1
     sudo: false
@@ -54,56 +69,57 @@ matrix:
         repo: habitat-sh/habitat
     after_deploy:
     - "./support/purge_website.sh"
-  - language: rust
-    rust: nightly
-    sudo: required
-    addons:
-      apt:
-        packages:
-        - build-essential
-        - ca-certificates
-        - curl
-        - file
-        - gdb
-        - libarchive-dev
-        - libprotobuf-dev
-        - libssl-dev
-        - pkg-config
-        - protobuf-compiler
-        - sudo
-        - tmux
-        - vim
-        - wget
-    cache:
-      apt: true
-      cargo: true
-      directories:
-      - "$HOME/rust"
-      - components/builder-api/target
-      - components/builder-dbcache/target
-      - components/builder-jobsrv/target
-      - components/builder-protocol/target
-      - components/builder-sessionsrv/target
-      - components/builder-vault/target
-      - components/builder-worker/target
-      - components/common/target
-      - components/core/target
-      - components/depot-core/target
-      - components/depot-client/target
-      - components/depot/target
-      - components/hab/target
-      - components/net/target
-      - components/sodiumoxide/target
-      - components/sup/target
-    before_install:
-    - sudo add-apt-repository -y ppa:chris-lea/libsodium
-    - sudo apt-get update
-    - sudo apt-get -y install docker iproute2 libsodium-dev libzmq-dev
-    - command -v protoc-gen-rust || cargo install protobuf
-    script:
-    - ./support/ci.sh
-    - sudo -E bash -c "./support/publish.sh"
-    services: docker
+#   components/...rest
+  #- language: rust
+    #rust: nightly
+    #sudo: required
+    #addons:
+      #apt:
+        #packages:
+        #- build-essential
+        #- ca-certificates
+        #- curl
+        #- file
+        #- gdb
+        #- libarchive-dev
+        #- libprotobuf-dev
+        #- libssl-dev
+        #- pkg-config
+        #- protobuf-compiler
+        #- sudo
+        #- tmux
+        #- vim
+        #- wget
+    #cache:
+      #apt: true
+      #cargo: true
+      #directories:
+      #- "$HOME/rust"
+      #- components/builder-api/target
+      #- components/builder-dbcache/target
+      #- components/builder-jobsrv/target
+      #- components/builder-protocol/target
+      #- components/builder-sessionsrv/target
+      #- components/builder-vault/target
+      #- components/builder-worker/target
+      #- components/common/target
+      #- components/core/target
+      #- components/depot-core/target
+      #- components/depot-client/target
+      #- components/depot/target
+      #- components/hab/target
+      #- components/net/target
+      #- components/sodiumoxide/target
+      #- components/sup/target
+    #before_install:
+    #- sudo add-apt-repository -y ppa:chris-lea/libsodium
+    #- sudo apt-get update
+    #- sudo apt-get -y install docker iproute2 libsodium-dev libzmq-dev
+    #- command -v protoc-gen-rust || cargo install protobuf
+    #script:
+    #- ./support/ci.sh
+    #- sudo -E bash -c "./support/publish.sh"
+    #services: docker
 notifications:
   slack:
     secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
