@@ -1,0 +1,4 @@
+#!/bin/sh
+#
+mkdir -p /var/cache/polipo/
+#mkdir -p {{pkg.svc_path}}/cache
