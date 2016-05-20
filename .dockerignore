@@ -8,7 +8,9 @@ demo
 images
 log
 plans
+results
 support
+!support/devshell_profile.sh
 tmp
 vendor
 www

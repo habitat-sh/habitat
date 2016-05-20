@@ -45,6 +45,7 @@ RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco
 
 RUN (adduser --system hab || true) && (addgroup --system hab || true)
 
+COPY support/devshell_profile.sh /root/.bash_profile
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
 COPY components/hab/install.sh /tmp
@@ -54,4 +55,4 @@ RUN /tmp/install.sh \
   && rm -rf /tmp/install.sh /hab/cache/{keys,artifacts}
 
 WORKDIR /src
-CMD ["bash"]
+CMD ["bash", "-l"]
