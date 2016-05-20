@@ -47,15 +47,11 @@ RUN (adduser --system hab || true) && (addgroup --system hab || true)
 
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
-COPY components/studio/install.sh /tmp
-COPY support/init.sh /init.sh
+COPY components/hab/install.sh /tmp
 RUN /tmp/install.sh \
-  && hab-bpm install core/busybox-static \
-  && (cd /tmp && curl -sLO https://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/core-20160423193745.pub) \
-  && chmod 755 /init.sh \
-  && rm -rf /tmp/install.sh /hab/cache/artifacts
+  && hab install core/hab-studio && hab pkg binlink core/hab-studio hab-studio \
+  && hab install core/busybox-static \
+  && rm -rf /tmp/install.sh /hab/cache/{keys,artifacts}
 
 WORKDIR /src
-# This entrypoint is temporary until origin key download on install is implemented
-ENTRYPOINT ["/init.sh"]
 CMD ["bash"]

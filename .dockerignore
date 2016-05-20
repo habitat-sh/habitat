@@ -3,13 +3,12 @@
 .git
 .gitignore
 components
-!components/studio/install.sh
+!components/hab/install.sh
 demo
 images
 log
 plans
 support
-!support/init.sh
 tmp
 vendor
 www
