@@ -3,7 +3,7 @@ title: Review the client source files
 ---
 
 # Review the source files
-The Node.js application in this tutorial is a simple web app that displays a message to anyone who connects to the app's endpoint. You can configure both the listening port and the message that gets displayed. The application contains three files: `server.js`, `package.json`, and `config.json`. You are not expected to take any action in this step; however, it's helpful to understand the source files first before learning how to build, install, and configure them in your plan.
+The Node.js application in this tutorial is a simple web app that displays a message to anyone who connects to the application. You can configure both the listening port and the message that gets displayed. The application contains three files: `server.js`, `package.json`, and `config.json`. You are not expected to take any action in this step; however, it's helpful to understand the source files first before learning how to build, install, and configure them in your plan.
 
 **server.js**
 
