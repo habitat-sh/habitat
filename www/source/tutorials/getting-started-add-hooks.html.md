@@ -9,9 +9,9 @@ The **init** and **run** hooks are responsible for defining behavior during init
 
 Perform the following operations in the same directory where the `plan.sh` file is located.
 
-1. If you are inside the studio, change directory to `src/plans/mytutorialapp` and make a new sub-directory called `hooks`.
+1. If you are inside the studio, change directory to `/src/plans/mytutorialapp` and make a new sub-directory called `hooks`.
 
-       [5][default:/src/plans:0]$cd mytutorialapp
+       [5][default:/src/plans:0]$cd /src/plans/mytutorialapp
        [6][default:/src/plans/mytutorialapp:0]$mkdir hooks
 
 2. Change to the `hooks` directory and create two new files, `init` and `run`.
