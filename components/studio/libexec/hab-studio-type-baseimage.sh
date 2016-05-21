@@ -127,7 +127,7 @@ esac
 EOT
   $bb chmod a+x $HAB_STUDIO_ROOT/init.sh
 
-  $bb rm $HAB_STUDIO_ROOT$HAB_CACHE_ARTIFACT_PATH/*
+  $bb rm -f $HAB_STUDIO_ROOT$HAB_CACHE_ARTIFACT_PATH/*
 
   studio_env_command="$busybox_path/bin/env"
 }
