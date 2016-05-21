@@ -3,7 +3,7 @@ title: Creating your first plan
 ---
 
 # Create your first plan
-In the previous step of this tutorial, you saw the files that make up our Node.js app. Now it's time to create the artifact for that app. This step will show you how, starting with the blueprint for an artifact: the plan.
+In the previous step of this tutorial, you saw the files that make up our Node.js application. Now it's time to create the artifact for that application. This step will show you how, starting with the blueprint for an artifact: the plan.
 
 ## Start with the basics
 A plan is comprised of shell scripts that define how your application should be built, installed and behave at runtime; however, you can include other files such as configuration files or other binaries as well.
@@ -55,7 +55,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
     > Note: If you modified the source files from the previous step and created your own archive, you will have to compute the sha256 value yourself. If your computed value does not match the value calculated by the hab-plan-build script, an error with the expected value will be returned when you execute your plan.
 
-5. Our Node.js app depends on the `node` and `npm` binaries at runtime, so we need to include one of the core Habitat artifacts, `core/node`, as another one of our dependencies. Core Habitat artifacts are maintained by the Habitat team for general artifact building. The default plan also includes a reference to `core/glibc`, but because it is a transitive dependency used by `core/node`, we don't explicitly need to list it.
+5. Our Node.js application depends on the `node` and `npm` binaries at runtime, so we need to include one of the core Habitat artifacts, `core/node`, as another one of our dependencies. Core Habitat artifacts are maintained by the Habitat team for general artifact building. The default plan also includes a reference to `core/glibc`, but because it is a transitive dependency used by `core/node`, we don't explicitly need to list it.
 
         pkg_deps=(core/node)
 
@@ -63,7 +63,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
         pkg_build_deps=(core/node)
 
-7. The Node.js app does not create any new binaries or libraries of its own, so you can remove the following three lines:
+7. The Node.js application does not create any new binaries or libraries of its own, so you can remove the following three lines:
 
         pkg_bin_dirs=(bin)
         pkg_include_dirs=(include)
