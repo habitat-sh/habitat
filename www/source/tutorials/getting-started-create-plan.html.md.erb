@@ -45,7 +45,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
 2. Change the `pkg_maintainer` value to `"Your Name <your email address>"`.
 
-3. Change the `pkg_source` value to point to the source file archive from the previous step.
+3. Change the `pkg_source` value to point to the archive file that contains the source files listed in the previous step.
 
         pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutorial-app-0.1.0.tar.gz
 
@@ -59,7 +59,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
         pkg_deps=(core/node)
 
-6. Also, because we will be installing the `nconf` module as part of our package, we need to include the `core/node` as a build dependency. Our source files and other elements of our artifact do not depend on `core/coreutils` to build, so you can simply replace it with a reference to the `core/node` artifact.
+6. We need to include the `core/node` as a build dependency because we will be installing the `nconf` module as part of our package, . Our source files and other elements of our artifact do not depend on `core/coreutils` to build, so you can simply replace it with a reference to the `core/node` artifact.
 
         pkg_build_deps=(core/node)
 
@@ -168,7 +168,7 @@ If you want to see your package build in the studio, go back to your terminal wi
 
     [4][default:/src/plans:0]$build mytutorialapp
 
-The `hab-plan-build.sh` script checks dependencies, sets variables, creates a tarball (`.hart` file) of your package and installs your source files in `/hab/pkgs/origin/packagename/version/release` and your artifact file in `/hab/cache/artifacts`. The artifact is signed using the origin signature key and must match the `pkg_origin` value in your plan. If you navigate to that directory you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
+The `hab-plan-build.sh` script checks dependencies, sets variables, creates a tarball (`.hart` file) of your package and installs your source files in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (e.g., `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`) and your artifact file in `/hab/cache/artifacts`. The artifact is signed using the origin signature key and must match the `pkg_origin` value in your plan. If you navigate to that directory you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
 
 Right now, your package builds, but will not do anything at runtime. The next step is to add hooks to your plan. These will copy over the correct files during initialization and start the npm binary.
 
