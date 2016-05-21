@@ -23,7 +23,7 @@ To create a plan, do the following:
 
         pkg_origin=core
         pkg_name=mytutorialapp
-        pkg_version=0.0.1
+        pkg_version=0.1.0
         pkg_maintainer="You <humans@example.com>"
         pkg_license=()
         pkg_source=http://example.com/${pkg_name}-${pkg_version}.tar.xz
@@ -87,7 +87,7 @@ do_build() {
   # nodejs-tutorial-app-0.1.0, at the root of $HAB_CACHE_SRC_PATH.
 
   # All of the source files need to be copied over into the $pkg_dirname
-  # directory (mytutorialapp-0.0.1).
+  # directory (mytutorialapp-0.1.0).
   cp -vr ${HAB_CACHE_SRC_PATH}/nodejs-tutorial-app-0.1.0/* .
 
   # This installs both npm as well as the nconf module we listed as a
@@ -116,7 +116,7 @@ Here's what your `plan.sh` should look like in the end:
 ~~~ bash
 pkg_origin=myorigin
 pkg_name=mytutorialapp
-pkg_version=0.0.1
+pkg_version=0.1.0
 pkg_maintainer="Your Name <your email address>"
 pkg_license=()
 pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutorial-app-0.1.0.tar.gz
@@ -132,7 +132,7 @@ do_build() {
   # nodejs-tutorial-app-0.1.0, at the root of $HAB_CACHE_SRC_PATH.
 
   # All of the source files need to be copied over into the $pkg_dirname
-  # directory (mytutorialapp-0.0.1).
+  # directory (mytutorialapp-0.1.0).
   cp -vr ${HAB_CACHE_SRC_PATH}/nodejs-tutorial-app-0.1.0/* .
 
   # This installs both npm as well as the nconf module we listed as a
