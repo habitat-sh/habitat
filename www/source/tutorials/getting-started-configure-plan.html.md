@@ -3,7 +3,7 @@ title: Add configuration to your plan
 ---
 
 # Add configuration to your plan
-When you create a plan, you may optionally define which configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you may use a [mustache](https://mustache.github.io/)-based version of the native app configuration file and then update the settings in a corresponding TOML file.
+When you create a plan, you may optionally define which configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you may use a [mustache](https://mustache.github.io/)-based version of the native app configuration file and then update the settings in a corresponding [TOML](https://github.com/toml-lang/toml) file.
 
 For example, the archive for our Node.js app already has a configuration file called `config.json` that populates a message of the day and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
 
