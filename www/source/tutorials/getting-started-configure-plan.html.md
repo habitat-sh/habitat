@@ -5,11 +5,11 @@ title: Add configuration to your plan
 # Add configuration to your plan
 When you create a plan, you may optionally define which configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you may use a [mustache](https://mustache.github.io/)-based version of the native app configuration file and then update the settings in a corresponding [TOML](https://github.com/toml-lang/toml) file.
 
-For example, the archive for our Node.js app already has a configuration file called `config.json` that populates a message of the day and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
+For example, the archive for our Node.js app already has a configuration file called `config.json` that populates a message and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
 
 1. In your `plans/mytutorialapp` directory, create a new directory named "config" and add a new file to it named "config.json" to match the name of the configuration file that server.js references.
 
-       [9][default:/src/plans/mytutorialapp/hooks:0]$cd ..
+       [9][default:/src/plans/mytutorialapp/hooks:0]$cd /src/plans/mytutorialapp
        [10][default:/src/plans/mytutorialapp:0]$mkdir config
        [11][default:/src/plans/mytutorialapp:0]$touch config/config.json
 
@@ -57,7 +57,7 @@ As we said, a TOML file is associated with your configuration file and specifies
 Now that you have defined how your source files should be installed and configured in your artifact, it's time to build it in the studio. Change directory to `/src` and enter the following command to create the artifact.
 
 ~~~ bash
-[13][default:/src/plans/mytutorialapp:0]$cd ../..
+[13][default:/src/plans/mytutorialapp:0]$cd /src
 [14][default:/src:0]$build plans/mytutorialapp
 
 ...
@@ -70,13 +70,13 @@ Now that you have defined how your source files should be installed and configur
    mytutorialapp: Creating manifest
    mytutorialapp: Generating package artifact
 /hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/` from member names
-/hab/cache/artifacts/.sample-mytutorialapp-0.0.1-20160428191007-x86_64-linux.tar (1/1)
+/hab/cache/artifacts/.sample-mytutorialapp-0.1.0-20160428191007-x86_64-linux.tar (1/1)
   100 %       120.8 KiB / 900.0 KiB = 0.134
-Successfully created signed binary artifact /hab/cache/artifacts/sample-mytutorialapp-0.0.1-20160428191007-x86_64-linux.hart
+Successfully created signed binary artifact /hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160428191007-x86_64-linux.hart
    mytutorialapp: hab-plan-build cleanup
-   mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.0.1
-   mytutorialapp: Installed Path: /hab/pkgs/sample/mytutorialapp/0.0.1/20160428191007
-   mytutorialapp: Artifact: /hab/cache/artifacts/sample-mytutorialapp-0.0.1-20160428191007-x86_64-linux.hart
+   mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.1.0
+   mytutorialapp: Installed Path: /hab/pkgs/sample/mytutorialapp/0.1.0/20160428191007
+   mytutorialapp: Artifact: /hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160428191007-x86_64-linux.hart
    mytutorialapp:
    mytutorialapp: I love it when a plan.sh comes together.
    mytutorialapp:
