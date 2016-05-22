@@ -89,7 +89,8 @@ pub struct Config {
     expire_days: Option<u16>,
     gossip_listen_ip: String,
     gossip_listen_port: u16,
-    sidecar_listen: String,
+    sidecar_listen_ip: String,
+    sidecar_listen_port: u16,
     userkey: Option<String>,
     servicekey: Option<String>,
     infile: Option<String>,
@@ -291,12 +292,21 @@ impl Config {
         self
     }
 
-    pub fn sidecar_listen(&self) -> &str {
-        &self.sidecar_listen
+    pub fn sidecar_listen_ip(&self) -> &str {
+        &self.sidecar_listen_ip
     }
 
-    pub fn set_sidecar_listen(&mut self, sl: String) -> &mut Config {
-        self.sidecar_listen = sl;
+    pub fn set_sidecar_listen_ip(&mut self, ip: String) -> &mut Config {
+        self.sidecar_listen_ip = ip;
+        self
+    }
+
+    pub fn sidecar_listen_port(&self) -> u16 {
+        self.sidecar_listen_port
+    }
+
+    pub fn set_sidecar_listen_port(&mut self, port: u16) -> &mut Config {
+        self.sidecar_listen_port = port;
         self
     }
 

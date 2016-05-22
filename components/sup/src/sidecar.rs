@@ -14,13 +14,14 @@
 //! * /health: Returns the current health of the service
 //! * /status: Returns the current status of the service, from the supervisors point of view
 
+use std::collections::HashMap;
+use std::net::SocketAddrV4;
+use std::sync::{Arc, RwLock};
+
 use rustc_serialize::json;
 use iron::prelude::*;
 use iron::status;
 use router::Router;
-use std::sync::{Arc, RwLock};
-use std::collections::HashMap;
-
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, StopReason, ActorSender};
 
@@ -50,7 +51,7 @@ pub struct Sidecar;
 
 pub struct SidecarState {
     /// The IP:Port where the sidecar listens
-    pub listen: String,
+    pub listen: SocketAddrV4,
     /// The package this sidecar is helping out
     pub package: Arc<RwLock<Package>>,
     /// The configuration of the supervised service
@@ -71,7 +72,7 @@ pub enum SidecarMessage {
 }
 
 impl SidecarState {
-    pub fn new(listen: String,
+    pub fn new(listen: SocketAddrV4,
                package: Arc<RwLock<Package>>,
                config: Arc<RwLock<ServiceConfig>>,
                member_list: Arc<RwLock<MemberList>>,
@@ -99,7 +100,7 @@ impl SidecarState {
 
 impl Sidecar {
     /// Start the sidecar.
-    pub fn start(listen: String,
+    pub fn start(listen: SocketAddrV4,
                  package: Arc<RwLock<Package>>,
                  config: Arc<RwLock<ServiceConfig>>,
                  member_list: Arc<RwLock<MemberList>>,
@@ -169,7 +170,7 @@ impl GenServer for Sidecar {
         let el = state.election_list.clone();
         router.get(GET_ELECTION, move |r: &mut Request| election(&el, r));
 
-        match Iron::new(router).http(state.listen.as_str()) {
+        match Iron::new(router).http(state.listen) {
             Ok(_) => HandleResult::NoReply(None),
             Err(_) => {
                 HandleResult::Stop(StopReason::Fatal("couldn't start router".to_string()), None)

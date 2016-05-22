@@ -20,7 +20,9 @@ pub mod leader;
 pub mod initializer;
 
 use std::mem;
+use std::net::SocketAddrV4;
 use std::ops::DerefMut;
+use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::mpsc::TryRecvError;
 use std::thread;
@@ -152,7 +154,7 @@ impl<'a> Worker<'a> {
         let service_config = {
             let cl = gossip_server.census_list.read().unwrap();
             let pkg = pkg_lock.read().unwrap();
-            let sc = try!(ServiceConfig::new(&pkg, &cl, config.bind()));
+            let sc = try!(ServiceConfig::new(&config, &pkg, &cl, config.bind()));
             sc
         };
         let service_config_lock = Arc::new(RwLock::new(service_config));
@@ -167,7 +169,9 @@ impl<'a> Worker<'a> {
         let sidecar_detector = gossip_server.detector.clone();
         let sidecar_el = gossip_server.election_list.clone();
         let sidecar_sup = supervisor.clone();
-
+        let sidecar_listen = try!(SocketAddrV4::from_str(&format!("{}:{}",
+                                                    &config.sidecar_listen_ip(),
+                                                    config.sidecar_listen_port())));
         Ok(Worker {
             package: pkg_lock,
             package_name: package_name,
@@ -180,7 +184,7 @@ impl<'a> Worker<'a> {
             member_list: gossip_server.member_list.clone(),
             gossip_server: gossip_server,
             service_config: service_config_lock,
-            sidecar_actor: sidecar::Sidecar::start(config.sidecar_listen().to_string(),
+            sidecar_actor: sidecar::Sidecar::start(sidecar_listen,
                                                    pkg_lock_1,
                                                    service_config_lock_1,
                                                    sidecar_ml,
