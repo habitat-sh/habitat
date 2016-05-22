@@ -1,5 +1,5 @@
 #!/bin/sh
 #
 
-{{pkg.svc_path}}/bin/polipo logFile="/var/log/polipo.log"
-#./bin/polipo -c polipo.config
+cd {{pkg.svc_path}}
+polipo -c {{pkg.svc_path}}/config/polipo.config
