@@ -1,8 +1,8 @@
 pkg_name=polipo
-pkg_origin=mattray
+pkg_origin=core
 pkg_version=1.1.1
-pkg_maintainer="Matt Ray <matt@chef.io>"
-pkg_license=('Apache-2')
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_license=('mit')
 pkg_source=https://github.com/jech/polipo/archive/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=de0afeeaa47df776420e59b69e9a78f68e8a7bc4a46b739772e1d91119ed2405
 pkg_deps=(core/glibc)
