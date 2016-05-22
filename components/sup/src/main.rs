@@ -45,7 +45,9 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
-static DEFAULT_SIDECAR_LISTEN_IP_PORT: &'static str = "0.0.0.0:9631";
+
+static DEFAULT_SIDECAR_LISTEN_IP: &'static str = "0.0.0.0";
+static DEFAULT_SIDECAR_LISTEN_PORT: u16 = 9631;
 
 const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634;
 
@@ -127,12 +129,21 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
                                         DEFAULT_GOSSIP_LISTEN_PORT));
 
     debug!("Gossip IP = {}", &gossip_ip);
-    debug!("Gossip Port = {}", &gossip_port);
+    debug!("Gossip port = {}", &gossip_port);
     config.set_gossip_listen_ip(gossip_ip);
     config.set_gossip_listen_port(gossip_port);
-    config.set_sidecar_listen(sub_args.value_of("listen-sidecar")
-                                      .unwrap_or(DEFAULT_SIDECAR_LISTEN_IP_PORT)
-                                      .to_string());
+
+    let (sidecar_ip, sidecar_port) = try!(parse_ip_port_with_defaults(
+                                            sub_args.value_of("listen-sidecar"),
+                                            DEFAULT_SIDECAR_LISTEN_IP,
+                                            DEFAULT_SIDECAR_LISTEN_PORT));
+
+    debug!("Sidecar IP = {}", &sidecar_ip);
+    debug!("Sidecar port = {}", &sidecar_port);
+
+    config.set_sidecar_listen_ip(sidecar_ip);
+    config.set_sidecar_listen_port(sidecar_port);
+
     let gossip_peers = match sub_args.values_of("peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],

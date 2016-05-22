@@ -21,6 +21,7 @@ use toml;
 
 use common::gossip_file::GOSSIP_TOML;
 use census::{Census, CensusList};
+use config::Config;
 use error::{Error, Result};
 use hcore::package::PackageInstall;
 use package::Package;
@@ -52,13 +53,13 @@ impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(package: &Package, cl: &CensusList, bindings: Vec<String>) -> Result<ServiceConfig> {
+    pub fn new(config: &Config, package: &Package, cl: &CensusList, bindings: Vec<String>) -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         let bind = try!(Bind::new(bindings, &cl));
         Ok(ServiceConfig {
             pkg: Pkg::new(&package.pkg_install),
             hab: Hab::new(),
-            sys: Sys::new(),
+            sys: Sys::new(&config),
             cfg: cfg,
             svc: Svc::new(cl),
             bind: bind,
@@ -511,10 +512,14 @@ impl Pkg {
 pub struct Sys {
     pub ip: String,
     pub hostname: String,
+    pub gossip_ip: String,
+    pub gossip_port: u16,
+    pub sidecar_ip: String,
+    pub sidecar_port: u16,
 }
 
 impl Sys {
-    fn new() -> Sys {
+    fn new(config: &Config) -> Sys {
         let ip = match util::sys::ip() {
             Ok(ip) => ip,
             Err(e) => {
@@ -534,6 +539,10 @@ impl Sys {
         Sys {
             ip: ip,
             hostname: hostname,
+            gossip_ip: config.gossip_listen_ip().to_string(),
+            gossip_port: config.gossip_listen_port(),
+            sidecar_ip: config.sidecar_listen_ip().to_string(),
+            sidecar_port: config.sidecar_listen_port(),
         }
     }
 
@@ -565,14 +574,17 @@ impl Hab {
 
 #[cfg(test)]
 mod test {
-    use hcore::package::{PackageIdent, PackageInstall};
-    use regex::Regex;
     use std::path::PathBuf;
     use std::str::FromStr;
-    use service_config::ServiceConfig;
-    use package::Package;
-    use gossip::member::MemberId;
+
+    use regex::Regex;
+
     use census::{CensusEntry, Census, CensusList};
+    use config::Config;
+    use gossip::member::MemberId;
+    use hcore::package::{PackageIdent, PackageInstall};
+    use package::Package;
+    use service_config::ServiceConfig;
     use VERSION;
 
     fn gen_pkg() -> Package {
@@ -602,7 +614,7 @@ mod test {
     fn to_toml_hab() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&Config::default(), &pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -612,7 +624,7 @@ mod test {
     fn to_toml_pkg() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&Config::default(), &pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
         assert_eq!(name, "sovereign");
@@ -622,7 +634,7 @@ mod test {
     fn to_toml_sys() {
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&Config::default(), &pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
@@ -630,26 +642,27 @@ mod test {
     }
 
     mod sys {
+        use config::Config;
         use service_config::Sys;
         use regex::Regex;
 
         #[test]
         fn ip() {
-            let s = Sys::new();
+            let s = Sys::new(&Config::default());
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&s.ip));
         }
 
         #[test]
         fn hostname() {
-            let s = Sys::new();
+            let s = Sys::new(&Config::default());
             let re = Regex::new(r"\w+").unwrap();
             assert!(re.is_match(&s.hostname));
         }
 
         #[test]
         fn to_toml() {
-            let s = Sys::new();
+            let s = Sys::new(&Config::default());
             let toml = s.to_toml().unwrap();
             let ip = toml.lookup("ip").unwrap().as_str().unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
@@ -658,8 +671,8 @@ mod test {
     }
 
     mod hab {
-        use VERSION;
         use service_config::Hab;
+        use VERSION;
 
         #[test]
         fn version() {

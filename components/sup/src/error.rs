@@ -30,27 +30,28 @@
 //! it instead of the longer `Result` form.
 
 use std::io;
-use std::result;
-use std::fmt;
 use std::error;
-use std::string;
 use std::ffi;
-use std::sync::mpsc;
+use std::fmt;
+use std::net;
+use std::result;
 use std::str;
+use std::string;
+use std::sync::mpsc;
 
-use hcore::{self, package};
-use common;
-use depot_client;
+use ansi_term::Colour::Red;
+use hyper;
+use mustache;
+use rustc_serialize::json;
+use toml;
 use uuid;
 use wonder::actor;
-use ansi_term::Colour::Red;
-use rustc_serialize::json;
-use hyper;
-use toml;
-use mustache;
 
-use package::HookType;
+use common;
+use depot_client;
+use hcore::{self, package};
 use output::StructuredOutput;
+use package::HookType;
 use PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
@@ -112,6 +113,7 @@ pub enum Error {
     KeyNotFound(String),
     MetaFileIO(io::Error),
     MustacheEncoderError(mustache::encoder::Error),
+    NetParseError(net::AddrParseError),
     NoRunFile,
     NulError(ffi::NulError),
     PackageArchiveMalformed(String),
@@ -175,6 +177,7 @@ impl fmt::Display for SupError {
                     _ => format!("Mustache encoder error: {:?}", me),
                 }
             }
+            Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoRunFile => format!("No run file is present for this package; specify a run hook or $pkg_service_run in your plan"),
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageArchiveMalformed(ref e) => {
@@ -247,6 +250,7 @@ impl error::Error for SupError {
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::MustacheEncoderError(_) => "Failed to encode mustache template",
+            Error::NetParseError(_) => "Can't parse IP:port",
             Error::NoRunFile => "No run file is present for this package; specify a run hook or $pkg_service_run in your plan",
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
             Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
@@ -273,6 +277,12 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
         errors.push_str("\n");
     }
     return errors;
+}
+
+impl From<net::AddrParseError> for SupError {
+    fn from(err: net::AddrParseError) -> SupError {
+        sup_error!(Error::NetParseError(err))
+    }
 }
 
 impl From<common::Error> for SupError {
