@@ -59,7 +59,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
         pkg_deps=(core/node)
 
-6. We need to include the `core/node` as a build dependency because we will be installing the `nconf` module as part of our package, . Our source files and other elements of our artifact do not depend on `core/coreutils` to build, so you can simply replace it with a reference to the `core/node` artifact.
+6. We need to include the `core/node` as a build dependency also because we will be installing the `nconf` module as part of our package. Our source files and other elements of our artifact do not depend on `core/coreutils` to build, so you can simply replace `core/coreutils` with a reference to `core/node`.
 
         pkg_build_deps=(core/node)
 
@@ -69,7 +69,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
         pkg_include_dirs=(include)
         pkg_lib_dirs=(lib)
 
-8. Because we eventually want to demonstrate how to run our Habitat service in a Docker container, we need to expose port 8080. Note: This action exposes the port to other Docker containers. It does not publish this port for access by the host machine. We will do that in a later step. For now, add the following line to your plan:
+8. Because we eventually want to demonstrate how to run our Habitat service in a Docker container, we need to expose port 8080. This action exposes the port to other Docker containers. It does not publish this port for access by the host machine. We will do that in a later step. For now, add the following line to your plan:
 
         pkg_expose=(8080)
 
@@ -163,12 +163,14 @@ As part of building an artifact, you need to have an origin key installed in you
 
 This subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files in the `/hab/cache/keys` directory. As we said earlier, you use the signature key as part of the artifact signing process and should not be shared freely with anyone; however, if anyone wants to download and use your artifact, then they must have your .pub key installed in their local `/hab/cache/keys` directory.
 
+Both the Habitat dev shell and studio have the core public key installed in `hab/cache/keys` to verify any build or runtime core dependencies that you may reference when building your plan.
+
 ## Do an initial build (optional)
 If you want to see your package build in the studio, go back to your terminal window where your studio environment is open, switch to the `/src/plans` directory, and run the following command:
 
     [4][default:/src/plans:0]$build mytutorialapp
 
-The `hab-plan-build.sh` script checks dependencies, sets variables, creates a tarball (`.hart` file) of your package and installs your source files in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (e.g., `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`) and your artifact file in `/hab/cache/artifacts`. The artifact is signed using the origin signature key and must match the `pkg_origin` value in your plan. If you navigate to that directory you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
+The `hab-plan-build.sh` script checks dependencies, sets variables, creates a tarball (`.hart` file) of your package and installs your source files in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`) and your artifact file in `/src/results/`. The artifact is signed using the origin signature key and if you navigate to that directory you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
 
 Right now, your package builds, but will not do anything at runtime. The next step is to add hooks to your plan. These will copy over the correct files during initialization and start the npm binary.
 

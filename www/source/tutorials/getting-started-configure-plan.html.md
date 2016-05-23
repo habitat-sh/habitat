@@ -3,11 +3,11 @@ title: Add configuration to your plan
 ---
 
 # Add configuration to your plan
-When you create a plan, you may optionally define which configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you may use a [mustache](https://mustache.github.io/)-based version of the native app configuration file and then update the settings in a corresponding [TOML](https://github.com/toml-lang/toml) file.
+When you create a plan, you may optionally define which configuration settings can be overridden. Those configuration settings are specific to the native application or service, but you may use a [mustache](https://mustache.github.io/)-based version of the native application configuration file and then update the settings in a corresponding [TOML](https://github.com/toml-lang/toml) file.
 
 For example, the archive for our Node.js app already has a configuration file called `config.json` that populates a message and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
 
-1. In your `plans/mytutorialapp` directory, create a new directory named "config" and add a new file to it named "config.json" to match the name of the configuration file that server.js references.
+1. In your `plans/mytutorialapp` directory, create a new directory named `config` and add a new file to it named `config.json` to match the name of the configuration file that `server.js` references.
 
        [9][default:/src/plans/mytutorialapp/hooks:0]$cd /src/plans/mytutorialapp
        [10][default:/src/plans/mytutorialapp:0]$mkdir config
@@ -33,11 +33,11 @@ For example, the archive for our Node.js app already has a configuration file ca
 
 5. Save the file.
 
-All user-defined tags must have the "**cfg**" prefix. For general service settings, Habitat also defines several system tags that you may use to configure your service at runtime. See the [Run-time configuration settings](/docs/plan-syntax#runtime-configuration-settings) section of the Plan syntax guide for more information.
+All user-defined tags must have the **cfg** prefix. For general service settings, Habitat also defines several system tags that you may use to configure your service at runtime. See the [Runtime configuration settings](/docs/plan-syntax#runtime-configuration-settings) section of the Plan syntax guide for more information.
 
 As we said, a TOML file is associated with your configuration file and specifies the default values for your service at start up. If you have a templatized configuration file, then you must include a `default.toml` file in your plan folder.
 
-1. Create a file named "default.toml" and include it in the root of your plan directory.
+1. Create a file named `default.toml` and include it in the root of your plan directory.
 
        [12][default:/src/plans/mytutorialapp:0]$touch default.toml
 
@@ -49,7 +49,7 @@ As we said, a TOML file is associated with your configuration file and specifies
        # The port number that is listening for requests.
        port = 8080
 
-    We use the same values as the ones specified in the original `config.json` file to keep the initial start up experience the same. Also, the port value specified is specific to the Node.js app and it will bind to the port of its host. In this case, the host is the Docker container you will create in the next step.
+    We use the same values as the ones specified in the original `config.json` file to keep the initial start up experience the same. Also, the port value specified is specific to the Node.js application and it will bind to the port of its host. In this case, the host is the Docker container you will create in the next step.
 
 3. Save the file.
 
@@ -63,24 +63,30 @@ Now that you have defined how your source files should be installed and configur
 ...
 
 (Last set of output messages from the hab-plan-build.sh script)
-   mytutorialapp: Building package metadata
-   mytutorialapp: Writing configuration
-   mytutorialapp: Writing service management scripts
-   mytutorialapp: Stripping unneeded symbols from binaries and libraries
-   mytutorialapp: Creating manifest
-   mytutorialapp: Generating package artifact
-/hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/` from member names
-/hab/cache/artifacts/.sample-mytutorialapp-0.1.0-20160428191007-x86_64-linux.tar (1/1)
-  100 %       120.8 KiB / 900.0 KiB = 0.134
-Successfully created signed binary artifact /hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160428191007-x86_64-linux.hart
-   mytutorialapp: hab-plan-build cleanup
-   mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.1.0
-   mytutorialapp: Installed Path: /hab/pkgs/sample/mytutorialapp/0.1.0/20160428191007
-   mytutorialapp: Artifact: /hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160428191007-x86_64-linux.hart
-   mytutorialapp:
-   mytutorialapp: I love it when a plan.sh comes together.
-   mytutorialapp:
-   mytutorialapp: Build time: 0m24s
+mytutorialapp: Building package metadata
+mytutorialapp: Writing configuration
+mytutorialapp: Writing service management scripts
+mytutorialapp: Stripping unneeded symbols from binaries and libraries
+mytutorialapp: Creating manifest
+mytutorialapp: Generating package artifact
+/hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/' from member names
+/hab/cache/artifacts/.sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.tar (1/1)
+100 %       120.8 KiB / 900.0 KiB = 0.134
+» Signing /hab/cache/artifacts/.sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.tar.xz
+☛ Signing /hab/cache/artifacts/.sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.tar.xz with sample-20160523135337 to create /hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.hart
+★ Signed artifact /hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.hart.
+mkdir: created directory '/src/results'
+'/hab/cache/artifacts/sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.hart' -> '/src/results/sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.hart'
+mytutorialapp: hab-plan-build cleanup
+mytutorialapp:
+mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.1.0
+mytutorialapp: Installed Path: /hab/pkgs/sample/mytutorialapp/0.1.0/20160523142441
+mytutorialapp: Artifact: /src/results/sample-mytutorialapp-0.1.0-20160523142441-x86_64-linux.hart
+mytutorialapp: Build Report: /src/results/last_build.env
+mytutorialapp:
+mytutorialapp: I love it when a plan.sh comes together.
+mytutorialapp:
+mytutorialapp: Build time: 0m24s
 [15][default:/src:0]$
 ~~~
 
