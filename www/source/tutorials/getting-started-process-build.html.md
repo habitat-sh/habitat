@@ -34,7 +34,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
     Once that process has completed, you can run your Docker image inside a container from any terminal window that has access to the Docker CLI, such as the dev shell container or your host machine.
 
-      > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, you may need to connect your shell to the machine using `eval "$(docker-machine env default)"`
+      > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, you may need to connect your shell to the host machine using `eval "$(docker-machine env default)"` if you are running Mac OS X.
 
         $ docker run -it -p 8080:8080 myorigin/mytutorialapp
         hab-sup(MN): Starting myorigin/mytutorialapp
