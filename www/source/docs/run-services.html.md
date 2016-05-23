@@ -9,13 +9,13 @@ Currently, services can either be run directly using the supervisor, or inside D
 ## Running services directly
 Plans can rapidly be built into artifacts and tested either in the Habitat devshell environment or the chrooted studio environment. To run services directly:
 
-1. Enter the studio and create an origin/public key pair by running `hab origin key generate originname` substituting in the name of the origin of your artifact. 
+
+1. Enter the studio and create an origin/public key pair by running `hab origin key generate originname` substituting in the name of the origin of your artifact.
 2. Build your artifact. The artifact will be installed in the `/src/results` directory.
 3. Enter `exit` to logout of the studio and get back into the devshell.
 4. Copy the public key you created in the studio by running `cp /hab/studios/hab/cache/keys/name-of-your-key.pub /hab/cache/keys`.
 5. Run `hab install /src/results/origin-name-of-your-artifact.hart` to unpack and install the artifact as a package in your devshell container.
 6. Run `hab start origin/name` substituting in your origin and the name of the artifact you built in step 1. Your service should now be running from within the devshell.
-
 
 ## Exporting to Docker
 This topic describes how to create a Docker container for any artifact in the public depot by perform the following steps:
