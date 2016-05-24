@@ -202,7 +202,7 @@ pub fn studio_run(cmd: &str, args: &[&str]) -> CmdResult<Cmd> {
 }
 
 pub fn dockerize(ident_str: &str) {
-    let mut install = match studio_run("hab-bpm", &["install", "core/hab-pkg-dockerize"]) {
+    let mut install = match studio_run("hab", &["install", "core/hab-pkg-dockerize"]) {
         Ok(cmd) => cmd,
         Err(e) => panic!("{:?}", e),
     };
@@ -210,7 +210,7 @@ pub fn dockerize(ident_str: &str) {
     if !install.status.unwrap().success() {
         panic!("Failed to install 'core/hab-pkg-dockerize'");
     }
-    let mut docker = match studio_run("hab-bpm",
+    let mut docker = match studio_run("hab",
                                       &["exec",
                                         "core/hab-pkg-dockerize",
                                         "hab-pkg-dockerize",
