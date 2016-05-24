@@ -6,9 +6,7 @@ adduser --user-group hab || echo "User 'hab' already exists"
 
 # Install hab
 yum install -y wget
-bash /home/ec2-user/hab-studio-install.sh
-hab-bpm install core/hab-static
-hab-bpm binlink core/hab-static hab
+bash /home/ec2-user/hab-install.sh
 
 # Install the SystemD unit
 cp /home/ec2-user/sh.habitat.habitat-builder-web.service /etc/systemd/system

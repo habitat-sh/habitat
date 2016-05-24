@@ -43,8 +43,8 @@ resource "aws_instance" "habitat_builder_web" {
   vpc_security_group_ids      = ["${aws_security_group.habitat_web.id}"]
 
   provisioner "file" {
-    source      = "components/studio/install.sh"
-    destination = "/home/ec2-user/hab-studio-install.sh"
+    source      = "components/hab/install.sh"
+    destination = "/home/ec2-user/hab-install.sh"
 
     connection {
       user = "ec2-user"
