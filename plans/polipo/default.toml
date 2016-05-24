@@ -1,2 +1,17 @@
+# https://www.irif.univ-paris-diderot.fr/~jch//software/polipo/manual/
+# share caching between all users, possibly unsafe
+cacheIsShared = "false"
+# 4X the default
+chunkHighMark = 100663296
+# show the list of packages
+disableIndexing = "false"
+# show the list of servers
+disableServersList = "false"
+# Override DNS
+dnsNameServer = "8.8.8.8"
+# 4X the default
+objectHighMark = 8192
+# allows anyone access
+proxyAddress = "::0"
 # The port number that is listening for requests.
-port=8123
+port = 8123
