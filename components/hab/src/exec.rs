@@ -66,9 +66,10 @@ pub fn command_from_pkg(command: &str,
         return Err(Error::ExecCommandNotFound(command.to_string()));
     }
 
+    let fs_root_path = Path::new("/");
     match PackageInstall::load(ident, None) {
         Ok(pi) => {
-            match try!(find_command_in_pkg(&command, &pi)) {
+            match try!(find_command_in_pkg(&command, &pi, fs_root_path)) {
                 Some(cmd) => Ok(cmd),
                 None => return Err(Error::ExecCommandNotFound(command.to_string())),
             }
@@ -77,7 +78,7 @@ pub fn command_from_pkg(command: &str,
             println!("Package for {} not found, installing from depot", &ident);
             try!(common::command::package::install::from_url(DEFAULT_DEPOT_URL,
                                                              ident,
-                                                             Path::new("/"),
+                                                             fs_root_path,
                                                              &cache_artifact_path(None),
                                                              cache_key_path));
             command_from_pkg(&command, &ident, &cache_key_path, retry + 1)
@@ -93,11 +94,14 @@ pub fn command_from_pkg(command: &str,
 /// # Failures
 ///
 /// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg(command: &str, pkg_install: &PackageInstall) -> Result<Option<PathBuf>> {
+pub fn find_command_in_pkg(command: &str,
+                           pkg_install: &PackageInstall,
+                           fs_root_path: &Path)
+                           -> Result<Option<PathBuf>> {
     for path in try!(pkg_install.paths()) {
-        let candidate = path.join(command);
+        let candidate = fs_root_path.join(try!(path.strip_prefix("/"))).join(command);
         if candidate.is_file() {
-            return Ok(Some(candidate));
+            return Ok(Some(path.join(command)));
         }
     }
     Ok(None)
