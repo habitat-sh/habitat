@@ -262,7 +262,6 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   busybox-static
   jq-static
   wget-static
-  ../components/bpm:hab-bpm
   ../components/plan-build:hab-plan-build
   vim
   libbsd
