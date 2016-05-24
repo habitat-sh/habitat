@@ -335,10 +335,6 @@ EOF
   # Invoke the type's implementation
   finish_setup
 
-  # This prompt tells us what kind of studio we're in!
-  prompt='[\#]['$studio_type':\w:\$?]\$\040 '
-  studio_enter_environment="$studio_enter_environment PS1=$prompt"
-
   # Add a Studio configuration file at the root of the filesystem
   $bb cat <<EOF > $studio_config
 studio_type="$studio_type"
@@ -371,6 +367,16 @@ if command -v dircolors > /dev/null; then
   eval "$(dircolors -b)"
 fi
 alias ls="ls --color=auto"
+
+# Set a prompt which tells us what kind of Studio we're in
+case "${TERM:-}" in
+*term | xterm-* | rxvt | screen | screen-*)
+  PS1='\[\e[0;32m\][\[\e[0;36m\]\#\[\e[0;32m\]]['${STUDIO_TYPE:-unknown}':\[\e[0;35m\]\w\[\e[0;32m\]:\[\e[1;37m\]`echo -n $?`\[\e[0;32m\]]\$\[\e[0m\] '
+  ;;
+*)
+  PS1='[\#]['${STUDIO_TYPE:-unknown}':\w:`echo -n $?`]\$ '
+  ;;
+esac
 
 record() {
   (if [ -n "${DEBUG:-}" ]; then set -x; fi; unset DEBUG
@@ -713,8 +719,6 @@ HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 
 #
 bb="$libexec_path/busybox"
-#
-bpm="$libexec_path/hab-bpm"
 #
 hab="$libexec_path/hab"
 # The current version of Habitat Studio
