@@ -30,8 +30,8 @@ pub mod binlink {
                                              &binary,
                                              &ident,
                                              dst_path.display())));
-        let pkg_install = try!(PackageInstall::load(&ident, None));
-        let src = match try!(find_command_in_pkg(binary, &pkg_install)) {
+        let pkg_install = try!(PackageInstall::load(&ident, Some(fs_root_path)));
+        let src = match try!(find_command_in_pkg(binary, &pkg_install, fs_root_path)) {
             Some(c) => c,
             None => {
                 return Err(Error::CommandNotFoundInPkg((pkg_install.ident().to_string(),
