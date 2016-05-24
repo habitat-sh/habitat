@@ -246,17 +246,21 @@ $ build plans/redis
 To upload the resulting package
 
 ```bash
-$ hab-studio enter
-$ hab-bpm install core/hab
-$ hab-bpm exec core/hab hab artifact upload /hab/cache/artifacts/<PKG>.hart
+$ hab artifact upload ./results/<PKG>.hart
+```
+
+Alternatively, you can use the `last_build.env` metadata to fetch the full artifact name to upload:
+
+```bash
+$ hab artifact upload ./results/$(source ./results/last_build.env && echo $pkg_artifact)
 ```
 
 To create a docker container of a package, either local or remote:
 
 ```bash
 $ hab-studio enter
-$ hab-bpm install core/hab-pkg-dockerize
-$ hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize core/redis
+$ hab install core/hab-pkg-dockerize
+$ hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize core/redis
 ```
 
 To develop Habitat itself, just work like you always did. If you want to,
@@ -264,7 +268,6 @@ for example, test that Redis is working with your development version of
 the supervisor:
 
 ```bash
-$ hab-bpm install core/redis
 $ ./target/debug/hab-sup start core/redis
 ```
 

@@ -26,9 +26,9 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
         [17][default:/src/plans:0]$hab install core/hab-pkg-dockerize
 
-5. Run `hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your artifact. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
+5. Run `hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your artifact. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
-        [18][default:/src:0]$hab-bpm exec core/hab-pkg-dockerize hab-pkg-dockerize myorigin/mytutorialapp
+        [18][default:/src:0]$hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize myorigin/mytutorialapp
 
     Habitat will proceed to unpack and install all necessary Habitat artifacts, the Habitat command-line interface (CLI) tools and binaries, the mytutorialapp artifact, and all of its dependencies. Then it will create an image using the Docker scratch image as the base image and build up the rest of the image from there.
 

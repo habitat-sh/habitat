@@ -7,7 +7,6 @@ The commands and sub-commands for the Habitat CLI tools are listed below:
 
 - [hab](#hab)
 - [hab-artifact](#hab-artifact)
-- [hab-bpm](#hab-bpm)
 - [hab-depot](#hab-depot)
 - [hab-origin](#hab-origin)
 - [hab-pkg](#hab-pkg)
@@ -65,40 +64,6 @@ Subcommand used for signing and uploading packages.
     sign      Signs a archive file with with an origin key, creating a Habitat artifact
     upload    Uploads a local package artifact to a depot
     verify    Verifies a Habitat artifact with an origin key
-
-***
-
-## hab-bpm
-Package manager for Habitat. Mostly used to download and install packages.
-
-**USAGE**
-
-    $program [COMMON_FLAGS] <SUBCOMMAND> [ARG ..]
-
-**COMMON FLAGS**
-
-    -h  Prints this message
-    -q  Prints less output for better use in scripts
-    -v  Prints more verbose output
-    -V  Prints version information
-
-**SUBCOMMANDS**
-
-    binlink   Creates a symlink for a package binary in a common 'PATH' location
-    exec      Executes a command using the 'PATH' context of an installed package
-    help      Prints this message
-    install   Installs a package
-    pkgpath   Prints the path to a package
-    version   Prints version information
-
-**ENVIRONMENT VARIABLES**
-
-    QUIET     Prints less output (\`-q' flag takes precedence)
-    VERBOSE   Prints more verbose output (\`-v' flag takes precedence)
-
-**SUBCOMMAND HELP**
-
-    $program <SUBCOMMAND> -h
 
 ***
 
