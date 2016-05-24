@@ -2,18 +2,18 @@ studio_type="baseimage"
 studio_path="$HAB_ROOT_PATH/bin"
 studio_enter_environment=
 studio_build_environment=
-studio_build_command="$HAB_ROOT_PATH/bin/build"
+studio_build_command=
 studio_run_environment=
 studio_run_command=
 
-base_pkgs="core/hab-bpm core/hab-sup core/busybox-static"
+base_pkgs="core/hab-static core/hab-sup"
 : ${PKGS:=}
 
 run_user="hab"
 run_group="$run_user"
 
 finish_setup() {
-  if [ -x "$HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup" ]; then
+  if [ -h "$HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab" ]; then
     return 0
   fi
 
@@ -29,7 +29,7 @@ finish_setup() {
         $bb cp -ra $HAB_PKG_PATH/$tdep/* $HAB_STUDIO_ROOT$HAB_PKG_PATH/$tdep
       done
     else
-      _bpm install $embed
+      _hab install $embed
     fi
   done
 
@@ -37,7 +37,7 @@ finish_setup() {
     _hab install $pkg
   done
 
-  local bpm_path=$(_pkgpath_for core/hab-bpm)
+  local hab_path=$(_pkgpath_for core/hab-static)
   local sup_path=$(_pkgpath_for core/hab-sup)
   local busybox_path=$(_pkgpath_for core/busybox-static)
 
@@ -69,22 +69,18 @@ finish_setup() {
 
   $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin
 
-  # Put `hab-bpm` on the default `$PATH` and ensure that it gets a sane shell
-  # and initial `busybox` (sane being its own vendored version)
-  $bb cat <<EOF > $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-bpm
-#!$busybox_path/bin/sh
-exec $bpm_path/bin/hab-bpm \$*
-EOF
-  $bb chmod $v 755 $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-bpm
-  $bb ln -s $v $busybox_path/bin/sh $HAB_STUDIO_ROOT/bin/bash
-  $bb ln -s $v $busybox_path/bin/sh $HAB_STUDIO_ROOT/bin/sh
-  $bb ln -s $v $sup_path/bin/hab-sup $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin/hab-sup
+  # Put `hab` on the default `$PATH`
+  _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab-static hab
+
+  # Create `/bin/{sh,bash}` for software that hardcodes these shells
+  _hab pkg binlink core/busybox-static bash
+  _hab pkg binlink core/busybox-static sh
 
   # Set the login shell for any relevant user to be `/bin/bash`
   $bb sed -e "s,/bin/sh,$busybox_path/bin/bash,g" -i $HAB_STUDIO_ROOT/etc/passwd
 
   $bb cat <<PROFILE > $HAB_STUDIO_ROOT/etc/profile
-# Add hab-bpm to the default \$PATH at the front so any wrapping scripts will
+# Add hab to the default \$PATH at the front so any wrapping scripts will
 # be found and called first
 export PATH=$full_path:\$PATH
 
@@ -114,7 +110,7 @@ EOT
   echo "${run_user}:x:42:42:root:/:/bin/sh" >> $HAB_STUDIO_ROOT/etc/passwd
   echo "${run_group}:x:42:${run_user}" >> $HAB_STUDIO_ROOT/etc/group
 
-  local sup=$sup_path/bin/hab-sup
+  local sup="$HAB_ROOT_PATH/bin/hab sup"
   $bb touch $HAB_STUDIO_ROOT/.hab_pkg
   $bb cat <<EOT > $HAB_STUDIO_ROOT/init.sh
 #!$busybox_path/bin/sh
@@ -130,10 +126,6 @@ EOT
   $bb rm $HAB_STUDIO_ROOT$HAB_CACHE_ARTIFACT_PATH/*
 
   studio_env_command="$busybox_path/bin/env"
-}
-
-_bpm() {
-  $bb env BUSYBOX=$bb FS_ROOT=$HAB_STUDIO_ROOT $bb sh $bpm $*
 }
 
 _hab() {
