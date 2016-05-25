@@ -15,7 +15,7 @@ For example, the archive for our Node.js app already has a configuration file ca
 
 
 2. Open `config/config.json` in your text editor.
-3. Copy the contents from the original `config.json` into `config/config.json` as shown below.
+3. Copy the contents from the original `config.json` (shown below) into `config/config.json`.
 
        {
            "message": "Hello, World!",
