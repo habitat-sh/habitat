@@ -99,7 +99,7 @@ impl GenServer for PackageUpdater {
                     match depot_client::fetch_package(&state.depot,
                                                       latest_ident,
                                                       &Path::new(FS_ROOT_PATH)
-                                                           .join(CACHE_ARTIFACT_PATH),
+                                                          .join(CACHE_ARTIFACT_PATH),
                                                       Some(&mut progress)) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);

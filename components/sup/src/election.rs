@@ -178,7 +178,7 @@ impl Election {
                 let votes = self.votes.clone();
                 let start_len = votes.len();
                 let differences = remote_election.votes
-                                                 .difference(&votes);
+                    .difference(&votes);
                 for id in differences {
                     self.votes.insert(id.clone());
                 }
@@ -237,7 +237,7 @@ impl ElectionList {
             updated_term = true;
         }
         if let Some(mut current_election) = self.elections
-                                                .get_mut(&remote_election.service_group()) {
+            .get_mut(&remote_election.service_group()) {
             let result = current_election.update_via(remote_election);
             if updated_term {
                 if !current_election.votes.contains(&self.member_id) {
@@ -277,8 +277,8 @@ impl ElectionList {
     /// Build a new election for a service group.
     pub fn generate_election_for(&self, service: String, group: String) -> Election {
         let current_term: u32 = self.elections
-                                    .get(&format!("{}.{}", service, group))
-                                    .map_or(0, |e| e.term.clone());
+            .get(&format!("{}.{}", service, group))
+            .map_or(0, |e| e.term.clone());
 
         // Eventually, you need to actually get the suitability here, or in election::new
         Election::new(service, group, self.member_id.clone(), 0, current_term)
@@ -287,9 +287,9 @@ impl ElectionList {
     /// Finish the election
     pub fn finished_election_for(&self, service: String, group: String) -> Election {
         let mut election = self.elections
-                               .get(&format!("{}.{}", service, group))
-                               .unwrap()
-                               .clone();
+            .get(&format!("{}.{}", service, group))
+            .unwrap()
+            .clone();
         election.status = ElectionStatus::Finished;
         election
     }

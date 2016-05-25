@@ -34,6 +34,7 @@ threadpool = "*"
 urlencoded = "*"
 openssl = "*"
 lazy_static = "*"
+handlebars = "*"
 
 [dependencies.habitat_core]
 path = "../core"
@@ -53,10 +54,6 @@ features = ["rustc-serialize"]
 
 [dependencies.wonder]
 path = "../../vendor/wonder"
-
-[dependencies.mustache]
-git = "https://github.com/adamhjk/rust-mustache"
-branch = "fallback_on_missing_extension"
 
 [dependencies.clap]
 version = "*"

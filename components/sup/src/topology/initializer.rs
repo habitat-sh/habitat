@@ -69,11 +69,11 @@ pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
     }
     let candidate = {
         worker.census_list
-              .read()
-              .unwrap()
-              .local_census()
-              .determine_vote()
-              .candidate_string()
+            .read()
+            .unwrap()
+            .local_census()
+            .determine_vote()
+            .candidate_string()
     };
     outputln!("My candidate is {:?}", candidate);
     {
@@ -87,11 +87,11 @@ pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
 pub fn state_in_election(worker: &mut Worker) -> Result<(State, u64)> {
     let candidate = {
         worker.census_list
-              .read()
-              .unwrap()
-              .local_census()
-              .determine_vote()
-              .candidate_string()
+            .read()
+            .unwrap()
+            .local_census()
+            .determine_vote()
+            .candidate_string()
     };
 
     {

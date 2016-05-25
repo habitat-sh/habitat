@@ -70,11 +70,11 @@ mod tests {
         // only IP passed in
         assert!(("192.168.1.99".to_string(), 1234) ==
                 parse_ip_port_with_defaults(Some("192.168.1.99"), default_ip, default_port)
-                    .unwrap());
+            .unwrap());
         // pass in IP and port
         assert!(("192.168.1.99".to_string(), 5678) ==
                 parse_ip_port_with_defaults(Some("192.168.1.99:5678"), default_ip, default_port)
-                    .unwrap());
+            .unwrap());
         // pass in something unparseable
         assert!(parse_ip_port_with_defaults(Some("foo"), default_ip, default_port).is_err());
     }

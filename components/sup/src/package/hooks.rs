@@ -12,11 +12,11 @@ use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-use mustache;
+use handlebars::Handlebars;
 
 use error::{Error, Result};
 use package::Package;
-use service_config::ServiceConfig;
+use service_config::{ServiceConfig, never_escape_fn};
 use util::convert;
 
 static LOGKEY: &'static str = "PH";
@@ -42,6 +42,7 @@ impl fmt::Display for HookType {
     }
 }
 
+#[derive(Debug)]
 pub struct Hook {
     pub htype: HookType,
     pub template: PathBuf,
@@ -60,10 +61,10 @@ impl Hook {
     pub fn run(&self, context: Option<&ServiceConfig>) -> Result<String> {
         try!(self.compile(context));
         let mut child = try!(Command::new(&self.path)
-                                 .stdin(Stdio::null())
-                                 .stdout(Stdio::piped())
-                                 .stderr(Stdio::piped())
-                                 .spawn());
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn());
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,
@@ -107,19 +108,20 @@ impl Hook {
 
     pub fn compile(&self, context: Option<&ServiceConfig>) -> Result<()> {
         if let Some(ctx) = context {
-            let template = try!(mustache::compile_path(&self.template));
-            let mut out = Vec::new();
+            debug!("Rendering hook {:?}", self);
+            let mut handlebars = Handlebars::new();
+            handlebars.register_escape_fn(never_escape_fn);
+            try!(handlebars.register_template_file("hook", &self.template));
             let toml = try!(ctx.to_toml());
-            let data = convert::toml_to_mustache(toml);
-            template.render_data(&mut out, &data);
-            let data = try!(String::from_utf8(out));
+            let svc_data = convert::toml_to_json(toml);
+            let data = try!(handlebars.render("hook", &svc_data));
             let mut file = try!(OpenOptions::new()
-                                    .write(true)
-                                    .truncate(true)
-                                    .create(true)
-                                    .read(true)
-                                    .mode(0o770)
-                                    .open(&self.path));
+                .write(true)
+                .truncate(true)
+                .create(true)
+                .read(true)
+                .mode(0o770)
+                .open(&self.path));
             try!(write!(&mut file, "{}", data));
             Ok(())
         } else {
