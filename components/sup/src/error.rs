@@ -40,8 +40,8 @@ use std::string;
 use std::sync::mpsc;
 
 use ansi_term::Colour::Red;
+use handlebars;
 use hyper;
-use mustache;
 use rustc_serialize::json;
 use toml;
 use uuid;
@@ -97,6 +97,8 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
+    HandlebarsTemplateFileError(handlebars::TemplateFileError),
+    HandlebarsRenderError(handlebars::RenderError),
     HealthCheck(String),
     HookFailed(HookType, i32, String),
     HTTP(hyper::status::StatusCode),
@@ -112,7 +114,6 @@ pub enum Error {
     JsonEncode(json::EncoderError),
     KeyNotFound(String),
     MetaFileIO(io::Error),
-    MustacheEncoderError(mustache::encoder::Error),
     NetParseError(net::AddrParseError),
     NoRunFile,
     NulError(ffi::NulError),
@@ -145,6 +146,8 @@ impl fmt::Display for SupError {
             }
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
+            Error::HandlebarsTemplateFileError(ref err) => format!("{:?}", err),
+            Error::HandlebarsRenderError(ref err) => format!("{}", err),
             Error::CommandNotImplemented => format!("Command is not yet implemented!"),
             Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             Error::DepotClient(ref err) => format!("{}", err),
@@ -171,12 +174,6 @@ impl fmt::Display for SupError {
             Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
-            Error::MustacheEncoderError(ref me) => {
-                match *me {
-                    mustache::encoder::Error::IoError(ref e) => format!("{}", e),
-                    _ => format!("Mustache encoder error: {:?}", me),
-                }
-            }
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoRunFile => format!("No run file is present for this package; specify a run hook or $pkg_service_run in your plan"),
             Error::NulError(ref e) => format!("{}", e),
@@ -229,6 +226,8 @@ impl error::Error for SupError {
         match self.err {
             Error::ActorError(_) => "A running actor responded with an error",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
+            Error::HandlebarsRenderError(ref err) => err.description(),
+            Error::HandlebarsTemplateFileError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::CommandNotImplemented => "Command is not yet implemented!",
@@ -249,7 +248,6 @@ impl error::Error for SupError {
             Error::JsonEncode(_) => "JSON encoding error",
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
-            Error::MustacheEncoderError(_) => "Failed to encode mustache template",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NoRunFile => "No run file is present for this package; specify a run hook or $pkg_service_run in your plan",
             Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
@@ -291,6 +289,18 @@ impl From<common::Error> for SupError {
     }
 }
 
+impl From<handlebars::RenderError> for SupError {
+    fn from(err: handlebars::RenderError) -> SupError {
+        sup_error!(Error::HandlebarsRenderError(err))
+    }
+}
+
+impl From<handlebars::TemplateFileError> for SupError {
+    fn from(err: handlebars::TemplateFileError) -> SupError {
+        sup_error!(Error::HandlebarsTemplateFileError(err))
+    }
+}
+
 impl From<hcore::Error> for SupError {
     fn from(err: hcore::Error) -> SupError {
         sup_error!(Error::HabitatCore(err))
@@ -312,12 +322,6 @@ impl From<uuid::ParseError> for SupError {
 impl From<ffi::NulError> for SupError {
     fn from(err: ffi::NulError) -> SupError {
         sup_error!(Error::NulError(err))
-    }
-}
-
-impl From<mustache::encoder::Error> for SupError {
-    fn from(err: mustache::encoder::Error) -> SupError {
-        sup_error!(Error::MustacheEncoderError(err))
     }
 }
 

@@ -170,8 +170,8 @@ impl<'a> Worker<'a> {
         let sidecar_el = gossip_server.election_list.clone();
         let sidecar_sup = supervisor.clone();
         let sidecar_listen = try!(SocketAddrV4::from_str(&format!("{}:{}",
-                                                    &config.sidecar_listen_ip(),
-                                                    config.sidecar_listen_port())));
+                                                                  &config.sidecar_listen_ip(),
+                                                                  config.sidecar_listen_port())));
         Ok(Worker {
             package: pkg_lock,
             package_name: package_name,
@@ -240,9 +240,9 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
         try!(package.copy_run(&service_config));
     }
     let handler = wonder::actor::Builder::new(SignalNotifier)
-                      .name("signal-handler".to_string())
-                      .start(())
-                      .unwrap();
+        .name("signal-handler".to_string())
+        .start(())
+        .unwrap();
     loop {
         let start_time = SteadyTime::now();
         match handler.receiver.try_recv() {

@@ -384,7 +384,7 @@ impl Census {
     pub fn update(&mut self, census_string: &str) -> Result<()> {
         let mut toml_parser = toml::Parser::new(census_string);
         let toml = try!(toml_parser.parse()
-                                   .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+            .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
         let toml_value = toml::Value::Table(toml);
         let census_map: CensusMap = toml::decode(toml_value).unwrap();
         let current_uuids: Vec<Uuid> = self.population.keys().map(|&x| x.clone()).collect();
@@ -433,9 +433,9 @@ impl Census {
         census.insert("group".to_string(), toml::Value::String(self.group.clone()));
         let mut members = toml::Array::new();
         let mut sorted_keys: Vec<_> = self.population
-                                          .keys()
-                                          .map(|&x| x.simple().to_string())
-                                          .collect();
+            .keys()
+            .map(|&x| x.simple().to_string())
+            .collect();
         sorted_keys.sort();
         for key in sorted_keys {
             let uuid_key = try!(Uuid::parse_str(&key));
@@ -463,15 +463,15 @@ impl Census {
     /// Have all members of the census initialized their data?
     pub fn dataset_initialized(&self) -> bool {
         let count = self.population
-                        .values()
-                        .filter(|&ce| {
-                            if ce.data_init {
-                                true
-                            } else {
-                                false
-                            }
-                        })
-                        .count();
+            .values()
+            .filter(|&ce| {
+                if ce.data_init {
+                    true
+                } else {
+                    false
+                }
+            })
+            .count();
         if count > 0 {
             true
         } else {
@@ -495,15 +495,15 @@ impl Census {
     /// Is there an alive leader in the census?
     pub fn has_leader(&self) -> bool {
         let count = self.population
-                        .values()
-                        .filter(|&ce| {
-                            if ce.leader && ce.alive {
-                                true
-                            } else {
-                                false
-                            }
-                        })
-                        .count();
+            .values()
+            .filter(|&ce| {
+                if ce.leader && ce.alive {
+                    true
+                } else {
+                    false
+                }
+            })
+            .count();
         if count > 0 {
             true
         } else {
@@ -516,15 +516,15 @@ impl Census {
         let size = self.population.values().filter(|&ce| ce.alive).count() - 1;
 
         let count = self.population
-                        .values()
-                        .filter(|&ce| {
-                            if ce.follower && ce.alive {
-                                true
-                            } else {
-                                false
-                            }
-                        })
-                        .count();
+            .values()
+            .filter(|&ce| {
+                if ce.follower && ce.alive {
+                    true
+                } else {
+                    false
+                }
+            })
+            .count();
         if count == size {
             true
         } else {
@@ -539,28 +539,27 @@ impl Census {
     pub fn determine_vote(&self) -> &CensusEntry {
         let acc: Option<&CensusEntry> = None;
         let vote: &CensusEntry = self.population
-                                     .values()
-                                     .filter(|ce| ce.alive)
-                                     .fold(acc, |acc, ref rce| {
-                                         match acc {
-                                             Some(lce) => {
-                                                 if rce.suitability > lce.suitability {
-                                                     Some(rce)
-                                                 } else if lce.suitability == rce.suitability {
-                                                     if rce.id.simple().to_string() >
-                                                        lce.id.simple().to_string() {
-                                                         Some(rce)
-                                                     } else {
-                                                         Some(lce)
-                                                     }
-                                                 } else {
-                                                     Some(lce)
-                                                 }
-                                             }
-                                             None => Some(rce),
-                                         }
-                                     })
-                                     .unwrap();
+            .values()
+            .filter(|ce| ce.alive)
+            .fold(acc, |acc, ref rce| {
+                match acc {
+                    Some(lce) => {
+                        if rce.suitability > lce.suitability {
+                            Some(rce)
+                        } else if lce.suitability == rce.suitability {
+                            if rce.id.simple().to_string() > lce.id.simple().to_string() {
+                                Some(rce)
+                            } else {
+                                Some(lce)
+                            }
+                        } else {
+                            Some(lce)
+                        }
+                    }
+                    None => Some(rce),
+                }
+            })
+            .unwrap();
         vote
     }
 
@@ -571,29 +570,29 @@ impl Census {
     /// * Everyone votes for the same CensusEntry
     pub fn voting_finished(&self) -> Option<&CensusEntry> {
         let all_in_election = self.population
-                                  .values()
-                                  .filter(|ref ce| ce.alive)
-                                  .all(|ref ce| {
-                                      match ce.election {
-                                          Some(true) => true,
-                                          Some(false) => false,
-                                          None => false,
-                                      }
-                                  });
+            .values()
+            .filter(|ref ce| ce.alive)
+            .all(|ref ce| {
+                match ce.election {
+                    Some(true) => true,
+                    Some(false) => false,
+                    None => false,
+                }
+            });
         if all_in_election == false {
             debug!("Not all in election: {:#?}", self);
             return None;
         };
 
         let all_voted = self.population
-                            .values()
-                            .filter(|ref ce| ce.alive)
-                            .all(|ref ce| {
-                                match ce.vote {
-                                    Some(_) => true,
-                                    None => false,
-                                }
-                            });
+            .values()
+            .filter(|ref ce| ce.alive)
+            .all(|ref ce| {
+                match ce.vote {
+                    Some(_) => true,
+                    None => false,
+                }
+            });
         if all_voted == false {
             debug!("Not everyone has voted: {:#?}", self);
             return None;
@@ -644,7 +643,7 @@ impl Census {
         let alive_population = self.alive_population() as f32;
         let total_pop = total_population as f32;
         let percent_alive: usize = ((alive_population.round() / total_pop.round()) * 100.0)
-                                       .round() as usize;
+            .round() as usize;
         if percent_alive > 50 {
             true
         } else {
@@ -837,8 +836,8 @@ mod test {
         fn confirm_entries(census: &mut Census, count: usize) {
             let me = census.me.clone();
             for (_id, mut ce) in census.iter_mut()
-                                       .filter(|&(id, ref _ce)| *id != me)
-                                       .take(count) {
+                .filter(|&(id, ref _ce)| *id != me)
+                .take(count) {
                 ce.set_confirmed();
             }
         }
@@ -851,9 +850,9 @@ mod test {
 
         fn fail_the_leader(census: &mut Census) {
             let (_id, mut leader) = census.population
-                                          .iter_mut()
-                                          .find(|&(_id, ref ce)| ce.leader)
-                                          .unwrap();
+                .iter_mut()
+                .find(|&(_id, ref ce)| ce.leader)
+                .unwrap();
             leader.set_confirmed();
         }
 

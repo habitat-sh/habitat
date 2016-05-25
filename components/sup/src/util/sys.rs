@@ -15,18 +15,16 @@ static LOGKEY: &'static str = "SY";
 pub fn ip() -> Result<String> {
     match sys::ip() {
         Ok(s) => Ok(s),
-        Err(e) => {
-            Err(sup_error!(Error::HabitatCore(e)))
-        }
+        Err(e) => Err(sup_error!(Error::HabitatCore(e))),
     }
 }
 
 pub fn hostname() -> Result<String> {
     debug!("Shelling out to determine IP address");
     let output = try!(Command::new("sh")
-                          .arg("-c")
-                          .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
-                          .output());
+        .arg("-c")
+        .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
+        .output());
     match output.status.success() {
         true => {
             debug!("Hostname address is {}",

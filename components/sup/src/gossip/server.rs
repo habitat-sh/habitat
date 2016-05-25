@@ -154,8 +154,8 @@ impl Server {
         let gfl = self.gossip_file_list.clone();
         let listener = try!(UtpListener::bind(&self.listen[..]));
         let _t = thread::Builder::new()
-                     .name("inbound".to_string())
-                     .spawn(move || inbound(listener, key, my_peer, ml, rl, cl, detector, el, gfl));
+            .name("inbound".to_string())
+            .spawn(move || inbound(listener, key, my_peer, ml, rl, cl, detector, el, gfl));
         Ok(())
     }
 
@@ -168,8 +168,8 @@ impl Server {
         let my_peer = self.peer.clone();
         let detector = self.detector.clone();
         let _t = thread::Builder::new()
-                     .name("outbound".to_string())
-                     .spawn(move || outbound(key, my_peer, ml, rl, detector));
+            .name("outbound".to_string())
+            .spawn(move || outbound(key, my_peer, ml, rl, detector));
     }
 
     /// Starts the failure detector.
@@ -181,8 +181,8 @@ impl Server {
         let rl = self.rumor_list.clone();
         let detector = self.detector.clone();
         let _t = thread::Builder::new()
-                     .name("failure_detector".to_string())
-                     .spawn(move || failure_detector(key, my_peer, ml, rl, detector));
+            .name("failure_detector".to_string())
+            .spawn(move || failure_detector(key, my_peer, ml, rl, detector));
     }
 
     /// Sends blocking SWIM requests to our initial gossip peers.

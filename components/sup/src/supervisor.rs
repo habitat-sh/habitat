@@ -153,16 +153,16 @@ impl Supervisor {
             outputln!(preamble & self.package_ident.name, "Starting");
             self.enter_state(ProcessState::Start);
             let mut child = try!(Command::new(self.run_cmd())
-                                     .stdin(Stdio::null())
-                                     .stdout(Stdio::piped())
-                                     .stderr(Stdio::piped())
-                                     .spawn());
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn());
             self.pid = Some(child.id());
             try!(self.create_pidfile());
             let package_name = self.package_ident.name.clone();
             try!(thread::Builder::new()
-                     .name(String::from("sup-service-read"))
-                     .spawn(move || -> Result<()> { child_reader(&mut child, package_name) }));
+                .name(String::from("sup-service-read"))
+                .spawn(move || -> Result<()> { child_reader(&mut child, package_name) }));
             self.enter_state(ProcessState::Up);
             self.has_started = true;
         } else {

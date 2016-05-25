@@ -14,16 +14,16 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use ansi_term::Colour::Purple;
-use mustache;
-use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::Encodable;
 use toml;
+use handlebars::{Handlebars, JsonRender};
 
 use common::gossip_file::GOSSIP_TOML;
 use census::{Census, CensusList};
 use config::Config;
 use error::{Error, Result};
 use hcore::package::PackageInstall;
+use hcore::crypto;
 use package::Package;
 use util;
 use util::convert;
@@ -44,16 +44,24 @@ pub struct ServiceConfig {
     bind: Bind,
     // Keeps a list of the configuration files we have renders, and only re-writes them if they
     // have changed.
-    config_hash: HashMap<String, Vec<u8>>,
+    config_hash: HashMap<String, String>,
     // Set to 'true' if we have data that needs to be sent to a configuration file
     pub needs_write: bool,
+}
+
+pub fn never_escape_fn(data: &str) -> String {
+    String::from(data)
 }
 
 impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(config: &Config, package: &Package, cl: &CensusList, bindings: Vec<String>) -> Result<ServiceConfig> {
+    pub fn new(config: &Config,
+               package: &Package,
+               cl: &CensusList,
+               bindings: Vec<String>)
+               -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         let bind = try!(Bind::new(bindings, &cl));
         Ok(ServiceConfig {
@@ -133,18 +141,28 @@ impl ServiceConfig {
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
 
-        let final_data = convert::toml_to_mustache(final_toml);
+        debug!("Registering configuration templates");
+        let mut handlebars = Handlebars::new();
+        // By default, handlebars escapes HTML. We don't want that.
+        handlebars.register_escape_fn(never_escape_fn);
 
-        let mut should_restart = false;
+        // Register all the templates; this makes them available as partials!
+        // I suspect this will be useful, but I think we'll want to make this
+        // more explicit... in a minute, we render all the config files anyway.
         let config_files = try!(pkg.config_files());
+        for config in config_files.iter() {
+            let path = pi.installed_path().join("config").join(config);
+            debug!("Config template {} at {:?}", config, &path);
+            try!(handlebars.register_template_file(config, &path));
+        }
+
+        let final_data = convert::toml_to_json(final_toml);
+        let mut should_restart = false;
         for config in config_files {
-            let template = try!(mustache::compile_path(pi.installed_path()
-                                                         .join("config")
-                                                         .join(&config)));
-            let mut config_vec = Vec::new();
+            debug!("Rendering template {}", &config);
+            let template_data = try!(handlebars.render(&config, &final_data));
+            let file_hash = try!(crypto::hash::hash_string(&template_data));
             let filename = pi.svc_config_path().join(&config).to_string_lossy().into_owned();
-            template.render_data(&mut config_vec, &final_data);
-            let file_hash = openssl_hash::hash(openssl_hash::Type::SHA256, &config_vec);
             if self.config_hash.contains_key(&filename) {
                 if file_hash == *self.config_hash.get(&filename).unwrap() {
                     debug!("Configuration {} has not changed; not restarting", filename);
@@ -154,7 +172,7 @@ impl ServiceConfig {
                     outputln!("Updated {}", Purple.bold().paint(config));
                     self.config_hash.insert(filename.clone(), file_hash);
                     let mut config_file = try!(File::create(&filename));
-                    try!(config_file.write_all(&config_vec));
+                    try!(config_file.write_all(&template_data.into_bytes()));
                     should_restart = true;
                 }
             } else {
@@ -162,7 +180,7 @@ impl ServiceConfig {
                 outputln!("Updated {}", Purple.bold().paint(config));
                 self.config_hash.insert(filename.clone(), file_hash);
                 let mut config_file = try!(File::create(&filename));
-                try!(config_file.write_all(&config_vec));
+                try!(config_file.write_all(&template_data.into_bytes()));
                 should_restart = true
             }
         }
@@ -343,7 +361,7 @@ impl Cfg {
             Ok(_) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.default = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -368,7 +386,7 @@ impl Cfg {
             Ok(_) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.user = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -393,7 +411,7 @@ impl Cfg {
             Ok(_) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.gossip = Some(toml::Value::Table(toml));
             }
             Err(e) => {
@@ -406,13 +424,13 @@ impl Cfg {
 
     fn load_environment(&mut self, pkg: &Package) -> Result<()> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, pkg.name)
-                           .to_ascii_uppercase()
-                           .replace("-", "_");
+            .to_ascii_uppercase()
+            .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 let mut toml_parser = toml::Parser::new(&config);
                 let toml = try!(toml_parser.parse()
-                                .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
+                    .ok_or(sup_error!(Error::TomlParser(toml_parser.errors))));
                 self.environment = Some(toml::Value::Table(toml));
 
             }

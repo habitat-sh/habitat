@@ -235,9 +235,9 @@ impl MemberList {
     pub fn pingreq_targets(&self, myself: &MemberId, target: &MemberId) -> Vec<Member> {
         let mut rng = thread_rng();
         let mut values: Vec<&Member> = self.members
-                                           .values()
-                                           .filter(|m| &m.id != myself && &m.id != target)
-                                           .collect();
+            .values()
+            .filter(|m| &m.id != myself && &m.id != target)
+            .collect();
         rng.shuffle(&mut values);
         let mut results: Vec<Member> = Vec::new();
         for member in values.into_iter().take(PINGREQ_MEMBERS) {
