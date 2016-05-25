@@ -27,6 +27,20 @@ pub fn hash_file<P: AsRef<Path>>(filename: &P) -> Result<String> {
     hash_reader(&mut reader)
 }
 
+pub fn hash_string(data: &str) -> Result<String> {
+    let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
+    let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
+    let pst = unsafe {
+        mem::transmute::<*mut u8, *mut libsodium_sys::crypto_generichash_state>(st.as_mut_ptr())
+    };
+    unsafe {
+        libsodium_sys::crypto_generichash_init(pst, ptr::null_mut(), 0, out.len());
+        libsodium_sys::crypto_generichash_update(pst, data[..].as_ptr(), data.len() as u64);
+        libsodium_sys::crypto_generichash_final(pst, out.as_mut_ptr(), out.len());
+    }
+    Ok(out.to_hex())
+}
+
 pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
     let mut out = [0u8; libsodium_sys::crypto_generichash_BYTES];
     let mut st = vec![0u8; (unsafe { libsodium_sys::crypto_generichash_statebytes() })];
@@ -72,18 +86,18 @@ mod test {
     #[allow(dead_code)]
     fn mk_local_tmpdir() -> PathBuf {
         let dir = env::current_exe()
-                      .unwrap()
-                      .parent()
-                      .unwrap()
-                      .parent()
-                      .unwrap()
-                      .parent()
-                      .unwrap()
-                      .parent()
-                      .unwrap()
-                      .parent()
-                      .unwrap()
-                      .join("tmp");
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("tmp");
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -123,9 +137,9 @@ mod test {
                     _ => Client::new(),
                 };
                 let mut response = client.get(url)
-                                         .header(header::Connection::close())
-                                         .send()
-                                         .unwrap();
+                    .header(header::Connection::close())
+                    .send()
+                    .unwrap();
                 let mut f = File::create(&file).unwrap();
                 io::copy(&mut response, &mut f).unwrap();
             }
