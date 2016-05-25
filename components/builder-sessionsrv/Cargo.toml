@@ -15,6 +15,7 @@ hyper = "*"
 log = "*"
 protobuf = "*"
 r2d2 = "*"
+r2d2_redis = "*"
 redis = "*"
 rustc-serialize = "*"
 time = "*"
@@ -23,10 +24,6 @@ toml = "*"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
-
-[dependencies.r2d2_redis]
-git = "https://github.com/chef/r2d2-redis.git"
-branch = "update-r2d2"
 
 [dependencies.zmq]
 # git = "https://github.com/erickt/rust-zmq.git"

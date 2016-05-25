@@ -12,7 +12,7 @@ dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "r2d2_redis 0.2.0 (git+https://github.com/chef/r2d2-redis.git?branch=update-r2d2)",
+ "r2d2_redis 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -106,7 +106,7 @@ dependencies = [
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "r2d2_redis 0.2.0 (git+https://github.com/chef/r2d2-redis.git?branch=update-r2d2)",
+ "r2d2_redis 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -356,8 +356,8 @@ dependencies = [
 
 [[package]]
 name = "r2d2_redis"
-version = "0.2.0"
-source = "git+https://github.com/chef/r2d2-redis.git?branch=update-r2d2#a137d2496e9720a6b1080dcb5cf49a101c2d8e7d"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",

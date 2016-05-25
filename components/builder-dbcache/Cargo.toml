@@ -8,10 +8,7 @@ description = "Habitat-Builder Database Access Library"
 env_logger = "*"
 log = "*"
 r2d2 = "*"
+r2d2_redis = "*"
 redis = "*"
 rustc-serialize = "*"
 time = "*"
-
-[dependencies.r2d2_redis]
-git = "https://github.com/chef/r2d2-redis.git"
-branch = "update-r2d2"
