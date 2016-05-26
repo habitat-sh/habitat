@@ -46,3 +46,6 @@ end
 
 activate :autoprefixer
 activate :directory_indexes
+
+set :markdown_engine, :kramdown
+set :markdown, :coderay_line_numbers => :table

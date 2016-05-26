@@ -101,28 +101,65 @@ pre {
   border: none;
   border-radius: $global-radius;
   color: $hab-gray-light;
+  font-size: $code-font-size;
   padding: .6rem;
+  overflow-x: scroll;
 
   code {
-    color: $hab-gray-light;
+    color: $hab-off-white;
+    margin: 0;
+    padding: rem-calc(0 5 1);
   }
 }
 
-.CodeRay .code pre {
+.CodeRay {
   @include shadow-float;
-  border: 1px solid $hab-gray-light;
-  border-radius: $global-radius + 2;
-  border-top: 24px solid $hab-gray-light;
   font-family: $code-font-family;
   margin: rem-calc(20) 0 rem-calc(40);
+  max-width: 100%;
   padding: .6rem;
+  table-layout: fixed;
+
+  pre {
+    margin-bottom: 0;
+  }
+
+  span {
+    color: $hab-off-white !important;
+  }
+
+  tbody {
+    background-color: transparent;
+    border: none;
+  }
+
+  tbody td {
+    padding: 0;
+  }
+
+  .line-numbers {
+    width: rem-calc(40);
+
+    pre {
+      border-radius: $global-radius+2 0 0 $global-radius+2;
+      border-top: 24px solid $hab-gray-light;
+    }
+  }
+
+  .code pre {
+    border-radius: 0 $global-radius+2 $global-radius+2 0;
+    border-top: 24px solid $hab-gray-light;
+  }
 }
+
 code {
+  border: 1px solid $light-gray;
   font-size: $code-font-size;
   margin: rem-calc(10 0 30);
 
   p &,li & {
-    padding: rem-calc(1 5 2);
+    border-radius: $global-radius;
+    padding: rem-calc(0 5 1);
     margin: 0 rem-calc(1);
   }
 }
