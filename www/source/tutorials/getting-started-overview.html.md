@@ -1,8 +1,8 @@
 ---
-title: Getting stated with Habitat
+title: Getting started with Habitat
 ---
 
-# Getting Started with Habitat
+# Getting started with Habitat
 Traditionally, the focus for managing applications and application behavior has been at the infrastructure level. However, tying an application to a specific infrastructure makes it difficult to deploy and manage that application on a different infrastructure. For example, moving an application from on-prem to a cloud PaaS environment can be a big job.
 
 Habitat shifts the focus of application management and configuration from the infrastructure to the application itself. It allows you to create artifacts, which encapsulate the application, runtime dependencies, metadata, and any configuration information. When installed and run as services, they are dynamically configurable, topology aware, and have monitoring capabilities built in. The artifact contains everything the client application needs to run on its target platform.

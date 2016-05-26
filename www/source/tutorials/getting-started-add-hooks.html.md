@@ -24,11 +24,11 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
        #!/bin/sh
        #
-       cp {{pkg.path}}/package.json {{pkg.svc_path}}
-       cp {{pkg.path}}/server.js {{pkg.svc_path}}
-       cp -r {{pkg.path}}/node_modules {{pkg.svc_path}}
+       ln -s {{pkg.path}}/package.json {{pkg.svc_path}}
+       ln -s {{pkg.path}}/server.js {{pkg.svc_path}}
+       ln -s {{pkg.path}}/node_modules {{pkg.svc_path}}
 
-    We copied the files over from their location where the package is installed to the directory used when the service starts.
+    We symlinked the files over from their location where the package is installed to the directory used when the service starts.
 
 5. Save the `init` file and open the `run` hook file.
 6. The `run` hook is where we are actually going to start our Node.js application, so add the shebang, change to the service directory to make sure the `npm` binary starts in it, and then run `npm start`.
