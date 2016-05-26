@@ -56,6 +56,10 @@ const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
 
+const STUDIO_CMD: &'static str = "hab-studio";
+const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
+const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
+
 /// you can skip the --origin CLI param if you specify this env var
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 
@@ -449,6 +453,27 @@ fn exec_subcommand_if_called() -> Result<()> {
                         init();
                         let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
                         try!(exec::command_from_pkg(SUP_CMD,
+                                                    &ident,
+                                                    &default_cache_key_path(None),
+                                                    0))
+                    }
+                };
+
+                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
+                    try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
+                } else {
+                    return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
+                }
+            }
+            "studio" | "stu" | "stud" | "studi" => {
+                let skip_n = 2;
+
+                let command = match henv::var(STUDIO_CMD_ENVVAR) {
+                    Ok(command) => PathBuf::from(command),
+                    Err(_) => {
+                        init();
+                        let ident = try!(PackageIdent::from_str(STUDIO_PACKAGE_IDENT));
+                        try!(exec::command_from_pkg(STUDIO_CMD,
                                                     &ident,
                                                     &default_cache_key_path(None),
                                                     0))
