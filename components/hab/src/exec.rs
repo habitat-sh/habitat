@@ -12,11 +12,12 @@ use std::os::unix::ffi::OsStringExt;
 use std::path::{Path, PathBuf};
 use std::ptr;
 
+use ansi_term::Colour::Cyan;
 use common;
 use hcore;
 use hcore::fs::cache_artifact_path;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::url::DEFAULT_DEPOT_URL;
+use hcore::url::default_depot_url;
 
 use error::{Error, Result};
 
@@ -75,8 +76,10 @@ pub fn command_from_pkg(command: &str,
             }
         }
         Err(hcore::Error::PackageNotFound(_)) => {
-            println!("Package for {} not found, installing from depot", &ident);
-            try!(common::command::package::install::from_url(DEFAULT_DEPOT_URL,
+            println!("{}",
+                     Cyan.bold()
+                         .paint(format!("∵ Package for {} not found, installing", &ident)));
+            try!(common::command::package::install::from_url(&default_depot_url(),
                                                              ident,
                                                              fs_root_path,
                                                              &cache_artifact_path(None),

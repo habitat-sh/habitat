@@ -229,6 +229,10 @@ pub fn get() -> App<'static, 'static> {
                  )
             )
         )
+        (@subcommand studio =>
+            (about: "Commands relating to Habitat Studios")
+            (aliases: &["stu", "stud", "studi"])
+        )
         (@subcommand sup =>
             (about: "Commands relating to the Habitat Supervisor")
             (aliases: &["su"])
