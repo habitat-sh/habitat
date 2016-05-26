@@ -259,7 +259,7 @@ file_updated
 
 health_check
 : File location: `<plan>/hooks/health_check`
-: This hook is run when the Habitat sidecar receives a request at `/health`.
+: This hook is run when the Habitat HTTP API receives a request at `/health`.
 
   The `health_check` script must return a valid exit code from the list below.
 

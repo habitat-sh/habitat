@@ -44,9 +44,9 @@ Think of each supervisor in the system as a *census entry*; taken together, they
 
 An example is leader election; it's handled here by having a consistent (and simple) algorithm for selecting a leader deterministically for the group. We rely on the eventual consistency of every supervisors census entry to elect a new leader in a reasonable amount of time.
 
-## Sidecar
+## Supervisor HTTP API
 
-The Habitat sidecar is an http service that exposes cluster metadata, statistics, and general diagnostic information useful for monitoring and support in the form of a JSON document. The sidecar also keeps the latest result from any `health_check` hooks that are run as part of a service group.
+The Habitat supervisor provides a HTTP API to expose cluster metadata, statistics, and general diagnostic information useful for monitoring and support in the form of a JSON document. The API also keeps the latest result from any `health_check` hooks that are run as part of a service group.
 
 <hr>
 <ul class="main-content--link-nav">
