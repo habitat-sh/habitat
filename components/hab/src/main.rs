@@ -436,8 +436,8 @@ fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
 fn exec_subcommand_if_called() -> Result<()> {
     if let Some(subcmd) = env::args().nth(1) {
         match subcmd.as_str() {
-            "sup" | "start" => {
-                let skip_n = if subcmd == "sup" {
+            "sup" | "su" | "start" | "st" | "sta" | "star" => {
+                let skip_n = if subcmd.starts_with("su") {
                     2
                 } else {
                     1
