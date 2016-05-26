@@ -53,6 +53,8 @@ pkg_license
   pkg_license=('zlib')
   ~~~
 
+> Note: If your package has a custom license, use a string literal matching the title of the license. For example, you'll see `pkg_license=('Boost Software License')` for the `cmake` plan.
+
 pkg_source
 : A URL that specifies where to download the source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the *$pkg_name* and *$pkg_version* values; however, this convention is not required.
 
