@@ -59,9 +59,11 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
         pkg_deps=(core/node)
 
-6. We need to include the `core/node` as a build dependency also because we will be installing the `nconf` module as part of our package. Our source files and other elements of our artifact do not depend on `core/coreutils` to build, so you can simply replace `core/coreutils` with a reference to `core/node`.
+6. Our source files and other elements of our artifact do not depend on `core/coreutils` to build, so you can simply remove `core/coreutils`.
 
-        pkg_build_deps=(core/node)
+        pkg_build_deps=()
+
+    > Note: Later on in this topic we are going to install the `nconf` module into our package, which requires the `npm` binary; however, we do not need to include `core/node` as a build dependency because the hab-plan-build script automatically installs build and runtime dependencies and adds their bin directories to the PATH variable before building the artifact. So, if you need the same dependent binary for both build and runtime operations, you only need to include it as a runtime dependency.
 
 7. The Node.js application does not create any new binaries or libraries of its own, so you can remove the following three lines:
 
