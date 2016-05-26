@@ -54,6 +54,23 @@ USAGE:
 "
 }
 
+# **Internal** Exit the program with an error message and a status code.
+#
+# ```sh
+# exit_with "Something bad went down" 55
+# ```
+exit_with() {
+  case "${TERM:-}" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      printf -- "\033[1;31mERROR: \033[1;37m$1\033[0m\n"
+      ;;
+    *)
+      printf -- "ERROR: $1\n"
+      ;;
+  esac
+  exit $2
+}
+
 find_system_commands() {
   if $(mktemp --version 2>&1 | grep -q 'GNU coreutils'); then
     _mktemp_cmd=$(command -v mktemp)
@@ -138,4 +155,9 @@ author='@author@'
 program=$(basename $0)
 
 find_system_commands
-build_docker_image $@
+
+if [ -z "$@" ]; then
+    exit_with "You must specify one or more Habitat packages to Dockerize." 1
+else
+    build_docker_image $@
+fi
