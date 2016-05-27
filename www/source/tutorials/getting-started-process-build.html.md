@@ -33,11 +33,14 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
     Habitat will proceed to unpack and install all necessary Habitat artifacts, the Habitat command-line interface (CLI) tools and binaries, the mytutorialapp artifact, and all of its dependencies. Then it will create an image using the Docker scratch image as the base image and build up the rest of the image from there.
 
-    Once that process has completed, you can run your Docker image inside a container from any terminal window that has access to the Docker CLI, such as the dev shell container or your host machine.
+6. Once that process has completed, run your Docker image inside a container or from any terminal window that has access to the Docker CLI, such as the dev shell container or your host machine.
 
-      > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, you may need to connect your shell to the host machine using `eval "$(docker-machine env default)"` if you are running Mac OS X.
+    > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, you may need to connect your shell to the host machine using `eval "$(docker-machine env default)"` if you are running Mac OS X.
 
-        $ docker run -it -p 8080:8080 myorigin/mytutorialapp
+       $ docker run -it -p 8080:8080 myorigin/mytutorialapp
+
+    You should see the supervisor start your Node.js application.
+
         hab-sup(MN): Starting myorigin/mytutorialapp
         hab-sup(GS): Supervisor 172.17.0.3: 25734d74-6d9a-4a64-8019-836744a2c281
         hab-sup(GS): Census mytutorialapp.default: 9777a7bc-044a-4831-bd17-b4bd555f4de5
@@ -54,7 +57,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
         mytutorialapp(O):
         mytutorialapp(O): Running on http://0.0.0.0:8080
 
-4. Because we are running this service in a Docker container, you need the IP address of the VM that is running it to access the message of the day. If your host machine is running Mac OS X, type the following command in your terminal window to bring up the site.
+7. Because we are running this service in a Docker container, you need the IP address of the VM that is running it to access the message of the day. If your host machine is running Mac OS X, type the following command in your terminal window to bring up the site.
 
         open "http://$(docker-machine ip default):8080/"
 
@@ -64,30 +67,16 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
     ![Screen shot of node.js tutorial output](/images/nodejs-tutorial-output.png)
 
-5. You can also re-run your docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname=newvalue'`.
+8. You can also re-run your docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname=newvalue'`.
 
     > Note: The package name in the environment variable must be uppercase and any dashes must be replaced with underscores.
 
-    Here is how you change the message for _mytutorialapp_:
+    Here is how you change the message for mytutorialapp:
 
 
-        $ docker run -e HAB_MYTUTORIALAPP='message="Habitat rocks!"' -p 8080:8080 -it myorigin/mytutorialapp
-        hab-sup(MN): Starting myorigin/mytutorialapp
-        hab-sup(GS): Supervisor 172.17.0.3: 85c7c813-8030-41b1-b6f1-2267a5171889
-        hab-sup(GS): Census mytutorialapp.default: da19fcee-9168-4e63-9d6c-abcda787872e
-        hab-sup(GS): Starting inbound gossip listener
-        hab-sup(GS): Starting outbound gossip distributor
-        hab-sup(GS): Starting gossip failure detector
-        hab-sup(CN): Starting census health adjuster
-        hab-sup(SC): Updated config.json
-        hab-sup(TP): Restarting because the service config was updated via the census
-        mytutorialapp(SV): Starting
-        mytutorialapp(O):
-        mytutorialapp(O): > nodejs_tutorial_app@0.1.0 start /hab/svc/mytutorialapp
-        mytutorialapp(O): > node server.js
-        mytutorialapp(O):
-        mytutorialapp(O): Running on http://0.0.0.0:8080
+       $ docker run -e HAB_MYTUTORIALAPP='message="Habitat rocks!"' -p 8080:8080 -it myorigin/mytutorialapp
 
+    The output in the terminal window will be similar to the output shown in step 6.
 
     Now refresh, or connect again to the local URL through your web browser.
 

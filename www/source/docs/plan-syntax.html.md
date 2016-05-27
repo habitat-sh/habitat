@@ -50,7 +50,7 @@ pkg_license
 : An array of [valid software licenses](https://spdx.org/licenses/) that relate to this package.
 
   ~~~
-  pkg_license=('zlib')
+  pkg_license=('Apache-2.0')
   ~~~
 
 > Note: If your package has a custom license, use a string literal matching the title of the license. For example, you'll see `pkg_license=('Boost Software License')` for the `cmake` plan.

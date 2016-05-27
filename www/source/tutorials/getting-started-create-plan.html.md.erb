@@ -172,9 +172,13 @@ If you want to see your package build in the studio, go back to your terminal wi
 
     [4][default:/src/plans:0]# build mytutorialapp
 
-The `hab-plan-build.sh` script checks dependencies, sets variables, creates a tarball (`.hart` file) of your package and installs your source files in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`) and your artifact file in `/src/results/`. The artifact is signed using the origin signature key and if you navigate to that directory you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
+Running `build mytutorialapp` executes the `hab-plan-build.sh` script which handles creating Habitat packages from Plan files.  When executed, the script will check dependencies, set variables, install source files, and create an artifact.
 
-Right now, your package builds, but will not do anything at runtime. The next step is to add hooks to your plan. These will copy over the correct files during initialization and start the npm binary.
+The source files are stored in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`).  Listing the contents of that directory will show you the source files copied over in the **do_install()** callback as well as the nconf module files.
+
+The artifact created is stored in `/src/results/` (for example, `/src/results/myorigin-mytutorialapp-0.1.0-20160521033718-x86_64-linux.hart`).  The artifact is signed using the origin signature key.
+
+Right now, your package builds, but will not do anything at runtime. The next step is to add hooks to your plan. These will link to the correct files during initialization and start the npm binary.
 
 <hr>
 <ul class="main-content--button-nav">
