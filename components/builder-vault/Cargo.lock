@@ -105,6 +105,7 @@ dependencies = [
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "users 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -352,6 +353,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "idna 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "users"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
