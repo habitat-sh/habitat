@@ -21,7 +21,7 @@
 //!
 //! - `Controller`
 //! 	- A controller "has" and supervises many Tasks (children)
-//! 	- calculates gossip and sidecar port #'s for all children before starting.
+//! 	- calculates gossip and http port #'s for all children before starting.
 //! 	- runs in a tight loop to see if children are down and start/restarts them.
 //! 	- catches OS signals
 //!
@@ -35,7 +35,7 @@
 //!     - Config values for a `Task` that the `Controller` calculates during
 //!       startup. `ExecParams` currently includes:
 //!          - gossip_listen
-//!          - sidecar_listen
+//!          - http_listen
 //!          - Option<peer_ip_port>
 //!
 //! - `ServiceDef`
@@ -123,39 +123,39 @@
 //! - Each subsequent task that is created uses the previous tasks IP:port as
 //! a value for --peer.
 //! - Gossip port numbers are assigned starting with FIRST_GOSSIP_PORT (9000)
-//! - Sidecar port numbers are assigned starting with FIRST_SIDECAR_PORT (8000)
+//! - HTTP port numbers are assigned starting with FIRST_HTTP_PORT (8000)
 //! - If the hab-sup that's running the director is assigned ports other than
 //! the defaults (9634, 9631), there is a possibility that they could conflict
 //! with the automatically assigned port numbers of the child tasks.
 //! - The diagram below shows a hab-sup process running the director with it's
 //! default IP + port (changeable by the user). Each task that's started is
-//! assigned a new consecutive gossip + sidecar IP.
+//! assigned a new consecutive gossip + http IP.
 //!
 //!                 ┌────────────────────────────┐
 //!                 │     hab-sup (Director)     │
 //!              ┌─▶│       Gossip = 9634        │ * default ports
-//!              │  │       Sidecar = 9631       │
+//!              │  │       HTTP = 9631          │
 //!              │  └────────────────────────────┘
 //!              │
 //!         Peer │
 //!              │  ┌────────────────────────────┐
 //!              │  │Task 0                      │
 //!              └──│FIRST_GOSSIP_PORT (9000)    │◀─┐
-//!                 │FIRST_SIDECAR_PORT (8000)   │  │
+//!                 │FIRST_HTTP_PORT (8000)      │  │
 //!                 └────────────────────────────┘  │
 //!                                                 │
 //!                                                 │ Peer
 //!                 ┌────────────────────────────┐  │
 //!                 │Task 1                      │  │
 //!              ┌─▶│FIRST_GOSSIP_PORT+1 (9001)  │──┘
-//!              │  │FIRST_SIDECAR_PORT+1 (8001) │
+//!              │  │FIRST_HTTP_PORT+1 (8001)    │
 //!              │  └────────────────────────────┘
 //!              │
 //!         Peer │
 //!              │  ┌────────────────────────────┐
 //!              │  │Task 2                      │
 //!              └──│FIRST_GOSSIP_PORT+2 (9002)  │
-//!                 │FIRST_SIDECAR_PORT+2 (8002) │
+//!                 │FIRST_HTTP_PORT+2 (8002)    │
 //!                 └────────────────────────────┘
 //!
 
