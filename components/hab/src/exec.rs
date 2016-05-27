@@ -7,8 +7,9 @@
 
 extern crate libc;
 
+use std;
 use std::ffi::{CString, OsString};
-use std::os::unix::ffi::OsStringExt;
+use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::ptr;
 
@@ -31,18 +32,28 @@ const MAX_RETRIES: u8 = 4;
 ///
 /// * Command and/or command arguments cannot be converted into `CString`
 pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    let prog = try!(CString::new(command.into_os_string().into_vec()));
-    let mut argv: Vec<*const i8> = Vec::with_capacity(args.len() + 2);
-    argv.push(prog.as_ptr());
-    for arg in args {
-        argv.push(try!(CString::new(arg.into_vec())).as_ptr());
-    }
-    argv.push(ptr::null());
+    // A massive thanks to the `exec` crate which pointed to the correct invocation
+    // behavior--namely to pass null-terminated string pointers.
+    //
+    // Source: https://github.com/faradayio/exec-rs/blob/master/src/lib.rs
 
-    // Calls `execv(3)` so this will not return, but rather become the program with the given
-    // arguments.
+    debug!("Calling execv: ({:?}) {:?}", command.display(), &args);
+    let prog_cstring = try!(CString::new(command.as_os_str().as_bytes()));
+    let arg_cstrings = try!(args.into_iter()
+                                .map(|arg| CString::new(arg.as_os_str().as_bytes()))
+                                .collect::<std::result::Result<Vec<_>, _>>());
+    let mut arg_charptrs: Vec<_> = arg_cstrings.iter()
+                                               .map(|arg| {
+                                                   arg.as_bytes_with_nul().as_ptr() as *const i8
+                                               })
+                                               .collect();
+    arg_charptrs.insert(0,
+                        prog_cstring.clone().as_bytes_with_nul().as_ptr() as *const i8);
+    arg_charptrs.push(ptr::null());
+
     unsafe {
-        libc::execv(prog.as_ptr(), argv.as_mut_ptr());
+        libc::execv(prog_cstring.as_bytes_with_nul().as_ptr() as *const i8,
+                    arg_charptrs.as_mut_ptr());
     }
     Ok(())
 }
