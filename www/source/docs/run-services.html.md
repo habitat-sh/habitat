@@ -20,7 +20,7 @@ Plans can rapidly be built into artifacts and tested either in the Habitat devsh
 ## Exporting to Docker
 This topic describes how to create a Docker container for any artifact in the public depot by perform the following steps:
 
-1. Open the dev shell container and enter the studio with the `hab-studio enter` command.
+1. Open the dev shell container and enter the studio with the `hab studio enter` command.
 2. Change directory to the `/src/plans` directory.
 3. For any built artifacts that you want to create a Docker image from, run `hab install core/hab-pkg-dockerize` to unpack and install the artifact that creates docker images for other Habitat artifacts.
 4. Run `hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your artifact. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.

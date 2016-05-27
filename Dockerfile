@@ -50,9 +50,8 @@ COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
 COPY components/hab/install.sh /tmp
 RUN /tmp/install.sh \
-  && hab install core/hab-studio && hab pkg binlink core/hab-studio hab-studio \
   && hab install core/busybox-static \
-  && rm -rf /tmp/install.sh /hab/cache/{keys,artifacts}
+  && rm -rf /tmp/install.sh /hab/cache
 
 WORKDIR /src
 CMD ["bash", "-l"]

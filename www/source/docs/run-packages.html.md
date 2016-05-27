@@ -7,12 +7,13 @@ title: How to run packages
 
 To create a Docker container for any package in the public depot, perform the following steps:
 
-1. Open the dev shell container and enter the studio with the `hab-studio enter` command.
-2. Change directory to the plans directory. You might have to run `make gpg` again depending on whether you have created a new dev shell container or are using an existing one.
+1. Open the dev shell container and enter the studio with the `hab studio enter` command.
+2. Change directory to the plans directory.
 3. Build your version of the mytutorialapp package, or any package you want to create a Docker image from.
 4. Run `dockerize` with the origin and name of your package. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
-        [3][hab:/src/plans:0]$dockerize chef/mytutorialapp
+        [2][hab:/src/plans:0]$hab install core/hab-pkg-dockerize
+        [3][hab:/src/plans:0]$hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize chef/mytutorialapp
 
 Habitat will proceed to unpack and install the docker package, the Habitat binary package (currently named hab), your mytutorialapp package, and all of its dependencies. Then it will create an image using the Docker scratch image as the base image and build up the rest of the image from there.
 
