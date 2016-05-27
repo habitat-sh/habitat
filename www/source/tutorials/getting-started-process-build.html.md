@@ -93,7 +93,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
     ![Screen shot of node.js output with new message](/images/nodejs-tutorial-update-output.png)
 
-Congratulations, you have successfully built a package from scratch, ran it locally, and tested out some of the configuration capabilities!
+Congratulations, you have successfully built a package from scratch, run it locally, and tested out some of the configuration capabilities!
 
 <hr>
 <ul class="main-content--button-nav">
