@@ -42,8 +42,8 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                  "Use a specific Depot URL")
-                (@arg ARTIFACT: +required {file_exists}
-                 "A path to a Habitat artifact \
+                (@arg ARTIFACT: +required +multiple {file_exists}
+                 "One or more paths to a Habitat artifact \
                  (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
             (@subcommand sign =>
@@ -255,9 +255,9 @@ fn sub_package_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from a Depot or locally from a Habitat artifact")
         (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
-        (@arg PKG_IDENT_OR_ARTIFACT: +required "A Habitat package identifier (ex: acme/redis) \
-         or path to a Habitat artifact \
-         (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+        (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
+         "One or more Habitat package identifiers (ex: acme/redis) and/or paths to a \
+         Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
     )
 }
 
