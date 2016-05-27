@@ -15,16 +15,17 @@
 # * `core/hab-static`
 # * `core/hab-studio`
 #
-# A default usage would be:
+# A default usage installs both of the above packages from the Depot:
 #
 # ```sh
-# ./build-docker-image.sh core/hab-static core/hab-studio
+# ./build-docker-image.sh
 # ```
 #
 # However, offline/local Habitat artifact files can be used instead, for
 # example:
 #
 # ```sh
+# ./build-docker-image.sh core/hab-static core/hab-studio
 # ./build-docker-image.sh ./results/core-hab-{static,studio}-*.hart
 # ```
 
@@ -43,12 +44,13 @@ if ! command -v hab >/dev/null; then
   exit 9
 fi
 
-tmp_root="$(mktemp -t -d "$(basename $0)-XXXX")"
+tmp_root="$(mktemp -d -t "$(basename $0)-XXXX")"
 trap 'rm -rf $tmp_root; exit $?' INT TERM EXIT
 
 export FS_ROOT="$tmp_root/rootfs"
 
-hab pkg install $*
+default_pkgs="core/hab-static core/hab-studio"
+hab pkg install ${*:-$default_pkgs}
 if ! hab pkg path core/hab-static >/dev/null 2>&1; then
   >&2 echo "   $(basename $0): WARN core/hab-static must be installed, aborting"
   exit 1
