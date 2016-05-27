@@ -54,7 +54,7 @@ pub mod key {
 
         pub fn start(content: &str, cache: &Path) -> Result<()> {
             println!("{}",
-                     Yellow.bold().paint(format!("» Importing ring key on standard in")));
+                     Yellow.bold().paint(format!("» Importing ring key from standard input")));
             let (pair, pair_type) = try!(SymKey::write_file_from_str(content, cache));
             println!("{}",
                      Blue.paint(format!("★ Imported {} ring key {}.",
