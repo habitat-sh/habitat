@@ -11,8 +11,8 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
 1. If you are inside the studio, change directory to `/src/plans/mytutorialapp` and make a new sub-directory called `hooks`.
 
-       [5][default:/src/plans:0]$cd /src/plans/mytutorialapp
-       [6][default:/src/plans/mytutorialapp:0]$mkdir hooks
+       [5][default:/src/plans:0]# cd /src/plans/mytutorialapp
+       [6][default:/src/plans/mytutorialapp:0]# mkdir -p hooks
 
 2. Change to the `hooks` directory and create two new files, `init` and `run`.
 

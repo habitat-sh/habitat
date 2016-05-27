@@ -16,15 +16,15 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 1. If you are not in the studio environment, enter it from the dev shell container with the `hab-studio enter` command.
 2. Change directory to the `/src/plans` directory.
 
-        [15][default:/src:0]$cd plans
+        [15][default:/src:0]# cd plans
 
 3. Build your version of the mytutorialapp artifact.
 
-        [16][default:/src/plans:0]$build mytutorialapp
+        [16][default:/src/plans:0]# build mytutorialapp
 
 4. Run `hab install core/hab-pkg-dockerize` to unpack and install the artifact that creates docker images for other Habitat artifacts.
 
-        [17][default:/src/plans:0]$hab install core/hab-pkg-dockerize
+        [17][default:/src/plans:0]# hab install core/hab-pkg-dockerize
 
 5. Change directory and run `hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your artifact. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 

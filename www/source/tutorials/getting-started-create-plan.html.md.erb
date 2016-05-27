@@ -12,11 +12,11 @@ To create a plan, do the following:
 
 1. If you still have the terminal window open from the setup step, you should be in the studio and in `/src/plans`; otherwise, open the studio and change to that directory.
 
-       [1][default:/src:0]$cd plans
+       [1][default:/src:0]# cd plans
 
 2. Create a new directory and a plan called "mytutorialapp" by calling the `new-plan` target.
 
-       [2][default:/src/plans:0]$make new-plan plan=mytutorialapp
+       [2][default:/src/plans:0]# make new-plan plan=mytutorialapp
 
 3. Open the `mytutorialapp/plan.sh` file in your favorite text editor. The filesystem is shared between your host machine and the studio, so you can use any text editor installed on your host machine, or use vim, which is installed in the studio environment. Here's an example of what the plan template creates:
 
@@ -159,7 +159,7 @@ For a complete listing of all of the plan settings, callbacks, and runtime hooks
 ## Create your origin key
 As part of building an artifact, you need to have an origin key installed in your studio environment. Origin keys are secret signature keys used to sign artifacts for that specific origin. If you do not have an origin signature key for the origin you specified in the `pkg_origin` value, you can create a new one for this tutorial from within your studio session.
 
-    [3][default:/src/plans:0]$hab origin key generate myorigin
+    [3][default:/src/plans:0]# hab origin key generate myorigin
 
 This subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files in the `/hab/cache/keys` directory. As we said earlier, you use the signature key as part of the artifact signing process and should not be shared freely with anyone; however, if anyone wants to download and use your artifact, then they must have your .pub key installed in their local `/hab/cache/keys` directory.
 
@@ -168,7 +168,7 @@ Both the Habitat dev shell and studio have the core public key installed in `hab
 ## Do an initial build (optional)
 If you want to see your package build in the studio, go back to your terminal window where your studio environment is open, switch to the `/src/plans` directory, and run the following command:
 
-    [4][default:/src/plans:0]$build mytutorialapp
+    [4][default:/src/plans:0]# build mytutorialapp
 
 The `hab-plan-build.sh` script checks dependencies, sets variables, creates a tarball (`.hart` file) of your package and installs your source files in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`) and your artifact file in `/src/results/`. The artifact is signed using the origin signature key and if you navigate to that directory you will see the source files copied over in the **do_install()** callback as well as the nconf module files.
 
