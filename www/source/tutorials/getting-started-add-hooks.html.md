@@ -16,8 +16,8 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
 2. Change to the `hooks` directory and create two new files, `init` and `run`.
 
-       [7][default:/src/plans/mytutorialapp:0]$cd hooks
-       [8][default:/src/plans/mytutorialapp/hooks:0]$touch init run
+       [7][default:/src/plans/mytutorialapp:0]# cd hooks
+       [8][default:/src/plans/mytutorialapp/hooks:0]# touch init run
 
 3. Open `init` in your text editor.
 4. Hooks use [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) to decide which interpreter to use when running their scripts. In the case of the `init` and `run` hooks in our plan, we will use the system shell, so add the following to the `init` hook file:
