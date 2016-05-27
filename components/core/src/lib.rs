@@ -21,6 +21,7 @@ extern crate tempdir;
 extern crate time;
 extern crate toml;
 extern crate url as extern_url;
+extern crate users;
 
 pub use self::error::{Error, Result};
 

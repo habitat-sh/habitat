@@ -8,6 +8,8 @@
 use std::env;
 use std::path::{Path, PathBuf};
 
+use users;
+
 use env as henv;
 
 /// The default filesystem root path
@@ -25,27 +27,64 @@ pub const PKG_PATH: &'static str = "hab/pkgs";
 /// The root path containing all runtime service directories and files
 const SVC_PATH: &'static str = "hab/svc";
 
+lazy_static! {
+    static ref EUID: u32 = users::get_effective_uid();
+
+    static ref MY_CACHE_ARTIFACT_PATH: PathBuf = {
+        if *EUID == 0u32 {
+            PathBuf::from(CACHE_ARTIFACT_PATH)
+        } else {
+            match env::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_ARTIFACT_PATH)),
+                None => PathBuf::from(CACHE_ARTIFACT_PATH),
+            }
+        }
+    };
+
+    static ref MY_CACHE_KEY_PATH: PathBuf = {
+        if *EUID == 0u32 {
+            PathBuf::from(CACHE_KEY_PATH)
+        } else {
+            match env::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_KEY_PATH)),
+                None => PathBuf::from(CACHE_KEY_PATH),
+            }
+        }
+    };
+
+    static ref MY_CACHE_SRC_PATH: PathBuf = {
+        if *EUID == 0u32 {
+            PathBuf::from(CACHE_SRC_PATH)
+        } else {
+            match env::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_SRC_PATH)),
+                None => PathBuf::from(CACHE_SRC_PATH),
+            }
+        }
+    };
+}
+
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.
 pub fn cache_artifact_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(CACHE_ARTIFACT_PATH),
-        None => Path::new(FS_ROOT_PATH).join(CACHE_ARTIFACT_PATH),
+        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ARTIFACT_PATH),
+        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_ARTIFACT_PATH),
     }
 }
 
 /// Returns the path to the keys cache, optionally taking a custom filesystem root.
 pub fn cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(CACHE_KEY_PATH),
-        None => Path::new(FS_ROOT_PATH).join(CACHE_KEY_PATH),
+        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_KEY_PATH),
+        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_KEY_PATH),
     }
 }
 
 /// Returns the path to the src cache, optionally taking a custom filesystem root.
 pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
-        Some(fs_root_path) => Path::new(fs_root_path).join(CACHE_SRC_PATH),
-        None => Path::new(FS_ROOT_PATH).join(CACHE_SRC_PATH),
+        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SRC_PATH),
+        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_SRC_PATH),
     }
 }
 
