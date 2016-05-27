@@ -48,9 +48,7 @@ trap 'rm -rf $tmp_root; exit $?' INT TERM EXIT
 
 export FS_ROOT="$tmp_root/rootfs"
 
-for hart_or_ident in "$@"; do
-  hab pkg install $hart_or_ident
-done
+hab pkg install $*
 if ! hab pkg path core/hab-static >/dev/null 2>&1; then
   >&2 echo "   $(basename $0): WARN core/hab-static must be installed, aborting"
   exit 1

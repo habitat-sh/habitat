@@ -192,9 +192,12 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
 fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let artifact_path = m.value_of("ARTIFACT").unwrap();
+    let artifact_paths = m.values_of("ARTIFACT").unwrap();
 
-    command::artifact::upload::start(&url, &artifact_path)
+    for artifact_path in artifact_paths {
+        try!(command::artifact::upload::start(&url, &artifact_path));
+    }
+    Ok(())
 }
 
 fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
@@ -361,14 +364,16 @@ fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     let fs_root_path = Some(Path::new(&fs_root));
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let ident_or_artifact = m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap();
+    let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap();
     init();
 
-    try!(common::command::package::install::start(url,
-                                                  ident_or_artifact,
-                                                  Path::new(&fs_root),
-                                                  &cache_artifact_path(fs_root_path),
-                                                  &default_cache_key_path(fs_root_path)));
+    for ident_or_artifact in ident_or_artifacts {
+        try!(common::command::package::install::start(url,
+                                                      ident_or_artifact,
+                                                      Path::new(&fs_root),
+                                                      &cache_artifact_path(fs_root_path),
+                                                      &default_cache_key_path(fs_root_path)));
+    }
     Ok(())
 }
 
