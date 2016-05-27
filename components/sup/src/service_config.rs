@@ -559,8 +559,8 @@ impl Sys {
             hostname: hostname,
             gossip_ip: config.gossip_listen_ip().to_string(),
             gossip_port: config.gossip_listen_port(),
-            sidecar_ip: config.sidecar_listen_ip().to_string(),
-            sidecar_port: config.sidecar_listen_port(),
+            sidecar_ip: config.http_listen_ip().to_string(),
+            sidecar_port: config.http_listen_port(),
         }
     }
 

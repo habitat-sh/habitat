@@ -170,8 +170,8 @@ impl<'a> Worker<'a> {
         let sidecar_el = gossip_server.election_list.clone();
         let sidecar_sup = supervisor.clone();
         let sidecar_listen = try!(SocketAddrV4::from_str(&format!("{}:{}",
-                                                                  &config.sidecar_listen_ip(),
-                                                                  config.sidecar_listen_port())));
+                                                                  &config.http_listen_ip(),
+                                                                  config.http_listen_port())));
         Ok(Worker {
             package: pkg_lock,
             package_name: package_name,

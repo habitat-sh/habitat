@@ -149,7 +149,7 @@ impl Task {
         args.insert(1, self.service_def.ident.to_string());
         args.push("--listen-peer".to_string());
         args.push(self.exec_params.gossip_listen.to_string());
-        args.push("--listen-sidecar".to_string());
+        args.push("--listen-http".to_string());
         args.push(self.exec_params.sidecar_listen.to_string());
         args.push("--group".to_string());
         args.push(self.service_def.service_group.group.clone());
@@ -187,11 +187,11 @@ impl Task {
                       );
 
             let mut child = try!(Command::new(&self.exec_ctx.sup_path)
-                                     .args(&args)
-                                     .stdin(Stdio::null())
-                                     .stdout(Stdio::piped())
-                                     .stderr(Stdio::piped())
-                                     .spawn());
+                .args(&args)
+                .stdin(Stdio::null())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::piped())
+                .spawn());
             self.pid = Some(child.id());
 
             outputln!("Started {} [gossip {}, http API: {}, peer: {}, pid: {}]",
@@ -199,16 +199,16 @@ impl Task {
                       &self.exec_params.gossip_listen,
                       &self.exec_params.sidecar_listen,
                       &self.exec_params
-                           .initial_peer
-                           .as_ref()
-                           .map_or("None".to_string(), |v| v.to_string()),
+                          .initial_peer
+                          .as_ref()
+                          .map_or("None".to_string(), |v| v.to_string()),
                       &child.id());
 
             try!(self.transition_to_started());
             let name = self.service_def.to_string();
             try!(thread::Builder::new()
-                     .name(String::from(name.clone()))
-                     .spawn(move || -> Result<()> { child_reader(&mut child, name) }));
+                .name(String::from(name.clone()))
+                .spawn(move || -> Result<()> { child_reader(&mut child, name) }));
             debug!("Spawned child reader");
 
         } else {
@@ -449,7 +449,7 @@ mod tests {
         Task::new(exec_ctx, exec_params, sd)
     }
 
-    /// parse args, inject listen-peer and listen-sidecar, no peer
+    /// parse args, inject listen-peer and listen-http, no peer
     #[test]
     fn cmd_args_parsing_no_peer() {
         let dc = get_test_dc();
@@ -462,7 +462,7 @@ mod tests {
                  "-foo=bar",
                  "--listen-peer",
                  "127.0.0.1:9000",
-                 "--listen-sidecar",
+                 "--listen-http",
                  "127.0.0.1:8000",
                  "--group",
                  "somegroup",
@@ -470,7 +470,7 @@ mod tests {
                  "someorg"]);
     }
 
-    /// parse args, inject listen-peer, listen-sidecar, peer
+    /// parse args, inject listen-peer, listen-http, peer
     #[test]
     fn cmd_args_parsing_peer() {
         let mut dc = get_test_dc();
@@ -486,7 +486,7 @@ mod tests {
                  "-foo=bar",
                  "--listen-peer",
                  "127.0.0.1:9000",
-                 "--listen-sidecar",
+                 "--listen-http",
                  "127.0.0.1:8000",
                  "--group",
                  "somegroup",

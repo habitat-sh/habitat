@@ -27,7 +27,7 @@ use super::task::{Task, ExecContext, ExecParams};
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
 static LOGKEY: &'static str = "CTRL";
 pub const FIRST_GOSSIP_PORT: u16 = 9000;
-pub const FIRST_SIDECAR_PORT: u16 = 8000;
+pub const FIRST_HTTP_PORT: u16 = 8000;
 
 pub struct Controller {
     pub config: Config,
@@ -51,11 +51,11 @@ impl Controller {
 
     /// iterate through the config ServiceDefs and create `Task`
     /// instances. A Controller contains "all the tasks", so
-    /// it calculate gossip_port + sidecar_port #s accordingly.
+    /// it calculate gossip_port + http_port #s accordingly.
     pub fn create_children(&mut self) -> Result<()> {
         let mut children = Vec::new();
         let mut next_gossip_port = FIRST_GOSSIP_PORT;
-        let mut next_sidecar_port = FIRST_SIDECAR_PORT;
+        let mut next_http_port = FIRST_HTTP_PORT;
 
         let default_ip = try!(ip());
         let listen_ip = try!(Ipv4Addr::from_str(&default_ip));
@@ -66,7 +66,7 @@ impl Controller {
         for sd in &self.config.service_defs {
             let exec_ctx = self.exec_ctx.clone();
             let exec_params = ExecParams::new(SocketAddrV4::new(listen_ip, next_gossip_port),
-                                              SocketAddrV4::new(listen_ip, next_sidecar_port),
+                                              SocketAddrV4::new(listen_ip, next_http_port),
                                               initial_peer);
 
             // after the first iteration, each child will connect to the previous
@@ -76,9 +76,9 @@ impl Controller {
             children.push(dc);
 
             // this will have to be more intelligent if we
-            // let users define gossip/sidecar ports
+            // let users define gossip/http ports
             next_gossip_port += 1;
-            next_sidecar_port += 1;
+            next_http_port += 1;
         }
         self.children = Some(children);
         Ok(())
@@ -260,7 +260,7 @@ mod tests {
                         "foo",
                         "--listen-peer",
                         format!("{}:9000", test_ip).as_str(),
-                        "--listen-sidecar",
+                        "--listen-http",
                         format!("{}:8000", test_ip).as_str(),
                         "--group",
                         "somegroup",
@@ -279,7 +279,7 @@ mod tests {
                         "--listen-peer",
                         // did we increment the port?
                         format!("{}:9001", test_ip).as_str(),
-                        "--listen-sidecar",
+                        "--listen-http",
                         // did we increment the port?
                         format!("{}:8001", test_ip).as_str(),
                         "--group",
@@ -301,7 +301,7 @@ mod tests {
                         "--listen-peer",
                         // did we increment the port?
                         format!("{}:9002", test_ip).as_str(),
-                        "--listen-sidecar",
+                        "--listen-http",
                         // did we increment the port?
                         format!("{}:8002", test_ip).as_str(),
                         "--group",
