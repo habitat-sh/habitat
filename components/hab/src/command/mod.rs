@@ -12,4 +12,6 @@ pub mod pkg;
 pub mod origin;
 pub mod ring;
 pub mod service;
+pub mod studio;
+pub mod sup;
 pub mod user;
