@@ -34,7 +34,7 @@ mod gossip;
 use std::env;
 use std::ffi::OsString;
 use std::io::{self, Read};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::str::FromStr;
 
 use ansi_term::Colour::Red;
@@ -44,21 +44,13 @@ use error::{Error, Result};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
 use hcore::crypto::keys::PairType;
-use hcore::fs::{cache_artifact_path, find_command, FS_ROOT_PATH};
+use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::util::sys::ip;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use gossip::hab_gossip;
-
-const SUP_CMD: &'static str = "hab-sup";
-const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
-
-const STUDIO_CMD: &'static str = "hab-studio";
-const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
-const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
 
 /// you can skip the --origin CLI param if you specify this env var
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
@@ -438,58 +430,16 @@ fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
 }
 
 fn exec_subcommand_if_called() -> Result<()> {
-    if let Some(subcmd) = env::args().nth(1) {
-        match subcmd.as_str() {
-            "sup" | "su" | "start" | "st" | "sta" | "star" => {
-                let skip_n = if subcmd.starts_with("su") {
-                    2
-                } else {
-                    1
-                };
-
-                let command = match henv::var(SUP_CMD_ENVVAR) {
-                    Ok(command) => PathBuf::from(command),
-                    Err(_) => {
-                        init();
-                        let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
-                        try!(exec::command_from_pkg(SUP_CMD,
-                                                    &ident,
-                                                    &default_cache_key_path(None),
-                                                    0))
-                    }
-                };
-
-                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-                    try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
-                } else {
-                    return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
-                }
+    match env::args().nth(1) {
+        Some(subcmd) => {
+            match subcmd.as_str() {
+                "studio" | "stu" | "stud" | "studi" => command::studio::start(),
+                "sup" | "start" => command::sup::start(&subcmd),
+                _ => Ok(()),
             }
-            "studio" | "stu" | "stud" | "studi" => {
-                let skip_n = 2;
-
-                let command = match henv::var(STUDIO_CMD_ENVVAR) {
-                    Ok(command) => PathBuf::from(command),
-                    Err(_) => {
-                        init();
-                        let ident = try!(PackageIdent::from_str(STUDIO_PACKAGE_IDENT));
-                        try!(exec::command_from_pkg(STUDIO_CMD,
-                                                    &ident,
-                                                    &default_cache_key_path(None),
-                                                    0))
-                    }
-                };
-
-                if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-                    try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
-                } else {
-                    return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
-                }
-            }
-            _ => return Ok(()),
         }
-    };
-    Ok(())
+        None => Ok(()),
+    }
 }
 
 /// Check to see if the user has passed in an ORIGIN param.
