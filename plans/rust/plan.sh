@@ -1,11 +1,11 @@
 pkg_name=rust
 pkg_origin=core
-pkg_version=1.8.0
+pkg_version=1.9.0
 pkg_license=('Apache-2.0' 'MIT')
 _url_base=http://static.rust-lang.org/dist
 pkg_source=$_url_base/${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu.tar.gz
 pkg_dirname=${pkg_name}-${pkg_version}-x86_64-unknown-linux-gnu
-pkg_shasum=d5a7c10070f8053defe07d1704762c91e94fc30a1020d16b111d63e9af365d48
+pkg_shasum=288ff13efa2577e81c77fc2cb6e2b49b1ed0ceab51b4fa12f7efb87039ac49b7
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_deps=(core/glibc core/gcc-libs core/zlib core/gcc core/cacerts)
@@ -16,7 +16,7 @@ _target_sources=(
 )
 
 _target_shasums=(
-  e690c9abc1b8cad8e6653bcf961f532acb1eb3dd0d37e53d75058a635d09980f
+  9ed10c80b4498ea43d7696e66d3db6ee1f730c67e035f3d1fefb40bc7d9dbf6b
 )
 
 do_download() {
