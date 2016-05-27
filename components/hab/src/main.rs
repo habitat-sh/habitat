@@ -210,7 +210,7 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let default_ip = try!(ip());
-    let peers_str = m.value_of("PEERS").unwrap_or(&default_ip);
+    let peers_str = m.value_of("PEER").unwrap_or(&default_ip);
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
         if p.find(':').is_none() {
@@ -239,7 +239,7 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let default_ip = try!(ip());
-    let peers_str = m.value_of("PEERS").unwrap_or(&default_ip);
+    let peers_str = m.value_of("PEER").unwrap_or(&default_ip);
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
         if p.find(':').is_none() {

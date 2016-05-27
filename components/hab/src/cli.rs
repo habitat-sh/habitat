@@ -18,13 +18,13 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
-                          .about("Alias for 'config apply'")
-                          .aliases(&["ap", "app", "appl"])
-                          .setting(AppSettings::Hidden);
+        .about("Alias for 'config apply'")
+        .aliases(&["ap", "app", "appl"])
+        .setting(AppSettings::Hidden);
     let alias_install = sub_package_install()
-                            .about("Alias for 'pkg install'")
-                            .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-                            .setting(AppSettings::Hidden);
+        .about("Alias for 'pkg install'")
+        .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
+        .setting(AppSettings::Hidden);
     let alias_start = alias_start().aliases(&["st", "sta", "star"]);
 
     clap_app!(hab =>
@@ -91,7 +91,7 @@ pub fn get() -> App<'static, 'static> {
                    "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg ORG: --org +takes_value "Name of service organization")
                 (@arg USER: +takes_value)
-                (@arg PEERS: -p --peers +takes_value
+                (@arg PEER: -p --peer +takes_value
                  "A comma-delimited list of one or more Habitat Supervisor peers to infect \
                  (default: 127.0.0.1:9634)")
                 (@arg RING: -r --ring +takes_value
@@ -265,7 +265,7 @@ fn sub_package_install() -> App<'static, 'static> {
 fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
         (about: "Applies a configuration to a group of Habitat Supervisors")
-        (@arg PEERS: -p --peers +takes_value
+        (@arg PEER: -p --peer +takes_value
          "A comma-delimited list of one or more Habitat Supervisor peers to infect \
          (default: 127.0.0.1:9634)")
         (@arg RING: -r --ring +takes_value
