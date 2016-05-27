@@ -9,9 +9,9 @@ For example, the archive for our Node.js app already has a configuration file ca
 
 1. In your `plans/mytutorialapp` directory, create a new directory named `config` and add a new file to it named `config.json` to match the name of the configuration file that `server.js` references.
 
-       [9][default:/src/plans/mytutorialapp/hooks:0]$cd /src/plans/mytutorialapp
-       [10][default:/src/plans/mytutorialapp:0]$mkdir config
-       [11][default:/src/plans/mytutorialapp:0]$touch config/config.json
+       [9][default:/src/plans/mytutorialapp/hooks:0]# cd /src/plans/mytutorialapp
+       [10][default:/src/plans/mytutorialapp:0]# mkdir -p config
+       [11][default:/src/plans/mytutorialapp:0]# touch config/config.json
 
 
 2. Open `config/config.json` in your text editor.
@@ -39,7 +39,7 @@ As we said, a TOML file is associated with your configuration file and specifies
 
 1. Create a file named `default.toml` and include it in the root of your plan directory.
 
-       [12][default:/src/plans/mytutorialapp:0]$touch default.toml
+       [12][default:/src/plans/mytutorialapp:0]# touch default.toml
 
 2. Open `default.toml` in your text editor and add the default values.
 
@@ -57,8 +57,8 @@ As we said, a TOML file is associated with your configuration file and specifies
 Now that you have defined how your source files should be installed and configured in your artifact, it's time to build it in the studio. Change directory to `/src` and enter the following command to create the artifact.
 
 ~~~ bash
-[13][default:/src/plans/mytutorialapp:0]$cd /src
-[14][default:/src:0]$build plans/mytutorialapp
+[13][default:/src/plans/mytutorialapp:0]# cd /src
+[14][default:/src:0]# build plans/mytutorialapp
 
 ...
 
@@ -87,7 +87,7 @@ mytutorialapp:
 mytutorialapp: I love it when a plan.sh comes together.
 mytutorialapp:
 mytutorialapp: Build time: 0m24s
-[15][default:/src:0]$
+[15][default:/src:0]#
 ~~~
 
 The next step will show you how to install your artifact and run your service for local testing.
