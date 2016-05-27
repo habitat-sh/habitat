@@ -45,7 +45,12 @@ As we said, a TOML file is associated with your configuration file and specifies
 
 1. If you are not in the `/src/plans/mytutorialapp` directory, change directories to it and create a file named `default.toml`.
 
+<<<<<<< d15dc7e27d44af0f3e8351b58ce9ff8eee9f9e55
        [12][default:/src/plans/mytutorialapp:0]# touch default.toml
+=======
+       [12][default:/src/plans/mytutorialapp:0]$cd /src/plans/mytutorialapp
+       [12][default:/src/plans/mytutorialapp:0]$touch default.toml
+>>>>>>> Ensure the proper location on the filesystem.
 
 2. Open `default.toml` in your text editor and add the default values.
 
