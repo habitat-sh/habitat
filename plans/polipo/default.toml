@@ -9,9 +9,13 @@ disableIndexing = "false"
 disableServersList = "false"
 # Override DNS
 dnsNameServer = "8.8.8.8"
+# duration to keep objects without Last-modified (ie. Habitat artifacts)
+maxNoModifiedAge = "7d"
 # 4X the default
 objectHighMark = 8192
 # allows anyone access
 proxyAddress = "::0"
 # The port number that is listening for requests.
 port = 8123
+# duration to keep server data
+serverExpireTime = "7d"
