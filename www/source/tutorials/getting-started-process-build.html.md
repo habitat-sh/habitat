@@ -13,7 +13,7 @@ For information on how to natively run Habitat services, see [Run Services](/doc
 
 To show the portability of Habitat, you will export and run a Habitat service from within a Docker container through the following steps:
 
-1. If you are not in the studio environment, enter it from the dev shell container with the `hab-studio enter` command.
+1. If you are not in the studio environment, enter it from the dev shell container with the `hab studio enter` command.
 2. Change directory to the `/src/plans` directory.
 
         [15][default:/src:0]$cd plans

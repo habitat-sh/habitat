@@ -224,9 +224,9 @@ The project requires that the name used is your real name.  No contributions uti
 
 Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and `user.email` are set in your git configs.  Use `-s` or `--signoff` to add the Signed-off-by line to the end of the commit message.
 
-## Development environment with hab-studio
+## Development environment with Habitat Studios
 
-The Habitat Studio provides an isolated environment with where packages can be
+Habitat Studios provide an isolated environment with where packages can be
 built.
 
 Because all Habitat packages are cryptographically signed, you'll
@@ -238,9 +238,8 @@ To build a package:
 
 ```bash
 $ make shell
-$ hab-studio enter
 # Install the signing key in /hab/cache/keys before running the next step.
-$ build plans/redis
+$ hab studio build plans/redis
 ```
 
 To upload the resulting package
@@ -258,7 +257,7 @@ $ hab artifact upload ./results/$(source ./results/last_build.env && echo $pkg_a
 To create a docker container of a package, either local or remote:
 
 ```bash
-$ hab-studio enter
+$ hab studio enter
 $ hab install core/hab-pkg-dockerize
 $ hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize core/redis
 ```
