@@ -18,6 +18,7 @@ extern crate rustc_serialize;
 
 pub mod util;
 
+#[cfg(feature = "functional")]
 mod setup {
     use std::sync::{Once, ONCE_INIT};
     use std::process::Command;
@@ -189,5 +190,7 @@ macro_rules! assert_file_exists_in_studio {
 }
 
 // Include the actual test modules here!
+#[cfg(feature = "functional")]
 pub mod bldr_build;
+#[cfg(feature = "functional")]
 pub mod sup_tests;

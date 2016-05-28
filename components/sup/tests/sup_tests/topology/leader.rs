@@ -10,6 +10,7 @@ use util::supervisor::Supervisor;
 
 // Start two supervisors, see that they block waiting for quorum. Then start a third and see the
 // quorum reached.
+#[ignore]
 #[test]
 fn minimum_quorum() {
     setup::origin_setup();
@@ -34,6 +35,7 @@ fn minimum_quorum() {
 }
 
 // Start three supervisors. See that they elect one, and only one, leader.
+#[ignore]
 #[test]
 fn elects_a_leader() {
     setup::origin_setup();

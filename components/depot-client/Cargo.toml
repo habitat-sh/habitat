@@ -17,3 +17,6 @@ path = "../core"
 
 [dependencies.habitat_depot_core]
 path = "../depot-core"
+
+[features]
+functional = []

@@ -35,3 +35,6 @@ path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[features]
+functional = []

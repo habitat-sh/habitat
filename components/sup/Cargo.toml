@@ -59,5 +59,8 @@ path = "../../vendor/wonder"
 version = "*"
 features = ["suggestions", "color"]
 
+[features]
+functional = []
+
 [profile.release]
 lto = true

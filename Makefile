@@ -29,74 +29,119 @@ else
 	docs_run :=
 endif
 
-.PHONY: help all bin shell serve-docs test unit functional clean image docs gpg
+.PHONY: all test unit functional clean bin unit-bin functional-bin clean-bin lib unit-lib functional-lib clean-lib srv unit-srv functional-srv clean-srv help shell serve-docs distclean image docs
 .DEFAULT_GOAL := bin
 
-bin: image ## builds the project's main binaries
-	$(run) sh -c 'cd components/hab && cargo build'
-	$(run) sh -c 'cd components/sup && cargo build'
-	$(run) sh -c 'cd components/depot && cargo build'
-
 all: image ## builds all the project's Rust components
-	$(run) sh -c 'cd components/builder-api && cargo build'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo build'
-	$(run) sh -c 'cd components/builder-vault && cargo build'
-	$(run) sh -c 'cd components/common && cargo build'
-	$(run) sh -c 'cd components/core && cargo build'
-	$(run) sh -c 'cd components/depot-core && cargo build'
-	$(run) sh -c 'cd components/depot-client && cargo build'
-	$(run) sh -c 'cd components/director && cargo build'
 	$(MAKE) bin
+	$(MAKE) lib
+	$(MAKE) srv
 
-test: image ## tests the project's Rust components
-	$(run) sh -c 'cd components/builder-api && cargo test'
-	$(run) sh -c 'cd components/builder-dbcache && cargo test'
-	$(run) sh -c 'cd components/builder-protocol && cargo test'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo test'
-	$(run) sh -c 'cd components/builder-vault && cargo test'
-	$(run) sh -c 'cd components/core && cargo test'
-	$(run) sh -c 'cd components/depot-core && cargo test'
-	$(run) sh -c 'cd components/depot-client && cargo test'
-	$(run) sh -c 'cd components/common && cargo test'
-	$(run) sh -c 'cd components/sup && cargo test '
-	$(run) sh -c 'cd components/depot && cargo test'
-	$(run) sh -c 'cd components/director && cargo test'
+test: image ## executes the Rust components' test suites
+	$(MAKE) functional
 
 unit: image ## executes the components' unit test suites
-	$(run) sh -c 'cd components/builder-api && cargo test --lib'
-	$(run) sh -c 'cd components/builder-dbcache && cargo test --lib'
-	$(run) sh -c 'cd components/builder-protocol && cargo test --lib'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo test --lib'
-	$(run) sh -c 'cd components/builder-vault && cargo test --lib'
-	$(run) sh -c 'cd components/core && cargo test'
-	$(run) sh -c 'cd components/depot-core && cargo test --lib'
-	$(run) sh -c 'cd components/depot-client && cargo test --lib'
-	$(run) sh -c 'cd components/director && cargo test --lib'
-	$(run) sh -c 'cd components/common && cargo test --lib'
-	$(run) sh -c 'cd components/sup && cargo test --lib'
-	$(run) sh -c 'cd components/depot && cargo test --lib'
+	$(MAKE) unit-bin
+	$(MAKE) unit-lib
+	$(MAKE) unit-srv
 
 functional: image ## executes the components' functional test suites
-	$(run) sh -c 'cd components/core && cargo test --features functional'
-	$(run) sh -c 'cd components/sup && cargo test --test functional'
-	$(run) sh -c 'cd components/depot && cargo test --test server'
+	$(MAKE) functional-bin
+	$(MAKE) functional-lib
+	$(MAKE) functional-srv
 
 clean: ## cleans up the project tree
-	$(run) sh -c 'cd components/builder-api && cargo clean'
+	$(MAKE) clean-bin
+	$(MAKE) clean-lib
+	$(MAKE) clean-srv
+
+bin: image ## builds the project's main binaries
+	$(run) sh -c 'cd components/director && cargo build'
+	$(run) sh -c 'cd components/hab && cargo build'
+	$(run) sh -c 'cd components/sup && cargo build'
+
+unit-bin: ## executes binary components' unit test suites
+	$(run) sh -c 'cd components/director && cargo test'
+	$(run) sh -c 'cd components/hab && cargo test'
+	$(run) sh -c 'cd components/sup && cargo test'
+
+functional-bin: image ## executes binary component's function test suites
+	$(run) sh -c 'cd components/director && cargo test --features functional'
+	$(run) sh -c 'cd components/hab && cargo test --features functional'
+	$(run) sh -c 'cd components/sup && cargo test --features functional'
+
+clean-bin: ## cleans binary components' project trees
+	$(run) sh -c 'cd components/director && cargo clean'
+	$(run) sh -c 'cd components/hab && cargo clean'
+	$(run) sh -c 'cd components/sup && cargo clean'
+
+lib: image ## builds the project's library components
+	$(run) sh -c 'cd components/builder-dbcache && cargo build'
+	$(run) sh -c 'cd components/builder-protocol && cargo build'
+	$(run) sh -c 'cd components/common && cargo build'
+	$(run) sh -c 'cd components/core && cargo build'
+	$(run) sh -c 'cd components/depot-client && cargo build'
+	$(run) sh -c 'cd components/depot-core && cargo build'
+	$(run) sh -c 'cd components/net && cargo build'
+
+unit-lib: ## executes library components' unit test suites
+	$(run) sh -c 'cd components/builder-dbcache && cargo test'
+	$(run) sh -c 'cd components/builder-protocol && cargo test'
+	$(run) sh -c 'cd components/common && cargo test'
+	$(run) sh -c 'cd components/core && cargo test'
+	$(run) sh -c 'cd components/depot-client && cargo test'
+	$(run) sh -c 'cd components/depot-core && cargo test'
+	$(run) sh -c 'cd components/net && cargo test'
+
+functional-lib: image ## executes library component's function test suites
+	$(run) sh -c 'cd components/builder-dbcache && cargo test --features functional'
+	$(run) sh -c 'cd components/builder-protocol && cargo test --features functional'
+	$(run) sh -c 'cd components/common && cargo test --features functional'
+	$(run) sh -c 'cd components/core && cargo test --features functional'
+	$(run) sh -c 'cd components/depot-client && cargo test --features functional'
+	$(run) sh -c 'cd components/depot-core && cargo test --features functional'
+	$(run) sh -c 'cd components/net && cargo test --features functional'
+
+clean-lib: ## cleans library components' project trees
 	$(run) sh -c 'cd components/builder-dbcache && cargo clean'
 	$(run) sh -c 'cd components/builder-protocol && cargo clean'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo clean'
-	$(run) sh -c 'cd components/builder-vault && cargo clean'
 	$(run) sh -c 'cd components/common && cargo clean'
 	$(run) sh -c 'cd components/core && cargo clean'
 	$(run) sh -c 'cd components/depot-client && cargo clean'
 	$(run) sh -c 'cd components/depot-core && cargo clean'
-	$(run) sh -c 'cd components/depot && cargo clean'
-	$(run) sh -c 'cd components/director && cargo clean'
-	$(run) sh -c 'cd components/hab && cargo clean'
 	$(run) sh -c 'cd components/net && cargo clean'
-	$(run) sh -c 'cd components/sodiumoxide && cargo clean'
-	$(run) sh -c 'cd components/sup && cargo clean'
+
+srv: image ## builds the project's service components
+	$(run) sh -c 'cd components/builder-api && cargo build'
+	$(run) sh -c 'cd components/builder-jobsrv && cargo build'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo build'
+	$(run) sh -c 'cd components/builder-vault && cargo build'
+	$(run) sh -c 'cd components/builder-worker && cargo build'
+	$(run) sh -c 'cd components/depot && cargo build'
+
+unit-srv: image ## executes service components' unit test suites
+	$(run) sh -c 'cd components/builder-api && cargo test'
+	$(run) sh -c 'cd components/builder-jobsrv && cargo test'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo test'
+	$(run) sh -c 'cd components/builder-vault && cargo test'
+	$(run) sh -c 'cd components/builder-worker && cargo test'
+	$(run) sh -c 'cd components/depot && cargo test'
+
+functional-srv: image ## executes service component's function test suites
+	$(run) sh -c 'cd components/builder-api && cargo test --features functional'
+	$(run) sh -c 'cd components/builder-jobsrv && cargo test --features functional'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo test --features functional'
+	$(run) sh -c 'cd components/builder-vault && cargo test --features functional'
+	$(run) sh -c 'cd components/builder-worker && cargo test --features functional'
+	$(run) sh -c 'cd components/depot && cargo test --features functional'
+
+clean-srv: ## cleans service components' project trees
+	$(run) sh -c 'cd components/builder-api && cargo clean'
+	$(run) sh -c 'cd components/builder-jobsrv && cargo clean'
+	$(run) sh -c 'cd components/builder-sessionsrv && cargo clean'
+	$(run) sh -c 'cd components/builder-vault && cargo clean'
+	$(run) sh -c 'cd components/builder-worker && cargo clean'
+	$(run) sh -c 'cd components/depot && cargo clean'
 
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

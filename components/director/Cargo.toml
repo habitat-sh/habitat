@@ -44,5 +44,8 @@ path = "../../vendor/wonder"
 [dev-dependencies]
 tempdir = "*"
 
+[features]
+functional = []
+
 [profile.release]
 lto = true

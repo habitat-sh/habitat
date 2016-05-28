@@ -9,6 +9,7 @@ use setup;
 use util::supervisor::Supervisor;
 
 // Start two supervisors, and make sure they see each other
+#[ignore]
 #[test]
 fn two_supervisors_link() {
     setup::origin_setup();
@@ -22,6 +23,7 @@ fn two_supervisors_link() {
 }
 
 // Start two supervisors, stop one, make sure they see the failure
+#[ignore]
 #[test]
 fn two_supervisors_detect_failure() {
     setup::origin_setup();
@@ -44,6 +46,7 @@ fn two_supervisors_detect_failure() {
 
 // Start three supervisors, a, b, and c. A is linked to b, and b is linked to c. a, b, and c all
 // see the other two members, even though they were not provided initially.
+#[ignore]
 #[test]
 fn members_are_gossiped() {
     setup::origin_setup();
@@ -63,6 +66,7 @@ fn members_are_gossiped() {
 
 // Start three supervisors, a, b, c. Split a and c; confirm that neither a nor c is marked
 // as anything but alive, confirming they are routing their gossip through b.
+#[ignore]
 #[test]
 fn routes_around_failure() {
     setup::origin_setup();
@@ -87,6 +91,7 @@ fn routes_around_failure() {
 // Incarnation update on suspicion. Start A, B, and C. A and C split from from B; B is marked
 // suspect. A and C then rejoin B, and upon receipt of the suspect rumor about itself, B increments
 // its incarnation and shares its Alive rumor. A and C then see B as alive again.
+#[ignore]
 #[test]
 fn incarnation_updates_on_suspicion() {
     setup::origin_setup();
@@ -123,6 +128,7 @@ fn incarnation_updates_on_suspicion() {
 // Ressurection and partition tolerance. Start a, and b; a and b are both permanent members. a
 // splits from b; a is marked confirmed dead. The split is then joined, and both A and B update
 // their incarnation and are then marked alive.
+#[ignore]
 #[test]
 fn ressurection_of_permanent_members() {
     setup::origin_setup();
@@ -157,6 +163,7 @@ fn ressurection_of_permanent_members() {
 // pretend that every peer is permanent, until you are no longer isolated. This protects from the
 // case where you are on your way to being partitioned, but you had requests in flight for a member
 // that never lands - and you wind up isolated.
+#[ignore]
 #[test]
 fn isolated_members_find_a_way_to_rejoin() {
     setup::origin_setup();

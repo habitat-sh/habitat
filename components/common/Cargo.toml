@@ -24,3 +24,6 @@ path = "../depot-client"
 
 [dev-dependencies]
 tempdir = "*"
+
+[features]
+functional = []
