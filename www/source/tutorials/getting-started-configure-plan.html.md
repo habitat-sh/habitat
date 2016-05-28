@@ -9,9 +9,15 @@ In this tutorial, the archive for our Node.js app already has a configuration fi
 
 1. In your `plans/mytutorialapp` directory, create a new directory named `config` and add a new file to it named `config.json` to match the name of the configuration file that `server.js` references.
 
+<<<<<<< 6c575f356f1325ae615a539697c29d5076af4ce8
        [9][default:/src/plans/mytutorialapp/hooks:0]# cd /src/plans/mytutorialapp
        [10][default:/src/plans/mytutorialapp:0]# mkdir -p config
        [11][default:/src/plans/mytutorialapp:0]# touch config/config.json
+=======
+       [9][default:/src/plans/mytutorialapp/hooks:0]$cd /src/plans/mytutorialapp
+       [10][default:/src/plans/mytutorialapp:0]$mkdir -p config
+       [11][default:/src/plans/mytutorialapp:0]$touch config/config.json
+>>>>>>> Account for a pre-existing `config` directory.
 
 
 2. Open `config/config.json` in your text editor.
