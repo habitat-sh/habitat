@@ -1,3 +1,110 @@
+BIN = director hab sup
+LIB = builder-dbcache builder-protocol common core depot-client depot-core net
+SRV = builder-api builder-jobsrv builder-sessionsrv builder-vault builder-worker depot
+ALL = $(BIN) $(LIB) $(SRV)
+
+.DEFAULT_GOAL := build-bin
+
+build: build-bin build-lib build-srv ## builds all the components
+build-all: build
+.PHONY: build build-all
+
+build-bin: $(addprefix build-,$(BIN)) ## builds the binary components
+.PHONY: build-bin
+
+build-lib: $(addprefix build-,$(LIB)) ## builds the library components
+.PHONY: build-lib
+
+build-srv: $(addprefix build-,$(SRV)) ## builds the service components
+.PHONY: build-srv
+
+unit: unit-bin unit-lib unit-srv ## executes all the components' unit test suites
+unit-all: unit
+.PHONY: unit unit-all
+
+unit-bin: $(addprefix unit-,$(BIN)) ## executes the binary components' unit test suites
+.PHONY: unit-bin
+
+unit-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit test suites
+.PHONY: unit-lib
+
+unit-srv: $(addprefix unit-,$(SRV)) ## executes the service components' unit test suites
+.PHONY: unit-srv
+
+functional: functional-bin functional-lib functional-srv ## executes all the components' functional test suites
+functional-all: functional
+test: functional ## executes all components' test suites
+.PHONY: functional functional-all test
+
+functional-bin: $(addprefix unit-,$(BIN)) ## executes the binary components' unit functional suites
+.PHONY: functional-bin
+
+functional-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit functional suites
+.PHONY: functional-lib
+
+functional-srv: $(addprefix unit-,$(SRV)) ## executes the service components' unit functional suites
+.PHONY: functional-srv
+
+clean: clean-bin clean-lib clean-srv ## cleans all the components' clean test suites
+clean-all: clean
+.PHONY: clean clean-all
+
+clean-bin: $(addprefix clean-,$(BIN)) ## cleans the binary components' project trees
+.PHONY: clean-bin
+
+clean-lib: $(addprefix clean-,$(LIB)) ## cleans the library components' project trees
+.PHONY: clean-lib
+
+clean-srv: $(addprefix clean-,$(SRV)) ## cleans the service components' project trees
+.PHONY: clean-srv
+
+help:
+	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+.PHONY: help
+
+shell: image ## launches a development shell
+	$(run)
+.PHONY: shell
+
+serve-docs: docs ## serves the project documentation from an HTTP server
+	@echo "==> View the docs at:\n\n        http://`\
+		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
+	$(docs_run) sh -c 'set -e; cd ./components/sup/target/doc; python -m SimpleHTTPServer 9633;'
+.PHONY: serve-docs
+
+ifneq ($(IN_DOCKER),)
+distclean: ## fully cleans up project tree and any associated Docker images and containers
+	$(compose_cmd) stop
+	$(compose_cmd) rm -f -v
+	$(docker_cmd) rmi $(dimage) || true
+	($(docker_cmd) images -q -f dangling=true | xargs $(docker_cmd) rmi -f) || true
+.PHONY: distclean
+
+image: ## create an image
+	if [ -n "${force}" -o -n "${refresh}" -o -z "`$(docker_cmd) images -q $(dimage)`" ]; then \
+		if [ -n "${force}" ]; then \
+		  $(docker_cmd) build --no-cache $(build_args) -t $(dimage) .; \
+		else \
+		  $(docker_cmd) build $(build_args) -t $(dimage) .; \
+		fi \
+	fi
+.PHONY: image
+else
+image: ## no-op
+.PHONY: image
+
+distclean: clean ## fully cleans up project tree
+.PHONY: distclean
+endif
+
+docs: image ## build the docs
+	$(run) sh -c 'set -ex; \
+		cd components/sup && cargo doc && cd ../../ \
+		rustdoc --crate-name habitat_sup README.md -o ./components/sup/target/doc/habitat_sup; \
+		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
+		cp -r images ./components/sup/target/doc/habitat_sup; \
+		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
+
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	IN_DOCKER := true
@@ -29,156 +136,34 @@ else
 	docs_run :=
 endif
 
-.PHONY: all test unit functional clean bin unit-bin functional-bin clean-bin lib unit-lib functional-lib clean-lib srv unit-srv functional-srv clean-srv help shell serve-docs distclean image docs
-.DEFAULT_GOAL := bin
+define BUILD
+build-$1: image ## builds the $1 component
+	$(run) sh -c 'cd components/$1 && cargo build'
+.PHONY: build-$1
 
-all: image ## builds all the project's Rust components
-	$(MAKE) bin
-	$(MAKE) lib
-	$(MAKE) srv
+endef
+$(foreach component,$(ALL),$(eval $(call BUILD,$(component))))
 
-test: image ## executes the Rust components' test suites
-	$(MAKE) functional
+define UNIT
+unit-$1: image ## executes the $1 component's unit test suite
+	$(run) sh -c 'cd components/$1 && cargo test'
+.PHONY: unit-$1
 
-unit: image ## executes the components' unit test suites
-	$(MAKE) unit-bin
-	$(MAKE) unit-lib
-	$(MAKE) unit-srv
+endef
+$(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
 
-functional: image ## executes the components' functional test suites
-	$(MAKE) functional-bin
-	$(MAKE) functional-lib
-	$(MAKE) functional-srv
+define FUNCTIONAL
+functional-$1: image ## executes the $1 component's functional test suite
+	$(run) sh -c 'cd components/$1 && cargo test --features functional'
+.PHONY: functional-$1
 
-clean: ## cleans up the project tree
-	$(MAKE) clean-bin
-	$(MAKE) clean-lib
-	$(MAKE) clean-srv
+endef
+$(foreach component,$(ALL),$(eval $(call FUNCTIONAL,$(component))))
 
-bin: image ## builds the project's main binaries
-	$(run) sh -c 'cd components/director && cargo build'
-	$(run) sh -c 'cd components/hab && cargo build'
-	$(run) sh -c 'cd components/sup && cargo build'
+define CLEAN
+clean-$1: image ## cleans the $1 component's project tree
+	$(run) sh -c 'cd components/$1 && cargo clean'
+.PHONY: clean-$1
 
-unit-bin: ## executes binary components' unit test suites
-	$(run) sh -c 'cd components/director && cargo test'
-	$(run) sh -c 'cd components/hab && cargo test'
-	$(run) sh -c 'cd components/sup && cargo test'
-
-functional-bin: image ## executes binary component's function test suites
-	$(run) sh -c 'cd components/director && cargo test --features functional'
-	$(run) sh -c 'cd components/hab && cargo test --features functional'
-	$(run) sh -c 'cd components/sup && cargo test --features functional'
-
-clean-bin: ## cleans binary components' project trees
-	$(run) sh -c 'cd components/director && cargo clean'
-	$(run) sh -c 'cd components/hab && cargo clean'
-	$(run) sh -c 'cd components/sup && cargo clean'
-
-lib: image ## builds the project's library components
-	$(run) sh -c 'cd components/builder-dbcache && cargo build'
-	$(run) sh -c 'cd components/builder-protocol && cargo build'
-	$(run) sh -c 'cd components/common && cargo build'
-	$(run) sh -c 'cd components/core && cargo build'
-	$(run) sh -c 'cd components/depot-client && cargo build'
-	$(run) sh -c 'cd components/depot-core && cargo build'
-	$(run) sh -c 'cd components/net && cargo build'
-
-unit-lib: ## executes library components' unit test suites
-	$(run) sh -c 'cd components/builder-dbcache && cargo test'
-	$(run) sh -c 'cd components/builder-protocol && cargo test'
-	$(run) sh -c 'cd components/common && cargo test'
-	$(run) sh -c 'cd components/core && cargo test'
-	$(run) sh -c 'cd components/depot-client && cargo test'
-	$(run) sh -c 'cd components/depot-core && cargo test'
-	$(run) sh -c 'cd components/net && cargo test'
-
-functional-lib: image ## executes library component's function test suites
-	$(run) sh -c 'cd components/builder-dbcache && cargo test --features functional'
-	$(run) sh -c 'cd components/builder-protocol && cargo test --features functional'
-	$(run) sh -c 'cd components/common && cargo test --features functional'
-	$(run) sh -c 'cd components/core && cargo test --features functional'
-	$(run) sh -c 'cd components/depot-client && cargo test --features functional'
-	$(run) sh -c 'cd components/depot-core && cargo test --features functional'
-	$(run) sh -c 'cd components/net && cargo test --features functional'
-
-clean-lib: ## cleans library components' project trees
-	$(run) sh -c 'cd components/builder-dbcache && cargo clean'
-	$(run) sh -c 'cd components/builder-protocol && cargo clean'
-	$(run) sh -c 'cd components/common && cargo clean'
-	$(run) sh -c 'cd components/core && cargo clean'
-	$(run) sh -c 'cd components/depot-client && cargo clean'
-	$(run) sh -c 'cd components/depot-core && cargo clean'
-	$(run) sh -c 'cd components/net && cargo clean'
-
-srv: image ## builds the project's service components
-	$(run) sh -c 'cd components/builder-api && cargo build'
-	$(run) sh -c 'cd components/builder-jobsrv && cargo build'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo build'
-	$(run) sh -c 'cd components/builder-vault && cargo build'
-	$(run) sh -c 'cd components/builder-worker && cargo build'
-	$(run) sh -c 'cd components/depot && cargo build'
-
-unit-srv: image ## executes service components' unit test suites
-	$(run) sh -c 'cd components/builder-api && cargo test'
-	$(run) sh -c 'cd components/builder-jobsrv && cargo test'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo test'
-	$(run) sh -c 'cd components/builder-vault && cargo test'
-	$(run) sh -c 'cd components/builder-worker && cargo test'
-	$(run) sh -c 'cd components/depot && cargo test'
-
-functional-srv: image ## executes service component's function test suites
-	$(run) sh -c 'cd components/builder-api && cargo test --features functional'
-	$(run) sh -c 'cd components/builder-jobsrv && cargo test --features functional'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo test --features functional'
-	$(run) sh -c 'cd components/builder-vault && cargo test --features functional'
-	$(run) sh -c 'cd components/builder-worker && cargo test --features functional'
-	$(run) sh -c 'cd components/depot && cargo test --features functional'
-
-clean-srv: ## cleans service components' project trees
-	$(run) sh -c 'cd components/builder-api && cargo clean'
-	$(run) sh -c 'cd components/builder-jobsrv && cargo clean'
-	$(run) sh -c 'cd components/builder-sessionsrv && cargo clean'
-	$(run) sh -c 'cd components/builder-vault && cargo clean'
-	$(run) sh -c 'cd components/builder-worker && cargo clean'
-	$(run) sh -c 'cd components/depot && cargo clean'
-
-help:
-	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-shell: image ## launches a development shell
-	$(run)
-
-serve-docs: docs ## serves the project documentation from an HTTP server
-	@echo "==> View the docs at:\n\n        http://`\
-		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
-	$(docs_run) sh -c 'set -e; cd ./components/sup/target/doc; python -m SimpleHTTPServer 9633;'
-
-ifneq ($(IN_DOCKER),)
-distclean: ## fully cleans up project tree and any associated Docker images and containers
-	$(compose_cmd) stop
-	$(compose_cmd) rm -f -v
-	$(docker_cmd) rmi $(dimage) || true
-	($(docker_cmd) images -q -f dangling=true | xargs $(docker_cmd) rmi -f) || true
-
-image: ## create an image
-	if [ -n "${force}" -o -n "${refresh}" -o -z "`$(docker_cmd) images -q $(dimage)`" ]; then \
-		if [ -n "${force}" ]; then \
-		  $(docker_cmd) build --no-cache $(build_args) -t $(dimage) .; \
-		else \
-		  $(docker_cmd) build $(build_args) -t $(dimage) .; \
-		fi \
-	fi
-else
-image: ## no-op
-
-distclean: clean ## fully cleans up project tree
-endif
-
-docs: image ## build the docs
-	$(run) sh -c 'set -ex; \
-		cd components/sup && cargo doc && cd ../../ \
-		rustdoc --crate-name habitat_sup README.md -o ./components/sup/target/doc/habitat_sup; \
-		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
-		cp -r images ./components/sup/target/doc/habitat_sup; \
-		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
+endef
+$(foreach component,$(ALL),$(eval $(call CLEAN,$(component))))
