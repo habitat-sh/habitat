@@ -47,3 +47,6 @@ path = "../depot-core"
 [dev-dependencies]
 url = "*"
 uuid = "*"
+
+[features]
+functional = []

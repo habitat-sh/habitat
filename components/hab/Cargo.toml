@@ -33,3 +33,6 @@ path = "../common"
 
 [dependencies.habitat_depot_client]
 path = "../depot-client"
+
+[features]
+functional = []

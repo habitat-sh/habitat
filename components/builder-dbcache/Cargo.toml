@@ -12,3 +12,6 @@ r2d2_redis = "*"
 redis = "*"
 rustc-serialize = "*"
 time = "*"
+
+[features]
+functional = []

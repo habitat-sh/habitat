@@ -10,3 +10,6 @@ rustc-serialize = "*"
 
 [dependencies.habitat_core]
 path = "../core"
+
+[features]
+functional = []

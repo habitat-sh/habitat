@@ -11,6 +11,7 @@ use hcore::fs;
 use util;
 
 #[test]
+#[ignore]
 fn builds_a_service() {
 
     let mut simple_service = match util::command::plan_build(&util::path::fixture_as_string("bldr_build")) {
@@ -22,14 +23,15 @@ fn builds_a_service() {
     assert_cmd_exit_code!(simple_service, [0]);
     assert_regex!(simple_service.stdout(), r"Loading /.*/plan.sh");
     assert_regex!(simple_service.stdout(),
-                  &format!(r"{}/bldr_build-0.0.1", fs::cache_src_path(None)));
+                  &format!(r"{}/bldr_build-0.0.1",
+                           fs::cache_src_path(None).to_string_lossy()));
     assert_regex!(simple_service.stdout(),
                   &format!(r"/{}/test/bldr_build/0.0.1/\d{{14}}", fs::PKG_PATH));
     assert_regex!(simple_service.stdout(),
                   &format!(r"{}/test-bldr_build-0.0.1-\d{{14}}.bldr",
-                           fs::cache_artifact_path(None)));
+                           fs::cache_artifact_path(None).to_string_lossy()));
     let pkg_re = Regex::new(&format!(r"({}/test-bldr_build-0.0.1-\d{{14}}.bldr)",
-                                     fs::cache_artifact_path(None)))
+                                     fs::cache_artifact_path(None).to_string_lossy()))
                      .unwrap();
     let caps = pkg_re.captures(simple_service.stdout()).unwrap();
     if let Some(pkg_path) = caps.at(1) {
