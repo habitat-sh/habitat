@@ -238,12 +238,24 @@ need to make sure you have the signing key on hand for the origin your
 package belongs to, and that it's installed in `/hab/cache/keys` inside
 the Studio.
 
+To enter the shell:
+```bash
+$ make shell
+```
+
+To create a new signing key for your origin (e.g., 'myorigin'):
+
+```bash
+$ hab origin key generate myorigin
+# set the HAB_ORIGIN environment variable
+$ export HAB_ORIGIN=myorigin
+```
+
 To build a package:
 
 ```bash
-$ make shell
-# Install the signing key in /hab/cache/keys before running the next step.
-$ hab studio build plans/redis
+$ cd /src
+$ hab studio build build plans/redis
 ```
 
 To upload the resulting package
