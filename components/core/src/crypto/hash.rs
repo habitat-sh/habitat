@@ -86,18 +86,18 @@ mod test {
     #[allow(dead_code)]
     fn mk_local_tmpdir() -> PathBuf {
         let dir = env::current_exe()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .join("tmp");
+                      .unwrap()
+                      .parent()
+                      .unwrap()
+                      .parent()
+                      .unwrap()
+                      .parent()
+                      .unwrap()
+                      .parent()
+                      .unwrap()
+                      .parent()
+                      .unwrap()
+                      .join("tmp");
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -137,9 +137,9 @@ mod test {
                     _ => Client::new(),
                 };
                 let mut response = client.get(url)
-                    .header(header::Connection::close())
-                    .send()
-                    .unwrap();
+                                         .header(header::Connection::close())
+                                         .send()
+                                         .unwrap();
                 let mut f = File::create(&file).unwrap();
                 io::copy(&mut response, &mut f).unwrap();
             }
