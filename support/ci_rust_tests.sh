@@ -8,10 +8,9 @@ if [[ $is_tmp_commit = 0 ]]; then
   exit 0
 fi
 
-set -ev
+set -e
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
-  #env IN_DOCKER=true make test refresh=true
-  make unit
+  make unit-${COMPONENTS:-all}
 else
-  make unit
+  make unit-${COMPONENTS:-all}
 fi
