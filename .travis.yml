@@ -9,9 +9,109 @@ env:
   - secure: GoX6A9uqZ7avilS62w+Noju1ntmqK45C98apBrVnym0tDON3W7kJ5sUJiq6x3+oFOxn0QlaOX1Mku5GyesDE+NbGm4YlLLcucTv2gi9iab5HJsxhHNsLgyMWBPCj25n2qcaCQE0g7naRSThnpRFFV+U6wbqLBods0jKbL95yrPY=
 matrix:
   include:
+  - language: rust
+    env:
+    - COMPONENTS=bin LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    rust: stable
+    sudo: false
+    addons:
+      apt:
+        packages:
+        - build-essential
+        - ca-certificates
+        - curl
+        - libbz2-dev
+        - liblzma-dev
+        - libprotobuf-dev
+        - libssl-dev
+        - libzmq3-dev
+        - pkg-config
+    cache:
+      apt: true
+      cargo: true
+      directories:
+      - "$HOME/rust"
+      - "$HOME/pkgs"
+      - components/director/target
+      - components/hab/target
+      - components/sup/target
+    before_install:
+    - ./support/ci_compile_libsodium.sh
+    - ./support/ci_compile_libarchive.sh
+    script:
+    - ./support/ci_rust_tests.sh
+  - language: rust
+    env:
+    - COMPONENTS=lib LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    rust: stable
+    sudo: false
+    addons:
+      apt:
+        packages:
+        - build-essential
+        - ca-certificates
+        - curl
+        - libbz2-dev
+        - liblzma-dev
+        - libprotobuf-dev
+        - libssl-dev
+        - libzmq3-dev
+        - pkg-config
+    cache:
+      apt: true
+      cargo: true
+      directories:
+      - "$HOME/rust"
+      - "$HOME/pkgs"
+      - components/builder-dbcache/target
+      - components/builder-protocol/target
+      - components/common/target
+      - components/core/target
+      - components/depot-client/target
+      - components/depot-core/target
+      - components/net/target
+    before_install:
+    - ./support/ci_compile_libsodium.sh
+    - ./support/ci_compile_libarchive.sh
+    script:
+    - ./support/ci_rust_tests.sh
+  - language: rust
+    env:
+    - COMPONENTS=srv LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    rust: stable
+    sudo: false
+    addons:
+      apt:
+        packages:
+        - build-essential
+        - ca-certificates
+        - curl
+        - libbz2-dev
+        - liblzma-dev
+        - libprotobuf-dev
+        - libssl-dev
+        - libzmq3-dev
+        - pkg-config
+    cache:
+      apt: true
+      cargo: true
+      directories:
+      - "$HOME/rust"
+      - "$HOME/pkgs"
+      - components/builder-api/target
+      - components/builder-jobsrv/target
+      - components/builder-sessionsrv/target
+      - components/builder-vault/target
+      - components/builder-worker/target
+      - components/depot/target
+    before_install:
+    - ./support/ci_compile_libsodium.sh
+    - ./support/ci_compile_libarchive.sh
+    script:
+    - ./support/ci_rust_tests.sh
   - language: node_js
     node_js: 4.2.6
-    sudo: false
+    sudo: required
     compiler: clang-3.6
     env:
     - CXX=clang-3.6
@@ -23,14 +123,21 @@ matrix:
         packages:
         - clang-3.6
         - g++-4.8
+        - wget
     cache:
       apt: true
       directories:
       - components/builder-web/node_modules
       - components/builder-web/typings
     before_install: npm config set spin=false
-    install: "(cd components/builder-web && npm install)"
-    script: "(cd components/builder-web && npm run travis)"
+    install:
+    - "(cd components/builder-web && npm install)"
+    script:
+    - "(cd components/builder-web && npm run travis)"
+    - sudo -E bash -c "./support/ci_build_builder_web.sh"
+    after_success:
+    - "hart=$(source ./results/last_build.env && echo $pkg_artifact)"
+    - "if [ -n \"$hart\" ]; then hab artifact upload ./results/$hart; fi"
   - language: ruby
     rvm: 2.3.1
     sudo: false
@@ -39,8 +146,10 @@ matrix:
       directories:
       - www/build
       - www/vendor/bundle
-    install: "(cd www && bundle install --deployment)"
-    script: "(cd www && bundle exec middleman build)"
+    install:
+    - "(cd www && bundle install --deployment)"
+    script:
+    - "(cd www && bundle exec middleman build)"
     deploy:
       provider: s3
       access_key_id: AKIAJD2LEPZPVODPFLIQ
@@ -54,56 +163,6 @@ matrix:
         repo: habitat-sh/habitat
     after_deploy:
     - "./support/purge_website.sh"
-  - language: rust
-    rust: nightly
-    sudo: required
-    addons:
-      apt:
-        packages:
-        - build-essential
-        - ca-certificates
-        - curl
-        - file
-        - gdb
-        - libarchive-dev
-        - libprotobuf-dev
-        - libssl-dev
-        - pkg-config
-        - protobuf-compiler
-        - sudo
-        - tmux
-        - vim
-        - wget
-    cache:
-      apt: true
-      cargo: true
-      directories:
-      - "$HOME/rust"
-      - components/builder-api/target
-      - components/builder-dbcache/target
-      - components/builder-jobsrv/target
-      - components/builder-protocol/target
-      - components/builder-sessionsrv/target
-      - components/builder-vault/target
-      - components/builder-worker/target
-      - components/common/target
-      - components/core/target
-      - components/depot-core/target
-      - components/depot-client/target
-      - components/depot/target
-      - components/hab/target
-      - components/net/target
-      - components/sodiumoxide/target
-      - components/sup/target
-    before_install:
-    - sudo add-apt-repository -y ppa:chris-lea/libsodium
-    - sudo apt-get update
-    - sudo apt-get -y install docker iproute2 libsodium-dev libzmq-dev
-    - command -v protoc-gen-rust || cargo install protobuf
-    script:
-    - ./support/ci.sh
-    - sudo -E bash -c "./support/publish.sh"
-    services: docker
 notifications:
   slack:
     secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
