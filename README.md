@@ -20,13 +20,13 @@ Historically, we build our applications as a conglomeration of upstream artifact
 system we used, which provides all of our build (and often run) time dependencies. We then layer in the
 specific application (either one we wrote ourselves, or a version of someone else's software), and then we
 layer in the details of how to configure and manage that application within its environment (with something
-like Chef.) Much of the complexity in the configuration layer comes from dealing with the large variety
-in the upstream - with no consistent way to express what it means to be well managed, we are forced to
-provide one.
+like Chef). Much of the complexity in the configuration layer comes from dealing with the large variety
+in the upstream artifacts - with no consistent way to express what it means to be well managed, we are
+forced to provide one.
 
-What Habitat provides is the ability to have the application artifact as a closure of all of this behavior -
-from how it is built to how it is configured and run. It takes a build description (which includes
-dependencies,) an exhaustive set of configuration options, and a hosting platform for the service - wraps
+Habitat provides the ability to have the application artifact as a closure of all of this behavior -
+from how it is built to how it is configured and how it is run. It takes a build description (which includes
+dependencies), an exhaustive set of configuration options, and a hosting platform for the service - wraps
 them into a single, encrypted or signed artifact, and enables it to be configured dynamically when the
 services are started.
 
@@ -40,10 +40,10 @@ towards its goal, and exposes consistent interfaces for health and monitoring.
 * Automatically build a minimal environment for your application
 * Include dependencies as binary artifacts
 * Specify all the configurable options for the application
-* Configure them from a file, the environment, or a service discovery framework (etcd/consul/chef) - in real time
-* Ensure privilege separation (supervisor de-privileges the service on your behalf)
+* Configure them from a file, the environment, or a service discovery framework (etcd/consul/chef) - in real-time
+* Ensure privilege separation (the supervisor de-privileges the service on your behalf)
 * Integrates logging cleanly
-* Provides pluggable interfaces for critical side-car behavior:
+* Provides pluggable interfaces for critical application behavior:
   * Status (up/down/etc.)
   * Health checks
   * Smoke testing
@@ -54,10 +54,9 @@ With the same amount of effort required to put your application in a Dockerfile.
 
 ## How does it do this?
 
-Habitat provides a way to build an atomic `package` via `hab-plan-build`, and an
-optional `container image` that is automatically configured to run it. It also
-provides a supervisor, that handles running, configuring, and managing your
-services (`hab-sup`).
+Habitat provides a way to build an atomic `package` via `build`, and an optional `container image`
+that is automatically configured to run it. It also provides a supervisor, that handles running, configuring, and
+managing your services (`hab sup`).
 
 ## Documentation
 
@@ -103,7 +102,7 @@ by having a convention cover it. When we do need to configure things, we set san
 
 Everything should come up green. Congratulations - you have a working Habitat development environment.
 
-**Note:** The Makefile targets are documented. Run `make help` to show the output. Requires `perl`.
+**Note:** The Makefile targets are documented. Run `make help` to show the output. Habitat requires `perl`.
 
 **Optional:** This project compiles and runs inside Docker containers so while
 installing the Rust language isn't strictly necessary, you might want a local
@@ -134,7 +133,7 @@ install it, and you're done!
 
 Everything should come up green. Congratulations - you have a working Habitat development environment.
 
-**Note:** The Makefile targets are documented. Run `make help` to show the output. Requires `perl`.
+**Note:** The Makefile targets are documented. Run `make help` to show the output. Habitat requires `perl`.
 
 **Optional:** This project compiles and runs inside Docker containers so while
 installing the Rust language isn't strictly necessary, you might want a local
@@ -175,7 +174,9 @@ on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
 
 ### Signing Your Commits
 
-This project utilizes a Developer Certificate of Origin (DCO) to ensure that each commit was written by the author or that the author has the appropriate rights necessary to contribute the change.  The project utilizes [Developer Certificate of Origin, Version 1.1](http://developercertificate.org/)
+This project utilizes a Developer Certificate of Origin (DCO) to ensure that each commit was written by the
+author or that the author has the appropriate rights necessary to contribute the change.  The project
+utilizes [Developer Certificate of Origin, Version 1.1](http://developercertificate.org/)
 
 ```
 Developer Certificate of Origin
@@ -220,9 +221,12 @@ Each commit must include a DCO which looks like this
 
 `Signed-off-by: Joe Smith <joe.smith@email.com>`
 
-The project requires that the name used is your real name.  No contributions utilizing pseudonyms will be accepted nor will anonymous contributions.
+The project requires that the name used is your real name.  No contributions utilizing pseudonyms
+will be accepted nor will anonymous contributions.
 
-Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and `user.email` are set in your git configs.  Use `-s` or `--signoff` to add the Signed-off-by line to the end of the commit message.
+Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and
+`user.email` are set in your git configs.  Use `-s` or `--signoff` to add the Signed-off-by line to
+the end of the commit message.
 
 ## Development environment with Habitat Studios
 
@@ -267,7 +271,7 @@ for example, test that Redis is working with your development version of
 the supervisor:
 
 ```bash
-$ ./target/debug/hab-sup start core/redis
+$ ./target/debug/hab sup start core/redis
 ```
 
 Will work just fine (as will running Habitat on other host operating
