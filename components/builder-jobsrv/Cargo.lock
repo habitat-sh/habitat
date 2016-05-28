@@ -1,13 +1,13 @@
 [root]
 name = "habitat_builder_jobsrv"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "clap 2.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_dbcache 0.5.0",
- "habitat_builder_protocol 0.5.0",
- "habitat_core 0.5.0",
- "habitat_net 0.5.0",
+ "habitat_builder_dbcache 0.6.0",
+ "habitat_builder_protocol 0.6.0",
+ "habitat_core 0.6.0",
+ "habitat_net 0.6.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -66,7 +66,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_builder_dbcache"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -79,7 +79,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_builder_protocol"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -89,7 +89,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -101,11 +101,12 @@ dependencies = [
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "users 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "habitat_net"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.20 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -348,6 +349,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "idna 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "matches 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "users"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

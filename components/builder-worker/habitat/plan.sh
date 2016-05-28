@@ -1,6 +1,6 @@
 pkg_name=hab-builder-worker
 pkg_origin=core
-pkg_version=0.5.0
+pkg_version=0.6.0
 pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz

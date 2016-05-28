@@ -1,8 +1,8 @@
 [root]
 name = "habitat_depot_core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
- "habitat_core 0.5.0",
+ "habitat_core 0.6.0",
  "hyper 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -52,7 +52,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
