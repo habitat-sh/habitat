@@ -1,6 +1,6 @@
 pkg_name=hab-depot
 pkg_origin=core
-pkg_version=0.5.0
+pkg_version=0.6.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz

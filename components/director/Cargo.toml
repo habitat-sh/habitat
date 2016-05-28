@@ -1,6 +1,6 @@
 [package]
 name = "habitat_director"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 build = "build.rs"
 
