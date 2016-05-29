@@ -19,5 +19,5 @@ if [ "${TRAVIS_PULL_REQUEST}" = "false" ] &&
     -in core-20160423193745.sig.key.enc \
     -d \
     | hab origin key import
-  hab studio build components/builder-web/habitat
+  hab studio -k core build components/builder-web/habitat
 else echo "Not on master; skipping publish"; fi
