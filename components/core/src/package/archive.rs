@@ -173,8 +173,8 @@ impl PackageArchive {
         let root = fs_root_path.unwrap_or(Path::new("/"));
         let tar_reader = try!(artifact::get_archive_reader(&self.path));
         let mut builder = reader::Builder::new();
-        try!(builder.support_format(ReadFormat::All));
-        try!(builder.support_filter(ReadFilter::All));
+        try!(builder.support_format(ReadFormat::Gnutar));
+        try!(builder.support_filter(ReadFilter::Xz));
         let mut reader = try!(builder.open_stream(tar_reader));
         let writer = writer::Disk::new();
         try!(writer.set_standard_lookup());
@@ -214,8 +214,8 @@ impl PackageArchive {
         let mut matched_count = 0u8;
         let tar_reader = try!(artifact::get_archive_reader(&self.path));
         let mut builder = reader::Builder::new();
-        try!(builder.support_format(ReadFormat::All));
-        try!(builder.support_filter(ReadFilter::All));
+        try!(builder.support_format(ReadFormat::Gnutar));
+        try!(builder.support_filter(ReadFilter::Xz));
         let mut reader = try!(builder.open_stream(tar_reader));
         loop {
             let mut matched_type: Option<MetaFile> = None;
