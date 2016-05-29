@@ -1,3 +1,34 @@
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	IN_DOCKER := true
+endif
+
+ifneq ($(IN_DOCKER),)
+	build_args := --build-arg HAB_DEPOT_URL=$(HAB_DEPOT_URL)
+	run_args := -e HAB_DEPOT_URL=$(HAB_DEPOT_URL)
+	run_args := $(run_args) -e HAB_ORIGIN=$(HAB_ORIGIN)
+	ifneq (${http_proxy},)
+		build_args := $(build_args) --build-arg http_proxy="${http_proxy}"
+		run_args := $(run_args) -e http_proxy="${http_proxy}"
+	endif
+	ifneq (${https_proxy},)
+		build_args := $(build_args) --build-arg https_proxy="${https_proxy}"
+		run_args := $(run_args) -e https_proxy="${https_proxy}"
+	endif
+
+	dimage := habitat/devshell
+	docker_cmd := env http_proxy= https_proxy= docker
+	compose_cmd := env http_proxy= https_proxy= docker-compose
+	common_run := $(compose_cmd) run --rm $(run_args)
+	run := $(common_run) shell
+	docs_host := ${DOCKER_HOST}
+	docs_run := $(common_run) -p 9633:9633 shell
+else
+	run :=
+	docs_host := 127.0.0.1
+	docs_run :=
+endif
+
 BIN = director hab sup
 LIB = builder-dbcache builder-protocol common core depot-client depot-core net
 SRV = builder-api builder-jobsrv builder-sessionsrv builder-vault builder-worker depot
@@ -104,37 +135,6 @@ docs: image ## build the docs
 		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
 		cp -r images ./components/sup/target/doc/habitat_sup; \
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
-
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-	IN_DOCKER := true
-endif
-
-ifneq ($(IN_DOCKER),)
-	build_args := --build-arg HAB_DEPOT_URL=$(HAB_DEPOT_URL)
-	run_args := -e HAB_DEPOT_URL=$(HAB_DEPOT_URL)
-	run_args := $(run_args) -e HAB_ORIGIN=$(HAB_ORIGIN)
-	ifneq (${http_proxy},)
-		build_args := $(build_args) --build-arg http_proxy="${http_proxy}"
-		run_args := $(run_args) -e http_proxy="${http_proxy}"
-	endif
-	ifneq (${https_proxy},)
-		build_args := $(build_args) --build-arg https_proxy="${https_proxy}"
-		run_args := $(run_args) -e https_proxy="${https_proxy}"
-	endif
-
-	dimage := habitat/devshell
-	docker_cmd := env http_proxy= https_proxy= docker
-	compose_cmd := env http_proxy= https_proxy= docker-compose
-	common_run := $(compose_cmd) run --rm $(run_args)
-	run := $(common_run) shell
-	docs_host := ${DOCKER_HOST}
-	docs_run := $(common_run) -p 9633:9633 shell
-else
-	run :=
-	docs_host := 127.0.0.1
-	docs_run :=
-endif
 
 define BUILD
 build-$1: image ## builds the $1 component
