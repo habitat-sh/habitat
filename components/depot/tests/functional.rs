@@ -76,7 +76,9 @@ macro_rules! assert_docker_log_count {
     ($count:expr, $regexp:expr, [ $( $docker:expr ),+ ]) => {
         {
             let responses = [ $( $docker.wait_until($regexp) ),+ ];
-            let num_responses = responses.iter().fold(0, |acc, &item| { let x = if item == true { 1 } else { 0 }; acc + x });
+            let num_responses = responses.iter().fold(0, |acc, &item| {
+                let x = if item == true { 1 } else { 0 }; acc + x
+            });
             assert!(num_responses == $count, "Expected {} occurances of {}; got {}", $count, $regexp, num_responses);
         }
     }
@@ -126,21 +128,15 @@ pub mod depot_tests {
         let d = docker::depot("test/simple_service");
         let ipaddress = d.ipaddress();
 
-        let mut upload = command::sup(&["upload",
-                                        "test/simple_service",
-                                        "-u",
-                                        &format!("http://{}:9632", ipaddress)])
-                             .unwrap();
+        let mut upload = command::sup(&["upload", "test/simple_service", "-u", &format!("http://{}:9632", ipaddress)])
+            .unwrap();
         upload.wait_with_output();
         assert_cmd_exit_code!(upload, [0]);
         assert_regex!(upload.stdout(), r"Upload Bldr Package (.+)");
         assert_regex!(upload.stdout(), r"Uploading from (.+)");
         assert_regex!(upload.stdout(), r"Complete");
-        let mut install = command::sup(&["install",
-                                         "test/simple_service",
-                                         "-u",
-                                         &format!("http://{}:9632", ipaddress)])
-                              .unwrap();
+        let mut install =
+            command::sup(&["install", "test/simple_service", "-u", &format!("http://{}:9632", ipaddress)]).unwrap();
         install.wait_with_output();
         assert_cmd_exit_code!(install, [0]);
     }

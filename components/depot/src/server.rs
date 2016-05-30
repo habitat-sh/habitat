@@ -79,8 +79,7 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     try!(write_file(&origin_keyfile, &mut req.body));
 
-    let mut response = Response::with((status::Created,
-                                       format!("/origins/{}/keys/{}", &origin, &revision)));
+    let mut response = Response::with((status::Created, format!("/origins/{}/keys/{}", &origin, &revision)));
 
     let mut base_url = req.url.clone();
     base_url.path = vec![String::from("key"), format!("{}-{}", &origin, &revision)];
@@ -140,12 +139,9 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     };
     if ident.satisfies(&object.ident) {
         depot.datastore.packages.write(&object).unwrap();
-        let mut response = Response::with((status::Created,
-                                           format!("/pkgs/{}/download", object.ident)));
+        let mut response = Response::with((status::Created, format!("/pkgs/{}/download", object.ident)));
         let mut base_url = req.url.clone();
-        base_url.path = vec![String::from("pkgs"),
-                             object.ident.to_string(),
-                             String::from("download")];
+        base_url.path = vec![String::from("pkgs"), object.ident.to_string(), String::from("download")];
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
@@ -193,8 +189,7 @@ fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response>
     // Iron updates to Hyper 0.9.x.
     response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
     response.headers.set_raw("content-disposition",
-                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
-                                      .into_bytes()]);
+                             vec![format!("attachment; filename=\"{}\"", xfilename.clone()).into_bytes()]);
     Ok(response)
 }
 
@@ -232,8 +227,7 @@ fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Re
     // Iron updates to Hyper 0.9.x.
     response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
     response.headers.set_raw("content-disposition",
-                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
-                                      .into_bytes()]);
+                             vec![format!("attachment; filename=\"{}\"", xfilename.clone()).into_bytes()]);
     Ok(response)
 }
 
@@ -252,8 +246,7 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                         // and the newer Hyper 0.9.4. TODO: change back to set() once
                         // Iron updates to Hyper 0.9.x.
 
-                        response.headers.set_raw("X-Filename",
-                                                 vec![archive.file_name().clone().into_bytes()]);
+                        response.headers.set_raw("X-Filename", vec![archive.file_name().clone().into_bytes()]);
                         response.headers.set_raw("content-disposition",
                                                  vec![format!("attachment; filename=\"{}\"",
                                                               archive.file_name().clone())
@@ -268,9 +261,7 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
             }
         }
-        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-            Ok(Response::with((status::NotFound)))
-        }
+        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with((status::NotFound))),
         Err(e) => {
             error!("download_package:1, err={:?}", e);
             Ok(Response::with(status::InternalServerError))
@@ -315,9 +306,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             }
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                Ok(Response::with((status::NotFound)))
-            }
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with((status::NotFound))),
             Err(e) => {
                 error!("list_packages:1, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
@@ -329,9 +318,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             }
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                Ok(Response::with((status::NotFound)))
-            }
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with((status::NotFound))),
             Err(e) => {
                 error!("list_packages:2, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
@@ -356,18 +343,14 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 Ok(ident) => {
                     match depot.datastore.packages.get(&ident) {
                         Ok(pkg) => render_package(&pkg),
-                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                            Ok(Response::with(status::NotFound))
-                        }
+                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:1, err={:?}", e);
                             Ok(Response::with(status::InternalServerError))
                         }
                     }
                 }
-                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                    Ok(Response::with(status::NotFound))
-                }
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
                 Err(e) => {
                     error!("show_package:2, err={:?}", e);
                     Ok(Response::with(status::InternalServerError))
@@ -378,9 +361,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 Ok(true) => {
                     match depot.datastore.packages.get(&ident) {
                         Ok(pkg) => render_package(&pkg),
-                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                            Ok(Response::with(status::NotFound))
-                        }
+                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:3, err={:?}", e);
                             Ok(Response::with(status::InternalServerError))
@@ -410,9 +391,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
         match depot.datastore.packages.get(&ident) {
             Ok(pkg) => render_package(&pkg),
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                Ok(Response::with(status::NotFound))
-            }
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
             Err(e) => {
                 error!("show_package:6, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
@@ -444,9 +423,7 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                     depot.datastore.views.associate(view, &package).unwrap();
                     Ok(Response::with(status::Ok))
                 }
-                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
-                    Ok(Response::with(status::NotFound))
-                }
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
                 Err(e) => {
                     error!("promote:2, err={:?}", e);
                     return Ok(Response::with(status::InternalServerError));
@@ -526,29 +503,51 @@ pub fn router(config: Config) -> Result<Chain> {
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
         get "/views/:view/pkgs/:origin" => move |r: &mut Request| list_packages(&depot2, r),
         get "/views/:view/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot3, r),
-        get "/views/:view/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot4, r),
-        get "/views/:view/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot5, r),
-        get "/views/:view/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot6, r),
-        get "/views/:view/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot7, r),
-
-        post "/views/:view/pkgs/:origin/:pkg/:version/:release/promote" => move |r: &mut Request| promote_package(&depot8, r),
+        get "/views/:view/pkgs/:origin/:pkg/latest" => {
+            move |r: &mut Request| show_package(&depot4, r)
+        },
+        get "/views/:view/pkgs/:origin/:pkg/:version" => {
+            move |r: &mut Request| list_packages(&depot5, r)
+        },
+        get "/views/:view/pkgs/:origin/:pkg/:version/latest" => {
+            move |r: &mut Request| show_package(&depot6, r)
+        },
+        get "/views/:view/pkgs/:origin/:pkg/:version/:release" => {
+            move |r: &mut Request| show_package(&depot7, r)
+        },
+        post "/views/:view/pkgs/:origin/:pkg/:version/:release/promote" => {
+            move |r: &mut Request| promote_package(&depot8, r)
+        },
 
         get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot9, r),
         get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot10, r),
         get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot11, r),
         get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot12, r),
-        get "/pkgs/:origin/:pkg/:version/latest" => move |r: &mut Request| show_package(&depot13, r),
-        get "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| show_package(&depot14, r),
+        get "/pkgs/:origin/:pkg/:version/latest" => {
+            move |r: &mut Request| show_package(&depot13, r)
+        },
+        get "/pkgs/:origin/:pkg/:version/:release" => {
+            move |r: &mut Request| show_package(&depot14, r)
+        },
 
-        get "/pkgs/:origin/:pkg/:version/:release/download" => move |r: &mut Request| download_package(&depot15, r),
-        post "/pkgs/:origin/:pkg/:version/:release" => move |r: &mut Request| upload_package(&depot16, r),
-
+        get "/pkgs/:origin/:pkg/:version/:release/download" => {
+            move |r: &mut Request| download_package(&depot15, r)
+        },
+        post "/pkgs/:origin/:pkg/:version/:release" => {
+            move |r: &mut Request| upload_package(&depot16, r)
+        },
 
         get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot17, r),
-        get "/origins/:origin/keys/latest" => move |r: &mut Request| download_latest_origin_key(&depot19, r),
-        get "/origins/:origin/keys/:revision" => move |r: &mut Request| download_origin_key(&depot18, r),
-        post "/origins/:origin/keys/:revision" => move |r: &mut Request| upload_origin_key(&depot20, r)
-        );
+        get "/origins/:origin/keys/latest" => {
+            move |r: &mut Request| download_latest_origin_key(&depot19, r)
+        },
+        get "/origins/:origin/keys/:revision" => {
+            move |r: &mut Request| download_origin_key(&depot18, r)
+        },
+        post "/origins/:origin/keys/:revision" => {
+            move |r: &mut Request| upload_origin_key(&depot20, r)
+        },
+    );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
     Ok(chain)

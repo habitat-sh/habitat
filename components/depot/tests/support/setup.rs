@@ -15,11 +15,10 @@ pub fn origin_setup() {
 pub fn simple_service() {
     static ONCE: Once = ONCE_INIT;
     ONCE.call_once(|| {
-        let mut simple_service =
-            match super::command::plan_build(&super::path::fixture_as_string("simple_service")) {
-                Ok(cmd) => cmd,
-                Err(e) => panic!("{:?}", e),
-            };
+        let mut simple_service = match super::command::plan_build(&super::path::fixture_as_string("simple_service")) {
+            Ok(cmd) => cmd,
+            Err(e) => panic!("{:?}", e),
+        };
         simple_service.wait_with_output();
         if !simple_service.status.unwrap().success() {
             panic!("Failed to build simple service");
@@ -33,8 +32,7 @@ pub fn key_install() {
 }
 
 fn dockerize(ident_str: &str) {
-    let mut install = match super::command::studio_run("hab",
-                                                       &["install", "core/hab-pkg-dockerize"]) {
+    let mut install = match super::command::studio_run("hab", &["install", "core/hab-pkg-dockerize"]) {
         Ok(cmd) => cmd,
         Err(e) => panic!("{:?}", e),
     };
@@ -42,14 +40,12 @@ fn dockerize(ident_str: &str) {
     if !install.status.unwrap().success() {
         panic!("Failed to install 'core/hab-pkg-dockerize'");
     }
-    let mut docker = match super::command::studio_run("hab",
-                                                      &["exec",
-                                                        "core/hab-pkg-dockerize",
-                                                        "hab-pkg-dockerize",
-                                                        ident_str]) {
-        Ok(cmd) => cmd,
-        Err(e) => panic!("{:?}", e),
-    };
+    let mut docker =
+        match super::command::studio_run("hab",
+                                         &["exec", "core/hab-pkg-dockerize", "hab-pkg-dockerize", ident_str]) {
+            Ok(cmd) => cmd,
+            Err(e) => panic!("{:?}", e),
+        };
     docker.wait_with_output();
     if !docker.status.unwrap().success() {
         panic!("Failed to dockerize simple service");

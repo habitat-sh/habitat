@@ -98,17 +98,17 @@ impl PackagesTable {
         try!(redis::transaction(conn.deref(), &keys, |txn| {
             let body = json::encode(&record).unwrap();
             txn.set(Self::key(&record.ident.to_string()), body)
-               .ignore()
-               .sadd(PackagesIndex::key(&record.ident.origin_idx()),
-                     record.ident.clone())
-               .ignore()
-               .sadd(PackagesIndex::key(&record.ident.name_idx()),
-                     record.ident.clone())
-               .ignore()
-               .sadd(PackagesIndex::key(&record.ident.version_idx().as_ref().unwrap()),
-                     record.ident.clone())
-               .ignore()
-               .query(conn.deref())
+                .ignore()
+                .sadd(PackagesIndex::key(&record.ident.origin_idx()),
+                      record.ident.clone())
+                .ignore()
+                .sadd(PackagesIndex::key(&record.ident.name_idx()),
+                      record.ident.clone())
+                .ignore()
+                .sadd(PackagesIndex::key(&record.ident.version_idx().as_ref().unwrap()),
+                      record.ident.clone())
+                .ignore()
+                .query(conn.deref())
         }));
         Ok(())
     }
@@ -142,8 +142,8 @@ impl PackagesIndex {
         match conn.smembers::<String, Vec<String>>(Self::key(&id.to_string())) {
             Ok(ids) => {
                 let ids = ids.iter()
-                             .map(|id| package::PackageIdent::from_str(id).unwrap())
-                             .collect();
+                    .map(|id| package::PackageIdent::from_str(id).unwrap())
+                    .collect();
                 Ok(ids)
             }
             Err(e) => Err(Error::from(e)),
@@ -154,13 +154,13 @@ impl PackagesIndex {
         let conn = self.pool().get().unwrap();
         let key = PackagesIndex::key(&id.as_ref().to_string());
         match redis::cmd("SORT")
-                  .arg(key)
-                  .arg("LIMIT")
-                  .arg(0)
-                  .arg(1)
-                  .arg("ALPHA")
-                  .arg("DESC")
-                  .query::<Vec<String>>(conn.deref()) {
+            .arg(key)
+            .arg("LIMIT")
+            .arg(0)
+            .arg(1)
+            .arg("ALPHA")
+            .arg("DESC")
+            .query::<Vec<String>>(conn.deref()) {
             Ok(ids) => {
                 if ids.is_empty() {
                     return Err(Error::DataStore(dbcache::Error::EntityNotFound));
@@ -222,10 +222,10 @@ impl ViewsTable {
             redis.call('zadd', KEYS[2], 0, ARGV[1]);
         ");
         try!(script.arg(pkg.ident.clone())
-                   .arg(view.clone())
-                   .key(PkgViewIndex::key(&pkg.ident))
-                   .key(ViewPkgIndex::key(&view.to_string()))
-                   .invoke(self.pool.get().unwrap().deref()));
+            .arg(view.clone())
+            .key(PkgViewIndex::key(&pkg.ident))
+            .key(ViewPkgIndex::key(&view.to_string()))
+            .invoke(self.pool.get().unwrap().deref()));
         Ok(())
     }
 
@@ -289,14 +289,10 @@ impl ViewPkgIndex {
 
     pub fn all(&self, view: &str, pkg: &str) -> Result<Vec<package::PackageIdent>> {
         let conn = self.pool().get().unwrap();
-        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()),
-                                                                format!("{}*", pkg)) {
+        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()), format!("{}*", pkg)) {
             Ok(set) => {
-                let set: Vec<package::PackageIdent> = set.map(|(id, _)| {
-                                                             package::PackageIdent::from_str(&id)
-                                                                 .unwrap()
-                                                         })
-                                                         .collect();
+                let set: Vec<package::PackageIdent> = set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
+                    .collect();
                 Ok(set)
             }
             Err(e) => Err(Error::from(e)),
@@ -353,13 +349,12 @@ impl OriginKeysTable {
         match conn.smembers::<String, Vec<String>>(Self::key(&origin.to_string())) {
             Ok(ids) => {
                 let ids = ids.iter()
-                             .map(|rev| {
-                                 data_object::OriginKeyIdent::new(origin.to_string(),
-                                                     rev.clone(),
-                                                    format!("/origins/{}/keys/{}",
-                                                            &origin, &rev))
-                             })
-                             .collect();
+                    .map(|rev| {
+                        data_object::OriginKeyIdent::new(origin.to_string(),
+                                                         rev.clone(),
+                                                         format!("/origins/{}/keys/{}", &origin, &rev))
+                    })
+                    .collect();
                 Ok(ids)
             }
             Err(e) => Err(Error::from(e)),
@@ -378,13 +373,13 @@ impl OriginKeysTable {
         let key = OriginKeysTable::key(&origin.to_string());
 
         match redis::cmd("SORT")
-                  .arg(key)
-                  .arg("LIMIT")
-                  .arg(0)
-                  .arg(1)
-                  .arg("ALPHA")
-                  .arg("DESC")
-                  .query::<Vec<String>>(conn.deref()) {
+            .arg(key)
+            .arg("LIMIT")
+            .arg(0)
+            .arg(1)
+            .arg("ALPHA")
+            .arg("DESC")
+            .query::<Vec<String>>(conn.deref()) {
             Ok(ids) => {
                 if ids.is_empty() {
                     return Err(Error::DataStore(dbcache::Error::EntityNotFound));
@@ -394,7 +389,6 @@ impl OriginKeysTable {
             Err(e) => Err(Error::from(e)),
         }
     }
-
 }
 
 impl Table for OriginKeysTable {

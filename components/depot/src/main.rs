@@ -45,7 +45,8 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg path: -p --path +takes_value +global "Filepath to service storage for the Depot service")
-        (@arg config: -c --config +takes_value +global "Filepath to configuration file. [default: /hab/svc/hab-depot/config.toml]")
+        (@arg config: -c --config +takes_value +global
+            "Filepath to configuration file. [default: /hab/svc/hab-depot/config.toml]")
         (@subcommand start =>
             (about: "Run a Habitat package Depot")
             (@arg port: --port +takes_value "Listen port. [default: 9632]")
