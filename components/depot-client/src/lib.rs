@@ -117,9 +117,7 @@ pub fn fetch_package<P: AsRef<Path> + ?Sized>(depot: &str,
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
-        Err(Error::HTTP(StatusCode::NotFound)) => {
-            Err(Error::RemotePackageNotFound(package.clone()))
-        }
+        Err(Error::HTTP(StatusCode::NotFound)) => Err(Error::RemotePackageNotFound(package.clone())),
         Err(e) => Err(e),
     }
 }
@@ -156,10 +154,7 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Pa
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(depot: &str,
-                   pa: &mut PackageArchive,
-                   progress: Option<&mut DisplayProgress>)
-                   -> Result<()> {
+pub fn put_package(depot: &str, pa: &mut PackageArchive, progress: Option<&mut DisplayProgress>) -> Result<()> {
     let checksum = try!(pa.checksum());
     let ident = try!(pa.ident());
     let mut url = try!(Url::parse(&format!("{}/pkgs/{}", depot, ident)));

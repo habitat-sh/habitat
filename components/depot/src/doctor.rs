@@ -189,30 +189,30 @@ impl<'a> Doctor<'a> {
                             if let Some(e) = fs::create_dir_all(path.parent().unwrap()).err() {
                                 self.report
                                     .failure(OperationType::ArchiveInsert(entry.path()
-                                                                               .to_string_lossy()
-                                                                               .to_string()),
+                                                 .to_string_lossy()
+                                                 .to_string()),
                                              Reason::IO(e));
                                 break;
                             }
                             if let Some(e) = fs::rename(entry.path(), &path).err() {
                                 self.report
                                     .failure(OperationType::ArchiveInsert(entry.path()
-                                                                               .to_string_lossy()
-                                                                               .to_string()),
+                                                 .to_string_lossy()
+                                                 .to_string()),
                                              Reason::IO(e));
                                 break;
                             }
                             self.report
                                 .success(OperationType::ArchiveInsert(path.to_string_lossy()
-                                                                          .to_string()));
+                                    .to_string()));
                         }
                         Err(e) => {
-                            // We should be moving this back to the garbage directory and recording the
-                            // path of it there in this failure
+                            // We should be moving this back to the garbage directory and recording
+                            // the path of it there in this failure
                             self.report
                                 .failure(OperationType::ArchiveInsert(entry.path()
-                                                                           .to_string_lossy()
-                                                                           .to_string()),
+                                             .to_string_lossy()
+                                             .to_string()),
                                          Reason::BadMetadata(e));
                         }
                     }
@@ -220,8 +220,8 @@ impl<'a> Doctor<'a> {
                 Err(e) => {
                     debug!("Error reading, archive={:?} error={:?}", &archive, &e);
                     self.report.failure(OperationType::ArchiveInsert(entry.path()
-                                                                          .to_string_lossy()
-                                                                          .to_string()),
+                                            .to_string_lossy()
+                                            .to_string()),
                                         Reason::BadArchive);
                 }
             }
@@ -231,8 +231,8 @@ impl<'a> Doctor<'a> {
             if let Some(e) = fs::remove_dir(dir.path()).err() {
                 debug!("Error deleting: {:?}", &e);
                 self.report.failure(OperationType::CleanupTrash(self.packages_path
-                                                                    .to_string_lossy()
-                                                                    .to_string()),
+                                        .to_string_lossy()
+                                        .to_string()),
                                     Reason::NotEmpty);
             }
         }

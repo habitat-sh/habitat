@@ -16,5 +16,3 @@ pub mod data_object;
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
-
-

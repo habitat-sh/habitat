@@ -74,7 +74,7 @@ impl<'a, T: 'a + protobuf::Message> MessageBuilder<'a, T> {
     }
 }
 
-pub trait Routable : protobuf::Message {
+pub trait Routable: protobuf::Message {
     type H: RouteKey;
 
     fn route_key(&self) -> Option<Self::H>;
@@ -103,10 +103,14 @@ mod tests {
 
     #[test]
     fn message_protocol() {
-        assert_eq!(Message(&jobsrv::Job::new()).protocol(), net::Protocol::JobSrv);
+        assert_eq!(Message(&jobsrv::Job::new()).protocol(),
+                   net::Protocol::JobSrv);
         assert_eq!(Message(&net::Ping::new()).protocol(), net::Protocol::Net);
-        assert_eq!(Message(&routesrv::Connect::new()).protocol(), net::Protocol::RouteSrv);
-        assert_eq!(Message(&sessionsrv::Session::new()).protocol(), net::Protocol::SessionSrv);
-        assert_eq!(Message(&vault::Origin::new()).protocol(), net::Protocol::VaultSrv);
+        assert_eq!(Message(&routesrv::Connect::new()).protocol(),
+                   net::Protocol::RouteSrv);
+        assert_eq!(Message(&sessionsrv::Session::new()).protocol(),
+                   net::Protocol::SessionSrv);
+        assert_eq!(Message(&vault::Origin::new()).protocol(),
+                   net::Protocol::VaultSrv);
     }
 }

@@ -25,9 +25,9 @@ pub use self::server::{Application, ServerReg, Supervisor, Supervisable};
 
 pub fn hostname() -> Result<String> {
     let output = try!(Command::new("sh")
-                          .arg("-c")
-                          .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
-                          .output());
+        .arg("-c")
+        .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
+        .output());
     match output.status.success() {
         true => {
             debug!("Hostname address is {}",

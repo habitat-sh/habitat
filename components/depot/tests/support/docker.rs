@@ -51,7 +51,7 @@ impl Docker {
                                               "{{range .NetworkSettings.Networks}}{{.\
                                                IPAddress}}{{end}}",
                                               &self.container_id)])
-                          .unwrap_or_else(|x| panic!("{:?}", x));
+            .unwrap_or_else(|x| panic!("{:?}", x));
         cmd.wait_with_output();
         let ipaddress = String::from(cmd.stdout().trim());
         println!("I have ipaddress {}", &ipaddress);
@@ -64,12 +64,12 @@ impl Drop for Docker {
         if thread::panicking() {
             if let None = env::var_os("HAB_DOCKER_KEEP") {
                 let mut cmd = command::run("docker", &["rm", "-f", &self.container_id])
-                                  .unwrap_or_else(|x| panic!("{:?}", x));
+                    .unwrap_or_else(|x| panic!("{:?}", x));
                 cmd.wait_with_output();
             }
         } else {
             let mut cmd = command::run("docker", &["rm", "-f", &self.container_id])
-                              .unwrap_or_else(|x| panic!("{:?}", x));
+                .unwrap_or_else(|x| panic!("{:?}", x));
             cmd.wait_with_output();
         }
     }
