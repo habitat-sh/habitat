@@ -59,14 +59,14 @@ Habitat Studios - Plan for success!
 USAGE:
         $program [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 
-FLAGS:
+COMMON FLAGS:
     -h  Prints this message
     -n  Do not mount the source path into the Studio (default: mount the path)
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
 
-OPTIONS:
+COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -92,6 +92,9 @@ ENVIRONMENT VARIABLES:
     SRC_PATH          Sets the source path (\`-s' option overrides)
     STUDIO_TYPE       Sets a Studio type when creating (\`-t' option overrides)
     VERBOSE           Prints more verbose output (\`-v' flag overrides)
+
+SUBCOMMAND HELP:
+    $program <SUBCOMMAND> -h
 
 EXAMPLES:
 
@@ -119,10 +122,229 @@ EXAMPLES:
 "
 }
 
+print_build_help() {
+  printf -- "${program}-build $version
+
+$author
+
+Habitat Studios - execute a build using a Studio
+
+USAGE:
+        $program [COMMON_FLAGS] [COMMON_OPTIONS] build [FLAGS] [PLAN_DIR]
+
+FLAGS:
+    -R  Reuse a previous Studio state (default: clean up before building)
+
+EXAMPLES:
+
+    # Build a Redis plan
+    $program build plans/redis
+
+    # Reuse previous Studio for a build
+    $program build -R plans/glibc
+
+"
+}
+
+print_enter_help() {
+  printf -- "${program}-enter $version
+
+$author
+
+Habitat Studios - interactively enter a Studio
+
+USAGE:
+        $program [COMMON_FLAGS] [COMMON_OPTIONS] enter
+
+"
+}
+
+print_new_help() {
+  printf -- "${program}-new $version
+
+$author
+
+Habitat Studios - create a new Studio
+
+USAGE:
+        $program [COMMON_FLAGS] [COMMON_OPTIONS] new
+
+"
+}
+
+print_rm_help() {
+  printf -- "${program}-rm $version
+
+$author
+
+Habitat Studios - destroy a Studio
+
+USAGE:
+        $program [COMMON_FLAGS] [COMMON_OPTIONS] rm
+
+"
+}
+
+print_run_help() {
+  printf -- "${program}-run $version
+
+$author
+
+Habitat Studios - run a command in a Studio
+
+USAGE:
+        $program [COMMON_FLAGS] [COMMON_OPTIONS] run [CMD] [ARG ..]
+
+CMD:
+    Command to run in the Studio
+
+ARG:
+    Arguments to the command
+
+EXAMPLES:
+
+    $program run wget --version
+
+"
+}
+
 
 # ## Subcommand functions
 #
 # These are the implmentations for each subcommand in the program.
+
+# **Internal** Parses options and flags for `new` subcommand.
+subcommand_new() {
+  local opt
+
+  OPTIND=1
+  # Parse command line flags and options
+  while getopts ":h" opt; do
+    case $opt in
+      h)
+        print_new_help
+        exit 0
+        ;;
+      \?)
+        print_new_help
+        exit_with "Invalid option:  -$OPTARG" 1
+        ;;
+    esac
+  done
+  # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
+  shift "$((OPTIND - 1))"
+
+  new_studio
+}
+
+# **Internal** Parses options and flags for `rm` subcommand.
+subcommand_rm() {
+  local opt
+
+  OPTIND=1
+  # Parse command line flags and options
+  while getopts ":h" opt; do
+    case $opt in
+      h)
+        print_rm_help
+        exit 0
+        ;;
+      \?)
+        print_rm_help
+        exit_with "Invalid option:  -$OPTARG" 1
+        ;;
+    esac
+  done
+  # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
+  shift "$((OPTIND - 1))"
+
+  rm_studio $*
+}
+
+# **Internal** Parses options and flags for `enter` subcommand.
+subcommand_enter() {
+  local opt
+
+  OPTIND=1
+  # Parse command line flags and options
+  while getopts ":h" opt; do
+    case $opt in
+      h)
+        print_enter_help
+        exit 0
+        ;;
+      \?)
+        print_enter_help
+        exit_with "Invalid option:  -$OPTARG" 1
+        ;;
+    esac
+  done
+  # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
+  shift "$((OPTIND - 1))"
+
+  new_studio
+  enter_studio $*
+}
+
+# **Internal** Parses options and flags for `build` subcommand.
+subcommand_build() {
+  local opt
+  local reuse
+
+  OPTIND=1
+  # Parse command line flags and options
+  while getopts ":hR" opt; do
+    case $opt in
+      h)
+        print_build_help
+        exit 0
+        ;;
+      R)
+        reuse=true
+        ;;
+      \?)
+        print_build_help
+        exit_with "Invalid option:  -$OPTARG" 1
+        ;;
+    esac
+  done
+  # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
+  shift "$((OPTIND - 1))"
+
+  if [ -z "${reuse:-}" ]; then
+    _STUDIO_TYPE="$STUDIO_TYPE"
+    rm_studio
+    STUDIO_TYPE="$_STUDIO_TYPE"
+    unset _STUDIO_TYPE
+  fi
+  new_studio
+  build_studio $*
+}
+
+# **Internal** Parses options and flags for `run` subcommand.
+subcommand_run() {
+  local opt
+
+  OPTIND=1
+  # Parse command line flags and options
+  while getopts ":h" opt; do
+    case $opt in
+      h)
+        print_run_help
+        exit 0
+        ;;
+      \?)
+        print_run_help
+        exit_with "Invalid option:  -$OPTARG" 1
+        ;;
+    esac
+  done
+  # Shift off all parsed token in `$*` so that the subcommand is now `$1`.
+  shift "$((OPTIND - 1))"
+
+  new_studio
+  run_studio $*
+}
 
 # **Internal** Creates a new Studio.
 new_studio() {
@@ -431,6 +653,7 @@ enter_studio() {
   local env="$(chroot_env "$studio_path" "$studio_enter_environment")"
 
   info "Entering Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
+  report_env_vars
   echo
 
   if [ -n "$VERBOSE" ]; then
@@ -466,6 +689,7 @@ build_studio() {
   local env="$(chroot_env "$studio_path" "$studio_build_environment")"
 
   info "Building '$*' in Studio at $HAB_STUDIO_ROOT ($STUDIO_TYPE)"
+  report_env_vars
 
   if [ -n "$VERBOSE" ]; then
     set -x
@@ -557,14 +781,6 @@ rm_studio() {
     $bb umount $v -l $HAB_STUDIO_ROOT/var/run/docker.sock
   fi
 
-  # If a Studio root directory exists, but does not contain a Studio
-  # configuration, we're going to abort rather than let the program attempt to
-  # recursively delete the directory tree. It's a super small detail, but
-  # there's an attempt at safety.
-  if [ -d $HAB_STUDIO_ROOT -a ! -f $studio_config ]; then
-    exit_with "Directory $HAB_STUDIO_ROOT does not appear to be a Studio, aborting" 5
-  fi
-
   # Remove remaining filesystem
   $bb rm -rf $v $HAB_STUDIO_ROOT
 }
@@ -654,6 +870,23 @@ chroot_env() {
 
   echo "$env"
   return 0
+}
+
+# **Internal** Prints out any important environment variables that will be used
+# inside the Studio.
+report_env_vars() {
+  if [ -n "${HAB_ORIGIN:-}" ]; then
+    info "Exported: HAB_ORIGIN=$HAB_ORIGIN"
+  fi
+  if [ -n "${HAB_DEPOT_URL:-}" ]; then
+    info "Exported: HAB_DEPOT_URL=$HAB_DEPOT_URL"
+  fi
+  if [ -n "${http_proxy:-}" ]; then
+    info "Exported: http_proxy=$http_proxy"
+  fi
+  if [ -n "${https_proxy:-}" ]; then
+    info "Exported: https_proxy=$https_proxy"
+  fi
 }
 
 # **Internal** Sets the `$libexec_path` variable, which is the absolute path to
@@ -828,26 +1061,23 @@ export VERBOSE QUIET
 case ${1:-} in
   n|ne|new)
     shift
-    new_studio
+    subcommand_new $*
     ;;
   rm)
     shift
-    rm_studio $*
+    subcommand_rm $*
     ;;
   e|en|ent|ente|enter)
     shift
-    new_studio
-    enter_studio $*
+    subcommand_enter $*
     ;;
   b|bu|bui|buil|build)
     shift
-    new_studio
-    build_studio $*
+    subcommand_build $*
     ;;
   r|ru|run)
     shift
-    new_studio
-    run_studio $*
+    subcommand_run $*
     ;;
   v|ve|ver|vers|versi|versio|version)
     echo "$program $version"
