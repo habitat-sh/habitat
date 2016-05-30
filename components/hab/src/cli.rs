@@ -18,13 +18,13 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
-                          .about("Alias for 'config apply'")
-                          .aliases(&["ap", "app", "appl"])
-                          .setting(AppSettings::Hidden);
+        .about("Alias for 'config apply'")
+        .aliases(&["ap", "app", "appl"])
+        .setting(AppSettings::Hidden);
     let alias_install = sub_package_install()
-                            .about("Alias for 'pkg install'")
-                            .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-                            .setting(AppSettings::Hidden);
+        .about("Alias for 'pkg install'")
+        .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
+        .setting(AppSettings::Hidden);
     let alias_start = alias_start().aliases(&["st", "sta", "star"]);
 
     clap_app!(hab =>
@@ -197,7 +197,8 @@ pub fn get() -> App<'static, 'static> {
                    (@arg ARGS: +takes_value +multiple
                     "Arguments to the command (ex: -l /tmp)")
             )
-            (subcommand: sub_package_install().aliases(&["i", "in", "ins", "inst", "insta", "instal"]))
+            (subcommand: sub_package_install().aliases(
+                    &["i", "in", "ins", "inst", "insta", "instal"]))
             (@subcommand path =>
                    (about: "Prints the path to a specific installed release of a package")
                    (aliases: &["p", "pa", "pat"])
@@ -268,7 +269,7 @@ fn sub_package_build() -> App<'static, 'static> {
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
     if cfg!(target_os = "linux") {
-        sub.arg( Arg::with_name("REUSE")
+        sub.arg(Arg::with_name("REUSE")
             .help("Reuses a previous Studio for the build (default: clean up before building)")
             .short("R")
             .long("reuse"))

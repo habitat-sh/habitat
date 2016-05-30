@@ -150,7 +150,7 @@ pub mod key {
         pub fn start(depot: &str, keyfile: &Path) -> Result<()> {
             println!("{}",
                      Yellow.bold()
-                           .paint(format!("» Uploading public origin key {}", keyfile.display())));
+                         .paint(format!("» Uploading public origin key {}", keyfile.display())));
             let name_with_rev = {
                 let f = try!(File::open(&keyfile));
                 let f = BufReader::new(f);

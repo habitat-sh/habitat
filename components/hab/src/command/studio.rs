@@ -98,7 +98,7 @@ mod inner {
         cmd_args.push(format!("{}:/{}",
                               default_cache_key_path(None).to_string_lossy(),
                               CACHE_KEY_PATH)
-                          .into());
+            .into());
         cmd_args.push("--volume".into());
         cmd_args.push(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()).into());
         cmd_args.push(image.into());
