@@ -5,7 +5,7 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-use std::env;
+use std::ffi::OsString;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -21,13 +21,7 @@ const SUP_CMD: &'static str = "hab-sup";
 const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
 const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
 
-pub fn start(subcmd: &str) -> Result<()> {
-    let skip_n = if subcmd == "sup" {
-        2
-    } else {
-        1
-    };
-
+pub fn start(args: Vec<OsString>) -> Result<()> {
     let command = match henv::var(SUP_CMD_ENVVAR) {
         Ok(command) => PathBuf::from(command),
         Err(_) => {
@@ -38,7 +32,7 @@ pub fn start(subcmd: &str) -> Result<()> {
     };
 
     if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-        exec::exec_command(cmd, env::args_os().skip(skip_n).collect())
+        exec::exec_command(cmd, args)
     } else {
         Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()))
     }

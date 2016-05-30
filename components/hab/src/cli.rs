@@ -10,7 +10,7 @@ use std::result;
 use std::str::FromStr;
 
 use regex::Regex;
-use clap::{App, AppSettings};
+use clap::{App, AppSettings, Arg};
 use url::Url;
 use hcore::crypto::keys::PairType;
 
@@ -18,13 +18,13 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
-        .about("Alias for 'config apply'")
-        .aliases(&["ap", "app", "appl"])
-        .setting(AppSettings::Hidden);
+                          .about("Alias for 'config apply'")
+                          .aliases(&["ap", "app", "appl"])
+                          .setting(AppSettings::Hidden);
     let alias_install = sub_package_install()
-        .about("Alias for 'pkg install'")
-        .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-        .setting(AppSettings::Hidden);
+                            .about("Alias for 'pkg install'")
+                            .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
+                            .setting(AppSettings::Hidden);
     let alias_start = alias_start().aliases(&["st", "sta", "star"]);
 
     clap_app!(hab =>
@@ -178,7 +178,7 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@subcommand binlink =>
                    (about: "Creates a symlink for a package binary in a common 'PATH' location")
-                   (aliases: &["b", "bi", "bin", "binl", "binli", "binlin"])
+                   (aliases: &["bi", "bin", "binl", "binli", "binlin"])
                    (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                    (@arg BINARY: +required +takes_value
@@ -186,6 +186,7 @@ pub fn get() -> App<'static, 'static> {
                    (@arg DEST_DIR: -d --dest +takes_value
                     "Sets the destination directory (default: /bin)")
             )
+            (subcommand: sub_package_build())
             (@subcommand exec =>
                    (about: "Executes a command using the 'PATH' context of an installed package")
                    (aliases: &["e", "ex", "exe"])
@@ -248,6 +249,32 @@ pub fn get() -> App<'static, 'static> {
              \n"
         )
     )
+}
+
+fn sub_package_build() -> App<'static, 'static> {
+    let sub = clap_app!(@subcommand build =>
+        (about: "Builds a Plan using a Studio")
+        (aliases: &["bu", "bui", "buil"])
+        (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
+        "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
+        (@arg HAB_STUDIO_ROOT: -r --root +takes_value
+        "Sets the Studio root (default: /hab/studios/<DIR_NAME>)")
+        (@arg SRC_PATH: -s --src +takes_value
+        "Sets the source path (default: $PWD)")
+        (@arg PLAN_CONTEXT: +required +takes_value
+        "A directory containing a `plan.sh` file \
+        or a `habitat/` directory which contains the `plan.sh` file")
+    );
+    // Only a truly native/local Studio can be reused--the Docker implementation will always be
+    // ephemeral
+    if cfg!(target_os = "linux") {
+        sub.arg( Arg::with_name("REUSE")
+            .help("Reuses a previous Studio for the build (default: clean up before building)")
+            .short("R")
+            .long("reuse"))
+    } else {
+        sub
+    }
 }
 
 #[cfg_attr(rustfmt, rustfmt_skip)]

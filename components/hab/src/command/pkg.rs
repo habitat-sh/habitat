@@ -62,6 +62,40 @@ pub mod binlink {
     }
 }
 
+pub mod build {
+    use std::ffi::OsString;
+
+    use error::Result;
+    use command::studio;
+
+    pub fn start(plan_context: &str,
+                 root: Option<&str>,
+                 src: Option<&str>,
+                 keys: Option<&str>,
+                 reuse: bool)
+                 -> Result<()> {
+        let mut args: Vec<OsString> = Vec::new();
+        if let Some(root) = root {
+            args.push("-r".into());
+            args.push(root.into());
+        }
+        if let Some(src) = src {
+            args.push("-s".into());
+            args.push(src.into());
+        }
+        if let Some(keys) = keys {
+            args.push("-k".into());
+            args.push(keys.into());
+        }
+        args.push("build".into());
+        if cfg!(target_os = "linux") && reuse {
+            args.push("-R".into());
+        }
+        args.push(plan_context.into());
+        studio::start(args)
+    }
+}
+
 pub mod exec {
     use std::env;
     use std::ffi::OsString;
