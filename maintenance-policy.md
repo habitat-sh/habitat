@@ -39,7 +39,10 @@ This file is the canonical source for how the Habitat project is maintained.
 * Handles contributions on GitHub - first response to a PR within 48 hours
 * Is available on [Slack](https://habitat-sh.slack.com/)
 * Is available to answer mailing list questions within 48 hours
-* Weekends and local holidays in the Maintainer’s jurisdiction are not counted for timeliness requirements. Absences for reasonable causes such as vacations, illness, etc. are also acceptable; Maintainers should notice of absences via the development mailing list whenever possible.
+* Weekends and local holidays in the Maintainer’s jurisdiction are not counted
+  for timeliness requirements. Absences for reasonable causes such as vacations,
+  illness, etc. are also acceptable; Maintainers should notice of absences via
+  slack list whenever possible.
 * Committed to 100% tests passing for your component
 * Has full commit/merge access to the relevant repositories
 
