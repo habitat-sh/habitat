@@ -83,12 +83,12 @@ impl RecordTable for OriginTable {
             let insta_id = InstaId::generate(sequence_id);
             record.set_id(insta_id);
             txn.set(Self::seq_id(), record.id().0)
-               .ignore()
-               .hset_multiple(Self::key(record.id()), &record.fields())
-               .ignore()
-               .hset(OriginNameIdx::prefix(), record.name.clone(), record.id)
-               .ignore()
-               .query(conn.deref())
+                .ignore()
+                .hset_multiple(Self::key(record.id()), &record.fields())
+                .ignore()
+                .hset(OriginNameIdx::prefix(), record.name.clone(), record.id)
+                .ignore()
+                .query(conn.deref())
         }));
         Ok(())
     }

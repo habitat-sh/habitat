@@ -23,9 +23,7 @@ use router::Router;
 use rustc_serialize::json::{self, ToJson};
 use zmq;
 
-pub fn authenticate(req: &mut Request,
-                    ctx: &Arc<Mutex<zmq::Context>>)
-                    -> result::Result<Session, Response> {
+pub fn authenticate(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> result::Result<Session, Response> {
     match req.headers.get::<Authorization<Bearer>>() {
         Some(&Authorization(Bearer { ref token })) => {
             let mut conn = Broker::connect(&ctx).unwrap();

@@ -62,12 +62,12 @@ pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Joi
     let mut mount = Mount::new();
     mount.mount("/v1", chain).mount("/v1/depot", depot);
     let handle = thread::Builder::new()
-                     .name("http-srv".to_string())
-                     .spawn(move || {
-                         let _server = Iron::new(mount).http(config.http_addr).unwrap();
-                         tx.send(()).unwrap();
-                     })
-                     .unwrap();
+        .name("http-srv".to_string())
+        .spawn(move || {
+            let _server = Iron::new(mount).http(config.http_addr).unwrap();
+            tx.send(()).unwrap();
+        })
+        .unwrap();
     match rx.recv() {
         Ok(()) => Ok(handle),
         Err(e) => panic!("http-srv thread startup error, err={}", e),
@@ -80,7 +80,7 @@ impl AfterMiddleware for Cors {
     fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
         res.headers
-           .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
+            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
         Ok(res)
     }
 }
