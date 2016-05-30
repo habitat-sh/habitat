@@ -123,6 +123,7 @@ fn start() -> Result<()> {
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
                 ("binlink", Some(m)) => try!(sub_pkg_binlink(m)),
+                ("build", Some(m)) => try!(sub_pkg_build(m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
@@ -352,6 +353,35 @@ fn sub_pkg_binlink(m: &ArgMatches) -> Result<()> {
     command::pkg::binlink::start(&ident, &binary, &dest_dir, &fs_root_path)
 }
 
+fn sub_pkg_build(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+
+    let plan_context = m.value_of("PLAN_CONTEXT").unwrap();
+    let root = m.value_of("HAB_STUDIO_ROOT");
+    let src = m.value_of("SRC_PATH");
+    let keys_string = match m.values_of("HAB_ORIGIN_KEYS") {
+        Some(keys) => {
+            init();
+            for key in keys.clone() {
+                // Validate that all secret keys are present
+                let pair = try!(SigKeyPair::get_latest_pair_for(key,
+                                &default_cache_key_path(fs_root_path)));
+                let _ = pair.secret();
+            }
+            Some(keys.collect::<Vec<_>>().join(","))
+        }
+        None => None,
+    };
+    let keys: Option<&str> = match keys_string.as_ref() {
+        Some(s) => Some(s),
+        None => None,
+    };
+    let reuse = m.is_present("REUSE");
+
+    command::pkg::build::start(plan_context, root, src, keys, reuse)
+}
+
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let cmd = m.value_of("CMD").unwrap();
@@ -435,15 +465,14 @@ fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
 }
 
 fn exec_subcommand_if_called() -> Result<()> {
-    match env::args().nth(1) {
-        Some(subcmd) => {
-            match subcmd.as_str() {
-                "studio" | "stu" | "stud" | "studi" => command::studio::start(),
-                "sup" | "start" => command::sup::start(&subcmd),
-                _ => Ok(()),
-            }
+    let mut args = env::args();
+    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
+        ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
+            command::studio::start(env::args_os().skip(2).collect())
         }
-        None => Ok(()),
+        ("sup", _) => command::sup::start(env::args_os().skip(2).collect()),
+        ("start", _) => command::sup::start(env::args_os().skip(1).collect()),
+        _ => Ok(()),
     }
 }
 

@@ -5,15 +5,17 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::ffi::OsString;
+
 use error::Result;
 
-pub fn start() -> Result<()> {
-    inner::start()
+pub fn start(args: Vec<OsString>) -> Result<()> {
+    inner::start(args)
 }
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::env;
+    use std::ffi::OsString;
     use std::path::PathBuf;
     use std::str::FromStr;
 
@@ -29,9 +31,7 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
     const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
 
-    pub fn start() -> Result<()> {
-        let skip_n = 2;
-
+    pub fn start(args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(STUDIO_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
@@ -42,7 +42,7 @@ mod inner {
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(exec::exec_command(cmd, env::args_os().skip(skip_n).collect()));
+            try!(exec::exec_command(cmd, args));
         } else {
             return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
         }
@@ -68,7 +68,7 @@ mod inner {
     const DOCKER_IMAGE: &'static str = "habitat/studio";
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 
-    pub fn start() -> Result<()> {
+    pub fn start(args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
         let image = henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(DOCKER_IMAGE.to_string());
 
@@ -77,7 +77,6 @@ mod inner {
             None => return Err(Error::ExecCommandNotFound(docker.to_string())),
         };
 
-        let args: Vec<OsString> = env::args_os().skip(2).collect();
         let mut cmd_args: Vec<OsString> = vec!["run".into(),
                                                "--rm".into(),
                                                "--tty".into(),
