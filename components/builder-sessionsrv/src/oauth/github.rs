@@ -98,18 +98,17 @@ pub enum AuthResp {
 }
 
 pub fn authenticate(code: &str) -> Result<String> {
-    let url =
-        Url::parse(&format!("https://github.com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
-                            GH_CLIENT_ID,
-                            GH_CLIENT_SECRET,
-                            code))
-            .unwrap();
+    let url = Url::parse(&format!("https://github.com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
+                                  GH_CLIENT_ID,
+                                  GH_CLIENT_SECRET,
+                                  code))
+        .unwrap();
     let mut rep = try!(http_post(url));
     if rep.status.is_success() {
         let mut encoded = String::new();
         try!(rep.read_to_string(&mut encoded));
         match json::decode(&encoded) {
-            Ok(msg @ AuthOk {..}) => {
+            Ok(msg @ AuthOk { .. }) => {
                 let scope = "user:email".to_string();
                 if msg.has_scope(&scope) {
                     Ok(msg.access_token)

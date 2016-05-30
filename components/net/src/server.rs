@@ -90,10 +90,7 @@ impl Envelope {
         Ok(())
     }
 
-    pub fn reply_complete<M: ProtoBufMessage>(&mut self,
-                                              sock: &mut zmq::Socket,
-                                              msg: &M)
-                                              -> Result<()> {
+    pub fn reply_complete<M: ProtoBufMessage>(&mut self, sock: &mut zmq::Socket, msg: &M) -> Result<()> {
         try!(self.send_header(sock));
         let rep = protocol::Message::new(msg).build();
         let bytes = try!(rep.write_to_bytes());
@@ -177,15 +174,13 @@ pub trait Service: NetIdent {
             let cfg = self.config().read().unwrap();
             reg.set_shards(cfg.shards().clone());
             let hb_addrs: Vec<String> = cfg.route_addrs()
-                                           .iter()
-                                           .map(|f| {
-                                               format!("tcp://{}:{}", f.ip(), cfg.heartbeat_port())
-                                           })
-                                           .collect();
+                .iter()
+                .map(|f| format!("tcp://{}:{}", f.ip(), cfg.heartbeat_port()))
+                .collect();
             let addrs: Vec<String> = cfg.route_addrs()
-                                        .iter()
-                                        .map(|f| f.to_addr_string())
-                                        .collect();
+                .iter()
+                .map(|f| f.to_addr_string())
+                .collect();
             (hb_addrs, addrs)
         };
         for addr in &hb_addrs {
@@ -415,10 +410,7 @@ pub trait Supervisable: Sized + Send {
     fn socket(&mut self) -> &mut zmq::Socket;
 
     #[allow(unused_assignments)]
-    fn start(mut self,
-             be_addr: String,
-             rz: mpsc::SyncSender<()>)
-             -> result::Result<(), Self::Error> {
+    fn start(mut self, be_addr: String, rz: mpsc::SyncSender<()>) -> result::Result<(), Self::Error> {
         try!(self.init());
         try!(self.socket().connect(&be_addr));
         rz.send(()).unwrap();

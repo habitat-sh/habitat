@@ -172,9 +172,9 @@ impl<'a> Server<'a> {
             }
         }
         try!(self.hb_sock.recv(&mut self.req, 0));
-        // JW TODO: this datastructure doesn't support a case where a shard *no longer* supports shards, it only
-        // allows for additions. We need to keep track of what any given server reg supports and then use the
-        // servers map as an index on top of that.
+        // JW TODO: this datastructure doesn't support a case where a shard *no longer* supports
+        // shards, it only allows for additions. We need to keep track of what any given server reg
+        // supports and then use the servers map as an index on top of that.
         let registration: routesrv::Registration = try!(parse_from_bytes(&self.req));
         debug!("received server reg, {:?}", registration);
         if !self.servers.contains_key(&registration.get_protocol()) {
@@ -238,9 +238,7 @@ impl<'a> Server<'a> {
                     None => {
                         warn!("failed to route message, no server servicing shard, msg={:?}",
                               self.envelope.msg);
-                        let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD,
-                                                                             "rt:route:1"))
-                                      .build();
+                        let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD, "rt:route:1")).build();
                         let bytes = try!(err.write_to_bytes());
                         for hop in self.envelope.hops() {
                             try!(self.fe_sock.send(&*hop, zmq::SNDMORE));
@@ -253,9 +251,7 @@ impl<'a> Server<'a> {
             None => {
                 warn!("failed to route message, no servers registered for protocol, msg={:?}",
                       self.envelope.msg);
-                let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD,
-                                                                     "rt:route:2"))
-                              .build();
+                let err = protocol::Message::new(&protocol::net::err(ErrCode::NO_SHARD, "rt:route:2")).build();
                 let bytes = try!(err.write_to_bytes());
                 for hop in self.envelope.hops() {
                     try!(self.fe_sock.send(&*hop, zmq::SNDMORE));

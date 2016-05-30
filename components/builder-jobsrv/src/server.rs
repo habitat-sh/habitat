@@ -11,8 +11,7 @@ use std::thread::{self, JoinHandle};
 
 use dbcache::{self, RecordTable};
 use linked_hash_map::LinkedHashMap;
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
-                      Supervisable, ToAddrString};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable, ToAddrString};
 use protobuf::{parse_from_bytes, Message};
 use protocol::net::{self, ErrCode};
 use protocol::jobsrv;
@@ -257,17 +256,15 @@ impl WorkerManager {
         })
     }
 
-    pub fn start(ctx: Arc<RwLock<zmq::Context>>,
-                 config: Arc<RwLock<Config>>)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(ctx: Arc<RwLock<zmq::Context>>, config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
-                         .name("worker-manager".to_string())
-                         .spawn(move || {
-                             let mut manager = Self::new(ctx, config).unwrap();
-                             manager.run(tx).unwrap();
-                         })
-                         .unwrap();
+            .name("worker-manager".to_string())
+            .spawn(move || {
+                let mut manager = Self::new(ctx, config).unwrap();
+                manager.run(tx).unwrap();
+            })
+            .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
             Err(e) => panic!("worker-manager thread startup error, err={}", e),
@@ -292,9 +289,8 @@ impl WorkerManager {
         loop {
             {
                 let timeout = self.poll_timeout();
-                let mut items = [self.hb_sock.as_poll_item(1),
-                                 self.rq_sock.as_poll_item(1),
-                                 self.work_mgr_sock.as_poll_item(1)];
+                let mut items =
+                    [self.hb_sock.as_poll_item(1), self.rq_sock.as_poll_item(1), self.work_mgr_sock.as_poll_item(1)];
                 // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
                 // a poll item's revents will let you know if you have received a message or not
                 // on that socket.
@@ -356,9 +352,9 @@ impl WorkerManager {
                         debug!("failed to send, worker went away, worker={:?}", worker);
                         continue;
                     }
-                    // JW TODO: Wait for response back to ensure we can dequeue this. If state returned
-                    // is not processing then we move onto next worker and assume this worker is
-                    // no longer valid. Put work back on queue.
+                    // JW TODO: Wait for response back to ensure we can dequeue this. If state
+                    // returned is not processing then we move onto next worker and assume this
+                    // worker is no longer valid. Put work back on queue.
                     try!(self.datastore.job_queue.dequeue());
                     // Consume the to-do work notification if the queue is empty.
                     if try!(self.datastore.job_queue.peek()).is_none() {

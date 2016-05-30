@@ -234,17 +234,15 @@ impl Heartbeat {
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>,
-                 ctx: Arc<RwLock<zmq::Context>>)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>, ctx: Arc<RwLock<zmq::Context>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
-                         .name("heartbeat".to_string())
-                         .spawn(move || {
-                             let mut heartbeat = Self::new(config, ctx).unwrap();
-                             heartbeat.run(tx).unwrap();
-                         })
-                         .unwrap();
+            .name("heartbeat".to_string())
+            .spawn(move || {
+                let mut heartbeat = Self::new(config, ctx).unwrap();
+                heartbeat.run(tx).unwrap();
+            })
+            .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
             Err(e) => panic!("heartbeat thread startup error, err={}", e),
@@ -338,17 +336,15 @@ impl Runner {
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>,
-                 ctx: Arc<RwLock<zmq::Context>>)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>, ctx: Arc<RwLock<zmq::Context>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
-                         .name("runner".to_string())
-                         .spawn(move || {
-                             let mut runner = Self::new(config, ctx).unwrap();
-                             runner.run(tx).unwrap();
-                         })
-                         .unwrap();
+            .name("runner".to_string())
+            .spawn(move || {
+                let mut runner = Self::new(config, ctx).unwrap();
+                runner.run(tx).unwrap();
+            })
+            .unwrap();
         match rx.recv() {
             Ok(()) => Ok(handle),
             Err(e) => panic!("runner thread startup error, err={}", e),

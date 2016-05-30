@@ -10,8 +10,7 @@ use std::time::Duration;
 use std::thread;
 
 use dbcache::{Model, RecordTable};
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
-                      Supervisable};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable};
 use protocol::net::{self, ErrCode};
 use protocol::sessionsrv::{self, SessionGet, SessionCreate};
 use zmq;
@@ -41,8 +40,7 @@ impl Worker {
                 match github::authenticate(&msg.get_code()) {
                     Ok(token) => {
                         // JW TODO: refactor this mess into a find and create routine
-                        let account: Account = match Session::get(&self.datastore().sessions,
-                                                                  &token) {
+                        let account: Account = match Session::get(&self.datastore().sessions, &token) {
                             Ok(Session { owner_id: owner, .. }) => {
                                 // JW TODO: handle error. This should not ever happen since session
                                 // and account create will be transactional
@@ -55,8 +53,7 @@ impl Worker {
                                         // transaction and handle errors
                                         let mut account: Account = user.into();
                                         try!(self.datastore().accounts.write(&mut account));
-                                        let session = Session::new(token.clone(),
-                                                                   account.id.clone());
+                                        let session = Session::new(token.clone(), account.id.clone());
                                         try!(session.create(&self.datastore().sessions));
                                         account
                                     }

@@ -10,8 +10,7 @@ use std::time::Duration;
 use std::thread;
 
 use dbcache::{self, IndexTable, RecordTable};
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
-                      Supervisable};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable};
 use protocol::net::{self, ErrCode};
 use protocol::vault as proto;
 use zmq;
