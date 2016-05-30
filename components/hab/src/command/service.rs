@@ -20,9 +20,8 @@ pub mod key {
                      Yellow.bold().paint(format!("» Generating service key for {} in {}",
                                                  &service_group,
                                                  org)));
-            let pair = try!(BoxKeyPair::generate_pair_for_service(org,
-                                                                  &service_group.to_string(),
-                                                                  cache));
+            let pair =
+                try!(BoxKeyPair::generate_pair_for_service(org, &service_group.to_string(), cache));
             println!("{}",
                      Blue.paint(format!("★ Generated service key pair {}.",
                                         &pair.name_with_rev())));

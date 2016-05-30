@@ -181,8 +181,8 @@ pub mod hab_gossip {
     /// Each member has a Uuid.
     pub type MemberId = Uuid;
 
-    /// A Peer is a representation of a member; it tracks how to contact the member, and whether this
-    /// request is actually being proxied during a PingReq operation.
+    /// A Peer is a representation of a member; it tracks how to contact the member, and whether
+    /// this request is actually being proxied during a PingReq operation.
     #[derive(Clone, Debug, RustcEncodable)]
     pub struct Peer {
         pub member_id: MemberId,

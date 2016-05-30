@@ -43,10 +43,8 @@ pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
                                 .map(|arg| CString::new(arg.as_os_str().as_bytes()))
                                 .collect::<std::result::Result<Vec<_>, _>>());
     let mut arg_charptrs: Vec<_> = arg_cstrings.iter()
-                                               .map(|arg| {
-                                                   arg.as_bytes_with_nul().as_ptr() as *const i8
-                                               })
-                                               .collect();
+        .map(|arg| arg.as_bytes_with_nul().as_ptr() as *const i8)
+        .collect();
     arg_charptrs.insert(0,
                         prog_cstring.clone().as_bytes_with_nul().as_ptr() as *const i8);
     arg_charptrs.push(ptr::null());

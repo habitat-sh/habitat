@@ -64,7 +64,9 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::CommandNotFoundInPkg(_) => "Command was not found under any 'PATH' directories in the package",
+            Error::CommandNotFoundInPkg(_) => {
+                "Command was not found under any 'PATH' directories in the package"
+            }
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::DepotClient(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
@@ -73,7 +75,9 @@ impl error::Error for Error {
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
-            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            Error::PackageArchiveMalformed(_) => {
+                "Package archive was unreadable or had unexpected contents"
+            }
             Error::PathPrefixError(ref err) => err.description(),
         }
     }
