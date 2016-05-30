@@ -1,14 +1,24 @@
 # Maintainers
 
-Habitat is an open-source project, built and maintained by a community of dedicated humans, listed below.
+Habitat is an open-source project, built and maintained by a community of
+dedicated humans, listed below.
 
-In the source files, you will see a copyright notice attributed to "The Habitat Maintainers"; this is a placeholder for all the people and organizations listed in this file.
+In the source files, you will see a copyright notice attributed to "The Habitat
+Maintainers"; this is a placeholder for all the people and organizations listed
+in this file.
 
-Regardless of their presence in this file, each individual contributor retains their copyright to their work, and is covered in the blanket "The Habitat Maintainers" statement.
+Regardless of their presence in this file, each individual contributor retains
+their copyright to their work, and is covered in the blanket "The Habitat
+Maintainers" statement.
 
-This file lists how the Habitat project is maintained. When making changes to the system, this file tells you who needs to review your patch - you need approval of at least one maintainer for the relevant subsystems to provide a :+1: (or `+r`) on your pull request. Additionally, you need to not receive a veto from a Lieutenant or the Project Lead.
+This file lists how the Habitat project is maintained. When making changes to
+the system, this file tells you who needs to review your patch - you need
+approval of at least one maintainer for the relevant subsystems to provide a
+:+1: (or `+r`) on your pull request. Additionally, you need to not receive a
+veto from a Lieutenant or the Project Lead.
 
-Check out the [Maintenance Policy](maintenance-policy.md) for details on the process, how to become a maintainer, lieutenant, or the project lead.
+Check out the [Maintenance Policy](maintenance-policy.md) for details on the
+process, how to become a maintainer, lieutenant, or the project lead.
 
 # Project Lead
 
@@ -16,7 +26,8 @@ Check out the [Maintenance Policy](maintenance-policy.md) for details on the pro
 
 ## Components
 
-The various components that make up Habitat.  Each component must have one Lieutenant and may have many maintainers.
+The various components that make up Habitat.  Each component must have one
+Lieutenant and may have many maintainers.
 
 ### Core Habitat
 
@@ -46,7 +57,9 @@ The web application for the Habitat builder and depot.
 
 ### Documentation
 
-This component includes documentation in the product and documentation published to [https://www.habitat.sh/docs/](https://www.habitat.sh/docs/) including tutorials and reference materials.
+This component includes documentation in the product and documentation published
+to [https://www.habitat.sh/docs/](https://www.habitat.sh/docs/) including
+tutorials and reference materials.
 
 #### Lieutenant
 
@@ -71,7 +84,8 @@ This component includes documentation in the product and documentation published
 * [Nathen Harvey](https://github.com/nathenharvey) - <nharvey@chef.io>
 * [Matt Ray](https://github.com/mattray) - <matt@chef.io>
 * [David Wrede](https://github.com/davidwrede) - <dwrede@chef.io>
-* [Kevin J. Dickerson](https://github.com/kevindickerson) - <kevin.dickerson@loom.technology>
+* [Kevin J. Dickerson](https://github.com/kevindickerson) -
+  <kevin.dickerson@loom.technology>
 * [Shane Sveller](https://github.com/shanesveller) - <shanesveller@gmail.com>
 * [Irving Popovetsky](https://github.com/irvingpop) - <irving@chef.io>
 * [Yvo van Doorn](https://github.com/yvovandoorn) - <yvo@chef.io>
