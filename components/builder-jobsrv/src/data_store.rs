@@ -4,16 +4,13 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::str::FromStr;
 use std::sync::Arc;
 
-use dbcache::{ConnectionPool, DataRecord, ValueTable, IndexTable, RecordTable, Table};
-use dbcache::model::{Fields, Model};
-use protobuf::ProtobufEnum;
-use protocol::{self, InstaId};
+use dbcache::{ConnectionPool, Bucket, InstaSet};
+use protocol::InstaId;
+use protocol::jobsrv::Job;
 use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
-use rustc_serialize::Encodable;
 
 use error::Result;
 
@@ -52,9 +49,7 @@ impl JobTable {
     }
 }
 
-impl Table for JobTable {
-    type IdType = InstaId;
-
+impl Bucket for JobTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -64,70 +59,11 @@ impl Table for JobTable {
     }
 }
 
-impl RecordTable for JobTable {
+impl InstaSet for JobTable {
     type Record = Job;
 
     fn seq_id() -> &'static str {
         "jobs_seq"
-    }
-}
-
-#[derive(Debug, RustcEncodable, RustcDecodable)]
-pub struct Job {
-    pub id: InstaId,
-    pub state: protocol::jobsrv::JobState,
-}
-
-impl Job {
-    pub fn new() -> Self {
-        Job {
-            id: InstaId::default(),
-            state: protocol::jobsrv::JobState::default(),
-        }
-    }
-}
-
-impl Model for Job {
-    type Table = JobTable;
-
-    fn fields(&self) -> Fields {
-        vec![("state", self.state.value().to_string())]
-    }
-
-    fn id(&self) -> &InstaId {
-        &self.id
-    }
-
-    fn set_id(&mut self, id: InstaId) {
-        self.id = id;
-    }
-}
-
-impl From<DataRecord> for Job {
-    fn from(record: DataRecord) -> Job {
-        let id = u64::from_str(&record["id"]).unwrap();
-        Job {
-            id: InstaId(id),
-            state: protocol::jobsrv::JobState::from_str(&record["state"]).unwrap(),
-        }
-    }
-}
-
-impl From<protocol::jobsrv::Job> for Job {
-    fn from(value: protocol::jobsrv::Job) -> Job {
-        let mut job = Job::new();
-        job.id = InstaId(value.get_id());
-        job.state = value.get_state();
-        job
-    }
-}
-
-impl Into<protocol::jobsrv::Job> for Job {
-    fn into(self) -> protocol::jobsrv::Job {
-        let mut job = protocol::jobsrv::Job::new();
-        job.set_id(self.id.0);
-        job.set_state(self.state);
-        job
     }
 }
 
@@ -147,7 +83,7 @@ impl JobQueue {
     // JW TODO: clean up this mess
     pub fn enqueue(&self, job: &Job) -> Result<()> {
         let conn = self.pool.get().unwrap();
-        let _count: i32 = conn.rpush("job_queue", *job.id()).unwrap();
+        let _count: i32 = conn.rpush("job_queue", job.get_id()).unwrap();
         Ok(())
     }
 
@@ -161,14 +97,14 @@ impl JobQueue {
     }
 
     // JW TODO: clean up this mess
-    pub fn peek(&self) -> Result<Option<protocol::jobsrv::Job>> {
+    pub fn peek(&self) -> Result<Option<Job>> {
         let conn = self.pool.get().unwrap();
-        match conn.lrange::<&'static str, Vec<InstaId>>("job_queue", 0, 0) {
+        match conn.lrange::<&'static str, Vec<u64>>("job_queue", 0, 0) {
             Ok(id) => {
                 if id.is_empty() {
                     return Ok(None);
                 }
-                match self.jobs.find(id[0]) {
+                match self.jobs.find(&id[0]) {
                     Ok(job) => Ok(Some(job.into())),
                     Err(_) => {
                         // JW TODO: we should never hit this

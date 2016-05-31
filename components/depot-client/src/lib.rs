@@ -5,8 +5,8 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-extern crate habitat_core as hcore;
-extern crate habitat_depot_core as depot_core;
+extern crate habitat_builder_protocol as protocol;
+extern crate habitat_core as hab_core;
 extern crate broadcast;
 #[macro_use]
 extern crate hyper;
@@ -26,14 +26,17 @@ use std::io::{self, Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
 use broadcast::BroadcastWriter;
-use hcore::package::{PackageArchive, PackageIdent};
-use hcore::env::http_proxy_unless_domain_exempted;
-use depot_core::{XFileName, data_object};
+use hab_core::package::{Identifiable, PackageArchive};
+use hab_core::env::http_proxy_unless_domain_exempted;
 use hyper::client::{Client, Body};
 use hyper::status::StatusCode;
 use hyper::Url;
+use protocol::depotsrv;
 use rustc_serialize::json;
 use tee::TeeReader;
+
+header! { (XFileName, "X-Filename") => [String] }
+header! { (ETag, "ETag") => [String] }
 
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);
@@ -56,7 +59,7 @@ pub fn fetch_origin_key<P: AsRef<Path> + ?Sized>(depot: &str,
     download(url, dst_path.as_ref(), progress)
 }
 
-pub fn show_origin_keys(depot: &str, origin: &str) -> Result<Vec<data_object::OriginKeyIdent>> {
+pub fn show_origin_keys(depot: &str, origin: &str) -> Result<Vec<depotsrv::OriginKeyIdent>> {
     let url = try!(Url::parse(&format!("{}/origins/{}/keys", depot, origin)));
     let (client, _) = try!(new_client(&url));
     debug!("GET {} with {:?}", &url, &client);
@@ -71,7 +74,7 @@ pub fn show_origin_keys(depot: &str, origin: &str) -> Result<Vec<data_object::Or
     let mut encoded = String::new();
     try!(res.read_to_string(&mut encoded));
     debug!("Response body: {:?}", encoded);
-    let revisions: Vec<data_object::OriginKeyIdent> = json::decode(&encoded).unwrap();
+    let revisions: Vec<depotsrv::OriginKeyIdent> = json::decode(&encoded).unwrap();
     Ok(revisions)
 }
 
@@ -106,18 +109,20 @@ pub fn put_origin_key(depot: &str,
 /// * Package cannot be found
 /// * Remote Depot is not available
 /// * File cannot be created and written to
-pub fn fetch_package<P: AsRef<Path> + ?Sized>(depot: &str,
-                                              package: &PackageIdent,
+pub fn fetch_package<P: AsRef<Path> + ?Sized, I: Identifiable>(depot: &str,
+                                              ident: I,
                                               dst_path: &P,
                                               progress: Option<&mut DisplayProgress>)
                                               -> Result<PackageArchive> {
-    let url = try!(Url::parse(&format!("{}/pkgs/{}/download", depot, package)));
+    let url = try!(Url::parse(&format!("{}/pkgs/{}/download", depot, ident)));
     match download(url, dst_path.as_ref(), progress) {
         Ok(file) => {
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
-        Err(Error::HTTP(StatusCode::NotFound)) => Err(Error::RemotePackageNotFound(package.clone())),
+        Err(Error::HTTP(StatusCode::NotFound)) => {
+            Err(Error::RemotePackageNotFound(ident.into()))
+        }
         Err(e) => Err(e),
     }
 }
@@ -131,20 +136,20 @@ pub fn fetch_package<P: AsRef<Path> + ?Sized>(depot: &str,
 ///
 /// * Package cannot be found
 /// * Remote Depot is not available
-pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Package> {
-    let url = try!(url_show_package(depot, ident));
+pub fn show_package<I: Identifiable>(depot: &str, ident: I) -> Result<depotsrv::Package> {
+    let url = try!(url_show_package(depot, &ident));
     let (client, _) = try!(new_client(&url));
     let request = client.get(url);
     let mut res = try!(request.send());
 
     if res.status != hyper::status::StatusCode::Ok {
-        return Err(Error::RemotePackageNotFound(ident.clone()));
+        return Err(Error::RemotePackageNotFound(ident.into()));
     }
 
     let mut encoded = String::new();
     try!(res.read_to_string(&mut encoded));
     debug!("Body: {:?}", encoded);
-    let package: data_object::Package = json::decode(&encoded).unwrap();
+    let package: depotsrv::Package = json::decode(&encoded).unwrap();
     Ok(package)
 }
 
@@ -154,7 +159,10 @@ pub fn show_package(depot: &str, ident: &PackageIdent) -> Result<data_object::Pa
 ///
 /// * Remote Depot is not available
 /// * File cannot be read
-pub fn put_package(depot: &str, pa: &mut PackageArchive, progress: Option<&mut DisplayProgress>) -> Result<()> {
+pub fn put_package(depot: &str,
+                   pa: &mut PackageArchive,
+                   progress: Option<&mut DisplayProgress>)
+                   -> Result<()> {
     let checksum = try!(pa.checksum());
     let ident = try!(pa.ident());
     let mut url = try!(Url::parse(&format!("{}/pkgs/{}", depot, ident)));
@@ -176,7 +184,7 @@ fn new_client(url: &Url) -> Result<(Client, Option<(String, u16)>)> {
     }
 }
 
-fn url_show_package(depot: &str, package: &PackageIdent) -> Result<Url> {
+fn url_show_package<I: Identifiable>(depot: &str, package: &I) -> Result<Url> {
     if package.fully_qualified() {
         Ok(try!(Url::parse(&format!("{}/pkgs/{}", depot, package))))
     } else {

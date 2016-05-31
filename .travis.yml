@@ -68,7 +68,6 @@ matrix:
       - components/common/target
       - components/core/target
       - components/depot-client/target
-      - components/depot-core/target
       - components/net/target
     before_install:
     - ./support/ci/compile_libsodium.sh

@@ -9,7 +9,7 @@ use std::sync::{mpsc, Arc, RwLock};
 use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
-use dbcache::{self, RecordTable};
+use dbcache::{self, InstaSet};
 use linked_hash_map::LinkedHashMap;
 use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable, ToAddrString};
 use protobuf::{parse_from_bytes, Message};
@@ -18,7 +18,7 @@ use protocol::jobsrv;
 use zmq;
 
 use config::Config;
-use data_store::{self, DataStore};
+use data_store::DataStore;
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
@@ -40,16 +40,16 @@ impl Worker {
     fn dispatch(&mut self, req: &mut Envelope) -> Result<()> {
         match req.message_id() {
             "JobCreate" => {
-                let mut job = data_store::Job::new();
+                let mut job = jobsrv::Job::new();
+                job.set_state(jobsrv::JobState::default());
                 self.datastore().jobs.write(&mut job).unwrap();
                 self.datastore().job_queue.enqueue(&job).unwrap();
                 try!(self.notify_work_mgr());
-                let reply: jobsrv::Job = job.into();
-                try!(req.reply_complete(&mut self.sock, &reply));
+                try!(req.reply_complete(&mut self.sock, &job));
             }
             "JobGet" => {
                 let msg: jobsrv::JobGet = try!(req.parse_msg());
-                match self.datastore().jobs.find(msg.get_id()) {
+                match self.datastore().jobs.find(&msg.get_id()) {
                     Ok(job) => {
                         let reply: jobsrv::Job = job.into();
                         try!(req.reply_complete(&mut self.sock, &reply));
@@ -405,9 +405,8 @@ impl WorkerManager {
         try!(self.rq_sock.recv(&mut self.msg, 0));
         // Pop message body
         try!(self.rq_sock.recv(&mut self.msg, 0));
-        let req: jobsrv::Job = try!(parse_from_bytes(&self.msg));
-        debug!("job_status={:?}", req);
-        let job = data_store::Job::from(req);
+        let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
+        debug!("job_status={:?}", job);
         try!(self.datastore.jobs.update(&job));
         Ok(())
     }

@@ -9,21 +9,20 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 
-use dbcache;
-use depot_core::data_object::{self, DataObject};
+use dbcache::{self, BasicSet, IndexSet};
+use hab_core::package::{Identifiable, FromArchive, PackageArchive};
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
 use iron::request::Body;
 use mount::Mount;
+use protocol::depotsrv;
 use router::{Params, Router};
-use rustc_serialize::json;
+use rustc_serialize::json::{self, ToJson};
 use urlencoded::UrlEncodedQuery;
-
 
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
-use hcore::package::{self, PackageArchive};
 
 fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     let path = filename.parent().unwrap();
@@ -79,7 +78,8 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     try!(write_file(&origin_keyfile, &mut req.body));
 
-    let mut response = Response::with((status::Created, format!("/origins/{}/keys/{}", &origin, &revision)));
+    let mut response = Response::with((status::Created,
+                                       format!("/origins/{}/keys/{}", &origin, &revision)));
 
     let mut base_url = req.url.clone();
     base_url.path = vec![String::from("key"), format!("{}-{}", &origin, &revision)];
@@ -94,15 +94,15 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: package::PackageIdent = extract_ident(params);
+    let ident = ident_from_params(params);
 
     if !ident.fully_qualified() {
         return Ok(Response::with(status::BadRequest));
     }
 
-    match depot.datastore.packages.get(&ident) {
+    match depot.datastore.packages.find(&ident) {
         Ok(_) |
-        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+        Err(dbcache::Error::EntityNotFound) => {
             if let Some(_) = depot.archive(&ident) {
                 return Ok(Response::with((status::Conflict)));
             }
@@ -130,24 +130,26 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
               checksum_from_artifact);
         return Ok(Response::with(status::UnprocessableEntity));
     }
-    let object = match data_object::Package::from_archive(&mut archive) {
+    let object = match depotsrv::Package::from_archive(&mut archive) {
         Ok(object) => object,
         Err(e) => {
             info!("Error building package from archive: {:#?}", e);
             return Ok(Response::with(status::UnprocessableEntity));
         }
     };
-    if ident.satisfies(&object.ident) {
+    if ident.satisfies(object.get_ident()) {
         depot.datastore.packages.write(&object).unwrap();
-        let mut response = Response::with((status::Created, format!("/pkgs/{}/download", object.ident)));
+        let mut response = Response::with((status::Created,
+                                           format!("/pkgs/{}/download", object.get_ident())));
         let mut base_url = req.url.clone();
-        base_url.path = vec![String::from("pkgs"), object.ident.to_string(), String::from("download")];
+        base_url.path =
+            vec![String::from("pkgs"), object.get_ident().to_string(), String::from("download")];
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {
         info!("Ident mismatch, expected={:?}, got={:?}",
               ident,
-              &object.ident);
+              object.get_ident());
         Ok(Response::with(status::UnprocessableEntity))
     }
 }
@@ -189,7 +191,8 @@ fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response>
     // Iron updates to Hyper 0.9.x.
     response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
     response.headers.set_raw("content-disposition",
-                             vec![format!("attachment; filename=\"{}\"", xfilename.clone()).into_bytes()]);
+                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
+                                      .into_bytes()]);
     Ok(response)
 }
 
@@ -227,16 +230,17 @@ fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Re
     // Iron updates to Hyper 0.9.x.
     response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
     response.headers.set_raw("content-disposition",
-                             vec![format!("attachment; filename=\"{}\"", xfilename.clone()).into_bytes()]);
+                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
+                                      .into_bytes()]);
     Ok(response)
 }
 
 fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     debug!("Download {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
-    let ident: data_object::PackageIdent = extract_data_ident(params);
+    let ident = ident_from_params(params);
 
-    match depot.datastore.packages.get(&ident) {
+    match depot.datastore.packages.find(&ident) {
         Ok(ident) => {
             if let Some(archive) = depot.archive(&ident) {
                 match fs::metadata(&archive.path) {
@@ -246,7 +250,8 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                         // and the newer Hyper 0.9.4. TODO: change back to set() once
                         // Iron updates to Hyper 0.9.x.
 
-                        response.headers.set_raw("X-Filename", vec![archive.file_name().clone().into_bytes()]);
+                        response.headers
+                            .set_raw("X-Filename", vec![archive.file_name().clone().into_bytes()]);
                         response.headers.set_raw("content-disposition",
                                                  vec![format!("attachment; filename=\"{}\"",
                                                               archive.file_name().clone())
@@ -258,10 +263,11 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             } else {
                 // This should never happen. Writing the package to disk and recording it's existence
                 // in the metadata is a transactional operation and one cannot exist without the other.
-                panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix data integrity.");
+                panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix \
+                        data integrity.");
             }
         }
-        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with((status::NotFound))),
+        Err(dbcache::Error::EntityNotFound) => Ok(Response::with((status::NotFound))),
         Err(e) => {
             error!("download_package:1, err={:?}", e);
             Ok(Response::with(status::InternalServerError))
@@ -278,7 +284,7 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     match depot.datastore.origin_keys.all(origin) {
         Ok(revisions) => {
-            let body = json::encode(&revisions).unwrap();
+            let body = json::encode(&revisions.to_json()).unwrap();
             Ok(Response::with((status::Ok, body)))
         }
         Err(e) => {
@@ -297,7 +303,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             None => return Ok(Response::with(status::BadRequest)),
         }
     } else {
-        extract_data_ident(params).ident().to_owned()
+        ident_from_params(params).to_string()
     };
 
     if let Some(view) = params.find("view") {
@@ -306,7 +312,9 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             }
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with((status::NotFound))),
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                Ok(Response::with((status::NotFound)))
+            }
             Err(e) => {
                 error!("list_packages:1, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
@@ -318,7 +326,9 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 let body = json::encode(&packages).unwrap();
                 Ok(Response::with((status::Ok, body)))
             }
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with((status::NotFound))),
+            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                Ok(Response::with((status::NotFound)))
+            }
             Err(e) => {
                 error!("list_packages:2, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
@@ -335,22 +345,24 @@ fn list_views(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
 
 fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    let mut ident: data_object::PackageIdent = extract_data_ident(params);
+    let mut ident = ident_from_params(params);
 
     if let Some(view) = params.find("view") {
         if !ident.fully_qualified() {
             match depot.datastore.views.view_pkg_idx.latest(view, &ident.to_string()) {
                 Ok(ident) => {
-                    match depot.datastore.packages.get(&ident) {
+                    match depot.datastore.packages.find(&ident) {
                         Ok(pkg) => render_package(&pkg),
-                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
+                        Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:1, err={:?}", e);
                             Ok(Response::with(status::InternalServerError))
                         }
                     }
                 }
-                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
+                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+                    Ok(Response::with(status::NotFound))
+                }
                 Err(e) => {
                     error!("show_package:2, err={:?}", e);
                     Ok(Response::with(status::InternalServerError))
@@ -359,9 +371,9 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         } else {
             match depot.datastore.views.view_pkg_idx.is_member(view, &ident) {
                 Ok(true) => {
-                    match depot.datastore.packages.get(&ident) {
+                    match depot.datastore.packages.find(&ident) {
                         Ok(pkg) => render_package(&pkg),
-                        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
+                        Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:3, err={:?}", e);
                             Ok(Response::with(status::InternalServerError))
@@ -389,9 +401,9 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             }
         }
 
-        match depot.datastore.packages.get(&ident) {
+        match depot.datastore.packages.find(&ident) {
             Ok(pkg) => render_package(&pkg),
-            Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
+            Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
             Err(e) => {
                 error!("show_package:6, err={:?}", e);
                 Ok(Response::with(status::InternalServerError))
@@ -401,13 +413,13 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 
-fn render_package(pkg: &data_object::Package) -> IronResult<Response> {
-    let body = json::encode(pkg).unwrap();
+fn render_package(pkg: &depotsrv::Package) -> IronResult<Response> {
+    let body = json::encode(&pkg.to_json()).unwrap();
     let mut response = Response::with((status::Ok, body));
     // use set_raw because we're having problems with Iron's Hyper 0.8.x
-    // and the newer Hyper 0.9.4. TODO: change back to set() once
-    // Iron updates to Hyper 0.9.x.
-    response.headers.set_raw("ETag", vec![pkg.checksum.clone().into_bytes()]);
+    // and the newer Hyper 0.9.4.
+    // TODO: change back to set() once Iron updates to Hyper 0.9.x.
+    response.headers.set_raw("ETag", vec![pkg.get_checksum().to_string().into_bytes()]);
     Ok(response)
 }
 
@@ -417,13 +429,13 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     match depot.datastore.views.is_member(view) {
         Ok(true) => {
-            let ident: package::PackageIdent = extract_ident(params);
-            match depot.datastore.packages.get(&ident) {
+            let ident = ident_from_params(params);
+            match depot.datastore.packages.find(&ident) {
                 Ok(package) => {
                     depot.datastore.views.associate(view, &package).unwrap();
                     Ok(Response::with(status::Ok))
                 }
-                Err(Error::DataStore(dbcache::Error::EntityNotFound)) => Ok(Response::with(status::NotFound)),
+                Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
                 Err(e) => {
                     error!("promote:2, err={:?}", e);
                     return Ok(Response::with(status::InternalServerError));
@@ -438,16 +450,17 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn extract_ident(params: &Params) -> package::PackageIdent {
-    package::PackageIdent::new(params.find("origin").unwrap(),
-                               params.find("pkg").unwrap(),
-                               params.find("version"),
-                               params.find("release"))
-}
-
-fn extract_data_ident(params: &Params) -> data_object::PackageIdent {
-    let ident: package::PackageIdent = extract_ident(params);
-    data_object::PackageIdent::new(ident)
+fn ident_from_params(params: &Params) -> depotsrv::PackageIdent {
+    let mut ident = depotsrv::PackageIdent::new();
+    ident.set_origin(params.find("origin").unwrap().to_string());
+    ident.set_name(params.find("pkg").unwrap().to_string());
+    if let Some(ver) = params.find("version") {
+        ident.set_version(ver.to_string());
+    }
+    if let Some(rel) = params.find("release") {
+        ident.set_release(rel.to_string());
+    }
+    ident
 }
 
 fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {

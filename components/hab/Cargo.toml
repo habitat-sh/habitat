@@ -7,7 +7,6 @@ build = "build.rs"
 [dependencies]
 ansi_term = "*"
 env_logger = "*"
-# Used to handle responses code back from depot-core
 hyper = "*"
 libc = "*"
 log = "*"

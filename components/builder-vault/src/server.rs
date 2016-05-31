@@ -9,14 +9,15 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use std::thread;
 
-use dbcache::{self, IndexTable, RecordTable};
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable};
+use dbcache::{self, IndexSet, InstaSet};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
+                      Supervisable};
 use protocol::net::{self, ErrCode};
 use protocol::vault as proto;
 use zmq;
 
 use config::Config;
-use data_store::{DataStore, Origin};
+use data_store::DataStore;
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
@@ -36,19 +37,19 @@ impl Worker {
         match req.message_id() {
             "OriginCreate" => {
                 let msg: proto::OriginCreate = try!(req.parse_msg());
-                let mut origin = Origin::from(msg);
+                let mut origin = proto::Origin::new();
+                origin.set_name(msg.get_name().to_string());
+                origin.set_owner_id(msg.get_owner_id());
                 // JW TODO: handle db errors
                 try!(self.datastore().origins.write(&mut origin));
-                let reply: proto::Origin = origin.into();
-                try!(req.reply_complete(&mut self.sock, &reply));
+                try!(req.reply_complete(&mut self.sock, &origin));
             }
             "OriginGet" => {
                 let msg: proto::OriginGet = try!(req.parse_msg());
                 match self.datastore().origins.name_idx.find(msg.get_name()) {
                     Ok(origin_id) => {
-                        let origin = self.datastore().origins.find(origin_id).unwrap();
-                        let reply: proto::Origin = origin.into();
-                        try!(req.reply_complete(&mut self.sock, &reply));
+                        let origin = self.datastore().origins.find(&origin_id).unwrap();
+                        try!(req.reply_complete(&mut self.sock, &origin));
                     }
                     Err(dbcache::Error::EntityNotFound) => {
                         let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-get:1");

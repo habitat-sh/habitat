@@ -30,7 +30,7 @@ else
 endif
 
 BIN = director hab sup
-LIB = builder-dbcache builder-protocol common core depot-client depot-core net
+LIB = builder-dbcache builder-protocol common core depot-client net
 SRV = builder-api builder-jobsrv builder-sessionsrv builder-vault builder-worker depot
 ALL = $(BIN) $(LIB) $(SRV)
 

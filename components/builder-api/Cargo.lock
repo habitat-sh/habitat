@@ -3,7 +3,7 @@ name = "habitat_builder_api"
 version = "0.6.0"
 dependencies = [
  "bodyparser 0.3.0 (git+https://github.com/iron/body-parser.git)",
- "clap 2.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
@@ -53,7 +53,7 @@ dependencies = [
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -65,18 +65,18 @@ dependencies = [
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "byteorder"
-version = "0.5.2"
+version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "2.5.1"
+version = "2.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -150,6 +150,7 @@ dependencies = [
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.6.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2_redis 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -162,6 +163,7 @@ name = "habitat_builder_protocol"
 version = "0.6.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_core 0.6.0",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -191,11 +193,11 @@ name = "habitat_depot"
 version = "0.6.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.6.0",
+ "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
- "habitat_depot_core 0.6.0",
  "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -204,6 +206,7 @@ dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2_redis 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -215,16 +218,6 @@ dependencies = [
  "toml 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "habitat_depot_core"
-version = "0.6.0"
-dependencies = [
- "habitat_core 0.6.0",
- "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -620,7 +613,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
-version = "0.7.6"
+version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -629,7 +622,7 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -637,7 +630,7 @@ name = "sha1"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "byteorder 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

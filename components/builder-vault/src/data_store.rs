@@ -5,15 +5,13 @@
 // is made available under an open source license such as the Apache 2.0 License.
 
 use std::ops::Deref;
-use std::str::FromStr;
 use std::sync::Arc;
 
-use dbcache::{self, ConnectionPool, DataRecord, IndexTable, RecordTable, Table};
-use dbcache::model::{Fields, Model};
-use protocol::{self, InstaId};
+use dbcache::{self, ConnectionPool, Bucket, IndexSet, InstaSet};
+use protobuf::Message;
+use protocol::{vault, InstaId, Persistable};
 use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
-use rustc_serialize::Encodable;
 
 use error::Result;
 
@@ -53,9 +51,7 @@ impl OriginTable {
     }
 }
 
-impl Table for OriginTable {
-    type IdType = InstaId;
-
+impl Bucket for OriginTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -65,28 +61,29 @@ impl Table for OriginTable {
     }
 }
 
-impl RecordTable for OriginTable {
-    type Record = Origin;
+impl InstaSet for OriginTable {
+    type Record = vault::Origin;
 
     fn seq_id() -> &'static str {
         "origins_seq"
     }
 
     fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
-        let conn = self.pool().get().unwrap();
-        let keys = [Self::seq_id(), OriginNameIdx::prefix()];
-        try!(redis::transaction(conn.deref(), &keys, |txn| {
+        let conn = try!(self.pool().get());
+        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
             };
             let insta_id = InstaId::generate(sequence_id);
-            record.set_id(insta_id);
-            txn.set(Self::seq_id(), record.id().0)
+            record.set_primary_key(*insta_id);
+            txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .hset_multiple(Self::key(record.id()), &record.fields())
-                .ignore()
-                .hset(OriginNameIdx::prefix(), record.name.clone(), record.id)
+                .set(Self::key(&record.primary_key()),
+                     record.write_to_bytes().unwrap())
+                .hset(OriginNameIdx::prefix(),
+                      record.get_name().to_string(),
+                      record.get_id())
                 .ignore()
                 .query(conn.deref())
         }));
@@ -104,9 +101,7 @@ impl OriginNameIdx {
     }
 }
 
-impl Table for OriginNameIdx {
-    type IdType = String;
-
+impl Bucket for OriginNameIdx {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -116,67 +111,6 @@ impl Table for OriginNameIdx {
     }
 }
 
-impl IndexTable for OriginNameIdx {
-    type Value = InstaId;
-}
-
-#[derive(Debug, RustcEncodable, RustcDecodable)]
-pub struct Origin {
-    pub id: InstaId,
-    pub name: String,
-    pub owner_id: InstaId,
-}
-
-impl Origin {
-    pub fn new(name: String, owner_id: InstaId) -> Self {
-        Origin {
-            id: InstaId::default(),
-            name: name,
-            owner_id: owner_id,
-        }
-    }
-}
-
-impl Model for Origin {
-    type Table = OriginTable;
-
-    fn fields(&self) -> Fields {
-        vec![("owner_id", self.owner_id.to_string()), ("name", self.name.clone())]
-    }
-
-    fn id(&self) -> &InstaId {
-        &self.id
-    }
-
-    fn set_id(&mut self, id: InstaId) {
-        self.id = id;
-    }
-}
-
-impl Into<protocol::vault::Origin> for Origin {
-    fn into(self) -> protocol::vault::Origin {
-        let mut msg = protocol::vault::Origin::new();
-        msg.set_id(self.id.0);
-        msg.set_name(self.name);
-        msg.set_owner_id(self.owner_id.0);
-        msg
-    }
-}
-
-impl From<protocol::vault::OriginCreate> for Origin {
-    fn from(msg: protocol::vault::OriginCreate) -> Origin {
-        Origin::new(msg.get_name().to_string(), msg.get_owner_id().into())
-    }
-}
-
-impl From<DataRecord> for Origin {
-    fn from(record: DataRecord) -> Origin {
-        let id = u64::from_str(&record["id"]).unwrap();
-        let owner_id = u64::from_str(&record["owner_id"]).unwrap();
-        Origin {
-            id: InstaId(id),
-            name: record["name"].to_string(),
-            owner_id: InstaId(owner_id),
-        }
-    }
+impl IndexSet for OriginNameIdx {
+    type Value = u64;
 }

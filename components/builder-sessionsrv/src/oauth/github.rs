@@ -10,6 +10,7 @@ use std::io::Read;
 use hyper::{self, Url};
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
+use protocol::sessionsrv;
 use rustc_serialize::json;
 
 use error::{Error, Result};
@@ -52,6 +53,15 @@ pub struct User {
     pub following: u32,
     pub created_at: String,
     pub updated_at: String,
+}
+
+impl From<User> for sessionsrv::Account {
+    fn from(user: User) -> sessionsrv::Account {
+        let mut account = sessionsrv::Account::new();
+        account.set_name(user.login);
+        account.set_email(user.email);
+        account
+    }
 }
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
@@ -98,11 +108,13 @@ pub enum AuthResp {
 }
 
 pub fn authenticate(code: &str) -> Result<String> {
-    let url = Url::parse(&format!("https://github.com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
-                                  GH_CLIENT_ID,
-                                  GH_CLIENT_SECRET,
-                                  code))
-        .unwrap();
+    let url =
+        Url::parse(&format!("https://github.\
+                             com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
+                            GH_CLIENT_ID,
+                            GH_CLIENT_SECRET,
+                            code))
+            .unwrap();
     let mut rep = try!(http_post(url));
     if rep.status.is_success() {
         let mut encoded = String::new();

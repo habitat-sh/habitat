@@ -3,8 +3,8 @@ name = "habitat_depot_client"
 version = "0.6.0"
 dependencies = [
  "broadcast 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
- "habitat_depot_core 0.6.0",
  "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -62,6 +62,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "habitat_builder_protocol"
+version = "0.6.0"
+dependencies = [
+ "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_core 0.6.0",
+ "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "habitat_core"
 version = "0.6.0"
 dependencies = [
@@ -76,16 +89,6 @@ dependencies = [
  "toml 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "users 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "habitat_depot_core"
-version = "0.6.0"
-dependencies = [
- "habitat_core 0.6.0",
- "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -292,6 +295,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "tempdir 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "protobuf"
+version = "1.0.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rand"

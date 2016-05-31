@@ -19,6 +19,7 @@ libarchive = "*"
 log = "*"
 mount = "*"
 openssl = "*"
+protobuf = "*"
 r2d2 = "*"
 r2d2_redis = "*"
 redis = "*"
@@ -38,11 +39,11 @@ features = [ "suggestions", "color", "unstable" ]
 [dependencies.habitat_builder_dbcache]
 path = "../builder-dbcache"
 
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
 [dependencies.habitat_core]
 path = "../core"
-
-[dependencies.habitat_depot_core]
-path = "../depot-core"
 
 [dev-dependencies]
 url = "*"

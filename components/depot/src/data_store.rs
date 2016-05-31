@@ -6,15 +6,16 @@
 // open source license such as the Apache 2.0 License.
 
 use std::ops::Deref;
+use std::result;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use dbcache::{self, ConnectionPool, Table};
-use depot_core::data_object::{self, DataObject};
-use hcore::package;
+use dbcache::{self, ConnectionPool, Bucket, BasicSet, IndexSet};
+use hab_core::package::{self, Identifiable};
+use protobuf::Message;
+use protocol::depotsrv;
 use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
-use rustc_serialize::json;
 
 use error::{Error, Result};
 
@@ -77,52 +78,40 @@ impl PackagesTable {
             index: index,
         }
     }
-
-    pub fn get<T: AsRef<package::PackageIdent>>(&self, id: T) -> Result<data_object::Package> {
-        let conn = self.pool().get().unwrap();
-        match conn.get::<String, String>(Self::key(&id.as_ref().to_string())) {
-            Ok(body) => {
-                let pkg: data_object::Package = json::decode(&body).unwrap();
-                Ok(pkg)
-            }
-            Err(e) => Err(Error::from(e)),
-        }
-    }
-
-    pub fn write(&self, record: &data_object::Package) -> Result<()> {
-        let conn = self.pool().get().unwrap();
-        let keys = [Self::key(&record.ident.to_string()),
-                    PackagesIndex::key(&record.ident.origin_idx()),
-                    PackagesIndex::key(&record.ident.name_idx()),
-                    PackagesIndex::key(&record.ident.version_idx().as_ref().unwrap())];
-        try!(redis::transaction(conn.deref(), &keys, |txn| {
-            let body = json::encode(&record).unwrap();
-            txn.set(Self::key(&record.ident.to_string()), body)
-                .ignore()
-                .sadd(PackagesIndex::key(&record.ident.origin_idx()),
-                      record.ident.clone())
-                .ignore()
-                .sadd(PackagesIndex::key(&record.ident.name_idx()),
-                      record.ident.clone())
-                .ignore()
-                .sadd(PackagesIndex::key(&record.ident.version_idx().as_ref().unwrap()),
-                      record.ident.clone())
-                .ignore()
-                .query(conn.deref())
-        }));
-        Ok(())
-    }
 }
 
-impl Table for PackagesTable {
-    type IdType = String;
-
+impl Bucket for PackagesTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
 
     fn prefix() -> &'static str {
         "package"
+    }
+}
+
+impl BasicSet for PackagesTable {
+    type Record = depotsrv::Package;
+
+    fn write(&self, record: &depotsrv::Package) -> result::Result<(), dbcache::Error> {
+        let conn = self.pool().get().unwrap();
+        let keys = [Self::key(record),
+                    PackagesIndex::origin_idx(&record),
+                    PackagesIndex::name_idx(&record),
+                    PackagesIndex::version_idx(&record)];
+        try!(redis::transaction(conn.deref(), &keys, |txn| {
+            let body = record.write_to_bytes().unwrap();
+            txn.set(Self::key(&record), body)
+                .ignore()
+                .sadd(PackagesIndex::origin_idx(&record), record.to_string())
+                .ignore()
+                .sadd(PackagesIndex::name_idx(&record), record.to_string())
+                .ignore()
+                .sadd(PackagesIndex::version_idx(&record), record.to_string())
+                .ignore()
+                .query(conn.deref())
+        }));
+        Ok(())
     }
 }
 
@@ -137,12 +126,15 @@ impl PackagesIndex {
         PackagesIndex { pool: pool }
     }
 
-    pub fn all(&self, id: &str) -> Result<Vec<package::PackageIdent>> {
+    pub fn all(&self, id: &str) -> Result<Vec<depotsrv::PackageIdent>> {
         let conn = self.pool().get().unwrap();
         match conn.smembers::<String, Vec<String>>(Self::key(&id.to_string())) {
             Ok(ids) => {
                 let ids = ids.iter()
-                    .map(|id| package::PackageIdent::from_str(id).unwrap())
+                    .map(|id| {
+                        let p = package::PackageIdent::from_str(id).unwrap();
+                        depotsrv::PackageIdent::from(p)
+                    })
                     .collect();
                 Ok(ids)
             }
@@ -150,9 +142,9 @@ impl PackagesIndex {
         }
     }
 
-    pub fn latest<T: AsRef<package::PackageIdent>>(&self, id: T) -> Result<package::PackageIdent> {
+    pub fn latest<T: Identifiable>(&self, id: &T) -> Result<depotsrv::PackageIdent> {
         let conn = self.pool().get().unwrap();
-        let key = PackagesIndex::key(&id.as_ref().to_string());
+        let key = PackagesIndex::key(&id.to_string());
         match redis::cmd("SORT")
             .arg(key)
             .arg("LIMIT")
@@ -166,16 +158,31 @@ impl PackagesIndex {
                     return Err(Error::DataStore(dbcache::Error::EntityNotFound));
                 }
                 let ident = package::PackageIdent::from_str(&ids[0]).unwrap();
-                Ok(ident)
+                Ok(depotsrv::PackageIdent::from(ident))
             }
             Err(e) => Err(Error::from(e)),
         }
     }
+
+    fn origin_idx(package: &depotsrv::Package) -> String {
+        Self::key(package.get_ident().get_origin())
+    }
+
+    fn name_idx(package: &depotsrv::Package) -> String {
+        let ident = package.get_ident();
+        Self::key(format!("{}/{}", ident.get_origin(), ident.get_name()))
+    }
+
+    fn version_idx(package: &depotsrv::Package) -> String {
+        let ident = package.get_ident();
+        Self::key(format!("{}/{}/{}",
+                          ident.get_origin(),
+                          ident.get_name(),
+                          ident.get_version()))
+    }
 }
 
-impl Table for PackagesIndex {
-    type IdType = String;
-
+impl Bucket for PackagesIndex {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -183,6 +190,10 @@ impl Table for PackagesIndex {
     fn prefix() -> &'static str {
         "package:ident:index"
     }
+}
+
+impl IndexSet for PackagesIndex {
+    type Value = String;
 }
 
 /// Contains a mapping of view names and the packages found within that view.
@@ -216,14 +227,14 @@ impl ViewsTable {
         }
     }
 
-    pub fn associate(&self, view: &str, pkg: &data_object::Package) -> Result<()> {
+    pub fn associate(&self, view: &str, pkg: &depotsrv::Package) -> Result<()> {
         let script = redis::Script::new(r"
             redis.call('sadd', KEYS[1], ARGV[2]);
             redis.call('zadd', KEYS[2], 0, ARGV[1]);
         ");
-        try!(script.arg(pkg.ident.clone())
+        try!(script.arg(pkg.get_ident().to_string())
             .arg(view.clone())
-            .key(PkgViewIndex::key(&pkg.ident))
+            .key(PkgViewIndex::key(&pkg.get_ident()))
             .key(ViewPkgIndex::key(&view.to_string()))
             .invoke(self.pool.get().unwrap().deref()));
         Ok(())
@@ -244,9 +255,7 @@ impl ViewsTable {
     }
 }
 
-impl Table for ViewsTable {
-    type IdType = String;
-
+impl Bucket for ViewsTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -254,6 +263,10 @@ impl Table for ViewsTable {
     fn prefix() -> &'static str {
         "views"
     }
+}
+
+impl BasicSet for ViewsTable {
+    type Record = depotsrv::View;
 }
 
 pub struct PkgViewIndex {
@@ -266,9 +279,7 @@ impl PkgViewIndex {
     }
 }
 
-impl Table for PkgViewIndex {
-    type IdType = data_object::PackageIdent;
-
+impl Bucket for PkgViewIndex {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -276,6 +287,10 @@ impl Table for PkgViewIndex {
     fn prefix() -> &'static str {
         "pkg:view:index"
     }
+}
+
+impl IndexSet for PkgViewIndex {
+    type Value = String;
 }
 
 pub struct ViewPkgIndex {
@@ -289,29 +304,31 @@ impl ViewPkgIndex {
 
     pub fn all(&self, view: &str, pkg: &str) -> Result<Vec<package::PackageIdent>> {
         let conn = self.pool().get().unwrap();
-        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()), format!("{}*", pkg)) {
+        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()),
+                                                                format!("{}*", pkg)) {
             Ok(set) => {
-                let set: Vec<package::PackageIdent> = set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
-                    .collect();
+                let set: Vec<package::PackageIdent> =
+                    set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
+                        .collect();
                 Ok(set)
             }
             Err(e) => Err(Error::from(e)),
         }
     }
 
-    pub fn is_member<T: AsRef<package::PackageIdent>>(&self, view: &str, pkg: T) -> Result<bool> {
+    pub fn is_member<T: Identifiable>(&self, view: &str, pkg: &T) -> Result<bool> {
         let conn = self.pool().get().unwrap();
-        match conn.sismember(Self::key(&view.to_string()), pkg.as_ref().to_string()) {
+        match conn.sismember(Self::key(&view.to_string()), pkg.to_string()) {
             Ok(result) => Ok(result),
             Err(e) => Err(Error::from(e)),
         }
     }
 
-    pub fn latest(&self, view: &str, pkg: &str) -> Result<package::PackageIdent> {
+    pub fn latest(&self, view: &str, pkg: &str) -> Result<depotsrv::PackageIdent> {
         match self.all(view, pkg) {
             Ok(mut ids) => {
                 if let Some(id) = ids.pop() {
-                    Ok(id)
+                    Ok(id.into())
                 } else {
                     Err(Error::DataStore(dbcache::Error::EntityNotFound))
                 }
@@ -321,9 +338,7 @@ impl ViewPkgIndex {
     }
 }
 
-impl Table for ViewPkgIndex {
-    type IdType = String;
-
+impl Bucket for ViewPkgIndex {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -333,7 +348,9 @@ impl Table for ViewPkgIndex {
     }
 }
 
-
+impl IndexSet for ViewPkgIndex {
+    type Value = String;
+}
 
 pub struct OriginKeysTable {
     pool: Arc<ConnectionPool>,
@@ -344,15 +361,17 @@ impl OriginKeysTable {
         OriginKeysTable { pool: pool }
     }
 
-    pub fn all(&self, origin: &str) -> Result<Vec<data_object::OriginKeyIdent>> {
+    pub fn all(&self, origin: &str) -> Result<Vec<depotsrv::OriginKeyIdent>> {
         let conn = self.pool().get().unwrap();
         match conn.smembers::<String, Vec<String>>(Self::key(&origin.to_string())) {
             Ok(ids) => {
                 let ids = ids.iter()
                     .map(|rev| {
-                        data_object::OriginKeyIdent::new(origin.to_string(),
-                                                         rev.clone(),
-                                                         format!("/origins/{}/keys/{}", &origin, &rev))
+                        let mut ident = depotsrv::OriginKeyIdent::new();
+                        ident.set_location(format!("/origins/{}/keys/{}", &origin, &rev));
+                        ident.set_origin(origin.to_string());
+                        ident.set_revision(rev.to_string());
+                        ident
                     })
                     .collect();
                 Ok(ids)
@@ -391,9 +410,7 @@ impl OriginKeysTable {
     }
 }
 
-impl Table for OriginKeysTable {
-    type IdType = String;
-
+impl Bucket for OriginKeysTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -401,4 +418,8 @@ impl Table for OriginKeysTable {
     fn prefix() -> &'static str {
         "origin_keys"
     }
+}
+
+impl IndexSet for OriginKeysTable {
+    type Value = String;
 }

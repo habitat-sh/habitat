@@ -12,7 +12,7 @@ use protobuf::ProtobufEnum;
 use rustc_serialize::{Decoder, Decodable, Encoder, Encodable};
 use rustc_serialize::json::{Json, ToJson};
 
-use message::Routable;
+use message::{Persistable, Routable};
 use sharding::InstaId;
 
 pub use message::jobsrv::*;
@@ -23,10 +23,10 @@ pub enum Error {
 }
 
 impl Routable for JobCreate {
-    type H = String;
+    type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_owner_id().to_string())
+        Some(InstaId(self.get_owner_id()))
     }
 }
 
@@ -82,5 +82,17 @@ impl FromStr for JobState {
             }
             Err(_) => Err(Error::BadJobState),
         }
+    }
+}
+
+impl Persistable for Job {
+    type Key = u64;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
     }
 }

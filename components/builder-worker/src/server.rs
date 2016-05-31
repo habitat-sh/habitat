@@ -234,7 +234,9 @@ impl Heartbeat {
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>, ctx: Arc<RwLock<zmq::Context>>) -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>,
+                 ctx: Arc<RwLock<zmq::Context>>)
+                 -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
             .name("heartbeat".to_string())
@@ -336,7 +338,9 @@ impl Runner {
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>, ctx: Arc<RwLock<zmq::Context>>) -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>,
+                 ctx: Arc<RwLock<zmq::Context>>)
+                 -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
             .name("runner".to_string())

@@ -4,12 +4,14 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
+use std::fmt;
 use std::hash::Hasher;
 
 use protobuf;
 
 use sharding::InstaId;
 
+pub mod depotsrv;
 pub mod jobsrv;
 pub mod net;
 pub mod routesrv;
@@ -74,13 +76,39 @@ impl<'a, T: 'a + protobuf::Message> MessageBuilder<'a, T> {
     }
 }
 
-pub trait Routable: protobuf::Message {
-    type H: RouteKey;
+/// Defines a contract for protocol messages to be persisted to a datastore.
+pub trait Persistable: protobuf::Message + protobuf::MessageStatic {
+    /// Type of the primary key
+    type Key: fmt::Display;
 
+    /// Returns the value of the primary key.
+    fn primary_key(&self) -> Self::Key;
+
+    /// Sets the primary key to the given value.
+    fn set_primary_key(&mut self, value: Self::Key) -> ();
+}
+
+/// Defines a contract for protocol messages to be routed through `RouteSrv`.
+pub trait Routable: protobuf::Message {
+    /// Type of the route key
+    type H: RouteKey + fmt::Display;
+
+    /// Return a `RouteKey` for `RouteSrv` to know which key's value to route on.
+    ///
+    /// If `Some(T)`, the message will be routed by hashing the value of the route key and modding
+    /// it against the shard count. This is known as "randomly deterministic routing".
+    ///
+    /// If `None`, the message will be randomly routed to an available node.
     fn route_key(&self) -> Option<Self::H>;
 }
 
+/// Provides an interface for hashing the implementing type for `Routable` messages.
+///
+/// Some types contain "hints" that help `RouteSrv` to identify the destination shard for a
+/// message. You can leverage this trait to take any hints into account. See the implementation of
+/// this trait for `InstaId` for an example.
 pub trait RouteKey {
+    /// Hashes a route key providing a route hash.
     fn hash(&self, hasher: &mut Hasher) -> u64;
 }
 

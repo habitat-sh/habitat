@@ -24,10 +24,10 @@ fn generate_protocols() {
 
     let out_dir = r"src/message";
     let cmd = Command::new(format!("{}/bin/protoc", prefix))
-                  .arg("--rust_out")
-                  .arg(out_dir)
-                  .args(&protocol_files())
-                  .output();
+        .arg("--rust_out")
+        .arg(out_dir)
+        .args(&protocol_files())
+        .output();
     match cmd {
         Ok(out) => {
             if !out.status.success() {

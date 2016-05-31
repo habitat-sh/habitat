@@ -6,7 +6,9 @@
 // open source license such as the Apache 2.0 License.
 
 use std::collections::HashMap;
+use std::error;
 use std::path::{Path, PathBuf};
+use std::result;
 use std::str::{self, FromStr};
 
 use libarchive::writer;
@@ -16,7 +18,7 @@ use regex::Regex;
 
 use error::{Error, Result};
 use crypto::{artifact, hash};
-use package::{PackageIdent, MetaFile};
+use package::{Identifiable, PackageIdent, MetaFile};
 
 lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
@@ -102,8 +104,8 @@ impl PackageArchive {
         match self.read_metadata(MetaFile::Exposes) {
             Ok(Some(data)) => {
                 let ports: Vec<u16> = data.split(" ")
-                                          .filter_map(|port| port.parse::<u16>().ok())
-                                          .collect();
+                    .filter_map(|port| port.parse::<u16>().ok())
+                    .collect();
                 Ok(ports)
             }
             Ok(None) => Ok(vec![]),
@@ -257,6 +259,12 @@ impl PackageArchive {
     }
 }
 
+pub trait FromArchive: Sized {
+    type Error: error::Error;
+
+    fn from_archive(archive: &mut PackageArchive) -> result::Result<Self, Self::Error>;
+}
+
 #[cfg(test)]
 mod test {
     use std::env;
@@ -265,8 +273,8 @@ mod test {
 
     #[test]
     fn reading_artifact_metadata() {
-        let mut hart =
-            PackageArchive::new(fixtures().join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
+        let mut hart = PackageArchive::new(fixtures()
+            .join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
         let ident = hart.ident().unwrap();
         assert_eq!(ident.origin, "happyhumans");
         assert_eq!(ident.name, "possums");

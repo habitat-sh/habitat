@@ -9,9 +9,10 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-use hcore;
-use hcore::package::PackageArchive;
-use depot_core::data_object::{self, DataObject};
+use dbcache::BasicSet;
+use hab_core;
+use hab_core::package::{FromArchive, PackageArchive};
+use protocol::depotsrv;
 use time;
 use walkdir::WalkDir;
 
@@ -112,7 +113,7 @@ pub enum OperationType {
 #[derive(Debug)]
 pub enum Reason {
     BadArchive,
-    BadMetadata(hcore::Error),
+    BadMetadata(hab_core::Error),
     BadPermissions,
     IO(io::Error),
     FileExists,
@@ -182,7 +183,7 @@ impl<'a> Doctor<'a> {
             let mut archive = PackageArchive::new(PathBuf::from(entry.path()));
             match archive.ident() {
                 Ok(ident) => {
-                    match data_object::Package::from_archive(&mut archive) {
+                    match depotsrv::Package::from_archive(&mut archive) {
                         Ok(object) => {
                             try!(self.depot.datastore.packages.write(&object));
                             let path = self.depot.archive_path(&ident);

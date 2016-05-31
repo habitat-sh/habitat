@@ -9,14 +9,15 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use std::thread;
 
-use dbcache::{Model, RecordTable};
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable};
+use dbcache::{self, BasicSet, InstaSet, IndexSet};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
+                      Supervisable};
 use protocol::net::{self, ErrCode};
-use protocol::sessionsrv::{self, SessionGet, SessionCreate};
+use protocol::sessionsrv::{self, Account, SessionGet, SessionCreate, SessionToken};
 use zmq;
 
 use config::Config;
-use data_store::{DataStore, Account, Session};
+use data_store::DataStore;
 use error::{Error, Result};
 use oauth::github;
 
@@ -38,23 +39,25 @@ impl Worker {
             "SessionCreate" => {
                 let msg: SessionCreate = try!(req.parse_msg());
                 match github::authenticate(&msg.get_code()) {
-                    Ok(token) => {
+                    Ok(auth_token) => {
                         // JW TODO: refactor this mess into a find and create routine
-                        let account: Account = match Session::get(&self.datastore().sessions, &token) {
-                            Ok(Session { owner_id: owner, .. }) => {
+                        let account: Account = match self.datastore().sessions.find(&auth_token) {
+                            Ok(session) => {
                                 // JW TODO: handle error. This should not ever happen since session
                                 // and account create will be transactional
-                                self.datastore().accounts.find(owner).unwrap()
+                                self.datastore().accounts.find(&session.get_owner_id()).unwrap()
                             }
                             _ => {
-                                match github::user(&token) {
+                                match github::user(&auth_token) {
                                     Ok(user) => {
                                         // JW TODO: wrap session & account creation into a
                                         // transaction and handle errors
                                         let mut account: Account = user.into();
                                         try!(self.datastore().accounts.write(&mut account));
-                                        let session = Session::new(token.clone(), account.id.clone());
-                                        try!(session.create(&self.datastore().sessions));
+                                        let mut session = SessionToken::new();
+                                        session.set_token(auth_token.clone());
+                                        session.set_owner_id(account.get_id());
+                                        self.datastore().sessions.write(&session).unwrap();
                                         account
                                     }
                                     Err(e @ Error::JsonDecode(_)) => {
@@ -73,7 +76,7 @@ impl Worker {
                             }
                         };
                         let mut reply: sessionsrv::Session = account.into();
-                        reply.set_token(token);
+                        reply.set_token(auth_token);
                         try!(req.reply_complete(&mut self.sock, &reply));
                     }
                     Err(Error::Auth(e)) => {
@@ -95,16 +98,17 @@ impl Worker {
             }
             "SessionGet" => {
                 let msg: SessionGet = try!(req.parse_msg());
-                match Session::get(&self.datastore().sessions, &msg.get_token()) {
-                    Ok(Session { owner_id: owner, .. }) => {
+                match self.datastore().sessions.find(&msg.get_token().to_string()) {
+                    Ok(session) => {
                         // JW TODO: handle error. This should not ever happen since session
                         // and account create will be transactional
-                        let account: Account = self.datastore().accounts.find(owner).unwrap();
+                        let account: Account =
+                            self.datastore().accounts.find(&session.get_owner_id()).unwrap();
                         let mut reply: sessionsrv::Session = account.into();
                         reply.set_token(msg.get_token().to_string());
                         try!(req.reply_complete(&mut self.sock, &reply));
                     }
-                    Err(Error::EntityNotFound) => {
+                    Err(dbcache::Error::EntityNotFound) => {
                         let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:auth:4");
                         try!(req.reply_complete(&mut self.sock, &err));
                     }

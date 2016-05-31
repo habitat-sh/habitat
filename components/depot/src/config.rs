@@ -7,7 +7,7 @@
 
 use std::net;
 
-use hcore::config::{ConfigFile, ParseInto};
+use hab_core::config::{ConfigFile, ParseInto};
 use redis;
 use toml;
 
