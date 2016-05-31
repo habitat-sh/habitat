@@ -278,6 +278,21 @@ $ hab install core/hab-pkg-dockerize
 $ hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize core/redis
 ```
 
+To create an ACI image of a package, either local or remote:
+
+```bash
+$ hab studio enter
+$ hab install core/hab-pkg-aci
+$ hab pkg exec core/hab-pkg-aci hab-pkg-aci core/redis
+```
+
+By default, this will create unsigned ACI images. To sign your ACI with
+default options:
+
+```bash
+$ SIGN=true hab pkg exec core/hab-pkg-aci hab-pkg-aci core/redis
+```
+
 To develop Habitat itself, just work like you always did. If you want to,
 for example, test that Redis is working with your development version of
 the supervisor:
