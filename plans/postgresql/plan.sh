@@ -1,10 +1,10 @@
 pkg_name=postgresql
-pkg_version=9.5.2
+pkg_version=9.5.3
 pkg_origin=core
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('PostgreSQL')
 pkg_source=https://ftp.postgresql.org/pub/source/v${pkg_version}/${pkg_name}-${pkg_version}.tar.bz2
-pkg_shasum=f8d132e464506b551ef498719f18cfe9d777709c7a1589dc360afc0b20e47c41
+pkg_shasum=7385c01dc58acba8d7ac4e6ad42782bd7c0b59272862a3a3d5fe378d4503a0b4
 
 pkg_deps=(
   core/glibc
