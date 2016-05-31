@@ -54,6 +54,19 @@ The web application for the Habitat builder and depot.
 #### Maintainers
 
 * [Fletcher Nichol](https://github.com/fnichol)
+* [Jamie Winsor](https://github.com/reset)
+
+### Habitat Builder
+
+#### Lieutenant
+
+* [Jamie Winsor](https://github.com/reset)
+
+#### Maintainers
+
+* [Adam Jacob](https://github.com/adamhjk)
+* [Fletcher Nichol](https://github.com/fnichol)
+* [Dave Parfitt](https://github.com/metadave)
 
 ### Documentation
 
