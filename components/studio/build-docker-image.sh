@@ -75,5 +75,5 @@ RUN env NO_MOUNT=true hab studio new && rm -rf /hab/studios/src/hab/cache
 ENTRYPOINT ["/bin/hab", "studio"]
 EOF
 cd $tmp_root
-docker build -t habitat/studio:$version .
+docker build --no-cache -t habitat/studio:$version .
 docker tag habitat/studio:$version habitat/studio:latest
