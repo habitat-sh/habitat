@@ -6,8 +6,8 @@
 // open source license such as the Apache 2.0 License.
 
 extern crate habitat_builder_dbcache as dbcache;
-extern crate habitat_core as hcore;
-extern crate habitat_depot_core as depot_core;
+extern crate habitat_builder_protocol as protocol;
+extern crate habitat_core as hab_core;
 #[macro_use]
 extern crate bitflags;
 extern crate crypto;
@@ -20,6 +20,7 @@ extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate mount;
+extern crate protobuf;
 extern crate r2d2;
 extern crate r2d2_redis;
 extern crate redis;
@@ -46,7 +47,7 @@ use std::path::{Path, PathBuf};
 
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
-use hcore::package::{self, PackageArchive};
+use hab_core::package::{Identifiable, PackageArchive};
 
 use data_store::DataStore;
 
@@ -66,7 +67,7 @@ impl Depot {
 
     // Return a PackageArchive representing the given package. None is returned if the Depot
     // doesn't have an archive for the given package.
-    fn archive<P: AsRef<package::PackageIdent>>(&self, ident: P) -> Option<PackageArchive> {
+    fn archive<T: Identifiable>(&self, ident: &T) -> Option<PackageArchive> {
         let file = self.archive_path(ident);
         match fs::metadata(&file) {
             Ok(_) => Some(PackageArchive::new(file)),
@@ -76,8 +77,7 @@ impl Depot {
 
     // Return a formatted string representing the filename of an archive for the given package
     // identifier pieces.
-    fn archive_path<T: AsRef<package::PackageIdent>>(&self, ident: T) -> PathBuf {
-        let ident = ident.as_ref();
+    fn archive_path<T: Identifiable>(&self, ident: &T) -> PathBuf {
         let mut digest = Sha256::new();
         let mut output = [0; 64];
         digest.input_str(&ident.to_string());
@@ -86,10 +86,10 @@ impl Depot {
             .join(format!("{:x}", output[0]))
             .join(format!("{:x}", output[1]))
             .join(format!("{}-{}-{}-{}-x86_64-linux.hart",
-                          &ident.origin,
-                          &ident.name,
-                          ident.version.as_ref().unwrap(),
-                          ident.release.as_ref().unwrap()))
+                          ident.origin(),
+                          ident.name(),
+                          ident.version().unwrap(),
+                          ident.release().unwrap()))
     }
 
     fn key_path(&self, key: &str, rev: &str) -> PathBuf {

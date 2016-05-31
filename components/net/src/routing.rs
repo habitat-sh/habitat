@@ -157,7 +157,10 @@ impl Broker {
     /// # Panics
     ///
     /// * Broker crashed during startup
-    pub fn run(net_ident: String, ctx: Arc<Mutex<zmq::Context>>, routers: &Vec<net::SocketAddrV4>) -> JoinHandle<()> {
+    pub fn run(net_ident: String,
+               ctx: Arc<Mutex<zmq::Context>>,
+               routers: &Vec<net::SocketAddrV4>)
+               -> JoinHandle<()> {
         let (tx, rx) = mpsc::sync_channel(1);
         let addrs = routers.iter().map(|a| a.to_addr_string()).collect();
         let handle = thread::Builder::new()

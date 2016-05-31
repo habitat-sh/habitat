@@ -16,11 +16,11 @@ toml = "*"
 [dependencies.habitat_core]
 path = "../core"
 
-[dependencies.habitat_depot_core]
-path = "../depot-core"
-
 [dependencies.habitat_depot_client]
 path = "../depot-client"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
 
 [dev-dependencies]
 tempdir = "*"

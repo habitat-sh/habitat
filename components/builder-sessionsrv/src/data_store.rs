@@ -4,18 +4,16 @@
 // this file ("Licensee") apply to Licensee's use of the Software until such time that the Software
 // is made available under an open source license such as the Apache 2.0 License.
 
-use std::str::FromStr;
 use std::sync::Arc;
 
-use dbcache::{self, ConnectionPool, DataRecord, ValueTable, IndexTable, RecordTable, Table};
-use dbcache::model::{Fields, Model};
-use protocol::{sessionsrv, InstaId};
+use dbcache::{self, Bucket, ConnectionPool, BasicSet, InstaSet};
+use protocol::Persistable;
+use protocol::sessionsrv;
+use protobuf::Message;
 use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
-use rustc_serialize::Encodable;
 
-use super::oauth::github;
-use error::{Error, Result};
+use error::Result;
 
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
@@ -51,9 +49,7 @@ impl AccountTable {
     }
 }
 
-impl Table for AccountTable {
-    type IdType = InstaId;
-
+impl Bucket for AccountTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -63,71 +59,11 @@ impl Table for AccountTable {
     }
 }
 
-impl RecordTable for AccountTable {
-    type Record = Account;
+impl InstaSet for AccountTable {
+    type Record = sessionsrv::Account;
 
     fn seq_id() -> &'static str {
         "accounts_seq"
-    }
-}
-
-#[derive(Debug, RustcEncodable, RustcDecodable)]
-pub struct Account {
-    pub id: InstaId,
-    pub email: String,
-    pub name: String,
-}
-
-impl Account {
-    pub fn new(name: String, email: String) -> Self {
-        Account {
-            id: InstaId::default(),
-            email: email,
-            name: name,
-        }
-    }
-}
-
-impl Model for Account {
-    type Table = AccountTable;
-
-    fn fields(&self) -> Fields {
-        vec![("email", self.email.clone()), ("name", self.name.clone())]
-    }
-
-    fn id(&self) -> &InstaId {
-        &self.id
-    }
-
-    fn set_id(&mut self, id: InstaId) {
-        self.id = id;
-    }
-}
-
-impl From<github::User> for Account {
-    fn from(user: github::User) -> Account {
-        Account::new(user.login, user.email)
-    }
-}
-
-impl From<DataRecord> for Account {
-    fn from(record: DataRecord) -> Account {
-        let id = u64::from_str(&record["id"]).unwrap();
-        Account {
-            id: InstaId(id),
-            email: record["email"].to_string(),
-            name: record["name"].to_string(),
-        }
-    }
-}
-
-impl Into<sessionsrv::Session> for Account {
-    fn into(self) -> sessionsrv::Session {
-        let mut session = sessionsrv::Session::new();
-        session.set_id(self.id.0);
-        session.set_email(self.email);
-        session.set_name(self.name);
-        session
     }
 }
 
@@ -141,51 +77,24 @@ impl SessionTable {
     }
 }
 
-impl Table for SessionTable {
-    type IdType = String;
+impl Bucket for SessionTable {
+    fn prefix() -> &'static str {
+        "session"
+    }
 
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
-
-    fn prefix() -> &'static str {
-        "session"
-    }
 }
 
-impl ValueTable for SessionTable {
-    type Value = InstaId;
+impl BasicSet for SessionTable {
+    type Record = sessionsrv::SessionToken;
 
-    fn write(&self, id: &<Self as Table>::IdType, value: Self::Value) -> dbcache::Result<()> {
-        try!(self.pool().get().unwrap().set_ex(Self::key(id), value, 86400));
-        Ok(())
-    }
-}
-
-#[derive(Debug, RustcEncodable, RustcDecodable)]
-pub struct Session {
-    pub token: String,
-    pub owner_id: InstaId,
-}
-
-impl Session {
-    pub fn new(token: String, owner_id: InstaId) -> Self {
-        Session {
-            token: token,
-            owner_id: owner_id,
-        }
-    }
-
-    pub fn get(index: &SessionTable, token: &str) -> Result<Self> {
-        let token = token.to_string();
-        match index.find(&token) {
-            Ok(id) => Ok(Self::new(token, id)),
-            Err(e) => Err(Error::from(e)),
-        }
-    }
-
-    pub fn create(&self, index: &SessionTable) -> Result<()> {
-        try!(index.write(&self.token, self.owner_id));
+    fn write(&self, record: &Self::Record) -> dbcache::Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.set_ex(Self::key(&record.primary_key()),
+                         record.write_to_bytes().unwrap(),
+                         86400));
         Ok(())
     }
 }

@@ -8,10 +8,22 @@ use std::collections::BTreeMap;
 
 use rustc_serialize::json::{Json, ToJson};
 
-use message::Routable;
+use message::{Persistable, Routable};
 use sharding::InstaId;
 
 pub use message::vault::*;
+
+impl Persistable for Origin {
+    type Key = u64;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
+    }
+}
 
 impl Routable for OriginGet {
     type H = String;

@@ -16,11 +16,7 @@ pub mod key {
         use common::command::ProgressBar;
         use error::Result;
 
-        pub fn start(depot: &str,
-                     origin: &str,
-                     revision: Option<&str>,
-                     cache: &Path)
-                     -> Result<()> {
+        pub fn start(depot: &str, origin: &str, revision: Option<&str>, cache: &Path) -> Result<()> {
             match revision {
                 Some(revision) => {
                     let nwr = format!("{}-{}", origin, revision);
@@ -28,19 +24,17 @@ pub mod key {
                     println!("{}", Yellow.bold().paint(msg));
                     try!(download_key(depot, &nwr, origin, revision, cache));
                     println!("{}",
-                             Blue.paint(format!("★ Download of {} public origin key completed.",
-                                                &nwr)));
+                             Blue.paint(format!("★ Download of {} public origin key completed.", &nwr)));
                 }
                 None => {
                     let msg = format!("» Downloading public origin keys for {}", origin);
                     println!("{}", Yellow.bold().paint(msg));
                     for key in try!(depot_client::show_origin_keys(depot, origin)) {
-                        let nwr = format!("{}-{}", &key.origin, &key.revision);
-                        try!(download_key(depot, &nwr, &key.origin, &key.revision, cache));
+                        let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
+                        try!(download_key(depot, &nwr, key.get_origin(), key.get_revision(), cache));
                     }
                     println!("{}",
-                             Blue.paint(format!("★ Download of {} public origin keys completed.",
-                                                &origin)));
+                             Blue.paint(format!("★ Download of {} public origin keys completed.", &origin)));
                 }
             };
             Ok(())
@@ -54,11 +48,7 @@ pub mod key {
                 Err(_) => {
                     println!("{} {}", Green.bold().paint("↓ Downloading"), &nwr);
                     let mut progress = ProgressBar::default();
-                    try!(depot_client::fetch_origin_key(depot,
-                                                        name,
-                                                        rev,
-                                                        cache,
-                                                        Some(&mut progress)));
+                    try!(depot_client::fetch_origin_key(depot, name, rev, cache, Some(&mut progress)));
                     println!("{} {}", Green.bold().paint("☑ Cached"), &nwr);
                 }
             }
@@ -79,12 +69,8 @@ pub mod key {
         pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
             let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
             let path = match pair_type {
-                PairType::Public => {
-                    try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(), cache))
-                }
-                PairType::Secret => {
-                    try!(SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache))
-                }
+                PairType::Public => try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(), cache)),
+                PairType::Secret => try!(SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache)),
             };
             let mut file = try!(File::open(&path));
             debug!("Streaming file contents of {} {} to standard out",
@@ -108,8 +94,7 @@ pub mod key {
                      Yellow.bold().paint(format!("» Generating origin key for {}", &origin)));
             let pair = try!(SigKeyPair::generate_pair_for_origin(origin, cache));
             println!("{}",
-                     Blue.paint(format!("★ Generated origin key pair {}.",
-                                        &pair.name_with_rev())));
+                     Blue.paint(format!("★ Generated origin key pair {}.", &pair.name_with_rev())));
             Ok(())
         }
     }

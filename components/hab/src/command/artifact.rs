@@ -81,21 +81,21 @@ pub mod upload {
         println!("{}",
                  Yellow.bold().paint(format!("» Uploading {}", archive_path.as_ref().display())));
         let tdeps = try!(archive.tdeps());
-        for dep in tdeps.iter() {
-            match depot_client::show_package(url, dep) {
-                Ok(_) => println!("{} {}", Green.paint("→ Exists"), dep),
+        for dep in tdeps.into_iter() {
+            match depot_client::show_package(url, dep.clone()) {
+                Ok(_) => println!("{} {}", Green.paint("→ Exists"), &dep),
                 Err(depot_client::Error::RemotePackageNotFound(_)) => {
                     let candidate_path = match archive_path.as_ref().parent() {
                         Some(p) => PathBuf::from(p),
                         None => unreachable!(),
                     };
-                    try!(attempt_upload_dep(url, dep, &candidate_path));
+                    try!(attempt_upload_dep(url, &dep, &candidate_path));
                 }
                 Err(e) => return Err(Error::from(e)),
             }
         }
         let ident = try!(archive.ident());
-        match depot_client::show_package(url, &ident) {
+        match depot_client::show_package(url, ident.clone()) {
             Ok(_) => println!("{} {}", Green.paint("→ Exists"), &ident),
             Err(_) => {
                 try!(upload_into_depot(&url, &ident, &mut archive));
@@ -106,10 +106,7 @@ pub mod upload {
         Ok(())
     }
 
-    fn upload_into_depot(url: &str,
-                         ident: &PackageIdent,
-                         mut archive: &mut PackageArchive)
-                         -> Result<()> {
+    fn upload_into_depot(url: &str, ident: &PackageIdent, mut archive: &mut PackageArchive) -> Result<()> {
         println!("{} {}",
                  Green.bold().paint("↑ Uploading"),
                  archive.path.display());
@@ -145,9 +142,7 @@ pub mod upload {
                 Err(Error::DepotClient(depot_client::Error::HTTP(e))) => {
                     return Err(Error::DepotClient(depot_client::Error::HTTP(e)))
                 }
-                Err(Error::PackageArchiveMalformed(e)) => {
-                    return Err(Error::PackageArchiveMalformed(e))
-                }
+                Err(Error::PackageArchiveMalformed(e)) => return Err(Error::PackageArchiveMalformed(e)),
                 Err(e) => {
                     println!("Unknown error encountered: {:?}", e);
                     return Err(e);

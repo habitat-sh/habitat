@@ -5,9 +5,8 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-extern crate habitat_core as hcore;
+extern crate habitat_core as hab_core;
 extern crate habitat_depot as depot;
-extern crate habitat_depot_core as depot_core;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
@@ -19,7 +18,7 @@ use std::process;
 use std::str::FromStr;
 
 use depot::{server, Config, Error, Result};
-use hcore::config::ConfigFile;
+use hab_core::config::ConfigFile;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const CFG_DEFAULT_PATH: &'static str = "/hab/svc/hab-depot/config.toml";
@@ -44,7 +43,8 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (about: "Manage a package Depot")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
-        (@arg path: -p --path +takes_value +global "Filepath to service storage for the Depot service")
+        (@arg path: -p --path +takes_value +global
+            "Filepath to service storage for the Depot service")
         (@arg config: -c --config +takes_value +global
             "Filepath to configuration file. [default: /hab/svc/hab-depot/config.toml]")
         (@subcommand start =>

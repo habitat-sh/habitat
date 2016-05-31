@@ -32,12 +32,12 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use ansi_term::Colour::{Blue, Green, Yellow};
+use depot_client;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::fs::cache_artifact_path;
-use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
-use depot_core::data_object;
-use depot_client;
+use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall};
+use protocol::depotsrv;
 
 use command::ProgressBar;
 use error::Result;
@@ -75,38 +75,38 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
 /// # Failures
 ///
 /// * Fails if it cannot download the package from the upstream
-pub fn from_url<I, P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
-                                                       ident: &I,
-                                                       fs_root_path: &P1,
-                                                       cache_artifact_path: &P2,
-                                                       cache_key_path: &P3)
-                                                       -> Result<data_object::Package>
-    where I: AsRef<PackageIdent>,
-          P1: AsRef<Path>,
+pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
+                                                    ident: &PackageIdent,
+                                                    fs_root_path: &P1,
+                                                    cache_artifact_path: &P2,
+                                                    cache_key_path: &P3)
+                                                    -> Result<depotsrv::Package>
+    where P1: AsRef<Path>,
           P2: AsRef<Path>,
           P3: AsRef<Path>
 {
     println!("{}",
-             Yellow.bold().paint(format!("» Installing {}", ident.as_ref())));
-    let pkg_data = try!(depot_client::show_package(url, ident.as_ref()));
-    for dep in &pkg_data.tdeps {
+             Yellow.bold().paint(format!("» Installing {}", ident)));
+    let pkg_data = try!(depot_client::show_package(url, ident.clone()));
+    for dep in pkg_data.get_tdeps().into_iter() {
+        let d: PackageIdent = (*dep).clone().into();
         try!(install_from_depot(url,
-                                &dep,
-                                dep.as_ref(),
+                                &d,
+                                &d,
                                 fs_root_path.as_ref(),
                                 cache_artifact_path.as_ref(),
                                 cache_key_path.as_ref()));
     }
     try!(install_from_depot(url,
-                            &pkg_data.ident,
-                            ident.as_ref(),
+                            &pkg_data.get_ident().clone().into(),
+                            ident,
                             fs_root_path.as_ref(),
                             cache_artifact_path.as_ref(),
                             cache_key_path.as_ref()));
     println!("{}",
              Blue.paint(format!("★ Install of {} complete with {} packages installed.",
-                                ident.as_ref(),
-                                1 + &pkg_data.tdeps.len())));
+                                ident,
+                                1 + &pkg_data.get_tdeps().len())));
     Ok(pkg_data)
 }
 
@@ -146,17 +146,17 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
     Ok(())
 }
 
-fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
-                                              ident: &P,
-                                              given_ident: &PackageIdent,
-                                              fs_root_path: &Path,
-                                              cache_artifact_path: &Path,
-                                              cache_key_path: &Path)
-                                              -> Result<()> {
-    match PackageInstall::load(ident.as_ref(), Some(&fs_root_path)) {
+fn install_from_depot(url: &str,
+                      ident: &PackageIdent,
+                      given_ident: &PackageIdent,
+                      fs_root_path: &Path,
+                      cache_artifact_path: &Path,
+                      cache_key_path: &Path)
+                      -> Result<()> {
+    match PackageInstall::load(ident, Some(&fs_root_path)) {
         Ok(_) => {
             if given_ident.fully_qualified() {
-                println!("{} {}", Green.paint("→ Using"), ident.as_ref());
+                println!("{} {}", Green.paint("→ Using"), ident);
             } else {
                 println!("{} {} which satisfies {}",
                          Green.paint("→ Using"),
@@ -170,7 +170,7 @@ fn install_from_depot<P: AsRef<PackageIdent>>(url: &str,
                      ident.as_ref());
             let mut progress = ProgressBar::default();
             let mut archive = try!(depot_client::fetch_package(url,
-                                                               ident.as_ref(),
+                                                               (*ident).clone(),
                                                                cache_artifact_path,
                                                                Some(&mut progress)));
             let ident = try!(archive.ident());

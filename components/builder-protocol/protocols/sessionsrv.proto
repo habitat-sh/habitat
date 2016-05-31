@@ -1,14 +1,9 @@
 package sessionsrv;
 
-message Message {
-  enum Type {
-    Session = 1;
-    SessionCreate = 2;
-    SessionGet = 3;
-  }
-
-  required Type type = 1;
-  required bytes body = 2;
+message Account {
+  required uint64 id = 1;
+  required string email = 2;
+  required string name = 3;
 }
 
 message Session {
@@ -16,6 +11,11 @@ message Session {
   required string email = 2;
   required string name = 3;
   required string token = 4;
+}
+
+message SessionToken {
+  required string token = 1;
+  required uint64 owner_id = 2;
 }
 
 message SessionCreate {

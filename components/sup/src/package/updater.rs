@@ -91,25 +91,23 @@ impl GenServer for PackageUpdater {
         //          This will allow an operator to lock to a version and receive security updates
         //          in the form of release updates for a package.
         let ident = PackageIdent::new(package.origin.clone(), package.name.clone(), None, None);
-        match depot_client::show_package(&state.depot, &ident) {
+        match depot_client::show_package(&state.depot, ident) {
             Ok(remote) => {
-                let latest_ident: &PackageIdent = remote.ident.as_ref();
-                if latest_ident > &*package.ident() {
+                let latest_ident: PackageIdent = remote.get_ident().clone().into();
+                if &latest_ident > package.ident() {
                     let mut progress = ProgressBar::default();
                     match depot_client::fetch_package(&state.depot,
-                                                      latest_ident,
-                                                      &Path::new(FS_ROOT_PATH)
-                                                          .join(CACHE_ARTIFACT_PATH),
+                                                      latest_ident.clone(),
+                                                      &Path::new(FS_ROOT_PATH).join(CACHE_ARTIFACT_PATH),
                                                       Some(&mut progress)) {
                         Ok(archive) => {
                             debug!("Updater downloaded new package to {:?}", archive);
                             // JW TODO: actually handle verify and unpack results
                             archive.verify(&default_cache_key_path(None)).unwrap();
                             archive.unpack(None).unwrap();
-                            let latest_package = Package::load(latest_ident, None).unwrap();
+                            let latest_package = Package::load(&latest_ident, None).unwrap();
                             state.status = UpdaterStatus::Stopped;
-                            let msg =
-                                wonder::actor::Message::Cast(UpdaterMessage::Update(latest_package));
+                            let msg = wonder::actor::Message::Cast(UpdaterMessage::Update(latest_package));
                             tx.send(msg).unwrap();
                             HandleResult::NoReply(None)
                         }

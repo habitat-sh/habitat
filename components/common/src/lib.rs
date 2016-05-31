@@ -5,8 +5,8 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hcore;
-extern crate habitat_depot_core as depot_core;
 extern crate habitat_depot_client as depot_client;
 extern crate ansi_term;
 #[macro_use]

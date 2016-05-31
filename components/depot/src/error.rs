@@ -12,7 +12,8 @@ use std::fmt;
 use std::result;
 
 use dbcache;
-use hcore::{self, package};
+use hab_core;
+use hab_core::package::{self, Identifiable};
 use hyper;
 use redis;
 
@@ -20,7 +21,7 @@ use redis;
 pub enum Error {
     BadPort(String),
     DataStore(dbcache::Error),
-    HabitatCore(hcore::Error),
+    HabitatCore(hab_core::Error),
     HTTP(hyper::status::StatusCode),
     InvalidPackageIdent(String),
     IO(io::Error),
@@ -46,7 +47,9 @@ impl fmt::Display for Error {
                         e)
             }
             Error::IO(ref e) => format!("{}", e),
-            Error::NoXFilename => format!("Invalid download from a Depot - missing X-Filename header"),
+            Error::NoXFilename => {
+                format!("Invalid download from a Depot - missing X-Filename header")
+            }
             Error::NoFilePart => {
                 format!("An invalid path was passed - we needed a filename, and this path does \
                          not have one")
@@ -59,7 +62,9 @@ impl fmt::Display for Error {
                     format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
-            Error::WriteSyncFailed => format!("Could not write to destination; perhaps the disk is full?"),
+            Error::WriteSyncFailed => {
+                format!("Could not write to destination; perhaps the disk is full?")
+            }
         };
         write!(f, "{}", msg)
     }
@@ -72,19 +77,33 @@ impl error::Error for Error {
             Error::DataStore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
-            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
+            Error::InvalidPackageIdent(_) => {
+                "Package identifiers must be in origin/name format (example: acme/redis)"
+            }
             Error::IO(ref err) => err.description(),
-            Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
+            Error::NulError(_) => {
+                "An attempt was made to build a CString with a null byte inside it"
+            }
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
-            Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one",
-            Error::WriteSyncFailed => "Could not write to destination; bytes written was 0 on a non-0 buffer",
+            Error::NoFilePart => {
+                "An invalid path was passed - we needed a filename, and this path does not have one"
+            }
+            Error::WriteSyncFailed => {
+                "Could not write to destination; bytes written was 0 on a non-0 buffer"
+            }
         }
     }
 }
 
-impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Error {
+impl From<dbcache::Error> for Error {
+    fn from(err: dbcache::Error) -> Error {
+        Error::DataStore(err)
+    }
+}
+
+impl From<hab_core::Error> for Error {
+    fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
     }
 }

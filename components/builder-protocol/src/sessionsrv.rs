@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 
 use rustc_serialize::json::{Json, ToJson};
 
-use message::Routable;
+use message::{Persistable, Routable};
 
 pub use message::sessionsrv::*;
 
@@ -30,6 +30,40 @@ impl Routable for SessionGet {
         // JW TODO: how do we know the shard from the session key? Is it embedded? Is this a
         // composite key that contains the shard plus the token?
         None
+    }
+}
+
+impl Persistable for Account {
+    type Key = u64;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
+    }
+}
+
+impl Into<Session> for Account {
+    fn into(self) -> Session {
+        let mut session = Session::new();
+        session.set_id(self.get_id());
+        session.set_email(self.get_email().to_owned());
+        session.set_name(self.get_name().to_owned());
+        session
+    }
+}
+
+impl Persistable for SessionToken {
+    type Key = String;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_token().to_string()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_token(value)
     }
 }
 

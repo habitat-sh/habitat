@@ -41,6 +41,7 @@ use std::sync::mpsc;
 
 use ansi_term::Colour::Red;
 use handlebars;
+use hcore::package::Identifiable;
 use hyper;
 use rustc_serialize::json;
 use toml;
