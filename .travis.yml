@@ -38,8 +38,10 @@ matrix:
     before_install:
     - ./support/ci/compile_libsodium.sh
     - ./support/ci/compile_libarchive.sh
+    - ./support/ci/install_rustfmt.sh
     script:
     - ./support/ci/rust_tests.sh
+    - ./support/ci/lint.sh
   - language: rust
     env:
     - COMPONENTS=lib LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
@@ -72,8 +74,10 @@ matrix:
     before_install:
     - ./support/ci/compile_libsodium.sh
     - ./support/ci/compile_libarchive.sh
+    - ./support/ci/install_rustfmt.sh
     script:
     - ./support/ci/rust_tests.sh
+    - ./support/ci/lint.sh
   - language: rust
     env:
     - COMPONENTS=srv LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
@@ -106,8 +110,10 @@ matrix:
     before_install:
     - ./support/ci/compile_libsodium.sh
     - ./support/ci/compile_libarchive.sh
+    - ./support/ci/install_rustfmt.sh
     script:
     - ./support/ci/rust_tests.sh
+    - ./support/ci/lint.sh
   - language: node_js
     node_js: 4.2.6
     sudo: required
