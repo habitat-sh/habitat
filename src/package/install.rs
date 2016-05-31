@@ -16,7 +16,7 @@ use std::str::FromStr;
 
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
-use package::{MetaFile, PackageIdent};
+use package::{Identifiable, MetaFile, PackageIdent};
 
 #[derive(Clone, Debug)]
 pub struct PackageInstall {
@@ -53,22 +53,20 @@ impl PackageInstall {
             }
         } else {
             let latest: Option<PackageIdent> = pl.iter()
-                                                 .filter(|&p| p.satisfies(ident))
-                                                 .fold(None, |winner, b| {
-                                                     match winner {
-                                                         Some(a) => {
-                                                             match a.partial_cmp(&b) {
-                                                                 Some(Ordering::Greater) => Some(a),
-                                                                 Some(Ordering::Equal) => Some(a),
-                                                                 Some(Ordering::Less) => {
-                                                                     Some(b.clone())
-                                                                 }
-                                                                 None => Some(a),
-                                                             }
-                                                         }
-                                                         None => Some(b.clone()),
-                                                     }
-                                                 });
+                .filter(|&p| p.satisfies(ident))
+                .fold(None, |winner, b| {
+                    match winner {
+                        Some(a) => {
+                            match a.partial_cmp(&b) {
+                                Some(Ordering::Greater) => Some(a),
+                                Some(Ordering::Equal) => Some(a),
+                                Some(Ordering::Less) => Some(b.clone()),
+                                None => Some(a),
+                            }
+                        }
+                        None => Some(b.clone()),
+                    }
+                });
             if let Some(id) = latest {
                 Ok(PackageInstall {
                     ident: id.clone(),
@@ -108,8 +106,8 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::Exposes) {
             Ok(body) => {
                 let v: Vec<String> = body.split(' ')
-                                         .map(|x| String::from(x.trim_right_matches('\n')))
-                                         .collect();
+                    .map(|x| String::from(x.trim_right_matches('\n')))
+                    .collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exposes)) => {
@@ -305,9 +303,9 @@ impl PackageInstall {
     fn calc_installed_path(ident: &PackageIdent, pkg_root: &Path) -> Result<PathBuf> {
         if ident.fully_qualified() {
             Ok(pkg_root.join(&ident.origin)
-                       .join(&ident.name)
-                       .join(ident.version.as_ref().unwrap())
-                       .join(ident.release.as_ref().unwrap()))
+                .join(&ident.name)
+                .join(ident.version.as_ref().unwrap())
+                .join(ident.release.as_ref().unwrap()))
         } else {
             Err(Error::PackageNotFound(ident.clone()))
         }
@@ -350,10 +348,7 @@ impl PackageInstall {
 
     /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
-    fn walk_versions(origin: &String,
-                     name: &DirEntry,
-                     packages: &mut Vec<PackageIdent>)
-                     -> Result<()> {
+    fn walk_versions(origin: &String, name: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
         for version in try!(std::fs::read_dir(name.path())) {
             let version = try!(version);
             let name = name.file_name().to_string_lossy().into_owned().to_string();
@@ -375,10 +370,7 @@ impl PackageInstall {
         for release in try!(std::fs::read_dir(version.path())) {
             let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
             let version = version.file_name().to_string_lossy().into_owned().to_string();
-            let ident = PackageIdent::new(origin.clone(),
-                                          name.clone(),
-                                          Some(version),
-                                          Some(release));
+            let ident = PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
             packages.push(ident)
         }
         Ok(())

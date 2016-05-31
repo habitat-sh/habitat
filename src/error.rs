@@ -17,7 +17,7 @@ use extern_url;
 use libarchive;
 use regex;
 
-use package;
+use package::{self, Identifiable};
 
 pub type Result<T> = result::Result<T, Error>;
 

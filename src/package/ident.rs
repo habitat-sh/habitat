@@ -14,6 +14,40 @@ use regex::Regex;
 
 use error::{Error, Result};
 
+pub trait Identifiable: fmt::Display + Into<PackageIdent> {
+    fn origin(&self) -> &str;
+    fn name(&self) -> &str;
+    fn version(&self) -> Option<&str>;
+    fn release(&self) -> Option<&str>;
+
+    fn fully_qualified(&self) -> bool {
+        self.version().is_some() && self.release().is_some()
+    }
+
+    fn satisfies<I: Identifiable>(&self, other: &I) -> bool {
+        if self.origin() != other.origin() || self.name() != other.name() {
+            return false;
+        }
+        if self.version().is_some() {
+            if other.version().is_none() {
+                return true;
+            }
+            if *self.version().unwrap() != *other.version().unwrap() {
+                return false;
+            }
+        }
+        if self.release().is_some() {
+            if other.release().is_none() {
+                return true;
+            }
+            if *self.release().unwrap() != *other.release().unwrap() {
+                return false;
+            }
+        }
+        true
+    }
+}
+
 #[derive(RustcEncodable, RustcDecodable, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageIdent {
     pub origin: String,
@@ -24,11 +58,7 @@ pub struct PackageIdent {
 
 impl PackageIdent {
     /// Creates a new package identifier
-    pub fn new<T: Into<String>>(origin: T,
-                                name: T,
-                                version: Option<T>,
-                                release: Option<T>)
-                                -> Self {
+    pub fn new<T: Into<String>>(origin: T, name: T, version: Option<T>, release: Option<T>) -> Self {
         PackageIdent {
             origin: origin.into(),
             name: name.into(),
@@ -48,33 +78,23 @@ impl PackageIdent {
             None
         }
     }
+}
 
-    pub fn fully_qualified(&self) -> bool {
-        self.version.is_some() && self.release.is_some()
+impl Identifiable for PackageIdent {
+    fn origin(&self) -> &str {
+        &self.origin
     }
 
-    pub fn satisfies<T: AsRef<Self>>(&self, ident: T) -> bool {
-        let other = ident.as_ref();
-        if self.origin != other.origin || self.name != other.name {
-            return false;
-        }
-        if self.version.is_some() {
-            if other.version.is_none() {
-                return true;
-            }
-            if *self.version.as_ref().unwrap() != *other.version.as_ref().unwrap() {
-                return false;
-            }
-        }
-        if self.release.is_some() {
-            if other.release.is_none() {
-                return true;
-            }
-            if *self.release.as_ref().unwrap() != *other.release.as_ref().unwrap() {
-                return false;
-            }
-        }
-        true
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn version(&self) -> Option<&str> {
+        self.version.as_ref().map(|f| f.as_str())
+    }
+
+    fn release(&self) -> Option<&str> {
+        self.release.as_ref().map(|f| f.as_str())
     }
 }
 

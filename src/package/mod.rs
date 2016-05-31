@@ -9,8 +9,8 @@ pub mod archive;
 pub mod ident;
 pub mod install;
 
-pub use self::archive::PackageArchive;
-pub use self::ident::PackageIdent;
+pub use self::archive::{FromArchive, PackageArchive};
+pub use self::ident::{Identifiable, PackageIdent};
 pub use self::install::PackageInstall;
 
 use std::fmt;
