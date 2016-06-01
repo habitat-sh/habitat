@@ -9,6 +9,7 @@ pkg_filename=jdk-${pkg_version}-linux-x64.tar.gz
 pkg_license=('Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX')
 
 pkg_deps=(core/glibc)
+pkg_build_deps=(core/patchelf)
 pkg_bin_dirs=(bin jre/bin)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
@@ -58,8 +59,13 @@ do_build() {
 }
 
 do_install() {
-  build_line "Copying JDK files into package"
-
   cd $source_dir
   cp -r * $pkg_prefix
+
+  build_line "Setting interpreter for '${pkg_prefix}/bin/java' '$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2'"
+  build_line "Setting rpath for '${pkg_prefix}/bin/java' to '$LD_RUN_PATH'"
+
+  patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
+           --set-rpath ${LD_RUN_PATH} \
+           ${pkg_prefix}/bin/java
 }
