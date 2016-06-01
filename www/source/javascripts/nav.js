@@ -13,7 +13,8 @@ var toggleStickyNav = function() {
     $mainNav.toggleClass('is-visible', $(window).scrollTop() > stickyVisibleBreakpoint);
     $('#content-outer').toggleClass('has-sticky-nav', $(window).scrollTop() > stickyBreakpoint);
   } else {
-    $mainNav.removeClass('is-sticky is-visible');
+    $mainNav.removeClass('is-visible');
+    $mainNav.toggleClass('is-sticky', $(window).scrollTop() > 0);
   }
 };
 
@@ -33,6 +34,8 @@ for (var linkName in navPageLinks) {
 };
 
 $(window).resize(function() {
+  toggleStickyNav();
+
   if ($(window).width() > navBreakpoint) {
     $navLinks.attr('style', '');
     $mainNav.removeClass('is-open');

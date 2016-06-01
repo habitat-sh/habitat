@@ -22,16 +22,16 @@ $main-nav-breakpoint: 710px;
 
   @include large-nav {
     min-height: $header-height;
+
+    &.is-sticky {
+      position: fixed;
+      top: -100%;
+    }
   }
 
   &.is-open,
   &.is-sticky {
     box-shadow: 0 0 50px 2px $hab-gray;
-  }
-
-  &.is-sticky {
-    position: fixed;
-    top: -100%;
   }
 
   &.is-visible {
