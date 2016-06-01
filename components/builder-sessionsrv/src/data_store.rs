@@ -6,12 +6,10 @@
 
 use std::sync::Arc;
 
-use dbcache::{self, Bucket, ConnectionPool, BasicSet, InstaSet};
-use protocol::Persistable;
+use dbcache::{Bucket, ConnectionPool, ExpiringSet, IndexSet, InstaSet};
 use protocol::sessionsrv;
-use protobuf::Message;
 use r2d2_redis::RedisConnectionManager;
-use redis::{self, Commands, PipelineCommands};
+use redis;
 
 use error::Result;
 
@@ -41,11 +39,35 @@ impl DataStore {
 
 pub struct AccountTable {
     pool: Arc<ConnectionPool>,
+    github: GitHub2AccountIdx,
 }
 
 impl AccountTable {
     pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        AccountTable { pool: pool }
+        let pool1 = pool.clone();
+        let directory = GitHub2AccountIdx::new(pool1);
+        AccountTable {
+            pool: pool,
+            github: directory,
+        }
+    }
+
+    pub fn find_or_create(&self, req: &sessionsrv::SessionCreate) -> Result<sessionsrv::Account> {
+        let id = match req.get_provider() {
+            sessionsrv::OAuthProvider::GitHub => self.github.find(&req.get_extern_id()).ok(),
+        };
+        if let Some(ref id) = id {
+            let account = try!(self.find(id));
+            Ok(account)
+        } else {
+            let mut account = sessionsrv::Account::new();
+            account.set_email(req.get_email().to_string());
+            account.set_name(req.get_name().to_string());
+            // JW TODO: make these two database calls transactional
+            try!(self.write(&mut account));
+            try!(self.github.write(&req.get_extern_id(), account.get_id()));
+            Ok(account)
+        }
     }
 }
 
@@ -87,14 +109,35 @@ impl Bucket for SessionTable {
     }
 }
 
-impl BasicSet for SessionTable {
+impl ExpiringSet for SessionTable {
     type Record = sessionsrv::SessionToken;
 
-    fn write(&self, record: &Self::Record) -> dbcache::Result<()> {
-        let conn = try!(self.pool().get());
-        try!(conn.set_ex(Self::key(&record.primary_key()),
-                         record.write_to_bytes().unwrap(),
-                         86400));
-        Ok(())
+    fn expiry() -> usize {
+        86400
     }
+}
+
+struct GitHub2AccountIdx {
+    pool: Arc<ConnectionPool>,
+}
+
+impl GitHub2AccountIdx {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        GitHub2AccountIdx { pool: pool }
+    }
+}
+
+impl Bucket for GitHub2AccountIdx {
+    fn prefix() -> &'static str {
+        "github2account"
+    }
+
+    fn pool(&self) -> &ConnectionPool {
+        &self.pool
+    }
+}
+
+impl IndexSet for GitHub2AccountIdx {
+    type Key = u64;
+    type Value = u64;
 }

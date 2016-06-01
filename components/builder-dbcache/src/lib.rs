@@ -17,5 +17,5 @@ extern crate time;
 pub mod data_store;
 pub mod error;
 
-pub use self::data_store::{ConnectionPool, Bucket, BasicSet, InstaSet, IndexSet};
+pub use self::data_store::{ConnectionPool, Bucket, BasicSet, ExpiringSet, InstaSet, IndexSet};
 pub use self::error::{Error, Result};

@@ -9,17 +9,16 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use std::thread;
 
-use dbcache::{self, BasicSet, InstaSet, IndexSet};
+use dbcache::{self, ExpiringSet, InstaSet, IndexSet};
 use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
                       Supervisable};
 use protocol::net::{self, ErrCode};
-use protocol::sessionsrv::{self, Account, SessionGet, SessionCreate, SessionToken};
+use protocol::sessionsrv::{Account, Session, SessionGet, SessionCreate, SessionToken};
 use zmq;
 
 use config::Config;
 use data_store::DataStore;
 use error::{Error, Result};
-use oauth::github;
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
@@ -37,76 +36,33 @@ impl Worker {
     fn dispatch(&mut self, req: &mut Envelope) -> Result<()> {
         match req.message_id() {
             "SessionCreate" => {
-                let msg: SessionCreate = try!(req.parse_msg());
-                match github::authenticate(&msg.get_code()) {
-                    Ok(auth_token) => {
-                        // JW TODO: refactor this mess into a find and create routine
-                        let account: Account = match self.datastore().sessions.find(&auth_token) {
-                            Ok(session) => {
-                                // JW TODO: handle error. This should not ever happen since session
-                                // and account create will be transactional
-                                self.datastore().accounts.find(&session.get_owner_id()).unwrap()
-                            }
-                            _ => {
-                                match github::user(&auth_token) {
-                                    Ok(user) => {
-                                        // JW TODO: wrap session & account creation into a
-                                        // transaction and handle errors
-                                        let mut account: Account = user.into();
-                                        try!(self.datastore().accounts.write(&mut account));
-                                        let mut session = SessionToken::new();
-                                        session.set_token(auth_token.clone());
-                                        session.set_owner_id(account.get_id());
-                                        self.datastore().sessions.write(&session).unwrap();
-                                        account
-                                    }
-                                    Err(e @ Error::JsonDecode(_)) => {
-                                        debug!("github user get, err={:?}", e);
-                                        let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:2");
-                                        try!(req.reply_complete(&mut self.sock, &err));
-                                        return Ok(());
-                                    }
-                                    Err(e) => {
-                                        error!("github user get, err={:?}", e);
-                                        let err = net::err(ErrCode::BUG, "ss:auth:3");
-                                        try!(req.reply_complete(&mut self.sock, &err));
-                                        return Ok(());
-                                    }
-                                }
-                            }
-                        };
-                        let mut reply: sessionsrv::Session = account.into();
-                        reply.set_token(auth_token);
-                        try!(req.reply_complete(&mut self.sock, &reply));
-                    }
-                    Err(Error::Auth(e)) => {
-                        debug!("github authentication, err={:?}", e);
-                        let err = net::err(ErrCode::REMOTE_REJECTED, e.error);
-                        try!(req.reply_complete(&mut self.sock, &err));
-                    }
-                    Err(e @ Error::JsonDecode(_)) => {
-                        debug!("github authentication, err={:?}", e);
-                        let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
-                        try!(req.reply_complete(&mut self.sock, &err));
-                    }
-                    Err(e) => {
-                        error!("github authentication, err={:?}", e);
-                        let err = net::err(ErrCode::BUG, "ss:auth:0");
-                        try!(req.reply_complete(&mut self.sock, &err));
-                    }
-                }
+                let mut msg: SessionCreate = try!(req.parse_msg());
+                let mut account: Account = match self.datastore()
+                    .sessions
+                    .find(&msg.get_token().to_string()) {
+                    Ok(session) => self.datastore().accounts.find(&session.get_owner_id()).unwrap(),
+                    _ => try!(self.datastore().accounts.find_or_create(&msg)),
+                };
+                let mut session_token = SessionToken::new();
+                session_token.set_owner_id(account.get_id());
+                session_token.set_token(msg.take_token());
+                try!(self.datastore().sessions.write(&mut session_token));
+                let mut session = Session::new();
+                session.set_token(session_token.take_token());
+                session.set_id(session_token.get_owner_id());
+                session.set_email(account.take_email());
+                session.set_name(account.take_name());
+                try!(req.reply_complete(&mut self.sock, &session));
             }
             "SessionGet" => {
                 let msg: SessionGet = try!(req.parse_msg());
                 match self.datastore().sessions.find(&msg.get_token().to_string()) {
-                    Ok(session) => {
-                        // JW TODO: handle error. This should not ever happen since session
-                        // and account create will be transactional
+                    Ok(mut token) => {
                         let account: Account =
-                            self.datastore().accounts.find(&session.get_owner_id()).unwrap();
-                        let mut reply: sessionsrv::Session = account.into();
-                        reply.set_token(msg.get_token().to_string());
-                        try!(req.reply_complete(&mut self.sock, &reply));
+                            self.datastore().accounts.find(&token.get_owner_id()).unwrap();
+                        let mut session: Session = account.into();
+                        session.set_token(token.take_token());
+                        try!(req.reply_complete(&mut self.sock, &session));
                     }
                     Err(dbcache::Error::EntityNotFound) => {
                         let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:auth:4");

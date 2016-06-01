@@ -13,13 +13,10 @@ use message::{Persistable, Routable};
 pub use message::sessionsrv::*;
 
 impl Routable for SessionCreate {
-    type H = String;
+    type H = u64;
 
     fn route_key(&self) -> Option<Self::H> {
-        // JW TODO: define a suitable route hash for creating sessions. The gateway should probably
-        // perform the oauth authentication to retrieve the ID of the oauth user and then we should
-        // route on that.
-        None
+        Some(self.get_extern_id())
     }
 }
 
