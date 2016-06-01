@@ -35,6 +35,13 @@ end
 require 'lib/sidebar_helpers'
 helpers SidebarHelpers
 
+helpers do
+  def nav_class
+    layout = current_page.options.fetch(:layout, nil)
+    layout == :sidebar ? 'has-sidebar' : ''
+  end
+end
+
 # Build-specific configuration
 configure :build do
   # Minify CSS on build

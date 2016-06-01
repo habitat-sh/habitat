@@ -54,19 +54,19 @@ $hab-white: #ffffff;
 $hab-blue-light: #e9f1f7;
 $hab-blue: #7fadcb;
 $hab-gray-light: #e9eaeb;
-$hab-orange-dark: #f58151;
+$hab-orange-dark: #eb6852;
 $hab-off-white: #f8f9f9;
 $hab-gray: #b6babe;
 $hab-gray-dark: #7d868c;
-$hab-orange: #f59b51;
-$hab-blue-dark: #394b5a;
-$hab-green: #82c587;
+$hab-orange: #ff9012;
+$hab-blue-grey: #5c6670;
+$hab-green: #87b09a;
 $hab-green-dark: #78b57d;
 $hab-blue-medium: #dce6ed;
 $hab-gray-dark-15: rgba(125, 134, 140, 0.15);
 $hab-cta: $hab-green;
 
-$hab-primary: $hab-orange-dark;
+$hab-primary: $hab-green;
 
 $foundation-palette: (
   primary: $hab-orange-dark,
@@ -82,10 +82,11 @@ $black: #0a0a0a;
 $white: #fefefe;
 
 $body-background: $hab-off-white;
-$body-font-color: $hab-blue-dark;
+$body-font-color: $hab-blue-grey;
 $body-font-family: 'Titillium Web', 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
 $body-antialiased: true;
-$header-height: 80px;
+$header-height: 106px;
+$header-height-mobile: 63px;
 $global-margin: 1rem;
 $global-padding: 1rem;
 $global-weight-normal: normal;
@@ -155,7 +156,7 @@ $header-small-font-color: $medium-gray;
 $paragraph-lineheight: 1.6;
 $paragraph-margin-bottom: rem-calc(20);
 $paragraph-text-rendering: optimizeLegibility;
-$code-color: $hab-blue-dark;
+$code-color: $hab-blue-grey;
 $code-font-family: $font-family-monospace;
 $code-font-size: rem-calc(14);
 $code-font-weight: $global-weight-bold;
