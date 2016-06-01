@@ -1,11 +1,46 @@
-$main-nav-breakpoint: 670px;
+$main-nav-breakpoint: 710px;
+
+@mixin large-nav {
+  @media (min-width: $main-nav-breakpoint) {
+    @content;
+  }
+}
+
+@mixin small-nav {
+  @media (max-width: $main-nav-breakpoint - 1px) {
+    @content;
+  }
+}
 
 #main-nav {
-  background: url("../images/bg-pattern.png"), linear-gradient(205deg, #f59b51 5%, #f58251 100%), center;
-  background-color: $hab-orange;
-  box-shadow: 1px 0 8px 0 $light-gray;
-  min-height: $header-height;
+  z-index: 2;
+  background: $white;
+  min-height: $header-height-mobile;
   width: 100%;
+  transition: top 0.4s ease;
+  box-shadow: 0 0 50px 2px transparent;
+
+  @include large-nav {
+    min-height: $header-height;
+  }
+
+  &.is-sticky {
+    position: fixed;
+    top: -100%;
+    box-shadow: 0 0 50px 2px $hab-gray;
+  }
+
+  &.is-visible {
+    top: 0;
+  }
+
+  &.has-sidebar {
+    background: $hab-off-white;
+  }
+
+  @include small-nav {
+    position: fixed;
+  }
 }
 
 .main-nav--container {
@@ -22,77 +57,162 @@ $main-nav-breakpoint: 670px;
 
   h1 {
     @include hide-text;
-    background: url("../images/habitat-logo.svg") no-repeat -10px 14px;
+    background: url("../images/habitat-logo.svg") no-repeat left 40%;
+    background-size: rem-calc(89) auto;
     color: $white;
-    height: $header-height;
+    height: $header-height-mobile;
     margin-bottom: 0;
+    min-width: rem-calc(89);
+
+    @include large-nav {
+      background-size: rem-calc(170) auto;
+      min-width: rem-calc(170);
+      height: $header-height;
+    }
   }
 }
 
 .main-nav--links-wrap {
-  @include grid-column(8);
+  @include large-nav {
+    @include grid-column(8);
+  }
 }
 
 .main-nav--links {
   position: relative;
   display: none;
   clear: both;
-  height: $header-height;
-  margin: 0;
-  padding-top: 18px;
+  margin-bottom: 0;
+  @extend .no-bullet;
 
   & > li {
-    padding: 0 0 0 15px;
+    padding: rem-calc(15) 0 0 rem-calc(5);
 
     &.main-nav--link {
       margin-top: 0;
-
-      a {
-        color: $hab-blue-dark;
-      }
     }
   }
 
-  @media (min-width: $main-nav-breakpoint) {
+  @include breakpoint(small only) {
+    left: map-get($grid-column-gutter, small)/2;
+  }
+
+  @include breakpoint(medium) {
+    left: map-get($grid-column-gutter, medium)/2;
+  }
+
+  @include large-nav {
     display: block;
     float: right;
     clear: none;
+    padding-top: rem-calc(40);
+    height: $header-height;
 
     & > li {
       display: inline-block;
-      padding: 0 15px 0 0;
       vertical-align: middle;
+    }
+
+    .main-nav--link {
+      padding: 0 rem-calc(25) 0 0;
+    }
+  }
+
+  @media (min-width: 820px) {
+    .main-nav--link {
+      padding: 0 rem-calc(44) 0 0;
     }
   }
 }
 
 .main-nav--link {
-  margin-top: -17px;
+  a {
+    position: relative;
+    color: $body-font-color;
+    transition: color 0.2s ease;
+
+    &:hover,
+    &:active,
+    &:focus,
+    &.is-current-page {
+      color: $hab-primary;
+    }
+
+    @include large-nav {
+      &.is-current-page:before {
+        content: "";
+        position: absolute;
+        background: url("../images/nav-active-icon.png") no-repeat center top;
+        background: url("../images/nav-active-icon.svg") no-repeat center top;
+        background-size: auto 100%;
+        width: 120%;
+        height: rem-calc(18);
+        top: rem-calc(-45);
+        left: -10%;
+      }
+    }
+  }
+
+  @include small-nav {
+    &:last-child {
+      padding-bottom: rem-calc(30);
+    }
+  }
 }
 
-.main-nav--cta .button {
-  @include primary-button;
-  box-shadow: 0 1px 8px 1px rgba(201, 97, 53, 0.43);
-  margin: 7px 0 0 0;
+.main-nav--cta {
+  float: right;
+  padding: rem-calc(4) rem-calc(20) 0 0;
 
-  @media (min-width: $main-nav-breakpoint) {
-    margin: 0;
+  .button {
+    background: transparent;
+    border: 1px solid $hab-orange;
+    margin: rem-calc(7) 0 0 0;
+    color: $body-font-color;
+    border-radius: rem-calc(6);
+    font-size: 1em;
+
+
+    @include large-nav {
+      margin: 0;
+    }
+  }
+
+  @include small-nav {
+    font-size: rem-calc(14);
+  }
+
+  @include large-nav {
+    padding: rem-calc(30) 0 0 0;
+  }
+
+  @media (max-width: 292px) {
+    display: none;
   }
 }
 
 .main-nav--toggle {
-  position: absolute;
-  top: 40px;
-  right: 17px;
+  float: right;
   display: none;
-  width: 30px;
+  width: rem-calc(20);
+  height: rem-calc(18);
+  margin: rem-calc(20) rem-calc(20) 0 0;
   cursor: pointer;
+  transition: all 0.2s ease;
 
-  @media (max-width: $main-nav-breakpoint) {
+  @include small-nav {
     display: inline-block;
   }
-}
 
-.main-nav--toggle--icon {
-  width: 100%;
+  svg rect {
+    transition: fill 0.2s ease;
+  }
+
+  &.is-open {
+    transform: rotate(90deg);
+
+    svg .bar {
+      fill: $hab-orange;
+    }
+  }
 }

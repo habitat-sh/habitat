@@ -1,5 +1,15 @@
 $sidebar-breakpoint: 720px;
 
+#content-outer {
+  @include small-nav {
+    padding-top: $header-height-mobile;
+  }
+
+  &.has-sticky-nav {
+    padding-top: $header-height;
+  }
+}
+
 .container {
   @include grid-column-row(0);
   background-color: $white;

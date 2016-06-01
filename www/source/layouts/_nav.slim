@@ -1,21 +1,19 @@
-#main-nav
+#main-nav class="#{nav_class}"
   .main-nav--container.clearfix
     .main-nav--logo
       a href="/"
         h1 habitat
     nav.main-nav--links-wrap
-      ul.main-nav--links.no-bullet
-        li.main-nav--link
-          a href="/about" About
-        li.main-nav--link
-          a href="/docs" Docs
-        li.main-nav--link
-          a href="/tutorials" Tutorials
-        li.main-nav--link
-          a href="/community" Community
-        li.main-nav--link
-          a href="/log-in" Log In
-        li.main-nav--cta
-          a.button href="/tutorials" Get Started
       .main-nav--toggle
-        img.main-nav--toggle--icon src="/images/nav-icon.svg"
+        = partial "layouts/nav-toggle-icon.svg"
+      .main-nav--cta
+        a.button href="/tutorials" Try the Demo
+      ul.main-nav--links
+        li.main-nav--link
+          a.about href="/about" About
+        li.main-nav--link
+          a.docs href="/docs" Docs
+        li.main-nav--link
+          a.tutorials href="/tutorials" Tutorials
+        li.main-nav--link
+          a.community href="/community" Community
