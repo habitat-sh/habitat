@@ -120,9 +120,7 @@ pub fn fetch_package<P: AsRef<Path> + ?Sized, I: Identifiable>(depot: &str,
             let path = PathBuf::from(file);
             Ok(PackageArchive::new(path))
         }
-        Err(Error::HTTP(StatusCode::NotFound)) => {
-            Err(Error::RemotePackageNotFound(ident.into()))
-        }
+        Err(Error::HTTP(StatusCode::NotFound)) => Err(Error::RemotePackageNotFound(ident.into())),
         Err(e) => Err(e),
     }
 }

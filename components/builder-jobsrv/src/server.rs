@@ -11,7 +11,8 @@ use std::thread::{self, JoinHandle};
 
 use dbcache::{self, InstaSet};
 use linked_hash_map::LinkedHashMap;
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor, Supervisable, ToAddrString};
+use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
+                      Supervisable, ToAddrString};
 use protobuf::{parse_from_bytes, Message};
 use protocol::net::{self, ErrCode};
 use protocol::jobsrv;
@@ -256,7 +257,9 @@ impl WorkerManager {
         })
     }
 
-    pub fn start(ctx: Arc<RwLock<zmq::Context>>, config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
+    pub fn start(ctx: Arc<RwLock<zmq::Context>>,
+                 config: Arc<RwLock<Config>>)
+                 -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("worker-manager".to_string())
@@ -289,8 +292,9 @@ impl WorkerManager {
         loop {
             {
                 let timeout = self.poll_timeout();
-                let mut items =
-                    [self.hb_sock.as_poll_item(1), self.rq_sock.as_poll_item(1), self.work_mgr_sock.as_poll_item(1)];
+                let mut items = [self.hb_sock.as_poll_item(1),
+                                 self.rq_sock.as_poll_item(1),
+                                 self.work_mgr_sock.as_poll_item(1)];
                 // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
                 // a poll item's revents will let you know if you have received a message or not
                 // on that socket.

@@ -52,7 +52,7 @@ impl GossipFile {
             let pstr = format!("{}", part.as_os_str().to_string_lossy().into_owned());
             if &pstr == ".." {
                 return Err(Error::GossipFileRelativePath(path.to_string_lossy()
-                                                             .into_owned()));
+                    .into_owned()));
             }
         }
         let mut f = try!(File::open(&path));
@@ -93,7 +93,7 @@ impl GossipFile {
             let pstr = format!("{}", part.as_os_str().to_string_lossy().into_owned());
             if &pstr == ".." {
                 return Err(Error::GossipFileRelativePath(path.to_string_lossy()
-                                                             .into_owned()));
+                    .into_owned()));
             }
         }
         let mut f = try!(File::open(&path));
@@ -482,7 +482,7 @@ mod test {
         let cf = GossipFile::from_file(ServiceGroup::from_str("petty.gunslingers").unwrap(),
                                        fixture("foo.toml").as_path(),
                                        2)
-                     .unwrap();
+            .unwrap();
         assert_eq!(cf.service_group,
                    ServiceGroup::from_str("petty.gunslingers").unwrap());
         assert_eq!(cf.file_name, GOSSIP_TOML);
@@ -505,15 +505,14 @@ mod test {
     fn new_from_file_encrypt() {
         let cache = TempDir::new("key_cache").unwrap();
         let user_pair = BoxKeyPair::generate_pair_for_user("testuser", cache.path()).unwrap();
-        let service_pair = BoxKeyPair::generate_pair_for_service("someorg",
-                                                                 "petty.gunslingers",
-                                                                 cache.path())
-                               .unwrap();
+        let service_pair =
+            BoxKeyPair::generate_pair_for_service("someorg", "petty.gunslingers", cache.path())
+                .unwrap();
         let gf = GossipFile::from_file_encrypt(&user_pair,
                                                &service_pair,
                                                fixture("foo.toml").as_path(),
                                                1)
-                     .unwrap();
+            .unwrap();
         assert_eq!(gf.service_group,
                    ServiceGroup::from_str("petty.gunslingers@someorg").unwrap());
         // keeps it's filename
@@ -538,7 +537,7 @@ mod test {
         let cf = GossipFile::from_body(ServiceGroup::from_str("chromeo.footwork").unwrap(),
                                        "Rage=1\n".as_bytes().to_vec(),
                                        45)
-                     .unwrap();
+            .unwrap();
         assert_eq!(cf.service_group,
                    ServiceGroup::from_str("chromeo.footwork").unwrap());
         assert_eq!(cf.file_name, GOSSIP_TOML);
@@ -565,12 +564,12 @@ mod test {
                                                .unwrap(),
                                            "rope=1\n".as_bytes().to_vec(),
                                            20)
-                         .unwrap();
+            .unwrap();
 
         let other = GossipFile::from_body(ServiceGroup::from_str("foofighters.arlandria").unwrap(),
                                           "rope=1\n".as_bytes().to_vec(),
                                           99)
-                        .unwrap();
+            .unwrap();
         assert_eq!(me == other, false);
         assert_eq!(me.update_via(other.clone()), true);
         assert_eq!(me == other, true);
@@ -581,20 +580,20 @@ mod test {
         let mut me = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                            "woot=1\n".as_bytes().to_vec(),
                                            99)
-                         .unwrap();
+            .unwrap();
 
         let other_service = GossipFile::from_body(ServiceGroup::from_str("oops.barracuda")
                                                       .unwrap(),
                                                   "woot=1\n".as_bytes().to_vec(),
                                                   20)
-                                .unwrap();
+            .unwrap();
         assert_eq!(me.update_via(other_service.clone()), false);
         assert_eq!(me == other_service, false);
 
         let other_group = GossipFile::from_body(ServiceGroup::from_str("heart.oops").unwrap(),
                                                 "woot=1\n".as_bytes().to_vec(),
                                                 20)
-                              .unwrap();
+            .unwrap();
         assert_eq!(me.update_via(other_group.clone()), false);
         assert_eq!(me == other_group, false);
 
@@ -602,14 +601,14 @@ mod test {
                                                         .unwrap(),
                                                     "woot=1\n".as_bytes().to_vec(),
                                                     20)
-                                  .unwrap();
+            .unwrap();
         assert_eq!(me.update_via(other_file_name.clone()), false);
         assert_eq!(me == other_file_name, false);
 
         let other_body = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                                "oops=1".as_bytes().to_vec(),
                                                20)
-                             .unwrap();
+            .unwrap();
         assert_eq!(me.update_via(other_body.clone()), false);
         assert_eq!(me == other_body, false);
     }
@@ -620,11 +619,11 @@ mod test {
                                               .unwrap(),
                                           "tracks=1\n".as_bytes().to_vec(),
                                           42)
-                        .unwrap();
+            .unwrap();
         let mut me = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                            "tracks=1\n".as_bytes().to_vec(),
                                            42)
-                         .unwrap();
+            .unwrap();
         assert_eq!(me.update_via(other.clone()), false);
         assert_eq!(me == other, false);
     }
@@ -634,11 +633,11 @@ mod test {
         let other = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                           "woot=1\n".as_bytes().to_vec(),
                                           20)
-                        .unwrap();
+            .unwrap();
         let mut me = GossipFile::from_body(ServiceGroup::from_str("heart.barracuda").unwrap(),
                                            "woot=1\n".as_bytes().to_vec(),
                                            20)
-                         .unwrap();
+            .unwrap();
         assert_eq!(me.update_via(other.clone()), false);
         assert_eq!(me == other, true);
     }

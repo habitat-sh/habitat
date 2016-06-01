@@ -39,7 +39,9 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::CantUploadGossipToml => format!("Can't upload gossip.toml, it's a reserved file name"),
+            Error::CantUploadGossipToml => {
+                format!("Can't upload gossip.toml, it's a reserved file name")
+            }
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
             Error::GossipFileRelativePath(ref s) => {
                 format!("Path for gossip file cannot have relative components (eg: ..): {}",
@@ -65,7 +67,9 @@ impl error::Error for Error {
         match *self {
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::CryptoKeyError(_) => "Missing or invalid key",
-            Error::GossipFileRelativePath(_) => "Path for gossip file cannot have relative components (eg: ..)",
+            Error::GossipFileRelativePath(_) => {
+                "Path for gossip file cannot have relative components (eg: ..)"
+            }
             Error::DepotClient(ref err) => err.description(),
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),

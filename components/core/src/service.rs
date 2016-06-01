@@ -130,9 +130,8 @@ mod test {
         let actual = ServiceGroup::from_str("kayla.album@flying_colors").unwrap();
         assert_eq!(expected, actual);
 
-        let expected = ServiceGroup::new("blue-ocean",
-                                         "track-from_album",
-                                         Some("f-l_y".to_string()));
+        let expected =
+            ServiceGroup::new("blue-ocean", "track-from_album", Some("f-l_y".to_string()));
         let actual = ServiceGroup::from_str("blue-ocean.track-from_album@f-l_y").unwrap();
         assert_eq!(expected, actual);
     }

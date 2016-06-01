@@ -344,7 +344,8 @@ fn write_keypair_files(key_type: KeyType,
             return Err(Error::BadKeyPath(public_keyfile.to_string_lossy().into_owned()));
         }
         if public_keyfile.exists() {
-            return Err(Error::CryptoError(format!("Public keyfile or a directory already exists {}",
+            return Err(Error::CryptoError(format!("Public keyfile or a directory already \
+                                                   exists {}",
                                                   public_keyfile.display())));
         }
         let public_file = try!(File::create(public_keyfile));
@@ -372,7 +373,8 @@ fn write_keypair_files(key_type: KeyType,
             return Err(Error::BadKeyPath(secret_keyfile.to_string_lossy().into_owned()));
         }
         if secret_keyfile.exists() {
-            return Err(Error::CryptoError(format!("Secret keyfile or a directory already exists {}",
+            return Err(Error::CryptoError(format!("Secret keyfile or a directory already \
+                                                   exists {}",
                                                   secret_keyfile.display())));
         }
         let secret_file = try!(File::create(secret_keyfile));
@@ -491,7 +493,7 @@ mod test {
         super::read_key_bytes(keyfile.as_path()).unwrap();
     }
 
- 
+
     #[test]
     fn get_user_key_revisions() {
         let cache = TempDir::new("key_cache").unwrap();
@@ -514,10 +516,13 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
 
         for _ in 0..3 {
-            wait_until_ok(|| BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path()));
+            wait_until_ok(|| {
+                BoxKeyPair::generate_pair_for_service("acme", "tnt.default", cache.path())
+            });
         }
 
-        let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path()).unwrap();
+        let _ = BoxKeyPair::generate_pair_for_service("acyou", "tnt.default", cache.path())
+            .unwrap();
 
         let revisions = super::get_key_revisions("tnt.default@acme", cache.path()).unwrap();
         assert_eq!(3, revisions.len());

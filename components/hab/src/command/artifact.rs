@@ -106,7 +106,10 @@ pub mod upload {
         Ok(())
     }
 
-    fn upload_into_depot(url: &str, ident: &PackageIdent, mut archive: &mut PackageArchive) -> Result<()> {
+    fn upload_into_depot(url: &str,
+                         ident: &PackageIdent,
+                         mut archive: &mut PackageArchive)
+                         -> Result<()> {
         println!("{} {}",
                  Green.bold().paint("↑ Uploading"),
                  archive.path.display());
@@ -142,7 +145,9 @@ pub mod upload {
                 Err(Error::DepotClient(depot_client::Error::HTTP(e))) => {
                     return Err(Error::DepotClient(depot_client::Error::HTTP(e)))
                 }
-                Err(Error::PackageArchiveMalformed(e)) => return Err(Error::PackageArchiveMalformed(e)),
+                Err(Error::PackageArchiveMalformed(e)) => {
+                    return Err(Error::PackageArchiveMalformed(e))
+                }
                 Err(e) => {
                     println!("Unknown error encountered: {:?}", e);
                     return Err(e);

@@ -202,14 +202,14 @@ impl WireMessage {
                     Some(k) => k,
                     None => {
                         return Err(Error::WireDecode("Key not present for encrypted message"
-                                                         .to_string()))
+                            .to_string()))
                     }
                 };
                 let nonce = match self.nonce.as_ref() {
                     Some(n) => n,
                     None => {
                         return Err(Error::WireDecode("Nonce not present for encrypted message"
-                                                         .to_string()))
+                            .to_string()))
                     }
                 };
                 let sym_key = match sym_key.as_ref() {

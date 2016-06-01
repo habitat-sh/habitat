@@ -65,9 +65,9 @@ impl Config {
     /// most likely be empty.
     fn parse_gossip_ip_port(toml: &toml::Value) -> Result<Option<SocketAddrV4>> {
         let ip = toml.lookup("sys.gossip_ip")
-                     .and_then(|s| s.as_str());
+            .and_then(|s| s.as_str());
         let port = toml.lookup("sys.gossip_port")
-                       .and_then(|s| s.as_integer());
+            .and_then(|s| s.as_integer());
         match (ip, port) {
             (Some(ip), Some(port)) => {
                 let ip_port = format!("{}:{}", ip, port);

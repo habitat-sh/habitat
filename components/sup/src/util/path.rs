@@ -91,9 +91,9 @@ pub fn busybox_paths() -> Result<Vec<PathBuf>> {
                                 Some(dir) => vec![dir.to_path_buf()],
                                 None => {
                                     let path = bin.to_string_lossy().into_owned();
-                                    outputln!("An unexpected error has occured. BusyBox was found \
-                                    at {}, yet the parent directory could not be computed. \
-                                    Aborting...",
+                                    outputln!("An unexpected error has occured. BusyBox was \
+                                               found at {}, yet the parent directory could not \
+                                               be computed. Aborting...",
                                               &path);
                                     return Err(sup_error!(Error::FileNotFound(path)));
                                 }
@@ -103,9 +103,9 @@ pub fn busybox_paths() -> Result<Vec<PathBuf>> {
                         // installed, it's not on `PATH`, what more can we do. Time to give up the
                         // chase. Too bad, we were really trying to be helpful here.
                         None => {
-                            outputln!("A BusyBox installation is required but could not be found. \
-                            Please install 'core/busybox-static' or put the 'busybox' command \
-                            on your $PATH. Aborting...");
+                            outputln!("A BusyBox installation is required but could not be \
+                                       found. Please install 'core/busybox-static' or put the \
+                                       'busybox' command on your $PATH. Aborting...");
                             return Err(sup_error!(Error::PackageNotFound(ident)));
                         }
                     }

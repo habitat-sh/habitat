@@ -40,8 +40,8 @@ pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     debug!("Calling execv: ({:?}) {:?}", command.display(), &args);
     let prog_cstring = try!(CString::new(command.as_os_str().as_bytes()));
     let arg_cstrings = try!(args.into_iter()
-                                .map(|arg| CString::new(arg.as_os_str().as_bytes()))
-                                .collect::<std::result::Result<Vec<_>, _>>());
+        .map(|arg| CString::new(arg.as_os_str().as_bytes()))
+        .collect::<std::result::Result<Vec<_>, _>>());
     let mut arg_charptrs: Vec<_> = arg_cstrings.iter()
         .map(|arg| arg.as_bytes_with_nul().as_ptr() as *const i8)
         .collect();
