@@ -163,7 +163,7 @@ As part of building an artifact, you need to have an origin key installed in you
 
     [3][default:/src/plans:0]# hab origin key generate myorigin
 
-This subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files in the `/hab/cache/keys` directory. As we said earlier, you use the signature key as part of the artifact signing process and should not be shared freely with anyone; however, if anyone wants to download and use your artifact, then they must have your .pub key installed in their local `/hab/cache/keys` directory.
+This subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files in the `/hab/cache/keys` directory. As we said earlier, you use the signature key as part of the artifact signing process and it should not be shared freely with anyone; however, if anyone wants to download and use your artifact, then they must have your .pub key installed in their local `/hab/cache/keys` directory.
 
 Both the Habitat dev shell and studio have the core public key installed in `hab/cache/keys` to verify any build or runtime core dependencies that you may reference when building your plan.
 
@@ -172,7 +172,7 @@ If you want to see your package build in the studio, go back to your terminal wi
 
     [4][default:/src/plans:0]# build mytutorialapp
 
-Running `build mytutorialapp` executes the `hab-plan-build.sh` script which handles creating Habitat packages from Plan files.  When executed, the script will check dependencies, set variables, install source files, and create an artifact.
+Running `build mytutorialapp` executes the `hab-plan-build.sh` script which handles creating Habitat packages from plan files.  When executed, the script will check dependencies, set variables, install source files, and create an artifact.
 
 The source files are stored in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`).  Listing the contents of that directory will show you the source files copied over in the **do_install()** callback as well as the nconf module files.
 
