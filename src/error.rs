@@ -97,7 +97,8 @@ impl fmt::Display for Error {
                         f)
             }
             Error::ConfigInvalidSocketAddrV4(ref f) => {
-                format!("Invalid Ipv4 network address pair in config, field={}. (example: \"127.0.0.0:8080\")",
+                format!("Invalid Ipv4 network address pair in config, field={}. (example: \
+                         \"127.0.0.0:8080\")",
                         f)
             }
             Error::ConfigInvalidString(ref f) => {
@@ -148,15 +149,27 @@ impl error::Error for Error {
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::ConfigFileIO(_) => "Unable to read the raw contents of a configuration file",
             Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
-            Error::ConfigInvalidArray(_) => "Invalid array of values encountered while parsing a configuration file",
-            Error::ConfigInvalidIpv4Addr(_) => "Invalid Ipv4 network address encountered while parsing a configuration file",
-            Error::ConfigInvalidSocketAddrV4(_) => "Invalid Ipv4 network address pair encountered while parsing a configuration file",
-            Error::ConfigInvalidString(_) => "Invalid string value encountered while parsing a configuration file",
+            Error::ConfigInvalidArray(_) => {
+                "Invalid array of values encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidIpv4Addr(_) => {
+                "Invalid Ipv4 network address encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidSocketAddrV4(_) => {
+                "Invalid Ipv4 network address pair encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidString(_) => {
+                "Invalid string value encountered while parsing a configuration file"
+            }
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
-            Error::InvalidPackageIdent(_) => "Package identifiers must be in origin/name format (example: acme/redis)",
+            Error::InvalidPackageIdent(_) => {
+                "Package identifiers must be in origin/name format (example: acme/redis)"
+            }
             Error::InvalidProxyValue(_) => "Invalid proxy value",
-            Error::InvalidServiceGroup(_) => "Service group strings must be in service.group format (example: redis.production)",
+            Error::InvalidServiceGroup(_) => {
+                "Service group strings must be in service.group format (example: redis.production)"
+            }
             Error::IO(ref err) => err.description(),
             Error::MetaFileMalformed(_) => "MetaFile didn't contain a valid UTF-8 string",
             Error::MetaFileNotFound(_) => "Failed to read an archive's metafile",

@@ -11,9 +11,9 @@ use std::process::Command;
 pub fn ip() -> Result<String> {
     debug!("Shelling out to determine IP address");
     let output = try!(Command::new("sh")
-                          .arg("-c")
-                          .arg("ip route get 8.8.8.8 | awk '{printf \"%s\", $NF; exit}'")
-                          .output());
+        .arg("-c")
+        .arg("ip route get 8.8.8.8 | awk '{printf \"%s\", $NF; exit}'")
+        .output());
     match output.status.success() {
         true => {
             debug!("IP address is {}", String::from_utf8_lossy(&output.stdout));
