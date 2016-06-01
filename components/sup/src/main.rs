@@ -338,7 +338,7 @@ fn main() {
 /// Exit with an error message and the right status code
 #[allow(dead_code)]
 fn exit_with(e: SupError, code: i32) {
-    println!("{:?}", e);
+    println!("{}", e.to_string());
     process::exit(code)
 }
 
