@@ -13,9 +13,11 @@
   }
 }
 
-h2,
-p {
-  max-width: rem-calc(760);
+.container__try {
+  h2,
+  p {
+    max-width: rem-calc(760);
+  }
 }
 
 .CodeMirror,

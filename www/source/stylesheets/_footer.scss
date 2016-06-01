@@ -1,7 +1,59 @@
 #main-footer {
-  padding-top: rem-calc(60);
+  padding: rem-calc(62) 0 rem-calc(90);
+  background-image: url('/images/footer-mask.png'),
+    linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
+  background-image: url('/images/footer-mask.svg'),
+    linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-color: $hab-green-light;
+  background-size: auto rem-calc(247), cover;
+  color: $white;
 }
 
-.main-footer--list {
+.footer--cta {
+  padding-bottom: rem-calc(90);
+  border-bottom: 1px solid lighten($hab-green-light, 10%);
+  text-align: center;
+}
 
+.footer--cta-heading {
+  margin-bottom: rem-calc(40);
+  font-size: rem-calc(28);
+  text-shadow: 0px 2px 23px rgba(0,0,0,0.4);
+}
+
+.footer--cta-button {
+  @extend .button;
+  @include primary-button;
+  padding: rem-calc(18) rem-calc(40);
+}
+
+.footer--cta-subtext {
+  margin-bottom: 0;
+  font-size: rem-calc(12);
+  color: lighten($hab-gray, 10%);
+}
+
+.footer--logo {
+  display: block;
+  margin-bottom: rem-calc(20);
+}
+
+.footer--sitemap {
+  padding-top: rem-calc(62);
+
+  a {
+    color: lighten($hab-green-light, 25%);
+  }
+}
+
+.footer--sitemap--link {
+  margin-bottom: rem-calc(10);
+}
+
+.footer--copyright {
+  margin-top: rem-calc(30);
+  font-size: rem-calc(12);
+  color: lighten($hab-green-light, 25%);
 }
