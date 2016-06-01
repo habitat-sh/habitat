@@ -4,6 +4,10 @@
   box-shadow: 0px 2px 14px 0px rgba(216,216,216,0.70);
 }
 
+@mixin shadow-float-dark {
+  box-shadow: 0px 2px 35px darken($hab-green, 20%);
+}
+
 @mixin hide-text() {
   overflow: hidden;
   text-indent: 201%;
@@ -11,11 +15,13 @@
 }
 
 @mixin primary-button {
-  border-radius: $global-radius;
-  background-image: linear-gradient(240deg, $hab-green, $hab-green-dark);
-  @include shadow-float;
-  font-size: rem-calc(16);
-  font-weight: 700;
+  border-radius: 7px;
+  background-image: linear-gradient(to left, lighten($hab-orange, 13%), lighten($hab-orange-dark, 5%) 100%);
+  @include shadow-float-dark;
+  border: none;
+  font-size: rem-calc(18);
+  text-shadow: 0 1px 2px #EB6852;
+  letter-spacing: rem-calc(1);
 }
 
 @mixin linear-gradient($pos, $g1, $g2: null,

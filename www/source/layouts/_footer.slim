@@ -1,56 +1,64 @@
 footer#main-footer
   .row
-    .columns.medium-3
-      .main-footer--logo
-      p
-        small habitat was made by:
-        br
-        a href="http://www.chef.io" CHEF
-
-    .columns.medium-8
-      .row
-        .columns.medium-3
-          ul.main-footer--list.no-bullet
-            li.main-footer--list--heading
-              h4 habitat
-            li.main-footer--list--link
-              a href="/" Home
-            li.main-footer--list--link
-              a href="/docs" Docs
-            li.main-footer--list--link
-              a href="/tutorials" Tutorials
-
-        .columns.medium-3
-          ul.main-footer--list.no-bullet
-            li.main-footer--list--heading
-              h4 habitat Web
-            li.main-footer--list--link
-              a href="#" Sign Up
-            li.main-footer--list--link
-              a href="#" Log In
-            li.main-footer--list--link
-              a href="#" Official Packages
-
-        .columns.medium-3
-          ul.main-footer--list.no-bullet
-            li.main-footer--list--heading
-              h4 More
-            li.main-footer--list--link
-              a href="/about" About
-            li.main-footer--list--link
-              a href="/community" Community
-            li.main-footer--list--link
-              a href="/blog" Blog
-
-        .columns.medium-3
-          ul.main-footer--list.no-bullet
-            li.main-footer--list--heading
-              h4 Legal
-            li.main-footer--list--link
-              a href="/legal/licensing" Licensing
-            li.main-footer--list--link
-              a href="/legal/terms&amp;conditions" Terms &amp; Conditions
-            li.main-footer--list--link
-              a href="/legal/privacy-policy" Privacy Policy
+    .columns.medium-12
+      .footer--cta
+        h2.footer--cta-heading See how it works in less than 10 mintues.
+        a.footer--cta-button href="/tutorials" Try the Demo
+        p.footer--cta-subtext
+          | Take a quick, interactive tour of Habitat features
+  .footer--sitemap
+    .row
+      .columns.medium-3
+        img.footer--logo.habitat[src="/images/habitat-logo-by-chef-white.svg" \
+          onerror="this.src='/images/habitat-logo-by-chef-white.png'" alt="Habitat by Chef"]
+        a href="https://www.chef.io" title="Chef Software Website"
+          img.footer--logo.chef[src="/images/chef-logo-white.svg" \
+            onerror="this.src='/images/chef-logo-white.png'" alt="Chef Logo"]
 
 
+      .columns.medium-9
+        .row
+          .columns.medium-3.small-6
+            ul.no-bullet
+              li
+                h4 Habitat
+              li.footer--sitemap--link
+                a href="/" Home
+              li.footer--sitemap--link
+                a href="/docs" Docs
+              li.footer--sitemap--link
+                a href="/tutorials" Tutorials
+
+          .columns.medium-3.small-6
+            ul.no-bullet
+              li
+                h4 Habitat Web
+              li.footer--sitemap--link
+                a href="#" Sign Up
+              li.footer--sitemap--link
+                a href="#" Log In
+              li.footer--sitemap--link
+                a href="#" Official Packages
+
+          .columns.medium-3.small-6
+            ul.no-bullet
+              li
+                h4 More
+              li.footer--sitemap--link
+                a href="/about" About
+              li.footer--sitemap--link
+                a href="/community" Community
+
+          .columns.medium-3.small-6
+            ul.no-bullet
+              li
+                h4 Legal
+              li.footer--sitemap--link
+                a href="/legal/licensing" Licensing
+              li.footer--sitemap--link
+                a href="/legal/terms&amp;conditions" Terms &amp; Conditions
+              li.footer--sitemap--link
+                a href="/legal/privacy-policy" Privacy Policy
+        .row
+          .columns.medium-12
+            p.footer--copyright &copy; #{Time.now.year} Chef Software, Inc. All Rights Reserved
