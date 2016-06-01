@@ -4,7 +4,7 @@
     linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
   background-image: url('/images/footer-mask.svg'),
     linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
-  background-repeat: no-repeat;
+  background-repeat: repeat-x, no-repeat;
   background-position: center top;
   background-color: $hab-green-light;
   background-size: auto rem-calc(247), cover;
