@@ -15,7 +15,7 @@ This tutorial currently supports Linux and Mac OS X as host operating systems. B
 
 *   An active GitHub account. If you don't already have an account, [sign up](https://github.com/) for one now.
 *   Your favorite text editor.
-*   TCP port 9636 open. This is needed to upload and download artifacts from the public depot.
+*   Open egress on TCP port 9636. This is needed to upload and download artifacts from the public depot.
 *   If you are running Mac OS X on your host machine, then you need [Docker Toolbox](https://docs.docker.com/mac/) installed. The toolbox also installs Oracle VM VirtualBox, which will run and manage the Linux VM where the Docker daemon resides. Make sure you have a Docker VM running before proceeding through the tutorial.
 
 *   If you are running a Linux distribution such as Ubuntu on your host machine, then you need to install both the [Docker Engine](https://docs.docker.com/linux/) and [Docker Compose](https://docs.docker.com/compose/install/) CLI tools.
