@@ -16,6 +16,7 @@ To start building artifacts in Habitat, you first need to clone the Habitat repo
        eval "$(docker-machine env default)"
 
     If your host machine is running Linux, run `export IN_DOCKER=true`.
+    To determine the name of your Docker machine run `docker-machine ls`.
 
 4. From the root of your local repo, run `make shell`. This will build the Docker container that contains a basic development environment for building the Habitat binaries, including the studio environment. During the initial creation process, the Docker container will be built from scratch. This can take several minutes.
 
