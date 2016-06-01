@@ -65,6 +65,7 @@ do_install() {
   build_line "Setting interpreter for '${pkg_prefix}/bin/java' '$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2'"
   build_line "Setting rpath for '${pkg_prefix}/bin/java' to '$LD_RUN_PATH'"
 
+  export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
   patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
            --set-rpath ${LD_RUN_PATH} \
            ${pkg_prefix}/bin/java
