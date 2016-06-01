@@ -33,7 +33,7 @@ In this tutorial, the archive for our Node.js app already has a configuration fi
 
 5. Save the file.
 
-All user-defined expressions must have the **cfg** prefix. For general service settings, Habitat also defines several system expressions that you may use to configure your service at runtime. See the [Runtime configuration settings](/docs/plan-syntax#runtime-configuration-settings) section of the Plan syntax guide for more information.
+All user-defined expressions must have the **cfg** prefix. For general service settings, Habitat also defines several system expressions that you may use to configure your service at runtime. See the [Runtime configuration settings](/docs/plan-syntax#runtime-configuration-settings) section of the plan syntax guide for more information.
 
 As we said, a TOML file is associated with your configuration file and specifies the default values for your service at start up. If you have a templatized configuration file, then you must include a `default.toml` file in your plan folder.
 
