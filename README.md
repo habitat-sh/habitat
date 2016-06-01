@@ -59,7 +59,7 @@ by having a convention cover it. When we do need to configure things, we set san
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. Checkout the source by running `git clone git@github.com:habitat-sh/habitat.git; cd habitat`
 1. Run `make`
-1. Run `make test`
+1. (Optional) Run `make test` if you want to run the tests. This will take a while.
 
 Everything should come up green. Congratulations - you have a working Habitat development environment.
 
