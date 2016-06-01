@@ -1,0 +1,16 @@
+
+cluster.name: {{cfg.cluster-name}}
+node.name: {{cfg.node-name}}
+path.data: {{cfg.path-data}}
+path.logs: {{cfg.path-logs}}
+path.plugins: {{cfg.path-plugins}}
+path.scripts: {{cfg.path-scripts}}
+bootstrap.mlockall: {{cfg.bootstrap-mlockall}}
+network.host: {{cfg.network-host}}
+http.port: {{cfg.network-port}}
+discovery.zen.ping.multicast.enabled: {{cfg.discovery-ping_multicast_enabled}}
+discovery.zen.ping.unicast.hosts: {{cfg.discovery-ping_unicast_hosts}}
+discovery.zen.minimum_master_nodes: {{cfg.discovery-minimum_master_nodes}}
+gateway.recover_after_nodes: {{cfg.gateway-recover_after_nodes}}
+node.max_local_storage_nodes: {{cfg.node-max_local_storage_nodes}}
+action.destructive_requires_name: {{cfg.action-destructive_requires_name}}

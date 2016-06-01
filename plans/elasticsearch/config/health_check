@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# ElasticSearch Health Check for Habitat
+
+# default return code is 3 (Unknown)
+rc=3
+ip=$(ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+
+# Use wget because its a part of BusyBox
+status=$(wget -qO - $ip:9200/_cat/health)
+color=$( echo $status | awk '{print $4}' )
+
+case $color in
+  "green")
+    rc=0 ;;
+  "orange")
+    rc=1 ;;
+  "red")
+    rc=2 ;;
+  *)
+    rc=3 ;;
+esac
+
+echo $status
+exit $rc

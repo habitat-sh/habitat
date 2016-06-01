@@ -1,0 +1,6 @@
+#!/bin/sh
+
+mkdir -p {{pkg.svc_path}}/logs
+mkdir -p {{pkg.svc_data_path}}
+mkdir -p {{pkg.svc_config_path}}/scripts
+chown -R hab:hab {{pkg.svc_path}}
