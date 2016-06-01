@@ -17,11 +17,8 @@ use protobuf;
 use rustc_serialize::json;
 use zmq;
 
-use oauth;
-
 #[derive(Debug)]
 pub enum Error {
-    Auth(oauth::github::AuthErr),
     BadPort(String),
     DataStore(dbcache::Error),
     EntityNotFound,
@@ -31,7 +28,6 @@ pub enum Error {
     IO(io::Error),
     NetError(hab_net::Error),
     JsonDecode(json::DecoderError),
-    MissingScope(String),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -41,7 +37,6 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::Auth(ref e) => format!("GitHub Authentication error, {}", e),
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::EntityNotFound => format!("No value for key found"),
@@ -51,7 +46,6 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::NetError(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
-            Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -62,7 +56,6 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::Auth(_) => "GitHub authorization error.",
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::DataStore(ref err) => err.description(),
             Error::EntityNotFound => "Entity not found in database.",
@@ -72,7 +65,6 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
             Error::JsonDecode(ref err) => err.description(),
-            Error::MissingScope(_) => "Missing GitHub authorization scope.",
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }
@@ -112,12 +104,6 @@ impl From<json::DecoderError> for Error {
 impl From<hab_net::Error> for Error {
     fn from(err: hab_net::Error) -> Self {
         Error::NetError(err)
-    }
-}
-
-impl From<oauth::github::AuthErr> for Error {
-    fn from(err: oauth::github::AuthErr) -> Self {
-        Error::Auth(err)
     }
 }
 

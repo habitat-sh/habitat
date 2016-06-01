@@ -112,5 +112,6 @@ impl Bucket for OriginNameIdx {
 }
 
 impl IndexSet for OriginNameIdx {
+    type Key = String;
     type Value = u64;
 }

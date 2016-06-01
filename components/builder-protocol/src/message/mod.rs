@@ -125,6 +125,12 @@ impl RouteKey for InstaId {
     }
 }
 
+impl RouteKey for u64 {
+    fn hash(&self, _hasher: &mut Hasher) -> u64 {
+        *self
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

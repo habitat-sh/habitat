@@ -11,6 +11,7 @@ doc = false
 
 [dependencies]
 env_logger = "*"
+hyper = "*"
 iron = "*"
 log = "*"
 mount = "*"

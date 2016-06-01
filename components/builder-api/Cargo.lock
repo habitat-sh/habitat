@@ -9,6 +9,7 @@ dependencies = [
  "habitat_core 0.6.0",
  "habitat_depot 0.6.0",
  "habitat_net 0.6.0",
+ "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",

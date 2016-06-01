@@ -45,8 +45,8 @@ impl Worker {
                 try!(req.reply_complete(&mut self.sock, &origin));
             }
             "OriginGet" => {
-                let msg: proto::OriginGet = try!(req.parse_msg());
-                match self.datastore().origins.name_idx.find(msg.get_name()) {
+                let mut msg: proto::OriginGet = try!(req.parse_msg());
+                match self.datastore().origins.name_idx.find(&msg.take_name()) {
                     Ok(origin_id) => {
                         let origin = self.datastore().origins.find(&origin_id).unwrap();
                         try!(req.reply_complete(&mut self.sock, &origin));

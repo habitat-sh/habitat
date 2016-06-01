@@ -16,12 +16,15 @@ use iron::status;
 use iron::headers::{Authorization, Bearer};
 use protobuf;
 use protocol::jobsrv::{Job, JobCreate, JobGet};
-use protocol::sessionsrv::{Session, SessionCreate, SessionGet};
+use protocol::sessionsrv::{OAuthProvider, Session, SessionCreate, SessionGet};
 use protocol::vault::{Origin, OriginCreate, OriginGet};
-use protocol::net::{Msg, NetError, ErrCode};
+use protocol::net::{self, NetError, ErrCode};
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
 use zmq;
+
+use error::Error;
+use oauth::github;
 
 pub fn authenticate(req: &mut Request,
                     ctx: &Arc<Mutex<zmq::Context>>)
@@ -39,7 +42,10 @@ pub fn authenticate(req: &mut Request,
                             let session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
                             Ok(session)
                         }
-                        "NetError" => Err(render_net_error(&rep)),
+                        "NetError" => {
+                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                            Err(render_net_error(&err))
+                        }
                         _ => unreachable!("unexpected msg: {:?}", rep),
                     }
                 }
@@ -56,28 +62,70 @@ pub fn authenticate(req: &mut Request,
 pub fn session_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let code = match params.find("code") {
-        Some(code) => code.to_string(),
+        Some(code) => code,
         _ => return Ok(Response::with(status::BadRequest)),
     };
-    let mut conn = Broker::connect(&ctx).unwrap();
-    let mut request = SessionCreate::new();
-    request.set_code(code.to_string());
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Session" => {
-                    let token: Session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&token.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
+    match github::authenticate(code) {
+        Ok(token) => {
+            match github::user(&token) {
+                Ok(user) => {
+                    let mut conn = Broker::connect(&ctx).unwrap();
+                    let mut request = SessionCreate::new();
+                    request.set_token(token);
+                    request.set_extern_id(user.id);
+                    request.set_email(user.email);
+                    request.set_name(user.name);
+                    request.set_provider(OAuthProvider::GitHub);
+                    conn.route(&request).unwrap();
+                    match conn.recv() {
+                        Ok(rep) => {
+                            match rep.get_message_id() {
+                                "Session" => {
+                                    let token: Session = protobuf::parse_from_bytes(rep.get_body())
+                                        .unwrap();
+                                    let encoded = json::encode(&token.to_json()).unwrap();
+                                    Ok(Response::with((status::Ok, encoded)))
+                                }
+                                "NetError" => {
+                                    let err: NetError = protobuf::parse_from_bytes(rep.get_body())
+                                        .unwrap();
+                                    Ok(render_net_error(&err))
+                                }
+                                _ => unreachable!("unexpected msg: {:?}", rep),
+                            }
+                        }
+                        Err(e) => {
+                            error!("{:?}", e);
+                            Ok(Response::with(status::ServiceUnavailable))
+                        }
+                    }
                 }
-                "NetError" => Ok(render_net_error(&rep)),
-                _ => unreachable!("unexpected msg: {:?}", rep),
+                Err(e @ Error::JsonDecode(_)) => {
+                    debug!("github user get, err={:?}", e);
+                    let err = net::err(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
+                    Ok(render_net_error(&err))
+                }
+                Err(e) => {
+                    debug!("github user get, err={:?}", e);
+                    let err = net::err(ErrCode::BUG, "ss:auth:2");
+                    Ok(render_net_error(&err))
+                }
             }
         }
+        Err(Error::Auth(e)) => {
+            debug!("github authentication, err={:?}", e);
+            let err = net::err(ErrCode::REMOTE_REJECTED, e.error);
+            Ok(render_net_error(&err))
+        }
+        Err(e @ Error::JsonDecode(_)) => {
+            debug!("github authentication, err={:?}", e);
+            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
+            Ok(render_net_error(&err))
+        }
         Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
+            error!("github authentication, err={:?}", e);
+            let err = net::err(ErrCode::BUG, "ss:auth:0");
+            Ok(render_net_error(&err))
         }
     }
 }
@@ -100,7 +148,10 @@ pub fn origin_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronRes
                     let encoded = json::encode(&origin.to_json()).unwrap();
                     Ok(Response::with((status::Ok, encoded)))
                 }
-                "NetError" => Ok(render_net_error(&rep)),
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
                 _ => unreachable!("unexpected msg: {:?}", rep),
             }
         }
@@ -137,7 +188,10 @@ pub fn origin_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronR
                     let encoded = json::encode(&origin.to_json()).unwrap();
                     Ok(Response::with((status::Created, encoded)))
                 }
-                "NetError" => Ok(render_net_error(&rep)),
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
                 _ => unreachable!("unexpected msg: {:?}", rep),
             }
         }
@@ -165,7 +219,10 @@ pub fn job_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResu
                     let encoded = json::encode(&job.to_json()).unwrap();
                     Ok(Response::with((status::Created, encoded)))
                 }
-                "NetError" => Ok(render_net_error(&rep)),
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
                 _ => unreachable!("unexpected msg: {:?}", rep),
             }
         }
@@ -199,7 +256,10 @@ pub fn job_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult
                     let encoded = json::encode(&job.to_json()).unwrap();
                     Ok(Response::with((status::Ok, encoded)))
                 }
-                "NetError" => Ok(render_net_error(&rep)),
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
                 _ => unreachable!("unexpected msg: {:?}", rep),
             }
         }
@@ -221,14 +281,13 @@ pub fn job_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult
 /// * The given encoded message was not a NetError
 /// * The given messsage could not be decoded
 /// * The NetError could not be encoded to JSON
-fn render_net_error(msg: &Msg) -> Response {
-    assert_eq!(msg.get_message_id(), "NetError");
-    let err: NetError = protobuf::parse_from_bytes(msg.get_body()).unwrap();
+fn render_net_error(err: &NetError) -> Response {
     let encoded = json::encode(&err.to_json()).unwrap();
     let status = match err.get_code() {
         ErrCode::ENTITY_NOT_FOUND => status::NotFound,
         ErrCode::NO_SHARD => status::ServiceUnavailable,
         ErrCode::TIMEOUT => status::RequestTimeout,
+        ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
         _ => status::InternalServerError,
     };
     Response::with((status, encoded))

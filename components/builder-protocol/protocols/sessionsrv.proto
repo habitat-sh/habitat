@@ -1,5 +1,9 @@
 package sessionsrv;
 
+enum OAuthProvider {
+  GitHub = 0;
+}
+
 message Account {
   required uint64 id = 1;
   required string email = 2;
@@ -19,7 +23,11 @@ message SessionToken {
 }
 
 message SessionCreate {
-  required string code = 1;
+  required string token = 1;
+  required uint64 extern_id = 2;
+  required string email = 3;
+  required string name = 4;
+  required OAuthProvider provider = 5;
 }
 
 message SessionGet {

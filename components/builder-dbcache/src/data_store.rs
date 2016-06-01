@@ -70,6 +70,37 @@ pub trait BasicSet: Bucket {
     }
 }
 
+/// A generic data set for reading and writing entities into the datastore with a time to live.
+///
+/// This is identical to `BasicSet` with the exception that entities expire.
+pub trait ExpiringSet: Bucket {
+    /// Type of objects stored inside this data set.
+    type Record: Persistable;
+
+    /// Expiration time (in seconds) for any entities written to the set.
+    fn expiry() -> usize;
+
+    /// Retrieves a record from the data set with the given ID.
+    fn find(&self, id: &<Self::Record as Persistable>::Key) -> Result<Self::Record> {
+        let conn = try!(self.pool().get());
+        let bytes = try!(conn.get::<String, Vec<u8>>(Self::key(id)));
+        if bytes.is_empty() {
+            return Err(Error::EntityNotFound);
+        }
+        let value = parse_from_bytes(&bytes).unwrap();
+        Ok(value)
+    }
+
+    /// Write a new record to the data set with a TTL.
+    fn write(&self, record: &Self::Record) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.set_ex(Self::key(&record.primary_key()),
+                         record.write_to_bytes().unwrap(),
+                         Self::expiry()));
+        Ok(())
+    }
+}
+
 /// A specialized data set for reading and writing entities with a unique and sequential
 /// identifier.
 ///
@@ -132,18 +163,20 @@ pub trait InstaSet: Bucket {
 
 /// A data set for writing basic key/value indices.
 pub trait IndexSet: Bucket {
+    /// Type of the lookup key
+    type Key: Clone + redis::FromRedisValue + redis::ToRedisArgs;
     /// Type of the Value stored for each entry in the index.
     type Value: redis::FromRedisValue + redis::ToRedisArgs;
 
     /// Retrieves the value for the given ID.
-    fn find(&self, id: &str) -> Result<Self::Value> {
+    fn find(&self, id: &Self::Key) -> Result<Self::Value> {
         let conn = try!(self.pool().get());
-        let value = try!(conn.hget(Self::prefix(), id));
+        let value = try!(conn.hget(Self::prefix(), id.clone()));
         Ok(value)
     }
 
     /// Write a new index entry to the data set.
-    fn write(&self, id: &str, value: Self::Value) -> Result<()> {
+    fn write(&self, id: &Self::Key, value: Self::Value) -> Result<()> {
         let conn = try!(self.pool().get());
         try!(conn.hset(Self::prefix(), id.clone(), value));
         Ok(())
