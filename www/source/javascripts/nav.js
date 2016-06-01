@@ -21,7 +21,7 @@ toggleStickyNav();
 
 $navToggle.click(function() {
   $navLinks.slideToggle();
-  $navToggle.toggleClass('is-open');
+  $mainNav.toggleClass('is-open');
 });
 
 for (var linkName in navPageLinks) {
@@ -34,9 +34,8 @@ for (var linkName in navPageLinks) {
 
 $(window).resize(function() {
   if ($(window).width() > navBreakpoint) {
-    if ($navLinks.is(':hidden')) {
-      $navLinks.css('display', '');
-    }
+    $navLinks.attr('style', '');
+    $mainNav.removeClass('is-open');
   }
 });
 

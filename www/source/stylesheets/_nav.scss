@@ -24,10 +24,14 @@ $main-nav-breakpoint: 710px;
     min-height: $header-height;
   }
 
+  &.is-open,
+  &.is-sticky {
+    box-shadow: 0 0 50px 2px $hab-gray;
+  }
+
   &.is-sticky {
     position: fixed;
     top: -100%;
-    box-shadow: 0 0 50px 2px $hab-gray;
   }
 
   &.is-visible {
@@ -208,7 +212,7 @@ $main-nav-breakpoint: 710px;
     transition: fill 0.2s ease;
   }
 
-  &.is-open {
+ .is-open & {
     transform: rotate(90deg);
 
     svg .bar {
