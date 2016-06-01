@@ -348,7 +348,10 @@ impl PackageInstall {
 
     /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
-    fn walk_versions(origin: &String, name: &DirEntry, packages: &mut Vec<PackageIdent>) -> Result<()> {
+    fn walk_versions(origin: &String,
+                     name: &DirEntry,
+                     packages: &mut Vec<PackageIdent>)
+                     -> Result<()> {
         for version in try!(std::fs::read_dir(name.path())) {
             let version = try!(version);
             let name = name.file_name().to_string_lossy().into_owned().to_string();
@@ -370,7 +373,8 @@ impl PackageInstall {
         for release in try!(std::fs::read_dir(version.path())) {
             let release = try!(release).file_name().to_string_lossy().into_owned().to_string();
             let version = version.file_name().to_string_lossy().into_owned().to_string();
-            let ident = PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
+            let ident =
+                PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
             packages.push(ident)
         }
         Ok(())

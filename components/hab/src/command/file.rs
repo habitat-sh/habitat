@@ -24,10 +24,8 @@ pub mod upload {
                  -> Result<()> {
         println!("{}",
                  Yellow.bold().paint(format!("» Uploading file {}", &file_path.display())));
-        let file = try!(GossipFile::from_file_encrypt(&user_pair,
-                                                      &service_pair,
-                                                      file_path,
-                                                      number));
+        let file =
+            try!(GossipFile::from_file_encrypt(&user_pair, &service_pair, file_path, number));
 
         let rumor = hab_gossip::Rumor::gossip_file(file);
         let mut list = hab_gossip::RumorList::new();

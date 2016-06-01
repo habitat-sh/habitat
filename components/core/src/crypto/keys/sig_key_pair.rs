@@ -305,7 +305,8 @@ impl SigKeyPair {
                 return Err(Error::CryptoError(msg));
             } else {
                 // Otherwise, hashes match and we can skip writing over the exisiting file
-                debug!("New content hash matches existing file {} hash, removing temp key file {}.",
+                debug!("New content hash matches existing file {} hash, removing temp key file \
+                        {}.",
                        keyfile.display(),
                        tmpfile.path.display());
                 try!(fs::remove_file(&tmpfile.path));
@@ -407,12 +408,11 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ = match wait_until_ok(|| {
-            SigKeyPair::generate_pair_for_origin("unicorn", cache.path())
-        }) {
-            Some(pair) => pair,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
+        let _ =
+            match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
+                Some(pair) => pair,
+                None => panic!("Failed to generate another keypair after waiting"),
+            };
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
 
@@ -426,12 +426,11 @@ mod test {
     fn get_pair_for() {
         let cache = TempDir::new("key_cache").unwrap();
         let p1 = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
-        let p2 = match wait_until_ok(|| {
-            SigKeyPair::generate_pair_for_origin("unicorn", cache.path())
-        }) {
-            Some(pair) => pair,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
+        let p2 =
+            match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
+                Some(pair) => pair,
+                None => panic!("Failed to generate another keypair after waiting"),
+            };
 
         let p1_fetched = SigKeyPair::get_pair_for(&p1.name_with_rev(), cache.path()).unwrap();
         assert_eq!(p1.name, p1_fetched.name);
@@ -462,12 +461,11 @@ mod test {
     fn get_latest_pair_for_multiple() {
         let cache = TempDir::new("key_cache").unwrap();
         let _ = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
-        let p2 = match wait_until_ok(|| {
-            SigKeyPair::generate_pair_for_origin("unicorn", cache.path())
-        }) {
-            Some(pair) => pair,
-            None => panic!("Failed to generate another keypair after waiting"),
-        };
+        let p2 =
+            match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
+                Some(pair) => pair,
+                None => panic!("Failed to generate another keypair after waiting"),
+            };
 
         let latest = SigKeyPair::get_latest_pair_for("unicorn", cache.path()).unwrap();
         assert_eq!(latest.name, p2.name);

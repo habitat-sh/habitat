@@ -638,7 +638,9 @@ impl Census {
     pub fn has_quorum(&self) -> bool {
         let total_population = self.total_population();
         if total_population % 2 == 0 {
-            warn!("This census has an even population. If half the membership fails, quorum will never be met, and no leader will be elected. Add another instance to the service group!");
+            warn!("This census has an even population. If half the membership fails, quorum will \
+                   never be met, and no leader will be elected. Add another instance to the \
+                   service group!");
         }
         let alive_population = self.alive_population() as f32;
         let total_pop = total_population as f32;

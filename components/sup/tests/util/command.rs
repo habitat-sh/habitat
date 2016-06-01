@@ -210,14 +210,12 @@ pub fn dockerize(ident_str: &str) {
     if !install.status.unwrap().success() {
         panic!("Failed to install 'core/hab-pkg-dockerize'");
     }
-    let mut docker = match studio_run("hab",
-                                      &["exec",
-                                        "core/hab-pkg-dockerize",
-                                        "hab-pkg-dockerize",
-                                        ident_str]) {
-        Ok(cmd) => cmd,
-        Err(e) => panic!("{:?}", e),
-    };
+    let mut docker =
+        match studio_run("hab",
+                         &["exec", "core/hab-pkg-dockerize", "hab-pkg-dockerize", ident_str]) {
+            Ok(cmd) => cmd,
+            Err(e) => panic!("{:?}", e),
+        };
     docker.wait_with_output();
     if !docker.status.unwrap().success() {
         panic!("Failed to dockerize simple service");

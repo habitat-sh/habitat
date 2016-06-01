@@ -319,7 +319,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                         if try!(service_config.write(&package)) {
                             try!(package.copy_run(&service_config));
                             try!(package.reconfigure(&service_config));
-                            outputln!("Restarting because the service config was updated via the census");
+                            outputln!("Restarting because the service config was updated via the \
+                                       census");
                             restart_process = true;
                         }
                     }

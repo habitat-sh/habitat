@@ -176,7 +176,10 @@ impl fmt::Display for SupError {
             Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
-            Error::NoRunFile => format!("No run file is present for this package; specify a run hook or $pkg_service_run in your plan"),
+            Error::NoRunFile => {
+                format!("No run file is present for this package; specify a run hook or \
+                         $pkg_service_run in your plan")
+            }
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
@@ -197,7 +200,9 @@ impl fmt::Display for SupError {
                 }
             }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
-            Error::SignalNotifierStarted => format!("Only one instance of a Signal Notifier may be running"),
+            Error::SignalNotifierStarted => {
+                format!("Only one instance of a Signal Notifier may be running")
+            }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
@@ -242,7 +247,9 @@ impl error::Error for SupError {
             Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPidFile => "Invalid child process PID file",
-            Error::InvalidServiceGroupString(_) => "Service group strings must be in service.group format (example: redis.default)",
+            Error::InvalidServiceGroupString(_) => {
+                "Service group strings must be in service.group format (example: redis.default)"
+            }
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
             Error::JsonDecode(_) => "JSON decoding error: {:?}",
@@ -250,9 +257,16 @@ impl error::Error for SupError {
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
-            Error::NoRunFile => "No run file is present for this package; specify a run hook or $pkg_service_run in your plan",
-            Error::NulError(_) => "An attempt was made to build a CString with a null byte inside it",
-            Error::PackageArchiveMalformed(_) => "Package archive was unreadable or had unexpected contents",
+            Error::NoRunFile => {
+                "No run file is present for this package; specify a run hook or $pkg_service_run \
+                 in your plan"
+            }
+            Error::NulError(_) => {
+                "An attempt was made to build a CString with a null byte inside it"
+            }
+            Error::PackageArchiveMalformed(_) => {
+                "Package archive was unreadable or had unexpected contents"
+            }
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::SignalFailed => "Failed to send a signal to the child process",

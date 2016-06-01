@@ -42,9 +42,9 @@ impl Controller {
             config: config,
             exec_ctx: exec_ctx,
             handler: wonder::actor::Builder::new(SignalNotifier)
-                         .name("signal-handler".to_string())
-                         .start(())
-                         .unwrap(),
+                .name("signal-handler".to_string())
+                .start(())
+                .unwrap(),
             children: None,
         }
     }

@@ -103,7 +103,8 @@ fn state_check_for_election(worker: &mut Worker) -> Result<(State, u64)> {
                 // Are you already the leader or a follower? - good on you!
                 Ok((State::CheckForElection, 500))
             } else {
-                debug!("We have a leader, but I am not a leader or a follower; becoming a follower");
+                debug!("We have a leader, but I am not a leader or a follower; becoming a \
+                        follower");
                 // If you aren't, you should be a follower!
                 Ok((State::BecomeFollower, 0))
             }

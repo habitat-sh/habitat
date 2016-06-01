@@ -91,15 +91,16 @@ pub fn package(config: &Config) -> Result<()> {
                         //
                         // If the operator does not specify a version number they will automatically receive
                         // updates for any releases, regardless of version number, for the started  package.
-                        let latest_pkg_data = try!(depot_client::show_package(&url, (*config.package()).clone()));
+                        let latest_pkg_data =
+                            try!(depot_client::show_package(&url, (*config.package()).clone()));
                         let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
                         if &latest_ident > package.ident() {
                             outputln!("Downloading latest version from remote: {}", latest_ident);
                             let mut progress = ProgressBar::default();
                             let archive = try!(depot_client::fetch_package(&url,
-                                                                           latest_ident,
-                                                                           &cache_artifact_path(None),
-                                                                           Some(&mut progress)));
+                                                                 latest_ident,
+                                                                 &cache_artifact_path(None),
+                                                                 Some(&mut progress)));
                             try!(archive.verify(&default_cache_key_path(None)));
                             try!(archive.unpack(None));
                         } else {
@@ -123,7 +124,8 @@ pub fn package(config: &Config) -> Result<()> {
                                                               Path::new(FS_ROOT_PATH),
                                                               &cache_artifact_path(None),
                                                               &default_cache_key_path(None)));
-                    let package = try!(Package::load(&new_pkg_data.get_ident().clone().into(), None));
+                    let package = try!(Package::load(&new_pkg_data.get_ident().clone().into(),
+                                                     None));
                     start_package(package, config)
                 }
                 None => Err(sup_error!(Error::PackageNotFound(config.package().clone()))),

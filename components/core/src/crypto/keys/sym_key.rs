@@ -212,7 +212,7 @@ impl SymKey {
             Ok(msg) => Ok(msg),
             Err(_) => {
                 Err(Error::CryptoError("Secret key and nonce could not decrypt ciphertext"
-                                           .to_string()))
+                    .to_string()))
             }
         }
     }
@@ -338,7 +338,8 @@ impl SymKey {
                 return Err(Error::CryptoError(msg));
             } else {
                 // Otherwise, hashes match and we can skip writing over the exisiting file
-                debug!("New content hash matches existing file {} hash, removing temp key file {}.",
+                debug!("New content hash matches existing file {} hash, removing temp key file \
+                        {}.",
                        secret_keyfile.display(),
                        tmpfile.path.display());
                 try!(fs::remove_file(&tmpfile.path));

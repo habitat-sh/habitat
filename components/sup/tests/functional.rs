@@ -67,17 +67,17 @@ mod setup {
         ONCE.call_once(|| {
             let tempdir = TempDir::new(pkg).unwrap();
             let mut copy_cmd = Command::new("cp")
-                                   .arg("-r")
-                                   .arg(util::path::fixture(pkg))
-                                   .arg(tempdir.path().to_str().unwrap())
-                                   .spawn()
-                                   .unwrap();
+                .arg("-r")
+                .arg(util::path::fixture(pkg))
+                .arg(tempdir.path().to_str().unwrap())
+                .spawn()
+                .unwrap();
             copy_cmd.wait().unwrap();
 
             let mut simple_service = match util::command::plan_build(tempdir.path()
-                                                                            .join(pkg)
-                                                                            .to_str()
-                                                                            .unwrap()) {
+                .join(pkg)
+                .to_str()
+                .unwrap()) {
                 Ok(cmd) => cmd,
                 Err(e) => panic!("{:?}", e),
             };

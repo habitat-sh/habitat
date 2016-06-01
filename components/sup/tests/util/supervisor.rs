@@ -167,9 +167,9 @@ impl Supervisor {
     pub fn incarnation(&self) -> u64 {
         let gossip = self.gossip();
         let member_list = gossip.find_path(&["member_list", "members"])
-                                .unwrap()
-                                .as_object()
-                                .unwrap();
+            .unwrap()
+            .as_object()
+            .unwrap();
         let member = member_list.get(&self.id).unwrap().as_object().unwrap();
         member.get("incarnation").unwrap().find("counter").unwrap().as_u64().unwrap()
     }
@@ -177,18 +177,18 @@ impl Supervisor {
     pub fn has_member(&self, sup: &Supervisor) -> bool {
         let gossip = self.gossip();
         let member_list = gossip.find_path(&["member_list", "members"])
-                                .unwrap()
-                                .as_object()
-                                .unwrap();
+            .unwrap()
+            .as_object()
+            .unwrap();
         member_list.contains_key(&sup.id)
     }
 
     pub fn health_of_member(&self, sup: &Supervisor) -> String {
         let gossip = self.gossip();
         let member_list = gossip.find_path(&["member_list", "members"])
-                                .unwrap()
-                                .as_object()
-                                .unwrap();
+            .unwrap()
+            .as_object()
+            .unwrap();
         let member = match member_list.get(&sup.id) {
             Some(m) => m.as_object().unwrap(),
             None => return "Nonexistent".to_string(),
@@ -200,14 +200,14 @@ impl Supervisor {
         self.docker
             .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &sup.ip)]);
         sup.docker
-           .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &self.ip)]);
+            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -A INPUT -s {} -j DROP", &self.ip)]);
     }
 
     pub fn netjoin(&self, sup: &Supervisor) {
         self.docker
             .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &sup.ip)]);
         sup.docker
-           .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &self.ip)]);
+            .exec(&["/bin/sh", "-l", "-c", &format!("iptables -D INPUT -s {} -j DROP", &self.ip)]);
     }
 
     pub fn keeps_member_alive(&self, sup: &Supervisor) -> bool {

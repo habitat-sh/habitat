@@ -27,9 +27,9 @@
 //!
 //! - `ExecContext`
 //! 	- A task "execution context".  The `ExecContext` is used to
-//!	    decouple service root directory and path to a supervisor executable.
-//!	    Decoupling these values into a struct allows us to easily test
-//!	    `Tasks` + `Controllers`.
+//! 	    decouple service root directory and path to a supervisor executable.
+//! 	    Decoupling these values into a struct allows us to easily test
+//! 	    `Tasks` + `Controllers`.
 //!
 //! - `ExecParams`
 //!     - Config values for a `Task` that the `Controller` calculates during

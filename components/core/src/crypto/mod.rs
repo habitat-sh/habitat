@@ -289,16 +289,16 @@ pub mod test_support {
 
     pub fn fixture(name: &str) -> PathBuf {
         let file = env::current_exe()
-                       .unwrap()
-                       .parent()
-                       .unwrap()
-                       .parent()
-                       .unwrap()
-                       .parent()
-                       .unwrap()
-                       .join("tests")
-                       .join("fixtures")
-                       .join(name);
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("tests")
+            .join("fixtures")
+            .join(name);
         if !file.is_file() {
             panic!("No fixture {} exists!", file.display());
         }

@@ -12,9 +12,9 @@ use error::{Error, Result};
 
 pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X) -> Result<()> {
     let output = try!(Command::new("chown")
-                          .arg(owner.as_ref())
-                          .arg(path.as_ref())
-                          .output());
+        .arg(owner.as_ref())
+        .arg(path.as_ref())
+        .output());
     match output.status.success() {
         true => Ok(()),
         false => Err(Error::PermissionFailed),
@@ -26,9 +26,9 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X) -> Result<()>
 // other platform, this code will need to become platform specific.
 pub fn set_permissions<T: AsRef<Path>, X: AsRef<str>>(path: T, perm: X) -> Result<()> {
     let output = try!(Command::new("chmod")
-                          .arg(perm.as_ref())
-                          .arg(path.as_ref())
-                          .output());
+        .arg(perm.as_ref())
+        .arg(path.as_ref())
+        .output());
     match output.status.success() {
         true => Ok(()),
         false => Err(Error::PermissionFailed),
