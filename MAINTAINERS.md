@@ -117,6 +117,13 @@ Contributors" statement.
 * [Christopher Webber](https://github.com/cwebberOps) - <cwebber@chef.io>
 * [Carl Perry](https://github.com/edolnx) - <caperry@edolnx.net>
 * [Ben Rockwood](https://github.com/benr) - <benr@chef.io>
+* [Elliott Davis](https://github.com/elliott-davis) - <edavis@chef.io>
+* [JJ Asghar](https://github.com/jjasghar) - <jj@chef.io>
+* [Maggie Walker](https://github.com/magwalk) - <magwalk@gmail.com>
+* [Ryan Hass](https://github.com/rhass) - <ryan@invalidchecksum.net>
+* [Seth Chisamore](https://github.com/schisamo) - <schisamo@chef.io>
+* [Jess Mink](https://github.com/jmink) - <jmink@getchef.com>
+* [Kyleen MacGugan](https://github.com/kmacgugan) - <kmacgugan@chef.io>
 
 ## Companies
 
