@@ -4,7 +4,7 @@ title: Building artifacts
 
 # Build artifacts
 
-Habitat artifacts are cryptographically-signed tarballs with a .hart extension that are built from plans. You can build an artifact in two ways: interactively from inside studio, and non-interactively.
+Habitat artifacts are cryptographically-signed tarballs with a .hart extension that are built from plans. You can build an artifact in two ways: interactively from inside a studio, and non-interactively.
 
 In both scenarios, you'll need to have the signing key for the origin of your package, which is defined using the `pkg_origin` setting inside your plan. If you haven't created an origin signing key yet, see [Keys](/docs/keys).
 
@@ -21,7 +21,7 @@ The directory where your plan is located is known as the Plan Context.
 
 3. The directory you were in is now mounted as `/src` inside the studio. Enter the following command to create the artifact.
 
-       hab-plan-build /src/planname
+       build /src/planname
 
 4. If the artifact builds successfully, it is placed into a `results` directory at the same level as your plan.
 
@@ -32,9 +32,9 @@ A non-interactive build is one in which Habitat creates a studio for you, builds
 1. Change to the parent directory of the Plan Context.
 2. Build the artifact in an unattended fashion, passing the name of the origin key to the command.
 
-        hab pkg build yourpackage --keys yourname
+        hab pkg build yourpackage -k yourname
 
-3. The resulting artifact is inside a directory called `results`, along with any build logs.
+3. The resulting artifact is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parseable metadata about the build.
 
 For more information on how to define a plan and build an artifact, how to create origin signing keys, and how to run a Habitat service, see the [getting started tutorial](/tutorials/getting-started-overview).
 
