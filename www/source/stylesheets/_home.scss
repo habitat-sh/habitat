@@ -319,6 +319,10 @@ $sub-hero-skew: 5deg;
     right: 40%;
     width: rem-calc(1600);
   }
+
+  @media (min-width: rem-calc(1550)) {
+    right: 45%;
+  }
 }
 
 .solutions--blurb__mobile {
