@@ -119,11 +119,11 @@ that depends on your package.
   pkg_binary_dirs=(bin)
   ~~~
 
-pkg_service_run
+pkg_svc_run
 : The command to start the service, if needed.
 
   ~~~
-  pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+  pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
   ~~~
 
 > Note: You should use a [run hook](#plan-hooks) instead if you have complex start up behavior.
@@ -143,18 +143,18 @@ pkg_interpreters
   pkg_interpreters=(bin/bash)
   ~~~
 
-pkg_service_user
+pkg_svc_user
 : The user to run the service as.
 
   ~~~
-  pkg_service_user=hab
+  pkg_svc_user=hab
   ~~~
 
-pkg_service_group
+pkg_svc_group
 : The group to run the service as.
 
   ~~~
-  pkg_service_group=$pkg_service_user
+  pkg_svc_group=$pkg_svc_user
   ~~~
 
 ***

@@ -131,10 +131,10 @@
 # pkg_bin_dirs=(bin)
 # ```
 #
-# ### pkg_service_run
+# ### pkg_svc_run
 # The command to start the service, if needed. Should not fork!
 # ```
-# pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # ```
 #
 # ### pkg_expose
@@ -208,7 +208,7 @@
 # pkg_shasum=6648dd7d6b958d83dd7101eab5792178212a66c884bec0ebcd8abc39df83bb78
 # pkg_bin_dirs=(bin)
 # pkg_deps=(glibc pcre openssl zlib)
-# pkg_service_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
+# pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # pkg_expose=(80 443)
 #
 # do_build() {
@@ -319,18 +319,18 @@ pkg_bin_dirs=()
 # The path inside a package that contains header files - used in `CFLAGS`
 pkg_include_dirs=()
 # The command to run the service - must not fork or return
-pkg_service_run=''
+pkg_svc_run=''
 # An array of ports to expose.
 pkg_expose=()
 # The user to run the service as
-pkg_service_user=hab
+pkg_svc_user=hab
 # The group to run the service as
-pkg_service_group=$pkg_service_user
+pkg_svc_group=$pkg_svc_user
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
-# meaning that `$pkg_name` is not yet set. However, `$pkg_service_run` wants
+# meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
 # to use these variables, so what to do? We'll set up these svc variables
-# with the `$pkg_service_run` variable as the customer-in-mind and pass over
+# with the `$pkg_svc_run` variable as the customer-in-mind and pass over
 # it once the Plan has been loaded. For good meaure, all of these variables
 # will need to be set again.
 pkg_svc_path="$HAB_ROOT_PATH/svc/@__pkg_name__@"
@@ -1851,9 +1851,9 @@ do_default_build_config() {
 }
 
 # Write out the `$pkg_prefix/run` file. If a file named `hooks/run` exists, we
-# skip this step. Otherwise, we look for `$pkg_service_run`, and use that.
+# skip this step. Otherwise, we look for `$pkg_svc_run`, and use that.
 #
-# If the `$pkg_service_user` is set to a value that is not `root`, we change
+# If the `$pkg_svc_user` is set to a value that is not `root`, we change
 # the service to be run under that user before we start it.
 #
 # Delegates most of the implementation to the `do_default_build_server()`
@@ -1869,19 +1869,19 @@ do_default_build_service() {
   if [[ -f $PLAN_CONTEXT/hooks/run ]]; then
     return 0
   else
-    if [[ -n "${pkg_service_run}" ]]; then
-      if [[ -n "$pkg_service_user" && "${pkg_service_user}" != "root" ]]; then
+    if [[ -n "${pkg_svc_run}" ]]; then
+      if [[ -n "$pkg_svc_user" && "${pkg_svc_user}" != "root" ]]; then
         cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
 cd $pkg_svc_path
 
 if [ "\$(whoami)" = "root" ]; then
   exec chpst \\
-    -U ${pkg_service_user}:$pkg_service_group \\
-    -u ${pkg_service_user}:$pkg_service_group \\
-    $pkg_prefix/$pkg_service_run 2>&1
+    -U ${pkg_svc_user}:$pkg_svc_group \\
+    -u ${pkg_svc_user}:$pkg_svc_group \\
+    $pkg_prefix/$pkg_svc_run 2>&1
 else
-  exec $pkg_prefix/$pkg_service_run 2>&1
+  exec $pkg_prefix/$pkg_svc_run 2>&1
 fi
 EOT
       else
@@ -1889,7 +1889,7 @@ EOT
 #!/bin/sh
 cd $pkg_svc_path
 
-exec $pkg_prefix/$pkg_service_run 2>&1
+exec $pkg_prefix/$pkg_svc_run 2>&1
 EOT
       fi
     fi
@@ -2079,10 +2079,10 @@ if [[ -z "${pkg_version}" ]]; then
   exit_with "Failed to build. 'pkg_version' must be set." 1
 fi
 
-# Pass over `$pkg_service_run` to replace any `$pkg_name` placeholder tokens
+# Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
-if [[ -n "${pkg_service_run+xxx}" ]]; then
-  pkg_service_run="$(echo $pkg_service_run | sed "s|@__pkg_name__@|$pkg_name|g")"
+if [[ -n "${pkg_svc_run+xxx}" ]]; then
+  pkg_svc_run="$(echo $pkg_svc_run | sed "s|@__pkg_name__@|$pkg_name|g")"
 fi
 
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already

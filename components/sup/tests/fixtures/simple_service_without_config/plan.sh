@@ -6,7 +6,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
 pkg_bin_dirs=(bin)
-pkg_service_run="bin/simple_service_without_config"
+pkg_svc_run="bin/simple_service_without_config"
 
 do_begin() {
   archive="$HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2"

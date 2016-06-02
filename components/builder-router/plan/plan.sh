@@ -8,7 +8,7 @@ pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
 pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/rust core/gcc core/pkg-config)
 srv_bin="bldr-router"
-pkg_service_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
 
 do_build() {
   # Used by the `build.rs` program to set the version of the binaries

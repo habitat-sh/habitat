@@ -8,8 +8,8 @@ pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl)
 pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
 srv_bin="hab-director"
-pkg_service_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
-pkg_service_user=root
+pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_user=root
 
 do_prepare() {
   # Used by the `build.rs` program to set the version of the binaries
