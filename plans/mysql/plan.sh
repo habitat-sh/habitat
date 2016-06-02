@@ -2,7 +2,7 @@ pkg_name=mysql
 pkg_origin=core
 pkg_version=5.7.12
 pkg_maintainer='The Habitat Maintainers <humans@habitat.sh>'
-pkg_license=('GPLv2')
+pkg_license=('GPL-2.0')
 pkg_source=http://dev.mysql.com/get/Downloads/MySQL-5.7/mysql-5.7.12.tar.gz
 pkg_shasum=32843cb6d22ab22cd2340262b53c0d6009b5bd41b1fa4102beda19635a5c1c87
 
