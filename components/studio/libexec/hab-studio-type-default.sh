@@ -9,6 +9,9 @@ studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash -l"
 
 pkgs="core/hab-backline"
 
+run_user="hab"
+run_group="$run_user"
+
 finish_setup() {
   if [ -n "$HAB_ORIGIN_KEYS" ]; then
     for key in $(echo $HAB_ORIGIN_KEYS | $bb tr ',' ' '); do
@@ -66,6 +69,9 @@ alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
 PROFILE
+
+  echo "${run_user}:x:42:42:root:/:/bin/sh" >> $HAB_STUDIO_ROOT/etc/passwd
+  echo "${run_group}:x:42:${run_user}" >> $HAB_STUDIO_ROOT/etc/group
 
   studio_env_command="$coreutils_path/bin/env"
 }
