@@ -127,4 +127,4 @@ Contributors" statement.
 
 ## Companies
 
-* Chef Software, Inc. - <legal@chef.io>
+* [Chef Software, Inc.](http://www.chef.io) - <legal@chef.io>
