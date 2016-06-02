@@ -28,7 +28,7 @@ Habitat implements cryptography using a Rust implementation of [NaCl](https://na
 
 Encrypted messages use the Curve25519, Salsa20, and Poly1305 ciphers specified in [Cryptography in NaCl](http://nacl.cr.yp.to/valid.html).
 
-Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic has function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
+Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic hash function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
 
 <hr>
 <ul class="main-content--link-nav">
