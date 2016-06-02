@@ -4,12 +4,15 @@ title: Get Habitat
 
 # Get Habitat
 
-Habitat is an open source project maintained on [GitHub](https://github.com/).
-If you have git installed, then you can clone the source code to your computer using:
+To get started with Habitat, you only need the `hab` binary.
 
-`git clone git@github.com:habitat-sh/habitat.git`
+* <a href="/downloads/hab.zip">Mac OS X</a>
+* <a href="/downloads/hab.gz">Linux</a>
+* Microsoft Windows - coming soon
 
-You can also browse the Habitat repo on GitHub at [https://github.com/habitat-sh/habitat](https://github.com/habitat-sh/habitat)
+If you are using Mac OS X and intend to build Habitat packages, you also need to [install Docker](https://docs.docker.com/engine/installation/).
+
+Habitat is an open-source project. You can also browse the Habitat repo on GitHub at [https://github.com/habitat-sh/habitat](https://github.com/habitat-sh/habitat). However, you do not need to clone the source code in order to use Habitat.
 
 <hr>
 <ul class="main-content--link-nav">
