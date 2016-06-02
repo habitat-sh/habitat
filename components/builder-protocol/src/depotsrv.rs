@@ -42,7 +42,9 @@ impl Decodable for Package {
             let tdeps: Vec<PackageIdent> = try!(d.read_struct_field("tdeps", 4, |d| Decodable::decode(d)));
             package.set_tdeps(protobuf::RepeatedField::from_vec(tdeps));
             package.set_exposes(try!(d.read_struct_field("exposes", 5, |d| Decodable::decode(d))));
-            package.set_config(try!(d.read_struct_field("config", 6, |d| Decodable::decode(d))));
+            if let Some(cfg) = try!(d.read_struct_field("config", 6, |d| Ok(Decodable::decode(d).ok()))) {
+                package.set_config(cfg);
+            }
             Ok(package)
         })
     }
@@ -274,7 +276,7 @@ impl ToJson for PackageIdent {
 impl ToJson for Package {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
-        m.insert("ident".to_string(), self.get_ident().to_string().to_json());
+        m.insert("ident".to_string(), self.get_ident().to_json());
         m.insert("checksum".to_string(), self.get_checksum().to_json());
         m.insert("manifest".to_string(), self.get_manifest().to_json());
         m.insert("deps".to_string(), self.get_deps().to_vec().to_json());
