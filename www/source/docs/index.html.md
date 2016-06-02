@@ -14,9 +14,9 @@ The Habitat documentation is broken out into the following sections:
 - [Build packages](/docs/build-packages-overview): Learn how to sign and build a package, and understand what a package actually contains.
 - [Run packages](/docs/run-packages-overview): Learn how to run a package natively as well as through a Docker container.
 
-
 ## Getting Habitat
-Currently, if you want to create and build plans in the studio or get the Habitat binaries, you will have to clone and build them from our GitHub repository. Instructions for cloning the repo can be found on the [Get Habitat](/docs/get-habitat) page.
+
+Instructions for getting Habitat are on the [Get Habitat](/docs/get-habitat) page.
 
 <hr>
 <ul class="main-content--link-nav">
