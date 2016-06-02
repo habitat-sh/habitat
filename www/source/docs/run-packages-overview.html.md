@@ -15,9 +15,9 @@ Packages can be tested in the interactive studio environment. To run packages di
 
 ## Exporting to Docker
 
-This topic describes how to create a Docker container for any artifact by performing the following steps:
+You can create a Docker container for any package by performing the following steps:
 
-1. Create an interactive studio in any directory with the `hab studio enter`.
+1. Create an interactive studio in any directory with the `hab studio enter` command.
 2. Install the Docker exporter:
 
       hab pkg install core/hab-pkg-dockerize
@@ -31,5 +31,30 @@ This topic describes how to create a Docker container for any artifact by perfor
       hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize yourorigin/yourpackage
 
 5. You can now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
+
+## Exporting to An Application Container Image (ACI)
+
+You can create an Application Container Image (ACI) for any package by performing the following steps:
+
+1. Create an interactive studio in any directory with the `hab studio enter` command.
+2. Install the ACI exporter:
+
+      hab pkg install core/hab-pkg-aci
+
+3. Install the Habitat package you want to create a Docker container from, for example:
+
+      hab pkg install yourorigin/yourpackage
+
+4. Run the ACI exporter on the package.
+
+      hab pkg exec core/hab-pkg-aci hab-pkg-aci yourorigin/yourpackage
+
+5. Note that this will create unsigned ACI images. If you wish to sign your ACI with default options, pass `SIGN=true`:
+
+      SIGN=true hab pkg exec core/hab-pkg-aci hab-pkg-aci yourorigin/yourpackage
+
+6. The `.aci` can now be moved to any runtime capable of running ACIs (e.g. rkt on CoreOS) for execution.
+
+## Examples
 
 For an example of running a Habitat service in a Docker container, see the [Run your service](/tutorials/getting-started-process-build) step in the Getting Started tutorial.
