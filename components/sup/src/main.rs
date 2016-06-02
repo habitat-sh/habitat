@@ -35,6 +35,7 @@ use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::topology::Topology;
 use sup::util::parse_ip_port_with_defaults;
+use sup::util::path::busybox_paths;
 use sup::util::sys::ip;
 
 /// Our output key
@@ -122,7 +123,14 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
             .as_ref())
         .to_string());
 
-    let default_gossip_ip = try!(ip());
+    let mut env_path = String::new();
+    for path in try!(busybox_paths()) {
+        if env_path.len() > 0 {
+            env_path.push(':');
+        }
+        env_path.push_str(path.to_string_lossy().as_ref());
+    }
+    let default_gossip_ip = try!(ip(Some(&env_path)));
     let (gossip_ip, gossip_port) = try!(parse_ip_port_with_defaults(
                                         sub_args.value_of("listen-peer"),
                                         &default_gossip_ip,

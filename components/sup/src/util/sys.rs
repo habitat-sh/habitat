@@ -12,19 +12,22 @@ use hcore::util::sys;
 
 static LOGKEY: &'static str = "SY";
 
-pub fn ip() -> Result<String> {
-    match sys::ip() {
+pub fn ip(path: Option<&str>) -> Result<String> {
+    match sys::ip(path) {
         Ok(s) => Ok(s),
         Err(e) => Err(sup_error!(Error::HabitatCore(e))),
     }
 }
 
-pub fn hostname() -> Result<String> {
+pub fn hostname(path: Option<&str>) -> Result<String> {
     debug!("Shelling out to determine IP address");
-    let output = try!(Command::new("sh")
-        .arg("-c")
-        .arg("hostname | awk '{printf \"%s\", $NF; exit}'")
-        .output());
+    let mut cmd = Command::new("sh");
+    cmd.arg("-c").arg("hostname | awk '{printf \"%s\", $NF; exit}'");
+    if let Some(path) = path {
+        cmd.env("PATH", path);
+        debug!("Setting shell out PATH={}", path);
+    }
+    let output = try!(cmd.output());
     match output.status.success() {
         true => {
             debug!("Hostname address is {}",
@@ -43,9 +46,9 @@ pub fn hostname() -> Result<String> {
 
 pub fn to_toml() -> Result<String> {
     let mut toml_string = String::from("[sys]\n");
-    let ip = try!(ip());
+    let ip = try!(ip(None));
     toml_string.push_str(&format!("ip = \"{}\"\n", ip));
-    let hostname = try!(hostname());
+    let hostname = try!(hostname(None));
     toml_string.push_str(&format!("hostname = \"{}\"\n", hostname));
     debug!("Sys Toml: {}", toml_string);
     Ok(toml_string)

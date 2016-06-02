@@ -122,13 +122,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "habitat_builder_protocol"
+version = "0.6.0"
+dependencies = [
+ "bitflags 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_core 0.6.0",
+ "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "habitat_common"
 version = "0.6.0"
 dependencies = [
  "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
  "habitat_depot_client 0.6.0",
- "habitat_depot_core 0.6.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.7.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -160,24 +173,14 @@ name = "habitat_depot_client"
 version = "0.6.0"
 dependencies = [
  "broadcast 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
- "habitat_depot_core 0.6.0",
  "hyper 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "tee 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "habitat_depot_core"
-version = "0.6.0"
-dependencies = [
- "habitat_core 0.6.0",
- "hyper 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -190,7 +193,6 @@ dependencies = [
  "habitat_common 0.6.0",
  "habitat_core 0.6.0",
  "habitat_depot_client 0.6.0",
- "habitat_depot_core 0.6.0",
  "handlebars 0.16.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -565,6 +567,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "tempdir 0.3.4 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "protobuf"
+version = "1.0.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "quick-error"
