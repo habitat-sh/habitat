@@ -4,7 +4,7 @@ title: Get Habitat
 
 # Get Habitat
 
-To get started with Habitat, you only need the `hab` binary.
+To get started with Habitat, you only need the `hab` command-line tool.
 
 * <a href="/downloads/hab.zip">Mac OS X</a>
 * <a href="/downloads/hab.gz">Linux</a>
