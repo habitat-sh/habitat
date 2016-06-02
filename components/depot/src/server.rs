@@ -10,24 +10,443 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 use std::result;
+use std::sync::{Arc, Mutex};
 
+use bodyparser;
 use dbcache::{self, BasicSet, IndexSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
+use hab_core::crypto::keys;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::ContentType;
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
+use iron::headers::{Authorization, Bearer};
 use iron::request::Body;
 use mount::Mount;
+use protobuf;
 use protocol::depotsrv;
+use protocol::net::{NetError, ErrCode};
+use protocol::sessionsrv::{Account, AccountGet, Session, SessionGet};
+use protocol::vault::*;
 use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
 use unicase::UniCase;
 use urlencoded::UrlEncodedQuery;
+use zmq;
 
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
+use hab_net::routing::Broker;
+use hab_net::server::NetIdent;
+
+pub fn authenticate(req: &mut Request,
+                    ctx: &Arc<Mutex<zmq::Context>>)
+                    -> result::Result<Session, Response> {
+    match req.headers.get::<Authorization<Bearer>>() {
+        Some(&Authorization(Bearer { ref token })) => {
+            let mut conn = Broker::connect(&ctx).unwrap();
+            let mut request = SessionGet::new();
+            request.set_token(token.to_string());
+            conn.route(&request).unwrap();
+            match conn.recv() {
+                Ok(rep) => {
+                    match rep.get_message_id() {
+                        "Session" => {
+                            let session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                            Ok(session)
+                        }
+                        "NetError" => {
+                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                            Err(render_net_error(&err))
+                        }
+                        _ => unreachable!("unexpected msg: {:?}", rep),
+                    }
+                }
+                Err(e) => {
+                    error!("session get, err={:?}", e);
+                    Err(Response::with(status::InternalServerError))
+                }
+            }
+        }
+        _ => Err(Response::with(status::Unauthorized)),
+    }
+}
+
+/// Return an IronResult containing the body of a NetError and the appropriate HTTP response status
+/// for the corresponding NetError.
+///
+/// For example, a NetError::ENTITY_NOT_FOUND will result in an HTTP response containing the body
+/// of the NetError with an HTTP status of 404.
+///
+/// # Panics
+///
+/// * The given encoded message was not a NetError
+/// * The given messsage could not be decoded
+/// * The NetError could not be encoded to JSON
+fn render_net_error(err: &NetError) -> Response {
+    let encoded = json::encode(&err.to_json()).unwrap();
+    let status = match err.get_code() {
+        ErrCode::ENTITY_NOT_FOUND => status::NotFound,
+        ErrCode::NO_SHARD => status::ServiceUnavailable,
+        ErrCode::TIMEOUT => status::RequestTimeout,
+        ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
+        _ => status::InternalServerError,
+    };
+    Response::with((status, encoded))
+}
+
+pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+    let mut request = OriginCreate::new();
+    request.set_owner_id(session.get_id());
+    request.set_owner_name(session.get_name().to_string());
+    match req.get::<bodyparser::Json>() {
+        Ok(Some(body)) => {
+            match body.find("name") {
+                Some(origin) => request.set_name(origin.as_string().unwrap().to_owned()),
+                _ => return Ok(Response::with(status::BadRequest)),
+            }
+        }
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !keys::is_valid_origin_name(request.get_name()) {
+        return Ok(Response::with(status::UnprocessableEntity));
+    }
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "Origin" => {
+                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    let encoded = json::encode(&origin.to_json()).unwrap();
+                    Ok(Response::with((status::Created, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    debug!("origin_create error: {:?}", err);
+                    Ok(Response::with(status::Conflict))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        _ => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(&depot, session.get_id(), &origin) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = OriginGet::new();
+    request.set_name(origin);
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "Origin" => {
+                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    let encoded = json::encode(&origin.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+
+/// Return the origin IFF it exists
+pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
+    let ctx = &depot.context;
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = OriginGet::new();
+    request.set_name(origin.to_string());
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "Origin" => {
+                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(Some(origin))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    debug!("get_origin error: {:?}", err);
+                    Ok(None)
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Err(Error::from(e))
+        }
+    }
+}
+
+
+pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) -> bool {
+    let ctx = &depot.context;
+    let mut conn = Broker::connect(&ctx).unwrap();
+
+    let mut request = CheckOriginAccessRequest::new();
+    // !!!NOTE!!!
+    // only account_id and origin_name are implemented in
+    // CheckOriginAccessRequest
+    // !!!NOTE!!!
+    request.set_account_id(account_id);
+    request.set_origin_name(origin_name.to_string());
+
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "CheckOriginAccessResponse" => {
+                    let response: CheckOriginAccessResponse =
+                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    response.get_has_access()
+                }
+                "NetError" => false,
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            debug!("Error checking origin access: {}", e);
+            false
+        }
+    }
+}
+
+pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let user_to_invite = match params.find("username") {
+        Some(username) => username,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    debug!("Creating invitation for user {} origin {}",
+           &user_to_invite,
+           &origin);
+
+    if !check_origin_access(&depot, session.get_id(), &origin) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    // Lookup the users account_id
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = AccountGet::new();
+    request.set_name(user_to_invite.to_string());
+    conn.route(&request).unwrap();
+
+    let acct_obj = match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "Account" => {
+                    let account: Account = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    account
+                }
+                "NetError" => {
+                    return Ok(Response::with(status::NotFound));
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            debug!("Error inviting to origin: {}", e);
+            return Ok(Response::with(status::NotFound));
+        }
+    };
+
+    let origin_obj = match try!(get_origin(&depot, &origin)) {
+        Some(origin) => origin,
+        None => {
+            debug!("Origin {} not found", &origin);
+            return Ok(Response::with(status::NotFound));
+        }
+    };
+
+    // store invitations in the vault
+    let mut invite_request = OriginInvitationCreate::new();
+    invite_request.set_account_id(acct_obj.get_id());
+    invite_request.set_account_name(acct_obj.get_name().to_string());
+    invite_request.set_origin_id(origin_obj.get_id());
+    invite_request.set_origin_name(origin_obj.get_name().to_string());
+    invite_request.set_owner_id(session.get_id());
+
+    conn.route(&invite_request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "OriginInvitation" => {
+                    // we don't do anything with the invitation, but we could
+                    // if we want to!
+                    let _invite: OriginInvitation = protobuf::parse_from_bytes(rep.get_body())
+                        .unwrap();
+                    let encoded = json::encode(&origin.to_json()).unwrap();
+                    Ok(Response::with((status::Created, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+
+            }
+        }
+        Err(e) => {
+            debug!("Error: {}", &e);
+            return Ok(Response::with(status::InternalServerError));
+        }
+    }
+}
+
+pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    debug!("list_origin_invitations");
+
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin_name = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(&depot, session.get_id(), &origin_name) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = OriginInvitationListRequest::new();
+
+    let origin = match try!(get_origin(&depot, origin_name)) {
+        Some(o) => o,
+        None => return Ok(Response::with(status::NotFound)),
+    };
+
+    request.set_origin_id(origin.get_id());
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "OriginInvitationListResponse" => {
+                    let invites: OriginInvitationListResponse =
+                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    let encoded = json::encode(&invites.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    debug!("list_origin_members");
+
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let origin_name = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(&depot, session.get_id(), &origin_name) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = OriginMemberListRequest::new();
+
+    let origin = match try!(get_origin(&depot, origin_name)) {
+        Some(o) => o,
+        None => return Ok(Response::with(status::NotFound)),
+    };
+
+    request.set_origin_id(origin.get_id());
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "OriginMemberListResponse" => {
+                    let members: OriginMemberListResponse =
+                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    let encoded = json::encode(&members.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
@@ -63,6 +482,12 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
 }
 
 fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+
     debug!("Upload Origin Key {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
 
@@ -75,6 +500,10 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         Some(revision) => revision,
         None => return Ok(Response::with(status::BadRequest)),
     };
+
+    if !check_origin_access(&depot, session.get_id(), &origin) {
+        return Ok(Response::with(status::Forbidden));
+    }
 
     let origin_keyfile = depot.key_path(&origin, &revision);
     debug!("Writing key file {}", origin_keyfile.to_string_lossy());
@@ -95,7 +524,67 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+
+fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    debug!("Upload Origin Secret Key {:?}", req);
+    let ctx = &depot.context;
+
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => {
+            return Ok(response);
+        }
+    };
+
+    let params = req.extensions.get::<Router>().unwrap();
+
+    let name = match params.find("origin") {
+        Some(origin) => origin,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    let revision = match params.find("revision") {
+        Some(revision) => revision,
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    if !check_origin_access(&depot, session.get_id(), &name) {
+        return Ok(Response::with(status::Forbidden));
+    }
+
+
+    let o = match try!(get_origin(&depot, name)) {
+        Some(o) => o,
+        None => return Ok(Response::with(status::NotFound)),
+    };
+
+    let mut request = OriginSecretKeyCreate::new();
+    request.set_owner_id(session.get_id());
+    request.set_origin_id(o.get_id());
+    request.set_name(name.to_string());
+    request.set_revision(revision.to_string());
+
+    let mut key_content = Vec::new();
+    if let Err(e) = req.body.read_to_end(&mut key_content) {
+        debug!("Can't read key content {}", e);
+        return Ok(Response::with(status::BadRequest));
+    }
+    request.set_body(key_content);
+    request.set_owner_id(0);
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    conn.route(&request).unwrap();
+    Ok(Response::with(status::Ok))
+}
+
+
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+
     debug!("Upload {:?}", req);
     let checksum_from_param = match extract_query_value("checksum", req) {
         Some(checksum) => checksum,
@@ -103,6 +592,10 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     };
     let params = req.extensions.get::<Router>().unwrap();
     let ident = ident_from_params(params);
+
+    if !check_origin_access(&depot, session.get_id(), &ident.get_origin()) {
+        return Ok(Response::with(status::Forbidden));
+    }
 
     if !ident.fully_qualified() {
         return Ok(Response::with(status::BadRequest));
@@ -304,6 +797,7 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 }
 
+
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let (offset, num) = match extract_pagination(req) {
         Ok(range) => range,
@@ -483,12 +977,21 @@ fn render_package(pkg: &depotsrv::Package) -> IronResult<Response> {
 }
 
 fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let ctx = &depot.context;
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+
     let params = req.extensions.get::<Router>().unwrap();
     let view = params.find("view").unwrap();
 
     match depot.datastore.views.is_member(view) {
         Ok(true) => {
             let ident = ident_from_params(params);
+            if !check_origin_access(&depot, session.get_id(), &ident.get_origin()) {
+                return Ok(Response::with(status::Forbidden));
+            }
             match depot.datastore.packages.find(&ident) {
                 Ok(package) => {
                     depot.datastore.views.associate(view, &package).unwrap();
@@ -578,8 +1081,9 @@ impl AfterMiddleware for Cors {
     }
 }
 
-pub fn router(config: Config) -> Result<Chain> {
-    let depot = try!(Depot::new(config));
+pub fn router(depot: Arc<Depot>) -> Result<Chain> {
+    // we can't call depot.clone() in fn argument,
+    // so we bind them here instead.
     let depot1 = depot.clone();
     let depot2 = depot.clone();
     let depot3 = depot.clone();
@@ -601,6 +1105,12 @@ pub fn router(config: Config) -> Result<Chain> {
     let depot19 = depot.clone();
     let depot20 = depot.clone();
     let depot21 = depot.clone();
+    let depot22 = depot.clone();
+    let depot23 = depot.clone();
+    let depot24 = depot.clone();
+    let depot25 = depot.clone();
+    let depot26 = depot.clone();
+    let depot27 = depot.clone();
 
     let router = router!(
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
@@ -622,34 +1132,53 @@ pub fn router(config: Config) -> Result<Chain> {
             move |r: &mut Request| promote_package(&depot8, r)
         },
 
-        get "/pkgs/search/:query" => move |r: &mut Request| search_packages(&depot21, r),
-        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot9, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot10, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot11, r),
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot12, r),
+        get "/pkgs/search/:query" => move |r: &mut Request| search_packages(&depot9, r),
+        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot10, r),
+        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot11, r),
+        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot12, r),
+        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot13, r),
         get "/pkgs/:origin/:pkg/:version/latest" => {
-            move |r: &mut Request| show_package(&depot13, r)
+            move |r: &mut Request| show_package(&depot14, r)
         },
         get "/pkgs/:origin/:pkg/:version/:release" => {
-            move |r: &mut Request| show_package(&depot14, r)
+            move |r: &mut Request| show_package(&depot15, r)
         },
 
         get "/pkgs/:origin/:pkg/:version/:release/download" => {
-            move |r: &mut Request| download_package(&depot15, r)
+            move |r: &mut Request| download_package(&depot16, r)
         },
         post "/pkgs/:origin/:pkg/:version/:release" => {
-            move |r: &mut Request| upload_package(&depot16, r)
+            move |r: &mut Request| upload_package(&depot17, r)
         },
 
-        get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot17, r),
+
+        post "/origins" => move |r: &mut Request| origin_create(&depot18, r),
+        // TODO
+        //delete "/origins/:origin" => move |r: &mut Request| origin_delete(&depot17, r),
+
+        get "/origins/:origin" => move |r: &mut Request| origin_show(&depot19, r),
+
+        get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot20, r),
         get "/origins/:origin/keys/latest" => {
-            move |r: &mut Request| download_latest_origin_key(&depot19, r)
+            move |r: &mut Request| download_latest_origin_key(&depot21, r)
         },
         get "/origins/:origin/keys/:revision" => {
-            move |r: &mut Request| download_origin_key(&depot18, r)
+            move |r: &mut Request| download_origin_key(&depot22, r)
         },
         post "/origins/:origin/keys/:revision" => {
-            move |r: &mut Request| upload_origin_key(&depot20, r)
+            move |r: &mut Request| upload_origin_key(&depot23, r)
+        },
+        post "/origins/:origin/secret_keys/:revision" => {
+            move |r: &mut Request| upload_origin_secret_key(&depot24, r)
+        },
+        post "/origins/:origin/users/:username/invitations" => {
+            move |r: &mut Request| invite_to_origin(&depot25, r)
+        },
+        get "/origins/:origin/invitations" => {
+            move |r: &mut Request| list_origin_invitations(&depot26, r)
+        },
+        get "/origins/:origin/users" => {
+            move |r: &mut Request| list_origin_members(&depot27, r)
         },
     );
     let mut chain = Chain::new(router);
@@ -657,12 +1186,22 @@ pub fn router(config: Config) -> Result<Chain> {
     Ok(chain)
 }
 
+use hab_net::config::RouteAddrs;
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
-    let v1 = try!(router(config));
+
+    let ctx = Arc::new(Mutex::new(zmq::Context::new()));
+    let depot = try!(Depot::new(config.clone(), ctx));
+    let v1 = try!(router(depot.clone()));
+
+    let broker = Broker::run(Depot::net_ident(),
+                             depot.context.clone(),
+                             &config.route_addrs().clone());
+
     let mut mount = Mount::new();
     mount.mount("/v1", v1);
     Iron::new(mount).http(listen_addr).unwrap();
+    broker.join().unwrap();
     Ok(())
 }
 

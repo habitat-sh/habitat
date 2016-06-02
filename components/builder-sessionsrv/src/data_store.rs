@@ -7,7 +7,7 @@
 
 use std::sync::Arc;
 
-use dbcache::{Bucket, ConnectionPool, ExpiringSet, IndexSet, InstaSet};
+use dbcache::{self, Bucket, ConnectionPool, ExpiringSet, IndexSet, InstaSet};
 use protocol::sessionsrv;
 use r2d2_redis::RedisConnectionManager;
 use redis;
@@ -28,8 +28,10 @@ impl DataStore {
         let pool = Arc::new(ConnectionPool::new(pool_cfg, manager).unwrap());
         let pool1 = pool.clone();
         let pool2 = pool.clone();
+
         let accounts = AccountTable::new(pool1);
         let sessions = SessionTable::new(pool2);
+
         Ok(DataStore {
             pool: pool,
             accounts: accounts,
@@ -41,15 +43,19 @@ impl DataStore {
 pub struct AccountTable {
     pool: Arc<ConnectionPool>,
     github: GitHub2AccountIdx,
+    user_to_account: GitHubUser2AccountIdx,
 }
 
 impl AccountTable {
     pub fn new(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
+        let pool2 = pool.clone();
         let directory = GitHub2AccountIdx::new(pool1);
+        let user_to_account = GitHubUser2AccountIdx::new(pool2);
         AccountTable {
             pool: pool,
             github: directory,
+            user_to_account: user_to_account,
         }
     }
 
@@ -67,8 +73,16 @@ impl AccountTable {
             // JW TODO: make these two database calls transactional
             try!(self.write(&mut account));
             try!(self.github.write(&req.get_extern_id(), account.get_id()));
+            // TODO: route a message to the appropriate sessionsrv, and
+            // that sessionsrv will write to the db
+            try!(self.user_to_account.write(&req.get_name().to_string(), account.get_id()));
             Ok(account)
         }
+    }
+
+    pub fn find_by_username(&self, username: &str) -> dbcache::Result<sessionsrv::Account> {
+        let account_id = try!(self.user_to_account.find(&username.to_string()));
+        self.find(&account_id)
     }
 }
 
@@ -142,3 +156,32 @@ impl IndexSet for GitHub2AccountIdx {
     type Key = u64;
     type Value = u64;
 }
+
+
+/// maps github usernames -> Account.id's
+struct GitHubUser2AccountIdx {
+    pool: Arc<ConnectionPool>,
+}
+
+impl GitHubUser2AccountIdx {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        GitHubUser2AccountIdx { pool: pool }
+    }
+}
+
+impl Bucket for GitHubUser2AccountIdx {
+    fn prefix() -> &'static str {
+        "githubuser2account"
+    }
+
+    fn pool(&self) -> &ConnectionPool {
+        &self.pool
+    }
+}
+
+impl IndexSet for GitHubUser2AccountIdx {
+    type Key = String;
+    type Value = u64;
+}
+
+

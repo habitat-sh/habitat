@@ -10,12 +10,14 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use std::thread;
 
-use dbcache::{self, IndexSet, InstaSet};
+use protobuf::RepeatedField;
+use zmq;
+
+use dbcache::{self, ExpiringSet, IndexSet, InstaSet};
 use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
                       Supervisable};
 use protocol::net::{self, ErrCode};
 use protocol::vault as proto;
-use zmq;
 
 use config::Config;
 use data_store::DataStore;
@@ -36,13 +38,60 @@ impl Worker {
 
     fn dispatch(&mut self, req: &mut Envelope) -> Result<()> {
         match req.message_id() {
+            "AccountInvitationListRequest" => {
+                let msg: proto::AccountInvitationListRequest = try!(req.parse_msg());
+                let invites = try!(self.datastore()
+                    .origins
+                    .invites
+                    .get_by_account_id(msg.get_account_id()));
+                debug!("Got invites for account {} ", &msg.get_account_id());
+                let mut resp = proto::AccountInvitationListResponse::new();
+                resp.set_account_id(msg.get_account_id());
+
+                let mut r_invites = RepeatedField::new();
+                for invite in invites {
+                    r_invites.push(invite);
+                }
+                resp.set_invitations(r_invites);
+                try!(req.reply_complete(&mut self.sock, &resp));
+            }
+            "CheckOriginAccessRequest" => {
+                // !!!NOTE!!!
+                // !!!NOTE!!!
+                // only account_id and origin_name are implemented
+                // !!!NOTE!!!
+                // !!!NOTE!!!
+                let msg: proto::CheckOriginAccessRequest = try!(req.parse_msg());
+                let is_member = try!(self.datastore()
+                    .origins
+                    .is_origin_member(msg.get_account_id(), msg.get_origin_name()));
+                let mut resp = proto::CheckOriginAccessResponse::new();
+                resp.set_has_access(is_member);
+                try!(req.reply_complete(&mut self.sock, &resp));
+            }
             "OriginCreate" => {
                 let msg: proto::OriginCreate = try!(req.parse_msg());
                 let mut origin = proto::Origin::new();
                 origin.set_name(msg.get_name().to_string());
                 origin.set_owner_id(msg.get_owner_id());
-                // JW TODO: handle db errors
+                // if the origin already exists, then return
+                if let Ok(_origin) = self.datastore()
+                    .origins
+                    .name_idx
+                    .find(&msg.get_name().to_string()) {
+                    let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-create:0");
+                    try!(req.reply_complete(&mut self.sock, &err));
+                }
+
                 try!(self.datastore().origins.write(&mut origin));
+
+                // after the origin is written and has an id, add the owner
+                // to the list of members
+                debug!("Adding owner as origin member: {}", &msg.get_owner_name());
+                try!(self.datastore()
+                    .origins
+                    .add_origin_member(msg.get_owner_id(), msg.get_owner_name(), msg.get_name()));
+
                 try!(req.reply_complete(&mut self.sock, &origin));
             }
             "OriginGet" => {
@@ -63,6 +112,70 @@ impl Worker {
                     }
                 }
             }
+            "OriginInvitationAcceptRequest" => {
+                let msg: proto::OriginInvitationAcceptRequest = try!(req.parse_msg());
+
+                // we might not have an invite here if it's already been accepted
+                match self.datastore().origins.invites.find(&msg.get_invite_id()) {
+                    Ok(invite) => {
+                        debug!("REQ    {:?}", &msg);
+                        debug!("INVITE {:?}", &invite);
+                        if msg.get_account_accepting_request() != invite.get_account_id() {
+                            let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-invite-accept:0");
+                            try!(req.reply_complete(&mut self.sock, &err));
+                        }
+
+                        match self.datastore().origins.modify_invite(&invite, msg.get_ignore()) {
+                            Ok(()) => (),
+                            Err(e) => {
+                                debug!("Error accepting invite: {}", e);
+                            }
+                        };
+                    }
+                    Err(e) => {
+                        debug!("Error accepting invite, maybe it's already been accepted? {}",
+                               e);
+                    }
+                };
+
+                let resp = proto::OriginInvitationAcceptResponse::new();
+                try!(req.reply_complete(&mut self.sock, &resp));
+            }
+            "OriginInvitationCreate" => {
+                let msg: proto::OriginInvitationCreate = try!(req.parse_msg());
+                let mut invitation = proto::OriginInvitation::new();
+                if !try!(self.datastore()
+                    .origins
+                    .is_origin_member(msg.get_account_id(), msg.get_origin_name())) {
+                    debug!("Can't invite to this org unless your already a member");
+                    let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-create:0");
+                    try!(req.reply_complete(&mut self.sock, &err));
+                }
+                invitation.set_account_id(msg.get_account_id());
+                invitation.set_account_name(msg.get_account_name().to_string());
+                invitation.set_origin_id(msg.get_origin_id());
+                invitation.set_origin_name(msg.get_origin_name().to_string());
+
+                invitation.set_owner_id(msg.get_owner_id());
+                try!(self.datastore().origins.invites.write(&mut invitation));
+                try!(req.reply_complete(&mut self.sock, &invitation));
+            }
+            "OriginInvitationListRequest" => {
+                let msg: proto::OriginInvitationListRequest = try!(req.parse_msg());
+                let invites = try!(self.datastore()
+                    .origins
+                    .invites
+                    .get_by_origin_id(msg.get_origin_id()));
+                let mut resp = proto::OriginInvitationListResponse::new();
+                resp.set_origin_id(msg.get_origin_id());
+
+                let mut r_invites = RepeatedField::new();
+                for invite in invites {
+                    r_invites.push(invite);
+                }
+                resp.set_invitations(r_invites);
+                try!(req.reply_complete(&mut self.sock, &resp));
+            }
             "OriginList" => {
                 let origin1 = proto::Origin::new();
                 let origin2 = proto::Origin::new();
@@ -75,6 +188,46 @@ impl Worker {
                     }
                 }
             }
+            "OriginMemberListRequest" => {
+                let msg: proto::OriginMemberListRequest = try!(req.parse_msg());
+                let members =
+                    try!(self.datastore().origins.list_origin_members(msg.get_origin_id()));
+                let mut r_members = RepeatedField::new();
+                for member in members {
+                    r_members.push(member);
+                }
+                let mut resp = proto::OriginMemberListResponse::new();
+                resp.set_origin_id(msg.get_origin_id());
+                resp.set_members(r_members);
+                try!(req.reply_complete(&mut self.sock, &resp));
+            }
+            "AccountOriginListRequest" => {
+                let msg: proto::AccountOriginListRequest = try!(req.parse_msg());
+                let origins =
+                    try!(self.datastore().origins.list_account_origins(msg.get_account_id()));
+                let mut r_origins = RepeatedField::new();
+                for origin in origins {
+                    r_origins.push(origin);
+                }
+                let mut resp = proto::AccountOriginListResponse::new();
+                resp.set_account_id(msg.get_account_id());
+                resp.set_origins(r_origins);
+                try!(req.reply_complete(&mut self.sock, &resp));
+            }
+
+            "OriginSecretKeyCreate" => {
+                let msg: proto::OriginSecretKeyCreate = try!(req.parse_msg());
+                let mut pk = proto::OriginSecretKey::new();
+                pk.set_name(msg.get_name().to_string());
+                pk.set_revision(msg.get_revision().to_string());
+                pk.set_origin_id(msg.get_origin_id());
+                pk.set_owner_id(msg.get_owner_id());
+                pk.set_body(msg.get_body().to_vec());
+                // DP TODO: handle db errors
+                try!(self.datastore().origins.origin_secret_keys.write(&mut pk));
+                try!(req.reply_complete(&mut self.sock, &pk));
+            }
+
             _ => panic!("unexpected message: {}", req.message_id()),
         }
         Ok(())

@@ -14,7 +14,7 @@ use dbcache::{self, ExpiringSet, InstaSet, IndexSet};
 use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
                       Supervisable};
 use protocol::net::{self, ErrCode};
-use protocol::sessionsrv::{Account, Session, SessionGet, SessionCreate, SessionToken};
+use protocol::sessionsrv::{Account, AccountGet, Session, SessionGet, SessionCreate, SessionToken};
 use zmq;
 
 use config::Config;
@@ -36,6 +36,23 @@ impl Worker {
 
     fn dispatch(&mut self, req: &mut Envelope) -> Result<()> {
         match req.message_id() {
+            "AccountGet" => {
+                let msg: AccountGet = try!(req.parse_msg());
+                match self.datastore().accounts.find_by_username(&msg.get_name().to_string()) {
+                    Ok(account) => {
+                        try!(req.reply_complete(&mut self.sock, &account));
+                    }
+                    Err(dbcache::Error::EntityNotFound) => {
+                        let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account_get:0");
+                        try!(req.reply_complete(&mut self.sock, &err));
+                    }
+                    Err(e) => {
+                        error!("datastore error, err={:?}", e);
+                        let err = net::err(ErrCode::INTERNAL, "ss:account_get:1");
+                        try!(req.reply_complete(&mut self.sock, &err));
+                    }
+                }
+            }
             "SessionCreate" => {
                 let mut msg: SessionCreate = try!(req.parse_msg());
                 let mut account: Account = match self.datastore()

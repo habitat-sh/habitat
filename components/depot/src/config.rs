@@ -8,6 +8,7 @@
 use std::net;
 
 use hab_core::config::{ConfigFile, ParseInto};
+use hab_net::config::RouteAddrs;
 use redis;
 use toml;
 
@@ -18,6 +19,8 @@ pub struct Config {
     pub path: String,
     pub listen_addr: net::SocketAddrV4,
     pub datastore_addr: net::SocketAddrV4,
+    /// List of net addresses for routing servers to connect to
+    pub routers: Vec<net::SocketAddrV4>,
 }
 
 impl ConfigFile for Config {
@@ -28,6 +31,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.path", &mut cfg.path));
         try!(toml.parse_into("cfg.bind_addr", &mut cfg.listen_addr));
         try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
+        try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         Ok(cfg)
     }
 }
@@ -38,6 +42,7 @@ impl Default for Config {
             path: "/hab/svc/hab-depot/data".to_string(),
             listen_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 9632),
             datastore_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 6379),
+            routers: vec![net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562)],
         }
     }
 }
@@ -48,5 +53,11 @@ impl<'a> redis::IntoConnectionInfo for &'a Config {
                 self.datastore_addr.ip(),
                 self.datastore_addr.port())
             .into_connection_info()
+    }
+}
+
+impl RouteAddrs for Config {
+    fn route_addrs(&self) -> &Vec<net::SocketAddrV4> {
+        &self.routers
     }
 }

@@ -33,14 +33,18 @@ pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<
     let ctx3 = context.clone();
     let ctx4 = context.clone();
     let ctx5 = context.clone();
+    let ctx6 = context.clone();
+
     let router = router!(
         get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github, &ctx1),
 
-        post "/origins" => move |r: &mut Request| origin_create(r, &ctx2),
-        get "/origins/:origin" => move |r: &mut Request| origin_show(r, &ctx3),
+        post "/jobs" => move |r: &mut Request| job_create(r, &ctx2),
+        get "/jobs/:id" => move |r: &mut Request| job_show(r, &ctx3),
 
-        post "/jobs" => move |r: &mut Request| job_create(r, &ctx4),
-        get "/jobs/:id" => move |r: &mut Request| job_show(r, &ctx5),
+        get "/user/invitations" => move |r: &mut Request| list_account_invitations(r, &ctx4),
+        put "/user/invitations/:invitation_id" => move |r: &mut Request| accept_invitation(r, &ctx5),
+        get "/user/origins" => move |r: &mut Request| list_user_origins(r, &ctx6),
+
     );
     let mut chain = Chain::new(router);
     chain.link_after(Cors);
@@ -60,11 +64,15 @@ pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<
 /// * Listener crashed during startup
 pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
+
     let addr = config.http_addr.clone();
-    let depot = try!(depot::server::router(config.depot.clone()));
+    let ctx = context.clone();
+    let depot = try!(depot::Depot::new(config.depot.clone(), ctx));
+    let depot_chain = try!(depot::server::router(depot));
     let chain = try!(router(config, context));
+
     let mut mount = Mount::new();
-    mount.mount("/v1", chain).mount("/v1/depot", depot);
+    mount.mount("/v1", chain).mount("/v1/depot", depot_chain);
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {

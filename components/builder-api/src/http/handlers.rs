@@ -18,7 +18,7 @@ use iron::headers::{Authorization, Bearer};
 use protobuf;
 use protocol::jobsrv::{Job, JobCreate, JobGet};
 use protocol::sessionsrv::{OAuthProvider, Session, SessionCreate, SessionGet};
-use protocol::vault::{Origin, OriginCreate, OriginGet};
+use protocol::vault::*;
 use protocol::net::{self, NetError, ErrCode};
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
@@ -47,6 +47,7 @@ pub fn authenticate(req: &mut Request,
                             let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
                             Err(render_net_error(&err))
                         }
+
                         _ => unreachable!("unexpected msg: {:?}", rep),
                     }
                 }
@@ -78,7 +79,7 @@ pub fn session_create(req: &mut Request,
                     request.set_token(token);
                     request.set_extern_id(user.id);
                     request.set_email(user.email);
-                    request.set_name(user.name);
+                    request.set_name(user.login);
                     request.set_provider(OAuthProvider::GitHub);
                     conn.route(&request).unwrap();
                     match conn.recv() {
@@ -295,4 +296,135 @@ fn render_net_error(err: &NetError) -> Response {
         _ => status::InternalServerError,
     };
     Response::with((status, encoded))
+}
+
+pub fn list_account_invitations(req: &mut Request,
+                                ctx: &Arc<Mutex<zmq::Context>>)
+                                -> IronResult<Response> {
+    debug!("list_account_invitations");
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = AccountInvitationListRequest::new();
+    request.set_account_id(session.get_id());
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "AccountInvitationListResponse" => {
+                    let invites: AccountInvitationListResponse =
+                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    let encoded = json::encode(&invites.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+pub fn list_user_origins(req: &mut Request,
+                         ctx: &Arc<Mutex<zmq::Context>>)
+                         -> IronResult<Response> {
+    debug!("list_user_origins");
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+
+
+    let mut request = AccountOriginListRequest::new();
+    request.set_account_id(session.get_id());
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "AccountOriginListResponse" => {
+                    let invites: AccountOriginListResponse =
+                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    let encoded = json::encode(&invites.to_json()).unwrap();
+                    Ok(Response::with((status::Ok, encoded)))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
+}
+
+
+
+pub fn accept_invitation(req: &mut Request,
+                         ctx: &Arc<Mutex<zmq::Context>>)
+                         -> IronResult<Response> {
+    debug!("accept_invitation");
+    let session = match authenticate(req, ctx) {
+        Ok(session) => session,
+        Err(response) => return Ok(response),
+    };
+    let params = &req.extensions.get::<Router>().unwrap();
+
+    let invitation_id = match params.find("invitation_id") {
+        Some(ref invitation_id) => {
+            match invitation_id.parse::<u64>() {
+                Ok(v) => v,
+                Err(_) => return Ok(Response::with(status::BadRequest)),
+            }
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    // TODO: read the body to determine "ignore"
+    let ignore_val = false;
+
+    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut request = OriginInvitationAcceptRequest::new();
+
+    // make sure we're not trying to accept someone else's request
+    request.set_account_accepting_request(session.get_id());
+    request.set_invite_id(invitation_id);
+    request.set_ignore(ignore_val);
+
+    conn.route(&request).unwrap();
+    match conn.recv() {
+        Ok(rep) => {
+            match rep.get_message_id() {
+                "OriginInvitationAcceptResponse" => {
+                    let _invites: OriginInvitationAcceptResponse =
+                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    // empty response
+                    Ok(Response::with(status::Ok))
+                }
+                "NetError" => {
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    Ok(render_net_error(&err))
+                }
+                _ => unreachable!("unexpected msg: {:?}", rep),
+            }
+        }
+        Err(e) => {
+            error!("{:?}", e);
+            Ok(Response::with(status::ServiceUnavailable))
+        }
+    }
 }

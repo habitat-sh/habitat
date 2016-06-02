@@ -27,6 +27,7 @@ enum ErrCode {
   ENTITY_NOT_FOUND = 4;
   INTERNAL = 5;
   NO_SHARD = 6;
+  ACCESS_DENIED = 7;
 }
 
 message NetError {

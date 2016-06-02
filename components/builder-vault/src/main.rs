@@ -8,8 +8,9 @@
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
-extern crate habitat_builder_vault as vault;
 extern crate habitat_core as hab_core;
+extern crate habitat_builder_protocol as protocol;
+extern crate habitat_builder_vault as vault;
 #[macro_use]
 extern crate log;
 

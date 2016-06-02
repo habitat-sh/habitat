@@ -53,6 +53,24 @@ impl Into<Session> for Account {
     }
 }
 
+impl ToJson for Account {
+    fn to_json(&self) -> Json {
+        let mut m = BTreeMap::new();
+        m.insert("id".to_string(), self.get_id().to_string().to_json());
+        m.insert("name".to_string(), self.get_name().to_json());
+        m.insert("email".to_string(), self.get_email().to_json());
+        Json::Object(m)
+    }
+}
+
+impl Routable for AccountGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_name().to_string())
+    }
+}
+
 impl Persistable for SessionToken {
     type Key = String;
 
@@ -75,3 +93,4 @@ impl ToJson for Session {
         Json::Object(m)
     }
 }
+
