@@ -1,52 +1,248 @@
 ---
 title: Welcome
+inline_javascript: homepageScripts();
 ---
-.row.homepage.collapse
-  .columns.medium-12
-    .page-title
-      h1.homepage--h1 Welcome to Habitat
-    .page-body
-      p
-        | Welcome to the Habitat project and thanks for being a
-          part of the early adopter program. Join us in Slack to get support &amp; give us feedback during this period.
-        br
-        a.button.slack href="http://slack.habitat.sh/" Join us on Slack!
+section.hero
+  .row
+    .columns.medium-12
+      .hero--content
+        h1.hero--heading
+          | Spend less time setting up your apps and more time
+            building features
+        p.hero--text
+          | When automation travels with your app, you can be confident
+            that what you build, deploy and manage will behave consistently
+            in any runtime.
+        a.button.cta href="/try" Try the Demo
+        p.cta-subtext
+          | Get an interactive overview in less than 10 minutes.<br/>
+            Just need the bits? <a href="/docs/get-habitat">Download habitat</a>.
+  .hero--graphic
+    img[src="/images/graphics/hero-package-offset.svg"
+      onerror="this.src='/images/graphics/hero-package-offset.png'" alt=""]
 
-      h3 Getting Started
-      hr
-      p
-        | We are still working on the content for the project's
-          website. In the interim, here’s where you can get
-          started with Habitat:
+section.sub-hero
+  .row
+    .columns.medium-12
+      .sub-hero--content
+        h2.sub-hero--heading What makes Habitat packages better?
+        .row
+          .sub-hero--blurb.columns.medium-4
+            img.sub-hero--icon[src="/images/icons/subhero-manage.svg"
+              onerror="this.src='/icons/subhero-manage.png'" alt=""]
+            h4 Simple to manage
+            p
+              | Check the health of running packages and apply updates through
+                service discovery
 
-      ul
-        li
-          | Take a quick interactive tour with the <a href="/try">Try Habitat demo</a>
-        li
-          | Complete the <a href="/tutorials">Getting Started tutorial</a>
-        li
-          | Learn about Habitat by <a href="/docs">reading the
-            documentation</a>
-        li
-          | Install the Habitat plan development environment
-            (clone the <a href="https://github.com/habitat-sh/habitat">
-            Habitat repo</a> for now and follow the
-            directions in the readme)
-        li
-          | Build your own software by
-            <a href="/docs/create-packages-overview">writing a
-            plan and building a package from it</a>
-        li
-          | Browse or contribute to the
-            <a href="https://github.com/habitat-sh/habitat">
-            source code of Habitat</a>
+          .sub-hero--blurb.columns.medium-4
+            img.sub-hero--icon[src="/images/icons/subhero-results.svg"
+              onerror="this.src='/icons/subhero-results.png'" alt=""]
+            h4 Reproducible results
+            p
+              | Get consistent, repeatable behavior in every environment,
+                including production
+
+          .sub-hero--blurb.columns.medium-4
+            img.sub-hero--icon[src="/images/icons/subhero-results.svg"
+              onerror="this.src='/icons/subhero-results.png'" alt=""]
+            h4 Platform independent
+            p
+              | Run them on everything from containers to PaaS to bare metal and
+                retain configurability
+        img.sub-hero--graphic src="/images/graphics/subhero-watermark.png" alt=""
+
+section.main-section.first
+  .row
+    .columns.medium-12.text-center
+      h2 Working with Habitat
+      .slider--wrap
+        .slider--nav
+          button.button.is-active.plan-and-config Plan &amp; config files
+          button.button.build-packages Build packages
+        .slides
+          .slide#slide--plan-and-config
+            p.slide--subtext
+              | The <em>plan file</em> contains information about your <br/> app
+                including everything it needs to run.
+            .row
+              .columns.large-4
+                ul.slide--blurbs
+                  li.slide--blurb
+                    h4 Describe your App
+                    p Each package is uniquely identifiable and versioned
+                  li.slide--blurb
+                    h4 List your dependencies
+                    p
+                      | Simply list your build &amp; runtime dependencies and
+                        then let Habitat handle the rest
+                  li.slide--blurb
+                    h4 Write callbacks &amp; add hooks
+                    p
+                      | Automate your build and install scripts for predictable
+                        results
+                  li.slide--blurb
+                    h4 Add configuration options
+                    p
+                      | Define settings for your app and store them as variables
+                        for re-use
+              .columns.large-8.center-text
+                .slide--images
+                  img.slide--main-img[src="/images/graphics/console-windows.svg" alt=""
+                    onerror="this.src='/images/graphics/console-windows.png'"]
+                  img.slide--nav-img[src="/images/icons/slide-nav-plan.svg" alt=""
+                    onerror="this.src='/images/icons/slide-nav-plan.png'"]
+          .slide#slide--build-packages
+            p.slide--subtext
+              | From your plan &amp; config files, Habitat will <br/>
+                generate a complete <em>artifact</em>.
+            .row
+              .columns.large-4
+                ul.slide--blurbs
+                  li.slide--blurb
+                    h4 Configurable at runtime
+                    p
+                      | At any time, you can make configuration changes to the
+                        running service
+                  li.slide--blurb
+                    h4 Aware of their environment
+                    p
+                      | Packages are aware of the security and the topology
+                        characteristics for their group
+                  li.slide--blurb
+                    h4 Can update themselves
+                    p
+                      | When in a group, packages can share settings and conduct
+                        necessary updates automatically
+                  li.slide--blurb
+                    h4 Ready to communicate
+                    p
+                      | The http api can be customized to provide health checks
+                        and integrate with other services
+              .columns.large-8
+                .slide--images
+                  img.slide--main-img[src="/images/graphics/features-package.svg" alt=""
+                    onerror="this.src='/images/graphics/features-package.png'"]
+                  img.slide--nav-img[src="/images/icons/slide-nav-build.svg" alt=""
+                    onerror="this.src='/images/icons/slide-nav-build.png'"]
+
+  .solutions-wrap
+    .solutions--blurb__large
+      img[src="/images/graphics/arrow.svg" onerror="this.src='/images/graphics/arrow.png'"
+        alt="Habitat plays well with a variety of complementary solutions"]
+    .solutions--blurb__mobile
+      p Habitat plays well with a variety of complementary solutions
+      img[src="/images/habitat-mark.svg" alt=""
+        onerror="this.src='/images/habitat-mark-png'"]
+    .row
+      .solutions--logos
+        .solutions--logo
+          img src="/images/solutions-logos/docker.png" alt="Docker Logo"
+        .solutions--logo
+          img src="/images/solutions-logos/mesosphere.png" alt="Mesosphere Logo"
+        .solutions--logo
+          img src="/images/solutions-logos/rkt.png" alt="Rkt Logo"
+        .solutions--logo
+          img src="/images/solutions-logos/kubernetes.png" alt="Kubernetes Logo"
+
+  .production-wrap
+    .row
+      .production--blurb.columns.medium-6
+        h2 Habitat in production
+        p
+          | Unlike traditional containers, Habitat packages are built in
+            a way that better enables long-standing best practices.
+        p
+          | Service groups start up with a built-in supervisor that provides
+            powerful capabilities with regards to security, topologies, monitoring,
+            service discovery, configuration and more.
+        a.button.cta href="/try" Try the Demo
+        p.cta-subtext Get an interactive overview in less than 10 minutes
+      .production--graphic.columns.medium-6
+        img[src="/images/graphics/production.svg" onerror="this.src='/images/graphics/production.png'" alt=""]
+        .production--icons
+          .production--icon.lock.is-active
+            = partial "/layouts/svg/icon-lock.svg"
+          .production--icon.search
+            = partial "/layouts/svg/icon-search.svg"
+          .production--icon.settings
+            = partial "/layouts/svg/icon-settings.svg"
+          .production--icon.file
+            = partial "/layouts/svg/icon-file.svg"
+          .production--icon.health
+            = partial "/layouts/svg/icon-health.svg"
+        .production--icons-text
+          p.production--icon-text.lock.is-active
+            | Securely manage keys and communication
+          p.production--icon-text.search
+            | Check current settings and configuration options
+          p.production--icon-text.settings
+            | Change configuration settings at runtime
+          p.production--icon-text.file
+            | Upload files and distribute amongst peers
+          p.production--icon-text.health
+            | Request health and status information
+
+section.legacy-section
+  .row
+    .columns.medium-12
+      h2
+        | Managing a bunch of legacy apps? <br/> Package those up to, no
+          re-write required.
       p
-        | Please remember that Habitat is being provided to you
-          under the terms of the Chef Non-Disclosure Agreement
-          and the Habitat Early Access Agreement.
-      p
-        | Thanks for taking some time to explore Habitat. We hope
-          you enjoy it and please don't hestitate to reach out on
-          <a href="http://slack.habitat.sh/">Slack</a> with any
-          feedback or questions.
-      p -- The Habitat Team
+        | Habitat works the same with all apps even if they were built
+          on older tech or are simply difficult to manage, allowing you
+          to iterate faster and deploy anywhere.
+      .legacy-section--image
+        img[src="/images/graphics/legacy.svg" alt=""
+          onerror="this.src='/images/graphics/legacy.png'"]
+
+section.main-section.last
+  .row
+    .columns.medium-12
+      .main-section--blurb
+        img.main-section--collaboration-icon[src="/images/icons/collaboration.png" alt=""]
+        h2 Apps built with Habitat promote transparency and team collaboration
+        p
+          | Habitat plans and config files are simple to write, human readable,
+            and can be stored with the app in your version control system.
+        p
+          | The application provides a mangement interface that makes it
+            easy for team members to define areas of the app that concern
+            them the most.
+
+      .testimonials-slider
+        .testimonial.first.is-active
+          .testimonial--image
+            img.testimonial--image-head src=""
+          .testimonial--blurb
+            p.testimonial--blurb--text
+              | Pellentesque habitant morbi tristique senectus et netus et
+                malesuada fames ac turbis egestas.
+            p.testimonial--blurb--attr
+              | John Doe - Software Developer | Etsy
+
+        .testimonial.second
+          .testimonial--image
+            img.testimonial--image-head src=""
+          .testimonial--blurb
+            p.testimonial--blurb--text
+              | Pellentesque habitant morbi tristique senectus et netus et
+                malesuada fames ac turbis egestas.
+            p.testimonial--blurb--attr
+              | John Doe - Software Developer | Etsy
+
+        .testimonial.third
+          .testimonial--image
+            img.testimonial--image-head src=""
+          .testimonial--blurb
+            p.testimonial--blurb--text
+              | Pellentesque habitant morbi tristique senectus et netus et
+                malesuada fames ac turbis egestas.
+            p.testimonial--blurb--attr
+              | John Doe - Software Developer | Etsy
+
+        .testimonials--nav
+          img.testimonials--nav--img.first.is-active src="/images/testimonial-head-placeholder.png" alt=""
+          img.testimonials--nav--img.second src="/images/testimonial-head-placeholder.png" alt=""
+          img.testimonials--nav--img.third src="/images/testimonial-head-placeholder.png" alt=""

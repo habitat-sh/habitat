@@ -2,3 +2,4 @@
 //= require vendor/foundation.min
 //= require vendor/what-input.min
 //= require nav.js
+//= require home.js
