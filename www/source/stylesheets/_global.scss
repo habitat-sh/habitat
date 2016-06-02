@@ -182,6 +182,18 @@ code {
   @include primary-button;
 }
 
+// Small text below CTAs
+.cta-subtext {
+  margin-bottom: 0;
+  font-size: rem-calc(12);
+  color: $hab-gray;
+
+  a {
+    color: inherit;
+    text-decoration: underline;
+  }
+}
+
 .button.slack {
   background-image: url(../images/slack_mark_white_web.png);
   background-repeat: no-repeat;

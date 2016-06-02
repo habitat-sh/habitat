@@ -13,7 +13,7 @@ $main-nav-breakpoint: 710px;
 }
 
 #main-nav {
-  z-index: 2;
+  z-index: 100;
   background: $white;
   min-height: $header-height-mobile;
   width: 100%;
