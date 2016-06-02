@@ -1,6 +1,13 @@
-bind = '0.0.0.0'
-tcp-enable = true
-[tcp]
-connect = '4s'
-server = '30s'
-client = '30s'
+maxconn = 32
+mode = "http"
+bind = "*:80"
+
+[[server]]
+name = "first"
+host_or_ip = "172.17.0.3"
+port = "8000"
+
+[[server]]
+name = "second"
+host_or_ip = "172.17.0.4"
+port = "8000"
