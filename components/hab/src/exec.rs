@@ -22,6 +22,7 @@ use hcore::url::default_depot_url;
 
 use error::{Error, Result};
 
+#[allow(dead_code)] // Currently only used on Linux platforms
 const MAX_RETRIES: u8 = 4;
 
 /// Makes an `execv(3)` system call to become a new program.
@@ -67,6 +68,7 @@ pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
+#[allow(dead_code)] // Currently only used on Linux platforms
 pub fn command_from_pkg(command: &str,
                         ident: &PackageIdent,
                         cache_key_path: &Path,
