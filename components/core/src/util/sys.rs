@@ -8,12 +8,15 @@
 use error::{Error, Result};
 use std::process::Command;
 
-pub fn ip() -> Result<String> {
+pub fn ip(path: Option<&str>) -> Result<String> {
     debug!("Shelling out to determine IP address");
-    let output = try!(Command::new("sh")
-        .arg("-c")
-        .arg("ip route get 8.8.8.8 | awk '{printf \"%s\", $NF; exit}'")
-        .output());
+    let mut cmd = Command::new("sh");
+    cmd.arg("-c").arg("ip route get 8.8.8.8 | awk '{printf \"%s\", $NF; exit}'");
+    if let Some(path) = path {
+        cmd.env("PATH", path);
+        debug!("Setting shell out PATH={}", path);
+    }
+    let output = try!(cmd.output());
     match output.status.success() {
         true => {
             debug!("IP address is {}", String::from_utf8_lossy(&output.stdout));
