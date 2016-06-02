@@ -31,6 +31,7 @@ pub enum Error {
     IO(io::Error),
     PackageArchiveMalformed(String),
     PathPrefixError(path::StripPrefixError),
+    SubcommandNotSupported(String),
 }
 
 impl fmt::Display for Error {
@@ -56,6 +57,9 @@ impl fmt::Display for Error {
                         e)
             }
             Error::PathPrefixError(ref err) => format!("{}", err),
+            Error::SubcommandNotSupported(ref e) => {
+                format!("Subcommand `{}' not supported on this operating system", e)
+            }
         };
         write!(f, "{}", msg)
     }
@@ -79,6 +83,7 @@ impl error::Error for Error {
                 "Package archive was unreadable or had unexpected contents"
             }
             Error::PathPrefixError(ref err) => err.description(),
+            Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
         }
     }
 }
