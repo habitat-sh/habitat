@@ -33,6 +33,9 @@ unicase = "*"
 urlencoded = "*"
 walkdir = "*"
 
+[dependencies.bodyparser]
+git = "https://github.com/iron/body-parser.git"
+
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
@@ -45,6 +48,14 @@ path = "../builder-protocol"
 
 [dependencies.habitat_core]
 path = "../core"
+
+[dependencies.habitat_net]
+path = "../net"
+
+[dependencies.zmq]
+# git = "https://github.com/erickt/rust-zmq.git"
+git = "https://github.com/reset/rust-zmq.git"
+branch = "habitat"
 
 [dev-dependencies]
 url = "*"

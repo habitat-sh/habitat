@@ -14,6 +14,7 @@ use std::result;
 use dbcache;
 use hab_core;
 use hab_core::package::{self, Identifiable};
+use hab_net;
 use hyper;
 use redis;
 
@@ -22,6 +23,7 @@ pub enum Error {
     BadPort(String),
     DataStore(dbcache::Error),
     HabitatCore(hab_core::Error),
+    HabitatNet(hab_net::Error),
     HTTP(hyper::status::StatusCode),
     InvalidPackageIdent(String),
     IO(io::Error),
@@ -40,6 +42,7 @@ impl fmt::Display for Error {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::HabitatNet(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
@@ -76,6 +79,7 @@ impl error::Error for Error {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::DataStore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
+            Error::HabitatNet(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
@@ -124,5 +128,11 @@ impl From<redis::RedisError> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::IO(err)
+    }
+}
+
+impl From<hab_net::Error> for Error {
+    fn from(err: hab_net::Error) -> Error {
+        Error::HabitatNet(err)
     }
 }

@@ -10,6 +10,11 @@ message Account {
   required string name = 3;
 }
 
+// get an account by GH username
+message AccountGet {
+  required string name = 1;
+}
+
 message Session {
   required uint64 id = 1;
   required string email = 2;
@@ -33,3 +38,5 @@ message SessionCreate {
 message SessionGet {
   required string token = 1;
 }
+
+

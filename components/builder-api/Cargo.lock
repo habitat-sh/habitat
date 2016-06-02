@@ -49,6 +49,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "bodyparser"
 version = "0.3.0"
+source = "git+https://github.com/iron/body-parser.git#6d214973beeb9f886d3c9926dc592d12b18a8749"
+dependencies = [
+ "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_json 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "bodyparser"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -194,11 +206,13 @@ name = "habitat_depot"
 version = "0.6.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bodyparser 0.3.0 (git+https://github.com/iron/body-parser.git)",
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.6.0",
  "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
+ "habitat_net 0.6.0",
  "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -220,6 +234,7 @@ dependencies = [
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=habitat)",
 ]
 
 [[package]]
