@@ -13,7 +13,6 @@ pub fn start(args: Vec<OsString>) -> Result<()> {
     inner::start(args)
 }
 
-
 #[cfg(target_os = "linux")]
 mod inner {
     use std::ffi::OsString;
@@ -32,12 +31,23 @@ mod inner {
     const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
     const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
 
+    const FEAT_STATIC: &'static str = "HAB_FEAT_SUP_STATIC";
+    const SUP_STATIC_PACKAGE_IDENT: &'static str = "core/hab-sup-static";
+
     pub fn start(args: Vec<OsString>) -> Result<()> {
+        let sup_ident = match henv::var(FEAT_STATIC) {
+            Ok(_) => {
+                debug!("Enabling statically compiled Supervisor from {}",
+                       SUP_STATIC_PACKAGE_IDENT);
+                SUP_STATIC_PACKAGE_IDENT
+            }
+            Err(_) => SUP_PACKAGE_IDENT,
+        };
         let command = match henv::var(SUP_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let ident = try!(PackageIdent::from_str(SUP_PACKAGE_IDENT));
+                let ident = try!(PackageIdent::from_str(sup_ident));
                 try!(exec::command_from_pkg(SUP_CMD, &ident, &default_cache_key_path(None), 0))
             }
         };
