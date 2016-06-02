@@ -1,67 +1,28 @@
 # Habitat
 
-## Problem statement
+[![Build Status](https://travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
+[![Slack](http://slack.habitat.sh/badge.svg)](https://slack.habitat.sh/)
 
-How do we build, run, and manage our applications in a way that provides:
+Want to try Habitat? [Get started here](https://www.habitat.sh/try/).
 
-* Repeatable builds
-* Single, immutable assets
-* Runtime configuration for multiple deployment scenarios
-* Agnostic to operating environment (works on bare metal, virtualization, containers, PaaS)
-* Idempotent behavior (the same inputs to the same asset provide the same outcome)
-* Convergent behavior (each service makes progress towards the correct behavior in the face of failure)
-* Exposes promises to those who rely on it
-* Low barrier to entry
-* Language agnostic
+Habitat is an application automation framework that allows you to build
+applications that have automation built-in. This provides modern
+applications that:
 
-## Application artifact as closure
+* Provide repeatable builds
+* Run from single, immutable assets
+* Allow for runtime configuration for multiple deployment scenarios
+* Are agnostic to operating environment (works the same on bare metal, virtualization, containers, PaaS)
+* Provide idempotent behavior (the same inputs to the same asset provide the same outcome)
+* Provide convergent behavior (each service makes progress towards the correct behavior in the face of failure)
+* Expose promises to those who rely on it
+* Provide a low barrier to entry
+* Are language agnostic
 
-Historically, we build our applications as a conglomeration of upstream artifacts. We have the operating
-system we used, which provides all of our build (and often run) time dependencies. We then layer in the
-specific application (either one we wrote ourselves, or a version of someone else's software), and then we
-layer in the details of how to configure and manage that application within its environment (with something
-like Chef). Much of the complexity in the configuration layer comes from dealing with the large variety
-in the upstream artifacts - with no consistent way to express what it means to be well managed, we are
-forced to provide one.
+To learn more about Habitat, please visit the [Habitat website](https://www.habitat.sh).
 
-Habitat provides the ability to have the application artifact as a closure of all of this behavior -
-from how it is built to how it is configured and how it is run. It takes a build description (which includes
-dependencies), an exhaustive set of configuration options, and a hosting platform for the service - wraps
-them into a single, encrypted or signed artifact, and enables it to be configured dynamically when the
-services are started.
-
-The side effect is that the boundary for idempotency, convergence, and promises shifts from the individual
-details of the application stack to the artifact itself. Given the same input data (regardless of source)
-we will run the application the same way everywhere, the artifact itself handles making best progress
-towards its goal, and exposes consistent interfaces for health and monitoring.
-
-## What Habitat does for you
-
-* Automatically build a minimal environment for your application
-* Include dependencies as binary artifacts
-* Specify all the configurable options for the application
-* Configure them from a file, the environment, or a service discovery framework (etcd/consul/chef) - in real-time
-* Ensure privilege separation (the supervisor de-privileges the service on your behalf)
-* Integrates logging cleanly
-* Provides pluggable interfaces for critical application behavior:
-  * Status (up/down/etc.)
-  * Health checks
-  * Smoke testing
-  * Monitoring
-  * Backup
-
-With the same amount of effort required to put your application in a Dockerfile. Or less.
-
-## How does it do this?
-
-Habitat provides a way to build an atomic `package` via `build`, and an optional `container image`
-that is automatically configured to run it. It also provides a supervisor, that handles running, configuring, and
-managing your services (`hab sup`).
-
-## Documentation
-
-The documentation for Habitat is hosted at https://www.habitat.sh/docs and
-lives in [www](www).
+The remainder of this README focuses on developers who want to modify
+the source code of Habitat.
 
 # Working on Habitat
 
@@ -116,13 +77,6 @@ has been run through rustfmt. An easy way to install it (assuming you have Rust
 installed as above), is to run `cargo install rustfmt` and adding
 `$HOME/.cargo/bin` to your `PATH`.
 
-**Optional:** This project currently uses GitHub integration with Delivery so
-while the delivery-cli tool is not strictly necessary to initiate reviews, it
-is highly recommended to have installed for the other useful subcommands.
-Download the [delivery-cli
-package](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)),
-install it, and you're done!
-
 ## Setup on native Linux
 
 1. [Install Docker](https://docs.docker.com/linux/step_one/) **Note: You may need to logout and then login again after this step**
@@ -147,16 +101,14 @@ has been run through rustfmt. An easy way to install it (assuming you have Rust
 installed as above), is to run `cargo install rustfmt` and adding
 `$HOME/.cargo/bin` to your `PATH`.
 
-**Optional:** This project currently uses GitHub integration with Delivery so
-while the delivery-cli tool is not strictly necessary to initiate reviews, it
-is highly recommended to have installed for the other useful subcommands.
-Download the [delivery-cli
-package](https://delivery-packages.s3.amazonaws.com/cli/deliverycli-20150819175041%2B20150819175041-1.pkg)),
-install it, and you're done!
+## Web Application
+
+The Habitat Builder web application is in the components/builder-web directory. See
+[its README](components/builder-web/README.md) for more information.
 
 ## Documentation
 
-Run `make docs` to build the internal documentation for the Habitat Supervisor.
+Run `make docs` to build the internal Rust documentation.
 
 Run `make serve-docs` to run a small web server that exposes the documentation
 on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
@@ -227,97 +179,6 @@ utilizing pseudonyms will be accepted.
 Git makes it easy to add this line to your commit messages.  Make sure the `user.name` and
 `user.email` are set in your git configs.  Use `-s` or `--signoff` to add the Signed-off-by line to
 the end of the commit message.
-
-## Development environment with Habitat Studios
-
-Habitat Studios provide an isolated environment with where packages can be
-built.
-
-Because all Habitat packages are cryptographically signed, you'll
-need to make sure you have the signing key on hand for the origin your
-package belongs to, and that it's installed in `/hab/cache/keys` inside
-the Studio.
-
-To enter the shell:
-```bash
-$ make shell
-```
-
-To create a new signing key for your origin (e.g., 'myorigin'):
-
-```bash
-$ hab origin key generate myorigin
-# set the HAB_ORIGIN environment variable
-$ export HAB_ORIGIN=myorigin
-```
-
-To build a package:
-
-```bash
-$ cd /src
-$ hab studio build build plans/redis
-```
-
-To upload the resulting package
-
-```bash
-$ hab artifact upload ./results/<PKG>.hart
-```
-
-Alternatively, you can use the `last_build.env` metadata to fetch the full artifact name to upload:
-
-```bash
-$ hab artifact upload ./results/$(source ./results/last_build.env && echo $pkg_artifact)
-```
-
-To create a docker container of a package, either local or remote:
-
-```bash
-$ hab studio enter
-$ hab install core/hab-pkg-dockerize
-$ hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize core/redis
-```
-
-To create an ACI image of a package, either local or remote:
-
-```bash
-$ hab studio enter
-$ hab install core/hab-pkg-aci
-$ hab pkg exec core/hab-pkg-aci hab-pkg-aci core/redis
-```
-
-By default, this will create unsigned ACI images. To sign your ACI with
-default options:
-
-```bash
-$ SIGN=true hab pkg exec core/hab-pkg-aci hab-pkg-aci core/redis
-```
-
-To develop Habitat itself, just work like you always did. If you want to,
-for example, test that Redis is working with your development version of
-the supervisor:
-
-```bash
-$ ./target/debug/hab sup start core/redis
-```
-
-Will work just fine (as will running Habitat on other host operating
-systems, cause thats all we're up to).
-
-## Web Application
-
-The Habitat Builder web application is in the components/builder-web directory. See
-[its README](components/builder-web/README.md) for more information.
-
-## Deploying
-
-There is a [Terraform](https://www.terraform.io/) configuration in the terraform
-directory.
-
-This launches the habitat-builder-web app running on an instance behind a load
-balancer. It also creates a load balancer for the builder API.
-
-It current only works on the chef-aws account in the us-west-2 region.
 
 ## Pull Request Review and Merge Automation
 
