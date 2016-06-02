@@ -26,14 +26,10 @@ This topic describes how to create a Docker container for any artifact by perfor
 
       hab pkg install yourorigin/yourpackage
 
-4. Ensure that all the utilities needed to create a Docker container are on the path:
+4. Run the Docker exporter on the package. (`hab pkg exec` sets the correct paths needed to find all the exporter's dependencies.)
 
-      export PATH=$PATH:`hab pkg path core/hab-studio`/bin:`hab pkg path core/hab-pkg-dockerize`/bin:`hab pkg path core/docker`/bin
+      hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize yourorigin/yourpackage
 
-5. Run the Docker exporter on the package:
-
-      hab-pkg-dockerize yourorigin/yourpackage
-
-6. You can now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
+5. You can now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
 
 For an example of running a Habitat service in a Docker container, see the [Run your service](/tutorials/getting-started-process-build) step in the Getting Started tutorial.
