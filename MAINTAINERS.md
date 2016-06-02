@@ -1,24 +1,26 @@
-# Maintainers
+# Maintainers and Contributors
 
 Habitat is an open-source project, built and maintained by a community of
 dedicated humans, listed below.
 
-In the source files, you will see a copyright notice attributed to "The Habitat
-Maintainers"; this is a placeholder for all the people and organizations listed
-in this file.
+This file lists how the Habitat project is maintained and the humans and
+companies who make up "The Habitat Maintainers" and "The Habitat Contributors".
 
-Regardless of their presence in this file, each individual contributor retains
-their copyright to their work, and is covered in the blanket "The Habitat
-Maintainers" statement.
-
-This file lists how the Habitat project is maintained. When making changes to
-the system, this file tells you who needs to review your patch - you need
-approval of at least one maintainer for the relevant subsystems to provide a
-:+1: (or `+r`) on your pull request. Additionally, you need to not receive a
-veto from a Lieutenant or the Project Lead.
+When making changes to the system, this file tells you who needs to review your
+patch - you need approval of at least one maintainer for the relevant subsystems
+to provide a :+1: (or `+r`) on your pull request. Additionally, you need to not
+receive a veto from a Lieutenant or the Project Lead.
 
 Check out the [Maintenance Policy](maintenance-policy.md) for details on the
 process, how to become a maintainer, lieutenant, or the project lead.
+
+---
+
+# The Habitat Maintainers
+
+These are the humans who maintain Habitat.  These people have permission to
+merge code changes to the various components and other rights and
+responsibilities as detailed in the [Maintenance Policy](maintenance-policy.md).
 
 # Project Lead
 
@@ -82,7 +84,17 @@ tutorials and reference materials.
 
 * [Ryan Keairns](https://github.com/ryankeairns)
 
-# The Habitat Maintainers
+---
+
+# The Habitat Contributors
+
+In the source files, you will see a copyright notice attributed to "The Habitat
+Contributors"; this is a placeholder for all the people and organizations listed
+in this file.
+
+Regardless of their presence in this file, each individual contributor retains
+their copyright to their work, and is covered in the blanket "The Habitat
+Contributors" statement.
 
 ## Humans
 
