@@ -30,6 +30,7 @@ use super::{PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX,
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
     static ref KEYFILE_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();
+    static ref ORIGIN_NAME_RE: Regex = Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").unwrap();
 }
 
 pub mod box_key_pair;
@@ -293,6 +294,12 @@ pub fn parse_name_with_rev(name_with_rev: &str) -> Result<(String, String)> {
     };
     Ok((name.to_string(), rev.to_string()))
 }
+
+/// Is the string a valid origin name?
+pub fn is_valid_origin_name(name: &str) -> bool {
+    name.chars().count() <= 255 && ORIGIN_NAME_RE.is_match(name)
+}
+
 
 /// Read a file into a Vec<u8>
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
