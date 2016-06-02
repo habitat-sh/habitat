@@ -37,8 +37,12 @@
               "link": "/docs/concepts-plans/"
             },
             {
-              "title": "Packages and artifacts",
+              "title": "Packages",
               "link": "/docs/concepts-packages/"
+            },
+            {
+              "title": "Keys",
+              "link": "/docs/concepts-keys/"
             },
             {
               "title": "Studio",

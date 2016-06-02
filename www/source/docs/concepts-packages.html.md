@@ -29,5 +29,5 @@ If the package identifier isn't fully specified (having less than four component
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/concepts-studio">Studio</a></li>
+  <li><a href="/docs/concepts-keys">Keys</a></li>
 </ul>
