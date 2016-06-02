@@ -103,11 +103,11 @@ impl BasicSet for PackagesTable {
             let body = record.write_to_bytes().unwrap();
             txn.set(Self::key(&record), body)
                 .ignore()
-                .sadd(PackagesIndex::origin_idx(&record), record.to_string())
+                .zadd(PackagesIndex::origin_idx(&record), record.to_string(), 0)
                 .ignore()
-                .sadd(PackagesIndex::name_idx(&record), record.to_string())
+                .zadd(PackagesIndex::name_idx(&record), record.to_string(), 0)
                 .ignore()
-                .sadd(PackagesIndex::version_idx(&record), record.to_string())
+                .zadd(PackagesIndex::version_idx(&record), record.to_string(), 0)
                 .ignore()
                 .query(conn.deref())
         }));
@@ -126,9 +126,15 @@ impl PackagesIndex {
         PackagesIndex { pool: pool }
     }
 
-    pub fn all(&self, id: &str) -> Result<Vec<depotsrv::PackageIdent>> {
+    pub fn count(&self, id: &str) -> Result<u64> {
         let conn = self.pool().get().unwrap();
-        match conn.smembers::<String, Vec<String>>(Self::key(&id.to_string())) {
+        let val = try!(conn.zcount(Self::key(&id.to_string()), 0, 0));
+        Ok(val)
+    }
+
+    pub fn list(&self, id: &str, from: isize, to: isize) -> Result<Vec<depotsrv::PackageIdent>> {
+        let conn = self.pool().get().unwrap();
+        match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), from, to) {
             Ok(ids) => {
                 let ids = ids.iter()
                     .map(|id| {
@@ -306,10 +312,12 @@ impl ViewPkgIndex {
 
     pub fn all(&self, view: &str, pkg: &str) -> Result<Vec<package::PackageIdent>> {
         let conn = self.pool().get().unwrap();
-        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()), format!("{}*", pkg)) {
+        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()),
+                                                                format!("{}*", pkg)) {
             Ok(set) => {
-                let set: Vec<package::PackageIdent> = set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
-                    .collect();
+                let set: Vec<package::PackageIdent> =
+                    set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
+                        .collect();
                 Ok(set)
             }
             Err(e) => Err(Error::from(e)),

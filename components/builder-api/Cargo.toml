@@ -10,6 +10,7 @@ name = "bldr-api"
 doc = false
 
 [dependencies]
+bodyparser = "*"
 env_logger = "*"
 hyper = "*"
 iron = "*"
@@ -22,10 +23,6 @@ rustc-serialize = "*"
 toml = "*"
 unicase = "*"
 urlencoded = "*"
-
-[dependencies.bodyparser]
-
-git = "https://github.com/iron/body-parser.git"
 
 [dependencies.clap]
 version = "*"

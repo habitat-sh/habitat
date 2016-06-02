@@ -5,9 +5,11 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::borrow::Cow;
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
+use std::result;
 
 use dbcache::{self, BasicSet, IndexSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
@@ -23,6 +25,9 @@ use urlencoded::UrlEncodedQuery;
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
+
+const PAGINATION_RANGE_DEFAULT: isize = 0;
+const PAGINATION_RANGE_MAX: isize = 50;
 
 fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     let path = filename.parent().unwrap();
@@ -261,8 +266,9 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                     Err(_) => Ok(Response::with(status::NotFound)),
                 }
             } else {
-                // This should never happen. Writing the package to disk and recording it's existence
-                // in the metadata is a transactional operation and one cannot exist without the other.
+                // This should never happen. Writing the package to disk and recording it's
+                // existence in the metadata is a transactional operation and one cannot exist
+                // without the other.
                 panic!("Inconsistent package metadata! Exit and run `hab-depot repair` to fix \
                         data integrity.");
             }
@@ -296,6 +302,10 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let (from, to) = match extract_pagination(req) {
+        Ok(range) => range,
+        Err(response) => return Ok(response),
+    };
     let params = req.extensions.get::<Router>().unwrap();
     let ident: String = if params.find("pkg").is_none() {
         match params.find("origin") {
@@ -309,8 +319,19 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     if let Some(view) = params.find("view") {
         match depot.datastore.views.view_pkg_idx.all(view, &ident) {
             Ok(packages) => {
+                let count = depot.datastore.packages.index.count(&ident).unwrap();
                 let body = json::encode(&packages).unwrap();
-                Ok(Response::with((status::Ok, body)))
+                let next_range = vec![format!("{}", to + 1).into_bytes()];
+                let mut response = if count as isize >= (to + 1) {
+                    let mut response = Response::with((status::PartialContent, body));
+                    response.headers.set_raw("Next-Range", next_range);
+                    response
+                } else {
+                    Response::with((status::Ok, body))
+                };
+                let range = vec![format!("{}..{}; count={}", from, to, count).into_bytes()];
+                response.headers.set_raw("Content-Range", range);
+                Ok(response)
             }
             Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
                 Ok(Response::with((status::NotFound)))
@@ -321,10 +342,21 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             }
         }
     } else {
-        match depot.datastore.packages.index.all(&ident) {
+        match depot.datastore.packages.index.list(&ident, from, to) {
             Ok(packages) => {
+                let count = depot.datastore.packages.index.count(&ident).unwrap();
                 let body = json::encode(&packages).unwrap();
-                Ok(Response::with((status::Ok, body)))
+                let next_range = vec![format!("{}", to + 1).into_bytes()];
+                let mut response = if count as isize >= (to + 1) {
+                    let mut response = Response::with((status::PartialContent, body));
+                    response.headers.set_raw("Next-Range", next_range);
+                    response
+                } else {
+                    Response::with((status::Ok, body))
+                };
+                let range = vec![format!("{}..{}; count={}", from, to, count).into_bytes()];
+                response.headers.set_raw("Content-Range", range);
+                Ok(response)
             }
             Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
                 Ok(Response::with((status::NotFound)))
@@ -461,6 +493,31 @@ fn ident_from_params(params: &Params) -> depotsrv::PackageIdent {
         ident.set_release(rel.to_string());
     }
     ident
+}
+
+// Returns a tuple representing the from and to values representing a paginated set.
+//
+// These values can be passed to a sorted set in Redis to return a paginated list.
+fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Response> {
+    let from = {
+        match req.headers.get_raw("range") {
+            Some(bytes) if bytes.len() > 0 => {
+                let header = Cow::Borrowed(&bytes[0]);
+                match String::from_utf8(header.into_owned()) {
+                    Ok(raw) => {
+                        match raw.parse::<usize>() {
+                            Ok(range) if range > 0 => (range - 1) as isize,
+                            Ok(range) => range as isize,
+                            Err(_) => return Err(Response::with(status::BadRequest)),
+                        }
+                    }
+                    Err(_) => return Err(Response::with(status::BadRequest)),
+                }
+            }
+            _ => PAGINATION_RANGE_DEFAULT,
+        }
+    };
+    Ok((from, from + PAGINATION_RANGE_MAX))
 }
 
 fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {

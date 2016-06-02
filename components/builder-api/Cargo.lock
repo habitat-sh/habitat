@@ -2,7 +2,7 @@
 name = "habitat_builder_api"
 version = "0.6.0"
 dependencies = [
- "bodyparser 0.3.0 (git+https://github.com/iron/body-parser.git)",
+ "bodyparser 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.6.0",
@@ -45,18 +45,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "bitflags"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "bodyparser"
-version = "0.3.0"
-source = "git+https://github.com/iron/body-parser.git#6d214973beeb9f886d3c9926dc592d12b18a8749"
-dependencies = [
- "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "bodyparser"
@@ -194,6 +182,7 @@ name = "habitat_depot"
 version = "0.6.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bodyparser 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.6.0",
