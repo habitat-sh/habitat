@@ -5,5 +5,5 @@ The Habitat Studio is a clean, self-contained, minimal environment in which you 
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/concepts-communication">Service communication</a></li>
+  <li><a href="/docs/concepts-services">Services</a></li>
 </ul>
