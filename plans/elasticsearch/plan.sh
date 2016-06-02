@@ -9,7 +9,7 @@ pkg_shasum=04c4d3913d496d217e038da88df939108369ae2e78eea29cb1adf1c4ab3a000a
 pkg_deps=(core/glibc core/server-jre)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
-pkg_service_run="es/bin/elasticsearch --default.path.conf=$pkg_svc_config_path"
+pkg_svc_run="es/bin/elasticsearch --default.path.conf=$pkg_svc_config_path"
 pkg_expose=(9200 9300)
 
 do_build() {

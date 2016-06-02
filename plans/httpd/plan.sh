@@ -10,8 +10,8 @@ pkg_build_deps=(core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_expose=(80 443)
-pkg_service_run="bin/httpd -DFOREGROUND -f $pkg_svc_config_path/httpd.conf"
-pkg_service_user="root"
+pkg_svc_run="bin/httpd -DFOREGROUND -f $pkg_svc_config_path/httpd.conf"
+pkg_svc_user="root"
 
 do_build() {
   ./configure --prefix=$pkg_prefix \

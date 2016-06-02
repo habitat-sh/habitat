@@ -9,5 +9,5 @@ pkg_bin_dirs=(bin sbin)
 pkg_build_deps=(core/gcc core/make)
 pkg_deps=(core/glibc)
 pkg_dirname=rng-tools-5
-pkg_service_run="sbin/rngd -f -r /dev/urandom"
-pkg_service_user=root
+pkg_svc_run="sbin/rngd -f -r /dev/urandom"
+pkg_svc_user=root

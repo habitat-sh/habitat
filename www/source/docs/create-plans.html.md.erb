@@ -149,8 +149,8 @@ pkg_build_deps=(core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
 pkg_expose=(80 443)
-pkg_service_run="bin/httpd -DFOREGROUND -f $pkg_svc_config_path/httpd.conf"
-pkg_service_user="root"
+pkg_svc_run="bin/httpd -DFOREGROUND -f $pkg_svc_config_path/httpd.conf"
+pkg_svc_user="root"
 
 do_build() {
   ./configure --prefix=$pkg_prefix \
@@ -173,7 +173,7 @@ When overriding any callbacks, you may use any of the variables, settings, or fu
 ### Runtime workflow
 Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined when the supervisor starts it. This is done at runtime through event hooks. Hooks are script files with [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) that you can use to customize this behavior. The following hooks are available: init, run, file-updated, health-check, and reconfigure. See [Hooks](/docs/plan-syntax#hooks) for more information and examples.
 
-If your service does not require custom behavior during the lifecycle of the running service, then you do not need to create hooks. Also, if you only need to start the application or service when the Habitat service starts, you can instead use the `pkg_service_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Habitat.
+If your service does not require custom behavior during the lifecycle of the running service, then you do not need to create hooks. Also, if you only need to start the application or service when the Habitat service starts, you can instead use the `pkg_svc_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Habitat.
 
 And, as mentioned above, you can use any of the [runtime configuration settings](/docs/plan-syntax#runtime-configuration-settings), either defined by you in your config file, or defined by Habitat.
 

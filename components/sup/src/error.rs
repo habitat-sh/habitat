@@ -178,7 +178,7 @@ impl fmt::Display for SupError {
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoRunFile => {
                 format!("No run file is present for this package; specify a run hook or \
-                         $pkg_service_run in your plan")
+                         $pkg_svc_run in your plan")
             }
             Error::NulError(ref e) => format!("{}", e),
             Error::PackageArchiveMalformed(ref e) => {
@@ -258,7 +258,7 @@ impl error::Error for SupError {
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::NoRunFile => {
-                "No run file is present for this package; specify a run hook or $pkg_service_run \
+                "No run file is present for this package; specify a run hook or $pkg_svc_run \
                  in your plan"
             }
             Error::NulError(_) => {
