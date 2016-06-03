@@ -36,7 +36,6 @@ $home-medium-breakpoint: rem-calc(880);
 
 // Hero
 .hero {
-  position: relative;
   min-height: rem-calc(600);
   background: url('/images/graphics/hero-pattern.svg') no-repeat 0 131%;
   background-size: rem-calc(730) auto;
@@ -52,6 +51,9 @@ $home-medium-breakpoint: rem-calc(880);
     background-size: auto;
   }
 
+  & > .row {
+    position: relative;
+  }
 }
 
 .hero--content {
@@ -95,29 +97,27 @@ $home-medium-breakpoint: rem-calc(880);
   bottom: rem-calc(-100);
   z-index: 3;
   overflow: hidden;
+  right: 0;
 
-  @include small-home {
-    width: 100%;
-    left: 0;
-    right: 0;
-    padding-bottom: 135%;
+  & > img {
+    position: relative;
+    right: -40px;
 
-    & > img {
-      position: absolute;
-      left: 50%;
-      bottom: 0;
-      transform: translateX(-50%);
-      width: 120%;
-      max-width: 480px;
+    @media (max-width: 420px) {
+      left: -10%;
     }
   }
 
-  @include medium-home {
-    right: 0;
-  }
+  @include small-home {
+    width: 100%;
+    text-align: center;
 
-  @include large-home {
-    right: rem-calc(-24);
+    & > img {
+      position: relative;
+      width: 120%;
+      max-width: 450px;
+      right: 0;
+    }
   }
 }
 
