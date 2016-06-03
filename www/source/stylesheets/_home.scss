@@ -37,11 +37,11 @@ $home-medium-breakpoint: rem-calc(880);
 // Hero
 .hero {
   min-height: rem-calc(600);
-  background: url('/images/graphics/hero-pattern.svg') no-repeat 0 131%;
+  background: url('/images/graphics/hero-pattern.svg') no-repeat rem-calc(-100) 111%;
   background-size: rem-calc(730) auto;
 
   @include medium-home {
-    background-position: 0 128%;
+    background-position: rem-calc(-100) 118%;
     background-size: rem-calc(730) auto;
   }
 
