@@ -9,7 +9,7 @@ import "whatwg-fetch";
 import config from "./config";
 
 export class BuilderApiClient {
-    private urlPrefix: string = config["builder_url"];
+    private urlPrefix: string = config["habitat_api_url"];
 
     constructor(private token: string) { }
 

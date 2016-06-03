@@ -14,7 +14,7 @@ import {DANGER} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
 const uuid = require("node-uuid").v4;
-const gitHubTokenAuthUrl = config["github_token_auth_url"];
+const gitHubTokenAuthUrl = `${config["habitat_api_url"]}/authenticate`;
 
 export const LOAD_SESSION_STATE = "LOAD_SESSION_STATE";
 export const POPULATE_GITHUB_ORGS = "POPULATE_GITHUB_ORGS";

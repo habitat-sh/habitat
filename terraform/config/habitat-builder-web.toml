@@ -1,4 +1,2 @@
-builder_url = "https://habitat-api-1022630102.us-west-2.elb.amazonaws.com/v1"
-depot_url = "https://habitat-api-1022630102.us-west-2.elb.amazonaws.com/v1/depot"
+habitat_api_url = "https://habitat-api-1022630102.us-west-2.elb.amazonaws.com/v1"
 github_client_id = "e98d2a94787be9af9c00"
-github_token_auth_url = "https://habitat-api-1022630102.us-west-2.elb.amazonaws.com/v1/authenticate"
