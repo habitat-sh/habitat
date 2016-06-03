@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="704px" height="410px" viewBox="0 0 704 410" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg width="742px" height="410px" viewBox="0 0 742 410" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <!-- Generator: Sketch 3.8.3 (29802) - http://www.bohemiancoding.com/sketch -->
     <title>graphic-hero-pattern</title>
     <desc>Created with Sketch.</desc>
@@ -21,21 +21,17 @@
             <use xlink:href="#path-6"></use>
         </mask>
     </defs>
-    <g id="Habitat-Web-Home" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.329999983">
-        <g transform="translate(0.000000, -383.000000)" id="Hero">
-            <g transform="translate(-39.000000, 108.000000)">
-                <g id="graphic-hero-pattern" transform="translate(1.000000, 256.000000)">
-                    <use id="Rectangle-13-Copy-7" stroke="#87B09A" mask="url(#mask-2)" stroke-width="2.34466402" opacity="0.800314832" transform="translate(312.056253, 224.036764) rotate(135.000000) translate(-312.056253, -224.036764) " xlink:href="#path-1"></use>
-                    <rect id="Rectangle-13-Copy-5" fill-opacity="0.13" fill="#5C6670" transform="translate(312.006170, 223.986696) rotate(135.000000) translate(-312.006170, -223.986696) " x="228.708901" y="140.71402" width="166.594539" height="166.545351" rx="24.6806742"></rect>
-                    <g id="Group-7" transform="translate(367.640000, 176.200000)"></g>
-                    <g id="Group-7-Copy-11" transform="translate(591.360000, 83.800000)" stroke-opacity="0.600000024" stroke="#87B09A">
-                        <use id="Combined-Shape" mask="url(#mask-4)" xlink:href="#path-3"></use>
-                    </g>
-                    <path d="M169.988132,233.312846 L741.962717,233.312846 L741.962717,237.939106 L169.988132,237.939106 L169.988132,233.312846 Z M169.988132,241.023279 L741.962717,241.023279 L741.962717,245.649539 L169.988132,245.649539 L169.988132,241.023279 Z M169.988132,248.733712 L741.962717,248.733712 L741.962717,253.359972 L169.988132,253.359972 L169.988132,248.733712 Z M169.988132,256.444145 L741.962717,256.444145 L741.962717,261.070405 L169.988132,261.070405 L169.988132,256.444145 Z M169.988132,264.154578 L741.962717,264.154578 L741.962717,268.780837 L169.988132,268.780837 L169.988132,264.154578 Z M169.988132,271.865011 L741.962717,271.865011 L741.962717,276.49127 L169.988132,276.49127 L169.988132,271.865011 Z" id="Combined-Shape" fill="url(#linearGradient-5)"></path>
-                    <rect id="Rectangle-13-Copy-3" fill="#87B09A" transform="translate(117.800128, 285.076887) rotate(135.000000) translate(-117.800128, -285.076887) " x="34.5028588" y="201.804212" width="166.594539" height="166.545351" rx="24.6806742"></rect>
-                    <use id="Rectangle-13-Copy-6" stroke-opacity="0.26" stroke="#5C6670" mask="url(#mask-7)" stroke-width="2" transform="translate(159.528333, 168.008953) rotate(135.000000) translate(-159.528333, -168.008953) " xlink:href="#path-6"></use>
-                </g>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.329999983">
+        <g id="graphic-hero-pattern" transform="translate(0.000000, -19.000000)">
+            <use id="Rectangle-13-Copy-7" stroke="#87B09A" mask="url(#mask-2)" stroke-width="2.34466402" opacity="0.800314832" transform="translate(312.056253, 224.036764) rotate(135.000000) translate(-312.056253, -224.036764) " xlink:href="#path-1"></use>
+            <rect id="Rectangle-13-Copy-5" fill-opacity="0.13" fill="#5C6670" transform="translate(312.006170, 223.986696) rotate(135.000000) translate(-312.006170, -223.986696) " x="228.708901" y="140.71402" width="166.594539" height="166.545351" rx="24.6806742"></rect>
+            <g id="Group-7" transform="translate(367.640000, 176.200000)"></g>
+            <g id="Group-7-Copy-11" transform="translate(591.360000, 83.800000)" stroke-opacity="0.600000024" stroke="#87B09A">
+                <use id="Combined-Shape" mask="url(#mask-4)" xlink:href="#path-3"></use>
             </g>
+            <path d="M169.988132,233.312846 L741.962717,233.312846 L741.962717,237.939106 L169.988132,237.939106 L169.988132,233.312846 Z M169.988132,241.023279 L741.962717,241.023279 L741.962717,245.649539 L169.988132,245.649539 L169.988132,241.023279 Z M169.988132,248.733712 L741.962717,248.733712 L741.962717,253.359972 L169.988132,253.359972 L169.988132,248.733712 Z M169.988132,256.444145 L741.962717,256.444145 L741.962717,261.070405 L169.988132,261.070405 L169.988132,256.444145 Z M169.988132,264.154578 L741.962717,264.154578 L741.962717,268.780837 L169.988132,268.780837 L169.988132,264.154578 Z M169.988132,271.865011 L741.962717,271.865011 L741.962717,276.49127 L169.988132,276.49127 L169.988132,271.865011 Z" id="Combined-Shape" fill="url(#linearGradient-5)"></path>
+            <rect id="Rectangle-13-Copy-3" fill="#87B09A" transform="translate(117.800128, 285.076887) rotate(135.000000) translate(-117.800128, -285.076887) " x="34.5028588" y="201.804212" width="166.594539" height="166.545351" rx="24.6806742"></rect>
+            <use id="Rectangle-13-Copy-6" stroke-opacity="0.26" stroke="#5C6670" mask="url(#mask-7)" stroke-width="2" transform="translate(159.528333, 168.008953) rotate(135.000000) translate(-159.528333, -168.008953) " xlink:href="#path-6"></use>
         </g>
     </g>
 </svg>

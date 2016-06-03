@@ -37,9 +37,9 @@ $home-medium-breakpoint: rem-calc(880);
 // Hero
 .hero {
   position: relative;
+  min-height: rem-calc(600);
   background: url('/images/graphics/hero-pattern.svg') no-repeat 0 131%;
   background-size: rem-calc(730) auto;
-  min-height: rem-calc(600);
 
   @include medium-home {
     background-position: 0 128%;
@@ -48,8 +48,10 @@ $home-medium-breakpoint: rem-calc(880);
 
   @include large-home {
     background-position: -16% 165%;
+    background-position: calc(50% - rem-calc(400px)) 165%;
     background-size: auto;
   }
+
 }
 
 .hero--content {
