@@ -411,7 +411,7 @@ $sub-hero-skew: 5deg;
     padding: rem-calc(120) rem-calc(90) rem-calc(120) 0.9375rem;
   }
 
-  @include breakpoint(large) {
+  @include breakpoint(medium) {
     text-align: right;
     border-right: 1px solid $hab-gray;
   }
