@@ -1,4 +1,6 @@
 #main-footer {
+  position: relative;
+  z-index: 5;
   padding: rem-calc(62) 0 rem-calc(90);
   background-image: url('/images/footer-mask.png'),
     linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
