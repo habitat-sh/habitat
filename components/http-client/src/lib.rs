@@ -17,7 +17,6 @@ pub mod error;
 use std::sync::Arc;
 use std::path::Path;
 
-use hab_core::env::http_proxy_unless_domain_exempted;
 use hyper::client::Client;
 use hyper::client::pool::{Config, Pool};
 use hyper::http::h1::Http11Protocol;
@@ -57,23 +56,11 @@ pub use error::{Error, Result};
 /// library will default to using this on the Mac. Therefore the behavior on the Mac remains
 /// unchanged and will use the system's certificates.
 ///
-pub fn new_hyper_client(for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Result<Client> {
-    let for_domain = match for_domain {
-        Some(url) => url.host_str().unwrap_or(""),
-        None => "",
-    };
-    match try!(http_proxy_unless_domain_exempted(for_domain)) {
-        Some((proxy_host, proxy_port)) => {
-            debug!("Using proxy {}:{}...", &proxy_host, &proxy_port);
-            Ok(Client::with_http_proxy(proxy_host, proxy_port))
-        }
-        None => {
-            let ctx = try!(ssl_ctx(fs_root_path));
-            let connector = HttpsConnector::new(Openssl { context: Arc::new(ctx) });
-            let pool = Pool::with_connector(Config::default(), connector);
-            Ok(Client::with_protocol(Http11Protocol::with_connector(pool)))
-        }
-    }
+pub fn new_hyper_client(_for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Result<Client> {
+    let ctx = try!(ssl_ctx(fs_root_path));
+    let connector = HttpsConnector::new(Openssl { context: Arc::new(ctx) });
+    let pool = Pool::with_connector(Config::default(), connector);
+    Ok(Client::with_protocol(Http11Protocol::with_connector(pool)))
 }
 
 fn ssl_ctx(fs_root_path: Option<&Path>) -> Result<SslContext> {
