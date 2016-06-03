@@ -22,6 +22,8 @@ pub const CACHE_ARTIFACT_PATH: &'static str = "hab/cache/artifacts";
 pub const CACHE_KEY_PATH: &'static str = "hab/cache/keys";
 /// The default path where source artifacts are downloaded, extracted, & compiled
 pub const CACHE_SRC_PATH: &'static str = "hab/cache/src";
+/// The default path where SSL-related artifacts are placed
+pub const CACHE_SSL_PATH: &'static str = "hab/cache/ssl";
 /// The root path containing all locally installed packages
 pub const PKG_PATH: &'static str = "hab/pkgs";
 /// The root path containing all runtime service directories and files
@@ -62,6 +64,17 @@ lazy_static! {
             }
         }
     };
+
+    static ref MY_CACHE_SSL_PATH: PathBuf = {
+        if *EUID == 0u32 {
+            PathBuf::from(CACHE_SSL_PATH)
+        } else {
+            match env::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_SSL_PATH)),
+                None => PathBuf::from(CACHE_SSL_PATH),
+            }
+        }
+    };
 }
 
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.
@@ -85,6 +98,14 @@ pub fn cache_src_path(fs_root_path: Option<&Path>) -> PathBuf {
     match fs_root_path {
         Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SRC_PATH),
         None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_SRC_PATH),
+    }
+}
+
+/// Returns the path to the SSL cache, optionally taking a custom filesystem root.
+pub fn cache_ssl_path(fs_root_path: Option<&Path>) -> PathBuf {
+    match fs_root_path {
+        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_SSL_PATH),
+        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_SSL_PATH),
     }
 }
 

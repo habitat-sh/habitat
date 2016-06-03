@@ -10,7 +10,7 @@ pub mod key {
         use std::path::Path;
 
         use ansi_term::Colour::{Blue, Green, Yellow};
-        use depot_client;
+        use depot_client::Client;
         use hcore::crypto::SigKeyPair;
 
         use common::command::ProgressBar;
@@ -21,12 +21,13 @@ pub mod key {
                      revision: Option<&str>,
                      cache: &Path)
                      -> Result<()> {
+            let depot_client = try!(Client::new(depot, None));
             match revision {
                 Some(revision) => {
                     let nwr = format!("{}-{}", origin, revision);
                     let msg = format!("» Downloading public origin key {}", &nwr);
                     println!("{}", Yellow.bold().paint(msg));
-                    try!(download_key(depot, &nwr, origin, revision, cache));
+                    try!(download_key(&depot_client, &nwr, origin, revision, cache));
                     println!("{}",
                              Blue.paint(format!("★ Download of {} public origin key completed.",
                                                 &nwr)));
@@ -34,9 +35,9 @@ pub mod key {
                 None => {
                     let msg = format!("» Downloading public origin keys for {}", origin);
                     println!("{}", Yellow.bold().paint(msg));
-                    for key in try!(depot_client::show_origin_keys(depot, origin)) {
+                    for key in try!(depot_client.show_origin_keys(origin)) {
                         let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
-                        try!(download_key(depot,
+                        try!(download_key(&depot_client,
                                           &nwr,
                                           key.get_origin(),
                                           key.get_revision(),
@@ -50,7 +51,12 @@ pub mod key {
             Ok(())
         }
 
-        fn download_key(depot: &str, nwr: &str, name: &str, rev: &str, cache: &Path) -> Result<()> {
+        fn download_key(depot_client: &Client,
+                        nwr: &str,
+                        name: &str,
+                        rev: &str,
+                        cache: &Path)
+                        -> Result<()> {
             match SigKeyPair::get_public_key_path(&nwr, &cache) {
                 Ok(_) => {
                     println!("{} {}", Green.paint("→ Using"), &nwr);
@@ -58,11 +64,7 @@ pub mod key {
                 Err(_) => {
                     println!("{} {}", Green.bold().paint("↓ Downloading"), &nwr);
                     let mut progress = ProgressBar::default();
-                    try!(depot_client::fetch_origin_key(depot,
-                                                        name,
-                                                        rev,
-                                                        cache,
-                                                        Some(&mut progress)));
+                    try!(depot_client.fetch_origin_key(name, rev, cache, Some(&mut progress)));
                     println!("{} {}", Green.bold().paint("☑ Cached"), &nwr);
                 }
             }
@@ -145,7 +147,7 @@ pub mod key {
 
         use ansi_term::Colour::{Blue, Green, Yellow};
         use common::command::ProgressBar;
-        use depot_client;
+        use depot_client::Client;
         use hcore;
         use hcore::crypto::keys::parse_name_with_rev;
 
@@ -185,8 +187,9 @@ pub mod key {
             println!("{} {}",
                      Green.bold().paint("↑ Uploading"),
                      keyfile.display());
+            let depot_client = try!(Client::new(depot, None));
             let mut progress = ProgressBar::default();
-            try!(depot_client::put_origin_key(depot, &name, &rev, keyfile, Some(&mut progress)));
+            try!(depot_client.put_origin_key(&name, &rev, keyfile, Some(&mut progress)));
             println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
             println!("{}",
                      Blue.paint(format!("★ Upload of public origin key {} complete.",

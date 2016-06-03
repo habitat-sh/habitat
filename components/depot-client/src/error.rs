@@ -15,10 +15,12 @@ use url;
 
 use hab_core::{self, package};
 use hab_core::package::Identifiable;
+use hab_http;
 
 #[derive(Debug)]
 pub enum Error {
     HabitatCore(hab_core::Error),
+    HabitatHttpClient(hab_http::Error),
     HTTP(hyper::status::StatusCode),
     HyperError(hyper::error::Error),
     IO(io::Error),
@@ -36,6 +38,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::HabitatHttpClient(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
@@ -67,6 +70,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::HabitatCore(ref err) => err.description(),
+            Error::HabitatHttpClient(ref err) => err.description(),
             Error::HTTP(_) => "Received an HTTP error",
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
@@ -87,6 +91,12 @@ impl error::Error for Error {
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
+    }
+}
+
+impl From<hab_http::Error> for Error {
+    fn from(err: hab_http::Error) -> Error {
+        Error::HabitatHttpClient(err)
     }
 }
 
