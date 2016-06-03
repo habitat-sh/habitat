@@ -185,6 +185,11 @@ $sub-hero-skew: 5deg;
   z-index: 2;
   left: 0.9375rem;
   top: rem-calc(-200);
+
+  @include small-home {
+    width: 90%;
+    top: rem-calc(-215);
+  }
 }
 
 // Main section
