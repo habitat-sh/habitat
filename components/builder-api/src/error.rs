@@ -30,6 +30,7 @@ pub enum Error {
     JsonDecode(json::DecoderError),
     MissingScope(String),
     Protobuf(protobuf::ProtobufError),
+    RequiredConfigField(&'static str),
     Zmq(zmq::Error),
 }
 
@@ -48,6 +49,9 @@ impl fmt::Display for Error {
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
             Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::RequiredConfigField(ref e) => {
+                format!("Missing required field in configuration, {}", e)
+            }
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -67,6 +71,7 @@ impl error::Error for Error {
             Error::JsonDecode(ref err) => err.description(),
             Error::MissingScope(_) => "Missing GitHub authorization scope.",
             Error::Protobuf(ref err) => err.description(),
+            Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Zmq(ref err) => err.description(),
         }
     }

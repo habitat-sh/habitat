@@ -3,6 +3,10 @@ router_addrs = [
   "127.0.0.1:5562"
 ]
 
+[github]
+client_id = ""
+client_secret = ""
+
 [depot]
 path = "/hab/svc/hab-depot/data"
 datastore_addr = "127.0.0.1:6397"
