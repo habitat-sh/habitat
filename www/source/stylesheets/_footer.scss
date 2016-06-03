@@ -11,6 +11,10 @@
   background-color: $hab-green-light;
   background-size: auto rem-calc(247), cover;
   color: $white;
+
+  &.has-sidebar {
+    padding-top: 0;
+  }
 }
 
 .footer--cta {

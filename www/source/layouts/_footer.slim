@@ -1,11 +1,13 @@
-footer#main-footer
-  .row
-    .columns.medium-12
-      .footer--cta
-        h2.footer--cta-heading See how it works in less than 10 minutes.
-        a.footer--cta-button href="/try" Try the Demo
-        p.footer--cta-subtext
-          | Take a quick, interactive tour of Habitat features
+footer#main-footer class="#{layout_class}"
+  - if layout_class != "has-sidebar"
+    .row
+      .columns.medium-12
+        .footer--cta
+          h2.footer--cta-heading See how it works in less than 10 minutes.
+          a.footer--cta-button href="/try" Try the Demo
+          p.footer--cta-subtext
+            | Take a quick, interactive tour of Habitat features
+
   .footer--sitemap
     .row
       .columns.medium-3
@@ -15,7 +17,6 @@ footer#main-footer
         a href="https://www.chef.io" title="Chef Software Website"
           img.footer--logo.chef[src="/images/chef-logo-white.svg" \
             onerror="this.src='/images/chef-logo-white.png'" alt="Chef Logo"]
-
 
       .columns.medium-9
         .row
