@@ -182,6 +182,12 @@ code {
     color: $hab-gray-dark;
     transition: all .2s;
   }
+
+  &.outline {
+    border-radius: 7px;
+    background: transparent;
+    border: 1px solid $hab-orange;
+  }
 }
 
 .button.cta{
