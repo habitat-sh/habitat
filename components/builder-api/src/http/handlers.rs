@@ -25,7 +25,7 @@ use rustc_serialize::json::{self, ToJson};
 use zmq;
 
 use error::Error;
-use oauth::github;
+use oauth::github::GitHubClient;
 
 pub fn authenticate(req: &mut Request,
                     ctx: &Arc<Mutex<zmq::Context>>)
@@ -60,15 +60,18 @@ pub fn authenticate(req: &mut Request,
     }
 }
 
-pub fn session_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
+pub fn session_create(req: &mut Request,
+                      github: &GitHubClient,
+                      ctx: &Arc<Mutex<zmq::Context>>)
+                      -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let code = match params.find("code") {
         Some(code) => code,
         _ => return Ok(Response::with(status::BadRequest)),
     };
-    match github::authenticate(code) {
+    match github.authenticate(code) {
         Ok(token) => {
-            match github::user(&token) {
+            match github.user(&token) {
                 Ok(user) => {
                     let mut conn = Broker::connect(&ctx).unwrap();
                     let mut request = SessionCreate::new();

@@ -16,6 +16,16 @@ use toml;
 
 use error::{Error, Result};
 
+/// URL to GitHub API endpoint
+const GITHUB_URL: &'static str = "https://api.github.com";
+// Default Client ID for providing a default value in development environments only. This is
+// associated to Jamie Winsor's GitHub account and is configured to re-direct and point to a local
+// builder-api.
+const DEV_GITHUB_CLIENT_ID: &'static str = "e98d2a94787be9af9c00";
+// Default Client Secret for development purposes only. See the `DEV_GITHUB_CLIENT_ID` for
+// additional comments.
+const DEV_GITHUB_CLIENT_SECRET: &'static str = "e5ff94188e3cf01d42f3e2bcbbe4faabe11c71ba";
+
 #[derive(Debug)]
 pub struct Config {
     /// Public listening net address for HTTP requests
@@ -24,6 +34,12 @@ pub struct Config {
     pub depot: depot::Config,
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<net::SocketAddrV4>,
+    /// URL to GitHub API
+    pub github_url: String,
+    /// Client identifier used for GitHub API requests
+    pub github_client_id: String,
+    /// Client secret used for GitHub API requests
+    pub github_client_secret: String,
 }
 
 impl Config {
@@ -40,6 +56,9 @@ impl Default for Config {
             http_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 9636),
             routers: vec![net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562)],
             depot: depot::Config::default(),
+            github_url: GITHUB_URL.to_string(),
+            github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
+            github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
         }
     }
 }
@@ -53,6 +72,13 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         try!(toml.parse_into("cfg.depot.path", &mut cfg.depot.path));
         try!(toml.parse_into("cfg.depot.datastore_addr", &mut cfg.depot.datastore_addr));
+        try!(toml.parse_into("cfg.github.url", &mut cfg.github_url));
+        if !try!(toml.parse_into("cfg.github.client_id", &mut cfg.github_client_id)) {
+            return Err(Error::RequiredConfigField("github.client_id"));
+        }
+        if !try!(toml.parse_into("cfg.github.client_secret", &mut cfg.github_client_secret)) {
+            return Err(Error::RequiredConfigField("github.client_secret"));
+        }
         Ok(cfg)
     }
 }

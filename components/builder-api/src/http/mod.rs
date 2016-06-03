@@ -23,16 +23,18 @@ use zmq;
 use config::Config;
 use error::Result;
 use self::handlers::*;
+use oauth::github::GitHubClient;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
-pub fn router(context: Arc<Mutex<zmq::Context>>) -> Result<Chain> {
+pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Chain> {
+    let github = GitHubClient::new(&*config);
     let ctx1 = context.clone();
     let ctx2 = context.clone();
     let ctx3 = context.clone();
     let ctx4 = context.clone();
     let ctx5 = context.clone();
     let router = router!(
-        get "/authenticate/:code" => move |r: &mut Request| session_create(r, &ctx1),
+        get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github, &ctx1),
 
         post "/origins" => move |r: &mut Request| origin_create(r, &ctx2),
         get "/origins/:origin" => move |r: &mut Request| origin_show(r, &ctx3),
@@ -58,14 +60,15 @@ pub fn router(context: Arc<Mutex<zmq::Context>>) -> Result<Chain> {
 /// * Listener crashed during startup
 pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
+    let addr = config.http_addr.clone();
     let depot = try!(depot::server::router(config.depot.clone()));
-    let chain = try!(router(context));
+    let chain = try!(router(config, context));
     let mut mount = Mount::new();
     mount.mount("/v1", chain).mount("/v1/depot", depot);
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {
-            let _server = Iron::new(mount).http(config.http_addr).unwrap();
+            let _server = Iron::new(mount).http(addr).unwrap();
             tx.send(()).unwrap();
         })
         .unwrap();

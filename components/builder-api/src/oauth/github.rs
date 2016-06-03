@@ -14,14 +14,66 @@ use hyper::mime::{Mime, TopLevel, SubLevel};
 use protocol::sessionsrv;
 use rustc_serialize::json;
 
+use config::Config;
 use error::{Error, Result};
 
-// JW TODO: do not hardcode these. Make available through configuration file.
-const GH_CLIENT_ID: &'static str = "e98d2a94787be9af9c00";
-const GH_CLIENT_SECRET: &'static str = "e5ff94188e3cf01d42f3e2bcbbe4faabe11c71ba";
 const USER_AGENT: &'static str = "Habitat-Builder";
 
-static GH_URL: &'static str = "https://api.github.com";
+pub struct GitHubClient {
+    pub url: String,
+    pub client_id: String,
+    pub client_secret: String,
+}
+
+impl GitHubClient {
+    pub fn new(config: &Config) -> Self {
+        GitHubClient {
+            url: config.github_url.clone(),
+            client_id: config.github_client_id.clone(),
+            client_secret: config.github_client_secret.clone(),
+        }
+    }
+
+    pub fn authenticate(&self, code: &str) -> Result<String> {
+        let url =
+            Url::parse(&format!("https://github.\
+                                 com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
+                                self.client_id,
+                                self.client_secret,
+                                code))
+                .unwrap();
+        let mut rep = try!(http_post(url));
+        if rep.status.is_success() {
+            let mut encoded = String::new();
+            try!(rep.read_to_string(&mut encoded));
+            match json::decode(&encoded) {
+                Ok(msg @ AuthOk { .. }) => {
+                    let scope = "user:email".to_string();
+                    if msg.has_scope(&scope) {
+                        Ok(msg.access_token)
+                    } else {
+                        Err(Error::MissingScope(scope))
+                    }
+                }
+                Err(_) => {
+                    let err: AuthErr = try!(json::decode(&encoded));
+                    Err(Error::from(err))
+                }
+            }
+        } else {
+            Err(Error::HTTP(rep.status))
+        }
+    }
+
+    pub fn user(&self, token: &str) -> Result<User> {
+        let url = Url::parse(&format!("{}/user", self.url)).unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        let user: User = json::decode(&body).unwrap();
+        Ok(user)
+    }
+}
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct User {
@@ -106,46 +158,6 @@ impl fmt::Display for AuthErr {
 pub enum AuthResp {
     AuthOk,
     AuthErr,
-}
-
-pub fn authenticate(code: &str) -> Result<String> {
-    let url =
-        Url::parse(&format!("https://github.\
-                             com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
-                            GH_CLIENT_ID,
-                            GH_CLIENT_SECRET,
-                            code))
-            .unwrap();
-    let mut rep = try!(http_post(url));
-    if rep.status.is_success() {
-        let mut encoded = String::new();
-        try!(rep.read_to_string(&mut encoded));
-        match json::decode(&encoded) {
-            Ok(msg @ AuthOk { .. }) => {
-                let scope = "user:email".to_string();
-                if msg.has_scope(&scope) {
-                    Ok(msg.access_token)
-                } else {
-                    Err(Error::MissingScope(scope))
-                }
-            }
-            Err(_) => {
-                let err: AuthErr = try!(json::decode(&encoded));
-                Err(Error::from(err))
-            }
-        }
-    } else {
-        Err(Error::HTTP(rep.status))
-    }
-}
-
-pub fn user(token: &str) -> Result<User> {
-    let url = Url::parse(&format!("{}/user", GH_URL)).unwrap();
-    let mut rep = try!(http_get(url, token));
-    let mut body = String::new();
-    try!(rep.read_to_string(&mut body));
-    let user: User = json::decode(&body).unwrap();
-    Ok(user)
 }
 
 fn http_get(url: Url, token: &str) -> Result<hyper::client::response::Response> {
