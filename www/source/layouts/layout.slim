@@ -9,7 +9,7 @@ html
 
     == stylesheet_link_tag :site
 
-  body class="#{current_page.data.classes}"
+  body class="#{current_page.data.classes} #{layout_class}"
     = partial "layouts/gtm"
 
     = partial "layouts/nav"

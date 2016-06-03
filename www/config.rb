@@ -36,7 +36,7 @@ require 'lib/sidebar_helpers'
 helpers SidebarHelpers
 
 helpers do
-  def nav_class
+  def layout_class
     layout = current_page.options.fetch(:layout, nil)
     layout == :sidebar ? 'has-sidebar' : ''
   end

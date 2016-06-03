@@ -1,5 +1,13 @@
 $sidebar-breakpoint: 720px;
 
+body.has-sidebar {
+  background: $hab-off-white;
+
+  #content-outer {
+    margin-bottom: rem-calc(90);
+  }
+}
+
 #content-outer {
   @include small-nav {
     padding-top: $header-height-mobile;
@@ -21,6 +29,10 @@ $sidebar-breakpoint: 720px;
   margin: 0 auto;
   min-height: 675px;
   max-height: auto;
+
+  hr {
+    border-bottom-color: lighten($hab-gray, 20%);
+  }
 }
 
 .main-sidebar {
@@ -33,6 +45,35 @@ $sidebar-breakpoint: 720px;
     left: 0;
     bottom: 0;
     width: 300px;
+  }
+
+  a {
+    display: block;
+    position: relative;
+    color: $body-font-color;
+
+    &:hover,
+    &:active,
+    &:focus {
+      color: $hab-primary;
+    }
+  }
+
+  .is-active > a {
+    font-weight: bold;
+    color: $hab-primary;
+
+    &:before {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: rem-calc(12);
+      height: rem-calc(12);
+      background: url('/images/icons/sidebar-active.png') no-repeat;
+      background-size: 100% auto;
+    }
   }
 }
 
@@ -52,15 +93,13 @@ $sidebar-breakpoint: 720px;
     display: block;
     line-height: rem-calc(32);
     padding-left: 0;
-
-  &.is-active > a {
-    font-weight: bold;
-  }
 }
 
 .main-content__has-sidebar {
   background-color: $hab-white;
-  padding: rem-calc(40) rem-calc(20);
+  background: url("/images/graphics/article-watermark.png") no-repeat right bottom $hab-white;
+  background: url("/images/graphics/article-watermark.svg") no-repeat right bottom $hab-white;
+  padding: rem-calc(40) rem-calc(20) rem-calc(120);
 
   @media (min-width: $sidebar-breakpoint) {
     margin-left: 300px;
