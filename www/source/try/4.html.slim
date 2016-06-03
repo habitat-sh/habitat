@@ -6,27 +6,29 @@ total_steps: 7
 h2.page-body--title Making Permanent Changes via Configuration Files
 
 p
-  | In the previous step, we made our change while starting the service. That
-    was convenient, but what if we want to bake this change into our source code
-    and distribute it across a group of nodes? This is where Habitat excels.
+  | In the previous step, we made a one-off change while starting the service. That
+    was convenient, but what if we want to make this change permanent and distribute
+    it across all of our instances? This is where Habitat excels.
 p
-  | Habitat deals with configuration settings in a couple of places. First, you
-    write a <a href="/docs/concepts-plans/">plan file</a> that describes how to build
-    your artifact and, second, Habitat looks for a .toml settings file.
-p
-  | Earlier, the supervisor read the contents of the .toml file for us when we asked
-    about what was configurable. A snippet of that file is displayed below.
+  | Habitat deals with configuration settings in a couple of places. First, you'll
+    have your typical config file(s) based upon your particular package (e.g. redis.conf)
+    and second, Habitat will look for a .toml file where you can define additional
+    config items.
 
 p
-  | Presume you're working on this file locally and storing it with the rest of your
-    source code in a GitHub repo. Let's change the <code>tcp-backlog</code> setting
-    to 128. In the next step, we'll apply the change to a running service.
+  | Earlier, the Habitat supervisor read the contents of the config.toml file for
+    us when we asked what was configurable in our service. Presume you're working
+    on this file locally in your text editor - a snippet is displayed below.
+
+p
+  | Let's change the <code>tcp-backlog</code> setting to 128 in our config.toml,
+    then we'll apply that file to our group of instances in the next step.
 
 code
   | tcp-backlog = 128
 
 = partial "partials/editor" do
-  | # snippet of .toml file
+  | # snippet of config.toml
     #
     # TCP listen() backlog.
     #

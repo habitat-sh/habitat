@@ -203,8 +203,8 @@
 
             // hab inject (alias)
             } else if (args[0] === "config") {
-              // inject the gossip.toml into the group
-              if (args.join(" ") === "config apply redis.default 1 /tmp/gossip.toml --peer 172.17.0.4") {
+              // inject the config.toml into the group
+              if (args.join(" ") === "config apply redis.default 1 /tmp/config.toml --peer 172.17.0.4") {
                 getResponse("hab-config-apply").then(function (txt) {
                     inStudio = true;
                     callback(format(txt));
