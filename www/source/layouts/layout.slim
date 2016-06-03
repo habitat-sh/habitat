@@ -7,6 +7,9 @@ html
 
     title = current_page.data.title || ""
 
+    link href="/favicon.png" rel="icon" type="image/png"
+    link href="/favicon.ico" rel="icon"
+
     == stylesheet_link_tag :site
 
   body class="#{current_page.data.classes} #{layout_class}"
