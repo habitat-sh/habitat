@@ -199,9 +199,12 @@ $sub-hero-skew: 5deg;
 
   &.last {
     padding-bottom: rem-calc(90);
-    background: url('/images/graphics/main-section-last-watermark.svg') no-repeat 90% rem-calc(-150),
-      linear-gradient(to bottom, lighten($hab-gray, 10%), $hab-white 21%) no-repeat 0 0,
-      linear-gradient(to left, lighten($hab-gray, 10%), $hab-white 21%) no-repeat 0 0;
+    background-image: url('/images/graphics/main-section-last-watermark.svg'),
+      linear-gradient(to bottom, lighten($hab-gray, 10%), $hab-white 21%),
+      linear-gradient(to left, lighten($hab-gray, 10%), $hab-white 21%);
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    background-position: 90% rem-calc(-150), 0 0, 0 0;
+    background-position: calc(50% + 310px) rem-calc(-150), 0 0, 0 0;
   }
 
   h2 {
