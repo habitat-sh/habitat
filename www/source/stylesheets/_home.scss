@@ -192,6 +192,8 @@ $sub-hero-skew: 5deg;
   padding: rem-calc(120) 0;
 
   &.first {
+    padding-top: rem-calc(160);
+    margin-top: rem-calc(-50);
     background: url('/images/graphics/main-section-first-watermark.svg') no-repeat center rem-calc(-160);
   }
 
