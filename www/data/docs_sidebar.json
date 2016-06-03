@@ -87,8 +87,8 @@
           ]
         },
         {
-          "title": "Run services",
-          "link": "/docs/run-services/"
+          "title": "Run packages",
+          "link": "/docs/run-packages-overview/"
         }
       ]
     },
