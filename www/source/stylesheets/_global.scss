@@ -88,9 +88,15 @@
   margin: 0;
 
   li:first-child {
-    color: $hab-gray;
+    color: lighten($body-font-color, 25%);
+    font-size: rem-calc(12);
+    margin: rem-calc(30) 0 rem-calc(10);
+  }
+
+  a {
+    color: $body-font-color;
     font-size: rem-calc(14);
-    margin: rem-calc(40) 0 rem-calc(10);
+    text-decoration: underline;
   }
 }
 
