@@ -23,22 +23,25 @@ tcp-backlog = 511
 # bind = [] - listen on all interfaces
 bind = []
 
-unixsocket = false
-unixsocketperm = false
+# Listen on a unix socket
+# unixsocket = "/tmp/redis.sock"
+# unixsocketperm = 700
+
 timeout = 0
 tcp-keepalive = 0
 loglevel = "notice"
 logfile = "\"\""
-syslog-enabled = ["no"]
-syslog-ident = ["redis"]
-syslog-facility = ["local0"]
+# Uncomment to enable syslog
+# syslog-enabled = "yes"
+# syslog-ident = "redis"
+# syslog-facility = "local0"
 databases = 16
 stop-writes-on-bgsave-error = "yes"
 rbcompression = "yes"
 rbchecksum = "yes"
 dbfilename = "dump.rdb"
-slaveof = []
-masterauth = []
+
+# masterauth = ""
 slave-serve-stale-data = "yes"
 slave-read-only = "yes"
 repl-diskless-sync = "no"
@@ -46,12 +49,12 @@ repl-diskless-synx-delay = 5
 repl-ping-slave-period = 10
 repl-timeout = 60
 repl-disable-tcp-nodelay = "no"
-repl-backlog-size = ["1mb"]
-repl-backlog-ttl = ["3600"]
+repl-backlog-size = "1mb"
+repl-backlog-ttl = "3600"
 slave-priority = "100"
 min-slaves-to-write = false
 min-slaves-max-lag = false
-requirepass = []
+requirepass = ""
 
 [[save]]
 sec = 900
@@ -63,9 +66,10 @@ keys = 10
 
 [[save]]
 sec = 60
-keys = 10000
 
-[1;32mThere we go! Among other responsibilities, the supervisor can assist us with config settings.
-[1;33mScroll to the top of the output and note that the tcp-backlog is set to 511.
 
-[1;36mNow that we've learned what is configurable, let's make a change to the running service.
+
+[1;32mHave a look! Scroll to the top of the output and note that the tcp-backlog is set to 511.
+
+[1;36mNot only can the supervisor report what's configurable, it can actually assist us with changing config items as well.
+[1;36mFirst, let's start up a service with a variable override, then we'll see how to apply the same change through the supervisor.

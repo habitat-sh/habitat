@@ -9,13 +9,20 @@ p.page-body--tip
 h2.page-body--title Start a Service Using Habitat
 
 p
-  | This  demo will provide an introductory overview of Habitat
-    from the comfort of your browser. By the end, you will have a
-    better understanding of what Habitat is and how it addresses some common pain points.
+  | This demo provides an introductory overview of Habitat
+    from the comfort of your browser. Below, we'll show you how to quickly
+    download and run existing packages to create services.
+
+p
+  | After staring a service, we'll demonstrate how easy Habitat makes it to inject config changes
+    to a single service and, lastly, how you can automatically cluster the infrastructure
+    and apply a change to any number of services regardless of where they are running
+    (in containers, VMs, or on bare metal).
+
 p
   | Habitat centralizes application configuration, management, and behavior around
-    the application itself, not the infrastructure that the app runs on. First, let's
-    start a service from a Habitat package.
+    the application itself, not the infrastructure that the app runs on. To begin,
+    let's download and start a service from an existing Habitat package.
 code
   | hab start core/redis
 
@@ -23,4 +30,4 @@ code
 
 #success
   = partial "partials/advance_button" do
-    | Next - Ask the service what's configurable
+    | Next - Ask the supervisor what's configurable

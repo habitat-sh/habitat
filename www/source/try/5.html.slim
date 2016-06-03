@@ -6,24 +6,25 @@ total_steps: 7
 h2.page-body--title Configure the Service Through Discovery
 
 p
-  | We've updated our config file, tested it, and pushed it up to the repo. Now
-    comes the hectic, time-consuming task of rolling it out to all of our database nodes.
+  | We've updated our config file with the new setting. At this point you would
+    typically be faced with the hectic, time-consuming task of rolling this change
+    out to all of your nodes.
 p
-  | Imagine, for a moment, if all of our nodes were connected in a group and we could simply
-    apply the change in a single command with each member picking it up and restarting
-    automatically... imagine no more, the Habitat supervisor has it under control.
+  | Imagine, for a moment, if you could simply apply the change in a single command
+    with each node picking it up automatically... imagine no more! The Habitat
+    supervisor has it under control so that you can quickly update the entire group.
 p
-  | Before we dive into the topic of topology and connecting nodes, let's imagine
+  | Before we dive into the topic of setting up groups, let's presume
     you've already got a large service group up and running which contains many
     database instances.
 p
-  | Note that the TCP backlog warning is present in the service group node output.
-    Now, go ahead and upload the updated .toml file to the service group
-    and watch the magic happen as the peers discover and apply the change, clearing
-    the TCP backlog issue.
+  | Note that the TCP backlog warning is present in the two sample running nodes.
+    Now, go ahead and apply the updated config.toml file by uploading it one of the
+    nodes in our service group. Then watch the magic happen as the peers discover
+    and apply the change, clearing the TCP backlog issue.
 
 code
-  | hab config apply redis.default 1 /tmp/gossip.toml --peer 172.17.0.4
+  | hab config apply redis.default 1 /tmp/config.toml --peer 172.17.0.4
 
 .window-buttons
   ul

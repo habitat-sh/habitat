@@ -6,13 +6,14 @@ total_steps: 7
 h2.page-body--title Adding Services to an Existing Group
 
 p
-  | Now that we've got our leader topology established, let's see what it takes
-    to add additional nodes to this group.
+  | Now that we've got our first node running, we went ahead and added a second running
+    node for you since this topology requires a minimum of three. Once we add a third,
+    we'll see them elect a leader for the group.
+
 p
-  | Adding a new service is as simple as setting a flag that references any existing
-    peer (by IP address) in the target Service Group. Let's presume we now have two
-    nodes running and we need to add a third in order to meet our minimum quorum for
-    our leader/follower topology.
+  | Adding a new node to a group is as simple as setting a flag that references any existing
+    peer (by IP address) in the target Service Group.
+
 p
   | Start the third node, then switch between all three windows to see that each
     node has been connected to one another.
@@ -133,7 +134,6 @@ code
       redis(O):           `-._        _.-'
       redis(O):               `-.__.-'
       redis(O):
-      redis(O): 91:M 03 May 15:32:29.622 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
       redis(O): 91:M 03 May 15:32:29.622 # Server started, Redis version 3.0.7
       redis(O): 91:M 03 May 15:32:29.623 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
       redis(O): 91:M 03 May 15:32:29.623 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.
@@ -262,7 +262,6 @@ code
       redis(O):           `-._        _.-'
       redis(O):               `-.__.-'
       redis(O):
-      redis(O): 94:S 03 May 15:32:29.902 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.
       redis(O): 94:S 03 May 15:32:29.903 # Server started, Redis version 3.0.7
       redis(O): 94:S 03 May 15:32:29.903 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
       redis(O): 94:S 03 May 15:32:29.903 # WARNING you have Transparent Huge Pages (THP) support enabled in your kernel. This will create latency and memory usage issues with Redis. To fix this issue run the command 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' as root, and add it to your /etc/rc.local in order to retain the setting after a reboot. Redis must be restarted after THP is disabled.

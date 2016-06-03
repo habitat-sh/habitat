@@ -120,4 +120,4 @@ redis(O): 94:S 03 May 15:32:30.717 * MASTER <-> SLAVE sync: Finished with succes
 [1;33mSwitch between the windows and you'll see that the election automatically kicked off.
 All three nodes are now up and Node 1 has been elected leader.
 
-[1;36mNext, we'll learn how to apply an update strategy.
+[1;36mThere is so much more that Habitat can do! Proceed to see our recommended next steps.

@@ -39,4 +39,5 @@ redis(O): 4749:M 29 Apr 20:28:26.269 # WARNING you have Transparent Huge Pages (
 redis(O): 4749:M 29 Apr 20:28:26.269 * The server is now ready to accept connections on port 6379
 
 [1;32mSuccess! The setting was overridden and the TCP warning message is no longer present.
-[1;36mSuppose you wanted to permanently bake this change into a config file? We'll do that next.
+
+[1;36mSuppose you wanted to apply this change to all of your instances at once. You can do that too.

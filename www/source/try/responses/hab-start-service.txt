@@ -40,6 +40,6 @@ redis(O): 4749:M 29 Apr 20:28:26.269 # WARNING you have Transparent Huge Pages (
 redis(O): 4749:M 29 Apr 20:28:26.269 * The server is now ready to accept connections on port 6379
 
 [1;32mSuccess! In a single command, you've downloaded the Redis package (including its dependencies) and started the service.
-[1;33mNote the WARNING regarding the TCP backlog setting... we'll resolve that in just a bit.
 
+[1;36mNotice that Habitat packages start up with a supervisor to manage our processes.
 [1;36mNext, we'll ask the supervisor what is configurable in this service.
