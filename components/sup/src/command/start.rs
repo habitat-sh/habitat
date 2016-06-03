@@ -55,7 +55,7 @@ use std::path::Path;
 use ansi_term::Colour::Yellow;
 use common::command::ProgressBar;
 use common::command::package::install;
-use depot_client;
+use depot_client::Client;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
 use hcore::package::PackageIdent;
@@ -91,16 +91,16 @@ pub fn package(config: &Config) -> Result<()> {
                         //
                         // If the operator does not specify a version number they will automatically receive
                         // updates for any releases, regardless of version number, for the started  package.
+                        let depot_client = try!(Client::new(url, None));
                         let latest_pkg_data =
-                            try!(depot_client::show_package(&url, (*config.package()).clone()));
+                            try!(depot_client.show_package((*config.package()).clone()));
                         let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
                         if &latest_ident > package.ident() {
                             outputln!("Downloading latest version from remote: {}", latest_ident);
                             let mut progress = ProgressBar::default();
-                            let archive = try!(depot_client::fetch_package(&url,
-                                                                 latest_ident,
-                                                                 &cache_artifact_path(None),
-                                                                 Some(&mut progress)));
+                            let archive = try!(depot_client.fetch_package(latest_ident,
+                                               &cache_artifact_path(None),
+                                               Some(&mut progress)));
                             try!(archive.verify(&default_cache_key_path(None)));
                             try!(archive.unpack(None));
                         } else {

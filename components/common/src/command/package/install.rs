@@ -32,7 +32,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use ansi_term::Colour::{Blue, Green, Yellow};
-use depot_client;
+use depot_client::Client;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::fs::cache_artifact_path;
@@ -87,7 +87,8 @@ pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
 {
     println!("{}",
              Yellow.bold().paint(format!("» Installing {}", ident)));
-    let pkg_data = try!(depot_client::show_package(url, ident.clone()));
+    let depot_client = try!(Client::new(url, Some(fs_root_path.as_ref())));
+    let pkg_data = try!(depot_client.show_package(ident.clone()));
     for dep in pkg_data.get_tdeps().into_iter() {
         let d: PackageIdent = (*dep).clone().into();
         try!(install_from_depot(url,
@@ -169,12 +170,12 @@ fn install_from_depot(url: &str,
                      Green.bold().paint("↓ Downloading"),
                      ident.as_ref());
             let mut progress = ProgressBar::default();
-            let mut archive = try!(depot_client::fetch_package(url,
-                                                               (*ident).clone(),
+            let depot_client = try!(Client::new(url, Some(fs_root_path)));
+            let mut archive = try!(depot_client.fetch_package((*ident).clone(),
                                                                cache_artifact_path,
                                                                Some(&mut progress)));
             let ident = try!(archive.ident());
-            try!(verify(url, &archive, &ident, cache_key_path));
+            try!(verify(url, &archive, &ident, fs_root_path, cache_key_path));
             try!(archive.unpack(Some(fs_root_path)));
             println!("{} {}", Green.bold().paint("✓ Installed"), ident.as_ref());
         }
@@ -196,7 +197,7 @@ fn install_from_archive(url: &str,
             println!("{} {} from cache",
                      Green.bold().paint("← Extracting"),
                      ident);
-            try!(verify(url, &archive, &ident, cache_key_path));
+            try!(verify(url, &archive, &ident, fs_root_path, cache_key_path));
             try!(archive.unpack(Some(fs_root_path)));
             println!("{} {}", Green.bold().paint("✓ Installed"), ident);
         }
@@ -209,6 +210,7 @@ fn install_from_archive(url: &str,
 fn verify(url: &str,
           archive: &PackageArchive,
           ident: &PackageIdent,
+          fs_root_path: &Path,
           cache_key_path: &Path)
           -> Result<()> {
     let nwr = try!(artifact::artifact_signer(&archive.path));
@@ -218,7 +220,8 @@ fn verify(url: &str,
                  &nwr);
         let (name, rev) = try!(parse_name_with_rev(&nwr));
         let mut progress = ProgressBar::default();
-        try!(depot_client::fetch_origin_key(url, &name, &rev, cache_key_path, Some(&mut progress)));
+        let depot_client = try!(Client::new(url, Some(fs_root_path)));
+        try!(depot_client.fetch_origin_key(&name, &rev, cache_key_path, Some(&mut progress)));
         println!("{} {} public origin key",
                  Green.bold().paint("☑ Cached"),
                  &nwr);

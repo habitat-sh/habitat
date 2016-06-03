@@ -1,25 +1,16 @@
 [package]
-name = "habitat_depot_client"
+name = "habitat_http_client"
 version = "0.6.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "build.rs"
 
 [dependencies]
-broadcast = "*"
-hyper = "*"
 log = "*"
-pbr = "*"
-rustc-serialize = "*"
-tee = "*"
-url = "*"
-
-[dependencies.habitat_builder_protocol]
-path = "../builder-protocol"
+hyper = "*"
+openssl = "*"
 
 [dependencies.habitat_core]
 path = "../core"
-
-[dependencies.habitat_http_client]
-path = "../http-client"
 
 [features]
 functional = []
