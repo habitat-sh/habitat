@@ -9,11 +9,11 @@ import "whatwg-fetch";
 import config from "./config";
 import {packageString} from "./util";
 
-const urlPrefix = config["depot_url"] || "";
+const urlPrefix = config["habitat_api_url"] || "";
 
 export function get(ident) {
     return new Promise((resolve, reject) => {
-        fetch(`${urlPrefix}/pkgs/${packageString(ident)}`).then(response => {
+        fetch(`${urlPrefix}/depot/pkgs/${packageString(ident)}`).then(response => {
             // Fail the promise if an error happens.
             //
             // If we're hitting the fake api, the 4xx response will show up

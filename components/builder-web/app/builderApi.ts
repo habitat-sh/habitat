@@ -8,7 +8,7 @@
 import "whatwg-fetch";
 import config from "./config";
 
-const urlPrefix = config["builder_url"] || "";
+const urlPrefix = config["habitat_api_url"] || "";
 
 export function createProject(project) {
     return new Promise((resolve, reject) => {
