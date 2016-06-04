@@ -29,6 +29,7 @@ rust-crypto = "*"
 rustc-serialize = "*"
 time = "*"
 toml = "*"
+unicase = "*"
 urlencoded = "*"
 walkdir = "*"
 

@@ -11,6 +11,8 @@ import * as fakeApi from "../fakeApi";
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
+export const SET_PACKAGES_NEXT_RANGE = "SET_PACKAGES_NEXT_RANGE";
+export const SET_PACKAGES_TOTAL_COUNT = "SET_PACKAGES_TOTAL_COUNT";
 export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 
 function clearPackages() {
@@ -39,24 +41,19 @@ export function fetchPackage(pkg) {
     };
 }
 
-export function filterPackagesBy(params, defaultOrigin = {}) {
-    if (params["filter"] === "mine" && "name" in defaultOrigin) {
-        params["origin"] = defaultOrigin["name"];
-    }
-
+export function filterPackagesBy(params, nextRange: number = 0) {
     return dispatch => {
-        if ("origin" in params) {
+        if (nextRange === 0) {
             dispatch(clearPackages());
-            depotApi.get(params).then(response => {
-                dispatch(setVisiblePackages(response));
-            }).catch(error => {
-                dispatch(setVisiblePackages(undefined, error));
-            });
-        } else {
-            fakeApi.get("packages.json").then(response => {
-                dispatch(setVisiblePackages(response));
-            });
         }
+
+        depotApi.get(params, nextRange).then(response => {
+            dispatch(setVisiblePackages(response["results"]));
+            dispatch(setPackagesTotalCount(response["totalCount"]));
+            dispatch(setPackagesNextRange(response["nextRange"]));
+        }).catch(error => {
+            dispatch(setVisiblePackages(undefined, error));
+        });
     };
 }
 
@@ -72,6 +69,20 @@ export function setCurrentPackage(pkg, error = undefined) {
         type: SET_CURRENT_PACKAGE,
         payload: pkg,
         error: error,
+    };
+}
+
+function setPackagesNextRange(payload: number) {
+    return {
+        type: SET_PACKAGES_NEXT_RANGE,
+        payload,
+    };
+}
+
+function setPackagesTotalCount(payload: number) {
+    return {
+        type: SET_PACKAGES_TOTAL_COUNT,
+        payload,
     };
 }
 

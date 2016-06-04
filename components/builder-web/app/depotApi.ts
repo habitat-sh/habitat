@@ -11,9 +11,11 @@ import {packageString} from "./util";
 
 const urlPrefix = config["habitat_api_url"] || "";
 
-export function get(ident) {
+export function get(ident, nextRange: number = 0) {
     return new Promise((resolve, reject) => {
-        fetch(`${urlPrefix}/depot/pkgs/${packageString(ident)}`).then(response => {
+        fetch(`${urlPrefix}/depot/pkgs/${packageString(ident)}`, {
+            headers: { "Range": nextRange.toString() }
+        }).then(response => {
             // Fail the promise if an error happens.
             //
             // If we're hitting the fake api, the 4xx response will show up
@@ -23,7 +25,15 @@ export function get(ident) {
                 reject(new Error(response.statusText));
             }
 
-            resolve(response.json());
+            const totalCount = parseInt(response.headers.get("Content-Range").split("=")[1], 10);
+            const nextRange = parseInt(response.headers.get("Next-Range"), 10);
+
+            const headers = response.headers;
+
+            response.json().then(results => {
+                resolve({ results, totalCount, nextRange });
+            });
+
         }).catch(error => reject(error));
     });
 };

@@ -85,6 +85,8 @@ export default Record({
         current: undefined,
         explore: List(),
         visible: List(),
+        nextRange: 0,
+        totalCount: 0,
         ui: Record({
             current: Record({
                 errorMessage: undefined,

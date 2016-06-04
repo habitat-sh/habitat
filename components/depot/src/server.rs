@@ -13,6 +13,8 @@ use std::result;
 
 use dbcache::{self, BasicSet, IndexSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
+use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
+use iron::headers::ContentType;
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
 use iron::request::Body;
@@ -20,6 +22,7 @@ use mount::Mount;
 use protocol::depotsrv;
 use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
+use unicase::UniCase;
 use urlencoded::UrlEncodedQuery;
 
 use super::Depot;
@@ -356,6 +359,9 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 };
                 let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
                 response.headers.set_raw("Content-Range", range);
+                response.headers.set(ContentType(Mime(TopLevel::Application,
+                                                      SubLevel::Json,
+                                                      vec![(Attr::Charset, Value::Utf8)])));
                 Ok(response)
             }
             Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
@@ -563,6 +569,11 @@ struct Cors;
 impl AfterMiddleware for Cors {
     fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
+        res.headers
+            .set(headers::AccessControlExposeHeaders(vec![UniCase("content-range".to_owned()),
+                                                          UniCase("next-range".to_owned())]));
+        res.headers
+            .set(headers::AccessControlAllowHeaders(vec![UniCase("range".to_owned())]));
         Ok(res)
     }
 }
