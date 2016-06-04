@@ -105,7 +105,7 @@ mod ssl {
         } else {
             let cached_certs = cache_ssl_path(fs_root_path).join("cert.pem");
             if !cached_certs.exists() {
-                try!(fs::create_dir_all(cache_ssl_path(None)));
+                try!(fs::create_dir_all(cache_ssl_path(fs_root_path)));
                 debug!("Creating cached cacert.pem at: {}", cached_certs.display());
                 let mut file = try!(File::create(&cached_certs));
                 try!(file.write_all(CACERT_PEM.as_bytes()));
