@@ -49,6 +49,10 @@ exit_with() {
 program=$(basename $0)
 rf_version="0.5.0"
 
+# Fix commit range in Travis, if set.
+# See: https://github.com/travis-ci/travis-ci/issues/4596
+TRAVIS_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
+
 info "Checking for rustfmt"
 if ! command -v rustfmt >/dev/null; then
   exit_with "Program \`rustfmt' not found on PATH, aborting" 1
