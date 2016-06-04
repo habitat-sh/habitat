@@ -1,11 +1,11 @@
 pkg_name=openssl
 pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=1.0.2g
+pkg_version=1.0.2h
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=https://www.openssl.org/source/${pkg_distname}-${pkg_version}.tar.gz
-pkg_shasum=b784b1b3907ce39abf4098702dade6365522a253ad1552e267a9a0e89594aa33
+pkg_shasum=1d4007e53aad94a5b2002fe045ee7bb0b3d98f1a47f8b2bc851dcd1c74332919
 pkg_dirname=${pkg_distname}-${pkg_version}
 pkg_deps=(core/glibc core/zlib core/cacerts)
 pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed core/grep core/perl)
