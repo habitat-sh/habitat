@@ -1,31 +1,18 @@
-To start building artifacts in Habitat, you first need to clone the Habitat repository. The repository allows you to build the Habitat binaries, make new plans, and access the studio environment used to build artifacts.
+The `hab` command-line interface (CLI) tool downloads the studio and other tools when it needs them, so setup for Habitat is centered on where you want the `hab` CLI installed and getting it integrated into your shell.
 
-1.  Open a terminal window. Change directory to the directory where you want to clone the repo and clone it.
+1.  Open a terminal window. Change directory to the directory where you want to place the `hab` CLI. The following example creates a directory called `bin` and places it at the root of the home directory.
 
-    ~~~
-    cd /some/path && git clone https://github.com/habitat-sh/habitat.git
-    ~~~
-2.  After you have successfully cloned the repo, change directory into the repo.
+        mkdir -p ~/bin && cd ~/bin
 
-    ~~~
-    cd /some/path/habitat
-    ~~~
+2.  Copy the `hab` CLI to that directory.
 
-3. If your host machine is running Mac OS X, connect your shell to the Docker VM you created when you setup Docker. The following example is for connecting to the Docker machine named `default`.
+3. If your host machine is running Mac OS X, add the location for the `hab` CLI to your `PATH` environment variable.
 
-       eval "$(docker-machine env default)"
+       export PATH=$PATH:~/bin
 
-    If your host machine is running Linux, run `export IN_DOCKER=true`.
-    To determine the name of your Docker machine run `docker-machine ls`.
+    To keep from typing this in for every terminal window you use, add the above statement to your shell profile.
 
-4. From the root of your local repo, run `make shell`. This will build the Docker container that contains a basic development environment for building the Habitat binaries, including the studio environment. During the initial creation process, the Docker container will be built from scratch. This can take several minutes.
+4. Open a terminal window and run `hab`. If you're running on Mac OS X, make sure your docker-machine is running and your shell is connected to the host machine.
 
-    Once `make shell` completes, you will be at a bash prompt inside the habitat/devshell container. You should see a prompt like the following:
-
-       root@622a476a8d66:/src#
-
-5. Enter into the studio environment by typing `hab studio enter`. Because the studio itself is a Habitat artifact, it will download, unpack, and install all of the artifacts it needs to run. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat artifacts.
-
-Because there are several dependencies that also need to be installed, this operation may also take several minutes. If successful, you should see another bash prompt like this:
-
-    [1][default:/src:0]#
+       docker-machine start
+       eval "$(docker-machine env machinename)"

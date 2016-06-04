@@ -5,7 +5,7 @@ title: Next steps
 # You've learned a lot, so what's next?
 
 Thanks for taking some time to get hands-on with Habitat. We hope you're beginning to feel comfortable enough with
-the tooling that you can begin placing your apps in a natural habitat of their own.
+the tooling that you can begin placing your apps in a natural Habitat of their own.
 
 In this tutorial you learned how to...
 

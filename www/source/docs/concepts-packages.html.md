@@ -1,8 +1,8 @@
-# Packages and Artifacts
+# Packages
 
-An artifact refers to a binary distribution for a given piece of Habitat software that contains a software library or application as well as any configuration information for that software. It's a signed tarball with a .hart file extension created from a plan definition and built with Habitat tools that can be post-processed to be runtime specific, such as when creating a Docker container.
+A package refers to a binary distribution for a given piece of Habitat software that contains a software library or application as well as any configuration information for that software. It's a signed tarball with a .hart file extension created from a plan definition and built with Habitat tools that can be post-processed to be runtime specific, such as when creating a Docker container.
 
-When artifacts are downloaded and installed on disk, they are known as packages. Packages are identified using a four-component scheme: `origin/name/version/release`, where origin, name, version, and release are replaced with corresponding values.
+Packages are identified using a four-component scheme: `origin/name/version/release`, where origin, name, version, and release are replaced with corresponding values.
 
 **Identifier components**
 

@@ -3,12 +3,7 @@ title: Intro to Tutorials
 ---
 
 # Tutorials
+The following tutorial provides step-by-step instructions on how easy it is to build, configure, deploy, and manage applications in Habitat.
 
-The introductory tutorial for Habitat shows how Habitat packages are built, configured, and easily re-configured during start-up. You will create your version of a sample Node.js package that you can then update and upload to a local depot.
-
-Begin your Habitat learning by completing the Getting Started tutorial now!
-
-<hr>
-<ul class="main-content--button-nav">
-  <li><a href="/tutorials/getting-started-overview" class="button cta">Start tutorial</a></li>
-</ul>
+## Getting Started with Habitat
+This introductory tutorial for Habitat shows you how to setup your environment, create a plan, build an artifact, configure it, and re-configured it during start-up. Begin your Habitat learning by completing the [Getting Started tutorial](/tutorials/getting-started-overview) now.
