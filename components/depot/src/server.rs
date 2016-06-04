@@ -302,7 +302,7 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let (from, to) = match extract_pagination(req) {
+    let (offset, num) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
     };
@@ -321,15 +321,15 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Ok(packages) => {
                 let count = depot.datastore.packages.index.count(&ident).unwrap();
                 let body = json::encode(&packages).unwrap();
-                let next_range = vec![format!("{}", to + 1).into_bytes()];
-                let mut response = if count as isize >= (to + 1) {
+                let next_range = vec![format!("{}", num + 1).into_bytes()];
+                let mut response = if count as isize >= (num + 1) {
                     let mut response = Response::with((status::PartialContent, body));
                     response.headers.set_raw("Next-Range", next_range);
                     response
                 } else {
                     Response::with((status::Ok, body))
                 };
-                let range = vec![format!("{}..{}; count={}", from, to, count).into_bytes()];
+                let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
                 response.headers.set_raw("Content-Range", range);
                 Ok(response)
             }
@@ -342,19 +342,19 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             }
         }
     } else {
-        match depot.datastore.packages.index.list(&ident, from, to) {
+        match depot.datastore.packages.index.list(&ident, offset, num) {
             Ok(packages) => {
                 let count = depot.datastore.packages.index.count(&ident).unwrap();
                 let body = json::encode(&packages).unwrap();
-                let next_range = vec![format!("{}", to + 1).into_bytes()];
-                let mut response = if count as isize >= (to + 1) {
+                let next_range = vec![format!("{}", num + 1).into_bytes()];
+                let mut response = if count as isize >= (num + 1) {
                     let mut response = Response::with((status::PartialContent, body));
                     response.headers.set_raw("Next-Range", next_range);
                     response
                 } else {
                     Response::with((status::Ok, body))
                 };
-                let range = vec![format!("{}..{}; count={}", from, to, count).into_bytes()];
+                let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
                 response.headers.set_raw("Content-Range", range);
                 Ok(response)
             }
@@ -444,6 +444,27 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn search_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+    let (offset, num) = match extract_pagination(req) {
+        Ok(range) => range,
+        Err(response) => return Ok(response),
+    };
+    let params = req.extensions.get::<Router>().unwrap();
+    let partial = params.find("query").unwrap();
+    let packages = depot.datastore.packages.index.search(partial, offset, num).unwrap();
+    let body = json::encode(&packages).unwrap();
+    let next_range = vec![format!("{}", num + 1).into_bytes()];
+    let mut response = if packages.len() as isize >= (num - offset) {
+        let mut response = Response::with((status::PartialContent, body));
+        response.headers.set_raw("Next-Range", next_range);
+        response
+    } else {
+        Response::with((status::Ok, body))
+    };
+    let range = vec![format!("{}..{}", offset, num).into_bytes()];
+    response.headers.set_raw("Content-Range", range);
+    Ok(response)
+}
 
 fn render_package(pkg: &depotsrv::Package) -> IronResult<Response> {
     let body = json::encode(&pkg.to_json()).unwrap();
@@ -499,7 +520,7 @@ fn ident_from_params(params: &Params) -> depotsrv::PackageIdent {
 //
 // These values can be passed to a sorted set in Redis to return a paginated list.
 fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Response> {
-    let from = {
+    let offset = {
         match req.headers.get_raw("range") {
             Some(bytes) if bytes.len() > 0 => {
                 let header = Cow::Borrowed(&bytes[0]);
@@ -517,7 +538,7 @@ fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Respo
             _ => PAGINATION_RANGE_DEFAULT,
         }
     };
-    Ok((from, from + PAGINATION_RANGE_MAX))
+    Ok((offset, offset + PAGINATION_RANGE_MAX))
 }
 
 fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
@@ -568,6 +589,7 @@ pub fn router(config: Config) -> Result<Chain> {
     let depot18 = depot.clone();
     let depot19 = depot.clone();
     let depot20 = depot.clone();
+    let depot21 = depot.clone();
 
     let router = router!(
         get "/views" => move |r: &mut Request| list_views(&depot1, r),
@@ -589,6 +611,7 @@ pub fn router(config: Config) -> Result<Chain> {
             move |r: &mut Request| promote_package(&depot8, r)
         },
 
+        get "/pkgs/search/:query" => move |r: &mut Request| search_packages(&depot21, r),
         get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot9, r),
         get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot10, r),
         get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot11, r),

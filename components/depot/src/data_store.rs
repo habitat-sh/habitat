@@ -15,7 +15,7 @@ use hab_core::package::{self, Identifiable};
 use protobuf::Message;
 use protocol::depotsrv;
 use r2d2_redis::RedisConnectionManager;
-use redis::{self, Commands, PipelineCommands};
+use redis::{self, Commands, Pipeline, PipelineCommands};
 
 use error::{Error, Result};
 
@@ -99,17 +99,11 @@ impl BasicSet for PackagesTable {
                     PackagesIndex::origin_idx(&record),
                     PackagesIndex::name_idx(&record),
                     PackagesIndex::version_idx(&record)];
-        try!(redis::transaction(conn.deref(), &keys, |txn| {
+        try!(redis::transaction(conn.deref(), &keys, |mut txn| {
             let body = record.write_to_bytes().unwrap();
-            txn.set(Self::key(&record), body)
-                .ignore()
-                .zadd(PackagesIndex::origin_idx(&record), record.to_string(), 0)
-                .ignore()
-                .zadd(PackagesIndex::name_idx(&record), record.to_string(), 0)
-                .ignore()
-                .zadd(PackagesIndex::version_idx(&record), record.to_string(), 0)
-                .ignore()
-                .query(conn.deref())
+            txn.set(Self::key(&record), body).ignore();
+            PackagesIndex::write(&mut txn, &record);
+            txn.query(conn.deref())
         }));
         Ok(())
     }
@@ -132,9 +126,13 @@ impl PackagesIndex {
         Ok(val)
     }
 
-    pub fn list(&self, id: &str, from: isize, to: isize) -> Result<Vec<depotsrv::PackageIdent>> {
+    pub fn list(&self,
+                id: &str,
+                offset: isize,
+                count: isize)
+                -> Result<Vec<depotsrv::PackageIdent>> {
         let conn = self.pool().get().unwrap();
-        match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), from, to) {
+        match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), offset, count) {
             Ok(ids) => {
                 let ids = ids.iter()
                     .map(|id| {
@@ -170,6 +168,69 @@ impl PackagesIndex {
         }
     }
 
+    /// Returns a vector of package identifiers matching a partial pattern.
+    ///
+    /// This search behaves as an "auto-complete" search by returning package identifiers that
+    /// contain a match for the pattern. The match is applied to each of the four parts of a package
+    /// identifier so typing "cor" will return a list of package identifiers whose name or origin
+    /// begin with "cor". A string containing integers is also allowed and will allow searching on
+    /// version numbers or releases.
+    pub fn search(&self,
+                  partial: &str,
+                  offset: isize,
+                  count: isize)
+                  -> Result<Vec<depotsrv::PackageIdent>> {
+        let min = format!("[{}", partial);
+        let max = format!("[{}{}", partial, r"xff");
+        let conn = self.pool().get().unwrap();
+        match conn.zrangebylex_limit::<&'static str, String, String, Vec<String>>(Self::prefix(),
+                                                                                  min,
+                                                                                  max,
+                                                                                  offset,
+                                                                                  count) {
+            Ok(ids) => {
+                let i = ids.iter()
+                    .map(|i| {
+                        let id = i.split(":").last().unwrap();
+                        let p = package::PackageIdent::from_str(id).unwrap();
+                        depotsrv::PackageIdent::from(p)
+                    })
+                    .collect();
+                Ok(i)
+            }
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
+    pub fn write(pipe: &mut Pipeline, record: &depotsrv::Package) {
+        pipe.zadd(Self::origin_idx(record), record.to_string(), 0)
+            .ignore()
+            .zadd(Self::name_idx(record), record.to_string(), 0)
+            .ignore()
+            .zadd(Self::version_idx(record), record.to_string(), 0)
+            .ignore()
+            .zadd(Self::prefix(),
+                  format!("{}:{}", record.get_ident().get_origin(), record.to_string()),
+                  0)
+            .ignore()
+            .zadd(Self::prefix(),
+                  format!("{}:{}", record.get_ident().get_name(), record.to_string()),
+                  0)
+            .ignore()
+            .zadd(Self::prefix(),
+                  format!("{}:{}",
+                          record.get_ident().get_release(),
+                          record.to_string()),
+                  0)
+            .ignore()
+            .zadd(Self::prefix(),
+                  format!("{}:{}",
+                          record.get_ident().get_version(),
+                          record.to_string()),
+                  0)
+            .ignore();
+    }
+
     fn origin_idx(package: &depotsrv::Package) -> String {
         Self::key(package.get_ident().get_origin())
     }
@@ -196,11 +257,6 @@ impl Bucket for PackagesIndex {
     fn prefix() -> &'static str {
         "package:ident:index"
     }
-}
-
-impl IndexSet for PackagesIndex {
-    type Key = String;
-    type Value = String;
 }
 
 /// Contains a mapping of view names and the packages found within that view.
