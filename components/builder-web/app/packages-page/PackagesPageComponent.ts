@@ -56,11 +56,19 @@ import {requireSignIn} from "../util";
                     </a>
                 </li>
             </ul>
+            <div *ngIf="packages.size <= totalCount">
+                Showing {{packages.size}} of {{totalCount}} packages.
+                <a href="#" (click)="fetchMorePackages()">
+                    Load
+                    {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
+                    more</a>.
+            </div>
         </div>
     </div>`,
 })
 
 export class PackagesPageComponent implements OnInit {
+    private perPage: number = 50;
     private spinnerFetchPackages: Function;
 
     constructor(private store: AppStore, private routeParams: RouteParams) {
@@ -69,6 +77,10 @@ export class PackagesPageComponent implements OnInit {
 
     get packages() {
         return this.store.getState().packages.visible;
+    }
+
+    get totalCount() {
+        return this.store.getState().packages.totalCount;
     }
 
     get ui() {
@@ -84,9 +96,12 @@ export class PackagesPageComponent implements OnInit {
     }
 
     private fetchPackages() {
-        this.store.dispatch(filterPackagesBy(
-            this.routeParams.params,
-            this.store.getState().origins.current
-        ));
+        this.store.dispatch(filterPackagesBy(this.routeParams.params));
+    }
+
+    private fetchMorePackages() {
+        this.store.dispatch(filterPackagesBy(this.routeParams.params,
+            this.store.getState().packages.nextRange));
+        return false;
     }
 }

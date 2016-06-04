@@ -48,6 +48,9 @@ export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
 export const POPULATE_EXPLORE = packageActions.POPULATE_EXPLORE;
 export const SET_CURRENT_PACKAGE = packageActions.SET_CURRENT_PACKAGE;
+export const SET_PACKAGES_NEXT_RANGE = packageActions.SET_PACKAGES_NEXT_RANGE;
+export const SET_PACKAGES_TOTAL_COUNT = packageActions.SET_PACKAGES_TOTAL_COUNT;
+
 export const SET_VISIBLE_PACKAGES = packageActions.SET_VISIBLE_PACKAGES;
 
 export const APPEND_TO_BUILD_LOG = projectActions.APPEND_TO_BUILD_LOG;

@@ -15,7 +15,9 @@ export default function packages(state = initialState["packages"], action) {
     switch (action.type) {
         case actionTypes.CLEAR_PACKAGES:
             return state.set("current", Package()).
+                set("nextRange", 0).
                 set("visible", List()).
+                set("totalCount", 0).
                 setIn(["ui", "current", "loading"], true).
                 setIn(["ui", "current", "exists"], false).
                 setIn(["ui", "visible", "loading"], true).
@@ -40,6 +42,12 @@ export default function packages(state = initialState["packages"], action) {
                     setIn(["ui", "current", "loading"], false);
             }
 
+        case actionTypes.SET_PACKAGES_NEXT_RANGE:
+            return state.set("nextRange", action.payload);
+
+        case actionTypes.SET_PACKAGES_TOTAL_COUNT:
+            return state.set("totalCount", action.payload);
+
         case actionTypes.SET_VISIBLE_PACKAGES:
             if (action.error) {
                 return state.set("visible", List()).
@@ -48,7 +56,8 @@ export default function packages(state = initialState["packages"], action) {
                     setIn(["ui", "visible", "exists"], false).
                     setIn(["ui", "visible", "loading"], false);
             } else {
-                return state.set("visible", List(action.payload)).
+                return state.set("visible",
+                    state.get("visible").concat(List(action.payload))).
                     setIn(["ui", "visible", "errorMessage"], undefined).
                     setIn(["ui", "visible", "exists"], true).
                     setIn(["ui", "visible", "loading"], false);
