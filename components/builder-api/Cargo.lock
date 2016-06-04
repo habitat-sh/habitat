@@ -182,7 +182,6 @@ name = "habitat_depot"
 version = "0.6.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "bodyparser 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.6.0",
