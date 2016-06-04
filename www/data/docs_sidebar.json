@@ -100,8 +100,8 @@
           "link": "/docs/reference/habitat-cli/"
         },
         {
-          "title": "Habitat modules",
-          "link": "/docs/reference/habitat-modules/"
+          "title": "Developer reference",
+          "link": "/docs/reference/habitat-developer/"
         }
       ]
     }
