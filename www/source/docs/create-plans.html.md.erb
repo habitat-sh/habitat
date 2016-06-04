@@ -3,8 +3,7 @@ title: Creating Habitat plans
 ---
 
 # Create plans
-At the center of Habitat packaging is the plan. This is a folder comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and
-manage the lifecycle of the client software in the package payload.
+At the center of Habitat packaging is the plan. This is a folder comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the client software in the package payload.
 
 As a way to start to understand plans, let's look at an example `plan.sh` for [zlib](http://www.zlib.net/):
 
@@ -29,23 +28,32 @@ a checksum to verify the contents are what we expect, a single run dependency on
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
 
-1.  The build script ensures that the origin key is available to sign the artifact.
+1.  The build script ensures that the origin key is available to sign the package.
 2.  The software is downloaded.
 3.  The checksum is validated.
 4.  The source is extracted from the archive file that the script downloaded in step two.
 5.  The build environment is set to depend on the `glibc` Habitat package.
 6.  The callback methods are run with their default implementations.
 7.  Data is written that allows other packages to take a dependency on `zlib`.
-8.  A signed tarball of the `zlib` package is created. This is known as a Habitat artifact.
+8.  A signed tarball of the `zlib` package is created.
 
 ## Set up the environment
 <%= partial "/shared/setup_environment" %>
 
 ## Write a plan
+From the root of your local Habitat repo, enter into the studio environment by typing `hab studio enter`. Because the studio itself is a Habitat package, it will download, unpack, and install all of the packages it needs to run. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
+
+Because there are several dependencies that also need to be installed, this operation may also take several minutes. If successful, you should see another bash prompt like this:
+
+~~~ bash
+[1][default:/src:0]#
+~~~
+
 Once you are in the studio environment, Habitat allows you to create new plans through the use of a Makefile target called `new-plan` where you specify the name of the plan.
 
 ~~~ bash
-[3][default:/src/plans:0]$make new-plan plan=mynewpackage
+[2][default:/src:0]# cd plans
+[3][default:/src/plans:0]# make new-plan plan=mynewpackage
 ~~~
 
 This will create a new folder in your local `plans` directory named _mynewpackage_. Inside the _mynewpackage_ folder will be a plan.sh file. This script file is the only required file you need to create a package. Configuration files, runtime hooks, and other source files are optional.
@@ -85,7 +93,7 @@ The following sections describe each of these steps in more detail.
 #### Create your package identifier
 The origin defines packages that are conceptually related to each other. For example, the "core" origin packages are foundational to building other packages. Use the origin value defined by your team or organization.
 
-> Note: Creating packages for a specific origin requires that you also have access to the signing key for that origin. The signing key will be used to sign the package artifact when it is built by the hab-plan-build.sh script. Keys are kept in `/hab/cache/keys` with filenames that end in .pub, .sig.key, etc. Any keyfile with a ".key" file extension is secret and should not be distributed publicly.
+> Note: Creating packages for a specific origin requires that you also have access to the signing key for that origin. The signing key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `/.hab/cache/keys` with filenames that end in .pub, .sig.key, etc. Any keyfile with a ".key" file extension is secret and should not be distributed publicly.
 
 The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the client source or project you download and install into the package; however, this is not a requirement.
 
@@ -128,7 +136,7 @@ Declare any build dependencies in `pkg_build_deps` and any run dependencies in `
 
 The plan template has `core/glibc` listed as a run dependency and `core/coreutils` as a build dependency; however, you should not take any inference from this. There are no standard dependencies that every package must have. For example, the nodejs-tutorial-app package uses `core/node` as both a build and a run dependency. You should include dependencies that would natively be part of the build or runtime dependencies your client app or service would normally depend on.
 
-There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of package files when your package is built into an artifact. See [Package contents](/docs/package-contents) for more information.
+There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/package-contents) for more information.
 
 #### Override any callbacks
 As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [callbacks](/docs/plan-syntax#callbacks), but if you need to reference specific packages in the process of building your client apps or services, then you need to override the default implementations as in the example below.

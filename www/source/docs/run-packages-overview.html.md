@@ -10,8 +10,8 @@ Habitat packages are run under the Habitat supervisor. You can also export the s
 
 Packages can be tested in the interactive studio environment. To run packages directly:
 
-1. [Build your artifact](/docs/build-artifacts-overview) inside an interactive studio. Do not exit the studio after it is built.
-2. To start your service, type `hab start yourorigin/yourname`, substituting the name and origin of the artifact you built in step 1. Your service should now be running.
+1. [Build your package](/docs/build-packages-overview) inside an interactive studio. Do not exit the studio after it is built.
+2. To start your service, type `hab start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
 
 ## Exporting to Docker
 

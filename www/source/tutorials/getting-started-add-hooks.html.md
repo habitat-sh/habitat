@@ -9,15 +9,17 @@ The `init` and `run` hooks are responsible for defining behavior during initiali
 
 Perform the following operations in the same directory where the `plan.sh` file is located.
 
-1. If you are inside the studio, change directory to `/src/plans/mytutorialapp` and make a new sub-directory called `hooks`.
+  > Note: These steps can also be done outside of the studio environment.
 
-       [5][default:/src/plans:0]# cd /src/plans/mytutorialapp
-       [6][default:/src/plans/mytutorialapp:0]# mkdir -p hooks
+1. Inside the studio, change directory to `/src` and make a new sub-directory called hooks.
 
-2. Change to the `hooks` directory and create two new files, `init` and `run`.
+       [4][default:/src:0]# cd /src
+       [5][default:/src:0]# mkdir -p hooks
 
-       [7][default:/src/plans/mytutorialapp:0]# cd hooks
-       [8][default:/src/plans/mytutorialapp/hooks:0]# touch init run
+2. Change to the hooks directory and create two new files, init and run.
+
+       [6][default:/src:0]# cd hooks
+       [7][default:/src/hooks:0]# touch init run
 
 3. Open `init` in your text editor.
 4. Hooks use [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) to decide which interpreter to use when running their scripts. In the case of the `init` and `run` hooks in our plan, we will use the system shell, so add the following to the `init` hook file:
@@ -28,7 +30,7 @@ Perform the following operations in the same directory where the `plan.sh` file 
        ln -s {{pkg.path}}/server.js {{pkg.svc_path}}
        ln -s {{pkg.path}}/node_modules {{pkg.svc_path}}
 
-    We symlinked the files over from their location where the package is installed to the directory used when the service starts.
+    This will symlink the files from the location where the package is installed to the directory used when the service starts.
 
 5. Save the `init` file and open the `run` hook file.
 6. The `run` hook is where we are actually going to start our Node.js application, so add the shebang, change to the service directory to make sure the `npm` binary starts in it, and then run `npm start`.

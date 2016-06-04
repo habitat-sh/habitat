@@ -6,5 +6,5 @@ Optionally included are a set of TOML variables and their defaults that can be u
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/concepts-packages">Packages and artifacts</a></li>
+  <li><a href="/docs/concepts-packages">Packages</a></li>
 </ul>

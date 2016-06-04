@@ -7,15 +7,14 @@ When you create a plan, you may optionally define which configuration settings c
 
 In this tutorial, the archive for our Node.js app already has a configuration file called `config.json` that populates a message and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
 
-1. In your `plans/mytutorialapp` directory, create a new directory named `config` and add a new file to it named `config.json` to match the name of the configuration file that `server.js` references.
+1. In your `/src` directory, create a new directory named `config` and add a new file to it named `config.json` to match the name of the configuration file that `server.js` references.
 
-       [9][default:/src/plans/mytutorialapp/hooks:0]# cd /src/plans/mytutorialapp
-       [10][default:/src/plans/mytutorialapp:0]# mkdir -p config
-       [11][default:/src/plans/mytutorialapp:0]# touch config/config.json
-
+       [8][default:/src/hooks:0]# cd /src
+       [9][default:/src:0]# mkdir -p config
+       [10][default:/src:0]# touch config/config.json
 
 2. Open `config/config.json` in your text editor.
-3. Copy the contents from the original `config.json` (shown below) into `config/config.json`.
+3. Copy the contents from the original `config.json` from our source files (shown below) into `config/config.json`.
 
        {
            "message": "Hello, World!",
@@ -37,9 +36,9 @@ All user-defined expressions must have the **cfg** prefix. For general service s
 
 As we said, a TOML file is associated with your configuration file and specifies the default values for your service at start up. If you have a templatized configuration file, then you must include a `default.toml` file in your plan folder.
 
-1. If you are not in the `/src/plans/mytutorialapp` directory, change directories to it and create a file named `default.toml`.
+1. If you are not in the `/src` directory, change directories to it and create a file named `default.toml`.
 
-       [12][default:/src/plans/mytutorialapp:0]# touch default.toml
+       [11][default:/src:0]# touch default.toml
 
 2. Open `default.toml` in your text editor and add the default values.
 
@@ -53,42 +52,7 @@ As we said, a TOML file is associated with your configuration file and specifies
 
 3. Save the file.
 
-## Build the artifact
-Now that you have defined how your source files should be installed and configured in your artifact, it's time to build it in the studio. Change directory to `/src` and enter the following command to create the artifact.
-
-    [13][default:/src/plans/mytutorialapp:0]# cd /src
-    [14][default:/src:0]# build plans/mytutorialapp
-
-The last set of output messages from running `build plans/mytutorialapp` should look something like this:
-
-~~~ bash
-   mytutorialapp: Building package metadata
-   mytutorialapp: Writing configuration
-   mytutorialapp: Writing service management scripts
-   mytutorialapp: Stripping unneeded symbols from binaries and libraries
-   mytutorialapp: Creating manifest
-   mytutorialapp: Generating package artifact
-/hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/' from member names
-/hab/cache/artifacts/.myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.tar (1/1)
-  100 %       120.9 KiB / 910.0 KiB = 0.133
-» Signing /hab/cache/artifacts/.myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.tar.xz
-☛ Signing /hab/cache/artifacts/.myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.tar.xz with myorigin-20160527200622 to create /hab/cache/artifacts/myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.hart
-★ Signed artifact /hab/cache/artifacts/myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.hart.
-'/hab/cache/artifacts/myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.hart' -> '/src/results/myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.hart'
-   mytutorialapp: hab-plan-build cleanup
-   mytutorialapp:
-   mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.0.1
-   mytutorialapp: Installed Path: /hab/pkgs/myorigin/mytutorialapp/0.0.1/20160527200628
-   mytutorialapp: Artifact: /src/results/myorigin-mytutorialapp-0.0.1-20160527200628-x86_64-linux.hart
-   mytutorialapp: Build Report: /src/results/last_build.env
-   mytutorialapp:
-   mytutorialapp: I love it when a plan.sh comes together.
-   mytutorialapp:
-   mytutorialapp: Build time: 0m12s
-[15][default:/src:0]#
-~~~
-
-The next step will show you how to install your artifact and run your service for local testing.
+The next step will show you how to install your package and run your service for local testing.
 
 <hr>
 <ul class="main-content--button-nav">

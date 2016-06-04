@@ -29,7 +29,7 @@ pkg_origin
 : The origin is used to denote a particular upstream of a package.
 
   ~~~
-  pkg_origin=habitat
+  pkg_origin=Habitat
   ~~~
 
 pkg_version
@@ -137,7 +137,7 @@ pkg_expose
 
 
 pkg_interpreters
-: An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package artifact, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#plan-hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
+: An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#plan-hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
 
   ~~~
   pkg_interpreters=(bin/bash)
@@ -187,10 +187,10 @@ $pkg_svc_static_path
 : Where the running service static data is located. `$pkg_svc_path/static`
 
 $HAB_CACHE_SRC_PATH
-: The default path where source artifacts are downloaded, extracted, & compiled.
+: The default path where source archives are downloaded, extracted, & compiled.
 
 $HAB_CACHE_ARTIFACT_PATH
-: The default download root path for package artifacts -- used on package installation.
+: The default download root path for packages.
 
 $HAB_PKG_PATH
 : The root path containing all locally installed packages.
@@ -470,5 +470,5 @@ trim()
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/build-artifacts-overview">Build artifacts</a></li>
+  <li><a href="/docs/build-packages-overview">Build packages</a></li>
 </ul>
