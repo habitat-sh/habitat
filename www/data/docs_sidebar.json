@@ -77,8 +77,8 @@
           ]
         },
         {
-          "title": "Build artifacts",
-          "link": "/docs/build-artifacts-overview/",
+          "title": "Build packages",
+          "link": "/docs/build-packages-overview/",
           "sub_links": [
             {
               "title": "Package contents",
@@ -87,8 +87,8 @@
           ]
         },
         {
-          "title": "Run services",
-          "link": "/docs/run-services/"
+          "title": "Run packages",
+          "link": "/docs/run-packages-overview/"
         }
       ]
     },

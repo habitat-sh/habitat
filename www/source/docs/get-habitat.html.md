@@ -3,7 +3,7 @@ title: Get Habitat
 ---
 
 # Get Habitat
-To get started with Habitat, you only need to download the `hab` command-line interface tool at [download site]().
+To get started with Habitat, you only need to download the `hab` command-line interface tool at [download site]().{::comment} Need to replace with final download URL. {:/comment}
 
 If you are using Mac OS X and intend to build Habitat packages, you also need to install the [Docker Toolbox](https://www.docker.com/products/docker-toolbox).
 
