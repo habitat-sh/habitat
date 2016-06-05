@@ -239,7 +239,7 @@ do_build()
 : The default implementation is to update the prefix path for the configure script to use $pkg_prefix and then run `make` to compile the downloaded source. This means the script in the default implementation does `./configure --prefix=$pkg_prefix && make`. You should override this behavior if you have additional configuration changes to make or other software to build and install as part of building your package.  
 
 do_install()
-: The default implementation is to run `make install` on the client software and place the compiled files in *HAB_CACHE_SRC_PATH/$pkg_dirname*, which resolves to a path like `/hab/cache/src/packagename-version/`. It uses this location because of **do_build()** using the `--prefix` when calling the configure script. You should override this behavior if you need to perform custom installation steps, such as copying files from HAB_CACHE_SRC_PATH to specific directories in your package, or installing pre-built binaries into your package.
+: The default implementation is to run `make install` on the source files and place the compiled binaries or libraries in *HAB_CACHE_SRC_PATH/$pkg_dirname*, which resolves to a path like `/hab/cache/src/packagename-version/`. It uses this location because of **do_build()** using the `--prefix` option when calling the configure script. You should override this behavior if you need to perform custom installation steps, such as copying files from HAB_CACHE_SRC_PATH to specific directories in your package, or installing pre-built binaries into your package.
 
 do_strip()
 : The default implementation is to strip any binaries in $pkg_prefix of their debugging symbols. You should override this behavior if you want to change how the binaries are stripped, which additional binaries located in subdirectories might also need to be stripped, or whether you do not want the binaries stripped at all.
@@ -353,7 +353,7 @@ deps
 : An array of runtime dependencies for your package based on the pkg_deps setting in a plan.
 
 exposes
-: The port(s) to expose for a client application. This value is pulled from the pkg_expose setting in a plan.
+: The port(s) to expose for an application or service. This value is pulled from the pkg_expose setting in a plan.
 
 path
 : The location where the fully-qualified package is installed.
@@ -399,7 +399,7 @@ pkg_path_for()
   ~~~
 
 fix_interpreter()
-: Edits the `#!` shebang of the target file in-place. This is useful for changing hardcoded paths defined by your client source files to the equivalent path in a Habitat package. You must include the required package that provides the expected path for the shebang in pkg_deps. This function performs a greedy match against the specified interpreter in the target file(s).
+: Edits the `#!` shebang of the target file in-place. This is useful for changing hardcoded paths defined by your source files to the equivalent path in a Habitat package. You must include the required package that provides the expected path for the shebang in pkg_deps. This function performs a greedy match against the specified interpreter in the target file(s).
 
   To use this function in your plan, you must specify the following arguments:
     1. The target file or files

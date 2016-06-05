@@ -253,7 +253,7 @@ Helps you to build packages inside or outside of a studio environment.
 ***
 
 ## hab-sup
-Supervisor that starts and manages the package payload of a Habitat service.
+Supervisor that starts and manages the software in a Habitat service.
 
 **USAGE**
 
