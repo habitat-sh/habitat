@@ -5,7 +5,7 @@ title: Getting started with Habitat
 # Getting started with Habitat
 Traditionally, the focus for managing applications and application behavior has been at the infrastructure level. However, tying an application to a specific infrastructure makes it difficult to deploy and manage that application on a different infrastructure. For example, moving an application from on-prem to a cloud PaaS environment can be a big job.
 
-Habitat shifts the focus of application management and configuration from the infrastructure to the application itself. It allows you to create packages, which encapsulate the application, runtime dependencies, metadata, and any configuration information. A package contains everything the client application needs to run on its target platform. When these packages are installed and run as services, applications become dynamically configurable, topology aware, and have monitoring capabilities built in.
+Habitat shifts the focus of application management and configuration from the infrastructure to the application itself. It allows you to create packages, which encapsulate the application, runtime dependencies, metadata, and any configuration information. A package contains everything an application needs to run on its target platform. When these packages are installed and run as services, applications become dynamically configurable, topology aware, and have monitoring capabilities built in.
 
 As a first step in understanding Habitat, this tutorial will show you how to create a package, and then build and run it to demonstrate the capabilities of Habitat.
 

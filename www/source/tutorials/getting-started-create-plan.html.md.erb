@@ -10,7 +10,7 @@ A plan is comprised of shell scripts that define how your application should be 
 
 To create a plan, do the following:
 
-1. In your terminal window, create a new directory called "mytutorialapp". This directory, and the files within it that define your plan, are collectively known as the plan context. The following example places it in a "Plans" directory at the root of the home directory.
+1. In your terminal window, create a new directory called "mytutorialapp". This directory is known as the plan context. The following example places it in a "Plans" directory at the root of the home directory.
 
        mkdir -p ~/Plans/mytutorialapp
 
@@ -20,7 +20,7 @@ To create a plan, do the following:
 
 3. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the hab-plan-build command to build your package, so create a plan.sh file in the mytutorialapp directory and open it.
 
-       touch plan.sh && open plan.sh
+       touch plan.sh && $EDITOR plan.sh
 
 4. Copy the following template into plan.sh:
 
@@ -45,11 +45,11 @@ pkg_lib_dirs=(lib)
 
 We now have a skeleton plan, but we need to modify some of its settings before we can continue.
 
-1. Set the `pkg_origin` value. For the examples in this tutorial, we will set it to `myorigin`. The only reserved origin name is "core". That name is used by the Habitat team to create foundational packages that you can use as dependencies in your packages.
+1. Set the `pkg_origin` value. For the examples in this tutorial, we will set it to `myorigin`. The only reserved origin name is "core". That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
 2. Set the `pkg_name` value to `mytutorialapp`.
 3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.1.0`.
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
-5. Change the `pkg_source` value to point to the archive file that contains the source files described in the previous step.
+5. Change the `pkg_source` value to point to the archive file that contains the source files described in the previous step. {::comment} Move this into a S3 bucket under the Habitat account before launch {:/comment}
 
         pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutorial-app-0.1.0.tar.gz
 
@@ -163,7 +163,7 @@ As part of building a package, it needs to be signed with an secret origin key a
 
     hab origin key generate myorigin
 
-The `hab-origin` subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory of your host machine. And because the secret key is used to sign your package package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` directory. They will get the public key when they download your package.
+The `hab-origin` subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory of your host machine. And because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` directory. They will get the public key when they download your package.
 
 When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
 
