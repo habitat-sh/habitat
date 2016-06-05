@@ -5,10 +5,12 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+extern crate errno;
 #[cfg(test)]
 extern crate hyper;
 #[macro_use]
 extern crate lazy_static;
+extern crate libc;
 extern crate libarchive;
 #[macro_use]
 extern crate log;
