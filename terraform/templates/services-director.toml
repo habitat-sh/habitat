@@ -1,0 +1,11 @@
+[cfg.services.core.redis.${env}.habitat]
+start = "--permanent-peer --peer ${peer_ip}:9000"
+
+[cfg.services.core.hab-builder-jobsrv.${env}.habitat]
+start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env} --peer ${peer_ip}:9000"
+
+[cfg.services.core.hab-builder-sessionsrv.${env}.habitat]
+start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env} --peer ${peer_ip}:9000"
+
+[cfg.services.core.hab-builder-vault.${env}.habitat]
+start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env} --peer ${peer_ip}:9000"

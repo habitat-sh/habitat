@@ -1,0 +1,8 @@
+[Unit]
+Description=Habitat Director
+
+[Service]
+ExecStart=/bin/hab-director start -c /hab/etc/director/config.toml
+
+[Install]
+WantedBy=default.target

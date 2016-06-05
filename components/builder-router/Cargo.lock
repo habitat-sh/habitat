@@ -66,6 +66,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "errno"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "winapi 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -102,8 +112,10 @@ dependencies = [
 name = "habitat_core"
 version = "0.6.0"
 dependencies = [
+ "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.71 (registry+https://github.com/rust-lang/crates.io-index)",
