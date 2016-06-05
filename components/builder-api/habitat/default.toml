@@ -9,4 +9,4 @@ client_secret = ""
 
 [depot]
 path = "/hab/svc/hab-depot/data"
-datastore_addr = "127.0.0.1:6397"
+datastore_addr = "127.0.0.1:6379"

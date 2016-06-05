@@ -36,6 +36,7 @@ pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<
     let ctx6 = context.clone();
 
     let router = router!(
+        get "/status" => move |r: &mut Request| status(r),
         get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github, &ctx1),
 
         post "/jobs" => move |r: &mut Request| job_create(r, &ctx2),
