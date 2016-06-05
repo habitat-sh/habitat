@@ -17,8 +17,10 @@ pub mod error;
 use std::sync::Arc;
 use std::path::Path;
 
+use hab_core::util::sys;
 use hyper::client::Client;
 use hyper::client::pool::{Config, Pool};
+use hyper::header::UserAgent;
 use hyper::http::h1::Http11Protocol;
 use hyper::net::{HttpsConnector, Openssl};
 use hyper::Url;
@@ -61,6 +63,42 @@ pub fn new_hyper_client(_for_domain: Option<&Url>, fs_root_path: Option<&Path>) 
     let connector = HttpsConnector::new(Openssl { context: Arc::new(ctx) });
     let pool = Pool::with_connector(Config::default(), connector);
     Ok(Client::with_protocol(Http11Protocol::with_connector(pool)))
+}
+
+/// Returns an HTTP User-Agent string type for use by Hyper when making HTTP requests.
+///
+/// The general form for Habitat-related clients are of the following form:
+///
+/// ```text
+/// <PRODUCT>/<VERSION> (<TARGET>; <KERNEL_RELEASE>)
+/// ```
+///
+/// where:
+///
+/// * `<PRODUCT>`: is the provided product name
+/// * `<VERSION>`: is the provided version string which may also include a release number
+/// * `<TARGET>`: is the machine architecture and the kernel seperated by a dash in lower case
+/// * `<KERNEL_RELEASE>`: is the kernel release string from `uname`
+///
+/// For example:
+///
+/// ```text
+/// hab/0.6.0/20160606153031 (x86_64-darwin; 14.5.0)
+/// ```
+///
+/// # Errors
+///
+/// * If system information cannot be obtained via `uname`
+pub fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
+    let uname = try!(sys::uname());
+    let ua = format!("{}/{} ({}-{}; {})",
+                     product,
+                     version,
+                     uname.machine.to_lowercase(),
+                     uname.sys_name.to_lowercase(),
+                     uname.release.to_lowercase());
+    debug!("User-Agent: {}", &ua);
+    Ok(UserAgent(ua))
 }
 
 fn ssl_ctx(fs_root_path: Option<&Path>) -> Result<SslContext> {
