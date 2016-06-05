@@ -14,8 +14,6 @@ use clap::{App, AppSettings, Arg};
 use url::Url;
 use hcore::crypto::keys::PairType;
 
-const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
         .about("Alias for 'config apply'")
@@ -29,7 +27,7 @@ pub fn get() -> App<'static, 'static> {
 
     clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
-        (version: VERSION)
+        (version: super::VERSION)
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)

@@ -8,6 +8,7 @@
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate habitat_depot_client as depot_client;
+extern crate habitat_http_client as http_client;
 extern crate ansi_term;
 #[macro_use]
 extern crate clap;
@@ -22,9 +23,9 @@ extern crate rustc_serialize;
 extern crate url;
 // Temporary depdency for gossip/rumor injection code duplication.
 extern crate utp;
-// Temporary depdency for gossip/rumor injection code duplication.
 extern crate uuid;
 
+mod analytics;
 mod cli;
 mod command;
 mod error;
@@ -36,6 +37,7 @@ use std::ffi::OsString;
 use std::io::{self, Read};
 use std::path::Path;
 use std::str::FromStr;
+use std::thread;
 
 use ansi_term::Colour::Red;
 use clap::ArgMatches;
@@ -51,6 +53,8 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use gossip::hab_gossip;
 
+const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+
 /// you can skip the --origin CLI param if you specify this env var
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 
@@ -65,6 +69,8 @@ const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 fn main() {
+    env_logger::init().unwrap();
+    thread::spawn(|| analytics::instrument_subcommand());
     if let Err(e) = start() {
         println!("{}",
                  Red.bold().paint(format!("✗✗✗\n✗✗✗ {}\n✗✗✗", e)));
@@ -73,13 +79,16 @@ fn main() {
 }
 
 fn start() -> Result<()> {
-    env_logger::init().unwrap();
     try!(exec_subcommand_if_called());
 
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
     debug!("remaining cli args: {:?}", &remaining_args);
-    let app_matches = cli::get().get_matches_from(&mut args.iter());
+    let app_matches =
+        cli::get().get_matches_from_safe_borrow(&mut args.iter()).unwrap_or_else(|e| {
+            analytics::instrument_clap_error(&e);
+            e.exit();
+        });
     match app_matches.subcommand() {
         ("apply", Some(m)) => try!(sub_config_apply(m)),
         ("artifact", Some(matches)) => {
