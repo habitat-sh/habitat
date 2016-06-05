@@ -12,7 +12,7 @@ The Habitat documentation is broken out into the following sections:
 - [Concepts](/docs/concepts-overview): Describes the major components of Habitat and how they work.
 - [Create packages](/docs/create-packages-overview): Learn how to create a plan, what all of the plan settings are, and how to configure a package.
 - [Build packages](/docs/build-packages-overview): Learn how to sign and build a package, and understand what a package actually contains.
-- [Run packages](/docs/run-packages-overview): Learn how to run a package natively as well as through a Docker container.
+- [Run packages](/docs/run-packages-overview): Learn how to run a package natively as well as through an external runtime format, such as a Docker or rkt container.
 
 ## Getting Habitat
 

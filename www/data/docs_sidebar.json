@@ -77,8 +77,8 @@
           ]
         },
         {
-          "title": "Build artifacts",
-          "link": "/docs/build-artifacts-overview/",
+          "title": "Build packages",
+          "link": "/docs/build-packages-overview/",
           "sub_links": [
             {
               "title": "Package contents",

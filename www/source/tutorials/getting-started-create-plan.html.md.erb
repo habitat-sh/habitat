@@ -10,19 +10,19 @@ A plan is comprised of shell scripts that define how your application should be 
 
 To create a plan, do the following:
 
-1. In your terminal window, create a new directory called "mytutorialapp". This directory is known as the plan directory. The following example places it in a "Plans" directory at the root of the home directory.
+1. In your terminal window, create a new directory called "mytutorialapp". This directory, and the files within it that define your plan, are collectively known as the plan context. The following example places it in a "Plans" directory at the root of the home directory.
 
        mkdir -p ~/Plans/mytutorialapp
 
-2. Change directories to your plan directory.
+2. Change directories to your plan context.
 
        cd ~/Plans/mytutorialapp
 
-2. All plans must have a `plan.sh` at the root of the plan directory. This file will be used by the hab-plan-build command to build your package, so create a plan.sh file in the mytutorialapp directory and open it.
+3. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the hab-plan-build command to build your package, so create a plan.sh file in the mytutorialapp directory and open it.
 
        touch plan.sh && open plan.sh
 
-3. Copy the following template into plan.sh:
+4. Copy the following template into plan.sh:
 
 ~~~ bash
 pkg_origin=
@@ -49,7 +49,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 2. Set the `pkg_name` value to `mytutorialapp`.
 3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.1.0`.
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
-5. Change the `pkg_source` value to point to the archive file that contains the source files listed in the previous step.
+5. Change the `pkg_source` value to point to the archive file that contains the source files described in the previous step.
 
         pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutorial-app-0.1.0.tar.gz
 
@@ -71,7 +71,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
         pkg_include_dirs=(include)
         pkg_lib_dirs=(lib)
 
-10. Because we eventually want to demonstrate how to run our Habitat service in a Docker container, we need to expose port 8080. This action exposes the port to other Docker containers. It does not publish this port for access by the host machine. We will do that in a later step. For now, add the following line to your plan:
+10. Because we eventually want to demonstrate how to run our Habitat service in a Docker container, we need to expose port 8080. This action exposes the port to other Docker containers; however, it does not publish this port for access by the host machine. We will do that in a later step. For now, add the following line to your plan:
 
         pkg_expose=(8080)
 
@@ -126,7 +126,6 @@ pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutoria
 pkg_shasum=2ad73b78ef5e88e9e916873c0f762bbdf286e4de93e67cf211f9761a2876c7ef
 pkg_filename=nodejs-tutorial-app-0.1.0.tar.gz
 pkg_deps=(core/node)
-pkg_build_deps=()
 pkg_expose=(8080)
 
 
@@ -164,7 +163,7 @@ As part of building a package, it needs to be signed with an secret origin key a
 
     hab origin key generate myorigin
 
-The `hab-origin` subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files (the origin key pair) in the `~/.hab/cache/keys` directory of your host machine. And because the secret key is used to sign your package package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `~/.hab/cache/keys` directory. They will get the public key when they download your package.
+The `hab-origin` subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory of your host machine. And because the secret key is used to sign your package package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` directory. They will get the public key when they download your package.
 
 When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
 
@@ -179,7 +178,8 @@ The second and third way import multiple secret keys that must match the origin 
 We will use the '-k' flag in the next section when we enter the studio to build your package.
 
 ## Entering the studio and doing an initial build
-1. Change directories back to your plan directory.
+
+1. Change directories back to your plan context.
 
        cd ~/Plans/mytutorialapp
 
@@ -187,7 +187,7 @@ We will use the '-k' flag in the next section when we enter the studio to build 
 
        hab studio -k myorigin enter
 
-   The studio itself is a Habitat package running inside a Docker container. It will download, unpack, and install all of the packages it needs to run. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
+   The studio itself is a Habitat package running inside a Docker container. It will download, unpack, install all of the packages it needs to run, and import any secret keys you specified when running the `enter` subcommand. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
 
    The download process should only take a few moments. If successful, you should see another bash prompt like this:
 
