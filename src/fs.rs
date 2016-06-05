@@ -16,6 +16,8 @@ use env as henv;
 pub const FS_ROOT_PATH: &'static str = "/";
 /// The default root path of the Habitat filesytem
 pub const ROOT_PATH: &'static str = "hab";
+/// The default path for any analytics related files
+pub const CACHE_ANALYTICS_PATH: &'static str = "hab/cache/analytics";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &'static str = "hab/cache/artifacts";
 /// The default path where cryptographic keys are stored
@@ -31,6 +33,17 @@ const SVC_PATH: &'static str = "hab/svc";
 
 lazy_static! {
     static ref EUID: u32 = users::get_effective_uid();
+
+    static ref MY_CACHE_ANALYTICS_PATH: PathBuf = {
+        if *EUID == 0u32 {
+            PathBuf::from(CACHE_ANALYTICS_PATH)
+        } else {
+            match env::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_ANALYTICS_PATH)),
+                None => PathBuf::from(CACHE_ANALYTICS_PATH),
+            }
+        }
+    };
 
     static ref MY_CACHE_ARTIFACT_PATH: PathBuf = {
         if *EUID == 0u32 {
@@ -75,6 +88,14 @@ lazy_static! {
             }
         }
     };
+}
+
+/// Returns the path to the analytics cache, optionally taking a custom filesystem root.
+pub fn cache_analytics_path(fs_root_path: Option<&Path>) -> PathBuf {
+    match fs_root_path {
+        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_ANALYTICS_PATH),
+        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_ANALYTICS_PATH),
+    }
 }
 
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.

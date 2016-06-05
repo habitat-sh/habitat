@@ -70,6 +70,8 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
+    /// Occurs when a `uname` libc call returns an error.
+    UnameFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
     Utf8Error(str::Utf8Error),
     /// When an error occurs attempting to parse a string into a URL.
@@ -135,6 +137,7 @@ impl fmt::Display for Error {
             Error::PermissionFailed => format!("Failed to set permissions"),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::UnameFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
             Error::UrlParseError(ref e) => format!("{}", e),
         };
@@ -180,6 +183,7 @@ impl error::Error for Error {
             Error::PermissionFailed => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            Error::UnameFailed(_) => "uname failed",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
             Error::UrlParseError(ref err) => err.description(),
         }
