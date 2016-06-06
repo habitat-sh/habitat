@@ -1,4 +1,6 @@
 # https://www.irif.univ-paris-diderot.fr/~jch//software/polipo/manual/
+# enable all ports
+allowedPorts = "1-65535"
 # share caching between all users, possibly unsafe
 cacheIsShared = "false"
 # 4X the default
@@ -19,3 +21,5 @@ proxyAddress = "::0"
 port = 8123
 # duration to keep server data
 serverExpireTime = "7d"
+# enable all ports
+tunnelAllowedPorts = "1-65535"
