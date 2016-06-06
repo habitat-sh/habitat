@@ -3,18 +3,23 @@ title: Habitat CLI reference
 ---
 
 # Habitat command-line interface (CLI) reference
-The commands and sub-commands for the Habitat CLI tools are listed below:
+
+The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 
 - [hab](#hab)
-- [hab-artifact](#hab-artifact)
-- [hab-depot](#hab-depot)
-- [hab-origin](#hab-origin)
-- [hab-pkg](#hab-pkg)
-- [hab-rumor](#hab-rumor)
-- [hab-studio](#hab-studio)
-- [hab-sup](#hab-sup)
+- [hab artifact](#hab-artifact)
+- [hab config](#hab-config)
+- [hab file](#hab-file)
+- [hab origin](#hab-origin)
+- [hab pkg](#hab-pkg)
+- [hab ring](#hab-ring)
+- [hab service](#hab-service)
+- [hab studio](#hab-studio)
+- [hab sup](#hab-sup)
+- [hab user](#hab-user)
 
 ## hab
+
 The main program that allows you to sign and upload packages, start Habitat services, and other related functions through various subcommands.
 
 **USAGE**
@@ -30,11 +35,13 @@ The main program that allows you to sign and upload packages, start Habitat serv
 
     artifact    Commands relating to Habitat artifacts
     config      Commands relating to Habitat runtime config
-    help        Prints this message or the help message of the given subcommand(s)
+    file        Commands relating to Habitat files
+    help        Prints this message or the help of the given subcommand(s)
     origin      Commands relating to Habitat origin keys
     pkg         Commands relating to Habitat packages
     ring        Commands relating to Habitat rings
     service     Commands relating to Habitat services
+    studio      Commands relating to Habitat Studios
     sup         Commands relating to the Habitat Supervisor
     user        Commands relating to Habitat users
 
@@ -46,7 +53,7 @@ The main program that allows you to sign and upload packages, start Habitat serv
 
 ***
 
-## hab-artifact
+## hab artifact
 Subcommand used for signing and uploading packages.
 
 **USAGE**
@@ -67,7 +74,7 @@ Subcommand used for signing and uploading packages.
 
 ***
 
-## hab-config
+## hab config
 Subcommand for applying configuration changes to a service group.
 
 **USAGE**
@@ -87,32 +94,24 @@ Subcommand for applying configuration changes to a service group.
 
 ***
 
-## hab-depot
-Creates a new local depot for packages to be uploaded to and downloaded from. Most users should use the public depot for their package management.
+## hab file
+Subcommand for uploading files to a service group.
 
 **USAGE**
 
-    hab-depot [FLAGS] [OPTIONS] [SUBCOMMAND]
+    hab file [FLAGS] [SUBCOMMAND]
 
 **FLAGS**
 
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-**OPTIONS**
-
-    -p, --path <path>    Filepath to service storage for the Depot service
+    -h, --help    Prints help information
 
 **SUBCOMMANDS**
 
-    help      With no arguments it prints this message, otherwise it prints help information about other subcommands
-    repair    Verify and repair data integrity of the package Depot
-    start     Run a Habitat package Depot
-    view      Creates or lists views in the package Depot
+    help      Prints this message or the help of the given subcommand(s)
+    upload    Upload a file to the supervisor ring.
 
-***
 
-## hab-origin
+## hab origin
 Subcommand that performs key maintenance for origin keys.
 
 **USAGE**
@@ -131,8 +130,8 @@ Subcommand that performs key maintenance for origin keys.
 
 ***
 
-## hab-pkg
-Subcommand that allows you to install local or remote packages.
+## hab pkg
+Subcommand that allows you to build or install local or remote packages.
 
 **USAGE**
 
@@ -144,12 +143,19 @@ Subcommand that allows you to install local or remote packages.
 
 **SUBCOMMANDS**
 
-    help       Prints this message or the help message of the given subcommand(s)
-    install    Installs a Habitat package from a Depot or locally from a Habitat artifact
+    binlink    Creates a symlink for a package binary in a common 'PATH'
+               location
+    build      Builds a Plan using a Studio
+    exec       Executes a command using the 'PATH' context of an installed
+               package
+    help       Prints this message or the help of the given subcommand(s)
+    install    Installs a Habitat package from a Depot or locally from a
+               Habitat artifact
+    path       Prints the path to a specific installed release of a package
 
 ***
 
-## hab-ring
+## hab ring
 Subcommand for managing the keys that supervisors use when passing encrypted messages to each other in a ring.
 
 **USAGE**
@@ -167,8 +173,8 @@ Subcommand for managing the keys that supervisors use when passing encrypted mes
 
 ***
 
-## hab-service
-Subcommand for managing Habitat service keys.
+## hab service
+Subcommand for managing Habitat service group keys.
 
 **USAGE**
 
@@ -185,12 +191,13 @@ Subcommand for managing Habitat service keys.
 
 ***
 
-## hab-studio
-Helps you to build packages inside or outside of a studio environment.
+## hab studio
+Helps you to build packages inside a studio environment.
 
 **USAGE**
 
-    $program [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
+USAGE:
+    hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 
 **FLAGS**
 
@@ -202,10 +209,11 @@ Helps you to build packages inside or outside of a studio environment.
 
 **OPTIONS**
 
-    -r <STUDIO_ROOT>  Sets a Studio root (default: /opt/studio)
-    -s <SRC_PATH>     Sets the source path (default: \$PWD)
-    -t <STUDIO_TYPE>  Sets a Studio type when creating (default: default)
-                      Valid types: [default baseimage busybox stage1]
+    -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:$HAB_ORIGIN )
+    -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
+    -s <SRC_PATH>         Sets the source path (default: $PWD)
+    -t <STUDIO_TYPE>      Sets a Studio type when creating (default: default)
+                          Valid types: [default baseimage busybox stage1]
 
 **SUBCOMMANDS**
 
@@ -219,40 +227,19 @@ Helps you to build packages inside or outside of a studio environment.
 
 **ENVIRONMENT VARIABLES**
 
-    NO_SRC_PATH   If set, do not mount source path (\`-n' flag takes precedence)
-    QUIET         Prints less output (\`-q' flag takes precedence)
-    SRC_PATH      Sets the source path (\`-s' option takes precedence)
-    STUDIO_ROOT   Sets a Studio root (\`-r' option takes precedence)
-    STUDIO_TYPE   Sets a Studio type when creating (\`-t' option takes precedence)
-    STUDIOS_HOME  Sets a home path for all Studios (default: /opt/studios)
-    VERBOSE       Prints more verbose output (\`-v' flag takes precedence)
-
-**EXAMPLES**
-
-    # Create a new default Studio
-    $program new
-
-    # Enter the default Studio
-    $program enter
-
-    # Run a command in the default Studio
-    $program run wget --version
-
-    # Destroy the default Studio
-    $program rm
-
-    # Create and enter a busybox type Studio with a custom root
-    $program -r /opt/slim -t busybox enter
-
-    # Run a command in the slim Studio, showing only the command output
-    $program -q -r /opt/slim run busybox ls -l /
-
-    # Verbosely destroy the slim Studio
-    $program -v -r /opt/slim rm
+    HAB_ORIGIN        Propagates this variable into any studios
+    HAB_ORIGIN_KEYS   Installs secret keys (`-k' option overrides)
+    HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_ROOT   Sets a Studio root (`-r' option overrides)
+    NO_SRC_PATH       If set, do not mount source path (`-n' flag overrides)
+    QUIET             Prints less output (`-q' flag overrides)
+    SRC_PATH          Sets the source path (`-s' option overrides)
+    STUDIO_TYPE       Sets a Studio type when creating (`-t' option overrides)
+    VERBOSE           Prints more verbose output (`-v' flag overrides)
 
 ***
 
-## hab-sup
+## hab sup
 Supervisor that starts and manages the software in a Habitat service.
 
 **USAGE**
@@ -275,7 +262,7 @@ Supervisor that starts and manages the software in a Habitat service.
 
 ***
 
-## hab-user
+## hab user
 Subcommand for managing Habitat user keys.
 
 **USAGE**
