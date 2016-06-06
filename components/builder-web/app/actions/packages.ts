@@ -12,6 +12,7 @@ export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
 export const SET_CURRENT_PACKAGE = "SET_CURRENT_PACKAGE";
 export const SET_PACKAGES_NEXT_RANGE = "SET_PACKAGES_NEXT_RANGE";
+export const SET_PACKAGES_SEARCH_QUERY = "SET_PACKAGES_SEARCH_QUERY";
 export const SET_PACKAGES_TOTAL_COUNT = "SET_PACKAGES_TOTAL_COUNT";
 export const SET_VISIBLE_PACKAGES = "SET_VISIBLE_PACKAGES";
 
@@ -34,17 +35,21 @@ export function fetchPackage(pkg) {
     return dispatch => {
         dispatch(clearPackages());
         depotApi.get(pkg.ident).then(response => {
-            dispatch(setCurrentPackage(response));
+            dispatch(setCurrentPackage(response["results"]));
         }).catch(error => {
             dispatch(setCurrentPackage(undefined, error));
         });
     };
 }
 
-export function filterPackagesBy(params, nextRange: number = 0) {
+export function filterPackagesBy(params, query: string, nextRange: number = 0) {
     return dispatch => {
         if (nextRange === 0) {
             dispatch(clearPackages());
+        }
+
+        if (query) {
+            params = { query };
         }
 
         depotApi.get(params, nextRange).then(response => {
@@ -75,6 +80,13 @@ export function setCurrentPackage(pkg, error = undefined) {
 function setPackagesNextRange(payload: number) {
     return {
         type: SET_PACKAGES_NEXT_RANGE,
+        payload,
+    };
+}
+
+export function setPackagesSearchQuery(payload: string) {
+    return {
+        type: SET_PACKAGES_SEARCH_QUERY,
         payload,
     };
 }

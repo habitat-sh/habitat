@@ -86,6 +86,7 @@ export default Record({
         explore: List(),
         visible: List(),
         nextRange: 0,
+        searchQuery: "",
         totalCount: 0,
         ui: Record({
             current: Record({

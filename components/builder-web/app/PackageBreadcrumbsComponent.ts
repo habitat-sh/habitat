@@ -14,9 +14,6 @@ import {RouterLink} from "angular2/router";
     selector: "package-breadcrumbs",
     template: `
     <span class="hab-package-breadcrumbs">
-        <span *ngIf="showAll">All Packages</span>
-        <span *ngIf="params.filter === 'mine'">My Packages</span>
-        <a *ngIf="!ident.origin && !params.filter && !showAll" [routerLink]="['Packages']">*</a>
         <a [routerLink]="['PackagesForOrigin',
             { origin: ident.origin }]">
             {{ident.origin}}
@@ -43,14 +40,9 @@ import {RouterLink} from "angular2/router";
 })
 
 export class PackageBreadcrumbsComponent {
-    private ident;
     private params;
 
     constructor() {
         this.params = this.params || {};
-    }
-
-    get showAll() {
-        return Object.keys(this.ident).length === 0;
     }
 }

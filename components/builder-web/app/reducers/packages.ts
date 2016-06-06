@@ -45,6 +45,9 @@ export default function packages(state = initialState["packages"], action) {
         case actionTypes.SET_PACKAGES_NEXT_RANGE:
             return state.set("nextRange", action.payload);
 
+        case actionTypes.SET_PACKAGES_SEARCH_QUERY:
+            return state.set("searchQuery", action.payload);
+
         case actionTypes.SET_PACKAGES_TOTAL_COUNT:
             return state.set("totalCount", action.payload);
 
