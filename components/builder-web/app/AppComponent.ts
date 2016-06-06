@@ -113,6 +113,11 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
         component: PackagesPageComponent,
     },
     {
+        path: "/pkgs/search/:query",
+        name: "PackagesSearch",
+        component: PackagesPageComponent,
+    },
+    {
         path: "/pkgs/:origin/:name/:version/:release",
         name: "Package",
         component: PackagePageComponent

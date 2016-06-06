@@ -11,9 +11,13 @@ import {packageString} from "./util";
 
 const urlPrefix = config["habitat_api_url"] || "";
 
-export function get(ident, nextRange: number = 0) {
+export function get(params, nextRange: number = 0) {
+    const url = `${urlPrefix}/depot/pkgs/` +
+        ("query" in params ? `search/${params["query"]}`
+                           : packageString(params));
+
     return new Promise((resolve, reject) => {
-        fetch(`${urlPrefix}/depot/pkgs/${packageString(ident)}`, {
+        fetch(url, {
             headers: { "Range": nextRange.toString() }
         }).then(response => {
             // Fail the promise if an error happens.
@@ -25,7 +29,10 @@ export function get(ident, nextRange: number = 0) {
                 reject(new Error(response.statusText));
             }
 
-            const totalCount = parseInt(response.headers.get("Content-Range").split("=")[1], 10);
+            const totalCount = parseInt(
+                (response.headers.get("Content-Range") || "").split("=")[1],
+                10
+            );
             const nextRange = parseInt(response.headers.get("Next-Range"), 10);
 
             const headers = response.headers;

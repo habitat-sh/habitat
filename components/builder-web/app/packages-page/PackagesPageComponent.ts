@@ -5,12 +5,13 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+import {Control} from "angular2/common";
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
 import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {SpinnerComponent} from "../SpinnerComponent";
-import {filterPackagesBy} from "../actions/index";
+import {filterPackagesBy, setPackagesSearchQuery} from "../actions/index";
 import {requireSignIn} from "../util";
 
 @Component({
@@ -21,16 +22,22 @@ import {requireSignIn} from "../util";
             <h2>
                 <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackages">
                 </hab-spinner>
-                <package-breadcrumbs [ident]="routeParams.params"
+                <span *ngIf="searchQuery || routeParams.params['query']">Search Results</span>
+                <package-breadcrumbs
+                    *ngIf="!searchQuery"
+                    [ident]="routeParams.params"
                     [params]="routeParams.params">
                 </package-breadcrumbs>
             </h2>
         </div>
         <div class="page-body">
+            <input type="search" autofocus
+                [ngFormControl]="searchBox"
+                placeholder="Search Packages&hellip;">
             <ul class="hab-packages-plan-list">
                 <div *ngIf="(!ui.exists || packages.size === 0) && !ui.loading">
                     <p>
-                        Failed to load packages.
+                        No packages found.
                         <span *ngIf="ui.errorMessage">
                             Error: {{ui.errorMessage}}
                         </span>
@@ -56,7 +63,7 @@ import {requireSignIn} from "../util";
                     </a>
                 </li>
             </ul>
-            <div *ngIf="packages.size <= totalCount">
+            <div *ngIf="packages.size < totalCount">
                 Showing {{packages.size}} of {{totalCount}} packages.
                 <a href="#" (click)="fetchMorePackages()">
                     Load
@@ -69,6 +76,7 @@ import {requireSignIn} from "../util";
 
 export class PackagesPageComponent implements OnInit {
     private perPage: number = 50;
+    private searchBox: Control;
     private spinnerFetchPackages: Function;
 
     constructor(private store: AppStore, private routeParams: RouteParams) {
@@ -77,6 +85,10 @@ export class PackagesPageComponent implements OnInit {
 
     get packages() {
         return this.store.getState().packages.visible;
+    }
+
+    get searchQuery() {
+        return this.store.getState().packages.searchQuery;
     }
 
     get totalCount() {
@@ -88,20 +100,33 @@ export class PackagesPageComponent implements OnInit {
     }
 
     public ngOnInit() {
-        if (this.routeParams.params["filter"] === "mine") {
-            requireSignIn(this);
+        if ("query" in this.routeParams.params) {
+            this.search(this.routeParams.params["query"]);
+        } else {
+            this.fetchPackages();
         }
 
-        this.fetchPackages();
+        this.searchBox = new Control(this.searchQuery);
+
+        this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
+            subscribe(query => this.search(query));
     }
 
     private fetchPackages() {
-        this.store.dispatch(filterPackagesBy(this.routeParams.params));
+        this.store.dispatch(filterPackagesBy(this.routeParams.params,
+            this.searchQuery));
     }
 
     private fetchMorePackages() {
         this.store.dispatch(filterPackagesBy(this.routeParams.params,
+            this.searchQuery,
             this.store.getState().packages.nextRange));
+        return false;
+    }
+
+    private search(query) {
+        this.store.dispatch(setPackagesSearchQuery(query));
+        this.fetchPackages();
         return false;
     }
 }
