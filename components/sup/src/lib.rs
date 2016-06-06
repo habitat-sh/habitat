@@ -5,8 +5,8 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-//! Bldr helps you build, manage, and run applications - on bare metal, in the cloud, and in
-//! containers. You can [read more about it, including setup instructions, in the README](README.html).
+//! Habitat helps you build, manage, and run applications - on bare metal, in the cloud, and in
+//! containers. You can [read more about it on the website](https://www.habitat.sh/).
 //!
 //! Habitat contains two main components:
 //!
