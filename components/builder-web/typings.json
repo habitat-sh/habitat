@@ -6,6 +6,7 @@
     "blueimp-md5": "github:DefinitelyTyped/DefinitelyTyped/blueimp-md5/blueimp-md5.d.ts#6f8c162bf5e43442e0520f8f2fbc55d7cacc349d",
     "chai": "github:DefinitelyTyped/DefinitelyTyped/chai/chai.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4",
     "chai-as-promised": "github:DefinitelyTyped/DefinitelyTyped/chai-as-promised/chai-as-promised.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4",
+    "js-cookie": "github:DefinitelyTyped/DefinitelyTyped/js-cookie/js-cookie.d.ts#7de6c3dd94feaeb21f20054b9f30d5dabc5efabd",
     "marked": "github:DefinitelyTyped/DefinitelyTyped/marked/marked.d.ts#9cfdb11648f823b889287c770254b85b78a7a4a4",
     "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#e69fe60f2d6377ea4fae539493997b098f52cad1",
     "moment": "github:DefinitelyTyped/DefinitelyTyped/moment/moment.d.ts#3030a4be536b6530c06b80081f1333dc0de4d703",

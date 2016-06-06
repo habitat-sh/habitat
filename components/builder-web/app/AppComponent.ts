@@ -200,8 +200,8 @@ export class AppComponent implements OnInit {
         // either with what's there already, or with a new UUID.
         this.store.dispatch(setGitHubAuthState());
 
-        // Load up the session state from sessionStorage when we load the page
-        this.store.dispatch(loadSessionState(sessionStorage));
+        // Load up the session state when we load the page
+        this.store.dispatch(loadSessionState());
 
         // Request an auth token from GitHub. This doesn't do anything if the
         // "code" and "state" query parameters are not present.
