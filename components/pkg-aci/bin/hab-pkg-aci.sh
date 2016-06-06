@@ -164,7 +164,10 @@ program=$(basename $0)
 find_system_commands
 
 if [ -z "$@" ]; then
-    exit_with "You must specify one or more Habitat packages to create an ACI from." 1
+  print_help
+  exit_with "You must specify one or more Habitat packages to create an ACI from." 1
+elif [ "$@" == "--help" ]; then
+  print_help
 else
-    build_aci $@
+  build_aci $@
 fi
