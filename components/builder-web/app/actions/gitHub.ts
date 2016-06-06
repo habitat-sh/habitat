@@ -7,6 +7,7 @@
 
 import "whatwg-fetch";
 import {URLSearchParams} from "angular2/http";
+import * as cookies from "js-cookie";
 import config from "../config";
 import {attemptSignIn, addNotification, goHome, requestRoute, setSigningInFlag,
     signOut} from "./index";
@@ -40,7 +41,7 @@ export function authenticateWithGitHub(token = undefined) {
         }
 
         if (token) {
-            sessionStorage.setItem("gitHubAuthToken", token);
+            setCookie("gitHubAuthToken", token);
 
             fetch(`https://api.github.com/user?access_token=${token}`).then(response => {
                 dispatch(setSigningInFlag(false));
@@ -62,7 +63,7 @@ export function authenticateWithGitHub(token = undefined) {
 }
 
 export function fetchGitHubOrgs(page = 1) {
-    const token = sessionStorage.getItem("gitHubAuthToken");
+    const token = cookies.get("gitHubAuthToken");
 
     return dispatch => {
         fetch(`https://api.github.com/user/orgs?access_token=${token}&per_page=100&page=${page}`).then(response => {
@@ -84,7 +85,7 @@ export function fetchGitHubOrgs(page = 1) {
 };
 
 export function fetchGitHubRepos(org, page = 1, username) {
-    const token = sessionStorage.getItem("gitHubAuthToken");
+    const token = cookies.get("gitHubAuthToken");
     const urlPath = username ? `users/${username}/repos` : `orgs/${org}/repos`;
 
     return dispatch => {
@@ -109,12 +110,12 @@ export function fetchGitHubRepos(org, page = 1, username) {
     };
 }
 
-export function loadSessionState(sessionStorage) {
+export function loadSessionState() {
     return {
         type: LOAD_SESSION_STATE,
         payload: {
-            gitHubAuthToken: sessionStorage.getItem("gitHubAuthToken"),
-            gitHubAuthState: sessionStorage.getItem("gitHubAuthState"),
+            gitHubAuthToken: cookies.get("gitHubAuthToken"),
+            gitHubAuthState: cookies.get("gitHubAuthState"),
         },
     };
 }
@@ -157,8 +158,8 @@ function populateGitHubUserData(payload) {
 
 export function removeSessionStorage() {
     return dispatch => {
-        sessionStorage.removeItem("gitHubAuthState");
-        sessionStorage.removeItem("gitHubAuthToken");
+        cookies.remove("gitHubAuthState");
+        cookies.remove("gitHubAuthToken");
     };
 }
 
@@ -204,9 +205,15 @@ function resetGitHubRepos() {
     };
 }
 
+function setCookie (key, value) {
+    return cookies.set(key, value, {
+        secure: window.location.protocol === "https"
+    });
+}
+
 export function setGitHubAuthState() {
-    let payload = sessionStorage.getItem("gitHubAuthState") || uuid();
-    sessionStorage.setItem("gitHubAuthState", payload);
+    let payload = cookies.get("gitHubAuthState") || uuid();
+    setCookie("gitHubAuthState", payload);
 
     return {
         type: SET_GITHUB_AUTH_STATE,
@@ -215,7 +222,7 @@ export function setGitHubAuthState() {
 }
 
 export function setGitHubAuthToken(payload) {
-    sessionStorage.setItem("gitHubAuthToken", payload);
+    setCookie("gitHubAuthToken", payload);
 
     return {
         type: SET_GITHUB_AUTH_TOKEN,
