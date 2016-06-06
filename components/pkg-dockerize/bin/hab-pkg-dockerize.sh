@@ -157,7 +157,10 @@ program=$(basename $0)
 find_system_commands
 
 if [ -z "$@" ]; then
-    exit_with "You must specify one or more Habitat packages to Dockerize." 1
+  print_help
+  exit_with "You must specify one or more Habitat packages to Dockerize." 1
+elif [ "$@" == "--help" ]; then
+  print_help
 else
-    build_docker_image $@
+  build_docker_image $@
 fi
