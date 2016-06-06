@@ -160,7 +160,7 @@ pkg_svc_group
 ***
 
 ## Variables
-The following variables can be used in your plan and hook scripts to help get binaries and libraries to build and install in the correct locations in your package.
+The following variables can be used in your plans to help get binaries and libraries to build and install in the correct locations in your package.
 
 $pkg_prefix
 : This variable is the absolute path for your package.
