@@ -13,7 +13,7 @@ There are several types of security measures that can be undertaken by the opera
 
 ## Wire Encryption
 
-Supervisors running in a ring (network) can be configured to encrypt all traffic between them. This is accomplished by generating a _ring key_, which is a symmetric shared secret placed into the supervisor environment prior to starting it.
+Supervisors running in a ring can be configured to encrypt all traffic between them. This is accomplished by generating a _ring key_, which is a symmetric shared secret placed into the supervisor environment prior to starting it.
 
 ### Generating a Ring Key
 
@@ -72,6 +72,8 @@ The user key is used to encrypt configuration data targeted for a particular ser
 ### Applying Configuration Changes
 
 The `hab config apply` and `hab file upload` commands will work as usual when user/service group trust relationships are set up in this way.
+
+If a running supervisor cannot decrypt a secret due to a missing key, it will retry with exponential backoff starting with a one-second interval. This allows an administrator to provide the supervisor with the key to resume normal operations, without taking down the supervisor.
 
 ## Identifying Key Types
 
