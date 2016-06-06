@@ -43,8 +43,34 @@
 }
 
 .footer--logo {
-  display: block;
-  margin-bottom: rem-calc(20);
+  display: inline-block;
+  padding: rem-calc(30) 0;
+
+  &:first-child {
+    padding-right: 10%;
+    margin-right: 10%;
+  }
+
+  &.habitat {
+    border-right: 1px solid $white;
+    width: 54%;
+  }
+
+  &.chef {
+    width: 22%;
+  }
+
+  @include breakpoint(small only) {
+    margin-bottom: rem-calc(60);
+
+    &.habitat {
+      max-width: rem-calc(270);
+    }
+
+    &.chef {
+      max-width: rem-calc(100);
+    }
+  }
 }
 
 .footer--sitemap {
