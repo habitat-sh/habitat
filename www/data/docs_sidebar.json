@@ -92,11 +92,11 @@
           "sub_links": [
             {
               "title": "Binding",
-              "link": "/docs/run-services-binding/"
+              "link": "/docs/run-packages-binding/"
             },
             {
               "title": "Security",
-              "link": "/docs/run-services-security/"
+              "link": "/docs/run-packages-security/"
             }
           ]
         }
