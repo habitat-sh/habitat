@@ -21,5 +21,5 @@ The Habitat supervisor provides a HTTP API to expose cluster metadata, statistic
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/concepts-plans">Plans</a></li>
+  <li><a href="/docs/concepts-director">Director</a></li>
 </ul>

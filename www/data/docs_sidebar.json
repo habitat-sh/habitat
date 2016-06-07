@@ -24,6 +24,10 @@
               "link": "/docs/concepts-supervisor/"
             },
             {
+              "title": "Director",
+              "link": "/docs/concepts-director"
+            },
+            {
               "title": "Plans",
               "link": "/docs/concepts-plans/"
             },
@@ -93,6 +97,10 @@
             {
               "title": "Security",
               "link": "/docs/run-packages-security/"
+            },
+            {
+              "title": "Director orchestration",
+              "link": "/docs/run-packages-director"
             }
           ]
         }
