@@ -51,7 +51,7 @@ The failure detection protocol in Habitat serves both as a way to maintain a cor
 
 ##### Failure Confirmation
 
-During the _ping-req_, or failure confirmation, phase of the failure detector, the membership will attempt to determine if the peer is truly unreachable. The originating peer picks three random peers other than the unreachable one and sends the list of rumors plus the membership list to them. Those members in turn attempt to communicate with the unreachable peer. If the peer is reachable by any of these three, then the rumor and membership list is transmitted to that peer, and the original sender is notified that all is well.
+During the _ping-req_, or failure confirmation, phase of the failure detector, some or all members will attempt to determine if the peer is truly unreachable. The originating peer picks three random peers other than the unreachable one and sends the list of rumors plus the membership list to them. Those members in turn attempt to communicate with the unreachable peer. If the peer is reachable by any of these three, then the rumor and membership list is transmitted to that peer, and the original sender is notified that all is well.
 
 However, if the peer turns out to not be reachable from any of the randomly selected three peers, the peer that times out first generates a "suspect" rumor to the whole ring, at which the entire ring attempts to send that rumor to the peer marked suspect. If the suspect peer receives this rumor and is capable of responding, it will do so by gossipping an "alive" rumor and incrementing its incarnation version in the membership list. This incarnation trumps any "suspect" rumors.
 
