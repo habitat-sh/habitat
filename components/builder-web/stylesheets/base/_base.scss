@@ -7,9 +7,6 @@
 
 @import "normalize";
 
-// Include web fonts
-@import url(https://fonts.googleapis.com/css?family=Montserrat:400,700|Titillium+Web:400,400italic,600);
-
 @import "variables";
 
 // Neat Settings -- uncomment if using Neat -- must be imported before Neat
@@ -19,4 +16,5 @@
 @import "forms";
 @import "lists";
 @import "tables";
+@import "fonts";
 @import "typography";

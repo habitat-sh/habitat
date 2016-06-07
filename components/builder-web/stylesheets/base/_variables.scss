@@ -7,7 +7,7 @@
 
 // Typography
 $base-font-family: "Titillium Web", $helvetica;
-$heading-font-family: "Montserrat", $verdana;
+$heading-font-family: "Montserrat Alternates", $verdana;
 $monospace-font-family: "Source Code Pro", Menlo, Consolas, monospace;
 $octicons-font-path: "/node_modules/octicons/octicons";
 
@@ -25,34 +25,40 @@ $global-radius: $base-border-radius;
 $base-spacing: rem(20);
 $small-spacing: $base-spacing / 2;
 $base-z-index: 0;
+$header-height: 106px;
+$header-height-mobile: 63px;
 
 // Colors
 $white: #FFF;
 $off-white: #F8F9F9;
 $black: #323330;
 $blue: #1565c0;
-$dark-gray: #484846;
-$medium-gray: #999;
+$dark-gray: #5C6670;
+$medium-gray: #C3C6C8;
 $light-gray: #D8D8D8;
 $white-slightly-transparent: rgba(255, 255, 255, 0.95);
 
 // Habitat Brand Colors
 $hab-white: #ffffff;
 $hab-blue-light: #e9f1f7;
-$hab-blue: #7fadcb;
+$hab-blue: #4296B4;
 $hab-gray-light: #e9eaeb;
 $hab-orange-dark: #f58151;
 $hab-off-white: #f8f9f9;
-$hab-gray: #b6babe;
+$hab-gray: $medium-gray;
 $hab-gray-dark: $dark-gray;
-$hab-orange: #f59b51;
+$hab-orange: #FF9012;
 $hab-blue-dark: #394b5a;
-$hab-green: #75af81;
+$hab-green: #87B09A;
 $hab-green-dark: #699171;
 $hab-blue-medium: #dce6ed;
 $hab-cta: $hab-green;
-$hab-red: #D8574B;
+$hab-red: #EB6852;
 $hab-yellow: #EBE269;
+$hab-brown: #DEBFA5;
+
+// Brand primary and secondary colors
+$hab-primary: $hab-green;
 
 // Transparent colors
 $hab-gray-dark-15: rgba(125, 134, 140, .15);
