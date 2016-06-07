@@ -38,7 +38,7 @@ do_install() {
 
 Typically, when working with binary artifacts, you would start with a plan like this and work backwards to define the correct contents of the phases.
 
-## Relocate Hard-Coded Library Dependencies
+## Relocate Hard-Coded Library Dependencies If Possible
 
 Many binaries hardcode library dependencies to `/lib` or `/lib64` inside their ELF symbol table. Unfortunately, this means that Habitat is unable to provide dependency isolation guarantees if packages are dependent on any operating system's libraries in those directories. The built Habitat packages will also fail to run in minimal environments like containers built using `hab-pkg-dockerize`, because there will not be a `glibc` inside `/lib` or `/lib64`.
 
@@ -62,6 +62,14 @@ Most binaries compiled in a full Linux userland have a hard dependency on `/lib/
 ```
 
 4. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
+
+## If You Cannot Relocate Library Dependencies
+
+In some situations it will be impossible for you to relocate library dependencies using `patchelf` as above. For example, if the version of `glibc` the software requires is different than that provided by an available version of `glibc` in a Habitat package, attempting to `patchelf` the program will cause execution to fail due to ABI incompatibility.
+
+Your software vendor's support policy might also prohibit you from modifying software that they ship you.
+
+In these situations, you will have to give up Habitat's guarantees of complete dependency isolation and continue to rely on the library dependencies provided by the host operating system. However, you can continue to use the features of the Habitat supervisor that provide uniform manageability across your entire fleet of applications.
 
 ## Fix Hardcoded Interpreters
 
