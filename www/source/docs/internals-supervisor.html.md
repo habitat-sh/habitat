@@ -12,7 +12,7 @@ Because the basic functionality of process supervision is well-known, this docum
 
 Supervisors are configured to form a ring by starting new supervisors using the `--peer` argument and pointing them at peers that already exist. In a real-life deployment scenario, supervisors in a ring would also have a shared encryption key, so that inter-supervisor traffic is encrypted. (See the [security](/docs/run-packages-security) documentation for more details.)
 
-Supervisor rings can be very large, comprising potentially thousands of supervisors. The [inter-supervisor communication protocol](#protocol) is low-bandwidth and designed to not interfere with your application's actual production traffic.
+Supervisor rings can be very large, comprising potentially thousands of supervisors. The [inter-supervisor communication protocol](#protocols) is low-bandwidth and designed to not interfere with your application's actual production traffic.
 
 Rings are further divided into _service groups_, each of which has a name. All supervisors within a service group share the same configuration and topology. It is typical to name each service group using the pattern `service_name`.`environment` and have these service group names correspond to a _view_ within the depot. In this way, the supervisors can self-update whenever the view is updated. For more information on this, please read the [continuous deployment]() topic. {::comment}TODO: Link to cont deploy docs{:/comment}
 
