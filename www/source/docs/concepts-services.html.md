@@ -32,7 +32,7 @@ This topology allows a distributed application running on at least three Habitat
 
 ## Leader election
 
-Habitat provides leader election capabilities out of the box for any topology that needs it. Leader election is implemented in the supervisor, using the [Bully](https://en.wikipedia.org/wiki/Bully_algorithm) algorithm. Habitat is a weakly consistent system, so it does not use Paxos, Raft, or other strong consistency systems.
+Habitat provides leader election capabilities out of the box for any topology that needs it. Leader election is implemented in the supervisor, using the [Bully](https://en.wikipedia.org/wiki/Bully_algorithm) algorithm. Habitat is a weakly consistent system, so it does not use Paxos or Raft, etc. for consensus.
 
 <hr>
 <ul class="main-content--link-nav">
