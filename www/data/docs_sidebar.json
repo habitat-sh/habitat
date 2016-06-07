@@ -1,28 +1,19 @@
 {
   "sidebar_links": [
     {
-      "title": "Introduction",
+      "title": "Getting Started",
       "links": [
         {
-          "title": "Getting Started",
-          "link": "/docs/getting-started/"
-        },
-        {
-          "title": "Tutorials",
-          "link": "/tutorials/"
-        }
-      ]
-    },
-    {
-      "title": "Docs",
-      "links": [
-        {
-          "title": "Home",
-          "link": "/docs/"
+          "title": "Overview",
+          "link": "/docs/overview"
         },
         {
           "title": "Get Habitat",
           "link": "/docs/get-habitat"
+        },
+        {
+          "title": "Tutorials",
+          "link": "/tutorials/"
         },
         {
           "title": "Concepts",
@@ -57,7 +48,12 @@
               "link": "/docs/concepts-depot/"
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "title": "Using Habitat",
+      "links": [
         {
           "title": "Create packages",
           "link": "/docs/create-packages-overview/",
