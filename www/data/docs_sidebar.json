@@ -93,6 +93,16 @@
               "link": "/docs/run-packages-director/"
             }
           ]
+        },
+        {
+          "title": "Habitat internals",
+          "link": "/docs/internals-overview/",
+          "sub_links": [
+            {
+              "title": "Supervisor",
+              "link": "/docs/internals-supervisor/"
+            }
+          ]
         }
       ]
     },
