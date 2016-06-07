@@ -227,6 +227,14 @@ h2:not(:first-child) {
   margin-top: rem-calc(40);
 }
 
+ol.upper-alpha {
+  list-style-type: upper-alpha;
+}
+
+ol.lower-alpha {
+  list-style-type: lower-alpha;
+}
+
 // 5. Links
 // ---------
 
