@@ -4,9 +4,11 @@ title: Director
 
 # Director
 
-The Habitat director is a supervisor for a group of supervisor (`hab-sup`) processes, which then manage child processes in running Habitat services. The director will automatically restart child processes upon failure detection and each child service runs in it's own supervisor process.
+The Habitat director is a supervisor for a group of supervisor (`hab-sup`) processes running on one machine. The director automatically restarts child processes upon failure detection and each child service runs in it's own supervisor process.
 
-Services are specified a config.toml file. This file defines the start order, service group, organization, and any CLI arguments for each service.
+Services are listed a config.toml file. This file defines the start order, service group, organization, and any CLI arguments for each service.
+
+  > Note: The start order does not guarantee processes are fully initialized and started before the next one in the list is started.
 
 The director can be run inside of a supervisor as well. As with any other service, this allows the director to be updated with new configuration changes at runtime, which enable it to dynamically deploy different child service configurations and topologies.
 
