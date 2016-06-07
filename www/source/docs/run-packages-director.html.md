@@ -1,0 +1,45 @@
+---
+title: Run packages using the director
+---
+
+# Run packages using the director
+The director is a supervisor that can quickly start up and manage multiple services using a config.toml file, and when run in a supervisor process (`hab-sup`) itself, the director can be reconfigured at runtime like any other Habitat service.
+
+## Defining the services
+
+The config.toml file used by the director contains one or more service definitions. Service definitions are combination of a package identifier, service group, and CLI arguments. They are specified as a dot-separated list in a [TOML table](https://github.com/toml-lang/toml#table) name.
+
+    [services.<origin>.<name>.<group>.<organization>]
+
+The following example corresponds to the `core/redis` package in the redis.somegroup service group.
+
+    [services.core.redis.somegroup]
+
+This example corresponds to the `core/redis` package in the redis.somegroup service group which is in the someorg organization.
+
+    [services.core.redis.somegroup.someorg]
+
+> Note: All services must be described as children of the services TOML table. When the TOML is rendered, the values for services will be
+located under `cfg.services.*` .
+
+A service definition can additionally specify a start key/value under
+the service table definition:
+
+    # Start core/redis with --group somegroup and --org someorg
+    # Additionally, pass in --permanent-peer to the start command
+    [services.core.redis.somegroup.someorg]
+    start = "--permanent-peer"
+
+    [services.core.rngd.foo.someorg]
+    start = "--permanent-peer --foo=bar"
+
+> Note:  CLI arguments specified in config.toml are split on whitespace.
+
+## Using the director
+When run in a supervisor, the director can be started using the `hab start` command.
+
+    hab start core/director
+
+This command will install and start `core/director`. You must pass in the config.toml file containing your service definitions. This can be done at runtime dynamically by using the `hab config apply` subcommand.
+
+    hab config apply hab-director.default --peer 172.17.0.2 1 /path/to/config.toml
