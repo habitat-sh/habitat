@@ -1,7 +1,7 @@
 # Habitat
 
 [![Build Status](https://travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
-[![Slack](http://slack.habitat.sh/badge.svg)](https://slack.habitat.sh/)
+[![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
 
 Want to try Habitat? [Get started here](https://www.habitat.sh/try/).
 
