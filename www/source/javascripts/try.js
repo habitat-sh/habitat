@@ -220,7 +220,7 @@
                       //change button text to reflect resulting status
                       //show badge on window buttons
                       //show full updated cli output
-                      $(".node-status").html("changed applied").parent().addClass("updated");
+                      $(".node-status").html("change applied").parent().addClass("updated");
                       $(".button-badge, .full-output").show();
                     }
                 });
