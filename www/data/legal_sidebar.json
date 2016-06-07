@@ -5,11 +5,19 @@
       "links": [
         {
           "title": "Licensing",
-          "link": "#"
+          "link": "/legal/licensing/"
+        },
+        {
+          "title": "Privacy Policy",
+          "link": "/legal/privacy-policy/"
         },
         {
           "title": "Terms &amp; Conditions",
-          "link": "#"
+          "link": "/legal/terms-and-conditions/"
+        },
+        {
+          "title": "Trademark Policy",
+          "link": "/legal/trademark-policy/"
         }
       ]
     }
