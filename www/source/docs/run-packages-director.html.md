@@ -1,9 +1,9 @@
 ---
-title: Run packages using the director
+title: Run multiple packages using the director
 ---
 
-# Run packages using the director
-The director is a supervisor that can quickly start up and manage multiple services using a config.toml file, and when run in a supervisor process (`hab-sup`) itself, the director can be reconfigured at runtime like any other Habitat service.
+# Run multiple packages using the director
+The director is a supervisor that can quickly start up and manage multiple services on _one machine_ using a config.toml file, and when run in a supervisor process (`hab-sup`) itself, the director can be reconfigured at runtime like any other Habitat service. Reconfiguring the director causes all child processes to be restarted.
 
 ## Defining the services
 
@@ -38,8 +38,8 @@ the service table definition:
 ## Using the director
 When run in a supervisor, the director can be started using the `hab start` command.
 
-    hab start core/director
+    hab start core/hab-director
 
-This command will install and start `core/director`. You must pass in the config.toml file containing your service definitions. This can be done at runtime dynamically by using the `hab config apply` subcommand.
+You must also pass in the config.toml file containing your service definitions. This can be done at runtime dynamically by using the `hab config apply` subcommand.
 
     hab config apply hab-director.default --peer 172.17.0.2 1 /path/to/config.toml

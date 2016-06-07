@@ -99,8 +99,8 @@
               "link": "/docs/run-packages-security/"
             },
             {
-              "title": "Director orchestration",
-              "link": "/docs/run-packages-director"
+              "title": "Run multiple packages",
+              "link": "/docs/run-packages-director/"
             }
           ]
         }
