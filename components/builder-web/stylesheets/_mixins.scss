@@ -20,18 +20,22 @@
 }
 
 // Buttons
-@mixin primary-button($color1: $hab-green, $color2: $hab-green-dark) {
+@mixin primary-button($color1: $hab-orange, $color2: $hab-orange-dark) {
   @include shadow-float;
   @include transition(all 0.2s ease-in-out);
-  background-color: $color2;
-  background-image: linear-gradient(240deg, $color1, $color2);
-  color: $hab-off-white;
+  background-image: linear-gradient(to left, lighten($color1, 13%), lighten($color2, 5%) 100%);
+  border: 0;
+  border-radius: 7px;
+  color: $hab-white;
+  font-size: rem-calc(16);
+  letter-spacing: rem-calc(1);
+  padding: 0.85em 1.65em;
+  text-shadow: 0 1px 2px $hab-red;
 
   &:hover {
     @include shadow-float-more;
     @include transition(all 0.2s ease-in-out);
     background-color: $color1;
-    color: $hab-white;
   }
 }
 

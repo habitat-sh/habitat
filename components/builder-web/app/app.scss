@@ -42,6 +42,8 @@ body {
 }
 
 body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: $off-white;
   margin: 0;
 }
@@ -67,7 +69,7 @@ body {
   background-color: $white;
   border-radius: 0 0 $global-radius $global-radius;
   height: 100%;
-  min-height: 100vh;
+  min-height: 110vh;
   position: relative;
   z-index: 50;
 
@@ -75,6 +77,7 @@ body {
     @include media($medium-screen) {
       @include span-columns(6);
       @include shift(3);
+      margin-top: rem(20);
     }
 
     @include span-columns(12);

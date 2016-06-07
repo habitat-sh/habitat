@@ -26,7 +26,6 @@
   }
 
   h4 {
-    color: $hab-blue;
     font-size: 75%;
     margin-left: rem(15);
     white-space: nowrap;
@@ -43,14 +42,17 @@
 
     a {
       color: $base-font-color;
+      display: block;
+      margin-right: rem(8);
 
       &:hover {
         color: $hover-color;
       }
 
       &.active {
+        background: url("../assets/images/sidebar-active.png") no-repeat right;
+        background-size: 10px;
         color: $hover-color;
-        font-weight: bold;
       }
     }
   }

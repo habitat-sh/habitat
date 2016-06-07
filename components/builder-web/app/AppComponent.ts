@@ -32,7 +32,7 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
     directives: [HeaderComponent, NotificationsComponent, RouterOutlet, SideNavComponent],
     selector: "hab",
     template: `
-    <div class="hab-topbar">
+    <div id="main-nav">
         <hab-notifications [notifications]="state.notifications.all"
                            [removeNotification]="removeNotification">
         </hab-notifications>
@@ -53,7 +53,7 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
             <router-outlet></router-outlet>
         </section>
         <footer class="hab-footer">
-            <p>&copy; {{state.app.currentYear}} Chef Software, Inc. All Rights Reserved.</p>
+            <p>&copy; {{state.app.currentYear}} Chef Software, Inc. All Rights Reserved. Patent Pending.</p>
         </footer>
     </div>`,
 })
