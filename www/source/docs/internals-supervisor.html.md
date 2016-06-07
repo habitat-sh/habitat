@@ -71,5 +71,5 @@ As a countermeasure, Habitat has the concept of being able to start a supervisor
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/internals-supervisor">Supervisor Internals</a></li>
+  <li><a href="/docs/internals-leader-election">Leader Election</a></li>
 </ul>

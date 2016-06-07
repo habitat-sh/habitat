@@ -101,6 +101,10 @@
             {
               "title": "Supervisor",
               "link": "/docs/internals-supervisor/"
+            },
+            {
+              "title": "Leader Election",
+              "link": "/docs/internals-leader-election/"
             }
           ]
         }
