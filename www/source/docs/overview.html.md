@@ -1,8 +1,10 @@
 ---
-title: Getting Started
+title: Overview
 ---
 
-# Getting Started
+# Overview
+
+Habitat centers application configuration, management, and behavior around the application itself, not the infrastructure that the app runs on. This allows Habitat to be deployed and run on various infrastructure environments, such as bare metal, VM, containers, and PaaS.
 
 Whether you're new to Habitat or have a little bit of experience under your
 belt, you've come to the right place.
