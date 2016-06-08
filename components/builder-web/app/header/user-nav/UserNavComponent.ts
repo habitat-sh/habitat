@@ -14,18 +14,20 @@ import {RouterLink} from "angular2/router";
         "toggleUserNavMenu"],
     selector: "user-nav",
     template: `
-    <li class="main-nav--link"><a *ngIf="!isSignedIn" [routerLink]="['SignIn']">Log In</a></li>
-    <li class="main-nav--link" *ngIf="isSignedIn">
-        <a class="username" href="#" (click)="toggleUserNavMenu()">
+    <div class="main-nav--cta" *ngIf="!isSignedIn">
+      <a class="button" [routerLink]="['SignIn']">Sign In</a>
+    </div>
+    <div class="main-nav--profile" *ngIf="isSignedIn">
+        <a class="main-nav--avatar" href="#" (click)="toggleUserNavMenu()">
             <img height=24 src="{{avatarUrl}}" />
         </a>
-        <ul *ngIf="isOpen">
+        <ul class="main-nav--dropdown" *ngIf="isOpen">
             <li>{{username}}</li>
             <li><a href="#" (click)="signOut()">
-                Log Out
+                Sign Out
             </a></li>
         </ul>
-    </li>`,
+    </div>`,
 })
 
 export class UserNavComponent { }

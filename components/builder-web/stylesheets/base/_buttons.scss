@@ -6,7 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 #{$all-buttons}, a.button {
-  @include primary-button;
+  @include hab-button;
   appearance: none;
   border: 0;
   border-radius: $global-radius;
