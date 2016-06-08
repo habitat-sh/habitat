@@ -10,7 +10,16 @@ rules:
     - 2
     - include: true
   nesting-depth: 3
+  no-misspelled-properties:
+    - 1
+    - extra-properties:
+      - osx-font-smoothing
   no-qualifying-elements: 0
+  no-vendor-prefixes:
+    - 2
+    - excluded-identifiers:
+      - webkit
+      - moz
   placeholder-in-extend: 0
   quotes:
     - 2

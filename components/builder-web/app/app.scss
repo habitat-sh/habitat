@@ -11,7 +11,6 @@
 @import "neat";
 @import "octicons.scss";
 
-@import "footer";
 @import "checking-input";
 @import "drop-down";
 @import "item-list";
@@ -19,6 +18,7 @@
 @import "tabs";
 
 @import "explore-page/explore-page";
+@import "footer/footer";
 @import "github-repo-picker/github-repo-picker";
 @import "header/header";
 @import "header/user-nav/user-nav";
@@ -38,8 +38,8 @@
 @import "sign-in-page/sign-in-page";
 
 body {
-  -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
   background-color: $off-white;
   margin: 0;
 }
