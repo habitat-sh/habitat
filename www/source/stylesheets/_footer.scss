@@ -38,8 +38,13 @@
 
 .footer--cta-subtext {
   margin-bottom: 0;
-  font-size: rem-calc(12);
+  font-size: rem-calc(13);
   color: lighten($hab-gray, 10%);
+
+  & > a {
+    color: $white;
+    text-decoration: underline;
+  }
 }
 
 .footer--logo {

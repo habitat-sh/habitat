@@ -83,8 +83,6 @@ var homepageScripts = function() {
     if ($currentSlide.hasClass("first")) {
       $(testimonialsSlider + " .second").addClass("is-active");
     } else if ($currentSlide.hasClass("second")) {
-      $(testimonialsSlider + " .third").addClass("is-active");
-    } else if ($currentSlide.hasClass("third")) {
       $(testimonialsSlider + " .first").addClass("is-active");
     }
 
