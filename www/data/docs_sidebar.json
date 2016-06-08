@@ -91,6 +91,10 @@
           "link": "/docs/run-packages-overview/",
           "sub_links": [
             {
+              "title": "Service groups",
+              "link": "/docs/run-packages-service-groups/"
+            },
+            {
               "title": "Binding",
               "link": "/docs/run-packages-binding/"
             },
