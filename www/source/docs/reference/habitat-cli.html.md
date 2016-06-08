@@ -8,6 +8,7 @@ The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 
 - [hab](#hab)
 - [hab artifact](#hab-artifact)
+- [hab cli](#hab-cli)
 - [hab config](#hab-config)
 - [hab file](#hab-file)
 - [hab origin](#hab-origin)
@@ -71,6 +72,23 @@ Subcommand used for signing and uploading packages.
     sign      Signs a archive file with with an origin key, creating a Habitat artifact
     upload    Uploads a local package artifact to a depot
     verify    Verifies a Habitat artifact with an origin key
+
+***
+
+<h2 id="hab-cli" class="anchor">hab cli</h2>
+Subcommand for changing the behavior of the command-line interface.
+
+**USAGE**
+
+    hab cli [FLAGS] [SUBCOMMAND]
+
+**FLAGS**
+
+    -h, --help    Prints help information
+
+**SUBCOMMANDS**
+
+    setup    Performs initial configuration for the command-line interface.
 
 ***
 
