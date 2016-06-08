@@ -3,7 +3,7 @@ title: Add configuration to your plan
 ---
 
 # Add configuration to your plan
-When you create a plan, you may optionally define which configuration settings can be overridden through the use of a templatized [Handlebars.js](https:handlebars.js.com) version of the native application configuration file. Default settings are then specified in and updated from a corresponding [TOML](https://github.com/toml-lang/toml) file.  
+When you create a plan, you may optionally define which configuration settings can be overridden through the use of a templatized [Handlebars.js](http://handlebarsjs.com) version of the native application configuration file. Default settings are then specified in and updated from a corresponding [TOML](https://github.com/toml-lang/toml) file.  
 
 In this tutorial, the archive for our Node.js app already has a configuration file called `config.json` that populates a message and specifies a listening port for the http server. We will use that file as a template for the settings that can be overridden at start up or while our service is running.
 
