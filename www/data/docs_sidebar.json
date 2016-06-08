@@ -74,13 +74,7 @@
         },
         {
           "title": "Build packages",
-          "link": "/docs/build-packages-overview/",
-          "sub_links": [
-            {
-              "title": "Package contents",
-              "link": "/docs/package-contents/"
-            }
-          ]
+          "link": "/docs/build-packages-overview/"
         },
         {
           "title": "Run packages",
@@ -112,6 +106,10 @@
         {
           "title": "Plan syntax",
           "link": "/docs/reference/plan-syntax/"
+        },
+        {
+          "title": "Package contents",
+          "link": "/docs/reference/package-contents/"
         }
       ]
     }
