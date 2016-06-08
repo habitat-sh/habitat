@@ -466,9 +466,3 @@ exit_with "Something bad happened" 55
 
 trim()
 : Trims leading and trailing whitespace characters from a bash variable.  
-
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/build-packages-overview">Build packages</a></li>
-</ul>

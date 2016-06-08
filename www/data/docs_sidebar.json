@@ -69,10 +69,6 @@
             {
               "title": "Add configuration",
               "link": "/docs/configure-packages/"
-            },
-            {
-              "title": "Plan syntax guide",
-              "link": "/docs/plan-syntax/"
             }
           ]
         },
@@ -112,6 +108,10 @@
         {
           "title": "CLI reference",
           "link": "/docs/reference/habitat-cli/"
+        },
+        {
+          "title": "Plan syntax",
+          "link": "/docs/reference/plan-syntax/"
         }
       ]
     }
