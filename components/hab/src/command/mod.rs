@@ -6,6 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 pub mod artifact;
+pub mod cli;
 pub mod config;
 pub mod file;
 pub mod pkg;

@@ -69,9 +69,15 @@ pub fn get() -> App<'static, 'static> {
                  "A path to any local file")
             )
         )
+        (@subcommand cli =>
+            (about: "Commands relating to Habitat runtime config")
+            (aliases: &["cl"])
+            (@setting ArgRequiredElseHelp)
+            (subcommand: sub_cli_setup().aliases(&["s", "se", "set", "setu"]))
+        )
         (@subcommand config =>
             (about: "Commands relating to Habitat runtime config")
-            (aliases: &["c", "co", "con", "conf", "confi"])
+            (aliases: &["co", "con", "conf", "confi"])
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_config_apply().aliases(&["a", "ap", "app", "appl"]))
         )
@@ -302,6 +308,12 @@ fn sub_config_apply() -> App<'static, 'static> {
          "A version number (positive integer) for this configuration (ex: 42)")
         (@arg FILE: {file_exists_or_stdin}
          "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+    )
+}
+
+fn sub_cli_setup() -> App<'static, 'static> {
+    clap_app!(@subcommand setup =>
+        (about: "Sets up the CLI with reasonable defaults.")
     )
 }
 

@@ -12,10 +12,10 @@ libc = "*"
 log = "*"
 pbr = "*"
 regex = "*"
-# Temporary depdency for gossip/rumor injection code duplication.
 rustc-serialize = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 temp_utp = "*"
+toml = "*"
 url = "*"
 uuid = "0.1"
 

@@ -16,6 +16,7 @@ dependencies = [
  "regex 0.1.69 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "temp_utp 0.8.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "toml 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
