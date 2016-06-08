@@ -11,6 +11,10 @@ docs_url = "https://www.habitat.sh/docs"
 # production mode
 environment = "production"
 
+# If `friends_only` is `true`, you use the pre-launch friends.habitat.sh to
+# access the site.
+friends_only = true
+
 # The URL for Habitat's source code
 # GitHub Client ID for OAuth2
 github_client_id = ""

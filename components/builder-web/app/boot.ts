@@ -29,7 +29,8 @@ if (config["environment"] === "production") {
     enableProdMode();
 
     // Don't load if we're on habitat.sh and the "friends" cookie is not set
-    if (window.location.host.endsWith("habitat.sh") &&
+    if (config["friends_only"] &&
+        window.location.host.endsWith("habitat.sh") &&
         !document.cookie.includes("habitat_is_not_bldr")) {
         goingToBoot = false;
     }
