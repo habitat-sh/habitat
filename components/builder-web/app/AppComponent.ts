@@ -11,6 +11,7 @@ import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {OriginCreatePageComponent} from "./origin-create-page/OriginCreatePageComponent";
+import {OriginPageComponent} from "./origin-page/OriginPageComponent";
 import {OriginsPageComponent} from "./origins-page/OriginsPageComponent";
 import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
 import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
@@ -76,6 +77,11 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
         path: "/origins/create",
         name: "OriginCreate",
         component: OriginCreatePageComponent,
+    },
+    {
+        path: "/origins/:origin",
+        name: "Origin",
+        component: OriginPageComponent,
     },
     {
         path: "/orgs",

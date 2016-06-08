@@ -20,6 +20,14 @@ export default function origins(state = initialState["origins"], action) {
         case actionTypes.SET_CURRENT_ORIGIN_CREATING_FLAG:
             return state.setIn(["ui", "current", "creating"], action.payload);
 
+        case actionTypes.SET_ORIGIN_ADDING_PRIVATE_KEY:
+            return state.setIn(["ui", "current", "addingPrivateKey"],
+                action.payload);
+
+        case actionTypes.SET_ORIGIN_ADDING_PUBLIC_KEY:
+            return state.setIn(["ui", "current", "addingPublicKey"],
+                action.payload);
+
         case actionTypes.TOGGLE_ORIGIN_PICKER:
             return state.setIn(["ui", "isPickerOpen"],
                 !state.getIn(["ui", "isPickerOpen"]));
