@@ -10,6 +10,10 @@
   padding-top: $base-spacing;
   position: relative;
 
+  &:last-child {
+    margin-right: rem(25);
+  }
+
   .switcher {
     background-color: $hab-green;
     font-size: 90%;
@@ -43,7 +47,6 @@
     a {
       color: $base-font-color;
       display: block;
-      margin-right: rem(8);
 
       &:hover {
         color: $hover-color;

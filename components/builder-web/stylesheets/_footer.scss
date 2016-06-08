@@ -1,0 +1,123 @@
+.main-footer {
+  background-color: $hab-green-light;
+  background-image: url("../assets/images/footer-mask.png"), linear-gradient(240deg, lighten($hab-green-light, 3%), $hab-green-light);
+  background-position: center top;
+  background-repeat: repeat-x, no-repeat;
+  background-size: auto rem(247), cover;
+  color: $white;
+  margin-top: rem(90);
+  padding: rem(30) 0 rem(90);
+  position: relative;
+  z-index: 5;
+
+  &.has-sidebar {
+    padding-top: 0;
+  }
+
+  h4 {
+    color: $white;
+  }
+}
+
+.footer--cta {
+  border-bottom: 1px solid lighten($hab-green-light, 10%);
+  padding-bottom: rem(90);
+  text-align: center;
+}
+
+.footer--cta-heading {
+  font-size: rem(28);
+  margin-bottom: rem(40);
+  text-shadow: 0 2px 23px $medium-gray-40;
+}
+
+.footer--cta-button {
+  @extend .button;
+  @include primary-button;
+  box-shadow: 0 2px 35px darken($hab-green, 20%);
+  padding: rem(18) rem(40);
+}
+
+.footer--cta-subtext {
+  color: lighten($hab-gray, 10%);
+  font-size: rem(12);
+  margin-bottom: 0;
+}
+
+.footer--logos {
+  @include span-columns(12);
+  margin-bottom: rem(30);
+
+  @include media($medium-screen) {
+    @include span-columns(6);
+  }
+
+  @include media($large-screen) {
+    @include span-columns(4);
+  }
+}
+
+.footer--logo {
+  display: block;
+  margin-bottom: rem(20);
+}
+
+.footer--sitemap {
+  @include outer-container;
+  @include pad(default 15px 0);
+
+  a {
+    color: lighten($hab-green-light, 25%);
+  }
+}
+
+.footer--links {
+  @include span-columns(12);
+
+  @include media($medium-screen) {
+    @include span-columns(6);
+  }
+
+  @include media($large-screen) {
+    @include span-columns(8);
+  }
+
+  ul {
+    @include span-columns(6 of 12);
+    @include omega(2n);
+    display: block;
+    margin-bottom: rem(30);
+
+    @include media($medium-screen) {
+      @include span-columns(4 of 8);
+    }
+
+    @include media($large-screen) {
+      @include span-columns(2 of 8);
+      @include omega-reset(2n, 8);
+      @include omega(4n);
+    }
+  }
+}
+
+.footer--sitemap--link {
+  margin-bottom: rem(10);
+}
+
+.footer--legal {
+  @include outer-container;
+}
+
+.footer--copyright {
+  @include span-columns(12);
+  color: lighten($hab-green-light, 25%);
+  font-size: rem(12);
+  margin-top: rem(30);
+
+  @include media($medium-screen) {
+    @include span-columns(8);
+    @include shift(4);
+  }
+
+  a { color: $white; }
+}

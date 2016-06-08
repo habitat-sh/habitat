@@ -46,3 +46,12 @@
 @mixin cta-button {
   @include primary-button($hab-orange, $hab-orange-dark);
 }
+
+// ------------------------------------------------------------
+// Omega Reset (http://www.joshfry.me/blog/2013/05/13/omega-reset-for-bourbon-neat)
+// ------------------------------------------------------------
+
+@mixin omega-reset($nth, $columns: 12) {
+  &:nth-child(#{$nth}) { margin-right: flex-gutter($columns); }
+  &:nth-child(#{$nth}+1) { clear: none; }
+}
