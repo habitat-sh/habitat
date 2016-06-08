@@ -24,42 +24,40 @@ pub mod setup {
 
         println!("");
         title("Habitat CLI Setup");
-        para("Welcome to hab setup, let's get started.");
+        para("Welcome to hab setup. Let's get started.");
 
-        heading("Setup a default origin");
-        para("Far far away, behind the word mountains, far from the countries Vokalia and \
-             Consonantia, there live the blind texts. Separated they live in Bookmarksgrove \
-             right at the coast of the Semantics, a large language ocean. A small river named \
-             Duden flows by their place and supplies it with the necessary regelialia. It is a \
-             paradisematic country, in which roasted parts of sentences fly into your mouth. \
-             Even the all-powerful Pointing has no control about the blind texts it is an almost \
-             unorthographic life One day however a small line of blind text by the name of Lorem \
-             Ipsum decided to leave for the far World of Grammar.");
-        para("https://www.habitat.sh/docs/reference/habitat-cli/#hab-studio");
+        heading("Set up a default origin");
+        para("Every package in Habitat belongs to an origin, which indicates the person or \
+              organization responsible for maintaining that package. Each origin also has \
+              a key used to cryptographically sign packages in that origin.");
+        para("Selecting a default origin tells package building operations such as 'hab pkg \
+              build' what key should be used to sign the packages produced. If you do not \
+              set a default origin now, you will have to tell package building commands each \
+              time what origin to use.");
+        para("For more information on origins and how they are used in building packages, \
+              please consult the docs at https://www.habitat.sh/docs/build-packages-overview/");
         if try!(ask_default_origin()) {
             println!("");
-            para("When she reached the first hills of the Italic Mountains, she had a last view \
-                 back on the skyline of her hometown Bookmarksgrove, the headline of Alphabet \
-                 Village and the subline of her own road, the Line Lane.");
+            para("Enter the name of your origin. If you plan to publish your packages publicly, \
+                  we recommend that you select one that is not already in use on the Habitat \
+                  build service found at https://app.habitat.sh/.");
             let origin = try!(prompt_origin());
             try!(write_cli_config(&origin));
             println!("");
             if is_origin_in_cache(&origin, cache_path) {
-                para(&format!("You already have an origin key for {} created and installed, \
-                              great work!",
+                para(&format!("You already have an origin key for {} created and installed. \
+                              Great work!",
                               &origin));
             } else {
                 heading("Create origin key pair");
-                para("Far far away, behind the word mountains, far from the countries Vokalia \
-                      and Consonantia, there live the blind texts. Separated they live in \
-                      Bookmarksgrove right at the coast of the Semantics, a large language \
-                      ocean. A small river named Duden flows by their place and supplies it with \
-                      the necessary regelialia. It is a paradisematic country, in which roasted \
-                      parts of sentences fly into your mouth. Even the all-powerful Pointing has \
-                      no control about the blind texts it is an almost unorthographic life One \
-                      day however a small line of blind text by the name of Lorem Ipsum decided \
-                      to leave for the far World of Grammar.");
-                para("https://www.habitat.sh/docs/concepts-keys/#origin-keys");
+                para(&format!("It doesn't look like you have a signing key for the origin `{}'. \
+                               Without it, you won't be able to build new packages successfully.",
+                              &origin));
+                para("You can either create a new signing key now, or, if you are building \
+                      packages for an origin that already exists, ask the owner to give you the \
+                      signing key.");
+                para("For more information on the use of origin keys, please consult the \
+                      documentation at https://www.habitat.sh/docs/concepts-keys/#origin-keys");
                 if try!(ask_create_origin(&origin)) {
                     try!(create_origin(&origin, cache_path));
                     generated_origin = true;
@@ -75,33 +73,24 @@ pub mod setup {
         heading("Analytics");
         para("The `hab` command-line tool will optionally send anonymous usage data to Habitat's \
              Google Analytics account. This is a strictly opt-in activity and no tracking will \
-             occur unless you respond affirmatively to the question during `hab setup`. If you \
-             do not use `hab setup`, no data will ever be sent.");
-        para("We collect this data to help improve Habitat's user experience: for example, to \
-             know what tasks users are performing, and which ones they are having trouble with \
-             (e.g. mistyping command line arguments).");
-        para("By anonymous we mean that all identifying information about you is removed before \
-             we send the data. This includes the removal of any information about what packages \
-             you are building, or what origins you are using. For example, if you were building \
-             the package `yourname/yourapp`, and you typed `hab pkg build -k yourkey \
-             yourname/yourapp`, the fact that you were performing the `pkg build` operation \
-             would be transmitted. Neither the name of the specific package you are building, \
-             nor the fact that you are using the `yourkey` key to sign that package would be \
-             transmitted.");
-        para("Please do not hesitate to contact us at support@habitat.sh if you have \
-             questions or concerns about the use of Google Analytics within the Habitat product.");
+             occur unless you respond affirmatively to the question below.");
+        para("We collect this data to help improve Habitat's user experience. For example, we \
+              would like to know the category of tasks users are performing, and which ones they \
+              are having trouble with (e.g. mistyping command line arguments).");
+        para("To see what kinds of data are sent and how they are anonymized, please read more \
+             about our analytics here: https://www.habitat.sh/docs/about-analytics/");
         if try!(ask_enable_analytics(analytics_path)) {
             try!(opt_in_analytics(analytics_path, generated_origin));
         } else {
             try!(opt_out_analytics(analytics_path));
         }
         heading("CLI Setup Complete");
-        para("That's all, thanks for playing along!");
+        para("That's all for now. Thanks for using Habitat!");
         Ok(())
     }
 
     fn ask_default_origin() -> Result<bool> {
-        prompt_yes_no("Set up a default origin key?", Some(true))
+        prompt_yes_no("Set up a default origin?", Some(true))
     }
 
     fn ask_create_origin(origin: &str) -> Result<bool> {
