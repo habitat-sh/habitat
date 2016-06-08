@@ -58,6 +58,11 @@ do_prepare() {
   # Source: https://lists.debian.org/debian-glibc/2013/11/msg00116.html
   patch -p1 < $PLAN_CONTEXT/testsuite-fix.patch
 
+  # Fix for CVE-2015-7547 and more
+  #
+  # Source: http://www.linuxfromscratch.org/patches/downloads/glibc/glibc-2.22-upstream_fixes-1.patch
+  patch -p1 < $PLAN_CONTEXT/glibc-2.22-upstream_fixes-1.patch
+
   # Adjust `scripts/test-installation.pl` to use our new dynamic linker
   sed -i "s|libs -o|libs -L${pkg_prefix}/lib -Wl,-dynamic-linker=${dynamic_linker} -o|" \
     scripts/test-installation.pl
