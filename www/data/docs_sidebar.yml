@@ -45,6 +45,8 @@ sidebar_links:
     sub_links:
     - title: Service groups
       link: "/docs/run-packages-service-groups/"
+    - title: Configuration updates
+      link: "/docs/run-packages-apply-config-updates/"
     - title: Binding
       link: "/docs/run-packages-binding/"
     - title: Security
