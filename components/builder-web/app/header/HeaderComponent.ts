@@ -18,7 +18,7 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
     template: `
       <div class="main-nav--container clearfix">
         <div class="main-nav--logo">
-          <a href="/"><h1>{{appName}}</h1></a>
+          <a [routerLink]="['PackagesForOrigin', { origin: 'core' }]"><h1>{{appName}}</h1></a>
         </div>
         <nav class="main-nav--links-wrap">
           <div class="main-nav--toggle">
@@ -35,7 +35,7 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
             </svg>
           </div>
           <div class="main-nav--cta">
-            <a class="button" href="/#/sign-in">Sign Up</a>
+            <a class="button" [routerLink]="['SignIn']">Sign In</a>
           </div>
           <ul class="main-nav--links">
               <li class="main-nav--link"><a class="search-packages" [routerLink]="['PackagesForOrigin', { origin: 'core' }]">Search Packages</a></li>

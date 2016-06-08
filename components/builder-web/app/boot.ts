@@ -8,6 +8,10 @@
 ///<reference path="../node_modules/angular2/typings/browser.d.ts"/>
 ///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
 
+// Include the nav control from the main website
+require("./zepto-custom");
+import "./nav";
+
 import "angular2/bundles/angular2-polyfills";
 import { bind, enableProdMode } from "angular2/core";
 import { bootstrap } from "angular2/platform/browser";
@@ -40,3 +44,4 @@ if (goingToBoot) {
         bind(LocationStrategy).toClass(HashLocationStrategy)
     ]);
 }
+

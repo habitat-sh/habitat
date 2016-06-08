@@ -15,4 +15,6 @@ habitatConfig({
     source_code_url: "https://github.com/habitat-sh/habitat",
     // The URL for tutorials
     tutorials_url: "https://www.habitat.sh/tutorials",
+    // The main website URL
+    www_url: "https://www.habitat.sh",
 });
