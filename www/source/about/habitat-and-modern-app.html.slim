@@ -1,0 +1,211 @@
+---
+title: Habitat and the Modern Application
+---
+
+h1 Habitat and the Modern Application
+
+p In the article,
+  #{link_to '"What Is a Modern Application?"', '/about/what-is-modern-app.html'}
+  we talked about what characterizes a modern application and how such
+  applications can address the problems of complexity and scale. In this
+  article, we'll talk about how Habitat lets any application, whether green
+  field or legacy, have those characteristics.
+
+p The short version is that Habitat offers a new approach to deploying
+  applications called <em>application automation</em>. 
+
+p Application automation means that the automation is packaged with the
+  application and travels with it, no matter where that application is
+  deployed. The unit of deployment becomes the application <em>and</em> its
+  associated automation. The runtime environment, whether it is a container,
+  bare metal, or PaaS, isn't the center of focus. It does not in any way define
+  the application.
+
+p Instead of managing the infrastructure and any supporting dependencies
+  separately from the application, Habitat includes everything that an
+  application needs, throughout its lifetime, within a Habitat package. 
+
+p A Habitat package is isolated, immutable and can establish relationships with
+  peers. Habitat gives developers a straightforward way to describe how an
+  application should behave in its eventual infrastructure environment.
+  Habitat also has an outward-facing API that presents a standard interface to
+  the world, so that other components, such as load balancers or monitoring
+  solutions, can easily communicate with the application. 
+
+p Wrapping any application in a Habitat package gives it the characteristics we
+  want in a modern application. 
+
+h2 Benefits of application automation with Habitat
+
+p Habitat speaks directly to the problem of complexity <em>and</em>
+  high-velocity development. It handles all the management tasks that deflect
+  teams from focusing on actually developing new products and features. It
+  frees legacy applications from being tied to a particular environment, and
+  makes them portable and simpler to manage. 
+
+p Habitat also promotes collaboration and transparency. The Habitat files that
+  describe an application's behavior are human-readable and can be stored in a
+  version control system such as Git. They are also simple to write. The API
+  presents a clear interface that make it easy for different team members to
+  define the areas that concern them most, such as monitoring.
+
+h2 Habitat Details
+
+p Habitat is a full-featured runtime with deployment coordination and service
+  discovery capabilities built in. Habitat is comprised of:
+
+ul
+  li A packaging format
+  li A supervisor
+
+p The format defines Habitat packages, which are isolated, immutable and
+  auditable. The term <em>auditable</em> means that the package can keep track
+  of what happened to it, who did it, where it happened, how it happened and
+  when. By <em>isolated</em>, we mean that each package contains everything it
+  needs to run. There are no outside dependencies. By <em>immutable</em> we
+  mean that a particular version of the package never changes. If something
+  does change&mdash;including available versions of dependencies&mdash;you
+  create a new Habitat package, which has its own unique identifier. 
+
+p The Habitat supervisor knows how to take the packages and run them. It's
+  aware of the package's peer relationships, its upgrade strategy and security
+  policies. 
+
+p Security is important because once distributed pieces of an application begin
+  communicating with each other you also need trust relationships. You need to
+  have security that's built into the system, not only for policy changes but
+  for ongoing compliance. 
+
+p In addition, the Habitat ecosystem includes a build service that retrieves
+  the source code for a package from a depot and creates the packages. There is
+  a cloud-based, public-facing depot maintained by Chef. It is also possible to
+  have a private depot. A Habitat depot is similar to
+  #{link_to 'Docker Hub', 'https://www.docker.com/products/docker-hub'}
+  and the
+  #{link_to 'Ubuntu apt service', 'http://manpages.debian.org/cgi-bin/man.cgi?query=apt&sektion=8'}
+  .
+
+h2 The Habitat Plan
+
+p To build a package, Habitat uses a build description, called a <em>plan</em>,
+  which describes the application, its dependencies, and configuration options.
+  The Habitat build service takes all these components and wraps them into a
+  single, encrypted or signed artifact, which can be configured dynamically
+  when the service starts. 
+
+p Here is an example of a plan to create a Habitat package for
+  #{link_to 'ElasticSearch', 'https://aws.amazon.com/elasticsearch-service/'}
+  :
+
+pre
+  | pkg_name=elasticsearch
+    pkg_origin=chefops
+    pkg_version=2.3.2
+    pkg_maintainer="Ben Rockwood <benr@chef.io>"
+    pkg_license=('Revised BSD')
+    pkg_source=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
+    pkg_filename=${pkg_name}-${pkg_version}.tar.gz
+    pkg_shasum=04c4d3913d496d217e038da88df939108369ae2e78eea29cb1adf1c4ab3a000a
+    pkg_deps=(core/glibc chefops/jdk8)
+    pkg_bin_dirs=(bin)
+    pkg_lib_dirs=(lib)
+    pkg_expose=(9200 9300)
+    pkg_service_run="es/bin/elasticsearch --default.path.conf=${pkg_svc_config_path} 2>&1"
+    do_build() {
+      return 0
+    }
+    do_install() {
+      build_line "Copying files from $PWD"
+      mkdir -p $pkg_prefix/es
+      cp -r * $pkg_prefix/es
+    }
+
+p The first three values form part of the package's fully qualified name. The
+  <code>pkg_source</code> value specifies the archive that contains the
+  ElasticSearch pre-compiled binaries, configuration files, and related JAR
+  files. The <code>pkg_shasum</code> value is the package's checksum. The
+  <code>pkg_deps</code> values list the runtime dependencies for ElasticSearch.
+  The <code>pkg_bin_dirs</code> value specifies the location for the
+  ElasticSearch binary. The <code>pkg_expose</code> values specify which
+  Docker ports need to be exposed if this package is exported to a Docker
+  image. Finally, the <code>pkg_service_run</code> value specifies how the
+  ElasticSearch binary should be run when the supervisor starts the
+  ElasticSearch package payload.
+
+p The callbacks override certain default behaviors such as compiling and
+  building binaries from source code and installing them into the package
+  directory. Instead, because the ElasticSearch archive does not contain any
+  source code to compile, the <code>do_build</code> callback has been
+  overridden to simply exit the function. Likewise, the <code>do_install</code>
+  callback makes a directory in the package where the archive contents will be
+  copied and copies the contents to that location. Other default callback
+  functions such as unpacking the archive, verifying its checksum, and
+  performing any cleanup work of the archive have not been overridden.
+
+h2 Habitat and the Production Environment 
+
+p Applications packaged by Habitat display the following characteristics in a
+  production environment: 
+
+ul
+  li They can be dynamically configured at runtime.
+  li They can establish relationships with their peers.
+  li They are security aware, which means they are encrypted at the artifact
+    and secret level.
+  li They can be replaced with new versions according to the policies of the IT
+    organization.
+  li They can express their state, be monitored, and interact with other
+    components.
+
+p The following table summarizes how Habitat creates applications that fulfill
+  the requirements of a production environment. 
+
+table
+  thead
+    tr
+      th Requirement
+      th Habitat
+  tbody
+    tr
+      td Configurable at runtime
+      td Habitat allows you to send in configuration information. If it's
+        correct, Habitat changes the configuration of the service and restarts
+        it using a defined update strategy.
+    tr
+      td Can establish peer relationships
+      td When you start a service, you can specify the peer relationship
+        topology. A topology can be standalone (the application doesn't talk to
+        anything else), leader/follower (you supply the IP address of another
+        member) or initializer (this is custom code you write yourself).
+    tr
+      td Security aware
+      td The supervisor has a number of built-in security features. For
+        example, it can be set up to use wire encryption when speaking with
+        peers in a supervisor network; it can be set up to trust or distrust
+        Habitat packages signed with a certain origin key; it can trust or
+        distrust configuration policy changes applied by users or by other
+        peers. Habitat uses modern cryptography implemented in the
+        #{link_to 'NaCl', 'http://nacl.cr.yp.to/'}
+        (pronounced "Salt") library.
+    tr
+      td Software upgrades and rolling deployments
+      td The supervisor understands cluster topologies and has an update
+        strategy. The supervisor triggers that strategy by watching a depot.
+        By pointing the supervisor to the depot and specifying the service, it
+        automatically checks, on a periodic basis, to see if there's a new
+        package. If there is, it downloads that package and then goes into the
+        upgrade cycle and applies the strategy. You can have rolling deployment
+        without a central orchestrator.
+    tr
+      td Status
+      td The Habitat supervisor can determine the state of a service and bring
+        it back up if it is down.
+    tr
+      td Monitoring, health checks, interactions with other components
+      td The Habitat supervisor has an HTTP API that exposes information about
+        the package it is supervising, as well as any configuration changes it
+        has received. The HTTP API also provides a mechanism for monitoring
+        systems to invoke health checks defined by the application author when
+        the Habitat package was built. This provides easy integration with
+        existing monitoring systems such as Nagios or Sensu, or even with
+        entities external to Habitat, such as load balancers.
