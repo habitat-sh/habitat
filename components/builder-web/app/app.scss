@@ -11,6 +11,7 @@
 @import "neat";
 @import "octicons.scss";
 
+@import "footer";
 @import "checking-input";
 @import "drop-down";
 @import "item-list";
@@ -36,11 +37,6 @@
 @import "side-nav/side-nav";
 @import "sign-in-page/sign-in-page";
 
-html,
-body {
-  height: 100%;
-}
-
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -64,12 +60,11 @@ body {
 }
 
 .hab-main {
-  @include shadow-float;
   @include span-columns(10);
   background-color: $white;
   border-radius: 0 0 $global-radius $global-radius;
   height: 100%;
-  min-height: 110vh;
+  min-height: 75vh;
   position: relative;
   z-index: 50;
 
@@ -116,13 +111,4 @@ body {
       text-align: center;
     }
   }
-}
-
-.hab-footer {
-  @include outer-container;
-  @include span-columns(12);
-  @include pad($base-spacing 0);
-
-  bottom: $base-spacing;
-  font-size: 75%;
 }

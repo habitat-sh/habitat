@@ -26,3 +26,7 @@ $grid-column-gutter: (
 );
 $grid-column-align-edge: true;
 $block-grid-max: 8;
+
+// Overrides for omega-rest mixin (http://www.joshfry.me/blog/2013/05/13/omega-reset-for-bourbon-neat)
+$fg-column: $column;
+$fg-gutter: $gutter;

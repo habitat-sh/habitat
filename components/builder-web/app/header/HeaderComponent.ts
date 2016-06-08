@@ -38,9 +38,7 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
             <a class="button" href="/#/sign-in">Sign Up</a>
           </div>
           <ul class="main-nav--links">
-              <li class="main-nav--link"><a class="search-packages" [routerLink]="['PackagesForOrigin', { origin: 'core' }]">
-                  Packages
-              </a></li>
+              <li class="main-nav--link"><a class="search-packages" [routerLink]="['PackagesForOrigin', { origin: 'core' }]">Search Packages</a></li>
               <li class="main-nav--link"><a class="docs" href="{{config['docs_url']}}">Docs</a></li>
               <li class="main-nav--link"><a class="tutorials" href="{{config['tutorials_url']}}">Tutorials</a></li>
               <li class="main-nav--link"><a class="community" href="{{config['community_url']}}">Community</a></li>

@@ -45,4 +45,3 @@ $(window).resize(function() {
 $(window).scroll(function() {
   toggleStickyNav();
 });
-

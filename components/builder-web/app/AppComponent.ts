@@ -52,10 +52,46 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
         <section class="hab-main" [ngClass]="{centered: hideNav}">
             <router-outlet></router-outlet>
         </section>
-        <footer class="hab-footer">
-            <p>&copy; {{state.app.currentYear}} Chef Software, Inc. All Rights Reserved. Patent Pending.</p>
-        </footer>
-    </div>`,
+    </div>
+    <footer class="main-footer">
+      <div class="footer--sitemap">
+
+          <div class="footer--logos">
+            <a href="/" title="Habitat Home">
+              <img class="footer--logo habitat" src="../assets/images/logo-chef-habitat-lockup.svg" onerror="this.src='../assets/images/habitat-logo-by-chef-white.png'" alt="Habitat by Chef" />
+            </a>
+          </div>
+          <div class="footer--links">
+            <ul class="no-bullet">
+              <li><h4>Habitat</h4></li>
+              <li class="footer--sitemap--link"><a href="/">Home</a></li>
+              <li class="footer--sitemap--link"><a href="/docs">Docs</a></li>
+              <li class="footer--sitemap--link"><a href="/tutorials">Tutorials</a></li>
+            </ul>
+            <ul class="no-bullet">
+              <li><h4>Habitat Web</h4></li>
+              <li class="footer--sitemap--link"><a href="https://app.habitat.sh/#/sign-in">Sign Up</a></li>
+              <li class="footer--sitemap--link"><a href="https://app.habitat.sh/#/sign-in">Log In</a></li>
+              <li class="footer--sitemap--link"><a href="https://app.habitat.sh/#/pkgs/core">Search Packages</a></li>
+            </ul>
+            <ul class="no-bullet">
+              <li><h4>More</h4></li>
+              <li class="footer--sitemap--link"><a href="/about">About</a></li>
+              <li class="footer--sitemap--link"><a href="/community">Community</a></li>
+            </ul>
+            <ul class="no-bullet">
+              <li><h4>Legal</h4></li>
+              <li class="footer--sitemap--link"><a href="/legal/licensing">Licensing</a></li>
+              <li class="footer--sitemap--link"><a href="/legal/terms-and-conditions">Terms &amp; Conditions</a></li>
+              <li class="footer--sitemap--link"><a href="/legal/trademark-policy">Trademark Policy</a></li>
+              <li class="footer--sitemap--link"><a href="/legal/privacy-policy">Privacy Policy</a></li>
+            </ul>
+          </div>
+      </div>
+      <div class="footer--legal">
+        <p class="footer--copyright">&copy; {{state.app.currentYear}} <a href="http://chef.io">Chef Software, Inc</a>. All Rights Reserved. Patent Pending.</p>
+      </div>
+    </footer>`,
 })
 
 @RouteConfig([
