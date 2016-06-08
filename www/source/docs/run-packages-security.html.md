@@ -92,3 +92,9 @@ To aid the user in the visual identification of the many varieties of keys in us
 | Public user key | BOX-PUB-1 | username-YYYYMMDDRRRRRR.pub |
 
 Keys that contain `SEC` in their header should be guarded carefully. Keys that contain `PUB` in their header can be distributed freely with no risk of information compromise.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-topologies">Topologies</a></li>
+</ul>
