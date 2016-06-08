@@ -3,6 +3,7 @@ habitatConfig({
     community_url: "{{cfg.community_url}}",
     docs_url: "{{cfg.docs_url}}",
     environment: "{{cfg.environment}}",
+    friends_only: {{cfg.friends_only}},
     github_client_id: "{{cfg.github_client_id}}",
     source_code_url: "{{cfg.source_code_url}}",
     tutorials_url: "{{cfg.tutorials_url}}",
