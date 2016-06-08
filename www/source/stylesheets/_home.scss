@@ -55,6 +55,10 @@ $home-medium-breakpoint: rem-calc(880);
   & > .row {
     position: relative;
   }
+
+  .cta-subtext a {
+    color: $hab-orange-dark;
+  }
 }
 
 .hero--content {
@@ -76,7 +80,7 @@ $home-medium-breakpoint: rem-calc(880);
 
   @media (min-width: 941px) {
     max-width: 55%;
-    margin: rem-calc(134) 0 rem-calc(150);
+    margin: rem-calc(94) 0 rem-calc(180);
 
     .community & {
       max-width: 50%;
@@ -87,7 +91,7 @@ $home-medium-breakpoint: rem-calc(880);
 }
 
 .hero--heading {
-  font-size: rem-calc(30);
+  font-size: rem-calc(36);
 
   @include small-home {
     font-size: rem-calc(20);
@@ -96,6 +100,10 @@ $home-medium-breakpoint: rem-calc(880);
 
 .hero--text {
   margin-bottom: rem-calc(40);
+
+  & + .hero--text {
+    margin-top: rem-calc(-20px);
+  }
 }
 
 .hero--graphic {
@@ -363,11 +371,11 @@ $sub-hero-skew: 5deg;
   padding: rem-calc(30) rem-calc(10);
   margin-bottom: rem-calc(60);
   text-align: center;
-  font-size: rem-calc(18);
+  font-size: rem-calc(20);
   box-shadow: 2px 2px 34px rgba($hab-blue-grey, 0.52);
 
   & > p {
-    max-width: rem-calc(380);
+    max-width: rem-calc(400);
     margin: 0 auto 1.25rem;
   }
 
@@ -570,30 +578,44 @@ $testimonials-slider-transition: 1s;
   }
 }
 
-.testimonial--image,
-.testimonial--blurb {
-  display: inline-block;
-  vertical-align: middle;
+@include breakpoint(medium) {
+  .testimonial--image,
+  .testimonial--blurb {
+    display: inline-block;
+    vertical-align: middle;
+  }
 }
 
 .testimonial--image {
   position: relative;
-  padding-bottom: 15%;
-  width: 17%;
-  margin-right: 2%;
+  padding-bottom: 20px;
   background: url('/images/graphics/testimonial.svg') no-repeat;
   background-size: cover;
 
-  img {
-    position: absolute;
-    top: 19%;
-    right: 15%;
-    width: 53%;
+  & > img {
+    display: block;
+    width: 90%;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  @include breakpoint(medium) {
+    width: 35%;
+    margin-right: 1%;
+    padding-bottom: 15%;
+
+    & > img {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+    }
   }
 }
 
 .testimonial--blurb {
-  width: 79%;
+  @include breakpoint(medium) {
+    width: 63%;
+  }
 }
 
 .testimonial--blurb--text {
@@ -616,15 +638,22 @@ $testimonials-slider-transition: 1s;
   text-align: center;
 }
 
-.testimonials--nav--img {
-  max-width: rem-calc(32);
+.testimonials--nav--dot {
+  display: inline-block;
+  width: rem-calc(14);
+  height: rem-calc(14);
   padding: rem-calc(4);
-  border: 1px solid transparent;
-  margin-right: rem-calc(4);
-  transition: border $testimonials-slider-transition ease;
+  margin-right: rem-calc(12);
+  transition: all $testimonials-slider-transition ease;
   border-radius: 50%;
+  background: $hab-gray-dark;
+  box-shadow: 0 0 0 3px $white,
+    0 0 0 4px transparent;
+
 
   &.is-active {
-    border: 1px solid $hab-orange-dark;
+    box-shadow: 0 0 0 3px $white,
+      0 0 0 4px $hab-orange-dark;
+    background: $hab-orange-dark;
   }
 }

@@ -7,14 +7,20 @@ section.hero
     .columns.medium-12
       .hero--content
         h1.hero--heading
-          | Automation that travels with your app
+          | Habitat is automation that travels with the app
         p.hero--text
-          | When automation travels with your app, you can be confident
-            that what you build, deploy and manage will behave consistently
-            in any runtime.
+          | Habitat is a new approach to automation that focuses on
+            the application instead of the infrastructure it runs on.
+            With Habitat, the apps you build, deploy and manage behave
+            consistently in any runtime-- bare metal, VMs, containers,
+            and PaaS. You'll spend less time on the environment and more
+            time building features.
+        p.hero--text
+          | Habitat is an open source project, and we’d love for you to
+            get involved.
         a.button.cta href="/try" Try the Demo
         p.cta-subtext
-          | Get an interactive overview in less than 10 minutes.<br/>
+          | Take a quick, interactive tour in less than 10 minutes.<br/>
             Just need the bits? <a href="/docs/get-habitat">Download habitat</a>.
     .hero--graphic
       img[src="/images/graphics/hero-package-offset.svg"
@@ -24,31 +30,32 @@ section.sub-hero
   .row
     .columns.medium-12
       .sub-hero--content
-        h2.sub-hero--heading What makes Habitat packages better?
+        h2.sub-hero--heading Why Habitat?
         .row
           .sub-hero--blurb.columns.medium-4
             img.sub-hero--icon[src="/images/icons/subhero-manage.svg"
               onerror="this.src='/icons/subhero-manage.png'" alt=""]
-            h4 Simple to manage
+            h4 Freedom to run anywhere
             p
-              | Check the health of running packages and apply updates through
-                service discovery
+              | Run greenfield and legacy applications anywhere, from bare
+                metal to containers and PaaS. Habitat puts the focus on the app.
 
           .sub-hero--blurb.columns.medium-4
             img.sub-hero--icon[src="/images/icons/subhero-results.svg"
               onerror="this.src='/icons/subhero-results.png'" alt=""]
-            h4 Reproducible results
+            h4 Support for production environments
             p
-              | Get consistent, repeatable behavior in every environment,
-                including production
+              | Make your app production ready with monitoring, runtime
+                configuration, rolling deployment and more.  Put an end to
+                "last-mile" configuration nightmares.
 
           .sub-hero--blurb.columns.medium-4
             img.sub-hero--icon[src="/images/icons/subhero-results.svg"
               onerror="this.src='/icons/subhero-results.png'" alt=""]
-            h4 Platform independent
+            h4 Smart packaging for smart apps
             p
-              | Run them on everything from containers to PaaS to bare metal and
-                retain configurability
+              | Run fast, run smart with Habitat. Habitat apps are immutable
+                and atomically deployed, with self-organizing peer relationships.
         img.sub-hero--graphic src="/images/graphics/subhero-watermark.png" alt=""
 
 section.main-section.first
@@ -62,29 +69,24 @@ section.main-section.first
         .slides
           .slide#slide--plan-and-config
             p.slide--subtext
-              | The <em>plan file</em> contains information about your <br/> app
-                including everything it needs to run.
+              | The <em>Habitat plan</em> contains everything your app needs to run.
             .row
               .columns.large-4
                 ul.slide--blurbs
                   li.slide--blurb
-                    h4 Describe your App
-                    p Each package is uniquely identifiable and versioned
+                    h4 Name your app
+                    p Each package is uniquely identified and versioned
                   li.slide--blurb
                     h4 List your dependencies
-                    p
-                      | Simply list your build &amp; runtime dependencies and
-                        then let Habitat handle the rest
+                    p List your build and runtime dependencies
                   li.slide--blurb
                     h4 Write callbacks &amp; add hooks
-                    p
-                      | Automate your build and install scripts for predictable
-                        results
+                    p Control defaults and app behavior
                   li.slide--blurb
                     h4 Add configuration options
                     p
-                      | Define settings for your app and store them as variables
-                        for re-use
+                      | Use Handlebar expressions in your configuration file
+                        so your app can be tuned at runtime
               .columns.large-8.center-text
                 .slide--images
                   img.slide--main-img[src="/images/graphics/console-windows.svg" alt=""
@@ -100,24 +102,18 @@ section.main-section.first
                 ul.slide--blurbs
                   li.slide--blurb
                     h4 Configurable at runtime
-                    p
-                      | At any time, you can make configuration changes to the
-                        running service
+                    p Packages expose the app's tunables
                   li.slide--blurb
                     h4 Aware of their environment
-                    p
-                      | Packages are aware of the security and the topology
-                        characteristics for their group
+                    p Packages can establish trust relationships between peers
                   li.slide--blurb
                     h4 Can update themselves
-                    p
-                      | When in a group, packages can share settings and conduct
-                        necessary updates automatically
+                    p Packages can auto-update according to policy
                   li.slide--blurb
                     h4 Ready to communicate
                     p
-                      | The http api can be customized to provide health checks
-                        and integrate with other services
+                      | The HTTP API means packages can express state, be monitored,
+                        and interact with other components
               .columns.large-8
                 .slide--images
                   img.slide--main-img[src="/images/graphics/features-package.svg" alt=""
@@ -130,7 +126,7 @@ section.main-section.first
       img[src="/images/graphics/arrow.svg" onerror="this.src='/images/graphics/arrow.png'"
         alt="Habitat plays well with a variety of complementary solutions"]
     .solutions--blurb__mobile
-      p Habitat plays well with a variety of complementary solutions
+      p Habitat plays well with container technologies.
       img[src="/images/habitat-mark.svg" alt=""
         onerror="this.src='/images/habitat-mark-png'"]
     .row
@@ -147,16 +143,23 @@ section.main-section.first
   .production-wrap
     .row
       .production--blurb.columns.medium-6
-        h2 Habitat in production
+        h2 How does it work?
         p
-          | Unlike traditional containers, Habitat packages are built in
-            a way that better enable long-standing best practices.
+          | Habitat is unapologetically app-centric. It's designed with best
+            practices for the modern application in mind.
         p
-          | Service groups start up with a built-in supervisor that provides
-            powerful capabilities with regards to security, topologies, monitoring,
-            service discovery, configuration and more.
-        a.button.cta href="/tutorials" Start the tutorial
-        p.cta-subtext Get an interactive overview in less than 10 minutes
+          | Habitat gives you a packaging format and a runtime supervisor
+            with deployment coordination and service discovery built in.
+        p
+          | Habitat packages contain everything the app needs to run with no
+            outside dependencies. They are isolated, immutable and auditable.
+        p
+          | The Habitat supervisor knows the packaged app's peer relationships,
+            upgrade strategy, and policies for restart and security. The
+            supervisor is also responsible for runtime configuration and
+            connecting to management services, such as monitoring.
+        a.button.cta href="/tutorials" Learn Habitat
+        p.cta-subtext Our tutorials will get you started fast.
       .production--graphic.columns.medium-6
         img[src="/images/graphics/production.svg" onerror="this.src='/images/graphics/production.png'" alt=""]
         .production--icons
@@ -186,12 +189,12 @@ section.legacy-section
   .row
     .columns.medium-12
       h2
-        | Managing a bunch of legacy apps? <br/> Package those up too; no
-          rewrite required.
+        | Liberate your legacy apps.<br/>Package them with Habitat and run
+          anywhere. No rewrite required.
       p
-        | Habitat works the same with all apps even if they were built
-          on older technology or are simply difficult to manage, allowing
-          you to iterate faster and deploy anywhere.
+        | Give legacy apps the habitat they need to thrive in the modern
+          computing ecosystem. They won't know they've left the data center,
+          and there's no need to tell them.
       .legacy-section--image
         img[src="/images/graphics/legacy.svg" alt=""
           onerror="this.src='/images/graphics/legacy.png'"]
@@ -203,45 +206,39 @@ section.main-section.last
         img.main-section--collaboration-icon[src="/images/icons/collaboration.png" alt=""]
         h2 Apps built with Habitat promote transparency and team collaboration
         p
-          | Habitat plans and config files are simple to write, human-readable,
-            and can be stored with the app in your version control system.
+          | Habitat plans and config files are simple to write. They're
+            human-readable and can be stored in your version control system
+            along with the app itself.
         p
-          | The application provides a mangement interface that makes it
-            easy for team members to define what's configurable about the
-            app and expose that information to other apps.
+          | Habitat makes it easy for team members to define what's
+            configurable about their app and expose that information to other
+            apps and components. Working together just got a whole lot easier.
 
       .testimonials-slider
         .testimonial.first.is-active
           .testimonial--image
-            img.testimonial--image-head src=""
+            img src="/images/solutions-logos/mesosphere.png" alt="Mesosphere Logo"
           .testimonial--blurb
             p.testimonial--blurb--text
-              | Pellentesque habitant morbi tristique senectus et netus et
-                malesuada fames ac turbis egestas.
+              | Open source is at the core of the modern application principles
+                powering today’s digital economy. Together, Habitat and DC/OS
+                enable organizations to apply these principles – including autonomy,
+                portability, and scale – to new and legacy applications alike....
             p.testimonial--blurb--attr
-              | John Doe - Software Developer | Etsy
+              | Tobi Knaup - Co-founder and CTO | Mesosphere
 
         .testimonial.second
           .testimonial--image
-            img.testimonial--image-head src=""
+            img src="/images/solutions-logos/rancher.png" alt="Rancher Labs Logo"
           .testimonial--blurb
             p.testimonial--blurb--text
-              | Pellentesque habitant morbi tristique senectus et netus et
-                malesuada fames ac turbis egestas.
+              | Habitat's application automation combined with our container
+              management platform gives development teams the ability to easily
+              build, deploy, and manage their containerized applications on
+              everything from bare metal to the cloud.
             p.testimonial--blurb--attr
-              | John Doe - Software Developer | Etsy
-
-        .testimonial.third
-          .testimonial--image
-            img.testimonial--image-head src=""
-          .testimonial--blurb
-            p.testimonial--blurb--text
-              | Pellentesque habitant morbi tristique senectus et netus et
-                malesuada fames ac turbis egestas.
-            p.testimonial--blurb--attr
-              | John Doe - Software Developer | Etsy
+              | Sheng Liang - CEO | Rancher Labs
 
         .testimonials--nav
-          img.testimonials--nav--img.first.is-active src="/images/testimonial-head-placeholder.png" alt=""
-          img.testimonials--nav--img.second src="/images/testimonial-head-placeholder.png" alt=""
-          img.testimonials--nav--img.third src="/images/testimonial-head-placeholder.png" alt=""
+          .testimonials--nav--dot.first.is-active
+          .testimonials--nav--dot.second
