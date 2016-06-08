@@ -4,9 +4,11 @@ title: Running packages in topologies
 
 # Topologies
 
-By default, supervisors within a service group start with the `standalone` topology. A topology describes the intended relationship between peers within a service group; therefore, a `standalone` topology means that the service group members do not have any relationship with one another, other than sharing the same configuration.
+A topology describes the intended relationship between peers within a service group. Three topologies ship with Habitat by default: standalone, leader-follower and initializer. Both of these topologies employ [leader election](/docs/internals-leader-election) to define a leader.
 
-Two topologies ship with Habitat by default: leader-follower and initializer. Both of these topologies employ [leader election](/docs/internals-leader-election) to define a leader.
+## Standalone
+
+The standalone topology is what a supervisor starts with by default if no topology is specified, or if the topology is explicitly specified with `--topology standalone` when starting the supervisor. The standalone topology means that the service group members do not have any defined relationship with one another, other than sharing the same configuration.
 
 ## Leader-Follower Topology
 
@@ -41,3 +43,9 @@ This logic says that if this peer is a follower, it will become a read replica o
 The initializer topology is very similar to leader-follower, except that the elected leader will block the startup of the peers until it has come up fully. This topology is suitable for systems where, on first bootup, a long-running initialization process must occur before any other operations can proceed.
 
 The initializer topology can be started with the `--topology initializer` argument to the supervisor.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-director">Run multiple packages</a></li>
+</ul>

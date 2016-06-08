@@ -47,6 +47,8 @@ sidebar_links:
       link: "/docs/run-packages-binding/"
     - title: Security
       link: "/docs/run-packages-security/"
+    - title: Topologies
+      link": "/docs/run-packages-topologies/"
     - title: Run multiple packages
       link: "/docs/run-packages-director/"
   - title: Habitat internals
