@@ -200,3 +200,8 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
         None => None,
     }
 }
+
+/// Returns whether or not the current process is running with a root effective user id or not.
+pub fn am_i_root() -> bool {
+    *EUID == 0u32
+}
