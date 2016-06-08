@@ -146,19 +146,11 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let ctx = &depot.context;
-    let session = match authenticate(req, ctx) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin.to_string(),
         _ => return Ok(Response::with(status::BadRequest)),
     };
-
-    if !check_origin_access(&depot, session.get_id(), &origin) {
-        return Ok(Response::with(status::Forbidden));
-    }
 
     let mut conn = Broker::connect(&ctx).unwrap();
     let mut request = OriginGet::new();
@@ -1076,7 +1068,8 @@ impl AfterMiddleware for Cors {
             .set(headers::AccessControlExposeHeaders(vec![UniCase("content-range".to_owned()),
                                                           UniCase("next-range".to_owned())]));
         res.headers
-            .set(headers::AccessControlAllowHeaders(vec![UniCase("range".to_owned())]));
+            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned()),
+                                                         UniCase("range".to_owned())]));
         Ok(res)
     }
 }

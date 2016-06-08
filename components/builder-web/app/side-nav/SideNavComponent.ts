@@ -16,18 +16,13 @@ import {RouterLink} from "angular2/router";
     <nav class="hab-side-nav">
         <h4>Dashboard</h4>
         <ul class="hab-side-nav--list">
-            <li *ngIf="isSignedIn"><a [class.active]='routeMatch("projects")'
-                   [routerLink]="['Projects']">Projects</a></li>
+            <li><a [class.active]='routeMatch("pkgs\/core")'
+                   [routerLink]="['PackagesForOrigin', { origin: 'core' }]">
+                Packages
+            </a></li>
             <li *ngIf="isSignedIn"><a
                    [class.active]='routeMatch("origins")'
                    [routerLink]="['Origins']">Origins</a></li>
-            <li *ngIf="isSignedIn"><a
-                   [class.active]='routeMatch("orgs")'
-                   [routerLink]="['Organizations']">Organizations</a></li>
-            <li><a [class.active]='routeMatch("pkgs\/core")'
-                   [routerLink]="['PackagesForOrigin', { origin: 'core' }]">
-                Public Packages
-            </a></li>
         </ul>
     </nav>`
 })

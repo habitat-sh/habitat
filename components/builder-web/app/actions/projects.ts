@@ -5,7 +5,6 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-import * as builderApi from "../builderApi";
 import * as fakeApi from "../fakeApi";
 import {Observable} from "rxjs";
 import {addNotification} from "./notifications";
@@ -28,21 +27,14 @@ export const SET_PROJECTS = "SET_PROJECTS";
 
 export function addProject(project) {
     return dispatch => {
-        builderApi.createProject(project).then(project => {
-            dispatch(populateProject(project));
-            dispatch(requestRoute(["Projects"]));
-            dispatch(addNotification({
-                title: "Project Created",
-                body: `${project["origin"]}/${project["name"]}`,
-                type: SUCCESS,
-            }));
-        }).catch(error => {
+        // TODO: put this back. Removed the method when the builder api client
+        //       underwhen some changes
             dispatch(addNotification({
                 title: "Failed to Create project",
-                body: error,
+                body: "",
                 type: DANGER,
             }));
-        });
+
     };
 }
 

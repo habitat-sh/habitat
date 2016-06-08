@@ -43,10 +43,12 @@ export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
-export const SET_ORIGIN_ADDING_PRIVATE_KEY =
-    originActions.SET_ORIGIN_ADDING_PRIVATE_KEY;
-export const SET_ORIGIN_ADDING_PUBLIC_KEY =
-    originActions.SET_ORIGIN_ADDING_PUBLIC_KEY;
+export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY =
+    originActions.SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY;
+export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY =
+    originActions.SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY;
+export const SET_CURRENT_ORIGIN_LOADING =
+    originActions.SET_CURRENT_ORIGIN_LOADING;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
@@ -101,11 +103,14 @@ export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
 
 export const createOrigin = originActions.createOrigin;
 export const deleteOrigin = originActions.deleteOrigin;
+export const fetchOrigin = originActions.fetchOrigin;
 export const fetchMyOrigins = originActions.fetchMyOrigins;
 export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
-export const setOriginAddingPrivateKey = originActions.setOriginAddingPrivateKey;
-export const setOriginAddingPublicKey = originActions.setOriginAddingPublicKey;
+export const setCurrentOriginAddingPrivateKey =
+    originActions.setCurrentOriginAddingPrivateKey;
+export const setCurrentOriginAddingPublicKey =
+    originActions.setCurrentOriginAddingPublicKey;
 
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;

@@ -9,21 +9,68 @@ import "whatwg-fetch";
 import config from "./config";
 
 export class BuilderApiClient {
+    private headers;
     private urlPrefix: string = config["habitat_api_url"];
 
-    constructor(private token: string) { }
+    constructor(private token: string = "") {
+        this.headers = token ? { "Authorization": `Bearer ${token}` } : {};
+    }
 
     public createOrigin(origin) {
         return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/origins`, {
+            fetch(`${this.urlPrefix}/depot/origins`, {
                 body: JSON.stringify(origin),
-                headers: {
-                    "Authorization": `Bearer ${this.token}`,
-                },
+                headers: this.headers,
                 method: "POST",
             }).then(response => {
                 resolve(response.json());
             }).catch(error => reject(error));
+        });
+    }
+
+    public getMyOrigins() {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/user/origins`, {
+                headers: this.headers,
+            }).then(response => {
+                response.json().then(data => {
+                    resolve(data["origins"]);
+                });
+            }).catch(error => reject(error));
+        });
+    }
+
+    public getOrigin(originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}`, {
+                headers: this.headers,
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public isOriginAvailable(name: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${name}`, {
+                headers: this.headers,
+            }).then(response => {
+                // Getting a 200 means it exists and is already taken.
+                if (response.ok) {
+                    reject(false);
+                // Getting a 404 means it does not exist and is available.
+                } else if (response.status === 404) {
+                    resolve(true);
+                }
+            }).catch(error => {
+                // This happens when there is a network error. We'll say that it is
+                // not available.
+                reject(false);
+            });
         });
     }
 }

@@ -30,7 +30,7 @@ import {parseKey} from "../util";
             rows=6></textarea>
         <div class="hab-key-add-form--submit">
             <button class="hab-key-add-form--save" [disabled]="!form.valid">
-                Save Key
+                Upload Key
             </button>
             <div *ngIf="control.dirty && control.errors" class="hab-key-add-form--errors">
                 <span *ngIf="control.errors.required">

@@ -6,17 +6,21 @@
 // open source license such as the Apache 2.0 License.
 
 import {Component, OnInit} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {setOriginAddingPublicKey, setOriginAddingPrivateKey}
-    from "../actions/index";
+import {fetchOrigin, setCurrentOriginAddingPublicKey,
+    setCurrentOriginAddingPrivateKey} from "../actions/index";
 import config from "../config";
 import {KeyAddFormComponent} from "./KeyAddFormComponent";
+import {KeyListComponent} from "./KeyListComponent";
+import {Origin} from "../records/Origin";
 import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
+import {requireSignIn} from "../util";
 
 @Component({
-    directives: [KeyAddFormComponent, RouterLink, TabsComponent, TabComponent],
+    directives: [KeyAddFormComponent, KeyListComponent, RouterLink, TabsComponent,
+        TabComponent],
     template: `
     <div class="hab-origin">
         <div class="page-title">
@@ -27,7 +31,15 @@ import {TabsComponent} from "../TabsComponent";
             <h2>{{origin.name}}</h2>
             <h4>Origin</h4>
         </div>
-        <tabs>
+        <div *ngIf="!ui.exists && !ui.loading" class="page-body">
+            <p>
+                Failed to load origin.
+                <span *ngIf="ui.errorMessage">
+                    Error: {{ui.errorMessage}}
+                </span>
+            </p>
+        </div>
+        <tabs *ngIf="ui.exists && !ui.loading">
             <tab tabTitle="Keys">
                 <div class="page-body">
                     <div class="hab-origin--left">
@@ -35,7 +47,7 @@ import {TabsComponent} from "../TabsComponent";
                             <p><button
                                 (click)="setOriginAddingPublicKey(true)"
                                 [disabled]="addingPublicKey">
-                                Add public origin key
+                                Upload public origin key
                             </button></p>
                             <hab-key-add-form
                                 *ngIf="addingPublicKey"
@@ -44,18 +56,16 @@ import {TabsComponent} from "../TabsComponent";
                                 [onCloseClick]="onPublicKeyCloseClick"
                                 [originName]="origin.name">
                             </hab-key-add-form>
-                            <p *ngIf="origin.publicKeys.size === 0">
-                                No public origin keys found.
-                            </p>
-                            <ul *ngIf="origin.publicKeys.size > 0" class="hab-item-list">
-                                <li></li>
-                            </ul>
+                            <hab-key-list
+                                [keys]="publicKeys"
+                                type="public origin">
+                            </hab-key-list>
                         </div>
                         <div class="hab-origin--key-list">
                             <p><button
                                 (click)="setOriginAddingPrivateKey(true)"
                                 [disabled]="addingPrivateKey">
-                                Add private origin key
+                                Upload private origin key
                             </button></p>
                             <hab-key-add-form
                                 *ngIf="addingPrivateKey"
@@ -63,12 +73,15 @@ import {TabsComponent} from "../TabsComponent";
                                 [onCloseClick]="onPrivateKeyCloseClick"
                                 [originName]="origin.name">
                             </hab-key-add-form>
-                            <p *ngIf="origin.privateKeys.size === 0">
-                                No private origin keys found.
+                            <p>
+                                Private keys can not be viewed or downloaded.
+                                Only one private key exists for an origin at a
+                                given time.
                             </p>
-                            <ul *ngIf="origin.privateKeys.size > 0" class="hab-item-list">
-                                <li></li>
-                            </ul>
+                            <p>
+                                Uploading a new private key will overwrite the
+                                existing private key.
+                            </p>
                         </div>
                     </div>
                     <div class="hab-origin--right">
@@ -102,35 +115,15 @@ import {TabsComponent} from "../TabsComponent";
                     </div>
                 </div>
             </tab>
-            <tab tabTitle="Account">
-                <div class="page-body">
-                    <div class="hab-origin--left">
-                        <button disabled>Delete this origin</button>
-                        <p><small>
-                            Warning: this operation cannot be undone.
-                        </small></p>
-                        <p class="hab-origin--deny-delete">
-                            This origin cannot be deleted since it has existing
-                            packages<br> in the depot.
-                        </p>
-                    </div>
-                    <div class="hab-origin--right">
-                        <p>
-                            Origins can only be deleted if they do not have any
-                            packages in the depot.
-                        </p>
-                    </div>
-                </div>
-            </tab>
         </tabs>
     </div>`,
 })
 
-export class OriginPageComponent {
+export class OriginPageComponent implements OnInit {
     private onPrivateKeyCloseClick: Function;
     private onPublicKeyCloseClick: Function;
 
-    constructor(private store: AppStore) {
+    constructor(private routeParams: RouteParams, private store: AppStore) {
         this.onPrivateKeyCloseClick = () =>
             this.setOriginAddingPrivateKey(false);
         this.onPublicKeyCloseClick = () =>
@@ -138,28 +131,53 @@ export class OriginPageComponent {
     }
 
     get addingPrivateKey() {
-        return this.store.getState().origins.ui.current.addingPrivateKey;
+        return this.ui.addingPrivateKey;
     }
 
     get addingPublicKey() {
-        return this.store.getState().origins.ui.current.addingPublicKey;
+        return this.ui.addingPublicKey;
     }
 
     get docsUrl() {
         return config["docs_url"];
     }
 
+    get publicKeys() {
+        return this.store.getState().origins.currentPublicKeys;
+    }
+
+    // Initially set up the origin to be whatever comes from the params,
+    // so we can query for it. In `ngOnInit`, we'll
+    // populate more data by dispatching `fetchOrigin`.
     get origin() {
-        return this.store.getState().origins.current;
+        const currentOriginFromState = this.store.getState().origins.current;
+        const params = this.routeParams.params;
+
+        // Use the current origin from the state if it's the same origin we want
+        // here.
+        if (currentOriginFromState.name === params["origin"]) {
+            return currentOriginFromState;
+        } else {
+            return Origin({ name: params["origin"] });
+        }
+    }
+
+    get ui() {
+        return this.store.getState().origins.ui.current;
     }
 
     private setOriginAddingPrivateKey(state: boolean) {
-        this.store.dispatch(setOriginAddingPrivateKey(state));
+        this.store.dispatch(setCurrentOriginAddingPrivateKey(state));
         return false;
     }
 
     private setOriginAddingPublicKey(state: boolean) {
-        this.store.dispatch(setOriginAddingPublicKey(state));
+        this.store.dispatch(setCurrentOriginAddingPublicKey(state));
         return false;
+    }
+
+    public ngOnInit() {
+        requireSignIn(this);
+        this.store.dispatch(fetchOrigin(this.origin.name));
     }
 }
