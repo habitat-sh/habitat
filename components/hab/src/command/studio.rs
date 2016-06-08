@@ -5,11 +5,25 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::env;
 use std::ffi::OsString;
 
+use hcore::env as henv;
+
+use config;
 use error::Result;
 
 pub fn start(args: Vec<OsString>) -> Result<()> {
+    // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
+    // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
+    // or `docker` execv call.
+    if henv::var("HAB_ORIGIN").is_err() {
+        let config = try!(config::load());
+        if let Some(default_origin) = config.origin {
+            debug!("Setting default origin {} via CLI config", &default_origin);
+            env::set_var("HAB_ORIGIN", default_origin);
+        }
+    }
     inner::start(args)
 }
 

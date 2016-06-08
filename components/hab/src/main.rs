@@ -18,8 +18,8 @@ extern crate hyper;
 extern crate log;
 extern crate pbr;
 extern crate regex;
-// Temporary depdency for gossip/rumor injection code duplication.
 extern crate rustc_serialize;
+extern crate toml;
 extern crate url;
 // Temporary depdency for gossip/rumor injection code duplication.
 extern crate utp;
@@ -28,6 +28,7 @@ extern crate uuid;
 mod analytics;
 mod cli;
 mod command;
+mod config;
 mod error;
 mod exec;
 mod gossip;
@@ -46,7 +47,7 @@ use error::{Error, Result};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
 use hcore::crypto::keys::PairType;
-use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
+use hcore::fs::{cache_artifact_path, cache_analytics_path, FS_ROOT_PATH};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
@@ -97,6 +98,12 @@ fn start() -> Result<()> {
                 ("sign", Some(m)) => try!(sub_artifact_sign(m)),
                 ("verify", Some(m)) => try!(sub_artifact_verify(m)),
                 ("hash", Some(m)) => try!(sub_artifact_hash(m)),
+                _ => unreachable!(),
+            }
+        }
+        ("cli", Some(matches)) => {
+            match matches.subcommand() {
+                ("setup", Some(_)) => try!(sub_cli_setup()),
                 _ => unreachable!(),
             }
         }
@@ -216,6 +223,15 @@ fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
     init();
 
     command::artifact::verify::start(&src, &default_cache_key_path(fs_root_path))
+}
+
+fn sub_cli_setup() -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+    init();
+
+    command::cli::setup::start(&default_cache_key_path(fs_root_path),
+                               &cache_analytics_path(fs_root_path))
 }
 
 fn sub_config_apply(m: &ArgMatches) -> Result<()> {
@@ -482,16 +498,22 @@ fn exec_subcommand_if_called() -> Result<()> {
     }
 }
 
-/// Check to see if the user has passed in an ORIGIN param.
-/// If not, check the HABITAT_ORIGIN env var. If that's
-/// empty too, then error.
+/// Check to see if the user has passed in an ORIGIN param.  If not, check the HABITAT_ORIGIN env
+/// var. If not, check the CLI config to see if there is a default origin set. If that's empty too,
+/// then error.
 fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORIGIN") {
         Some(o) => Ok(o.to_string()),
         None => {
             match henv::var(HABITAT_ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No origin specified".to_string())),
+                Err(_) => {
+                    let config = try!(config::load());
+                    match config.origin {
+                        Some(v) => Ok(v),
+                        None => return Err(Error::CryptoCLI("No origin specified".to_string())),
+                    }
+                }
             }
         }
     }

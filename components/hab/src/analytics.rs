@@ -38,6 +38,7 @@
 //!
 //! * `apply`
 //! * `artifact upload`
+//! * `cli setup`
 //! * `config apply`
 //! * `file upload`
 //! * `origin key generate`
@@ -55,6 +56,7 @@
 //!
 //! * `apply`
 //! * `artifact upload`
+//! * `cli setup`
 //! * `config apply`
 //! * `file upload`
 //! * `install`
@@ -179,11 +181,14 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::time::{UNIX_EPOCH, SystemTime};
 
+use ansi_term::Colour::{Blue, Green, Yellow};
 use clap;
 use hcore;
 use http_client;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
+
+use error::Result;
 
 /// The Google Analytics [Tracking
 /// ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#tid)
@@ -316,20 +321,104 @@ pub fn instrument_clap_error(err: &clap::Error) {
     }
 }
 
+/// Explicitly opts in to reporting analytics.
+///
+/// This function is designed to be triggered from another subcommand and can be a blocking call.
+/// That is to say that this doesn't have to work on a seperate thread of execution. As a result,
+/// we can use more Rust idioms such as `try!` and `Result` to make for a much more terse and
+/// direct function body.
+///
+/// # Errors
+///
+/// * If the parent directory cannot be created
+/// * If an opt-out if exists but cannot be deleted
+/// * If an opt-in file cannot be created
+pub fn opt_in(analytics_path: &Path, origin_generated: bool) -> Result<()> {
+    println!("{}", Yellow.bold().paint("» Opting in to analytics"));
+    // Create the parent directory which will contain the opt-in file
+    try!(fs::create_dir_all(analytics_path));
+    // Get the path to the opt-out file
+    let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
+    // If the opt-out file exists, delete it from disk
+    if opt_out_path.exists() {
+        println!("{} {}", Green.paint("☒ Deleting"), opt_out_path.display());
+        try!(fs::remove_file(&opt_out_path));
+    }
+    // Get the path to the opt-in file
+    let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
+    println!("{} {}", Green.paint("☑ Creating"), opt_in_path.display());
+    // Create the opt-in file
+    let _ = try!(File::create(opt_in_path));
+    println!("{}", Blue.paint("★ Analytics opted in, thank you!"));
+    // Record an event that the setup subcommand was invoked
+    record_event(Event::Subcommand,
+                 &format!("{}--{}--{}", PRODUCT, "cli", "setup"));
+    // If an origin key was generated in the setup subcommand, record an event as well
+    if origin_generated {
+        record_event(Event::Subcommand,
+                     &format!("{}--{}--{}--{}", PRODUCT, "origin", "key", "generate"));
+    }
+    // Send any pending events to the Google Analytics API
+    send_pending();
+    // Return an empty Ok, representing a successful operation
+    Ok(())
+}
+
+/// Explicitly opts out of reporting analytics.
+///
+/// This function is designed to be triggered from another subcommand and can be a blocking call.
+/// That is to say that this doesn't have to work on a seperate thread of execution. As a result,
+/// we can use more Rust idioms such as `try!` and `Result` to make for a much more terse and
+/// direct function body.
+///
+/// # Errors
+///
+/// * If the parent directory cannot be created
+/// * If an opt-in if exists but cannot be deleted
+/// * If an opt-out file cannot be created
+pub fn opt_out(analytics_path: &Path) -> Result<()> {
+    println!("{}", Yellow.bold().paint("» Opting out of analytics"));
+    // Create the parent directory which will contain the opt-in file
+    try!(fs::create_dir_all(analytics_path));
+    // Get the path to the opt-in file
+    let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
+    // If the opt-in file exists, delete it from disk
+    if opt_in_path.exists() {
+        println!("{} {}", Green.paint("☒ Deleting"), opt_in_path.display());
+        try!(fs::remove_file(&opt_in_path));
+    }
+    // Get the path to the opt-out file
+    let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
+    println!("{} {}", Green.paint("☑ Creating"), opt_out_path.display());
+    // Create the opt-out file
+    let _ = try!(File::create(opt_out_path));
+    println!("{}",
+             Blue.paint("★ Analytics opted out, we salute you just the same!"));
+    // Return an empty Ok, representing a successful operation
+    Ok(())
+}
+
+/// Returns whether or not analytics are explicitly opted in, opted out, or are so far unset.
+pub fn is_opted_in(analytics_path: &Path) -> Option<bool> {
+    if analytics_path.join(OPTED_OUT_METAFILE).exists() {
+        // If an explicit opt-out file exists, the return false
+        Some(false)
+    } else if analytics_path.join(OPTED_IN_METAFILE).exists() {
+        // If an opt-in file exists, return true
+        Some(true)
+    } else {
+        // In all other cases, return a None as there is no explicit yes or no answer
+        None
+    }
+}
+
 /// Returns true if analytics are enabled and false otherwise.
 fn analytics_enabled() -> bool {
-    // Get the path to the analytics cache directory.
-    let cache_dir = hcore::fs::cache_analytics_path(None);
-
-    if cache_dir.join(OPTED_OUT_METAFILE).exists() {
-        // If an explicit opt-out file exists, the return false
-        false
-    } else if cache_dir.join(OPTED_IN_METAFILE).exists() {
-        // If an opt-in file exists, return true
-        true
-    } else {
+    match is_opted_in(&hcore::fs::cache_analytics_path(None)) {
+        // If the value is explicity true or false, return the unwrapped value
+        Some(val) => val,
         // In all other cases, return false which enforces the default opt-out behavior
-        false
+        None => false,
     }
 }
 
