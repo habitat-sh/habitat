@@ -32,4 +32,35 @@ describe("util", () => {
             });
         });
     });
+
+    describe("parseKey", () => {
+        describe("with an invalid key", () => {
+            it("has a valid:false property", () => {
+                expect(util.parseKey("").valid).to.eq(false);
+            });
+        });
+
+        describe("with a valid key", () => {
+            let keyString;
+
+            beforeEach(() => {
+                keyString = `SIG-PUB-1
+core-20160423193745
+
+Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=`;
+            });
+
+            it("has a valid:true property", () => {
+                expect(util.parseKey(keyString).valid).to.eq(true);
+            });
+
+            it("has an origin property", () => {
+                expect(util.parseKey(keyString).origin).to.eq("core");
+            });
+
+            it("has a type property", () => {
+                expect(util.parseKey(keyString).type).to.eq("SIG-PUB-1");
+            });
+        });
+    });
 });

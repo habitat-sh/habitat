@@ -14,6 +14,8 @@ export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     "SET_CURRENT_ORIGIN_CREATING_FLAG";
+export const SET_ORIGIN_ADDING_PRIVATE_KEY = "SET_ORIGIN_ADDING_PRIVATE_KEY";
+export const SET_ORIGIN_ADDING_PUBLIC_KEY = "SET_ORIGIN_ADDING_PUBLIC_KEY";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 
 export function createOrigin(origin, token, isFirstOrigin = false) {
@@ -89,6 +91,20 @@ export function setCurrentOrigin(payload) {
 function setCurrentOriginCreatingFlag(payload) {
     return {
         type: SET_CURRENT_ORIGIN_CREATING_FLAG,
+        payload,
+    };
+}
+
+export function setOriginAddingPrivateKey(payload: boolean) {
+    return {
+        type: SET_ORIGIN_ADDING_PRIVATE_KEY,
+        payload,
+    };
+}
+
+export function setOriginAddingPublicKey(payload: boolean) {
+    return {
+        type: SET_ORIGIN_ADDING_PUBLIC_KEY,
         payload,
     };
 }

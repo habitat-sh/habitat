@@ -73,11 +73,17 @@ export default Record({
     origins: Record({
         current: Record({
             name: "smith",
+            privateKeys: List(),
+            publicKeys: List(),
         })(),
         mine: List(),
         ui: Record({
             current: Record({
+                addingPublicKey: false,
+                addingPrivateKey: false,
                 creating: false,
+                exists: false,
+                loading: true,
             })(),
         })(),
     })(),

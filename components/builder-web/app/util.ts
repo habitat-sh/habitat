@@ -54,6 +54,24 @@ export function packageString(o = {}) {
         .filter(part => part).join("/");
 }
 
+// Take a habitat encryption key and return an object containing data about it
+export function parseKey(key) {
+    const lines = key.trim().split("\n");
+    const type = lines[0];
+    const name = lines[1] || "";
+    const origin = name.split("-")[0]; // TODO: make work for non-origin keys
+    const blankLine = lines[2];
+    const body = lines[3];
+    const valid = type !== "" && origin !== "" && blankLine.trim() === "" &&
+        body !== "";
+
+    return {
+        valid,
+        origin,
+        type,
+    };
+}
+
 // Given a page component, check if the user is signed in and redirect if not
 export function requireSignIn(pageComponent) {
     const store = pageComponent.store;
