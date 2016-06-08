@@ -1,0 +1,66 @@
+---
+sidebar_links:
+- title: Getting Started
+  links:
+  - title: Overview
+    link: "/docs/overview"
+  - title: Get Habitat
+    link: "/docs/get-habitat"
+  - title: Tutorials
+    link: "/tutorials/"
+  - title: Concepts
+    link: "/docs/concepts-overview/"
+    sub_links:
+    - title: Supervisor
+      link: "/docs/concepts-supervisor/"
+    - title: Director
+      link: "/docs/concepts-director"
+    - title: Plans
+      link: "/docs/concepts-plans/"
+    - title: Packages
+      link: "/docs/concepts-packages/"
+    - title: Keys
+      link: "/docs/concepts-keys/"
+    - title: Studio
+      link: "/docs/concepts-studio/"
+    - title: Services
+      link: "/docs/concepts-services/"
+    - title: Depot
+      link: "/docs/concepts-depot/"
+- title: Using Habitat
+  links:
+  - title: Create packages
+    link: "/docs/create-packages-overview/"
+    sub_links:
+    - title: Create plans
+      link: "/docs/create-plans/"
+    - title: Add configuration
+      link: "/docs/configure-packages/"
+  - title: Build packages
+    link: "/docs/build-packages-overview/"
+  - title: Run packages
+    link: "/docs/run-packages-overview/"
+    sub_links:
+    - title: Service groups
+      link: "/docs/run-packages-service-groups/"
+    - title: Binding
+      link: "/docs/run-packages-binding/"
+    - title: Security
+      link: "/docs/run-packages-security/"
+    - title: Run multiple packages
+      link: "/docs/run-packages-director/"
+  - title: Habitat internals
+    link: "/docs/internals-overview/"
+    sub_links:
+    - title: Supervisor
+      link: "/docs/internals-supervisor/"
+    - title: Leader Election
+      link: "/docs/internals-leader-election/"
+- title: Reference
+  links:
+  - title: CLI reference
+    link: "/docs/reference/habitat-cli/"
+  - title: Plan syntax
+    link: "/docs/reference/plan-syntax/"
+  - title: Package contents
+    link: "/docs/reference/package-contents/"

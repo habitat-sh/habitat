@@ -9,17 +9,16 @@
           ul.no-bullet
             - sidebar_data(sidebar_layout).each do |item|
               li.main-sidebar--heading
-                h4
-                  = item.title
+                h4 = item.title
                 ul.main-sidebar--list.no-bullet
                   - item.links.each do |item_link|
                     li.main-sidebar--list--item class=link_classes(current_resource.url, item_link)
-                      a href="#{item_link.link}" #{item_link.title}
+                      = link_to item_link.title, item_link.link
                       - if print_sub_links?(current_resource.url, item_link)
                         ul.main-sidebar--list--item--dropdown.no-bullet
                           - item_link.sub_links.each do |sub_link|
                             li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
-                              a href="#{sub_link.link}" #{sub_link.title}
+                              = link_to sub_link.title, sub_link.link
 
     .main-content__has-sidebar
       .row
