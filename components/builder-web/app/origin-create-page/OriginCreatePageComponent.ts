@@ -12,7 +12,7 @@ import {AppStore} from "../AppStore";
 import {AsyncValidator} from "../AsyncValidator";
 import {CheckingInputComponent} from "../CheckingInputComponent";
 import {createOrigin} from "../actions/index";
-import {isOriginAvailable} from "../builderApi";
+import {BuilderApiClient} from "../BuilderApiClient";
 import {requireSignIn} from "../util";
 
 @Component({
@@ -29,10 +29,10 @@ import {requireSignIn} from "../util";
               #formValues="ngForm">
             <label for="name">Origin Name</label>
             <small>Must be unique and contain no spaces.</small>
+            <small>Must begin with a lowercase letter or number.</small>
             <small>
                 Allowed characters include
                 <em>a&thinsp;&ndash;&thinsp;z</em>,
-                <em>A&thinsp;&ndash;&thinsp;Z</em>,
                 <em>0&thinsp;&ndash;&thinsp;9</em>,
                 <em>_</em>, and <em>-</em>.
                 No more than {{maxLength}} characters.
@@ -53,13 +53,20 @@ import {requireSignIn} from "../util";
 })
 
 export class OriginCreatePageComponent implements AfterViewInit, OnInit {
+    private builderApiClient: BuilderApiClient;
     private form: ControlGroup;
+    private isOriginAvailable: Function;
     private maxLength = 255;
     private name: Control;
-    private pattern = "^[a-z0-9\-_]+$";
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
         this.form = formBuilder.group({});
+        this.builderApiClient = new BuilderApiClient(
+            this.store.getState().gitHub.authToken
+        );
+        this.isOriginAvailable = origin => {
+            return this.builderApiClient.isOriginAvailable(origin);
+        };
     }
 
     get creating() { return this.store.getState().origins.ui.current.creating; }
@@ -67,8 +74,6 @@ export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     get isFirstOrigin() {
         return this.store.getState().origins.mine.size === 0;
     }
-
-    private isOriginAvailable(origin) { return isOriginAvailable(origin); }
 
     get username() { return this.store.getState().users.current.username; }
 

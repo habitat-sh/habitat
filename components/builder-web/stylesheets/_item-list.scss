@@ -38,7 +38,6 @@
     h3 {
       line-height: 1em;
       max-width: rem(300);
-      overflow-x: hidden;
       text-overflow: ellipsis;
     }
 
@@ -94,6 +93,15 @@
         @include transform(scale(1.01));
         box-shadow: 0 1px 14px 0 $hab-blue-light;
       }
+    }
+  }
+
+  &--all-link {
+    padding: 0;
+
+    a {
+      display: block;
+      padding: 1em 1.5em;
     }
   }
 }

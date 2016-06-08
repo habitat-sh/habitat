@@ -6,53 +6,59 @@
 // open source license such as the Apache 2.0 License.
 
 .hab-origin {
-    &--left {
-        @include span-columns(8);
-    }
+  &--left {
+    @include span-columns(8);
+  }
 
-    &--right {
-        @include span-columns(4);
-        @include omega;
-        border-left: 1px solid $light-gray;
-        padding-left: $base-spacing;
-    }
+  &--right {
+    @include span-columns(4);
+    @include omega;
+    border-left: 1px solid $light-gray;
+    padding-left: $base-spacing;
+  }
 
-    &--deny-delete {
-        background-color: $hab-red;
-        color: $off-white;
-        padding: $small-spacing;
-        text-align: center;
-    }
+  &--deny-delete {
+    background-color: $hab-red;
+    color: $off-white;
+    padding: $small-spacing;
+    text-align: center;
+  }
 
-    &--pkgs-link {
-        float: right;
-    }
+  &--pkgs-link {
+    float: right;
+  }
+}
+
+.hab-key-list {
+  &--list {
+    margin-top: $base-spacing;
+  }
 }
 
 .hab-key-add-form {
-    border: 1px solid $light-gray;
-    padding: $small-spacing;
+  border: 1px solid $light-gray;
+  padding: $small-spacing;
 
-    &--close {
-        float: right;
-    }
+  &--close {
+    float: right;
+  }
 
-    &--label {
-        margin-top: $base-spacing;
-    }
+  &--label {
+    margin-top: $base-spacing;
+  }
 
-    &--submit {
-        @include outer-container;
-    }
+  &--submit {
+    @include outer-container;
+  }
 
-    &--save {
-        @include span-columns(4);
-        margin-top: 0;
-    }
+  &--save {
+    @include span-columns(4);
+    margin-top: 0;
+  }
 
-    &--errors {
-        @include span-columns(8);
-        @include omega;
-        color: $hab-red;
-    }
+  &--errors {
+    @include span-columns(8);
+    @include omega;
+    color: $hab-red;
+  }
 }

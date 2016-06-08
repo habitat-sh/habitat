@@ -75,13 +75,7 @@ export function parseKey(key) {
 // Given a page component, check if the user is signed in and redirect if not
 export function requireSignIn(pageComponent) {
     const store = pageComponent.store;
-    const state = store.getState();
-    const hasToken = !!state.gitHub.authToken;
-    const currentOrigin = state.origins.current.name;
+    const hasToken = !!store.getState().gitHub.authToken;
 
     if (!hasToken) { store.dispatch(requestRoute(["SignIn"])); }
-
-    if (hasToken && !currentOrigin) {
-        store.dispatch(requestRoute(["OriginCreate"]));
-    }
 }

@@ -59,7 +59,7 @@ export class CheckingInputComponent implements OnInit {
     private availableMessage: string;
     private control: Control;
     private defaultMaxLength = 255;
-    private defaultPattern = "^[a-zA-Z0-9\-_]+$";
+    private defaultPattern = "^[a-z0-9][a-z0-9_-]*$";
     private form: ControlGroup;
     private isAvailable: Function;
     private maxLength;

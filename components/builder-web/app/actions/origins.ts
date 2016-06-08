@@ -7,15 +7,17 @@
 
 import {addNotification, SUCCESS, DANGER} from "./notifications";
 import {requestRoute} from "./router";
-import * as api from "../builderApi";
+import * as depotApi from "../depotApi";
 import {BuilderApiClient} from "../BuilderApiClient";
 
 export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
+export const POPULATE_PACKAGE_COUNT_FOR_ORIGIN = "POPULATE_PACKAGES_FOR_ORIGIN";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     "SET_CURRENT_ORIGIN_CREATING_FLAG";
-export const SET_ORIGIN_ADDING_PRIVATE_KEY = "SET_ORIGIN_ADDING_PRIVATE_KEY";
-export const SET_ORIGIN_ADDING_PUBLIC_KEY = "SET_ORIGIN_ADDING_PUBLIC_KEY";
+export const SET_CURRENT_ORIGIN_LOADING = "SET_CURRENT_ORIGIN_LOADING";
+export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = "SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY";
+export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = "SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 
 export function createOrigin(origin, token, isFirstOrigin = false) {
@@ -27,7 +29,7 @@ export function createOrigin(origin, token, isFirstOrigin = false) {
                 dispatch(setCurrentOrigin(origin));
             }
 
-            dispatch(fetchMyOrigins());
+            dispatch(fetchMyOrigins(token));
             dispatch(setCurrentOriginCreatingFlag(false));
             dispatch(requestRoute(["Origins"]));
             dispatch(addNotification({
@@ -47,43 +49,58 @@ export function createOrigin(origin, token, isFirstOrigin = false) {
     };
 }
 
-export function deleteOrigin(origin) {
+export function fetchMyOrigins(token) {
     return dispatch => {
-        api.deleteOrigin(origin).then(() => {
-            dispatch(fetchMyOrigins());
-            dispatch(addNotification({
-                title: "Origin Deleted",
-                body: `'${origin["name"]}' has been deleted`,
-                type: SUCCESS,
-            }));
-        }).catch(error => {
-            dispatch(addNotification({
-                title: "Failed to Delete Origin",
-                body: error.message,
-                type: DANGER,
-            }));
-        });
-    };
-}
-
-export function fetchMyOrigins() {
-    return dispatch => {
-        api.getMyOrigins().then(origins => {
+        new BuilderApiClient(token).getMyOrigins().then(origins => {
             dispatch(populateMyOrigins(origins));
+        }).catch(error => dispatch(populateMyOrigins(undefined, error)));
+    };
+}
+
+export function fetchOrigin(originName: string) {
+    return dispatch => {
+        dispatch(setCurrentOriginLoading(true));
+        new BuilderApiClient().getOrigin(originName).then(response => {
+            dispatch(setCurrentOrigin(response));
+        }).catch(error => {
+            dispatch(setCurrentOrigin(undefined, error));
         });
     };
 }
 
-function populateMyOrigins(payload) {
+function populateMyOrigins(payload, error = undefined) {
     return {
         type: POPULATE_MY_ORIGINS,
+        payload,
+        error
+    };
+}
+
+export function setCurrentOrigin(payload, error = undefined) {
+    return {
+        type: SET_CURRENT_ORIGIN,
+        payload,
+        error,
+    };
+}
+
+export function setCurrentOriginAddingPrivateKey(payload: boolean) {
+    return {
+        type: SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY,
         payload,
     };
 }
 
-export function setCurrentOrigin(payload) {
+export function setCurrentOriginAddingPublicKey(payload: boolean) {
     return {
-        type: SET_CURRENT_ORIGIN,
+        type: SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY,
+        payload,
+    };
+}
+
+function setCurrentOriginLoading(payload: boolean) {
+    return {
+        type: SET_CURRENT_ORIGIN_LOADING,
         payload,
     };
 }
@@ -91,20 +108,6 @@ export function setCurrentOrigin(payload) {
 function setCurrentOriginCreatingFlag(payload) {
     return {
         type: SET_CURRENT_ORIGIN_CREATING_FLAG,
-        payload,
-    };
-}
-
-export function setOriginAddingPrivateKey(payload: boolean) {
-    return {
-        type: SET_ORIGIN_ADDING_PRIVATE_KEY,
-        payload,
-    };
-}
-
-export function setOriginAddingPublicKey(payload: boolean) {
-    return {
-        type: SET_ORIGIN_ADDING_PUBLIC_KEY,
         payload,
     };
 }

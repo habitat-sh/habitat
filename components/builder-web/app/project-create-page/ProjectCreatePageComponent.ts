@@ -10,7 +10,6 @@ import {ControlGroup, FormBuilder, Validators} from "angular2/common";
 import {RouteParams, RouterLink} from "angular2/router";
 import {addProject} from "../actions/index";
 import {AppStore} from "../AppStore";
-import {isProjectAvailable} from "../builderApi";
 import {CheckingInputComponent} from "../CheckingInputComponent";
 import {GitHubApiClient} from "../GitHubApiClient";
 import {requireSignIn} from "../util";
@@ -58,7 +57,7 @@ import {requireSignIn} from "../util";
                                           displayName="Name"
                                           [form]="form"
                                           id="name"
-                                          [isAvailable]="isProjectAvailable"
+                                          [isAvailable]="false"
                                           name="name"
                                           placeholder="Required. Max 40 characters."
                                           [value]="repo">
@@ -111,7 +110,8 @@ export class ProjectCreatePageComponent implements OnInit {
             ).doesFileExist(this.repoOwner, this.repo, path);
         }.bind(this);
 
-        this.isProjectAvailable = (name) => isProjectAvailable(name);
+        // TODO: Implement this
+        this.isProjectAvailable = (name) => false;
     }
 
     get myOrigins() {

@@ -6,6 +6,7 @@
 // open source license such as the Apache 2.0 License.
 
 import {List, Map, Record} from "immutable";
+import {Origin} from "./records/Origin";
 
 export default Record({
     app: Record({
@@ -71,18 +72,20 @@ export default Record({
         })(),
     })(),
     origins: Record({
-        current: Record({
-            name: "smith",
-            privateKeys: List(),
-            publicKeys: List(),
-        })(),
+        current: Origin(),
+        currentPublicKeys: List(),
         mine: List(),
         ui: Record({
             current: Record({
                 addingPublicKey: false,
                 addingPrivateKey: false,
                 creating: false,
+                errorMessage: undefined,
                 exists: false,
+                loading: true,
+            })(),
+            mine: Record({
+                errorMessage: undefined,
                 loading: true,
             })(),
         })(),
