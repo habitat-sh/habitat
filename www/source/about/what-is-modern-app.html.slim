@@ -112,7 +112,10 @@ p Modern applications need to support multiple deployment patterns. We'll talk
   about just two of these here: peer-based scaling and application update
   strategies.
 
-p <strong>Peer-based scaling</strong>. Today, applications are composed of many services or microservices. There's a good reason for this approach. If you can deploy small components quickly, you can iterate on smaller pieces of your business and run experiments and try things out. You can innovate faster.
+p <strong>Peer-based scaling</strong>. Today, applications are composed of many services or
+   microservices. There's a good reason for this approach. If you can deploy small components
+    quickly, you can iterate on smaller pieces of your business and run experiments and try
+     things out. You can innovate faster.
 
 p The strategy for scaling the services of a modern application is often
   peer-based. For example, a database system might be quite distributed and
@@ -130,8 +133,10 @@ p The chosen deployment pattern for peer-based relationships should be
   component. In production, you probably want a more sophisticated topology,
   perhaps with a leader and multiple followers.
 
-p <strong>Application update strategies</strong>. Scaling behavior is not the only reason for multiple deployment patterns. Another is that an application that supports multiple deployment patterns can be aware of its own update strategy. There might be one policy to deploy the
- latest version of the application in testing and another policy for production.
+p <strong>Application update strategies</strong>. Scaling behavior is not the only reason for
+   multiple deployment patterns. Another is that an application that supports multiple
+    deployment patterns can be aware of its own update strategy. There might be one policy to
+     deploy the latest version of the application in testing and another policy for production.
 
 p We who work on Habitat think that there's a handful of patterns for deploying
   updated versions of application services. You might deploy a component so
