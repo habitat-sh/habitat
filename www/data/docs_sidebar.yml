@@ -49,6 +49,8 @@ sidebar_links:
       link: "/docs/run-packages-security/"
     - title: Topologies
       link: "/docs/run-packages-topologies/"
+    - title: Update Strategy
+      link: "/docs/run-packages-update-strategy/"
     - title: Run multiple packages
       link: "/docs/run-packages-director/"
   - title: Habitat internals
