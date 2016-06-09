@@ -9,7 +9,7 @@ p In this article, we'll talk about how those of us in the Habitat project
   opinions. Many of them seem to stress a particular runtime environment rather
   than the application itself. One person might define a modern application as
   something that runs in a container and someone else might say it's an
-  application that runs on a particular PaaS. 
+  application that runs on a particular PaaS.
 
 p Of course, we Habitat folks have our own viewpoint, and it's unapologetically
   app-centric. We don't limit ourselves to any particular runtime. We care
@@ -25,7 +25,7 @@ ul
   li It's agnostic to its operating environment; it runs on bare metal as
     easily as in a container or a PaaS.
   li It provides external entities with a clear API for runtime configurability
-    that exposes all of its configurable elements. 
+    that exposes all of its configurable elements.
   li Its packaging and deployment mechanisms are easy to use and not tied to
     any particular language or execution environment.
   li It supports multiple deployment patterns using the same package.
@@ -41,7 +41,7 @@ p People have been dealing with the problem of application isolation for a long
   impacting a whole slew of applications. You don't really have isolation when
   patches to one component in the stack affect multiple apps at the same time.
   A modern application is truly isolated. Changing it doesn't have unintended
-  ripple effects across other applications. 
+  ripple effects across other applications.
 
 p Immutability means that, once the artifact that packages your application
   passes some set of checks, it never changes again. Someone can't just open it
@@ -50,7 +50,7 @@ p Immutability means that, once the artifact that packages your application
   build a .war or .ear file once and move that artifact to different
   environments and never touch it again. The problem was that there was no way
   to enforce that immutability. It was entirely possible for someone to unzip
-  the file, change it, zip it back up and send it around. 
+  the file, change it, zip it back up and send it around.
 
 p Immutability is closely tied to the ability to dynamically configure your
   application at runtime. We don't want an application whose behavior can't be
@@ -112,12 +112,12 @@ p Modern applications need to support multiple deployment patterns. We'll talk
   about just two of these here: peer-based scaling and application update
   strategies.
 
-p
-  strong Peer-based scaling.
-  Today, applications are composed of many services or microservices. There's a
+h4 Peer-based scaling.
+
+p Today, applications are composed of many services or microservices. There's a
   good reason for this approach. If you can deploy small components quickly,
   you can iterate on smaller pieces of your business and run experiments and
-  try things out. You can innovate faster. 
+  try things out. You can innovate faster.
 
 p The strategy for scaling the services of a modern application is often
   peer-based. For example, a database system might be quite distributed and
@@ -133,11 +133,11 @@ p The chosen deployment pattern for peer-based relationships should be
   running instances of a service could be different. For development, you
   probably want something straightforward, like a standalone deployment of a
   component. In production, you probably want a more sophisticated topology,
-  perhaps with a leader and multiple followers. 
+  perhaps with a leader and multiple followers.
 
-p
-  strong Application update strategies.
-  Scaling behavior is not the only reason for multiple deployment patterns.
+h4 Application update strategies.
+
+p Scaling behavior is not the only reason for multiple deployment patterns.
   Another is that an application that supports multiple deployment patterns can
   be aware of its own update strategy. There might be one policy to deploy the
   latest version of the application in testing and another policy for
@@ -153,7 +153,7 @@ p We who work on Habitat think that there's a handful of patterns for deploying
   are allowed to run (in other words, the first service instance holds a mutex
   until it's fully configured). We're investigating other patterns and we're
   sure we'll learn more as time goes on.
- 
+
 h2 Conclusion
 
 p Developers should be spending their time creating features that delight

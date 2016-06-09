@@ -26,9 +26,9 @@ $navToggle.click(function() {
 });
 
 for (var linkName in navPageLinks) {
-  var linkNamePath = '/' + navPageLinks[linkName];
-
-  if (currentPagePath == linkNamePath) {
+  var linkNamePath = navPageLinks[linkName],
+      currentPageRoot = currentPagePath.split('/')[1];
+  if (currentPageRoot == linkNamePath) {
     $('.main-nav--links a.' + navPageLinks[linkName]).addClass('is-current-page');
   }
 };
@@ -45,4 +45,3 @@ $(window).resize(function() {
 $(window).scroll(function() {
   toggleStickyNav();
 });
-

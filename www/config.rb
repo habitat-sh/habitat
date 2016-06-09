@@ -68,3 +68,4 @@ set :markdown, coderay_line_numbers: :table
 # Redirects
 ###
 redirect 'about/index.html', to: 'about/habitat-genesis.html'
+redirect 'docs/index.html', to: 'docs/overview.html'
