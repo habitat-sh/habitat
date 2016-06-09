@@ -107,25 +107,22 @@ p As we developed our own philosophy of managing applications in the world of
   what is under the control of the runtime environment.
 
 p <strong>Convergence still matters</strong>. With Chef, nodes converge to a particular state.
- Convergence is just as important with containers, particularly for runtime configuration
+  Convergence is just as important with containers, particularly for runtime configuration
   changes. Typically, in container management systems, the only way you can make configuration
-   changes is at the beginning, when you set up the container. After that, if you change it,
-    you've modified it in a completely unknown, unsafe way.
+  changes is at the beginning, when you set up the container. After that, if you change it,
+  you've modified it in a completely unknown, unsafe way.
 
 p With Habitat, configuration changes are convergent. You inject them as rumors
   into the system, and everything will eventually converge to that new state.
 
-p <strong>Automation should prevent vendor lock in, not cause it</strong>. With Habitat, you can
- use whatever runtime environment suits you best and you can make that decision when you're
-  ready to deploy the package. Because the application is independent of the runtime, you can
-   move your application to a new environment when it's to your advantage and you don't have to
-    retool your application to do it.
+p <strong>Automation should prevent vendor lock in, not cause it</strong>. With Habitat, you
+  can use whatever runtime environment suits you best and you can make that decision when you're ready to deploy the package. Because the application is independent of the runtime, you can move your application to a new environment when it's to your advantage and you don't have to retool your application to do it.
 
 p <strong>The workload is the unit of deployment, not the image format</strong>. With Habitat,
- it's the workload that's immutable. The image format is irrelevant. This means that, with
+  it's the workload that's immutable. The image format is irrelevant. This means that, with
   Habitat, update strategies are under the control of the package's supervisor, not some
-   external management system.
+  external management system.
 
 p <strong>All runtime environments are good</strong>. We at Habitat love these runtime
- environments and we want to make sure that Habitat applications can run in all of them.
+  environments and we want to make sure that Habitat applications can run in all of them.
   Over time, we'll have more and more integrations that will make this easier.
