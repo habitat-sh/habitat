@@ -60,15 +60,27 @@ export function parseKey(key) {
     const type = lines[0];
     const name = lines[1] || "";
     const origin = name.split("-")[0]; // TODO: make work for non-origin keys
+    const revision = name.split("-")[1];
     const blankLine = lines[2];
     const body = lines[3];
+
+    let uploadPathFragment;
+    if (type === "SIG-PUB-1") {
+        uploadPathFragment = "keys";
+    } else if (type === "SIG-SEC-1") {
+        uploadPathFragment = "secret_keys";
+    }
+
+    const uploadPath = [origin, uploadPathFragment, revision].join("/");
     const valid = type !== "" && origin !== "" && blankLine.trim() === "" &&
         body !== "";
 
     return {
+        name,
         valid,
         origin,
         type,
+        uploadPath,
     };
 }
 

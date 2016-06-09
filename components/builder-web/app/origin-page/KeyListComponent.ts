@@ -7,6 +7,7 @@
 
 import {Component, Input} from "angular2/core";
 import {List} from "immutable";
+import config from "../config";
 
 @Component({
     selector: "hab-key-list",
@@ -16,7 +17,9 @@ import {List} from "immutable";
     </p>
     <ul class="hab-key-list--list" *ngIf="keys.size > 0">
         <li *ngFor="#key of keys" class="hab-item-list--all-link hab-item-list">
-            <a href="{{key.location}}">{{key.name}}</a>
+            <h3><a href="{{apiUrl}}/depot{{key.location}}">
+                {{key.origin}}-{{key.revision}}
+            </a></h3>
         </li>
     </ul>`,
 })
@@ -24,4 +27,6 @@ import {List} from "immutable";
 export class KeyListComponent {
     @Input() keys: List<any>;
     @Input() type: string;
+
+    get apiUrl() { return config["habitat_api_url"]; }
 }

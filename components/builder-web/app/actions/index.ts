@@ -40,6 +40,8 @@ export const POPULATE_ORG = orgActions.POPULATE_ORG;
 export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
 export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
+export const POPULATE_ORIGIN_PUBLIC_KEYS =
+    originActions.POPULATE_ORIGIN_PUBLIC_KEYS;
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     originActions.SET_CURRENT_ORIGIN_CREATING_FLAG;
@@ -49,6 +51,10 @@ export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY =
     originActions.SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY;
 export const SET_CURRENT_ORIGIN_LOADING =
     originActions.SET_CURRENT_ORIGIN_LOADING;
+export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE =
+    originActions.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE;
+export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
+    originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
@@ -102,8 +108,8 @@ export const performOrgMemberSearch = orgActions.performOrgMemberSearch;
 export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
 
 export const createOrigin = originActions.createOrigin;
-export const deleteOrigin = originActions.deleteOrigin;
 export const fetchOrigin = originActions.fetchOrigin;
+export const fetchOriginPublicKeys = originActions.fetchOriginPublicKeys;
 export const fetchMyOrigins = originActions.fetchMyOrigins;
 export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
@@ -111,6 +117,8 @@ export const setCurrentOriginAddingPrivateKey =
     originActions.setCurrentOriginAddingPrivateKey;
 export const setCurrentOriginAddingPublicKey =
     originActions.setCurrentOriginAddingPublicKey;
+export const uploadOriginPrivateKey = originActions.uploadOriginPrivateKey;
+export const uploadOriginPublicKey = originActions.uploadOriginPublicKey;
 
 export const fetchExplore = packageActions.fetchExplore;
 export const fetchPackage = packageActions.fetchPackage;

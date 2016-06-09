@@ -8,8 +8,9 @@
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {fetchOrigin, setCurrentOriginAddingPublicKey,
-    setCurrentOriginAddingPrivateKey} from "../actions/index";
+import {fetchOrigin, fetchOriginPublicKeys, setCurrentOriginAddingPublicKey,
+    setCurrentOriginAddingPrivateKey, uploadOriginPrivateKey,
+    uploadOriginPublicKey} from "../actions/index";
 import config from "../config";
 import {KeyAddFormComponent} from "./KeyAddFormComponent";
 import {KeyListComponent} from "./KeyListComponent";
@@ -52,11 +53,18 @@ import {requireSignIn} from "../util";
                             <hab-key-add-form
                                 *ngIf="addingPublicKey"
                                 [docsUrl]="docsUrl"
+                                [errorMessage]="ui.publicKeyErrorMessage"
                                 keyFileHeaderPrefix="SIG-PUB-1"
                                 [onCloseClick]="onPublicKeyCloseClick"
-                                [originName]="origin.name">
+                                [originName]="origin.name"
+                                [uploadKey]="uploadPublicKey">
                             </hab-key-add-form>
+                            <p *ngIf="ui.publicKeyListErrorMessage">
+                                Failed to load public keys:
+                                {{ui.publicKeyListErrorMessage}}.
+                            </p>
                             <hab-key-list
+                                *ngIf="!ui.publicKeyListErrorMessage"
                                 [keys]="publicKeys"
                                 type="public origin">
                             </hab-key-list>
@@ -69,9 +77,11 @@ import {requireSignIn} from "../util";
                             </button></p>
                             <hab-key-add-form
                                 *ngIf="addingPrivateKey"
+                                [errorMessage]="ui.privateKeyErrorMessage"
                                 keyFileHeaderPrefix="SIG-SEC-1"
                                 [onCloseClick]="onPrivateKeyCloseClick"
-                                [originName]="origin.name">
+                                [originName]="origin.name"
+                                [uploadKey]="uploadPrivateKey">
                             </hab-key-add-form>
                             <p>
                                 Private keys can not be viewed or downloaded.
@@ -122,12 +132,20 @@ import {requireSignIn} from "../util";
 export class OriginPageComponent implements OnInit {
     private onPrivateKeyCloseClick: Function;
     private onPublicKeyCloseClick: Function;
+    private uploadPrivateKey: Function;
+    private uploadPublicKey: Function;
 
     constructor(private routeParams: RouteParams, private store: AppStore) {
         this.onPrivateKeyCloseClick = () =>
             this.setOriginAddingPrivateKey(false);
         this.onPublicKeyCloseClick = () =>
             this.setOriginAddingPublicKey(false);
+        this.uploadPrivateKey = key =>
+            this.store.dispatch(uploadOriginPrivateKey(key,
+                this.gitHubAuthToken));
+        this.uploadPublicKey = key =>
+            this.store.dispatch(uploadOriginPublicKey(key,
+                this.gitHubAuthToken));
     }
 
     get addingPrivateKey() {
@@ -140,6 +158,10 @@ export class OriginPageComponent implements OnInit {
 
     get docsUrl() {
         return config["docs_url"];
+    }
+
+    get gitHubAuthToken() {
+        return this.store.getState().gitHub.authToken;
     }
 
     get publicKeys() {
@@ -179,5 +201,8 @@ export class OriginPageComponent implements OnInit {
     public ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
+        this.store.dispatch(fetchOriginPublicKeys(
+            this.origin.name, this.gitHubAuthToken
+        ));
     }
 }
