@@ -8,11 +8,11 @@ p In the article,
   #{link_to '"What Is a Modern Application?"', '/about/what-is-modern-app.html'}
   we talked about what characterizes a modern application and how such
   applications can address the problems of complexity and scale. In this
-  article, we'll talk about how Habitat lets any application, whether green
-  field or legacy, have those characteristics.
+  article, we'll talk about how Habitat lets any application, whether greenfield or legacy,
+   have those characteristics.
 
 p The short version is that Habitat offers a new approach to deploying
-  applications called <em>application automation</em>. 
+  applications called <em>application automation</em>.
 
 p Application automation means that the automation is packaged with the
   application and travels with it, no matter where that application is
@@ -23,17 +23,17 @@ p Application automation means that the automation is packaged with the
 
 p Instead of managing the infrastructure and any supporting dependencies
   separately from the application, Habitat includes everything that an
-  application needs, throughout its lifetime, within a Habitat package. 
+  application needs, throughout its lifetime, within a Habitat package.
 
 p A Habitat package is isolated, immutable and can establish relationships with
   peers. Habitat gives developers a straightforward way to describe how an
   application should behave in its eventual infrastructure environment.
   Habitat also has an outward-facing API that presents a standard interface to
   the world, so that other components, such as load balancers or monitoring
-  solutions, can easily communicate with the application. 
+  solutions, can easily communicate with the application.
 
 p Wrapping any application in a Habitat package gives it the characteristics we
-  want in a modern application. 
+  want in a modern application.
 
 h2 Benefits of application automation with Habitat
 
@@ -41,7 +41,7 @@ p Habitat speaks directly to the problem of complexity <em>and</em>
   high-velocity development. It handles all the management tasks that deflect
   teams from focusing on actually developing new products and features. It
   frees legacy applications from being tied to a particular environment, and
-  makes them portable and simpler to manage. 
+  makes them portable and simpler to manage.
 
 p Habitat also promotes collaboration and transparency. The Habitat files that
   describe an application's behavior are human-readable and can be stored in a
@@ -65,16 +65,16 @@ p The format defines Habitat packages, which are isolated, immutable and
   needs to run. There are no outside dependencies. By <em>immutable</em> we
   mean that a particular version of the package never changes. If something
   does change&mdash;including available versions of dependencies&mdash;you
-  create a new Habitat package, which has its own unique identifier. 
+  create a new Habitat package, which has its own unique identifier.
 
 p The Habitat supervisor knows how to take the packages and run them. It's
   aware of the package's peer relationships, its upgrade strategy and security
-  policies. 
+  policies.
 
 p Security is important because once distributed pieces of an application begin
   communicating with each other you also need trust relationships. You need to
   have security that's built into the system, not only for policy changes but
-  for ongoing compliance. 
+  for ongoing compliance.
 
 p In addition, the Habitat ecosystem includes a build service that retrieves
   the source code for a package from a depot and creates the packages. There is
@@ -91,7 +91,7 @@ p To build a package, Habitat uses a build description, called a <em>plan</em>,
   which describes the application, its dependencies, and configuration options.
   The Habitat build service takes all these components and wraps them into a
   single, encrypted or signed artifact, which can be configured dynamically
-  when the service starts. 
+  when the service starts.
 
 p Here is an example of a plan to create a Habitat package for
   #{link_to 'ElasticSearch', 'https://aws.amazon.com/elasticsearch-service/'}
@@ -142,10 +142,10 @@ p The callbacks override certain default behaviors such as compiling and
   functions such as unpacking the archive, verifying its checksum, and
   performing any cleanup work of the archive have not been overridden.
 
-h2 Habitat and the Production Environment 
+h2 Habitat and the Production Environment
 
 p Applications packaged by Habitat display the following characteristics in a
-  production environment: 
+  production environment:
 
 ul
   li They can be dynamically configured at runtime.
@@ -158,7 +158,7 @@ ul
     components.
 
 p The following table summarizes how Habitat creates applications that fulfill
-  the requirements of a production environment. 
+  the requirements of a production environment.
 
 table
   thead

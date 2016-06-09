@@ -19,7 +19,7 @@ p In the last article,
 p The need for service-oriented automation motivates a central design principle
   of Habitat: <em>Habitat is automation that travels with the app</em>. The
   artifact used for deployment contains both the application and its
-  automation. 
+  automation.
 
 p Let’s put this in context. Scalability is really only achievable when
   intelligence itself is distributed. By scalability we mean more than the
@@ -28,7 +28,7 @@ p Let’s put this in context. Scalability is really only achievable when
   going on in their systems. It's easier for them to do this if they only need
   to understand what's happening between a few services. It's much more
   difficult to look at a central orchestration point that describes the entire
-  ecosystem. 
+  ecosystem.
 
 p #{link_to 'Mark Burgess', 'http://markburgess.org/'} is the father of
   configuration management theory and the author of
@@ -54,7 +54,7 @@ p Promise-based approaches assume that each component is an autonomous agent,
   with the intelligence it needs to govern itself. Each agent publishes its
   intentions, which represent clear contractual boundaries of what the agent
   will attempt to provide. The overall model is one based on cooperation
-  between independent entities. 
+  between independent entities.
 
 p Another benefit is that reliable systems can be built, even when the
   underlying foundation is unreliable. Promise-based systems assume failures
@@ -115,7 +115,7 @@ p When intelligence is distributed, you can build reliable systems on top of
   unreliable base layers. Because there is no single point of control, there is
   no single point of failure. An example is a leader/follower topology, where,
   when the current leader fails, a new leader is elected by the other
-  components without any external directive. 
+  components without any external directive.
 
 h2 Flexible versioning and rollout
 
@@ -126,7 +126,7 @@ p When automation is integral to the application rather than imposed
   investigative techniques such as canary deployments and A/B testing are much
   simpler with distributed automation.
 
-h2 Simpler app development process 
+h2 Simpler app development process
 
 p Distributed intelligence simplifies the development process. Standard
   capabilities such as monitoring and health status can be implemented through
@@ -137,17 +137,17 @@ p Distributed intelligence simplifies the development process. Standard
   adopted DevOps culture, a distributed model makes collaboration easier
   because boundaries are well understood. It also becomes possible to quickly
   iterate and test individual services and components. Finally, developers
-  don't need to tie their application to a particular runtime environment. 
+  don't need to tie their application to a particular runtime environment.
 
 h2 Ability to deploy anywhere
 
 p Application automation frees applications from being tied to a particular
   environment. Packages can be run unmodified across a wide variety of runtime
   environments, from bare metal and virtual machines all the way to containers
-  such Docker, grid systems like Mesosphere or Kubernetes, or even PaaS systems
+  such as Docker, grid systems like Mesosphere or Kubernetes, or even PaaS systems
   such as Pivotal Cloud Foundry.
 
-h2 Ease of management 
+h2 Ease of management
 
 p Packaging automation with the application makes the environment simpler to
   manage. With application automation, deployment coordination and service
