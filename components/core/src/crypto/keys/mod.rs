@@ -614,4 +614,20 @@ mod test {
         assert_eq!(1, candidates.len());
 
     }
+
+    #[test]
+    fn check_origin_name() {
+        assert!(super::is_valid_origin_name("foo"));
+        assert!(super::is_valid_origin_name("foo_bar"));
+        assert!(super::is_valid_origin_name("foo-bar"));
+        assert!(super::is_valid_origin_name("0xdeadbeef"));
+
+        assert!(!super::is_valid_origin_name("Core"));
+        assert!(!super::is_valid_origin_name(" foo"));
+        assert!(!super::is_valid_origin_name("foo "));
+        assert!(!super::is_valid_origin_name("!foo"));
+        assert!(!super::is_valid_origin_name("foo!"));
+        assert!(!super::is_valid_origin_name("foo bar"));
+        assert!(!super::is_valid_origin_name("0xDEADBEEF"));
+    }
 }
