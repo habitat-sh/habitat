@@ -164,7 +164,9 @@ code {
   font-size: $code-font-size;
   margin: rem-calc(10 0 30);
 
-  p &,li & {
+  p &,
+  li &,
+  td & {
     border-radius: $global-radius;
     padding: rem-calc(0 5 1);
     margin: 0 rem-calc(1);
