@@ -90,9 +90,10 @@ body.has-sidebar {
 }
 
 .main-sidebar--list--item {
-    display: block;
-    line-height: rem-calc(32);
-    padding-left: 0;
+  display: block;
+  line-height: 1.2;
+  margin-bottom: rem-calc(13);
+  padding-left: 0;
 }
 
 .main-content__has-sidebar {

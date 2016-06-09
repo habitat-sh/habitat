@@ -3,9 +3,9 @@ sidebar_links:
 - title: Getting Started
   links:
   - title: Overview
-    link: "/docs/overview"
+    link: "/docs/overview/"
   - title: Get Habitat
-    link: "/docs/get-habitat"
+    link: "/docs/get-habitat/"
   - title: Tutorials
     link: "/tutorials/"
   - title: Concepts

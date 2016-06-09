@@ -3,12 +3,12 @@ sidebar_links:
 - title: About
   links:
   - title: The Genesis of Habitat
-    link:  /about/habitat-genesis.html
+    link:  "/about/habitat-genesis/"
   - title: What is a Modern Application?
-    link:  /about/what-is-modern-app.html
+    link:  "/about/what-is-modern-app/"
   - title: Why Package the App and Its Automation Together?
-    link:  /about/why-package-automation-with-app.html
+    link:  "/about/why-package-automation-with-app/"
   - title: Habitat and the Modern Application
-    link:  /about/habitat-and-modern-app.html
+    link:  "/about/habitat-and-modern-app/"
   - title: Habitat and Workload Placement
-    link:  /about/habitat-and-workload-placement.html
+    link:  "/about/habitat-and-workload-placement/"
