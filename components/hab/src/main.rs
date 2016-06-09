@@ -57,11 +57,13 @@ use gossip::hab_gossip;
 
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
-/// you can skip the --origin CLI param if you specify this env var
+/// Makes the --auth-token CLI param optional when this env var is set
+const HABITAT_AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
+/// Makes the --origin CLI param optional when this env var is set
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
-
-/// you can skip the org CLI param if you specify this env var
+/// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
+/// Makes the --user CLI param optional when this env var is set
 const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 
 const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
@@ -210,10 +212,22 @@ fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
 fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let token: String = match m.value_of("AUTH_TOKEN") {
+        None => {
+            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
+                Ok(token) => token,
+                Err(_) => {
+                    return Err(Error::ArgumentError("Missing authentication token - Set \
+                                                     AUTH_TOKEN env var or specify a value for \
+                                                     --auth-token and try again."))
+                }
+            }
+        }
+        Some(token) => token.to_string(),
+    };
     let artifact_paths = m.values_of("ARTIFACT").unwrap();
-
     for artifact_path in artifact_paths {
-        try!(command::artifact::upload::start(&url, &artifact_path));
+        try!(command::artifact::upload::start(&url, &token, &artifact_path));
     }
     Ok(())
 }
@@ -361,10 +375,23 @@ fn sub_origin_key_import() -> Result<()> {
 fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let token: String = match m.value_of("AUTH_TOKEN") {
+        None => {
+            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
+                Ok(token) => token,
+                Err(_) => {
+                    return Err(Error::ArgumentError("Missing authentication token - Set \
+                                                     AUTH_TOKEN env var or specify a value for \
+                                                     --auth-token and try again."))
+                }
+            }
+        }
+        Some(token) => token.to_string(),
+    };
     let keyfile = Path::new(m.value_of("FILE").unwrap());
     init();
 
-    command::origin::key::upload::start(url, &keyfile)
+    command::origin::key::upload::start(url, &token, &keyfile)
 }
 
 fn sub_pkg_binlink(m: &ArgMatches) -> Result<()> {
