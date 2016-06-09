@@ -155,8 +155,10 @@ $main-nav-breakpoint: 710px;
       &.router-link-active:before {
         content: "";
         position: absolute;
-        background: url("/assets/images/nav-active-icon.png") no-repeat center top;
-        background: url("/assets/images/nav-active-icon.svg") no-repeat center top;
+        background-image: url("/assets/images/nav-active-icon.png");
+        background-image: none, url("/assets/images/nav-active-icon.svg");
+        background-position: center top;
+        background-repeat: no-repeat;
         background-size: auto 100%;
         width: 120%;
         height: rem(18);
@@ -175,12 +177,11 @@ $main-nav-breakpoint: 710px;
 
 .main-nav--cta {
   float: right;
-  padding: rem(4) rem(20) 0 0;
+  margin: rem(10) rem(10) 0 0;
 
   .button {
     background: transparent;
     border: 1px solid $hab-orange;
-    margin: rem(7) 0 0 0;
     color: $base-font-color;
     border-radius: rem(6);
     font-size: 1em;
@@ -201,7 +202,7 @@ $main-nav-breakpoint: 710px;
   }
 
   @include large-nav {
-    padding: rem(30) 0 0 0;
+    margin: rem(30) 0 0;
   }
 
   @media (max-width: 292px) {

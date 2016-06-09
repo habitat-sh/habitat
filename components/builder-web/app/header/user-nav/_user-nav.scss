@@ -5,89 +5,65 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-.hab-header nav {
-  @include span-columns(8);
-  @include omega();
+.main-nav--profile {
+  float: right;
+  margin: rem(20) rem(10) 0 0;
+  position: relative;
 
-  text-align: right;
+  @include large-nav{
+    margin: rem(40) 0 0;
+  }
+}
 
-  .username {
-    background-color: lighten($dark-gray, 3);
+.main-nav--avatar {
+  background-color: $hab-gray-light;
+  border-radius: $global-radius;
+  color: $hab-off-white;
+  padding: rem(8) rem(10) rem(12);
+
+  img {
     border-radius: $global-radius;
-    color: $hab-off-white;
-    padding: rem(8) rem(10) rem(10);
+    vertical-align: middle;
+  }
 
-    img {
-      border-radius: $global-radius;
-      vertical-align: middle;
-    }
+  span {
+    font-size: 75%;
+  }
 
-    span {
-      font-size: 75%;
-    }
+  &:hover {
+    color: $hab-white;
+  }
+}
 
-    &:hover {
-      color: $hab-white;
+.main-nav--dropdown {
+  @include dropdown-panel;
+  color: $hab-gray;
+  position: absolute;
+  right: 0;
+  top: 44px;
+  z-index: 9999;
+
+  li {
+    display: block;
+    min-width: 8em;
+    padding-bottom: rem(10);
+    text-align: left;
+
+    &:last-child {
+      border-top: 1px solid $light-gray;
+      margin-top: rem(8);
+      padding-bottom: 0;
+      padding-top: rem(12);
     }
   }
 
-  ul {
-    height: 80px;
-    position: relative;
-    width: 100%;
-
-    li {
-      display: inline-block;
-    }
-
-
-    ul {
-      @include dropdown-panel;
-      position: absolute;
-      right: 0;
-      top: 67px;
-
-      li {
-        display: block;
-        min-width: 8em;
-        padding-bottom: rem(10);
-        text-align: left;
-
-        &:last-child {
-          border-top: 1px solid $light-gray;
-          margin-top: rem(8);
-          padding-bottom: 0;
-          padding-top: rem(12);
-        }
-      }
-
-      li a {
-        line-height: 1.5em;
-        margin-left: 0;
-
-        &:hover {
-          color: $hab-orange;
-        }
-      }
-
-    }
-
-    li a {
-      @include transition(color .2s ease-in-out);
-      color: $hab-green;
-      line-height: 80px;
-      margin-left: 1.5em;
-
-      &:active,
-      &:focus,
-      &:hover {
-        @include transition(color .2s ease-in-out);
-        color: lighten($hab-green, 10);;
-      }
-    }
+  li a {
+    line-height: 1.5em;
+    margin-left: 0;
   }
 
-  li.sign-in-button {
-    @extend .hab-drop-down;
-  }
+}
+
+li.sign-in-button {
+  @extend .hab-drop-down;
 }

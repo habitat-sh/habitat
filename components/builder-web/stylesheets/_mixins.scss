@@ -11,7 +11,7 @@
 }
 
 @mixin dropdown-panel {
-  @include shadow-float;
+  @include shadow-float-more;
   background-color: $white;
   border-radius: $global-radius;
   height: auto;
@@ -20,16 +20,20 @@
 }
 
 // Buttons
+@mixin hab-button ($textcolor: $hab-white) {
+  border: 0;
+  border-radius: 7px;
+  color: $textcolor;
+  font-size: rem-calc(16);
+  letter-spacing: rem-calc(1);
+  padding: rem(10) rem(25);
+}
+
 @mixin primary-button($color1: $hab-orange, $color2: $hab-orange-dark) {
+  @include hab-button;
   @include shadow-float;
   @include transition(all 0.2s ease-in-out);
   background-image: linear-gradient(to left, lighten($color1, 13%), lighten($color2, 5%) 100%);
-  border: 0;
-  border-radius: 7px;
-  color: $hab-white;
-  font-size: rem-calc(16);
-  letter-spacing: rem-calc(1);
-  padding: 0.85em 1.65em;
   text-shadow: 0 1px 2px $hab-red;
 
   &:hover {
@@ -40,7 +44,8 @@
 }
 
 @mixin secondary-button {
-  background-color: $medium-gray;
+  @include hab-button($hab-orange-dark);
+  background-color: transparent;
 }
 
 @mixin cta-button {
