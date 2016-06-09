@@ -38,7 +38,8 @@ $main-nav-breakpoint: 710px;
     top: 0;
   }
 
-  &.has-sidebar {
+  &.has-sidebar,
+  &.try-hab {
     background: $hab-off-white;
   }
 
@@ -169,16 +170,15 @@ $main-nav-breakpoint: 710px;
   padding: rem-calc(4) rem-calc(20) 0 0;
 
   .button {
-    background: transparent;
-    border: 1px solid $hab-orange;
+    @include button;
     margin: rem-calc(7) 0 0 0;
-    color: $body-font-color;
-    border-radius: rem-calc(6);
-    font-size: 1em;
-
 
     @include large-nav {
       margin: 0;
+    }
+
+    &:hover {
+      @include primary-button;
     }
   }
 

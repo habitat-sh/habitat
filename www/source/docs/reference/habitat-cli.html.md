@@ -18,7 +18,7 @@ The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 - [hab sup](#hab-sup)
 - [hab user](#hab-user)
 
-## hab
+<h2 id="hab" class="anchor">hab</h2>
 
 The main program that allows you to sign and upload packages, start Habitat services, and other related functions through various subcommands.
 
@@ -53,7 +53,7 @@ The main program that allows you to sign and upload packages, start Habitat serv
 
 ***
 
-## hab artifact
+<h2 id="hab-artifact" class="anchor">hab artifact</h2>
 Subcommand used for signing and uploading packages.
 
 **USAGE**
@@ -74,7 +74,7 @@ Subcommand used for signing and uploading packages.
 
 ***
 
-## hab config
+<h2 id="hab-config" class="anchor">hab config</h2>
 Subcommand for applying configuration changes to a service group.
 
 **USAGE**
@@ -94,7 +94,7 @@ Subcommand for applying configuration changes to a service group.
 
 ***
 
-## hab file
+<h2 id="hab-file" class="anchor">hab file</h2>
 Subcommand for uploading files to a service group.
 
 **USAGE**
@@ -111,7 +111,7 @@ Subcommand for uploading files to a service group.
     upload    Upload a file to the supervisor ring.
 
 
-## hab origin
+<h2 id="hab-origin" class="anchor">hab origin</h2>
 Subcommand that performs key maintenance for origin keys.
 
 **USAGE**
@@ -130,7 +130,7 @@ Subcommand that performs key maintenance for origin keys.
 
 ***
 
-## hab pkg
+<h2 id="hab-pkg" class="anchor">hab pkg</h2>
 Subcommand that allows you to build or install local or remote packages.
 
 **USAGE**
@@ -155,7 +155,7 @@ Subcommand that allows you to build or install local or remote packages.
 
 ***
 
-## hab ring
+<h2 id="hab-ring" class="anchor">hab ring</h2>
 Subcommand for managing the keys that supervisors use when passing encrypted messages to each other in a ring.
 
 **USAGE**
@@ -173,7 +173,7 @@ Subcommand for managing the keys that supervisors use when passing encrypted mes
 
 ***
 
-## hab service
+<h2 id="hab-service" class="anchor">hab service</h2>
 Subcommand for managing Habitat service group keys.
 
 **USAGE**
@@ -191,7 +191,7 @@ Subcommand for managing Habitat service group keys.
 
 ***
 
-## hab studio
+<h2 id="hab-studio" class="anchor">hab studio</h2>
 Helps you to build packages inside a studio environment.
 
 **USAGE**
@@ -239,7 +239,7 @@ USAGE:
 
 ***
 
-## hab sup
+<h2 id="hab-sup" class="anchor">hab sup</h2>
 Supervisor that starts and manages the software in a Habitat service.
 
 **USAGE**
@@ -262,7 +262,7 @@ Supervisor that starts and manages the software in a Habitat service.
 
 ***
 
-## hab user
+<h2 id="hab-user" class="anchor">hab user</h2>
 Subcommand for managing Habitat user keys.
 
 **USAGE**

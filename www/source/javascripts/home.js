@@ -86,5 +86,5 @@ var homepageScripts = function() {
       $(testimonialsSlider + " .first").addClass("is-active");
     }
 
-  }, 15000);g
+  }, 15000);
 };

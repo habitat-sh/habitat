@@ -1,11 +1,7 @@
 = wrap_layout :layout do
   .container__has-sidebar
-    .main-sidebar
-      .row
-        .columns.medium-12
-          - if sidebar_layout == 'docs'
-            .main-sidebar--search
-              input type="text" placeholder="Search Docs"
+    .row
+      .main-sidebar
           ul.no-bullet
             - sidebar_data(sidebar_layout).each do |item|
               li.main-sidebar--heading
@@ -20,7 +16,5 @@
                             li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
                               = link_to sub_link.title, sub_link.link
 
-    .main-content__has-sidebar
-      .row
-        .columns.medium-12
+      .main-content__has-sidebar
           == yield
