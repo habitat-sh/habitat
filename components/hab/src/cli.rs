@@ -208,8 +208,16 @@ pub fn get() -> App<'static, 'static> {
                    (aliases: &["p", "pa", "pat"])
                    (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
-        )
+             )
+            (@subcommand export =>
+                   (about: "Exports the package to the specified format")
+                   (aliases: &["e", "ex", "exp"])
+                   (@arg FORMAT: +required +takes_value
+                    "The export format (ex: docker, aci)")
+                   (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+             )
+         )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")
             (aliases: &["r", "ri", "rin"])
