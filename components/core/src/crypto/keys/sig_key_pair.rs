@@ -225,39 +225,10 @@ impl SigKeyPair {
     pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
                                                         cache_key_path: &P)
                                                         -> Result<(Self, PairType)> {
-        let mut lines = content.lines();
-        let pair_type = match lines.next() {
-            Some(val) => {
-                match val {
-                    PUBLIC_SIG_KEY_VERSION => PairType::Public,
-                    SECRET_SIG_KEY_VERSION => PairType::Secret,
-                    _ => {
-                        return Err(Error::CryptoError(format!("Unsupported key version: {}", val)))
-                    }
-                }
-            }
-            None => {
-                let msg = format!("write_sig_key_from_str:1 Malformed sig key string:\n({})",
-                                  content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let name_with_rev = match lines.next() {
-            Some(val) => val,
-            None => {
-                let msg = format!("write_sig_key_from_str:2 Malformed sig key string:\n({})",
-                                  content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
-        let key_body = match lines.nth(1) {
-            Some(val) => val,
-            None => {
-                let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
-                                  content);
-                return Err(Error::CryptoError(msg));
-            }
-        };
+        let (pair_type, name_with_rev, key_body) = try!(Self::parse_key_str(content));
+        let name_with_rev = &name_with_rev;
+        let key_body = &key_body;
+
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
             PairType::Secret => SECRET_SIG_KEY_SUFFIX,
@@ -318,6 +289,97 @@ impl SigKeyPair {
 
         // Now load and return the pair to ensure everything wrote out
         Ok((try!(Self::get_pair_for(&name_with_rev, cache_key_path)), pair_type))
+    }
+
+    /// Parses a string slice of a public or secret signature key.
+    ///
+    /// The return valid is a tuple consisting of:
+    ///   `(PairType, name_with_rev::String, key_body::String)`
+    ///
+    /// # Examples
+    ///
+    /// With a public key:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    ///
+    /// use habitat_core::crypto::SigKeyPair;
+    /// use habitat_core::crypto::keys::PairType;
+    ///
+    /// fn main() {
+    ///     let content = "SIG-PUB-1
+    /// unicorn-20160517220007
+    ///
+    /// J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=";
+    ///     let (pair_type, name_with_rev, key_body) = SigKeyPair::parse_key_str(content).unwrap();
+    ///     assert_eq!(pair_type, PairType::Public);
+    ///     assert_eq!(name_with_rev, "unicorn-20160517220007");
+    ///     assert_eq!(key_body, "J+FGYVKgragA+dzQHCGORd2oLwCc2EvAnT9roz9BJh0=");
+    /// }
+    /// ```
+    ///
+    /// With a secret key:
+    ///
+    /// ```
+    /// extern crate habitat_core;
+    ///
+    /// use habitat_core::crypto::SigKeyPair;
+    /// use habitat_core::crypto::keys::PairType;
+    ///
+    /// fn main() {
+    ///     let content = "SIG-SEC-1
+    /// unicorn-20160517220007
+    ///
+    /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
+    ///
+    ///     let (pair_type, name_with_rev, key_body) = SigKeyPair::parse_key_str(content).unwrap();
+    ///     assert_eq!(pair_type, PairType::Secret);
+    ///     assert_eq!(name_with_rev, "unicorn-20160517220007");
+    ///     assert_eq!(key_body, "jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==");
+    /// }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// * If there is a key version mismatch
+    /// * If the key version is missing
+    /// * If the key name with revision is missing
+    /// * If the key value (the Bas64 payload) is missing
+    pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)>  {
+        let mut lines = content.lines();
+        let pair_type = match lines.next() {
+            Some(val) => {
+                match val {
+                    PUBLIC_SIG_KEY_VERSION => PairType::Public,
+                    SECRET_SIG_KEY_VERSION => PairType::Secret,
+                    _ => {
+                        return Err(Error::CryptoError(format!("Unsupported key version: {}", val)))
+                    }
+                }
+            }
+            None => {
+                let msg = format!("write_sig_key_from_str:1 Malformed sig key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let name_with_rev = match lines.next() {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_sig_key_from_str:2 Malformed sig key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        let key_body = match lines.nth(1) {
+            Some(val) => val,
+            None => {
+                let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
+                                  content);
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        Ok((pair_type, name_with_rev.to_string(), key_body.to_string()))
     }
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
