@@ -49,6 +49,8 @@ sidebar_links:
       link: "/docs/run-packages-security/"
     - title: Run multiple packages
       link: "/docs/run-packages-director/"
+  - title: Continuous deployment
+    link: "/docs/continuous-deployment-overview/"
   - title: Habitat internals
     link: "/docs/internals-overview/"
     sub_links:
