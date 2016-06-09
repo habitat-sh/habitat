@@ -27,3 +27,5 @@ sidebar_links:
   links:
   - title: Habitat docs
     link: "/docs/"
+  - title: Why Habitat?
+    link: "/about/"
