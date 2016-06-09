@@ -38,7 +38,14 @@ helpers SidebarHelpers
 helpers do
   def layout_class
     layout = current_page.options.fetch(:layout, nil)
-    layout == :sidebar ? 'has-sidebar' : ''
+    if layout == :sidebar
+      'has-sidebar'
+    elsif layout == :try
+      'try-hab'
+    else
+      ''
+    end
+
   end
 end
 

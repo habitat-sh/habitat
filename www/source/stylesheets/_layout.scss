@@ -1,6 +1,7 @@
 $sidebar-breakpoint: 720px;
 
-body.has-sidebar {
+body.has-sidebar,
+body.try-hab {
   background: $hab-off-white;
 
   #content-outer {
@@ -36,16 +37,9 @@ body.has-sidebar {
 }
 
 .main-sidebar {
-  padding: rem-calc(40) 0;
+  @include grid-column(12);
+  padding: rem-calc(40) rem-calc(20);
   background: $hab-off-white;
-
-  @media (min-width: $sidebar-breakpoint) {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 300px;
-  }
 
   a {
     display: block;
@@ -75,6 +69,11 @@ body.has-sidebar {
       background-size: 100% auto;
     }
   }
+
+  @include breakpoint(medium) {
+    @include grid-column(3);
+    padding: rem-calc(40) 0;
+  }
 }
 
 .main-sidebar--search {
@@ -97,12 +96,15 @@ body.has-sidebar {
 }
 
 .main-content__has-sidebar {
+  @include grid-column(12);
   background-color: $hab-white;
   background: url("/images/graphics/article-watermark.png") no-repeat right bottom $hab-white;
   background: url("/images/graphics/article-watermark.svg") no-repeat right bottom $hab-white;
+  height: 100%;
+  min-height: 70vh;
   padding: rem-calc(40) rem-calc(20) rem-calc(120);
 
-  @media (min-width: $sidebar-breakpoint) {
-    margin-left: 300px;
+  @include breakpoint(medium) {
+    @include grid-column(9);
   }
 }

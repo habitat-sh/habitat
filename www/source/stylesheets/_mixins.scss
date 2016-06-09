@@ -10,14 +10,27 @@
   white-space: nowrap;
 }
 
-@mixin primary-button {
+@mixin button {
+  background: transparent;
+  border: 1px solid $hab-orange;
   border-radius: 7px;
-  background-image: linear-gradient(to left, lighten($hab-orange, 13%), lighten($hab-orange-dark, 5%) 100%);
-  border: none;
+  color: $body-font-color;
   font-size: rem-calc(16);
-  text-shadow: 0 1px 2px #EB6852;
   letter-spacing: rem-calc(1);
   padding: 0.85em 1.65em;
+  transition: all .2s;
+}
+
+@mixin primary-button {
+  @include button;
+  background-image: linear-gradient(to left, lighten($hab-orange, 13%), lighten($hab-orange-dark, 5%) 100%);
+  color: $white;
+  text-shadow: 0 1px 2px #EB6852;
+
+  &:hover {
+    @include shadow-float;
+    transition: all .2s;
+  }
 }
 
 @mixin linear-gradient($pos, $g1, $g2: null,

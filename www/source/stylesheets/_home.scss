@@ -494,6 +494,10 @@ $sub-hero-skew: 5deg;
     margin-right: 0;
   }
 
+  &.is-active {
+    border-bottom: 2px solid $hab-orange;
+  }
+
   &.is-active path,
   &:hover path {
     fill: $hab-orange;
@@ -589,8 +593,6 @@ $testimonials-slider-transition: 1s;
 .testimonial--image {
   position: relative;
   padding-bottom: 20px;
-  background: url('/images/graphics/testimonial.svg') no-repeat;
-  background-size: cover;
 
   & > img {
     display: block;

@@ -12,7 +12,8 @@
   background-size: auto rem-calc(247), cover;
   color: $white;
 
-  &.has-sidebar {
+  &.has-sidebar,
+  &.try-hab {
     padding-top: 0;
   }
 }
