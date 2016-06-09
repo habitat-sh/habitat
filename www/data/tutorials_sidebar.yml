@@ -16,7 +16,7 @@ sidebar_links:
     - title: Add hooks to your plan
       link: "/tutorials/getting-started-add-hooks/"
     - title: Add configuration to your plan
-      link: "/tutorials/getting-started-configure-plan"
+      link: "/tutorials/getting-started-configure-plan/"
     - title: Process your build
       link: "/tutorials/getting-started-process-build/"
     - title: Next steps
@@ -24,4 +24,4 @@ sidebar_links:
 - title: Quick Links
   links:
   - title: Habitat docs
-    link: "/docs"
+    link: "/docs/"
