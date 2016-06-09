@@ -12,7 +12,8 @@ import {parseKey} from "../util";
 @Component({
     selector: "hab-key-add-form",
     template: `
-    <form class="hab-key-add-form" [ngFormModel]="form" #formValues="ngForm">
+    <form class="hab-key-add-form" [ngFormModel]="form" #formValues="ngForm"
+        (ngSubmit)="submit(formValues.value.key)">
         <a class="hab-key-add-form--close" href="#" (click)="onCloseClick()">
             Close
         </a>
@@ -46,15 +47,20 @@ import {parseKey} from "../util";
                     Key origin must match '{{originName}}'.
                 </span>
             </div>
+            <div *ngIf="errorMessage" class="hab-key-add-form--errors">
+                Failed to save key: {{errorMessage}}.
+            </div>
         </div>
     </form>`,
 })
 
 export class KeyAddFormComponent implements OnInit {
-    @Input() docsUrl: String;
-    @Input() keyFileHeaderPrefix: String;
+    @Input() docsUrl: string;
+    @Input() errorMessage: string;
+    @Input() keyFileHeaderPrefix: string;
     @Input() onCloseClick: Function;
-    @Input() originName: String;
+    @Input() originName: string;
+    @Input() uploadKey: Function;
 
     private form: ControlGroup;
     private control: Control;
@@ -85,6 +91,11 @@ export class KeyAddFormComponent implements OnInit {
         } else {
             return { invalidOrigin: true };
         }
+    }
+
+    private submit(key) {
+        this.uploadKey(key);
+        return false;
     }
 
     public ngOnInit() {

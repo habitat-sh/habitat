@@ -50,6 +50,12 @@ core-20160423193745
 Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=`;
             });
 
+            it("has a name property", () => {
+                expect(util.parseKey(keyString).name).to.eq(
+                    "core-20160423193745"
+                );
+            });
+
             it("has a valid:true property", () => {
                 expect(util.parseKey(keyString).valid).to.eq(true);
             });
@@ -58,8 +64,31 @@ Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=`;
                 expect(util.parseKey(keyString).origin).to.eq("core");
             });
 
-            it("has a type property", () => {
-                expect(util.parseKey(keyString).type).to.eq("SIG-PUB-1");
+            describe("with a private key", () => {
+                beforeEach(() => {
+                    keyString = `SIG-SEC-1
+core-20160423193745
+
+NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN==`;
+                });
+
+                it("has an uploadPath property", () => {
+                    expect(util.parseKey(keyString).uploadPath).to.eq(
+                        "core/secret_keys/20160423193745"
+                    );
+                });
+            });
+
+            describe("with a public key", () => {
+                it("has a type property", () => {
+                    expect(util.parseKey(keyString).type).to.eq("SIG-PUB-1");
+                });
+
+                it("has an uploadPath property", () => {
+                    expect(util.parseKey(keyString).uploadPath).to.eq(
+                        "core/keys/20160423193745"
+                    );
+                });
             });
         });
     });

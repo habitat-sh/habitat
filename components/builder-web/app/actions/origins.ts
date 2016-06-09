@@ -9,15 +9,22 @@ import {addNotification, SUCCESS, DANGER} from "./notifications";
 import {requestRoute} from "./router";
 import * as depotApi from "../depotApi";
 import {BuilderApiClient} from "../BuilderApiClient";
+import {parseKey} from "../util";
 
 export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
-export const POPULATE_PACKAGE_COUNT_FOR_ORIGIN = "POPULATE_PACKAGES_FOR_ORIGIN";
+export const POPULATE_ORIGIN_PUBLIC_KEYS = "POPULATE_ORIGIN_PUBLIC_KEYS";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
     "SET_CURRENT_ORIGIN_CREATING_FLAG";
 export const SET_CURRENT_ORIGIN_LOADING = "SET_CURRENT_ORIGIN_LOADING";
-export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY = "SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY";
-export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY = "SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY";
+export const SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY =
+    "SET_CURRENT_ORIGIN_ADDING_PRIVATE_KEY";
+export const SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY =
+    "SET_CURRENT_ORIGIN_ADDING_PUBLIC_KEY";
+export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE =
+    "SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE";
+export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
+    "SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
 
 export function createOrigin(origin, token, isFirstOrigin = false) {
@@ -68,11 +75,30 @@ export function fetchOrigin(originName: string) {
     };
 }
 
+export function fetchOriginPublicKeys(originName: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).getOriginPublicKeys(originName).
+            then(response => {
+                dispatch(populateOriginPublicKeys(response));
+            }).catch(error => {
+                dispatch(populateOriginPublicKeys(undefined, error));
+            });
+    };
+}
+
 function populateMyOrigins(payload, error = undefined) {
     return {
         type: POPULATE_MY_ORIGINS,
         payload,
         error
+    };
+}
+
+function populateOriginPublicKeys(payload, error = undefined) {
+    return {
+        type: POPULATE_ORIGIN_PUBLIC_KEYS,
+        payload,
+        error,
     };
 }
 
@@ -112,8 +138,54 @@ function setCurrentOriginCreatingFlag(payload) {
     };
 }
 
+function setOriginPrivateKeyUploadErrorMessage(payload: string) {
+    return {
+        type: SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE,
+        payload,
+    };
+}
+
+function setOriginPublicKeyUploadErrorMessage(payload: string) {
+    return {
+        type: SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE,
+        payload,
+    };
+}
+
 export function toggleOriginPicker() {
     return {
         type: TOGGLE_ORIGIN_PICKER,
+    };
+}
+
+export function uploadOriginPrivateKey(key: string , token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).createOriginKey(key).then(() => {
+            dispatch(setOriginPrivateKeyUploadErrorMessage(undefined));
+            dispatch(setCurrentOriginAddingPrivateKey(false));
+            dispatch(addNotification({
+                title: "Origin Private Key Uploaded",
+                body: `'${parseKey(key).name}' has been uploaded`,
+                type: SUCCESS,
+            }));
+        }).catch(error => {
+            dispatch(setOriginPrivateKeyUploadErrorMessage(error.message));
+        });
+    };
+}
+
+export function uploadOriginPublicKey(key: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).createOriginKey(key).then(() => {
+            dispatch(setOriginPublicKeyUploadErrorMessage(undefined));
+            dispatch(setCurrentOriginAddingPublicKey(false));
+            dispatch(addNotification({
+                title: "Origin Public Key Uploaded",
+                body: `'${parseKey(key).name}' has been uploaded`,
+                type: SUCCESS,
+            }));
+        }).catch(error => {
+            dispatch(setOriginPublicKeyUploadErrorMessage(error.message));
+        });
     };
 }

@@ -7,6 +7,7 @@
 
 import "whatwg-fetch";
 import config from "./config";
+import {parseKey} from "./util";
 
 export class BuilderApiClient {
     private headers;
@@ -28,6 +29,23 @@ export class BuilderApiClient {
         });
     }
 
+    public createOriginKey(key) {
+        key = parseKey(key);
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${key.uploadPath}`, {
+                body: key.body,
+                headers: this.headers,
+                method: "POST",
+            }).then(response => {
+                if  (response.ok) {
+                    resolve(true);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
     public getMyOrigins() {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/user/origins`, {
@@ -43,6 +61,20 @@ export class BuilderApiClient {
     public getOrigin(originName: string) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}`, {
+                headers: this.headers,
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public getOriginPublicKeys(originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/keys`, {
                 headers: this.headers,
             }).then(response => {
                 if (response.ok) {

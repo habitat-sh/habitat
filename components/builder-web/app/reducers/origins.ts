@@ -24,6 +24,20 @@ export default function origins(state = initialState["origins"], action) {
                     setIn(["ui", "mine", "loading"], false);
             }
 
+        case actionTypes.POPULATE_ORIGIN_PUBLIC_KEYS:
+            if (action.error) {
+                return state.setIn(
+                    ["ui", "current", "publicKeyListErrorMessage"],
+                    action.error.message
+                );
+            } else {
+                return state.setIn(["currentPublicKeys"], List(action.payload)).
+                    setIn(
+                        ["ui", "current", "publicKeyListErrorMessage"],
+                        undefined
+                    );
+            }
+
         case actionTypes.SET_CURRENT_ORIGIN:
             if (action.error) {
                 return state.set("current", Origin()).
@@ -50,6 +64,14 @@ export default function origins(state = initialState["origins"], action) {
 
         case actionTypes.SET_CURRENT_ORIGIN_LOADING:
             return state.setIn(["ui", "current", "loading"],
+                action.payload);
+
+        case actionTypes.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE:
+            return state.setIn(["ui", "current", "privateKeyErrorMessage"],
+                action.payload);
+
+        case actionTypes.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE:
+            return state.setIn(["ui", "current", "publicKeyErrorMessage"],
                 action.payload);
 
         case actionTypes.TOGGLE_ORIGIN_PICKER:
