@@ -14,7 +14,7 @@
     "build-js-watch": "npm run build-js -- --watch",
     "clean": "concurrent \"npm run clean-js\" \"npm run clean-css\"",
     "clean-css": "rm -fv assets/app.css assets/app.css.map",
-    "clean-js": "rm -fv assets/app.js assets/app.js.map app**/*.js app**/*.js.map",
+    "clean-js": "rm -fv assets/app.js assets/app.js.map",
     "dist": "bin/dist",
     "format-js": "tsfmt --replace app**/*.ts",
     "lint": "concurrent \"npm run lint-css\" \"npm run lint-js\"",
