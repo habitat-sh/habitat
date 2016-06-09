@@ -15,7 +15,8 @@ use std::sync::{Arc, Mutex};
 use bodyparser;
 use dbcache::{self, BasicSet, IndexSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
-use hab_core::crypto::keys;
+use hab_core::crypto::keys::{self, PairType};
+use hab_core::crypto::SigKeyPair;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::ContentType;
 use iron::prelude::*;
@@ -497,6 +498,26 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::Forbidden));
     }
 
+    let mut content = String::new();
+    if let Err(e) = req.body.read_to_string(&mut content) {
+        debug!("Can't read public key upload content: {}", e);
+        return Ok(Response::with(status::BadRequest));
+    }
+
+    match SigKeyPair::parse_key_str(&content) {
+        Ok((PairType::Public, _, _)) => {
+            debug!("Received a valid public key");
+        }
+        Ok(_) => {
+            debug!("Received a secret key instead of a public key");
+            return Ok(Response::with(status::BadRequest));
+        }
+        Err(e) => {
+            debug!("Invalid public key content: {}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
+    }
+
     let origin_keyfile = depot.key_path(&origin, &revision);
     debug!("Writing key file {}", origin_keyfile.to_string_lossy());
     if origin_keyfile.is_file() {
@@ -561,6 +582,29 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
         debug!("Can't read key content {}", e);
         return Ok(Response::with(status::BadRequest));
     }
+
+    match String::from_utf8(key_content.clone()) {
+        Ok(content) => {
+            match SigKeyPair::parse_key_str(&content) {
+                Ok((PairType::Secret, _, _)) => {
+                    debug!("Received a valid secret key");
+                }
+                Ok(_) => {
+                    debug!("Received a public key instead of a secret key");
+                    return Ok(Response::with(status::BadRequest));
+                }
+                Err(e) => {
+                    debug!("Invalid secret key content: {}", e);
+                    return Ok(Response::with(status::BadRequest));
+                }
+            }
+        }
+        Err(e) => {
+            debug!("Can't parse secret key upload content: {}", e);
+            return Ok(Response::with(status::BadRequest));
+        }
+    }
+
     request.set_body(key_content);
     request.set_owner_id(0);
 
