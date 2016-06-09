@@ -40,6 +40,8 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                  "Use a specific Depot URL")
+                (@arg AUTH_TOKEN: -z --auth +takes_value
+                 "Authentication token for the Depot")
                 (@arg ARTIFACT: +required +multiple {file_exists}
                  "One or more paths to a Habitat artifact \
                  (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
@@ -142,6 +144,8 @@ pub fn get() -> App<'static, 'static> {
                          "Path to a local public origin key file on disk")
                         (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                          "Use a specific Depot URL")
+                        (@arg AUTH_TOKEN: -z --auth +takes_value
+                         "Authentication token for the Depot")
                  )
             )
         )

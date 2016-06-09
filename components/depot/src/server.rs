@@ -38,8 +38,12 @@ use zmq;
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
+use hab_net::config::RouteAddrs;
 use hab_net::routing::Broker;
 use hab_net::server::NetIdent;
+
+const PAGINATION_RANGE_DEFAULT: isize = 0;
+const PAGINATION_RANGE_MAX: isize = 50;
 
 pub fn authenticate(req: &mut Request,
                     ctx: &Arc<Mutex<zmq::Context>>)
@@ -179,7 +183,6 @@ pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-
 /// Return the origin IFF it exists
 pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
     let ctx = &depot.context;
@@ -208,7 +211,6 @@ pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
         }
     }
 }
-
 
 pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) -> bool {
     let ctx = &depot.context;
@@ -440,10 +442,6 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
     }
 }
 
-
-const PAGINATION_RANGE_DEFAULT: isize = 0;
-const PAGINATION_RANGE_MAX: isize = 50;
-
 fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     let path = filename.parent().unwrap();
     try!(fs::create_dir_all(path));
@@ -537,7 +535,6 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-
 fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
     let ctx = &depot.context;
@@ -612,7 +609,6 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
     conn.route(&request).unwrap();
     Ok(Response::with(status::Ok))
 }
-
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let ctx = &depot.context;
@@ -733,7 +729,6 @@ fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response>
     Ok(response)
 }
 
-
 fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     debug!("Download latest origin key {:?}", req);
     let params = req.extensions.get::<Router>().unwrap();
@@ -832,7 +827,6 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 
 }
-
 
 fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let (offset, num) = match extract_pagination(req) {
@@ -1188,7 +1182,6 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
             move |r: &mut Request| upload_package(&depot17, r)
         },
 
-
         post "/origins" => move |r: &mut Request| origin_create(&depot18, r),
         // TODO
         //delete "/origins/:origin" => move |r: &mut Request| origin_delete(&depot17, r),
@@ -1223,7 +1216,6 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
     Ok(chain)
 }
 
-use hab_net::config::RouteAddrs;
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
 

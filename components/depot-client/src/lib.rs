@@ -23,14 +23,15 @@ pub mod error;
 pub use error::{Error, Result};
 
 use std::fs::{self, File};
-use std::io::{self, Read, Seek, SeekFrom, Write};
+use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 
 use broadcast::BroadcastWriter;
 use hab_core::package::{Identifiable, PackageArchive};
 use hab_http::new_hyper_client;
-use hyper::client::{Body, IntoUrl};
+use hyper::client::{Body, IntoUrl, Response};
 use hyper::status::StatusCode;
+use hyper::header::{Headers, Authorization, Bearer};
 use hyper::Url;
 use protocol::depotsrv;
 use rustc_serialize::json;
@@ -49,7 +50,9 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<U: IntoUrl>(hab_depot_url: U, fs_root_path: Option<&Path>) -> Result<Self> {
+    pub fn new<U: IntoUrl>(hab_depot_url: U,
+                           fs_root_path: Option<&Path>)
+                           -> Result<Self> {
         let url = try!(hab_depot_url.into_url());
         Ok(Client {
             depot_url: url.clone(),
@@ -98,17 +101,42 @@ impl Client {
     ///
     /// * Remote Depot is not available
     /// * File cannot be read
+    ///
+    /// # Panics
+    ///
+    /// * Authorization token was not set on client
     pub fn put_origin_key(&self,
                           origin: &str,
                           revision: &str,
                           src_path: &Path,
+                          token: &str,
                           progress: Option<&mut DisplayProgress>)
                           -> Result<()> {
+        let mut headers = Headers::new();
+        headers.set(Authorization(Bearer { token: token.to_string() }));
         let url = try!(self.url_join(&format!("origins/{}/keys/{}", &origin, &revision)));
-
         let mut file = try!(File::open(src_path));
-        debug!("Reading from {}", src_path.display());
-        self.upload(url, &mut file, progress)
+        let file_size = try!(file.metadata()).len();
+        let result = if let Some(progress) = progress {
+            progress.size(file_size);
+            let mut reader = TeeReader::new(file, progress);
+            self.client
+                .post(url)
+                .headers(headers)
+                .body(Body::SizedBody(&mut reader, file_size))
+                .send()
+        } else {
+            self.client
+                .post(url)
+                .headers(headers)
+                .body(Body::SizedBody(&mut file, file_size))
+                .send()
+        };
+        match result {
+            Ok(Response { status: StatusCode::Ok, .. }) => Ok(()),
+            Ok(Response { status: code, .. }) => Err(Error::HTTP(code)),
+            Err(e) => Err(Error::from(e)),
+        }
     }
 
     /// Download the latest release of a package.
@@ -173,18 +201,44 @@ impl Client {
     ///
     /// * Remote Depot is not available
     /// * File cannot be read
+    ///
+    /// # Panics
+    ///
+    /// * Authorization token was not set on client
     pub fn put_package(&self,
                        pa: &mut PackageArchive,
+                       token: &str,
                        progress: Option<&mut DisplayProgress>)
                        -> Result<()> {
+        let mut headers = Headers::new();
+        headers.set(Authorization(Bearer { token: token.to_string() }));
         let checksum = try!(pa.checksum());
         let ident = try!(pa.ident());
+        let mut file = try!(File::open(&pa.path));
+        let file_size = try!(file.metadata()).len();
         let mut url = try!(self.url_join(&format!("pkgs/{}", ident)));
         url.query_pairs_mut().append_pair("checksum", &checksum);
-
-        let mut file = try!(File::open(&pa.path));
         debug!("Reading from {}", &pa.path.display());
-        self.upload(url, &mut file, progress)
+        let result = if let Some(progress) = progress {
+            progress.size(file_size);
+            let mut reader = TeeReader::new(file, progress);
+            self.client
+                .post(url)
+                .headers(headers)
+                .body(Body::SizedBody(&mut reader, file_size))
+                .send()
+        } else {
+            self.client
+                .post(url)
+                .headers(headers)
+                .body(Body::SizedBody(&mut file, file_size))
+                .send()
+        };
+        match result {
+            Ok(Response { status: StatusCode::Ok, .. }) => Ok(()),
+            Ok(Response { status: code, .. }) => Err(Error::HTTP(code)),
+            Err(e) => Err(Error::from(e)),
+        }
     }
 
     fn url_show_package<I: Identifiable>(&self, package: &I) -> Result<Url> {
@@ -232,33 +286,6 @@ impl Client {
                &dst_file_path.display());
         try!(fs::rename(&tmp_file_path, &dst_file_path));
         Ok(dst_file_path)
-    }
-
-    fn upload(&self,
-              url: Url,
-              file: &mut File,
-              progress: Option<&mut DisplayProgress>)
-              -> Result<()> {
-        try!(file.seek(SeekFrom::Start(0)));
-        let metadata = try!(file.metadata());
-        let size = metadata.len();
-
-        debug!("POST {} with {:?}", &url, &self.client);
-        let response = match progress {
-            Some(progress) => {
-                progress.size(size);
-                let mut reader = TeeReader::new(file, progress);
-                try!(self.client.post(url).body(Body::SizedBody(&mut reader, size)).send())
-            }
-            None => try!(self.client.post(url).body(Body::SizedBody(file, size)).send()),
-        };
-
-        if response.status.is_success() {
-            Ok(())
-        } else {
-            debug!("Response {:?}", response);
-            Err(Error::HTTP(response.status))
-        }
     }
 
     fn url_join(&self, path: &str) -> Result<Url> {

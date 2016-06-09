@@ -20,6 +20,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    ArgumentError(&'static str),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     DepotClient(depot_client::Error),
@@ -38,6 +39,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::ArgumentError(ref e) => format!("{}", e),
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
                         c,
@@ -70,6 +72,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::CommandNotFoundInPkg(_) => {
                 "Command was not found under any 'PATH' directories in the package"
             }

@@ -153,7 +153,7 @@ pub mod key {
 
         use error::{Error, Result};
 
-        pub fn start(depot: &str, keyfile: &Path) -> Result<()> {
+        pub fn start(depot: &str, token: &str, keyfile: &Path) -> Result<()> {
             println!("{}",
                      Yellow.bold()
                          .paint(format!("» Uploading public origin key {}", keyfile.display())));
@@ -189,7 +189,7 @@ pub mod key {
                      keyfile.display());
             let depot_client = try!(Client::new(depot, None));
             let mut progress = ProgressBar::default();
-            try!(depot_client.put_origin_key(&name, &rev, keyfile, Some(&mut progress)));
+            try!(depot_client.put_origin_key(&name, &rev, keyfile, token, Some(&mut progress)));
             println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
             println!("{}",
                      Blue.paint(format!("★ Upload of public origin key {} complete.",

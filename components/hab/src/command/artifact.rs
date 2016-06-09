@@ -76,7 +76,7 @@ pub mod upload {
     /// * Fails if it cannot find a package
     /// * Fails if the package doesn't have a `.hart` file in the cache
     /// * Fails if it cannot upload the file
-    pub fn start<P: AsRef<Path>>(url: &str, archive_path: &P) -> Result<()> {
+    pub fn start<P: AsRef<Path>>(url: &str, token: &str, archive_path: &P) -> Result<()> {
         let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
         println!("{}",
                  Yellow.bold().paint(format!("» Uploading {}", archive_path.as_ref().display())));
@@ -90,7 +90,7 @@ pub mod upload {
                         Some(p) => PathBuf::from(p),
                         None => unreachable!(),
                     };
-                    try!(attempt_upload_dep(&depot_client, &dep, &candidate_path));
+                    try!(attempt_upload_dep(&depot_client, token, &dep, &candidate_path));
                 }
                 Err(e) => return Err(Error::from(e)),
             }
@@ -99,7 +99,7 @@ pub mod upload {
         match depot_client.show_package(ident.clone()) {
             Ok(_) => println!("{} {}", Green.paint("→ Exists"), &ident),
             Err(_) => {
-                try!(upload_into_depot(&depot_client, &ident, &mut archive));
+                try!(upload_into_depot(&depot_client, token, &ident, &mut archive));
             }
         }
         println!("{}",
@@ -108,6 +108,7 @@ pub mod upload {
     }
 
     fn upload_into_depot(depot_client: &Client,
+                         token: &str,
                          ident: &PackageIdent,
                          mut archive: &mut PackageArchive)
                          -> Result<()> {
@@ -115,7 +116,7 @@ pub mod upload {
                  Green.bold().paint("↑ Uploading"),
                  archive.path.display());
         let mut progress = ProgressBar::default();
-        match depot_client.put_package(&mut archive, Some(&mut progress)) {
+        match depot_client.put_package(&mut archive, token, Some(&mut progress)) {
             Ok(()) => (),
             Err(depot_client::Error::HTTP(StatusCode::Conflict)) => {
                 println!("Package already exists on remote; skipping.");
@@ -137,6 +138,7 @@ pub mod upload {
     }
 
     fn attempt_upload_dep(depot_client: &Client,
+                          token: &str,
                           ident: &PackageIdent,
                           archives_dir: &PathBuf)
                           -> Result<()> {
@@ -144,7 +146,7 @@ pub mod upload {
 
         if candidate_path.is_file() {
             let mut archive = PackageArchive::new(candidate_path);
-            match upload_into_depot(&depot_client, &ident, &mut archive) {
+            match upload_into_depot(&depot_client, token, &ident, &mut archive) {
                 Ok(()) => Ok(()),
                 Err(Error::DepotClient(depot_client::Error::HTTP(e))) => {
                     return Err(Error::DepotClient(depot_client::Error::HTTP(e)))
