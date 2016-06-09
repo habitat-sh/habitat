@@ -138,3 +138,114 @@ pub mod path {
         Ok(())
     }
 }
+
+pub mod export {
+    use error::Result;
+    use hcore::package::PackageIdent;
+
+    pub struct ExportFormat {
+        pkg_ident: PackageIdent,
+        cmd: String
+    }
+
+    impl ExportFormat {
+        pub fn pkg_ident(&self) -> &PackageIdent {
+            &self.pkg_ident
+        }
+
+        pub fn cmd(&self) -> &str {
+            &self.cmd
+        }
+    }
+
+    pub fn start(ident: &PackageIdent, format: &ExportFormat) -> Result<()> {
+        inner::start(ident, format)
+    }
+
+    pub fn format_for(value: &str) -> Result<ExportFormat> {
+        inner::format_for(value)
+    }
+
+    #[cfg(target_os = "linux")]
+    mod inner {
+        use command::pkg::exec;
+        use common::command::package::install;
+        use error::{Error, Result};
+        use hcore::crypto::default_cache_key_path;
+        use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
+        use hcore::package::{PackageIdent, PackageInstall, Identifiable};
+        use hcore::url::default_depot_url;
+        use std::ffi::OsString;
+        use std::path::Path;
+        use std::str::FromStr;
+        use super::ExportFormat;
+
+        pub fn format_for(value: &str) -> Result<ExportFormat> {
+            match value {
+                "docker" => {
+                    let format = ExportFormat{
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-dockerize")),
+                        cmd: "hab-pkg-dockerize".to_string()
+                        };
+                    Ok(format)
+                },
+                "aci" => {
+                    let format = ExportFormat{
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-aci")),
+                        cmd: "hab-pkg-aci".to_string()
+                        };
+                    Ok(format)
+                }
+                _ => Err(Error::UnsupportedExportFormat(value.to_string()))
+            }
+        }
+
+        pub fn start(ident: &PackageIdent, format: &ExportFormat) -> Result<()> {
+            let format_ident = format.pkg_ident();
+            match PackageInstall::load(format.pkg_ident(), None) {
+                Ok(_) => {},
+                _ => {
+                    println!("{} is not installed", &format_ident.to_string());
+                    println!("Searching for {} in remote {}",
+                             &format_ident.to_string(), &default_depot_url());
+                    try!(install::from_url(&default_depot_url(),
+                                           format_ident,
+                                           Path::new(FS_ROOT_PATH),
+                                           &cache_artifact_path(None),
+                                           &default_cache_key_path(None)));
+                }
+            }
+            let pkg_arg = OsString::from(&ident.to_string());
+            exec::start(&format_ident, &format.cmd(), vec![pkg_arg])
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    mod inner {
+        use ansi_term::Colour::Yellow;
+        use error::{Error, Result};
+        use hcore::package::PackageIdent;
+        use std::env;
+        use super::ExportFormat;
+
+        pub fn format_for(value: &str) -> Result<ExportFormat> {
+            let msg = format!("∅ Exporting {} packages from this operating system is not yet \
+                               supported. Try running this command again on a 64-bit Linux \
+                               operating system.\n", value);
+            println!("{}", Yellow.bold().paint(msg));
+            let e = Error::UnsupportedExportFormat(value.to_string());
+            Err(e)
+        }
+
+        pub fn start(_ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
+            let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
+            let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
+            let msg = format!("∅ Exporting packages from this operating system is not yet \
+                               supported. Try running this command again on a 64-bit Linux \
+                               operating system.\n");
+            println!("{}", Yellow.bold().paint(msg));
+            Err(Error::SubcommandNotSupported(format!("{} {}", subcmd, subsubcmd)))
+
+        }
+    }
+}

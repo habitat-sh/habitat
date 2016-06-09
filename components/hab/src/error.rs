@@ -32,6 +32,7 @@ pub enum Error {
     PackageArchiveMalformed(String),
     PathPrefixError(path::StripPrefixError),
     SubcommandNotSupported(String),
+    UnsupportedExportFormat(String)
 }
 
 impl fmt::Display for Error {
@@ -59,7 +60,8 @@ impl fmt::Display for Error {
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::SubcommandNotSupported(ref e) => {
                 format!("Subcommand `{}' not supported on this operating system", e)
-            }
+            },
+            Error::UnsupportedExportFormat(ref e) => format!("Unsupported export format: {}", e)
         };
         write!(f, "{}", msg)
     }
@@ -84,6 +86,7 @@ impl error::Error for Error {
             }
             Error::PathPrefixError(ref err) => err.description(),
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
+            Error::UnsupportedExportFormat(_) => "Unsupported export format"
         }
     }
 }

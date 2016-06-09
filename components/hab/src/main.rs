@@ -9,6 +9,7 @@ extern crate habitat_core as hcore;
 extern crate habitat_common as common;
 extern crate habitat_depot_client as depot_client;
 extern crate habitat_http_client as http_client;
+
 extern crate ansi_term;
 #[macro_use]
 extern crate clap;
@@ -142,6 +143,7 @@ fn start() -> Result<()> {
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
+                ("export", Some(m)) => try!(sub_pkg_export(m)),
                 _ => unreachable!(),
             }
         }
@@ -435,6 +437,13 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
 
     command::pkg::path::start(&ident, &fs_root_path)
+}
+
+fn sub_pkg_export(m: &ArgMatches) -> Result<()> {
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let format = &m.value_of("FORMAT").unwrap();
+    let export_fmt = try!(command::pkg::export::format_for(&format));
+    command::pkg::export::start(&ident, &export_fmt)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
