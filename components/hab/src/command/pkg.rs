@@ -145,7 +145,7 @@ pub mod export {
 
     pub struct ExportFormat {
         pkg_ident: PackageIdent,
-        cmd: String
+        cmd: String,
     }
 
     impl ExportFormat {
@@ -183,31 +183,32 @@ pub mod export {
         pub fn format_for(value: &str) -> Result<ExportFormat> {
             match value {
                 "docker" => {
-                    let format = ExportFormat{
+                    let format = ExportFormat {
                         pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-dockerize")),
-                        cmd: "hab-pkg-dockerize".to_string()
-                        };
-                    Ok(format)
-                },
-                "aci" => {
-                    let format = ExportFormat{
-                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-aci")),
-                        cmd: "hab-pkg-aci".to_string()
-                        };
+                        cmd: "hab-pkg-dockerize".to_string(),
+                    };
                     Ok(format)
                 }
-                _ => Err(Error::UnsupportedExportFormat(value.to_string()))
+                "aci" => {
+                    let format = ExportFormat {
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-aci")),
+                        cmd: "hab-pkg-aci".to_string(),
+                    };
+                    Ok(format)
+                }
+                _ => Err(Error::UnsupportedExportFormat(value.to_string())),
             }
         }
 
         pub fn start(ident: &PackageIdent, format: &ExportFormat) -> Result<()> {
             let format_ident = format.pkg_ident();
             match PackageInstall::load(format.pkg_ident(), None) {
-                Ok(_) => {},
+                Ok(_) => {}
                 _ => {
                     println!("{} is not installed", &format_ident.to_string());
                     println!("Searching for {} in remote {}",
-                             &format_ident.to_string(), &default_depot_url());
+                             &format_ident.to_string(),
+                             &default_depot_url());
                     try!(install::from_url(&default_depot_url(),
                                            format_ident,
                                            Path::new(FS_ROOT_PATH),
@@ -231,7 +232,8 @@ pub mod export {
         pub fn format_for(value: &str) -> Result<ExportFormat> {
             let msg = format!("∅ Exporting {} packages from this operating system is not yet \
                                supported. Try running this command again on a 64-bit Linux \
-                               operating system.\n", value);
+                               operating system.\n",
+                              value);
             println!("{}", Yellow.bold().paint(msg));
             let e = Error::UnsupportedExportFormat(value.to_string());
             Err(e)
