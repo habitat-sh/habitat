@@ -138,10 +138,20 @@ pub fn get() -> App<'static, 'static> {
                         (aliases: &["i", "im", "imp", "impo", "impor"])
                  )
                  (@subcommand upload =>
-                        (about: "Upload a public origin key to the depot")
+                        (@group upload =>
+                            (@attributes +required)
+                            (@arg ORIGIN: +required "The origin name")
+                            (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
+                                    "Path to a local public origin key file on disk")
+                        )
+                        (about: "Upload origin keys to the depot")
                         (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                        (@arg FILE: +required {file_exists}
-                         "Path to a local public origin key file on disk")
+                         (@arg WITH_SECRET: -s --secret
+                            conflicts_with[PUBLIC_FILE]
+                            "Upload secret key in addition to the public key")
+                        (@arg SECRET_FILE: --secfile +takes_value {file_exists}
+                            conflicts_with[ORIGIN]
+                            "Path to a local secret origin key file on disk")
                         (@arg DEPOT_URL: -u --url +takes_value {valid_url}
                          "Use a specific Depot URL")
                         (@arg AUTH_TOKEN: -z --auth +takes_value
