@@ -1,9 +1,9 @@
 pkg_name=libxml2
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_origin=core
 pkg_version=2.9.2
 pkg_license=('MIT')
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_source=http://xmlsoft.org/sources/${pkg_name}-${pkg_version}.tar.gz
 pkg_deps=(core/zlib core/glibc)
 pkg_build_deps=(core/coreutils core/make core/gcc core/m4)

@@ -1,7 +1,7 @@
 pkg_name=less
 pkg_origin=core
 pkg_version=481
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://www.greenwoodsoftware.com/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=3fa38f2cf5e9e040bb44fffaa6c76a84506e379e47f5a04686ab78102090dda5

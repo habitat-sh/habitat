@@ -1,7 +1,7 @@
 pkg_name=hab-backline
 pkg_origin=core
 pkg_version=0.6.0
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_build_deps=()

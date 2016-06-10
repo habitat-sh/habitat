@@ -2,7 +2,7 @@ pkg_name=node
 pkg_origin=core
 pkg_version=4.2.6
 pkg_license=('MIT')
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_source=https://nodejs.org/dist/v${pkg_version}/${pkg_name}-v${pkg_version}.tar.gz
 # the archive contains a 'v' version # prefix, but the default value of
 # pkg_version is node-4.2.6 (without the v). This tweak makes build happy

@@ -1,7 +1,7 @@
 pkg_name=diffutils
 pkg_origin=core
 pkg_version=3.3
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=a25e89a8ab65fded1731e4186be1bb25cda967834b6df973599cdcd5abdfc19c

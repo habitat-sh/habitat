@@ -1,7 +1,7 @@
 source ../wget/plan.sh
 
 pkg_name=wget-static
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_dirname=${pkg_distname}-${pkg_version}
 
 # Throw the run deps into build deps as this will be static

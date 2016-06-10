@@ -1,7 +1,7 @@
 source ../gcc/plan.sh
 
 pkg_name=gcc-libs
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 
 # The shared libraries only depend on core/glibc
 pkg_deps=(core/glibc)
