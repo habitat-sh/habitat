@@ -20,7 +20,8 @@
   }
 
   &-list {
-    margin-bottom: $base-spacing;;
+    font-size: rem(14);
+    margin-bottom: $base-spacing;
   }
 
   &-deps {
@@ -30,8 +31,29 @@
   }
 
   &-manifest .manifest, &-config pre {
-    border-left: 1px solid $light-gray;
-    margin-left: $base-spacing;
-    padding-left: $small-spacing;
+    background-color: darken($hab-off-white,2);
+    border-radius: $global-radius;
+    padding: $small-spacing;
+  }
+}
+
+.hab-package-manifest,
+.hab-package-config {
+  margin-bottom: rem(20);
+
+  .manifest h1 {
+    font-size: rem(16);
+  }
+
+  .manifest {
+    h2, h3, p {
+      font-size: rem(14);
+    }
+  }
+
+  pre {
+    white-space: -moz-pre-wrap; /* Mozilla, supported since 1999 */
+    white-space: pre-wrap;
+    word-wrap: break-word;
   }
 }

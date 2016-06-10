@@ -28,38 +28,42 @@ import {fetchPackage} from "../actions/index";
         <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
         </hab-spinner>
     </div>
-    <div class="page-body">
-        <div *ngIf="!ui.exists && !ui.loading">
-            <p>
-                Failed to load package.
-                <span *ngIf="ui.errorMessage">
-                    Error: {{ui.errorMessage}}
-                </span>
-            </p>
+    <div class="page-body has-sidebar">
+        <div class="page-body--main">
+            <div *ngIf="!ui.exists && !ui.loading">
+                <p>
+                    Failed to load package.
+                    <span *ngIf="ui.errorMessage">
+                        Error: {{ui.errorMessage}}
+                    </span>
+                </p>
+            </div>
+            <div *ngIf="ui.exists && !ui.loading">
+                <div class="hab-package-info">
+                    <dl>
+                        <dt>Version</dt>
+                        <dd>{{package.ident.version}}</dd>
+                        <dt>Release</dt>
+                        <dd>{{package.ident.release}}</dd>
+                        <dt>Checksum</dt>
+                        <dd>{{package.checksum}}</dd>
+                        <dt *ngIf="package.exposes.length > 0">Exposed Ports</dt>
+                        <dd *ngIf="package.exposes.length > 0">
+                            <span *ngFor="#port of package.exposes">{{port}} </span>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="hab-package-manifest">
+                    <h3>Manifest</h3>
+                    <div class="manifest" [innerHTML]="package.manifest"></div>
+                </div>
+                <div class="hab-package-config" *ngIf="package.config">
+                    <h3>Configuration</h3>
+                    <pre> {{package.config}}</pre>
+                </div>
+            </div>
         </div>
-        <div *ngIf="ui.exists && !ui.loading">
-            <div class="hab-package-info">
-                <dl>
-                    <dt>Version</dt>
-                    <dd>{{package.ident.version}}</dd>
-                    <dt>Release</dt>
-                    <dd>{{package.ident.release}}</dd>
-                    <dt>Checksum</dt>
-                    <dd>{{package.checksum}}</dd>
-                    <dt *ngIf="package.exposes.length > 0">Exposed Ports</dt>
-                    <dd *ngIf="package.exposes.length > 0">
-                        <span *ngFor="#port of package.exposes">{{port}} </span>
-                    </dd>
-                </dl>
-            </div>
-            <div class="hab-package-manifest">
-                <h3>Manifest</h3>
-                <div class="manifest" [innerHTML]="package.manifest"></div>
-            </div>
-            <div class="hab-package-config" *ngIf="package.config">
-                <h3>Configuration</h3>
-                <pre> {{package.config}}</pre>
-            </div>
+        <div class="page-body--sidebar">
             <div class="hab-package-deps-build">
                 <h3>Dependencies</h3>
                 <package-list [currentPackage]="package"

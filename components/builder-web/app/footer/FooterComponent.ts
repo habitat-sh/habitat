@@ -13,7 +13,7 @@ import config from "../config";
     directives: [RouterLink],
     selector: "hab-footer",
     template: `
-    <footer class="main-footer">
+    <footer class="hab-footer">
         <div class="footer--sitemap">
             <div class="footer--logos">
                 <a href="{{config['www_url']}}" title="Habitat Home">

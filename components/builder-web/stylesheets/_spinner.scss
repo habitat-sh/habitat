@@ -11,8 +11,11 @@
   background-repeat: no-repeat;
   background-size: 50%;
 
+  bottom: rem(20);
   display: inline-block;
   height: 32px;
+  position: absolute;
+  right: rem(15);
   width: 32px;
 
   &:hover {

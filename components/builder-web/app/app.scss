@@ -83,6 +83,7 @@ body {
 .page-title {
   @include linear-gradient(205deg, #e9f1f7 5%, #dce6ed 100%);
   padding: rem(16) rem(20);
+  position: relative;
 
   a {
     &.create {
@@ -105,10 +106,27 @@ body {
 .page-body {
   padding: rem(30) rem(20);
 
+  &.has-sidebar {
+    @include outer-container;
+  }
+
   .hero {
     p {
       margin-bottom: rem(15);
       text-align: center;
     }
   }
+}
+
+.page-body--main {
+  @include span-columns(8);
+  word-wrap: break-word;
+}
+
+.page-body--sidebar {
+  @include span-columns(4);
+  @include omega;
+  border-left: 1px solid $light-gray;
+  padding-left: $base-spacing;
+  word-wrap: break-word;
 }
