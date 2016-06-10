@@ -17,6 +17,7 @@ use hab_net::oauth::github::GitHubClient;
 use iron::prelude::*;
 use iron::AfterMiddleware;
 use iron::headers;
+use iron::method::Method;
 use mount::Mount;
 use unicase::UniCase;
 use zmq;
@@ -94,6 +95,8 @@ impl AfterMiddleware for Cors {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
         res.headers
             .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
+        res.headers
+                .set(headers::AccessControlAllowMethods(vec![Method::Put]));
         Ok(res)
     }
 }

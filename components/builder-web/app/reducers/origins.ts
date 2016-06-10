@@ -24,6 +24,18 @@ export default function origins(state = initialState["origins"], action) {
                     setIn(["ui", "mine", "loading"], false);
             }
 
+        case actionTypes.POPULATE_MY_ORIGIN_INVITATIONS:
+            return state.setIn(["myInvitations"],
+                List(action.payload));
+
+        case actionTypes.POPULATE_ORIGIN_INVITATIONS:
+            return state.setIn(["currentPendingInvitations"],
+                List(action.payload));
+
+        case actionTypes.POPULATE_ORIGIN_MEMBERS:
+            return state.setIn(["currentMembers"],
+                List(action.payload));
+
         case actionTypes.POPULATE_ORIGIN_PUBLIC_KEYS:
             if (action.error) {
                 return state.setIn(
@@ -72,6 +84,10 @@ export default function origins(state = initialState["origins"], action) {
 
         case actionTypes.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE:
             return state.setIn(["ui", "current", "publicKeyErrorMessage"],
+                action.payload);
+
+        case actionTypes.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE:
+            return state.setIn(["ui", "current", "userInviteErrorMessage"],
                 action.payload);
 
         case actionTypes.TOGGLE_ORIGIN_PICKER:

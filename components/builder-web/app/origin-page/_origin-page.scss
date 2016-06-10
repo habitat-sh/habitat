@@ -62,3 +62,25 @@
     color: $hab-red;
   }
 }
+
+.hab-origin-members-tab {
+  &--section {
+    margin-bottom: $small-spacing;
+    margin-top: $small-spacing;
+  }
+
+  &--submit {
+     @include outer-container;
+  }
+
+  &--save {
+    @include span-columns(4);
+    margin-top: 0;
+  }
+
+  &--errors {
+    @include span-columns(8);
+    @include omega;
+    color: $hab-red;
+  }
+}

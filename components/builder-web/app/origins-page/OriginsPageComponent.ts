@@ -7,7 +7,8 @@
 
 import {Component, OnInit} from "angular2/core";
 import {RouterLink} from "angular2/router";
-import {fetchMyOrigins} from "../actions/index";
+import {acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins}
+    from "../actions/index";
 import {AppStore} from "../AppStore";
 import {requireSignIn} from "../util";
 
@@ -48,6 +49,19 @@ import {requireSignIn} from "../util";
                     </li>
                 </ul>
             </div>
+            <div *ngIf="invitations.size > 0">
+                <h3>Invitations</h3>
+                <ul>
+                    <li *ngFor="#invitation of invitations" class="hab-item-list hab-no-select">
+                       <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
+                       <button
+                           class="count"
+                           (click)="acceptInvitation(invitation.id)">
+                           Accept Invitation
+                        </button>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>`,
 })
@@ -55,14 +69,26 @@ import {requireSignIn} from "../util";
 export class OriginsPageComponent implements OnInit {
     constructor(private store: AppStore) { }
 
+    get invitations() { return this.store.getState().origins.myInvitations; }
+
     get origins() { return this.store.getState().origins.mine; }
 
     get ui() { return this.store.getState().origins.ui.mine; }
 
+    private acceptInvitation(invitationId) {
+        this.store.dispatch(acceptOriginInvitation(
+            invitationId,
+            this.store.getState().gitHub.authToken
+        ));
+    }
+
     public ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchMyOrigins(
-            this.store.getState().gitHub.authToken)
-        );
+            this.store.getState().gitHub.authToken
+        ));
+        this.store.dispatch(fetchMyOriginInvitations(
+            this.store.getState().gitHub.authToken
+        ));
     }
 }

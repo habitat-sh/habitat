@@ -8,20 +8,22 @@
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
-import {fetchOrigin, fetchOriginPublicKeys, setCurrentOriginAddingPublicKey,
+import {fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
+    fetchOriginPublicKeys, inviteUserToOrigin, setCurrentOriginAddingPublicKey,
     setCurrentOriginAddingPrivateKey, uploadOriginPrivateKey,
     uploadOriginPublicKey} from "../actions/index";
 import config from "../config";
 import {KeyAddFormComponent} from "./KeyAddFormComponent";
 import {KeyListComponent} from "./KeyListComponent";
 import {Origin} from "../records/Origin";
+import {OriginMembersTabComponent} from "./OriginMembersTabComponent";
 import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
 import {requireSignIn} from "../util";
 
 @Component({
-    directives: [KeyAddFormComponent, KeyListComponent, RouterLink, TabsComponent,
-        TabComponent],
+    directives: [KeyAddFormComponent, KeyListComponent,
+        OriginMembersTabComponent, RouterLink, TabsComponent, TabComponent],
     template: `
     <div class="hab-origin">
         <div class="page-title">
@@ -107,24 +109,12 @@ import {requireSignIn} from "../util";
                     </div>
                 </div>
             </tab>
-            <tab tabTitle="Members">
-                <div class="page-body">
-                    <div class="hab-origin--left">
-                        <h4>Enter a user's GitHub username</h4>
-                        <input type="search">
-                    </div>
-                    <div class="hab-origin--right">
-                        <p>
-                            As an origin <em>owner</em>, you can grant admin access,
-                            manage packages, and manage keys.
-                        </p>
-                        <p>
-                            <em>Members</em> will be able to push updates to
-                            packages that are associated with this origin.
-                        </p>
-                    </div>
-                </div>
-            </tab>
+            <hab-origin-members-tab
+                [errorMessage]="ui.userInviteErrorMessage"
+                [invitations]="invitations"
+                [members]="members"
+                [onSubmit]="onUserInvitationSubmit">
+            </hab-origin-members-tab>
         </tabs>
     </div>`,
 })
@@ -132,6 +122,7 @@ import {requireSignIn} from "../util";
 export class OriginPageComponent implements OnInit {
     private onPrivateKeyCloseClick: Function;
     private onPublicKeyCloseClick: Function;
+    private onUserInvitationSubmit: Function;
     private uploadPrivateKey: Function;
     private uploadPublicKey: Function;
 
@@ -146,6 +137,12 @@ export class OriginPageComponent implements OnInit {
         this.uploadPublicKey = key =>
             this.store.dispatch(uploadOriginPublicKey(key,
                 this.gitHubAuthToken));
+        this.onUserInvitationSubmit = username =>
+            this.store.dispatch(inviteUserToOrigin(
+                username,
+                this.origin.name,
+                this.gitHubAuthToken
+            ));
     }
 
     get addingPrivateKey() {
@@ -162,6 +159,14 @@ export class OriginPageComponent implements OnInit {
 
     get gitHubAuthToken() {
         return this.store.getState().gitHub.authToken;
+    }
+
+    get invitations() {
+        return this.store.getState().origins.currentPendingInvitations;
+    }
+
+    get members() {
+        return this.store.getState().origins.currentMembers;
     }
 
     get publicKeys() {
@@ -202,6 +207,12 @@ export class OriginPageComponent implements OnInit {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
         this.store.dispatch(fetchOriginPublicKeys(
+            this.origin.name, this.gitHubAuthToken
+        ));
+        this.store.dispatch(fetchOriginMembers(
+            this.origin.name, this.gitHubAuthToken
+        ));
+        this.store.dispatch(fetchOriginInvitations(
             this.origin.name, this.gitHubAuthToken
         ));
     }

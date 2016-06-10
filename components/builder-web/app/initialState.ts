@@ -74,7 +74,10 @@ export default Record({
     origins: Record({
         current: Origin(),
         currentPublicKeys: List(),
+        currentMembers: List(),
+        currentPendingInvitations: List(),
         mine: List(),
+        myInvitations: List(),
         ui: Record({
             current: Record({
                 addingPublicKey: false,
@@ -86,6 +89,7 @@ export default Record({
                 privateKeyErrorMessage: undefined,
                 publicKeyErrorMessage: undefined,
                 publicKeyListErrorMessage: undefined,
+                userInviteErrorMessage: undefined,
             })(),
             mine: Record({
                 errorMessage: undefined,
