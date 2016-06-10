@@ -1,7 +1,7 @@
 pkg_name=patch
 pkg_origin=core
 pkg_version=2.7.5
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=fd95153655d6b95567e623843a0e77b81612d502ecf78a489a4aed7867caa299

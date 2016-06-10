@@ -1,5 +1,5 @@
 pkg_origin=core
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_name=server-jre
 pkg_version=8u92
 pkg_source=http://download.oracle.com/otn-pub/java/jdk/${pkg_version}-b14/${pkg_name}-${pkg_version}-linux-x64.tar.gz

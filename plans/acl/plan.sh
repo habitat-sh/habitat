@@ -1,7 +1,7 @@
 pkg_name=acl
 pkg_origin=core
 pkg_version=2.2.52
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('lgpl')
 pkg_source=http://download.savannah.gnu.org/releases/$pkg_name/$pkg_name-${pkg_version}.src.tar.gz
 pkg_shasum=179074bb0580c06c4b4137be4c5a92a701583277967acdb5546043c7874e0d23

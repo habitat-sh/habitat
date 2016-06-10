@@ -1,7 +1,7 @@
 pkg_name=gawk
 pkg_origin=core
 pkg_version=4.1.3
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gplv3+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=524effa5b9ecd4ed940f2581c5d3c1df4e4bd7e6f768aa033c1916f47dfc6e29

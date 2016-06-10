@@ -1,7 +1,7 @@
 pkg_name=procps-ng
 pkg_origin=core
 pkg_version=3.3.11
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gpl' 'lgpl')
 pkg_source=http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=e9493169a2d2adc0bc045538707310c8e877b385e4e296143b62607d2bb044ed

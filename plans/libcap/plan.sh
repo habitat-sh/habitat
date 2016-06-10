@@ -1,7 +1,7 @@
 pkg_name=libcap
 pkg_origin=core
 pkg_version=2.24
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gplv2')
 pkg_source=http://ftp.kernel.org/pub/linux/libs/security/linux-privs/libcap2/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=cee4568f78dc851d726fc93f25f4ed91cc223b1fe8259daa4a77158d174e6c65

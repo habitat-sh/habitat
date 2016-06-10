@@ -1,7 +1,7 @@
 pkg_name=gdb
 pkg_origin=core
 pkg_version=7.11
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
 pkg_license=('gplv3')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=7a434116cb630d77bb40776e8f5d3937bed11dea56bafebb4d2bc5dd389fe5c1
