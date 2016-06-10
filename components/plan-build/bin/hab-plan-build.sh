@@ -22,6 +22,9 @@
 #
 # ```sh
 # pkg_name=zlib
+# pkg_description="The zlib library"
+# pkg_upstream_url=http://zlib.net
+# pkg_maintainer="Frank Llyod Wright <flw@example.com>"
 # pkg_version=1.2.8
 # pkg_license=('zlib')
 # pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
@@ -56,8 +59,31 @@
 # pkg_name=zlib
 # ```
 #
+# ### pkg_description
+# A short description of the package.
+# ```
+# pkg_description="The zlib library"
+# ```
+# This is rendered as markdown, so use a bash heredoc to insert a block of text that will be displayed on the web site. Be careful with escaping special characters, it's bash after all!
+#```
+# pkg_description=$(cat <<EOF
+# This is a multiline description.
+# \`\`\`
+# % echo "Maybe it has code examples?"
+# \`\`\`
+# Build a happy Habitat!
+# EOF
+# )
+#```
+#
+# ### pkg_upstream_url
+# The URL to the upstream project's website or home page.
+# ```
+# pkg_upstream_url=http://zlib.net
+# ```
+#
 # ### pkg_maintainer
-# The name and email address of the package maintainer.
+# The name and email address of the Plan and package maintainer (not necessarily the maintainer of the upstream project).
 # ```
 # pkg_maintainer="Frank Llyod Wright <flw@example.com>"
 # ```
@@ -466,7 +492,7 @@ _find_system_commands() {
   elif exists sha256sum; then
     _shasum_cmd=$(command -v sha256sum)
   else
-    exit_with "We require gsha256sum or sha256sum for verifying; aborting" 1
+    exit_with "We require gsha256sum or sha256sum for verifying the downloaded source; aborting" 1
   fi
   debug "Setting _shasum_cmd=$_shasum_cmd"
 
@@ -1727,13 +1753,14 @@ do_default_install() {
 
 # **Internal** Write out the package data to files:
 #
-# * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
-# * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
-# * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
-# * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
-# * `$pkg_prefix/EXPOSES` - Any ports we expose
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
+# * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
+# * `$pkg_prefix/EXPOSES` - Any ports we expose
+# * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
+# * `$pkg_prefix/LDFLAGS` - Any LDFLAGS for things that link against us
+# * `$pkg_prefix/LD_RUN_PATH` - The LD_RUN_PATH for things that link against us
+# * `$pkg_prefix/PATH` - Any PATH entries for things that link against us
 _build_metadata() {
   build_line "Building package metadata"
   local ld_run_path_part=""
@@ -1822,6 +1849,15 @@ _build_metadata() {
   echo "$pkg_target" > $pkg_prefix/TARGET
   echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" >> $pkg_prefix/IDENT
 
+  # Generate the blake2b hashes of all the files in the package. This
+  # is not in the resulting MANIFEST because MANIFEST is included!
+  build_line "Generating blake2b hashes of all files in the package"
+  find $pkg_prefix -type f \
+    | $_sort_cmd \
+    | while read file; do _generate_blake2b $file; done > ${pkg_name}_blake2b_hashes_list
+
+  build_line "Generating signed metadata FILES"
+  $_hab_cmd artifact sign --origin $pkg_origin ${pkg_name}_blake2b_hashes_list $pkg_prefix/FILES
   return 0
 }
 
@@ -1920,46 +1956,100 @@ do_default_strip() {
 
 # **Internal** Write the `$pkg_prefix/MANIFEST`.
 _build_manifest() {
-build_line "Creating manifest"
-cat <<-EOT >> $pkg_prefix/MANIFEST
-$pkg_origin $pkg_name
-=========================
+  build_line "Creating manifest"
+  if [[ -z $pkg_upstream_url ]]; then
+    local _upstream_url_string="upstream project's website or home page is not defined"
+  else
+    local _upstream_url_string="[$pkg_upstream_url]($pkg_upstream_url)"
+  fi
 
-Maintainer: $pkg_maintainer
-Version: $pkg_version
-Release: $pkg_release
-Architecture: $pkg_arch
-System: $pkg_sys
-Target: $pkg_target
-License: $(printf "%s " ${pkg_license[@]})
-Source: [$pkg_source]($pkg_source)
-SHA: $pkg_shasum
-Path: $pkg_prefix
-Build Dependencies: $(printf "%s " ${pkg_build_deps[@]})
-Dependencies: $(printf "%s " ${pkg_deps[@]})
-Interpreters: $(printf "%s " ${pkg_interpreters[@]})
+  if [[ -z $pkg_shasum ]]; then
+    local _sha_string="SHA256 checksum not provided or required"
+  else
+    local _sha_string="\`$pkg_shasum\`"
+  fi
 
-Plan
-========
+  if [[ -z "$(echo ${pkg_build_deps[@]})" ]]; then
+    local _build_deps_string="no build dependencies or undefined"
+  else
+    local _build_deps_string="\`$(printf "%s " ${pkg_build_deps[@]})\`"
+  fi
 
-Build Flags
------------
+  if [[ -z "$(echo ${pkg_deps[@]})" ]]; then
+    local _deps_string="no runtime dependencies or undefined"
+  else
+    local _deps_string="\`$(printf "%s " ${pkg_deps[@]})\`"
+  fi
 
-CFLAGS: $CFLAGS
-LDFLAGS: $LDFLAGS
-LD_RUN_PATH: $LD_RUN_PATH
+  if [[ -z "$(echo ${pkg_interpreters[@]})" ]]; then
+    local _interpreters_string="no interpreters or undefined"
+  else
+    local _interpreters_string="\`$(printf "%s " ${pkg_interpreters[@]})\`"
+  fi
+
+  if [[ -z "$CFLAGS" ]]; then
+    local _cflags_string="no CFLAGS"
+  else
+    local _cflags_string="$CFLAGS"
+  fi
+
+  if [[ -z "$LDFLAGS" ]]; then
+    local _ldflags_string="no LDFLAGS"
+  else
+    local _ldflags_string="$LDFLAGS"
+  fi
+
+    if [[ -z "$LD_RUN_PATH" ]]; then
+    local _ldrunpath_string="no LD_RUN_PATH"
+  else
+    local _ldrunpath_string="$LD_RUN_PATH"
+  fi
+
+  cat <<-EOT >> $pkg_prefix/MANIFEST
+# $pkg_origin / $pkg_name
+$pkg_description
+
+* __Maintainer__: $pkg_maintainer
+* __Version__: $pkg_version
+* __Release__: $pkg_release
+* __Architecture__: $pkg_arch
+* __System__: $pkg_sys
+* __Target__: $pkg_target
+* __Upstream URL__: $_upstream_url_string
+* __License__: $(printf "%s " ${pkg_license[@]})
+* __Source__: [$pkg_source]($pkg_source)
+* __SHA__: $_sha_string
+* __Path__: \`$pkg_prefix\`
+* __Build Dependencies__: $_build_deps_string
+* __Dependencies__: $_deps_string
+* __Interpreters__: $_interpreters_string
+
+# Plan
+
+## Build Flags
+
+\`\`\`bash
+CFLAGS: $_cflags_string
+LDFLAGS: $_ldflags_string
+LD_RUN_PATH: $_ldrunpath_string
+\`\`\`
+
+## Plan Source
 
 \`\`\`bash
 $(cat $PLAN_CONTEXT/plan.sh)
 \`\`\`
-
-Files
------
-$(find $pkg_prefix -type f \
-  | $_sort_cmd \
-  | while read file; do $_shasum_cmd $file; done)
 EOT
   return 0
+}
+
+# **Internal** Generate the blake2b checksum and output similar to
+# `sha256sum`.
+#
+# TODO: (jtimberman) If `hab artifact hash` itself starts to output
+# like `sha256sum` at some point, we'll need to update this function.
+_generate_blake2b() {
+  echo -en "$($_hab_cmd artifact hash $1)  $1\n"
 }
 
 # **Internal** Create the package artifact with `tar`/`hab artifact sign`
@@ -1977,6 +2067,8 @@ _generate_artifact() {
 }
 
 _prepare_build_outputs() {
+  _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
+  _pkg_blake2bsum=$($_hab_cmd artifact hash $pkg_artifact)
   mkdir -pv $pkg_output_path
   cp -v $pkg_artifact $pkg_output_path/
 
@@ -1987,6 +2079,8 @@ pkg_version=$pkg_version
 pkg_release=$pkg_release
 pkg_ident=${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}
 pkg_artifact=$(basename $pkg_artifact)
+pkg_sha256sum=$_pkg_sha256sum
+pkg_blake2bsum=$_pkg_blake2bsum
 EOF
 }
 
@@ -2169,9 +2263,6 @@ do_check_wrapper
 # Install the source
 do_install_wrapper
 
-# Render the linking and dependency files
-_build_metadata
-
 # Copy the configuration
 do_build_config
 
@@ -2183,6 +2274,9 @@ do_strip
 
 # Write the manifest
 _build_manifest
+
+# Render the linking and dependency files
+_build_metadata
 
 # Generate the artifact and write to artifact cache
 _generate_artifact
@@ -2200,6 +2294,8 @@ build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
 build_line "Artifact: $pkg_output_path/$(basename $pkg_artifact)"
 build_line "Build Report: $pkg_output_path/last_build.env"
+build_line "SHA256 Checksum: $_pkg_sha256sum"
+build_line "Blake2b Checksum: $_pkg_blake2bsum"
 
 # Exit cleanly
 build_line
