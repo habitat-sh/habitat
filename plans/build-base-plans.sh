@@ -249,6 +249,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   wget
   bash-static
   coreutils-static
+  busybox-static
   rust
   linux-headers-musl
   musl
@@ -258,10 +259,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   libsodium-musl
   openssl-musl
   libarchive-musl
-  ../components/hab/static:hab-static
-  busybox-static
-  jq-static
-  wget-static
+  ../components/hab:hab
   ../components/plan-build:hab-plan-build
   vim
   libbsd

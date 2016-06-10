@@ -6,10 +6,10 @@ set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Download URL for the `core/hab-static` Habitat artifact
-hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-static-0.5.0-20160520154538-x86_64-linux.hart}"
+# Download URL for the `core/hab` Habitat artifact
+hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-0.6.0-20160610050853-x86_64-linux.hart}"
 # Shasum for the Habitat artifact, used to verify the download
-hart_sha="${BPM_HART_SHASUM:-46a63f405af2e138e40e3271dfc2ca4b0667cf3af573a0675596910ac7105006}"
+hart_sha="${BPM_HART_SHASUM:-7695e9acb6a223482be44ec6ccdbe978eb4494444ee200ac1caedf89f28eed6b}"
 # Download location of the Habitat artifact
 hart_file="${TMPDIR:-/tmp}/$(basename $hart_url)"
 
@@ -30,11 +30,11 @@ fi
 tail -n +6 $hart_file | xzcat | tar xf - -C /
 # Add symlink for convenience under `/bin`
 /$(tail -n +6 $hart_file | xzcat | tar t | head -n 1)bin/hab \
-  pkg binlink core/hab-static hab
+  pkg binlink core/hab hab
 
 # Clear the file download and extraction clean trap
 trap - INT TERM EXIT
 rm -f $hart_file
 
 # Install latest hab release and add update symlink
-hab install core/hab-static && hab pkg binlink core/hab-static hab
+hab install core/hab && hab pkg binlink core/hab hab
