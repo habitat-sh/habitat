@@ -11,7 +11,9 @@ use std::result;
 use std::sync::{Arc, Mutex};
 
 use bodyparser;
+use hab_net;
 use hab_net::routing::Broker;
+use hab_net::oauth::github::GitHubClient;
 use iron::prelude::*;
 use iron::status;
 use iron::headers::{Authorization, Bearer};
@@ -23,9 +25,6 @@ use protocol::net::{self, NetError, ErrCode};
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
 use zmq;
-
-use error::Error;
-use oauth::github::GitHubClient;
 
 pub fn authenticate(req: &mut Request,
                     ctx: &Arc<Mutex<zmq::Context>>)
@@ -105,7 +104,7 @@ pub fn session_create(req: &mut Request,
                         }
                     }
                 }
-                Err(e @ Error::JsonDecode(_)) => {
+                Err(e @ hab_net::Error::JsonDecode(_)) => {
                     debug!("github user get, err={:?}", e);
                     let err = net::err(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
                     Ok(render_net_error(&err))
@@ -117,12 +116,12 @@ pub fn session_create(req: &mut Request,
                 }
             }
         }
-        Err(Error::Auth(e)) => {
+        Err(hab_net::Error::Auth(e)) => {
             debug!("github authentication, err={:?}", e);
             let err = net::err(ErrCode::REMOTE_REJECTED, e.error);
             Ok(render_net_error(&err))
         }
-        Err(e @ Error::JsonDecode(_)) => {
+        Err(e @ hab_net::Error::JsonDecode(_)) => {
             debug!("github authentication, err={:?}", e);
             let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
             Ok(render_net_error(&err))
@@ -300,6 +299,7 @@ fn render_net_error(err: &NetError) -> Response {
         ErrCode::NO_SHARD => status::ServiceUnavailable,
         ErrCode::TIMEOUT => status::RequestTimeout,
         ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
+        ErrCode::SESSION_EXPIRED => status::Unauthorized,
         _ => status::InternalServerError,
     };
     Response::with((status, encoded))

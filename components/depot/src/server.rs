@@ -26,8 +26,8 @@ use iron::request::Body;
 use mount::Mount;
 use protobuf;
 use protocol::depotsrv;
-use protocol::net::{NetError, ErrCode};
-use protocol::sessionsrv::{Account, AccountGet, Session, SessionGet};
+use protocol::net::{self, NetError, ErrCode};
+use protocol::sessionsrv::{Account, AccountGet, OAuthProvider, Session, SessionCreate, SessionGet};
 use protocol::vault::*;
 use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
@@ -38,45 +38,13 @@ use zmq;
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
+use hab_net;
 use hab_net::config::RouteAddrs;
 use hab_net::routing::Broker;
 use hab_net::server::NetIdent;
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
-
-pub fn authenticate(req: &mut Request,
-                    ctx: &Arc<Mutex<zmq::Context>>)
-                    -> result::Result<Session, Response> {
-    match req.headers.get::<Authorization<Bearer>>() {
-        Some(&Authorization(Bearer { ref token })) => {
-            let mut conn = Broker::connect(&ctx).unwrap();
-            let mut request = SessionGet::new();
-            request.set_token(token.to_string());
-            conn.route(&request).unwrap();
-            match conn.recv() {
-                Ok(rep) => {
-                    match rep.get_message_id() {
-                        "Session" => {
-                            let session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            Ok(session)
-                        }
-                        "NetError" => {
-                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            Err(render_net_error(&err))
-                        }
-                        _ => unreachable!("unexpected msg: {:?}", rep),
-                    }
-                }
-                Err(e) => {
-                    error!("session get, err={:?}", e);
-                    Err(Response::with(status::InternalServerError))
-                }
-            }
-        }
-        _ => Err(Response::with(status::Unauthorized)),
-    }
-}
 
 /// Return an IronResult containing the body of a NetError and the appropriate HTTP response status
 /// for the corresponding NetError.
@@ -96,14 +64,97 @@ fn render_net_error(err: &NetError) -> Response {
         ErrCode::NO_SHARD => status::ServiceUnavailable,
         ErrCode::TIMEOUT => status::RequestTimeout,
         ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
+        ErrCode::SESSION_EXPIRED => status::Unauthorized,
         _ => status::InternalServerError,
     };
     Response::with((status, encoded))
 }
 
+pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Response> {
+    match depot.github.user(&token) {
+        Ok(user) => {
+            let mut conn = Broker::connect(&depot.context).unwrap();
+            let mut request = SessionCreate::new();
+            request.set_token(token.to_string());
+            request.set_extern_id(user.id);
+            request.set_email(user.email);
+            request.set_name(user.login);
+            request.set_provider(OAuthProvider::GitHub);
+            conn.route(&request).unwrap();
+            match conn.recv() {
+                Ok(rep) => {
+                    match rep.get_message_id() {
+                        "Session" => {
+                            let token: Session = protobuf::parse_from_bytes(rep.get_body())
+                                .unwrap();
+                            Ok(token)
+                        }
+                        "NetError" => {
+                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                            Err(render_net_error(&err))
+                        }
+                        _ => unreachable!("unexpected msg: {:?}", rep),
+                    }
+                }
+                Err(e) => {
+                    error!("{:?}", e);
+                    Err(Response::with(status::ServiceUnavailable))
+                }
+            }
+        }
+        Err(hab_net::Error::GitHubAPI(ref m)) => {
+            Err(Response::with((status::Unauthorized, json::encode(m).unwrap())))
+        }
+        Err(e @ hab_net::Error::JsonDecode(_)) => {
+            debug!("github user get, err={:?}", e);
+            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
+            Err(render_net_error(&err))
+        }
+        Err(e) => {
+            debug!("github user get, err={:?}", e);
+            let err = net::err(ErrCode::BUG, "ss:auth:2");
+            Err(render_net_error(&err))
+        }
+    }
+}
+
+pub fn authenticate(depot: &Depot, req: &mut Request) -> result::Result<Session, Response> {
+    match req.headers.get::<Authorization<Bearer>>() {
+        Some(&Authorization(Bearer { ref token })) => {
+            let mut conn = Broker::connect(&depot.context).unwrap();
+            let mut request = SessionGet::new();
+            request.set_token(token.to_string());
+            conn.route(&request).unwrap();
+            match conn.recv() {
+                Ok(rep) => {
+                    match rep.get_message_id() {
+                        "Session" => {
+                            let session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                            Ok(session)
+                        }
+                        "NetError" => {
+                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                            if err.get_code() == ErrCode::SESSION_EXPIRED {
+                                session_create(depot, token)
+                            } else {
+                                Err(render_net_error(&err))
+                            }
+                        }
+                        _ => unreachable!("unexpected msg: {:?}", rep),
+                    }
+                }
+                Err(e) => {
+                    error!("session get, err={:?}", e);
+                    Err(Response::with(status::InternalServerError))
+                }
+            }
+        }
+        _ => Err(Response::with(status::Unauthorized)),
+    }
+}
+
 pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(&depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -124,7 +175,7 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::UnprocessableEntity));
     }
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     conn.route(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
@@ -150,14 +201,13 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin.to_string(),
         _ => return Ok(Response::with(status::BadRequest)),
     };
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin);
     conn.route(&request).unwrap();
@@ -185,8 +235,7 @@ pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 /// Return the origin IFF it exists
 pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
-    let ctx = &depot.context;
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin.to_string());
     conn.route(&request).unwrap();
@@ -213,8 +262,7 @@ pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
 }
 
 pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) -> bool {
-    let ctx = &depot.context;
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
 
     let mut request = CheckOriginAccessRequest::new();
     // !!!NOTE!!!
@@ -245,8 +293,7 @@ pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) ->
 }
 
 pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -271,7 +318,7 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
     }
 
     // Lookup the users account_id
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = AccountGet::new();
     request.set_name(user_to_invite.to_string());
     conn.route(&request).unwrap();
@@ -339,10 +386,9 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
 }
 
 pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
     debug!("list_origin_invitations");
 
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -357,7 +403,7 @@ pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<R
         return Ok(Response::with(status::Forbidden));
     }
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginInvitationListRequest::new();
 
     let origin = match try!(get_origin(&depot, origin_name)) {
@@ -391,10 +437,9 @@ pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<R
 }
 
 pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
     debug!("list_origin_members");
 
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -409,7 +454,7 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
         return Ok(Response::with(status::Forbidden));
     }
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginMemberListRequest::new();
 
     let origin = match try!(get_origin(&depot, origin_name)) {
@@ -473,8 +518,7 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
 }
 
 fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -537,9 +581,7 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
-    let ctx = &depot.context;
-
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => {
             return Ok(response);
@@ -605,14 +647,13 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
     request.set_body(key_content);
     request.set_owner_id(0);
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&depot.context).unwrap();
     conn.route(&request).unwrap();
     Ok(Response::with(status::Ok))
 }
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -1007,8 +1048,7 @@ fn render_package(pkg: &depotsrv::Package) -> IronResult<Response> {
 }
 
 fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let ctx = &depot.context;
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(depot, req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -1113,8 +1153,6 @@ impl AfterMiddleware for Cors {
 }
 
 pub fn router(depot: Arc<Depot>) -> Result<Chain> {
-    // we can't call depot.clone() in fn argument,
-    // so we bind them here instead.
     let depot1 = depot.clone();
     let depot2 = depot.clone();
     let depot3 = depot.clone();

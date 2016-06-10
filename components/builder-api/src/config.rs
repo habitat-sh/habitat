@@ -9,7 +9,7 @@
 
 use std::net;
 
-use hab_net::config::RouteAddrs;
+use hab_net::config::{GitHubOAuth, RouteAddrs};
 use hab_core::config::{ConfigFile, ParseInto};
 use depot;
 use toml;
@@ -79,6 +79,10 @@ impl ConfigFile for Config {
         if !try!(toml.parse_into("cfg.github.client_secret", &mut cfg.github_client_secret)) {
             return Err(Error::RequiredConfigField("github.client_secret"));
         }
+        // JW TODO: de-dupe this by merging depot/builder-api?
+        cfg.depot.github_url = cfg.github_url.clone();
+        cfg.depot.github_client_id = cfg.github_client_id.clone();
+        cfg.depot.github_client_secret = cfg.github_client_secret.clone();
         Ok(cfg)
     }
 }
@@ -86,5 +90,19 @@ impl ConfigFile for Config {
 impl RouteAddrs for Config {
     fn route_addrs(&self) -> &Vec<net::SocketAddrV4> {
         &self.routers
+    }
+}
+
+impl GitHubOAuth for Config {
+    fn github_url(&self) -> &str {
+        &self.github_url
+    }
+
+    fn github_client_id(&self) -> &str {
+        &self.github_client_id
+    }
+
+    fn github_client_secret(&self) -> &str {
+        &self.github_client_secret
     }
 }

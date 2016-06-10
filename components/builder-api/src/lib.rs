@@ -28,7 +28,6 @@ extern crate zmq;
 pub mod config;
 pub mod error;
 pub mod http;
-pub mod oauth;
 pub mod server;
 
 pub use self::config::Config;

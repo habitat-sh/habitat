@@ -17,11 +17,8 @@ use protobuf;
 use rustc_serialize::json;
 use zmq;
 
-use oauth;
-
 #[derive(Debug)]
 pub enum Error {
-    Auth(oauth::github::AuthErr),
     BadPort(String),
     Depot(depot::Error),
     HabitatCore(hab_core::Error),
@@ -29,7 +26,6 @@ pub enum Error {
     HTTP(hyper::status::StatusCode),
     IO(io::Error),
     JsonDecode(json::DecoderError),
-    MissingScope(String),
     Protobuf(protobuf::ProtobufError),
     RequiredConfigField(&'static str),
     Zmq(zmq::Error),
@@ -40,7 +36,6 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Error::Auth(ref e) => format!("GitHub Authentication error, {}", e),
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::Depot(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
@@ -48,7 +43,6 @@ impl fmt::Display for Error {
             Error::HTTP(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
-            Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::RequiredConfigField(ref e) => {
                 format!("Missing required field in configuration, {}", e)
@@ -62,7 +56,6 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::Auth(_) => "GitHub authorization error.",
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::Depot(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
@@ -70,7 +63,6 @@ impl error::Error for Error {
             Error::HTTP(_) => "Non-200 HTTP response.",
             Error::IO(ref err) => err.description(),
             Error::JsonDecode(ref err) => err.description(),
-            Error::MissingScope(_) => "Missing GitHub authorization scope.",
             Error::Protobuf(ref err) => err.description(),
             Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Zmq(ref err) => err.description(),
@@ -105,12 +97,6 @@ impl From<io::Error> for Error {
 impl From<json::DecoderError> for Error {
     fn from(err: json::DecoderError) -> Self {
         Error::JsonDecode(err)
-    }
-}
-
-impl From<oauth::github::AuthErr> for Error {
-    fn from(err: oauth::github::AuthErr) -> Self {
-        Error::Auth(err)
     }
 }
 
