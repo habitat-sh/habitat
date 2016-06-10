@@ -7,15 +7,18 @@
 
 extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
+extern crate hyper;
 extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
+extern crate rustc_serialize;
 extern crate time;
 extern crate zmq;
 
 pub mod config;
 pub mod error;
+pub mod oauth;
 pub mod routing;
 pub mod server;
 

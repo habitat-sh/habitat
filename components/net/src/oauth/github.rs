@@ -5,16 +5,18 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
+use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
 
 use hyper::{self, Url};
+use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
 use protocol::sessionsrv;
 use rustc_serialize::json;
 
-use config::Config;
+use config;
 use error::{Error, Result};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
@@ -26,11 +28,11 @@ pub struct GitHubClient {
 }
 
 impl GitHubClient {
-    pub fn new(config: &Config) -> Self {
+    pub fn new<T: config::GitHubOAuth>(config: &T) -> Self {
         GitHubClient {
-            url: config.github_url.clone(),
-            client_id: config.github_client_id.clone(),
-            client_secret: config.github_client_secret.clone(),
+            url: config.github_url().to_string(),
+            client_id: config.github_client_id().to_string(),
+            client_secret: config.github_client_secret().to_string(),
         }
     }
 
@@ -70,6 +72,10 @@ impl GitHubClient {
         let mut rep = try!(http_get(url, token));
         let mut body = String::new();
         try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(err));
+        }
         let user: User = json::decode(&body).unwrap();
         Ok(user)
     }

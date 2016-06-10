@@ -5,9 +5,11 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 
 [dependencies]
 fnv = "*"
+hyper = "*"
 libc = "*"
 log = "*"
 protobuf = "*"
+rustc-serialize = "*"
 time = "*"
 
 [dependencies.zmq]

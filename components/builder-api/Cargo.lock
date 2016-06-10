@@ -9,7 +9,7 @@ dependencies = [
  "habitat_core 0.6.0",
  "habitat_depot 0.6.0",
  "habitat_net 0.6.0",
- "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -54,7 +54,7 @@ dependencies = [
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -66,7 +66,7 @@ dependencies = [
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -98,7 +98,7 @@ dependencies = [
 
 [[package]]
 name = "cookie"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "openssl 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -213,7 +213,7 @@ dependencies = [
  "habitat_builder_protocol 0.6.0",
  "habitat_core 0.6.0",
  "habitat_net 0.6.0",
- "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -243,9 +243,11 @@ version = "0.6.0"
 dependencies = [
  "fnv 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.6.0",
+ "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=habitat)",
 ]
@@ -268,7 +270,7 @@ name = "hyper"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "cookie 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cookie 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "httparse 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "language-tags 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -285,10 +287,10 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.9.6"
+version = "0.9.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "cookie 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cookie 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "httparse 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "language-tags 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -630,7 +632,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "serde"
-version = "0.7.7"
+version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -639,7 +641,7 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num-traits 0.1.32 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 0.7.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 0.7.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

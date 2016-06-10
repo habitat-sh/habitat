@@ -83,7 +83,7 @@ impl Worker {
                         try!(req.reply_complete(&mut self.sock, &session));
                     }
                     Err(dbcache::Error::EntityNotFound) => {
-                        let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:auth:4");
+                        let err = net::err(ErrCode::SESSION_EXPIRED, "ss:auth:4");
                         try!(req.reply_complete(&mut self.sock, &err));
                     }
                     Err(e) => {

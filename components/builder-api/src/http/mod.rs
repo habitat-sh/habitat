@@ -13,6 +13,7 @@ use std::sync::{mpsc, Arc, Mutex};
 use std::thread::{self, JoinHandle};
 
 use depot;
+use hab_net::oauth::github::GitHubClient;
 use iron::prelude::*;
 use iron::AfterMiddleware;
 use iron::headers;
@@ -23,7 +24,6 @@ use zmq;
 use config::Config;
 use error::Result;
 use self::handlers::*;
-use oauth::github::GitHubClient;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Chain> {

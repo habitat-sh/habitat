@@ -7,6 +7,12 @@
 
 use std::net;
 
+pub trait GitHubOAuth {
+    fn github_url(&self) -> &str;
+    fn github_client_id(&self) -> &str;
+    fn github_client_secret(&self) -> &str;
+}
+
 pub trait RouteAddrs {
     fn route_addrs(&self) -> &Vec<net::SocketAddrV4>;
 

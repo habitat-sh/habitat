@@ -28,6 +28,7 @@ enum ErrCode {
   INTERNAL = 5;
   NO_SHARD = 6;
   ACCESS_DENIED = 7;
+  SESSION_EXPIRED = 8;
 }
 
 message NetError {
