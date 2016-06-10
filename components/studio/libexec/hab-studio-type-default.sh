@@ -38,7 +38,7 @@ finish_setup() {
   $bb mkdir -p $v $HAB_STUDIO_ROOT$HAB_ROOT_PATH/bin
 
   # Put `hab` on the default `$PATH`
-  _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab-static hab
+  _hab pkg binlink --dest $HAB_ROOT_PATH/bin core/hab hab
 
   # Create `/bin/{sh,bash}` for software that hardcodes these shells
   _hab pkg binlink core/bash bash

@@ -1,8 +1,8 @@
 #!/bin/bash
 set -eux
 
-VERSION="0.5.0"
-RELEASE="20160520154538"
+VERSION="0.6.0"
+RELEASE="20160610050853"
 PLATFORM="x86_64-linux"
 
 sudo adduser --group hab || echo "Group 'hab' already exists"
@@ -16,10 +16,10 @@ set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Download URL for the `core/hab-static` Habitat artifact
-hart_url="http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-static-${VERSION}-${RELEASE}-${PLATFORM}.hart"
+# Download URL for the `core/hab` Habitat artifact
+hart_url="http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-${VERSION}-${RELEASE}-${PLATFORM}.hart"
 # Shasum for the Habitat artifact, used to verify the download
-hart_sha="46a63f405af2e138e40e3271dfc2ca4b0667cf3af573a0675596910ac7105006"
+hart_sha="7695e9acb6a223482be44ec6ccdbe978eb4494444ee200ac1caedf89f28eed6b"
 # Download location of the Habitat artifact
 hart_file="/tmp/$(basename $hart_url)"
 
@@ -39,15 +39,15 @@ fi
 # Extract hart into destination, ignoring the signed header info
 tail -n +6 $hart_file | xzcat | sudo tar xf - -C /
 # Add symlink for convenience under `/bin`
-sudo /$(tail -n +6 $hart_file | xzcat | sudo tar t | head -n 1)bin/hab pkg binlink core/hab-static hab
+sudo /$(tail -n +6 $hart_file | xzcat | sudo tar t | head -n 1)bin/hab pkg binlink core/hab hab
 
 # Clear the file download and extraction clean trap
 trap - INT TERM EXIT
 rm -f $hart_file
 
-sudo hab install core/hab-static > /dev/null 2>&1
+sudo hab install core/hab > /dev/null 2>&1
 sudo hab install core/hab-sup > /dev/null 2>&1
 sudo hab install core/hab-director > /dev/null 2>&1
-sudo hab pkg binlink core/hab-static hab
-# JW TODO: give director the same treatment as sup in hab-static
+sudo hab pkg binlink core/hab hab
+# JW TODO: give director the same treatment as sup in hab
 sudo hab pkg binlink core/hab-director hab-director

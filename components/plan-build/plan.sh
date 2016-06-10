@@ -17,7 +17,7 @@ pkg_deps=(
   core/gawk
   core/grep
   core/gzip
-  core/hab-static
+  core/hab
   core/sed
   core/tar
   core/wget

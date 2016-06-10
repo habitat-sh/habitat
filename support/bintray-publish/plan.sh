@@ -12,7 +12,7 @@ pkg_deps=(
   core/tar
   core/gzip
   core/jfrog-cli
-  core/hab-static
+  core/hab
   core/docker
 )
 pkg_build_deps=()

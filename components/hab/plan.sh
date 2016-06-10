@@ -5,11 +5,13 @@ pkg_version=0.6.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(
-  core/glibc core/zlib core/xz core/bzip2 core/libarchive
-  core/openssl core/libsodium core/gcc-libs
+# The result is a portible, static binary in a zero-dependency package.
+pkg_deps=()
+pkg_build_deps=(
+  core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
+  core/openssl-musl core/libsodium-musl
+  core/coreutils core/cacerts core/rust core/gcc
 )
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
 
 program=$pkg_distname
@@ -35,14 +37,23 @@ _common_prepare() {
 do_prepare() {
   _common_prepare
 
-  export rustc_target="x86_64-unknown-linux-gnu"
+  export rustc_target="x86_64-unknown-linux-musl"
   build_line "Setting rustc_target=$rustc_target"
 
-  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
-  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
-  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
-  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
-  export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+  la_ldflags="-L$(pkg_path_for zlib-musl)/lib -lz"
+  la_ldflags="$la_ldflags -L$(pkg_path_for xz-musl)/lib -llzma"
+  la_ldflags="$la_ldflags -L$(pkg_path_for bzip2-musl)/lib -lbz2"
+  la_ldflags="$la_ldflags -L$(pkg_path_for openssl-musl)/lib -lssl -lcrypto"
+
+  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive-musl)/lib
+  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive-musl)/include
+  export LIBARCHIVE_LDFLAGS="$la_ldflags"
+  export LIBARCHIVE_STATIC=true
+  export OPENSSL_LIB_DIR=$(pkg_path_for openssl-musl)/lib
+  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl-musl)/include
+  export OPENSSL_STATIC=true
+  export SODIUM_LIB_DIR=$(pkg_path_for libsodium-musl)/lib
+  export SODIUM_STATIC=true
 }
 
 do_build() {

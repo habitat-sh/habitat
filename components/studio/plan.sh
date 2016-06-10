@@ -5,7 +5,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=()
-pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox-static core/hab-static)
+pkg_build_deps=(core/coreutils core/tar core/xz core/wget core/busybox-static core/hab)
 pkg_bin_dirs=(bin)
 
 do_build() {
@@ -30,8 +30,8 @@ do_install() {
   # Install a copy of a statically built busybox under `libexec/`
   install -v -D $(pkg_path_for busybox-static)/bin/busybox $lbb
 
-  hab_dir=$(cat $(pkg_path_for hab-static)/IDENT | tr '/' '-')
-  install -v -D $(pkg_path_for hab-static)/bin/hab \
+  hab_dir=$(cat $(pkg_path_for hab)/IDENT | tr '/' '-')
+  install -v -D $(pkg_path_for hab)/bin/hab \
     $pkg_prefix/libexec/$hab_dir/bin/hab
   ln -sv $hab_dir/bin/hab $pkg_prefix/libexec/hab
 }
