@@ -652,6 +652,9 @@ $testimonials-slider-transition: 1s;
   box-shadow: 0 0 0 3px $white,
     0 0 0 4px transparent;
 
+  &:first-child {
+    margin-left: rem-calc(-90);
+  }
 
   &.is-active {
     box-shadow: 0 0 0 3px $white,
