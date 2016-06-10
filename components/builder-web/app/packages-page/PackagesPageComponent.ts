@@ -19,16 +19,17 @@ import {requireSignIn} from "../util";
     template: `
     <div class="hab-packages">
         <div class="page-title">
-            <h2>
-                <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackages">
-                </hab-spinner>
+            <h2>Search Packages</h2>
+            <h4>
                 <span *ngIf="searchQuery || routeParams.params['query']">Search Results</span>
                 <package-breadcrumbs
                     *ngIf="!searchQuery"
                     [ident]="routeParams.params"
                     [params]="routeParams.params">
                 </package-breadcrumbs>
-            </h2>
+            </h4>
+            <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackages">
+            </hab-spinner>
         </div>
         <div class="page-body">
             <input type="search" autofocus
