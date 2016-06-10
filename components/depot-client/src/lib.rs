@@ -50,9 +50,7 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<U: IntoUrl>(hab_depot_url: U,
-                           fs_root_path: Option<&Path>)
-                           -> Result<Self> {
+    pub fn new<U: IntoUrl>(hab_depot_url: U, fs_root_path: Option<&Path>) -> Result<Self> {
         let url = try!(hab_depot_url.into_url());
         Ok(Client {
             depot_url: url.clone(),
