@@ -19,6 +19,7 @@ use hcore;
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum Error {
     ArgumentError(&'static str),
     CommandNotFoundInPkg((String, String)),

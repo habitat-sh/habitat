@@ -37,7 +37,7 @@
 //! The following is a complete list of all pre-selected commands which are reported:
 //!
 //! * `apply`
-//! * `artifact upload`
+//! * `pkg upload`
 //! * `cli setup`
 //! * `config apply`
 //! * `file upload`
@@ -55,7 +55,7 @@
 //! invoked which require network access. These subcommands are:
 //!
 //! * `apply`
-//! * `artifact upload`
+//! * `pkg upload`
 //! * `cli setup`
 //! * `config apply`
 //! * `file upload`
@@ -250,10 +250,10 @@ pub fn instrument_subcommand() {
         // Match against any pre-selected subcommands that are 2 levels deep and ignore any
         // potential arguments, options, or flags to that subcommand--these extras will not be
         // reported.
-        ("artifact", "upload", _) |
         ("config", "apply", _) |
         ("file", "upload", _) |
         ("pkg", "build", _) |
+        ("pkg", "upload", _) |
         ("studio", "build", _) |
         ("studio", "enter", _) => {
             record_event(Event::Subcommand,
@@ -303,7 +303,7 @@ pub fn instrument_clap_error(err: &clap::Error) {
     // Use a pattern match against the first program argument.
     match arg1.as_str() {
         // Match against subcommands which are 2 levels deep.
-        "artifact" | "config" | "file" | "pkg" => {
+        "config" | "file" | "pkg" => {
             record_event(Event::CliError,
                          &format!("{:?}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2))
         }
@@ -465,12 +465,12 @@ fn should_send() -> bool {
            args.next().unwrap_or_default().as_str(),
            args.next().unwrap_or_default().as_str()) {
         ("apply", _, _) |
-        ("artifact", "upload", _) |
         ("config", "apply", _) |
         ("file", "upload", _) |
         ("install", _, _) |
         ("origin", "key", "upload") |
-        ("pkg", "install", _) => true,
+        ("pkg", "install", _) |
+        ("pkg", "upload", _) => true,
         _ => false,
     }
 }

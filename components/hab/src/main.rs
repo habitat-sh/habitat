@@ -95,15 +95,6 @@ fn start() -> Result<()> {
         });
     match app_matches.subcommand() {
         ("apply", Some(m)) => try!(sub_config_apply(m)),
-        ("artifact", Some(matches)) => {
-            match matches.subcommand() {
-                ("upload", Some(m)) => try!(sub_artifact_upload(m)),
-                ("sign", Some(m)) => try!(sub_artifact_sign(m)),
-                ("verify", Some(m)) => try!(sub_artifact_verify(m)),
-                ("hash", Some(m)) => try!(sub_artifact_hash(m)),
-                _ => unreachable!(),
-            }
-        }
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(_)) => try!(sub_cli_setup()),
@@ -143,9 +134,13 @@ fn start() -> Result<()> {
                 ("binlink", Some(m)) => try!(sub_pkg_binlink(m)),
                 ("build", Some(m)) => try!(sub_pkg_build(m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
+                ("export", Some(m)) => try!(sub_pkg_export(m)),
+                ("hash", Some(m)) => try!(sub_pkg_hash(m)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
-                ("export", Some(m)) => try!(sub_pkg_export(m)),
+                ("sign", Some(m)) => try!(sub_pkg_sign(m)),
+                ("upload", Some(m)) => try!(sub_pkg_upload(m)),
+                ("verify", Some(m)) => try!(sub_pkg_verify(m)),
                 _ => unreachable!(),
             }
         }
@@ -188,57 +183,6 @@ fn start() -> Result<()> {
         _ => unreachable!(),
     };
     Ok(())
-}
-
-fn sub_artifact_hash(m: &ArgMatches) -> Result<()> {
-    let source = m.value_of("SOURCE").unwrap();
-
-    init();
-    command::artifact::hash::start(&source)
-}
-
-fn sub_artifact_sign(m: &ArgMatches) -> Result<()> {
-    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
-    let fs_root_path = Some(Path::new(&fs_root));
-    let src = Path::new(m.value_of("SOURCE").unwrap());
-    let dst = Path::new(m.value_of("ARTIFACT").unwrap());
-    init();
-    let pair = try!(SigKeyPair::get_latest_pair_for(&try!(origin_param_or_env(&m)),
-                                                    &default_cache_key_path(fs_root_path)));
-
-    command::artifact::sign::start(&pair, &src, &dst)
-}
-
-fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let token: String = match m.value_of("AUTH_TOKEN") {
-        None => {
-            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
-                Ok(token) => token,
-                Err(_) => {
-                    return Err(Error::ArgumentError("Missing authentication token - Set \
-                                                     HAB_AUTH_TOKEN env var or specify a value \
-                                                     for --auth and try again."))
-                }
-            }
-        }
-        Some(token) => token.to_string(),
-    };
-    let artifact_paths = m.values_of("ARTIFACT").unwrap();
-    for artifact_path in artifact_paths {
-        try!(command::artifact::upload::start(&url, &token, &artifact_path));
-    }
-    Ok(())
-}
-
-fn sub_artifact_verify(m: &ArgMatches) -> Result<()> {
-    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
-    let fs_root_path = Some(Path::new(&fs_root));
-    let src = Path::new(m.value_of("ARTIFACT").unwrap());
-    init();
-
-    command::artifact::verify::start(&src, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_cli_setup() -> Result<()> {
@@ -458,6 +402,13 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
+fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
+    let source = m.value_of("TARGET").unwrap();
+
+    init();
+    command::pkg::hash::start(&source)
+}
+
 fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
@@ -482,6 +433,50 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
 
     command::pkg::path::start(&ident, &fs_root_path)
+}
+
+fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+    let src = Path::new(m.value_of("SOURCE").unwrap());
+    let dst = Path::new(m.value_of("OUT").unwrap());
+    init();
+    let pair = try!(SigKeyPair::get_latest_pair_for(&try!(origin_param_or_env(&m)),
+                                                    &default_cache_key_path(fs_root_path)));
+
+    command::pkg::sign::start(&pair, &src, &dst)
+}
+
+fn sub_pkg_verify(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+    let src = Path::new(m.value_of("SOURCE").unwrap());
+    init();
+
+    command::pkg::verify::start(&src, &default_cache_key_path(fs_root_path))
+}
+
+fn sub_pkg_upload(m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let token: String = match m.value_of("AUTH_TOKEN") {
+        None => {
+            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
+                Ok(token) => token,
+                Err(_) => {
+                    return Err(Error::ArgumentError("Missing authentication token - Set \
+                                                     HAB_AUTH_TOKEN env var or specify a value \
+                                                     for --auth and try again."))
+                }
+            }
+        }
+        Some(token) => token.to_string(),
+    };
+    let artifact_paths = m.values_of("PKG").unwrap();
+    for artifact_path in artifact_paths {
+        try!(command::pkg::upload::start(&url, &token, &artifact_path));
+    }
+    Ok(())
 }
 
 fn sub_pkg_export(m: &ArgMatches) -> Result<()> {

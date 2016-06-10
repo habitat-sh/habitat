@@ -5,7 +5,6 @@
 // the Software until such time that the Software is made available under an
 // open source license such as the Apache 2.0 License.
 
-pub mod artifact;
 pub mod cli;
 pub mod config;
 pub mod file;
