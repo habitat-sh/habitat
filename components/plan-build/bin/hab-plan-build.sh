@@ -1857,7 +1857,7 @@ _build_metadata() {
     | while read file; do _generate_blake2b $file; done > ${pkg_name}_blake2b_hashes_list
 
   build_line "Generating signed metadata FILES"
-  $_hab_cmd artifact sign --origin $pkg_origin ${pkg_name}_blake2b_hashes_list $pkg_prefix/FILES
+  $_hab_cmd pkg sign --origin $pkg_origin ${pkg_name}_blake2b_hashes_list $pkg_prefix/FILES
   return 0
 }
 
@@ -2046,13 +2046,13 @@ EOT
 # **Internal** Generate the blake2b checksum and output similar to
 # `sha256sum`.
 #
-# TODO: (jtimberman) If `hab artifact hash` itself starts to output
+# TODO: (jtimberman) If `hab pkg hash` itself starts to output
 # like `sha256sum` at some point, we'll need to update this function.
 _generate_blake2b() {
-  echo -en "$($_hab_cmd artifact hash $1)  $1\n"
+  echo -en "$($_hab_cmd pkg hash $1)  $1\n"
 }
 
-# **Internal** Create the package artifact with `tar`/`hab artifact sign`
+# **Internal** Create the package artifact with `tar`/`hab pkg sign`
 _generate_artifact() {
   build_line "Generating package artifact"
   local tarf="$(dirname $pkg_artifact)/.$(basename ${pkg_artifact/%.${_artifact_ext}/.tar})"
@@ -2062,13 +2062,13 @@ _generate_artifact() {
   rm -fv $tarf $xzf $pkg_artifact
   $_tar_cmd -cf $tarf $pkg_prefix
   $_xz_cmd --compress -6 --threads=0 --verbose $tarf
-  $_hab_cmd artifact sign --origin $pkg_origin $xzf $pkg_artifact
+  $_hab_cmd pkg sign --origin $pkg_origin $xzf $pkg_artifact
   rm -f $tarf $xzf
 }
 
 _prepare_build_outputs() {
   _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
-  _pkg_blake2bsum=$($_hab_cmd artifact hash $pkg_artifact)
+  _pkg_blake2bsum=$($_hab_cmd pkg hash $pkg_artifact)
   mkdir -pv $pkg_output_path
   cp -v $pkg_artifact $pkg_output_path/
 
@@ -2222,7 +2222,7 @@ do_begin
 # Determine if we have all the commands we need to work
 _find_system_commands
 
-# Enure that the origin key is available for artifact signing
+# Enure that the origin key is available for package signing
 _ensure_origin_key_present
 
 _determine_pkg_installer

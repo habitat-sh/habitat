@@ -31,46 +31,6 @@ pub fn get() -> App<'static, 'static> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting VersionlessSubcommands)
         (@setting ArgRequiredElseHelp)
-        (@subcommand artifact =>
-            (about: "Commands relating to Habitat artifacts")
-            (aliases: &["ar", "art", "arti", "artif", "artifa", "artifac"])
-            (@setting ArgRequiredElseHelp)
-            (@subcommand upload =>
-                (about: "Uploads a local Habitat artifact to a Depot")
-                (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                 "Use a specific Depot URL")
-                (@arg AUTH_TOKEN: -z --auth +takes_value
-                 "Authentication token for the Depot")
-                (@arg ARTIFACT: +required +multiple {file_exists}
-                 "One or more paths to a Habitat artifact \
-                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            )
-            (@subcommand sign =>
-                (about: "Signs a archive file with with an origin key, creating a Habitat artifact")
-                (aliases: &["s", "si", "sig"])
-                (@arg ORIGIN: --origin +takes_value
-                 "Origin key used to create signature")
-                (@arg SOURCE: +required {file_exists}
-                 "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
-                (@arg ARTIFACT: +required
-                 "The path to the generated Habitat artifact \
-                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            )
-            (@subcommand verify =>
-                (about: "Verifies a Habitat artifact with an origin key")
-                (aliases: &["v", "ve", "ver", "veri", "verif"])
-                (@arg ARTIFACT: +required {file_exists}
-                 "A path to a Habitat artifact \
-                 (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-            )
-            (@subcommand hash=>
-                (about: "Generate a BLAKE2b hash for a file")
-                (aliases: &["ha", "has"])
-                (@arg SOURCE: +required {file_exists}
-                 "A path to any local file")
-            )
-        )
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])
@@ -91,17 +51,17 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Upload a file to the supervisor ring.")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-                 "Target service group for this injection (ex: redis.default)")
+                    "Target service group for this injection (ex: redis.default)")
                 (@arg FILE: +required {file_exists} "Path to local file on disk")
                 (@arg VERSION_NUMBER: +required
-                   "A version number (positive integer) for this configuration (ex: 42)")
+                    "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg ORG: --org +takes_value "Name of service organization")
                 (@arg USER: +takes_value)
                 (@arg PEER: -p --peer +takes_value
-                 "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-                 (default: 127.0.0.1:9634)")
+                    "A comma-delimited list of one or more Habitat Supervisor peers to infect \
+                    (default: 127.0.0.1:9634)")
                 (@arg RING: -r --ring +takes_value
-                 "Ring key name, which will encrypt communication messages")
+                    "Ring key name, which will encrypt communication messages")
             )
         )
         (@subcommand origin =>
@@ -109,54 +69,49 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["o", "or", "ori", "orig", "origi"])
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Commands relating to Habitat origin key maintenance")
-                 (aliases: &["k", "ke"])
-                 (@setting ArgRequiredElseHelp)
-                 (@subcommand download =>
-                        (about: "Download origin key(s) to HAB_CACHE_KEY_PATH")
-                        (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
+                (about: "Commands relating to Habitat origin key maintenance")
+                (aliases: &["k", "ke"])
+                (@setting ArgRequiredElseHelp)
+                (@subcommand download =>
+                    (about: "Download origin key(s) to HAB_CACHE_KEY_PATH")
+                    (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
+                    (@arg ORIGIN: +required "The origin name")
+                    (@arg REVISION: "The key revision")
+                    (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
+                )
+                (@subcommand export =>
+                    (about: "Outputs the latest origin key contents to stdout")
+                    (aliases: &["e", "ex", "exp", "expo", "expor"])
+                    (@arg ORIGIN: +required +takes_value)
+                    (@arg PAIR_TYPE: -t --type +takes_value +required {valid_pair_type}
+                    "Export either the `public' or `secret' key")
+                )
+                (@subcommand generate =>
+                    (about: "Generates a Habitat origin key")
+                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
+                    (@arg ORIGIN: "The origin name")
+                )
+                (@subcommand import =>
+                    (about: "Reads a stdin stream containing a public or secret origin key \
+                        contents and writes the key to disk")
+                    (aliases: &["i", "im", "imp", "impo", "impor"])
+                )
+                (@subcommand upload =>
+                    (@group upload =>
+                        (@attributes +required)
                         (@arg ORIGIN: +required "The origin name")
-                        (@arg REVISION: "The key revision")
-                        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                         "Use a specific Depot URL")
-                 )
-                 (@subcommand export =>
-                        (about: "Outputs the latest origin key contents to stdout")
-                        (aliases: &["e", "ex", "exp", "expo", "expor"])
-                        (@arg ORIGIN: +required +takes_value)
-                        (@arg PAIR_TYPE: -t --type +takes_value +required {valid_pair_type}
-                         "Export either the `public' or `secret' key")
-                 )
-                 (@subcommand generate =>
-                        (about: "Generates a Habitat origin key")
-                        (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                        (@arg ORIGIN: "The origin name")
-                 )
-                 (@subcommand import =>
-                        (about: "Reads a stdin stream containing a public or secret origin key \
-                         contents and writes the key to disk")
-                        (aliases: &["i", "im", "imp", "impo", "impor"])
-                 )
-                 (@subcommand upload =>
-                        (@group upload =>
-                            (@attributes +required)
-                            (@arg ORIGIN: +required "The origin name")
-                            (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
-                                    "Path to a local public origin key file on disk")
-                        )
-                        (about: "Upload origin keys to the depot")
-                        (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                         (@arg WITH_SECRET: -s --secret
-                            conflicts_with[PUBLIC_FILE]
-                            "Upload secret key in addition to the public key")
-                        (@arg SECRET_FILE: --secfile +takes_value {file_exists}
-                            conflicts_with[ORIGIN]
-                            "Path to a local secret origin key file on disk")
-                        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
-                         "Use a specific Depot URL")
-                        (@arg AUTH_TOKEN: -z --auth +takes_value
-                         "Authentication token for the Depot")
-                 )
+                        (@arg PUBLIC_FILE: --pubfile +takes_value {file_exists}
+                            "Path to a local public origin key file on disk")
+                    )
+                    (about: "Upload origin keys to the depot")
+                    (aliases: &["u", "up", "upl", "uplo", "uploa"])
+                    (@arg WITH_SECRET: -s --secret conflicts_with[PUBLIC_FILE]
+                        "Upload secret key in addition to the public key")
+                    (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
+                        "Path to a local secret origin key file on disk")
+                    (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
+                    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                )
             )
         )
         (@subcommand service =>
@@ -164,15 +119,15 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["se", "ser", "serv", "servi", "servic"])
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Commands relating to Habitat service keys")
-                 (aliases: &["k", "ke"])
-                 (@setting ArgRequiredElseHelp)
-                 (@subcommand generate =>
-                        (about: "Generates a Habitat service key")
-                        (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                        (@arg SERVICE_GROUP: +required +takes_value {valid_service_group})
-                        (@arg ORG: "The service organization")
-                 )
+                (about: "Commands relating to Habitat service keys")
+                (aliases: &["k", "ke"])
+                (@setting ArgRequiredElseHelp)
+                (@subcommand generate =>
+                    (about: "Generates a Habitat service key")
+                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
+                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group})
+                    (@arg ORG: "The service organization")
+                )
             )
         )
         (@subcommand user =>
@@ -180,14 +135,14 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["u", "us", "use"])
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Commands relating to Habitat user keys")
-                 (aliases: &["k", "ke"])
-                 (@setting ArgRequiredElseHelp)
-                 (@subcommand generate =>
-                        (about: "Generates a Habitat user key")
-                        (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                        (@arg USER: +required +takes_value)
-                 )
+                (about: "Commands relating to Habitat user keys")
+                (aliases: &["k", "ke"])
+                (@setting ArgRequiredElseHelp)
+                (@subcommand generate =>
+                    (about: "Generates a Habitat user key")
+                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
+                    (@arg USER: +required +takes_value)
+                )
             )
         )
         (@subcommand pkg =>
@@ -195,66 +150,96 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["p", "pk", "package"])
             (@setting ArgRequiredElseHelp)
             (@subcommand binlink =>
-                   (about: "Creates a symlink for a package binary in a common 'PATH' location")
-                   (aliases: &["bi", "bin", "binl", "binli", "binlin"])
-                   (@arg PKG_IDENT: +required +takes_value
+                (about: "Creates a symlink for a package binary in a common 'PATH' location")
+                (aliases: &["bi", "bin", "binl", "binli", "binlin"])
+                (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                   (@arg BINARY: +required +takes_value
+                (@arg BINARY: +required +takes_value
                     "The command to symlink (ex: bash)")
-                   (@arg DEST_DIR: -d --dest +takes_value
+                (@arg DEST_DIR: -d --dest +takes_value
                     "Sets the destination directory (default: /bin)")
             )
             (subcommand: sub_package_build())
             (@subcommand exec =>
-                   (about: "Executes a command using the 'PATH' context of an installed package")
-                   (aliases: &["e", "ex", "exe"])
-                   (@arg PKG_IDENT: +required +takes_value
+                (about: "Executes a command using the 'PATH' context of an installed package")
+                (aliases: &["e", "ex", "exe"])
+                (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-                   (@arg CMD: +required +takes_value
+                (@arg CMD: +required +takes_value
                     "The command to execute (ex: ls)")
-                   (@arg ARGS: +takes_value +multiple
+                (@arg ARGS: +takes_value +multiple
                     "Arguments to the command (ex: -l /tmp)")
             )
             (subcommand: sub_package_install().aliases(
-                    &["i", "in", "ins", "inst", "insta", "instal"]))
+                &["i", "in", "ins", "inst", "insta", "instal"]))
+            (@subcommand hash=>
+                (about: "Generates a Habitat Packaging Hash from a target at any given filepath")
+                (aliases: &["ha", "has"])
+                (@arg SOURCE: +required {file_exists} "A filepath of the target")
+            )
             (@subcommand path =>
-                   (about: "Prints the path to a specific installed release of a package")
-                   (aliases: &["p", "pa", "pat"])
-                   (@arg PKG_IDENT: +required +takes_value
+                (about: "Prints the path to a specific installed release of a package")
+                (aliases: &["p", "pa", "pat"])
+                (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-             )
+            )
             (@subcommand export =>
-                   (about: "Exports the package to the specified format")
-                   (aliases: &["e", "ex", "exp"])
-                   (@arg FORMAT: +required +takes_value
-                    "The export format (ex: docker, aci)")
-                   (@arg PKG_IDENT: +required +takes_value
+                (about: "Exports the package to the specified format")
+                (aliases: &["e", "ex", "exp"])
+                (@arg FORMAT: +required +takes_value "The export format (ex: docker, aci)")
+                (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-             )
-         )
+            )
+            (@subcommand sign =>
+                (about: "Signs an archive with an origin key, generating a Habitat Artifact")
+                (aliases: &["s", "si", "sig"])
+                (@arg ORIGIN: --origin +takes_value "Origin key used to create signature")
+                (@arg SOURCE: +required {file_exists}
+                    "A path to an archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)")
+                (@arg OUT: +required
+                    "The filepath to output the generated Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+            (@subcommand upload =>
+                (about: "Uploads a local Habitat Artifact to a Depot")
+                (aliases: &["u", "up", "upl", "uplo", "uploa"])
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
+                (@arg PKG: +required +multiple {file_exists}
+                    "One or more filepaths to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+            (@subcommand verify =>
+                (about: "Verifies a Habitat Artifact with an origin key")
+                (aliases: &["v", "ve", "ver", "veri", "verif"])
+                (@arg SOURCE: +required {file_exists}
+                    "A path to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+        )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")
             (aliases: &["r", "ri", "rin"])
             (@setting ArgRequiredElseHelp)
             (@subcommand key =>
-                 (about: "Commands relating to Habitat ring keys")
-                 (aliases: &["k", "ke"])
-                 (@setting ArgRequiredElseHelp)
-                 (@subcommand export =>
-                        (about: "Outputs the latest ring key contents to stdout")
-                        (aliases: &["e", "ex", "exp", "expo", "expor"])
-                        (@arg RING: +required +takes_value)
-                 )
-                 (@subcommand import =>
-                        (about: "Reads a stdin stream containing ring key contents and writes \
-                         the key to disk")
-                        (aliases: &["i", "im", "imp", "impo", "impor"])
-                 )
-                 (@subcommand generate =>
-                        (about: "Generates a Habitat ring key")
-                        (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                        (@arg RING: +required +takes_value)
-                 )
+                (about: "Commands relating to Habitat ring keys")
+                (aliases: &["k", "ke"])
+                (@setting ArgRequiredElseHelp)
+                (@subcommand export =>
+                    (about: "Outputs the latest ring key contents to stdout")
+                    (aliases: &["e", "ex", "exp", "expo", "expor"])
+                    (@arg RING: +required +takes_value)
+                )
+                (@subcommand import =>
+                    (about: "Reads a stdin stream containing ring key contents and writes \
+                    the key to disk")
+                    (aliases: &["i", "im", "imp", "impo", "impor"])
+                )
+                (@subcommand generate =>
+                    (about: "Generates a Habitat ring key")
+                    (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
+                    (@arg RING: +required +takes_value)
+                )
             )
         )
         (@subcommand studio =>
@@ -265,15 +250,14 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to the Habitat Supervisor")
             (aliases: &["su"])
         )
-
         (subcommand: alias_apply)
         (subcommand: alias_install)
         (subcommand: alias_start)
         (after_help: "ALIASES:\
-             \n    apply       Alias for: 'config apply'\
-             \n    install     Alias for: 'pkg install'\
-             \n    start       Alias for: 'sup start'\
-             \n"
+            \n    apply       Alias for: 'config apply'\
+            \n    install     Alias for: 'pkg install'\
+            \n    start       Alias for: 'sup start'\
+            \n"
         )
     )
 }
@@ -283,14 +267,14 @@ fn sub_package_build() -> App<'static, 'static> {
         (about: "Builds a Plan using a Studio")
         (aliases: &["bu", "bui", "buil"])
         (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
-        "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
+            "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
         (@arg HAB_STUDIO_ROOT: -r --root +takes_value
-        "Sets the Studio root (default: /hab/studios/<DIR_NAME>)")
+            "Sets the Studio root (default: /hab/studios/<DIR_NAME>)")
         (@arg SRC_PATH: -s --src +takes_value
-        "Sets the source path (default: $PWD)")
+            "Sets the source path (default: $PWD)")
         (@arg PLAN_CONTEXT: +required +takes_value
-        "A directory containing a `plan.sh` file \
-        or a `habitat/` directory which contains the `plan.sh` file")
+            "A directory containing a `plan.sh` file \
+            or a `habitat/` directory which contains the `plan.sh` file")
     );
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
@@ -307,11 +291,11 @@ fn sub_package_build() -> App<'static, 'static> {
 #[cfg_attr(rustfmt, rustfmt_skip)]
 fn sub_package_install() -> App<'static, 'static> {
     clap_app!(@subcommand install =>
-        (about: "Installs a Habitat package from a Depot or locally from a Habitat artifact")
+        (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
         (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
-         "One or more Habitat package identifiers (ex: acme/redis) and/or paths to a \
-         Habitat artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
+            to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
     )
 }
 
@@ -320,16 +304,16 @@ fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
         (about: "Applies a configuration to a group of Habitat Supervisors")
         (@arg PEER: -p --peer +takes_value
-         "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-         (default: 127.0.0.1:9634)")
+            "A comma-delimited list of one or more Habitat Supervisor peers to infect \
+            (default: 127.0.0.1:9634)")
         (@arg RING: -r --ring +takes_value
-         "Ring key name, which will encrypt communication messages")
+            "Ring key name, which will encrypt communication messages")
         (@arg SERVICE_GROUP: +required {valid_service_group}
-         "Target service group for this injection (ex: redis.default)")
+            "Target service group for this injection (ex: redis.default)")
         (@arg VERSION_NUMBER: +required
-         "A version number (positive integer) for this configuration (ex: 42)")
+            "A version number (positive integer) for this configuration (ex: 42)")
         (@arg FILE: {file_exists_or_stdin}
-         "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+            "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
     )
 }
 
