@@ -11,6 +11,12 @@
 
 /*global $, ansi_up, CodeMirror, Josh */
 
+// Without this, you cannot open the keyboard on mobile devices since josh.js
+// does not use actual HTML input elements.
+$("#mobile-keyboard-trigger").click(function() {
+  $(this).focus();
+});
+
 (function () {
     function format(text) {
         return "<pre>" + ansi_up.ansi_to_html(ansi_up.escape_for_html(text)) +
@@ -22,7 +28,7 @@
     }
 
     function success(display) {
-        $("#success .button").removeClass("disabled").addClass("success");
+        $("#success .button").removeClass("secondary").addClass("cta");
         if(display === "hide") {
           $("#shell-cli").hide();
         }

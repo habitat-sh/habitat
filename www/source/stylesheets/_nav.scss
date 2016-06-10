@@ -54,7 +54,7 @@ $main-nav-breakpoint: 710px;
 }
 
 .main-nav--logo {
-  @include grid-column(4);
+  @include grid-column(3);
 
   a {
     display: block;
@@ -79,7 +79,7 @@ $main-nav-breakpoint: 710px;
 
 .main-nav--links-wrap {
   @include large-nav {
-    @include grid-column(8);
+    @include grid-column(9);
   }
 }
 
@@ -172,9 +172,11 @@ $main-nav-breakpoint: 710px;
   .button {
     @include button;
     margin: rem-calc(7) 0 0 0;
+    padding: 0.85em 1em;
 
     @include large-nav {
       margin: 0;
+      padding: 0.85em 1.65em;
     }
 
     &:hover {

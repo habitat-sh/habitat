@@ -1,11 +1,19 @@
 // CSS for Try Habitat
 
 .page-title--heading {
-  @include grid-column(6);
+  @include grid-column(12);
+
+  @include breakpoint(medium){
+    @include grid-column(6);
+  }
 }
 
 .progress-container {
-  @include grid-column(6);
+  @include grid-column(12);
+
+  @include breakpoint(medium){
+    @include grid-column(6);
+  }
 
   .progress {
     margin-bottom: 0;
@@ -52,7 +60,7 @@ code {
     background-color: inherit;
     border: 0;
     color: inherit;
-    overflow: hidden;
+    overflow: visible;
   }
 }
 
@@ -84,10 +92,12 @@ code {
 
       a.active {
         background-color: $hab-blue !important;
+        color: $white;
       }
 
       a.updated {
         background-color: $hab-orange;
+        color: $white;
       }
 
       a.active:hover {
@@ -118,4 +128,20 @@ pre.full-output {
   @extend .ansi-bright-cyan;
   display: none;
   margin-top: rem-calc(-32);
+}
+
+@include breakpoint(small down) {
+  #success .secondary {
+    @include primary-button;
+    color: $white;
+  }
+}
+
+#mobile-keyboard-trigger {
+  color: transparent;
+  position: absolute;
+  width: 320px;
+  height: 100px;
+  left: -20px;
+  opacity: 0;
 }
