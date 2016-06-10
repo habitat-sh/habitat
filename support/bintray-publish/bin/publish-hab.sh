@@ -216,6 +216,9 @@ _build_slim_release() {
       ;;
   esac
   popd >/dev/null
+  pushd "$(dirname $pkg_artifact)" >/dev/null
+  sha256sum $(basename $pkg_artifact) > "${pkg_artifact}.sha256sum"
+  popd
 }
 
 _publish_slim_release() {
@@ -237,15 +240,17 @@ _publish_slim_release() {
     --website-url=https://www.habitat.sh \
     "$BINTRAY_ORG/$BINTRAY_REPO/$bintray_pkg"
 
-  info "Uploading $(basename $pkg_artifact) to $bintray_endpoint"
-  $_jfrog_cmd --offer-config=false bt upload \
-    --user=$BINTRAY_USER \
-    --key=$BINTRAY_KEY \
-    "$pkg_artifact"\
-    "$bintray_endpoint" \
-    "$bintray_path"/
+  for a in $pkg_artifact ${pkg_artifact}.sha256sum; do
+    info "Uploading $(basename $a) to $bintray_endpoint"
+    $_jfrog_cmd --offer-config=false bt upload \
+      --user=$BINTRAY_USER \
+      --key=$BINTRAY_KEY \
+      "$a" \
+      "$bintray_endpoint" \
+      "$bintray_path"/
+  done
 
-  info "Signing $(basename $pkg_artifact) on $bintray_endpoint"
+  info "Signing files in $bintray_endpoint"
   $_jfrog_cmd --offer-config=false bt gpg-sign-ver \
     --user=$BINTRAY_USER \
     --key=$BINTRAY_KEY \

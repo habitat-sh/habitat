@@ -148,7 +148,7 @@ _main() {
   source ./results/last_image.env
 
   info "Logging in to Bintray Docker repo"
-  docker login -u="$BINTRAY_USER" -p="$BINTRAY_KEY" habitat-docker-studio.bintray.io
+  docker login -u="$BINTRAY_USER" -p="$BINTRAY_KEY" habitat-docker-registry.bintray.io
   trap 'rm -f $HOME/.docker/config.json; exit $?' INT TERM EXIT
 
   info "Pushing ${docker_image}:$docker_image_version"
