@@ -38,7 +38,7 @@ You can create a Docker container image for any package by performing the follow
 
        hab pkg install yourorigin/yourpackage
 
-4. Run the Docker exporter on the package. (`hab pkg exec` sets the correct paths needed to find all the exporter's dependencies.)
+4. Run the Docker exporter on the package.
 
        hab pkg export docker yourorigin/yourpackage
 
