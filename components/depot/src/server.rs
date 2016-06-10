@@ -649,7 +649,7 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
 
     let mut conn = Broker::connect(&depot.context).unwrap();
     conn.route(&request).unwrap();
-    Ok(Response::with(status::Ok))
+    Ok(Response::with(status::Created))
 }
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {

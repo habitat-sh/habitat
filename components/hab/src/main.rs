@@ -373,8 +373,13 @@ fn sub_origin_key_import() -> Result<()> {
 }
 
 fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
+
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+
     let token: String = match m.value_of("AUTH_TOKEN") {
         None => {
             match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
@@ -388,10 +393,23 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
         }
         Some(token) => token.to_string(),
     };
-    let keyfile = Path::new(m.value_of("FILE").unwrap());
+
     init();
 
-    command::origin::key::upload::start(url, &token, &keyfile)
+    if m.is_present("ORIGIN") {
+        let origin = m.value_of("ORIGIN").unwrap();
+        // you can either specify files, or infer the latest key names
+        let with_secret = m.is_present("WITH_SECRET");
+        command::origin::key::upload_latest::start(url,
+                                                   &token,
+                                                   origin,
+                                                   with_secret,
+                                                   &default_cache_key_path(fs_root_path))
+    } else {
+        let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
+        let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
+        command::origin::key::upload::start(url, &token, &keyfile, secret_keyfile)
+    }
 }
 
 fn sub_pkg_binlink(m: &ArgMatches) -> Result<()> {

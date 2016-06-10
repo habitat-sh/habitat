@@ -277,7 +277,7 @@ pub fn job_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult
 /// Endpoint for determining availability of builder-api components.
 ///
 /// Returns a status 200 on success. Any non-200 responses are an outage or a partial outage.
-pub fn status(req: &mut Request) -> IronResult<Response> {
+pub fn status(_req: &mut Request) -> IronResult<Response> {
     Ok(Response::with(status::Ok))
 }
 

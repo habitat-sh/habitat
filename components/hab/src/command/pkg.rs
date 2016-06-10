@@ -173,7 +173,7 @@ pub mod export {
         use error::{Error, Result};
         use hcore::crypto::default_cache_key_path;
         use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
-        use hcore::package::{PackageIdent, PackageInstall, Identifiable};
+        use hcore::package::{PackageIdent, PackageInstall};
         use hcore::url::default_depot_url;
         use std::ffi::OsString;
         use std::path::Path;

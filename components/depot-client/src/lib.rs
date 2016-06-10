@@ -137,6 +137,51 @@ impl Client {
         }
     }
 
+
+    /// Upload a secret origin key to a remote Depot.
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    /// * File cannot be read
+    ///
+    /// # Panics
+    ///
+    /// * Authorization token was not set on client
+    pub fn put_origin_secret_key(&self,
+                                 origin: &str,
+                                 revision: &str,
+                                 src_path: &Path,
+                                 token: &str,
+                                 progress: Option<&mut DisplayProgress>)
+                                 -> Result<()> {
+        let mut headers = Headers::new();
+        headers.set(Authorization(Bearer { token: token.to_string() }));
+        let url = try!(self.url_join(&format!("origins/{}/secret_keys/{}", &origin, &revision)));
+        let mut file = try!(File::open(src_path));
+        let file_size = try!(file.metadata()).len();
+        let result = if let Some(progress) = progress {
+            progress.size(file_size);
+            let mut reader = TeeReader::new(file, progress);
+            self.client
+                .post(url)
+                .headers(headers)
+                .body(Body::SizedBody(&mut reader, file_size))
+                .send()
+        } else {
+            self.client
+                .post(url)
+                .headers(headers)
+                .body(Body::SizedBody(&mut file, file_size))
+                .send()
+        };
+        match result {
+            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
+            Ok(Response { status: code, .. }) => Err(Error::HTTP(code)),
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
     /// Download the latest release of a package.
     ///
     /// An optional version and release can be specified which, when provided, will increase
