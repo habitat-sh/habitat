@@ -131,7 +131,7 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response { status: StatusCode::Ok, .. }) => Ok(()),
+            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
             Ok(Response { status: code, .. }) => Err(Error::HTTP(code)),
             Err(e) => Err(Error::from(e)),
         }
@@ -233,7 +233,7 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response { status: StatusCode::Ok, .. }) => Ok(()),
+            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
             Ok(Response { status: code, .. }) => Err(Error::HTTP(code)),
             Err(e) => Err(Error::from(e)),
         }

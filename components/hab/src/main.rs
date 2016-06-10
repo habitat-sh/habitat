@@ -218,8 +218,8 @@ fn sub_artifact_upload(m: &ArgMatches) -> Result<()> {
                 Ok(token) => token,
                 Err(_) => {
                     return Err(Error::ArgumentError("Missing authentication token - Set \
-                                                     AUTH_TOKEN env var or specify a value for \
-                                                     --auth-token and try again."))
+                                                     HAB_AUTH_TOKEN env var or specify a value \
+                                                     for --auth and try again."))
                 }
             }
         }
