@@ -111,6 +111,25 @@ impl Client {
         self.upload(url, &mut file, progress)
     }
 
+    /// Upload a secret origin key to a remote Depot.
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    /// * File cannot be read
+    pub fn put_origin_secret_key(&self,
+                                 origin: &str,
+                                 revision: &str,
+                                 src_path: &Path,
+                                 progress: Option<&mut DisplayProgress>)
+                                 -> Result<()> {
+        let url = try!(self.url_join(&format!("origins/{}/secret_keys/{}", &origin, &revision)));
+
+        let mut file = try!(File::open(src_path));
+        debug!("Reading from {}", src_path.display());
+        self.upload(url, &mut file, progress)
+    }
+
     /// Download the latest release of a package.
     ///
     /// An optional version and release can be specified which, when provided, will increase
