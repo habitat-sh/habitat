@@ -404,7 +404,7 @@ impl GossipFileList {
                         let next_retries = fwr.total_retries + 1;
                         let exp_backoff_seconds = 2i64.pow(next_retries);
                         let next = SteadyTime::now() + Duration::seconds(exp_backoff_seconds);
-                        println!("Retrying write to l{} in {} seconds",
+                        println!("Retrying write to {} in {} seconds",
                                  &gf.file_name,
                                  exp_backoff_seconds);
                         fwr.next_retry = next;
