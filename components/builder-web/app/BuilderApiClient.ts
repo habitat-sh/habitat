@@ -17,6 +17,17 @@ export class BuilderApiClient {
         this.headers = token ? { "Authorization": `Bearer ${token}` } : {};
     }
 
+    public acceptOriginInvitation(invitationId: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/user/invitations/${invitationId}`, {
+                headers: this.headers,
+                method: "PUT",
+            }).then(response => {
+                resolve(true);
+            }).catch(error => reject(error));
+        });
+    }
+
     public createOrigin(origin) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins`, {
@@ -33,7 +44,7 @@ export class BuilderApiClient {
         key = parseKey(key);
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${key.uploadPath}`, {
-                body: key.body,
+                body: key.text,
                 headers: this.headers,
                 method: "POST",
             }).then(response => {
@@ -42,6 +53,18 @@ export class BuilderApiClient {
                 } else {
                     reject(new Error(response.statusText));
                 }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public getMyOriginInvitations() {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/user/invitations`, {
+                headers: this.headers,
+            }).then(response => {
+                response.json().then(data => {
+                    resolve(data["invitations"]);
+                });
             }).catch(error => reject(error));
         });
     }
@@ -72,6 +95,38 @@ export class BuilderApiClient {
         });
     }
 
+    public getOriginInvitations(originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/invitations`, {
+                headers: this.headers,
+            }).then(response => {
+                if (response.ok) {
+                    response.json().then(data => {
+                        resolve(data["invitations"]);
+                    });
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public getOriginMembers(originName: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${originName}/users`, {
+                headers: this.headers,
+            }).then(response => {
+                if (response.ok) {
+                    response.json().then(data => {
+                        resolve(data["members"]);
+                    });
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
     public getOriginPublicKeys(originName: string) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/depot/origins/${originName}/keys`, {
@@ -81,6 +136,24 @@ export class BuilderApiClient {
                     resolve(response.json());
                 } else {
                     reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public inviteUserToOrigin(username: string, origin: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/depot/origins/${origin}/users/${username}/invitations`, {
+                headers: this.headers,
+                method: "POST",
+            }).then(response => {
+                if (response.ok) {
+                    resolve(true);
+                // Getting a 404 means the user does not exist.
+                } else if (response.status === 404) {
+                    reject(new Error(`User '${username}' does not exist`));
+                } else {
+                    reject(response.error);
                 }
             }).catch(error => reject(error));
         });

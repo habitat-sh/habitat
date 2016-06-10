@@ -40,6 +40,12 @@ export const POPULATE_ORG = orgActions.POPULATE_ORG;
 export const TOGGLE_MEMBER_ACTION_MENU = orgActions.TOGGLE_MEMBER_ACTION_MENU;
 
 export const POPULATE_MY_ORIGINS = originActions.POPULATE_MY_ORIGINS;
+export const POPULATE_MY_ORIGIN_INVITATIONS =
+    originActions.POPULATE_MY_ORIGIN_INVITATIONS;
+export const POPULATE_ORIGIN_INVITATIONS =
+    originActions.POPULATE_ORIGIN_INVITATIONS;
+export const POPULATE_ORIGIN_MEMBERS =
+    originActions.POPULATE_ORIGIN_MEMBERS;
 export const POPULATE_ORIGIN_PUBLIC_KEYS =
     originActions.POPULATE_ORIGIN_PUBLIC_KEYS;
 export const SET_CURRENT_ORIGIN = originActions.SET_CURRENT_ORIGIN;
@@ -55,6 +61,8 @@ export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE =
     originActions.SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE;
 export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
     originActions.SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE;
+export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
+    originActions.SET_ORIGIN_USER_INVITE_ERROR_MESSAGE;
 export const TOGGLE_ORIGIN_PICKER = originActions.TOGGLE_ORIGIN_PICKER;
 
 export const CLEAR_PACKAGES = packageActions.CLEAR_PACKAGES;
@@ -107,10 +115,15 @@ export const inviteMemberToOrg = orgActions.inviteMemberToOrg;
 export const performOrgMemberSearch = orgActions.performOrgMemberSearch;
 export const toggleMemberActionMenu = orgActions.toggleMemberActionMenu;
 
+export const acceptOriginInvitation = originActions.acceptOriginInvitation;
 export const createOrigin = originActions.createOrigin;
 export const fetchOrigin = originActions.fetchOrigin;
+export const fetchOriginInvitations = originActions.fetchOriginInvitations;
+export const fetchOriginMembers = originActions.fetchOriginMembers;
 export const fetchOriginPublicKeys = originActions.fetchOriginPublicKeys;
 export const fetchMyOrigins = originActions.fetchMyOrigins;
+export const fetchMyOriginInvitations = originActions.fetchMyOriginInvitations;
+export const inviteUserToOrigin = originActions.inviteUserToOrigin;
 export const toggleOriginPicker = originActions.toggleOriginPicker;
 export const setCurrentOrigin = originActions.setCurrentOrigin;
 export const setCurrentOriginAddingPrivateKey =

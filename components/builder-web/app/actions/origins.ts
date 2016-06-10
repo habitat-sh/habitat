@@ -12,6 +12,9 @@ import {BuilderApiClient} from "../BuilderApiClient";
 import {parseKey} from "../util";
 
 export const POPULATE_MY_ORIGINS = "POPULATE_MY_ORIGINS";
+export const POPULATE_MY_ORIGIN_INVITATIONS = "POPULATE_MY_ORIGIN_INVITATIONS";
+export const POPULATE_ORIGIN_INVITATIONS = "POPULATE_ORIGIN_INVITATIONS";
+export const POPULATE_ORIGIN_MEMBERS = "POPULATE_ORIGIN_MEMBERS";
 export const POPULATE_ORIGIN_PUBLIC_KEYS = "POPULATE_ORIGIN_PUBLIC_KEYS";
 export const SET_CURRENT_ORIGIN = "SET_CURRENT_ORIGIN";
 export const SET_CURRENT_ORIGIN_CREATING_FLAG =
@@ -25,7 +28,29 @@ export const SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE =
     "SET_ORIGIN_PRIVATE_KEY_UPLOAD_ERROR_MESSAGE";
 export const SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE =
     "SET_ORIGIN_PUBLIC_KEY_UPLOAD_ERROR_MESSAGE";
+export const SET_ORIGIN_USER_INVITE_ERROR_MESSAGE =
+    "SET_ORIGIN_USER_INVITE_ERROR_MESSAGE";
 export const TOGGLE_ORIGIN_PICKER = "TOGGLE_ORIGIN_PICKER";
+
+export function acceptOriginInvitation(invitationId: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).acceptOriginInvitation(invitationId).
+            then(response => {
+                dispatch(addNotification({
+                    title: "Invitation Accepted",
+                    body: "You are now a member",
+                    type: SUCCESS,
+                }));
+                dispatch(fetchMyOriginInvitations(token));
+            }).catch(error => {
+                dispatch(addNotification({
+                    title: "Invitation Acceptance Failed",
+                    body: error.message,
+                    type: DANGER,
+                }));
+            });
+    };
+}
 
 export function createOrigin(origin, token, isFirstOrigin = false) {
     return dispatch => {
@@ -64,6 +89,17 @@ export function fetchMyOrigins(token) {
     };
 }
 
+export function fetchMyOriginInvitations(token) {
+    return dispatch => {
+        new BuilderApiClient(token).getMyOriginInvitations().
+            then(invitations => {
+                dispatch(populateMyOriginInvitations(invitations));
+            }).catch(error => {
+                dispatch(populateMyOriginInvitations(undefined, error));
+            });
+    };
+}
+
 export function fetchOrigin(originName: string) {
     return dispatch => {
         dispatch(setCurrentOriginLoading(true));
@@ -72,6 +108,28 @@ export function fetchOrigin(originName: string) {
         }).catch(error => {
             dispatch(setCurrentOrigin(undefined, error));
         });
+    };
+}
+
+export function fetchOriginInvitations(originName: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).getOriginInvitations(originName).
+            then(response => {
+                dispatch(populateOriginInvitations(response));
+            }).catch(error => {
+                dispatch(populateOriginInvitations(undefined, error));
+            });
+    };
+}
+
+export function fetchOriginMembers(originName: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).getOriginMembers(originName).
+            then(response => {
+                dispatch(populateOriginMembers(response));
+            }).catch(error => {
+                dispatch(populateOriginMembers(undefined, error));
+            });
     };
 }
 
@@ -86,11 +144,47 @@ export function fetchOriginPublicKeys(originName: string, token: string) {
     };
 }
 
+export function inviteUserToOrigin(username: string, origin: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).inviteUserToOrigin(username, origin).
+            then(response => {
+                dispatch(setOriginUserInviteErrorMessage(undefined));
+                dispatch(fetchOriginInvitations(origin, token));
+            }).catch(error => {
+                dispatch(setOriginUserInviteErrorMessage(error.message));
+            });
+    };
+}
+
 function populateMyOrigins(payload, error = undefined) {
     return {
         type: POPULATE_MY_ORIGINS,
         payload,
         error
+    };
+}
+
+function populateMyOriginInvitations(payload, error = undefined) {
+    return {
+        type: POPULATE_MY_ORIGIN_INVITATIONS,
+        payload,
+        error,
+    };
+}
+
+function populateOriginInvitations(payload, error = undefined) {
+    return {
+        type: POPULATE_ORIGIN_INVITATIONS,
+        payload,
+        error,
+    };
+}
+
+function populateOriginMembers(payload, error = undefined) {
+    return {
+        type: POPULATE_ORIGIN_MEMBERS,
+        payload,
+        error,
     };
 }
 
@@ -152,6 +246,13 @@ function setOriginPublicKeyUploadErrorMessage(payload: string) {
     };
 }
 
+function setOriginUserInviteErrorMessage(payload: string) {
+    return {
+        type: SET_ORIGIN_USER_INVITE_ERROR_MESSAGE,
+        payload,
+    };
+}
+
 export function toggleOriginPicker() {
     return {
         type: TOGGLE_ORIGIN_PICKER,
@@ -179,6 +280,7 @@ export function uploadOriginPublicKey(key: string, token: string) {
         new BuilderApiClient(token).createOriginKey(key).then(() => {
             dispatch(setOriginPublicKeyUploadErrorMessage(undefined));
             dispatch(setCurrentOriginAddingPublicKey(false));
+            dispatch(fetchOriginPublicKeys(parseKey(key).origin, token));
             dispatch(addNotification({
                 title: "Origin Public Key Uploaded",
                 body: `'${parseKey(key).name}' has been uploaded`,

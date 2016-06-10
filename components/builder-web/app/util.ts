@@ -56,6 +56,7 @@ export function packageString(o = {}) {
 
 // Take a habitat encryption key and return an object containing data about it
 export function parseKey(key) {
+    const text = key;
     const lines = key.trim().split("\n");
     const type = lines[0];
     const name = lines[1] || "";
@@ -79,6 +80,7 @@ export function parseKey(key) {
         name,
         valid,
         origin,
+        text,
         type,
         uploadPath,
     };

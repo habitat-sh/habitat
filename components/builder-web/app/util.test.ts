@@ -64,6 +64,10 @@ Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=`;
                 expect(util.parseKey(keyString).origin).to.eq("core");
             });
 
+            it("has a text property", () => {
+                expect(util.parseKey(keyString).text).to.eq(keyString);
+            });
+
             describe("with a private key", () => {
                 beforeEach(() => {
                     keyString = `SIG-SEC-1
