@@ -35,7 +35,8 @@ Supervisors running in a ring can be configured to encrypt all traffic between t
 
        env HAB_RING_KEY='SYM-SEC-1
        beyonce-20160504220722
-       RCFaO84j41GmrzWddxMdsXpGdn3iuIy7kw3xYrjPLsE=' hab-sup start yourorigin/yourapp
+
+       RCFaO84j41GmrzWddxMdsXpGdn3iuIy7kw3xYrjPLsE=' hab start yourorigin/yourapp
 
 ### Using a Ring Key When Applying Configuration Changes
 
