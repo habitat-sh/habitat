@@ -25,11 +25,11 @@ p Instead of managing the infrastructure and any supporting dependencies
   separately from the application, Habitat includes everything that an
   application needs, throughout its lifetime, within a Habitat package.
 
-p A Habitat package is isolated, immutable and can establish relationships with
+p A Habitat package is isolated, immutable, and can establish relationships with
   peers. Habitat gives developers a straightforward way to describe how an
   application should behave in its eventual infrastructure environment.
   Habitat also has an outward-facing API that presents a standard interface to
-  the world, so that other components, such as load balancers or monitoring
+  the world, so that other components, such as load balancers and monitoring
   solutions, can easily communicate with the application.
 
 p Wrapping any application in a Habitat package gives it the characteristics we
@@ -58,9 +58,9 @@ ul
   li A packaging format
   li A supervisor
 
-p The format defines Habitat packages, which are isolated, immutable and
+p The format defines Habitat packages, which are isolated, immutable, and
   auditable. The term <em>auditable</em> means that the package can keep track
-  of what happened to it, who did it, where it happened, how it happened and
+  of what happened to it, who did it, where it happened, how it happened, and
   when. By <em>isolated</em>, we mean that each package contains everything it
   needs to run. There are no outside dependencies. By <em>immutable</em> we
   mean that a particular version of the package never changes. If something
