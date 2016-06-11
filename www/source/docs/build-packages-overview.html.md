@@ -6,18 +6,44 @@ title: Building packages
 
 Habitat packages are cryptographically-signed tarballs with a .hart extension that are built from plans. You can build a package in two ways: interactively from inside a studio, and non-interactively.
 
-In both scenarios, you'll need to have the signing key for the origin of your package, which is defined using the `pkg_origin` setting inside your plan. If you haven't created an origin signing key yet, see [Keys](/docs/keys).
+In both scenarios, you'll first need to have a secret origin key to sign your package. The origin key name should either match the `pkg_origin` value defined inside your plan, or match the overridden value specified with the `HAB_ORIGIN` environment variable.
+
+## Create origin keys
+As part of building a package, it needs to be signed with an secret origin key at buildtime. On your host machine, if you want to generate an origin key pair manually, or you used the `hab cli setup` and simply need another origin key pair, run the following command:
+
+    hab origin key generate originname
+
+   > Note: If your host machine is Linux, you must run the `hab` CLI as root through the `sudo` command.
+
+The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory if your host machine is running Mac OS X. If you're creating origin keys either in the studio container, or using the native `hab` CLI on a Linux machine, your keys will be stored in `/hab/cache/keys`.
+
+Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. They will get the public key when they download your package.
+
+### Passing origin keys into the studio
+When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
+
+* Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the studio like `export HAB_ORIGIN=originname`.
+* Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname`
+* Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k originname-internal,originname-test enter`
+
+The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the studio environment. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
+
+The second and third way import multiple secret keys that must match the origin names for the plans you intend to build.
+
+After you create or receive your secret origin key, you can start up the studio and build your package.
 
 ## Interactive Build
 
 An interactive build is one in which you enter a Habitat studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build. The studio is destroyed after you exit it.
 
-The directory where your plan is located is known as the Plan Context.
+The directory where your plan is located is known as the plan context.
 
-1. Change to the parent directory of the Plan Context.
+1. Change to the parent directory of the plan context.
 2. Create an enter a new Habitat studio and pass the origin key into it. We'll assume your origin key is named `yourname`.
 
        hab studio -k yourname enter
+
+       > Note: Same note as above applies when entering into a studio environment.
 
 3. The directory you were in is now mounted as `/src` inside the studio. Enter the following command to create the package.
 
@@ -29,7 +55,7 @@ The directory where your plan is located is known as the Plan Context.
 
 A non-interactive build is one in which Habitat creates a studio for you, builds the package inside it, and then destroys the studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
 
-1. Change to the parent directory of the Plan Context.
+1. Change to the parent directory of the plan context.
 2. Build the package in an unattended fashion, passing the name of the origin key to the command.
 
         hab pkg build yourpackage -k yourname

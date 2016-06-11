@@ -10,13 +10,13 @@ A plan is comprised of shell scripts that define how your application should be 
 
 To create a plan, do the following:
 
-1. In your terminal window, create a new directory called "mytutorialapp". This directory is known as the plan context. The following example places it in a "Plans" directory at the root of the home directory.
+1. In your terminal window, create a new directory called "mytutorialapp". This directory is known as the plan context. The following example places it in a "plans" directory at the root of the home directory.
 
-       mkdir -p ~/Plans/mytutorialapp
+       mkdir -p ~/plans/mytutorialapp
 
 2. Change directories to your plan context.
 
-       cd ~/Plans/mytutorialapp
+       cd ~/plans/mytutorialapp
 
 3. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the hab-plan-build command to build your package, so create a plan.sh file in the mytutorialapp directory and open it.
 
@@ -45,7 +45,7 @@ pkg_lib_dirs=(lib)
 
 We now have a skeleton plan, but we need to modify some of its settings before we can continue.
 
-1. Set the `pkg_origin` value. For the examples in this tutorial, we will set it to `myorigin`. The only reserved origin name is "core". That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
+1. Set the `pkg_origin` value to the one created for you by `hab cli setup`. For the examples in this tutorial, it will be set to `myorigin`. The only reserved origin name is "core". That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
 2. Set the `pkg_name` value to `mytutorialapp`.
 3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.1.0`.
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
@@ -158,48 +158,35 @@ do_install() {
 
 For a complete listing of all of the plan settings, callbacks, and runtime hooks, see the [Plan syntax guide](/docs/plan-syntax).
 
-## Create an origin key
-As part of building a package, it needs to be signed with an secret origin key at buildtime. Secret origin keys are used to sign packages for that specific origin. On your host machine, generate an origin key pair.
-
-    hab origin key generate myorigin
-
-The `hab-origin` subcommand will place myorigin-_timestamp_.sig.key and myorigin-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory of your host machine. And because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` directory. They will get the public key when they download your package.
-
-When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
-
-* Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the studio like `export HAB_ORIGIN=myorigin`.
-* Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=myorigin-internal,myorigin-test,myorigin`
-* Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k myorigin-internal,myorigin-test enter`
-
-The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the studio environment. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `myorigin/node` or `myorigin/glibc`.
-
-The second and third way import multiple secret keys that must match the origin names for the plans you intend to build.
-
-We will use the '-k' flag in the next section when we enter the studio to build your package.
-
 ## Entering the studio and doing an initial build
 
 1. Change directories back to your plan context.
 
-       cd ~/Plans/mytutorialapp
+       cd ~/plans/mytutorialapp
 
-2. Enter into the studio environment with your `myorigin` secret key.
+2. Enter into the studio environment.
 
-       hab studio -k myorigin enter
+   **Mac OS X**
 
-   The studio itself is a Habitat package running inside a Docker container. It will download, unpack, install all of the packages it needs to run, and import any secret keys you specified when running the `enter` subcommand. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
+       hab studio enter
+
+   **Linux**
+
+       sudo hab studio enter
+
+   The studio itself is a Habitat package, and when you're running Mac OS X on your host machine, the studio runs inside a Docker container as root. On Linux, the `hab` CLI must get root permissions through the `sudo` command. It will download, unpack, install all of the packages it needs to run, and import the secret origin key created during `hab cli setup`. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
 
    The download process should only take a few moments. If successful, you should see another bash prompt like this:
 
        [1][default:/src:0]#
 
-   The `src` directory maps to the `~/Plans/mytutorialapp` directory you were in before you entered the studio.
+   The `src` directory maps to the `~/plans/mytutorialapp` directory you were in before you entered the studio.
 
  3. Run the `build` command to build your package.
 
         [2][default:/src:0]# build
 
-      > Note: If you entered the studio in the `~/Plans` directory, then you would change the command to `build mytutorialapp`.
+      > Note: If you entered the studio in the `~/plans` directory, then you would change the command to `build mytutorialapp`.
 
     Running `build` executes the `hab-plan-build` command which handles creating Habitat packages from plan files.  When executed, the script will check dependencies, set variables, install source files, and create a package.
 

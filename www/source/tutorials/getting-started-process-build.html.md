@@ -22,17 +22,13 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
         [1][default:/src:0]# build
 
-3. Run `hab install core/hab-pkg-dockerize` to unpack and install the package that creates Docker images for other Habitat packages.
+3. Run `hab pkg export docker origin/packagename` with the origin and name of your package. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
-        [2][default:/src:0]# hab install core/hab-pkg-dockerize
+        [4][default:/src:0]# hab pkg export docker myorigin/mytutorialapp
 
-4. Run `hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize origin/packagename` with the origin and name of your package. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
+    Habitat will proceed to unpack and install all necessary Habitat packages, including a Habitat supervisor, the mytutorialapp package, and all of its runtime dependencies. Then it will create an image using the Docker scratch image as the base and build up the rest of the image from there.
 
-        [4][default:/src:0]# hab pkg exec core/hab-pkg-dockerize hab-pkg-dockerize myorigin/mytutorialapp
-
-    Habitat will proceed to unpack and install all necessary Habitat packages, including a Habitat supervisor, the mytutorialapp package, and all of its runtime dependencies. Then it will create an image using the Docker scratch image as the base image and build up the rest of the image from there.
-
-5. Once that process has completed, run your Docker image inside a container or from any terminal window that has access to the Docker CLI on your host machine.
+4. Once that process has completed, run your Docker image inside a container or from any terminal window that has access to the Docker CLI on your host machine.
 
     > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, you may need to connect your shell to the Docker VM using `eval "$(docker-machine env default)"` if you are running Mac OS X.
 
@@ -56,7 +52,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
         mytutorialapp(O):
         mytutorialapp(O): Running on http://0.0.0.0:8080
 
-6. Because we are running this service in a Docker container, you need the IP address of the VM that is running it to access the message of the day. If your host machine is running Mac OS X, type the following command in your terminal window to bring up the site.
+5. Because we are running this service in a Docker container, you need the IP address of the VM that is running it to access the message of the day. If your host machine is running Mac OS X, type the following command in your terminal window to bring up the site.
 
         open "http://$(docker-machine ip default):8080/"
 
@@ -66,7 +62,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
     ![Screen shot of node.js tutorial output](/images/nodejs-tutorial-output.png)
 
-7. You can also re-run your Docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname=newvalue'`.
+6. You can also re-run your Docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname=newvalue'`.
 
     > Note: The package name in the environment variable must be uppercase and any dashes must be replaced with underscores.
 
