@@ -39,28 +39,30 @@ p People have been dealing with the problem of application isolation for a long
   your version of the JDK, maybe because of a security problem, you can end up
   impacting a whole slew of applications. You don't really have isolation when
   patches to one component in the stack affect multiple apps at the same time.
-  A modern application is truly isolated. Changing it doesn't have unintended
-  ripple effects across other applications.
+  A modern application is isolated. Changing it doesn't have unintended
+  effects on other applications.
 
-p Immutability means that, once the artifact that packages your application
-  passes some set of checks, it never changes again. Someone can't just open it
-  up and mess with it. Again, just as with isolation, immutability has been
-  with us for decades. Back in 1995, Sun would have told Java developers to
+p Immutability means that you can verify that the contents of a
+  package match what you expect (and what you've tested against in
+  your deployment pipeline). Someone can't just open it up and mess
+  with it. Again, just as with isolation, immutability has been with
+  us for decades. Back in 1995, Sun would have told Java developers to
   build a .war or .ear file once and move that artifact to different
-  environments and never touch it again. The problem was that there was no way
-  to enforce that immutability. It was entirely possible for someone to unzip
-  the file, change it, zip it back up and send it around.
+  environments and never touch it again. The problem was that there
+  was no way to enforce that immutability. It was entirely possible
+  for someone to unzip the file, change it, zip it back up and send it
+  around.
 
-p Immutability is closely tied to the ability to dynamically configure your
-  application at runtime. We don't want an application whose behavior can't be
-  adapted to particular environments, such as QA or production. You need to be
-  able to tune the application, maybe to work with a particular database or to
-  have certain performance values, such as the appropriate number of CPUs to
-  support some number of threads. You need that little bit of flexibility even
-  with immutable packaging. But you, as an application developer, want to make
-  it clear to outside entities which elements of your application are
-  configurable, and define how it should respond to those configuration
-  changes.
+p While an immutable package doesn't ever change, it can expose an
+  interface to allow the application to be dynamically configured at
+  runtime. It is essential to be able to adapt application behavior
+  for a particular environment, such as QA or production. This means
+  being able to tune the application, maybe to work with a particular
+  database or to have certain performance values, such as the
+  appropriate number of CPUs to support some number of threads. As an
+  application developer, you want to make it clear to outside entities
+  which elements of your application are configurable, and define how
+  it should respond to those configuration changes.
 
 h2 Can be rebuilt from source
 
