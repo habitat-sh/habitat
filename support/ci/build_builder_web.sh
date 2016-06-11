@@ -12,12 +12,12 @@ if [ "${TRAVIS_PULL_REQUEST}" = "false" ] &&
   set -eux
   sh components/hab/install.sh
   mkdir -p /hab/cache/keys
-  # Use environment variables set by Travis decrypt and import the origin key
-  openssl aes-256-cbc \
-    -K $encrypted_c4f852370b68_key \
-    -iv $encrypted_c4f852370b68_iv \
-    -in core-20160423193745.sig.key.enc \
-    -d \
-    | hab origin key import
-  hab studio -k core build components/builder-web/habitat
+  ## Use environment variables set by Travis decrypt and import the origin key
+  #openssl aes-256-cbc \
+  #  -K $encrypted_c4f852370b68_key \
+  #  -iv $encrypted_c4f852370b68_iv \
+  #  -in core-20160423193745.sig.key.enc \
+  #  -d \
+  #  | hab origin key import
+  #hab studio -k core build components/builder-web/habitat
 else echo "Not on master; skipping publish"; fi

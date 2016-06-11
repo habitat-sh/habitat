@@ -137,9 +137,9 @@ matrix:
     script:
     - "(cd components/builder-web && npm run travis)"
     - sudo -E bash -c "./support/ci/build_builder_web.sh"
-    after_success:
-    - "hart=$(source ./results/last_build.env && echo $pkg_artifact)"
-    - "if [ -n \"$hart\" ]; then hab pkg upload ./results/$hart; fi"
+    #after_success:
+    #- "hart=$(source ./results/last_build.env && echo $pkg_artifact)"
+    #- "if [ -n \"$hart\" ]; then hab pkg upload ./results/$hart; fi"
   - language: ruby
     rvm: 2.3.1
     sudo: false
