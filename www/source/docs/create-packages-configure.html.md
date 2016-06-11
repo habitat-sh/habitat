@@ -3,74 +3,94 @@ title: Configure packages
 ---
 
 # Add configuration to plans
-Habitat allows you to templatize the native configuration file for your application or service using the [handlebars-rust](https://github.com/sunng87/handlebars-rust) port of [Handlebars.js](http://handlebarsjs.com/) and [TOML](https://github.com/toml-lang/toml) files. If you are unfamiliar with Handlebars, it is an extension of the [Mustache templating language](http://mustache.github.io/) used to build semantic templates for HTML, configuration files, source code, and so on. The general differences between Handlebars and Mustache are covered [here](https://github.com/wycats/handlebars.js#differences-between-handlebarsjs-and-mustache) and the Handlebars.js features supported in handlebars-rust are covered [here](https://github.com/sunng87/handlebars-rust#handlebars-js-features-supported-in-handlebars-rust).
 
-The following sections describe how you may use Handlebars to create tunable configuration elements for your application or service.
+Habitat allows you to templatize your application's native
+configuration files using [Handlebars](http://handlebarsjs.com/)
+syntax. The following sections describe how to create tunable
+configuration elements for your application or service.
 
-## Expressions
-Because Handlebars is an extension of Mustache, the basic Mustache tag format `{{}}` is also used, but in Handlebars, it is referred to as an expression. And in Habitat, the way to specify a tunable configuration element is to prefix any variable in your expression with `cfg` to indicate this is a user-defined element. These elements can have their values set in three ways:
+## Setting a config value
 
-* In the default.toml file included in the plan for that package
-* By an environment variable at start up
-* At runtime through a configuration TOML file that is sent to all services in a service group by the `hab` command-line interface (CLI) tool
+Template variables, also referred to as tags, are indicated by double
+curly braces: `{{a_variable}}`. In Habitat, tunable config elements
+are prefixed with `cfg.` to indicate that the value is user-tunable.
 
-Here's a simple example of how to make a configuration element configurable using an expression. Assume that we have a native configuration file named "service.conf". In service.conf, the following configuration element is defined:
+Here's an example of how to make a configuration element user-tunable. Assume that we have a native configuration file named `service.conf`. In `service.conf`, the following configuration element is defined:
 
     recv_buffer 128
 
-If we want to make that element configurable, we would replace the value with an expression.
+We can make this user tunable like this:
 
     recv_buffer {{cfg.recv_buffer}}
 
-You must include a default.toml file in your plan directory to specify the default values for any configurable elements, so in this example, the default.toml file would have the following entry:
+Habitat can read values that it will use to render the templatize
+config files in three ways:
+
+1. `default.toml` - Each plan includes a `default.toml` file that specifies the default values to use in the absence of any user provided inputs. These files are written in [TOML](https://github.com/toml-lang/toml), a simple config format.
+2. Environment variable - At start up, tunable config values can be passed to Habitat using environment variables.
+3. At runtime - Users can alter config at runtime using `hab config
+apply`. The input for this command also uses the TOML format.
+
+Here's what we'd add to our project's `default.toml` file to provide a
+default value for the `recv_buffer` tunable:
 
     recv_buffer = 128
 
-> Note: Unlike Handlebars.js, Habitat does not support escaping HTML from within expressions.
+## Branching and looping
 
-## Block expressions
-Block expressions are sections of a Handlebars template that use Handlebars helpers to perform logic on that section, such as checking if a value exists or iterating through a list of items.
+You can use block expressions to add basic logic to your template such as checking if a
+value exists or iterating through a list of items.
 
-To use a block helper in a block expression, use the following general format:
+Block expressions use a helper function to perform the logic. The
+syntax is the same for all block expressions and looks like this:
 
     {{#helper blockname}}
       {{expression}}
     {{/helper}}
 
-Because Habitat supports the helpers defined in Handlebars-rust, the following built-in helpers may be used:
+Habitat supports the following helpers:
 
-* `each`
-* `if`
-* `with`
-* `lookup`
-* `partial`
-* `block`
-* `include`
-* `log`
+* each
+* if
+* with
+* lookup
+* partial
+* block
+* include >
+* log
 
 The most common block helpers that you will probably use are the `if` and `with` helpers.
 
-The `if` helper evaluates conditional statements, which are typically used in Habitat to determine whether a specific variable has a defined value at runtime. The following example checks if the `min_buffer_size` for the service has been set to a value other than `0` or is set to `true`. If the conditional statement evaluates to `false`, the block expression does not get executed.
+The `if` helper evaluates conditional statements. The values `false`,
+0, "", as well as undefined values all evaluate to false in `if`
+blocks.
 
-    {{#if cfg.min_buffer_size}}
-      min_buffer_size {{cfg.min_buffer_size}}
-    {{/if}}
+Here's an example that will only write out configuration for the
+unixsocket tunable if a value was set by the user:
 
-The `with` helper is used when referencing configuration elements within a category of elements.
+    {{~#if cfg.unixsocket}}
+    unixsocket {{cfg.unixsocket}}
+    {{~/if}}
 
-    {{#with cfg.section}}
-      section {{expression1}} {{expression2}} {{expressionN}}
+> Note: The `~` indicates that whitespace should be omitted when rendering
+
+TOML allows you to create sections (called [TOML tables](https://github.com/toml-lang/toml#table)) to better organize your configuration variables. For example, your `default.toml` or user defined TOML could have a `[repl]` section for variables controlling replication behavior. Here's what that looks like:
+
+    [repl]
+    backlog-size = 200
+    backlog-ttl = 100
+    disable-tcp-nodelay = no
+
+When writing your template, you can use the `with` helper to reduce duplication:
+
+    {{#with cfg.repl}}
+      repl-backlog-size {{backlog-size}}
+      repl-backlog-ttl {{backlog-ttl}}
+      repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
     {{/with}}
 
-The following example from the redis.config file located in the `core/redis` plan, shows how to use the `with` helper to reference a set of values.
 
-    {{#with cfg.save}}
-      save {{sec}} {{keys}}
-    {{/with}}
-
-> Note: The corresponding TOML is shown in the next section.
-
-Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Habitat services who are in a leader-follower topology.
+Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Habitat services  in a leader-follower topology.
 
     {{#if svc.me.follower}}
      {{#with svc.leader}}
@@ -78,43 +98,30 @@ Helpers can also be nested and used together in block expressions. Here is anoth
      {{/with}}
     {/if}}
 
-For general information on block helpers, see [the Handlebars block helper documentation](http://handlebarsjs.com/block_helpers.html).
 
-## TOML tables
-[TOML tables](https://github.com/toml-lang/toml#table) can also be used if you have configuration elements that are grouped together into categories within your configuration file. To do so, use the following notation in your default.toml file:
+Here's an example using `each` to render multiple server entries:
 
-    [table]
-    key = value
-
-The following examples from the `core/nginx` package show how to create a TOML table that corresponds to a configuration element within a category:
-
-**default.toml**
-
-    [events]
-    # Connections per Worker Process. Default is 1024.
-    worker_connections = 1024
-
-**nginx.conf**
-
-    events {
-        worker_connections {{cfg.events.worker_connections}};
+    {{~#each cfg.servers}}
+    server {
+      host {{host}}
+      port {{port}}
     }
+    {{~/each}}
 
-[Arrays of tables](https://github.com/toml-lang/toml#array-of-tables) can also be used when you have more complex configuration elements to templatize. Here is an example of how this is done in the default.toml file in the `core/redis` plan:
+You would specify the corresponding values in a TOML file using an
+[array of tables](https://github.com/toml-lang/toml#array-of-tables)
+like this:
 
-    [[save]]
-    sec = 900
-    keys = 1
+    [["servers"]]
+    host = host-1
+    port = 4545
 
-    [[save]]
-    sec = 300
-    keys = 10
-
-    [[save]]
-    sec = 60
-    keys = 10000
+    [["servers"]]
+    host = host-2
+    port = 3434
 
 ## Further examples
+
 For an example of how to templatize a configuration file and add it to your plan, see [Add configuration to your plan](/tutorials/getting-started-configure-plan) from the getting started tutorial.
 
 <hr>
