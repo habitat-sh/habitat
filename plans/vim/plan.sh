@@ -33,6 +33,9 @@ do_build() {
 do_install() {
   do_default_install
 
+  # Add a `vi` which symlinks to `vim`
+  ln -sv vim $pkg_prefix/bin/vi
+
   # Install license file
   install -Dm644 runtime/doc/uganda.txt $pkg_prefix/share/licenses/license.txt
 }
