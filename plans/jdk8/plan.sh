@@ -5,9 +5,8 @@ pkg_version=8u92
 pkg_source=http://download.oracle.com/otn-pub/java/jdk/${pkg_version}-b14/jdk-${pkg_version}-linux-x64.tar.gz
 pkg_shasum=79a3f25e9b466cb9e969d1772ea38550de320c88e9119bf8aa11ce8547c39987
 pkg_filename=jdk-${pkg_version}-linux-x64.tar.gz
-
 pkg_license=('Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX')
-
+pkg_description=('Oracle Java Development Kit. This package is made available to you to allow you to run your applications as provided in and subject to the terms of the Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX, found at http://www.oracle.com/technetwork/java/javase/terms/license/index.html')
 pkg_deps=(core/glibc)
 pkg_build_deps=(core/patchelf)
 pkg_bin_dirs=(bin jre/bin)
