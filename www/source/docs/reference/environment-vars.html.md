@@ -8,7 +8,7 @@ This is a list of all environment variables that can be used to modify the opera
 
 | Variable | Context | Default | Description |
 |----------|---------|---------|-------------|
-| `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploadng packages or keys.
+| `HAB_AUTH_TOKEN` | build system | no default | Authorization token used to perform privileged operations against the depot, e.g. uploading packages or keys.
 | `HAB_CACHE_KEY_PATH` | build system, supervisor | `/hab/cache/keys` if running as root; `$HOME/.hab/cache/keys` if running as non-root | Cache directory for origin signing keys |
 | `HAB_DEPOT_URL` | build system, supervisor | `https://willem.habitat.sh/v1/depot` | The depot (or materialized view in the depot) used by the Habitat build system or supervisor |
 | `HAB_ORG` | supervisor | no default | Organization to use when running with [service group encryption](/docs/run-packages-security/#service-group-encryption)
