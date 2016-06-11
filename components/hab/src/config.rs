@@ -57,6 +57,7 @@ fn cli_config_path() -> PathBuf {
 
 #[derive(Clone, Debug, PartialEq, Eq, RustcEncodable)]
 pub struct Config {
+    pub auth_token: Option<String>,
     pub origin: Option<String>,
 }
 
@@ -65,6 +66,7 @@ impl ConfigFile for Config {
 
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
+        try!(toml.parse_into("auth_token", &mut cfg.auth_token));
         try!(toml.parse_into("origin", &mut cfg.origin));
         Ok(cfg)
     }
@@ -72,6 +74,9 @@ impl ConfigFile for Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config { origin: None }
+        Config {
+            auth_token: None,
+            origin: None,
+        }
     }
 }
