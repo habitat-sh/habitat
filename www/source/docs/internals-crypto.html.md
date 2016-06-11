@@ -6,6 +6,8 @@ title: Cryptography
 
 Habitat implements cryptography using a Rust [implementation](https://github.com/jedisct1/libsodium) of [NaCl](https://nacl.cr.yp.to/) called `libsodium`. `libsodium` provides a fast, modern framework for encryption, decryption, signing, and verification.
 
+Habitat uses both symmetric encryption (for wire encryption) and asymmetric encryption (for everything else). If you are not familiar with the difference between the two, please consult [this article](https://support.microsoft.com/en-us/kb/246071).
+
 ## Message Encryption
 
 When you have either wire encryption or service group encryption turned on, the messages use the Curve25519, Salsa20, and Poly1305 ciphers specified in [Cryptography in NaCl](http://nacl.cr.yp.to/valid.html).
