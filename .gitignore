@@ -12,4 +12,3 @@ tmp/
 *.sig.key
 *.box.key
 *.sym.key
-*blake2b_hashes_list
