@@ -7,8 +7,8 @@ h2 Why Package the App and Its Automation Together?
 p In the last article,
   #{link_to '"What is a Modern Application,"', '/about/what-is-modern-app.html'}
   we talked about what those of us on the Habitat project consider to be the
-  essential qualities a modern application must have. Application trends toward
-  highly distributed service-oriented architectures also have implications for
+  essential qualities a modern application must have. The trend towards
+  highly distributed service-oriented architectures has implications for
   how apps are managed and deployed. A more decentralized approach than what is
   commonly used today is required. By this we mean that the <em>automation
   itself becomes service oriented</em>, and applications move from being
@@ -51,7 +51,7 @@ p Obligation-based approaches, as applied to application management, assume
   resource intensive and, of course, represent a single point of failure.
 
 p Promise-based approaches assume that each component is an autonomous agent,
-  with the intelligence it needs to govern itself. Each agent publishes its
+  with the ability to govern itself. Each agent publishes its
   intentions, which represent clear contractual boundaries of what the agent
   will attempt to provide. The overall model is one based on cooperation
   between independent entities.
@@ -71,7 +71,7 @@ p An example of a decentralized approach that is, in fact, used by Habitat, is
   Eventually this state change is propagated to every component in the system.
   It's a way for components to build a global map from limited local
   interactions. A component only has to send to a subset of other nodes. In
-  terms of failure, by combining the reachability data from a lot of different
+  terms of failure, by combining the reachability data from many different
   components you can quickly determine when a particular component is down.
 
 p In contrast, a centralized approach to failure handling is to use a database
