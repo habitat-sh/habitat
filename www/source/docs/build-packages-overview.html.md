@@ -9,7 +9,7 @@ Habitat packages are cryptographically-signed tarballs with a .hart extension th
 In both scenarios, you'll first need to have a secret origin key to sign your package. The origin key name should either match the `pkg_origin` value defined inside your plan, or match the overridden value specified with the `HAB_ORIGIN` environment variable.
 
 ## Create origin keys
-As part of building a package, it needs to be signed with an secret origin key at buildtime. On your host machine, if you want to generate an origin key pair manually, or you used the `hab cli setup` and simply need another origin key pair, run the following command:
+As part of building a package, it needs to be signed with a secret origin key at buildtime. On your host machine, if you want to generate an origin key pair manually, or you used the `hab cli setup` and simply need another origin key pair, run the following command:
 
     hab origin key generate originname
 
@@ -17,7 +17,7 @@ As part of building a package, it needs to be signed with an secret origin key a
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory if your host machine is running Mac OS X. If you're creating origin keys either in the studio container, or using the native `hab` CLI on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. They will get the public key when they download your package.
+Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from the depot by the supervisor, if needed.
 
 ### Passing origin keys into the studio
 When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
