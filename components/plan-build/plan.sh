@@ -20,6 +20,7 @@ pkg_deps=(
   core/hab
   core/sed
   core/tar
+  core/unzip
   core/wget
   core/xz
 )

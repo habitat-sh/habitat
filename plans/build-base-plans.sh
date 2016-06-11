@@ -247,8 +247,7 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   cacerts
   openssl
   wget
-  bash-static
-  coreutils-static
+  unzip
   busybox-static
   rust
   linux-headers-musl
