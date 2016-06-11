@@ -12,7 +12,7 @@ You can write plans to package up these binary artifacts with minimal special ha
 
 A Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. You can override the behavior of any of these phases by redefining the corresponding `do_` function. The following is an extreme example of overriding all the phases except install:
 
-```
+~~~
 do_download() {
   return 0
 }
@@ -34,7 +34,8 @@ do_install() {
   cp $PLAN_CONTEXT/bin/hello_world $pkg_prefix/bin/hello_world
   chmod +x $pkg_prefix/bin/hello_world
 }
-```
+~~~
+{: .language-shell}
 
 Typically, when working with binary artifacts, you would start with a plan like this and work backwards to define the correct contents of the phases.
 
@@ -47,19 +48,15 @@ Most binaries compiled in a full Linux userland have a hard dependency on `/lib/
 1. Declare a build-time dependency on `core/patchelf` as part of your `pkg_build_deps` line.
 2. Invoke `patchelf` on any binaries with this problem during the `do_install()` phase. For example:
 
-```
-  patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
-           ${pkg_prefix}/bin/somebinary
-```
+       patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
+                ${pkg_prefix}/bin/somebinary
 
 3. The binary may have other hardcoded dependencies on its own libraries that you may need to relocate using other flags to `patchelf` like `--rpath`. For example, Oracle Java provides additional libraries in `lib/amd64/jli` that you will need to relocate to the Habitat location:
 
-```
-  export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
-  patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
-           --set-rpath ${LD_RUN_PATH} \
-           ${pkg_prefix}/bin/java
-```
+       export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
+       patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
+                --set-rpath ${LD_RUN_PATH} \
+                ${pkg_prefix}/bin/java
 
 4. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
 
