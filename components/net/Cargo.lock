@@ -5,7 +5,7 @@ dependencies = [
  "fnv 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.6.0",
  "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -48,7 +48,7 @@ version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -91,7 +91,7 @@ dependencies = [
  "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.71 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -173,7 +173,7 @@ version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "libarchive3-sys 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -181,13 +181,13 @@ name = "libarchive3-sys"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "libc"
-version = "0.2.11"
+version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -203,7 +203,7 @@ name = "libsodium-sys"
 version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -222,7 +222,7 @@ name = "memchr"
 version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -238,7 +238,7 @@ name = "num_cpus"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -249,7 +249,7 @@ dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl-sys 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl-sys-extras 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -260,7 +260,7 @@ version = "0.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gdi32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "libressl-pnacl-sys 2.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "user32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -272,7 +272,7 @@ version = "0.7.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.28 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl-sys 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -307,7 +307,7 @@ name = "rand"
 version = "0.3.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -368,7 +368,7 @@ name = "sodiumoxide"
 version = "0.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "libsodium-sys 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -396,7 +396,7 @@ version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -413,7 +413,7 @@ version = "0.1.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -491,7 +491,7 @@ name = "users"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -522,7 +522,7 @@ name = "zmq"
 version = "0.7.0"
 source = "git+https://github.com/reset/rust-zmq.git?branch=habitat#8023e3503a03cd4a04ea6b93de34bb4a09953d27"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq-sys 0.7.0 (git+https://github.com/reset/rust-zmq.git?branch=habitat)",
 ]
@@ -532,7 +532,7 @@ name = "zmq-sys"
 version = "0.7.0"
 source = "git+https://github.com/reset/rust-zmq.git?branch=habitat#8023e3503a03cd4a04ea6b93de34bb4a09953d27"
 dependencies = [
- "libc 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
