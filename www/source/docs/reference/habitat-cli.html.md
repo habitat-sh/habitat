@@ -7,7 +7,6 @@ title: Habitat CLI reference
 The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 
 - [hab](#hab)
-- [hab artifact](#hab-artifact)
 - [hab cli](#hab-cli)
 - [hab config](#hab-config)
 - [hab file](#hab-file)
@@ -34,7 +33,6 @@ The main program that allows you to sign and upload packages, start Habitat serv
 
 **SUBCOMMANDS**
 
-    artifact    Commands relating to Habitat artifacts
     config      Commands relating to Habitat runtime config
     file        Commands relating to Habitat files
     help        Prints this message or the help of the given subcommand(s)
@@ -51,27 +49,6 @@ The main program that allows you to sign and upload packages, start Habitat serv
     apply       Alias for: 'config apply'
     install     Alias for: 'pkg install'
     start       Alias for: 'sup start'
-
-***
-
-<h2 id="hab-artifact" class="anchor">hab artifact</h2>
-Subcommand used for signing and uploading packages.
-
-**USAGE**
-
-    hab artifact [FLAGS] [SUBCOMMAND]
-
-**FLAGS**
-
-    -h, --help    Prints help information
-
-**SUBCOMMANDS**
-
-    hash      Generate a BLAKE2b hash for a file
-    help      Prints this message or the help message of the given subcommand(s)
-    sign      Signs a archive file with with an origin key, creating a Habitat artifact
-    upload    Uploads a local package artifact to a depot
-    verify    Verifies a Habitat artifact with an origin key
 
 ***
 
@@ -166,10 +143,15 @@ Subcommand that allows you to build or install local or remote packages.
     build      Builds a Plan using a Studio
     exec       Executes a command using the 'PATH' context of an installed
                package
+    export     Exports the package to the specified format
+    hash       Generate a Habitat packaging hash for a file
     help       Prints this message or the help of the given subcommand(s)
     install    Installs a Habitat package from a Depot or locally from a
                Habitat artifact
     path       Prints the path to a specific installed release of a package
+    sign       Signs a archive file with with an origin key, creating a Habitat artifact
+    upload     Uploads a local Habitat artifact to a depot
+    verify     Verifies a Habitat package with an origin key
 
 ***
 
