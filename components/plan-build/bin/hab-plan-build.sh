@@ -1238,7 +1238,8 @@ verify_file() {
 unpack_file() {
   build_line "Unpacking $1"
   local unpack_file="$HAB_CACHE_SRC_PATH/$1"
-  # Thanks to: http://stackoverflow.com/questions/17420994/bash-regex-match-string
+  # Thanks to:
+  # http://stackoverflow.com/questions/17420994/bash-regex-match-string
   if [[ -f $unpack_file ]]; then
     pushd $HAB_CACHE_SRC_PATH > /dev/null
     case $unpack_file in
@@ -1829,11 +1830,13 @@ _build_metadata() {
   local cutn="$(($(echo $HAB_PKG_PATH | grep -o '/' | wc -l)+2))"
   local deps
 
-  deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" | cut -d "/" -f ${cutn}-)"
+  deps="$(printf '%s\n' "${pkg_build_deps_resolved[@]}" \
+    | cut -d "/" -f ${cutn}-)"
   if [[ -n "$deps" ]]; then
     echo "$deps" > $pkg_prefix/BUILD_DEPS
   fi
-  deps="$(printf '%s\n' "${pkg_build_tdeps_resolved[@]}" | cut -d "/" -f ${cutn}- | sort)"
+  deps="$(printf '%s\n' "${pkg_build_tdeps_resolved[@]}" \
+    | cut -d "/" -f ${cutn}- | sort)"
   if [[ -n "$deps" ]]; then
     echo "$deps" > $pkg_prefix/BUILD_TDEPS
   fi
@@ -1841,13 +1844,15 @@ _build_metadata() {
   if [[ -n "$deps" ]]; then
     echo "$deps" > $pkg_prefix/DEPS
   fi
-  deps="$(printf '%s\n' "${pkg_tdeps_resolved[@]}" | cut -d "/" -f ${cutn}- | sort)"
+  deps="$(printf '%s\n' "${pkg_tdeps_resolved[@]}" \
+    | cut -d "/" -f ${cutn}- | sort)"
   if [[ -n "$deps" ]]; then
     echo "$deps" > $pkg_prefix/TDEPS
   fi
 
   echo "$pkg_target" > $pkg_prefix/TARGET
-  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" >> $pkg_prefix/IDENT
+  echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" \
+    >> $pkg_prefix/IDENT
 
   # Generate the blake2b hashes of all the files in the package. This
   # is not in the resulting MANIFEST because MANIFEST is included!
