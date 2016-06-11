@@ -179,7 +179,6 @@ fn start() -> Result<()> {
                 _ => unreachable!(),
             }
         }
-
         _ => unreachable!(),
     };
     Ok(())
@@ -323,20 +322,7 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
 
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-
-    let token: String = match m.value_of("AUTH_TOKEN") {
-        None => {
-            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
-                Ok(token) => token,
-                Err(_) => {
-                    return Err(Error::ArgumentError("Missing authentication token - Set \
-                                                     AUTH_TOKEN env var or specify a value for \
-                                                     --auth-token and try again."))
-                }
-            }
-        }
-        Some(token) => token.to_string(),
-    };
+    let token = try!(auth_token_param_or_env(&m));
 
     init();
 
@@ -402,8 +388,15 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
+fn sub_pkg_export(m: &ArgMatches) -> Result<()> {
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+    let format = &m.value_of("FORMAT").unwrap();
+    let export_fmt = try!(command::pkg::export::format_for(&format));
+    command::pkg::export::start(&ident, &export_fmt)
+}
+
 fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
-    let source = m.value_of("TARGET").unwrap();
+    let source = m.value_of("SOURCE").unwrap();
 
     init();
     command::pkg::hash::start(&source)
@@ -439,12 +432,23 @@ fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let src = Path::new(m.value_of("SOURCE").unwrap());
-    let dst = Path::new(m.value_of("OUT").unwrap());
+    let dst = Path::new(m.value_of("DEST").unwrap());
     init();
     let pair = try!(SigKeyPair::get_latest_pair_for(&try!(origin_param_or_env(&m)),
                                                     &default_cache_key_path(fs_root_path)));
 
     command::pkg::sign::start(&pair, &src, &dst)
+}
+
+fn sub_pkg_upload(m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let token = try!(auth_token_param_or_env(&m));
+    let artifact_paths = m.values_of("HART_FILE").unwrap();
+    for artifact_path in artifact_paths {
+        try!(command::pkg::upload::start(&url, &token, &artifact_path));
+    }
+    Ok(())
 }
 
 fn sub_pkg_verify(m: &ArgMatches) -> Result<()> {
@@ -454,36 +458,6 @@ fn sub_pkg_verify(m: &ArgMatches) -> Result<()> {
     init();
 
     command::pkg::verify::start(&src, &default_cache_key_path(fs_root_path))
-}
-
-fn sub_pkg_upload(m: &ArgMatches) -> Result<()> {
-    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
-    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
-    let token: String = match m.value_of("AUTH_TOKEN") {
-        None => {
-            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
-                Ok(token) => token,
-                Err(_) => {
-                    return Err(Error::ArgumentError("Missing authentication token - Set \
-                                                     HAB_AUTH_TOKEN env var or specify a value \
-                                                     for --auth and try again."))
-                }
-            }
-        }
-        Some(token) => token.to_string(),
-    };
-    let artifact_paths = m.values_of("PKG").unwrap();
-    for artifact_path in artifact_paths {
-        try!(command::pkg::upload::start(&url, &token, &artifact_path));
-    }
-    Ok(())
-}
-
-fn sub_pkg_export(m: &ArgMatches) -> Result<()> {
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
-    let format = &m.value_of("FORMAT").unwrap();
-    let export_fmt = try!(command::pkg::export::format_for(&format));
-    command::pkg::export::start(&ident, &export_fmt)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
@@ -547,6 +521,45 @@ fn exec_subcommand_if_called() -> Result<()> {
     }
 }
 
+/// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
+///
+/// **Note** with the current version of clap there is no clean way to ignore arguments after a
+/// certain point, especially if those arguments look like further options and flags.
+fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
+    let mut args = env::args();
+    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
+        ("pkg", "exec") => {
+            if args.by_ref().count() > 2 {
+                return (env::args_os().take(5).collect(), env::args_os().skip(5).collect());
+            } else {
+                (env::args_os().collect(), Vec::new())
+            }
+        }
+        _ => (env::args_os().collect(), Vec::new()),
+    }
+}
+
+/// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
+/// HABITAT_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
+/// token set. If that's empty too, then error.
+fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
+    match m.value_of("AUTH_TOKEN") {
+        Some(o) => Ok(o.to_string()),
+        None => {
+            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => {
+                    let config = try!(config::load());
+                    match config.auth_token {
+                        Some(v) => Ok(v),
+                        None => return Err(Error::ArgumentError("No auth token specified")),
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// Check to see if the user has passed in an ORIGIN param.  If not, check the HABITAT_ORIGIN env
 /// var. If not, check the CLI config to see if there is a default origin set. If that's empty too,
 /// then error.
@@ -580,24 +593,6 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
                 Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
             }
         }
-    }
-}
-
-/// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
-///
-/// **Note** with the current version of clap there is no clean way to ignore arguments after a
-/// certain point, especially if those arguments look like further options and flags.
-fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
-    let mut args = env::args();
-    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
-        ("pkg", "exec") => {
-            if args.by_ref().count() > 2 {
-                return (env::args_os().take(5).collect(), env::args_os().skip(5).collect());
-            } else {
-                (env::args_os().collect(), Vec::new())
-            }
-        }
-        _ => (env::args_os().collect(), Vec::new()),
     }
 }
 
