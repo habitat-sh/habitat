@@ -23,6 +23,7 @@ regex = "*"
 rustc-serialize = "*"
 time = "*"
 toml = "*"
+wonder = "*"
 
 [dependencies.clap]
 version = "*"
@@ -37,9 +38,6 @@ path = "../sup"
 [dependencies.uuid]
 version = "*"
 features = ["rustc-serialize"]
-
-[dependencies.wonder]
-path = "../../vendor/wonder"
 
 [dev-dependencies]
 tempdir = "*"

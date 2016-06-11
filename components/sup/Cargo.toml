@@ -35,6 +35,7 @@ urlencoded = "*"
 openssl = "*"
 lazy_static = "*"
 handlebars = "*"
+wonder = "*"
 
 [dependencies.habitat_core]
 path = "../core"
@@ -48,9 +49,6 @@ path = "../depot-client"
 [dependencies.uuid]
 version = "*"
 features = ["rustc-serialize"]
-
-[dependencies.wonder]
-path = "../../vendor/wonder"
 
 [dependencies.clap]
 version = "*"
