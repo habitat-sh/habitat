@@ -77,7 +77,9 @@ pub fn session_create(req: &mut Request,
                     let mut request = SessionCreate::new();
                     request.set_token(token);
                     request.set_extern_id(user.id);
-                    request.set_email(user.email);
+                    if let Some(email) = user.email {
+                        request.set_email(email);
+                    }
                     request.set_name(user.login);
                     request.set_provider(OAuthProvider::GitHub);
                     conn.route(&request).unwrap();
