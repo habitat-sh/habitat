@@ -458,7 +458,6 @@ _ensure_origin_key_present() {
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
 # * `$_tar_cmd` (GNU version of tar)
 # * `$_mktemp_cmd` (GNU version from coreutils)
-# * `$_hab_cmd` (hab CLI for signing artifacts)
 #
 # Note that all of the commands noted above are considered internal
 # implementation details and are subject to change with little to no notice,
@@ -1856,13 +1855,15 @@ _build_metadata() {
 
   # Generate the blake2b hashes of all the files in the package. This
   # is not in the resulting MANIFEST because MANIFEST is included!
+  pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   build_line "Generating blake2b hashes of all files in the package"
   find $pkg_prefix -type f \
     | $_sort_cmd \
-    | while read file; do _generate_blake2b $file; done > ${pkg_name}_blake2b_hashes_list
+    | while read file; do _b2sum $file; done > ${pkg_name}_blake2bsums
 
   build_line "Generating signed metadata FILES"
-  $_hab_cmd pkg sign --origin $pkg_origin ${pkg_name}_blake2b_hashes_list $pkg_prefix/FILES
+  $HAB_BIN pkg sign --origin $pkg_origin ${pkg_name}_blake2bsums $pkg_prefix/FILES
+  popd > /dev/null
   return 0
 }
 
@@ -2053,8 +2054,8 @@ EOT
 #
 # TODO: (jtimberman) If `hab pkg hash` itself starts to output
 # like `sha256sum` at some point, we'll need to update this function.
-_generate_blake2b() {
-  echo -en "$($_hab_cmd pkg hash $1)  $1\n"
+_b2sum() {
+  echo -en "$($HAB_BIN pkg hash $1)  $1\n"
 }
 
 # **Internal** Create the package artifact with `tar`/`hab pkg sign`
@@ -2067,13 +2068,13 @@ _generate_artifact() {
   rm -fv $tarf $xzf $pkg_artifact
   $_tar_cmd -cf $tarf $pkg_prefix
   $_xz_cmd --compress -6 --threads=0 --verbose $tarf
-  $_hab_cmd pkg sign --origin $pkg_origin $xzf $pkg_artifact
+  $HAB_BIN pkg sign --origin $pkg_origin $xzf $pkg_artifact
   rm -f $tarf $xzf
 }
 
 _prepare_build_outputs() {
   _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
-  _pkg_blake2bsum=$($_hab_cmd pkg hash $pkg_artifact)
+  _pkg_blake2bsum=$($HAB_BIN pkg hash $pkg_artifact)
   mkdir -pv $pkg_output_path
   cp -v $pkg_artifact $pkg_output_path/
 
