@@ -21,34 +21,42 @@ import {requireSignIn} from "../util";
     <div class="hab-origin-create">
         <div class="page-title">
             <h2>Add Origin</h2>
-            <p>An origin represents the organization creating the artifact.</p>
         </div>
-        <form class="page-body hab-origin-create--form"
-              [ngFormModel]="form"
-              (ngSubmit)="createOrigin(form.value)"
-              #formValues="ngForm">
-            <label for="name">Origin Name</label>
-            <small>Must be unique and contain no spaces.</small>
-            <small>Must begin with a lowercase letter or number.</small>
-            <small>
-                Allowed characters include
-                <em>a&thinsp;&ndash;&thinsp;z</em>,
-                <em>0&thinsp;&ndash;&thinsp;9</em>,
-                <em>_</em>, and <em>-</em>.
-                No more than {{maxLength}} characters.
-            </small>
-            <hab-checking-input displayName="Name"
-                                [form]="form"
-                                id="origin-name"
-                                [isAvailable]="isOriginAvailable"
-                                name="name"
-                                [value]="isFirstOrigin ? username : ''">
-            </hab-checking-input>
-            <button [disabled]="!form.valid || creating">
-                <span *ngIf="creating">Saving&hellip;</span>
-                <span *ngIf="!creating">Save & Continue</span>
-            </button>
-        </form>
+        <div class="page-body has-sidebar">
+            <div class="page-body--main">
+                <form class="hab-origin-create--form"
+                      [ngFormModel]="form"
+                      (ngSubmit)="createOrigin(form.value)"
+                      #formValues="ngForm">
+                    <label for="name">Origin Name</label>
+                    <small>Must be unique, contain no spaces, and begin with a lowercase letter or number.</small>
+                    <small>
+                        Allowed characters include
+                        <em>a&thinsp;&ndash;&thinsp;z</em>,
+                        <em>0&thinsp;&ndash;&thinsp;9</em>,
+                        <em>_</em>, and <em>-</em>.
+                        No more than {{maxLength}} characters.
+                    </small>
+                    <hab-checking-input displayName="Name"
+                                        [form]="form"
+                                        id="origin-name"
+                                        [isAvailable]="isOriginAvailable"
+                                        name="name"
+                                        [value]="isFirstOrigin ? username : ''">
+                    </hab-checking-input>
+                    <button [disabled]="!form.valid || creating">
+                        <span *ngIf="creating">Saving&hellip;</span>
+                        <span *ngIf="!creating">Save & Continue</span>
+                    </button>
+                </form>
+            </div>
+            <div class="page-body--sidebar">
+                <p>An <em>origin</em> represents the organization creating the package.
+                Every package is associated to an origin.</p>
+                <p>You will be able to invite members and upload keys after creating
+                your origin.</p>
+            </div>
+        </div>
     </div>`
 })
 
