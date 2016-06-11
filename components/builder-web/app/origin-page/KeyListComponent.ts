@@ -16,7 +16,7 @@ import config from "../config";
         No {{type}} keys found.
     </p>
     <p *ngIf="keys.size > 0">
-        Click on any key to download the file.
+        Select any key to download the file.
     </p>
     <ul class="hab-key-list--list" *ngIf="keys.size > 0">
         <li *ngFor="#key of keys" class="hab-item-list--all-link hab-item-list">

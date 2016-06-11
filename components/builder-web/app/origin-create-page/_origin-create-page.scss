@@ -18,7 +18,7 @@
   }
 
   &--form {
-    @include span-columns(6);
+    max-width: rem(480);
   }
 }
 

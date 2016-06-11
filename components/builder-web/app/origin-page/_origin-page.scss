@@ -47,6 +47,7 @@
 .hab-key-add-form {
   @include shadow-float-more;
   border-radius: $global-radius;
+  margin-bottom: rem(30);
   padding: rem(20);
 
   &--close {

@@ -23,14 +23,14 @@ import {TabComponent} from "../TabComponent";
                         #formValues="ngForm"
                         [ngFormModel]="form"
                         (ngSubmit)="submit(formValues.value.username)">
-                        <label>Enter existing user's GitHub username</label>
+                        <label>Add existing users by GitHub username</label>
                         <input type="search" name="username"
                             [ngFormControl]="form.controls['username']">
                         <div class="hab-origin-members-tab--submit">
                             <button
                                 class="hab-origin-members-tab--save"
                                 [disabled]="!control.valid">
-                                Send invite
+                                Send invitation
                             </button>
                             <div
                                 *ngIf="errorMessage"
