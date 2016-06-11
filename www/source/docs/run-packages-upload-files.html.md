@@ -9,7 +9,9 @@ When uploading a file, the encryption operation requires that the service public
 
 To decrypt the file, the supervisor needs the service secret key and the user public key to be in the `hab/cache/keys` directory accessible by the service's supervisor.
 
-If a supervisor receives an encrypted file through a gossip rumor but is not the intended recipient, the file remains encrypted in memory. If the supervisor is the recipient and has the service secret key and the user public key, then the decrypted file will be written out to disk in the running service's directory (for example, /hab/svc/redis/files/foo). If a service is the recipient but does not have the appropriate keys to decrypt, the operation will be retried with an exponential backoff. A max retry value has not been set yet.
+If a supervisor receives an encrypted file through a gossip rumor but is not the intended recipient, the file remains encrypted in memory. If the supervisor is the recipient and has the service secret key and the user public key, then the decrypted file will be written out to disk in the running service's directory (for example, /hab/svc/redis/files/foo). If a service is the recipient but does not have the appropriate keys to decrypt, the operation will be retried with an exponential backoff starting at one second, then doubling the time between retries (two seconds, four seconds, and so on). A max retry limit has not been set yet.
+
+> Note: Both the secret and public keys have their permissions set to allow the owners to read only (0400). Also, subdirectories on uploads are not supported. All files are uploaded to `/hab/svc/servicename/files`.
 
 ## Usage
 Follow this basic flow to upload files into a service group.
