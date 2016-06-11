@@ -15,6 +15,9 @@ import config from "../config";
     <p *ngIf="keys.size === 0">
         No {{type}} keys found.
     </p>
+    <p *ngIf="keys.size > 0">
+        Click on any key to download the file.
+    </p>
     <ul class="hab-key-list--list" *ngIf="keys.size > 0">
         <li *ngFor="#key of keys" class="hab-item-list--all-link hab-item-list">
             <h3><a href="{{apiUrl}}/depot{{key.location}}">

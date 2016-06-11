@@ -21,8 +21,8 @@
   position: relative;
 
   .count {
+    @include primary-button;
     float: right;
-    font-size: 75%;
     margin: auto $base-spacing * 2 0 auto;
   }
 
@@ -31,12 +31,25 @@
     margin-right: 1em;
   }
 
+  > h3 {
+    margin-bottom: 0;
+  }
+
+  .pending & {
+    background-color: $hab-off-white;
+
+    h3 {
+      color: $hab-gray;
+    }
+  }
+
   &--title,
   .item-title {
     @include span-columns(6);
 
     h3 {
       line-height: 1em;
+      margin-bottom: 0;
       max-width: rem(300);
       text-overflow: ellipsis;
     }
@@ -98,6 +111,10 @@
 
   &--all-link {
     padding: 0;
+
+    h3 {
+      margin-bottom: 0;
+    }
 
     a {
       display: block;

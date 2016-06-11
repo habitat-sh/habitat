@@ -87,6 +87,7 @@ body {
 
   a {
     &.create {
+      @include hab-button;
       margin-bottom: 0.5em;
       margin-top: 1.5em;
     }

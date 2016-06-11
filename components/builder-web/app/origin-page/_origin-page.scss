@@ -24,8 +24,17 @@
     text-align: center;
   }
 
-  &--pkgs-link {
+  &--pkgs-link.button {
+    @include primary-button;
     float: right;
+  }
+
+  &--key-list {
+    margin-bottom: rem(60);
+
+    > h3 {
+      margin-bottom: rem(30);
+    }
   }
 }
 
@@ -36,14 +45,17 @@
 }
 
 .hab-key-add-form {
-  border: 1px solid $light-gray;
-  padding: $small-spacing;
+  @include shadow-float-more;
+  border-radius: $global-radius;
+  padding: rem(20);
 
   &--close {
     float: right;
   }
 
   &--label {
+    color: $hab-gray-dark;
+    font-size: rem(16);
     margin-top: $base-spacing;
   }
 
@@ -60,13 +72,21 @@
     @include span-columns(8);
     @include omega;
     color: $hab-red;
+    font-size: $error-font;
   }
 }
 
 .hab-origin-members-tab {
   &--section {
-    margin-bottom: $small-spacing;
-    margin-top: $small-spacing;
+    margin-bottom: rem(60);
+
+    > h3 {
+      margin-bottom: rem(30);
+    }
+
+    &.invite-members > h3 {
+      margin-bottom: rem(10);
+    }
   }
 
   &--submit {
@@ -82,5 +102,10 @@
     @include span-columns(8);
     @include omega;
     color: $hab-red;
+    font-size: $error-font;
   }
+}
+
+.hab-origins-list {
+  margin-bottom: rem(30);
 }

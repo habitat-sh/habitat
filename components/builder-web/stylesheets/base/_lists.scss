@@ -10,6 +10,11 @@ ol {
   list-style-type: none;
   margin: 0;
   padding: 0;
+
+  &.bullet {
+    list-style: disc;
+    margin-left: rem(20);
+  }
 }
 
 dl {
