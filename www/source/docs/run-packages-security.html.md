@@ -33,10 +33,7 @@ Supervisors running in a ring can be configured to encrypt all traffic between t
 4. The supervisor becomes part of the named ring `yourringname` and uses the key for network encryption. Other supervisors that now attempt to connect to it without presenting the correct ring key will be rejected.
 5. It is also possible to set the environment variable `HAB_RING_KEY` to the contents of the ring key; for example:
 
-       env HAB_RING_KEY='SYM-SEC-1
-       beyonce-20160504220722
-
-       RCFaO84j41GmrzWddxMdsXpGdn3iuIy7kw3xYrjPLsE=' hab start yourorigin/yourapp
+       env HAB_RING_KEY=$(cat /hab/cache/keys/ring-key-file) hab-sup start yourorigin/yourapp
 
 ### Using a Ring Key When Applying Configuration Changes
 
