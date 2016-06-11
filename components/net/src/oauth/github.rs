@@ -99,11 +99,11 @@ pub struct User {
     pub events_url: String,
     pub received_events_url: String,
     pub site_admin: bool,
-    pub name: String,
-    pub company: String,
-    pub blog: String,
-    pub location: String,
-    pub email: String,
+    pub name: Option<String>,
+    pub company: Option<String>,
+    pub blog: Option<String>,
+    pub location: Option<String>,
+    pub email: Option<String>,
     pub hireable: Option<bool>,
     pub bio: Option<String>,
     pub public_repos: u32,
@@ -118,7 +118,9 @@ impl From<User> for sessionsrv::Account {
     fn from(user: User) -> sessionsrv::Account {
         let mut account = sessionsrv::Account::new();
         account.set_name(user.login);
-        account.set_email(user.email);
+        if let Some(email) = user.email {
+            account.set_email(email);
+        }
         account
     }
 }
