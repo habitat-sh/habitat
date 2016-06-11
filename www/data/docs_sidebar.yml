@@ -72,6 +72,8 @@ sidebar_links:
     link: "/docs/reference/habitat-cli/"
   - title: Plan syntax
     link: "/docs/reference/plan-syntax/"
+  - title: Environment variables
+    link: "/docs/reference/environment-vars/"
   - title: Package contents
     link: "/docs/reference/package-contents/"
 - title: Contribute
