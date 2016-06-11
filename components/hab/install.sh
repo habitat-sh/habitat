@@ -1,40 +1,57 @@
 #!/bin/sh
 
-# Fail if there are any unset variables and whenever a command returns a
-# non-zero exit code.
+# Fails on unset variables & whenever a command returns a non-zero exit code.
 set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
-# Download URL for the `core/hab` Habitat artifact
-hart_url="${BPM_HART_URL:-http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-0.6.0-20160610050853-x86_64-linux.hart}"
-# Shasum for the Habitat artifact, used to verify the download
-hart_sha="${BPM_HART_SHASUM:-7695e9acb6a223482be44ec6ccdbe978eb4494444ee200ac1caedf89f28eed6b}"
-# Download location of the Habitat artifact
-hart_file="${TMPDIR:-/tmp}/$(basename $hart_url)"
+# Download URL for a `core/hab` Habitat slim archive
+_url="https://s3-us-west-2.amazonaws.com/habitat-initial-hab/hab-0.6.0-20160610173900-x86_64-linux.tar.gz"
+_q=""
+# _url='https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-$latest-x86_64-linux.tar.gz'
+# _q="?bt_package=hab-x86_64-linux"
+hab_url="${_url}$_q"
+# Download URL for the shasum digest
+sha_url="${_url}.sha256sum$_q"
+# Download location for the temporary files
+workdir="${TMPDIR:-/tmp}/hab"
 
 # Add a trap to clean up any interrupted file downloads
-trap 'rm -f $hart_file; exit $?' INT TERM EXIT
+trap 'rm -rf $workdir; exit $?' INT TERM EXIT
 
-# Download and verify Habitat artifact by comparing checksums
-rm -f $hart_file
-wget $hart_url -O $hart_file
-checksum=$(sha256sum $hart_file | cut -d ' ' -f 1)
-if [ "$hart_sha" != "$checksum" ]; then
-  >&2 echo ">>> Checksum invalid for $hart_file"
-  >&2 echo ">>> (Expected: $hart_sha  Computed: $checksum)"
-  exit 1
+# Download the Habitat slim archive and its shasum digest
+rm -rf "$workdir"
+mkdir -p "$workdir"
+cd "$workdir"
+wget $hab_url -O $workdir/hab-latest.tar.gz
+wget $sha_url -O $workdir/hab-latest.tar.gz.sha256sum
+
+# Set the target file name for the slim archive
+archive="$workdir/$(cat hab-latest.tar.gz.sha256sum | cut -d ' ' -f 3)"
+mv -v "$workdir/hab-latest.tar.gz" "$archive"
+# Set the target file name for the shasum digest
+sha_file="${archive}.sha256sum"
+mv -v "$workdir/hab-latest.tar.gz.sha256sum" "${archive}.sha256sum"
+
+# If gnupg is available, verify that the shasum digest is properly signed
+if command -v gpg >/dev/null; then
+  sha_sig_url="${_url}.sha256sum.asc$_q"
+  sha_sig_file="${archive}.sha256sum.asc"
+  key_url="https://bintray.com/user/downloadSubjectPublicKey?username=habitat"
+  key_file="$workdir/habitat.asc"
+  wget "$sha_sig_url" -O "$sha_sig_file"
+  wget "$key_url" -O "$key_file"
+  gpg --no-permission-warning --dearmor "$key_file"
+  gpg --no-permission-warning --keyring "${key_file}.gpg" --verify "$sha_sig_file"
 fi
 
-# Extract hart into destination, ignoring the signed header info
-tail -n +6 $hart_file | xzcat | tar xf - -C /
-# Add symlink for convenience under `/bin`
-/$(tail -n +6 $hart_file | xzcat | tar t | head -n 1)bin/hab \
-  pkg binlink core/hab hab
+# Verify the provided shasum digest matches the downloaded archive
+sha256sum -c "$sha_file"
 
-# Clear the file download and extraction clean trap
-trap - INT TERM EXIT
-rm -f $hart_file
-
-# Install latest hab release and add update symlink
-hab install core/hab && hab pkg binlink core/hab hab
+# Extract the archive into a temporary directory
+tar xf "$archive" -C "$workdir"
+# Directory containing the binary
+archive_dir="$(echo $archive | sed 's/.tar.gz$//')"
+# Install latest hab release using the extracted version and add/update symlink
+"$archive_dir/hab" install core/hab
+"$archive_dir/hab" pkg binlink core/hab hab
