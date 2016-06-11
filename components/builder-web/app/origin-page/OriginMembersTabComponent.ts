@@ -17,20 +17,20 @@ import {TabComponent} from "../TabComponent";
     <tab tabTitle="Members">
         <div class="page-body">
             <div class="hab-origin--left">
-                <div class="hab-origin-members-tab--section">
-                    <h3>Invite a User</h3>
+                <div class="hab-origin-members-tab--section invite-members">
+                    <h3>Invite Member</h3>
                     <form
                         #formValues="ngForm"
                         [ngFormModel]="form"
                         (ngSubmit)="submit(formValues.value.username)">
-                        <label>Enter a user's GitHub username</label>
+                        <label>Enter existing user's GitHub username</label>
                         <input type="search" name="username"
                             [ngFormControl]="form.controls['username']">
                         <div class="hab-origin-members-tab--submit">
                             <button
                                 class="hab-origin-members-tab--save"
                                 [disabled]="!control.valid">
-                                Invite User
+                                Send invite
                             </button>
                             <div
                                 *ngIf="errorMessage"
@@ -40,18 +40,20 @@ import {TabComponent} from "../TabComponent";
                         </div>
                     </form>
                 </div>
+                <hr>
                 <div class="hab-origin-members-tab--section">
                     <h3>Pending Invitations</h3>
                     <p *ngIf="invitations.size === 0">No pending invitations.</p>
-                    <ul>
+                    <ul class="pending">
                         <li *ngFor="#invitation of invitations"
                             class="hab-item-list hab-no-select">
                             <h3>{{invitation.account_name}}</h3>
                         </li>
                     </ul>
                 </div>
+                <hr>
                 <div class="hab-origin-members-tab--section">
-                    <h3>Members</h3>
+                    <h3>Current Members</h3>
                     <p *ngIf="members.size === 0">No Members.</p>
                     <ul>
                         <li *ngFor="#member of members"
@@ -63,12 +65,11 @@ import {TabComponent} from "../TabComponent";
             </div>
             <div class="hab-origin--right">
                 <p>
-                    As an origin <em>owner</em>, you can grant admin access,
-                    manage packages, and manage keys.
+                    <em>Origin keys</em> insure that only authorized users are able
+                    to push updates to packages in this origin.
                 </p>
                 <p>
-                    <em>Members</em> will be able to push updates to
-                    packages that are associated with this origin.
+                    Read the docs for more information on <a href="{{docsUrl}}/concepts-keys/">managing and using keys</a>.
                 </p>
             </div>
         </div>

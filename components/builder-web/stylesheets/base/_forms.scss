@@ -19,7 +19,8 @@ legend {
 }
 
 label {
-  color: $medium-gray;
+  color: $hab-gray-dark;
+  font-size: rem(14);
   display: block;
   margin-bottom: $small-spacing / 2;
   text-transform: uppercase;
@@ -27,7 +28,7 @@ label {
 
 form {
   small {
-    color: $medium-gray;
+    color: $hab-gray;
     display: block;
     margin-bottom: $small-spacing / 2;
     margin-top: -($small-spacing / 2);
@@ -116,4 +117,3 @@ select {
   -webkit-appearance: none;
   width: auto;
 }
-

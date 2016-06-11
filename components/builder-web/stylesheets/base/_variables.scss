@@ -14,13 +14,14 @@ $octicons-font-path: "/node_modules/octicons/octicons";
 // Font Sizes
 $base-font-size: 1em;
 $monospace-font-size: rem(12);
+$error-font: rem(14);
 
 // Line height
 $base-line-height: 1.5;
 $heading-line-height: 1.2;
 
 // Other Sizes
-$base-border-radius: 2px;
+$base-border-radius: 7px;
 $global-radius: $base-border-radius;
 $base-spacing: rem(20);
 $small-spacing: $base-spacing / 2;
@@ -45,7 +46,7 @@ $hab-blue: #4296B4;
 $hab-gray-light: #e9eaeb;
 $hab-orange-dark: #f58151;
 $hab-off-white: #f8f9f9;
-$hab-gray: $medium-gray;
+$hab-gray: darken($medium-gray, 10);
 $hab-gray-dark: $dark-gray;
 $hab-orange: #FF9012;
 $hab-blue-dark: #394b5a;

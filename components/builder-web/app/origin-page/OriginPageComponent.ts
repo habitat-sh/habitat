@@ -47,6 +47,7 @@ import {requireSignIn} from "../util";
                 <div class="page-body">
                     <div class="hab-origin--left">
                         <div class="hab-origin--key-list">
+                            <h3>Public Origin Keys</h3>
                             <p><button
                                 (click)="setOriginAddingPublicKey(true)"
                                 [disabled]="addingPublicKey">
@@ -71,7 +72,9 @@ import {requireSignIn} from "../util";
                                 type="public origin">
                             </hab-key-list>
                         </div>
+                        <hr>
                         <div class="hab-origin--key-list">
+                            <h3>Private Origin Keys</h3>
                             <p><button
                                 (click)="setOriginAddingPrivateKey(true)"
                                 [disabled]="addingPrivateKey">
@@ -85,15 +88,13 @@ import {requireSignIn} from "../util";
                                 [originName]="origin.name"
                                 [uploadKey]="uploadPrivateKey">
                             </hab-key-add-form>
-                            <p>
-                                Private keys can not be viewed or downloaded.
-                                Only one private key exists for an origin at a
-                                given time.
-                            </p>
-                            <p>
-                                Uploading a new private key will overwrite the
-                                existing private key.
-                            </p>
+                            <ul class="bullet">
+                                <li>For security purposes, private keys can not be viewed or downloaded.</li>
+                                <li>Only one private key exists for an origin at a
+                                given time.</li>
+                                <li><em>Uploading a new private key will overwrite the
+                                existing private key.</em></li>
+                            </ul>
                         </div>
                     </div>
                     <div class="hab-origin--right">

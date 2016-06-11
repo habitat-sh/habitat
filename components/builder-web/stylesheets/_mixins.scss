@@ -7,7 +7,7 @@
 }
 
 @mixin shadow-float-more {
-  box-shadow: 0 2px 24px 0 $medium-gray-40;
+  box-shadow: 0 2px 20px 0 $medium-gray-40;
 }
 
 @mixin dropdown-panel {
@@ -20,27 +20,30 @@
 }
 
 // Buttons
-@mixin hab-button ($textcolor: $hab-white) {
+@mixin hab-button ($color1: $hab-green, $color2: $hab-green-dark, $textcolor: $hab-white) {
+  background-color: $color1;
+  background-image: linear-gradient(to left, lighten($color1, 5%), lighten($color2, 3%) 100%);
   border: 0;
   border-radius: 7px;
   color: $textcolor;
   font-size: rem-calc(16);
   letter-spacing: rem-calc(1);
   padding: rem(10) rem(25);
-}
-
-@mixin primary-button($color1: $hab-orange, $color2: $hab-orange-dark) {
-  @include hab-button;
-  @include shadow-float;
-  @include transition(all 0.2s ease-in-out);
-  background-image: linear-gradient(to left, lighten($color1, 13%), lighten($color2, 5%) 100%);
-  text-shadow: 0 1px 2px $hab-red;
 
   &:hover {
     @include shadow-float-more;
     @include transition(all 0.2s ease-in-out);
     background-color: $color1;
   }
+}
+
+@mixin primary-button($color1: $hab-orange, $color2: $hab-orange-dark) {
+  @include hab-button;
+  @include shadow-float;
+  @include transition(all 0.2s ease-in-out);
+  background-color: $color1;
+  background-image: linear-gradient(to left, lighten($color1, 13%), lighten($color2, 5%) 100%);
+  text-shadow: 0 1px 2px $hab-red;
 }
 
 @mixin secondary-button {

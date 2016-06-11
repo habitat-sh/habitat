@@ -30,7 +30,7 @@ import {parseKey} from "../util";
             placeholder="Begins with '{{keyFileHeaderPrefix}}'"
             rows=6></textarea>
         <div class="hab-key-add-form--submit">
-            <button class="hab-key-add-form--save" [disabled]="!form.valid">
+            <button class="cta hab-key-add-form--save" [disabled]="!form.valid">
                 Upload Key
             </button>
             <div *ngIf="control.dirty && control.errors" class="hab-key-add-form--errors">
