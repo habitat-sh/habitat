@@ -8,8 +8,10 @@ Packages are the cryptographically-signed tarballs that are uploaded, downloaded
 This section is divided into the following areas:
 
 - [Create plans](/docs/create-plans/): Describes what a plan is and how to create one.
-- [Add configuration to plans](/docs/configure-packages/): Learn how to make your running service configurable by templatizing configuration files in your plan.
-- [Plan syntax guide](/docs/plan-syntax/): Lists the settings, variables, and functions that you can use when creating your plan.
+- [Add configuration to plans](/docs/create-packages-configure/): Learn how to make your running service configurable by templatizing configuration files in your plan.
+- [Binary-only packages](/docs/create-packages-binary-only/): Learn how to create packages from software that comes only in binary form, like off-the-shelf or legacy programs.
+
+You may also find the [plan syntax guide](/docs/reference/plan-syntax/) useful. It lists the settings, variables, and functions that you can use when creating your plan.
 
 <hr>
 <ul class="main-content--link-nav">
