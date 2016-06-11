@@ -22,14 +22,6 @@ User and service group keys also utilize asymmetric cryptography. To apply confi
 
 A supervisor ring can be optionally set up to encrypt *all* communication across the network. This requires the use of a symmetric pre-shared key. Any supervisor joining the ring that does not present this key will be rejected.
 
-## Technology
-
-Habitat implements cryptography using a Rust implementation of [NaCl](https://nacl.cr.yp.to/), which provides a fast, modern framework for encryption, decryption, signing, and verification.
-
-Encrypted messages use the Curve25519, Salsa20, and Poly1305 ciphers specified in [Cryptography in NaCl](http://nacl.cr.yp.to/valid.html).
-
-Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic hash function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
-
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
