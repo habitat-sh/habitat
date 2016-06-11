@@ -39,6 +39,9 @@ impl PackageInstall {
     pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
         let fs_root_path = fs_root_path.unwrap_or(Path::new("/"));
         let package_root_path = fs_root_path.join(PKG_PATH);
+        if !package_root_path.exists() {
+            return Err(Error::PackageNotFound(ident.clone()));
+        }
         let pl = try!(Self::package_list(&package_root_path));
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
