@@ -23,3 +23,9 @@ An election ends when a candidate peer gets a rumor back from the ring saying th
 ## Papers
 
 * For more information about the Bully algorithm, please see the [paper](http://dl.acm.org/citation.cfm?id=1309451) "Elections in a Distributed Computing System" by Héctor García-Molina.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/internals-crypto">Cryptography</a></li>
+</ul>
