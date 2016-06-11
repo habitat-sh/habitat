@@ -20,7 +20,7 @@ When running on a Mac OSX machine, because service and user keys generated with 
 
 1. Run `hab user key generate myname` specifying your user name.
 2. Run `hab service key generate myapp.default myorg` specifying your organization.
-3. Start up your services in multiple windows or [using the director](/docs/run-packages-director). They must specify a group and the same organization specified in step two.
+3. Start up your services in multiple windows or by [using the director](/docs/run-packages-director). They must specify a group and the same organization specified in step two.
 
        hab start myorigin/myapp --group test --org myorg
        hab start myorigin/myapp --peer IPaddress --group test --org myorg
