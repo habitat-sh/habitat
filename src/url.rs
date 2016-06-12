@@ -8,7 +8,7 @@
 use env as henv;
 
 /// Default Depot URL
-pub const DEFAULT_DEPOT_URL: &'static str = "http://willem.habitat.sh:9636/v1/depot";
+pub const DEFAULT_DEPOT_URL: &'static str = "https://willem.habitat.sh/v1/depot";
 
 /// Default Depot URL environment variable
 pub const DEPOT_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";
