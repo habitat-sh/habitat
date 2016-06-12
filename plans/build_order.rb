@@ -63,12 +63,15 @@ EOF
 bash_prog.close
 
 all_deps = Sortable.new({})
+ident_to_plan = {}
 ARGF.each_line do |file|
   raw = `bash #{bash_prog.path} #{file}`.chomp
   ident, _, deps_str = raw.partition(/\n/)
   if ident.start_with?('core/')
     all_deps.add(ident, deps_str.split(' ')
       .map { |d| d.split('/').first(2).join('/') })
+    ident_to_plan[ident] = \
+      file.chomp.sub(%r{/habitat/plan.sh$}, '').sub(%r{/plan.sh}, '')
   end
 end
 
@@ -87,4 +90,6 @@ unless options[:with_base]
   sorted_deps.delete_if { |dep| base_deps.include?(dep) }
 end
 
-puts sorted_deps
+sorted_deps.each do |ident|
+  puts "#{ident} #{ident_to_plan[ident]}"
+end
