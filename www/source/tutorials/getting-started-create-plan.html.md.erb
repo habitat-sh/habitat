@@ -45,7 +45,7 @@ pkg_lib_dirs=(lib)
 
 We now have a skeleton plan, but we need to modify some of its settings before we can continue.
 
-1. Set the `pkg_origin` value to the one created for you by `hab cli setup`. For the examples in this tutorial, it will be set to `myorigin`. The only reserved origin name is "core". That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
+1. Set the `pkg_origin` value to the one created for you by `hab setup`. For the examples in this tutorial, it will be set to `myorigin`. The only reserved origin name is "core". That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
 2. Set the `pkg_name` value to `mytutorialapp`.
 3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.1.0`.
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
@@ -174,7 +174,9 @@ For a complete listing of all of the plan settings, callbacks, and runtime hooks
 
        sudo hab studio enter
 
-   The studio itself is a Habitat package, and when you're running Mac OS X on your host machine, the studio runs inside a Docker container as root. On Linux, the `hab` CLI must get root permissions through the `sudo` command. It will download, unpack, install all of the packages it needs to run, and import the secret origin key created during `hab cli setup`. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
+   The studio itself is a Habitat package, and when you're running Mac OS X on your host machine, the studio runs inside a Docker container as root. On Linux, the `hab` CLI must get root permissions through the `sudo` command.
+
+   ßIt will download, unpack, install all of the packages it needs to run, and import the secret origin key created during `hab setup`. Once it's running, the studio is a minimal, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment that you use to build Habitat packages.
 
    The download process should only take a few moments. If successful, you should see another bash prompt like this:
 

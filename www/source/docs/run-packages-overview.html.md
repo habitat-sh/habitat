@@ -6,12 +6,24 @@ title: How to run packages
 
 Habitat packages are run under the Habitat supervisor. You can also export the supervisor together with the package to an external immutable format, such as a Docker container.
 
-## Running packages in the studio for testing
+## Running packages for testing
 
-Packages can be tested in the interactive studio environment. To run packages directly:
+Packages can be tested in the interactive studio environment or natively on a host machine running Linux. To run packages directly:
 
 1. [Build your package](/docs/build-packages-overview) inside an interactive studio. Do not exit the studio after it is built.
 2. To start your service, type `hab start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
+
+If your host machine is running Linux, do the following to run your packages:
+
+* Add the `hab` user and group.
+
+    sudo useradd hab -u 42 -g 42 -d / -s /bin/sh -r
+    sudo groupadd -og 42 hab
+
+* Run the `hab` CLI as root.
+
+    sudo hab start yourorigin/yourname
+
 
 ## Running packages in any environment
 

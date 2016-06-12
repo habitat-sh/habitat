@@ -9,7 +9,7 @@ Habitat packages are cryptographically-signed tarballs with a .hart extension th
 In both scenarios, you'll first need to have a secret origin key to sign your package. The origin key name should either match the `pkg_origin` value defined inside your plan, or match the overridden value specified with the `HAB_ORIGIN` environment variable.
 
 ## Create origin keys
-As part of building a package, it needs to be signed with a secret origin key at buildtime. On your host machine, if you want to generate an origin key pair manually, or you used the `hab cli setup` and simply need another origin key pair, run the following command:
+As part of building a package, it needs to be signed with a secret origin key at buildtime. On your host machine, if you want to generate an origin key pair manually, or you used the `hab setup` and simply need another origin key pair, run the following command:
 
     hab origin key generate originname
 
@@ -34,7 +34,7 @@ After you create or receive your secret origin key, you can start up the studio 
 
 ## Interactive Build
 
-An interactive build is one in which you enter a Habitat studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build. The studio is destroyed after you exit it.
+An interactive build is one in which you enter a Habitat studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build.
 
 The directory where your plan is located is known as the plan context.
 
@@ -50,6 +50,8 @@ The directory where your plan is located is known as the plan context.
        build /src/planname
 
 4. If the package builds successfully, it is placed into a `results` directory at the same level as your plan.
+
+By default, the studio is destroyed after you exit it; however you can override this by specifying the `-R` option when calling the `hab studio enter` subcommand.
 
 ## Non-Interactive Build
 
