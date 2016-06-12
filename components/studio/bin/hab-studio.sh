@@ -361,7 +361,7 @@ new_studio() {
       # Set the default/unset type
       STUDIO_TYPE=default
       ;;
-    busybox|stage1|baseimage)
+    busybox|stage1|baseimage|bare)
       # Confirmed valid types
       ;;
     *)
@@ -570,13 +570,14 @@ studio_run_environment="$studio_run_environment"
 EOF
 
   # If `/etc/profile` is not present, create a minimal version with convenient
-  # helper functions
-  local pfile="$HAB_STUDIO_ROOT/etc/profile"
-  if [ ! -f "$pfile" ] || ! $bb grep -q '^record() {$' "$pfile"; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating /etc/profile"
-    fi
-    $bb cat >> "$pfile" <<'PROFILE'
+  # helper functions. "bare" studio doesn't need an /etc/profile
+  if [ "$STUDIO_TYPE" != "bare" ]; then
+    local pfile="$HAB_STUDIO_ROOT/etc/profile"
+    if [ ! -f "$pfile" ] || ! $bb grep -q '^record() {$' "$pfile"; then
+      if [ -n "$VERBOSE" ]; then
+        echo "> Creating /etc/profile"
+      fi
+      $bb cat >> "$pfile" <<'PROFILE'
 # Setting the user file-creation mask (umask) to 022 ensures that newly created
 # files and directories are only writable by their owner, but are readable and
 # executable by anyone (assuming default modes are used by the open(2) system
@@ -623,14 +624,15 @@ record() {
 cd /src
 
 PROFILE
-  fi
+    fi
 
-  $bb mkdir -p $v $HAB_STUDIO_ROOT/src
-  # Mount the `$SRC_PATH` under `/src` in the Studio, unless either `$NO_MOUNT`
-  # or `$NO_SRC_PATH` are set
-  if [ -z "${NO_MOUNT}" -a -z "${NO_SRC_PATH}" ]; then
-    if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
-      $bb mount $v --bind $SRC_PATH $HAB_STUDIO_ROOT/src
+    $bb mkdir -p $v $HAB_STUDIO_ROOT/src
+    # Mount the `$SRC_PATH` under `/src` in the Studio, unless either `$NO_MOUNT`
+    # or `$NO_SRC_PATH` are set
+    if [ -z "${NO_MOUNT}" -a -z "${NO_SRC_PATH}" ]; then
+      if ! $bb mount | $bb grep -q "on $HAB_STUDIO_ROOT/src type"; then
+        $bb mount $v --bind $SRC_PATH $HAB_STUDIO_ROOT/src
+      fi
     fi
   fi
 }
