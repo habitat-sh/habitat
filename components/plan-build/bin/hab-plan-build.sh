@@ -1089,8 +1089,8 @@ attach() {
     case "$cmd" in
       vars) (set -o posix; set);;
       whereami*|\@*)
-        __attach_whereami "$(echo $cmd \
-          | awk '{if (NF == 2) print $2; else print "10"}')"
+        _attach_whereami "$(echo $cmd \
+         | awk '{if (NF == 2) print $2; else print "10"}')"
         ;;
       exit|quit) ;;
       exit-program|quit-program) exit $?;;

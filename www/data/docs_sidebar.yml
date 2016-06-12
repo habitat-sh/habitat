@@ -36,10 +36,12 @@ sidebar_links:
       link: "/docs/create-plans/"
     - title: Add configuration
       link: "/docs/create-packages-configure/"
-    - title: Binary-only packages
+    - title: Build packages
+      link: "/docs/create-packages-build/"
+    - title: Debug plans
+      link: "/docs/create-packages-debugging/"
+    - title: Create binary-only packages
       link: "/docs/create-packages-binary-only"
-  - title: Build packages
-    link: "/docs/build-packages-overview/"
   - title: Run packages <span>&plus;</span>
     link: "/docs/run-packages-overview/"
     sub_links:
