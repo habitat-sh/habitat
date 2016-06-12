@@ -45,6 +45,7 @@
 //! * `pkg build`
 //! * `ring key generate`
 //! * `service key generate`
+//! * `setup`
 //! * `studio build`
 //! * `studio enter`
 //! * `user key generate`
@@ -62,6 +63,7 @@
 //! * `install`
 //! * `origin key upload`
 //! * `pkg install`
+//! * `setup`
 //!
 //! For all other subcommands, even those which report events, the event payload is saved to a
 //! cached file under the analytics cache directory (`/hab/cache/analytics` for a root user and
@@ -314,7 +316,7 @@ pub fn instrument_clap_error(err: &clap::Error) {
         }
         // Match against subcommands which are 1 levels deep or anything else remaining. This match
         // arm appears last because it "slurps" up all remaining cases with `_`.
-        "apply" | "install" | _ => {
+        "apply" | "install" | "setup" | _ => {
             record_event(Event::CliError,
                          &format!("{:?}--{}--{}", err.kind, PRODUCT, arg1))
         }

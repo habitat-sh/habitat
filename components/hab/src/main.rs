@@ -168,6 +168,7 @@ fn start() -> Result<()> {
                 _ => unreachable!(),
             }
         }
+        ("setup", Some(_)) => try!(sub_cli_setup()),
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
