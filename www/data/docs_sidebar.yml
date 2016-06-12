@@ -8,7 +8,7 @@ sidebar_links:
     link: "/docs/get-habitat/"
   - title: Tutorials
     link: "/tutorials/"
-  - title: Concepts
+  - title: Concepts <span>&plus;</span>
     link: "/docs/concepts-overview/"
     sub_links:
     - title: Supervisor
@@ -29,7 +29,7 @@ sidebar_links:
       link: "/docs/concepts-depot/"
 - title: Using Habitat
   links:
-  - title: Create packages
+  - title: Create packages <span>&plus;</span>
     link: "/docs/create-packages-overview/"
     sub_links:
     - title: Create plans
@@ -40,7 +40,7 @@ sidebar_links:
       link: "/docs/create-packages-binary-only"
   - title: Build packages
     link: "/docs/build-packages-overview/"
-  - title: Run packages
+  - title: Run packages <span>&plus;</span>
     link: "/docs/run-packages-overview/"
     sub_links:
     - title: Service groups
@@ -59,7 +59,7 @@ sidebar_links:
       link: "/docs/run-packages-director/"
   - title: Continuous deployment
     link: "/docs/continuous-deployment-overview/"
-  - title: Habitat internals
+  - title: Habitat internals <span>&plus;</span>
     link: "/docs/internals-overview/"
     sub_links:
     - title: Supervisor

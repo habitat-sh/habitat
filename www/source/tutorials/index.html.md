@@ -1,5 +1,7 @@
 ---
-title: Intro to Tutorials
+title: Habitat - Tutorials
+description: Habitat tutorials provide hands-on, step-by-step instructions on how easy it is to build, configure, deploy, and manage your applications in Habitat.
+
 ---
 
 # Tutorials

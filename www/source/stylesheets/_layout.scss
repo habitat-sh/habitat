@@ -51,6 +51,12 @@ body.try-hab {
     &:focus {
       color: $hab-primary;
     }
+
+    span {
+      position: absolute;
+      right: 2px;
+      top: -2px;
+    }
   }
 
   .is-active > a {

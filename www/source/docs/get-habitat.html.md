@@ -1,5 +1,7 @@
 ---
-title: Get Habitat
+title: Habitat - Download
+description: Download Habitat, an open source project created by Chef, so your apps can behave consistently in any runtime – bare metal, VMs, containers, and PaaS.
+
 ---
 
 # Get Habitat
