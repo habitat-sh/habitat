@@ -295,6 +295,7 @@ fn sub_config_apply() -> App<'static, 'static> {
             "A version number (positive integer) for this configuration (ex: 42)")
         (@arg FILE: {file_exists_or_stdin}
             "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+        (@arg ORG: --org +takes_value "Name of service organization")
     )
 }
 
