@@ -46,6 +46,7 @@ use gossip::member::MemberList;
 use election::ElectionList;
 use time::SteadyTime;
 use util::signals;
+use config::UpdateStrategy;
 
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
@@ -128,9 +129,14 @@ impl<'a> Worker<'a> {
         let pkg_lock_1 = pkg_lock.clone();
 
 
-        if let Some(ref url) = *config.url() {
-            let pkg_lock_2 = pkg_lock.clone();
-            pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
+        match config.update_strategy() {
+            UpdateStrategy::None => {},
+            _ => {
+                let pkg_lock_2 = pkg_lock.clone();
+                if let &Some(ref url) = config.url() {
+                    pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
+                }
+            }
         }
 
         let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen_ip()),
