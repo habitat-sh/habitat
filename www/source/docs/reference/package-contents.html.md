@@ -9,7 +9,10 @@ Packages are installed in the `/hab/pkgs/` directory, and then further organized
 
 
 ## MANIFEST
-A file containing buildtime package information, such as checksum, maintainer, build variables, and the type of license specified in plan.sh. Additionally, a list of all files in this package along with checksums are included.
+A file containing package information, such as checksum, maintainer, build variables, and other metadata specified in plan.sh as well as the contents of the plan.sh itself.
+
+## FILES
+List of all files in this package along with their blake2b checksums. The FILES file itself is signed using `hab pkg sign` to provide an assurance that its contents haven't been tampered with.
 
 ## PATH
 An absolute path to the `bin` folder for the package. A fully-qualified package identifier is used, so version and release information is included in the path.

@@ -19,7 +19,7 @@ This syntax guide is divided into six parts:
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
 
 pkg_name
-: Sets the name of the package. This will be used in along with *$pkg_origin*, and *$pkg_version* to define the package file name, the folder structure of the package when it is unpacked and running, how it is referred to in package metadata, and so on.
+: Sets the name of the package. This will be used in along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on.
 
   ~~~
   pkg_name=zlib
@@ -56,7 +56,7 @@ pkg_license
 > Note: If your package has a custom license, use a string literal matching the title of the license. For example, you'll see `pkg_license=('Boost Software License')` for the `cmake` plan.
 
 pkg_source
-: A URL that specifies where to download the source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the *$pkg_name* and *$pkg_version* values; however, this convention is not required.
+: A URL that specifies where to download the source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the `pkg_name` and `pkg_version` values; however, this convention is not required.
 
   ~~~
   pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
@@ -65,14 +65,14 @@ pkg_source
 > Note: If your package does not require downloading any source code, you can enter any string for the value, but you must also define callbacks for **do_download()** and **do_verify()**. See [Plan callbacks](#plan-callbacks) for more information.
 
 pkg_filename
-: The resulting filename for the download, typically constructed from the *$pkg_name* and *$pkg_version* values.
+: The resulting filename for the download, typically constructed from the `pkg_name` and `pkg_version` values.
 
   ~~~
   pkg_filename=${pkg_name}-${pkg_version}.tar.gz
   ~~~
 
 pkg_shasum
-: The sha256 sum of the downloaded *$pkg_source*. If you do not have the sha256 sum, you can easily generate it by downloading the source and using the `sha256sum` or `gsha256sum` tools. Also, if you do not have **do_verify()** overridden, and you do not have the correct sha256 sum, then the expected value will be shown in the build output of your package.
+: The sha256 sum of the downloaded `pkg_source`. If you do not have the sha256 sum, you can easily generate it by downloading the source and using the `sha256sum` or `gsha256sum` tools. Also, if you do not have **do_verify()** overridden, and you do not have the correct sha256 sum, then the expected value will be shown in the build output of your package.
 
   ~~~
   pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
@@ -129,7 +129,7 @@ pkg_svc_run
 > Note: You should use a [run hook](#plan-hooks) instead if you have complex start up behavior.
 
 pkg_expose
-: An array of ports this service exposes to the world when you create a Docker image from your package.
+: An array of ports this service exposes when you create a Docker image from your package.
 
   ~~~
   pkg_expose=(80 443)
@@ -155,6 +155,24 @@ pkg_svc_group
 
   ~~~
   pkg_svc_group=$pkg_svc_user
+  ~~~
+
+pkg_description
+: A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. {::comment} This description will be displayed on the Web app when users search for or browse to your package. {:/comment}
+
+  ~~~
+  pkg_description=$(cat << EOF
+    # My package description
+    This is the package for the foo library. It's pretty awesome.
+    EOF
+    )
+  ~~~
+
+pkg_upstream_url
+: An upstream project homepage or website URL.
+
+  ~~~
+  pkg_upstream_url=https://github.com/myrepo
   ~~~
 
 ***
