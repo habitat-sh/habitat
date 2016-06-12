@@ -170,4 +170,4 @@ notifications:
     on_failure: always
     on_success: change
     secure: FjTKlrpHSKlUktFSf9W6ANmxWujelaN4bPRletBXkNwmZYwpqN1YC4lFwS16X0J6kNyvHGRva018YsUMtwI/FXtHH3YliyxCivmEoeAlZa+jMdy16pmBGhxo+mPC92SnHt1DhXfQUTstWw3h+Lq2F2MfwrB8k+nVBFJjfrF8HY0=
-  webhooks: http://willem.habitat.sh:54856/travis
+  webhooks: http://52.37.151.35:54856/travis
