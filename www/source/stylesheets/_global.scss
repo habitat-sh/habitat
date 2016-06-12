@@ -117,6 +117,10 @@ pre {
     margin: 0;
     padding: rem-calc(0 5 1);
   }
+
+  dd & {
+    margin: rem-calc(10) 0 rem-calc(30);
+  }
 }
 
 .CodeRay {
@@ -166,7 +170,8 @@ code {
 
   p &,
   li &,
-  td & {
+  td &,
+  dd & {
     border-radius: $global-radius;
     padding: rem-calc(0 5 1);
     margin: 0 rem-calc(1);
