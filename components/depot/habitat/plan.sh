@@ -4,8 +4,8 @@ pkg_version=0.6.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl)
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
+pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl core/zeromq)
+pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc core/pkg-config)
 pkg_bin_dirs=(bin)
 srv_bin="hab-depot"
 pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
@@ -27,6 +27,7 @@ do_prepare() {
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
+  export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
 }
 
 do_build() {
