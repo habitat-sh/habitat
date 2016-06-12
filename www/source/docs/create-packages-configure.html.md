@@ -127,5 +127,5 @@ For an example of how to templatize a configuration file and add it to your plan
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/create-packages-binary-only">Binary-only packages</a></li>
+  <li><a href="/docs/create-packages-build">Build packages</a></li>
 </ul>

@@ -10,7 +10,7 @@ Habitat packages are run under the Habitat supervisor. You can also export the s
 
 Packages can be tested in the interactive studio environment or natively on a host machine running Linux. To run packages directly:
 
-1. [Build your package](/docs/build-packages-overview) inside an interactive studio. Do not exit the studio after it is built.
+1. [Build your package](/docs/create-packages-build) inside an interactive studio. Do not exit the studio after it is built.
 2. To start your service, type `hab start yourorigin/yourname`, substituting the name and origin of the package you built in step 1. Your service should now be running.
 
 If your host machine is running Linux, do the following to run your packages:
@@ -46,7 +46,7 @@ You can create a Docker container image for any package by performing the follow
 
 1. Ensure you have a Docker daemon running on your host system. The exporter shares the Docker socket (`unix:///var/run/docker.sock`) into the studio.
 2. Create an interactive studio with the `hab studio enter` command.
-3. Install or [build](/docs/build-packages-overview) the Habitat package from which you want to create a Docker container image, for example:
+3. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create a Docker container image, for example:
 
        hab pkg install yourorigin/yourpackage
 
@@ -61,7 +61,7 @@ You can create a Docker container image for any package by performing the follow
 You can create an Application Container Image (ACI) for any package by performing the following steps:
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
-2. Install or [build](/docs/build-packages-overview) the Habitat package from which you want to create an ACI, for example:
+2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create an ACI, for example:
 
        hab pkg install yourorigin/yourpackage
 

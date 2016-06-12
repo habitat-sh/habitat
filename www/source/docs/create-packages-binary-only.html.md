@@ -83,3 +83,9 @@ If you have many files you need to fix, or the binary package automatically gene
        ln -sv $(pkg_path_for coreutils)/bin/env /usr/bin/env
 
 This is a last resort as it breaks the dependency isolation guarantees of Habitat.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-overview">Run packages</a></li>
+</ul>
