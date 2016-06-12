@@ -1,5 +1,6 @@
 ---
 title: Habitat Docs - Overview
+description: Documentation and tutorials for all aspects of Habitat including getting started; creating, building, and running Habitat packages; and implementation details.
 ---
 
 # Overview
@@ -50,8 +51,8 @@ code and get cookin', then these links should provide everything you need.
     <p>Clone the repo<br>using your GitHub account</p>
   </div>
   <div class="callout-box columns medium-4">
-    <a href="/docs" class="button secondary">Go to Docs Home</a>
-    <p>Reference the docs<br>while writing plans</p>
+    <a href="/docs/contribute-help-build/" class="button secondary">Contribute to Habitat</a>
+    <p>Habitat is open source,<br>let's build together</p>
   </div>
   <div class="callout-box columns medium-4">
     <a href="/log-in" class="button secondary">Log in to Web App</a>
