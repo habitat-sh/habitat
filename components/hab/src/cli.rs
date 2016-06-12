@@ -23,6 +23,9 @@ pub fn get() -> App<'static, 'static> {
         .about("Alias for 'pkg install'")
         .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
         .setting(AppSettings::Hidden);
+    let alias_setup = sub_cli_setup()
+        .about("Alias for 'cli setup'")
+        .aliases(&["set", "setu"]);
     let alias_start = alias_start().aliases(&["st", "sta", "star"]);
 
     clap_app!(hab =>
@@ -253,11 +256,13 @@ pub fn get() -> App<'static, 'static> {
         )
         (subcommand: alias_apply)
         (subcommand: alias_install)
+        (subcommand: alias_setup)
         (subcommand: alias_start)
-        (after_help: "ALIASES:\
-            \n    apply       Alias for: 'config apply'\
-            \n    install     Alias for: 'pkg install'\
-            \n    start       Alias for: 'sup start'\
+        (after_help: "\nALIASES:\
+            \n    apply      Alias for: 'config apply'\
+            \n    install    Alias for: 'pkg install'\
+            \n    setup      Alias for: 'cli setup'\
+            \n    start      Alias for: 'sup start'\
             \n"
         )
     )
