@@ -1,5 +1,5 @@
-[cfg.services.core.redis.${env}.habitat]
+[cfg.services.core.redis.${env}]
 start = "--permanent-peer --peer ${peer_ip}:9000"
 
-[cfg.services.core.hab-builder-api.${env}.habitat]
+[cfg.services.core.hab-builder-api.${env}]
 start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env} --peer ${peer_ip}:9000"
