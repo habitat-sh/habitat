@@ -3,7 +3,7 @@ pkg_distname=$pkg_name
 pkg_origin=core
 pkg_version=0.6.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_license=('apachev2')
+pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 # The result is a portible, static binary in a zero-dependency package.
 pkg_deps=()
