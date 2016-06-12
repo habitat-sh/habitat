@@ -54,7 +54,6 @@ Because we are using npm to start up our Node.js web app, the npm binary looks f
     "scripts": {
         "start": "node server.js"
     },
-
     "dependencies": {
     	"nconf": "^0.8.4"
     }

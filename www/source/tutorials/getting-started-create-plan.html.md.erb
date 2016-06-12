@@ -18,9 +18,9 @@ To create a plan, do the following:
 
        cd ~/plans/mytutorialapp
 
-3. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the hab-plan-build command to build your package, so create a plan.sh file in the mytutorialapp directory and open it.
+3. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the `hab-plan-build` command to build your package, so create a plan.sh file in the mytutorialapp directory and open it.
 
-       touch plan.sh && $EDITOR plan.sh
+       $EDITOR plan.sh
 
 4. Copy the following template into plan.sh:
 
@@ -57,13 +57,13 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
         pkg_shasum=2ad73b78ef5e88e9e916873c0f762bbdf286e4de93e67cf211f9761a2876c7ef
 
-    > Note: If you modified the source files from the previous step and created your own archive, you will have to compute the sha256 value yourself. If your computed value does not match the value calculated by the hab-plan-build script, an error with the expected value will be returned when you execute your plan.
+    > Note: If you modified the source files from the previous step and created your own archive, you will have to compute the sha256 value yourself. If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
 7. Our Node.js application depends on the `node` and `npm` binaries at runtime, so we need to include one of the core Habitat packages, `core/node`, as a runtime dependency. Transitive dependencies, such as `core/glibc` used by `core/node`, do not need to be listed when creating plans.
 
         pkg_deps=(core/node)
 
-8. Remove the `pkg_build_deps` variable. Later on in this topic we are going to install the `nconf` module into our package, which requires the `npm` binary; however, we do not need to include `core/node` as a build dependency because the hab-plan-build command automatically installs build and runtime dependencies and adds their bin directories to the PATH variable before building the package. So, if you need the same dependent binary for both build and runtime operations, you only need to include it as a runtime dependency.
+8. Remove the `pkg_build_deps` variable. Later on in this topic we are going to install the `nconf` module into our package, which requires the `npm` binary; however, we do not need to include `core/node` as a build dependency because the build script automatically installs build and runtime dependencies and adds their bin directories to the `$PATH` variable before building the package. So, if you need the same dependent binary for both build and runtime operations, you only need to include it as a runtime dependency.
 
 9. The Node.js application does not create any new binaries or libraries of its own, so you can remove the following three lines:
 
@@ -79,7 +79,7 @@ You've finished with the basic setup of your plan. It is time to move into defin
 
 ## Add in callbacks
 
-Callbacks in a plan are simply overrides to existing functions that are called by the `hab-plan-build` command at build time. Because our source code in this tutorial relies on the `nconf` module, we need to make sure it's included in our package. Also, our `package.json` and `server.js` source files need to move from the tarball that we referenced in `pkg_source` into our package.
+Callbacks in a plan are simply overrides to existing functions that are called by the `hab-plan-build` script at build time. Because our source code in this tutorial relies on the `nconf` module, we need to make sure it's included in our package. Also, our `package.json` and `server.js` source files need to move from the tarball that we referenced in `pkg_source` into our package.
 
 To do both of those actions, we will implement our own **do_build()** and **do_install()** callbacks. By default, these functions perform simple tasks like calling `make` and `make install`. Add the following function definitions to your `plan.sh` file below the plan settings.
 

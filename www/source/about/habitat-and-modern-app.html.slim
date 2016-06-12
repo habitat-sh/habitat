@@ -9,7 +9,7 @@ p In the article,
   #{link_to '"What Is a Modern Application?"', '/about/what-is-modern-app.html'}
   we talked about what characterizes a modern application and how such
   applications can address the problems of complexity and scale. In this
-  article, we'll talk about how Habitat lets any application, whether greenfield or legacy,
+  article we'll talk about how Habitat lets any application, whether greenfield or legacy,
    have those characteristics.
 
 p The short version is that Habitat offers a new approach to deploying
@@ -111,7 +111,7 @@ pre
     pkg_bin_dirs=(bin)
     pkg_lib_dirs=(lib)
     pkg_expose=(9200 9300)
-    pkg_service_run="es/bin/elasticsearch --default.path.conf=${pkg_svc_config_path} 2>&1"
+    pkg_svc_run="es/bin/elasticsearch --default.path.conf=${pkg_svc_config_path} 2>&1"
     do_build() {
       return 0
     }
@@ -129,7 +129,7 @@ p The first three values form part of the package's fully qualified name. The
   The <code>pkg_bin_dirs</code> value specifies the location for the
   ElasticSearch binary. The <code>pkg_expose</code> values specify which
   Docker ports need to be exposed if this package is exported to a Docker
-  image. Finally, the <code>pkg_service_run</code> value specifies how the
+  image. Finally, the <code>pkg_svc_run</code> value specifies how the
   ElasticSearch binary should be run when the supervisor starts the
   ElasticSearch package payload.
 

@@ -7,7 +7,7 @@ h2 Habitat and Workload Placement
 
 p We assume that you've already read the previous articles in this series and
   understand why intelligent application automation is important. In this
-  article, we'll talk about how Habitat packages work with various strategies
+  article we'll talk about how Habitat packages work with various strategies
   for workload placement, with a focus on how Habitat applications can run in
   container-based infrastructure.
 
@@ -23,13 +23,13 @@ p Let's look at the case of Habitat creating container images. After a Habitat
   package has been used to create a new container image during the Habitat
   build process, the resulting container can be deployed using whatever
   mechanism is desired, including container scheduling systems (such as
-  Kubernetes and Mesosphere), or cloud-based container management systems like
-  Amazon EC2 Container Service [ECS]. Container images created by Habitat are
+  Kubernetes and Mesosphere) or cloud-based container management systems like
+  Amazon EC2 Container Service (ECS). Container images created by Habitat are
   smarter than other containers—they expose all of the automation intelligence
   of the Habitat app.  For example, Habitat components can self-organize with
   peers into leader/follower relationships, and dynamic configuration changes
   can propagate to all running components of the application using robust,
-  decentralized peer-based protocols.
+  decentralized, peer-based protocols.
 
 p Of course, as we said earlier, with Habitat containers are just one execution
   option. Habitat supports workload placement strategies that are not based on
@@ -93,7 +93,7 @@ p You can see that the items on this list are really about the data center and
 
 p Not all of the many container management solutions take the same approach.
   There's a spectrum from IaaS to PaaS. Many cloud vendors like Amazon,
-  Microsoft and Google, have offerings that make it easy to consume
+  Microsoft, and Google, have offerings that make it easy to consume
   infrastructure and target the IaaS space.
 
 p Container management that has more of a PaaS flavor is arguably more
