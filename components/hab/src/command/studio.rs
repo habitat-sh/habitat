@@ -79,7 +79,7 @@ mod inner {
     const DOCKER_CMD: &'static str = "docker";
     const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
 
-    const DOCKER_IMAGE: &'static str = "habitat/studio";
+    const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 
     pub fn start(args: Vec<OsString>) -> Result<()> {
