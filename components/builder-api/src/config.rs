@@ -70,19 +70,19 @@ impl ConfigFile for Config {
         let mut cfg = Config::default();
         try!(toml.parse_into("cfg.http_addr", &mut cfg.http_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
-        try!(toml.parse_into("cfg.depot.path", &mut cfg.depot.path));
+        try!(toml.parse_into("pkg.svc_data_path", &mut cfg.depot.path));
         try!(toml.parse_into("cfg.depot.datastore_addr", &mut cfg.depot.datastore_addr));
         try!(toml.parse_into("cfg.github.url", &mut cfg.github_url));
+        try!(toml.parse_into("cfg.github.url", &mut cfg.depot.github_url));
         if !try!(toml.parse_into("cfg.github.client_id", &mut cfg.github_client_id)) {
             return Err(Error::RequiredConfigField("github.client_id"));
         }
+        try!(toml.parse_into("cfg.github.client_id", &mut cfg.depot.github_client_id));
         if !try!(toml.parse_into("cfg.github.client_secret", &mut cfg.github_client_secret)) {
             return Err(Error::RequiredConfigField("github.client_secret"));
         }
-        // JW TODO: de-dupe this by merging depot/builder-api?
-        cfg.depot.github_url = cfg.github_url.clone();
-        cfg.depot.github_client_id = cfg.github_client_id.clone();
-        cfg.depot.github_client_secret = cfg.github_client_secret.clone();
+        try!(toml.parse_into("cfg.github.client_secret",
+                             &mut cfg.depot.github_client_secret));
         Ok(cfg)
     }
 }
