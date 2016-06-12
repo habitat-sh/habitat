@@ -12,13 +12,13 @@ The `hab` command-line interface (CLI) tool downloads the studio and other tools
 
     To keep from typing this in for every terminal window you use, add the above statement to your shell profile.
 
-4. Open a terminal window and run `hab cli setup`. If your host machine is running Linux, the `hab` CLI must run as root, so we suggest running it as root through the `sudo` command.
+4. Open a terminal window and run `hab setup`. If your host machine is running Linux, the `hab` CLI must run as root, so we suggest running it as root through the `sudo` command.
 
    If you're running on Mac OS X, make sure your docker-machine is running and your shell is connected to it first.
 
        docker-machine start
        eval "$(docker-machine env machinename)"
 
-5. Follow the instructions in the setup script. Create a new origin and a set of origin keys. If you would like to provide anonymous data on your usage of the `hab` CLI, please type in `Yes` or hit Enter. We collect this data to help improve Habitat's user experience. It helps us correct issues with commands people are struggling with or put more focus around those commands and subcommands people use most often.
+5. Follow the instructions in the setup script. Create a new origin and a set of origin keys. If you would like to provide anonymous data on your usage of the `hab` CLI, please type in `Yes` or hit Enter. For information on the type of data we gather and how we intend to use it, see [Analytics in Habitat](/docs/about-analytics).
 
-   > Note: You can also opt-out of providing usage data at a later point in time by re-running the `hab cli setup` subcommand and typing `No` when asked if you want to provide usage data.
+   > Note: You can also opt-out of providing usage data at a later point in time by re-running the `hab setup` subcommand and typing `No` when asked if you want to provide usage data.
