@@ -248,10 +248,10 @@ cat <<_PLANS_ | while read plan; do _build $plan; done
   openssl
   wget
   unzip
-  busybox-static
   rust
   linux-headers-musl
   musl
+  busybox-static
   zlib-musl
   bzip2-musl
   xz-musl
