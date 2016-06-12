@@ -10,7 +10,6 @@
 use std::result;
 use std::sync::{Arc, Mutex};
 
-use bodyparser;
 use hab_net;
 use hab_net::routing::Broker;
 use hab_net::oauth::github::GitHubClient;
@@ -113,7 +112,7 @@ pub fn session_create(req: &mut Request,
                 }
                 Err(e) => {
                     debug!("github user get, err={:?}", e);
-                    let err = net::err(ErrCode::BUG, "ss:auth:2");
+                    let err = net::err(ErrCode::BUG, "rg:auth:2");
                     Ok(render_net_error(&err))
                 }
             }
@@ -125,85 +124,13 @@ pub fn session_create(req: &mut Request,
         }
         Err(e @ hab_net::Error::JsonDecode(_)) => {
             debug!("github authentication, err={:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
+            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
             Ok(render_net_error(&err))
         }
         Err(e) => {
             error!("github authentication, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "ss:auth:0");
+            let err = net::err(ErrCode::BUG, "rg:auth:0");
             Ok(render_net_error(&err))
-        }
-    }
-}
-
-pub fn origin_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin.to_string(),
-        _ => return Ok(Response::with(status::BadRequest)),
-    };
-    let mut conn = Broker::connect(&ctx).unwrap();
-    let mut request = OriginGet::new();
-    request.set_name(origin);
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Origin" => {
-                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&origin.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
-    }
-}
-
-pub fn origin_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
-    let session = match authenticate(req, ctx) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
-    let mut request = OriginCreate::new();
-    request.set_owner_id(session.get_id());
-    match req.get::<bodyparser::Json>() {
-        Ok(Some(body)) => {
-            match body.find("name") {
-                Some(origin) => request.set_name(origin.as_string().unwrap().to_owned()),
-                _ => return Ok(Response::with(status::BadRequest)),
-            }
-        }
-        _ => return Ok(Response::with(status::BadRequest)),
-    };
-    let mut conn = Broker::connect(&ctx).unwrap();
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Origin" => {
-                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&origin.to_json()).unwrap();
-                    Ok(Response::with((status::Created, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
         }
     }
 }
