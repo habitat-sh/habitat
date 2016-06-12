@@ -47,14 +47,14 @@ code and get cookin', then these links should provide everything you need.
 <div class="callout-box--container row">
   <div class="callout-box columns medium-4">
     <a href="/docs/get-habitat" class="button secondary">Download Habitat</a>
-    <p>Clone the repo<br>using your GitHub account</p>
+    <p>Get Habitat and install it on your workstation</p>
   </div>
   <div class="callout-box columns medium-4">
     <a href="/docs/contribute-help-build/" class="button secondary">Contribute to Habitat</a>
     <p>Habitat is open source,<br>let's build together</p>
   </div>
   <div class="callout-box columns medium-4">
-    <a href="/log-in" class="button secondary">Log in to Web App</a>
-    <p>Manage your projects and<br>browse official packages</p>
+    <a href="/log-in" class="button secondary">Sign in to Web App</a>
+    <p>Manage your information and<br>browse official packages</p>
   </div>
 </div>

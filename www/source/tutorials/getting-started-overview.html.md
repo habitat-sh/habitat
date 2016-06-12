@@ -20,7 +20,7 @@ This tutorial currently supports Linux and Mac OS X as host operating systems. B
 *   If you are running Mac OS X on your host machine, then you need [Docker Toolbox](https://www.docker.com/products/docker-toolbox) installed. The toolbox also installs Oracle VM VirtualBox, which will run and manage the Linux VM where the Docker daemon resides. Make sure you have a Docker VM running before proceeding through the tutorial.
 *   If you are running a Linux distribution such as Ubuntu on your host machine, then you need to install the [Docker Engine](https://docs.docker.com/linux/) CLI tool.
 
-  > Note: The minimum Docker version for Habitat is greater than or equal to the version specified in the core/docker plan, which currently is 1.11.1.
+  > Note: The minimum Docker version for Habitat is greater than or equal to the version specified in the core/docker plan, which currently is 1.11.2.
 
 Now that you have the prerequisites out of the way, let's start off by learning some key Habitat concepts in the next step.
 
