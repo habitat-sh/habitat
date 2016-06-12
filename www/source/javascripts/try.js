@@ -388,4 +388,11 @@ $("#mobile-keyboard-trigger").click(function() {
         $(".window-node").hide();
         $("#" + targetID).show();
     });
+
+    // Hack to allow pasting.
+    // See https://github.com/sdether/josh.js/issues/28
+    $("#shell-panel").pastableNonInputable();
+    $("#shell-panel").on("pasteText", function (event, data) {
+        shell.addText(data.text);
+    });
 }());
