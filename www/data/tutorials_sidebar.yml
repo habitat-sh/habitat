@@ -4,7 +4,7 @@ sidebar_links:
   links:
   - title: Introduction
     link: "/tutorials"
-  - title: Getting started with Habitat
+  - title: Getting started with Habitat <span>&plus;</span>
     link: "/tutorials/getting-started-overview/"
     sub_links:
     - title: Basic concepts
