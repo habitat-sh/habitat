@@ -453,6 +453,7 @@ _ensure_origin_key_present() {
 # The following variables are set which contain an absolute path to the desired
 # command:
 #
+# * `$_hab_cmd` (hab cli for signing, hashing, and possibly installing)
 # * `$_sort_cmd` (GNU version from coreutils)
 # * `$_wget_cmd` (wget on system)
 # * `$_shasum_cmd` (either gsha256sum or sha256sum on system)
@@ -596,10 +597,9 @@ _resolve_dependency() {
 }
 
 # **Internal** Attempts to download a package dependency. If the value of the
-# `$HAB_BIN` variable is not set or the value does not resolve to an
-# executable binary, then no installation will be attempted. If an installation
-# is attempted but there is an error, this function will still return with `0`
-# and is intended to be "best effort".
+# `$NO_INSTALL_DEPS` variable is set, then no package installation will occur.
+# If an installation is attempted but there is an error, this function will
+# still return with `0` and is intended to be "best effort".
 #
 # ```
 # _install_dependency acme/zlib
@@ -607,7 +607,7 @@ _resolve_dependency() {
 # _install_dependency acme/zlib/1.2.8/20151216221001
 # ```
 _install_dependency() {
-  if [[ -x "$HAB_BIN" ]]; then
+  if [[ -z "${NO_INSTALL_DEPS:-}" ]]; then
     $HAB_BIN install -u $HAB_DEPOT_URL "$dep" || true
   fi
   return 0
@@ -698,25 +698,25 @@ _attach_whereami() {
 }
 
 # **Internal** Determines what command/binary to use for installation of
-# package dependencies. The `$HAB_BIN` variable will either be set or emptied
-# according to the following criteria (first match wins):
+# package dependencies, signing, and hashing files. The `$HAB_BIN` variable
+# will either be set or emptied according to the following criteria (first
+# match wins):
 #
-# * If a `$NO_INSTALL_DEPS` environment variable is set, then set `$HAB_BIN`
-#   to an empty/unset value.
 # * If a `$HAB_BIN` environment variable is set, then use this as the absolute
 #   path to the binary.
 # * Otherwise `$_hab_cmd` is used, set in the `_find_system_commands()`
 #   function
-_determine_pkg_installer() {
+_determine_hab_bin() {
   if [ -n "${NO_INSTALL_DEPS:-}" ]; then
-    HAB_BIN=
     build_line "NO_INSTALL_DEPS set: no package dependencies will be installed"
-  elif [ -n "${HAB_BIN:-}" ]; then
+  fi
+
+  if [[ -n "${HAB_BIN:-}" ]]; then
     HAB_BIN=$HAB_BIN
-    build_line "Using set HAB_BIN=$HAB_BIN for dependency installs"
   else
     HAB_BIN="$_hab_cmd"
   fi
+  build_line "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
 }
 
 # **Internal** Validates that the computed dependencies are reasonable and that
@@ -2231,7 +2231,7 @@ _find_system_commands
 # Enure that the origin key is available for package signing
 _ensure_origin_key_present
 
-_determine_pkg_installer
+_determine_hab_bin
 
 # Download and resolve the depdencies
 _resolve_dependencies
