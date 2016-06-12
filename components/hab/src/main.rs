@@ -217,7 +217,15 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
         Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
         None => None,
     };
-    let sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+
+    // use the org if it's passed in on the CLI or set in an env var
+    let org = match org_param_or_env(&m) {
+        Ok(org) => Some(org.to_string()),
+        Err(_e) => None
+    };
+    sg.organization = org;
 
     command::config::apply::start(&peers, ring_key.as_ref(), &sg, number, file_path)
 }
