@@ -189,8 +189,7 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 }
                 "NetError" => {
                     let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    debug!("origin_create error: {:?}", err);
-                    Ok(Response::with(status::Conflict))
+                    Ok(render_net_error(&err))
                 }
                 _ => unreachable!("unexpected msg: {:?}", rep),
             }
@@ -235,7 +234,6 @@ pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-/// Return the origin IFF it exists
 pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
     let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginGet::new();
@@ -249,6 +247,9 @@ pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
                     Ok(Some(origin))
                 }
                 "NetError" => {
+                    // TODO: This function can't swallow this error. This has to propogate back
+                    // to the caller so they know there was an issue and the origin may
+                    // potentially exist.
                     let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
                     debug!("get_origin error: {:?}", err);
                     Ok(None)
@@ -333,7 +334,8 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
                     account
                 }
                 "NetError" => {
-                    return Ok(Response::with(status::NotFound));
+                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
+                    return Ok(render_net_error(&err));
                 }
                 _ => unreachable!("unexpected msg: {:?}", rep),
             }
