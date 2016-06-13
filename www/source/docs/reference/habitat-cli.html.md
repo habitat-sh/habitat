@@ -97,7 +97,7 @@ Applies configuration to a group of Habitat supervisors.
 
 **ARGS**
 
-    <SERVICE_GROUP>     Target service group for this injection (ex: redis.default)
+    <SERVICE_GROUP>     Target service group (ex: redis.default)
     <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
     <FILE>              Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)
 
@@ -122,7 +122,7 @@ Upload a file to a supervisor ring.
 
 **ARGS**
 
-    <SERVICE_GROUP>     Target service group for this injection (ex: redis.default)
+    <SERVICE_GROUP>     Target service group (ex: redis.default)
     <FILE>              Path to local file on disk
     <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
     <USER>              Name of the user key
@@ -451,7 +451,7 @@ Generates a Habitat service key
 
 **ARGS**
 
-    <SERVICE_GROUP>    Target service group for this injection (ex: redis.default)
+    <SERVICE_GROUP>    Target service group (ex: redis.default)
     <ORG>              The service organization
 
 <h2 id="hab-studio" class="anchor">hab studio</h2>
