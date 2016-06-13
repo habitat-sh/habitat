@@ -55,7 +55,7 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Upload a file to the supervisor ring.")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
-                    "Target service group for this injection (ex: redis.default)")
+                    "Target service group (ex: redis.default)")
                 (@arg FILE: +required {file_exists} "Path to local file on disk")
                 (@arg VERSION_NUMBER: +required
                     "A version number (positive integer) for this configuration (ex: 42)")
@@ -227,7 +227,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand generate =>
                     (about: "Generates a Habitat service key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group} "Target service group for this injection (ex: redis.default)")
+                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group} "Target service group (ex: redis.default)")
                     (@arg ORG: "The service organization")
                 )
             )
@@ -291,7 +291,7 @@ fn sub_config_apply() -> App<'static, 'static> {
         (@arg RING: -r --ring +takes_value
             "Ring key name, which will encrypt communication messages")
         (@arg SERVICE_GROUP: +required {valid_service_group}
-            "Target service group for this injection (ex: redis.default)")
+            "Target service group (ex: redis.default)")
         (@arg VERSION_NUMBER: +required
             "A version number (positive integer) for this configuration (ex: 42)")
         (@arg FILE: {file_exists_or_stdin}
