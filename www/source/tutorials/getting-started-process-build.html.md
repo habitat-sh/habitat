@@ -9,7 +9,7 @@ A supervisor manages any application or service process within a Habitat service
 
 Services can currently be run in two ways: You can either use the supervisor (`hab-sup`) directly, or you can use export the package and run it in an external runtime format. Using the `hab-sup` directly allows you to rapidly install and test your services before uploading any packages into a depot, but exporting your package into a different runtime format provides flexibility in where your packages run.
 
-For more information on how to natively run Habitat services or how to run services inside an external runtime format, see [Run Services](/docs/run-packages-overview).
+For more information on how to natively run Habitat services or how to run services inside an external runtime format, see [Run packages](/docs/run-packages-overview).
 
 To show the portability of Habitat, you will export and run a Habitat service from within a Docker container through the following steps:
 

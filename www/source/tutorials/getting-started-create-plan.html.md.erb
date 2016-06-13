@@ -51,11 +51,11 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
 5. Change the `pkg_source` value to point to the archive file that contains the source files described in the previous step. {::comment} Move this into a S3 bucket under the Habitat account before launch {:/comment}
 
-        pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutorial-app-0.1.0.tar.gz
+        pkg_source=https://s3-us-west-2.amazonaws.com/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
 
 6. Change the `pkg_shasum` value to the correct checksum for the tarball.
 
-        pkg_shasum=2ad73b78ef5e88e9e916873c0f762bbdf286e4de93e67cf211f9761a2876c7ef
+        pkg_shasum=b54f8ada292b0249245385996221751f571e170162e0d464a26b958478cc9bfa
 
     > Note: If you modified the source files from the previous step and created your own archive, you will have to compute the sha256 value yourself. If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
@@ -85,13 +85,10 @@ To do both of those actions, we will implement our own **do_build()** and **do_i
 
 ~~~ bash
 do_build() {
-  # The nodejs-tutorial-app source code is unpacked into a directory,
-  # nodejs-tutorial-app-0.1.0, at the root of $HAB_CACHE_SRC_PATH.
-
-  # All of the source files need to be copied over into the $pkg_dirname
-  # directory (mytutorialapp-0.1.0). If you were downloading an archive that
-  # matched your package name and version, you would be able to omit this step.
-  cp -vr ${HAB_CACHE_SRC_PATH}/nodejs-tutorial-app-0.1.0/* .
+  # The mytutorialapp source code is unpacked into a directory,
+  # mytutorialapp-0.1.0, at the root of $HAB_CACHE_SRC_PATH. If you were downloading
+  # an archive that didn't match your package name and version, you would have to
+  # copy the files from the extracts directory to $HAB_CACHE_SRC_PATH.
 
   # This installs both npm as well as the nconf module we listed as a
   # dependency in package.json.
@@ -122,20 +119,18 @@ pkg_name=mytutorialapp
 pkg_version=0.1.0
 pkg_maintainer="Your Name <your email address>"
 pkg_license=()
-pkg_source=https://s3-us-west-2.amazonaws.com/nodejs-tutorial-app/nodejs-tutorial-app-0.1.0.tar.gz
-pkg_shasum=2ad73b78ef5e88e9e916873c0f762bbdf286e4de93e67cf211f9761a2876c7ef
-pkg_filename=nodejs-tutorial-app-0.1.0.tar.gz
+pkg_source=https://s3-us-west-2.amazonaws.com/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
+pkg_shasum=b54f8ada292b0249245385996221751f571e170162e0d464a26b958478cc9bfa
+pkg_filename=${pkg_name}-${pkg_version}.tar.gz
 pkg_deps=(core/node)
 pkg_expose=(8080)
 
 
 do_build() {
-  # The nodejs-tutorial-app source code is unpacked into a folder,
-  # nodejs-tutorial-app-0.1.0, at the root of $HAB_CACHE_SRC_PATH.
-
-  # All of the source files need to be copied over into the $pkg_dirname
-  # directory (mytutorialapp-0.1.0).
-  cp -vr ${HAB_CACHE_SRC_PATH}/nodejs-tutorial-app-0.1.0/* .
+  # The mytutorialapp source code is unpacked into a directory,
+  # mytutorialapp-0.1.0, at the root of $HAB_CACHE_SRC_PATH. If you were downloading
+  # an archive that didn't match your package name and version, you would have to
+  # copy the files from the extracts directory to $HAB_CACHE_SRC_PATH.
 
   # This installs both npm as well as the nconf module we listed as a
   # dependency in package.json.
@@ -156,7 +151,7 @@ do_install() {
 }
 ~~~
 
-For a complete listing of all of the plan settings, callbacks, and runtime hooks, see the [Plan syntax guide](/docs/plan-syntax).
+For a complete listing of all of the plan settings, callbacks, and runtime hooks, see the [Plan syntax guide](/docs/reference/plan-syntax).
 
 ## Entering the studio and doing an initial build
 

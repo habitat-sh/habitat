@@ -39,7 +39,7 @@ Additional switches to be passed to the compiler when this package is used as a 
 The fully-qualified identifier for the package. The format is `origin/name/version/release`.
 
 ## INTERPRETERS
-If `pkg_interpreters` is specified in your plan.sh, then this file will be generated and contain a list of absolute paths to any interpreters that a package can provide. Code in a `plan.sh` may use the `fix_interpreter` function to replace hardcoded instances of interpreters, such as `/bin/env`. The location of interpreters in Habitat will be nested under `/hab/pkgs/`. For more information on interpreters, see the fix_interpreter description in [Utility functions](/docs/plan-syntax#utility-functions).
+If `pkg_interpreters` is specified in your plan.sh, then this file will be generated and contain a list of absolute paths to any interpreters that a package can provide. Code in a `plan.sh` may use the `fix_interpreter` function to replace hardcoded instances of interpreters, such as `/bin/env`. The location of interpreters in Habitat will be nested under `/hab/pkgs/`. For more information on interpreters, see the fix_interpreter description in [Utility functions](/docs/reference/plan-syntax#utility-functions).
 
 ## TARGET
 The CPU architecture and platform for the package. The format is `architecture-platform`. For example, x86_64-linux.
