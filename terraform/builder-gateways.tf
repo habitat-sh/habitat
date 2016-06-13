@@ -20,6 +20,18 @@ resource "aws_instance" "builder_api" {
         agent       = "${var.connection_agent}"
     }
 
+    ebs_block_device {
+        device_name = "/dev/xvdb"
+        volume_size = 100
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkdir -p /mnt/hab",
+            "sudo ln -s /mnt/hab /hab"
+        ]
+    }
+
     # JW TODO: Bake AMIs with updated habitat on them instead of bootstrapping
     provisioner "remote-exec" {
         script = "${path.module}/scripts/bootstrap.sh"
@@ -65,6 +77,14 @@ resource "aws_security_group" "builder_api_elb" {
     name        = "builder-api-elb"
     description = "Habitat Builder API Load Balancer"
     vpc_id      = "${var.aws_vpc_id}"
+
+    // JW TODO: remove after old clients are retired
+    ingress {
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
 
     ingress {
         from_port   = 443
@@ -127,6 +147,14 @@ resource "aws_elb" "builder_api" {
         lb_port            = 443
         lb_protocol        = "HTTPS"
         ssl_certificate_id = "${var.ssl_certificate_arn}"
+    }
+
+    // JW TODO: remove after old clients are retired
+    listener {
+        instance_port      = 9636
+        instance_protocol  = "HTTP"
+        lb_port            = 80
+        lb_protocol        = "HTTP"
     }
 
     health_check {
