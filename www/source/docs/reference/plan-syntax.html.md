@@ -168,6 +168,8 @@ pkg_description
     )
   ~~~
 
+> Note: Any special characters other than `#` will have to be escaped; otherwise, they could be interpreted by the hab-plan-build script when the package is built.
+
 pkg_upstream_url
 : An upstream project homepage or website URL.
 
