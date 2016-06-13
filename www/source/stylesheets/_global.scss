@@ -11,6 +11,7 @@
 //  6. Images
 //  7. Callout Boxes
 //  8. Anchor Links
+//  9. Global Message
 
 
 // 1. Global
@@ -279,4 +280,19 @@ ol.lower-alpha {
   width: 0;
   height: 7em;
   margin-top: -7em;
+}
+
+// 9. Global Message
+// ---------
+
+#global_message {
+  background-color: $hab-green;
+  color: $white;
+  text-align: center;
+  padding: rem-calc(10) rem-calc(60);
+
+  a {
+    color: $white;
+    font-size: rem-calc(14);
+  }
 }
