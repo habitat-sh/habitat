@@ -56,6 +56,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand start =>
             (about: "Run a Habitat package Depot")
             (@arg port: --port +takes_value "Listen port. [default: 9632]")
+            (@arg insecure: --insecure)
         )
         (@subcommand repair =>
             (about: "Verify and repair data integrity of the package Depot")
@@ -88,6 +89,12 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
             return Err(Error::BadPort(port.to_string()));
         }
     }
+
+    if args.is_present("insecure") {
+        println!("*** Depot is running in insecure mode ***");
+        config.insecure = true
+    }
+
     if let Some(path) = args.value_of("path") {
         config.path = path.to_string();
     }

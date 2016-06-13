@@ -541,26 +541,34 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
 }
 
 fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
-
     debug!("Upload Origin Key {:?}", req);
-    let params = req.extensions.get::<Router>().unwrap();
 
-    let origin = match params.find("origin") {
-        Some(origin) => origin,
+    // this lets us get around ownership/mutability issues
+    fn get_origin_and_revision(req: &mut Request) -> Option<(String, String)> {
+        let params = req.extensions.get::<Router>().unwrap();
+        let origin = params.find("origin").map(|s| s.to_string());
+        let revision = params.find("revision").map(|s| s.to_string());
+        match (origin, revision) {
+            (None, _) => None,
+            (_, None) => None,
+            (Some(origin), Some(revision)) => Some((origin, revision)),
+        }
+    }
+
+    let (origin, revision) = match get_origin_and_revision(req) {
+        Some((origin, revision)) => (origin, revision),
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    let revision = match params.find("revision") {
-        Some(revision) => revision,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
+    if !depot.config.insecure {
+        let session = match authenticate(depot, req) {
+            Ok(session) => session,
+            Err(response) => return Ok(response),
+        };
 
-    if !check_origin_access(&depot, session.get_id(), &origin) {
-        return Ok(Response::with(status::Forbidden));
+        if !check_origin_access(&depot, session.get_id(), &origin) {
+            return Ok(Response::with(status::Forbidden));
+        }
     }
 
     let mut content = String::new();
@@ -589,9 +597,10 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::Conflict));
     }
 
-    depot.datastore.origin_keys.write(&origin, &revision).unwrap();
-
     try!(write_string_to_file(&origin_keyfile, content));
+
+    // don't write to Redis if the file wasn't written
+    depot.datastore.origin_keys.write(&origin, &revision).unwrap();
 
     let mut response = Response::with((status::Created,
                                        format!("/origins/{}/keys/{}", &origin, &revision)));
@@ -676,26 +685,38 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
 }
 
 fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
+    // this lets us get around ownership/mutability issues
+    fn get_ident_and_checksum(req: &mut Request) -> Option<(String, depotsrv::PackageIdent)> {
+        debug!("Upload {:?}", req);
+        let checksum_from_param = match extract_query_value("checksum", req) {
+            Some(checksum) => checksum,
+            None => return None,
+        };
+        let params = req.extensions.get::<Router>().unwrap();
+        let ident = ident_from_params(params);
+        Some((checksum_from_param, ident))
+    }
 
-    debug!("Upload {:?}", req);
-    let checksum_from_param = match extract_query_value("checksum", req) {
-        Some(checksum) => checksum,
+    let (checksum_from_param, ident) = match get_ident_and_checksum(req) {
+        Some((checksum_from_param, ident)) => (checksum_from_param, ident),
         None => return Ok(Response::with(status::BadRequest)),
     };
-    let params = req.extensions.get::<Router>().unwrap();
-    let ident = ident_from_params(params);
 
-    if !check_origin_access(&depot, session.get_id(), &ident.get_origin()) {
-        return Ok(Response::with(status::Forbidden));
+    if !depot.config.insecure {
+        let session = match authenticate(depot, req) {
+            Ok(session) => session,
+            Err(response) => return Ok(response),
+        };
+
+        if !check_origin_access(&depot, session.get_id(), &ident.get_origin()) {
+            return Ok(Response::with(status::Forbidden));
+        }
+
+        if !ident.fully_qualified() {
+            return Ok(Response::with(status::BadRequest));
+        }
     }
 
-    if !ident.fully_qualified() {
-        return Ok(Response::with(status::BadRequest));
-    }
 
     match depot.datastore.packages.find(&ident) {
         Ok(_) |

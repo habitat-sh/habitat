@@ -37,6 +37,8 @@ pub struct Config {
     pub github_client_id: String,
     /// Client secret used for GitHub API requests
     pub github_client_secret: String,
+    /// allows you to upload packages and public keys without auth
+    pub insecure: bool,
 }
 
 impl ConfigFile for Config {
@@ -62,6 +64,7 @@ impl Default for Config {
             github_url: GITHUB_URL.to_string(),
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
+            insecure: false,
         }
     }
 }
