@@ -45,6 +45,7 @@ use hab_net::server::NetIdent;
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
+const ONE_YEAR_IN_SECS: usize = 31536000;
 
 /// Return an IronResult containing the body of a NetError and the appropriate HTTP response status
 /// for the corresponding NetError.
@@ -218,7 +219,9 @@ pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 "Origin" => {
                     let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
                     let encoded = json::encode(&origin.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
+                    let mut response = Response::with((status::Ok, encoded));
+                    dont_cache_response(&mut response);
+                    Ok(response)
                 }
                 "NetError" => {
                     let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
@@ -424,7 +427,9 @@ pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<R
                     let invites: OriginInvitationListResponse =
                         protobuf::parse_from_bytes(rep.get_body()).unwrap();
                     let encoded = json::encode(&invites.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
+                    let mut response = Response::with((status::Ok, encoded));
+                    dont_cache_response(&mut response);
+                    Ok(response)
                 }
                 "NetError" => {
                     let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
@@ -475,7 +480,9 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
                     let members: OriginMemberListResponse =
                         protobuf::parse_from_bytes(rep.get_body()).unwrap();
                     let encoded = json::encode(&members.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
+                    let mut response = Response::with((status::Ok, encoded));
+                    dont_cache_response(&mut response);
+                    Ok(response)
                 }
                 "NetError" => {
                     let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
@@ -771,6 +778,7 @@ fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response>
     response.headers.set_raw("content-disposition",
                              vec![format!("attachment; filename=\"{}\"", xfilename.clone())
                                       .into_bytes()]);
+    do_cache_response(&mut response);
     Ok(response)
 }
 
@@ -809,6 +817,7 @@ fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Re
     response.headers.set_raw("content-disposition",
                              vec![format!("attachment; filename=\"{}\"", xfilename.clone())
                                       .into_bytes()]);
+    dont_cache_response(&mut response);
     Ok(response)
 }
 
@@ -827,6 +836,7 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                         // and the newer Hyper 0.9.4. TODO: change back to set() once
                         // Iron updates to Hyper 0.9.x.
 
+                        do_cache_response(&mut response);
                         response.headers
                             .set_raw("X-Filename", vec![archive.file_name().clone().into_bytes()]);
                         response.headers.set_raw("content-disposition",
@@ -863,7 +873,9 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     match depot.datastore.origin_keys.all(origin) {
         Ok(revisions) => {
             let body = json::encode(&revisions.to_json()).unwrap();
-            Ok(Response::with((status::Ok, body)))
+            let mut response = Response::with((status::Ok, body));
+            dont_cache_response(&mut response);
+            Ok(response)
         }
         Err(e) => {
             error!("list_origin_keys:1, err={:?}", e);
@@ -903,6 +915,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 };
                 let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
                 response.headers.set_raw("Content-Range", range);
+                dont_cache_response(&mut response);
                 Ok(response)
             }
             Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
@@ -931,6 +944,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
+                dont_cache_response(&mut response);
                 Ok(response)
             }
             Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
@@ -947,7 +961,10 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 fn list_views(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
     let views = try!(depot.datastore.views.all());
     let body = json::encode(&views).unwrap();
-    Ok(Response::with((status::Ok, body)))
+
+    let mut response = Response::with((status::Ok, body));
+    dont_cache_response(&mut response);
+    Ok(response)
 }
 
 fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
@@ -959,7 +976,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             match depot.datastore.views.view_pkg_idx.latest(view, &ident.to_string()) {
                 Ok(ident) => {
                     match depot.datastore.packages.find(&ident) {
-                        Ok(pkg) => render_package(&pkg),
+                        Ok(pkg) => render_package(&pkg, false),
                         Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:1, err={:?}", e);
@@ -979,7 +996,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             match depot.datastore.views.view_pkg_idx.is_member(view, &ident) {
                 Ok(true) => {
                     match depot.datastore.packages.find(&ident) {
-                        Ok(pkg) => render_package(&pkg),
+                        Ok(pkg) => render_package(&pkg, true),
                         Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:3, err={:?}", e);
@@ -1009,7 +1026,15 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         }
 
         match depot.datastore.packages.find(&ident) {
-            Ok(pkg) => render_package(&pkg),
+            Ok(pkg) => {
+                // If the request was for a fully qualified ident, cache the response, otherwise do
+                // not cache
+                if ident.fully_qualified() {
+                    render_package(&pkg, true)
+                } else {
+                    render_package(&pkg, false)
+                }
+            }
             Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
             Err(e) => {
                 error!("show_package:6, err={:?}", e);
@@ -1038,16 +1063,22 @@ fn search_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     };
     let range = vec![format!("{}..{}", offset, num).into_bytes()];
     response.headers.set_raw("Content-Range", range);
+    dont_cache_response(&mut response);
     Ok(response)
 }
 
-fn render_package(pkg: &depotsrv::Package) -> IronResult<Response> {
+fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Response> {
     let body = json::encode(&pkg.to_json()).unwrap();
     let mut response = Response::with((status::Ok, body));
     // use set_raw because we're having problems with Iron's Hyper 0.8.x
     // and the newer Hyper 0.9.4.
     // TODO: change back to set() once Iron updates to Hyper 0.9.x.
     response.headers.set_raw("ETag", vec![pkg.get_checksum().to_string().into_bytes()]);
+    if should_cache {
+        do_cache_response(&mut response);
+    } else {
+        dont_cache_response(&mut response);
+    }
     Ok(response)
 }
 
@@ -1139,6 +1170,16 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
         }
         Err(_) => None,
     }
+}
+
+fn do_cache_response(response: &mut Response) {
+    response.headers.set_raw("Cache-Control",
+                             vec![format!("public, max-age={}", ONE_YEAR_IN_SECS).into_bytes()]);
+}
+
+fn dont_cache_response(response: &mut Response) {
+    response.headers.set_raw("Cache-Control",
+                             vec![format!("private, no-cache, no-store").into_bytes()]);
 }
 
 struct Cors;
