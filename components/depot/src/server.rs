@@ -109,12 +109,12 @@ pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Res
         }
         Err(e @ hab_net::Error::JsonDecode(_)) => {
             debug!("github user get, err={:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "ss:auth:1");
+            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "dp:auth:1");
             Err(render_net_error(&err))
         }
         Err(e) => {
             debug!("github user get, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "ss:auth:2");
+            let err = net::err(ErrCode::BUG, "dp:auth:2");
             Err(render_net_error(&err))
         }
     }
