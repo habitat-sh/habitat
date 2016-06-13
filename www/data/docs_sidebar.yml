@@ -61,6 +61,8 @@ sidebar_links:
       link: "/docs/run-packages-director/"
     - title: Upload files
       link: "/docs/run-packages-upload-files/"
+  - title: Share packages
+    link: "/docs/share-packages-overview/"
   - title: Continuous deployment
     link: "/docs/continuous-deployment-overview/"
   - title: Habitat internals <span>&plus;</span>
