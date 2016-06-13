@@ -1,0 +1,9 @@
+[ui]
+app_url          = "https://willem.habitat.sh/v1"
+community_url    = "https://www.habitat.sh/community"
+docs_url         = "https://www.habitat.sh/docs"
+environment      = "production"
+friends_only     = true
+source_code_url  = "https://github.com/habitat-sh/habitat"
+tutorials_url    = "https://www.habitat.sh/tutorials"
+www_url          = "https://www.habitat.sh"

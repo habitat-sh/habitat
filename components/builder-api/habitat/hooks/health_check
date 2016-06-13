@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -x
+
+rc=0
+curl --head --fail --max-time 1 http://localhost:9636/v1/status
+
+case $? in
+  0)
+    rc=0 ;;
+  *)
+    rc=2 ;;
+esac
+
+exit $rc

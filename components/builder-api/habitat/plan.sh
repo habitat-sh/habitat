@@ -5,13 +5,25 @@ pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
-pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
-pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/rust core/gcc core/pkg-config)
+pkg_deps=(core/glibc core/openssl core/coreutils core/gcc-libs core/zeromq core/libsodium core/libarchive)
+pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/rust core/gcc
+                core/pkg-config core/node core/phantomjs)
 pkg_expose=(9636)
 srv_bin="bldr-api"
 pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
 
 do_build() {
+  pushd $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version > /dev/null
+  export HOME=$HAB_CACHE_SRC_PATH
+  npm install
+  for b in node_modules/.bin/*; do
+    echo $b
+    fix_interpreter $(readlink -f -n $b) core/coreutils bin/env
+  done
+  npm run postinstall
+  npm run dist
+  popd > /dev/null
+
   # Used by the `build.rs` program to set the version of the binaries
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
@@ -40,6 +52,7 @@ do_build() {
 }
 
 do_install() {
+  cp -vR $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version/dist $pkg_prefix/static
   install -v -D $PLAN_CONTEXT/../target/$rustc_target/$srv_bin $pkg_prefix/bin/$srv_bin
 }
 
@@ -56,5 +69,7 @@ do_unpack() {
 }
 
 do_prepare() {
-  return 0
+  rm -Rdf $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version
+  cp -ra $PLAN_CONTEXT/../../builder-web $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version
+  rm -Rdf $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version/node_modules
 }
