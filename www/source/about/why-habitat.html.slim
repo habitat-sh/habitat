@@ -8,16 +8,15 @@ h1 Why Habitat?
 p Habitat exists to solve the problem of how we build, deploy, and manage
   applications. As Marc Andreeesen declared in 2011, <a
   href="http://www.wsj.com/articles/SB10001424053111903480904576512250915629460">"software
-  is eating the world"</a> - in every sector, in every industry, from small startups
+  is eating the world"</a>. In every sector, in every industry, from small startups
   to the largest of enterprises, we see software at the center of how we build and run
   our companies, and how we interact with our customers. This shift forces us all to
-  become fast, efficient, software driven organizations - or loose out to a competitor
+  become fast, efficient, software-driven organizations&mdash;or lose out to a competitor
   who is.
 
-p This challenge is not simply technical - it is also organizational, it is cultural.
-  We have to change the way we work together, hand in hand with changing the
-  technical systems that enable us all. If we are to succeed in helping each other cross
-  this technical chasm, we need to build solutions that help create the culture that
+p This challenge is not simply technical. It is also organizational and it is cultural.
+  We have to change the way we work together, hand-in-hand with changing the
+  systems that enable us all. We need to build solutions that help create the culture that
   enables us.
 
 img[src="/images/why-habitat/culture-people-technology.svg" width="50%" style="align: center;"]
@@ -26,17 +25,19 @@ h2. What have we done so far?
 
 p As an industry, we have designed our solutions to this problem either from
   the perspective of the Enterprise, or the perspective of the Big Web
-  (Facebook, Google, Netflix, Twitter, etc.). When we start from the
-  Enterprise, we tend to build solutions that are too narrowly focused - our
+  (Facebook, Google, Netflix, Twitter, etc.).
+
+p When we start from the
+  Enterprise, we tend to build solutions that are too narrowly focused. Our
   software becomes an example of
   <a href="https://en.wikipedia.org/wiki/Conway%27s_law">Conway's Law</a> in action.
   The deep silo-ing of responsibility present in most enterpries drives us to design
-  software specifically for one silo or another - we build security software, or we
+  software specifically for one silo or another: we build security software, or we
   build application deployment software, or we build configuration management software.
   If we endeavour to escape this trap by designing solutions that cut across the silos,
   we fall prey to another issue: we're forced to integrate into every silo's existing
   software toolchain. The result tends to be systems that are deeply complex, and
-  very difficult to understand and operate - or worse, that are only as good as
+  very difficult to understand and operate&mdash;or worse, that are only as good as
   their worst point of integration. It is difficult to escape the complexity of
   the matrix between different eras of technology and deep silo-ing.
 
@@ -45,46 +46,48 @@ img[src="/images/why-habitat/enterprise-app-lifecycle.png"]
 p When we look to the Big Web for inspiration, things look better. While each company
   is different, they all share in the ability to deliver software efficently, safely,
   at speed. They accomplish this feat by establishing a simpler, more standardized
-  infrastructure layer than their enterprise compatriots. On top of this they build
+  infrastructure layer than their enterprise compatriots. On top of this, they build
   a runtime that supports the applications they build, making it easy for their software
   development teams to write new software, and streamlining their operations. It feels
   intuitively right that we should look here, at least directionally, for the solution
-  to our problem. However, two facts quickly arise that make this direction difficult
-  as a general purpose solution. First, these companies all share one fundamental
+  to our problem.
+
+p Yet two facts quickly arise that make this direction difficult
+  as a general-purpose solution. First, these companies all share one fundamental
   truth: they controlled the destiny of their applications from day one. Unlike the
   Enterprise, the Big Web wrote their software from scratch. This reality leads
-  naturally to the second truth - the platform they built *is* the business. If we
+  naturally to the second truth: the platform they built *is* the business. If we
   follow this path, we will have to re-write most of the software in the world to
-  target a specific runtime platform - one which, as of today, doesn't exist,
-  and has no analog in the big web (each platform is different.)
+  target a specific runtime platform&mdash;one which, as of today, doesn't exist,
+  and has no analog in the big web, because each platform is different.
 
 img[src="/images/why-habitat/best-app-lifecycle.png"]
 
-h2. Taking the applications perspective
+h2. Taking the application's perspective
 
 p Habitat started by asking this question: if our goal is to quickly and safely
-  build, deploy, and manage applications, what would happen if we took the applications
-  perspective on the problem? Rather than starting from the Enterprise point of view,
+  build, deploy, and manage applications, what would happen if we took the application's
+  perspective on the problem? Rather than starting from the Enterprise point-of-view,
   or from the platform-centric view of the Big Web, what if we simply focused in on
   what it means to be easy to build, easy to manage, and easy to deploy?
 
-p We call the answer we found Application Automation. Our great discovery was simply
+p We call the answer we found _Application Automation_. Our great discovery was simply
   that the automation must travel with the application, rather than be provided by the
-  platform. Everything the application needs, from build dependencies, run time
+  platform. Everything the application needs, from build dependencies, run-time
   dependencies, configuration, dynamic topologies, deployment strategies,
-  secrets management, security auditing - if we're doing it for the application,
-  it belongs with the application. The runtime and infrastructure layers exist to
-  support the application - but the efficient building, deployment, and management
+  secrets management, security auditing, and so on belongs with the application, because
+  we're doing it for the application. Runtime and infrastructure layers exist to
+  support the application, but the efficient building, deployment, and management
   of the application are decoupled from those layers.
 
-h2. Existing and Cloud Native Software: 1 management layer
+h2. Existing and Cloud Native Software: One management layer
 
 p The result is that we can take an application, wrap it in a layer of application
   automation, and the resulting package can be deployed on the infrastructure
   or runtime that suits it best. If your application has hard requirements on physical
-  infrastructure (SAN settings, network topologies, GPUs, etc.) - you can deploy it
+  infrastructure (SAN settings, network topologies, GPUs, etc.), you can deploy it
   there, and manage it the same way you manage the software that deploys on top of
-  a PaaS, or in a Container.
+  a PaaS, or in a container.
 
 h2. Packaging and Supervision
 
@@ -107,16 +110,17 @@ h2. Avoiding the Production Cliff
 p This architecture allows us to avoid the production cliff problem: the closer you get
   to production, the more difficult it is. Rather than force the deployment of
   more and more infrastructure and management software as you approach
-  production, operations teams can simply pass more options to the supervisor -
+  production, operations teams can simply pass more options to the supervisor:
   declaring the correct topology, update strategy, and configuration. Deploying
-  the application *is* deploying the automation - all of it.
+  the application *is* deploying the automation&mdash;all of it.
 
 img[src="/images/why-habitat/difficulty-curve-07.png"]
 
 h2. Try Habitat!
 
-p We're proud of Habitat - we think it makes the software you already have better,
-  the runtime and infrastructure platforms we're moving to better. It's technology
+p We're proud of Habitat. We think it makes the software you already have better.
+  We also think it makes the runtime and infrastructure platforms you're moving to better.
+  Habitat is technology
   that simplifies the complexity of how we build, deploy, and manage our applications;
   empowers the teams that need to collaborate in order to deliver the future; and
   accelerates the speed with which we can get a better experience out to our users.
@@ -124,7 +128,7 @@ p We're proud of Habitat - we think it makes the software you already have bette
 p Don't take our word for it. #{link_to 'Try Habitat', '/try/index.html'} yourself,
   right in your browser Or head over to the 
   #{link_to 'tutorials', '/tutorials/index.html'} and 
-  #{link_to 'documentation', '/docs/index.html'}. Habitat is open source - so
+  #{link_to 'documentation', '/docs/index.html'}. Habitat is open source, so
   if you would rather dive straight in, grab the source from
   #{link_to 'GitHub', 'https://github.com/habitat-sh/habitat'}.
 
