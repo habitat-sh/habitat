@@ -1,5 +1,5 @@
 const navBreakpoint = 710;
-const $mainNav = $('#main-nav:not(.has-sidebar)');
+const $mainNav = $('#main-nav');
 const $navLinks = $('.main-nav--links');
 const $navToggle = $('.main-nav--toggle');
 const currentPagePath = location.pathname;
@@ -8,13 +8,15 @@ const stickyBreakpoint = 120;
 const stickyVisibleBreakpoint = 160;
 
 var toggleStickyNav = function() {
-  if ($(window).width() > navBreakpoint) {
-    $mainNav.toggleClass('is-sticky', $(window).scrollTop() > stickyBreakpoint);
-    $mainNav.toggleClass('is-visible', $(window).scrollTop() > stickyVisibleBreakpoint);
-    $('#content-outer').toggleClass('has-sticky-nav', $(window).scrollTop() > stickyBreakpoint);
-  } else {
-    $mainNav.removeClass('is-visible');
-    $mainNav.toggleClass('is-sticky', $(window).scrollTop() > 0);
+  if ($mainNav.is(":not(.has-sidebar)")) {
+    if ($(window).width() > navBreakpoint) {
+      $mainNav.toggleClass('is-sticky', $(window).scrollTop() > stickyBreakpoint);
+      $mainNav.toggleClass('is-visible', $(window).scrollTop() > stickyVisibleBreakpoint);
+      $('#content-outer').toggleClass('has-sticky-nav', $(window).scrollTop() > stickyBreakpoint);
+    } else {
+      $mainNav.removeClass('is-visible');
+      $mainNav.toggleClass('is-sticky', $(window).scrollTop() > 0);
+    }
   }
 };
 
