@@ -47,20 +47,22 @@ sidebar_links:
     sub_links:
     - title: Service groups
       link: "/docs/run-packages-service-groups/"
-    - title: Configuration updates
-      link: "/docs/run-packages-apply-config-updates/"
-    - title: Binding
-      link: "/docs/run-packages-binding/"
-    - title: Security
-      link: "/docs/run-packages-security/"
     - title: Topologies
       link: "/docs/run-packages-topologies/"
+    - title: Configuration updates
+      link: "/docs/run-packages-apply-config-updates/"
+    - title: Upload files
+      link: "/docs/run-packages-upload-files/"
+    - title: Security
+      link: "/docs/run-packages-security/"
+    - title: Binding
+      link: "/docs/run-packages-binding/"
     - title: Update strategy
       link: "/docs/run-packages-update-strategy/"
     - title: Run multiple packages
       link: "/docs/run-packages-director/"
-    - title: Upload files
-      link: "/docs/run-packages-upload-files/"
+    - title: Export packages
+      link: "/docs/run-packages-export/"
   - title: Share packages
     link: "/docs/share-packages-overview/"
   - title: Continuous deployment
