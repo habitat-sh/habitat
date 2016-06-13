@@ -1,3 +1,8 @@
+variable "aws_account_id" {
+    description = "The AWS account ID. Used by bucket policy"
+    default = "799338195663"
+}
+
 variable "env" {
     description = "Name of logical server environment for network"
 }
@@ -71,4 +76,14 @@ variable "connection_agent" {
 
 variable "connection_private_key" {
     description = "File path to AWS keypair private key"
+}
+
+variable "www_bucket_name" {
+    description = "Name of the bucket where the website gets deployed"
+    default = "habitat-www"
+}
+
+variable "www_user" {
+    description = "Name of the user who can deploy the website"
+    default = "www"
 }
