@@ -63,6 +63,8 @@ sidebar_links:
       link: "/docs/run-packages-director/"
     - title: Export packages
       link: "/docs/run-packages-export/"
+    - title: Monitoring
+      link: "/docs/run-packages-monitoring/"
   - title: Share packages
     link: "/docs/share-packages-overview/"
   - title: Continuous deployment

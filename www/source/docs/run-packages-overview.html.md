@@ -51,3 +51,4 @@ This section is divided into the following areas:
 - [Update strategy](/docs/run-packages-update-strategy): Describes how the supervisor and its peers within a service group should respond when a new version of a package is available.
 - [Run multiple packages](/docs/run-packages-director): Learn about the director and how to use it to start up multiple services on the same machine.
 - [Export packages](/docs/run-packages-export): Learn how to export packages into multiple external, immutable runtime formats.
+- [Monitor services through the HTTP API](/docs/run-packages-monitoring): Discover how to use the HTTP API to retrieve census, status, and health information from your running services.
