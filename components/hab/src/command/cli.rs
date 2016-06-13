@@ -42,7 +42,7 @@ pub mod setup {
                   we recommend that you select one that is not already in use on the Habitat \
                   build service found at https://app.habitat.sh/.");
             let origin = try!(prompt_origin());
-            try!(write_cli_config(&origin));
+            try!(write_cli_config_origin(&origin));
             println!("");
             if is_origin_in_cache(&origin, cache_path) {
                 para(&format!("You already have an origin key for {} created and installed. \
@@ -70,6 +70,25 @@ pub mod setup {
         } else {
             para("Okay, maybe another time");
         }
+        heading("GitHub Access Token");
+        para("While you can build and run Habitat packages without sharing them on the public \
+              depot, doing so allows you to collaborate with the Habitat community. In addition, \
+              it is how you can perform continuous deployment with Habitat.");
+        para("The depot uses GitHub authentication with an access token \
+              (https://help.github.com/articles/creating-an-access-token-for-command-line-use/).");
+        para("If you would like to share your packages on the depot, please enter your GitHub \
+              access token. Otherwise, just enter No.");
+        para("For more information on sharing packages on the depot, please read the \
+              documentation at https://www.habitat.sh/docs/share-packages-overview/");
+        if try!(ask_default_auth_token()) {
+            println!("");
+            para("Enter your GitHub access token.");
+            let auth_token = try!(prompt_auth_token());
+            try!(write_cli_config_auth_token(&auth_token));
+        } else {
+            para("Okay, maybe another time");
+        }
+        println!("");
         heading("Analytics");
         para("The `hab` command-line tool will optionally send anonymous usage data to Habitat's \
              Google Analytics account. This is a strictly opt-in activity and no tracking will \
@@ -98,9 +117,15 @@ pub mod setup {
                       Some(true))
     }
 
-    fn write_cli_config(origin: &str) -> Result<()> {
-        let mut config = Config::default();
+    fn write_cli_config_origin(origin: &str) -> Result<()> {
+        let mut config = try!(config::load());
         config.origin = Some(origin.to_string());
+        config::save(&config)
+    }
+
+    fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
+        let mut config = try!(config::load());
+        config.auth_token = Some(auth_token.to_string());
         config::save(&config)
     }
 
@@ -134,6 +159,23 @@ pub mod setup {
             None => env::var("USER").ok(),
         };
         prompt_ask("Default origin name", default.as_ref().map(|x| &**x))
+    }
+
+    fn ask_default_auth_token() -> Result<bool> {
+        prompt_yes_no("Set up a default GitHub access token?", Some(true))
+    }
+
+    fn prompt_auth_token() -> Result<String> {
+        let config = try!(config::load());
+        let default = match config.auth_token {
+            Some(o) => {
+                para("You already have a default auth token set up, but feel free to change it \
+                      if you wish.");
+                Some(o)
+            }
+            None => None,
+        };
+        prompt_ask("GitHub access token", default.as_ref().map(|x| &**x))
     }
 
     fn ask_enable_analytics(analytics_path: &Path) -> Result<bool> {
