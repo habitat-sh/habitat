@@ -20,6 +20,18 @@ resource "aws_instance" "services" {
         agent       = "${var.connection_agent}"
     }
 
+    ebs_block_device {
+        device_name = "/dev/xvdb"
+        volume_size = 100
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkdir -p /mnt/hab",
+            "sudo ln -s /mnt/hab /hab"
+        ]
+    }
+
     # JW TODO: Bake AMIs with updated habitat on them instead of bootstrapping
     provisioner "remote-exec" {
         script = "${path.module}/scripts/bootstrap.sh"
