@@ -498,6 +498,19 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
     }
 }
 
+
+fn write_string_to_file(filename: &PathBuf, body: String) -> Result<bool> {
+    let path = filename.parent().unwrap();
+    try!(fs::create_dir_all(path));
+    let tempfile = format!("{}.tmp", filename.to_string_lossy());
+    let f = try!(File::create(&tempfile));
+    let mut writer = BufWriter::new(&f);
+    try!(writer.write_all(body.as_bytes()));
+    info!("File added to Depot at {}", filename.to_string_lossy());
+    try!(fs::rename(&tempfile, &filename));
+    Ok(true)
+}
+
 fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     let path = filename.parent().unwrap();
     try!(fs::create_dir_all(path));
@@ -579,7 +592,7 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     depot.datastore.origin_keys.write(&origin, &revision).unwrap();
 
-    try!(write_file(&origin_keyfile, &mut req.body));
+    try!(write_string_to_file(&origin_keyfile, content));
 
     let mut response = Response::with((status::Created,
                                        format!("/origins/{}/keys/{}", &origin, &revision)));
