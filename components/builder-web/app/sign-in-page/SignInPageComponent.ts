@@ -36,7 +36,7 @@ import {createGitHubLoginUrl, icon} from "../util";
                     </span>
                 </a>
                 <a *ngIf="isSignedIn"
-                   class="button secondary hab-sign-in--out"
+                   class="button hab-sign-in--out"
                    (click)="signOut()"
                    href="#">
                    Sign Out
