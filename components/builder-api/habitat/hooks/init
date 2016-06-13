@@ -1,0 +1,5 @@
+#!/bin/sh
+
+ln -sf {{pkg.path}}/static {{pkg.svc_path}}
+rm -df {{pkg.svc_static_path}}/habitat.conf.js
+ln -sf {{pkg.svc_config_path}}/habitat.conf.js {{pkg.svc_static_path}}/habitat.conf.js

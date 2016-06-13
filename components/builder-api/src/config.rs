@@ -71,6 +71,10 @@ impl ConfigFile for Config {
 
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
+        let mut pkg_path = String::new();
+        if try!(toml.parse_into("pkg.svc_static_path", &mut pkg_path)) {
+            cfg.ui_root = Some(pkg_path);
+        }
         try!(toml.parse_into("cfg.http_addr", &mut cfg.http_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         try!(toml.parse_into("pkg.svc_data_path", &mut cfg.depot.path));
@@ -86,7 +90,6 @@ impl ConfigFile for Config {
         }
         try!(toml.parse_into("cfg.github.client_secret",
                              &mut cfg.depot.github_client_secret));
-        try!(toml.parse_into("cfg.ui_root", &mut cfg.ui_root));
         Ok(cfg)
     }
 }
