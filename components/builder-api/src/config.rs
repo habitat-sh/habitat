@@ -40,6 +40,8 @@ pub struct Config {
     pub github_client_id: String,
     /// Client secret used for GitHub API requests
     pub github_client_secret: String,
+    /// Path to UI files to host over HTTP. If not set the UI will be disabled.
+    pub ui_root: Option<String>,
 }
 
 impl Config {
@@ -59,6 +61,7 @@ impl Default for Config {
             github_url: GITHUB_URL.to_string(),
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
+            ui_root: None,
         }
     }
 }
@@ -83,6 +86,7 @@ impl ConfigFile for Config {
         }
         try!(toml.parse_into("cfg.github.client_secret",
                              &mut cfg.depot.github_client_secret));
+        try!(toml.parse_into("cfg.ui_root", &mut cfg.ui_root));
         Ok(cfg)
     }
 }

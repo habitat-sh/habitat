@@ -19,6 +19,7 @@ use iron::AfterMiddleware;
 use iron::headers;
 use iron::method::Method;
 use mount::Mount;
+use staticfile::Static;
 use unicase::UniCase;
 use zmq;
 
@@ -71,10 +72,15 @@ pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Joi
     let ctx = context.clone();
     let depot = try!(depot::Depot::new(config.depot.clone(), ctx));
     let depot_chain = try!(depot::server::router(depot));
-    let chain = try!(router(config, context));
 
     let mut mount = Mount::new();
+    if let Some(ref path) = config.ui_root {
+        debug!("Mounting UI at filepath {}", path);
+        mount.mount("/", Static::new(path));
+    }
+    let chain = try!(router(config, context));
     mount.mount("/v1", chain).mount("/v1/depot", depot_chain);
+
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {

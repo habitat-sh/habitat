@@ -17,6 +17,7 @@ dependencies = [
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "router 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "staticfile 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -669,6 +670,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "hpack 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "staticfile"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mount 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

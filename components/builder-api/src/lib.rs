@@ -20,6 +20,7 @@ extern crate redis;
 #[macro_use]
 extern crate router;
 extern crate rustc_serialize;
+extern crate staticfile;
 extern crate toml;
 extern crate unicase;
 extern crate urlencoded;
