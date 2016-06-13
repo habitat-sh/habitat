@@ -22,7 +22,7 @@ The depot software presently only supports GitHub authentication. For the public
 
 ## Creating an origin or joining an existing origin
 
-You can create your own [origin] in the depot or be invited to join an existing one. If you already built some Habitat packages on your local computer prior to signing up for a depot account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
+You can create your own origin in the depot or be invited to join an existing one. If you already built some Habitat packages on your local computer prior to signing up for a depot account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
 
 ## Setting up hab to authenticate to the depot
 
