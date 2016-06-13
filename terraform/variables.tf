@@ -45,6 +45,10 @@ variable "private_subnet_id" {
     description = "Identifier for private AWS subnet"
 }
 
+variable "monolith_count" {
+    description = "Number of monolithic servers to start"
+}
+
 variable "rest_api_count" {
     description = "Number of Builder REST API servers to start"
 }
