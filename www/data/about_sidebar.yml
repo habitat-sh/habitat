@@ -2,8 +2,8 @@
 sidebar_links:
 - title: Why Habitat?
   links:
-  - title: The Genesis of Habitat
-    link:  "/about/habitat-genesis/"
+  - title: Overview
+    link:  "/about/why-habitat/"
   - title: What is a Modern Application?
     link:  "/about/what-is-modern-app/"
   - title: Why Package the App and Its Automation Together?
