@@ -5,8 +5,6 @@ branches:
 env:
   global:
   - PATH=$HOME/.cargo/bin:$PATH
-  - secure: gdbeNjLU9smyegb7nNIwqi6oghu2TwQ9u0l0+BtqIUO6y3O/J9orkCGkWhwtaRkOtLVVakduC0qCCZDD24f/2aZoPN4XhHeNL6oDnq9TngKqi4/sOYRUQ5TB8xL+ja3H6Gx9bB1FhpohuMlfTbCnO3lLWP0Oj4btbcsfsYe8ytM=
-  - secure: GoX6A9uqZ7avilS62w+Noju1ntmqK45C98apBrVnym0tDON3W7kJ5sUJiq6x3+oFOxn0QlaOX1Mku5GyesDE+NbGm4YlLLcucTv2gi9iab5HJsxhHNsLgyMWBPCj25n2qcaCQE0g7naRSThnpRFFV+U6wbqLBods0jKbL95yrPY=
 matrix:
   include:
   - language: rust
@@ -147,11 +145,19 @@ matrix:
       bundle: true
       directories:
       - www/build
-      - www/vendor/bundle
-    install:
-    - "(cd www && bundle install --deployment)"
-    script:
-    - "(cd www && bundle exec middleman build)"
+    env:
+    - AWS_BUCKET=habitat-www
+    - AWS_DEFAULT_REGION=us-west-2
+    - AWS_ACCESS_KEY_ID=AKIAIS2HU4MHR2ZPW4YQ
+    # AWS_SECRET_ACCESS_KEY
+    - secure: "ku0POL6idw23V8nDXipyAsQw4E1CMDgwXTDg7Y/mrTnmsHfZYUs1j9+bHwSUg2TSnK8oFHArb4PSjz4QBfcYYNBDFfFMpb9VoIm8tYX+6hxSqZfvDheN0Zl1dsIASdJavml+YO81pNqsVpwsL0Sr3986SWgQkq92/e3LN8BtYiE="
+    # FASTLY_API_KEY
+    - secure: gdbeNjLU9smyegb7nNIwqi6oghu2TwQ9u0l0+BtqIUO6y3O/J9orkCGkWhwtaRkOtLVVakduC0qCCZDD24f/2aZoPN4XhHeNL6oDnq9TngKqi4/sOYRUQ5TB8xL+ja3H6Gx9bB1FhpohuMlfTbCnO3lLWP0Oj4btbcsfsYe8ytM=
+    # FASTLY_SERVICE_KEY
+    - secure: GoX6A9uqZ7avilS62w+Noju1ntmqK45C98apBrVnym0tDON3W7kJ5sUJiq6x3+oFOxn0QlaOX1Mku5GyesDE+NbGm4YlLLcucTv2gi9iab5HJsxhHNsLgyMWBPCj25n2qcaCQE0g7naRSThnpRFFV+U6wbqLBods0jKbL95yrPY=
+    install: "(cd www && bundle install)"
+    script: "(cd www && ./bin/middleman build)"
+    after_script: ./support/ci/deploy_website.sh
     deploy:
       provider: s3
       access_key_id: AKIAJD2LEPZPVODPFLIQ
