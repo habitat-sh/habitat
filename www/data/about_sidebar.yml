@@ -4,6 +4,8 @@ sidebar_links:
   links:
   - title: Overview
     link:  "/about/why-habitat/"
+- title: Further Reading
+  links:
   - title: What is a Modern Application?
     link:  "/about/what-is-modern-app/"
   - title: Why Package the App and Its Automation Together?
