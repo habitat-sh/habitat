@@ -254,6 +254,10 @@ ol.lower-alpha {
 // 6. Images
 // ---------
 
+img {
+  max-width: 100%;
+}
+
 .logo-inline {
   max-height: 2rem;
 }
