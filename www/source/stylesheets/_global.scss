@@ -12,6 +12,7 @@
 //  7. Callout Boxes
 //  8. Anchor Links
 //  9. Global Message
+//  10. 404
 
 
 // 1. Global
@@ -303,5 +304,27 @@ img {
   a {
     color: $white;
     font-size: rem-calc(14);
+  }
+}
+
+// 10. 404
+// ---------
+
+.error-404 {
+  background: url(../images/back-at-it.jpg) center center no-repeat;
+  background-size: 50%;
+  margin: rem-calc(60) auto;
+  min-height: rem-calc(600);
+
+  @include breakpoint(small only) {
+    margin-top: rem-calc(100);
+    min-height: rem-calc(350);
+  }
+
+  h1,
+  p {
+    margin: 0 auto rem-calc(10);
+    max-width: 65%;
+    text-align: center;
   }
 }
