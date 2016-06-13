@@ -25,7 +25,8 @@ pub fn get() -> App<'static, 'static> {
         .setting(AppSettings::Hidden);
     let alias_setup = sub_cli_setup()
         .about("Alias for 'cli setup'")
-        .aliases(&["set", "setu"]);
+        .aliases(&["set", "setu"])
+        .setting(AppSettings::Hidden);
     let alias_start = alias_start().aliases(&["st", "sta", "star"]);
 
     clap_app!(hab =>
@@ -59,7 +60,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg VERSION_NUMBER: +required
                     "A version number (positive integer) for this configuration (ex: 42)")
                 (@arg ORG: --org +takes_value "Name of service organization")
-                (@arg USER: +takes_value)
+                (@arg USER: +takes_value "Name of the user key")
                 (@arg PEER: -p --peer +takes_value
                     "A comma-delimited list of one or more Habitat Supervisor peers to infect \
                     (default: 127.0.0.1:9634)")
@@ -201,7 +202,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand export =>
                     (about: "Outputs the latest ring key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
-                    (@arg RING: +required +takes_value)
+                    (@arg RING: +required +takes_value "Ring key name")
                 )
                 (@subcommand import =>
                     (about: "Reads a stdin stream containing ring key contents and writes \
@@ -211,7 +212,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand generate =>
                     (about: "Generates a Habitat ring key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg RING: +required +takes_value)
+                    (@arg RING: +required +takes_value "Ring key name")
                 )
             )
         )
@@ -226,7 +227,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand generate =>
                     (about: "Generates a Habitat service key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group})
+                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group} "Target service group for this injection (ex: redis.default)")
                     (@arg ORG: "The service organization")
                 )
             )
@@ -250,7 +251,7 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand generate =>
                     (about: "Generates a Habitat user key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg USER: +required +takes_value)
+                    (@arg USER: +required +takes_value "Name of the user key")
                 )
             )
         )
