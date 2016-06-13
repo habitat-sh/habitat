@@ -56,7 +56,6 @@ The main program that allows you to sign and upload packages, start Habitat serv
     pkg        Commands relating to Habitat packages
     ring       Commands relating to Habitat rings
     service    Commands relating to Habitat services
-    setup      Alias for 'cli setup'
     studio     Commands relating to Habitat Studios
     sup        Commands relating to the Habitat Supervisor
     user       Commands relating to Habitat users
@@ -91,6 +90,7 @@ Applies configuration to a group of Habitat supervisors.
 
 **OPTIONS**
 
+        --org <ORG>      Name of service organization
     -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers to
                          communicate with (default: 127.0.0.1:9634)
     -r, --ring <RING>    Ring key name, which will encrypt communication messages
@@ -125,7 +125,7 @@ Upload a file to a supervisor ring.
     <SERVICE_GROUP>     Target service group for this injection (ex: redis.default)
     <FILE>              Path to local file on disk
     <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
-    <USER>
+    <USER>              Name of the user key
 
 <h2 id="hab-origin-key-download" class="anchor">hab origin key download</h2>
 Download origin key(s) to `HAB_CACHE_KEY_PATH`
@@ -263,7 +263,8 @@ Builds a Plan using a Studio
 
 **ARGS**
 
-    <PLAN_CONTEXT>    A directory containing a `plan.sh` file or a `habitat/` directory which contains the `plan.sh` file
+    <PLAN_CONTEXT>    A directory containing a `plan.sh` file or a `habitat/` directory which contains
+                      the `plan.sh` file
 
 <h2 id="hab-pkg-exec" class="anchor">hab pkg exec</h2>
 Executes a command using the 'PATH' context of an installed package
@@ -334,7 +335,9 @@ Installs a Habitat package from a Depot or locally from a Habitat Artifact
 
 **ARGS**
 
-    <PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    <PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or
+                                  filepaths to a Habitat Artifact (ex:
+                                  /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-path" class="anchor">hab pkg path</h2>
 Prints the path to a specific installed release of a package
@@ -371,7 +374,8 @@ Signs an archive with an origin key, generating a Habitat Artifact
 **ARGS**
 
     <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-    <DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+    <DEST>      The destination path to the signed Habitat Artifact (ex:
+                /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
 <h2 id="hab-pkg-verify" class="anchor">hab pkg verify</h2>
 Verifies a Habitat Artifact with an origin key
@@ -403,7 +407,7 @@ Outputs the latest ring key contents to stdout
 
 **ARGS**
 
-    <RING>
+    <RING>           Ring key name
 
 <h2 id="hab-ring-key-generate" class="anchor">hab ring key generate</h2>
 Generates a Habitat ring key
@@ -419,7 +423,7 @@ Generates a Habitat ring key
 
 **ARGS**
 
-    <RING>
+    <RING>           Ring key name
 
 <h2 id="hab-ring-key-import" class="anchor">hab ring key import</h2>
 Reads a stdin stream containing ring key contents and writes the key to disk
@@ -447,7 +451,7 @@ Generates a Habitat service key
 
 **ARGS**
 
-    <SERVICE_GROUP>
+    <SERVICE_GROUP>    Target service group for this injection (ex: redis.default)
     <ORG>              The service organization
 
 <h2 id="hab-studio" class="anchor">hab studio</h2>
@@ -534,4 +538,4 @@ Generates a Habitat user key
 
 **ARGS**
 
-    <USER>
+    <USER>           Name of the user key
