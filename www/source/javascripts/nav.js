@@ -1,5 +1,5 @@
 const navBreakpoint = 710;
-const $mainNav = $('#main-nav');
+const $mainNav = $('#main-nav:not(.has-sidebar)');
 const $navLinks = $('.main-nav--links');
 const $navToggle = $('.main-nav--toggle');
 const currentPagePath = location.pathname;
