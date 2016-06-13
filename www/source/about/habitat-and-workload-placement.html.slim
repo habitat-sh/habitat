@@ -13,11 +13,11 @@ p We assume that you've already read the previous articles in this series and
 
 p The Habitat build process includes an optional post-processing step that can
   create an image for any runtime environment from the Habitat package.  For
-  example, Habitat can create Docker container images, or Application Container
-  Images (ACIs). Eventually this philosophy could be extended to create Amazon
-  Machine Images (AMIs), Mesosphere packages, CloudFoundry buildpacks, or any
-  other image format. Habitat is completely agnostic about the image format,
-  if any, you use.
+  example, Habitat can create Docker container images, Application Container
+  Images (ACIs), or Marathon-native images for Apache Mesos. Eventually this
+  approach could be extended to create Amazon Machine Images (AMIs), 
+  CloudFoundry buildpacks, or any other image format. Habitat is completely
+  agnostic about the image format, if any, you use.
 
 p Let's look at the case of Habitat creating container images. After a Habitat
   package has been used to create a new container image during the Habitat

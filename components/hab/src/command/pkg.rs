@@ -184,6 +184,13 @@ pub mod export {
                     };
                     Ok(format)
                 }
+                "mesos" => {
+                    let format = ExportFormat {
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-mesosize")),
+                        cmd: "hab-pkg-mesosize".to_string(),
+                    };
+                    Ok(format)
+                }
                 _ => Err(Error::UnsupportedExportFormat(value.to_string())),
             }
         }
