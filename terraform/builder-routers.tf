@@ -60,7 +60,7 @@ resource "template_file" "router_director" {
 }
 
 resource "aws_security_group" "router_gateway" {
-    name   = "habitat-builder-gateway"
+    name   = "builder-router-gateway-${var.env}"
     vpc_id = "${var.aws_vpc_id}"
 
     tags {
@@ -71,7 +71,7 @@ resource "aws_security_group" "router_gateway" {
 }
 
 resource "aws_security_group" "router_service" {
-    name   = "habitat-builder-service"
+    name   = "builder-router-service-${var.env}"
     vpc_id = "${var.aws_vpc_id}"
 
     tags {
@@ -82,7 +82,7 @@ resource "aws_security_group" "router_service" {
 }
 
 resource "aws_security_group" "router" {
-    name        = "habitat-builder-router"
+    name        = "builder-router-${var.env}"
     description = "Allow traffic to and from Habitat Builder RouteSrv"
     vpc_id      = "${var.aws_vpc_id}"
 

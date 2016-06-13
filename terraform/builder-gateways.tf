@@ -69,12 +69,13 @@ resource "template_file" "gateway_director" {
 
     vars {
         env     = "${var.env}"
-        peer_ip = "${aws_instance.router.0.private_ip}"
+        // peer_ip = "${aws_instance.router.0.private_ip}"
+        peer_ip = "${aws_instance.monolith.0.private_ip}"
     }
 }
 
 resource "aws_security_group" "builder_api_elb" {
-    name        = "builder-api-elb"
+    name        = "builder-api-elb-${var.env}"
     description = "Habitat Builder API Load Balancer"
     vpc_id      = "${var.aws_vpc_id}"
 
@@ -108,7 +109,7 @@ resource "aws_security_group" "builder_api_elb" {
 }
 
 resource "aws_security_group" "builder_api" {
-    name        = "builder-api"
+    name        = "builder-api-${var.env}"
     description = "For traffic to builder-api network services"
     vpc_id      = "${var.aws_vpc_id}"
 
@@ -139,7 +140,7 @@ resource "aws_elb" "builder_api" {
     name            = "builder-api"
     security_groups = ["${aws_security_group.builder_api_elb.id}"]
     subnets         = ["${var.public_subnet_id}"]
-    instances       = ["${aws_instance.builder_api.*.id}"]
+    instances       = ["${aws_instance.monolith.*.id}"]
 
     listener {
         instance_port      = 9636

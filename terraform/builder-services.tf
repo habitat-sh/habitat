@@ -69,12 +69,13 @@ resource "template_file" "services_director" {
 
     vars {
         env     = "${var.env}"
-        peer_ip = "${aws_instance.router.0.private_ip}"
+        // peer_ip = "${aws_instance.router.0.private_ip}"
+        peer_ip = "${aws_instance.monolith.0.private_ip}"
     }
 }
 
 resource "aws_security_group" "service" {
-    name        = "builder-service"
+    name        = "builder-service-${var.env}"
     description = "Allow traffic to and from Habitat Builder service instance"
     vpc_id      = "${var.aws_vpc_id}"
 
@@ -103,7 +104,7 @@ resource "aws_security_group" "service" {
 }
 
 resource "aws_security_group" "jobsrv_worker" {
-    name        = "builder-jobsrv-worker"
+    name        = "builder-jobsrv-worker-${var.env}"
     description = "Assign to worker nodes to enable connectivity with job server on a service node"
     vpc_id      = "${var.aws_vpc_id}"
 
