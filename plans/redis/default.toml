@@ -55,6 +55,10 @@ slave-priority = "100"
 min-slaves-to-write = false
 min-slaves-max-lag = false
 requirepass = ""
+appendonly = "no"
+# "always" "everysec" "no"
+appendfsync = "everysec"
+no-appendfsync-on-rewrite = "no"
 
 [[save]]
 sec = 900
