@@ -15,7 +15,11 @@ body.try-hab {
   }
 
   &.has-sticky-nav {
-    padding-top: $header-height;
+    padding-top: $header-height + 44;
+
+    .has-sidebar & {
+      padding-top: 0;
+    }
   }
 }
 
