@@ -7,16 +7,31 @@ title: Habitat CLI reference
 The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 
 - [hab](#hab)
-- [hab cli](#hab-cli)
-- [hab config](#hab-config)
-- [hab file](#hab-file)
-- [hab origin](#hab-origin)
-- [hab pkg](#hab-pkg)
-- [hab ring](#hab-ring)
-- [hab service](#hab-service)
+- [hab cli setup](#hab-cli-setup)
+- [hab config apply](#hab-config-apply)
+- [hab file upload](#hab-file-upload)
+- [hab origin key download](#hab-origin-key-download)
+- [hab origin key export](#hab-origin-key-export)
+- [hab origin key generate](#hab-origin-key-generate)
+- [hab origin key import](#hab-origin-key-import)
+- [hab origin key upload](#hab-origin-key-upload)
+- [hab pkg binlink](#hab-pkg-binlink)
+- [hab pkg build](#hab-pkg-build)
+- [hab pkg exec](#hab-pkg-exec)
+- [hab pkg export](#hab-pkg-export)
+- [hab pkg hash](#hab-pkg-hash)
+- [hab pkg install](#hab-pkg-install)
+- [hab pkg path](#hab-pkg-path)
+- [hab pkg sign](#hab-pkg-sign)
+- [hab pkg upload](#hab-pkg-upload)
+- [hab pkg verify](#hab-pkg-verify)
+- [hab ring key export](#hab-ring-key-export)
+- [hab ring key generate](#hab-ring-key-generate)
+- [hab ring key import](#hab-ring-key-import)
+- [hab service key generate](#hab-service-key-generate)
 - [hab studio](#hab-studio)
 - [hab sup](#hab-sup)
-- [hab user](#hab-user)
+- [hab user key generate](#hab-user-key-generate)
 
 <h2 id="hab" class="anchor">hab</h2>
 
@@ -33,170 +48,413 @@ The main program that allows you to sign and upload packages, start Habitat serv
 
 **SUBCOMMANDS**
 
-    config      Commands relating to Habitat runtime config
-    file        Commands relating to Habitat files
-    help        Prints this message or the help of the given subcommand(s)
-    origin      Commands relating to Habitat origin keys
-    pkg         Commands relating to Habitat packages
-    ring        Commands relating to Habitat rings
-    service     Commands relating to Habitat services
-    studio      Commands relating to Habitat Studios
-    sup         Commands relating to the Habitat Supervisor
-    user        Commands relating to Habitat users
+    cli        Commands relating to Habitat runtime config
+    config     Commands relating to Habitat runtime config
+    file       Commands relating to Habitat files
+    help       Prints this message or the help of the given subcommand(s)
+    origin     Commands relating to Habitat origin keys
+    pkg        Commands relating to Habitat packages
+    ring       Commands relating to Habitat rings
+    service    Commands relating to Habitat services
+    setup      Alias for 'cli setup'
+    studio     Commands relating to Habitat Studios
+    sup        Commands relating to the Habitat Supervisor
+    user       Commands relating to Habitat users
 
 **ALIASES**
 
-    apply       Alias for: 'config apply'
-    install     Alias for: 'pkg install'
-    start       Alias for: 'sup start'
+    apply      Alias for: 'config apply'
+    install    Alias for: 'pkg install'
+    setup      Alias for: 'cli setup'
+    start      Alias for: 'sup start'
 
 ***
 
-<h2 id="hab-cli" class="anchor">hab cli</h2>
-Subcommand for changing the behavior of the command-line interface.
+<h2 id="hab-cli-setup" class="anchor">hab cli setup</h2>
+Interatively setup the CLI with reasonable defaults.
 
 **USAGE**
 
-    hab cli [FLAGS] [SUBCOMMAND]
+    hab cli setup
+
+<h2 id="hab-config-apply" class="anchor">hab config apply</h2>
+Applies configuration to a group of Habitat supervisors.
+
+**USAGE**
+
+     hab config apply [FLAGS] [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [ARGS]
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
+**OPTIONS**
 
-    setup    Performs initial configuration for the command-line interface.
+    -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers to
+                         communicate with (default: 127.0.0.1:9634)
+    -r, --ring <RING>    Ring key name, which will encrypt communication messages
+
+**ARGS**
+
+    <SERVICE_GROUP>     Target service group for this injection (ex: redis.default)
+    <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
+    <FILE>              Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)
+
+<h2 id="hab-file-upload" class="anchor">hab file upload</h2>
+Upload a file to a supervisor ring.
+
+**USAGE**
+
+    hab file upload [FLAGS] [OPTIONS] <SERVICE_GROUP> <FILE> <VERSION_NUMBER> [ARGS]
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+        --org <ORG>      Name of service organization
+    -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers to infect
+                         (default: 127.0.0.1:9634)
+    -r, --ring <RING>    Ring key name, which will encrypt communication messages
+
+**ARGS**
+
+    <SERVICE_GROUP>     Target service group for this injection (ex: redis.default)
+    <FILE>              Path to local file on disk
+    <VERSION_NUMBER>    A version number (positive integer) for this configuration (ex: 42)
+    <USER>
+
+<h2 id="hab-origin-key-download" class="anchor">hab origin key download</h2>
+Download origin key(s) to `HAB_CACHE_KEY_PATH`
+
+**USAGE**
+
+    hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [ARGS]
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -u, --url <DEPOT_URL>    Use a specific Depot URL
+
+**ARGS**
+
+    <ORIGIN>      The origin name
+    <REVISION>    The key revision
 
 ***
 
-<h2 id="hab-config" class="anchor">hab config</h2>
-Subcommand for applying configuration changes to a service group.
+<h2 id="hab-origin-key-export" class="anchor">hab origin key export</h2>
+Outputs the latest origin key contents to stdout
 
 **USAGE**
 
-    hab config [FLAGS] [SUBCOMMAND]
+    hab origin key export [FLAGS] <ORIGIN> --type <PAIR_TYPE>
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
+**OPTIONS**
 
-    apply    Applies a configuration to a group of Habitat
-             Supervisors
-    help     Prints this message or the help message of the given
-             subcommand(s)
+    -t, --type <PAIR_TYPE>    Export either the `public' or `secret' key
 
-***
+**ARGS**
 
-<h2 id="hab-file" class="anchor">hab file</h2>
-Subcommand for uploading files to a service group.
+    <ORIGIN>
+
+<h2 id="hab-origin-key-generate" class="anchor">hab origin key generate</h2>
+Generates a Habitat origin key
 
 **USAGE**
 
-    hab file [FLAGS] [SUBCOMMAND]
+    hab origin key generate [FLAGS] [ARGS]
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
+**ARGS**
 
-    help      Prints this message or the help of the given subcommand(s)
-    upload    Upload a file to the supervisor ring.
+    <ORIGIN>    The origin name
 
-
-<h2 id="hab-origin" class="anchor">hab origin</h2>
-Subcommand that performs key maintenance for origin keys.
+<h2 id="hab-origin-key-import" class="anchor">hab origin key import</h2>
+Reads a stdin stream containing a public or secret origin key contents and writes the key to disk
 
 **USAGE**
 
-    hab origin [FLAGS] [SUBCOMMAND]
+    hab origin key import [FLAGS]
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
-
-    help    Prints this message or the help message of the
-            given subcommand(s)
-    key     Commands relating to Habitat origin key maintenance
-
-***
-
-<h2 id="hab-pkg" class="anchor">hab pkg</h2>
-Subcommand that allows you to build or install local or remote packages.
+<h2 id="hab-origin-key-upload" class="anchor">hab origin key upload</h2>
+Upload origin keys to the depot
 
 **USAGE**
 
-    hab pkg [FLAGS] [SUBCOMMAND]
+    hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -s, --secret     Upload secret key in addition to the public key
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
+**OPTIONS**
 
-    binlink    Creates a symlink for a package binary in a common 'PATH'
-               location
-    build      Builds a Plan using a Studio
-    exec       Executes a command using the 'PATH' context of an installed
-               package
-    export     Exports the package to the specified format
-    hash       Generate a Habitat packaging hash for a file
-    help       Prints this message or the help of the given subcommand(s)
-    install    Installs a Habitat package from a Depot or locally from a
-               Habitat artifact
-    path       Prints the path to a specific installed release of a package
-    sign       Signs a archive file with with an origin key, creating a Habitat artifact
-    upload     Uploads a local Habitat artifact to a depot
-    verify     Verifies a Habitat package with an origin key
+    -z, --auth <AUTH_TOKEN>        Authentication token for the Depot
+    -u, --url <DEPOT_URL>          Use a specific Depot URL
+        --pubfile <PUBLIC_FILE>    Path to a local public origin key file on disk
+        --secfile <SECRET_FILE>    Path to a local secret origin key file on disk
 
-***
+**ARGS**
 
-<h2 id="hab-ring" class="anchor">hab ring</h2>
-Subcommand for managing the keys that supervisors use when passing encrypted messages to each other in a ring.
+    <ORIGIN>    The origin name
+
+<h2 id="hab-pkg-binlink" class="anchor">hab pkg binlink</h2>
+Creates a symlink for a package binary in a common 'PATH' location
 
 **USAGE**
 
-    hab ring [FLAGS] [SUBCOMMAND]
+    hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> <BINARY>
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
+**OPTIONS**
 
-    help    Prints this message or the help message of the given subcommand(s)
-    key     Commands relating to Habitat ring keys
+    -d, --dest <DEST_DIR>    Sets the destination directory (default: /bin)
 
-***
+**ARGS**
 
-<h2 id="hab-service" class="anchor">hab service</h2>
-Subcommand for managing Habitat service group keys.
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <BINARY>       The command to symlink (ex: bash)
+
+<h2 id="hab-pkg-build" class="anchor">hab pkg build</h2>
+Builds a Plan using a Studio
 
 **USAGE**
 
-    hab service [FLAGS] [SUBCOMMAND]
+    hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
+**OPTIONS**
 
-    help    Prints this message or the help message of the given subcommand(s)
-    key     Commands relating to Habitat service keys
+    -k, --keys <HAB_ORIGIN_KEYS>    Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
+    -r, --root <HAB_STUDIO_ROOT>    Sets the Studio root (default: /hab/studios/<DIR_NAME>)
+    -s, --src <SRC_PATH>            Sets the source path (default: $PWD)
 
-***
+**ARGS**
+
+    <PLAN_CONTEXT>    A directory containing a `plan.sh` file or a `habitat/` directory which contains the `plan.sh` file
+
+<h2 id="hab-pkg-exec" class="anchor">hab pkg exec</h2>
+Executes a command using the 'PATH' context of an installed package
+
+**USAGE**
+
+    hab pkg exec [FLAGS] <PKG_IDENT> <CMD> [ARGS]
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+    <CMD>          The command to execute (ex: ls)
+    <ARGS>...      Arguments to the command (ex: -l /tmp)
+
+<h2 id="hab-pkg-export" class="anchor">hab pkg export</h2>
+Exports the package to the specified format
+
+**USAGE**
+
+    hab pkg export [FLAGS] <FORMAT> <PKG_IDENT>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <FORMAT>       The export format (ex: docker, aci)
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+
+<h2 id="hab-pkg-hash" class="anchor">hab pkg hash</h2>
+Generates a blake2b hashsum from a target at any given filepath
+
+**USAGE**
+
+    hab pkg hash [FLAGS] <SOURCE>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <SOURCE>    A filepath of the target
+
+<h2 id="hab-pkg-install" class="anchor">hab pkg install</h2>
+Installs a Habitat package from a Depot or locally from a Habitat Artifact
+
+**USAGE**
+
+    hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -u, --url <DEPOT_URL>    Use a specific Depot URL
+
+**ARGS**
+
+    <PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+<h2 id="hab-pkg-path" class="anchor">hab pkg path</h2>
+Prints the path to a specific installed release of a package
+
+**USAGE**
+
+    hab pkg path [FLAGS] <PKG_IDENT>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+
+<h2 id="hab-pkg-sign" class="anchor">hab pkg sign</h2>
+Signs an archive with an origin key, generating a Habitat Artifact
+
+**USAGE**
+
+    hab pkg sign [FLAGS] [OPTIONS] <SOURCE> <DEST>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+        --origin <ORIGIN>    Origin key used to create signature
+
+**ARGS**
+
+    <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
+    <DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+<h2 id="hab-pkg-verify" class="anchor">hab pkg verify</h2>
+Verifies a Habitat Artifact with an origin key
+
+**USAGE**
+
+    hab pkg verify [FLAGS] <SOURCE>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
+<h2 id="hab-ring-key-export" class="anchor">hab ring key export</h2>
+Outputs the latest ring key contents to stdout
+
+**USAGE**
+
+    hab ring key export [FLAGS] <RING>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <RING>
+
+<h2 id="hab-ring-key-generate" class="anchor">hab ring key generate</h2>
+Generates a Habitat ring key
+
+**USAGE**
+    
+    hab ring key generate [FLAGS] <RING>
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <RING>
+
+<h2 id="hab-ring-key-import" class="anchor">hab ring key import</h2>
+Reads a stdin stream containing ring key contents and writes the key to disk
+
+**USAGE**
+
+    hab ring key import [FLAGS]
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+<h2 id="hab-service-key-generate" class="anchor">hab service key generate</h2>
+Generates a Habitat service key
+
+**USAGE**
+
+    hab service key generate [FLAGS] <SERVICE_GROUP> [ARGS]
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <SERVICE_GROUP>
+    <ORG>              The service organization
 
 <h2 id="hab-studio" class="anchor">hab studio</h2>
 Helps you to build packages inside a studio environment.
 
 **USAGE**
 
-USAGE:
     hab studio [FLAGS] [OPTIONS] <SUBCOMMAND> [ARG ..]
 
 **FLAGS**
@@ -244,7 +502,7 @@ Supervisor that starts and manages the software in a Habitat service.
 
 **USAGE**
 
-    hab-sup [FLAGS] [SUBCOMMAND]
+    hab sup [FLAGS] [SUBCOMMAND]
 
 **FLAGS**
 
@@ -262,17 +520,18 @@ Supervisor that starts and manages the software in a Habitat service.
 
 ***
 
-<h2 id="hab-user" class="anchor">hab user</h2>
-Subcommand for managing Habitat user keys.
+<h2 id="hab-user-key-generate" class="anchor">hab user key generate</h2>
+Generates a Habitat user key
 
 **USAGE**
 
-    hab user [FLAGS] [SUBCOMMAND]
+    hab user key generate [FLAGS] <USER>
 
 **FLAGS**
 
-    -h, --help    Prints help information
+    -h, --help       Prints help information
+    -V, --version    Prints version information
 
-**SUBCOMMANDS**
-    help    Prints this message or the help message of the given subcommand(s)
-    key     Commands relating to Habitat user keys
+**ARGS**
+
+    <USER>
