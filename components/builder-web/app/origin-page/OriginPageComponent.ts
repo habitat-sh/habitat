@@ -107,7 +107,8 @@ import {requireSignIn} from "../util";
                     <div class="hab-origin--right">
                         <p>
                             <em>Origin keys</em> ensure only authorized users (or
-                            organizations) are able to push updates to packages.
+                            organizations) are able to push updates to packages
+                            in this origin.
                         </p>
                         <p>
                             Read the docs for more information on

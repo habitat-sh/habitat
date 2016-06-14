@@ -72,7 +72,8 @@ import {TabComponent} from "../TabComponent";
             </div>
             <div class="hab-origin--right">
                 <p>
-                    <em>Origin keys</em> insure that only authorized users are able
+                    <em>Origin keys</em> ensure that only authorized users
+                    or (organizations) are able
                     to push updates to packages in this origin.
                 </p>
                 <p>
