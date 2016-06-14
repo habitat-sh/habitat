@@ -73,7 +73,7 @@ impl FromStr for Command {
     }
 }
 
-// We provide a default command primarily so the Config struct can have sane defaults.
+// We provide a default command primarily so the Config struct can have reasonable defaults.
 impl Default for Command {
     fn default() -> Command {
         Command::Start

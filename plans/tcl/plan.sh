@@ -22,8 +22,8 @@ do_build() {
 
     # The Tcl package expects that its source tree is preserved so that
     # packages depending on it for their compilation can utilize it. These sed
-    # remove the references to the build directory and replace them with saner
-    # system-wide locations.
+    # remove the references to the build directory and replace them with more
+    # reasonable system-wide locations.
     #
     # Thanks to: http://www.linuxfromscratch.org/blfs/view/stable/general/tcl.html
     # Thanks to: https://projects.archlinux.org/svntogit/packages.git/tree/trunk/PKGBUILD?h=packages/tcl
