@@ -43,10 +43,10 @@ module Habitat
     # === Examples
     #
     #    hc = Habitat::Client.new
-    #    hc = Habitat::Client.new('https://depot.habitat.sh')
+    #    hc = Habitat::Client.new('https://habitat-depot.example.com')
     #    hc.connection.get('/pkgs')
 
-    def initialize(depot = 'http://willem.habitat.sh:9636/v1/depot')
+    def initialize(depot = 'https://willem.habitat.sh/v1/depot')
       @depot = depot
       @connection = Faraday.new(url: @depot) do |f|
         f.request :multipart
