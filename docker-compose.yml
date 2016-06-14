@@ -5,15 +5,16 @@ shell:
     - .:/src
     - /var/run/docker.sock:/var/run/docker.sock
   volumes_from:
-    - cache_src
+    - cache_artifacts
     - cache_keys
     - cargo
+    - etc
 
-cache_src:
+cache_artifacts:
   image: tianon/true
   command: /true
   volumes:
-    - /hab/cache/src
+    - /hab/cache/artifacts
 
 cache_keys:
   image: tianon/true
@@ -26,3 +27,9 @@ cargo:
   command: /true
   volumes:
     - /cargo-cache
+
+etc:
+  image: tianon/true
+  command: /true
+  volumes:
+    - /hab/etc
