@@ -231,6 +231,7 @@ fn render_net_error(err: &NetError) -> Response {
     let encoded = json::encode(&err.to_json()).unwrap();
     let status = match err.get_code() {
         ErrCode::ENTITY_NOT_FOUND => status::NotFound,
+        ErrCode::ENTITY_CONFLICT => status::Conflict,
         ErrCode::NO_SHARD => status::ServiceUnavailable,
         ErrCode::TIMEOUT => status::RequestTimeout,
         ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
