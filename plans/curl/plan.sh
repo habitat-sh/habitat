@@ -1,7 +1,7 @@
 pkg_name=curl
 pkg_origin=core
 pkg_version=7.47.1
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('curl')
 pkg_source=https://curl.haxx.se/download/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=4e9d85028e754048887505a73638bf9b254c39582a191f43c95fe7de8e4d8005

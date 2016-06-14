@@ -1,7 +1,7 @@
 pkg_name=flex
 pkg_origin=core
 pkg_version=2.6.0
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('custom')
 pkg_source=http://s3-us-west-2.amazonaws.com/fnichol-lfs-tools/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=d39b15a856906997ced252d76e9bfe2425d7503c6ed811669665627b248e4c73

@@ -1,7 +1,7 @@
 pkg_name=perl
 pkg_origin=core
 pkg_version=5.22.1
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gpl' 'perlartistic')
 pkg_source=http://www.cpan.org/src/5.0/${pkg_name}-${pkg_version}.tar.bz2
 pkg_shasum=e98e4075a3167fa40524abe447c30bcca10c60e02a54ee1361eff278947a1221

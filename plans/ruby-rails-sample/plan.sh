@@ -1,7 +1,7 @@
 pkg_name=ruby-rails-sample
 pkg_version=0.0.1
 pkg_origin=core
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('mit')
 pkg_source=https://github.com/jtimberman/ruby-rails-sample/archive/${pkg_version}.tar.gz
 pkg_shasum=a4a6daf4c2637d37800de9b083d22d79367cd00ee9702478cdaff72f7d97dd75

@@ -1,5 +1,5 @@
 pkg_name=bundler
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_version=1.11.2
 pkg_origin=core
 pkg_license=('bundler')

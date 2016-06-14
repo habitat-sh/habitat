@@ -1,7 +1,7 @@
 pkg_name=shadow
 pkg_origin=core
 pkg_version=4.2.1
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('bsd')
 pkg_source=http://pkg-shadow.alioth.debian.org/releases/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=3b0893d1476766868cd88920f4f1231c4795652aa407569faff802bcda0f3d41
