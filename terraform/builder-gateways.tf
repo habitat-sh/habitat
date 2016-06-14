@@ -121,6 +121,15 @@ resource "aws_security_group" "builder_api" {
     }
 
     ingress {
+        from_port       = 80
+        to_port         = 80
+        protocol        = "tcp"
+        security_groups = [
+            "${aws_security_group.builder_api_elb.id}"
+        ]
+    }
+
+    ingress {
         from_port       = 9636
         to_port         = 9636
         protocol        = "tcp"
@@ -143,7 +152,7 @@ resource "aws_elb" "builder_api" {
     instances       = ["${aws_instance.monolith.*.id}"]
 
     listener {
-        instance_port      = 9636
+        instance_port      = 80
         instance_protocol  = "HTTP"
         lb_port            = 443
         lb_protocol        = "HTTPS"
@@ -152,7 +161,7 @@ resource "aws_elb" "builder_api" {
 
     // JW TODO: remove after old clients are retired
     listener {
-        instance_port      = 9636
+        instance_port      = 80
         instance_protocol  = "HTTP"
         lb_port            = 80
         lb_protocol        = "HTTP"
