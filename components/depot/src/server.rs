@@ -67,6 +67,7 @@ const ONE_YEAR_IN_SECS: usize = 31536000;
 fn render_net_error(err: &NetError) -> Response {
     let encoded = json::encode(&err.to_json()).unwrap();
     let status = match err.get_code() {
+        ErrCode::ENTITY_CONFLICT => status::Conflict,
         ErrCode::ENTITY_NOT_FOUND => status::NotFound,
         ErrCode::NO_SHARD => status::ServiceUnavailable,
         ErrCode::TIMEOUT => status::RequestTimeout,

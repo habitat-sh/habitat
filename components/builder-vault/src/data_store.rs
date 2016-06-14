@@ -159,7 +159,8 @@ impl OriginTable {
     pub fn is_origin_member(&self, account_id: u64, origin_name: &str) -> dbcache::Result<bool> {
         let account_origins_key = self.account_origins_key(&account_id);
         let conn = try!(self.pool().get());
-        let result = try!(conn.sismember::<String, String, bool>(account_origins_key, origin_name.to_string()));
+        let result = try!(conn.sismember::<String, String, bool>(account_origins_key,
+            origin_name.to_string()));
         Ok(result)
     }
 }
@@ -228,9 +229,6 @@ impl IndexSet for OriginNameIdx {
     type Key = String;
     type Value = u64;
 }
-
-
-
 
 pub struct OriginSecretKeysTable {
     pool: Arc<ConnectionPool>,
@@ -357,7 +355,6 @@ impl InstaSet for OriginInvitesTable {
     fn seq_id() -> &'static str {
         "origin_invites_key_seq"
     }
-
 
     fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
         let conn = try!(self.pool().get());

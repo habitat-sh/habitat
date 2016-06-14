@@ -86,7 +86,7 @@ impl Worker {
                     .origins
                     .name_idx
                     .find(&msg.get_name().to_string()) {
-                    let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-create:0");
+                    let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:0");
                     try!(req.reply_complete(&mut self.sock, &err));
                 }
 
@@ -98,7 +98,6 @@ impl Worker {
                 try!(self.datastore()
                     .origins
                     .add_origin_member(msg.get_owner_id(), msg.get_owner_name(), msg.get_name()));
-
                 try!(req.reply_complete(&mut self.sock, &origin));
             }
             "OriginGet" => {
@@ -221,7 +220,6 @@ impl Worker {
                 resp.set_origins(r_origins);
                 try!(req.reply_complete(&mut self.sock, &resp));
             }
-
             "OriginSecretKeyCreate" => {
                 let msg: proto::OriginSecretKeyCreate = try!(req.parse_msg());
                 let mut pk = proto::OriginSecretKey::new();
@@ -234,7 +232,6 @@ impl Worker {
                 try!(self.datastore().origins.origin_secret_keys.write(&mut pk));
                 try!(req.reply_complete(&mut self.sock, &pk));
             }
-
             _ => panic!("unexpected message: {}", req.message_id()),
         }
         Ok(())
