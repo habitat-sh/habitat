@@ -1,12 +1,12 @@
 [root]
 name = "habitat_director"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_core 0.6.0",
- "habitat_sup 0.6.0",
+ "habitat_core 0.7.0",
+ "habitat_sup 0.7.0",
  "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.71 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -139,10 +139,10 @@ dependencies = [
 
 [[package]]
 name = "habitat_builder_protocol"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_core 0.6.0",
+ "habitat_core 0.7.0",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -152,12 +152,12 @@ dependencies = [
 
 [[package]]
 name = "habitat_common"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_protocol 0.6.0",
- "habitat_core 0.6.0",
- "habitat_depot_client 0.6.0",
+ "habitat_builder_protocol 0.7.0",
+ "habitat_core 0.7.0",
+ "habitat_depot_client 0.7.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -169,7 +169,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -188,12 +188,12 @@ dependencies = [
 
 [[package]]
 name = "habitat_depot_client"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "broadcast 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_protocol 0.6.0",
- "habitat_core 0.6.0",
- "habitat_http_client 0.6.0",
+ "habitat_builder_protocol 0.7.0",
+ "habitat_core 0.7.0",
+ "habitat_http_client 0.7.0",
  "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -204,9 +204,9 @@ dependencies = [
 
 [[package]]
 name = "habitat_http_client"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
- "habitat_core 0.6.0",
+ "habitat_core 0.7.0",
  "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -214,14 +214,14 @@ dependencies = [
 
 [[package]]
 name = "habitat_sup"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "ansi_term 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_common 0.6.0",
- "habitat_core 0.6.0",
- "habitat_depot_client 0.6.0",
+ "habitat_common 0.7.0",
+ "habitat_core 0.7.0",
+ "habitat_depot_client 0.7.0",
  "handlebars 0.17.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",

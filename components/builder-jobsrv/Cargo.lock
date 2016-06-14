@@ -1,13 +1,13 @@
 [root]
 name = "habitat_builder_jobsrv"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_dbcache 0.6.0",
- "habitat_builder_protocol 0.6.0",
- "habitat_core 0.6.0",
- "habitat_net 0.6.0",
+ "habitat_builder_dbcache 0.7.0",
+ "habitat_builder_protocol 0.7.0",
+ "habitat_core 0.7.0",
+ "habitat_net 0.7.0",
  "linked-hash-map 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -112,10 +112,10 @@ dependencies = [
 
 [[package]]
 name = "habitat_builder_dbcache"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_protocol 0.6.0",
+ "habitat_builder_protocol 0.7.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -127,10 +127,10 @@ dependencies = [
 
 [[package]]
 name = "habitat_builder_protocol"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_core 0.6.0",
+ "habitat_core 0.7.0",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -140,7 +140,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -159,10 +159,10 @@ dependencies = [
 
 [[package]]
 name = "habitat_net"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "fnv 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_protocol 0.6.0",
+ "habitat_builder_protocol 0.7.0",
  "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
