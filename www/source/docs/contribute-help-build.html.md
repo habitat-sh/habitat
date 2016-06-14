@@ -32,6 +32,10 @@ We would love contributions to the code base to add these and any other update s
 
 We believe that the application-centric approach that Habitat takes can and should be extended to Microsoft Windows. If you are interested in getting either the Habitat build system or supervisor system working on Windows, please get in touch, either on the [forum](https://forum.habitat.sh/) or in [Slack](http://slack.habitat.sh/).
 
+## Support for Container Cluster Managers
+
+While Habitat has initial support for Mesos and Kubernetes, we're working on supporting more frameworks that manage containers in production. Much of this work is documentation, Habitat packages exported into Docker and ACI-formatted containers should work with many runtimes and frameworks. We need to document how applications are managed within those systems, if you would like to help add Habitat support please reach out to us.
+
 ## Scalability and Load Testing
 
 The Habitat supervisor and its [communication protocols](/docs/internals-supervisor) have been designed to be very scalable. Our belief is that supervisor rings of thousands or even tens-of-thousands of nodes are possible, but we have not yet engaged in formal verification. If you are a distributed systems expert interested in testing scalability, we'd for you to try it and to share your results with us.
