@@ -1,9 +1,9 @@
 [root]
 name = "habitat_builder_dbcache"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_builder_protocol 0.6.0",
+ "habitat_builder_protocol 0.7.0",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -52,10 +52,10 @@ dependencies = [
 
 [[package]]
 name = "habitat_builder_protocol"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_core 0.6.0",
+ "habitat_core 0.7.0",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "redis 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -65,7 +65,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
