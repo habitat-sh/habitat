@@ -169,10 +169,10 @@ resource "aws_elb" "builder_api" {
 
     health_check {
         healthy_threshold   = 2
-        unhealthy_threshold = 10
-        timeout             = 30
-        target              = "HTTP:9636/v1/status"
-        interval            = 60
+        unhealthy_threshold = 5
+        timeout             = 5
+        target              = "HTTP:80/v1/status"
+        interval            = 30
     }
 
     tags {
