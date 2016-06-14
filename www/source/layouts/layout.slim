@@ -1,12 +1,26 @@
 doctype html
-html
+html prefix="og: http://ogp.me/ns#"
   head
     meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible"
     meta charset="utf-8"
     meta content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport"
-    meta name="description" content = current_page.data.description
+    meta name="description" content=current_page.data.description
 
-    title = current_page.data.title || ""
+    - current_page.data.title ||= "Habitat"
+    - social_image = "/images/habitat-social.jpg"
+
+    title=current_page.data.title
+
+    meta property="og:title" content=current_page.data.title
+    meta property="og:type" content="website"
+    meta property="og:image" content=social_image
+    meta property="og:url" content=current_page.data.url
+    meta property="og:description" content=current_page.data.description
+
+    meta name="twitter:card" content="summary_large_image"
+    meta name="twitter:site" content="@chef"
+    meta name="twitter:creator" content="@chef"
+    meta name="twitter:image" content=social_image
 
     link href="/favicon.png" rel="icon" type="image/png"
     link href="/favicon.ico" rel="icon"
