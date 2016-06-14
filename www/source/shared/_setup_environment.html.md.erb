@@ -19,6 +19,6 @@ The `hab` command-line interface (CLI) tool downloads its other components when 
        docker-machine start
        eval "$(docker-machine env machinename)"
 
-5. Follow the instructions in the setup script. Create a new origin and a set of origin keys. If you would like to provide anonymous data on your usage of the `hab` CLI, please type in `Yes` or hit Enter. For information on the type of data we gather and how we intend to use it, see [Analytics in Habitat](/docs/about-analytics).
+5. Follow the instructions in the setup script. Create a new origin and a set of origin keys. Optionally, you can provide a [GitHub personal authorization token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) for the `hab` CLI to use to upload packages to the public depot and share them with the Habitat community. You can also provide anonymous data on your usage of the `hab` CLI. For information on the type of data we gather and how we intend to use it, see [Analytics in Habitat](/docs/about-analytics).
 
-   > Note: You can also opt-out of providing usage data at a later point in time by re-running the `hab setup` subcommand and typing `No` when asked if you want to provide usage data.
+   > Note: The only rights the GitHub personal authorization token needs at present is `user.email` since it is only used for authentication. Also, you can opt-out of providing usage data at a later point in time by re-running the `hab setup` subcommand and typing `No` when asked if you want to provide usage data.

@@ -18,7 +18,7 @@ We will use the public depot provided by the Habitat project for this section. H
 
 ## Creating an account in the depot
 
-The depot software presently only supports GitHub authentication. For the public depot, you visit https://app.habitat.sh/ in your browser and sign up for an account, allowing it to use GitHub for authorization.
+The depot software presently only supports GitHub authentication. For the public depot, visit https://app.habitat.sh/ in your browser and sign up for an account. Allow it to use GitHub for authorization.
 
 ## Creating an origin or joining an existing origin
 
