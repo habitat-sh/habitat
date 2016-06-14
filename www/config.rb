@@ -71,5 +71,8 @@ set :markdown, coderay_line_numbers: :table
 ###
 # Redirects
 ###
-redirect 'about/index.html', to: 'about/why-habitat.html'
+# Temporarily changes the default redirect (from /about
+  # index to 'Why Habitat' article) to a livestream page
+# redirect 'about/index.html', to: 'about/why-habitat.html'
+redirect 'about/index.html', to: 'about/announcement.html'
 redirect 'docs/index.html', to: 'docs/overview.html'

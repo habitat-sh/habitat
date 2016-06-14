@@ -44,6 +44,7 @@ body.try-hab {
   a {
     display: block;
     position: relative;
+    padding-right: rem-calc(15);
     color: $body-font-color;
 
     &:hover,
