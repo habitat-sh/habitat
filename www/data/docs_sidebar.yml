@@ -76,6 +76,10 @@ sidebar_links:
       link: "/docs/internals-supervisor/"
     - title: Leader Election
       link: "/docs/internals-leader-election/"
+    - title: Cryptography
+      link: "/docs/internals-crypto/"
+    - title: Bootstrapping Habitat
+      link: "/docs/internals-bootstrapping/"
 - title: Reference
   links:
   - title: CLI reference

@@ -27,5 +27,5 @@ The `.hart` file format is designed in this way to allow you to extract both the
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/internals-supervisor">Supervisor Internals</a></li>
+  <li><a href="/docs/internals-bootstrapping">Bootstrapping Habitat</a></li>
 </ul>
