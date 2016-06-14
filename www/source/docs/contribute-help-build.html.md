@@ -39,9 +39,3 @@ While Habitat has initial support for Mesos and Kubernetes, we're working on sup
 ## Scalability and Load Testing
 
 The Habitat supervisor and its [communication protocols](/docs/internals-supervisor) have been designed to be very scalable. Our belief is that supervisor rings of thousands or even tens of thousands of nodes are possible, but we have not yet engaged in formal verification. If you are a distributed systems expert interested in testing scalability, we'd for you to try it and to share your results with us.
-
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/contribute-write-plans">Contributing Build Plans</a></li>
-</ul>
