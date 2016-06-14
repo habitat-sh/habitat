@@ -6,10 +6,8 @@ set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 # Download URL for a `core/hab` Habitat slim archive
-_url="https://s3-us-west-2.amazonaws.com/habitat-initial-hab/hab-0.6.0-20160613074414-x86_64-linux.tar.gz"
-_q=""
-# _url='https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-$latest-x86_64-linux.tar.gz'
-# _q="?bt_package=hab-x86_64-linux"
+_url='https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-$latest-x86_64-linux.tar.gz'
+_q="?bt_package=hab-x86_64-linux"
 hab_url="${_url}$_q"
 # Download URL for the shasum digest
 sha_url="${_url}.sha256sum$_q"
