@@ -32,8 +32,8 @@ the source code of Habitat.
 tooling for the platform, and provide as little abstraction as necessary. When we do choose an abstraction,
 we choose one - and we make it the one that is most user-serviceable.
 1. Keep it light. The runtime component of Habitat is used as a process supervisor - it needs to stay lean. No run-times.
-1. Convention over configuration, with sane defaults. Where possible, we remove the need to configure things
-by having a convention cover it. When we do need to configure things, we set sane defaults.
+1. Convention over configuration, with reasonable defaults. Where possible, we remove the need to configure things
+by having a convention cover it. When we do need to configure things, we set reasonable defaults.
 1. Call things what they are.
 1. It has to feel great to the end user. If it doesn't feel great, it's a bug.
 1. Write documentation as you go. Internal and external.
