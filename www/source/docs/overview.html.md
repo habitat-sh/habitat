@@ -54,7 +54,7 @@ code and get cookin', then these links should provide everything you need.
     <p>Habitat is open source,<br>let's build together</p>
   </div>
   <div class="callout-box columns medium-4">
-    <a href="/log-in" class="button secondary">Sign in to Web App</a>
+    <a href="https://app.habitat.sh/#/sign-in" class="button secondary">Sign in to Web App</a>
     <p>Manage your information and<br>browse official packages</p>
   </div>
 </div>
