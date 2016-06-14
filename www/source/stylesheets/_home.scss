@@ -641,6 +641,7 @@ $testimonials-slider-transition: 1s;
 }
 
 .testimonials--nav--dot {
+  cursor: pointer;
   display: inline-block;
   width: rem-calc(14);
   height: rem-calc(14);
