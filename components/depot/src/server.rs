@@ -1029,7 +1029,7 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             match depot.datastore.views.view_pkg_idx.is_member(view, &ident) {
                 Ok(true) => {
                     match depot.datastore.packages.find(&ident) {
-                        Ok(pkg) => render_package(&pkg, true),
+                        Ok(pkg) => render_package(&pkg, false),
                         Err(dbcache::Error::EntityNotFound) => Ok(Response::with(status::NotFound)),
                         Err(e) => {
                             error!("show_package:3, err={:?}", e);
