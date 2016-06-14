@@ -1,4 +1,0 @@
-{
-	"message": "{{cfg.message}}",
-	"port": "{{cfg.port}}"
-}
