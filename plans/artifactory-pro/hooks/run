@@ -1,0 +1,8 @@
+#!/bin/sh
+
+echo "Starting Artifactory Pro"
+
+export JAVA_HOME=$(hab pkg path core/server-jre)
+export ARTIFACTORY_HOME={{pkg.svc_var_path}}
+
+{{pkg.svc_var_path}}/bin/artifactory.sh 2>&1

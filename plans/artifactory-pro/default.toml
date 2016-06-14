@@ -1,0 +1,21 @@
+#                 _   _  __           _                     _____
+#      /\        | | (_)/ _|         | |                   |  __ \
+#     /  \   _ __| |_ _| |_ __ _  ___| |_ ___  _ __ _   _  | |__) | __ ___
+#    / /\ \ | '__| __| |  _/ _` |/ __| __/ _ \| '__| | | | |  ___/ '__/ _ \
+#   / ____ \| |  | |_| | || (_| | (__| || (_) | |  | |_| | | |   | | | (_) |
+#  /_/    \_\_|   \__|_|_| \__,_|\___|\__\___/|_|   \__, | |_|   |_|  \___/
+#                                                    __/ |
+#                                                   |___/
+
+license = ""
+
+[database]
+
+type   = "derby"
+url    = "jdbc:derby:{db.home};create=true"
+driver = "org.apache.derby.jdbc.EmbeddedDriver"
+
+[storage]
+
+binary_provider_type       = "filesystem"
+binary_provider_cache_size = "5GB"
