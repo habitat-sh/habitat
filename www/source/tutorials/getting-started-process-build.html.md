@@ -20,7 +20,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
 2. Build your mytutorialapp package.
 
-        [1][default:/src:0]# build
+        [1][default:/src:0]# build mytutorialapp
 
 3. Run `hab pkg export docker origin/packagename` with the origin and name of your package. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
