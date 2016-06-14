@@ -42,22 +42,14 @@ You can create an Application Container Image (ACI) for any package by performin
 
 5. The `.aci` can now be moved to any runtime capable of running ACIs (e.g. [rkt](https://coreos.com/rkt/) on CoreOS) for execution.
 
-## Export to an Apache Mesos (Marathon) application
+## Exporting and Running on Container Cluster Managers
 
-Mesos can run Docker containers but the native format is a filesystem sandbox with cgroups and
-namespaces. You can create these from Habitat packages by following these steps:
+Habitat packages may be exported with the supervisor directly into a Docker or ACI-formatted container, but frequently the container itself will run within a container cluster manager such as Kubernetes or Mesos. Container cluster managers provide scheduling and resource allocation, ensuring workloads are running and available. Containerized Habitat packages may run within these runtimes, managing the applications while the runtimes handle the environment surrounding the application (ie. compute, networking, security).
 
-1. Create an interactive studio in any directory with the `hab studio enter` command.
-2. Install or [build](/docs/create-packages-build) the Habitat package from which you want to create an ACI, for example:
+### Apache Mesos and DC/OS
 
-       hab pkg install yourorigin/yourpackage
+[Apache Mesos](https://mesos.apache.org/) is an open source container cluster manager and the container cluster manager for the [DC/OS](https://dcos.io) distributed platform. The `pkg-mesosize` command can create native [Mesos containers from Habitat packages](/docs/mesos/) and launch them as applications.
 
-3. Run the Mesos exporter on the package.
+### Kubernetes
 
-       hab pkg export mesos yourorigin/yourpackage
-
-4. This will create a Marathon-format tarball in the results directory, and also print the JSON needed to load the application into Marathon.
-
-5. Note that the default resource allocation for the application is very small: 0.5 units of CPU, no disk, one instance, and 256MB of memory. To change these resource allocations, pass different values to the Mesos exporter as environment variables:
-
-       CPU=1.0 DISK=5 INSTANCES=2 MEM=512 hab pkg export mesos yourorigin/yourpackage
+[Kubernetes](http://kubernetes.io/) is an open source container cluster manager embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/) and [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/). Habitat packages are supported in both Docker and ACI container formats and can be [deployed within Kubernetes](/docs/kubernetes/).
