@@ -48,8 +48,8 @@ Habitat packages may be exported with the supervisor directly into a Docker or A
 
 ### Apache Mesos and DC/OS
 
-[Apache Mesos](https://mesos.apache.org/) is an open source container cluster manager and the container cluster manager for the [DC/OS](https://dcos.io) distributed platform. The `pkg-mesosize` command can create native [Mesos containers from Habitat packages](/docs/mesos/) and launch them as applications.
+[Apache Mesos](https://mesos.apache.org/) is an open source container cluster manager and the container cluster manager for the [DC/OS](https://dcos.io) distributed platform. The `pkg-mesosize` command can create native [Mesos containers from Habitat packages](/docs/run-packages-mesos/) and launch them as applications.
 
 ### Kubernetes
 
-[Kubernetes](http://kubernetes.io/) is an open source container cluster manager embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/) and [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/). Habitat packages are supported in both Docker and ACI container formats and can be [deployed within Kubernetes](/docs/kubernetes/).
+[Kubernetes](http://kubernetes.io/) is an open source container cluster manager embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/) and [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/). Habitat packages are supported in both Docker and ACI container formats and can be [deployed within Kubernetes](/docs/run-packages-kubernetes/).
