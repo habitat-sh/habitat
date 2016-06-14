@@ -4,7 +4,7 @@ title: Help build Habitat
 
 # Help Build Habitat
 
-We have been hard at work on Habitat since fall 2015 and are now excited to share it with you, as an open-source project [licensed](/legal/licensing) under the Apache 2.0 License.
+We have been hard at work on Habitat since fall 2015 and are now excited to share it with you, as an open-source project [licensed](/legal/licensing) under the Apache 2.0 License. You can find the source on the [Habitat GitHub repository](https://github.com/habitat-sh/habitat).
 
 While we believe the foundational elements of Habitat are in place, we lack the wide variety of scenarios that come from building, deploying and managing applications in the real world. This is where we hope you'll come in and contribute code upon the strong foundation we've laid.
 

@@ -36,6 +36,7 @@ import config from "../config";
                     <li class="footer--sitemap--link"><a href="{{config['www_url']}}">Home</a></li>
                     <li class="footer--sitemap--link"><a href="{{config['docs_url']}}">Docs</a></li>
                     <li class="footer--sitemap--link"><a href="{{config['tutorials_url']}}">Tutorials</a></li>
+                    <li class="footer--sitemap--link"><a href="{{config['source_code_url']}}">Source</a></li>
                 </ul>
                 <ul class="no-bullet">
                     <li><h4>Habitat Web</h4></li>
