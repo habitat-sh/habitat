@@ -19,6 +19,7 @@ use iron::prelude::*;
 use iron::AfterMiddleware;
 use iron::headers;
 use iron::method::Method;
+use iron::Protocol;
 use mount::Mount;
 use staticfile::Static;
 use unicase::UniCase;
@@ -26,6 +27,10 @@ use unicase::UniCase;
 use config::Config;
 use error::Result;
 use self::handlers::*;
+
+// Iron defaults to a threadpool of size `8 * num_cpus`.
+// See: http://172.16.2.131:9633/iron/prelude/struct.Iron.html#method.http
+const HTTP_THREAD_COUNT: usize = 128;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<Chain> {
@@ -84,7 +89,9 @@ pub fn run(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<JoinHandl
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {
-            let _server = Iron::new(mount).http(addr).unwrap();
+            let _server = Iron::new(mount)
+                .listen_with(addr, HTTP_THREAD_COUNT, Protocol::Http, None)
+                .unwrap();
             tx.send(()).unwrap();
         })
         .unwrap();
@@ -102,7 +109,7 @@ impl AfterMiddleware for Cors {
         res.headers
             .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
         res.headers
-                .set(headers::AccessControlAllowMethods(vec![Method::Put]));
+            .set(headers::AccessControlAllowMethods(vec![Method::Put]));
         Ok(res)
     }
 }
