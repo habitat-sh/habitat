@@ -1,4 +1,4 @@
-$main-nav-breakpoint: 710px;
+$main-nav-breakpoint: 769px;
 
 @mixin large-nav {
   @media (min-width: $main-nav-breakpoint) {
@@ -103,7 +103,7 @@ $main-nav-breakpoint: 710px;
   }
 
   @include breakpoint(medium) {
-    left: map-get($grid-column-gutter, medium)/2;
+    left: 0;
   }
 
   @include large-nav {
@@ -125,7 +125,7 @@ $main-nav-breakpoint: 710px;
 
   @media (min-width: 820px) {
     .main-nav--link {
-      padding: 0 rem-calc(44) 0 0;
+      padding: 0 rem-calc(30) 0 0;
     }
   }
 }
