@@ -7,12 +7,11 @@
 
 //! Contains core functionality for the Application's main server.
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use hab_net::config::RouteAddrs;
-use hab_net::routing::Broker;
+use hab_net::routing::{Broker, BrokerContext};
 use hab_net::server::NetIdent;
-use zmq;
 
 use config::Config;
 use error::Result;
@@ -21,16 +20,15 @@ use http;
 /// The main server for the Builder-API application. This should be run on the main thread.
 pub struct Server {
     pub config: Arc<Config>,
-    context: Arc<Mutex<zmq::Context>>,
+    ctx: Arc<BrokerContext>,
 }
 
 impl Server {
     /// Create a new `Server`
     pub fn new(config: Config) -> Self {
-        let ctx = zmq::Context::new();
         Server {
             config: Arc::new(config),
-            context: Arc::new(Mutex::new(ctx)),
+            ctx: Arc::new(BrokerContext::new()),
         }
     }
 
@@ -42,8 +40,8 @@ impl Server {
     /// * HTTP server could not start
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
-        let ctx1 = self.context.clone();
-        let ctx2 = self.context.clone();
+        let ctx1 = self.ctx.clone();
+        let ctx2 = self.ctx.clone();
         let broker = Broker::run(Self::net_ident(), ctx1, self.config.route_addrs());
         let http = try!(http::run(cfg1, ctx2));
 

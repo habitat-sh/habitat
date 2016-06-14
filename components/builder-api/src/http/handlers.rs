@@ -8,10 +8,10 @@
 //! A collection of handlers for the HTTP server's router
 
 use std::result;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use hab_net;
-use hab_net::routing::Broker;
+use hab_net::routing::{Broker, BrokerContext};
 use hab_net::oauth::github::GitHubClient;
 use iron::prelude::*;
 use iron::status;
@@ -23,10 +23,9 @@ use protocol::vault::*;
 use protocol::net::{self, NetError, ErrCode};
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
-use zmq;
 
 pub fn authenticate(req: &mut Request,
-                    ctx: &Arc<Mutex<zmq::Context>>)
+                    ctx: &Arc<BrokerContext>)
                     -> result::Result<Session, Response> {
     match req.headers.get::<Authorization<Bearer>>() {
         Some(&Authorization(Bearer { ref token })) => {
@@ -61,7 +60,7 @@ pub fn authenticate(req: &mut Request,
 
 pub fn session_create(req: &mut Request,
                       github: &GitHubClient,
-                      ctx: &Arc<Mutex<zmq::Context>>)
+                      ctx: &Arc<BrokerContext>)
                       -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let code = match params.find("code") {
@@ -135,7 +134,7 @@ pub fn session_create(req: &mut Request,
     }
 }
 
-pub fn job_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
+pub fn job_create(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
     let session = match authenticate(req, ctx) {
         Ok(session) => session,
         Err(response) => return Ok(response),
@@ -166,7 +165,7 @@ pub fn job_create(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResu
     }
 }
 
-pub fn job_show(req: &mut Request, ctx: &Arc<Mutex<zmq::Context>>) -> IronResult<Response> {
+pub fn job_show(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id") {
         Some(id) => {
@@ -235,7 +234,7 @@ fn render_net_error(err: &NetError) -> Response {
 }
 
 pub fn list_account_invitations(req: &mut Request,
-                                ctx: &Arc<Mutex<zmq::Context>>)
+                                ctx: &Arc<BrokerContext>)
                                 -> IronResult<Response> {
     debug!("list_account_invitations");
     let session = match authenticate(req, ctx) {
@@ -270,9 +269,7 @@ pub fn list_account_invitations(req: &mut Request,
     }
 }
 
-pub fn list_user_origins(req: &mut Request,
-                         ctx: &Arc<Mutex<zmq::Context>>)
-                         -> IronResult<Response> {
+pub fn list_user_origins(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
     debug!("list_user_origins");
     let session = match authenticate(req, ctx) {
         Ok(session) => session,
@@ -280,7 +277,6 @@ pub fn list_user_origins(req: &mut Request,
     };
 
     let mut conn = Broker::connect(&ctx).unwrap();
-
 
     let mut request = AccountOriginListRequest::new();
     request.set_account_id(session.get_id());
@@ -308,11 +304,7 @@ pub fn list_user_origins(req: &mut Request,
     }
 }
 
-
-
-pub fn accept_invitation(req: &mut Request,
-                         ctx: &Arc<Mutex<zmq::Context>>)
-                         -> IronResult<Response> {
+pub fn accept_invitation(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
     debug!("accept_invitation");
     let session = match authenticate(req, ctx) {
         Ok(session) => session,
