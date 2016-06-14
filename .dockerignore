@@ -4,13 +4,13 @@
 .gitignore
 components
 !components/hab/install.sh
-demo
 images
 log
 plans
 results
 support
 !support/devshell_profile.sh
+terraform
 tmp
 vendor
 www
