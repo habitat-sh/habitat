@@ -103,8 +103,8 @@ body {
 }
 
 .page-body {
-  padding: rem(30) rem(20);
   min-height: 50vh;
+  padding: rem(30) rem(20);
 
   &.has-sidebar {
     @include outer-container;

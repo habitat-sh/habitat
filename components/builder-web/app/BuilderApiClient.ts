@@ -35,7 +35,11 @@ export class BuilderApiClient {
                 headers: this.headers,
                 method: "POST",
             }).then(response => {
-                resolve(response.json());
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
             }).catch(error => reject(error));
         });
     }
