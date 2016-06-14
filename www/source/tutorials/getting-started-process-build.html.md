@@ -15,7 +15,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
 1. If you are not in the studio environment, change over to your plan directory and enter the studio.
 
-        cd ~/Plans/mytutorialapp
+        cd ~/plans/mytutorialapp
         hab studio -k myorigin enter
 
 2. Build your mytutorialapp package.
