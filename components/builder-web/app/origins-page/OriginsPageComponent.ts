@@ -36,7 +36,7 @@ import {requireSignIn} from "../util";
             </p>
             <div *ngIf="origins.size === 0">
                 <div class="hero">
-                    <h3>You don't currently have any origins, let's add one now.</h3>
+                    <h3>You don't currently have any origins. Let's add one now.</h3>
                     <p>
                         <a class="button cta" [routerLink]='["OriginCreate"]'>
                             Add Origin
