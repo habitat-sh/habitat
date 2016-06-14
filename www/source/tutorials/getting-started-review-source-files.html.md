@@ -45,9 +45,9 @@ Because we are using npm to start up our Node.js web app, the npm binary looks f
 
 ~~~ javascript
 {
-    "name": "nodejs_tutorial_app",
+    "name": "mytutorialapp",
     "version": "0.1.0",
-    "description": "Node.js tutorial app",
+    "description": "Node.js tutorial app for Habitat",
     "author": "First Last <first.last@example.com>",
     "license": "MIT",
     "main": "server.js",
