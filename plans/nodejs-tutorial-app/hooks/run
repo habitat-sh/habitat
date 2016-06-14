@@ -1,4 +1,0 @@
-#!/bin/sh
-#
-cd {{pkg.svc_path}}
-npm start

@@ -1,5 +1,0 @@
-#!/bin/sh
-#
-ln -s {{pkg.path}}/package.json {{pkg.svc_path}}
-ln -s {{pkg.path}}/server.js {{pkg.svc_path}}
-ln -s {{pkg.path}}/node_modules {{pkg.svc_path}}
