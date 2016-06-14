@@ -30,7 +30,7 @@ We would love contributions to the code base to add these and any other update s
 
 ## Support for Microsoft Windows
 
-We believe that the application-centric approach that Habitat takes can and should be extended to Microsoft Windows. If you are interested in getting either the Habitat build system or supervisor system working on Windows, please get in touch, either on the [forum](https://forum.habitat.sh/) or in [Slack](http://slack.habitat.sh/).
+We believe that the application-centric approach that Habitat takes can and should be extended to Microsoft Windows. If you are interested in getting either the Habitat build system or supervisor system working on Windows, please get in touch, either on the [forum](https://forums.habitat.sh/) or in [Slack](http://slack.habitat.sh/).
 
 ## Support for Container Cluster Managers
 
