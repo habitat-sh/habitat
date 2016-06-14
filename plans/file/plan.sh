@@ -1,7 +1,7 @@
 pkg_name=file
 pkg_origin=core
 pkg_version=5.24
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('custom')
 pkg_source=ftp://ftp.astron.com/pub/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=802cb3de2e49e88ef97cdcb52cd507a0f25458112752e398445cea102bc750ce

@@ -1,7 +1,7 @@
 pkg_name=expat
 pkg_origin=core
 pkg_version=2.1.0
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('mit')
 pkg_source=http://downloads.sourceforge.net/sourceforge/expat/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=823705472f816df21c8f6aa026dd162b280806838bb55b3432b0fb1fcca7eb86

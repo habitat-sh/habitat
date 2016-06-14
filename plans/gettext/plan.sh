@@ -1,7 +1,7 @@
 pkg_name=gettext
 pkg_origin=core
 pkg_version=0.19.6
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv2+' 'lgpl2+')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=ed4b4c19bd3a3034eb6769500a3592ff616759ef43cf30586dbb7a17c9dd695d

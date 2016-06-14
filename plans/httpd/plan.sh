@@ -1,7 +1,7 @@
 pkg_name=httpd
 pkg_origin=core
 pkg_version=2.4.18
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apache')
 pkg_source=http://www.apache.org/dist/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=1c39b55108223ba197cae2d0bb81c180e4db19e23d177fba5910785de1ac5527

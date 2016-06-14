@@ -1,7 +1,7 @@
 pkg_name=m4
 pkg_origin=core
 pkg_version=1.4.17
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('gplv3')
 pkg_source=http://ftp.gnu.org/gnu/$pkg_name/${pkg_name}-${pkg_version}.tar.xz
 pkg_shasum=f0543c3beb51fa6b3337d8025331591e0e18d8ec2886ed391f1aade43477d508

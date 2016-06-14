@@ -1,7 +1,7 @@
 source ../libarchive/plan.sh
 
 pkg_name=libarchive-musl
-pkg_maintainer="The Habitat Contributors <humans@habitat.sh>"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_deps=(core/musl core/openssl-musl core/zlib-musl core/bzip2-musl core/xz-musl)
 
 do_prepare() {
