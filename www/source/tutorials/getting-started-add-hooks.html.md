@@ -26,9 +26,9 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
        #!/bin/sh
        #
-       ln -s {{pkg.path}}/package.json {{pkg.svc_path}}
-       ln -s {{pkg.path}}/server.js {{pkg.svc_path}}
-       ln -s {{pkg.path}}/node_modules {{pkg.svc_path}}
+       ln -sf {{pkg.path}}/package.json {{pkg.svc_path}}
+       ln -sf {{pkg.path}}/server.js {{pkg.svc_path}}
+       ln -sf {{pkg.path}}/node_modules {{pkg.svc_path}}
 
     This will symlink the files from the location where the package is installed to the directory used when the service starts.
 
