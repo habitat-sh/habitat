@@ -27,5 +27,3 @@ If you were retrieving the `status` on a running `core/redis` package, the respo
       core/redis/3.0.7/20160529151526: up for PT361.542547264S
 
 Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
-
-For a complete list of values on each endpoint and the output formats, see the [HTTP API Reference](/docs/reference/http-api).
