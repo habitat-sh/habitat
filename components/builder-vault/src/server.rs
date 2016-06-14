@@ -157,6 +157,23 @@ impl Worker {
                     let err = net::err(ErrCode::ACCESS_DENIED, "vt:origin-create:0");
                     try!(req.reply_complete(&mut self.sock, &err));
                 }
+
+                let existing_invites = try!(self.datastore()
+                    .origins
+                    .invites
+                    .get_by_account_id(msg.get_account_id()));
+
+                for invite in &existing_invites {
+                    if invite.get_origin_name() == msg.get_origin_name() {
+                        debug!("Invite for origin {} for user {} already exists",
+                               &msg.get_origin_name(),
+                               &msg.get_account_name());
+                        let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:1");
+                        try!(req.reply_complete(&mut self.sock, &err));
+                        return Ok(())
+                    }
+                }
+
                 invitation.set_account_id(msg.get_account_id());
                 invitation.set_account_name(msg.get_account_name().to_string());
                 invitation.set_origin_id(msg.get_origin_id());

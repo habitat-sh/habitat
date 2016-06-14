@@ -163,8 +163,10 @@ export class BuilderApiClient {
                 // Getting a 404 means the user does not exist.
                 } else if (response.status === 404) {
                     reject(new Error(`User '${username}' does not exist`));
+                } else if (response.status === 409) {
+                    reject(new Error(`An invitation already exists for '${username}'`));
                 } else {
-                    reject(response.error);
+                    reject(new Error(response.statusText));
                 }
             }).catch(error => reject(error));
         });
