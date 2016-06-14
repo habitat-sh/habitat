@@ -75,6 +75,13 @@ var homepageScripts = function() {
     adjustParentHeight($testimonials, $(testimonialsSlider));
   });
 
+  $('.testimonials--nav--dot').click(function() {
+    var posClass = $(this).attr("class").split(' ')[1];
+
+    $('.testimonial, .testimonials--nav--dot').removeClass('is-active');
+    $('.' + posClass).addClass('is-active');
+  })
+
   setInterval(function() {
     $currentSlide = $(".testimonial.is-active");
 
@@ -87,6 +94,8 @@ var homepageScripts = function() {
     } else if ($currentSlide.hasClass("third")) {
       $(testimonialsSlider + " .fourth").addClass("is-active");
     } else if ($currentSlide.hasClass("fourth")) {
+      $(testimonialsSlider + " .fifth").addClass("is-active");
+    } else if ($currentSlide.hasClass("fifth")) {
       $(testimonialsSlider + " .first").addClass("is-active");
     }
 
