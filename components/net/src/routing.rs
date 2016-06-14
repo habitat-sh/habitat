@@ -9,8 +9,9 @@
 //! connected to one or more `RouteSrv`. All messages are routed through a `RouteSrv` and forwarded
 //! to the appropriate receiver of a message.
 
+use std::cell::UnsafeCell;
 use std::net;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
 use fnv::FnvHasher;
@@ -28,6 +29,17 @@ pub const SEND_TIMEOUT_MS: i32 = 5_000;
 // ZeroMQ address for the application's Broker's queue.
 const ROUTE_INPROC_ADDR: &'static str = "inproc://route-broker";
 
+pub struct BrokerContext(UnsafeCell<zmq::Context>);
+
+impl BrokerContext {
+    pub fn new() -> Self {
+        BrokerContext(UnsafeCell::new(zmq::Context::new()))
+    }
+}
+
+unsafe impl Send for BrokerContext {}
+unsafe impl Sync for BrokerContext {}
+
 /// Client connection for sending and receiving messages to and from the service cluster through
 /// a running `Broker`.
 pub struct BrokerConn {
@@ -42,7 +54,8 @@ impl BrokerConn {
     ///
     /// * A socket cannot be created for within the given `zmq::Context`
     /// * The socket cannot be configured
-    pub fn new(ctx: &mut zmq::Context) -> Result<Self> {
+    pub fn new(ctx: &BrokerContext) -> Result<Self> {
+        let ctx: &mut zmq::Context = unsafe { &mut *ctx.0.get() };
         let socket = try!(ctx.socket(zmq::REQ));
         try!(socket.set_rcvtimeo(RECV_TIMEOUT_MS));
         try!(socket.set_sndtimeo(SEND_TIMEOUT_MS));
@@ -98,8 +111,6 @@ impl BrokerConn {
 
 /// A messaging Broker for proxying messages from clients to one or more `RouteSrv` and vice versa.
 pub struct Broker {
-    #[allow(dead_code)]
-    ctx: Arc<Mutex<zmq::Context>>,
     client_sock: zmq::Socket,
     router_sock: zmq::Socket,
 }
@@ -115,19 +126,15 @@ impl Broker {
     /// # Panics
     ///
     /// * Could not read `zmq::Context` due to deadlock or poisoning
-    fn new(net_ident: String, ctx: Arc<Mutex<zmq::Context>>) -> Result<Self> {
-        let (fe, be) = {
-            let mut ctx = ctx.lock().unwrap();
-            let fe = try!(ctx.socket(zmq::ROUTER));
-            let be = try!(ctx.socket(zmq::DEALER));
-            (fe, be)
-        };
+    fn new(net_ident: String, ctx: &BrokerContext) -> Result<Self> {
+        let ctx: &mut zmq::Context = unsafe { &mut *ctx.0.get() };
+        let fe = try!(ctx.socket(zmq::ROUTER));
+        let be = try!(ctx.socket(zmq::DEALER));
         try!(fe.set_identity(net_ident.as_bytes()));
         try!(be.set_rcvtimeo(RECV_TIMEOUT_MS));
         try!(be.set_sndtimeo(SEND_TIMEOUT_MS));
         try!(be.set_immediate(true));
         Ok(Broker {
-            ctx: ctx,
             client_sock: fe,
             router_sock: be,
         })
@@ -143,11 +150,8 @@ impl Broker {
     /// # Panics
     ///
     /// * Could not read `zmq::Context` due to deadlock or poisoning
-    pub fn connect(ctx: &Arc<Mutex<zmq::Context>>) -> Result<BrokerConn> {
-        let mut conn = {
-            let mut ctx = ctx.lock().unwrap();
-            try!(BrokerConn::new(&mut ctx))
-        };
+    pub fn connect(ctx: &BrokerContext) -> Result<BrokerConn> {
+        let mut conn = try!(BrokerConn::new(ctx));
         try!(conn.connect(ROUTE_INPROC_ADDR));
         Ok(conn)
     }
@@ -159,7 +163,7 @@ impl Broker {
     ///
     /// * Broker crashed during startup
     pub fn run(net_ident: String,
-               ctx: Arc<Mutex<zmq::Context>>,
+               ctx: Arc<BrokerContext>,
                routers: &Vec<net::SocketAddrV4>)
                -> JoinHandle<()> {
         let (tx, rx) = mpsc::sync_channel(1);
@@ -167,7 +171,7 @@ impl Broker {
         let handle = thread::Builder::new()
             .name("router-broker".to_string())
             .spawn(move || {
-                let mut broker = Self::new(net_ident, ctx).unwrap();
+                let mut broker = Self::new(net_ident, &ctx).unwrap();
                 broker.start(tx, addrs).unwrap();
             })
             .unwrap();

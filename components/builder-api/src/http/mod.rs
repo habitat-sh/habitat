@@ -9,11 +9,12 @@
 
 pub mod handlers;
 
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
 use depot;
 use hab_net::oauth::github::GitHubClient;
+use hab_net::routing::BrokerContext;
 use iron::prelude::*;
 use iron::AfterMiddleware;
 use iron::headers;
@@ -21,14 +22,13 @@ use iron::method::Method;
 use mount::Mount;
 use staticfile::Static;
 use unicase::UniCase;
-use zmq;
 
 use config::Config;
 use error::Result;
 use self::handlers::*;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
-pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<Chain> {
+pub fn router(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<Chain> {
     let github = GitHubClient::new(&*config);
     let ctx1 = context.clone();
     let ctx2 = context.clone();
@@ -65,7 +65,7 @@ pub fn router(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<
 /// # Panics
 ///
 /// * Listener crashed during startup
-pub fn run(config: Arc<Config>, context: Arc<Mutex<zmq::Context>>) -> Result<JoinHandle<()>> {
+pub fn run(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
 
     let addr = config.http_addr.clone();

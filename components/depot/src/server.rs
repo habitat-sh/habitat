@@ -10,13 +10,17 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 use std::result;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use bodyparser;
 use dbcache::{self, BasicSet, IndexSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
+use hab_net;
+use hab_net::config::RouteAddrs;
+use hab_net::routing::{Broker, BrokerContext};
+use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::ContentType;
 use iron::prelude::*;
@@ -33,15 +37,10 @@ use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
 use unicase::UniCase;
 use urlencoded::UrlEncodedQuery;
-use zmq;
 
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
-use hab_net;
-use hab_net::config::RouteAddrs;
-use hab_net::routing::Broker;
-use hab_net::server::NetIdent;
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
@@ -1315,13 +1314,11 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
 
-    let ctx = Arc::new(Mutex::new(zmq::Context::new()));
+    let ctx = Arc::new(BrokerContext::new());
+    let ctx1 = ctx.clone();
     let depot = try!(Depot::new(config.clone(), ctx));
     let v1 = try!(router(depot.clone()));
-
-    let broker = Broker::run(Depot::net_ident(),
-                             depot.context.clone(),
-                             &config.route_addrs().clone());
+    let broker = Broker::run(Depot::net_ident(), ctx1, &config.route_addrs().clone());
 
     let mut mount = Mount::new();
     mount.mount("/v1", v1);

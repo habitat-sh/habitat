@@ -45,7 +45,7 @@ pub mod server;
 pub use self::config::Config;
 pub use self::error::{Error, Result};
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -56,16 +56,17 @@ use data_store::DataStore;
 
 use hab_net::oauth::github::GitHubClient;
 use hab_net::server::NetIdent;
+use hab_net::routing::BrokerContext;
 
 pub struct Depot {
     pub config: Config,
     pub datastore: DataStore,
-    context: Arc<Mutex<zmq::Context>>,
+    pub context: Arc<BrokerContext>,
     github: GitHubClient,
 }
 
 impl Depot {
-    pub fn new(config: Config, ctx: Arc<Mutex<zmq::Context>>) -> Result<Arc<Depot>> {
+    pub fn new(config: Config, ctx: Arc<BrokerContext>) -> Result<Arc<Depot>> {
         let datastore = try!(DataStore::open(&config));
         let github = GitHubClient::new(&config);
         Ok(Arc::new(Depot {
