@@ -221,6 +221,14 @@ $sub-hero-skew: 5deg;
   }
 }
 
+.sub-hero--button {
+  margin: rem-calc(40) 0 rem-calc(-35);
+
+  @include small-home {
+    margin: rem-calc(20) 0 0 6%;
+  }
+}
+
 // Main section
 .main-section {
   padding: rem-calc(120) 0;
