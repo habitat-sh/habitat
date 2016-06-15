@@ -53,3 +53,9 @@ Habitat packages may be exported with the supervisor directly into a Docker or A
 ### Kubernetes
 
 [Kubernetes](http://kubernetes.io/) is an open source container cluster manager embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/) and [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/). Habitat packages are supported in both Docker and ACI container formats and can be [deployed within Kubernetes](/docs/run-packages-kubernetes/).
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-monitoring">Monitoring</a></li>
+</ul>

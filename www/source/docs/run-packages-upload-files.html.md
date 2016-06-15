@@ -41,3 +41,9 @@ When running on a Mac OSX machine, because service and user keys generated with 
        ★ Upload of test.txt complete.
 
      The output text will update as each peer in the service group receives the file.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-security">Security</a></li>
+</ul>

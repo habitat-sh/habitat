@@ -41,3 +41,9 @@ Services only join together to form a ring when a peer IP address is specified b
     ...
 
 > Note: It is important that you specified the group value above. If not, then your new service would have joined the `default` service group, but remained a gossip peer of the previous service.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-topologies">Topologies</a></li>
+</ul>

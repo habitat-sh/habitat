@@ -41,3 +41,9 @@ Here are some examples of how to apply configuration changes through both the sh
       hab-sup(SV): myapp - Service exited
       myapp(SV): Starting
       ...
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-upload-files">Upload files</a></li>
+</ul>

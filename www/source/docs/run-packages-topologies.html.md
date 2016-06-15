@@ -47,5 +47,5 @@ The initializer topology can be started with the `--topology initializer` argume
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/run-packages-director">Run multiple packages</a></li>
+  <li><a href="/docs/run-packages-apply-config-updates">Configuration updates</a></li>
 </ul>

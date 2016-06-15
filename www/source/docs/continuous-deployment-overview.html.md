@@ -48,3 +48,9 @@ Each of these phases runs per environment (acceptance, union, rehearsal, deliver
 ### Supervisor Configuration
 
 In order to enable automatic deployment in each environment during the provision stage, you should [configure the supervisor](/docs/run-packages-update-strategy/) to use a named view as its depot URL, and set its update strategy. By convention, it's best to name the depot view the same as the service group name.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/nternals-overview">Habitat internals</a></li>
+</ul>

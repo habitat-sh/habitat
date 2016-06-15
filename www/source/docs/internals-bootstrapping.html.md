@@ -166,8 +166,3 @@ hab studio enter
 cat all_order | while read plan; do build $plan || break; done
 ~~~
 
-<hr>
-<ul class="main-content--link-nav">
-  <li>Continue to the next topic</li>
-  <li><a href="/docs/internals-supervisor">Supervisor Internals</a></li>
-</ul>
