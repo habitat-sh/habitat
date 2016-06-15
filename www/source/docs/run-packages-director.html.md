@@ -43,3 +43,9 @@ When run in a supervisor, the director can be started using the `hab start` comm
 You must also pass in the config.toml file containing your service definitions. This can be done at runtime dynamically by using the `hab config apply` subcommand.
 
     hab config apply hab-director.default --peer 172.17.0.2 1 /path/to/config.toml
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-export">Export packages</a></li>
+</ul>

@@ -32,5 +32,5 @@ The supervisor will throw an error if you have declared bindings but failed to r
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/run-packages-security">Security</a></li>
+  <li><a href="/docs/run-packages-update-strategy">Update strategy</a></li>
 </ul>

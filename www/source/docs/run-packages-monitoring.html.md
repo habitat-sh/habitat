@@ -27,3 +27,9 @@ If you were retrieving the `status` on a running `core/redis` package, the respo
       core/redis/3.0.7/20160529151526: up for PT361.542547264S
 
 Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/share-packages-overview">Share packages</a></li>
+</ul>

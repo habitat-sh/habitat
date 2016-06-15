@@ -52,3 +52,9 @@ This section is divided into the following areas:
 - [Run multiple packages](/docs/run-packages-director): Learn about the director and how to use it to start up multiple services on the same machine.
 - [Export packages](/docs/run-packages-export): Learn how to export packages into multiple external, immutable runtime formats and work with container cluster managers like Kubernetes and Mesos.
 - [Monitor services through the HTTP API](/docs/run-packages-monitoring): Discover how to use the HTTP API to retrieve census, status, and health information from your running services.
+
+<hr>
+<ul class="main-content--link-nav">
+  <li>Continue to the next topic</li>
+  <li><a href="/docs/run-packages-service-groups">Service groups</a></li>
+</ul>
