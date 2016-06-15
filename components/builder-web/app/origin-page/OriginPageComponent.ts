@@ -119,6 +119,7 @@ import {requireSignIn} from "../util";
                 </div>
             </tab>
             <hab-origin-members-tab
+                [docsUrl]="docsUrl"
                 [errorMessage]="ui.userInviteErrorMessage"
                 [invitations]="invitations"
                 [members]="members"

@@ -72,12 +72,14 @@ import {TabComponent} from "../TabComponent";
             </div>
             <div class="hab-origin--right">
                 <p>
-                    <em>Origin keys</em> ensure that only authorized users
-                    or (organizations) are able
-                    to push updates to packages in this origin.
+                    <em>Origin keys</em> ensure only authorized users (or
+                    organizations) are able to push updates to packages
+                    in this origin.
                 </p>
                 <p>
-                    Read the docs for more information on <a href="{{docsUrl}}/concepts-keys/">managing and using keys</a>.
+                    Read the docs for more information on
+                    <a href="{{docsUrl}}/concepts-keys/">
+                        managing and using keys</a>.
                 </p>
             </div>
         </div>
@@ -86,6 +88,7 @@ import {TabComponent} from "../TabComponent";
 })
 
 export class OriginMembersTabComponent implements OnInit {
+    @Input() docsUrl: string;
     @Input() errorMessage: string;
     @Input() invitations: List<Object>;
     @Input() members: List<Object>;
