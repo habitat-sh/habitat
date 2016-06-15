@@ -7,14 +7,15 @@ html prefix="og: http://ogp.me/ns#"
     meta name="description" content=current_page.data.description
 
     - current_page.data.title ||= "Habitat"
-    - social_image = "/images/habitat-social.jpg"
+    - canonical_url = "https://www.habitat.sh"
+    - social_image = "#{canonical_url}/images/habitat-social.jpg"
 
     title=current_page.data.title
 
     meta property="og:title" content=current_page.data.title
     meta property="og:type" content="website"
     meta property="og:image" content=social_image
-    meta property="og:url" content="https://www.habitat.sh#{current_page.url}"
+    meta property="og:url" content=(canonical_url + current_page.url)
     meta property="og:description" content=current_page.data.description
 
     meta name="twitter:card" content="summary_large_image"
