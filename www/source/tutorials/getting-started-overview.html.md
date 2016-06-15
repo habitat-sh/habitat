@@ -16,7 +16,6 @@ This tutorial currently supports Linux and Mac OS X as host operating systems. B
 *   The `hab` command-line interface tool. See [Get Habitat](/docs/get-habitat) if you don't already have this installed on your machine.
 *    An active GitHub account is recommended. If you don't already have an account, [sign up](https://github.com/) for one now. Note: This is required to upload and share your packages with others in the Habitat community.
 *   Your favorite text editor.
-*   Open egress on TCP port 9636. This is needed to upload and download packages from the public depot.
 *   If you are running Mac OS X on your host machine, then you need [Docker Toolbox](https://www.docker.com/products/docker-toolbox) installed. The toolbox also installs Oracle VM VirtualBox, which will run and manage the Linux VM where the Docker daemon resides. Make sure you have a Docker VM running before proceeding through the tutorial.
 *   If you are running a Linux distribution such as Ubuntu on your host machine, then you need to install the [Docker Engine](https://docs.docker.com/linux/) CLI tool.
 
