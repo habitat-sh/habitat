@@ -1,3 +1,7 @@
+---
+title: Packages
+---
+
 # Packages
 
 A package refers to a binary distribution for a given piece of Habitat software that contains a software library or application as well as any configuration information for that software. It's a signed tarball with a .hart file extension created from a plan definition and built with Habitat tools that can be post-processed to be runtime specific, such as when creating a Docker container.

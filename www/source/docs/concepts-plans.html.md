@@ -1,3 +1,7 @@
+---
+title: Plans
+---
+
 # Plans
 
 A plan is a set of files that describe how to build a binary Habitat package. At the heart of the plan is a configurable bash script named `plan.sh`, containing instructions on how to download, compile, and install software.

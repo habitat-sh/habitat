@@ -1,3 +1,7 @@
+---
+title: Keys
+---
+
 # Keys
 
 Habitat has strong cryptography built into both the build system and the supervisor. This means there are several different kinds of keys.
