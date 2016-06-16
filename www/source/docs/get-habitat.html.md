@@ -16,6 +16,14 @@ _Habitat for Mac requires a 64-bit processor running Mac OS X version 10.9+._
 <a class="button" href="https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-$latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin">Download Habitat for Mac OS X</a>
 <a class="button secondary" href="https://www.docker.com/products/docker-toolbox">Download Docker Toolbox</a>
 
+#### Homebrew Cask
+
+Habitat is also available to Mac users via <a href="https://caskroom.github.io/">Homebrew Cask</a>.  
+Simply run the following commands to get Cask and install the `hab` binary.
+
+`brew tap caskroom/cask` and `brew install Caskroom/cask/hab`  
+<br>
+
 ### For Linux
 To start using Habitat on Linux, download the following binary.  
 _Habitat for Linux requires a 64-bit processor with a kernel greater than 2.6.32._
