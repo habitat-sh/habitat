@@ -1,11 +1,11 @@
 pkg_name=elasticsearch
 pkg_origin=core
-pkg_version=2.3.2
+pkg_version=2.3.3
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Revised BSD')
 pkg_source=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/tar/elasticsearch/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
-pkg_shasum=04c4d3913d496d217e038da88df939108369ae2e78eea29cb1adf1c4ab3a000a
+pkg_shasum=5fe0a6887432bb8a8d3de2e79c9b81c83cfa241e6440f0f0379a686657789165
 pkg_deps=(core/glibc core/server-jre)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
