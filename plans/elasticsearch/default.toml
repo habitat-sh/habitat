@@ -12,96 +12,222 @@
 #
 # ---------------------------------- Cluster -----------------------------------
 #
-# Use a descriptive name for your cluster:
-#
-cluster-name = "elasticsearch"
+[cluster]
+  #
+  # Use a descriptive name for your cluster:
+  #
+  name = "elasticsearch"
+
+  [cluster.routing.allocation]
+    #
+    # How many concurrent shard recoveries are allowed to happen on a node.
+    # Defaults to 2.
+    #
+    node_concurrent_recoveries = "2"
+    #
+    # While the recovery of replicas happens over the network, the recovery of
+    # an unassigned primary after node restart uses data from the local disk.
+    # These should be fast so more initial primary recoveries can happen in
+    # parallel on the same node. Defaults to 4.
+    #
+    node_initial_primaries_recoveries = "4"
+    #
+    # Allows to perform a check to prevent allocation of multiple instances of
+    # the same shard on a single host, based on host name and host address.
+    # Defaults to false, meaning that no check is performed by default. This
+    # setting only applies if multiple nodes are started on the same machine.
+    #
+    same_shard-host = "false"
+    #
+    # https://www.elastic.co/guide/en/elasticsearch/reference/2.3/allocation-awareness.html
+    #
+    awareness-attributes = ""
 #
 # ------------------------------------ Node ------------------------------------
 #
-# Use a descriptive name for the node:
-#
-node-name = ""
-#
-# Add custom attributes to the node:
-#
-# node.rack: r1
+[node]
+  # Use a descriptive name for the node:
+  #
+  name = ""
+  #
+  # Add custom attributes to the node:
+  #
+  # node.rack: r1
+  #
+  rack_id = ""
+  zone    = ""
+  #
+  # Disable starting multiple nodes on a single system:
+  #
+  max_local_storage_nodes = 1
+  #
+  # Configure node as master-only, master-eligible, data-only, or client
+  # (https://www.elastic.co/guide/en/elasticsearch/reference/2.3/modules-node.html#master-node)
+  # Default is master-eligible (master and data are both "true")
+  #
+  master = "true"
+  data   = "true"
+
 #
 # ----------------------------------- Paths ------------------------------------
 #
-# Path to directory where to store the data (separate multiple locations by comma):
+[path]
+  #
+  # Path to directory where to store the data (separate multiple locations by comma):
+  #
+  data =    "/hab/svc/elasticsearch/data"
+  #
+  # Path to log files:
+  #
+  logs =    "/hab/svc/elasticsearch/logs"
+  #
+  # Path to plugins:
+  #
+  plugins = "/hab/svc/elasticsearch/var"
+  #
+  # Path to scripts directory
+  #
+  scripts = "/hab/svc/elasticsearch/config/scripts"
+
 #
-path-data =    "/hab/svc/elasticsearch/data"
+# ----------------------------------- Indices ----------------------------------
 #
-# Path to log files:
-#
-path-logs =    "/hab/svc/elasticsearch/logs"
-#
-# Path to plugins:
-#
-path-plugins = "/hab/svc/elasticsearch/var"
-#
-# Path to scripts directory
-#
-path-scripts = "/hab/svc/elasticsearch/config/scripts"
+[indices]
+  [indices.recovery]
+    concurrent_streams =            "3"
+    concurrent_small_file_streams = "2"
+    file_chunk_size =               "512kb"
+    translog_ops =                  "1000"
+    translog_size =                 "512kb"
+    compress =                      "true"
+    max_bytes_per_sec  =            "20mb"
+
+  [indices.fielddata]
+    #
+    # The max size of the field data cache, eg 30% of node heap space, or an absolute
+    # value, eg 12GB. Defaults to unbounded.
+    #
+    cache-size =                   ""
+
+  [indices.breaker]
+    #
+    # Starting limit for overall parent breaker, defaults to 70% of JVM heap.
+    #
+    total-limit =                    "70%"
+    #
+    # Limit for fielddata breaker, defaults to 60% of JVM heap.
+    #
+    fielddata-limit =                "60%"
+    #
+    # A constant that all field data estimations are multiplied with to determine a
+    # final estimation. Defaults to 1.03
+    #
+    fielddata-overhead =             "1.03"
+    #
+    # Limit for request breaker, defaults to 40% of JVM heap.
+    #
+    request-limit =                  "40%"
+    #
+    # A constant that all request estimations are multiplied with to determine a
+    # final estimation. Defaults to 1.
+    #
+    request-overhead =               "1"
+
 #
 # ----------------------------------- Memory -----------------------------------
 #
-# Lock the memory on startup:
-#
-bootstrap-mlockall = "true"
-#
-# Make sure that the heap size is set to about half the memory available
-# on the system and that the owner of the process is allowed to use this
-# limit.
-#
-# Elasticsearch performs poorly when the system is swapping the memory.
+[bootstrap]
+  # Lock the memory on startup:
+  #
+  mlockall = "true"
+  #
+  # Make sure that the heap size is set to about half the memory available
+  # on the system and that the owner of the process is allowed to use this
+  # limit.
+  #
+  # Elasticsearch performs poorly when the system is swapping the memory.
+  #
+
 #
 # ---------------------------------- Network -----------------------------------
 #
-# Set the bind address to a specific IP (IPv4 or IPv6):
-#
-network-host =  "_site_"
-#
-# Set a custom port for HTTP:
-#
-http-port = 9200
-#
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>
+[network]
+  #
+  # Set the bind address to a specific IP (IPv4 or IPv6):
+  #
+  host =  "_site_"
+  #
+  # Set a custom port for HTTP:
+  #
+  port = 9200
+  #
+  # For more information, see the documentation at:
+  # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>
+
 #
 # --------------------------------- Discovery ----------------------------------
 #
-# Pass an initial list of hosts to perform discovery when new node is started:
-# The default list of hosts is ["127.0.0.1", "[::1]"]
-#
-discovery-ping_multicast_enabled = "false"
-discovery-ping_unicast_hosts = "[]"
-#
-# Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
-#
-discovery-minimum_master_nodes = 1
-#
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
+[discovery]
+  # Pass an initial list of hosts to perform discovery when new node is started:
+  # The default list of hosts is ["127.0.0.1", "[::1]"]
+  #
+  ping_multicast_enabled = "false"
+  ping_unicast_hosts = "[]"
+  #
+  # Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
+  #
+  minimum_master_nodes = 1
+  #
+  # For more information, see the documentation at:
+  # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
+  #
+
 #
 # ---------------------------------- Gateway -----------------------------------
 #
-# Block initial recovery after a full cluster restart until N nodes are started:
-#
-gateway-recover_after_nodes = ""
-#
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-gateway.html>
+[gateway]
+  #
+  # Block initial recovery after a full cluster restart until N nodes are started:
+  #
+  recover_after_nodes   = ""
+  #
+  # The number of (data or master) nodes that are expected to be in the cluster.
+  # Recovery of local shards will start as soon as the expected number of nodes
+  # have joined the cluster. Defaults to 0
+  #
+  expected_nodes        = "0"
+  #
+  # The number of master nodes that are expected to be in the cluster. Recovery
+  # of local shards will start as soon as the expected number of master nodes
+  # have joined the cluster. Defaults to 0
+  #
+  expected_master_nodes = "0"
+  #
+  # The number of data nodes that are expected to be in the cluster. Recovery of
+  # local shards will start as soon as the expected number of data nodes have
+  # joined the cluster. Defaults to 0
+  #
+  expected_data_nodes   = "0"
+  #
+  # If the expected number of nodes is not achieved, the recovery process waits
+  # for the configured amount of time before trying to recover regardless.
+  # Defaults to 5m if one of the expected_nodes settings is configured.
+  #
+  recover_after_time    = ""
+  #
+  # For more information, see the documentation at:
+  # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-gateway.html>
+  #
+
 #
 # ---------------------------------- Various -----------------------------------
 #
-# Disable starting multiple nodes on a single system:
-#
-node-max_local_storage_nodes = 1
-#
-# Require explicit names when deleting indices:
-#
-action-destructive_requires_name = "true"
+[action]
+  #
+  # Require explicit names when deleting indices:
+  #
+  destructive_requires_name  = "true"
 
 # ======================== Elasticsearch Logger Configuration =========================
-logger-level = "INFO"
+[logger]
+  level = "INFO"
