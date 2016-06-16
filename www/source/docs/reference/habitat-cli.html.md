@@ -318,7 +318,7 @@ Generates a blake2b hashsum from a target at any given filepath
     <SOURCE>    A filepath of the target
 
 <h2 id="hab-pkg-install" class="anchor">hab pkg install</h2>
-Installs a Habitat package from a Depot or locally from a Habitat Artifact
+Installs a Habitat package from a Depot or locally from a Habitat Artifact, Note: If your running Hab on a mac, use sudo to install packages as may run into issues installing the package dependencies.
 
 **USAGE**
 
