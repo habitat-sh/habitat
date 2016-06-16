@@ -1,11 +1,11 @@
 pkg_name=ruby
 pkg_origin=core
-pkg_version=2.3.0
+pkg_version=2.3.1
 pkg_license=('ruby')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://cache.ruby-lang.org/pub/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
 pkg_filename=${pkg_name}-${pkg_version}.tar.gz
-pkg_shasum=ba5ba60e5f1aa21b4ef8e9bf35b9ddb57286cb546aac4b5a28c71f459467e507
+pkg_shasum=b87c738cb2032bf4920fef8e3864dc5cf8eae9d89d8d523ce0236945c5797dcd
 pkg_deps=(core/glibc core/ncurses core/zlib core/libedit core/openssl core/libyaml
           core/libiconv core/libffi)
 pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc core/sed)
