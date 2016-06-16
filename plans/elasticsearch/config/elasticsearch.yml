@@ -58,12 +58,12 @@ discovery.zen.ping.multicast.enabled: {{cfg.discovery.ping_multicast_enabled}}
 discovery.zen.ping.unicast.hosts: {{cfg.discovery.ping_unicast_hosts}}
 discovery.zen.minimum_master_nodes: {{cfg.discovery.minimum_master_nodes}}
 
-gateway.recover_after_nodes: {{cfg.gateway-recover_after_nodes}}
-gateway.expected_nodes: {{cfg.gateway-expected_nodes}}
-gateway.expected_master_nodes: {{cfg.gateway-expected_master_nodes}}
-gateway.expected_data_nodes: {{cfg.gateway-expected_data_nodes}}
-{{~#if cfg.gateway-recover_after_time}}
-gateway.recover_after_time: {{cfg.gateway-recover_after_time}}
+gateway.recover_after_nodes: {{cfg.gateway.recover_after_nodes}}
+gateway.expected_nodes: {{cfg.gateway.expected_nodes}}
+gateway.expected_master_nodes: {{cfg.gateway.expected_master_nodes}}
+gateway.expected_data_nodes: {{cfg.gateway.expected_data_nodes}}
+{{~#if cfg.gateway.recover_after_time}}
+gateway.recover_after_time: {{cfg.gateway.recover_after_time}}
 {{~/if}}
 
 action.destructive_requires_name: {{cfg.action.destructive_requires_name}}
