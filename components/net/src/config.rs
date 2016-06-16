@@ -14,6 +14,16 @@
 
 use std::net;
 
+pub trait ToAddrString {
+    fn to_addr_string(&self) -> String;
+}
+
+impl ToAddrString for net::SocketAddrV4 {
+    fn to_addr_string(&self) -> String {
+        format!("tcp://{}:{}", self.ip(), self.port())
+    }
+}
+
 pub trait GitHubOAuth {
     fn github_url(&self) -> &str;
     fn github_client_id(&self) -> &str;

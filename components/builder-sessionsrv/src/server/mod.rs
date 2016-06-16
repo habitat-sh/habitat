@@ -20,8 +20,8 @@ use std::time::Duration;
 use std::thread;
 
 use dbcache::{ExpiringSet, InstaSet, IndexSet};
-use hab_net::server::{Application, Dispatcher, Envelope, NetIdent, RouteConn, ServerContext,
-                      Service, Supervisor};
+use hab_net::{Application, Dispatcher, Supervisor};
+use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protocol::net;
 use zmq;
 
@@ -30,13 +30,6 @@ use data_store::DataStore;
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
-
-lazy_static! {
-    static ref ZMQ_CONTEXT: Box<ServerContext> = {
-        let ctx = ServerContext::new();
-        Box::new(ctx)
-    };
-}
 
 pub struct ServerState {
     datastore: DataStore,

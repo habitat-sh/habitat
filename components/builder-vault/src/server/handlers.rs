@@ -208,7 +208,7 @@ pub fn origin_invitation_list(req: &mut Envelope,
 
 pub fn origin_list(req: &mut Envelope,
                    sock: &mut zmq::Socket,
-                   state: &mut ServerState)
+                   _state: &mut ServerState)
                    -> Result<()> {
     let origin1 = proto::Origin::new();
     let origin2 = proto::Origin::new();

@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod handlers;
+
 use std::ops::Deref;
 use std::sync::{mpsc, Arc, RwLock};
 use std::time::{Duration, Instant};
 use std::thread::{self, JoinHandle};
 
-use dbcache::{self, InstaSet};
+use dbcache::InstaSet;
 use linked_hash_map::LinkedHashMap;
-use hab_net::server::{Application, Envelope, NetIdent, RouteConn, Service, Supervisor,
-                      Supervisable, ToAddrString};
+use hab_net::{Application, Dispatcher, Supervisor};
+use hab_net::config::ToAddrString;
+use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protobuf::{parse_from_bytes, Message};
-use protocol::net::{self, ErrCode};
+use protocol::net;
 use protocol::jobsrv;
 use zmq;
 
@@ -34,56 +37,59 @@ const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 const WORKER_MGR_ADDR: &'static str = "inproc://work-manager";
 const WORKER_TIMEOUT_MS: u64 = 33_000;
 
-pub struct Worker {
-    config: Arc<RwLock<Config>>,
-    sock: zmq::Socket,
-    work_manager: zmq::Socket,
+pub struct ServerState {
+    pub work_manager: WorkManager,
     datastore: Option<DataStore>,
 }
 
-impl Worker {
-    fn datastore(&self) -> &DataStore {
-        self.datastore.as_ref().unwrap()
+impl ServerState {
+    pub fn datastore(&mut self) -> &mut DataStore {
+        self.datastore.as_mut().unwrap()
     }
+}
 
-    fn dispatch(&mut self, req: &mut Envelope) -> Result<()> {
-        match req.message_id() {
-            "JobCreate" => {
-                let mut job = jobsrv::Job::new();
-                job.set_state(jobsrv::JobState::default());
-                self.datastore().jobs.write(&mut job).unwrap();
-                self.datastore().job_queue.enqueue(&job).unwrap();
-                try!(self.notify_work_mgr());
-                try!(req.reply_complete(&mut self.sock, &job));
-            }
-            "JobGet" => {
-                let msg: jobsrv::JobGet = try!(req.parse_msg());
-                match self.datastore().jobs.find(&msg.get_id()) {
-                    Ok(job) => {
-                        let reply: jobsrv::Job = job.into();
-                        try!(req.reply_complete(&mut self.sock, &reply));
-                    }
-                    Err(dbcache::Error::EntityNotFound) => {
-                        let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-get:1");
-                        try!(req.reply_complete(&mut self.sock, &err));
-                    }
-                    Err(e) => {
-                        error!("datastore error, err={:?}", e);
-                        let err = net::err(ErrCode::INTERNAL, "jb:job-get:2");
-                        try!(req.reply_complete(&mut self.sock, &err));
-                    }
-                }
-            }
-            _ => panic!("unexpected message: {:?}", req.message_id()),
+impl Default for ServerState {
+    fn default() -> Self {
+        let work_manager = WorkManager::default();
+        ServerState {
+            datastore: None,
+            work_manager: work_manager,
         }
+    }
+}
+
+pub struct WorkManager {
+    socket: zmq::Socket,
+}
+
+impl WorkManager {
+    pub fn connect(&mut self) -> Result<()> {
+        try!(self.socket.connect(WORKER_MGR_ADDR));
         Ok(())
     }
 
-    fn notify_work_mgr(&mut self) -> Result<()> {
-        try!(self.work_manager.send(&[1], 0));
+    pub fn notify_work(&mut self) -> Result<()> {
+        try!(self.socket.send(&[1], 0));
         Ok(())
     }
+}
 
+impl Default for WorkManager {
+    fn default() -> WorkManager {
+        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
+        socket.set_sndhwm(1).unwrap();
+        socket.set_linger(0).unwrap();
+        socket.set_immediate(true).unwrap();
+        WorkManager { socket: socket }
+    }
+}
+
+pub struct Worker {
+    config: Arc<RwLock<Config>>,
+    state: ServerState,
+}
+
+impl Worker {
     fn try_connect_datastore(&mut self) {
         loop {
             let result = {
@@ -92,7 +98,7 @@ impl Worker {
             };
             match result {
                 Ok(datastore) => {
-                    self.datastore = Some(datastore);
+                    self.state.datastore = Some(datastore);
                     break;
                 }
                 Err(e) => {
@@ -104,61 +110,61 @@ impl Worker {
     }
 }
 
-impl Supervisable for Worker {
+impl Dispatcher for Worker {
     type Config = Config;
     type Error = Error;
+    type State = ServerState;
 
-    fn new(context: &mut zmq::Context, config: Arc<RwLock<Config>>) -> Self {
-        let sock = context.socket(zmq::DEALER).unwrap();
-        let work_manager = context.socket(zmq::DEALER).unwrap();
-        work_manager.set_sndhwm(1).unwrap();
-        work_manager.set_linger(0).unwrap();
-        work_manager.set_immediate(true).unwrap();
+    fn message_queue() -> &'static str {
+        BE_LISTEN_ADDR
+    }
+
+    fn dispatch(message: &mut Envelope,
+                sock: &mut zmq::Socket,
+                state: &mut ServerState)
+                -> Result<()> {
+        match message.message_id() {
+            "JobCreate" => handlers::job_create(message, sock, state),
+            "JobGet" => handlers::job_get(message, sock, state),
+            _ => panic!("unexpected message: {:?}", message.message_id()),
+        }
+    }
+
+    fn context(&mut self) -> &mut zmq::Context {
+        (**ZMQ_CONTEXT).as_mut()
+    }
+
+    fn new(config: Arc<RwLock<Config>>) -> Self {
+        let state = ServerState::default();
         Worker {
             config: config,
-            sock: sock,
-            work_manager: work_manager,
-            datastore: None,
+            state: state,
         }
     }
 
     fn init(&mut self) -> Result<()> {
+        try!(self.state.work_manager.connect());
         self.try_connect_datastore();
-        self.work_manager.connect(WORKER_MGR_ADDR).unwrap();
         Ok(())
     }
 
-    fn on_message(&mut self, req: &mut Envelope) -> Result<()> {
-        self.dispatch(req)
-    }
-
-    fn socket(&mut self) -> &mut zmq::Socket {
-        &mut self.sock
-    }
-}
-
-impl Drop for Worker {
-    fn drop(&mut self) {
-        self.sock.close().unwrap();
+    fn state(&mut self) -> &mut ServerState {
+        &mut self.state
     }
 }
 
 pub struct Server {
     config: Arc<RwLock<Config>>,
-    #[allow(dead_code)]
-    ctx: Arc<RwLock<zmq::Context>>,
     router: RouteConn,
     be_sock: zmq::Socket,
 }
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let mut ctx = zmq::Context::new();
-        let router = try!(RouteConn::new(Self::net_ident(), &mut ctx));
-        let be = try!(ctx.socket(zmq::DEALER));
+        let router = try!(RouteConn::new(Self::net_ident(), (**ZMQ_CONTEXT).as_mut()));
+        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
-            ctx: Arc::new(RwLock::new(ctx)),
             router: router,
             be_sock: be,
         })
@@ -183,13 +189,11 @@ impl Application for Server {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
         let cfg1 = self.config.clone();
         let cfg2 = self.config.clone();
-        let ctx1 = self.ctx.clone();
-        let ctx2 = self.ctx.clone();
-        let sup: Supervisor<Worker> = Supervisor::new(ctx1, cfg1);
-        let work_mgr = try!(WorkerManager::start(ctx2, cfg2));
+        let sup: Supervisor<Worker> = Supervisor::new(cfg1);
+        let work_mgr = try!(WorkerManager::start(cfg2));
         {
             let cfg = self.config.read().unwrap();
-            try!(sup.start(BE_LISTEN_ADDR, cfg.worker_threads));
+            try!(sup.start(cfg.worker_threads));
         }
         try!(self.connect());
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
@@ -224,8 +228,6 @@ impl NetIdent for Server {}
 
 struct WorkerManager {
     config: Arc<RwLock<Config>>,
-    #[allow(dead_code)]
-    ctx: Arc<RwLock<zmq::Context>>,
     datastore: DataStore,
     hb_sock: zmq::Socket,
     rq_sock: zmq::Socket,
@@ -235,18 +237,14 @@ struct WorkerManager {
 }
 
 impl WorkerManager {
-    pub fn new(ctx: Arc<RwLock<zmq::Context>>, config: Arc<RwLock<Config>>) -> Result<Self> {
+    pub fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
         let datastore = {
             let cfg = config.read().unwrap();
             try!(DataStore::open(cfg.deref()))
         };
-        let (hb_sock, rq_sock, work_mgr_sock) = {
-            let mut ctx = ctx.write().unwrap();
-            let hb_sock = try!(ctx.socket(zmq::SUB));
-            let rq_sock = try!(ctx.socket(zmq::ROUTER));
-            let work_mgr_sock = try!(ctx.socket(zmq::DEALER));
-            (hb_sock, rq_sock, work_mgr_sock)
-        };
+        let hb_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
+        let rq_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
+        let work_mgr_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         try!(rq_sock.set_router_mandatory(true));
         try!(hb_sock.set_subscribe(&[]));
         try!(work_mgr_sock.set_rcvhwm(1));
@@ -255,7 +253,6 @@ impl WorkerManager {
         let msg = try!(zmq::Message::new());
         Ok(WorkerManager {
             config: config,
-            ctx: ctx,
             datastore: datastore,
             hb_sock: hb_sock,
             rq_sock: rq_sock,
@@ -265,14 +262,12 @@ impl WorkerManager {
         })
     }
 
-    pub fn start(ctx: Arc<RwLock<zmq::Context>>,
-                 config: Arc<RwLock<Config>>)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(1);
         let handle = thread::Builder::new()
             .name("worker-manager".to_string())
             .spawn(move || {
-                let mut manager = Self::new(ctx, config).unwrap();
+                let mut manager = Self::new(config).unwrap();
                 manager.run(tx).unwrap();
             })
             .unwrap();

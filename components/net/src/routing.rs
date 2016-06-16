@@ -25,8 +25,9 @@ use protobuf::{parse_from_bytes, Message};
 use protocol::{self, Routable, RouteKey};
 use zmq;
 
+use config::ToAddrString;
 use error::Result;
-use server::{ServerContext, ToAddrString};
+use server::ServerContext;
 
 /// Time to wait before timing out a message receive for a `BrokerConn`.
 pub const RECV_TIMEOUT_MS: i32 = 5_000;

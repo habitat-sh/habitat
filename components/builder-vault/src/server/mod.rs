@@ -22,21 +22,14 @@ use std::thread;
 use protocol::net;
 use zmq;
 
-use hab_net::server::{Application, Dispatcher, Envelope, NetIdent, RouteConn, Service,
-                      ServerContext, Supervisor};
+use hab_net::{Application, Dispatcher, Supervisor};
+use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 
 use config::Config;
 use data_store::DataStore;
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
-
-lazy_static! {
-    static ref ZMQ_CONTEXT: Box<ServerContext> = {
-        let ctx = ServerContext::new();
-        Box::new(ctx)
-    };
-}
 
 pub struct ServerState {
     datastore: DataStore,
