@@ -24,13 +24,13 @@ There are many more update strategies used in continuous deployment that we are 
 
 * canary: restart one peer in a service group, then restart the others in any order
 * by percentage: restart only some subset of a service group
-* maintenance window: don't restart anything until supervisor a maintenance window is reached
+* maintenance window: don't restart anything until a maintenance window is reached
 
 We would love contributions to the code base to add these and any other update strategies that represent real-life deployment patterns.
 
 ## Support for Microsoft Windows
 
-We believe that the application-centric approach that Habitat takes can and should be extended to Microsoft Windows. If you are interested in getting either the Habitat build system or supervisor system working on Windows, please get in touch, either on the [forum](https://forums.habitat.sh/) or in [Slack](http://slack.habitat.sh/).
+We believe that the application-centric approach that Habitat takes can and should be extended to Microsoft Windows. If you are interested in getting either the Habitat build system or supervisor system working on Windows, please get in touch, either on the [forum](https://forums.habitat.sh/) or in [Slack](http://slack.habitat.sh/) in the #windows channel.
 
 ## Support for Container Cluster Managers
 
