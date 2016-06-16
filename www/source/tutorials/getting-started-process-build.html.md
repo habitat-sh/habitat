@@ -13,10 +13,14 @@ For more information on how to natively run Habitat services or how to run servi
 
 To show the portability of Habitat, you will export and run a Habitat service from within a Docker container through the following steps:
 
-1. If you are not in the studio environment, change over to your plan directory and enter the studio.  (Remember to replace `myorigin` with the name of the origin key you created during `hab setup`. For the examples in this tutorial, it will be set to "myorigin")
+1. If you are not in the studio environment, change over to your plan directory and enter the studio.
 
         cd ~/plans/mytutorialapp
-        hab studio -k myorigin enter
+        hab studio enter
+
+    For Linux, run `sudo hab studio enter` instead.
+
+    > Note: When you created an origin key pair in `hab setup`, you were also asked if you wanted to setup a default origin. If you said yes, then the `HAB_ORIGIN` environment variable is overridden for you with the default origin name you created. This action will also import the secret origin key that matches the overridden origin name when you call `hab studio enter`.
 
 2. Build your mytutorialapp package.
 
@@ -24,11 +28,11 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
 3. Run `hab pkg export docker origin/packagename` with the origin and name of your package. These values are referenced in the pkg_origin and pkg_name settings of your plan, respectively.
 
-        [4][default:/src:0]# hab pkg export docker myorigin/mytutorialapp
+        [2][default:/src:0]# hab pkg export docker myorigin/mytutorialapp
 
     Habitat will proceed to unpack and install all necessary Habitat packages, including a Habitat supervisor, the mytutorialapp package, and all of its runtime dependencies. Then it will create an image using the Docker scratch image as the base and build up the rest of the image from there.
 
-4. Once that process has completed, run your Docker image inside a container or from any terminal window that has access to the Docker CLI on your host machine.
+4. Once that process has completed, exit out of the studio and run your Docker image inside a container or from any terminal window that has access to the Docker CLI on your host machine.
 
     > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, you may need to connect your shell to the Docker VM using `eval "$(docker-machine env default)"` if you are running Mac OS X.
 

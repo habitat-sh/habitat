@@ -26,7 +26,7 @@ When you enter the studio environment, your origin keys are not automatically sh
 * Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname`
 * Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k originname-internal,originname-test enter`
 
-The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the studio environment. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
+The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the studio environment and override any `pkg_origin` values in the packages that you build. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
 
 The second and third way import multiple secret keys that must match the origin names for the plans you intend to build.
 
