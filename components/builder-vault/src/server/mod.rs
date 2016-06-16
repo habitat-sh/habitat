@@ -146,10 +146,7 @@ impl Application for Server {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
         let cfg = self.config.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg);
-        {
-            let cfg = self.config.read().unwrap();
-            try!(sup.start(cfg.worker_threads));
-        }
+        try!(sup.start());
         try!(self.connect());
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         Ok(())

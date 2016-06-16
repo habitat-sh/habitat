@@ -20,6 +20,7 @@ extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
+extern crate num_cpus;
 extern crate protobuf;
 extern crate rustc_serialize;
 extern crate time;

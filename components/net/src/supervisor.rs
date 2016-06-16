@@ -13,10 +13,12 @@
 // limitations under the License.
 
 use std::marker::PhantomData;
+use std::ops::Deref;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread;
 use std::time::Duration;
 
+use config::DispatcherCfg;
 use dispatcher::Dispatcher;
 
 pub struct Supervisor<T>
@@ -32,30 +34,39 @@ impl<T> Supervisor<T>
 {
     // JW TODO: this should take a struct that implements "application config"
     pub fn new(config: Arc<RwLock<T::Config>>) -> Self {
+        let worker_count = {
+            config.read().unwrap().deref().worker_count()
+        };
         Supervisor {
             config: config,
-            workers: vec![],
+            workers: Vec::with_capacity(worker_count),
             _marker: PhantomData,
         }
     }
 
     /// Start the supervisor and block until all workers are ready.
-    pub fn start(mut self, worker_count: usize) -> super::Result<()> {
-        try!(self.init(worker_count));
+    pub fn start(mut self) -> super::Result<()> {
+        try!(self.init());
         debug!("Supervisor ready");
-        self.run(worker_count)
+        self.run()
     }
 
     // Initialize worker pool blocking until all workers are started and ready to begin processing
     // requests.
-    fn init(&mut self, worker_count: usize) -> super::Result<()> {
+    fn init(&mut self) -> super::Result<()> {
+        let worker_count = {
+            self.config.read().unwrap().worker_count()
+        };
         for worker_id in 0..worker_count {
             try!(self.spawn_worker(worker_id));
         }
         Ok(())
     }
 
-    fn run(mut self, worker_count: usize) -> super::Result<()> {
+    fn run(mut self) -> super::Result<()> {
+        let worker_count = {
+            self.config.read().unwrap().worker_count()
+        };
         thread::spawn(move || {
             loop {
                 for i in 0..worker_count {
@@ -86,7 +97,7 @@ impl<T> Supervisor<T>
         });
         if rx.recv().is_ok() {
             debug!("Worker[{}] ready", worker_id);
-            self.workers.push(rx);
+            self.workers.insert(worker_id, rx);
         } else {
             error!("Worker[{}] failed to start", worker_id);
             self.workers.remove(worker_id);

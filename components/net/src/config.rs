@@ -14,14 +14,17 @@
 
 use std::net;
 
-pub trait ToAddrString {
-    fn to_addr_string(&self) -> String;
-}
+use num_cpus;
 
-impl ToAddrString for net::SocketAddrV4 {
-    fn to_addr_string(&self) -> String {
-        format!("tcp://{}:{}", self.ip(), self.port())
+pub trait DispatcherCfg {
+    fn default_worker_count() -> usize {
+        // JW TODO: increase default count after r2d2 connection pools are moved to be owned
+        // by main thread of servers instead of dispatcher threads.
+        // num_cpus::get() * 8
+        num_cpus::get()
     }
+
+    fn worker_count(&self) -> usize;
 }
 
 pub trait GitHubOAuth {
@@ -40,4 +43,14 @@ pub trait RouteAddrs {
 
 pub trait Shards {
     fn shards(&self) -> &Vec<u32>;
+}
+
+pub trait ToAddrString {
+    fn to_addr_string(&self) -> String;
+}
+
+impl ToAddrString for net::SocketAddrV4 {
+    fn to_addr_string(&self) -> String {
+        format!("tcp://{}:{}", self.ip(), self.port())
+    }
 }

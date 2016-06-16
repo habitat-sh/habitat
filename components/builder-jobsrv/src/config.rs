@@ -17,8 +17,7 @@
 use std::net;
 
 use hab_core::config::{ConfigFile, ParseInto};
-use hab_net::config::{RouteAddrs, Shards};
-use num_cpus;
+use hab_net::config::{DispatcherCfg, RouteAddrs, Shards};
 use protocol::sharding::{ShardId, SHARD_COUNT};
 use redis;
 use toml;
@@ -51,7 +50,7 @@ impl Default for Config {
             datastore_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 6379),
             shards: (0..SHARD_COUNT).collect(),
             heartbeat_port: 5563,
-            worker_threads: num_cpus::get(),
+            worker_threads: Self::default_worker_count(),
         }
     }
 }
@@ -68,6 +67,12 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.shards", &mut cfg.shards));
         try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
         Ok(cfg)
+    }
+}
+
+impl DispatcherCfg for Config {
+    fn worker_count(&self) -> usize {
+        self.worker_threads
     }
 }
 

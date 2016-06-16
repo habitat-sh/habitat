@@ -191,10 +191,7 @@ impl Application for Server {
         let cfg2 = self.config.clone();
         let sup: Supervisor<Worker> = Supervisor::new(cfg1);
         let work_mgr = try!(WorkerManager::start(cfg2));
-        {
-            let cfg = self.config.read().unwrap();
-            try!(sup.start(cfg.worker_threads));
-        }
+        try!(sup.start());
         try!(self.connect());
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
         work_mgr.join().unwrap();

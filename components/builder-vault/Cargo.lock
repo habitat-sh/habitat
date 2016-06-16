@@ -4,20 +4,11 @@ version = "0.7.0"
 dependencies = [
  "clap 2.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
-<<<<<<< 89379e4464823929ef6b321a8a0ce804eba502bd
  "habitat_builder_dbcache 0.7.0",
  "habitat_builder_protocol 0.7.0",
  "habitat_core 0.7.0",
  "habitat_net 0.7.0",
-=======
- "habitat_builder_dbcache 0.6.0",
- "habitat_builder_protocol 0.6.0",
- "habitat_core 0.6.0",
- "habitat_net 0.6.0",
- "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
->>>>>>> Refactor servers to contain one heap allocated ZeroMQ context
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "num_cpus 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2_redis 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -171,8 +162,10 @@ dependencies = [
  "fnv 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.7.0",
  "hyper 0.9.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.21 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
