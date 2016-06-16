@@ -19,7 +19,6 @@ extern crate habitat_net as hab_net;
 extern crate linked_hash_map;
 #[macro_use]
 extern crate log;
-extern crate num_cpus;
 extern crate protobuf;
 extern crate r2d2;
 extern crate r2d2_redis;

@@ -19,13 +19,14 @@ use std::sync::{mpsc, Arc, RwLock};
 use protobuf::parse_from_bytes;
 use zmq;
 
+use config::DispatcherCfg;
 use server::Envelope;
 
 pub type MessageHandler<T> = Fn(&mut Envelope) -> result::Result<(), T>;
 
 /// Dispatchers connect to Message Queue Servers
 pub trait Dispatcher: Sized + Send {
-    type Config: Send + Sync;
+    type Config: Send + Sync + DispatcherCfg;
     type Error: Send + From<zmq::Error> + fmt::Display;
     type State;
 
