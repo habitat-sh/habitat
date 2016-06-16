@@ -10,22 +10,14 @@ You can write plans to package up these binary artifacts with minimal special ha
 
 ## Override The Phases You Don't Need
 
-A Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. You can override the behavior of any of these phases by redefining the corresponding `do_` function. The following is an extreme example of overriding all the phases except install:
+A Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has default behavior within the build system.
+
+When building binary packages, you override the behavior of phases that do not apply to you. At the very minimum, you must override the `do_build` and `do_install` phases, for example:
 
 ~~~
-do_download() {
-  return 0
-}
-
-do_verify() {
-  return 0
-}
-
-do_unpack() {
-  return 0
-}
 
 do_build() {
+  # relocate library dependencies here, if needed -- see next topic
   return 0
 }
 
@@ -37,13 +29,11 @@ do_install() {
 ~~~
 {: .language-shell}
 
-Typically, when working with binary artifacts, you would start with a plan like this and work backwards to define the correct contents of the phases.
-
 ## Relocate Hard-Coded Library Dependencies If Possible
 
 Many binaries hardcode library dependencies to `/lib` or `/lib64` inside their ELF symbol table. Unfortunately, this means that Habitat is unable to provide dependency isolation guarantees if packages are dependent on any operating system's libraries in those directories. The built Habitat packages will also fail to run in minimal environments like containers built using `hab-pkg-dockerize`, because there will not be a `glibc` inside `/lib` or `/lib64`.
 
-Most binaries compiled in a full Linux userland have a hard dependency on `/lib/ld-linux.so` or `/lib/ld-linux-x86_64.so`. In order to relocate this dependency to the Habitat-provided variant, which is provided by `core/glibc`, use the `patchelf(1)` utility within your plan:
+Most binaries compiled in a full Linux environment have a hard dependency on `/lib/ld-linux.so` or `/lib/ld-linux-x86_64.so`. In order to relocate this dependency to the Habitat-provided variant, which is provided by `core/glibc`, use the `patchelf(1)` utility within your plan:
 
 1. Declare a build-time dependency on `core/patchelf` as part of your `pkg_build_deps` line.
 2. Invoke `patchelf` on any binaries with this problem during the `do_install()` phase. For example:
