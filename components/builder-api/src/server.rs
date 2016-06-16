@@ -17,26 +17,29 @@
 use std::sync::Arc;
 
 use hab_net::config::RouteAddrs;
-use hab_net::routing::{Broker, BrokerContext};
-use hab_net::server::NetIdent;
+use hab_net::routing::Broker;
+use hab_net::server::{NetIdent, ServerContext};
 
 use config::Config;
 use error::Result;
 use http;
 
+lazy_static! {
+    pub static ref ZMQ_CONTEXT: Arc<Box<ServerContext>> = {
+        let ctx = ServerContext::new();
+        Arc::new(Box::new(ctx))
+    };
+}
+
 /// The main server for the Builder-API application. This should be run on the main thread.
 pub struct Server {
     pub config: Arc<Config>,
-    ctx: Arc<BrokerContext>,
 }
 
 impl Server {
     /// Create a new `Server`
     pub fn new(config: Config) -> Self {
-        Server {
-            config: Arc::new(config),
-            ctx: Arc::new(BrokerContext::new()),
-        }
+        Server { config: Arc::new(config) }
     }
 
     /// Runs the main server and starts and manages all supporting threads. This function will
@@ -47,10 +50,9 @@ impl Server {
     /// * HTTP server could not start
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
-        let ctx1 = self.ctx.clone();
-        let ctx2 = self.ctx.clone();
+        let ctx1 = ZMQ_CONTEXT.clone();
         let broker = Broker::run(Self::net_ident(), ctx1, self.config.route_addrs());
-        let http = try!(http::run(cfg1, ctx2));
+        let http = try!(http::run(cfg1));
 
         println!("Builder API listening on {}", &self.config.http_addr);
         http.join().unwrap();

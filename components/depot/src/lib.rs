@@ -59,21 +59,19 @@ use std::path::{Path, PathBuf};
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
 use hab_core::package::{Identifiable, PackageArchive};
-use data_store::DataStore;
-
 use hab_net::oauth::github::GitHubClient;
-use hab_net::server::NetIdent;
-use hab_net::routing::BrokerContext;
+use hab_net::server::{NetIdent, ServerContext};
+use data_store::DataStore;
 
 pub struct Depot {
     pub config: Config,
     pub datastore: DataStore,
-    pub context: Arc<BrokerContext>,
+    context: Arc<Box<ServerContext>>,
     github: GitHubClient,
 }
 
 impl Depot {
-    pub fn new(config: Config, ctx: Arc<BrokerContext>) -> Result<Arc<Depot>> {
+    pub fn new(config: Config, ctx: Arc<Box<ServerContext>>) -> Result<Arc<Depot>> {
         let datastore = try!(DataStore::open(&config));
         let github = GitHubClient::new(&config);
         Ok(Arc::new(Depot {

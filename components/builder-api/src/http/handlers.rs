@@ -15,10 +15,9 @@
 //! A collection of handlers for the HTTP server's router
 
 use std::result;
-use std::sync::Arc;
 
 use hab_net;
-use hab_net::routing::{Broker, BrokerContext};
+use hab_net::routing::Broker;
 use hab_net::oauth::github::GitHubClient;
 use iron::prelude::*;
 use iron::status;
@@ -31,12 +30,12 @@ use protocol::net::{self, NetError, ErrCode};
 use router::Router;
 use rustc_serialize::json::{self, ToJson};
 
-pub fn authenticate(req: &mut Request,
-                    ctx: &Arc<BrokerContext>)
-                    -> result::Result<Session, Response> {
+use super::super::server::ZMQ_CONTEXT;
+
+pub fn authenticate(req: &mut Request) -> result::Result<Session, Response> {
     match req.headers.get::<Authorization<Bearer>>() {
         Some(&Authorization(Bearer { ref token })) => {
-            let mut conn = Broker::connect(&ctx).unwrap();
+            let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
             let mut request = SessionGet::new();
             request.set_token(token.to_string());
             conn.route(&request).unwrap();
@@ -65,10 +64,7 @@ pub fn authenticate(req: &mut Request,
     }
 }
 
-pub fn session_create(req: &mut Request,
-                      github: &GitHubClient,
-                      ctx: &Arc<BrokerContext>)
-                      -> IronResult<Response> {
+pub fn session_create(req: &mut Request, github: &GitHubClient) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let code = match params.find("code") {
         Some(code) => code,
@@ -78,9 +74,9 @@ pub fn session_create(req: &mut Request,
         Ok(token) => {
             match github.user(&token) {
                 Ok(user) => {
-                    let mut conn = Broker::connect(&ctx).unwrap();
+                    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
                     let mut request = SessionCreate::new();
-                    request.set_token(token);
+                    request.set_token(token.to_string());
                     request.set_extern_id(user.id);
                     if let Some(email) = user.email {
                         request.set_email(email);
@@ -141,12 +137,12 @@ pub fn session_create(req: &mut Request,
     }
 }
 
-pub fn job_create(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
-    let session = match authenticate(req, ctx) {
+pub fn job_create(req: &mut Request) -> IronResult<Response> {
+    let session = match authenticate(req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
     let mut request = JobCreate::new();
     request.set_owner_id(session.get_id());
     conn.route(&request).unwrap();
@@ -172,7 +168,7 @@ pub fn job_create(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Res
     }
 }
 
-pub fn job_show(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
+pub fn job_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let id = match params.find("id") {
         Some(id) => {
@@ -183,7 +179,7 @@ pub fn job_show(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Respo
         }
         _ => return Ok(Response::with(status::BadRequest)),
     };
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
     let mut request = JobGet::new();
     request.set_id(id);
     conn.route(&request).unwrap();
@@ -241,16 +237,14 @@ fn render_net_error(err: &NetError) -> Response {
     Response::with((status, encoded))
 }
 
-pub fn list_account_invitations(req: &mut Request,
-                                ctx: &Arc<BrokerContext>)
-                                -> IronResult<Response> {
+pub fn list_account_invitations(req: &mut Request) -> IronResult<Response> {
     debug!("list_account_invitations");
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
     let mut request = AccountInvitationListRequest::new();
     request.set_account_id(session.get_id());
     conn.route(&request).unwrap();
@@ -277,14 +271,14 @@ pub fn list_account_invitations(req: &mut Request,
     }
 }
 
-pub fn list_user_origins(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
+pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
     debug!("list_user_origins");
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
 
     let mut request = AccountOriginListRequest::new();
     request.set_account_id(session.get_id());
@@ -312,9 +306,9 @@ pub fn list_user_origins(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronRes
     }
 }
 
-pub fn accept_invitation(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronResult<Response> {
+pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
     debug!("accept_invitation");
-    let session = match authenticate(req, ctx) {
+    let session = match authenticate(req) {
         Ok(session) => session,
         Err(response) => return Ok(response),
     };
@@ -333,7 +327,7 @@ pub fn accept_invitation(req: &mut Request, ctx: &Arc<BrokerContext>) -> IronRes
     // TODO: read the body to determine "ignore"
     let ignore_val = false;
 
-    let mut conn = Broker::connect(&ctx).unwrap();
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
     let mut request = OriginInvitationAcceptRequest::new();
 
     // make sure we're not trying to accept someone else's request

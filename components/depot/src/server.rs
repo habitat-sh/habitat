@@ -26,8 +26,8 @@ use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_net;
 use hab_net::config::RouteAddrs;
-use hab_net::routing::{Broker, BrokerContext};
-use hab_net::server::NetIdent;
+use hab_net::routing::Broker;
+use hab_net::server::{NetIdent, ServerContext};
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::ContentType;
 use iron::prelude::*;
@@ -1363,7 +1363,7 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
 
-    let ctx = Arc::new(BrokerContext::new());
+    let ctx = Arc::new(Box::new(ServerContext::new()));
     let ctx1 = ctx.clone();
     let depot = try!(Depot::new(config.clone(), ctx));
     let v1 = try!(router(depot.clone()));
