@@ -75,7 +75,7 @@ pub mod setup {
                 }
             }
         } else {
-            para("Okay, maybe another time");
+            para("Okay, maybe another time.");
         }
         heading("GitHub Access Token");
         para("While you can build and run Habitat packages without sharing them on the public \
@@ -93,9 +93,8 @@ pub mod setup {
             let auth_token = try!(prompt_auth_token());
             try!(write_cli_config_auth_token(&auth_token));
         } else {
-            para("Okay, maybe another time");
+            para("Okay, maybe another time.");
         }
-        println!("");
         heading("Analytics");
         para("The `hab` command-line tool will optionally send anonymous usage data to Habitat's \
              Google Analytics account. This is a strictly opt-in activity and no tracking will \
