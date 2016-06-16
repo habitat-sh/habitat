@@ -1,16 +1,70 @@
 
-cluster.name: {{cfg.cluster-name}}
-node.name: {{cfg.node-name}}
-path.data: {{cfg.path-data}}
-path.logs: {{cfg.path-logs}}
-path.plugins: {{cfg.path-plugins}}
-path.scripts: {{cfg.path-scripts}}
-bootstrap.mlockall: {{cfg.bootstrap-mlockall}}
-network.host: {{cfg.network-host}}
-http.port: {{cfg.network-port}}
-discovery.zen.ping.multicast.enabled: {{cfg.discovery-ping_multicast_enabled}}
-discovery.zen.ping.unicast.hosts: {{cfg.discovery-ping_unicast_hosts}}
-discovery.zen.minimum_master_nodes: {{cfg.discovery-minimum_master_nodes}}
+cluster.name: {{cfg.cluster.name}}
+
+cluster.routing.allocation.node_concurrent_recoveries: {{cfg.cluster.routing.allocation.node_concurrent_recoveries}}
+cluster.routing.allocation.node_initial_primaries_recoveries: {{cfg.cluster.routing.allocation.node_initial_primaries_recoveries}}
+cluster.routing.allocation.same_shard.host: {{cfg.cluster.routing.allocation.same_shard-host}}
+
+{{~#if cfg.cluster.routing.allocation.awareness-attributes}}
+cluster.routing.allocation.awareness.attributes: {{cfg.cluster.routing.allocation.awareness-attributes}}
+{{~/if}}
+
+node.name: {{cfg.node.name}}
+node.max_local_storage_nodes: {{cfg.node.max_local_storage_nodes}}
+
+{{~#if cfg.node.rack_id}}
+node.rack_id: {{cfg.node.rack_id}}
+{{~/if}}
+{{~#if cfg.node.zone}}
+node.zone: {{cfg.node.zone}}
+{{~/if}}
+{{~#if cfg.node.master}}
+node.master: {{cfg.node.master}}
+{{~/if}}
+{{~#if cfg.node.data}}
+node.data: {{cfg.node.data}}
+{{~/if}}
+
+
+path.data: {{cfg.path.data}}
+path.logs: {{cfg.path.logs}}
+path.plugins: {{cfg.path.plugins}}
+path.scripts: {{cfg.path.scripts}}
+
+indices.recovery.concurrent_streams: {{cfg.indices.recovery.concurrent_streams}}
+indices.recovery.concurrent_small_file_streams: {{cfg.indices.recovery.concurrent_small_file_streams}}
+indices.recovery.file_chunk_size: {{cfg.indices.recovery.file_chunk_size}}
+indices.recovery.translog_ops: {{cfg.indices.recovery.translog_ops}}
+indices.recovery.translog_size: {{cfg.indices.recovery.translog_size}}
+indices.recovery.compress: {{cfg.indices.recovery.compress}}
+indices.recovery.max_bytes_per_sec: {{cfg.indices.recovery.max_bytes_per_sec}}
+
+{{~#if cfg.indices.fielddata.cache-size}}
+indices.fielddata.cache.size: {{cfg.indices.fielddata.cache-size}}
+{{~/if}}
+
+indices.breaker.total.limit: {{cfg.indices.breaker.total-limit}}
+indices.breaker.fielddata.limit: {{cfg.indices.breaker.fielddata-limit}}
+indices.breaker.fielddata.overhead: {{cfg.indices.breaker.fielddata-overhead}}
+indices.breaker.request.limit: {{cfg.indices.breaker.request-limit}}
+indices.breaker.request.overhead: {{cfg.indices.breaker.request-overhead}}
+
+bootstrap.mlockall: {{cfg.bootstrap.mlockall}}
+
+network.host: {{cfg.network.host}}
+http.port: {{cfg.network.port}}
+
+discovery.zen.ping.multicast.enabled: {{cfg.discovery.ping_multicast_enabled}}
+discovery.zen.ping.unicast.hosts: {{cfg.discovery.ping_unicast_hosts}}
+discovery.zen.minimum_master_nodes: {{cfg.discovery.minimum_master_nodes}}
+
 gateway.recover_after_nodes: {{cfg.gateway-recover_after_nodes}}
-node.max_local_storage_nodes: {{cfg.node-max_local_storage_nodes}}
-action.destructive_requires_name: {{cfg.action-destructive_requires_name}}
+gateway.expected_nodes: {{cfg.gateway-expected_nodes}}
+gateway.expected_master_nodes: {{cfg.gateway-expected_master_nodes}}
+gateway.expected_data_nodes: {{cfg.gateway-expected_data_nodes}}
+{{~#if cfg.gateway-recover_after_time}}
+gateway.recover_after_time: {{cfg.gateway-recover_after_time}}
+{{~/if}}
+
+action.destructive_requires_name: {{cfg.action.destructive_requires_name}}
+
