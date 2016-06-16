@@ -21,7 +21,6 @@ use std::thread::{self, JoinHandle};
 
 use depot;
 use hab_net::oauth::github::GitHubClient;
-use hab_net::routing::BrokerContext;
 use iron::prelude::*;
 use iron::AfterMiddleware;
 use iron::headers;
@@ -31,6 +30,7 @@ use mount::Mount;
 use staticfile::Static;
 use unicase::UniCase;
 
+use super::server::ZMQ_CONTEXT;
 use config::Config;
 use error::Result;
 use self::handlers::*;
@@ -40,25 +40,19 @@ use self::handlers::*;
 const HTTP_THREAD_COUNT: usize = 128;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
-pub fn router(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<Chain> {
+pub fn router(config: Arc<Config>) -> Result<Chain> {
     let github = GitHubClient::new(&*config);
-    let ctx1 = context.clone();
-    let ctx2 = context.clone();
-    let ctx3 = context.clone();
-    let ctx4 = context.clone();
-    let ctx5 = context.clone();
-    let ctx6 = context.clone();
 
     let router = router!(
         get "/status" => move |r: &mut Request| status(r),
-        get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github, &ctx1),
+        get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github),
 
-        post "/jobs" => move |r: &mut Request| job_create(r, &ctx2),
-        get "/jobs/:id" => move |r: &mut Request| job_show(r, &ctx3),
+        post "/jobs" => move |r: &mut Request| job_create(r),
+        get "/jobs/:id" => move |r: &mut Request| job_show(r),
 
-        get "/user/invitations" => move |r: &mut Request| list_account_invitations(r, &ctx4),
-        put "/user/invitations/:invitation_id" => move |r: &mut Request| accept_invitation(r, &ctx5),
-        get "/user/origins" => move |r: &mut Request| list_user_origins(r, &ctx6),
+        get "/user/invitations" => move |r: &mut Request| list_account_invitations(r),
+        put "/user/invitations/:invitation_id" => move |r: &mut Request| accept_invitation(r),
+        get "/user/origins" => move |r: &mut Request| list_user_origins(r),
 
     );
     let mut chain = Chain::new(router);
@@ -77,12 +71,12 @@ pub fn router(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<Chain>
 /// # Panics
 ///
 /// * Listener crashed during startup
-pub fn run(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<JoinHandle<()>> {
+pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
 
     let addr = config.http_addr.clone();
-    let ctx = context.clone();
-    let depot = try!(depot::Depot::new(config.depot.clone(), ctx));
+    let ctx1 = ZMQ_CONTEXT.clone();
+    let depot = try!(depot::Depot::new(config.depot.clone(), ctx1));
     let depot_chain = try!(depot::server::router(depot));
 
     let mut mount = Mount::new();
@@ -90,7 +84,7 @@ pub fn run(config: Arc<Config>, context: Arc<BrokerContext>) -> Result<JoinHandl
         debug!("Mounting UI at filepath {}", path);
         mount.mount("/", Static::new(path));
     }
-    let chain = try!(router(config, context));
+    let chain = try!(router(config));
     mount.mount("/v1", chain).mount("/v1/depot", depot_chain);
 
     let handle = thread::Builder::new()

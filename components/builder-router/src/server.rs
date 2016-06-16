@@ -32,7 +32,7 @@ pub type ServerMap = HashMap<Protocol, HashMap<ShardId, hab_net::ServerReg>>;
 pub struct Server<'a> {
     config: Arc<Mutex<Config>>,
     #[allow(dead_code)]
-    ctx: Arc<Mutex<zmq::Context>>,
+    ctx: zmq::Context,
     fe_sock: zmq::Socket,
     hb_sock: zmq::Socket,
     servers: ServerMap,
@@ -52,7 +52,7 @@ impl<'a> Server<'a> {
         hb_sock.set_router_mandatory(true).unwrap();
         Server {
             config: Arc::new(Mutex::new(config)),
-            ctx: Arc::new(Mutex::new(ctx)),
+            ctx: ctx,
             fe_sock: fe_sock,
             hb_sock: hb_sock,
             servers: ServerMap::new(),
@@ -79,6 +79,7 @@ impl<'a> Server<'a> {
         loop {
             match self.state {
                 SocketState::Ready => {
+                    println!("socket ready");
                     if self.envelope.max_hops() {
                         // We should force the sender to disconnect, they have a problem.
                         self.state = SocketState::Cleaning;
@@ -158,6 +159,7 @@ impl<'a> Server<'a> {
                     self.state = SocketState::Cleaning;
                 }
                 SocketState::Cleaning => {
+                    debug!("cleaning socket state");
                     self.reset();
                     self.state = SocketState::Ready;
                     break;
@@ -305,6 +307,7 @@ impl<'a> Application for Server<'a> {
                 // flag on a poll item's revents will let you know if you have received a message
                 // or not on that socket.
                 // JW TODO: Implement service heartbeat and expiration
+                debug!("waiting for message");
                 try!(zmq::poll(&mut items, -1));
                 if (items[0].get_revents() & zmq::POLLIN) > 0 {
                     hb_msg = true;
@@ -314,11 +317,14 @@ impl<'a> Application for Server<'a> {
                 }
             }
             if hb_msg {
+                debug!("processing heartbeat");
                 try!(self.process_heartbeat());
             }
             if fe_msg {
+                debug!("processing front-end");
                 try!(self.process_frontend());
             }
+            debug!("done processing");
             hb_msg = false;
             fe_msg = false;
         }

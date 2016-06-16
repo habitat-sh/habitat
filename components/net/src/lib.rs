@@ -32,7 +32,7 @@ pub mod server;
 use std::process::Command;
 
 pub use self::error::{Error, Result};
-pub use self::server::{Application, ServerReg, Supervisor, Supervisable};
+pub use self::server::{Application, ServerReg, Supervisor};
 
 pub fn hostname() -> Result<String> {
     let output = try!(Command::new("sh")
