@@ -955,7 +955,15 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                     Response::with((status::Ok, body))
                 };
                 let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
-                response.headers.set_raw("Content-Range", range);
+                response.headers.set_raw("Content-Range", range.clone());
+                // We set both of these because Fastly was stripping the
+                // Content-Range, so we use both until we can get that fixed.
+                response.headers.set_raw("X-Content-Range", range);
+
+                response.headers.set(ContentType(Mime(TopLevel::Application,
+                                                      SubLevel::Json,
+                                                      vec![(Attr::Charset, Value::Utf8)])));
+
                 dont_cache_response(&mut response);
                 Ok(response)
             }
@@ -981,7 +989,11 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                     Response::with((status::Ok, body))
                 };
                 let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
-                response.headers.set_raw("Content-Range", range);
+                response.headers.set_raw("Content-Range", range.clone());
+                // We set both of these because Fastly was stripping the
+                // Content-Range, so we use both until we can get that fixed.
+                response.headers.set_raw("X-Content-Range", range);
+
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
@@ -1103,7 +1115,15 @@ fn search_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         Response::with((status::Ok, body))
     };
     let range = vec![format!("{}..{}", offset, num).into_bytes()];
-    response.headers.set_raw("Content-Range", range);
+    response.headers.set_raw("Content-Range", range.clone());
+    // We set both of these because Fastly was stripping the
+    // Content-Range, so we use both until we can get that fixed.
+    response.headers.set_raw("X-Content-Range", range);
+
+    response.headers.set(ContentType(Mime(TopLevel::Application,
+                                          SubLevel::Json,
+                                          vec![(Attr::Charset, Value::Utf8)])));
+
     dont_cache_response(&mut response);
     Ok(response)
 }
