@@ -51,7 +51,7 @@ code and get cookin', then these links should provide everything you need.
   </div>
   <div class="callout-box columns medium-4">
     <a href="/docs/contribute-help-build/" class="button secondary">Contribute to Habitat</a>
-    <p>Habitat is open source,<br>let's build together</p>
+    <p>Habitat is open source;<br>let's build together</p>
   </div>
   <div class="callout-box columns medium-4">
     <a href="https://app.habitat.sh/#/sign-in" class="button secondary">Sign in to Web App</a>
