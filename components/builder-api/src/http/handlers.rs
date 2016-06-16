@@ -74,13 +74,22 @@ pub fn session_create(req: &mut Request, github: &GitHubClient) -> IronResult<Re
         Ok(token) => {
             match github.user(&token) {
                 Ok(user) => {
+                    // Select primary email. If no primary email can be found, use any email. If no email
+                    // is associated with account return an access denied error.
+                    let email = match github.emails(&token) {
+                        Ok(ref emails) => {
+                            emails.iter().find(|e| e.primary).unwrap_or(&emails[0]).email.clone()
+                        }
+                        Err(_) => {
+                            let err = net::err(ErrCode::ACCESS_DENIED, "rg:auth:0");
+                            return Ok(render_net_error(&err));
+                        }
+                    };
                     let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
                     let mut request = SessionCreate::new();
-                    request.set_token(token.to_string());
+                    request.set_token(token);
                     request.set_extern_id(user.id);
-                    if let Some(email) = user.email {
-                        request.set_email(email);
-                    }
+                    request.set_email(email);
                     request.set_name(user.login);
                     request.set_provider(OAuthProvider::GitHub);
                     conn.route(&request).unwrap();

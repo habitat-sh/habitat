@@ -86,6 +86,19 @@ impl GitHubClient {
         let user: User = json::decode(&body).unwrap();
         Ok(user)
     }
+
+    pub fn emails(&self, token: &str) -> Result<Vec<Email>> {
+        let url = Url::parse(&format!("{}/user/emails", self.url)).unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(err));
+        }
+        let emails: Vec<Email> = try!(json::decode(&body));
+        Ok(emails)
+    }
 }
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
