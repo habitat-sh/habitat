@@ -16,7 +16,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
 use hab_net;
-use hab_net::server::{Application, Envelope};
+use hab_net::server::{Application, Envelope, ZMQ_CONTEXT};
 use protobuf::{parse_from_bytes, Message};
 use protocol::{self, routesrv};
 use protocol::sharding::{ShardId, SHARD_COUNT};
@@ -31,8 +31,6 @@ pub type ServerMap = HashMap<Protocol, HashMap<ShardId, hab_net::ServerReg>>;
 
 pub struct Server<'a> {
     config: Arc<Mutex<Config>>,
-    #[allow(dead_code)]
-    ctx: zmq::Context,
     fe_sock: zmq::Socket,
     hb_sock: zmq::Socket,
     servers: ServerMap,
@@ -45,14 +43,12 @@ pub struct Server<'a> {
 
 impl<'a> Server<'a> {
     pub fn new(config: Config) -> Self {
-        let mut ctx = zmq::Context::new();
-        let fe_sock = ctx.socket(zmq::ROUTER).unwrap();
-        let hb_sock = ctx.socket(zmq::ROUTER).unwrap();
+        let fe_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER).unwrap();
+        let hb_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER).unwrap();
         fe_sock.set_router_mandatory(true).unwrap();
         hb_sock.set_router_mandatory(true).unwrap();
         Server {
             config: Arc::new(Mutex::new(config)),
-            ctx: ctx,
             fe_sock: fe_sock,
             hb_sock: hb_sock,
             servers: ServerMap::new(),

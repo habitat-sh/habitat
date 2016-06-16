@@ -16,7 +16,7 @@ use std::sync::{mpsc, Arc, RwLock};
 use std::time::Duration;
 use std::thread::{self, JoinHandle};
 
-use hab_net::server::NetIdent;
+use hab_net::server::{NetIdent, ZMQ_CONTEXT};
 use protobuf::{parse_from_bytes, Message};
 use protocol;
 use zmq;
@@ -31,7 +31,6 @@ const HB_CMD_PAUSE: &'static str = "P";
 const RUNNER_INPROC_ADDR: &'static str = "inproc://runner";
 const WORK_ACK: &'static str = "A";
 const WORK_COMPLETE: &'static str = "C";
-
 
 #[cfg(target_os = "linux")]
 fn worker_os() -> protocol::jobsrv::Os {
@@ -61,7 +60,6 @@ impl Default for State {
 
 pub struct Server {
     config: Arc<RwLock<Config>>,
-    ctx: Arc<RwLock<zmq::Context>>,
     fe_sock: zmq::Socket,
     hb_conn: zmq::Socket,
     runner_sock: zmq::Socket,
@@ -71,14 +69,12 @@ pub struct Server {
 
 impl Server {
     pub fn new(config: Config) -> Result<Self> {
-        let mut ctx = zmq::Context::new();
-        let fe_sock = try!(ctx.socket(zmq::DEALER));
-        let hb_conn = try!(ctx.socket(zmq::REQ));
-        let runner_sock = try!(ctx.socket(zmq::DEALER));
+        let fe_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let hb_conn = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::REQ));
+        let runner_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         try!(fe_sock.set_identity(Self::net_ident().as_bytes()));
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
-            ctx: Arc::new(RwLock::new(ctx)),
             fe_sock: fe_sock,
             hb_conn: hb_conn,
             runner_sock: runner_sock,
@@ -90,10 +86,8 @@ impl Server {
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
         let cfg2 = self.config.clone();
-        let ctx1 = self.ctx.clone();
-        let ctx2 = self.ctx.clone();
-        let heartbeat = try!(Heartbeat::start(cfg1, ctx1));
-        let runner = try!(Runner::start(cfg2, ctx2));
+        let heartbeat = try!(Heartbeat::start(cfg1));
+        let runner = try!(Runner::start(cfg2));
         try!(self.hb_conn.connect(HB_INPROC_ADDR));
         try!(self.runner_sock.connect(RUNNER_INPROC_ADDR));
 
@@ -211,20 +205,15 @@ impl Default for PulseState {
 struct Heartbeat {
     state: PulseState,
     config: Arc<RwLock<Config>>,
-    ctx: Arc<RwLock<zmq::Context>>,
     pub_sock: zmq::Socket,
     be_sock: zmq::Socket,
     reg: protocol::jobsrv::Heartbeat,
 }
 
 impl Heartbeat {
-    fn new(config: Arc<RwLock<Config>>, ctx: Arc<RwLock<zmq::Context>>) -> Result<Self> {
-        let (pub_sock, be_sock) = {
-            let mut ctx = ctx.write().unwrap();
-            let pub_sock = try!(ctx.socket(zmq::PUB));
-            let be_sock = try!(ctx.socket(zmq::REP));
-            (pub_sock, be_sock)
-        };
+    fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
+        let pub_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::PUB));
+        let be_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::REP));
         try!(pub_sock.set_immediate(true));
         try!(pub_sock.set_sndhwm(1));
         try!(pub_sock.set_linger(0));
@@ -235,21 +224,18 @@ impl Heartbeat {
         Ok(Heartbeat {
             state: PulseState::default(),
             config: config,
-            ctx: ctx,
             pub_sock: pub_sock,
             be_sock: be_sock,
             reg: reg,
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>,
-                 ctx: Arc<RwLock<zmq::Context>>)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
             .name("heartbeat".to_string())
             .spawn(move || {
-                let mut heartbeat = Self::new(config, ctx).unwrap();
+                let mut heartbeat = Self::new(config).unwrap();
                 heartbeat.run(tx).unwrap();
             })
             .unwrap();
@@ -328,32 +314,24 @@ impl Heartbeat {
 pub struct Runner {
     #[allow(dead_code)]
     config: Arc<RwLock<Config>>,
-    #[allow(dead_code)]
-    ctx: Arc<RwLock<zmq::Context>>,
     sock: zmq::Socket,
 }
 
 impl Runner {
-    fn new(config: Arc<RwLock<Config>>, ctx: Arc<RwLock<zmq::Context>>) -> Result<Self> {
-        let sock = {
-            let mut ctx = ctx.write().unwrap();
-            try!(ctx.socket(zmq::DEALER))
-        };
+    fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
+        let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(Runner {
             config: config,
-            ctx: ctx,
             sock: sock,
         })
     }
 
-    pub fn start(config: Arc<RwLock<Config>>,
-                 ctx: Arc<RwLock<zmq::Context>>)
-                 -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
             .name("runner".to_string())
             .spawn(move || {
-                let mut runner = Self::new(config, ctx).unwrap();
+                let mut runner = Self::new(config).unwrap();
                 runner.run(tx).unwrap();
             })
             .unwrap();

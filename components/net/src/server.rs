@@ -14,13 +14,8 @@
 
 use std::cell::UnsafeCell;
 use std::error;
-use std::fmt;
-use std::marker::PhantomData;
-use std::net;
 use std::result;
-use std::sync::{mpsc, Arc, RwLock};
-use std::thread;
-use std::time::Duration;
+use std::sync::{Arc, RwLock};
 
 use fnv::FnvHasher;
 use libc;
@@ -30,13 +25,26 @@ use protocol::{self, Routable, RouteKey};
 use time;
 use zmq;
 
-use config::{self, RouteAddrs, Shards};
+use config::{self, RouteAddrs, Shards, ToAddrString};
 use error::{Error, Result};
 
 const PING_INTERVAL: i64 = 2000;
 const SERVER_TTL: i64 = 6000;
 const MAX_HOPS: usize = 8;
 
+lazy_static! {
+    /// A threadsafe shared ZMQ context for consuming services.
+    ///
+    /// You probably want to use this context to create new ZMQ sockets unless you *do not* want to
+    /// connect them together using an in-proc queue.
+    pub static ref ZMQ_CONTEXT: Box<ServerContext> = {
+        let ctx = ServerContext::new();
+        Box::new(ctx)
+    };
+}
+
+/// This is a wrapper to provide interior mutability of an underlying `zmq::Context` and allows
+/// for sharing/sending of a `zmq::Context` between threads.
 pub struct ServerContext(UnsafeCell<zmq::Context>);
 
 impl ServerContext {
@@ -51,16 +59,6 @@ impl ServerContext {
 
 unsafe impl Send for ServerContext {}
 unsafe impl Sync for ServerContext {}
-
-pub trait ToAddrString {
-    fn to_addr_string(&self) -> String;
-}
-
-impl ToAddrString for net::SocketAddrV4 {
-    fn to_addr_string(&self) -> String {
-        format!("tcp://{}:{}", self.ip(), self.port())
-    }
-}
 
 pub struct Envelope {
     pub msg: protocol::net::Msg,
@@ -159,66 +157,6 @@ impl Default for Envelope {
         }
     }
 }
-
-/// Dispatchers connect to Message Queue Servers
-pub trait Dispatcher: Sized + Send {
-    type Config: Send + Sync;
-    type Error: Send + From<zmq::Error> + fmt::Display;
-    type State;
-
-    fn message_queue() -> &'static str;
-
-    // JW TODO: This should take something that impelements an "application config" trait
-    fn new(config: Arc<RwLock<Self::Config>>) -> Self;
-
-    fn context(&mut self) -> &mut zmq::Context;
-
-    fn dispatch(message: &mut Envelope,
-                socket: &mut zmq::Socket,
-                state: &mut Self::State)
-                -> result::Result<(), Self::Error>;
-
-    fn init(&mut self) -> result::Result<(), Self::Error> {
-        Ok(())
-    }
-
-    fn start(mut self, rz: mpsc::SyncSender<()>) -> result::Result<(), Self::Error> {
-        let mut raw = zmq::Message::new().unwrap();
-        let mut sock = self.context().socket(zmq::DEALER).unwrap();
-        let mut envelope = Envelope::default();
-        try!(sock.connect(Self::message_queue()));
-        rz.send(()).unwrap();
-        'recv: loop {
-            'hops: loop {
-                let hop = try!(sock.recv_msg(0));
-                if hop.len() == 0 {
-                    break;
-                }
-                if envelope.add_hop(hop).is_err() {
-                    warn!("drop message, too many hops");
-                    envelope.reset();
-                    break 'recv;
-                }
-            }
-            try!(sock.recv(&mut raw, 0));
-            match parse_from_bytes(&raw) {
-                Ok(msg) => {
-                    debug!("OnMessage, {:?}", &msg);
-                    envelope.msg = msg;
-                    try!(Self::dispatch(&mut envelope, &mut sock, self.state()));
-                }
-                Err(e) => warn!("erorr parsing message, err={}", e),
-            }
-            envelope.reset();
-        }
-        try!(sock.close());
-        Ok(())
-    }
-
-    fn state(&mut self) -> &mut Self::State;
-}
-
-pub type MessageHandler<T: error::Error> = Fn(&mut Envelope) -> result::Result<(), T>;
 
 pub trait Application {
     type Error: error::Error;
@@ -400,81 +338,5 @@ impl RouteConn {
 impl Drop for RouteConn {
     fn drop(&mut self) {
         self.close().unwrap();
-    }
-}
-
-pub struct Supervisor<T>
-    where T: Dispatcher
-{
-    config: Arc<RwLock<T::Config>>,
-    workers: Vec<mpsc::Receiver<()>>,
-    _marker: PhantomData<T>,
-}
-
-impl<T> Supervisor<T>
-    where T: Dispatcher + 'static
-{
-    // JW TODO: this should take a struct that implements "application config"
-    pub fn new(config: Arc<RwLock<T::Config>>) -> Self {
-        Supervisor {
-            config: config,
-            workers: vec![],
-            _marker: PhantomData,
-        }
-    }
-
-    /// Start the supervisor and block until all workers are ready.
-    pub fn start(mut self, worker_count: usize) -> super::Result<()> {
-        try!(self.init(worker_count));
-        debug!("Supervisor ready");
-        self.run(worker_count)
-    }
-
-    // Initialize worker pool blocking until all workers are started and ready to begin processing
-    // requests.
-    fn init(&mut self, worker_count: usize) -> super::Result<()> {
-        for worker_id in 0..worker_count {
-            try!(self.spawn_worker(worker_id));
-        }
-        Ok(())
-    }
-
-    fn run(mut self, worker_count: usize) -> super::Result<()> {
-        thread::spawn(move || {
-            loop {
-                for i in 0..worker_count {
-                    match self.workers[i].try_recv() {
-                        Err(mpsc::TryRecvError::Disconnected) => {
-                            info!("Worker {} restarting...", i);
-                            self.spawn_worker(i).unwrap();
-                        }
-                        Ok(msg) => warn!("Worker {} sent unexpected msg: {:?}", i, msg),
-                        Err(mpsc::TryRecvError::Empty) => continue,
-                    }
-                }
-                // JW TODO: switching to zmq from channels will allow us to call select across
-                // multiple queues and avoid sleeping
-                thread::sleep(Duration::from_millis(500));
-            }
-        });
-        Ok(())
-    }
-
-    fn spawn_worker(&mut self, worker_id: usize) -> super::Result<()> {
-        let cfg = self.config.clone();
-        let (tx, rx) = mpsc::sync_channel(1);
-        let mut worker = T::new(cfg);
-        thread::spawn(move || {
-            try!(worker.init());
-            worker.start(tx)
-        });
-        if rx.recv().is_ok() {
-            debug!("Worker[{}] ready", worker_id);
-            self.workers.push(rx);
-        } else {
-            error!("Worker[{}] failed to start", worker_id);
-            self.workers.remove(worker_id);
-        }
-        Ok(())
     }
 }

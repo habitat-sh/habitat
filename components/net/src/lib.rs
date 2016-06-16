@@ -15,6 +15,8 @@
 extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
 extern crate hyper;
+#[macro_use]
+extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
@@ -25,14 +27,18 @@ extern crate zmq;
 
 pub mod config;
 pub mod error;
+pub mod dispatcher;
 pub mod oauth;
 pub mod routing;
 pub mod server;
+pub mod supervisor;
 
 use std::process::Command;
 
+pub use self::dispatcher::Dispatcher;
 pub use self::error::{Error, Result};
-pub use self::server::{Application, ServerReg, Supervisor};
+pub use self::server::{Application, ServerReg};
+pub use self::supervisor::Supervisor;
 
 pub fn hostname() -> Result<String> {
     let output = try!(Command::new("sh")

@@ -12,7 +12,6 @@ doc = false
 [dependencies]
 env_logger = "*"
 hyper = "*"
-lazy_static = "*"
 log = "*"
 num_cpus = "*"
 protobuf = "*"
