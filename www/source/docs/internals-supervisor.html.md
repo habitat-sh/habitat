@@ -43,7 +43,7 @@ Both the membership and census protocols in action can be seen when a supervisor
 The failure detection protocol in Habitat serves both as a way to maintain a correct membership list in an architecture that does not have a master, as well as a rumor distribution mechanism. It works as follows.
 
 1. Each peer in the ring maintains its own list of other peers, and its own understanding about the state (dead/alive/suspect) of those peers.
-2. Every interval _i_ (currently, 200ms) a thread wakes up, selects a random set of peers to ping, and piggybacks a list of rumors on top. (This list of rumors is the full list from all time.)
+2. Every interval _i_ (currently, 200ms) a thread wakes up, selects a random set of peers to ping, and piggybacks a list of rumors on top. (This list of rumors is the full list from all time; thus, one can regard it as a [CmRDT](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type).)
 3. One of two things happens:
    1. The pinged peer responds with an ACK and sends back a list of their rumors. Each peer processes the rumors they haven't seen.
    2. The pinged peer is unreachable. Either it is hard-unreachable (fails immediately), or soft-unreachable (connection hangs until some timeout, at which point it is a hard failure). A failure causes a move into the `ping-req`, or failure confirmation, phase.
