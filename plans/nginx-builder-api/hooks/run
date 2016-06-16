@@ -1,0 +1,4 @@
+#!/bin/sh
+#
+exec 2>&1
+exec hab pkg exec core/nginx nginx -c {{pkg.svc_path}}/config/nginx.conf

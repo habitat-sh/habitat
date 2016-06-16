@@ -1,0 +1,12 @@
+doc_root = '/hab/svc/hab-builder-api/static'
+worker_rlimit_nofile = 8192
+worker_processes = "auto"
+
+[events]
+worker_connections = 8000
+
+[http]
+sendfile = "on"
+tcp_nopush = "on"
+tcp_nodelay = "on"
+keepalive_timeout = "20s"
