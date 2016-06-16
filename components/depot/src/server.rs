@@ -81,13 +81,22 @@ fn render_net_error(err: &NetError) -> Response {
 pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Response> {
     match depot.github.user(&token) {
         Ok(user) => {
+            // Select primary email. If no primary email can be found, use any email. If no email
+            // is associated with account return an access denied error.
+            let email = match depot.github.emails(&token) {
+                Ok(ref emails) => {
+                    emails.iter().find(|e| e.primary).unwrap_or(&emails[0]).email.clone()
+                }
+                Err(_) => {
+                    let err = net::err(ErrCode::ACCESS_DENIED, "dp:auth:0");
+                    return Err(render_net_error(&err));
+                }
+            };
             let mut conn = Broker::connect(&depot.context).unwrap();
             let mut request = SessionCreate::new();
             request.set_token(token.to_string());
             request.set_extern_id(user.id);
-            if let Some(email) = user.email {
-                request.set_email(email);
-            }
+            request.set_email(email);
             request.set_name(user.login);
             request.set_provider(OAuthProvider::GitHub);
             conn.route(&request).unwrap();
