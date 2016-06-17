@@ -52,5 +52,5 @@ In order to enable automatic deployment in each environment during the provision
 <hr>
 <ul class="main-content--link-nav">
   <li>Continue to the next topic</li>
-  <li><a href="/docs/internals-overview">Habitat internals</a></li>
+  <li><a href="/docs/container-orchestration">Container orchestration</a></li>
 </ul>
