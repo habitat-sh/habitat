@@ -58,6 +58,14 @@ resource "aws_s3_bucket" "www" {
       },
       "Resource": "arn:aws:s3:::${var.www_bucket_name}",
       "Action": "s3:*"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${var.aws_account_id}:user/${aws_iam_user.www.name}"
+      },
+      "Resource": "arn:aws:s3:::${var.www_bucket_name}/*",
+      "Action": "s3:*"
     }
   ]
 }

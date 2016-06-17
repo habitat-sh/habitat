@@ -62,6 +62,7 @@ activate :autoprefixer
 activate :directory_indexes
 
 activate :s3_sync do |s3_sync|
+  s3_sync.path_style = false
   s3_sync.region = ENV["AWS_DEFAULT_REGION"]
 end
 
