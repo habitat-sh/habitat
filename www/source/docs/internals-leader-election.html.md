@@ -8,7 +8,7 @@ The Habitat supervisor performs leader election natively for service group [topo
 
 Because Habitat is an eventually-consistent distributed system, the role of the leader is different than in strongly-consistent systems. In fact, it only serves as the leader for *application level semantics*, e.g. a database write leader. The fact that a supervisor is a leader has no bearing upon other operations in the Habitat system, including rumor dissemination for configuration updates. Thus, it is _not_ akin to a [Raft](https://raft.github.io/) leader, through which writes must all be funneled. This allows for very high scalability of the Habitat supervisor ring.
 
-Service group using a leader need to have a minimum of three supervisors in order to break ties. It is also strongly recommended that you do not run theservice group with an even number of members; otherwise, in the event of a network partition with equal members on each side, both sides will elect a new leader, causing a full split-brain from which the algorithm cannot recover. Supervisors in a service group will warn you if you are using leader election and have an even number of supervisors.
+Service group using a leader need to have a minimum of three supervisors in order to break ties. It is also strongly recommended that you do not run the service group with an even number of members; otherwise, in the event of a network partition with equal members on each side, both sides will elect a new leader, causing a full split-brain from which the algorithm cannot recover. Supervisors in a service group will warn you if you are using leader election and have an even number of supervisors.
 
 The remainder of this document describes the protocol for electing a leader.
 
