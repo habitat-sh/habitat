@@ -19,35 +19,35 @@ This syntax guide is divided into six parts:
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
 
 pkg_name
-: Sets the name of the package. This will be used in along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on.
+: Required. Sets the name of the package. This will be used in along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on.
 
   ~~~
   pkg_name=zlib
   ~~~
 
 pkg_origin
-: The origin is used to denote a particular upstream of a package.
+: Required unless overridden by the `HAB_ORIGIN` environment variable. The origin is used to denote a particular upstream of a package.
 
   ~~~
   pkg_origin=Habitat
   ~~~
 
 pkg_version
-: Sets the version of the package.
+: Required. Sets the version of the package.
 
   ~~~
   pkg_version=1.2.8
   ~~~
 
 pkg_maintainer
-: The name and email address of the package maintainer.
+: Optional. The name and email address of the package maintainer.
 
   ~~~
   pkg_maintainer="Your Name <someone@example.com>"
   ~~~
 
 pkg_license
-: An array of [valid software licenses](https://spdx.org/licenses/) that relate to this package.
+: Optional. An array of [valid software licenses](https://spdx.org/licenses/) that relate to this package.
 
   ~~~
   pkg_license=('Apache-2.0')
@@ -56,44 +56,44 @@ pkg_license
 > Note: If your package has a custom license, use a string literal matching the title of the license. For example, you'll see `pkg_license=('Boost Software License')` for the `cmake` plan.
 
 pkg_source
-: A URL that specifies where to download the source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the `pkg_name` and `pkg_version` values; however, this convention is not required.
+: Required. A URL that specifies where to download the source from. Any valid `wget` url will work. Typically, the relative path for the URL is partially constructed from the `pkg_name` and `pkg_version` values; however, this convention is not required.
 
   ~~~
   pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
   ~~~
 
-> Note: If your package does not require downloading any source code, you can enter any string for the value, but you must also define callbacks for **do_download()** and **do_verify()**. See [Plan callbacks](#plan-callbacks) for more information.
+> Note: If your package does not require downloading any source code, you must enter a non-empty string for the value and override callbacks for **do_download()** and **do_unpack()**. See [Plan callbacks](#plan-callbacks) for more information.
 
 pkg_filename
-: The resulting filename for the download, typically constructed from the `pkg_name` and `pkg_version` values.
+: Optional. The resulting filename for the download, typically constructed from the `pkg_name` and `pkg_version` values.
 
   ~~~
   pkg_filename=${pkg_name}-${pkg_version}.tar.gz
   ~~~
 
 pkg_shasum
-: The sha256 sum of the downloaded `pkg_source`. If you do not have the sha256 sum, you can easily generate it by downloading the source and using the `sha256sum` or `gsha256sum` tools. Also, if you do not have **do_verify()** overridden, and you do not have the correct sha256 sum, then the expected value will be shown in the build output of your package.
+: Required if a valid URL is provided for `pkg_source` or unless **do_verify()** is overridden. The value for `pkg_shasum` is a sha-256 sum of the downloaded `pkg_source`. If you do not have the checksum, you can easily generate it by downloading the source and using the `sha256sum` or `gsha256sum` tools. Also, if you do not have **do_verify()** overridden, and you do not have the correct sha-256 sum, then the expected value will be shown in the build output of your package.
 
   ~~~
   pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
   ~~~
 
 pkg_deps
-: An array of the package dependencies needed at runtime. You can refer to packages at three levels of specificity: origin/package, origin/package/version, or origin/package/version/release.
+: Optional. An array of package dependencies needed at runtime. You can refer to packages at three levels of specificity: origin/package, origin/package/version, or origin/package/version/release.
 
   ~~~
   pkg_deps=(core/glibc core/pcre core/openssl core/zlib)
   ~~~
 
 pkg_build_deps
-: An array of the package dependencies needed only at build time.
+: Optional. An array of the package dependencies needed only at build time.
 
   ~~~
   pkg_build_deps=(core/gcc core/linux-headers)
   ~~~
 
 pkg_lib_dirs
-: An array of paths, relative to the final install of the software,
+: Optional. An array of paths, relative to the final install of the software,
 where libraries can be found. Used to populate `LD_FLAGS` and
 `LD_RUN_PATH` for software that depends on your package.
 
@@ -102,7 +102,7 @@ where libraries can be found. Used to populate `LD_FLAGS` and
   ~~~
 
 pkg_include_dirs
-: An array of paths, relative to the final install of the software,
+: Optional. An array of paths, relative to the final install of the software,
 where headers can be found. Used to populate `CFLAGS` for software
 that depends on your package.
 
@@ -111,7 +111,7 @@ that depends on your package.
   ~~~
 
 pkg_binary_dirs
-: An array of paths, relative to the final install of the software,
+: Optional. An array of paths, relative to the final install of the software,
 where binaries can be found. Used to populate `PATH` for software
 that depends on your package.
 
@@ -120,7 +120,7 @@ that depends on your package.
   ~~~
 
 pkg_svc_run
-: The command to start the service, if needed.
+: Optional. The command for the supervisor to execute when starting a service. You can omit this setting if your package is not intended to be run directly by a supervisor.
 
   ~~~
   pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
@@ -129,7 +129,7 @@ pkg_svc_run
 > Note: You should use a [run hook](#plan-hooks) instead if you have complex start up behavior.
 
 pkg_expose
-: An array of ports this service exposes when you create a Docker image from your package.
+: Optional. An array of ports this service exposes when you create a Docker image from your package.
 
   ~~~
   pkg_expose=(80 443)
@@ -137,28 +137,28 @@ pkg_expose
 
 
 pkg_interpreters
-: An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#plan-hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
+: Optional. An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#plan-hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
 
   ~~~
   pkg_interpreters=(bin/bash)
   ~~~
 
 pkg_svc_user
-: The user to run the service as.
+: Optional. The user to run the service as. The default is `hab`.
 
   ~~~
   pkg_svc_user=hab
   ~~~
 
 pkg_svc_group
-: The group to run the service as.
+: Optional. The group to run the service as. The default is `hab`.
 
   ~~~
   pkg_svc_group=$pkg_svc_user
   ~~~
 
 pkg_description
-: A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. {::comment} This description will be displayed on the Web app when users search for or browse to your package. {:/comment}
+: Optional. A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. {::comment} This description will be displayed on the Web app when users search for or browse to your package. {:/comment}
 
   ~~~
   pkg_description=$(cat << EOF
@@ -171,7 +171,7 @@ pkg_description
 > Note: Any special characters other than `#` will have to be escaped; otherwise, they could be interpreted by the hab-plan-build script when the package is built.
 
 pkg_upstream_url
-: An upstream project homepage or website URL.
+: Optional. An upstream project homepage or website URL.
 
   ~~~
   pkg_upstream_url=https://github.com/myrepo
