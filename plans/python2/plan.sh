@@ -19,6 +19,7 @@ do_prepare() {
 
 do_build() {
     ./configure --prefix=${pkg_prefix} \
-                --enable-shared
+                --enable-shared \
+                --with-ensurepip
     make
 }
