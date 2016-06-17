@@ -37,7 +37,12 @@ export function get(params, nextRange: number = 0) {
             }
 
             const totalCount = parseInt(
-                (response.headers.get("Content-Range") || "").split("=")[1],
+                // The caching proxy (Fastly) may strip out the Content-Range
+                // header on responses, so attempt to use the X-Content-Range
+                // as well until this is fixed.
+                (response.headers.get("Content-Range") ||
+                 response.headers.get("X-Content-Range") ||
+                 "").split("=")[1],
                 10
             );
             const nextRange = parseInt(response.headers.get("Next-Range"), 10);
