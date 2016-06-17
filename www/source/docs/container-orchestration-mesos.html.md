@@ -4,19 +4,19 @@ title: Apache Mesos and DC/OS with Habitat
 
 # Apache Mesos and DC/OS
 
-[Apache Mesos](https://mesos.apache.org/) is an open source container cluster manager and the container cluster manager for the [DC/OS](https://dcos.io) distributed platform.
+[Apache Mesos](https://mesos.apache.org/) is an open source distributed systems kernel and the distributed systems kernel for [Mesosphere's DC/OS](https://dcos.io) distributed platform.
 
 ## Mesos Containerizers
 
-Mesos has support for [containerizers](http://mesos.apache.org/documentation/latest/containerizer/) for running commands and applications within isolated containers. Mesos supports Docker and its own [Mesos containerizer](http://mesos.apache.org/documentation/latest/mesos-containerizer/) format. The Mesos containerizer provides lightweight containerization with cgroups/namespaces isolation without actual isolation. The `pkg-mesosize` command creates a mostly empty base filesystem with the application and the Habitat supervisor and packages it into a compressed tarball.
+Mesos has support for [containerizers](http://mesos.apache.org/documentation/latest/containerizer/) for running commands and applications within isolated containers. Mesos supports Docker and its own [Mesos containerizer](http://mesos.apache.org/documentation/latest/mesos-containerizer/) format. The Mesos containerizer provides lightweight containerization with cgroups/namespaces isolation without actual isolation. The `hab pkg export mesos` command creates a mostly empty base filesystem with the application and the Habitat supervisor and packages it into a compressed tarball.
 
 ## Marathon Applications
 
 [Marathon](https://mesosphere.github.io/marathon/) is a container orchestration platform for Mesos and DC/OS, handling the scheduling and deployment of applications. [Marathon applications](https://mesosphere.github.io/marathon/docs/application-basics.html) support Docker and the Mesos container formats, wrapping them in JSON metadata describing the resources needed to deploy the application. Once the application has been deployed to Marathon, it schedules it across the Mesos cluster and ensures the application is running optimally.
 
-# Export to an Apache Mesos (Marathon) application
+# Export to a Mesos container and Marathon application
 
-You can create native Mesos container applications from Habitat packages by following these steps:
+You can create native Mesos containers from Habitat packages by following these steps:
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
@@ -33,7 +33,7 @@ You can create native Mesos container applications from Habitat packages by foll
        {
        "id": "yourorigin/yourpackage",
        "cmd": "/bin/id -u hab &>/dev/null || /sbin/useradd hab; /bin/chown -R hab:hab *; mount -t proc proc proc/; mount -t sysfs sys sys/;mount -o bind /dev dev/; /usr/sbin/chroot . ./init.sh start yourorigin/yourpackage",
-       "cpus": .5,
+       "cpus": 0.5,
        "disk": 0,
        "mem": 256,
        "instances": 1,
@@ -54,13 +54,14 @@ You can create native Mesos container applications from Habitat packages by foll
 
     ![Screen shot of Marathon New Application JSON Mode](/images/mesos3-new-application-json.png)
 
-9. Marathon will deploy the application, you can then select "Scale Application" and set it to 1 or more instances to launch. The application will launch and enter the "Running" status.
+9. Marathon will then deploy the application and enter the "Running" status.
 
     ![Screen shot of Marathon Application Running](/images/mesos4-application.png)
 
 ## Debugging
 
-Output from the running application will be captured in the `stdout` and any errors will be in the `stderr` links. You may find these useful for debugging; there is additional information available under the "Debug" column for the application. If you have SSH access into the nodes, the Mesos container directories are beneath `/var/lib/mesos/slave/slaves`.
+You can get to the output from the running application by clicking on the "Marathon" service from the DC/OS "Services" tab. Select the application and the "Log Viewer" and choose either the "Error" or "Output" to see `stderr` and `stdout` respectively. If you have SSH access into the nodes, the Mesos container directories are beneath `/var/lib/mesos/slave/slaves`.
+    ![Screen shot of Debugging a Running Application](/images/mesos5-debugging.png)
 
 ## Future Enhancements
 
