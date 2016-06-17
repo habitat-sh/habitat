@@ -75,6 +75,66 @@ pub fn get_archive_reader<P: AsRef<Path>>(src: &P) -> Result<BufReader<File>> {
     Ok(reader)
 }
 
+pub struct ArtifactHeader {
+    pub format_version: String,
+    pub key_name: String,
+    pub hash_type: String,
+    pub signature_raw: String,
+}
+
+impl ArtifactHeader {
+    pub fn new(format_version: String,
+               key_name: String,
+               hash_type: String,
+               signature_raw: String)
+               -> ArtifactHeader {
+        ArtifactHeader {
+            format_version: format_version,
+            key_name: key_name,
+            hash_type: hash_type,
+            signature_raw: signature_raw,
+        }
+    }
+}
+
+/// Read only the header of the artifact, fails if any of the components
+/// are invalid/missing. Each component of the header has it's whitespace
+/// stripped before returning in an `ArtifactHeader` struct
+pub fn get_artifact_header<P: AsRef<Path>>(src: &P) -> Result<ArtifactHeader> {
+    let f = try!(File::open(src));
+    let mut your_format_version = String::new();
+    let mut your_key_name = String::new();
+    let mut your_hash_type = String::new();
+    let mut your_signature_raw = String::new();
+    let mut empty_line = String::new();
+
+    let mut reader = BufReader::new(f);
+    if try!(reader.read_line(&mut your_format_version)) <= 0 {
+        return Err(Error::CryptoError("Can't read format version".to_string()));
+    }
+    if try!(reader.read_line(&mut your_key_name)) <= 0 {
+        return Err(Error::CryptoError("Can't read keyname".to_string()));
+    }
+    if try!(reader.read_line(&mut your_hash_type)) <= 0 {
+        return Err(Error::CryptoError("Can't read hash type".to_string()));
+    }
+    if try!(reader.read_line(&mut your_signature_raw)) <= 0 {
+        return Err(Error::CryptoError("Can't read signature".to_string()));
+    }
+    if try!(reader.read_line(&mut empty_line)) <= 0 {
+        return Err(Error::CryptoError("Can't end of header".to_string()));
+    }
+    let your_format_version = your_format_version.trim().to_string();
+    let your_key_name = your_key_name.trim().to_string();
+    let your_hash_type = your_hash_type.trim().to_string();
+    let your_signature_raw = your_signature_raw.trim().to_string();
+
+    Ok(ArtifactHeader::new(your_format_version,
+                           your_key_name,
+                           your_hash_type,
+                           your_signature_raw))
+}
+
 /// verify the crypto signature of a .hart file
 pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(String, String)>
     where P1: AsRef<Path>,
@@ -217,8 +277,9 @@ mod test {
     use tempdir::TempDir;
 
     use super::*;
-    use super::super::SigKeyPair;
+    use super::super::{HART_FORMAT_VERSION, SIG_HASH_TYPE, SigKeyPair};
     use super::super::test_support::*;
+    use super::super::keys::parse_name_with_rev;
 
     #[test]
     fn sign_and_verify() {
@@ -414,5 +475,23 @@ mod test {
         let mut reader = get_archive_reader(&dst).unwrap();
         reader.read_to_string(&mut buffer).unwrap();
         assert_eq!(buffer.as_bytes(), "harty goodness".as_bytes());
+    }
+
+    #[test]
+    fn verify_get_artifact_header() {
+        let cache = TempDir::new("key_cache").unwrap();
+        let pair = SigKeyPair::generate_pair_for_origin("unicorn", cache.path()).unwrap();
+        let src = cache.path().join("src.in");
+        let dst = cache.path().join("src.signed");
+        let mut f = File::create(&src).unwrap();
+        f.write_all("harty goodness".as_bytes()).unwrap();
+        sign(&src, &dst, &pair).unwrap();
+
+        let hart_header = get_artifact_header(&dst).unwrap();
+        assert_eq!(HART_FORMAT_VERSION, hart_header.format_version);
+        let (key_name, _rev) = parse_name_with_rev(&hart_header.key_name).unwrap();
+        assert_eq!("unicorn", key_name);
+        assert_eq!(SIG_HASH_TYPE, hart_header.hash_type);
+        assert!(hart_header.signature_raw.len() > 0);
     }
 }

@@ -55,7 +55,7 @@ use error::{Error, Result};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
 use hcore::crypto::keys::PairType;
-use hcore::fs::{cache_artifact_path, cache_analytics_path, FS_ROOT_PATH};
+use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path, FS_ROOT_PATH};
 use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
@@ -240,6 +240,7 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
 fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
+
     let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
     let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
     for p in peers.iter_mut() {
@@ -458,11 +459,17 @@ fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
 
 fn sub_pkg_upload(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Some(Path::new(&fs_root));
+    let key_path = cache_key_path(fs_root_path);
+    // don't use a pathbuf, as the P generic param for upload::start below is
+    // bound to a &str
+    let key_path = try!(key_path.to_str().ok_or(Error::CryptoCLI("Invalid key path".to_string())));
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let token = try!(auth_token_param_or_env(&m));
     let artifact_paths = m.values_of("HART_FILE").unwrap();
     for artifact_path in artifact_paths {
-        try!(command::pkg::upload::start(&url, &token, &artifact_path));
+        try!(command::pkg::upload::start(&url, &token, &artifact_path, &key_path));
     }
     Ok(())
 }

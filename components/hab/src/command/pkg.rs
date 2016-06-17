@@ -325,9 +325,11 @@ pub mod upload {
 
     use ansi_term::Colour::{Blue, Green, Red, Yellow};
     use common::command::ProgressBar;
+    use hcore::crypto::artifact::get_artifact_header;
+    use hcore::crypto::keys::parse_name_with_rev;
     use hcore::package::{PackageArchive, PackageIdent};
     use depot_client::{self, Client};
-    use hyper::status::StatusCode;
+    use hyper::status::StatusCode::{self, Forbidden, Unauthorized};
 
     use error::{Error, Result};
 
@@ -339,11 +341,54 @@ pub mod upload {
     /// * Fails if it cannot find a package
     /// * Fails if the package doesn't have a `.hart` file in the cache
     /// * Fails if it cannot upload the file
-    pub fn start<P: AsRef<Path>>(url: &str, token: &str, archive_path: &P) -> Result<()> {
+    pub fn start<P: AsRef<Path>>(url: &str,
+                                 token: &str,
+                                 archive_path: &P,
+                                 key_path: &P)
+                                 -> Result<()> {
         let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
+
+        let hart_header = try!(get_artifact_header(&archive_path.as_ref()));
+
+        let key_buf = key_path.as_ref().to_path_buf();
+        let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
+        let public_keyfile = key_buf.join(&public_keyfile_name);
+
+        println!("{}",
+                 Green.paint(format!("☛ Artifact signed with {}", &public_keyfile_name)));
+
+        let (name, rev) = try!(parse_name_with_rev(&hart_header.key_name));
+        let depot_client = try!(Client::new(url, None));
+
+        println!("{}",
+                 Yellow.bold().paint(format!("» Uploading origin key {}", &public_keyfile_name)));
+
+        match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, None) {
+            Ok(()) => {
+                println!("{} {}",
+                         Green.bold().paint("✓ Uploaded origin key"),
+                         &public_keyfile_name);
+            }
+            Err(e @ depot_client::Error::HTTP(Forbidden)) |
+            Err(e @ depot_client::Error::HTTP(Unauthorized)) => {
+                return Err(Error::from(e));
+            }
+
+            Err(e @ depot_client::Error::HTTP(_)) => {
+                debug!("Error uploading public key {}", e);
+                println!("{} {}",
+                         Green.bold()
+                             .paint("→ Public key revision already exists in the depot"),
+                         &public_keyfile_name);
+            }
+            Err(e) => {
+                return Err(Error::DepotClient(e));
+            }
+        };
+
         println!("{}",
                  Yellow.bold().paint(format!("» Uploading {}", archive_path.as_ref().display())));
-        let depot_client = try!(Client::new(url, None));
+
         let tdeps = try!(archive.tdeps());
         for dep in tdeps.into_iter() {
             match depot_client.show_package(dep.clone()) {
@@ -367,6 +412,7 @@ pub mod upload {
         }
         println!("{}",
                  Blue.paint(format!("★ Upload of {} complete.", &ident)));
+
         Ok(())
     }
 
