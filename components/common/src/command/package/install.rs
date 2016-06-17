@@ -168,8 +168,8 @@ fn install_from_depot(url: &str,
             } else {
                 println!("{} {} which satisfies {}",
                          Green.paint("→ Using"),
-                         given_ident,
-                         ident.as_ref());
+                         ident.as_ref(),
+                         given_ident);
             }
         }
         Err(_) => {
