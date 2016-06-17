@@ -4,7 +4,7 @@ pkg_version=0.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(core/coreutils core/findutils core/gawk core/grep core/bash core/tar core/gzip core/hab-static core/hab-studio)
+pkg_deps=(core/coreutils core/findutils core/gawk core/grep core/bash core/tar core/gzip core/hab)
 pkg_build_deps=()
 pkg_bin_dirs=(bin)
 
