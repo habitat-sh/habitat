@@ -13,6 +13,10 @@ pkg_bin_dirs=(bin)
 pkg_include_dirs=(include Include)
 pkg_interpreters=(bin/python bin/python2 bin/python2.7)
 
+do_prepare() {
+    sed -i.bak 's/#zlib/zlib/' Modules/Setup.dist
+}
+
 do_build() {
     ./configure --prefix=${pkg_prefix} \
                 --enable-shared
