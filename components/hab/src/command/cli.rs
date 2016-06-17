@@ -23,7 +23,7 @@ pub mod setup {
 
     use analytics;
     use command;
-    use config::{self, Config};
+    use config;
     use error::Result;
 
     pub fn start(cache_path: &Path, analytics_path: &Path) -> Result<()> {
