@@ -6,7 +6,7 @@ This is a single page app built using [Angular 2](https://angular.io/).
 
 ## Development
 
-Node.js 4.2.4 must be installed.
+The stable LTS version of Node must be installed (specified in [.nvmrc](.nvmrc).
 
 Run `npm install` to install dependencies.
 
@@ -21,8 +21,8 @@ The configuration file looks like:
 
 ```js
 habitatConfig({
-    depotUrl: "https://my-depot-url:1234",
-    someOtherConfigOption: true,
+    habitat_api_url: "https://my-api-url:1234/v1",
+    some_other-config_option: true,
 });
 ```
 
@@ -119,13 +119,17 @@ These are guidelines for how to structure and format code in the application.
 * The [Redux Devtools Chrome extension](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=en)
   will let you inspect the state and actions of the running app in Chrome.
 
-## "Production"
+## Production
 
 To build the JavaScript and CSS files, run `npm run build`.
 
 `npm run dist` will build these files and put them along with the index.html and
 other needed files into the dist/ directory. A web server can serve the files in
 the dist directory to run the app.
+
+The app is deployed to production with the Builder API, with the configuration
+in [/terraform](/terraform) and the Habitat plan in
+[/components/builder-api/habitat](/components/builder-api/habitat).
 
 ## Additional Documentation
 
