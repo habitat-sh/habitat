@@ -10,6 +10,7 @@ pkg_deps=( core/coreutils core/jdk8 core/server-jre )
 pkg_build_deps=( core/jdk8 core/server-jre )
 pkg_bin_dirs=(bin)
 do_build() {
+  mkdir -p $pkg_prefix/
   cp -a $PLAN_CONTEXT/apache-ant-${pkg_version}/. $pkg_prefix/
   export JAVA_HOME=$(hab pkg path core/server-jre)
   fix_interpreter ${pkg_prefix}/bin/ant core/coreutils bin/env
