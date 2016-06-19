@@ -13,6 +13,9 @@ You can write plans to package up these binary artifacts with minimal special ha
 A Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. You can override the behavior of any of these phases by redefining the corresponding `do_` function. The following is an extreme example of overriding all the phases except install:
 
 ~~~
+pkg_version=0.0.1
+
+
 do_download() {
   return 0
 }
