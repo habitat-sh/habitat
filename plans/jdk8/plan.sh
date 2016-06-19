@@ -65,7 +65,7 @@ do_install() {
 
   export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
 
-  find $pkg_prefix/bin -type f -executable \
+  find $pkg_prefix/bin $pkg_prefix/jre/bin -type f -executable \
     -exec sh -c "file -i '{}' | grep -q 'x-executable; charset=binary'" \; \
     -exec patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" --set-rpath ${LD_RUN_PATH} {} \;
 }
