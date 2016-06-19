@@ -66,7 +66,7 @@ A non-interactive build is one in which Habitat creates a studio for you, builds
 
 For more information on how to define a plan and build a package, how to create origin signing keys, and how to run a Habitat service, see the [getting started tutorial](/tutorials/getting-started-overview).
 
-For information on the contents of an installed package, see [Package contents](/docs/package-contents).
+For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
 
 <hr>
 <ul class="main-content--link-nav">
