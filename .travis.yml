@@ -10,6 +10,7 @@ matrix:
   - language: rust
     env:
     - COMPONENTS=bin LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    - AFFECTED_DIRS="components/director|components/hab|components/sup"
     rust: stable
     sudo: false
     addons:
@@ -34,6 +35,7 @@ matrix:
       - components/hab/target
       - components/sup/target
     before_install:
+    - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh
     - ./support/ci/compile_libarchive.sh
     - ./support/ci/install_rustfmt.sh
@@ -43,6 +45,7 @@ matrix:
   - language: rust
     env:
     - COMPONENTS=lib LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    - AFFECTED_DIRS="components/builder-dbcache|components/builder-protocol|components/common|components/core|components/depot-client|components/http-client|components/net"
     rust: stable
     sudo: false
     addons:
@@ -70,6 +73,7 @@ matrix:
       - components/depot-client/target
       - components/net/target
     before_install:
+    - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh
     - ./support/ci/compile_libarchive.sh
     - ./support/ci/install_rustfmt.sh
@@ -79,6 +83,7 @@ matrix:
   - language: rust
     env:
     - COMPONENTS=srv LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    - AFFECTED_DIRS="components/builder-api|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/depot"
     rust: stable
     sudo: false
     addons:
@@ -106,6 +111,7 @@ matrix:
       - components/builder-worker/target
       - components/depot/target
     before_install:
+    - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh
     - ./support/ci/compile_libarchive.sh
     - ./support/ci/install_rustfmt.sh
@@ -117,6 +123,7 @@ matrix:
     sudo: required
     env:
     - CXX=g++-4.8
+    - AFFECTED_DIRS="components/builder-web"
     addons:
       apt:
         sources:
@@ -129,7 +136,9 @@ matrix:
       directories:
       - components/builder-web/node_modules
       - components/builder-web/typings
-    before_install: npm config set spin=false
+    before_install:
+    - ./support/ci/fast_pass.sh || exit 0
+    - npm config set spin=false
     install:
     - "(cd components/builder-web && npm install)"
     script:
@@ -143,6 +152,7 @@ matrix:
       directories:
       - www/build
     env:
+    - AFFECTED_DIRS="www"
     - AWS_BUCKET=habitat-www
     - AWS_DEFAULT_REGION=us-west-2
     - AWS_ACCESS_KEY_ID=AKIAIE3PM7VKCMUX7TIA
@@ -152,6 +162,7 @@ matrix:
     - secure: "t3dUI5oNwsB1gSP3DIwwxnY7z/NigMm4XgMrQuiU5xda4sL67JQ/sU8j00I3B9TnfA1fekMBzMOKES+F7SI1y+b6K7q+SOI4mgcNqRcQKJans6o6XuBVT9Tp8om7izxOgp0lVLuHxv4OVEhmhORTCWjk/jW1M45oG5oAYOvATsbQ/gZiVCKMrb8bSSpl6eSn5YqIvJiqDW707O2wUDJsdiS4bXTIVUtai+hCeIckitrrFWWkDNWnP0/OnFb3F2ka3lFRwfuUH8UQ6oqT4YcumngIMbIvBSCOBOenGagvrhpcX2m0cVDNY/sE6iv9c2HBSlEK6vaYAbkfX6mpNseruPPq7xv5HGBhj6wlkCHpML1xse7qbCTgzKUlIfkAQQljmUH7c/mN1i9YucoMtgJxRqZCiuoO/hNILcAoQFv14NvqUNOgGeYqHzi3RSxMeQxs3uLA1l0AZpLR6aPNOM9XZyVxhFw55htS5yY52rvXVz4TR1JF22RZesT8V/WpQoPSP1d4bmVVIqa83piqQJ65cMQ0YyhQWRLtWIipvKlztnwpSV/J2LjXzbZm4J//0ArCNx0wNggrkyL7xBpmgbLgRCgid9SUlIX1HPisdJkL/z7lmz9s05ppATiipy/PduaqCZ/Lpq4wMZ8S2ILLPbNtYx8EOPGjLspPnXbpHB4z73A="
     # FASTLY_SERVICE_KEY
     - secure: "SFcY62bzpxUVD6ZDE23KudYX5gCt9fuH8QE2wAE+Pu4LPj9SKQyOwpbx3Aej2EzPk14RNA2HKXr3jY+rGdSpNrSyTmbf2IMOolVjIDSoT2xD5E+hAARfuurjHH8l9Bwb8KRiPG3oxcM85oXU6kd882SN5CsM3jY65vj94I/SMZYpUB7KSUQP8ji7hoE1eVeXQWi2AM+fjPFwWG1BhiP16j7SyAaDCAI+jDAeTplrdg10pxIKv7ef1wOHahyGlORdxubAilQW+dZuubMjl2qgPem8FQRmYSLJNEAvj663QYZf1XfH1fDYavW7J0l9vj4E8BwXUAdYn20JPwR6HSI/XsJrpxEc/PEt/2HqhTPAnxVwKQkXEgbKxCamPDIwBANwhjOdetY9dR8w9W4rsJ7wT7WQw40chlFO1gU8Ct4dIlCYogtTBxRdrCObTWRkGlsEH2XNxt4lE4xoE79njlQqNj/Wq0FeyljLPIaK90E1C9O0Q5Li1LaiIQTxyaoivLGELXrsysvkRwEOOCGiFt6w8P1LDEqoKz7Z5tu7+dbh3c31KCgPsgo150/Q4+plnq6+GoY+3ejWac7qf+q1dbp5Gx4lNPBKKuUylhx7TYUlpAp3hLcoA3fs245eYbbv1+fJ1SLIFGYNTHzRRmbB1bZaHQeHl8dMNuMh4JVDexAuCXc="
+    before_install: ./support/ci/fast_pass.sh || exit 0
     install: "(cd www && bundle install)"
     script: "(cd www && ./bin/middleman build)"
     after_script: ./support/ci/deploy_website.sh
