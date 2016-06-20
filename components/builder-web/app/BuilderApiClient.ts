@@ -86,7 +86,11 @@ export class BuilderApiClient {
                 headers: this.headers,
             }).then(response => {
                 response.json().then(data => {
-                    resolve(data["origins"]);
+                    if (response.ok) {
+                        resolve(data["origins"]);
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
                 });
             }).catch(error => reject(error));
         });

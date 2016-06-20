@@ -34,7 +34,7 @@ import {requireSignIn} from "../util";
             <p *ngIf="ui.errorMessage">
                 Failed to load origins: {{ui.errorMessage}}
             </p>
-            <div *ngIf="origins.size === 0">
+            <div *ngIf="origins.size === 0 && !ui.errorMessage">
                 <div class="hero">
                     <h3>You don't currently have any origins. Let's add one now.</h3>
                     <p>
