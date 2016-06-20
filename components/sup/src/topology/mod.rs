@@ -311,7 +311,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     service_config.bind(worker.config.bind(), &cl);
                 }
                 if write_rumor {
-                    outputln!("Writing our census rumor: {:#?}", me_clone);
+                    debug!("Writing our census rumor: {:#?}", me_clone);
                     let mut rl = worker.rumor_list.write().unwrap();
                     rl.add_rumor(Rumor::census_entry(me_clone));
                 }
