@@ -20,13 +20,15 @@ ifneq ($(IN_DOCKER),)
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
-	run := $(common_run) shell
+	run := $(common_run) -p 9636:9636 shell
 	docs_host := ${DOCKER_HOST}
 	docs_run := $(common_run) -p 9633:9633 shell
+	web_dev_run := $(common_run) -p 9636:9636 shell
 else
 	run :=
 	docs_host := 127.0.0.1
 	docs_run :=
+    web_dev_run :=
 endif
 
 BIN = director hab sup
@@ -102,6 +104,15 @@ serve-docs: docs ## serves the project documentation from an HTTP server
 		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
 	$(docs_run) sh -c 'set -e; cd ./components/sup/target/doc; python -m SimpleHTTPServer 9633;'
 .PHONY: serve-docs
+
+start-web-dev:
+	@echo "==> Starting builder-api on 9636"
+	$(web_dev_run) sh -c 'mkdir -p /hab/svc/hab-director; \
+ 	mkdir -p /hab/svc/hab-builder-api; \
+	cp /src/components/builder-web/builder_web.toml /hab/svc/hab-director/user.toml; \
+	cp /src/components/builder-api/builder_api.toml /hab/svc/hab-builder-api/user.toml; \
+	hab start core/hab-director'
+.PHONY: start-web-dev
 
 ifneq ($(IN_DOCKER),)
 distclean: ## fully cleans up project tree and any associated Docker images and containers
