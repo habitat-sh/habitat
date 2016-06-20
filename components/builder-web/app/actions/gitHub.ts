@@ -18,7 +18,7 @@ import * as cookies from "js-cookie";
 import config from "../config";
 import {attemptSignIn, addNotification, goHome, requestRoute, setSigningInFlag,
     signOut} from "./index";
-import {DANGER} from "./notifications";
+import {DANGER, WARNING} from "./notifications";
 
 const parseLinkHeader = require("parse-link-header");
 const uuid = require("node-uuid").v4;
@@ -53,17 +53,29 @@ export function authenticateWithGitHub(token = undefined) {
             fetch(`https://api.github.com/user?access_token=${token}`).then(response => {
                 dispatch(setSigningInFlag(false));
 
-                if (response["status"] === 401) {
-                    // When we get an unauthorized response, out token is no
-                    // longer valid, so sign out.
-                    dispatch(signOut());
-                    return false;
-                } else {
+                if (response.ok) {
                     return response.json();
+                } else {
+                    // If the response is not ok, throw an error from the
+                    // promise to be handled below.
+                    return response.json().then(error => { throw error; });
                 }
             }).then(data => {
                 dispatch(populateGitHubUserData(data));
                 dispatch(attemptSignIn(data["login"]));
+            }).catch(error => {
+                // We can assume an error from the response is a 401; anything
+                // else is probably a transient failure on GitHub's end, which
+                // we can expect to clear when we try to sign in again.
+                //
+                // When we get an unauthorized response, out token is no
+                // longer valid, so sign out.
+                dispatch(signOut());
+                dispatch(addNotification({
+                    title: "GitHub Authorization Failed",
+                    body: "Please sign in again.",
+                    type: WARNING,
+                }));
             });
         }
     };
