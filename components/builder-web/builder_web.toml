@@ -1,0 +1,5 @@
+[services.core.redis.dev]
+[services.core.hab-builder-router.dev]
+[services.core.hab-builder-sessionsrv.dev]
+[services.core.hab-builder-vault.dev]
+[services.core.hab-builder-api.dev]
