@@ -324,9 +324,9 @@ INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
 # The target architecture this plan will be built for
-pkg_arch=$(uname -m | tr [[:upper:]] [[:lower:]])
+pkg_arch=$(uname -m | tr '[:upper:]' '[:lower:]')
 # The target system (i.e. operating system variant) this plan will be built for
-pkg_sys=$(uname -s | tr [[:upper:]] [[:lower:]])
+pkg_sys=$(uname -s | tr '[:upper:]' '[:lower:]')
 # The full target tuple this plan will be built for
 pkg_target="${pkg_arch}-${pkg_sys}"
 # The package's origin (i.e. acme)
