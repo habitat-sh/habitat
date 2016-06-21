@@ -31,7 +31,7 @@ pub fn job_create(req: &mut Envelope,
     job.set_state(proto::JobState::default());
     state.datastore().jobs.write(&mut job).unwrap();
     state.datastore().job_queue.enqueue(&job).unwrap();
-    try!(state.work_manager.notify_work());
+    try!(state.worker_mgr().notify_work());
     try!(req.reply_complete(sock, &job));
     Ok(())
 }

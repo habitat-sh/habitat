@@ -75,7 +75,6 @@ impl<'a> Server<'a> {
         loop {
             match self.state {
                 SocketState::Ready => {
-                    println!("socket ready");
                     if self.envelope.max_hops() {
                         // We should force the sender to disconnect, they have a problem.
                         self.state = SocketState::Cleaning;

@@ -15,13 +15,12 @@
 use std::ops::Deref;
 use std::sync::Arc;
 
-use dbcache::{self, ConnectionPool, Bucket, IndexSet, InstaSet};
+use dbcache::{self, data_store, ConnectionPool, Bucket, IndexSet, InstaSet};
 use protobuf::Message;
 use protocol::{vault, InstaId, Persistable};
-use r2d2_redis::RedisConnectionManager;
 use redis::{self, Commands, PipelineCommands};
 
-use error::Result;
+use config::Config;
 use protocol::vault as proto;
 
 pub struct DataStore {
@@ -29,19 +28,17 @@ pub struct DataStore {
     pub origins: OriginTable,
 }
 
-impl DataStore {
-    pub fn open<C: redis::IntoConnectionInfo>(config: C) -> Result<Self> {
-        // JW TODO: tune pool from config?
-        let pool_cfg = Default::default();
-        let manager = RedisConnectionManager::new(config).unwrap();
-        let pool = Arc::new(ConnectionPool::new(pool_cfg, manager).unwrap());
+impl data_store::Pool for DataStore {
+    type Config = Config;
+
+    fn init(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
         let origins = OriginTable::new(pool1);
 
-        Ok(DataStore {
+        DataStore {
             pool: pool,
             origins: origins,
-        })
+        }
     }
 }
 

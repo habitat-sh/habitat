@@ -36,7 +36,6 @@ pub mod supervisor;
 
 use std::process::Command;
 
-pub use self::dispatcher::Dispatcher;
 pub use self::error::{Error, Result};
 pub use self::server::{Application, ServerReg};
 pub use self::supervisor::Supervisor;

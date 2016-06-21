@@ -19,17 +19,47 @@
 //! `InstaSet` and `IndexSet` below.
 
 use std::fmt;
+use std::net;
 use std::ops::Deref;
+use std::sync::Arc;
+use std::time::Duration;
+use std::thread;
 
 use protobuf::{Message, parse_from_bytes};
 use protocol::{InstaId, Persistable};
 use r2d2;
-use r2d2_redis;
-use redis::{self, Commands, PipelineCommands};
+use r2d2_redis::{self, RedisConnectionManager};
+use redis::{self, Commands, IntoConnectionInfo, PipelineCommands};
 
+use config::DataStoreCfg;
 use error::{Error, Result};
 
 pub type ConnectionPool = r2d2::Pool<r2d2_redis::RedisConnectionManager>;
+
+pub trait Pool: Sized {
+    type Config: DataStoreCfg;
+
+    fn start(config: &Self::Config) -> Self {
+        let retry_ms = config.connection_retry_ms();
+        let pool_size = config.pool_size();
+        let cfg = redis_connection_info(config.datastore_addr());
+        loop {
+            {
+                let pool_cfg = r2d2::Config::builder().pool_size(pool_size).build();
+                let manager = RedisConnectionManager::new(cfg.clone()).unwrap();
+                debug!("establishing connection(s) to database...");
+                match ConnectionPool::new(pool_cfg, manager) {
+                    Ok(pool) => return Self::init(Arc::new(pool)),
+                    Err(e) => error!("error initializing datastore connection pool, {}", e),
+                }
+            }
+            thread::sleep(Duration::from_millis(retry_ms));
+            info!("retrying database connections...");
+        }
+    }
+
+    fn init(pool: Arc<ConnectionPool>) -> Self;
+}
 
 /// Base trait for storing peristable objects into a data store. A bucket prefixes the key of all
 /// entities with a developer-defined prefix.
@@ -189,4 +219,10 @@ pub trait IndexSet: Bucket {
         try!(conn.hset(Self::prefix(), id.clone(), value));
         Ok(())
     }
+}
+
+fn redis_connection_info(addr: &net::SocketAddrV4) -> redis::ConnectionInfo {
+    format!("redis://{}:{}", addr.ip(), addr.port())
+        .into_connection_info()
+        .unwrap()
 }

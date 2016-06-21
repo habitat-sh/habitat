@@ -14,11 +14,10 @@
 
 use std::sync::Arc;
 
-use dbcache::{self, Bucket, ConnectionPool, ExpiringSet, IndexSet, InstaSet};
+use dbcache::{self, data_store, Bucket, ConnectionPool, ExpiringSet, IndexSet, InstaSet};
 use protocol::sessionsrv;
-use r2d2_redis::RedisConnectionManager;
-use redis;
 
+use config::Config;
 use error::Result;
 
 pub struct DataStore {
@@ -27,23 +26,19 @@ pub struct DataStore {
     pub sessions: SessionTable,
 }
 
-impl DataStore {
-    pub fn open<C: redis::IntoConnectionInfo>(config: C) -> Result<Self> {
-        // JW TODO: tune pool from config?
-        let pool_cfg = Default::default();
-        let manager = RedisConnectionManager::new(config).unwrap();
-        let pool = Arc::new(ConnectionPool::new(pool_cfg, manager).unwrap());
+impl data_store::Pool for DataStore {
+    type Config = Config;
+
+    fn init(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
         let pool2 = pool.clone();
-
         let accounts = AccountTable::new(pool1);
         let sessions = SessionTable::new(pool2);
-
-        Ok(DataStore {
+        DataStore {
             pool: pool,
             accounts: accounts,
             sessions: sessions,
-        })
+        }
     }
 }
 

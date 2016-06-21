@@ -12,9 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod prelude;
+
+use std::default::Default;
 use std::fmt;
 use std::result;
-use std::sync::{mpsc, Arc, RwLock};
+use std::sync::{Arc, RwLock};
+use std::sync::mpsc::SyncSender;
 
 use protobuf::parse_from_bytes;
 use zmq;
@@ -22,31 +26,49 @@ use zmq;
 use config::DispatcherCfg;
 use server::Envelope;
 
-pub type MessageHandler<T> = Fn(&mut Envelope) -> result::Result<(), T>;
+/// Function signature for dispatch handlers.
+pub type MessageHandler<T> = Fn(&mut Envelope) -> Result<(), T>;
+
+/// Apply to a struct containing worker state that will be passed as a mutable reference on each
+/// call of `dispatch()` to an implementer of `Dispatcher`.
+pub trait DispatcherState {
+    fn is_initialized(&self) -> bool;
+}
 
 /// Dispatchers connect to Message Queue Servers
 pub trait Dispatcher: Sized + Send {
     type Config: Send + Sync + DispatcherCfg;
     type Error: Send + From<zmq::Error> + fmt::Display;
-    type State;
-
-    fn message_queue() -> &'static str;
-
-    // JW TODO: This should take something that impelements an "application config" trait
-    fn new(config: Arc<RwLock<Self::Config>>) -> Self;
-
-    fn context(&mut self) -> &mut zmq::Context;
+    type InitState: Clone + Send + Into<Self::State>;
+    type State: DispatcherState;
 
     fn dispatch(message: &mut Envelope,
                 socket: &mut zmq::Socket,
                 state: &mut Self::State)
                 -> result::Result<(), Self::Error>;
 
-    fn init(&mut self) -> result::Result<(), Self::Error> {
-        Ok(())
+    /// Address to the ZeroMQ message queue that dispatcher workers will consume from.
+    fn message_queue() -> &'static str;
+
+    fn new(config: Arc<RwLock<Self::Config>>) -> Self;
+
+    fn context(&mut self) -> &mut zmq::Context;
+
+    /// Callback to perform dispatcher initialization.
+    ///
+    /// The default implementation will take your initial state and convert it into the actual
+    /// state of the worker. Override this function if you need to perform additional steps to
+    /// initialize your worker state.
+    fn init(&mut self, init_state: Self::InitState) -> result::Result<Self::State, Self::Error> {
+        Ok(init_state.into())
     }
 
-    fn start(mut self, rz: mpsc::SyncSender<()>) -> result::Result<(), Self::Error> {
+    fn start(mut self, rz: SyncSender<()>, mut state: Self::State) -> Result<(), Self::Error> {
+        // Debug assert because it's only necessary to perform this check during development. It
+        // isn't possible for the state to not be initialized at runtime unless the developer
+        // wrongfully implements the `init()` callback or omits an override implementation where
+        // the default implementation isn't enough to initialize the dispatcher's state.
+        debug_assert!(state.is_initialized(), "Dispatcher state not initialized!");
         let mut raw = zmq::Message::new().unwrap();
         let mut sock = self.context().socket(zmq::DEALER).unwrap();
         let mut envelope = Envelope::default();
@@ -69,7 +91,7 @@ pub trait Dispatcher: Sized + Send {
                 Ok(msg) => {
                     debug!("OnMessage, {:?}", &msg);
                     envelope.msg = msg;
-                    try!(Self::dispatch(&mut envelope, &mut sock, self.state()));
+                    try!(Self::dispatch(&mut envelope, &mut sock, &mut state));
                 }
                 Err(e) => warn!("erorr parsing message, err={}", e),
             }
@@ -78,6 +100,4 @@ pub trait Dispatcher: Sized + Send {
         try!(sock.close());
         Ok(())
     }
-
-    fn state(&mut self) -> &mut Self::State;
 }

@@ -181,6 +181,36 @@ impl ParseInto<u16> for toml::Value {
     }
 }
 
+impl ParseInto<u32> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut u32) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_integer() {
+                *out = v as u32;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidString(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl ParseInto<u64> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut u64) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_integer() {
+                *out = v as u64;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidString(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
 impl ParseInto<Vec<u16>> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut Vec<u16>) -> Result<bool> {
         if let Some(val) = self.lookup(field) {
@@ -212,6 +242,29 @@ impl ParseInto<Vec<u32>> for toml::Value {
                 for int in v.iter() {
                     if let Some(i) = int.as_integer() {
                         buf.push(i as u32);
+                    } else {
+                        return Err(Error::ConfigInvalidArray(field));
+                    }
+                }
+                *out = buf;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidArray(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl ParseInto<Vec<u64>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut Vec<u64>) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_slice() {
+                let mut buf = vec![];
+                for int in v.iter() {
+                    if let Some(i) = int.as_integer() {
+                        buf.push(i as u64);
                     } else {
                         return Err(Error::ConfigInvalidArray(field));
                     }

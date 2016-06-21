@@ -13,106 +13,76 @@
 // limitations under the License.
 
 pub mod handlers;
+pub mod worker_manager;
 
 use std::ops::Deref;
-use std::sync::{mpsc, Arc, RwLock};
-use std::time::{Duration, Instant};
-use std::thread::{self, JoinHandle};
+use std::sync::{Arc, RwLock};
 
 use dbcache::InstaSet;
-use linked_hash_map::LinkedHashMap;
-use hab_net::{Application, Dispatcher, Supervisor};
-use hab_net::config::ToAddrString;
+use dbcache::data_store::Pool;
+use hab_net::dispatcher::prelude::*;
+use hab_net::{Application, Supervisor};
 use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
-use protobuf::{parse_from_bytes, Message};
 use protocol::net;
-use protocol::jobsrv;
 use zmq;
 
+use self::worker_manager::{WorkerMgr, WorkerMgrClient};
 use config::Config;
 use data_store::DataStore;
 use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
-const WORKER_MGR_ADDR: &'static str = "inproc://work-manager";
-const WORKER_TIMEOUT_MS: u64 = 33_000;
 
+#[derive(Clone)]
+pub struct InitServerState {
+    datastore: Arc<Box<DataStore>>,
+}
+
+impl InitServerState {
+    pub fn new(datastore: DataStore) -> Self {
+        InitServerState { datastore: Arc::new(Box::new(datastore)) }
+    }
+}
+
+impl Into<ServerState> for InitServerState {
+    fn into(self) -> ServerState {
+        let mut state = ServerState::default();
+        state.datastore = Some(self.datastore);
+        state
+    }
+}
+
+#[derive(Default)]
 pub struct ServerState {
-    pub work_manager: WorkManager,
-    datastore: Option<DataStore>,
+    datastore: Option<Arc<Box<DataStore>>>,
+    worker_mgr: Option<WorkerMgrClient>,
 }
 
 impl ServerState {
-    pub fn datastore(&mut self) -> &mut DataStore {
-        self.datastore.as_mut().unwrap()
+    fn datastore(&self) -> &DataStore {
+        self.datastore.as_ref().unwrap()
+    }
+
+    fn worker_mgr(&mut self) -> &mut WorkerMgrClient {
+        self.worker_mgr.as_mut().unwrap()
     }
 }
 
-impl Default for ServerState {
-    fn default() -> Self {
-        let work_manager = WorkManager::default();
-        ServerState {
-            datastore: None,
-            work_manager: work_manager,
-        }
-    }
-}
-
-pub struct WorkManager {
-    socket: zmq::Socket,
-}
-
-impl WorkManager {
-    pub fn connect(&mut self) -> Result<()> {
-        try!(self.socket.connect(WORKER_MGR_ADDR));
-        Ok(())
-    }
-
-    pub fn notify_work(&mut self) -> Result<()> {
-        try!(self.socket.send(&[1], 0));
-        Ok(())
-    }
-}
-
-impl Default for WorkManager {
-    fn default() -> WorkManager {
-        let socket = (**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER).unwrap();
-        socket.set_sndhwm(1).unwrap();
-        socket.set_linger(0).unwrap();
-        socket.set_immediate(true).unwrap();
-        WorkManager { socket: socket }
+impl DispatcherState for ServerState {
+    fn is_initialized(&self) -> bool {
+        self.datastore.is_some() && self.worker_mgr.is_some()
     }
 }
 
 pub struct Worker {
+    #[allow(dead_code)]
     config: Arc<RwLock<Config>>,
-    state: ServerState,
-}
-
-impl Worker {
-    fn try_connect_datastore(&mut self) {
-        loop {
-            let result = {
-                let cfg = self.config.read().unwrap();
-                DataStore::open(cfg.deref())
-            };
-            match result {
-                Ok(datastore) => {
-                    self.state.datastore = Some(datastore);
-                    break;
-                }
-                Err(e) => {
-                    error!("{}", e);
-                    thread::sleep(Duration::from_millis(5000));
-                }
-            }
-        }
-    }
 }
 
 impl Dispatcher for Worker {
     type Config = Config;
     type Error = Error;
+    type InitState = InitServerState;
     type State = ServerState;
 
     fn message_queue() -> &'static str {
@@ -121,7 +91,7 @@ impl Dispatcher for Worker {
 
     fn dispatch(message: &mut Envelope,
                 sock: &mut zmq::Socket,
-                state: &mut ServerState)
+                state: &mut Self::State)
                 -> Result<()> {
         match message.message_id() {
             "JobCreate" => handlers::job_create(message, sock, state),
@@ -135,21 +105,15 @@ impl Dispatcher for Worker {
     }
 
     fn new(config: Arc<RwLock<Config>>) -> Self {
-        let state = ServerState::default();
-        Worker {
-            config: config,
-            state: state,
-        }
+        Worker { config: config }
     }
 
-    fn init(&mut self) -> Result<()> {
-        try!(self.state.work_manager.connect());
-        self.try_connect_datastore();
-        Ok(())
-    }
-
-    fn state(&mut self) -> &mut ServerState {
-        &mut self.state
+    fn init(&mut self, init_state: Self::InitState) -> Result<Self::State> {
+        let mut worker_mgr = WorkerMgrClient::default();
+        try!(worker_mgr.connect());
+        let mut state: ServerState = init_state.into();
+        state.worker_mgr = Some(worker_mgr);
+        Ok(state)
     }
 }
 
@@ -187,14 +151,20 @@ impl Application for Server {
 
     fn run(&mut self) -> Result<()> {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
-        let cfg1 = self.config.clone();
+        let datastore = {
+            let cfg = self.config.read().unwrap();
+            DataStore::start(cfg.deref())
+        };
+        let cfg = self.config.clone();
         let cfg2 = self.config.clone();
-        let sup: Supervisor<Worker> = Supervisor::new(cfg1);
-        let work_mgr = try!(WorkerManager::start(cfg2));
+        let init_state = InitServerState::new(datastore);
+        let ds2 = init_state.datastore.clone();
+        let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
+        let worker_mgr = try!(WorkerMgr::start(cfg2, ds2));
         try!(sup.start());
         try!(self.connect());
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));
-        work_mgr.join().unwrap();
+        worker_mgr.join().unwrap();
         Ok(())
     }
 }
@@ -222,199 +192,6 @@ impl Service for Server {
 }
 
 impl NetIdent for Server {}
-
-struct WorkerManager {
-    config: Arc<RwLock<Config>>,
-    datastore: DataStore,
-    hb_sock: zmq::Socket,
-    rq_sock: zmq::Socket,
-    work_mgr_sock: zmq::Socket,
-    msg: zmq::Message,
-    workers: LinkedHashMap<String, Instant>,
-}
-
-impl WorkerManager {
-    pub fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let datastore = {
-            let cfg = config.read().unwrap();
-            try!(DataStore::open(cfg.deref()))
-        };
-        let hb_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::SUB));
-        let rq_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
-        let work_mgr_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        try!(rq_sock.set_router_mandatory(true));
-        try!(hb_sock.set_subscribe(&[]));
-        try!(work_mgr_sock.set_rcvhwm(1));
-        try!(work_mgr_sock.set_linger(0));
-        try!(work_mgr_sock.set_immediate(true));
-        let msg = try!(zmq::Message::new());
-        Ok(WorkerManager {
-            config: config,
-            datastore: datastore,
-            hb_sock: hb_sock,
-            rq_sock: rq_sock,
-            work_mgr_sock: work_mgr_sock,
-            msg: msg,
-            workers: LinkedHashMap::new(),
-        })
-    }
-
-    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
-        let (tx, rx) = mpsc::sync_channel(1);
-        let handle = thread::Builder::new()
-            .name("worker-manager".to_string())
-            .spawn(move || {
-                let mut manager = Self::new(config).unwrap();
-                manager.run(tx).unwrap();
-            })
-            .unwrap();
-        match rx.recv() {
-            Ok(()) => Ok(handle),
-            Err(e) => panic!("worker-manager thread startup error, err={}", e),
-        }
-    }
-
-    fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        try!(self.work_mgr_sock.bind(WORKER_MGR_ADDR));
-        {
-            let cfg = self.config.read().unwrap();
-            println!("Listening for commands on {}",
-                     cfg.worker_command_addr.to_addr_string());
-            try!(self.rq_sock.bind(&cfg.worker_command_addr.to_addr_string()));
-            println!("Listening for heartbeats on {}",
-                     cfg.worker_heartbeat_addr.to_addr_string());
-            try!(self.hb_sock.bind(&cfg.worker_heartbeat_addr.to_addr_string()));
-        }
-        let mut hb_sock = false;
-        let mut rq_sock = false;
-        let mut work_mgr_sock = false;
-        rz.send(()).unwrap();
-        loop {
-            {
-                let timeout = self.poll_timeout();
-                let mut items = [self.hb_sock.as_poll_item(1),
-                                 self.rq_sock.as_poll_item(1),
-                                 self.work_mgr_sock.as_poll_item(1)];
-                // Poll until timeout or message is received. Checking for the zmq::POLLIN flag on
-                // a poll item's revents will let you know if you have received a message or not
-                // on that socket.
-                try!(zmq::poll(&mut items, timeout));
-                if (items[0].get_revents() & zmq::POLLIN) > 0 {
-                    hb_sock = true;
-                }
-                if (items[1].get_revents() & zmq::POLLIN) > 0 {
-                    rq_sock = true;
-                }
-                if (items[2].get_revents() & zmq::POLLIN) > 0 {
-                    work_mgr_sock = true;
-                }
-            }
-            if hb_sock {
-                try!(self.process_heartbeat());
-                hb_sock = false;
-            }
-            self.expire_workers();
-            if rq_sock {
-                try!(self.process_job_status());
-                rq_sock = false;
-            }
-            if work_mgr_sock {
-                try!(self.distribute_work());
-            }
-        }
-        Ok(())
-    }
-
-    fn poll_timeout(&self) -> i64 {
-        if let Some((_, expiry)) = self.workers.front() {
-            let timeout = *expiry - Instant::now();
-            (timeout.as_secs() as i64 * 1000) + (timeout.subsec_nanos() as i64 / 1000 / 1000)
-        } else {
-            -1
-        }
-    }
-
-    fn distribute_work(&mut self) -> Result<()> {
-        loop {
-            let job = match self.datastore.job_queue.peek() {
-                Ok(Some(job)) => job,
-                Ok(None) => break,
-                Err(e) => return Err(e),
-            };
-            match self.workers.pop_front() {
-                Some((worker, _)) => {
-                    debug!("sending work, worker={:?}, job={:?}", worker, job);
-                    if self.rq_sock.send_str(&worker, zmq::SNDMORE).is_err() {
-                        debug!("failed to send, worker went away, worker={:?}", worker);
-                        continue;
-                    }
-                    if self.rq_sock.send(&[], zmq::SNDMORE).is_err() {
-                        debug!("failed to send, worker went away, worker={:?}", worker);
-                        continue;
-                    }
-                    if self.rq_sock.send(&job.write_to_bytes().unwrap(), 0).is_err() {
-                        debug!("failed to send, worker went away, worker={:?}", worker);
-                        continue;
-                    }
-                    // JW TODO: Wait for response back to ensure we can dequeue this. If state
-                    // returned is not processing then we move onto next worker and assume this
-                    // worker is no longer valid. Put work back on queue.
-                    try!(self.datastore.job_queue.dequeue());
-                    // Consume the to-do work notification if the queue is empty.
-                    if try!(self.datastore.job_queue.peek()).is_none() {
-                        try!(self.work_mgr_sock.recv(&mut self.msg, 0));
-                    }
-                    break;
-                }
-                None => break,
-            }
-        }
-        Ok(())
-    }
-
-    fn expire_workers(&mut self) {
-        let now = Instant::now();
-        loop {
-            if let Some((_, expiry)) = self.workers.front() {
-                if expiry >= &now {
-                    break;
-                }
-            } else {
-                break;
-            }
-            let worker = self.workers.pop_front();
-            debug!("expiring worker due to inactivity, worker={:?}", worker);
-        }
-    }
-
-    fn process_heartbeat(&mut self) -> Result<()> {
-        try!(self.hb_sock.recv(&mut self.msg, 0));
-        let heartbeat: jobsrv::Heartbeat = try!(parse_from_bytes(&self.msg));
-        debug!("heartbeat={:?}", heartbeat);
-        match heartbeat.get_state() {
-            jobsrv::WorkerState::Ready => {
-                let now = Instant::now();
-                let expiry = now + Duration::from_millis(WORKER_TIMEOUT_MS);
-                self.workers.insert(heartbeat.get_endpoint().to_string(), expiry);
-            }
-            jobsrv::WorkerState::Busy => {
-                self.workers.remove(heartbeat.get_endpoint());
-            }
-        }
-        Ok(())
-    }
-
-    fn process_job_status(&mut self) -> Result<()> {
-        // Pop message delimiter
-        try!(self.rq_sock.recv(&mut self.msg, 0));
-        // Pop message body
-        try!(self.rq_sock.recv(&mut self.msg, 0));
-        let job: jobsrv::Job = try!(parse_from_bytes(&self.msg));
-        debug!("job_status={:?}", job);
-        try!(self.datastore.jobs.update(&job));
-        Ok(())
-    }
-}
 
 pub fn run(config: Config) -> Result<()> {
     try!(Server::new(config)).run()
