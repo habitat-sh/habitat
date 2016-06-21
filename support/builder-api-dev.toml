@@ -1,8 +1,12 @@
+[github]
+client_id = "e98d2a94787be9af9c00"
+client_secret = "e5ff94188e3cf01d42f3e2bcbbe4faabe11c71ba"
+
 [ui]
-app_url          = "https://willem.habitat.sh/v1"
+app_url          = "http://localhost:9636/v1"
 community_url    = "https://www.habitat.sh/community"
 docs_url         = "https://www.habitat.sh/docs"
-environment      = "production"
+environment      = "dev"
 friends_only     = false
 source_code_url  = "https://github.com/habitat-sh/habitat"
 tutorials_url    = "https://www.habitat.sh/tutorials"
