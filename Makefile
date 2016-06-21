@@ -109,8 +109,8 @@ start-web-dev:
 	@echo "==> Starting builder-api on 9636"
 	$(web_dev_run) sh -c 'mkdir -p /hab/svc/hab-director; \
  	mkdir -p /hab/svc/hab-builder-api; \
-	cp /src/components/builder-web/builder_web.toml /hab/svc/hab-director/user.toml; \
-	cp /src/components/builder-api/builder_api.toml /hab/svc/hab-builder-api/user.toml; \
+	cp /src/support/builder-director-dev.toml /hab/svc/hab-director/user.toml; \
+	cp /src/support/builder-api-dev.toml /hab/svc/hab-builder-api/user.toml; \
 	hab start core/hab-director'
 .PHONY: start-web-dev
 
