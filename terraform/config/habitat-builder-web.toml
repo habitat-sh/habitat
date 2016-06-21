@@ -1,3 +1,0 @@
-habitat_api_url = "https://habitat-api-1022630102.us-west-2.elb.amazonaws.com/v1"
-github_client_id = "0c2f738a7d0bd300de10"
-friends_only = true
