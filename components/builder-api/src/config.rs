@@ -28,10 +28,10 @@ const GITHUB_URL: &'static str = "https://api.github.com";
 // Default Client ID for providing a default value in development environments only. This is
 // associated to Jamie Winsor's GitHub account and is configured to re-direct and point to a local
 // builder-api.
-const DEV_GITHUB_CLIENT_ID: &'static str = "e98d2a94787be9af9c00";
+const DEV_GITHUB_CLIENT_ID: &'static str = "0c2f738a7d0bd300de10";
 // Default Client Secret for development purposes only. See the `DEV_GITHUB_CLIENT_ID` for
 // additional comments.
-const DEV_GITHUB_CLIENT_SECRET: &'static str = "e5ff94188e3cf01d42f3e2bcbbe4faabe11c71ba";
+const DEV_GITHUB_CLIENT_SECRET: &'static str = "438223113eeb6e7edf2d2f91a232b72de72b9bdf";
 
 #[derive(Debug)]
 pub struct Config {
