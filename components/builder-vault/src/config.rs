@@ -16,6 +16,7 @@
 
 use std::net;
 
+use dbcache::config::DataStoreCfg;
 use hab_core::config::{ConfigFile, ParseInto};
 use hab_net::config::{DispatcherCfg, RouteAddrs, Shards};
 use protocol::sharding::{ShardId, SHARD_COUNT};
@@ -29,6 +30,10 @@ pub struct Config {
     pub routers: Vec<net::SocketAddrV4>,
     /// Net dddress to the persistent datastore.
     pub datastore_addr: net::SocketAddrV4,
+    /// Connection retry timeout in milliseconds for datastore.
+    pub datastore_retry_ms: u64,
+    /// Number of database connections to start in pool.
+    pub pool_size: u32,
     /// Router's hearbeat port to connect to.
     pub heartbeat_port: u16,
     /// List of shard identifiers serviced by the running service.
@@ -42,6 +47,8 @@ impl Default for Config {
         Config {
             routers: vec![net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562)],
             datastore_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 6379),
+            datastore_retry_ms: Self::default_connection_retry_ms(),
+            pool_size: Self::default_pool_size(),
             heartbeat_port: 5563,
             shards: (0..SHARD_COUNT).collect(),
             worker_threads: Self::default_worker_count(),
@@ -56,10 +63,26 @@ impl ConfigFile for Config {
         let mut cfg = Config::default();
         try!(toml.parse_into("cfg.routers", &mut cfg.routers));
         try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
+        try!(toml.parse_into("cfg.datastore_retry_ms", &mut cfg.datastore_retry_ms));
+        try!(toml.parse_into("cfg.pool_size", &mut cfg.pool_size));
         try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
         try!(toml.parse_into("cfg.shards", &mut cfg.shards));
         try!(toml.parse_into("cfg.worker_threads", &mut cfg.worker_threads));
         Ok(cfg)
+    }
+}
+
+impl DataStoreCfg for Config {
+    fn datastore_addr(&self) -> &net::SocketAddrV4 {
+        &self.datastore_addr
+    }
+
+    fn connection_retry_ms(&self) -> u64 {
+        self.datastore_retry_ms
+    }
+
+    fn pool_size(&self) -> u32 {
+        self.pool_size
     }
 }
 

@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread;
@@ -26,21 +25,21 @@ pub struct Supervisor<T>
 {
     config: Arc<RwLock<T::Config>>,
     workers: Vec<mpsc::Receiver<()>>,
-    _marker: PhantomData<T>,
+    init_state: <T as Dispatcher>::InitState,
 }
 
 impl<T> Supervisor<T>
     where T: Dispatcher + 'static
 {
     // JW TODO: this should take a struct that implements "application config"
-    pub fn new(config: Arc<RwLock<T::Config>>) -> Self {
+    pub fn new(config: Arc<RwLock<T::Config>>, state: <T as Dispatcher>::InitState) -> Self {
         let worker_count = {
             config.read().unwrap().deref().worker_count()
         };
         Supervisor {
             config: config,
             workers: Vec::with_capacity(worker_count),
-            _marker: PhantomData,
+            init_state: state,
         }
     }
 
@@ -91,9 +90,10 @@ impl<T> Supervisor<T>
         let cfg = self.config.clone();
         let (tx, rx) = mpsc::sync_channel(1);
         let mut worker = T::new(cfg);
+        let init_state = self.init_state.clone();
         thread::spawn(move || {
-            try!(worker.init());
-            worker.start(tx)
+            let state = try!(worker.init(init_state));
+            worker.start(tx, state)
         });
         if rx.recv().is_ok() {
             debug!("Worker[{}] ready", worker_id);

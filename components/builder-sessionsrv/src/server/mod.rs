@@ -16,11 +16,11 @@ pub mod handlers;
 
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
-use std::time::Duration;
-use std::thread;
 
 use dbcache::{ExpiringSet, InstaSet, IndexSet};
-use hab_net::{Application, Dispatcher, Supervisor};
+use dbcache::data_store::Pool;
+use hab_net::{Application, Supervisor};
+use hab_net::dispatcher::prelude::*;
 use hab_net::server::{Envelope, NetIdent, RouteConn, Service, ZMQ_CONTEXT};
 use protocol::net;
 use zmq;
@@ -31,18 +31,34 @@ use error::{Error, Result};
 
 const BE_LISTEN_ADDR: &'static str = "inproc://backend";
 
+#[derive(Clone)]
 pub struct ServerState {
-    datastore: DataStore,
+    datastore: Arc<Box<DataStore>>,
+}
+
+impl ServerState {
+    pub fn new(datastore: DataStore) -> Self {
+        ServerState {
+            datastore: Arc::new(Box::new(datastore)),
+        }
+    }
+}
+
+impl DispatcherState for ServerState {
+    fn is_initialized(&self) -> bool {
+        true
+    }
 }
 
 pub struct Worker {
+    #[allow(dead_code)]
     config: Arc<RwLock<Config>>,
-    state: Option<ServerState>,
 }
 
 impl Dispatcher for Worker {
     type Config = Config;
     type Error = Error;
+    type InitState = ServerState;
     type State = ServerState;
 
     fn message_queue() -> &'static str {
@@ -62,38 +78,11 @@ impl Dispatcher for Worker {
     }
 
     fn new(config: Arc<RwLock<Config>>) -> Self {
-        Worker {
-            config: config,
-            state: None,
-        }
+        Worker { config: config }
     }
 
     fn context(&mut self) -> &mut zmq::Context {
         (**ZMQ_CONTEXT).as_mut()
-    }
-
-    fn init(&mut self) -> Result<()> {
-        loop {
-            let result = {
-                let cfg = self.config.read().unwrap();
-                DataStore::open(cfg.deref())
-            };
-            match result {
-                Ok(datastore) => {
-                    self.state = Some(ServerState { datastore: datastore });
-                    break;
-                }
-                Err(e) => {
-                    error!("{}", e);
-                    thread::sleep(Duration::from_millis(5000));
-                }
-            }
-        }
-        Ok(())
-    }
-
-    fn state(&mut self) -> &mut ServerState {
-        self.state.as_mut().unwrap()
     }
 }
 
@@ -131,8 +120,13 @@ impl Application for Server {
 
     fn run(&mut self) -> Result<()> {
         try!(self.be_sock.bind(BE_LISTEN_ADDR));
+        let datastore = {
+            let cfg = self.config.read().unwrap();
+            DataStore::start(cfg.deref())
+        };
         let cfg = self.config.clone();
-        let sup: Supervisor<Worker> = Supervisor::new(cfg);
+        let init_state = ServerState::new(datastore);
+        let sup: Supervisor<Worker> = Supervisor::new(cfg, init_state);
         try!(sup.start());
         try!(self.connect());
         try!(zmq::proxy(&mut self.router.socket, &mut self.be_sock));

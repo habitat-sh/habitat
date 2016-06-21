@@ -14,12 +14,12 @@
 
 use std::sync::Arc;
 
-use dbcache::{ConnectionPool, Bucket, InstaSet};
+use dbcache::{data_store, ConnectionPool, Bucket, IndexSet, InstaSet};
 use protocol::InstaId;
 use protocol::jobsrv::Job;
-use r2d2_redis::RedisConnectionManager;
-use redis::{self, Commands, PipelineCommands};
+use redis::{Commands, PipelineCommands};
 
+use config::Config;
 use error::Result;
 
 pub struct DataStore {
@@ -28,22 +28,21 @@ pub struct DataStore {
     pub job_queue: JobQueue,
 }
 
-impl DataStore {
-    pub fn open<C: redis::IntoConnectionInfo>(config: C) -> Result<Self> {
-        // JW TODO: tune pool from config?
-        let pool_cfg = Default::default();
-        let manager = RedisConnectionManager::new(config).unwrap();
-        let pool = Arc::new(ConnectionPool::new(pool_cfg, manager).unwrap());
+impl data_store::Pool for DataStore {
+    type Config = Config;
+
+    fn init(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
         let pool2 = pool.clone();
         let jobs = Arc::new(JobTable::new(pool1));
         let jobs1 = jobs.clone();
         let job_queue = JobQueue::new(pool2, jobs1);
-        Ok(DataStore {
+
+        DataStore {
             pool: pool,
             jobs: jobs,
             job_queue: job_queue,
-        })
+        }
     }
 }
 

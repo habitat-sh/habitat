@@ -12,20 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_protocol as protocol;
-#[macro_use]
-extern crate log;
-extern crate num_cpus;
-extern crate protobuf;
-extern crate r2d2;
-extern crate r2d2_redis;
-extern crate redis;
-extern crate rustc_serialize;
-extern crate time;
+use std::net;
 
-pub mod config;
-pub mod data_store;
-pub mod error;
+use num_cpus;
 
-pub use self::data_store::{ConnectionPool, Bucket, BasicSet, ExpiringSet, InstaSet, IndexSet};
-pub use self::error::{Error, Result};
+pub trait DataStoreCfg {
+    fn default_connection_retry_ms() -> u64 {
+        5_000
+    }
+
+    fn default_pool_size() -> u32 {
+        (num_cpus::get() * 8) as u32
+    }
+
+    fn connection_retry_ms(&self) -> u64;
+    fn datastore_addr(&self) -> &net::SocketAddrV4;
+    fn pool_size(&self) -> u32;
+}
