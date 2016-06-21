@@ -61,7 +61,6 @@ You can create native Mesos containers from Habitat packages by following these 
 ## Debugging
 
 You can get to the output from the running application by clicking on the "Marathon" service from the DC/OS "Services" tab. Select the application and the "Log Viewer" and choose either the "Error" or "Output" to see `stderr` and `stdout` respectively. If you have SSH access into the nodes, the Mesos container directories are beneath `/var/lib/mesos/slave/slaves`.
-
     ![Screen shot of Debugging a Running Application](/images/mesos/mesos5-debugging.png)
 
 ## Future Enhancements
