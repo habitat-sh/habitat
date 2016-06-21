@@ -1,6 +1,6 @@
 [github]
-client_id = "e98d2a94787be9af9c00"
-client_secret = "e5ff94188e3cf01d42f3e2bcbbe4faabe11c71ba"
+client_id = "0c2f738a7d0bd300de10"
+client_secret = "438223113eeb6e7edf2d2f91a232b72de72b9bdf"
 
 [ui]
 app_url          = "http://localhost:9636/v1"
