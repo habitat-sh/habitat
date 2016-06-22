@@ -1,0 +1,13 @@
+pkg_origin=core
+pkg_name=icu
+pkg_version=57.1
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_license=("UNICODE, INC. LICENSE AGREEMENT")
+pkg_source="http://download.icu-project.org/files/icu4c/${pkg_version}/icu4c-$(printf $pkg_version | tr . _)-src.tgz"
+pkg_shasum=ff8c67cb65949b1e7808f2359f2b80f722697048e90e7cfc382ec1fe229e9581
+pkg_deps=(core/glibc core/gcc-libs)
+pkg_build_deps=(core/gcc core/make)
+pkg_bin_dirs=(bin)
+pkg_include_dirs=(include)
+pkg_lib_dirs=(lib)
+pkg_dirname=icu/source
