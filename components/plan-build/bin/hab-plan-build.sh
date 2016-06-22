@@ -143,8 +143,8 @@
 #
 # ### pkg_include_dirs
 # An array of paths, relative to the final install of the software, where
-# headers can be found. Used to populate `CFLAGS` for software that depends on
-# your package.
+# headers can be found. Used to populate `CFLAGS`, `CPPFLAGS` and `CXXFLAGS`
+# for software that depends on your package.
 # ```
 # pkg_include_dirs=(include)
 # ```
@@ -1608,10 +1608,11 @@ _build_environment() {
     fi
   done
 
-  # Build `$CFLAGS` and `$LDFLAGS` containing any direct dependency's `CFLAGS`
-  # or `LDFLAGS` entries respectively (build or run). If the software to be
-  # built requires the path to headers or shared libraries, it must be a
-  # direct dependency, not transitive.
+  # Build `$CFLAGS`, `$CPPFLAGS`, `$CXXFLAGS` and `$LDFLAGS` containing any
+  # direct dependency's `CFLAGS`, `CPPFLAGS`, `CXXFLAGS` or `LDFLAGS` entries
+  # respectively (build or run). If the software to be built requires the path
+  # to headers or shared libraries, it must be a direct dependency, not
+  # transitive.
   for dep_path in "${pkg_all_deps_resolved[@]}"; do
     if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
@@ -1621,7 +1622,42 @@ _build_environment() {
       else
         export CFLAGS="$trimmed"
       fi
+      if [[ ! -f "$dep_path/CPPFLAGS" ]]; then
+        if [[ -n "$CPPFLAGS" ]]; then
+          export CPPFLAGS="$CPPFLAGS $trimmed"
+        else
+          export CPPFLAGS="$trimmed"
+        fi
+      fi
+      if [[ ! -f "$dep_path/CXXFLAGS" ]]; then
+        if [[ -n "$CXXFLAGS" ]]; then
+          export CXXFLAGS="$CXXFLAGS $trimmed"
+        else
+          export CXXFLAGS="$trimmed"
+        fi
+      fi
     fi
+
+    if [[ -f "$dep_path/CPPFLAGS" ]]; then
+      local data=$(cat $dep_path/CPPFLAGS)
+      local trimmed=$(trim $data)
+      if [[ -n "$CPPFLAGS" ]]; then
+        export CPPFLAGS="$CPPFLAGS $trimmed"
+      else
+        export CPPFLAGS="$trimmed"
+      fi
+    fi
+
+    if [[ -f "$dep_path/CXXFLAGS" ]]; then
+      local data=$(cat $dep_path/CXXFLAGS)
+      local trimmed=$(trim $data)
+      if [[ -n "$CXXFLAGS" ]]; then
+        export CXXFLAGS="$CXXFLAGS $trimmed"
+      else
+        export CXXFLAGS="$trimmed"
+      fi
+    fi
+
     if [[ -f "$dep_path/LDFLAGS" ]]; then
       local data=$(cat $dep_path/LDFLAGS)
       local trimmed=$(trim $data)
@@ -1641,6 +1677,8 @@ _build_environment() {
   build_line "Setting PREFIX=$PREFIX"
   build_line "Setting LD_RUN_PATH=$LD_RUN_PATH"
   build_line "Setting CFLAGS=$CFLAGS"
+  build_line "Setting CXXFLAGS=$CXXFLAGS"
+  build_line "Setting CPPFLAGS=$CPPFLAGS"
   build_line "Setting LDFLAGS=$LDFLAGS"
   return 0
 }
@@ -1794,6 +1832,30 @@ _build_metadata() {
   done
   if [[ -n "${cflags_part}" ]]; then
     echo $cflags_part > $pkg_prefix/CFLAGS
+  fi
+
+  local cppflags_part=""
+  for inc in "${pkg_include_dirs[@]}"; do
+    if [[ -z "$cppflags_part" ]]; then
+      cppflags_part="-I${pkg_prefix}/${inc}"
+    else
+      cppflags_part="$cppflags_part -I${pkg_prefix}/${inc}"
+    fi
+  done
+  if [[ -n "${cppflags_part}" ]]; then
+    echo $cppflags_part > $pkg_prefix/CPPFLAGS
+  fi
+
+  local cxxflags_part=""
+  for inc in "${pkg_include_dirs[@]}"; do
+    if [[ -z "$cxxflags_part" ]]; then
+      cxxflags_part="-I${pkg_prefix}/${inc}"
+    else
+      cxxflags_part="$cxxflags_part -I${pkg_prefix}/${inc}"
+    fi
+  done
+  if [[ -n "${cxxflags_part}" ]]; then
+    echo $cxxflags_part > $pkg_prefix/CXXFLAGS
   fi
 
   local path_part=""
@@ -1999,6 +2061,18 @@ _build_manifest() {
     local _cflags_string="$CFLAGS"
   fi
 
+  if [[ -z "$CPPFLAGS" ]]; then
+    local _cppflags_string="no CPPFLAGS"
+  else
+    local _cppflags_string="$CPPFLAGS"
+  fi
+
+  if [[ -z "$CXXFLAGS" ]]; then
+    local _cxxflags_string="no CXXFLAGS"
+  else
+    local _cxxflags_string="$CXXFLAGS"
+  fi
+
   if [[ -z "$LDFLAGS" ]]; then
     local _ldflags_string="no LDFLAGS"
   else
@@ -2036,6 +2110,8 @@ $pkg_description
 
 \`\`\`bash
 CFLAGS: $_cflags_string
+CPPFLAGS: $_cppflags_string
+CXXFLAGS: $_cxxflags_string
 LDFLAGS: $_ldflags_string
 LD_RUN_PATH: $_ldrunpath_string
 \`\`\`
