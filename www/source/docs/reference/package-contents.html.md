@@ -48,10 +48,10 @@ If `pkg_interpreters` is specified in your plan.sh, then this file will be gener
 The CPU architecture and platform for the package. The format is `architecture-platform`. For example, x86_64-linux.
 
 ## default.toml
-If you have defined a default.toml file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Add configuration to plans](/docs/configure-packages).
+If you have defined a default.toml file in the root of your plan, then it will be included in the same relative location within the installed package directory. For more information on configuration and the default.toml file, see [Add configuration to plans](/docs/create-packages-configure/).
 
 ## config directory
-If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/configure-packages).
+If you have defined a `config` subdirectory with a templatized configuration file in your plan, then they will be included in the same relative location within the installed package directory. For more information on templatized configuration files, see [Add configuration to plans](/docs/create-packages-configure/).
 
 ## hooks directory
 If you have defined a `hooks` subdirectory with hook scripts in your plan, then they will be included in the same relative location within the installed package directory.
