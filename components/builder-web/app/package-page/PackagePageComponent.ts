@@ -35,7 +35,7 @@ import {fetchPackage} from "../actions/index";
         <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
         </hab-spinner>
     </div>
-    <div class="page-body has-sidebar">
+    <div *ngIf="!ui.loading" class="page-body has-sidebar">
         <div class="page-body--main">
             <div *ngIf="!ui.exists && !ui.loading">
                 <p>
