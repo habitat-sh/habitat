@@ -47,7 +47,7 @@ fi
 sha256sum -c "$sha_file"
 
 # Extract the archive into a temporary directory
-tar xf "$archive" -C "$workdir"
+zcat "$archive" | tar x -C "$workdir"
 # Directory containing the binary
 archive_dir="$(echo $archive | sed 's/.tar.gz$//')"
 # Install latest hab release using the extracted version and add/update symlink
