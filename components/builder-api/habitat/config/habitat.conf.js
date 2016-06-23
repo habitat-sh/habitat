@@ -7,5 +7,6 @@ habitatConfig({
     github_client_id: "{{cfg.github.client_id}}",
     source_code_url: "{{cfg.ui.source_code_url}}",
     tutorials_url: "{{cfg.ui.tutorials_url}}",
+    version: "{{pkg.ident}}",
     www_url: "{{cfg.ui.www_url}}",
 });

@@ -121,3 +121,9 @@
 
   a { color: $white; }
 }
+
+.footer--version {
+  display: block;
+  font-size: 75%;
+  margin-top: $small-spacing / 4;
+}
