@@ -2,6 +2,7 @@
 
 [![Build Status](https://api.travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
 [![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
+[![Stories in Ready](https://badge.waffle.io/habitat-sh/habitat.png?label=ready&title=Ready)](https://waffle.io/habitat-sh/habitat)
 
 Want to try Habitat? [Get started here](https://www.habitat.sh/try/).
 
