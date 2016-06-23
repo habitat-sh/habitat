@@ -217,6 +217,20 @@ routed to a [homu](https://github.com/barosl/homu) bot that will
 automatically merge a PR when sufficient reviewers have provided a +1
 (or r+ in homu terminology).
 
+
+### Delegating pull request merge access
+
+A Habitat core maintainer can delegate pull request merge access to a contributor via 
+
+	@thesentinels delegate=username
+
+If you've been given approval to merge, you can do so by appending a comment to the pull request containing the following text:
+
+	@thesentinels r+
+
+Note: **do not** click the Merge Pull Request button if it's enabled.
+
+
 ## License
 
 Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
