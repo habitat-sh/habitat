@@ -15,6 +15,9 @@ habitatConfig({
     source_code_url: "https://github.com/habitat-sh/habitat",
     // The URL for tutorials
     tutorials_url: "https://www.habitat.sh/tutorials",
+    // The version of the software we're running. In production, this should
+    // be automatically populated by Habitat
+    version: "",
     // The main website URL
     www_url: "https://www.habitat.sh",
 });
