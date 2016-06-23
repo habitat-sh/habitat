@@ -151,6 +151,26 @@ resource "aws_elb" "builder_api" {
     subnets         = ["${var.public_subnet_id}"]
     instances       = ["${aws_instance.monolith.*.id}"]
 
+    // We want this to be configured to have unsafe SSL Protocols and
+    // Ciphers turned off. If you take the default AWS ELB set
+    // (ELBSecurityPolicy-2015-05 at the time this comment was written),
+    // the following additional ones should be turned off:
+    //
+    // SSL Protocols
+    // * Protocol-TLSv1
+    // * Protocol-SSLv3
+    // * Protocol-TLSv1.1
+    // SSL Ciphers
+    // * AES128-GCM-SHA256
+    // * AES128-SHA256
+    // * AES128-SHA
+    // * DES-CBC3-SHA
+    //
+    // Currently these need to be disabled manually. There is an open pull
+    // request on Terraform (https://github.com/hashicorp/terraform/pull/5637)
+    // that adds this capability but has not yet been merged or released. When
+    // Terraform supports automating these settings, this comment should be
+    // removed and the appropriate configuration should be added below.
     listener {
         instance_port      = 80
         instance_protocol  = "HTTP"
