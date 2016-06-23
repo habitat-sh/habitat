@@ -96,6 +96,8 @@ var homepageScripts = function() {
     } else if ($currentSlide.hasClass("fourth")) {
       $(testimonialsSlider + " .fifth").addClass("is-active");
     } else if ($currentSlide.hasClass("fifth")) {
+      $(testimonialsSlider + " .sixth").addClass("is-active");
+    } else if ($currentSlide.hasClass("sixth")) {
       $(testimonialsSlider + " .first").addClass("is-active");
     }
 
