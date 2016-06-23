@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/habitat-sh/habitat.png?label=ready&title=Ready)](https://waffle.io/habitat-sh/habitat)
 # Habitat
 
 [![Build Status](https://api.travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
