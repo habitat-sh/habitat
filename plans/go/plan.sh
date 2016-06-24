@@ -1,10 +1,10 @@
 pkg_name=go
 pkg_origin=core
-pkg_version=1.6
+pkg_version=1.6.2
 pkg_license=('bsd')
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=https://storage.googleapis.com/golang/${pkg_name}${pkg_version}.src.tar.gz
-pkg_shasum=a96cce8ce43a9bf9b2a4c7d470bc7ee0cb00410da815980681c8353218dcf146
+pkg_shasum=787b0b750d037016a30c6ed05a8a70a91b2e9db4bd9b1a2453aa502a63f1bccc
 pkg_dirname=$pkg_name
 pkg_deps=(core/glibc core/iana-etc core/cacerts)
 pkg_build_deps=(core/coreutils core/inetutils core/bash core/patch core/gcc core/go/1.4.3 core/perl)
