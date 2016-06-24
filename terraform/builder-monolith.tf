@@ -20,6 +20,22 @@ resource "aws_instance" "monolith" {
         agent       = "${var.connection_agent}"
     }
 
+    ebs_block_device {
+        device_name = "/dev/xvdf"
+        volume_size = 1500
+        volume_type = "gp2"
+    }
+
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkfs.ext4 /dev/xvdf",
+            "sudo mount /dev/xvdf /mnt",
+            "echo '/dev/xvdf /hab     ext4   defaults 0 0' | sudo tee -a /etc/fstab",
+            "sudo mkdir -p /mnt/hab",
+            "sudo ln -s /mnt/hab /hab"
+        ]
+    }
+
     # JW TODO: Bake AMIs with updated habitat on them instead of bootstrapping
     provisioner "remote-exec" {
         script = "${path.module}/scripts/bootstrap.sh"
