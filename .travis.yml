@@ -167,4 +167,4 @@ matrix:
     script: "(cd www && ./bin/middleman build)"
     after_script: ./support/ci/deploy_website.sh
 notifications:
-  webhooks: http://52.37.151.35:54856/travis
+  webhooks: https://habitat-homu.herokuapp.com/travis
