@@ -1,8 +1,8 @@
 #!/bin/bash
 set -eux
 
-VERSION="0.6.0"
-RELEASE="20160610050853"
+VERSION="0.7.0"
+RELEASE="20160614230104"
 PLATFORM="x86_64-linux"
 
 sudo adduser --group hab || echo "Group 'hab' already exists"
@@ -19,7 +19,7 @@ if [ -n "${DEBUG:-}" ]; then set -x; fi
 # Download URL for the `core/hab` Habitat artifact
 hart_url="http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-${VERSION}-${RELEASE}-${PLATFORM}.hart"
 # Shasum for the Habitat artifact, used to verify the download
-hart_sha="7695e9acb6a223482be44ec6ccdbe978eb4494444ee200ac1caedf89f28eed6b"
+hart_sha="8d7e96ff0ae1b5783f4c88370b9e94503efec3c69bc9cd58ccec574a610d52d4"
 # Download location of the Habitat artifact
 hart_file="/tmp/$(basename $hart_url)"
 
