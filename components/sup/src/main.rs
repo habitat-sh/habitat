@@ -64,7 +64,7 @@ static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
-fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
+fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
@@ -164,7 +164,7 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         None => vec![],
     };
     config.set_gossip_peer(gossip_peers);
-    if sub_args.value_of("permanent-peer").is_some() {
+    if sub_args.is_present("permanent-peer") {
         config.set_gossip_permanent(true);
     }
     if let Some(sg) = sub_args.value_of("service-group") {
@@ -198,13 +198,12 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     if let Some(ring) = ring {
         config.set_ring(ring.name_with_rev());
     }
-    if args.value_of("verbose").is_some() {
+    if sub_args.is_present("verbose") {
         sup::output::set_verbose(true);
     }
-    if args.value_of("no-color").is_some() {
+    if sub_args.is_present("no-color") {
         sup::output::set_no_color(true);
     }
-
     if let Some(org) = sub_args.value_of("organization") {
         config.set_organization(org.to_string());
     }
@@ -328,11 +327,12 @@ fn main() {
     let matches = args.get_matches();
 
     debug!("clap matches {:?}", matches);
-
     let subcommand_name = matches.subcommand_name().unwrap();
     let subcommand_matches = matches.subcommand_matches(subcommand_name).unwrap();
+    debug!("subcommand name {:?}", &subcommand_name);
+    debug!("Subcommand matches {:?}", &subcommand_matches);
 
-    let config = match config_from_args(&matches, subcommand_name, &subcommand_matches) {
+    let config = match config_from_args(subcommand_name, &subcommand_matches) {
         Ok(config) => config,
         Err(e) => return exit_with(e, 1),
     };
