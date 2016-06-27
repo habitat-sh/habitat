@@ -16,6 +16,7 @@ pub mod convert;
 pub mod path;
 pub mod sys;
 pub mod signals;
+pub mod users;
 
 use std::net::Ipv4Addr;
 use std::net::SocketAddrV4;

@@ -34,6 +34,8 @@ pub enum MetaFile {
     LdFlags,
     Manifest,
     Path,
+    SvcUser,
+    SvcGroup,
 }
 
 impl fmt::Display for MetaFile {
@@ -49,6 +51,8 @@ impl fmt::Display for MetaFile {
             MetaFile::LdFlags => "LDFLAGS",
             MetaFile::Manifest => "MANIFEST",
             MetaFile::Path => "PATH",
+            MetaFile::SvcUser => "SVC_USER",
+            MetaFile::SvcGroup => "SVC_GROUP",
         };
         write!(f, "{}", id)
     }

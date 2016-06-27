@@ -26,6 +26,7 @@ pub mod standalone;
 pub mod leader;
 pub mod initializer;
 
+
 use std::mem;
 use std::net::SocketAddrV4;
 use std::ops::DerefMut;
@@ -46,13 +47,14 @@ use error::{Result, SupError};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
-use supervisor::Supervisor;
+use supervisor::{RuntimeConfig, Supervisor};
 use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
 use election::ElectionList;
 use time::SteadyTime;
 use util::signals;
+use util::users as hab_users;
 use config::UpdateStrategy;
 
 static LOGKEY: &'static str = "TP";
@@ -129,15 +131,21 @@ impl<'a> Worker<'a> {
     pub fn new(package: Package, topology: String, config: &'a Config) -> Result<Worker<'a>> {
         let mut pkg_updater = None;
         let package_name = package.name.clone();
+
+        let (svc_user, svc_group) = try!(hab_users::get_user_and_group(&package.pkg_install));
+        outputln!("Child process will run as user={}, group={}",
+                  &svc_user,
+                  &svc_group);
+        let runtime_config = RuntimeConfig::new(svc_user, svc_group);
+
         let package_exposes = package.exposes().clone();
         let package_port = package_exposes.first().map(|e| e.clone());
         let package_ident = package.ident().clone();
         let pkg_lock = Arc::new(RwLock::new(package));
         let pkg_lock_1 = pkg_lock.clone();
 
-
         match config.update_strategy() {
-            UpdateStrategy::None => {},
+            UpdateStrategy::None => {}
             _ => {
                 let pkg_lock_2 = pkg_lock.clone();
                 if let &Some(ref url) = config.url() {
@@ -173,7 +181,7 @@ impl<'a> Worker<'a> {
         let service_config_lock = Arc::new(RwLock::new(service_config));
         let service_config_lock_1 = service_config_lock.clone();
 
-        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident)));
+        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident, runtime_config)));
 
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();

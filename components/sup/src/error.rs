@@ -103,6 +103,7 @@ pub enum Error {
     DepotClient(depot_client::Error),
     ExecCommandNotFound(String),
     FileNotFound(String),
+    Permissions(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
     HandlebarsTemplateFileError(handlebars::TemplateFileError),
@@ -152,6 +153,7 @@ impl fmt::Display for SupError {
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
+            Error::Permissions(ref err) => format!("{}", err),
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::HandlebarsTemplateFileError(ref err) => format!("{:?}", err),
@@ -239,6 +241,7 @@ impl error::Error for SupError {
         match self.err {
             Error::ActorError(_) => "A running actor responded with an error",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
+            Error::Permissions(_) => "File system permissions error",
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::HandlebarsTemplateFileError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
