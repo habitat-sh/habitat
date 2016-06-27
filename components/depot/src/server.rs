@@ -1259,7 +1259,8 @@ impl AfterMiddleware for Cors {
         res.headers.set(headers::AccessControlAllowOrigin::Any);
         res.headers
             .set(headers::AccessControlExposeHeaders(vec![UniCase("content-range".to_owned()),
-                                                          UniCase("next-range".to_owned())]));
+                                                          UniCase("next-range".to_owned()),
+                                                          UniCase("x-content-range".to_owned())]));
         res.headers
             .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned()),
                                                          UniCase("range".to_owned())]));
