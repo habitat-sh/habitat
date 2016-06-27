@@ -36,7 +36,3 @@ do_build() {
               --localstatedir=${pkg_svc_var_path}
 	make
 }
-
-do_install() {
-	make install
-}
