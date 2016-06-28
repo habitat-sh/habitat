@@ -1,0 +1,1 @@
+mkdir -p {{pkg.svc_var_path}}/log
