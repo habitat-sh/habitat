@@ -29,7 +29,7 @@ use hab_net::config::RouteAddrs;
 use hab_net::routing::Broker;
 use hab_net::server::{NetIdent, ServerContext};
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
-use iron::headers::ContentType;
+use iron::headers::{ContentType, Vary};
 use iron::prelude::*;
 use iron::{status, headers, AfterMiddleware};
 use iron::headers::{Authorization, Bearer};
@@ -968,11 +968,10 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 // We set both of these because Fastly was stripping the
                 // Content-Range, so we use both until we can get that fixed.
                 response.headers.set_raw("X-Content-Range", range);
-
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
-
+                response.headers.set(Vary::Items(vec![UniCase("range".to_owned())]));
                 dont_cache_response(&mut response);
                 Ok(response)
             }
@@ -1002,10 +1001,10 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
                 // We set both of these because Fastly was stripping the
                 // Content-Range, so we use both until we can get that fixed.
                 response.headers.set_raw("X-Content-Range", range);
-
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
+                response.headers.set(Vary::Items(vec![UniCase("range".to_owned())]));
                 dont_cache_response(&mut response);
                 Ok(response)
             }
@@ -1128,11 +1127,10 @@ fn search_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     // We set both of these because Fastly was stripping the
     // Content-Range, so we use both until we can get that fixed.
     response.headers.set_raw("X-Content-Range", range);
-
     response.headers.set(ContentType(Mime(TopLevel::Application,
                                           SubLevel::Json,
                                           vec![(Attr::Charset, Value::Utf8)])));
-
+    response.headers.set(Vary::Items(vec![UniCase("range".to_owned())]));
     dont_cache_response(&mut response);
     Ok(response)
 }
