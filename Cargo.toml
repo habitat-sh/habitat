@@ -6,8 +6,11 @@ build = "build.rs"
 
 [dependencies]
 log = "*"
+httparse = "*"
 hyper = "*"
 openssl = "*"
+rustc-serialize = "*"
+url = "*"
 
 [dependencies.habitat_core]
 path = "../core"
