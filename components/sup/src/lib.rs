@@ -289,5 +289,5 @@ lazy_static!{
     };
 }
 
-#[allow(dead_code)]
+const PRODUCT: &'static str = "hab-sup";
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");

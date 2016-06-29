@@ -20,13 +20,18 @@ use std::result;
 use hab_core;
 use hyper;
 use openssl::ssl;
+use url;
 
 #[derive(Debug)]
 pub enum Error {
     HabitatCore(hab_core::Error),
     HyperError(hyper::error::Error),
+    /// Occurs when an improper http or https proxy value is given.
+    InvalidProxyValue(String),
     IO(io::Error),
     SslError(ssl::error::SslError),
+    /// When an error occurs attempting to parse a string into a URL.
+    UrlParseError(url::ParseError),
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -37,7 +42,9 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
+            Error::InvalidProxyValue(ref e) => format!("Invalid proxy value: {:?}", e),
             Error::SslError(ref e) => format!("{}", e),
+            Error::UrlParseError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -49,7 +56,9 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::InvalidProxyValue(_) => "Invalid proxy value",
             Error::SslError(ref err) => err.description(),
+            Error::UrlParseError(ref err) => err.description(),
         }
     }
 }
@@ -75,5 +84,11 @@ impl From<io::Error> for Error {
 impl From<ssl::error::SslError> for Error {
     fn from(err: ssl::error::SslError) -> Error {
         Error::SslError(err)
+    }
+}
+
+impl From<url::ParseError> for Error {
+    fn from(err: url::ParseError) -> Self {
+        Error::UrlParseError(err)
     }
 }

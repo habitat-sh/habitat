@@ -137,7 +137,7 @@ impl<'a> Worker<'a> {
 
 
         match config.update_strategy() {
-            UpdateStrategy::None => {},
+            UpdateStrategy::None => {}
             _ => {
                 let pkg_lock_2 = pkg_lock.clone();
                 if let &Some(ref url) = config.url() {

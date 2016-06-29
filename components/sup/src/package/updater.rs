@@ -23,6 +23,7 @@ use hcore::package::PackageIdent;
 use wonder;
 use wonder::actor::{GenServer, InitResult, HandleResult, ActorSender, ActorResult};
 
+use {PRODUCT, VERSION};
 use error::SupError;
 use package::Package;
 
@@ -98,7 +99,7 @@ impl GenServer for PackageUpdater {
         //          This will allow an operator to lock to a version and receive security updates
         //          in the form of release updates for a package.
         let ident = PackageIdent::new(package.origin.clone(), package.name.clone(), None, None);
-        let depot_client = match Client::new(&state.depot, None) {
+        let depot_client = match Client::new(&state.depot, PRODUCT, VERSION, None) {
             Ok(client) => client,
             Err(e) => {
                 debug!("Failed to create HTTP client: {:?}", e);

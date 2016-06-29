@@ -193,7 +193,8 @@ use std::time::{UNIX_EPOCH, SystemTime};
 use ansi_term::Colour::{Blue, Green, Yellow};
 use clap;
 use hcore;
-use http_client;
+use http_client::ApiClient;
+use url::Url;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
 
@@ -490,18 +491,27 @@ fn should_send() -> bool {
 /// The presence of a `false` return value is enough to assume that we want to save this event to
 /// disk for later retry.
 fn send_event(payload: &str) -> bool {
+    // Take the analytics URL string slice and parse it into a `Url` struct. Despite the fact that
+    // the string value is a constant, this could still fail and therefore has to be accounted for.
+    let url = match Url::parse(GOOGLE_ANALYTICS_URL) {
+        Ok(url) => url,
+        Err(e) => {
+            debug!("Error parsing URL: {}", e);
+            return false;
+        }
+    };
     // Create a new Hyper HTTP client, using a helper from the `habitat_http_client` crate. This
     // function is reponsible for setting up the SSL context, finding suitable SSL root certificate
-    // files, etc. The `None` references are for more advanced use cases which is the Rust way of
+    // files, etc. The `None` reference is for a more advanced use case which is the Rust way of
     // saying: "I'm giving you nothing for this value, as opposed to something".
     //
-    // The `new_hyper_client` function returns a `Result` structure which can either be `Ok`, or
+    // The `ApiClient::new` function returns a `Result` structure which can either be `Ok`, or
     // can contain an error (`Err`). The `Ok` pattern matching arm will return the actual
     // "unwraped" client from the expresssion and setting the client variable binding. The `Err`
     // matching arm is when something (or anything) goes wrong. In this case we absolutely do not
     // want to crash, panic this thread, or otherwise impact the real operation potentially running
     // concurrently. So, the strategy here is to report and early return.
-    let client = match http_client::new_hyper_client(None, None) {
+    let client = match ApiClient::new(&url, PRODUCT, super::VERSION, None) {
         Ok(c) => c,
         Err(e) => {
             debug!("Error create HTTP client: {}", e);
@@ -509,16 +519,8 @@ fn send_event(payload: &str) -> bool {
         }
     };
     // Build up an HTTP/POST request to the Google Analytics API endpoint with the event payload as
-    // the body of the request. The `mut` keyword means that we can mutate the contents of this
-    // variable binding.
-    let mut request = client.post(GOOGLE_ANALYTICS_URL).body(payload);
-    // Generate a "User-Agent" header for this request, using a helper function from the
-    // `habitat_http_client` crate. This function also returns a `Result`, but we only care if the
-    // function returns us a successful `UserAgent` struct, hence the "if let" Rust pattern
-    // matching structure.
-    if let Ok(ua) = http_client::user_agent(PRODUCT, super::VERSION) {
-        request = request.header(ua);
-    }
+    // the body of the request.
+    let request = client.post("").body(payload);
     // Send the request on the wire. As before we will unwrap the successful operation or report
     // and early return if anything goes wrong.
     let response = match request.send() {
