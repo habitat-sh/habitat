@@ -23,14 +23,12 @@ use zmq;
 
 use config::Config;
 use error::Result;
+use runner::{RunnerCli, RunnerMgr};
 
 const HEARTBEAT_MS: i64 = 30_000;
 const HB_INPROC_ADDR: &'static str = "inproc://heartbeat";
 const HB_CMD_PULSE: &'static str = "R";
 const HB_CMD_PAUSE: &'static str = "P";
-const RUNNER_INPROC_ADDR: &'static str = "inproc://runner";
-const WORK_ACK: &'static str = "A";
-const WORK_COMPLETE: &'static str = "C";
 
 #[cfg(target_os = "linux")]
 fn worker_os() -> protocol::jobsrv::Os {
@@ -62,7 +60,7 @@ pub struct Server {
     config: Arc<RwLock<Config>>,
     fe_sock: zmq::Socket,
     hb_conn: zmq::Socket,
-    runner_sock: zmq::Socket,
+    runner_cli: RunnerCli,
     state: State,
     msg: zmq::Message,
 }
@@ -71,13 +69,13 @@ impl Server {
     pub fn new(config: Config) -> Result<Self> {
         let fe_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         let hb_conn = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::REQ));
-        let runner_sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        let runner_cli = RunnerCli::new();
         try!(fe_sock.set_identity(Self::net_ident().as_bytes()));
         Ok(Server {
             config: Arc::new(RwLock::new(config)),
             fe_sock: fe_sock,
             hb_conn: hb_conn,
-            runner_sock: runner_sock,
+            runner_cli: runner_cli,
             state: State::default(),
             msg: try!(zmq::Message::new()),
         })
@@ -85,11 +83,10 @@ impl Server {
 
     pub fn run(&mut self) -> Result<()> {
         let cfg1 = self.config.clone();
-        let cfg2 = self.config.clone();
         let heartbeat = try!(Heartbeat::start(cfg1));
-        let runner = try!(Runner::start(cfg2));
+        let runner = try!(RunnerMgr::start());
         try!(self.hb_conn.connect(HB_INPROC_ADDR));
-        try!(self.runner_sock.connect(RUNNER_INPROC_ADDR));
+        try!(self.runner_cli.connect());
 
         {
             let cfg = self.config.read().unwrap();
@@ -99,47 +96,35 @@ impl Server {
             }
         }
 
-        let mut fe_sock = false;
-        let mut runner_sock = false;
+        let mut fe_msg = false;
+        let mut runner_msg = false;
         let mut reply = protocol::jobsrv::Job::new();
         loop {
             {
-                let mut items = [self.fe_sock.as_poll_item(1), self.runner_sock.as_poll_item(1)];
+                let mut items = [self.fe_sock.as_poll_item(1), self.runner_cli.as_poll_item(1)];
                 try!(zmq::poll(&mut items, -1));
                 if items[0].get_revents() & zmq::POLLIN > 0 {
-                    fe_sock = true;
+                    fe_msg = true;
                 }
                 if items[1].get_revents() & zmq::POLLIN > 0 {
-                    runner_sock = true;
+                    runner_msg = true;
                 }
             }
-            if runner_sock {
-                try!(self.runner_sock.recv(&mut self.msg, 0));
-                if Some(WORK_COMPLETE) != self.msg.as_str() {
-                    unreachable!("run:1, received unexpected response from runner");
-                }
-
-                try!(self.runner_sock.recv(&mut self.msg, 0));
-                try!(self.fe_sock.send(&*self.msg, 0));
+            if runner_msg {
+                let job = try!(self.runner_cli.recv_complete());
+                try!(self.fe_sock.send(&*job, 0));
                 try!(self.set_ready());
-                runner_sock = false;
+                runner_msg = false;
             }
-            if fe_sock {
+            if fe_msg {
                 try!(self.fe_sock.recv(&mut self.msg, 0));
                 try!(self.fe_sock.recv(&mut self.msg, 0));
                 match self.state {
                     State::Ready => {
-                        self.runner_sock.send(&*self.msg, 0).unwrap();
-                        self.runner_sock.recv(&mut self.msg, 0).unwrap();
-                        if Some(WORK_ACK) != self.msg.as_str() {
-                            unreachable!("run:2, received unexpected response from runner");
-                        }
-
-                        self.runner_sock.recv(&mut self.msg, 0).unwrap();
-                        let job_id: u64 = self.msg.as_str().unwrap().parse().unwrap();
+                        try!(self.runner_cli.send(&self.msg));
+                        let job_id: u64 = try!(self.runner_cli.recv_ack());
                         reply.set_id(job_id);
                         reply.set_state(protocol::jobsrv::JobState::Processing);
-
                         try!(self.set_busy());
                         try!(self.fe_sock.send(&try!(reply.write_to_bytes()), 0));
                     }
@@ -150,7 +135,7 @@ impl Server {
                         try!(self.fe_sock.send(&bytes, 0));
                     }
                 }
-                fe_sock = false;
+                fe_msg = false;
             }
         }
         heartbeat.join().unwrap();
@@ -308,61 +293,6 @@ impl Heartbeat {
         debug!("heartbeat pulsed");
         try!(self.pub_sock.send(&self.reg.write_to_bytes().unwrap(), 0));
         Ok(())
-    }
-}
-
-pub struct Runner {
-    #[allow(dead_code)]
-    config: Arc<RwLock<Config>>,
-    sock: zmq::Socket,
-}
-
-impl Runner {
-    fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
-        let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        Ok(Runner {
-            config: config,
-            sock: sock,
-        })
-    }
-
-    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
-        let (tx, rx) = mpsc::sync_channel(0);
-        let handle = thread::Builder::new()
-            .name("runner".to_string())
-            .spawn(move || {
-                let mut runner = Self::new(config).unwrap();
-                runner.run(tx).unwrap();
-            })
-            .unwrap();
-        match rx.recv() {
-            Ok(()) => Ok(handle),
-            Err(e) => panic!("runner thread startup error, err={}", e),
-        }
-    }
-
-    fn run(&mut self, rz: mpsc::SyncSender<()>) -> Result<()> {
-        try!(self.sock.bind(RUNNER_INPROC_ADDR));
-        rz.send(()).unwrap();
-        let mut msg = try!(zmq::Message::new());
-        loop {
-            try!(self.sock.recv(&mut msg, 0));
-            let mut job: protocol::jobsrv::Job = parse_from_bytes(&msg).unwrap();
-            debug!("processing job={:?}", job);
-            try!(self.sock.send_str(WORK_ACK, zmq::SNDMORE));
-            try!(self.sock.send_str(&job.get_id().to_string(), 0));
-            self.execute_job(&mut job);
-            try!(self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE));
-            try!(self.sock.send(&job.write_to_bytes().unwrap(), 0));
-        }
-        Ok(())
-    }
-
-    fn execute_job(&mut self, job: &mut protocol::jobsrv::Job) {
-        thread::sleep(Duration::from_millis(5_000));
-        // set Failed on failure
-        debug!("job complete, {:?}", job);
-        job.set_state(protocol::jobsrv::JobState::Complete);
     }
 }
 
