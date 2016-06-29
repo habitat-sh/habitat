@@ -32,6 +32,8 @@ _common_prepare() {
 }
 
 do_prepare() {
+  _common_prepare
+
   export BUILD_CC=gcc
   build_line "Setting BUILD_CC=$BUILD_CC"
 }
