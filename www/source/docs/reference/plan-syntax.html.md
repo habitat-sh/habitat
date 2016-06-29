@@ -110,13 +110,13 @@ that depends on your package.
   pkg_include_dirs=(include)
   ~~~
 
-pkg_binary_dirs
+pkg_bin_dirs
 : Optional. An array of paths, relative to the final install of the software,
 where binaries can be found. Used to populate `PATH` for software
 that depends on your package.
 
   ~~~
-  pkg_binary_dirs=(bin)
+  pkg_bin_dirs=(bin)
   ~~~
 
 pkg_svc_run
