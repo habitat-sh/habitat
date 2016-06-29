@@ -24,6 +24,7 @@ extern crate zmq;
 
 pub mod config;
 pub mod error;
+pub mod heartbeat;
 pub mod runner;
 pub mod server;
 

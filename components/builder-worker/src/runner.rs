@@ -29,7 +29,7 @@ const WORK_ACK: &'static str = "A";
 /// Protocol message to indicate the Job Runner has completed a work request
 const WORK_COMPLETE: &'static str = "C";
 
-/// Client for sending and receiving messages from a Job Runner
+/// Client for sending and receiving messages to and from the Job Runner
 pub struct RunnerCli {
     sock: zmq::Socket,
     msg: zmq::Message,
@@ -61,7 +61,7 @@ impl RunnerCli {
     pub fn recv_ack(&mut self) -> Result<u64> {
         try!(self.sock.recv(&mut self.msg, 0));
         if Some(WORK_ACK) != self.msg.as_str() {
-            unreachable!("runcli:1, received unexpected response from runner");
+            unreachable!("wk:run:1, received unexpected response from runner");
         }
         try!(self.sock.recv(&mut self.msg, 0));
         let job_id = self.msg.as_str().unwrap().parse().unwrap();
@@ -73,7 +73,7 @@ impl RunnerCli {
     pub fn recv_complete(&mut self) -> Result<Vec<u8>> {
         try!(self.sock.recv(&mut self.msg, 0));
         if Some(WORK_COMPLETE) != self.msg.as_str() {
-            unreachable!("runcli:2, received unexpected response from runner");
+            unreachable!("wk:run:2, received unexpected response from runner");
         }
         try!(self.sock.recv(&mut self.msg, 0));
         Ok(self.msg.to_vec())
@@ -94,14 +94,6 @@ pub struct RunnerMgr {
 }
 
 impl RunnerMgr {
-    fn new() -> Result<Self> {
-        let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
-        Ok(RunnerMgr {
-            sock: sock,
-            msg: zmq::Message::new().unwrap(),
-        })
-    }
-
     /// Start the Job Runner
     pub fn start() -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
@@ -116,6 +108,14 @@ impl RunnerMgr {
             Ok(()) => Ok(handle),
             Err(e) => panic!("runner thread startup error, err={}", e),
         }
+    }
+
+    fn new() -> Result<Self> {
+        let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
+        Ok(RunnerMgr {
+            sock: sock,
+            msg: zmq::Message::new().unwrap(),
+        })
     }
 
     // Main loop for server
