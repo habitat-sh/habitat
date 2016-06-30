@@ -3,7 +3,8 @@ pkg_distname=$pkg_name
 pkg_origin=core
 pkg_version=1.0.2h
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_license=('bsd')
+pkg_description="OpenSSL is an open source project that provides a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library."
+pkg_license=('OpenSSL')
 pkg_source=https://www.openssl.org/source/${pkg_distname}-${pkg_version}.tar.gz
 pkg_shasum=1d4007e53aad94a5b2002fe045ee7bb0b3d98f1a47f8b2bc851dcd1c74332919
 pkg_dirname=${pkg_distname}-${pkg_version}
@@ -39,6 +40,8 @@ do_prepare() {
 }
 
 do_build() {
+  # Set PERL var for scripts in `do_check` that use Perl
+  export PERL=$(pkg_path_for core/perl)/bin/perl
   ./config \
     --prefix=${pkg_prefix} \
     --openssldir=ssl \
