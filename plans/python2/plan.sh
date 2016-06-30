@@ -1,11 +1,11 @@
 pkg_name=python2
-pkg_version=2.7.11
+pkg_version=2.7.12
 pkg_origin=core
 pkg_license=('python')
 pkg_dirname=Python-${pkg_version}
 pkg_source=https://www.python.org/ftp/python/${pkg_version}/${pkg_dirname}.tgz
 pkg_filename=${pkg_dirname}.tgz
-pkg_shasum=82929b96fd6afc8da838b149107078c02fa1744b7e60999a8babbc0d3fa86fc6
+pkg_shasum=3cb522d17463dfa69a155ab18cffa399b358c966c0363d6c8b5b3bf1384da4b6
 pkg_deps=(core/glibc core/gcc-libs core/coreutils core/make core/ncurses core/zlib core/readline core/openssl core/bzip2)
 pkg_build_deps=(core/linux-headers core/gcc)
 pkg_lib_dirs=(lib)
