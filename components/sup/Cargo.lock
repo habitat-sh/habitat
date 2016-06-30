@@ -26,6 +26,7 @@ dependencies = [
  "toml 0.1.30 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "users 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "wonder 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

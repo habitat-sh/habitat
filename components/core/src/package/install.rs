@@ -223,6 +223,26 @@ impl PackageInstall {
         fs::svc_var_path(&self.ident.name)
     }
 
+    /// Returns the user that the package is specified to run as
+    /// or None if the package doesn't contain a SVC_USER Metafile
+    pub fn svc_user(&self) -> Result<Option<String>> {
+        match self.read_metafile(MetaFile::SvcUser) {
+            Ok(body) => Ok(Some(body)),
+            Err(Error::MetaFileNotFound(MetaFile::SvcUser)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Returns the group that the package is specified to run as
+    /// or None if the package doesn't contain a SVC_GROUP Metafile
+    pub fn svc_group(&self) -> Result<Option<String>> {
+        match self.read_metafile(MetaFile::SvcGroup) {
+            Ok(body) => Ok(Some(body)),
+            Err(Error::MetaFileNotFound(MetaFile::SvcGroup)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     /// Read the contents of a given metafile.
     ///
     /// # Failures

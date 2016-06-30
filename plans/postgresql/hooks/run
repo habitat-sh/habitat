@@ -4,5 +4,5 @@
 export PGDATA={{pkg.svc_data_path}}
 
 exec 2>&1
-exec chpst -u hab:hab {{pkg.path}}/bin/postmaster \
+exec {{pkg.path}}/bin/postmaster \
      -c config_file={{pkg.svc_path}}/config/postgresql.conf

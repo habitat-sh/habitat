@@ -72,7 +72,7 @@ pub enum Error {
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
     /// Occurs when setting ownership or permissions on a file or directory fails.
-    PermissionFailed,
+    PermissionFailed(String),
     /// When an error occurs parsing or compiling a regular expression.
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
@@ -141,7 +141,7 @@ impl fmt::Display for Error {
                 }
             }
             Error::ParseIntError(ref e) => format!("{}", e),
-            Error::PermissionFailed => format!("Failed to set permissions"),
+            Error::PermissionFailed(ref e) => format!("{}", e),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::UnameFailed(ref e) => format!("{}", e),
@@ -187,7 +187,7 @@ impl error::Error for Error {
             Error::NoOutboundAddr => "Failed to discover the outbound IP address",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
-            Error::PermissionFailed => "Failed to set permissions",
+            Error::PermissionFailed(_) => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::UnameFailed(_) => "uname failed",
