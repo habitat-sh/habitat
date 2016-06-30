@@ -70,6 +70,21 @@ The web application for the Habitat builder and depot.
 * [Fletcher Nichol](https://github.com/fnichol)
 * [Dave Parfitt](https://github.com/metadave)
 
+### Habitat Plans
+
+#### Lieutenant
+
+* [Adam Jacob](https://github.com/adamhjk)
+
+#### Maintainers
+
+* [Dave Parfitt](https://github.com/metadave)
+* [Elliott Davis](https://github.com/elliott-davis)
+* [Fletcher Nichol](https://github.com/fnichol)
+* [Jamie Winsor](https://github.com/reset)
+* [Joshua Timberman](https://github.com/jtimberman)
+* [Nathan L Smith](https://github.com/smith)
+
 ### Documentation
 
 This component includes documentation in the product and documentation published
@@ -83,4 +98,3 @@ tutorials and reference materials.
 #### Maintainers
 
 * [Ryan Keairns](https://github.com/ryankeairns)
-
