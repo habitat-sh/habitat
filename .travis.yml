@@ -153,7 +153,7 @@ matrix:
       - www/build
     env:
     - AFFECTED_DIRS="www"
-    - AWS_BUCKET=habitat-www-monolith
+    - AWS_BUCKET=habitat-www
     - AWS_DEFAULT_REGION=us-west-2
     - AWS_ACCESS_KEY_ID=AKIAIE3PM7VKCMUX7TIA
     # AWS_SECRET_ACCESS_KEY
