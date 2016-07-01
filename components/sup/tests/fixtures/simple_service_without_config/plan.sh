@@ -10,7 +10,7 @@ pkg_svc_run="bin/simple_service_without_config"
 
 do_begin() {
   archive="$HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2"
-  tar -cjvf $archive --exclude 'plans' --exclude '.git' --exclude '.gitignore' --exclude 'target' --transform "s,^\.,simple_service_without_config-0.0.1," .
+  tar -cjvf $archive --exclude '.git' --exclude '.gitignore' --exclude 'target' --transform "s,^\.,simple_service_without_config-0.0.1," .
   pkg_shasum=$(trim $(sha256sum $archive | cut -d " " -f 1))
 }
 

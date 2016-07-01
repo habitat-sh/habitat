@@ -4,8 +4,6 @@ terraform.tfstate*
 .delivery/cli.toml
 .tags*
 log/
-plans/log/
-plans/tmp/
 results/
 tmp/
 .vagrant/
