@@ -198,6 +198,13 @@ pub mod export {
                     };
                     Ok(format)
                 }
+                "tar" => {
+                    let format = ExportFormat {
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-tarize")),
+                        cmd: "hab-pkg-tarize".to_string(),
+                    };
+                    Ok(format)
+                }
                 _ => Err(Error::UnsupportedExportFormat(value.to_string())),
             }
         }

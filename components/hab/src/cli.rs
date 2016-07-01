@@ -153,7 +153,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand export =>
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
-                (@arg FORMAT: +required +takes_value "The export format (ex: docker, aci)")
+                (@arg FORMAT: +required +takes_value "The export format (ex: docker, aci, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
