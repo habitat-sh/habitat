@@ -25,6 +25,7 @@ use error::{Error, Result};
 use package::Package;
 use service_config::{ServiceConfig, never_escape_fn};
 use util::convert;
+use util::handlebars_helpers;
 
 static LOGKEY: &'static str = "PH";
 
@@ -117,6 +118,8 @@ impl Hook {
         if let Some(ctx) = context {
             debug!("Rendering hook {:?}", self);
             let mut handlebars = Handlebars::new();
+            handlebars.register_helper("json", Box::new(handlebars_helpers::json_helper));
+            handlebars.register_helper("toml", Box::new(handlebars_helpers::toml_helper));
             handlebars.register_escape_fn(never_escape_fn);
             try!(handlebars.register_template_file("hook", &self.template));
             let toml = try!(ctx.to_toml());
