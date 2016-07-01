@@ -34,6 +34,7 @@ use hcore::crypto;
 use package::Package;
 use util;
 use util::convert;
+use util::handlebars_helpers;
 use VERSION;
 
 static LOGKEY: &'static str = "SC";
@@ -147,9 +148,13 @@ impl ServiceConfig {
             let mut last_toml = try!(File::create(pi.svc_path().join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
+        let mut handlebars = Handlebars::new();
+
+        debug!("Registering handlebars helpers");
+        handlebars.register_helper("json", Box::new(handlebars_helpers::json_helper));
+        handlebars.register_helper("toml", Box::new(handlebars_helpers::toml_helper));
 
         debug!("Registering configuration templates");
-        let mut handlebars = Handlebars::new();
         // By default, handlebars escapes HTML. We don't want that.
         handlebars.register_escape_fn(never_escape_fn);
 

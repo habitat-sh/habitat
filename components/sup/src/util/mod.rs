@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod convert;
+pub mod handlebars_helpers;
 pub mod path;
 pub mod sys;
 pub mod signals;

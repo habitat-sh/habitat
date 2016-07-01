@@ -120,6 +120,68 @@ like this:
     host = host-2
     port = 3434
 
+## File format helpers
+
+### JSON
+
+To output configuration data as JSON, you can use the `json` helper.
+
+Given a default.toml that looks like:
+
+    [web]
+
+    [["servers"]]
+    host = "host-1"
+    port = 4545
+
+    [["servers"]]
+    host = "host-2"
+    port = 3434
+
+and a template:
+
+    {{ json cfg.web }}
+
+when rendered, it will look like:
+
+    {
+      "servers": [
+        {
+          "host": "host-1",
+          "port": 4545
+        },
+        {
+          "host": "host-2",
+          "port": 3434
+        }
+      ]
+    }
+
+This can be useful if you have a confugration file that is in JSON format and
+has the same structure as your TOML configuration data.
+
+### TOML
+
+The `toml` helper can be used to output TOML.
+
+Given a default.toml that looks like:
+
+    [web]
+
+    port = 00
+
+and a template:
+
+    {{ toml cfg.web }}
+
+when rendered, it will look like:
+
+    port = 80
+
+This can be useful if you have an app that uses TOML as its configuration file
+format, but may have not been designed for Habitat, and you only need certain
+parts of the configuration data in the rendered TOML file.
+
 ## Further examples
 
 For an example of how to templatize a configuration file and add it to your plan, see [Add configuration to your plan](/tutorials/getting-started-configure-plan) from the getting started tutorial.
