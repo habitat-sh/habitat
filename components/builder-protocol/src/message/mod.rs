@@ -97,7 +97,7 @@ pub trait Persistable: protobuf::Message + protobuf::MessageStatic {
 }
 
 /// Defines a contract for protocol messages to be routed through `RouteSrv`.
-pub trait Routable: protobuf::Message {
+pub trait Routable: protobuf::Message + protobuf::MessageStatic {
     /// Type of the route key
     type H: RouteKey + fmt::Display;
 

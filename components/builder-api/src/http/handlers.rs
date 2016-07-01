@@ -14,68 +14,41 @@
 
 //! A collection of handlers for the HTTP server's router
 
-use std::result;
-
+use bodyparser;
+use hab_core::package::Plan;
 use hab_net;
 use hab_net::routing::Broker;
-use hab_net::oauth::github::GitHubClient;
+use iron::headers::ContentType;
+use iron::mime::{Mime, TopLevel, SubLevel};
+use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::status;
-use iron::headers::{Authorization, Bearer};
-use protobuf;
-use protocol::jobsrv::{Job, JobCreate, JobGet};
-use protocol::sessionsrv::{OAuthProvider, Session, SessionCreate, SessionGet};
+use persistent;
+use protocol::jobsrv::{Job, JobGet, JobSpec};
+use protocol::sessionsrv::{OAuthProvider, Session, SessionCreate};
 use protocol::vault::*;
-use protocol::net::{self, NetError, ErrCode};
+use protocol::net::{self, NetError, NetOk, ErrCode};
 use router::Router;
+use rustc_serialize::base64::FromBase64;
 use rustc_serialize::json::{self, ToJson};
+use serde_json::Value;
 
 use super::super::server::ZMQ_CONTEXT;
+use super::middleware::*;
+use super::GitHubCli;
 
-pub fn authenticate(req: &mut Request) -> result::Result<Session, Response> {
-    match req.headers.get::<Authorization<Bearer>>() {
-        Some(&Authorization(Bearer { ref token })) => {
-            let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
-            let mut request = SessionGet::new();
-            request.set_token(token.to_string());
-            conn.route(&request).unwrap();
-            match conn.recv() {
-                Ok(rep) => {
-                    match rep.get_message_id() {
-                        "Session" => {
-                            let session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            Ok(session)
-                        }
-                        "NetError" => {
-                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            Err(render_net_error(&err))
-                        }
-
-                        _ => unreachable!("unexpected msg: {:?}", rep),
-                    }
-                }
-                Err(e) => {
-                    error!("session get, err={:?}", e);
-                    Err(Response::with(status::InternalServerError))
-                }
-            }
-        }
-        _ => Err(Response::with(status::Unauthorized)),
-    }
-}
-
-pub fn session_create(req: &mut Request, github: &GitHubClient) -> IronResult<Response> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let code = match params.find("code") {
-        Some(code) => code,
-        _ => return Ok(Response::with(status::BadRequest)),
+pub fn session_create(req: &mut Request) -> IronResult<Response> {
+    let code = {
+        let params = req.extensions.get::<Router>().unwrap();
+        params.find("code").unwrap().to_string()
     };
-    match github.authenticate(code) {
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    match github.authenticate(&code) {
         Ok(token) => {
             match github.user(&token) {
                 Ok(user) => {
-                    // Select primary email. If no primary email can be found, use any email. If no email
-                    // is associated with account return an access denied error.
+                    // Select primary email. If no primary email can be found, use any email. If
+                    // no email is associated with account return an access denied error.
                     let email = match github.emails(&token) {
                         Ok(ref emails) => {
                             emails.iter().find(|e| e.primary).unwrap_or(&emails[0]).email.clone()
@@ -92,28 +65,9 @@ pub fn session_create(req: &mut Request, github: &GitHubClient) -> IronResult<Re
                     request.set_email(email);
                     request.set_name(user.login);
                     request.set_provider(OAuthProvider::GitHub);
-                    conn.route(&request).unwrap();
-                    match conn.recv() {
-                        Ok(rep) => {
-                            match rep.get_message_id() {
-                                "Session" => {
-                                    let token: Session = protobuf::parse_from_bytes(rep.get_body())
-                                        .unwrap();
-                                    let encoded = json::encode(&token.to_json()).unwrap();
-                                    Ok(Response::with((status::Ok, encoded)))
-                                }
-                                "NetError" => {
-                                    let err: NetError = protobuf::parse_from_bytes(rep.get_body())
-                                        .unwrap();
-                                    Ok(render_net_error(&err))
-                                }
-                                _ => unreachable!("unexpected msg: {:?}", rep),
-                            }
-                        }
-                        Err(e) => {
-                            error!("{:?}", e);
-                            Ok(Response::with(status::ServiceUnavailable))
-                        }
+                    match conn.route::<SessionCreate, Session>(&request) {
+                        Ok(session) => Ok(render_json(status::Ok, &session)),
+                        Err(err) => Ok(render_net_error(&err)),
                     }
                 }
                 Err(e @ hab_net::Error::JsonDecode(_)) => {
@@ -147,70 +101,45 @@ pub fn session_create(req: &mut Request, github: &GitHubClient) -> IronResult<Re
 }
 
 pub fn job_create(req: &mut Request) -> IronResult<Response> {
-    let session = match authenticate(req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
-    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
-    let mut request = JobCreate::new();
-    request.set_owner_id(session.get_id());
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Job" => {
-                    let job: Job = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&job.to_json()).unwrap();
-                    Ok(Response::with((status::Created, encoded)))
+    let mut project_get = ProjectGet::new();
+    {
+        match req.get::<bodyparser::Json>() {
+            Ok(Some(ref body)) => {
+                match body.find("project_id") {
+                    Some(&Value::String(ref val)) => project_get.set_id(val.to_string()),
+                    _ => return Ok(Response::with(status::UnprocessableEntity)),
                 }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
             }
+            _ => return Ok(Response::with(status::BadRequest)),
         }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+    }
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
+    let project = match conn.route::<ProjectGet, Project>(&project_get) {
+        Ok(project) => project,
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+    let mut job_spec: JobSpec = JobSpec::new();
+    job_spec.set_owner_id(session.get_id());
+    job_spec.set_project(project);
+    match conn.route::<JobSpec, Job>(&job_spec) {
+        Ok(job) => Ok(render_json(status::Created, &job)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn job_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
-    let id = match params.find("id") {
-        Some(id) => {
-            match id.parse() {
-                Ok(id) => id,
-                Err(_) => return Ok(Response::with(status::BadRequest)),
-            }
-        }
-        _ => return Ok(Response::with(status::BadRequest)),
+    let id = match params.find("id").unwrap().parse::<u64>() {
+        Ok(id) => id,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
     };
     let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
     let mut request = JobGet::new();
     request.set_id(id);
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Job" => {
-                    let job: Job = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&job.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+    match conn.route::<JobGet, Job>(&request) {
+        Ok(job) => Ok(render_json(status::Ok, &job)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -219,6 +148,12 @@ pub fn job_show(req: &mut Request) -> IronResult<Response> {
 /// Returns a status 200 on success. Any non-200 responses are an outage or a partial outage.
 pub fn status(_req: &mut Request) -> IronResult<Response> {
     Ok(Response::with(status::Ok))
+}
+
+fn render_json<T: ToJson>(status: status::Status, response: &T) -> Response {
+    let encoded = json::encode(&response.to_json()).unwrap();
+    let headers = Header(ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![])));
+    Response::with((status, encoded, headers))
 }
 
 /// Return an IronResult containing the body of a NetError and the appropriate HTTP response status
@@ -233,7 +168,6 @@ pub fn status(_req: &mut Request) -> IronResult<Response> {
 /// * The given messsage could not be decoded
 /// * The NetError could not be encoded to JSON
 fn render_net_error(err: &NetError) -> Response {
-    let encoded = json::encode(&err.to_json()).unwrap();
     let status = match err.get_code() {
         ErrCode::ENTITY_NOT_FOUND => status::NotFound,
         ErrCode::ENTITY_CONFLICT => status::Conflict,
@@ -243,94 +177,37 @@ fn render_net_error(err: &NetError) -> Response {
         ErrCode::SESSION_EXPIRED => status::Unauthorized,
         _ => status::InternalServerError,
     };
-    Response::with((status, encoded))
+    render_json(status, err)
 }
 
 pub fn list_account_invitations(req: &mut Request) -> IronResult<Response> {
-    debug!("list_account_invitations");
-    let session = match authenticate(req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
-
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
     let mut request = AccountInvitationListRequest::new();
     request.set_account_id(session.get_id());
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "AccountInvitationListResponse" => {
-                    let invites: AccountInvitationListResponse =
-                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&invites.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+    match conn.route::<AccountInvitationListRequest, AccountInvitationListResponse>(&request) {
+        Ok(invites) => Ok(render_json(status::Ok, &invites)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
-    debug!("list_user_origins");
-    let session = match authenticate(req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
-
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
-
     let mut request = AccountOriginListRequest::new();
     request.set_account_id(session.get_id());
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "AccountOriginListResponse" => {
-                    let invites: AccountOriginListResponse =
-                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&invites.to_json()).unwrap();
-                    Ok(Response::with((status::Ok, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+    match conn.route::<AccountOriginListRequest, AccountOriginListResponse>(&request) {
+        Ok(invites) => Ok(render_json(status::Ok, &invites)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
 pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
-    debug!("accept_invitation");
-    let session = match authenticate(req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = &req.extensions.get::<Router>().unwrap();
-
-    let invitation_id = match params.find("invitation_id") {
-        Some(ref invitation_id) => {
-            match invitation_id.parse::<u64>() {
-                Ok(v) => v,
-                Err(_) => return Ok(Response::with(status::BadRequest)),
-            }
-        }
-        None => return Ok(Response::with(status::BadRequest)),
+    let invitation_id = match params.find("invitation_id").unwrap().parse::<u64>() {
+        Ok(value) => value,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
     };
 
     // TODO: read the body to determine "ignore"
@@ -343,27 +220,153 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
     request.set_account_accepting_request(session.get_id());
     request.set_invite_id(invitation_id);
     request.set_ignore(ignore_val);
+    match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
+        Ok(_invites) => Ok(Response::with(status::NoContent)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
 
-    conn.route(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "OriginInvitationAcceptResponse" => {
-                    let _invites: OriginInvitationAcceptResponse =
-                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    // empty response
-                    Ok(Response::with(status::Ok))
+/// Create a new project as the authenticated user and associated to the given origin
+pub fn project_create(req: &mut Request) -> IronResult<Response> {
+    let mut project = ProjectCreate::new();
+    let mut origin_get = OriginGet::new();
+    let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let (organization, repo): (String, String) = {
+        match req.get::<bodyparser::Json>() {
+            Ok(Some(body)) => {
+                match body.find("origin") {
+                    Some(&Value::String(ref val)) => origin_get.set_name(val.to_string()),
+                    _ => {
+                        return Ok(Response::with((status::UnprocessableEntity,
+                                                  "Missing required field: `origin`")))
+                    }
                 }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
+                match body.find("plan_path") {
+                    Some(&Value::String(ref val)) => project.set_plan_path(val.to_string()),
+                    _ => {
+                        return Ok(Response::with((status::UnprocessableEntity,
+                                                  "Missing required field: `plan_path`")))
+                    }
                 }
-                _ => unreachable!("unexpected msg: {:?}", rep),
+                match body.find("github") {
+                    Some(&Value::Object(ref map)) => {
+                        let mut vcs = VCSGit::new();
+                        let organization = match map.get("organization") {
+                            Some(&Value::String(ref val)) => val.to_string(),
+                            _ => {
+                                return Ok(Response::with((status::UnprocessableEntity,
+                                                          "Missing required field: \
+                                                           `github.organization`")))
+                            }
+                        };
+                        let repo = match map.get("repo") {
+                            Some(&Value::String(ref val)) => val.to_string(),
+                            _ => {
+                                return Ok(Response::with((status::UnprocessableEntity,
+                                                          "Missing required field: `github.repo`")))
+                            }
+                        };
+                        match github.repo(&session.get_token(), &organization, &repo) {
+                            Ok(repo) => vcs.set_url(repo.clone_url),
+                            Err(_) => {
+                                return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1")))
+                            }
+                        }
+                        project.set_git(vcs);
+                        (organization, repo)
+                    }
+                    _ => {
+                        return Ok(Response::with((status::UnprocessableEntity,
+                                                  "Missing required field: `github`")))
+                    }
+                }
+            }
+            _ => return Ok(Response::with(status::BadRequest)),
+        }
+    };
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
+    let origin = match conn.route::<OriginGet, Origin>(&origin_get) {
+        Ok(response) => response,
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+    match github.contents(&session.get_token(),
+                          &organization,
+                          &repo,
+                          &project.get_plan_path()) {
+        Ok(contents) => {
+            match contents.content.from_base64() {
+                Ok(ref bytes) => {
+                    match Plan::from_bytes(bytes) {
+                        Ok(plan) => project.set_id(format!("{}/{}", origin.get_name(), plan.name)),
+                        Err(_) => {
+                            return Ok(Response::with((status::UnprocessableEntity, "rg:pc:3")))
+                        }
+                    }
+                }
+                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:4"))),
             }
         }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+        Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),
+    }
+    project.set_owner_id(session.get_id());
+    match conn.route::<ProjectCreate, Project>(&project) {
+        Ok(response) => Ok(render_json(status::Created, &response)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+/// Delete the given project
+pub fn project_delete(req: &mut Request) -> IronResult<Response> {
+    let mut project_del = ProjectDelete::new();
+    let params = req.extensions.get::<Router>().unwrap();
+    {
+        let origin = params.find("origin").unwrap();
+        let name = params.find("name").unwrap();
+        project_del.set_id(format!("{}/{}", origin, name));
+    }
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    project_del.set_requestor_id(session.get_id());
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
+    match conn.route::<ProjectDelete, NetOk>(&project_del) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+/// Update the given project
+pub fn project_update(req: &mut Request) -> IronResult<Response> {
+    let mut project_up = ProjectUpdate::new();
+    let mut project = Project::new();
+    let params = req.extensions.get::<Router>().unwrap();
+    // JW TODO: parse actual body
+    {
+        let origin = params.find("origin").unwrap();
+        let name = params.find("name").unwrap();
+        project.set_id(format!("{}/{}", origin, name));
+    }
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    project_up.set_requestor_id(session.get_id());
+    project_up.set_project(project);
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
+    match conn.route::<ProjectUpdate, NetOk>(&project_up) {
+        Ok(_) => Ok(Response::with(status::NoContent)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
+/// Display the the given project's details
+pub fn project_show(req: &mut Request) -> IronResult<Response> {
+    let mut project_get = ProjectGet::new();
+    let params = req.extensions.get::<Router>().unwrap();
+    {
+        let origin = params.find("origin").unwrap();
+        let name = params.find("name").unwrap();
+        project_get.set_id(format!("{}/{}", origin, name));
+    }
+    let mut conn = Broker::connect(&**ZMQ_CONTEXT).unwrap();
+    match conn.route::<ProjectGet, Project>(&project_get) {
+        Ok(project) => Ok(render_json(status::Ok, &project)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }

@@ -12,23 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-extern crate git2;
-#[macro_use]
-extern crate log;
-extern crate protobuf;
-extern crate toml;
-extern crate zmq;
+use std::process::Command;
+use std::path::Path;
 
-pub mod config;
-pub mod error;
-pub mod heartbeat;
-pub mod runner;
-pub mod server;
-pub mod studio;
-pub mod vcs;
+use protocol::jobsrv as proto;
 
-pub use self::config::Config;
-pub use self::error::{Error, Result};
+use error::Result;
+
+pub fn build(job: &proto::Job, root: &Path) -> Result<()> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(format!("hab studio build {:?}",
+                     root.join(job.get_project().get_plan_path())))
+        .output()
+        .unwrap();
+    println!("status: {}", output.status);
+    println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    Ok(())
+}

@@ -100,7 +100,7 @@ pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Res
             request.set_email(email);
             request.set_name(user.login);
             request.set_provider(OAuthProvider::GitHub);
-            conn.route(&request).unwrap();
+            conn.route_async(&request).unwrap();
             match conn.recv() {
                 Ok(rep) => {
                     match rep.get_message_id() {
@@ -144,7 +144,7 @@ pub fn authenticate(depot: &Depot, req: &mut Request) -> result::Result<Session,
             let mut conn = Broker::connect(&depot.context).unwrap();
             let mut request = SessionGet::new();
             request.set_token(token.to_string());
-            conn.route(&request).unwrap();
+            conn.route_async(&request).unwrap();
             match conn.recv() {
                 Ok(rep) => {
                     match rep.get_message_id() {
@@ -196,7 +196,7 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 
     let mut conn = Broker::connect(&depot.context).unwrap();
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -229,7 +229,7 @@ pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin);
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -258,7 +258,7 @@ pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
     let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin.to_string());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -295,7 +295,7 @@ pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) ->
     request.set_account_id(account_id);
     request.set_origin_name(origin_name.to_string());
 
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -344,7 +344,7 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
     let mut conn = Broker::connect(&depot.context).unwrap();
     let mut request = AccountGet::new();
     request.set_name(user_to_invite.to_string());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
 
     let acct_obj = match conn.recv() {
         Ok(rep) => {
@@ -382,7 +382,7 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
     invite_request.set_origin_name(origin_obj.get_name().to_string());
     invite_request.set_owner_id(session.get_id());
 
-    conn.route(&invite_request).unwrap();
+    conn.route_async(&invite_request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -436,7 +436,7 @@ pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<R
     };
 
     request.set_origin_id(origin.get_id());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -489,7 +489,7 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
     };
 
     request.set_origin_id(origin.get_id());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -697,7 +697,7 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
     request.set_owner_id(0);
 
     let mut conn = Broker::connect(&depot.context).unwrap();
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     Ok(Response::with(status::Created))
 }
 

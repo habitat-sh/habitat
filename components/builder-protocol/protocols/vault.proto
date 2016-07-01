@@ -22,28 +22,27 @@ message OriginGet {
 }
 
 message OriginMemberRemove {
-    required uint64 origin_id = 1;
-    required uint64 user_id = 2;
+  required uint64 origin_id = 1;
+  required uint64 user_id = 2;
 }
 
 // list all members of an origin
 message OriginMemberListRequest {
-    required uint64 origin_id = 1;
+  required uint64 origin_id = 1;
 }
 
 message OriginMemberListResponse {
-    required uint64 origin_id = 1;
-    repeated string members = 2;
+  required uint64 origin_id = 1;
+  repeated string members = 2;
 }
 
-
 message AccountOriginListRequest {
-    required uint64 account_id = 1;
+  required uint64 account_id = 1;
 }
 
 message AccountOriginListResponse {
-    required uint64 account_id = 1;
-    repeated string origins = 2;
+  required uint64 account_id = 1;
+  repeated string origins = 2;
 }
 
 // !!!NOTE!!!
@@ -52,38 +51,38 @@ message AccountOriginListResponse {
 // !!!NOTE!!!
 // !!!NOTE!!!
 message CheckOriginAccessRequest {
-    oneof account_info {
-        uint64 account_id = 1;
-        string account_name = 2;
-    }
-    oneof origin_info {
-        uint64 origin_id = 3;
-        string origin_name = 4;
-    }
+  oneof account_info {
+    uint64 account_id = 1;
+    string account_name = 2;
+  }
+  oneof origin_info {
+    uint64 origin_id = 3;
+    string origin_name = 4;
+  }
 }
 
 message CheckOriginAccessResponse {
-    required bool has_access = 1;
+  required bool has_access = 1;
 }
 
 // list all pending invitations for a given account
 message AccountInvitationListRequest {
-    required uint64 account_id = 1;
+  required uint64 account_id = 1;
 }
 
 message AccountInvitationListResponse {
-    required uint64 account_id = 1;
-    repeated OriginInvitation invitations = 2;
+  required uint64 account_id = 1;
+  repeated OriginInvitation invitations = 2;
 }
 
 // list all pending invitations for a given origin
 message OriginInvitationListRequest {
-    required uint64 origin_id = 1;
+  required uint64 origin_id = 1;
 }
 
 message OriginInvitationListResponse {
-    required uint64 origin_id = 1;
-    repeated OriginInvitation invitations = 2;
+  required uint64 origin_id = 1;
+  repeated OriginInvitation invitations = 2;
 }
 
 // stored entity
@@ -122,28 +121,62 @@ message OriginInvitationAcceptRequest {
   required bool ignore = 3;
 }
 
-message OriginInvitationAcceptResponse{
-}
+message OriginInvitationAcceptResponse { }
 
 // stored entity
 message OriginSecretKey {
-    // pk for the public key
-    required uint64 id = 1;
-    // the parent origin
-    required uint64 origin_id = 2;
-    // key name
-    required string name = 3;
-    required string revision = 4;
-    required bytes body = 5;
-    // account id that stored the key
-    required uint64 owner_id = 6;
+  // pk for the public key
+  required uint64 id = 1;
+  // the parent origin
+  required uint64 origin_id = 2;
+  // key name
+  required string name = 3;
+  required string revision = 4;
+  required bytes body = 5;
+  // account id that stored the key
+  required uint64 owner_id = 6;
 }
 
 message OriginSecretKeyCreate {
-    required uint64 origin_id = 1;
-    required string name = 2;
-    required string revision = 3;
-    required bytes body = 4;
-    required uint64 owner_id = 5;
+  required uint64 origin_id = 1;
+  required string name = 2;
+  required string revision = 3;
+  required bytes body = 4;
+  required uint64 owner_id = 5;
 }
 
+message Project {
+  required string id = 1;
+  required uint64 owner_id = 2;
+  required string plan_path = 3;
+  oneof vcs {
+    VCSGit git = 4;
+  }
+}
+
+message ProjectUpdate {
+  required uint64 requestor_id = 1;
+  required Project project = 2;
+}
+
+message ProjectCreate {
+  required string id = 1;
+  required uint64 owner_id = 2;
+  required string plan_path = 3;
+  oneof vcs {
+    VCSGit git = 4;
+  }
+}
+
+message ProjectDelete {
+  required string id = 1;
+  required uint64 requestor_id = 2;
+}
+
+message ProjectGet {
+  required string id = 1;
+}
+
+message VCSGit {
+  required string url = 1;
+}

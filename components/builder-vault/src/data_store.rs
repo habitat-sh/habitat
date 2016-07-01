@@ -15,7 +15,7 @@
 use std::ops::Deref;
 use std::sync::Arc;
 
-use dbcache::{self, data_store, ConnectionPool, Bucket, IndexSet, InstaSet};
+use dbcache::{self, data_store, ConnectionPool, BasicSet, Bucket, IndexSet, InstaSet};
 use protobuf::Message;
 use protocol::{vault, InstaId, Persistable};
 use redis::{self, Commands, PipelineCommands};
@@ -26,6 +26,7 @@ use protocol::vault as proto;
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
     pub origins: OriginTable,
+    pub projects: ProjectTable,
 }
 
 impl data_store::Pool for DataStore {
@@ -33,11 +34,14 @@ impl data_store::Pool for DataStore {
 
     fn init(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
+        let pool2 = pool.clone();
         let origins = OriginTable::new(pool1);
+        let projects = ProjectTable::new(pool2);
 
         DataStore {
             pool: pool,
             origins: origins,
+            projects: projects,
         }
     }
 }
@@ -379,4 +383,28 @@ impl InstaSet for OriginInvitesTable {
 
         Ok(())
     }
+}
+
+pub struct ProjectTable {
+    pool: Arc<ConnectionPool>,
+}
+
+impl ProjectTable {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        ProjectTable { pool: pool }
+    }
+}
+
+impl Bucket for ProjectTable {
+    fn pool(&self) -> &ConnectionPool {
+        &self.pool
+    }
+
+    fn prefix() -> &'static str {
+        "project"
+    }
+}
+
+impl BasicSet for ProjectTable {
+    type Record = vault::Project;
 }

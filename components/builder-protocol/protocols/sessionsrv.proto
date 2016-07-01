@@ -38,5 +38,3 @@ message SessionCreate {
 message SessionGet {
   required string token = 1;
 }
-
-

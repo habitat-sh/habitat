@@ -26,6 +26,7 @@ use zmq;
 
 #[derive(Debug)]
 pub enum Error {
+    Authorization,
     BadPort(String),
     Depot(depot::Error),
     HabitatCore(hab_core::Error),
@@ -43,6 +44,7 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::Authorization => "not authenticated".to_string(),
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
             Error::Depot(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
@@ -63,6 +65,7 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::Authorization => "not authenticated",
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
             Error::Depot(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),

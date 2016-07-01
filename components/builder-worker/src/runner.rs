@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::path::PathBuf;
 use std::sync::mpsc;
 use std::thread::{self, JoinHandle};
 
@@ -20,7 +21,9 @@ use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
 use zmq;
 
-use error::Result;
+use error::{Error, Result};
+use studio;
+use vcs;
 
 /// In-memory zmq address of Job Runner
 const INPROC_ADDR: &'static str = "inproc://runner";
@@ -28,6 +31,47 @@ const INPROC_ADDR: &'static str = "inproc://runner";
 const WORK_ACK: &'static str = "A";
 /// Protocol message to indicate the Job Runner has completed a work request
 const WORK_COMPLETE: &'static str = "C";
+
+pub struct Runner {
+    pub job: proto::Job,
+    pub workspace: PathBuf,
+}
+
+impl Runner {
+    pub fn new(job: proto::Job) -> Self {
+        // JW TODO: this needs to be cleaned or something maybe? Stored somewhere?
+        // Would be pretty awesome if the workspace could be shelved into S3 and then re-mounted
+        // during a run.
+        let workspace = PathBuf::from("/tmp/workspace");
+        Runner {
+            job: job,
+            workspace: workspace,
+        }
+    }
+
+    pub fn run(&mut self) -> () {
+        // the studio should be cloning the workspace I think
+        if let Some(err) = vcs::clone(&self.job, &self.workspace).err() {
+            println!("CLONE ERROR={:?}", err);
+            return self.fail();
+        }
+        if let Some(err) = studio::build(&self.job, &self.workspace).err() {
+            println!("BUILD ERROR={:?}", err);
+            return self.fail();
+        }
+        self.complete()
+    }
+
+    fn complete(&mut self) -> () {
+        // clean workspace?
+        self.job.set_state(proto::JobState::Complete);
+    }
+
+    fn fail(&mut self) -> () {
+        // clean workspace?
+        self.job.set_state(proto::JobState::Failed);
+    }
+}
 
 /// Client for sending and receiving messages to and from the Job Runner
 pub struct RunnerCli {
@@ -58,25 +102,24 @@ impl RunnerCli {
 
     /// Wait until client receives a work received acknowledgement by the Runner and return
     /// the assigned JobID.
-    pub fn recv_ack(&mut self) -> Result<u64> {
+    pub fn recv_ack(&mut self) -> Result<&zmq::Message> {
         try!(self.sock.recv(&mut self.msg, 0));
         if Some(WORK_ACK) != self.msg.as_str() {
             unreachable!("wk:run:1, received unexpected response from runner");
         }
         try!(self.sock.recv(&mut self.msg, 0));
-        let job_id = self.msg.as_str().unwrap().parse().unwrap();
-        Ok(job_id)
+        Ok(&self.msg)
     }
 
     /// Wait until client receives a work complete message by the Runner and return an encoded
     /// representation of the job.
-    pub fn recv_complete(&mut self) -> Result<Vec<u8>> {
+    pub fn recv_complete(&mut self) -> Result<&zmq::Message> {
         try!(self.sock.recv(&mut self.msg, 0));
         if Some(WORK_COMPLETE) != self.msg.as_str() {
             unreachable!("wk:run:2, received unexpected response from runner");
         }
         try!(self.sock.recv(&mut self.msg, 0));
-        Ok(self.msg.to_vec())
+        Ok(&self.msg)
     }
 
     /// Send a message to the Job Runner
@@ -125,20 +168,16 @@ impl RunnerMgr {
         loop {
             let mut job: proto::Job = try!(self.recv_job());
             try!(self.send_ack(&job));
-            try!(self.execute_job(&mut job));
-            try!(self.send_complete(&job));
+            try!(self.execute_job(job));
         }
         Ok(())
     }
 
-    fn execute_job(&mut self, job: &mut proto::Job) -> Result<()> {
-        debug!("executing work, job={:?}", job);
-        // check source and delegate to runner
-        // retrieve source
-        // enter studio and build plan
-        // publish work
-        job.set_state(proto::JobState::Complete);
-        Ok(())
+    fn execute_job(&mut self, job: proto::Job) -> Result<()> {
+        let mut runner = Runner::new(job);
+        debug!("executing work, job={:?}", runner.job);
+        runner.run();
+        self.send_complete(&runner.job)
     }
 
     fn recv_job(&mut self) -> Result<proto::Job> {
@@ -150,7 +189,7 @@ impl RunnerMgr {
     fn send_ack(&mut self, job: &proto::Job) -> Result<()> {
         debug!("received work, job={:?}", job);
         try!(self.sock.send_str(WORK_ACK, zmq::SNDMORE));
-        try!(self.sock.send_str(&job.get_id().to_string(), 0));
+        try!(self.sock.send(&job.write_to_bytes().unwrap(), 0));
         Ok(())
     }
 

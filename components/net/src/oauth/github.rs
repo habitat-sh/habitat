@@ -45,8 +45,8 @@ impl GitHubClient {
 
     pub fn authenticate(&self, code: &str) -> Result<String> {
         let url =
-            Url::parse(&format!("https://github.\
-                                 com/login/oauth/access_token?client_id={}&client_secret={}&code={}",
+            Url::parse(&format!("https://github.com/login/oauth/access_token?\
+                                client_id={}&client_secret={}&code={}",
                                 self.client_id,
                                 self.client_secret,
                                 code))
@@ -72,6 +72,34 @@ impl GitHubClient {
         } else {
             Err(Error::HTTP(rep.status))
         }
+    }
+
+    /// Returns the contents of a file or directory in a repository.
+    pub fn contents(&self, token: &str, owner: &str, repo: &str, path: &str) -> Result<Contents> {
+        let url = Url::parse(&format!("{}/repos/{}/{}/contents/{}", self.url, owner, repo, path))
+            .unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(err));
+        }
+        let contents: Contents = json::decode(&body).unwrap();
+        Ok(contents)
+    }
+
+    pub fn repo(&self, token: &str, owner: &str, repo: &str) -> Result<Repo> {
+        let url = Url::parse(&format!("{}/repos/{}/{}", self.url, owner, repo)).unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(err));
+        }
+        let repo: Repo = json::decode(&body).unwrap();
+        Ok(repo)
     }
 
     pub fn user(&self, token: &str) -> Result<User> {
@@ -101,6 +129,123 @@ impl GitHubClient {
     }
 }
 
+#[derive(RustcDecodable, RustcEncodable)]
+pub struct Contents {
+    pub name: String,
+    pub path: String,
+    pub sha: String,
+    pub size: usize,
+    pub url: String,
+    pub html_url: String,
+    pub git_url: String,
+    pub download_url: String,
+    pub content: String,
+    pub encoding: String,
+}
+
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct Repo {
+    pub id: u64,
+    pub name: String,
+    pub full_name: String,
+    pub owner: User,
+    pub private: bool,
+    pub html_url: String,
+    pub description: String,
+    pub fork: bool,
+    pub url: String,
+    pub forks_url: String,
+    pub keys_url: String,
+    pub collaborators_url: String,
+    pub teams_url: String,
+    pub hooks_url: String,
+    pub issue_events_url: String,
+    pub events_url: String,
+    pub assignees_url: String,
+    pub branches_url: String,
+    pub tags_url: String,
+    pub blobs_url: String,
+    pub git_tags_url: String,
+    pub git_refs_url: String,
+    pub trees_url: String,
+    pub statuses_url: String,
+    pub languages_url: String,
+    pub stargazers_url: String,
+    pub contributors_url: String,
+    pub subscribers_url: String,
+    pub subscription_url: String,
+    pub commits_url: String,
+    pub git_commits_url: String,
+    pub comments_url: String,
+    pub issue_comment_url: String,
+    pub contents_url: String,
+    pub compare_url: String,
+    pub merges_url: String,
+    pub archive_url: String,
+    pub downloads_url: String,
+    pub issues_url: String,
+    pub pulls_url: String,
+    pub milestones_url: String,
+    pub notifications_url: String,
+    pub labels_url: String,
+    pub releases_url: String,
+    pub deployments_url: String,
+    pub created_at: String,
+    pub updated_at: String,
+    pub pushed_at: String,
+    pub git_url: String,
+    pub ssh_url: String,
+    pub clone_url: String,
+    pub svn_url: String,
+    pub homepage: Option<String>,
+    pub size: u32,
+    pub stargazers_count: u32,
+    pub watchers_count: u32,
+    pub language: String,
+    pub has_issues: bool,
+    pub has_downloads: bool,
+    pub has_wiki: bool,
+    pub has_pages: bool,
+    pub forks_count: u32,
+    pub mirror_url: Option<String>,
+    pub open_issues_count: u32,
+    pub forks: u32,
+    pub open_issues: u32,
+    pub watchers: u32,
+    pub default_branch: String,
+    pub permissions: Permissions,
+    pub organization: Option<Organization>,
+    pub network_count: u32,
+    pub subscribers_count: u32,
+}
+
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct Organization {
+    pub login: String,
+    pub id: u64,
+    pub avatar_url: String,
+    pub gravatar_id: String,
+    pub url: String,
+    pub html_url: String,
+    pub followers_url: String,
+    pub following_url: String,
+    pub gists_url: String,
+    pub starred_url: String,
+    pub subscriptions_url: String,
+    pub organizations_url: String,
+    pub repos_url: String,
+    pub events_url: String,
+    pub received_events_url: String,
+    pub site_admin: bool,
+}
+
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct Permissions {
+    pub admin: bool,
+    pub push: bool,
+    pub pull: bool,
+}
+
 #[derive(Debug, RustcEncodable, RustcDecodable)]
 pub struct User {
     pub login: String,
@@ -126,12 +271,12 @@ pub struct User {
     pub email: Option<String>,
     pub hireable: Option<bool>,
     pub bio: Option<String>,
-    pub public_repos: u32,
-    pub public_gists: u32,
-    pub followers: u32,
-    pub following: u32,
-    pub created_at: String,
-    pub updated_at: String,
+    pub public_repos: Option<u32>,
+    pub public_gists: Option<u32>,
+    pub followers: Option<u32>,
+    pub following: Option<u32>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
 }
 
 impl From<User> for sessionsrv::Account {

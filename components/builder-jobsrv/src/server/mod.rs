@@ -94,7 +94,7 @@ impl Dispatcher for Worker {
                 state: &mut Self::State)
                 -> Result<()> {
         match message.message_id() {
-            "JobCreate" => handlers::job_create(message, sock, state),
+            "JobSpec" => handlers::job_create(message, sock, state),
             "JobGet" => handlers::job_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         }

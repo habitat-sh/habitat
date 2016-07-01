@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use dbcache::{self, ExpiringSet, IndexSet, InstaSet};
+use dbcache::{self, BasicSet, IndexSet, InstaSet};
 use hab_net::server::Envelope;
 use protobuf::RepeatedField;
-use protocol::net::{self, ErrCode};
+use protocol::net::{self, NetOk, ErrCode};
 use protocol::vault as proto;
 use zmq;
 
@@ -271,5 +271,58 @@ pub fn origin_secret_key_create(req: &mut Envelope,
     // DP TODO: handle db errors
     try!(state.datastore.origins.origin_secret_keys.write(&mut pk));
     try!(req.reply_complete(sock, &pk));
+    Ok(())
+}
+
+pub fn project_create(req: &mut Envelope,
+                      sock: &mut zmq::Socket,
+                      state: &mut ServerState)
+                      -> Result<()> {
+    let msg: proto::ProjectCreate = try!(req.parse_msg());
+    let mut project: proto::Project = msg.into();
+    // JW TODO: handle db errors
+    try!(state.datastore.projects.write(&mut project));
+    try!(req.reply_complete(sock, &project));
+    Ok(())
+}
+
+pub fn project_delete(req: &mut Envelope,
+                      sock: &mut zmq::Socket,
+                      state: &mut ServerState)
+                      -> Result<()> {
+    let mut msg: proto::ProjectDelete = try!(req.parse_msg());
+    try!(state.datastore.projects.delete(&msg.take_id()));
+    try!(req.reply_complete(sock, &NetOk::new()));
+    Ok(())
+}
+
+pub fn project_get(req: &mut Envelope,
+                   sock: &mut zmq::Socket,
+                   state: &mut ServerState)
+                   -> Result<()> {
+    let mut msg: proto::ProjectGet = try!(req.parse_msg());
+    match state.datastore.projects.find(&msg.take_id()) {
+        Ok(ref project) => try!(req.reply_complete(sock, project)),
+        Err(_) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:project_get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn project_update(req: &mut Envelope,
+                      sock: &mut zmq::Socket,
+                      state: &mut ServerState)
+                      -> Result<()> {
+    let msg: proto::ProjectUpdate = try!(req.parse_msg());
+    match state.datastore.projects.update(&msg.get_project()) {
+        Ok(()) => try!(req.reply_complete(sock, &NetOk::new())),
+        Err(_) => {
+            // JW TODO: it isn't always entity not found, need to handle db error properly
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:project_update:0");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
     Ok(())
 }

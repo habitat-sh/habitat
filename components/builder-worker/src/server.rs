@@ -77,7 +77,6 @@ impl Server {
 
         let mut fe_msg = false;
         let mut runner_msg = false;
-        let mut reply = protocol::jobsrv::Job::new();
         loop {
             {
                 let mut items = [self.fe_sock.as_poll_item(1), self.runner_cli.as_poll_item(1)];
@@ -90,8 +89,10 @@ impl Server {
                 }
             }
             if runner_msg {
-                let job = try!(self.runner_cli.recv_complete());
-                try!(self.fe_sock.send(&*job, 0));
+                {
+                    let reply = try!(self.runner_cli.recv_complete());
+                    try!(self.fe_sock.send(reply, 0));
+                }
                 try!(self.set_ready());
                 runner_msg = false;
             }
@@ -101,17 +102,16 @@ impl Server {
                 match self.state {
                     State::Ready => {
                         try!(self.runner_cli.send(&self.msg));
-                        let job_id: u64 = try!(self.runner_cli.recv_ack());
-                        reply.set_id(job_id);
-                        reply.set_state(protocol::jobsrv::JobState::Processing);
+                        {
+                            let reply = try!(self.runner_cli.recv_ack());
+                            try!(self.fe_sock.send(reply, 0));
+                        }
                         try!(self.set_busy());
-                        try!(self.fe_sock.send(&try!(reply.write_to_bytes()), 0));
                     }
                     State::Busy => {
-                        reply = parse_from_bytes(&self.msg).unwrap();
+                        let mut reply: protocol::jobsrv::Job = parse_from_bytes(&self.msg).unwrap();
                         reply.set_state(protocol::jobsrv::JobState::Rejected);
-                        let bytes = try!(reply.write_to_bytes());
-                        try!(self.fe_sock.send(&bytes, 0));
+                        try!(self.fe_sock.send(&reply.write_to_bytes().unwrap(), 0));
                     }
                 }
                 fe_msg = false;

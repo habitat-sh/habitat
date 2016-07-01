@@ -88,6 +88,13 @@ pub trait BasicSet: Bucket {
     /// Type of objects stored inside this data set.
     type Record: Persistable;
 
+    /// Delete a record from the data set with the given ID.
+    fn delete(&self, id: &<Self::Record as Persistable>::Key) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.del(Self::key(id)));
+        Ok(())
+    }
+
     /// Retrieves a record from the data set with the given ID.
     fn find(&self, id: &<Self::Record as Persistable>::Key) -> Result<Self::Record> {
         let conn = try!(self.pool().get());
@@ -97,6 +104,15 @@ pub trait BasicSet: Bucket {
         }
         let value = parse_from_bytes(&bytes).unwrap();
         Ok(value)
+    }
+
+    /// Update an existing record in the data set.
+    fn update(&self, record: &Self::Record) -> Result<()> {
+        let conn = try!(self.pool().get());
+        // JW TODO: perform a record merge here. This is an overwrite, not an update.
+        try!(conn.set(Self::key(&record.primary_key()),
+                      record.write_to_bytes().unwrap()));
+        Ok(())
     }
 
     /// Write a new record to the data set.
@@ -117,6 +133,13 @@ pub trait ExpiringSet: Bucket {
 
     /// Expiration time (in seconds) for any entities written to the set.
     fn expiry() -> usize;
+
+    /// Delete a record from the data set with the given ID.
+    fn delete(&self, id: &<Self::Record as Persistable>::Key) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.del(Self::key(id)));
+        Ok(())
+    }
 
     /// Retrieves a record from the data set with the given ID.
     fn find(&self, id: &<Self::Record as Persistable>::Key) -> Result<Self::Record> {
@@ -157,6 +180,13 @@ pub trait InstaSet: Bucket {
     /// A unique keyname for an auto-incrementing sequence used in ID generation
     fn seq_id() -> &'static str;
 
+    /// Delete a record from the data set with the given ID.
+    fn delete(&self, id: &<Self::Record as Persistable>::Key) -> Result<()> {
+        let conn = try!(self.pool().get());
+        try!(conn.del(Self::key(id)));
+        Ok(())
+    }
+
     /// Retrieves a record from the data set with the given ID.
     fn find(&self, id: &<Self::Record as Persistable>::Key) -> Result<Self::Record> {
         let conn = try!(self.pool().get());
@@ -166,6 +196,15 @@ pub trait InstaSet: Bucket {
         }
         let value = parse_from_bytes(&bytes).unwrap();
         Ok(value)
+    }
+
+    /// Update an existing record in the data set.
+    fn update(&self, record: &Self::Record) -> Result<()> {
+        let conn = try!(self.pool().get());
+        // JW TODO: perform a record merge here. This is an overwrite, not an update.
+        try!(conn.set(Self::key(&record.primary_key()),
+                      record.write_to_bytes().unwrap()));
+        Ok(())
     }
 
     /// Write a new record to the data set.
@@ -187,14 +226,6 @@ pub trait InstaSet: Bucket {
                 .ignore()
                 .query(conn.deref())
         }));
-        Ok(())
-    }
-
-    /// Update an existing record in the data set.
-    fn update(&self, record: &Self::Record) -> Result<()> {
-        let conn = try!(self.pool().get());
-        try!(conn.set(Self::key(&record.primary_key()),
-                      record.write_to_bytes().unwrap()));
         Ok(())
     }
 }

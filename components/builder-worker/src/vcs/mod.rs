@@ -12,23 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-extern crate git2;
-#[macro_use]
-extern crate log;
-extern crate protobuf;
-extern crate toml;
-extern crate zmq;
+pub mod git;
 
-pub mod config;
-pub mod error;
-pub mod heartbeat;
-pub mod runner;
-pub mod server;
-pub mod studio;
-pub mod vcs;
+use std::path::Path;
 
-pub use self::config::Config;
-pub use self::error::{Error, Result};
+use protocol::jobsrv as proto;
+
+use error::Result;
+
+pub fn clone(job: &proto::Job, path: &Path) -> Result<()> {
+    let project = job.get_project();
+    if project.has_git() {
+        return git::clone(project.get_git(), path);
+    }
+    // actually return err here
+    Ok(())
+}

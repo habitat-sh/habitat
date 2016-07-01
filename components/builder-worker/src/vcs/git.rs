@@ -12,23 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-extern crate git2;
-#[macro_use]
-extern crate log;
-extern crate protobuf;
-extern crate toml;
-extern crate zmq;
+use std::path::Path;
 
-pub mod config;
-pub mod error;
-pub mod heartbeat;
-pub mod runner;
-pub mod server;
-pub mod studio;
-pub mod vcs;
+use git2;
+use protocol::vault;
 
-pub use self::config::Config;
-pub use self::error::{Error, Result};
+use error::Result;
+
+pub fn clone(vcs: &vault::VCSGit, path: &Path) -> Result<()> {
+    debug!("cloning git repository, url={}, path={:?}",
+           vcs.get_url(),
+           path);
+    let repo = try!(git2::Repository::clone(vcs.get_url(), path));
+    debug!("cloned git repository");
+    Ok(())
+}

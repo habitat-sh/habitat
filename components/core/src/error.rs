@@ -70,6 +70,8 @@ pub enum Error {
     ParseIntError(num::ParseIntError),
     /// Occurs when setting ownership or permissions on a file or directory fails.
     PermissionFailed(String),
+    /// Error parsing the contents of a plan file were incomplete or malformed.
+    PlanMalformed,
     /// When an error occurs parsing or compiling a regular expression.
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
@@ -135,6 +137,7 @@ impl fmt::Display for Error {
                 }
             }
             Error::ParseIntError(ref e) => format!("{}", e),
+            Error::PlanMalformed => format!("Failed to read or parse contents of Plan file"),
             Error::PermissionFailed(ref e) => format!("{}", e),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
@@ -180,6 +183,7 @@ impl error::Error for Error {
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
             Error::PermissionFailed(_) => "Failed to set permissions",
+            Error::PlanMalformed => "Failed to read or parse contents of Plan file",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::UnameFailed(_) => "uname failed",

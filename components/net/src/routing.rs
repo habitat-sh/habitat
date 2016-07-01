@@ -17,17 +17,21 @@
 //! to the appropriate receiver of a message.
 
 use std::net;
+use std::result;
 use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
 use fnv::FnvHasher;
-use protobuf::{parse_from_bytes, Message};
+use protobuf::{self, parse_from_bytes, Message};
 use protocol::{self, Routable, RouteKey};
+use protocol::net::{ErrCode, NetError};
 use zmq;
 
 use config::ToAddrString;
 use error::Result;
 use server::ServerContext;
+
+pub type RouteResult<T> = result::Result<T, NetError>;
 
 /// Time to wait before timing out a message receive for a `BrokerConn`.
 pub const RECV_TIMEOUT_MS: i32 = 5_000;
@@ -71,7 +75,8 @@ impl BrokerConn {
         Ok(())
     }
 
-    /// Routes a message to the connected broker, through a router, and to appropriate service.
+    /// Routes a message to the connected broker, through a router, and to appropriate service,
+    /// waits for a response, and then parses and returns the value of the response.
     ///
     /// # Errors
     ///
@@ -80,7 +85,39 @@ impl BrokerConn {
     /// # Panics
     ///
     /// * Could not serialize message
-    pub fn route<M: Routable>(&mut self, msg: &M) -> Result<()> {
+    pub fn route<M: Routable, R: protobuf::MessageStatic>(&mut self, msg: &M) -> RouteResult<R> {
+        if self.route_async(msg).is_err() {
+            return Err(protocol::net::err(ErrCode::ZMQ, "net:route:1"));
+        }
+        match self.recv() {
+            Ok(rep) => {
+                if rep.get_message_id() == "NetError" {
+                    let err = parse_from_bytes(rep.get_body()).unwrap();
+                    return Err(err);
+                }
+                match parse_from_bytes::<R>(rep.get_body()) {
+                    Ok(entity) => Ok(entity),
+                    Err(_) => {
+                        unreachable!("net:route, unexpected response, message_id={}",
+                                     rep.get_message_id())
+                    }
+                }
+            }
+            Err(_) => Err(protocol::net::err(ErrCode::ZMQ, "net:route:3")),
+        }
+    }
+
+    /// Asynchronously routes a message to the connected broker, through a router, and to
+    /// appropriate service.
+    ///
+    /// # Errors
+    ///
+    /// * One or more message frames cannot be sent to the Broker's queue
+    ///
+    /// # Panics
+    ///
+    /// * Could not serialize message
+    pub fn route_async<M: Routable>(&mut self, msg: &M) -> Result<()> {
         let route_hash = msg.route_key().map(|key| key.hash(&mut self.hasher));
         let req = protocol::Message::new(msg).routing(route_hash).build();
         let bytes = req.write_to_bytes().unwrap();

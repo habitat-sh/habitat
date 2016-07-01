@@ -15,48 +15,104 @@
 //! A module containing the HTTP server and handlers for servicing client requests
 
 pub mod handlers;
+pub mod middleware;
 
 use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
 use depot;
 use hab_net::oauth::github::GitHubClient;
+use iron::Handler;
+use iron::middleware::{AfterMiddleware, AroundMiddleware, BeforeMiddleware};
 use iron::prelude::*;
-use iron::AfterMiddleware;
-use iron::headers;
-use iron::method::Method;
 use iron::Protocol;
+use iron::typemap;
 use mount::Mount;
+use persistent;
 use staticfile::Static;
-use unicase::UniCase;
 
 use super::server::ZMQ_CONTEXT;
 use config::Config;
 use error::Result;
 use self::handlers::*;
+use self::middleware::*;
 
 // Iron defaults to a threadpool of size `8 * num_cpus`.
 // See: http://172.16.2.131:9633/iron/prelude/struct.Iron.html#method.http
 const HTTP_THREAD_COUNT: usize = 128;
 
+/// Wrapper around the standard `iron::Chain` to assist in adding middleware on a per-handler basis
+pub struct XHandler(Chain);
+
+impl XHandler {
+    /// Create a new XHandler
+    pub fn new<H: Handler>(handler: H) -> Self {
+        XHandler(Chain::new(handler))
+    }
+
+    /// Add one or more before-middleware to the handler's chain
+    pub fn before<M: BeforeMiddleware>(mut self, middleware: Vec<M>) -> Self {
+        for m in middleware.into_iter() {
+            self.0.link_before(m);
+        }
+        self
+    }
+
+    /// Add one or more after-middleware to the handler's chain
+    pub fn after<M: AfterMiddleware>(mut self, middleware: Vec<M>) -> Self {
+        for m in middleware.into_iter() {
+            self.0.link_after(m);
+        }
+        self
+    }
+
+    /// Ad one or more around-middleware to the handler's chain
+    pub fn around<M: AroundMiddleware>(mut self, middleware: Vec<M>) -> Self {
+        for m in middleware.into_iter() {
+            self.0.link_around(m);
+        }
+        self
+    }
+}
+
+impl Handler for XHandler {
+    fn handle(&self, req: &mut Request) -> IronResult<Response> {
+        self.0.handle(req)
+    }
+}
+
+pub struct GitHubCli;
+
+impl typemap::Key for GitHubCli {
+    type Value = GitHubClient;
+}
+
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
-    let github = GitHubClient::new(&*config);
-
     let router = router!(
-        get "/status" => move |r: &mut Request| status(r),
-        get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github),
+        get "/status" => status,
+        get "/authenticate/:code" => session_create,
 
-        post "/jobs" => move |r: &mut Request| job_create(r),
-        get "/jobs/:id" => move |r: &mut Request| job_show(r),
+        post "/jobs" => XHandler::new(job_create).before(vec![Authenticated]),
+        get "/jobs/:id" => job_show,
 
-        get "/user/invitations" => move |r: &mut Request| list_account_invitations(r),
-        put "/user/invitations/:invitation_id" => move |r: &mut Request| accept_invitation(r),
-        get "/user/origins" => move |r: &mut Request| list_user_origins(r),
+        get "/user/invitations" => {
+            XHandler::new(list_account_invitations).before(vec![Authenticated])
+        },
+        put "/user/invitations/:invitation_id" => {
+            XHandler::new(accept_invitation).before(vec![Authenticated])
+        },
+        get "/user/origins" => XHandler::new(list_user_origins).before(vec![Authenticated]),
 
+        post "/projects" => XHandler::new(project_create).before(vec![Authenticated]),
+        get "/projects/:origin/:name" => project_show,
+        put "/projects/:origin/:name" => XHandler::new(project_update).before(vec![Authenticated]),
+        delete "/projects/:origin/:name" => XHandler::new(project_delete).before(vec![Authenticated]),
     );
     let mut chain = Chain::new(router);
-    chain.link_after(Cors);
+    chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
+    chain.link_before(middleware::RouteBroker);
+    chain.link_after(middleware::Cors);
     Ok(chain)
 }
 
@@ -99,18 +155,5 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     match rx.recv() {
         Ok(()) => Ok(handle),
         Err(e) => panic!("http-srv thread startup error, err={}", e),
-    }
-}
-
-struct Cors;
-
-impl AfterMiddleware for Cors {
-    fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
-        res.headers.set(headers::AccessControlAllowOrigin::Any);
-        res.headers
-            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
-        res.headers
-            .set(headers::AccessControlAllowMethods(vec![Method::Put]));
-        Ok(res)
     }
 }
