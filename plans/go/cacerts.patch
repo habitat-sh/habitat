@@ -1,9 +1,0 @@
-diff -ru go.orig/src/crypto/x509/root_linux.go go/src/crypto/x509/root_linux.go
---- go.orig/src/crypto/x509/root_linux.go	2016-02-17 20:35:21.000000000 +0000
-+++ go/src/crypto/x509/root_linux.go	2016-02-24 16:55:33.972738064 +0000
-@@ -10,4 +10,5 @@
- 	"/etc/pki/tls/certs/ca-bundle.crt",   // Fedora/RHEL
- 	"/etc/ssl/ca-bundle.pem",             // OpenSUSE
- 	"/etc/pki/tls/cacert.pem",            // OpenELEC
-+	"@cacerts@", // Bldr Package
- }
