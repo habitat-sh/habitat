@@ -1,0 +1,14 @@
+pkg_origin=core
+pkg_name=memcached
+pkg_version=1.4.25
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_license=('bsd')
+pkg_source=http://www.memcached.org/files/${pkg_name}-${pkg_version}.tar.gz
+pkg_shasum=f058437b3c224d321919a9a6bb4e3eedb2312ed718c0caf087ff2f04ab795dda
+pkg_deps=(core/glibc core/libevent)
+pkg_build_deps=(core/git core/gcc core/make)
+pkg_bin_dirs=(bin)
+pkg_include_dirs=(include)
+pkg_lib_dirs=(lib)
+pkg_svc_run="bin/memcached"
+pkg_expose=(11211)
