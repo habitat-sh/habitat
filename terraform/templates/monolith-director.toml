@@ -16,5 +16,5 @@ start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router
 [cfg.services.core.hab-builder-api.${env}]
 start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env}"
 
-[cfg.services.core.nginx-builder-api.${env}]
+[cfg.services.core.builder-api-proxy.${env}]
 start = "--permanent-peer --bind router:hab-builder-router.${env}"
