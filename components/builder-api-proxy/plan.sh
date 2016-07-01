@@ -1,6 +1,6 @@
 pkg_origin=core
-pkg_name=nginx-builder-api
-pkg_description="This is nginx configuration used to run the habitat monolith's nginx LB"
+pkg_name=builder-api-proxy
+pkg_description="HTTP Proxy service fronting the Habitat Builder API service"
 pkg_version=0.1.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh"
 pkg_source=nosuchfile.tar.xz
