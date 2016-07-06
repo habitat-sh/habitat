@@ -20,10 +20,10 @@ ifneq ($(IN_DOCKER),)
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
-	run := $(common_run) -p 9636:9636 shell
+	run := $(common_run) shell
 	docs_host := ${DOCKER_HOST}
 	docs_run := $(common_run) -p 9633:9633 shell
-	web_dev_run := $(common_run) -p 9636:9636 shell
+	web_dev_run := $(common_run) shell
 else
 	run :=
 	docs_host := 127.0.0.1
