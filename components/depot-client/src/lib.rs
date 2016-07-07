@@ -35,10 +35,10 @@ use std::path::{Path, PathBuf};
 
 use broadcast::BroadcastWriter;
 use hab_core::package::{Identifiable, PackageArchive};
-use hab_http::new_hyper_client;
-use hyper::client::{Body, IntoUrl, Response};
+use hab_http::ApiClient;
+use hyper::client::{Body, IntoUrl, Response, RequestBuilder};
 use hyper::status::StatusCode;
-use hyper::header::{Headers, Authorization, Bearer};
+use hyper::header::{Authorization, Bearer};
 use hyper::Url;
 use protocol::depotsrv;
 use rustc_serialize::json;
@@ -52,17 +52,17 @@ pub trait DisplayProgress: Write {
 }
 
 pub struct Client {
-    depot_url: Url,
-    client: hyper::Client,
+    inner: ApiClient,
 }
 
 impl Client {
-    pub fn new<U: IntoUrl>(hab_depot_url: U, fs_root_path: Option<&Path>) -> Result<Self> {
+    pub fn new<U: IntoUrl>(hab_depot_url: U,
+                           product: &str,
+                           version: &str,
+                           fs_root_path: Option<&Path>)
+                           -> Result<Self> {
         let url = try!(hab_depot_url.into_url());
-        Ok(Client {
-            depot_url: url.clone(),
-            client: try!(new_hyper_client(Some(&url), fs_root_path)),
-        })
+        Ok(Client { inner: try!(ApiClient::new(&url, product, version, fs_root_path)) })
     }
 
     /// Download a public key from a remote Depot to the given filepath.
@@ -78,15 +78,13 @@ impl Client {
                                                      dst_path: &P,
                                                      progress: Option<&mut DisplayProgress>)
                                                      -> Result<PathBuf> {
-        let url = try!(self.url_join(&format!("origins/{}/keys/{}", origin, revision)));
-        self.download(url, dst_path.as_ref(), progress)
+        self.download(&format!("origins/{}/keys/{}", origin, revision),
+                      dst_path.as_ref(),
+                      progress)
     }
 
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<depotsrv::OriginKeyIdent>> {
-        let url = try!(self.url_join(&format!("origins/{}/keys", origin)));
-        debug!("GET {} with {:?}", &url, &self.client);
-        let request = self.client.get(url);
-        let mut res = try!(request.send());
+        let mut res = try!(self.inner.get(&format!("origins/{}/keys", origin)).send());
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
@@ -117,23 +115,18 @@ impl Client {
                           token: &str,
                           progress: Option<&mut DisplayProgress>)
                           -> Result<()> {
-        let mut headers = Headers::new();
-        headers.set(Authorization(Bearer { token: token.to_string() }));
-        let url = try!(self.url_join(&format!("origins/{}/keys/{}", &origin, &revision)));
+        let path = format!("origins/{}/keys/{}", &origin, &revision);
         let mut file = try!(File::open(src_path));
         let file_size = try!(file.metadata()).len();
+
         let result = if let Some(progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.client
-                .post(url)
-                .headers(headers)
+            self.add_authz(self.inner.post(&path), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.client
-                .post(url)
-                .headers(headers)
+            self.add_authz(self.inner.post(&path), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -143,7 +136,6 @@ impl Client {
             Err(e) => Err(Error::from(e)),
         }
     }
-
 
     /// Upload a secret origin key to a remote Depot.
     ///
@@ -162,23 +154,18 @@ impl Client {
                                  token: &str,
                                  progress: Option<&mut DisplayProgress>)
                                  -> Result<()> {
-        let mut headers = Headers::new();
-        headers.set(Authorization(Bearer { token: token.to_string() }));
-        let url = try!(self.url_join(&format!("origins/{}/secret_keys/{}", &origin, &revision)));
+        let path = format!("origins/{}/secret_keys/{}", &origin, &revision);
         let mut file = try!(File::open(src_path));
         let file_size = try!(file.metadata()).len();
+
         let result = if let Some(progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.client
-                .post(url)
-                .headers(headers)
+            self.add_authz(self.inner.post(&path), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.client
-                .post(url)
-                .headers(headers)
+            self.add_authz(self.inner.post(&path), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -206,8 +193,9 @@ impl Client {
                                                   dst_path: &P,
                                                   progress: Option<&mut DisplayProgress>)
                                                   -> Result<PackageArchive> {
-        let url = try!(self.url_join(&format!("pkgs/{}/download", ident)));
-        match self.download(url, dst_path.as_ref(), progress) {
+        match self.download(&format!("pkgs/{}/download", ident),
+                            dst_path.as_ref(),
+                            progress) {
             Ok(file) => {
                 let path = PathBuf::from(file);
                 Ok(PackageArchive::new(path))
@@ -229,10 +217,7 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Depot is not available
     pub fn show_package<I: Identifiable>(&self, ident: I) -> Result<depotsrv::Package> {
-        let url = try!(self.url_show_package(&ident));
-        debug!("GET {} with {:?}", &url, &self.client);
-        let request = self.client.get(url);
-        let mut res = try!(request.send());
+        let mut res = try!(self.inner.get(&self.path_show_package(&ident)).send());
 
         if res.status != hyper::status::StatusCode::Ok {
             return Err(Error::RemotePackageNotFound(ident.into()));
@@ -260,27 +245,24 @@ impl Client {
                        token: &str,
                        progress: Option<&mut DisplayProgress>)
                        -> Result<()> {
-        let mut headers = Headers::new();
-        headers.set(Authorization(Bearer { token: token.to_string() }));
         let checksum = try!(pa.checksum());
         let ident = try!(pa.ident());
         let mut file = try!(File::open(&pa.path));
         let file_size = try!(file.metadata()).len();
-        let mut url = try!(self.url_join(&format!("pkgs/{}", ident)));
-        url.query_pairs_mut().append_pair("checksum", &checksum);
+        let path = format!("pkgs/{}", ident);
+        let customize = |url: &mut Url| {
+            url.query_pairs_mut().append_pair("checksum", &checksum);
+        };
         debug!("Reading from {}", &pa.path.display());
+
         let result = if let Some(progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
-            self.client
-                .post(url)
-                .headers(headers)
+            self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
                 .body(Body::SizedBody(&mut reader, file_size))
                 .send()
         } else {
-            self.client
-                .post(url)
-                .headers(headers)
+            self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
                 .body(Body::SizedBody(&mut file, file_size))
                 .send()
         };
@@ -291,21 +273,24 @@ impl Client {
         }
     }
 
-    fn url_show_package<I: Identifiable>(&self, package: &I) -> Result<Url> {
+    fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
+        rb.header(Authorization(Bearer { token: token.to_string() }))
+    }
+
+    fn path_show_package<I: Identifiable>(&self, package: &I) -> String {
         if package.fully_qualified() {
-            Ok(try!(self.url_join(&format!("pkgs/{}", package))))
+            format!("pkgs/{}", package)
         } else {
-            Ok(try!(self.url_join(&format!("pkgs/{}/latest", package))))
+            format!("pkgs/{}/latest", package)
         }
     }
 
     fn download(&self,
-                url: Url,
+                path: &str,
                 dst_path: &Path,
                 progress: Option<&mut DisplayProgress>)
                 -> Result<PathBuf> {
-        debug!("GET {} with {:?}", &url, &self.client);
-        let mut res = try!(self.client.get(url).send());
+        let mut res = try!(self.inner.get(path).send());
         debug!("Response: {:?}", res);
 
         if res.status != hyper::status::StatusCode::Ok {
@@ -336,9 +321,5 @@ impl Client {
                &dst_file_path.display());
         try!(fs::rename(&tmp_file_path, &dst_file_path));
         Ok(dst_file_path)
-    }
-
-    fn url_join(&self, path: &str) -> Result<Url> {
-        Ok(try!(self.depot_url.join(&format!("{}/{}", self.depot_url.path(), path))))
     }
 }

@@ -58,6 +58,7 @@ pub mod key {
         use depot_client::Client;
         use hcore::crypto::SigKeyPair;
 
+        use {PRODUCT, VERSION};
         use common::command::ProgressBar;
         use error::Result;
 
@@ -66,7 +67,7 @@ pub mod key {
                      revision: Option<&str>,
                      cache: &Path)
                      -> Result<()> {
-            let depot_client = try!(Client::new(depot, None));
+            let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
             match revision {
                 Some(revision) => {
                     let nwr = format!("{}-{}", origin, revision);
@@ -197,6 +198,7 @@ pub mod key {
         use hcore::crypto::keys::parse_name_with_rev;
         use super::get_name_with_rev;
 
+        use {PRODUCT, VERSION};
         use error::{Error, Result};
 
         pub fn start(depot: &str,
@@ -204,7 +206,7 @@ pub mod key {
                      public_keyfile: &Path,
                      secret_keyfile: Option<&Path>)
                      -> Result<()> {
-            let depot_client = try!(Client::new(depot, None));
+            let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
             println!("{}",
                      Yellow.bold()
                          .paint(format!("» Uploading public origin key {}",
@@ -275,10 +277,6 @@ pub mod key {
         }
     }
 
-
-
-
-
     pub mod upload_latest {
         use std::path::Path;
 
@@ -291,6 +289,7 @@ pub mod key {
         use hcore::crypto::keys::parse_name_with_rev;
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION, SigKeyPair};
         use super::get_name_with_rev;
+        use {PRODUCT, VERSION};
 
         pub fn start(depot: &str,
                      token: &str,
@@ -298,7 +297,7 @@ pub mod key {
                      with_secret: bool,
                      cache: &Path)
                      -> Result<()> {
-            let depot_client = try!(Client::new(depot, None));
+            let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
             let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
             let public_keyfile = try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(),
                                                                       cache));

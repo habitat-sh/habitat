@@ -62,6 +62,7 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use gossip::hab_gossip;
 
+const PRODUCT: &'static str = "hab";
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// Makes the --auth-token CLI param optional when this env var is set
@@ -230,7 +231,7 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     // use the org if it's passed in on the CLI or set in an env var
     let org = match org_param_or_env(&m) {
         Ok(org) => Some(org.to_string()),
-        Err(_e) => None
+        Err(_e) => None,
     };
     sg.organization = org;
 
@@ -430,6 +431,8 @@ fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     for ident_or_artifact in ident_or_artifacts {
         try!(common::command::package::install::start(url,
                                                       ident_or_artifact,
+                                                      PRODUCT,
+                                                      VERSION,
                                                       Path::new(&fs_root),
                                                       &cache_artifact_path(fs_root_path),
                                                       &default_cache_key_path(fs_root_path)));

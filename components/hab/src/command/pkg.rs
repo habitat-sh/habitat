@@ -174,6 +174,7 @@ pub mod export {
         use std::path::Path;
         use std::str::FromStr;
         use super::ExportFormat;
+        use {PRODUCT, VERSION};
 
         pub fn format_for(value: &str) -> Result<ExportFormat> {
             match value {
@@ -220,6 +221,8 @@ pub mod export {
                              &default_depot_url());
                     try!(install::from_url(&default_depot_url(),
                                            format_ident,
+                                           PRODUCT,
+                                           VERSION,
                                            Path::new(FS_ROOT_PATH),
                                            &cache_artifact_path(None),
                                            &default_cache_key_path(None)));
@@ -338,6 +341,7 @@ pub mod upload {
     use depot_client::{self, Client};
     use hyper::status::StatusCode::{self, Forbidden, Unauthorized};
 
+    use {PRODUCT, VERSION};
     use error::{Error, Result};
 
     /// Upload a package from the cache to a Depot. The latest version/release of the package
@@ -365,7 +369,7 @@ pub mod upload {
                  Green.paint(format!("☛ Artifact signed with {}", &public_keyfile_name)));
 
         let (name, rev) = try!(parse_name_with_rev(&hart_header.key_name));
-        let depot_client = try!(Client::new(url, None));
+        let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
 
         println!("{}",
                  Yellow.bold().paint(format!("» Uploading origin key {}", &public_keyfile_name)));

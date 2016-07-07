@@ -51,6 +51,8 @@ use error::Result;
 
 pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
                                                  ident_or_archive: &str,
+                                                 product: &str,
+                                                 version: &str,
                                                  fs_root_path: &P1,
                                                  cache_artifact_path: &P2,
                                                  cache_key_path: &P3)
@@ -62,6 +64,8 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
     if Path::new(ident_or_archive).is_file() {
         try!(from_archive(url,
                           &ident_or_archive,
+                          product,
+                          version,
                           fs_root_path,
                           cache_artifact_path,
                           cache_key_path));
@@ -69,6 +73,8 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
         let ident = try!(PackageIdent::from_str(ident_or_archive));
         try!(from_url(url,
                       &ident,
+                      product,
+                      version,
                       fs_root_path,
                       cache_artifact_path,
                       cache_key_path));
@@ -84,6 +90,8 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
 /// * Fails if it cannot download the package from the upstream
 pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
                                                     ident: &PackageIdent,
+                                                    product: &str,
+                                                    version: &str,
                                                     fs_root_path: &P1,
                                                     cache_artifact_path: &P2,
                                                     cache_key_path: &P3)
@@ -94,13 +102,15 @@ pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
 {
     println!("{}",
              Yellow.bold().paint(format!("» Installing {}", ident)));
-    let depot_client = try!(Client::new(url, Some(fs_root_path.as_ref())));
+    let depot_client = try!(Client::new(url, product, version, Some(fs_root_path.as_ref())));
     let pkg_data = try!(depot_client.show_package(ident.clone()));
     for dep in pkg_data.get_tdeps().into_iter() {
         let d: PackageIdent = (*dep).clone().into();
         try!(install_from_depot(url,
                                 &d,
                                 &d,
+                                product,
+                                version,
                                 fs_root_path.as_ref(),
                                 cache_artifact_path.as_ref(),
                                 cache_key_path.as_ref()));
@@ -108,6 +118,8 @@ pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
     try!(install_from_depot(url,
                             &pkg_data.get_ident().clone().into(),
                             ident,
+                            product,
+                            version,
                             fs_root_path.as_ref(),
                             cache_artifact_path.as_ref(),
                             cache_key_path.as_ref()));
@@ -120,6 +132,8 @@ pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
 
 pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
                                                                     path: &P1,
+                                                                    product: &str,
+                                                                    version: &str,
                                                                     fs_root_path: &P2,
                                                                     cache_artifact_path: &P3,
                                                                     cache_key_path: &P4)
@@ -138,6 +152,8 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
         try!(install_from_depot(url,
                                 &dep,
                                 dep.as_ref(),
+                                product,
+                                version,
                                 fs_root_path.as_ref(),
                                 cache_artifact_path.as_ref(),
                                 cache_key_path.as_ref()));
@@ -145,6 +161,8 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
     try!(install_from_archive(url,
                               archive,
                               &ident,
+                              product,
+                              version,
                               fs_root_path.as_ref(),
                               cache_key_path.as_ref()));
     println!("{}",
@@ -157,6 +175,8 @@ pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
 fn install_from_depot(url: &str,
                       ident: &PackageIdent,
                       given_ident: &PackageIdent,
+                      product: &str,
+                      version: &str,
                       fs_root_path: &Path,
                       cache_artifact_path: &Path,
                       cache_key_path: &Path)
@@ -177,12 +197,18 @@ fn install_from_depot(url: &str,
                      Green.bold().paint("↓ Downloading"),
                      ident.as_ref());
             let mut progress = ProgressBar::default();
-            let depot_client = try!(Client::new(url, Some(fs_root_path)));
+            let depot_client = try!(Client::new(url, product, version, Some(fs_root_path)));
             let mut archive = try!(depot_client.fetch_package((*ident).clone(),
                                                                cache_artifact_path,
                                                                Some(&mut progress)));
             let ident = try!(archive.ident());
-            try!(verify(url, &archive, &ident, fs_root_path, cache_key_path));
+            try!(verify(url,
+                        &archive,
+                        &ident,
+                        product,
+                        version,
+                        fs_root_path,
+                        cache_key_path));
             try!(archive.unpack(Some(fs_root_path)));
             println!("{} {}", Green.bold().paint("✓ Installed"), ident.as_ref());
         }
@@ -193,6 +219,8 @@ fn install_from_depot(url: &str,
 fn install_from_archive(url: &str,
                         archive: PackageArchive,
                         ident: &PackageIdent,
+                        product: &str,
+                        version: &str,
                         fs_root_path: &Path,
                         cache_key_path: &Path)
                         -> Result<()> {
@@ -204,7 +232,13 @@ fn install_from_archive(url: &str,
             println!("{} {} from cache",
                      Green.bold().paint("← Extracting"),
                      ident);
-            try!(verify(url, &archive, &ident, fs_root_path, cache_key_path));
+            try!(verify(url,
+                        &archive,
+                        &ident,
+                        product,
+                        version,
+                        fs_root_path,
+                        cache_key_path));
             try!(archive.unpack(Some(fs_root_path)));
             println!("{} {}", Green.bold().paint("✓ Installed"), ident);
         }
@@ -217,6 +251,8 @@ fn install_from_archive(url: &str,
 fn verify(url: &str,
           archive: &PackageArchive,
           ident: &PackageIdent,
+          product: &str,
+          version: &str,
           fs_root_path: &Path,
           cache_key_path: &Path)
           -> Result<()> {
@@ -227,7 +263,7 @@ fn verify(url: &str,
                  &nwr);
         let (name, rev) = try!(parse_name_with_rev(&nwr));
         let mut progress = ProgressBar::default();
-        let depot_client = try!(Client::new(url, Some(fs_root_path)));
+        let depot_client = try!(Client::new(url, product, version, Some(fs_root_path)));
         try!(depot_client.fetch_origin_key(&name, &rev, cache_key_path, Some(&mut progress)));
         println!("{} {} public origin key",
                  Green.bold().paint("☑ Cached"),

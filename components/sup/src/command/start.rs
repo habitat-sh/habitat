@@ -67,6 +67,7 @@ use hcore::crypto::default_cache_key_path;
 use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
 use hcore::package::PackageIdent;
 
+use {PRODUCT, VERSION};
 use error::{Error, Result};
 use config::{Config, UpdateStrategy};
 use package::Package;
@@ -98,7 +99,7 @@ pub fn package(config: &Config) -> Result<()> {
                         //
                         // If the operator does not specify a version number they will automatically receive
                         // updates for any releases, regardless of version number, for the started  package.
-                        let depot_client = try!(Client::new(url, None));
+                        let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
                         let latest_pkg_data =
                             try!(depot_client.show_package((*config.package()).clone()));
                         let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
@@ -128,6 +129,8 @@ pub fn package(config: &Config) -> Result<()> {
                               url);
                     let new_pkg_data = try!(install::from_url(url,
                                                               config.package(),
+                                                              PRODUCT,
+                                                              VERSION,
                                                               Path::new(FS_ROOT_PATH),
                                                               &cache_artifact_path(None),
                                                               &default_cache_key_path(None)));

@@ -27,6 +27,7 @@ use hcore::fs::cache_artifact_path;
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::default_depot_url;
 
+use {PRODUCT, VERSION};
 use error::{Error, Result};
 
 #[allow(dead_code)] // Currently only used on Linux platforms
@@ -99,6 +100,8 @@ pub fn command_from_pkg(command: &str,
                          .paint(format!("∵ Package for {} not found, installing", &ident)));
             try!(common::command::package::install::from_url(&default_depot_url(),
                                                              ident,
+                                                             PRODUCT,
+                                                             VERSION,
                                                              fs_root_path,
                                                              &cache_artifact_path(None),
                                                              cache_key_path));
