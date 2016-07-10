@@ -27,6 +27,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
+    ArtifactIdentMismatch((String, String, String)),
     CantUploadGossipToml,
     CryptoKeyError(String),
     GossipFileRelativePath(String),
@@ -46,6 +47,12 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => {
+                format!("Artifact ident {} for `{}' does not match expected ident {}",
+                        ai,
+                        a,
+                        i)
+            }
             Error::CantUploadGossipToml => {
                 format!("Can't upload gossip.toml, it's a reserved file name")
             }
@@ -72,6 +79,9 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::ArtifactIdentMismatch((_, _, _)) => {
+                "Artifact ident does not match expected ident"
+            }
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::CryptoKeyError(_) => "Missing or invalid key",
             Error::GossipFileRelativePath(_) => {

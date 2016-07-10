@@ -84,7 +84,7 @@ pub mod hab_gossip {
     use common::gossip_file::GossipFile;
     use common::wire_message::WireMessage;
     use hcore::crypto::SymKey;
-    use rustc_serialize::{json, Encodable};
+    use rustc_serialize::json;
     use utp::UtpSocket;
     use uuid::Uuid;
 

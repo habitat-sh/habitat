@@ -148,9 +148,7 @@ impl<'a> Worker<'a> {
             UpdateStrategy::None => {}
             _ => {
                 let pkg_lock_2 = pkg_lock.clone();
-                if let &Some(ref url) = config.url() {
-                    pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
-                }
+                pkg_updater = Some(package::PackageUpdater::start(config.url(), pkg_lock_2));
             }
         }
 
