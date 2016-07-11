@@ -157,6 +157,14 @@
 # pkg_bin_dirs=(bin)
 # ```
 #
+# ### pkg_pconfig_dirs
+# An array of paths, relative to the final install of the software,
+# where pkg-config metadata (.pc files) can be found.  Used to populate
+# PKG_CONFIG_PATH for software that depends on your package.
+# ```
+# pkg_pconfig_dirs=(lib/pkgconfig)
+# ```
+#
 # ### pkg_svc_run
 # The command to start the service, if needed. Should not fork!
 # ```
@@ -1667,6 +1675,16 @@ _build_environment() {
         export LDFLAGS="$trimmed"
       fi
     fi
+
+    if [[ -f "$dep_path/PKG_CONFIG_PATH" ]]; then
+      local data=$(cat ${dep_path}/PKG_CONFIG_PATH)
+      local trimmed=$(trim $data)
+      if [[ -n "$PKG_CONFIG_PATH" ]]; then
+        export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${trimmed}"
+      else
+        export PKG_CONFIG_PATH="$trimmed"
+      fi
+    fi
   done
 
   # Create a working directory if it doesn't already exist from `do_unpack()`
@@ -1680,6 +1698,7 @@ _build_environment() {
   build_line "Setting CXXFLAGS=$CXXFLAGS"
   build_line "Setting CPPFLAGS=$CPPFLAGS"
   build_line "Setting LDFLAGS=$LDFLAGS"
+  build_line "Setting PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
   return 0
 }
 
@@ -1793,6 +1812,7 @@ do_default_install() {
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
+# * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
 # * `$pkg_prefix/EXPOSES` - Any ports we expose
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
@@ -1856,6 +1876,18 @@ _build_metadata() {
   done
   if [[ -n "${cxxflags_part}" ]]; then
     echo $cxxflags_part > $pkg_prefix/CXXFLAGS
+  fi
+
+  local pconfig_path_part=""
+  for inc in "${pkg_pconfig_dirs[@]}"; do
+    if [[ -z "$pconfig_path_part" ]]; then
+      pconfig_path_part="${pkg_prefix}/${inc}"
+    else
+      pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${inc}"
+    fi
+  done
+  if [[ -n "${pconfig_path_part}" ]]; then
+    echo $pconfig_path_part > $pkg_prefix/PKG_CONFIG_PATH
   fi
 
   local path_part=""
