@@ -23,6 +23,7 @@ use std::str::FromStr;
 use hcore::crypto::{BoxKeyPair, default_cache_key_path};
 use hcore::fs;
 use hcore::service::ServiceGroup;
+use hcore::util::perm::{set_owner_and_group, set_permissions};
 use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::{Encodable, Encoder};
 use rustc_serialize::hex::ToHex;
@@ -33,6 +34,8 @@ use error::{Error, Result};
 const IDEMPOTENCY_INTERVAL_MINUTES: i64 = 5;
 
 pub const GOSSIP_TOML: &'static str = "gossip.toml";
+
+pub const UPLOADED_FILE_PERMISSIONS: &'static str = "0770";
 
 /// The gossip file struct.
 #[derive(Clone, Debug, Eq, RustcDecodable, RustcEncodable)]
@@ -198,7 +201,7 @@ impl GossipFile {
         Ok(h.finish().as_slice().to_hex())
     }
 
-    pub fn write(&self) -> Result<bool> {
+    pub fn write(&mut self, svc_user: &str, svc_group: &str) -> Result<bool> {
         let current_checksum = match self.checksum_file() {
             Ok(checksum) => checksum,
             Err(_) => String::new(),
@@ -229,7 +232,10 @@ impl GossipFile {
                     try!(new_file.write_all(&self.body));
                 }
             }
-            try!(std::fs::rename(new_filename, self.on_disk_path()));
+            try!(std::fs::rename(&new_filename, self.on_disk_path()));
+            try!(set_owner_and_group(&self.on_disk_path(), svc_user, svc_group));
+            try!(set_permissions(&self.on_disk_path(), UPLOADED_FILE_PERMISSIONS));
+            self.written = true;
             Ok(true)
         }
     }
@@ -362,10 +368,10 @@ impl GossipFileList {
     /// `needs_file_updated`, which means a file has changed, and we run the file_updated hook. The
     /// second is `needs_reconfigure`, which means the `gossip.toml` has changed, and we need to
     /// reconfigure the daemon and the `service_config`.
-    pub fn write(&mut self) -> Result<(bool, bool)> {
+    pub fn write(&mut self, svc_user: &str, svc_group: &str) -> Result<(bool, bool)> {
         let mut needs_file_updated = false;
         let mut needs_reconfigure = false;
-        for (&(ref sg, _), ref gf) in self.gossip_files.iter() {
+        for (&(ref sg, _), ref mut gf) in self.gossip_files.iter_mut() {
             // Don't write this file if it's not my_service_group.
             // Take note, this applies to encrypted payloads as well.
             // If it's not for "me", I won't write it out.
@@ -389,7 +395,7 @@ impl GossipFileList {
             // Try to write the GossipFile body to a file. Upon failure, add
             // the file to the file_write_retries HashMap so it will be retried
             // upon the next call to GossipFileList.write()
-            let written = match gf.write() {
+            let written = match gf.write(svc_user, svc_group) {
                 Ok(b) => {
                     if needs_retry {
                         // we don't need to retry and more, clear this flag

@@ -1915,6 +1915,9 @@ _build_metadata() {
   echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" \
     >> $pkg_prefix/IDENT
 
+  echo "$pkg_svc_user" > $pkg_prefix/SVC_USER
+  echo "$pkg_svc_group" > $pkg_prefix/SVC_GROUP
+
   # Generate the blake2b hashes of all the files in the package. This
   # is not in the resulting MANIFEST because MANIFEST is included!
   pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
