@@ -119,6 +119,15 @@ that depends on your package.
   pkg_bin_dirs=(bin)
   ~~~
 
+pkg_pconfig_dirs
+: Optional. An array of paths, relative to the final install of the
+software, where pkg-config metadata (.pc files) can be found. Used to
+populate `PKG_CONFIG_PATH` for software that depends on your package.
+
+  ~~~
+  pkg_pconfig_dirs=(lib/pkgconfig)
+  ~~~
+
 pkg_svc_run
 : Optional. The command for the supervisor to execute when starting a service. You can omit this setting if your package is not intended to be run directly by a supervisor.
 
@@ -256,7 +265,7 @@ do_prepare()
 : There is no default implementation of this callback. At this point in the build process, the tarball source has been downloaded, unpacked, and the build environment variables have been set, so you can use this callback to perform any actions before the package starts building, such as exporting variables, adding symlinks, and so on.
 
 do_build()
-: The default implementation is to update the prefix path for the configure script to use $pkg_prefix and then run `make` to compile the downloaded source. This means the script in the default implementation does `./configure --prefix=$pkg_prefix && make`. You should override this behavior if you have additional configuration changes to make or other software to build and install as part of building your package.  
+: The default implementation is to update the prefix path for the configure script to use $pkg_prefix and then run `make` to compile the downloaded source. This means the script in the default implementation does `./configure --prefix=$pkg_prefix && make`. You should override this behavior if you have additional configuration changes to make or other software to build and install as part of building your package.
 
 do_install()
 : The default implementation is to run `make install` on the source files and place the compiled binaries or libraries in *HAB_CACHE_SRC_PATH/$pkg_dirname*, which resolves to a path like `/hab/cache/src/packagename-version/`. It uses this location because of **do_build()** using the `--prefix` option when calling the configure script. You should override this behavior if you need to perform custom installation steps, such as copying files from HAB_CACHE_SRC_PATH to specific directories in your package, or installing pre-built binaries into your package.
@@ -485,4 +494,4 @@ exit_with "Something bad happened" 55
 ~~~
 
 trim()
-: Trims leading and trailing whitespace characters from a bash variable.  
+: Trims leading and trailing whitespace characters from a bash variable.
