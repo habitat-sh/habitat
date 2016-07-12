@@ -16,14 +16,14 @@ As described in our article, [Why Package the App and Automation Together?](/abo
 
 ## Implementation
 
-Continuous deployment with Habitat uses two major features: materialized views in the depot, and update strategies. We will illustrate the end-to-end flow by using the principles and nomenclature of [Chef Delivery](https://www.chef.io/delivery/).
+Continuous deployment with Habitat uses two major features: materialized views in the depot, and update strategies. We will illustrate the end-to-end flow by using the principles and nomenclature of [Chef Automate](https://www.chef.io/automate/).
 
-We provide several components to help you implement continuous deployment with Chef Delivery and Habitat:
+We provide several components to help you implement continuous deployment with Chef Automate and Habitat:
 
 * A [build cookbook](https://github.com/chef-cookbooks/habitat-build) that can build Habitat projects, including performing lint and syntax checks
-* A [Ruby client library](https://rubygems.org/habitat-client) that you can use in your own Chef Delivery projects to programatically interact with a depot API to achieve the tasks here.
+* A [Ruby client library](https://rubygems.org/habitat-client) that you can use in your own Chef Automate projects to programatically interact with a depot API to achieve the tasks here.
 
-The build cookbook accomplishes the tasks described in the following table. It performs Habitat-specific operations for promoting an artifact through acceptance, union, rehearsal and delivered environments, and performs no actions in situations where the Delivery user should define actions specific to their application.
+The build cookbook accomplishes the tasks described in the following table. It performs Habitat-specific operations for promoting an artifact through acceptance, union, rehearsal and delivered environments, and performs no actions in situations where the Chef Automate user should define actions specific to their application.
 
 ### Pre-Artifact
 
@@ -34,7 +34,7 @@ The build cookbook accomplishes the tasks described in the following table. It p
 | Quality | No default action. Intended to be overriden by the user if desired. |
 | Publish | Builds the package with Habitat and uploads it to the configured Habitat depot. |
 
-At the end of the Publish phase, Chef Delivery stores Habitat-specific information about the package (origin, package name, version, and release) for use in the Post-Artifact stage.
+At the end of the Publish phase, Chef Automate stores Habitat-specific information about the package (origin, package name, version, and release) for use in the Post-Artifact stage.
 
 ### Post-Artifact
 
