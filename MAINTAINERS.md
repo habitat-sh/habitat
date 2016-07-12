@@ -44,6 +44,7 @@ Lieutenant and may have many maintainers.
 * [Nathan L Smith](https://github.com/smith)
 * [Joshua Timberman](https://github.com/jtimberman)
 * [Jamie Winsor](https://github.com/reset)
+* [Brian Scott](https://github.com/bscott)
 
 ### Habitat Builder Web Application
 
@@ -83,4 +84,4 @@ tutorials and reference materials.
 #### Maintainers
 
 * [Ryan Keairns](https://github.com/ryankeairns)
-
+* [Brian Scott](https://github.com/bscott)
