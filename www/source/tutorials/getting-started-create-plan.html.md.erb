@@ -46,7 +46,7 @@ pkg_lib_dirs=(lib)
 
 We now have a skeleton plan, but we need to modify some of its settings before we can continue.
 
-1. Set the `pkg_origin` value to the one created for you by `hab setup`. For the examples in this tutorial, it will be set to "myorigin". The "core" origin name is reserved. That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
+1. Set the `pkg_origin` value to the one created for you by `hab setup`. For the examples in this tutorial, it will be set to "myorigin". The "core" origin name is reserved. That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the Habitat [core plans repo](https://github.com/habitat-sh/core-plans).
 2. Set the `pkg_name` value to "mytutorialapp".
 3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.1.0`.
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
