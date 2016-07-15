@@ -2,6 +2,7 @@
 
 ## Ubuntu: Xenial
 
+This installation method uses as many packages from Ubuntu as possible. If you'd like to build additional components from source, see the next section.
 
 ```
 apt-get update && apt-get install -y --no-install-recommends \
@@ -37,6 +38,59 @@ cd habitat && make
 
 		docker run -it ubuntu:xenial /bin/bash
 
+
+## Ubuntu: 14.04+
+
+This can be used to build and install on older versions of Ubuntu where libsodium and czmq aren't available.
+
+```
+apt-get update && apt-get install -y --no-install-recommends \
+    autotools-dev \
+    autoconf \
+    automake \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    file \
+    gdb \
+    git \
+    iproute2 \
+    libarchive-dev \
+    libprotobuf-dev \
+    libssl-dev \
+    libtool \
+    libunwind8-dev \
+    man \
+    musl-tools \
+    npm \
+    pkg-config \
+    protobuf-compiler \
+    sudo \
+    uuid-dev \
+    libpcre3-dev \
+    wget
+
+git clone https://github.com/jedisct1/libsodium.git
+(cd libsodium && ./autogen.sh && ./configure && make && make install)
+
+git clone git://github.com/zeromq/libzmq.git
+(cd libzmq && ./autogen.sh && ./configure --with-libsodium && make install && ldconfig)
+
+git clone https://github.com/zeromq/czmq.git
+(cd czmq && ./autogen.sh && ./configure && make install && ldconfig)
+
+curl -sSf https://static.rust-lang.org/rustup.sh | sh
+(adduser --system hab || true) && (addgroup --system hab || true)
+ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
+
+git clone https://github.com/habitat-sh/habitat.git
+cd habitat && make
+```
+
+- these docs were tested with: 
+
+		docker run -it ubuntu:14.04 /bin/bash
 
 ## Centos 7
 
