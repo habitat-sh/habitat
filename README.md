@@ -51,10 +51,10 @@ by having a convention cover it. When we do need to configure things, we set rea
 
 ## Setup On Mac OS X
 
-1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/) (you'll need
+1. [Install Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_mac/) (you'll need
    at least Docker 1.9 and docker-machine 0.5. Both are included in Docker
    Toolbox)
-1. [Install VMWare Fusion](https://www.vmware.com/products/fusion)
+1. [Install VMWare Fusion](https://www.vmware.com/products/fusion.html)
 1. Delete the default docker-machine image: `docker-machine rm default`
 1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, RAM, or Disk space as needed. This determines how fast you can compile the project and build software. (Adam uses 4 CPUs, 8GB of RAM)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
@@ -201,7 +201,7 @@ automatically merge a PR when sufficient reviewers have provided a +1
 
 ### Delegating pull request merge access
 
-A Habitat core maintainer can delegate pull request merge access to a contributor via 
+A Habitat core maintainer can delegate pull request merge access to a contributor via
 
 	@thesentinels delegate=username
 
