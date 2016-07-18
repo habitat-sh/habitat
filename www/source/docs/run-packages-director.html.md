@@ -55,6 +55,7 @@ For example:
 	
 	[services.core.rngd.foo.someorg]
 	start = "--permanent-peer --foo=bar"
+	[services.core.rngd.foo.someorg.env]
 	JAVA_HOME="/a/different/path/"
 	# we don't specify CLASSPATH here, so it won't be set for core/rngd
 
