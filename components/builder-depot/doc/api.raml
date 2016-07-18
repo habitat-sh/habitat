@@ -1,167 +1,260 @@
-#%RAML 1.0
+#%RAML 0.8
+---
 title: Depot API
 version: v1
-baseUri: http://api.samplehost.com
-# in alphabetical order
-/origins:
-  /{origin}:
-    /keys:
-      get:
-        description: Return a list of key revisions for an organization.
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  [
-                    {
-                      "origin": "core",
-                      "revision": "20160423193732",
-                      "location": "/origins/core/keys/20160423193732"
-                    },
-                    {
-                      "origin": "core",
-                      "revision": "20160423193733",
-                      "location": "/origins/core/keys/20160423193733"
-                    }
-                  ]
-      /{revision}:
-          get:
-            description: Get a key revision for a specific origin
-            responses:
-              200:
-                body:
-                  text/plain:
+
+baseUri: https://{rootUri}/{version}
+baseUriParameters:
+    rootUri:
+        description: |
+            The root URI for the particular installation of Builder
+        example: localhost:9636
+mediaType: application/json
+schemas:
+    - origin: |
+        {
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "required": false
+                },
+                "name": {
+                    "type": "string",
+                    "required": false
+                },
+                "owner_id": {
+                    "type": "string",
+                    "required": false
+                }
+            }
+        }
+securitySchemes:
+    - oauth_2_0:
+        description: Builder supports OAuth 2.0 for authenticating all API requests.
+        type: OAuth 2.0
+        describedBy:
+            headers:
+                Authorization: &authorization
+                    description: Used to send a valid OAuth 2 access token.
                     example: |
-                      SIG-PUB-1
-                      core-20160423193745
+                        Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42
+            responses:
+                401: &resp401
+                    description: |
+                        Bad or expired token. To fix, you should re-authenticate the user.
+                403: &resp403
+                    description: |
+                        Bad OAuth request. Regenerate your token and try again.
+        settings:
+            authorizationUri: https://{rootUri}/oauth2/authorize
+            accessTokenUri: https://{rootUri}/oauth2/token
+            authorizationGrants: [ token ]
 
-                      Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
-          post:
-            description: Upload a new key revision for an origin
-            body:
-              text/plain:
+/origins:
+    post:
+        description: Create a new origin
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: origin
                 example: |
-                  SIG-PUB-1
-                  core-20160423193745
-
-                  Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
-
-/pkgs:
-  /{origin}:
-    get:
-      description: List packages for an origin
-      responses:
-        200:
-        400:
-        404:
-        500:
-    /{pkg}:
-      description: TODO
-      get:
-        description: TODO
+                    {
+                        "name": "reset",
+                    }
         responses:
-          200:
-          400:
-          404:
-          500:
-      /latest:
-        get:
-          description: TODO
-          responses:
             200:
-            404:
-            500:
-      /{version}:
+                body:
+                    application/json:
+                        schema: origin
+                        example: |
+                            {
+                                "id": 77732030103691265,
+                                "name": "reset",
+                                "owner_id": "77730215748435968"
+                            }
+    /{originId}:
         get:
-          description: TODO
-          responses:
-            200:
-            400:
-            404:
-            500:
-        /latest:
-          get:
-            responses:
-              200:
-              404:
-              500:
-        /{release}:
-          get:
-            responses:
-              200:
-              404:
-              500:
-          post:
-            responses:
-              200:
-              400:
-              422:
-              409:
-          /download:
+            body:
+                application/json:
+                    schema: origin
+                    example: |
+                        {
+                            "id": 77732030103691265,
+                            "name": "reset",
+                            "owner_id": "77730215748435968"
+                        }
+        /keys:
             get:
-              responses:
+                description: Return a list of key revisions for an organization.
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    [
+                                        {
+                                            "origin": "core",
+                                            "revision": "20160423193732",
+                                            "location": "/origins/core/keys/20160423193732"
+                                        },
+                                        {
+                                            "origin": "core",
+                                            "revision": "20160423193733",
+                                            "location": "/origins/core/keys/20160423193733"
+                                        }
+                                    ]
+            /{revision}:
+                get:
+                    description: Get a key revision for a specific origin
+                    responses:
+                        200:
+                            body:
+                                text/plain:
+                                    example: |
+                                        SIG-PUB-1
+                                        core-20160423193745
+
+                                        Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+                post:
+                    description: Upload a new key revision for an origin
+                    securedBy: [oauth_2_0]
+                    body:
+                        text/plain:
+                            example: |
+                                SIG-PUB-1
+                                core-20160423193745
+
+                                Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+        /users:
+            get:
+                description: List all members of an origin
+                responses:
+                    200:
+                        body:
+                            application/json:
+                                example: |
+                                    {
+                                        "members": [
+                                            "reset"
+                                        ],
+                                        "origin_id": "77731431660388352"
+                                    }
+/pkgs:
+    /{origin}:
+        get:
+            description: List packages for an origin
+            responses:
                 200:
                 400:
-                500:
-/channels:
-  get:
-    description: List all channels
-    responses:
-      200:
-        body:
-          application/json:
-            example: |
-              {}
-  /{channelId}:
-    /pkgs:
-      /{origin}:
-        get:
-          description: List packages for an origin
-          responses:
-            200:
-              description: Return a list of packages for an origin
-            400:
-              description: Origin not supplied
-            404:
-              description: Origin does not exist
-            500:
-              description: Datastore error
-        /{pkg}:
-          get:
-            description: TODO
-            responses:
-              200:
-                description: Return a list of packages for an origin
-              400:
-                description: Origin not supplied
-              404:
-                description: Origin does not exist
-              500:
-                description: Datastore error
-          /latest:
-            get:
-              responses:
-                200:
                 404:
                 500:
-          /{version}:
+        /{name}:
             get:
-            /latest:
-              get:
+                description: TODO
                 responses:
-                  200:
-                  404:
-                  500:
-            /{release}:
-              get:
-                responses:
-                  200:
-                  404:
-                  500:
-              /promote:
-                post:
-                  responses:
                     200:
+                    400:
                     404:
                     500:
+            /latest:
+                get:
+                    description: TODO
+                    responses:
+                        200:
+                        404:
+                        500:
+            /{version}:
+                get:
+                    description: TODO
+                    responses:
+                        200:
+                        400:
+                        404:
+                        500:
+                /latest:
+                    get:
+                        responses:
+                            200:
+                            404:
+                            500:
+                /{release}:
+                    get:
+                        responses:
+                            200:
+                            404:
+                            500:
+                    post:
+                        responses:
+                            200:
+                            400:
+                            422:
+                            409:
+                    /download:
+                        get:
+                            responses:
+                                200:
+                                400:
+                                500:
+/channels:
+    get:
+        description: List all channels
+        responses:
+            200:
+                body:
+                    application/json:
+                        example: |
+                            []
+    /{name}:
+        /pkgs:
+            /{origin}:
+                get:
+                    description: List packages for an origin
+                    responses:
+                        200:
+                            description: Return a list of packages for an origin
+                        400:
+                            description: Origin not supplied
+                        404:
+                            description: Origin does not exist
+                        500:
+                            description: Datastore error
+                /{pkg}:
+                    get:
+                        description: TODO
+                        responses:
+                            200:
+                                description: Return a list of packages for an origin
+                            400:
+                                description: Origin not supplied
+                            404:
+                                description: Origin does not exist
+                            500:
+                                description: Datastore error
+                    /latest:
+                        get:
+                            responses:
+                                200:
+                                404:
+                                500:
+                        /{version}:
+                            get:
+                                responses:
+                                    200:
+                            /latest:
+                                get:
+                                    responses:
+                                        200:
+                                        404:
+                                        500:
+                                /{release}:
+                                    get:
+                                        responses:
+                                            200:
+                                            404:
+                                            500:
+                                    /promote:
+                                        post:
+                                            responses:
+                                                200:
+                                                404:
+                                                500:

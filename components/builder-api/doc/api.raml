@@ -1,0 +1,258 @@
+#%RAML 0.8
+---
+title: Builder API
+version: v1
+
+baseUri: https://{rootUri}/{version}
+baseUriParameters:
+    rootUri:
+        description: |
+            The root URI for the particular installation of Builder
+        example: app.habitat.sh, willem.habitat.sh, localhost:9636
+mediaType: application/json
+schemas:
+    - job: |
+        {
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "required": true
+                },
+                "state": {
+                    "type": "integer",
+                    "required": true
+                }
+            }
+        }
+    - jobCreate: |
+        {
+            "properties":  {
+                "project_id": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
+    - project: |
+        {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "plan_path": {
+                    "type": "string",
+                    "required": true
+                },
+                "vcs": {
+                    "type": "object",
+                    "required": true,
+                    "properties": {
+                        "type": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "url": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        }
+    - projectCreate: |
+        {
+            "properties": {
+                "origin": {
+                    "type": "string",
+                    "required": true
+                },
+                "plan_path": {
+                    "type": "string",
+                    "required": true
+                },
+                "github": {
+                    "type": "object",
+                    "required": true,
+                    "properties": {
+                        "organization": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "repo": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        }
+securitySchemes:
+    - oauth_2_0:
+        description: Builder supports OAuth 2.0 for authenticating all API requests.
+        type: OAuth 2.0
+        describedBy:
+            headers:
+                Authorization: &authorization
+                    description: Used to send a valid OAuth 2 access token.
+                    example: |
+                        Authorization: Bearer 0b79bab50daca910b000d4f1a2b675d604257e42
+            responses:
+                401: &resp401
+                    description: |
+                        Bad or expired token. To fix, you should re-authenticate the user.
+                403: &resp403
+                    description: |
+                        Bad OAuth request. Regenerate your token and try again.
+        settings:
+            authorizationUri: https://{rootUri}/oauth2/authorize
+            accessTokenUri: https://{rootUri}/oauth2/token
+            authorizationGrants: [ token ]
+
+/status:
+    get:
+        description: Returns the health of the service
+        responses:
+            200:
+                description: Service is healthy
+            500:
+                description: Server fault
+            503:
+                description: Service temporarily unavailable
+/authenticate/{code}:
+    get:
+        responses:
+            200:
+                body:
+                    application/json:
+                        example: |
+                            {
+                                "token": "0b79bab50daca910b000d4f1a2b675d604257e42",
+                                "email": "reset@chef.io",
+                                "name": "reset",
+                                "id": 73089155726360582
+                            }
+/jobs:
+    post:
+        description: Create a new job for the given project
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: jobCreate
+                example: |
+                    {
+                        "project_id": "core/nginx",
+                    }
+        responses:
+            201:
+                body:
+                    application/json:
+                        example: |
+                            {
+                                "id": 73089155726360582,
+                                "state": 0
+                            }
+            400:
+                description: Received a malformed JSON body
+            404:
+                description: Project does not exist with corresponding projectId
+            422:
+                description: Invalid or missing projectId in body
+    /{jobId}:
+        get:
+            description: Get the status of the given job
+            responses:
+                200:
+                    body:
+                        application/json:
+                            schema: job
+                            example: |
+                                {
+                                    "id": 73089155726360582,
+                                    "state": 0
+                                }
+                400:
+                    description: Received a jobId that was not a number
+/user:
+    /invitations:
+        get:
+            securedBy: [oauth_2_0]
+    /{invitationId}:
+        put:
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Invitation successfully accepted
+    /origins:
+        get:
+            securedBy: [oauth_2_0]
+/projects:
+    post:
+        description: |
+            Creates a new project for building a Habitat plan scoped to the given origin. The
+            resulting project will be created with an identifier containing the origin and name
+            of the project the plan is building separated by a forward slash (i.e. `core/nginx`).
+        securedBy: [oauth_2_0]
+        body:
+            application/json:
+                schema: projectCreate
+                example: |
+                    {
+                        "origin": "core",
+                        "plan_path": "components/builder-api/plan.sh",
+                        "github": {
+                            "organization": "habitat-sh",
+                            "repo": "habitat"
+                        }
+                    }
+        responses:
+            201:
+                description: Project created successfully
+                body:
+                    application/json:
+                        schema: project
+                        example: |
+                            {
+                                "id": "core/builder-api",
+                                "plan_path": "components/builder-api/plan.sh",
+                                "vcs": {
+                                    "type": "git",
+                                    "url": "https://github.com/habitat-sh/habitat.git"
+                                }
+                            }
+            400:
+                description: Received a malformed JSON body
+            422:
+                description: |
+                    The request body contained missing or invalid values or the file at the given
+                    location was unreadable or did not contain a valid plan.
+
+    /{origin}/{name}:
+        get:
+            description: Return the project matching the given ID
+            responses:
+                200:
+                    body:
+                        application/json:
+                            schema: project
+                            example: |
+                                {
+                                    "id": "core/builder-api",
+                                    "plan_path": "components/builder-api/plan.sh",
+                                    "vcs": {
+                                        "type": "git",
+                                        "url": "https://github.com/habitat-sh/habitat.git"
+                                    }
+                                }
+        put:
+            description: Update the project matching the given ID
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Project updated successfully
+        delete:
+            description: Destroys the project matching the given ID
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Project deleted successfully
