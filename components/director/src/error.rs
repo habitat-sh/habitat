@@ -35,7 +35,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::AddrParseError(ref e) => format!("Can't parse IP address {}", e),
-            Error::DirectorError(ref e) => format!("Director error {}", e),
+            Error::DirectorError(ref e) => format!("Director error: {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::NoServices => "No services specified in configuration".to_string(),

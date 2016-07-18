@@ -102,6 +102,17 @@
 //!
 //! [cfg.services.core.rngd.foo.someorg]
 //! start = "--permanent-peer --foo=bar"
+//!
+//! Environment variables can be specified for each service in a TOML
+//! table. Only TOML string values are supported as environment variables.
+//!
+//! ```
+//! [cfg.services.core.someservice.somegroup.someorg]
+//! start = "--permanent-peer"
+//! [cfg.services.core.someservice.somegroup.someorg.env]
+//! JAVA_HOME="/hab/pkgs/core/jdk/foo"
+//! CLASSPATH="/hab/pkgs/core/bar/jars"
+//!
 //! ```
 //! ### Signal handling
 //!

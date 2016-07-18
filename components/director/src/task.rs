@@ -24,8 +24,6 @@ use std::thread;
 use libc::{pid_t, c_int};
 use time::{Duration, SteadyTime};
 
-
-
 use error::Result;
 use hcore;
 use hcore::package::PackageIdent;
@@ -193,12 +191,19 @@ impl Task {
                         .map_or("None".to_string(), |v| v.to_string()),
                       );
 
-            let mut child = try!(Command::new(&self.exec_ctx.sup_path)
-                .args(&args)
+            let mut cmd = Command::new(&self.exec_ctx.sup_path);
+            // rebind to increase lifetime and make the compiler happy
+            let mut cmd = cmd.args(&args)
                 .stdin(Stdio::null())
                 .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn());
+                .stderr(Stdio::piped());
+
+            for (k, v) in &self.service_def.env {
+                cmd.env(&k, &v);
+                debug!("ENV {}={}", &k, &v);
+            }
+
+            let mut child = try!(cmd.spawn());
             self.pid = Some(child.id());
 
             outputln!("Started {} [gossip {}, http API: {}, peer: {}, pid: {}]",
