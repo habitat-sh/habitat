@@ -333,10 +333,12 @@ fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
                         // Write the configuration, and restart if needed
                         if try!(service_config.write(&package)) {
                             try!(package.copy_run(&service_config));
-                            try!(package.reconfigure(&service_config));
                             outputln!("Restarting because the service config was updated via the \
                                        census");
-                            restart_process = true;
+                            let has_reconfigure = try!(package.reconfigure(&service_config));
+                            if !has_reconfigure {
+                                restart_process = true;
+                            }
                         }
                     }
                 }
@@ -380,8 +382,8 @@ fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
                 service_config.cfg(&package);
                 if try!(service_config.write(&package)) {
                     try!(package.copy_run(&service_config));
-                    let existed = try!(package.reconfigure(&service_config));
-                    if !existed {
+                    let has_reconfigure = try!(package.reconfigure(&service_config));
+                    if !has_reconfigure {
                         restart_process = true;
                     }
                 }
