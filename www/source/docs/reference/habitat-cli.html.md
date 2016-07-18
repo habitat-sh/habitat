@@ -377,6 +377,28 @@ Signs an archive with an origin key, generating a Habitat Artifact
     <DEST>      The destination path to the signed Habitat Artifact (ex:
                 /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 
+<h2 id="hab-pkg-upload" class="anchor">hab pkg upload</h2>
+Uploads a local Habitat Artifact to a Depot
+
+**USAGE**
+
+    hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
+
+**FLAGS**
+
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**OPTIONS**
+
+    -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
+    -u, --url <DEPOT_URL>      Use a specific Depot URL
+
+**ARGS**
+
+    <HART_FILE>...    One or more filepaths to a Habitat Artifact (ex:
+                      /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+
 <h2 id="hab-pkg-verify" class="anchor">hab pkg verify</h2>
 Verifies a Habitat Artifact with an origin key
 
@@ -413,7 +435,7 @@ Outputs the latest ring key contents to stdout
 Generates a Habitat ring key
 
 **USAGE**
-    
+
     hab ring key generate [FLAGS] <RING>
 
 **FLAGS**
