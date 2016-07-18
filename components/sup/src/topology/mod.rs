@@ -46,13 +46,14 @@ use error::{Result, SupError};
 use config::Config;
 use service_config::ServiceConfig;
 use sidecar;
-use supervisor::Supervisor;
+use supervisor::{RuntimeConfig, Supervisor};
 use gossip;
 use gossip::rumor::{Rumor, RumorList};
 use gossip::member::MemberList;
 use election::ElectionList;
 use time::SteadyTime;
 use util::signals;
+use util::users as hab_users;
 use config::UpdateStrategy;
 
 static LOGKEY: &'static str = "TP";
@@ -129,6 +130,13 @@ impl<'a> Worker<'a> {
     pub fn new(package: Package, topology: String, config: &'a Config) -> Result<Worker<'a>> {
         let mut pkg_updater = None;
         let package_name = package.name.clone();
+
+        let (svc_user, svc_group) = try!(hab_users::get_user_and_group(&package.pkg_install));
+        outputln!("Child process will run as user={}, group={}",
+                  &svc_user,
+                  &svc_group);
+        let runtime_config = RuntimeConfig::new(svc_user, svc_group);
+
         let package_exposes = package.exposes().clone();
         let package_port = package_exposes.first().map(|e| e.clone());
         let package_ident = package.ident().clone();
@@ -173,7 +181,7 @@ impl<'a> Worker<'a> {
         let service_config_lock = Arc::new(RwLock::new(service_config));
         let service_config_lock_1 = service_config_lock.clone();
 
-        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident)));
+        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident, runtime_config)));
 
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();
@@ -355,7 +363,11 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     gossip_file_list.needs_write()
                 };
                 if needs_write {
-                    try!(gossip_file_list.write())
+                    let supervisor = worker.supervisor.read().unwrap();
+                    let svc_user = &supervisor.runtime_config.svc_user;
+                    let svc_group = &supervisor.runtime_config.svc_group;
+
+                    try!(gossip_file_list.write(svc_user, svc_group))
                 } else {
                     (false, false)
                 }

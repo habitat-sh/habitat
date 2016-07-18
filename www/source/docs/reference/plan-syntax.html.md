@@ -408,8 +408,26 @@ svc_static_path
 svc_var_path
 : The location of any variable state data for the Habitat service.
 
+svc_user
+: The value of pkg_svc_user specified in a plan.
+
+svc_group
+: The value of pkg_svc_group specified in a plan.
+
+svc_user_default
+: The default user determined by the Habitat supervisor. `svc_user_default` will contain one of the following values, tested in order:
+- `svc_user` if specified in the plan
+- `hab` if the user exists
+- the current user id
+
+svc_group_default
+: The default group determined by the Habitat supervisor. `svc_group_default` will contain one of the following values, tested in order:
+- `svc_group` if specified in the plan
+- `hab` if the group exists
+- the effective group id
+
 ### cfg
-These are settings defined in your templatized configuration file. The values for those settings are pulled from the default.toml file included in your package.
+These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package. 
 
 ***
 

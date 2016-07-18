@@ -36,6 +36,7 @@ openssl = "*"
 lazy_static = "*"
 handlebars = "*"
 wonder = "*"
+users = "*"
 
 [dependencies.habitat_core]
 path = "../core"

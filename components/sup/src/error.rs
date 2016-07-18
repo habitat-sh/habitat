@@ -127,6 +127,7 @@ pub enum Error {
     NulError(ffi::NulError),
     PackageArchiveMalformed(String),
     PackageNotFound(package::PackageIdent),
+    Permissions(String),
     RemotePackageNotFound(package::PackageIdent),
     SignalFailed,
     SignalNotifierStarted,
@@ -152,6 +153,7 @@ impl fmt::Display for SupError {
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
+            Error::Permissions(ref err) => format!("{}", err),
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
             Error::HandlebarsTemplateFileError(ref err) => format!("{:?}", err),
@@ -275,6 +277,7 @@ impl error::Error for SupError {
                 "Package archive was unreadable or had unexpected contents"
             }
             Error::PackageNotFound(_) => "Cannot find a package",
+            Error::Permissions(_) => "File system permissions error",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
