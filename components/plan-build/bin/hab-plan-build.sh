@@ -1316,6 +1316,11 @@ fix_interpreter() {
     fi
 
     for t in ${targets}; do
+      if [[ ! -f $t ]]; then
+        debug "Ignoring non-file target: ${t}"
+        continue
+      fi
+
       build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
       sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
     done
