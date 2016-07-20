@@ -2051,7 +2051,7 @@ do_strip() {
 # Default implementation for the `do_strip()` phase.
 do_default_strip() {
   build_line "Stripping unneeded symbols from binaries and libraries"
-  find $pkg_prefix -type f -perm u+w -print0 2> /dev/null \
+  find $pkg_prefix -type f -perm -u+w -print0 2> /dev/null \
     | while read -rd '' f; do
       case "$(file -bi "$f")" in
         *application/x-executable*) strip --strip-all "$f";;
