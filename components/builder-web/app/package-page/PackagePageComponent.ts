@@ -66,7 +66,7 @@ import {fetchPackage} from "../actions/index";
                 </div>
                 <div class="hab-package-config" *ngIf="package.config">
                     <h3>Configuration</h3>
-                    <pre> {{package.config}}</pre>
+                    <pre>{{package.config}}</pre>
                 </div>
             </div>
         </div>
