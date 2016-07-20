@@ -2,6 +2,7 @@
 Description=Habitat Director
 
 [Service]
+ExecStartPre=/bin/bash -c "/bin/systemctl set-environment SSL_CERT_FILE=$(hab pkg path core/cacerts)/ssl/cert.pem"
 ExecStart=/bin/hab-director start -c /hab/etc/director/config.toml
 
 [Install]
