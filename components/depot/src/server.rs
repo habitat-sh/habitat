@@ -1142,6 +1142,9 @@ fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Res
     // and the newer Hyper 0.9.4.
     // TODO: change back to set() once Iron updates to Hyper 0.9.x.
     response.headers.set_raw("ETag", vec![pkg.get_checksum().to_string().into_bytes()]);
+    response.headers.set(ContentType(Mime(TopLevel::Application,
+                                          SubLevel::Json,
+                                          vec![(Attr::Charset, Value::Utf8)])));
     if should_cache {
         do_cache_response(&mut response);
     } else {
