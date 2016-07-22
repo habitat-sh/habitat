@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     npm \
     pkg-config \
     protobuf-compiler \
+    redis-server \
     sudo \
     tmux \
     vim \
