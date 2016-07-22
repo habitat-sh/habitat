@@ -130,6 +130,13 @@ on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
 1. Sign and commit your change
 1. Push your feature branch to GitHub, and create a Pull Request
 
+## Running the Builder API locally
+
+Run `make api-shell`. A shell will start with the API services running. The API
+will be available on port 9636 of your Docker host.
+
+Inside the shell, run the `api` command to manage the API server processes.
+
 ### Signing Your Commits
 
 This project utilizes a Developer Certificate of Origin (DCO) to ensure that each commit was written by the
