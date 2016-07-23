@@ -20,7 +20,7 @@ use std::str::{self, FromStr};
 
 use libarchive::writer;
 use libarchive::reader::{self, Reader};
-use libarchive::archive::{Entry, ReadFilter, ReadFormat};
+use libarchive::archive::{Entry, ReadFilter, ReadFormat, ExtractOption, ExtractOptions};
 use regex::Regex;
 
 use error::{Error, Result};
@@ -186,6 +186,9 @@ impl PackageArchive {
         try!(builder.support_filter(ReadFilter::Xz));
         let mut reader = try!(builder.open_stream(tar_reader));
         let writer = writer::Disk::new();
+        let mut extract_options = ExtractOptions::new();
+        extract_options.add(ExtractOption::Time);
+        try!(writer.set_options(&extract_options));
         try!(writer.set_standard_lookup());
         try!(writer.write(&mut reader, Some(root.to_string_lossy().as_ref())));
         try!(writer.close());
