@@ -170,6 +170,13 @@ pub fn get() -> App<'static, 'static> {
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
+            (@subcommand provides =>
+                (about: "Search installed Habitat packages for a given file")
+                (@arg FILE: +required +takes_value
+                    "File name to find")
+                (@arg FULL_RELEASES: -r "Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)")
+                (@arg FULL_PATHS: -p "Show full path to file")
+            )
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
                 (aliases: &["s", "si", "sig"])

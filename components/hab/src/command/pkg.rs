@@ -290,6 +290,71 @@ pub mod path {
     }
 }
 
+pub mod provides {
+    use std::collections::HashSet;
+    use std::path::Path;
+
+    use walkdir::WalkDir;
+
+    use error::{Error, Result};
+    use hcore::fs::PKG_PATH;
+
+    pub fn start(filename: &str,
+                 fs_root_path: &Path,
+                 full_releases: bool,
+                 full_path: bool)
+                 -> Result<()> {
+        let mut found = HashSet::new();
+        // count the # of directories in the path to the package dir
+        // ex: /hab/pkg == 2
+        let prefix_count = Path::new(PKG_PATH).components().count();
+        // the location of installed packages
+        let pkg_root = fs_root_path.join(PKG_PATH);
+
+        // recursively walk the directories in pkg_root looking for matches
+        for entry in WalkDir::new(pkg_root).into_iter().filter_map(|e| e.ok()) {
+            if let Some(f) = entry.path().file_name().and_then(|f| f.to_str()) {
+
+                if filename == f {
+                    let mut comps = entry.path().components();
+
+                    // skip prefix_count segments of the path
+                    let _ = try!(comps.nth(prefix_count).ok_or(Error::FileNotFound(f.to_string())));
+
+                    let segments = if full_releases {
+                        // take all 4 segments of the path
+                        // ex: core/busybox-static/1.24.2/20160708162350
+                        comps.take(4)
+                    } else {
+                        // only take 2 segments of the path
+                        // ex: core/busybox-static
+                        comps.take(2)
+                    };
+
+                    let mapped_segs: Vec<String> =
+                        segments.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
+                    let pkg_name = mapped_segs.join("/");
+
+                    // if we show the full path, then don't bother stuffing
+                    // the result into the found HashSet, as we want to
+                    // print out each path we find.
+                    if full_path {
+                        println!("{}: {}", &pkg_name, &entry.path().to_string_lossy());
+                    } else {
+                        found.insert(pkg_name);
+                    }
+                }
+            }
+        }
+        // if we're not using full_path, then using a set will filter out
+        // duplicates. This shows the filtered set of matches
+        for entry in &found {
+            println!("{}", entry);
+        }
+        Ok(())
+    }
+}
+
 pub mod sign {
     use std::path::Path;
 

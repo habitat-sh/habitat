@@ -22,6 +22,7 @@ The commands and sub-commands for the Habitat CLI (`hab`) are listed below.
 - [hab pkg hash](#hab-pkg-hash)
 - [hab pkg install](#hab-pkg-install)
 - [hab pkg path](#hab-pkg-path)
+- [hab pkg provides](#hab-pkg-provides)
 - [hab pkg sign](#hab-pkg-sign)
 - [hab pkg upload](#hab-pkg-upload)
 - [hab pkg verify](#hab-pkg-verify)
@@ -354,6 +355,24 @@ Prints the path to a specific installed release of a package
 **ARGS**
 
     <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+
+<h2 id="hab-pkg-provides" class="anchor">hab pkg provides</h2>
+Search installed Habitat packages for a given file.
+
+**USAGE**
+
+    hab pkg provides [FLAGS] <FILE>
+
+**FLAGS**
+
+    -p               Show full path to file
+    -r               Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+**ARGS**
+
+    <FILE>    File name to find
 
 <h2 id="hab-pkg-sign" class="anchor">hab pkg sign</h2>
 Signs an archive with an origin key, generating a Habitat Artifact

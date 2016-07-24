@@ -32,6 +32,7 @@ extern crate url;
 // Temporary depdency for gossip/rumor injection code duplication.
 extern crate utp;
 extern crate uuid;
+extern crate walkdir;
 
 mod analytics;
 mod cli;
@@ -146,6 +147,7 @@ fn start() -> Result<()> {
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
+                ("provides", Some(m)) => try!(sub_pkg_provides(m)),
                 ("sign", Some(m)) => try!(sub_pkg_sign(m)),
                 ("upload", Some(m)) => try!(sub_pkg_upload(m)),
                 ("verify", Some(m)) => try!(sub_pkg_verify(m)),
@@ -446,6 +448,18 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
 
     command::pkg::path::start(&ident, &fs_root_path)
+}
+
+fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Path::new(&fs_root);
+    // FILE is requied, should be safe to unwrap
+    let filename = m.value_of("FILE").unwrap();
+
+    let full_releases = m.is_present("FULL_RELEASES");
+    let full_paths = m.is_present("FULL_PATHS");
+
+    command::pkg::provides::start(&filename, &fs_root_path, full_releases, full_paths)
 }
 
 fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
