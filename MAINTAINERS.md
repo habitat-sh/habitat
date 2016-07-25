@@ -86,3 +86,22 @@ tutorials and reference materials.
 
 * [Ryan Keairns](https://github.com/ryankeairns)
 * [Brian Scott](https://github.com/bscott)
+
+### Core Plans
+
+The core Habitat plans are plans maintained by the Habitat core plans
+maintainers. The plans are located in the
+[habitat-sh/core-plans](https://github.com/habitat-sh/core-plans) repository.
+
+#### Lieutenant
+
+* [Adam Jacob](https://github.com/adamhjk)
+
+#### Maintainers
+
+* [Elliott Davis](https://github.com/elliott-davis)
+* [Fletcher Nichol](https://github.com/fnichol)
+* [Dave Parfitt](https://github.com/metadave)
+* [Nathan L Smith](https://github.com/smith)
+* [Joshua Timberman](https://github.com/jtimberman)
+* [Jamie Winsor](https://github.com/reset)
