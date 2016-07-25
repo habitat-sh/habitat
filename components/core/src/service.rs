@@ -22,7 +22,7 @@ use error::Error;
 
 lazy_static! {
     static ref FROM_STR_RE: Regex =
-        Regex::new(r"\A(?P<service>[^.]+)\.(?P<group>[^.@]+)(@(?P<organization>.+))?\z").unwrap();
+        Regex::new(r"\A(?P<service>[-_a-z\d]+)\.(?P<group>[-_a-z\d]+)(@(?P<organization>[-_a-z\d]+))?\z").unwrap();
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, RustcDecodable, RustcEncodable)]
@@ -87,7 +87,7 @@ impl FromStr for ServiceGroup {
 #[cfg(test)]
 mod test {
     use std::str::FromStr;
-
+    use regex::Regex;
     use super::ServiceGroup;
 
     #[test]
@@ -183,4 +183,73 @@ mod test {
         assert!("" == ServiceGroup::from_str("foo.bar").unwrap().dotted_org_or_empty());
         assert!(".baz" == ServiceGroup::from_str("foo.bar@baz").unwrap().dotted_org_or_empty());
     }
+
+    quickcheck! {
+        // This quickcheck property generates random strings to test against service group
+        // parsing. I use regexes etc to detect if parsing _should_ fail when passed to
+        // ServiceGroup::from_str(). FROM_STR_RE has been updated to reflect bugs I found :-)
+        fn prop_service_group_from_str(service: String, group: String, use_org: bool, org: String) -> bool {
+            // MUST match regex for service capture group
+            let service_re = Regex::new(r"[-_a-z\d]+").unwrap();
+            // MUST match regex for group capture group
+            let group_re = Regex::new(r"[-_a-z\d]+").unwrap();
+            // MUST match regex for organization capture group
+            let org_re = Regex::new(r"[-_a-z\d]+").unwrap();
+
+            let s = service.as_str();
+            let g = group.as_str();
+            let o = org.as_str();
+
+            let has_empties = if use_org {
+                s.is_empty() || g.is_empty() || o.is_empty() ||
+                s.chars().count() == 0 || g.chars().count() == 0 || o.chars().count() == 0
+            } else {
+                s.is_empty() || g.is_empty() ||
+                s.chars().count() == 0 || g.chars().count() == 0
+            };
+
+            let ws_regex = Regex::new(r"\s*").unwrap();
+
+            let has_ws = if use_org {
+                ws_regex.is_match(s) || ws_regex.is_match(g) || ws_regex.is_match(o)
+            } else {
+                ws_regex.is_match(s) || ws_regex.is_match(g)
+            };
+
+            let has_ats = if use_org {
+                s.find("@").is_some() || g.find("@").is_some() || o.find("@").is_some()
+            } else {
+                s.find("@").is_some() || g.find("@").is_some()
+            };
+
+            let invalid_sg_strings = if use_org {
+                !service_re.is_match(&service) || !group_re.is_match(&group) || !org_re.is_match(&org) ||
+                    o.ends_with("@")
+            } else {
+                !service_re.is_match(&service) || !group_re.is_match(&group)
+            };
+
+            // we can't use format here, because some strings may come in with { or }
+            let sg = if use_org {
+                service.clone() + &group
+            } else {
+                let o1 = service.clone() + &group;
+                let o2 = o1 + "@";
+                o2 + &org
+            };
+
+            let dots:Vec<&str> = sg.matches(".").collect();
+            let one_dot = dots.len() == 1;
+
+            let should_fail = has_empties || invalid_sg_strings || !one_dot || has_ats || has_ws;
+
+            let result = if should_fail {
+                ServiceGroup::from_str(&sg).is_err()
+            } else {
+                ServiceGroup::from_str(&sg).is_ok()
+            };
+            result
+        }
+    }
+
 }
