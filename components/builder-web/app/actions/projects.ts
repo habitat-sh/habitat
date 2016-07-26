@@ -14,6 +14,7 @@
 
 import * as fakeApi from "../fakeApi";
 import {Observable} from "rxjs";
+import {BuilderApiClient} from "../BuilderApiClient";
 import {addNotification} from "./notifications";
 import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
 import {requestRoute} from "./router";
@@ -32,16 +33,22 @@ export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
 export const SET_PROJECTS = "SET_PROJECTS";
 
-export function addProject(project) {
+export function addProject(project: Object, token: string) {
     return dispatch => {
-        // TODO: put this back. Removed the method when the builder api client
-        //       underwhen some changes
+        new BuilderApiClient(token).createProject(project).then(response => {
+            dispatch(addNotification({
+                title: "Project created",
+                body: `Created ${project["name"]}.`,
+                type: SUCCESS,
+            }));
+            console.log(response);
+        }).catch(error => {
             dispatch(addNotification({
                 title: "Failed to Create project",
-                body: "",
+                body: error.message,
                 type: DANGER,
             }));
-
+        });
     };
 }
 

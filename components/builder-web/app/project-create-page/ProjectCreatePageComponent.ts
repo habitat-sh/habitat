@@ -79,7 +79,7 @@ import {requireSignIn} from "../util";
                                           id="plan"
                                           [isAvailable]="doesFileExist"
                                           [maxLength]="false"
-                                          name="plan"
+                                          name="plan_path"
                                           notAvailableMessage="does not exist in repository"
                                           [pattern]="false"
                                           value="/plan.sh">
@@ -108,7 +108,7 @@ export class ProjectCreatePageComponent implements OnInit {
             repo: [this.repo || "", Validators.required],
             origin: [this.store.getState().origins.current.name,
                 Validators.required],
-            plan: ["/plan.sh", Validators.required],
+            plan_path: ["/plan.sh", Validators.required],
         });
 
         this.doesFileExist = function (path) {
@@ -141,8 +141,16 @@ export class ProjectCreatePageComponent implements OnInit {
         return (this.ownerAndRepo || "").split("/")[1];
     }
 
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
     private addProject(values) {
-        this.store.dispatch(addProject(values));
+        // Change the format to match what the server wants
+        values.vcs = { url: values.repo };
+        delete values.repo;
+
+        this.store.dispatch(addProject(values, this.token));
         return false;
     }
 
@@ -153,7 +161,7 @@ export class ProjectCreatePageComponent implements OnInit {
         // load. Doing this later in the lifecycle causes a changed after it was
         // checked error.
         setTimeout(() => {
-            this.form.controls["plan"].markAsDirty();
+            this.form.controls["plan_path"].markAsDirty();
             this.form.controls["name"].markAsDirty();
          } , 1000);
     }

@@ -68,6 +68,22 @@ export class BuilderApiClient {
         });
     }
 
+    public createProject(project) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects`, {
+                body: JSON.stringify(project),
+                headers: this.headers,
+                method: "POST",
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
     public getMyOriginInvitations() {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/user/invitations`, {
