@@ -15,7 +15,7 @@
 import {Component, OnInit} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
 import {RouteParams, RouterLink} from "angular2/router";
-import {addProject} from "../actions/index";
+import {addProject, fetchMyOrigins} from "../actions/index";
 import {AppStore} from "../AppStore";
 import {CheckingInputComponent} from "../CheckingInputComponent";
 import {GitHubApiClient} from "../GitHubApiClient";
@@ -115,7 +115,7 @@ export class ProjectCreatePageComponent implements OnInit {
         private routeParams: RouteParams, private store: AppStore) {
         this.form = formBuilder.group({
             repo: [this.repo || "", Validators.required],
-            origin: [this.store.getState().origins.current.name,
+            origin: [this.myOrigins.first(),
                 Validators.required],
             plan_path: ["/plan.sh", Validators.required],
         });
@@ -165,7 +165,7 @@ export class ProjectCreatePageComponent implements OnInit {
 
     public ngOnInit() {
         requireSignIn(this);
-
+        this.store.dispatch(fetchMyOrigins(this.token));
         // Wait a second to set the fields as dirty to do validation on page
         // load. Doing this later in the lifecycle causes a changed after it was
         // checked error.
