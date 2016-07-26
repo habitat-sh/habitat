@@ -311,11 +311,14 @@ pub mod provides {
         // the location of installed packages
         let pkg_root = fs_root_path.join(PKG_PATH);
 
+        let mut found_any = false;
+
         // recursively walk the directories in pkg_root looking for matches
         for entry in WalkDir::new(pkg_root).into_iter().filter_map(|e| e.ok()) {
             if let Some(f) = entry.path().file_name().and_then(|f| f.to_str()) {
 
                 if filename == f {
+                    found_any = true;
                     let mut comps = entry.path().components();
 
                     // skip prefix_count segments of the path
@@ -351,7 +354,11 @@ pub mod provides {
         for entry in &found {
             println!("{}", entry);
         }
-        Ok(())
+        if found_any {
+            Ok(())
+        } else {
+            Err(Error::ProvidesError(filename.to_string()))
+        }
     }
 }
 
