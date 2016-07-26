@@ -60,13 +60,21 @@ import {requireSignIn} from "../util";
                   </div>
                   <div class="name">
                       <label for="name">Project Name</label>
-                      <hab-checking-input autofocus=true
+                    <small>Must be unique, contain no spaces, and begin with a lowercase letter or number.</small>
+                    <small>
+                        Allowed characters include
+                        <em>a&thinsp;&ndash;&thinsp;z</em>,
+                        <em>0&thinsp;&ndash;&thinsp;9</em>,
+                        <em>_</em>, and <em>-</em>.
+                        No more than {{maxNameLength}} characters.
+                    </small>
+                    <hab-checking-input autofocus=true
                                           displayName="Name"
                                           [form]="form"
                                           id="name"
                                           [isAvailable]="false"
                                           name="name"
-                                          placeholder="Required. Max 40 characters."
+                                          placeholder="Required. Max {{maxNameLength}} characters."
                                           [value]="repo">
                       </hab-checking-input>
                   </div>
@@ -101,6 +109,7 @@ export class ProjectCreatePageComponent implements OnInit {
     private doesFileExist: Function;
     private form: ControlGroup;
     private isProjectAvailable: Function;
+    private maxNameLength: Number = 255;
 
     constructor(private formBuilder: FormBuilder,
         private routeParams: RouteParams, private store: AppStore) {
