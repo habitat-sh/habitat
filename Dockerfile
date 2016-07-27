@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libczmq-dev \
     man \
     musl-tools \
+    net-tools \
     npm \
     pkg-config \
     protobuf-compiler \
