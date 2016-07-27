@@ -53,30 +53,11 @@ import {requireSignIn} from "../util";
                       <label for="origin">Project Origin</label>
                       <select ngControl="origin"
                               id="origin">
+                          <option></option>
                           <option *ngFor="#origin of myOrigins">
                               {{origin.name}}
                           </option>
                       </select>
-                  </div>
-                  <div class="name">
-                      <label for="name">Project Name</label>
-                    <small>Must be unique, contain no spaces, and begin with a lowercase letter or number.</small>
-                    <small>
-                        Allowed characters include
-                        <em>a&thinsp;&ndash;&thinsp;z</em>,
-                        <em>0&thinsp;&ndash;&thinsp;9</em>,
-                        <em>_</em>, and <em>-</em>.
-                        No more than {{maxNameLength}} characters.
-                    </small>
-                    <hab-checking-input autofocus=true
-                                          displayName="Name"
-                                          [form]="form"
-                                          id="name"
-                                          [isAvailable]="false"
-                                          name="name"
-                                          placeholder="Required. Max {{maxNameLength}} characters."
-                                          [value]="repo">
-                      </hab-checking-input>
                   </div>
                   <div class="plan">
                       <label for="plan">Path to Plan file</label>
@@ -109,7 +90,6 @@ export class ProjectCreatePageComponent implements OnInit {
     private doesFileExist: Function;
     private form: ControlGroup;
     private isProjectAvailable: Function;
-    private maxNameLength: Number = 255;
 
     constructor(private formBuilder: FormBuilder,
         private routeParams: RouteParams, private store: AppStore) {
@@ -156,8 +136,12 @@ export class ProjectCreatePageComponent implements OnInit {
 
     private addProject(values) {
         // Change the format to match what the server wants
-        values.vcs = { url: values.repo };
+        values.github = {
+            organization: this.repoOwner,
+            repo: this.repo
+        };
         delete values.repo;
+        values.origin = values.origin.name;
 
         this.store.dispatch(addProject(values, this.token));
         return false;
@@ -171,7 +155,6 @@ export class ProjectCreatePageComponent implements OnInit {
         // checked error.
         setTimeout(() => {
             this.form.controls["plan_path"].markAsDirty();
-            this.form.controls["name"].markAsDirty();
          } , 1000);
     }
 }
