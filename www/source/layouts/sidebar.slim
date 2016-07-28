@@ -3,7 +3,7 @@
     .row
       .main-sidebar
           - if sidebar_layout == 'docs'
-            form.main-sidebar--search action="/docs/search" method="get"
+            form.main-sidebar--search action="/docs/search/" method="get"
               input type="text" placeholder="Search Documentation" name="q"
           ul.no-bullet
             - sidebar_data(sidebar_layout).each do |item|
