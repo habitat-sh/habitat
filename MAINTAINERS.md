@@ -45,6 +45,7 @@ Lieutenant and may have many maintainers.
 * [Joshua Timberman](https://github.com/jtimberman)
 * [Jamie Winsor](https://github.com/reset)
 * [Brian Scott](https://github.com/bscott)
+* [Josh Black](https://github.com/raskchanky)
 
 ### Habitat Builder Web Application
 
