@@ -15,9 +15,12 @@ matrix:
     sudo: false
     addons:
       apt:
+        sources:
+        - kalakris-cmake
         packages:
         - build-essential
         - ca-certificates
+        - cmake
         - curl
         - libbz2-dev
         - liblzma-dev
@@ -52,9 +55,12 @@ matrix:
     sudo: false
     addons:
       apt:
+        sources:
+        - kalakris-cmake
         packages:
         - build-essential
         - ca-certificates
+        - cmake
         - curl
         - libbz2-dev
         - liblzma-dev
@@ -91,9 +97,12 @@ matrix:
     sudo: false
     addons:
       apt:
+        sources:
+        - kalakris-cmake
         packages:
         - build-essential
         - ca-certificates
+        - cmake
         - curl
         - libbz2-dev
         - liblzma-dev
