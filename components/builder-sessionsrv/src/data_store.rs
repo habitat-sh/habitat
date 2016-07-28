@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::ops::Deref;
 use std::sync::Arc;
 
-use dbcache::{self, data_store, Bucket, ConnectionPool, ExpiringSet, IndexSet, InstaSet};
+use dbcache;
+use dbcache::data_store::*;
 use protocol::sessionsrv;
+use redis::{self, Commands, PipelineCommands};
 
 use config::Config;
 use error::Result;
@@ -23,20 +26,24 @@ use error::Result;
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
     pub accounts: AccountTable,
+    pub features: FeatureFlagsIndices,
     pub sessions: SessionTable,
 }
 
-impl data_store::Pool for DataStore {
+impl Pool for DataStore {
     type Config = Config;
 
     fn init(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
         let pool2 = pool.clone();
+        let pool3 = pool.clone();
         let accounts = AccountTable::new(pool1);
         let sessions = SessionTable::new(pool2);
+        let features = FeatureFlagsIndices::new(pool3);
         DataStore {
             pool: pool,
             accounts: accounts,
+            features: features,
             sessions: sessions,
         }
     }
@@ -106,6 +113,66 @@ impl InstaSet for AccountTable {
     }
 }
 
+pub struct FeatureFlagsIndices {
+    pool: Arc<ConnectionPool>,
+}
+
+impl FeatureFlagsIndices {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        FeatureFlagsIndices { pool: pool }
+    }
+
+    /// Return a list of granted feature flags for the given GitHub team.
+    pub fn flags(&self, team: u64) -> dbcache::Result<Vec<u32>> {
+        let conn = try!(self.pool.get());
+        let flags = try!(conn.smembers(Self::gh2ff_key(team)));
+        Ok(flags)
+    }
+
+    /// Grant a feature flag from a GitHub Team.
+    pub fn grant(&self, flag: u32, team: u64) -> dbcache::Result<()> {
+        let conn = try!(self.pool.get());
+        let gh2ff = Self::gh2ff_key(team);
+        let ff2gh = Self::ff2gh_key(flag);
+        try!(redis::transaction(conn.deref(), &[&gh2ff, &ff2gh], |txn| {
+            txn.sadd(&gh2ff, flag)
+                .ignore()
+                .sadd(&ff2gh, team)
+                .query(conn.deref())
+        }));
+        Ok(())
+    }
+
+    /// Revoke a feature flag from a GitHub Team.
+    pub fn revoke(&self, flag: u32, team: u64) -> dbcache::Result<()> {
+        let conn = try!(self.pool.get());
+        let gh2ff = Self::gh2ff_key(team);
+        let ff2gh = Self::ff2gh_key(flag);
+        try!(redis::transaction(conn.deref(), &[&gh2ff, &ff2gh], |txn| {
+            txn.srem(&gh2ff, flag)
+                .ignore()
+                .srem(&ff2gh, team)
+                .query(conn.deref())
+        }));
+        Ok(())
+    }
+
+    /// Return a list of GitHub teams granted the given feature flag.
+    pub fn teams(&self, flag: u32) -> dbcache::Result<Vec<u64>> {
+        let conn = try!(self.pool.get());
+        let teams = try!(conn.smembers(Self::ff2gh_key(flag)));
+        Ok(teams)
+    }
+
+    fn gh2ff_key(team: u64) -> String {
+        format!("gh2ff:idx:{}", team)
+    }
+
+    fn ff2gh_key(flag: u32) -> String {
+        format!("ff2gh:idx:{}", flag)
+    }
+}
+
 pub struct SessionTable {
     pool: Arc<ConnectionPool>,
 }
@@ -159,8 +226,6 @@ impl IndexSet for GitHub2AccountIdx {
     type Value = u64;
 }
 
-
-/// maps github usernames -> Account.id's
 struct GitHubUser2AccountIdx {
     pool: Arc<ConnectionPool>,
 }

@@ -18,8 +18,6 @@ use std::io;
 use std::result;
 
 use hab_core;
-use hab_net;
-use depot;
 use hyper;
 use protobuf;
 use rustc_serialize::json;
@@ -28,14 +26,13 @@ use zmq;
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
-    Depot(depot::Error),
     HabitatCore(hab_core::Error),
     HyperError(hyper::error::Error),
     HTTP(hyper::status::StatusCode),
     IO(io::Error),
     JsonDecode(json::DecoderError),
-    NetError(hab_net::Error),
     Protobuf(protobuf::ProtobufError),
+    RequiredConfigField(&'static str),
     Zmq(zmq::Error),
 }
 
@@ -45,14 +42,15 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
-            Error::Depot(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HyperError(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
-            Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::RequiredConfigField(ref e) => {
+                format!("Missing required field in configuration, {}", e)
+            }
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -63,14 +61,13 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
-            Error::Depot(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",
             Error::IO(ref err) => err.description(),
             Error::JsonDecode(ref err) => err.description(),
-            Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
+            Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Zmq(ref err) => err.description(),
         }
     }
@@ -79,18 +76,6 @@ impl error::Error for Error {
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
-    }
-}
-
-impl From<hab_net::Error> for Error {
-    fn from(err: hab_net::Error) -> Self {
-        Error::NetError(err)
-    }
-}
-
-impl From<depot::Error> for Error {
-    fn from(err: depot::Error) -> Error {
-        Error::Depot(err)
     }
 }
 

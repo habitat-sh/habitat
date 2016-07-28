@@ -14,7 +14,7 @@
 
 //! A collection of handlers for the JobSrv dispatcher
 
-use dbcache::{self, ExpiringSet, IndexSet, InstaSet};
+use dbcache::{self, InstaSet};
 use hab_net::server::Envelope;
 use protocol::net::{self, ErrCode};
 use protocol::jobsrv as proto;

@@ -12,23 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_core as hab_core;
-extern crate protobuf;
-extern crate redis;
-extern crate rustc_serialize;
-extern crate time;
+use error::ProtocolResult;
 
-pub mod depotsrv;
-pub mod error;
-pub mod jobsrv;
-pub mod net;
-pub mod routesrv;
-pub mod search;
-pub mod sessionsrv;
-pub mod sharding;
-pub mod vault;
-mod message;
-
-pub use self::error::{ProtocolError, ProtocolResult};
-pub use self::message::{Message, Persistable, Routable, RouteKey};
-pub use self::sharding::InstaId;
+pub trait FromSearchPair: Sized {
+    fn from_search_pair<K: AsRef<str>, V: Into<String>>(key: K, value: V) -> ProtocolResult<Self>;
+}

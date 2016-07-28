@@ -19,10 +19,9 @@ pub mod handlers;
 use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
-use depot;
+use hab_net::privilege;
 use hab_net::http::middleware::*;
 use hab_net::oauth::github::GitHubClient;
-use hab_net::privilege;
 use iron::prelude::*;
 use iron::Protocol;
 use mount::Mount;
@@ -39,23 +38,15 @@ const HTTP_THREAD_COUNT: usize = 128;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
-    let basic = Authenticated::default();
-    let bldr = Authenticated::default().require(privilege::BUILDER);
+    let admin = Authenticated::default().require(privilege::ADMIN);
     let router = router!(
         get "/status" => status,
-        get "/authenticate/:code" => session_create,
-
-        post "/jobs" => XHandler::new(job_create).before(bldr),
-        get "/jobs/:id" => XHandler::new(job_show).before(bldr),
-
-        get "/user/invitations" => XHandler::new(list_account_invitations).before(basic),
-        put "/user/invitations/:invitation_id" => XHandler::new(accept_invitation).before(basic),
-        get "/user/origins" => XHandler::new(list_user_origins).before(basic),
-
-        post "/projects" => XHandler::new(project_create).before(bldr),
-        get "/projects/:origin/:name" => XHandler::new(project_show).before(bldr),
-        put "/projects/:origin/:name" => XHandler::new(project_update).before(bldr),
-        delete "/projects/:origin/:name" => XHandler::new(project_delete).before(bldr),
+        post "/search" => XHandler::new(search).before(admin),
+        get "/accounts/:id" => XHandler::new(account_show).before(admin),
+        get "/features" => XHandler::new(features_list).before(admin),
+        get "/features/:id/teams" => XHandler::new(feature_grants_list).before(admin),
+        post "/features/:id/teams" => XHandler::new(feature_grant).before(admin),
+        delete "/features/:feature/teams/:id" => XHandler::new(feature_revoke).before(admin),
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
@@ -69,7 +60,6 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
 ///
 /// # Errors
 ///
-/// * Depot could not be started
 /// * Couldn't create Router or it's middleware
 ///
 /// # Panics
@@ -77,18 +67,14 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
 /// * Listener crashed during startup
 pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
-
     let addr = config.http_addr.clone();
-    let depot = try!(depot::Depot::new(config.depot.clone()));
-    let depot_chain = try!(depot::server::router(depot));
-
     let mut mount = Mount::new();
     if let Some(ref path) = config.ui_root {
         debug!("Mounting UI at filepath {}", path);
         mount.mount("/", Static::new(path));
     }
     let chain = try!(router(config));
-    mount.mount("/v1", chain).mount("/v1/depot", depot_chain);
+    mount.mount("/v1", chain);
 
     let handle = thread::Builder::new()
         .name("http-srv".to_string())

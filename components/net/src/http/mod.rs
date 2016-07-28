@@ -12,23 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_core as hab_core;
-extern crate protobuf;
-extern crate redis;
-extern crate rustc_serialize;
-extern crate time;
+pub mod controller;
+pub mod middleware;
+pub mod rendering;
 
-pub mod depotsrv;
-pub mod error;
-pub mod jobsrv;
-pub mod net;
-pub mod routesrv;
-pub mod search;
-pub mod sessionsrv;
-pub mod sharding;
-pub mod vault;
-mod message;
+use std::error;
+use std::fmt;
 
-pub use self::error::{ProtocolError, ProtocolResult};
-pub use self::message::{Message, Persistable, Routable, RouteKey};
-pub use self::sharding::InstaId;
+#[derive(Debug)]
+pub enum HttpError {
+    Authorization,
+}
+
+impl fmt::Display for HttpError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let msg = match *self {
+            HttpError::Authorization => format!("not authenticated"),
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+impl error::Error for HttpError {
+    fn description(&self) -> &str {
+        match *self {
+            HttpError::Authorization => "not authenticated",
+        }
+    }
+}

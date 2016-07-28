@@ -26,10 +26,8 @@ extern crate zmq;
 use std::net;
 use std::process;
 use std::str::FromStr;
-use std::sync::Arc;
 
 use hab_core::config::ConfigFile;
-use hab_net::server::ServerContext;
 
 use depot::{server, Config, Error, Result};
 
@@ -157,8 +155,7 @@ fn start(config: Config) -> Result<()> {
 /// * The database cannot be read
 /// * A write transaction cannot be acquired
 pub fn repair(config: Config) -> Result<()> {
-    let ctx = Arc::new(Box::new(ServerContext::new()));
-    let depot = try!(depot::Depot::new(config, ctx));
+    let depot = try!(depot::Depot::new(config));
     let report = try!(depot::doctor::repair(&depot));
     println!("Report: {:?}", &report);
     Ok(())
@@ -171,8 +168,7 @@ pub fn repair(config: Config) -> Result<()> {
 /// * The database cannot be read
 /// * A write transaction cannot be acquired.
 fn channel_create(channel: &str, config: Config) -> Result<()> {
-    let ctx = Arc::new(Box::new(ServerContext::new()));
-    let depot = try!(depot::Depot::new(config, ctx));
+    let depot = try!(depot::Depot::new(config));
     try!(depot.datastore.channels.write(&channel));
     Ok(())
 }
@@ -184,8 +180,7 @@ fn channel_create(channel: &str, config: Config) -> Result<()> {
 /// * The database cannot be read
 /// * A read transaction cannot be acquired.
 fn channel_list(config: Config) -> Result<()> {
-    let ctx = Arc::new(Box::new(ServerContext::new()));
-    let depot = try!(depot::Depot::new(config, ctx));
+    let depot = try!(depot::Depot::new(config));
     let channels = try!(depot.datastore.channels.all());
     if channels.is_empty() {
         println!("No channels. Create one with `hab-depot channel create`.");

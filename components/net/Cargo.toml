@@ -5,15 +5,19 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 workspace = "../../"
 
 [dependencies]
+bitflags = "*"
 fnv = "*"
 hyper = "*"
+iron = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
 num_cpus = "*"
+persistent = "*"
 protobuf = "*"
 rustc-serialize = "*"
 time = "*"
+unicase = "*"
 
 [dependencies.zmq]
 # git = "https://github.com/erickt/rust-zmq.git"

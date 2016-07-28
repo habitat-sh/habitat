@@ -12,24 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[macro_use]
+extern crate bitflags;
 extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
 extern crate hyper;
+extern crate iron;
 #[macro_use]
 extern crate lazy_static;
 extern crate libc;
 #[macro_use]
 extern crate log;
 extern crate num_cpus;
+extern crate persistent;
 extern crate protobuf;
 extern crate rustc_serialize;
 extern crate time;
+extern crate unicase;
 extern crate zmq;
 
 pub mod config;
 pub mod error;
 pub mod dispatcher;
+pub mod http;
 pub mod oauth;
+pub mod privilege;
 pub mod routing;
 pub mod server;
 pub mod supervisor;

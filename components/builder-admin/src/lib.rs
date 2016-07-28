@@ -12,23 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate bodyparser;
+extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
+extern crate habitat_net as hab_net;
+extern crate hyper;
+extern crate iron;
+#[macro_use]
+extern crate lazy_static;
+#[macro_use]
+extern crate log;
+extern crate mount;
+extern crate persistent;
 extern crate protobuf;
-extern crate redis;
+#[macro_use]
+extern crate router;
 extern crate rustc_serialize;
-extern crate time;
+extern crate serde;
+extern crate serde_json;
+extern crate staticfile;
+extern crate toml;
+extern crate unicase;
+extern crate urlencoded;
+extern crate zmq;
 
-pub mod depotsrv;
+pub mod config;
 pub mod error;
-pub mod jobsrv;
-pub mod net;
-pub mod routesrv;
-pub mod search;
-pub mod sessionsrv;
-pub mod sharding;
-pub mod vault;
-mod message;
+pub mod http;
+pub mod server;
 
-pub use self::error::{ProtocolError, ProtocolResult};
-pub use self::message::{Message, Persistable, Routable, RouteKey};
-pub use self::sharding::InstaId;
+pub use self::config::Config;
+pub use self::error::{Error, Result};

@@ -18,7 +18,6 @@ pub mod worker_manager;
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
-use dbcache::InstaSet;
 use dbcache::data_store::Pool;
 use hab_net::dispatcher::prelude::*;
 use hab_net::{Application, Supervisor};

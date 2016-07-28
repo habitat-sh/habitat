@@ -11,6 +11,7 @@ name = "bldr-session-srv"
 doc = false
 
 [dependencies]
+bitflags = "*"
 env_logger = "*"
 hyper = "*"
 log = "*"

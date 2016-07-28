@@ -12,25 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Configuration for a Habitat Builder-API service
+//! Configuration for a Habitat Builder-Admin service
 
 use std::net;
 
-use hab_net;
-use hab_net::config::{DEFAULT_GITHUB_URL, DEV_GITHUB_CLIENT_ID, DEV_GITHUB_CLIENT_SECRET,
-                      GitHubOAuth, RouteAddrs};
+use hab_net::config::{GitHubOAuth, RouteAddrs};
 use hab_core::config::{ConfigFile, ParseInto};
-use depot;
 use toml;
 
 use error::{Error, Result};
+
+/// URL to GitHub API endpoint
+const GITHUB_URL: &'static str = "https://api.github.com";
+// Default Client ID for providing a default value in development environments only. This is
+// associated to Jamie Winsor's GitHub account and is configured to re-direct and point to a local
+// builder-api.
+const DEV_GITHUB_CLIENT_ID: &'static str = "0c2f738a7d0bd300de10";
+// Default Client Secret for development purposes only. See the `DEV_GITHUB_CLIENT_ID` for
+// additional comments.
+const DEV_GITHUB_CLIENT_SECRET: &'static str = "438223113eeb6e7edf2d2f91a232b72de72b9bdf";
 
 #[derive(Debug)]
 pub struct Config {
     /// Public listening net address for HTTP requests
     pub http_addr: net::SocketAddrV4,
-    /// Depot's configuration
-    pub depot: depot::Config,
     /// List of net addresses for routing servers to connect to
     pub routers: Vec<net::SocketAddrV4>,
     /// URL to GitHub API
@@ -54,10 +59,9 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            http_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 9636),
+            http_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 8080),
             routers: vec![net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562)],
-            depot: depot::Config::default(),
-            github_url: DEFAULT_GITHUB_URL.to_string(),
+            github_url: GITHUB_URL.to_string(),
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             ui_root: None,
@@ -76,19 +80,13 @@ impl ConfigFile for Config {
         }
         try!(toml.parse_into("cfg.http_addr", &mut cfg.http_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
-        try!(toml.parse_into("pkg.svc_data_path", &mut cfg.depot.path));
-        try!(toml.parse_into("cfg.depot.datastore_addr", &mut cfg.depot.datastore_addr));
         try!(toml.parse_into("cfg.github.url", &mut cfg.github_url));
-        try!(toml.parse_into("cfg.github.url", &mut cfg.depot.github_url));
         if !try!(toml.parse_into("cfg.github.client_id", &mut cfg.github_client_id)) {
-            return Err(Error::from(hab_net::Error::RequiredConfigField("github.client_id")));
+            return Err(Error::RequiredConfigField("github.client_id"));
         }
-        try!(toml.parse_into("cfg.github.client_id", &mut cfg.depot.github_client_id));
         if !try!(toml.parse_into("cfg.github.client_secret", &mut cfg.github_client_secret)) {
-            return Err(Error::from(hab_net::Error::RequiredConfigField("github.client_secret")));
+            return Err(Error::RequiredConfigField("github.client_secret"));
         }
-        try!(toml.parse_into("cfg.github.client_secret",
-                             &mut cfg.depot.github_client_secret));
         Ok(cfg)
     }
 }

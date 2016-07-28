@@ -87,6 +87,29 @@ schemas:
                 }
             }
         }
+    - projectUpdate: |
+        {
+            "properties": {
+                "plan_path": {
+                    "type": "string",
+                    "required": true
+                },
+                "github": {
+                    "type": "object",
+                    "required": true,
+                    "properties": {
+                        "organization": {
+                            "type": "string",
+                            "required": true
+                        },
+                        "repo": {
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            }
+        }
 securitySchemes:
     - oauth_2_0:
         description: Builder supports OAuth 2.0 for authenticating all API requests.
@@ -130,7 +153,8 @@ securitySchemes:
                                 "token": "0b79bab50daca910b000d4f1a2b675d604257e42",
                                 "email": "reset@chef.io",
                                 "name": "reset",
-                                "id": 73089155726360582
+                                "id": 73089155726360582,
+                                "features": 0,
                             }
 /jobs:
     post:
@@ -247,12 +271,34 @@ securitySchemes:
         put:
             description: Update the project matching the given ID
             securedBy: [oauth_2_0]
+            body:
+                application/json:
+                    schema: project
+                    example: |
+                        {
+                            "plan_path": "components/builder-api/plan.sh",
+                            "github": {
+                                "organization": "habitat-sh",
+                                "repo": "habitat"
+                            }
+                        }
             responses:
                 204:
                     description: Project updated successfully
+                400:
+                    description: Received a malformed JSON body
+                404:
+                    description: Project not found
+                422:
+                    description: |
+                        The request body contained missing or invalid values or the file at the
+                        given location was unreadable, did not contain a valid plan, or the name
+                        of the package it builds does not match the projectId's `name`
         delete:
             description: Destroys the project matching the given ID
             securedBy: [oauth_2_0]
             responses:
                 204:
                     description: Project deleted successfully
+                404:
+                    description: Project not found

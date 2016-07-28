@@ -127,6 +127,32 @@ impl GitHubClient {
         let emails: Vec<Email> = try!(json::decode(&body));
         Ok(emails)
     }
+
+    pub fn orgs(&self, token: &str) -> Result<Vec<Organization>> {
+        let url = Url::parse(&format!("{}/user/orgs", self.url)).unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(err));
+        }
+        let orgs: Vec<Organization> = try!(json::decode(&body));
+        Ok(orgs)
+    }
+
+    pub fn teams(&self, token: &str) -> Result<Vec<Team>> {
+        let url = Url::parse(&format!("{}/user/teams", self.url)).unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(err));
+        }
+        let teams: Vec<Team> = try!(json::decode(&body));
+        Ok(teams)
+    }
 }
 
 #[derive(RustcDecodable, RustcEncodable)]
@@ -224,19 +250,23 @@ pub struct Organization {
     pub login: String,
     pub id: u64,
     pub avatar_url: String,
-    pub gravatar_id: String,
     pub url: String,
-    pub html_url: String,
-    pub followers_url: String,
-    pub following_url: String,
-    pub gists_url: String,
-    pub starred_url: String,
-    pub subscriptions_url: String,
-    pub organizations_url: String,
-    pub repos_url: String,
-    pub events_url: String,
-    pub received_events_url: String,
-    pub site_admin: bool,
+    pub company: Option<String>,
+    pub description: Option<String>,
+    pub gravatar_id: Option<String>,
+    pub hooks_url: Option<String>,
+    pub html_url: Option<String>,
+    pub followers_url: Option<String>,
+    pub following_url: Option<String>,
+    pub gists_url: Option<String>,
+    pub starred_url: Option<String>,
+    pub subscriptions_url: Option<String>,
+    pub organizations_url: Option<String>,
+    pub repos_url: Option<String>,
+    pub events_url: Option<String>,
+    pub received_events_url: Option<String>,
+    pub members_url: Option<String>,
+    pub site_admin: Option<bool>,
 }
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]
@@ -244,6 +274,22 @@ pub struct Permissions {
     pub admin: bool,
     pub push: bool,
     pub pull: bool,
+}
+
+#[derive(Debug, RustcEncodable, RustcDecodable)]
+pub struct Team {
+    pub id: u64,
+    pub url: String,
+    pub name: String,
+    pub slug: String,
+    pub description: Option<String>,
+    pub privacy: String,
+    pub permission: String,
+    pub members_url: String,
+    pub repositories_url: String,
+    pub members_count: u64,
+    pub repos_count: u64,
+    pub organization: Organization,
 }
 
 #[derive(Debug, RustcEncodable, RustcDecodable)]

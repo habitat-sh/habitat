@@ -1,0 +1,50 @@
+[package]
+name = "habitat_builder_admin"
+version = "0.0.0"
+authors = ["Jamie Winsor <reset@chef.io>"]
+description = "Habitat-Builder Admin Gateway"
+build = "build.rs"
+workspace = "../../"
+
+[[bin]]
+name = "bldr-admin"
+doc = false
+
+[dependencies]
+bodyparser = "*"
+env_logger = "*"
+hyper = "*"
+iron = "*"
+lazy_static = "*"
+log = "*"
+mount = "*"
+persistent = "*"
+protobuf = "*"
+router = "*"
+rustc-serialize = "*"
+serde = "*"
+serde_json = "*"
+staticfile = "*"
+toml = "*"
+unicase = "*"
+urlencoded = "*"
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.zmq]
+git = "https://github.com/reset/rust-zmq.git"
+branch = "habitat"
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
+[dependencies.habitat_net]
+path = "../net"
+
+[build-dependencies]
+serde_codegen = "*"
