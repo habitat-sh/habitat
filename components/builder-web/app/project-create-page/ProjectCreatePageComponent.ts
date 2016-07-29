@@ -71,7 +71,7 @@ import {requireSignIn} from "../util";
                                           name="plan_path"
                                           notAvailableMessage="does not exist in repository"
                                           [pattern]="false"
-                                          value="/plan.sh">
+                                          value="plan.sh">
                       </hab-checking-input>
                   </div>
                   <div class="submit">
@@ -141,7 +141,6 @@ export class ProjectCreatePageComponent implements OnInit {
             repo: this.repo
         };
         delete values.repo;
-        values.origin = values.origin.name;
 
         this.store.dispatch(addProject(values, this.token));
         return false;
