@@ -51,7 +51,7 @@ resource "aws_instance" "monolith" {
       "sudo mv /home/ubuntu/hab-director.service /etc/systemd/system/hab-director.service",
       "sudo mkdir -p /hab/etc/director",
       "cat <<BODY > /tmp/director-config.toml",
-      "${template_file.monolith_director.rendered}",
+      "${data.template_file.monolith_director.rendered}",
       "BODY",
       "sudo mv /tmp/director-config.toml /hab/etc/director/config.toml",
       "sudo systemctl daemon-reload",
@@ -68,7 +68,7 @@ resource "aws_instance" "monolith" {
   }
 }
 
-resource "template_file" "monolith_director" {
+data "template_file" "monolith_director" {
   template = "${file("${path.module}/templates/monolith-director.toml")}"
 
   vars {

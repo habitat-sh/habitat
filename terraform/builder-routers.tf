@@ -34,7 +34,7 @@ resource "aws_instance" "router" {
       "sudo mv /home/ubuntu/hab-director.service /etc/systemd/system/hab-director.service",
       "sudo mkdir -p /hab/etc/director",
       "cat <<BODY > /tmp/director-config.toml",
-      "${template_file.router_director.rendered}",
+      "${data.template_file.router_director.rendered}",
       "BODY",
       "sudo mv /tmp/director-config.toml /hab/etc/director/config.toml",
       "sudo systemctl daemon-reload",
@@ -51,7 +51,7 @@ resource "aws_instance" "router" {
   }
 }
 
-resource "template_file" "router_director" {
+data "template_file" "router_director" {
   template = "${file("${path.module}/templates/router-director.toml")}"
 
   vars {

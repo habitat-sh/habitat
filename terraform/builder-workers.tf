@@ -35,7 +35,7 @@ resource "aws_instance" "jobsrv_workers" {
       "sudo mv /home/ubuntu/hab-director.service /etc/systemd/system/hab-director.service",
       "sudo mkdir -p /hab/etc/director",
       "cat <<BODY > /tmp/director-config.toml",
-      "${template_file.worker_director.rendered}",
+      "${data.template_file.worker_director.rendered}",
       "BODY",
       "sudo mv /tmp/director-config.toml /hab/etc/director/config.toml",
       "sudo systemctl daemon-reload",
@@ -52,7 +52,7 @@ resource "aws_instance" "jobsrv_workers" {
   }
 }
 
-resource "template_file" "worker_director" {
+data "template_file" "worker_director" {
   template = "${file("${path.module}/templates/worker-director.toml")}"
 
   vars {
