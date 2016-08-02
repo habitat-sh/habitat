@@ -84,6 +84,29 @@ export class BuilderApiClient {
         });
     }
 
+    public getProject(projectId) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${projectId}`, {
+                method: "GET",
+                headers: this.headers
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public getProjects() {
+        return new Promise((resolve, reject) => {
+            // TODO make the real API call here once the endpoint exists
+            // for now, just pretend it succeeded and there were no results
+            resolve([]);
+        });
+    }
+
     public getMyOriginInvitations() {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/user/invitations`, {

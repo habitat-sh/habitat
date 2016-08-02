@@ -36,12 +36,12 @@ export const SET_PROJECTS = "SET_PROJECTS";
 export function addProject(project: Object, token: string) {
     return dispatch => {
         new BuilderApiClient(token).createProject(project).then(response => {
+            dispatch(requestRoute(["Projects"]));
             dispatch(addNotification({
                 title: "Project created",
-                body: `Created ${project["name"]}.`,
+                body: `Created ${response["id"]}.`,
                 type: SUCCESS,
             }));
-            console.log(response);
         }).catch(error => {
             dispatch(addNotification({
                 title: "Failed to Create project",
@@ -88,32 +88,33 @@ function fetchBuildLog(pkg, builds) {
     };
 }
 
-export function fetchProject(params) {
+export function fetchProject(id: string, token: string) {
     return dispatch => {
-        fakeApi.get(`projects/${params["origin"]}/${params["name"]}.json`).then(response => {
+        new BuilderApiClient(token).getProject(id).then(response => {
             dispatch(
-                setCurrentProject(
-                    Object.assign({
-                        ui: { exists: true, loading: false }
-                    }, response)
-                )
+              setCurrentProject(
+                Object.assign({
+                  ui: { exists: true, loading: false }
+                }, response)
+              )
             );
         }).catch(error => {
-            dispatch(setCurrentProject({
-                ui: { exists: false, loading: false }
+            dispatch(addNotification({
+                title: "Failed to fetch project",
+                body: error.message,
+                type: DANGER,
             }));
         });
     };
 }
 
-export function fetchProjects() {
+export function fetchProjects(token: string) {
     return dispatch => {
-        fakeApi.get("projects.json").then(response => {
+        new BuilderApiClient(token).getProjects().then(response => {
             dispatch(setProjects(response));
         });
     };
 }
-
 
 function finishBuildStream(build) {
     return {

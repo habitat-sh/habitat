@@ -31,11 +31,10 @@ import {friendlyTime, requireSignIn} from "../util";
         </div>
         <div *ngIf="project.ui.exists">
             <header class="page-title">
-                <h2>{{project.origin}} / {{project.name}}</h2>
+                <h2>{{project.id}}</h2>
                 <h4 *ngIf="project.latestBuild">
                     <a [routerLink]="['Package', {
-                        origin: project.origin,
-                        name: project.name,
+                        id: project.id,
                         version: project.latestBuild.version,
                         release: project.latestBuild.release
                     }]">
@@ -62,7 +61,7 @@ import {friendlyTime, requireSignIn} from "../util";
                                 <li>
                                     <h4>Build Command</h4>
                                     <div class="build-command">
-                                        hab install {{project.origin}}/{{project.name}}
+                                        hab install {{project.id}}
                                         <a (click)="false" href="#">⎘</a>
                                     </div>
                                 </li>
@@ -95,7 +94,7 @@ import {friendlyTime, requireSignIn} from "../util";
                                 <li>
                                     <h4>Build Command</h4>
                                     <div class="build-command">
-                                        hab install {{project.origin}}/{{project.name}}
+                                        hab install {{project.id}}
                                         <a (click)="false" href="#">⎘</a>
                                     </div>
                                 </li>
@@ -133,9 +132,19 @@ export class ProjectPageComponent implements OnInit {
         return this.store.getState().projects.current;
     }
 
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
+    get id() {
+        return `${this.routeParams.params["origin"]}/${this.routeParams.params["name"]}`;
+    }
+
     ngOnInit() {
-        this.store.dispatch(fetchProject(this.routeParams.params));
-        this.store.dispatch(fetchBuilds(this.routeParams.params));
+        this.store.dispatch(fetchProject(this.id, this.token));
+        // leaving this commented out on purpose as a reminder to make it work
+        // again once the API returns build information
+        // this.store.dispatch(fetchBuilds(this.routeParams.params));
     }
 
     private friendlyTime(t) { return friendlyTime(t); }

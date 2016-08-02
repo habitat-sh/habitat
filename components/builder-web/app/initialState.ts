@@ -132,8 +132,8 @@ export default Record({
         added: List(),
         all: List(),
         current: Record({
-            origin: undefined,
-            name: undefined,
+            id: undefined,
+            plan_path: undefined,
             description: undefined,
             latestBuild: undefined,
             sourceUrl: undefined,
