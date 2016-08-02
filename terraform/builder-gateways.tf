@@ -47,7 +47,7 @@ resource "aws_instance" "builder_api" {
       "sudo mv /home/ubuntu/hab-director.service /etc/systemd/system/hab-director.service",
       "sudo mkdir -p /hab/etc/director",
       "cat <<BODY > /tmp/director-config.toml",
-      "${template_file.gateway_director.rendered}",
+      "${data.template_file.gateway_director.rendered}",
       "BODY",
       "sudo mv /tmp/director-config.toml /hab/etc/director/config.toml",
       "sudo systemctl daemon-reload",
@@ -64,7 +64,7 @@ resource "aws_instance" "builder_api" {
   }
 }
 
-resource "template_file" "gateway_director" {
+data "template_file" "gateway_director" {
   template = "${file("${path.module}/templates/gateway-director.toml")}"
 
   vars {
