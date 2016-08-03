@@ -225,7 +225,7 @@ dependencies = [
  "habitat_common 0.8.0",
  "habitat_core 0.8.0",
  "habitat_depot_client 0.8.0",
- "handlebars 0.19.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars 0.20.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -250,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "handlebars"
-version = "0.19.1"
+version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "lazy_static 0.1.16 (registry+https://github.com/rust-lang/crates.io-index)",
