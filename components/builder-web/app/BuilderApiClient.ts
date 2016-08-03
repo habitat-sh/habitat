@@ -107,6 +107,21 @@ export class BuilderApiClient {
         });
     }
 
+    public deleteProject(projectId) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${projectId}`, {
+                method: "DELETE",
+                headers: this.headers
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
     public getMyOriginInvitations() {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/user/invitations`, {

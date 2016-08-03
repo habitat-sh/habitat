@@ -89,6 +89,7 @@ export const POPULATE_BUILD_LOG = projectActions.POPULATE_BUILD_LOG;
 export const POPULATE_PROJECT = projectActions.POPULATE_PROJECT;
 export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
 export const SET_PROJECTS = projectActions.SET_PROJECTS;
+export const DELETE_PROJECT = projectActions.DELETE_PROJECT;
 
 export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
 export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
@@ -154,6 +155,7 @@ export const fetchProject = projectActions.fetchProject;
 export const fetchProjects = projectActions.fetchProjects;
 export const populateBuildLog = projectActions.populateBuildLog;
 export const setCurrentProject = projectActions.setCurrentProject;
+export const deleteProject = projectActions.deleteProject;
 
 export const goHome = routerActions.goHome;
 export const routeChange = routerActions.routeChange;
