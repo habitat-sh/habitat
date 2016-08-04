@@ -27,11 +27,17 @@ use depot_client::DisplayProgress;
 /// completion.
 pub struct ProgressBar {
     bar: pbr::ProgressBar,
+    total: u64,
+    current: u64,
 }
 
 impl Default for ProgressBar {
     fn default() -> Self {
-        ProgressBar { bar: pbr::ProgressBar::new(0) }
+        ProgressBar {
+            bar: pbr::ProgressBar::new(0),
+            total: 0,
+            current: 0,
+        }
     }
 }
 
@@ -41,12 +47,27 @@ impl DisplayProgress for ProgressBar {
         self.bar.set_units(pbr::Units::Bytes);
         self.bar.show_tick = true;
         self.bar.message("    ");
+        self.total = size;
+    }
+
+    fn finish(&mut self) {
+        println!("");
+        io::stdout().flush().ok().expect("flush() fail");
     }
 }
 
 impl Write for ProgressBar {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.bar.write(buf)
+        match self.bar.write(buf) {
+            Ok(n) => {
+                self.current += n as u64;
+                if self.current == self.total {
+                    self.finish();
+                }
+                Ok(n)
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn flush(&mut self) -> io::Result<()> {
