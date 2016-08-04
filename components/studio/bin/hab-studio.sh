@@ -869,6 +869,9 @@ chroot_env() {
   if [ -n "${https_proxy:-}" ]; then
     env="$env https_proxy=$https_proxy"
   fi
+  if [ -n "${no_proxy:-}" ]; then
+    env="$env no_proxy=$no_proxy"
+  fi
 
   echo "$env"
   return 0
@@ -888,6 +891,9 @@ report_env_vars() {
   fi
   if [ -n "${https_proxy:-}" ]; then
     info "Exported: https_proxy=$https_proxy"
+  fi
+  if [ -n "${no_proxy:-}" ]; then
+    info "Exported: no_proxy=$no_proxy"
   fi
 }
 
