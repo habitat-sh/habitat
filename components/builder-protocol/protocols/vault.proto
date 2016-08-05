@@ -160,12 +160,7 @@ message ProjectUpdate {
 }
 
 message ProjectCreate {
-  required string id = 1;
-  required uint64 owner_id = 2;
-  required string plan_path = 3;
-  oneof vcs {
-    VCSGit git = 4;
-  }
+  required Project project = 1;
 }
 
 message ProjectDelete {

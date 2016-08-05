@@ -278,11 +278,14 @@ pub fn project_create(req: &mut Envelope,
                       sock: &mut zmq::Socket,
                       state: &mut ServerState)
                       -> Result<()> {
-    let msg: proto::ProjectCreate = try!(req.parse_msg());
-    let mut project: proto::Project = msg.into();
+    let mut project = try!(req.parse_msg::<proto::ProjectCreate>()).take_project();
     // JW TODO: handle db errors
-    try!(state.datastore.projects.write(&mut project));
-    try!(req.reply_complete(sock, &project));
+    if try!(state.datastore.projects.write(&mut project)) {
+        try!(req.reply_complete(sock, &project));
+    } else {
+        let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:project-create:0");
+        try!(req.reply_complete(sock, &err));
+    }
     Ok(())
 }
 

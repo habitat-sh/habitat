@@ -13,18 +13,6 @@ use sharding::InstaId;
 
 pub use message::vault::*;
 
-impl Into<Project> for ProjectCreate {
-    fn into(mut self) -> Project {
-        let mut project = Project::new();
-        project.set_id(self.take_id());
-        project.set_owner_id(self.get_owner_id());
-        project.set_plan_path(self.take_plan_path());
-        // JW TODO: match on type and assign appropriately
-        project.set_git(self.take_git());
-        project
-    }
-}
-
 impl Persistable for Origin {
     type Key = u64;
 
@@ -259,7 +247,7 @@ impl Routable for ProjectCreate {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        Some(self.get_id().to_string())
+        Some(self.get_project().get_id().to_string())
     }
 }
 

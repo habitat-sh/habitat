@@ -191,7 +191,8 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
 
 /// Create a new project as the authenticated user and associated to the given origin
 pub fn project_create(req: &mut Request) -> IronResult<Response> {
-    let mut project = ProjectCreate::new();
+    let mut request = ProjectCreate::new();
+    let mut project = Project::new();
     let mut origin_get = OriginGet::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
@@ -276,7 +277,8 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),
     }
     project.set_owner_id(session.get_id());
-    match conn.route::<ProjectCreate, Project>(&project) {
+    request.set_project(project);
+    match conn.route::<ProjectCreate, Project>(&request) {
         Ok(response) => Ok(render_json(status::Created, &response)),
         Err(err) => Ok(render_net_error(&err)),
     }

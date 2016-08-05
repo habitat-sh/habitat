@@ -183,9 +183,9 @@ impl InstaSet for OriginTable {
         "origins_seq"
     }
 
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
+    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -194,15 +194,19 @@ impl InstaSet for OriginTable {
             record.set_primary_key(*insta_id);
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
                 .hset(OriginNameIdx::prefix(),
                       record.get_name().to_string(),
                       record.get_id())
                 .ignore()
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .query(conn.deref())
         }));
-        Ok(())
+        match ret {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => unreachable!("received unexpected return code from redis-hsetnx: {}", ret),
+        }
     }
 }
 
@@ -258,9 +262,9 @@ impl InstaSet for OriginSecretKeysTable {
         "origin_secret_key_seq"
     }
 
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
+    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -270,12 +274,16 @@ impl InstaSet for OriginSecretKeysTable {
 
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .query(conn.deref())
 
         }));
-        Ok(())
+        match ret {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => unreachable!("received unexpected return code from redis-setnx: {}", ret),
+        }
     }
 }
 
@@ -357,9 +365,9 @@ impl InstaSet for OriginInvitesTable {
         "origin_invites_key_seq"
     }
 
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
+    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -371,17 +379,19 @@ impl InstaSet for OriginInvitesTable {
             debug!("origin invite = {:?}", &record);
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
-                .ignore()
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .sadd(account_to_invites_key, record.primary_key())
                 .ignore()
                 .sadd(origin_to_invites_key, record.primary_key())
                 .ignore()
                 .query(conn.deref())
         }));
-
-        Ok(())
+        match ret {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => unreachable!("received unexpected return code from redis-hsetnx: {}", ret),
+        }
     }
 }
 

@@ -109,18 +109,20 @@ pub trait BasicSet: Bucket {
     /// Update an existing record in the data set.
     fn update(&self, record: &Self::Record) -> Result<()> {
         let conn = try!(self.pool().get());
-        // JW TODO: perform a record merge here. This is an overwrite, not an update.
         try!(conn.set(Self::key(&record.primary_key()),
                       record.write_to_bytes().unwrap()));
         Ok(())
     }
 
     /// Write a new record to the data set.
-    fn write(&self, record: &Self::Record) -> Result<()> {
+    fn write(&self, record: &Self::Record) -> Result<bool> {
         let conn = try!(self.pool().get());
-        try!(conn.set(Self::key(&record.primary_key()),
-                      record.write_to_bytes().unwrap()));
-        Ok(())
+        match try!(conn.set_nx(Self::key(&record.primary_key()),
+                               record.write_to_bytes().unwrap())) {
+            1 => Ok(true),
+            0 => Ok(false),
+            code => unreachable!("received unexpected return code from redis-setnx: {}", code),
+        }
     }
 }
 
@@ -201,7 +203,6 @@ pub trait InstaSet: Bucket {
     /// Update an existing record in the data set.
     fn update(&self, record: &Self::Record) -> Result<()> {
         let conn = try!(self.pool().get());
-        // JW TODO: perform a record merge here. This is an overwrite, not an update.
         try!(conn.set(Self::key(&record.primary_key()),
                       record.write_to_bytes().unwrap()));
         Ok(())
@@ -210,9 +211,9 @@ pub trait InstaSet: Bucket {
     /// Write a new record to the data set.
     ///
     /// An ID will be automatically created and assigned as the primary key of given record.
-    fn write(&self, record: &mut Self::Record) -> Result<()> {
+    fn write(&self, record: &mut Self::Record) -> Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        match try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -221,12 +222,17 @@ pub trait InstaSet: Bucket {
             record.set_primary_key(*insta_id);
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
-                .ignore()
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .query(conn.deref())
-        }));
-        Ok(())
+        })) {
+            1 => Ok(true),
+            0 => Ok(false),
+            code => {
+                unreachable!("received unexpected return code from redis-hsetnx: {}",
+                             code)
+            }
+        }
     }
 }
 
@@ -244,11 +250,23 @@ pub trait IndexSet: Bucket {
         Ok(value)
     }
 
-    /// Write a new index entry to the data set.
-    fn write(&self, id: &Self::Key, value: Self::Value) -> Result<()> {
+    fn update(&self, id: &Self::Key, value: Self::Value) -> Result<()> {
         let conn = try!(self.pool().get());
         try!(conn.hset(Self::prefix(), id.clone(), value));
         Ok(())
+    }
+
+    /// Write a new index entry to the data set.
+    fn write(&self, id: &Self::Key, value: Self::Value) -> Result<bool> {
+        let conn = try!(self.pool().get());
+        match try!(conn.hset_nx(Self::prefix(), id.clone(), value)) {
+            1 => Ok(true),
+            0 => Ok(false),
+            code => {
+                unreachable!("received unexpected return code from redis-hsetnx: {}",
+                             code)
+            }
+        }
     }
 }
 
