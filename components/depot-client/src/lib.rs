@@ -49,6 +49,7 @@ header! { (ETag, "ETag") => [String] }
 
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);
+    fn finish(&mut self);
 }
 
 pub struct Client {
