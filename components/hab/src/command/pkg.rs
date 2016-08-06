@@ -219,13 +219,13 @@ pub mod export {
                     println!("Searching for {} in remote {}",
                              &format_ident.to_string(),
                              &default_depot_url());
-                    try!(install::from_url(&default_depot_url(),
-                                           format_ident,
-                                           PRODUCT,
-                                           VERSION,
-                                           Path::new(FS_ROOT_PATH),
-                                           &cache_artifact_path(None),
-                                           &default_cache_key_path(None)));
+                    try!(install::start(&default_depot_url(),
+                                        &format_ident.to_string(),
+                                        PRODUCT,
+                                        VERSION,
+                                        Path::new(FS_ROOT_PATH),
+                                        &cache_artifact_path(None),
+                                        &default_cache_key_path(None)));
                 }
             }
             let pkg_arg = OsString::from(&ident.to_string());

@@ -35,19 +35,19 @@
 //! * Unpack it
 //!
 
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use ansi_term::Colour::{Blue, Green, Yellow};
 use depot_client::Client;
+use hcore;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::fs::cache_artifact_path;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall};
-use protocol::depotsrv;
 
 use command::ProgressBar;
-use error::Result;
+use error::{Error, Result};
 
 pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
                                                  ident_or_archive: &str,
@@ -56,221 +56,223 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
                                                  fs_root_path: &P1,
                                                  cache_artifact_path: &P2,
                                                  cache_key_path: &P3)
-                                                 -> Result<()>
+                                                 -> Result<PackageIdent>
     where P1: AsRef<Path>,
           P2: AsRef<Path>,
           P3: AsRef<Path>
 {
+    let task = try!(InstallTask::new(url,
+                                     product,
+                                     version,
+                                     fs_root_path.as_ref(),
+                                     cache_artifact_path.as_ref(),
+                                     cache_key_path.as_ref()));
+
     if Path::new(ident_or_archive).is_file() {
-        try!(from_archive(url,
-                          &ident_or_archive,
-                          product,
-                          version,
-                          fs_root_path,
-                          cache_artifact_path,
-                          cache_key_path));
+        task.from_artifact(&Path::new(ident_or_archive))
     } else {
-        let ident = try!(PackageIdent::from_str(ident_or_archive));
-        try!(from_url(url,
-                      &ident,
-                      product,
-                      version,
-                      fs_root_path,
-                      cache_artifact_path,
-                      cache_key_path));
+        task.from_ident(try!(PackageIdent::from_str(ident_or_archive)))
     }
-    Ok(())
 }
 
-/// Given a package name and a base url, downloads the package
-/// to the cache artifact path. Returns the filename in the cache as a String
-///
-/// # Failures
-///
-/// * Fails if it cannot download the package from the upstream
-pub fn from_url<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
-                                                    ident: &PackageIdent,
-                                                    product: &str,
-                                                    version: &str,
-                                                    fs_root_path: &P1,
-                                                    cache_artifact_path: &P2,
-                                                    cache_key_path: &P3)
-                                                    -> Result<depotsrv::Package>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>,
-          P3: AsRef<Path>
-{
-    println!("{}",
-             Yellow.bold().paint(format!("» Installing {}", ident)));
-    let depot_client = try!(Client::new(url, product, version, Some(fs_root_path.as_ref())));
-    let pkg_data = try!(depot_client.show_package(ident.clone()));
-    for dep in pkg_data.get_tdeps().into_iter() {
-        let d: PackageIdent = (*dep).clone().into();
-        try!(install_from_depot(url,
-                                &d,
-                                &d,
-                                product,
-                                version,
-                                fs_root_path.as_ref(),
-                                cache_artifact_path.as_ref(),
-                                cache_key_path.as_ref()));
-    }
-    try!(install_from_depot(url,
-                            &pkg_data.get_ident().clone().into(),
-                            ident,
-                            product,
-                            version,
-                            fs_root_path.as_ref(),
-                            cache_artifact_path.as_ref(),
-                            cache_key_path.as_ref()));
-    println!("{}",
-             Blue.paint(format!("★ Install of {} complete with {} packages installed.",
-                                ident,
-                                1 + &pkg_data.get_tdeps().len())));
-    Ok(pkg_data)
+struct InstallTask<'a> {
+    depot_client: Client,
+    fs_root_path: &'a Path,
+    cache_artifact_path: &'a Path,
+    cache_key_path: &'a Path,
 }
 
-pub fn from_archive<P1: ?Sized, P2: ?Sized, P3: ?Sized, P4: ?Sized>(url: &str,
-                                                                    path: &P1,
-                                                                    product: &str,
-                                                                    version: &str,
-                                                                    fs_root_path: &P2,
-                                                                    cache_artifact_path: &P3,
-                                                                    cache_key_path: &P4)
-                                                                    -> Result<()>
-    where P1: AsRef<Path>,
-          P2: AsRef<Path>,
-          P3: AsRef<Path>,
-          P4: AsRef<Path>
-{
-    println!("{}",
-             Yellow.bold().paint(format!("» Installing {}", path.as_ref().display())));
-    let mut archive = PackageArchive::new(PathBuf::from(path.as_ref()));
-    let ident = try!(archive.ident());
-    let tdeps = try!(archive.tdeps());
-    for dep in &tdeps {
-        try!(install_from_depot(url,
-                                &dep,
-                                dep.as_ref(),
-                                product,
-                                version,
-                                fs_root_path.as_ref(),
-                                cache_artifact_path.as_ref(),
-                                cache_key_path.as_ref()));
+impl<'a> InstallTask<'a> {
+    pub fn new(url: &str,
+               product: &str,
+               version: &str,
+               fs_root_path: &'a Path,
+               cache_artifact_path: &'a Path,
+               cache_key_path: &'a Path)
+               -> Result<Self> {
+        Ok(InstallTask {
+            depot_client: try!(Client::new(url, product, version, Some(fs_root_path))),
+            fs_root_path: fs_root_path,
+            cache_artifact_path: cache_artifact_path,
+            cache_key_path: cache_key_path,
+        })
     }
-    try!(install_from_archive(url,
-                              archive,
-                              &ident,
-                              product,
-                              version,
-                              fs_root_path.as_ref(),
-                              cache_key_path.as_ref()));
-    println!("{}",
-             Blue.paint(format!("★ Install of {} complete with {} packages installed.",
-                                &ident,
-                                1 + &tdeps.len())));
-    Ok(())
-}
 
-fn install_from_depot(url: &str,
-                      ident: &PackageIdent,
-                      given_ident: &PackageIdent,
-                      product: &str,
-                      version: &str,
-                      fs_root_path: &Path,
-                      cache_artifact_path: &Path,
-                      cache_key_path: &Path)
-                      -> Result<()> {
-    match PackageInstall::load(ident, Some(&fs_root_path)) {
-        Ok(_) => {
-            if given_ident.fully_qualified() {
+    pub fn from_ident(&self, ident: PackageIdent) -> Result<PackageIdent> {
+        println!("{}",
+                 Yellow.bold().paint(format!("» Installing {}", &ident)));
+        let mut ident = ident;
+        if !ident.fully_qualified() {
+            ident = try!(self.fetch_latest_pkg_ident_for(ident));
+        }
+        if try!(self.is_package_installed(&ident)) {
+            println!("{} {}", Green.paint("→ Using"), &ident);
+            println!("{}",
+                     Blue.paint(format!("★ Install of {} complete with {} new packages \
+                                         installed.",
+                                        &ident,
+                                        0)));
+            return Ok(ident);
+        }
+
+        self.install_package(ident, None)
+    }
+
+    pub fn from_artifact(&self, artifact_path: &Path) -> Result<PackageIdent> {
+        let ident = try!(PackageArchive::new(artifact_path).ident());
+        if try!(self.is_package_installed(&ident)) {
+            println!("{} {}", Green.paint("→ Using"), &ident);
+            println!("{}",
+                     Blue.paint(format!("★ Install of {} complete with {} new packages \
+                                         installed.",
+                                        &ident,
+                                        0)));
+            return Ok(ident);
+        }
+        try!(self.cache_artifact(&ident, artifact_path));
+        let src_path = artifact_path.parent().unwrap();
+
+        self.install_package(ident, Some(src_path))
+    }
+
+    fn install_package(&self,
+                       ident: PackageIdent,
+                       src_path: Option<&Path>)
+                       -> Result<PackageIdent> {
+        let mut artifact = try!(self.get_cached_artifact(ident.clone(), src_path));
+        let mut artifacts: Vec<PackageArchive> = Vec::new();
+
+        for ident in try!(artifact.tdeps()) {
+            if try!(self.is_package_installed(&ident)) {
                 println!("{} {}", Green.paint("→ Using"), ident);
             } else {
-                println!("{} {} which satisfies {}",
-                         Green.paint("→ Using"),
-                         ident.as_ref(),
-                         given_ident);
+                artifacts.push(try!(self.get_cached_artifact(ident, src_path)));
             }
         }
-        Err(_) => {
-            println!("{} {}",
-                     Green.bold().paint("↓ Downloading"),
-                     ident.as_ref());
-            let mut progress = ProgressBar::default();
-            let depot_client = try!(Client::new(url, product, version, Some(fs_root_path)));
-            let mut archive = try!(depot_client.fetch_package((*ident).clone(),
-                                                               cache_artifact_path,
-                                                               Some(&mut progress)));
-            let ident = try!(archive.ident());
-            try!(verify(url,
-                        &archive,
-                        &ident,
-                        product,
-                        version,
-                        fs_root_path,
-                        cache_key_path));
-            try!(archive.unpack(Some(fs_root_path)));
-            println!("{} {}", Green.bold().paint("✓ Installed"), ident.as_ref());
+        artifacts.push(artifact);
+
+        let num_installed = artifacts.len();
+        for mut artifact in artifacts {
+            try!(self.extract_artifact(&mut artifact));
+        }
+        println!("{}",
+                 Blue.paint(format!("★ Install of {} complete with {} new packages installed.",
+                                    &ident,
+                                    num_installed)));
+        Ok(ident)
+    }
+
+    fn get_cached_artifact(&self,
+                           ident: PackageIdent,
+                           src_path: Option<&Path>)
+                           -> Result<PackageArchive> {
+        if try!(self.is_artifact_cached(&ident)) {
+            debug!("Found {} in artifact cache, skipping remote download",
+                   &ident);
+        } else {
+            try!(self.fetch_artifact(&ident, src_path));
+        }
+
+        let mut artifact = PackageArchive::new(try!(self.cached_artifact_path(&ident)));
+        try!(self.verify_artifact(&ident, &mut artifact));
+        Ok(artifact)
+    }
+
+    fn extract_artifact(&self, artifact: &mut PackageArchive) -> Result<()> {
+        try!(artifact.unpack(Some(self.fs_root_path)));
+        println!("{} {}",
+                 Green.bold().paint("✓ Installed"),
+                 try!(artifact.ident()));
+        Ok(())
+    }
+
+    fn is_package_installed(&self, ident: &PackageIdent) -> Result<bool> {
+        match PackageInstall::load(ident, Some(self.fs_root_path)) {
+            Ok(_) => Ok(true),
+            Err(hcore::Error::PackageNotFound(_)) => Ok(false),
+            Err(e) => Err(Error::HabitatCore(e)),
         }
     }
-    Ok(())
-}
 
-fn install_from_archive(url: &str,
-                        archive: PackageArchive,
-                        ident: &PackageIdent,
-                        product: &str,
-                        version: &str,
-                        fs_root_path: &Path,
-                        cache_key_path: &Path)
-                        -> Result<()> {
-    match PackageInstall::load(ident.as_ref(), Some(&fs_root_path)) {
-        Ok(_) => {
-            println!("{} {}", Green.paint("→ Using"), ident);
-        }
-        Err(_) => {
-            println!("{} {} from cache",
-                     Green.bold().paint("← Extracting"),
-                     ident);
-            try!(verify(url,
-                        &archive,
-                        &ident,
-                        product,
-                        version,
-                        fs_root_path,
-                        cache_key_path));
-            try!(archive.unpack(Some(fs_root_path)));
-            println!("{} {}", Green.bold().paint("✓ Installed"), ident);
-        }
+    fn is_artifact_cached(&self, ident: &PackageIdent) -> Result<bool> {
+        Ok(try!(self.cached_artifact_path(ident)).is_file())
     }
-    Ok(())
-}
 
-/// get the signer for the artifact and see if we have the key locally.
-/// If we don't, attempt to download it from the depot.
-fn verify(url: &str,
-          archive: &PackageArchive,
-          ident: &PackageIdent,
-          product: &str,
-          version: &str,
-          fs_root_path: &Path,
-          cache_key_path: &Path)
-          -> Result<()> {
-    let nwr = try!(artifact::artifact_signer(&archive.path));
-    if let Err(_) = SigKeyPair::get_public_key_path(&nwr, cache_key_path) {
+    fn cached_artifact_path(&self, ident: &PackageIdent) -> Result<PathBuf> {
+        let name = match ident.archive_name() {
+            Some(n) => n,
+            None => {
+                return Err(Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string())))
+            }
+        };
+        Ok(self.cache_artifact_path.join(name))
+    }
+
+    fn fetch_latest_pkg_ident_for(&self, fuzzy_ident: PackageIdent) -> Result<PackageIdent> {
+        Ok(try!(self.depot_client.show_package(fuzzy_ident)).into())
+    }
+
+    fn fetch_artifact(&self, ident: &PackageIdent, src_path: Option<&Path>) -> Result<()> {
+        if let Some(src_path) = src_path {
+            let name = match ident.archive_name() {
+                Some(n) => n,
+                None => return Err(
+                    Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string()))),
+            };
+            let local_artifact = src_path.join(name);
+            if local_artifact.is_file() {
+                try!(self.cache_artifact(ident, &local_artifact));
+                return Ok(());
+            }
+        }
+
+        println!("{} {}", Green.bold().paint("↓ Downloading"), ident);
+        let mut progress = ProgressBar::default();
+        try!(self.depot_client
+            .fetch_package(ident.clone(), self.cache_artifact_path, Some(&mut progress)));
+        Ok(())
+    }
+
+    fn fetch_origin_key(&self, name_with_rev: &str) -> Result<()> {
         println!("{} {} public origin key",
                  Green.bold().paint("↓ Downloading"),
-                 &nwr);
-        let (name, rev) = try!(parse_name_with_rev(&nwr));
+                 &name_with_rev);
+        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
         let mut progress = ProgressBar::default();
-        let depot_client = try!(Client::new(url, product, version, Some(fs_root_path)));
-        try!(depot_client.fetch_origin_key(&name, &rev, cache_key_path, Some(&mut progress)));
+        try!(self.depot_client
+            .fetch_origin_key(&name, &rev, self.cache_key_path, Some(&mut progress)));
         println!("{} {} public origin key",
                  Green.bold().paint("☑ Cached"),
-                 &nwr);
+                 &name_with_rev);
+        Ok(())
     }
 
-    try!(archive.verify(&cache_key_path));
-    info!("Verified {} signed by {}", &ident, &nwr);
-    Ok(())
+    fn cache_artifact(&self, ident: &PackageIdent, artifact_path: &Path) -> Result<()> {
+        let name = match ident.archive_name() {
+            Some(n) => n,
+            None => {
+                return Err(Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string())))
+            }
+        };
+        try!(fs::copy(artifact_path, self.cache_artifact_path.join(name)));
+        Ok(())
+    }
+
+    fn verify_artifact(&self, ident: &PackageIdent, artifact: &mut PackageArchive) -> Result<()> {
+        let artifact_ident = try!(artifact.ident());
+        if ident != &artifact_ident {
+            return Err(Error::ArtifactIdentMismatch((artifact.file_name(),
+                                                     artifact_ident.to_string(),
+                                                     ident.to_string())));
+        }
+
+        let nwr = try!(artifact::artifact_signer(&artifact.path));
+        if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {
+            try!(self.fetch_origin_key(&nwr));
+        }
+
+        try!(artifact.verify(&self.cache_key_path));
+        info!("Verified {} signed by {}", ident, &nwr);
+        Ok(())
+    }
 }

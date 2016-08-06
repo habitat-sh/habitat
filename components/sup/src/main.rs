@@ -24,6 +24,7 @@ extern crate libc;
 #[macro_use]
 extern crate clap;
 
+use std::path::Path;
 use std::process;
 use std::result;
 use std::str::FromStr;
@@ -34,7 +35,7 @@ use hcore::env as henv;
 use hcore::fs;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::crypto::init as crypto_init;
-use hcore::package::PackageIdent;
+use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use sup::config::{Command, Config, UpdateStrategy};
@@ -74,9 +75,15 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
     if let Some(ref archive) = sub_args.value_of("archive") {
         config.set_archive(archive.to_string());
     }
-    if let Some(ref package) = sub_args.value_of("package") {
-        let ident = try!(PackageIdent::from_str(package));
-        config.set_package(ident);
+    if let Some(ref ident_or_artifact) = sub_args.value_of("pkg_ident_or_artifact") {
+        if Path::new(ident_or_artifact).is_file() {
+            let ident = try!(PackageArchive::new(Path::new(ident_or_artifact)).ident());
+            config.set_package(ident);
+            config.set_local_artifact(ident_or_artifact.to_string());
+        } else {
+            let ident = try!(PackageIdent::from_str(ident_or_artifact));
+            config.set_package(ident);
+        }
     }
     if let Some(key) = sub_args.value_of("key") {
         config.set_key(key.to_string());
@@ -255,12 +262,13 @@ fn main() {
     };
 
     let sub_start = SubCommand::with_name("start")
-        .about("Start a Habitat-supervised service from a package")
+        .about("Start a Habitat-supervised service from a package or artifact")
         .aliases(&["st", "sta", "star"])
-        .arg(Arg::with_name("package")
+        .arg(Arg::with_name("pkg_ident_or_artifact")
             .index(1)
             .required(true)
-            .help("Name of package to start"))
+            .help("A Habitat package identifier (ex: acme/redis) or a filepath to a Habitat \
+                   Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"))
         .arg(arg_url())
         .arg(arg_group())
         .arg(arg_org())

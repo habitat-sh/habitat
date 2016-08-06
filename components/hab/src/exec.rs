@@ -98,13 +98,13 @@ pub fn command_from_pkg(command: &str,
             println!("{}",
                      Cyan.bold()
                          .paint(format!("∵ Package for {} not found, installing", &ident)));
-            try!(common::command::package::install::from_url(&default_depot_url(),
-                                                             ident,
-                                                             PRODUCT,
-                                                             VERSION,
-                                                             fs_root_path,
-                                                             &cache_artifact_path(None),
-                                                             cache_key_path));
+            try!(common::command::package::install::start(&default_depot_url(),
+                                                          &ident.to_string(),
+                                                          PRODUCT,
+                                                          VERSION,
+                                                          fs_root_path,
+                                                          &cache_artifact_path(None),
+                                                          cache_key_path));
             command_from_pkg(&command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => return Err(Error::from(e)),
