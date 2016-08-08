@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {Control, ControlGroup, Validators} from "angular2/common";
-import {ChangeDetectorRef, Component, OnInit} from "angular2/core";
+import {ChangeDetectorRef, Component, OnInit, OnChanges} from "angular2/core";
 import {AsyncValidator} from "./AsyncValidator";
 
 @Component({
@@ -62,7 +62,7 @@ import {AsyncValidator} from "./AsyncValidator";
     </div>`
 })
 
-export class CheckingInputComponent implements OnInit {
+export class CheckingInputComponent implements OnInit, OnChanges {
     private availableMessage: string;
     private control: Control;
     private defaultMaxLength = 255;
@@ -103,6 +103,22 @@ export class CheckingInputComponent implements OnInit {
                 resolve(null);
             }
         });
+    }
+
+    public ngOnChanges(change) {
+        // this function gets called _a lot_ at various states in the component's
+        // lifecycle, so let's make sure we've got what we need before proceeding.
+        if (!this.control) {
+            return;
+        }
+
+        if (change["value"]) {
+            this.value = change["value"]["currentValue"];
+
+            if (this.value) {
+                this.control.updateValue(this.value);
+            }
+        }
     }
 
     public ngOnInit() {

@@ -90,9 +90,14 @@ export const POPULATE_PROJECT = projectActions.POPULATE_PROJECT;
 export const SET_CURRENT_PROJECT = projectActions.SET_CURRENT_PROJECT;
 export const SET_PROJECTS = projectActions.SET_PROJECTS;
 export const DELETE_PROJECT = projectActions.DELETE_PROJECT;
+export const DEPOPULATE_PROJECT = projectActions.DEPOPULATE_PROJECT;
+export const SET_PROJECT_HINT = projectActions.SET_PROJECT_HINT;
+export const RESET_PROJECT_HINT = projectActions.RESET_PROJECT_HINT;
 
 export const ROUTE_CHANGE = routerActions.ROUTE_CHANGE;
 export const ROUTE_REQUESTED = routerActions.ROUTE_REQUESTED;
+export const SET_REDIRECT_ROUTE = routerActions.SET_REDIRECT_ROUTE;
+export const RESET_REDIRECT_ROUTE = routerActions.RESET_REDIRECT_ROUTE;
 
 export const SET_SIGNING_IN_FLAG = usersActions.SET_SIGNING_IN_FLAG;
 export const SIGN_IN_ATTEMPT = usersActions.SIGN_IN_ATTEMPT;
@@ -107,7 +112,6 @@ export const fetchGitHubOrgs = gitHubActions.fetchGitHubOrgs;
 export const fetchGitHubRepos = gitHubActions.fetchGitHubRepos;
 export const loadSessionState = gitHubActions.loadSessionState;
 export const onGitHubOrgSelect = gitHubActions.onGitHubOrgSelect;
-export const onGitHubRepoSelect = gitHubActions.onGitHubRepoSelect;
 export const removeSessionStorage = gitHubActions.removeSessionStorage;
 export const requestGitHubAuthToken = gitHubActions.requestGitHubAuthToken;
 export const setGitHubAuthState = gitHubActions.setGitHubAuthState;
@@ -153,13 +157,19 @@ export const addProject = projectActions.addProject;
 export const fetchBuilds = projectActions.fetchBuilds;
 export const fetchProject = projectActions.fetchProject;
 export const fetchProjects = projectActions.fetchProjects;
+export const fetchProjectsForPackages = projectActions.fetchProjectsForPackages;
 export const populateBuildLog = projectActions.populateBuildLog;
 export const setCurrentProject = projectActions.setCurrentProject;
 export const deleteProject = projectActions.deleteProject;
+export const updateProject = projectActions.updateProject;
+export const setProjectHint = projectActions.setProjectHint;
+export const resetProjectHint = projectActions.resetProjectHint;
 
 export const goHome = routerActions.goHome;
 export const routeChange = routerActions.routeChange;
 export const requestRoute = routerActions.requestRoute;
+export const setRedirectRoute = routerActions.setRedirectRoute;
+export const resetRedirectRoute = routerActions.resetRedirectRoute;
 
 export const attemptSignIn = usersActions.attemptSignIn;
 export const setSigningInFlag = usersActions.setSigningInFlag;

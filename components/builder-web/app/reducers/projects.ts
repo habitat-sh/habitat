@@ -53,13 +53,39 @@ export default function projects(state = initialState["projects"], action) {
                 List(action.payload));
 
         case actionTypes.POPULATE_PROJECT:
-            return state.set("added", state.get("added").unshift(action.payload));
+            let padded = state.get("added");
+
+            if (padded.size === 0) {
+                return state.set("added", padded.unshift(action.payload));
+            } else {
+                let index = padded.findIndex(proj => { return proj["id"] === action.payload["id"]; });
+
+                if (index === -1) {
+                    return state.set("added", padded.unshift(action.payload));
+                }
+            }
 
         case actionTypes.SET_CURRENT_PROJECT:
             return state.mergeIn(["current"], Record(action.payload)());
 
+        case actionTypes.SET_PROJECT_HINT:
+            return state.set("hint", action.payload);
+
+        case actionTypes.RESET_PROJECT_HINT:
+            return state.set("hint", {});
+
         case actionTypes.DELETE_PROJECT:
             return state.remove("current");
+
+        case actionTypes.DEPOPULATE_PROJECT:
+            let added = state.get("added");
+            let index = added.findIndex(proj => { return proj["id"] === action.payload; });
+
+            if (index === -1) {
+                return state.set("added", added);
+            } else {
+                return state.set("added", added.delete(index));
+            }
 
         case actionTypes.SET_PROJECTS:
             return state.set("all",

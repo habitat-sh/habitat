@@ -136,7 +136,7 @@ export class ProjectPageComponent implements OnInit {
     }
 
     deleteProject() {
-        this.store.dispatch(deleteProject(this.id, this.token));
+        this.store.dispatch(deleteProject(this.id, this.token, this.routeParams.params["origin"]));
     }
 
     get project() {
@@ -152,7 +152,7 @@ export class ProjectPageComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.store.dispatch(fetchProject(this.id, this.token));
+        this.store.dispatch(fetchProject(this.id, this.token, true));
         // leaving this commented out on purpose as a reminder to make it work
         // again once the API returns build information
         // this.store.dispatch(fetchBuilds(this.routeParams.params));

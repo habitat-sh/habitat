@@ -16,15 +16,20 @@ import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
 import {AppStore} from "../AppStore";
 import {Package} from "../records/Package";
+import {Origin} from "../records/Origin";
 import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {PackageListComponent} from "./PackageListComponent";
 import {SpinnerComponent} from "../SpinnerComponent";
 import {isPackage, packageString} from "../util";
-import {fetchPackage} from "../actions/index";
+import {fetchPackage, fetchProject, setProjectHint, requestRoute} from "../actions/index";
+import {BuilderApiClient} from "../BuilderApiClient";
+import {TabComponent} from "../TabComponent";
+import {TabsComponent} from "../TabsComponent";
+import {PackageInfoComponent} from "../package-info/PackageInfoComponent";
 
 @Component({
     directives: [PackageBreadcrumbsComponent, PackageListComponent, RouterLink,
-        SpinnerComponent],
+                 SpinnerComponent, TabsComponent, TabComponent, PackageInfoComponent],
     template: `
     <div class="hab-package page-title">
         <h2>Package</h2>
@@ -34,55 +39,38 @@ import {fetchPackage} from "../actions/index";
         </h4>
         <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackage">
         </hab-spinner>
+        <button class="origin" (click)="viewOrigin()">View {{origin}} origin</button>
     </div>
-    <div *ngIf="!ui.loading" class="page-body has-sidebar">
-        <div class="page-body--main">
-            <div *ngIf="!ui.exists && !ui.loading">
-                <p>
-                    Failed to load package.
-                    <span *ngIf="ui.errorMessage">
-                        Error: {{ui.errorMessage}}
-                    </span>
-                </p>
-            </div>
-            <div *ngIf="ui.exists && !ui.loading">
-                <div class="hab-package-info">
-                    <dl>
-                        <dt>Version</dt>
-                        <dd>{{package.ident.version}}</dd>
-                        <dt>Release</dt>
-                        <dd>{{package.ident.release}}</dd>
-                        <dt>Checksum</dt>
-                        <dd>{{package.checksum}}</dd>
-                        <dt *ngIf="package.exposes.length > 0">Exposed Ports</dt>
-                        <dd *ngIf="package.exposes.length > 0">
-                            <span *ngFor="#port of package.exposes">{{port}} </span>
-                        </dd>
-                    </dl>
-                </div>
-                <div class="hab-package-manifest">
-                    <h3>Manifest</h3>
-                    <div class="manifest" [innerHTML]="package.manifest"></div>
-                </div>
-                <div class="hab-package-config" *ngIf="package.config">
-                    <h3>Configuration</h3>
-                    <pre>{{package.config}}</pre>
-                </div>
-            </div>
+    <div *ngIf="!ui.loading && !ui.exists">
+      <p>
+          Failed to load package.
+          <span *ngIf="ui.errorMessage">
+              Error: {{ui.errorMessage}}
+          </span>
+      </p>
+    </div>
+    <div *ngIf="showRepoButton" class="project-header">
+      <button class="build-project-button" (click)="createProject()">Connect a repo</button> As a member of the {{origin}} origin, you can setup automated builds for this package by connecting a repo.
+    </div>
+    <div *ngIf="showRepoButton" class="page-body has-sidebar">
+      <hab-package-info [package]="package"></hab-package-info>
+    </div>
+    <tabs *ngIf="!ui.loading && ui.exists && projectExists">
+      <tab tabTitle="Info">
+        <div class="page-body has-sidebar">
+          <hab-package-info [package]="package"></hab-package-info>
         </div>
-        <div class="page-body--sidebar">
-            <div class="hab-package-deps-build">
-                <h3>Dependencies</h3>
-                <package-list [currentPackage]="package"
-                            [packages]="package.deps"></package-list>
-            </div>
-            <div class="hab-package-deps-runtime">
-                <h3>Transitive Dependencies</h3>
-                <package-list [currentPackage]="package"
-                            [packages]="package.tdeps"></package-list>
-            </div>
+      </tab>
+      <tab tabTitle="Builds">
+        <div class="builds">
         </div>
-    </div>`,
+      </tab>
+      <tab tabTitle="Settings">
+        <div class="settings">
+        </div>
+      </tab>
+    </tabs>
+    `,
 })
 
 export class PackagePageComponent implements OnInit {
@@ -108,16 +96,61 @@ export class PackagePageComponent implements OnInit {
         }
     }
 
+    get origin() {
+        return this.package.ident.origin;
+    }
+
+    get projectId() {
+        return `${this.package.ident.origin}/${this.package.ident.name}`;
+    }
+
+    get project() {
+        return this.store.getState().projects.added.find(proj => { return proj["id"] === this.projectId; });
+    }
+
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
     get ui() {
         return this.store.getState().packages.ui.current;
     }
 
+    get projectExists() {
+        return this.project !== undefined;
+    }
+
+    get memberOfOrigin() {
+        return this.store.getState().origins.mine.includes(Origin({name: this.package.ident.origin}));
+    }
+
+    get showRepoButton() {
+        return !this.ui.loading && this.ui.exists && !this.projectExists && this.memberOfOrigin;
+    }
+
+    viewOrigin() {
+        this.store.dispatch(requestRoute(["Origin", {origin: this.origin}]));
+    }
+
+    createProject() {
+        this.store.dispatch(setProjectHint({
+            originName: this.package.ident.origin,
+            packageName: this.package.ident.name
+        }));
+        this.store.dispatch(requestRoute(["ProjectCreate"]));
+    }
+
     public ngOnInit() {
         this.fetchPackage();
+        this.fetchProject();
     }
 
     private fetchPackage () {
         this.store.dispatch(fetchPackage(this.package));
+    }
+
+    private fetchProject() {
+        this.store.dispatch(fetchProject(this.projectId, this.token, false));
     }
 
     private packageString(params) { return packageString(params); }

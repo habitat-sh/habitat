@@ -15,6 +15,7 @@
 import * as moment from "moment";
 import {requestRoute} from "./actions/index";
 import config from "./config";
+import {Project} from "./records/Project";
 
 // Create a GitHub login URL
 export function createGitHubLoginUrl(state) {
@@ -45,6 +46,27 @@ export function friendlyTime(t) {
 // get an icon's path
 export function icon(x: string): string {
     return `/node_modules/octicons/svg/${x}.svg`;
+}
+
+// Take some params and return a project
+export function projectFromParams(p = {}) {
+    let id = undefined;
+
+    if (p["id"]) {
+        id = p["id"];
+    } else if (p["origin"] && p["name"]) {
+        id = `${p["origin"]}/${p["name"]}`;
+    }
+
+    return Project({
+        id: id,
+        plan_path: p["plan_path"]
+    });
+}
+
+// Compare the identifying attributes of two projects to see if they are the same
+export function isProject(x = {}, y = {}) {
+    return x["id"] === y["id"];
 }
 
 // Compare the identifying attributes of two packages to see if they are the

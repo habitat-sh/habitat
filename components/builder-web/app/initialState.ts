@@ -131,6 +131,7 @@ export default Record({
         // be there
         added: List(),
         all: List(),
+        hint: {},
         current: Record({
             id: undefined,
             plan_path: undefined,
@@ -154,6 +155,7 @@ export default Record({
     router: Record({
         requestedRoute: "",
         route: "",
+        redirectRoute: ""
     })(),
     users: Record({
         current: Record({

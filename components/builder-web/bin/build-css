@@ -9,6 +9,8 @@ node-sass \
   --include-path=node_modules/normalize-scss/node_modules/support-for/sass \
   --include-path=node_modules/octicons/octicons \
   --include-path=stylesheets \
+  --include-path=app \
+  --recursive=true \
   --output=assets \
   --output-style=compressed \
   --source-map=true \

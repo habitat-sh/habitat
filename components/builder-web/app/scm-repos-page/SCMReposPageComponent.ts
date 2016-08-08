@@ -14,11 +14,12 @@
 
 import {Component, OnInit} from "angular2/core";
 import {AppStore} from "../AppStore";
-import {fetchGitHubOrgs, fetchGitHubRepos, onGitHubOrgSelect,
-    onGitHubRepoSelect, setSelectedGitHubOrg} from "../actions/index";
+import {fetchGitHubOrgs, fetchGitHubRepos,
+        onGitHubOrgSelect, setSelectedGitHubOrg, resetRedirectRoute} from "../actions/index";
 import {GitHubRepoPickerComponent} from
     "../github-repo-picker/GitHubRepoPickerComponent";
 import {requireSignIn} from "../util";
+import {Router} from "angular2/router";
 
 @Component({
     directives: [GitHubRepoPickerComponent],
@@ -58,7 +59,7 @@ export class SCMReposPageComponent implements OnInit {
     private onOrgSelect: Function;
     private onRepoSelect: Function;
 
-    constructor(private store: AppStore) {
+    constructor(private store: AppStore, private router: Router) {
         this.fetchGitHubOrgs = () => {
             this.store.dispatch(fetchGitHubOrgs());
             return false;
@@ -75,7 +76,17 @@ export class SCMReposPageComponent implements OnInit {
         };
 
         this.onRepoSelect = (repo) => {
-            this.store.dispatch(onGitHubRepoSelect(repo));
+            if (typeof this.redirectRoute === "object" && this.redirectRoute.length) {
+                this.redirectRoute[1]["repo"] = repo;
+                this.router.navigate(this.redirectRoute);
+                this.store.dispatch(resetRedirectRoute());
+            } else {
+                this.router.navigate([
+                    "ProjectCreate",
+                    { repo: encodeURIComponent(repo) }
+                ]);
+            }
+
             return false;
         };
     }
@@ -90,5 +101,9 @@ export class SCMReposPageComponent implements OnInit {
 
     get user() {
         return this.store.getState().users.current.gitHub;
+    }
+
+    get redirectRoute() {
+        return this.store.getState().router.redirectRoute;
     }
 }

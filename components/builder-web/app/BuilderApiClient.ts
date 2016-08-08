@@ -84,6 +84,37 @@ export class BuilderApiClient {
         });
     }
 
+    public updateProject(projectId, project) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${projectId}`, {
+                body: JSON.stringify(project),
+                headers: this.headers,
+                method: "PUT",
+            }).then(response => {
+                if (response.ok) {
+                    resolve();
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
+    public deleteProject(projectId) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/projects/${projectId}`, {
+                method: "DELETE",
+                headers: this.headers
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response);
+                } else {
+                    reject(new Error(response.statusText));
+                }
+            }).catch(error => reject(error));
+        });
+    }
+
     public getProject(projectId) {
         return new Promise((resolve, reject) => {
             fetch(`${this.urlPrefix}/projects/${projectId}`, {
@@ -104,21 +135,6 @@ export class BuilderApiClient {
             // TODO make the real API call here once the endpoint exists
             // for now, just pretend it succeeded and there were no results
             resolve([]);
-        });
-    }
-
-    public deleteProject(projectId) {
-        return new Promise((resolve, reject) => {
-            fetch(`${this.urlPrefix}/projects/${projectId}`, {
-                method: "DELETE",
-                headers: this.headers
-            }).then(response => {
-                if (response.ok) {
-                    resolve(response);
-                } else {
-                    reject(new Error(response.statusText));
-                }
-            }).catch(error => reject(error));
         });
     }
 

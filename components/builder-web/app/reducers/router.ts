@@ -25,6 +25,14 @@ export default function router(state = initialState["router"], action) {
             return state.
                 set("requestedRoute", action.payload);
 
+        case actionTypes.SET_REDIRECT_ROUTE:
+            return state.
+                set("redirectRoute", action.payload);
+
+        case actionTypes.RESET_REDIRECT_ROUTE:
+            return state.
+                set("redirectRoute", "");
+
         default:
             return state;
     }

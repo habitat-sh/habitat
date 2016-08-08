@@ -14,6 +14,7 @@
 
 import * as depotApi from "../depotApi";
 import * as fakeApi from "../fakeApi";
+import {fetchProjectsForPackages} from "./projects";
 
 export const CLEAR_PACKAGES = "CLEAR_PACKAGES";
 export const POPULATE_EXPLORE = "POPULATE_EXPLORE";
@@ -49,7 +50,13 @@ export function fetchPackage(pkg) {
     };
 }
 
-export function filterPackagesBy(params, query: string, nextRange: number = 0) {
+export function filterPackagesBy(
+    params,
+    query: string,
+    nextRange: number = 0,
+    fetchProjects: boolean = false,
+    token: string = ""
+) {
     return dispatch => {
         if (nextRange === 0) {
             dispatch(clearPackages());
@@ -63,6 +70,10 @@ export function filterPackagesBy(params, query: string, nextRange: number = 0) {
             dispatch(setVisiblePackages(response["results"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
+
+            if (fetchProjects) {
+                dispatch(fetchProjectsForPackages(response["results"], token));
+            }
         }).catch(error => {
             dispatch(setVisiblePackages(undefined, error));
         });
