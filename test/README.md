@@ -2,6 +2,10 @@
 
 ## Running all tests
 
+In it's first incarnation, the testing framework must be run inside the Habitat dev shell and from the `./test` directory. If you clone the [Habitat repo](https://github.com/habitat-sh/habitat), you can run:
+
+	make shell
+
 First, ensure that all Habitat related environment variables are unset:
 
 
@@ -11,6 +15,7 @@ In Bash, you can use the `unset` command for each variable that you'd like to cl
 
 Next, run the entire test suite with:
 
+	cd test
 	./test.sh
 
 If you'd like to generate additional debugging information, set the following env variable before running the tests:
