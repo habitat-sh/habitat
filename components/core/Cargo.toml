@@ -24,6 +24,7 @@ time = "*"
 
 [dev-dependencies]
 tempdir = "*"
+quickcheck = "*"
 
 [dev-dependencies.hyper]
 version = "*"
