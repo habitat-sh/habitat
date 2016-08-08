@@ -18,7 +18,7 @@ import {Component, OnInit} from "angular2/core";
 import {RouterLink, RouteParams} from "angular2/router";
 import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
-import {fetchBuilds, fetchProject} from "../actions/index";
+import {fetchBuilds, fetchProject, deleteProject} from "../actions/index";
 import {friendlyTime, requireSignIn} from "../util";
 
 @Component({
@@ -77,6 +77,13 @@ import {friendlyTime, requireSignIn} from "../util";
                                         {{project.sourceRepository.slug}}
                                     </a>
                                 </li>
+                                <li>
+                                  <div class="submit">
+                                      <button (click)="deleteProject()">
+                                          Delete Project
+                                      </button>
+                                  </div>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -126,6 +133,10 @@ import {friendlyTime, requireSignIn} from "../util";
 export class ProjectPageComponent implements OnInit {
     constructor(private routeParams: RouteParams, private store: AppStore) {
         requireSignIn(this);
+    }
+
+    deleteProject() {
+        this.store.dispatch(deleteProject(this.id, this.token));
     }
 
     get project() {

@@ -32,6 +32,7 @@ export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
 export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
 export const SET_PROJECTS = "SET_PROJECTS";
+export const DELETE_PROJECT = "DELETE_PROJECT";
 
 export function addProject(project: Object, token: string) {
     return dispatch => {
@@ -113,6 +114,33 @@ export function fetchProjects(token: string) {
         new BuilderApiClient(token).getProjects().then(response => {
             dispatch(setProjects(response));
         });
+    };
+}
+
+export function deleteProject(id: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).deleteProject(id).then(response => {
+            dispatch(requestRoute(["Projects"]));
+            dispatch(addNotification({
+                title: "Project deleted",
+                body: `Deleted ${id}.`,
+                type: SUCCESS
+            }));
+            dispatch(actuallyDeleteProject(id));
+        }).catch(error => {
+            dispatch(addNotification({
+                title: "Failed to delete project",
+                body: error.message,
+                type: DANGER,
+            }));
+        });
+    };
+}
+
+function actuallyDeleteProject(projectId) {
+    return {
+        type: DELETE_PROJECT,
+        payload: projectId,
     };
 }
 
