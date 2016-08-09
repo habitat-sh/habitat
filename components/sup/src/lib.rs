@@ -67,6 +67,7 @@ extern crate urlencoded;
 extern crate openssl;
 #[macro_use]
 extern crate lazy_static;
+extern crate cadence;
 
 #[macro_export]
 /// Creates a new SupError, embedding the current file name, line number, column, and module path.

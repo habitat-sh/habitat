@@ -388,6 +388,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 let service_config = worker.service_config.read().unwrap();
                 let package = worker.package.read().unwrap();
                 let existed = try!(package.file_updated(&service_config));
+                let _ = worker.send_event("FileUpdated");
                 if !existed {
                     restart_process = true;
                 }
@@ -399,6 +400,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 if try!(service_config.write(&package)) {
                     try!(package.copy_run(&service_config));
                     let existed = try!(package.reconfigure(&service_config));
+                    let _ = worker.send_event("Reconfigure");
                     if !existed {
                         restart_process = true;
                     }

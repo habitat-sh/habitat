@@ -23,6 +23,7 @@ extern crate ansi_term;
 extern crate libc;
 #[macro_use]
 extern crate clap;
+extern crate cadence;
 
 use std::path::Path;
 use std::process;
