@@ -63,7 +63,6 @@ extern crate uuid;
 extern crate utp;
 extern crate rand;
 extern crate threadpool;
-extern crate urlencoded;
 extern crate openssl;
 #[macro_use]
 extern crate lazy_static;

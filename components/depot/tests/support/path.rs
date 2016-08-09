@@ -15,12 +15,8 @@
 use std::env;
 use std::path::PathBuf;
 
-pub fn exe_path() -> PathBuf {
-    env::current_exe().unwrap()
-}
-
 pub fn root() -> PathBuf {
-    exe_path().parent().unwrap().parent().unwrap().parent().unwrap().join("tests")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
 }
 
 pub fn fixtures() -> PathBuf {

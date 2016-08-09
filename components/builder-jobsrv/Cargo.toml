@@ -4,6 +4,7 @@ version = "0.8.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder Job Server"
 build = "build.rs"
+workspace = "../../"
 
 [[bin]]
 name = "bldr-job-srv"
@@ -14,9 +15,6 @@ env_logger = "*"
 linked-hash-map = "*"
 log = "*"
 protobuf = "*"
-r2d2 = "*"
-r2d2_redis = "*"
-redis = "*"
 rustc-serialize = "*"
 toml = "*"
 
@@ -40,6 +38,13 @@ path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[dependencies.redis]
+git = "https://github.com/habitat-sh/redis-rs"
+branch = "habitat"
+
+[replace]
+"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

@@ -32,7 +32,6 @@ extern crate rustc_serialize;
 extern crate staticfile;
 extern crate toml;
 extern crate unicase;
-extern crate urlencoded;
 extern crate zmq;
 
 pub mod config;

@@ -3,6 +3,7 @@ name = "hab"
 version = "0.7.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 build = "build.rs"
+workspace = "../../"
 
 [dependencies]
 ansi_term = "*"
@@ -17,7 +18,6 @@ rustc-serialize = "*"
 temp_utp = "*"
 toml = "*"
 url = "*"
-uuid = "0.1"
 walkdir = "*"
 
 [dependencies.clap]
@@ -35,6 +35,10 @@ path = "../depot-client"
 
 [dependencies.habitat_http_client]
 path = "../http-client"
+
+[dependencies.uuid]
+version = "*"
+features = ["rustc-serialize", "v4"]
 
 [features]
 functional = []

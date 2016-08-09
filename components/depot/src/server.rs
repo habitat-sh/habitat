@@ -20,7 +20,7 @@ use std::result;
 use std::sync::Arc;
 
 use bodyparser;
-use dbcache::{self, BasicSet, IndexSet};
+use dbcache::{self, BasicSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
@@ -44,6 +44,7 @@ use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
 use unicase::UniCase;
 use urlencoded::UrlEncodedQuery;
+use serde_json;
 
 use super::Depot;
 use config::Config;
@@ -183,7 +184,7 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     match req.get::<bodyparser::Json>() {
         Ok(Some(body)) => {
             match body.find("name") {
-                Some(origin) => request.set_name(origin.as_string().unwrap().to_owned()),
+                Some(&serde_json::Value::String(ref origin)) => request.set_name(origin.to_owned()),
                 _ => return Ok(Response::with(status::BadRequest)),
             }
         }
@@ -621,9 +622,8 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
     let mut response = Response::with((status::Created,
                                        format!("/origins/{}/keys/{}", &origin, &revision)));
-
-    let mut base_url = req.url.clone();
-    base_url.path = vec![String::from("key"), format!("{}-{}", &origin, &revision)];
+    let mut base_url = req.url.clone().into_generic_url();
+    base_url.set_path(&format!("key/{}-{}", &origin, &revision));
     response.headers.set(headers::Location(format!("{}", base_url)));
     Ok(response)
 }
@@ -776,9 +776,8 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         depot.datastore.packages.write(&object).unwrap();
         let mut response = Response::with((status::Created,
                                            format!("/pkgs/{}/download", object.get_ident())));
-        let mut base_url = req.url.clone();
-        base_url.path =
-            vec![String::from("pkgs"), object.get_ident().to_string(), String::from("download")];
+        let mut base_url = req.url.clone().into_generic_url();
+        base_url.set_path(&format!("pkgs/{}/download", object.get_ident()));
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
     } else {

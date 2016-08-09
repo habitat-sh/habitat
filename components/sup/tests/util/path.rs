@@ -15,12 +15,8 @@
 use std::env;
 use std::path::PathBuf;
 
-pub fn exe_path() -> PathBuf {
-    env::current_exe().unwrap()
-}
-
 pub fn root() -> PathBuf {
-    exe_path().parent().unwrap().parent().unwrap().parent().unwrap().join("tests")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
 }
 
 pub fn fixtures() -> PathBuf {
@@ -28,29 +24,30 @@ pub fn fixtures() -> PathBuf {
 }
 
 pub fn key_cache() -> PathBuf {
-    // same as the fixtures dir, for now
     root().join("fixtures")
 }
-
 
 pub fn fixture(name: &str) -> PathBuf {
     fixtures().join(name)
 }
 
 pub fn fixture_as_string(name: &str) -> String {
-    let fixture_string = fixtures().join(name).to_string_lossy().into_owned();
-    fixture_string
+    fixtures().join(name).to_string_lossy().into_owned()
 }
 
 pub fn plan_build() -> String {
     root()
         .parent()
         .unwrap()
-        .join("components/plan-build/bin/hab-plan-build.sh")
+        .parent()
+        .unwrap()
+        .join("plan-build")
+        .join("bin")
+        .join("hab-plan-build.sh")
         .to_string_lossy()
         .into_owned()
 }
 
 pub fn sup() -> String {
-    root().parent().unwrap().join("target/debug/hab-sup").to_string_lossy().into_owned()
+    PathBuf::from(env::var("OUT_DIR").unwrap()).join("hab-sup").to_string_lossy().into_owned()
 }

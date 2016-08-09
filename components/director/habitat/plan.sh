@@ -5,7 +5,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl)
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
+pkg_build_deps=(core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc)
 pkg_bin_dirs=(bin)
 srv_bin="hab-director"
 pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
@@ -41,8 +41,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../target/$rustc_target/debug/$srv_bin \
-    $pkg_prefix/bin/$srv_bin
+  install -v -D $PLAN_CONTEXT/../../../target/$rustc_target/$srv_bin $pkg_prefix/bin/$srv_bin
 }
 
 do_strip() {

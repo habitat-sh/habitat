@@ -6,8 +6,8 @@ pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/coreutils core/gcc-libs core/zeromq core/libsodium core/libarchive)
-pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/rust core/gcc
-                core/pkg-config core/node core/phantomjs)
+pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/cargo-nightly
+                core/rust core/gcc core/pkg-config core/node core/phantomjs)
 pkg_expose=(9636)
 srv_bin="bldr-api"
 pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
@@ -53,7 +53,7 @@ do_build() {
 
 do_install() {
   cp -vR $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version/dist $pkg_prefix/static
-  install -v -D $PLAN_CONTEXT/../target/$rustc_target/$srv_bin $pkg_prefix/bin/$srv_bin
+  install -v -D $PLAN_CONTEXT/../../../target/$rustc_target/$srv_bin $pkg_prefix/bin/$srv_bin
 }
 
 do_download() {
