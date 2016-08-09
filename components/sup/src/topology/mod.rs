@@ -37,27 +37,29 @@ use std::time::Duration;
 
 use wonder;
 
-use state_machine::StateMachine;
 use census::{self, CensusList};
 use common::gossip_file::GossipFileList;
-use package::{self, Package, PackageUpdaterActor};
-use util::signals::SignalNotifier;
-use error::{Result, SupError};
 use config::Config;
+use config::UpdateStrategy;
+use election::ElectionList;
+use error::{Result, SupError};
+use gossip::member::MemberList;
+use gossip::rumor::{Rumor, RumorList};
+use gossip;
+use package::{self, Package, PackageUpdaterActor};
 use service_config::ServiceConfig;
 use sidecar;
+use state_machine::StateMachine;
 use supervisor::{RuntimeConfig, Supervisor};
-use gossip;
-use gossip::rumor::{Rumor, RumorList};
-use gossip::member::MemberList;
-use election::ElectionList;
 use time::SteadyTime;
+use util::events::{EventMessage, EventSink, EventSinkActor};
+use util::signals::SignalNotifier;
 use util::signals;
 use util::users as hab_users;
-use config::UpdateStrategy;
 
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
+
 
 #[derive(PartialEq, Eq, Debug, RustcEncodable)]
 pub enum Topology {
@@ -121,6 +123,7 @@ pub struct Worker<'a> {
     /// The service supervisor
     pub supervisor: Arc<RwLock<Supervisor>>,
     pub return_state: Option<State>,
+    pub event_actor: EventSinkActor,
 }
 
 impl<'a> Worker<'a> {
@@ -151,6 +154,11 @@ impl<'a> Worker<'a> {
                 pkg_updater = Some(package::PackageUpdater::start(config.url(), pkg_lock_2));
             }
         }
+
+        let event_actor = wonder::actor::Builder::new(EventSink)
+            .name("event-sink".to_string())
+            .start(())
+            .unwrap();
 
         let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen_ip()),
                                                         config.gossip_listen_port(),
@@ -216,6 +224,7 @@ impl<'a> Worker<'a> {
             supervisor: supervisor,
             pkg_updater: pkg_updater,
             return_state: None,
+            event_actor: event_actor
         })
     }
 
@@ -229,6 +238,11 @@ impl<'a> Worker<'a> {
         let package = self.package.read().unwrap();
         try!(package.copy_run(&service_config));
         Ok(())
+    }
+
+    pub fn send_event(&self, event: &str) {
+        self.event_actor.cast(EventMessage::Event(event.to_string()));
+
     }
 }
 
@@ -424,6 +438,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     if restart_process {
                         // And we have ever started before...
                         if supervisor.has_started {
+                            let _ = worker.event_actor.cast(EventMessage::Event("Restart".to_string()));
                             // Restart
                             try!(supervisor.restart());
                         }
@@ -431,6 +446,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 }
             }
         }
+
+        let _ = worker.event_actor.cast(EventMessage::Event("Iterate".to_string()));
 
         // Next state!
         try!(sm.next(worker));

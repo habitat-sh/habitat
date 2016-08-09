@@ -154,6 +154,7 @@ fn state_check_for_election(worker: &mut Worker) -> Result<(State, u64)> {
 
 pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Starting election");
+    let _ = worker.send_event("Starting election");
     let rumor_list = {
         let el = worker.election_list.read().unwrap();
         el.generate_rumor_list_for(worker.package_name.clone(),
