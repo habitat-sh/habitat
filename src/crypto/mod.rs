@@ -285,7 +285,6 @@ pub fn init() {
 
 #[cfg(test)]
 pub mod test_support {
-    use std::env;
     use std::io::Read;
     use std::fs::File;
     use std::path::PathBuf;
@@ -295,21 +294,12 @@ pub mod test_support {
     use error as herror;
 
     pub fn fixture(name: &str) -> PathBuf {
-        let file = env::current_exe()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .join("tests")
-            .join("fixtures")
-            .join(name);
-        if !file.is_file() {
-            panic!("No fixture {} exists!", file.display());
+        let path =
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join(name);
+        if !path.is_file() {
+            panic!("Fixture '{}' not found at: {:?}", name, path);
         }
-        file
+        path
     }
 
     pub fn fixture_as_string(name: &str) -> String {
