@@ -19,6 +19,7 @@ fi
 
 start() {
   local root=/src/components
+  local binroot=/src/target
   for service in $ALL_SERVICES; do
     local dir="builder-$service"
     local bin="bldr-$service"
@@ -27,14 +28,14 @@ start() {
       local bin=bldr-session-srv
     fi
     # If the compiled binary does not exist, compile it
-    if [[ ! -f "$root/$dir/target/debug/$bin" ]]; then
+    if [[ ! -f "$binroot/debug/$bin" ]]; then
       echo "Compiling builder-$service..."
       (cd "$root/$dir" && cargo build)
     fi
     # Start the service and record it's pid if it's not already running
     if ! pgrep -f "$bin" > /dev/null; then
       echo "Starting builder-$service..."
-      "$root/$dir/target/debug/$bin" start & \
+      "$binroot/debug/$bin" start & \
         echo $! > "/src/tmp/run-api/$service.pid"
     fi
   done
