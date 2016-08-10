@@ -85,8 +85,8 @@ impl CensusEntry {
         CensusEntry {
             id: Uuid::new_v4(),
             member_id: member_id,
-            hostname: util::sys::hostname(None).unwrap_or(String::from("unknown")),
-            ip: util::sys::ip(None).unwrap_or(String::from("127.0.0.1")),
+            hostname: util::sys::hostname().unwrap_or(String::from("unknown")),
+            ip: util::sys::ip().map(|s| s.to_string()).unwrap_or("127.0.0.1".to_string()),
             suitability: 0,
             port: None,
             exposes: None,

@@ -64,7 +64,7 @@ impl Controller {
         let mut next_gossip_port = FIRST_GOSSIP_PORT;
         let mut next_http_port = FIRST_HTTP_PORT;
 
-        let default_ip = try!(ip(None));
+        let default_ip = try!(ip()).to_string();
         let listen_ip = try!(Ipv4Addr::from_str(&default_ip));
 
 
@@ -256,7 +256,7 @@ mod tests {
         controller.create_children().unwrap();
         assert_eq!(3, controller.children.as_ref().unwrap().len());
 
-        let test_ip = ip(None).unwrap();
+        let test_ip = ip().unwrap().to_string();
         {
 
             let child = &controller.children.as_ref().unwrap()[0];

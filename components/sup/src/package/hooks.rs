@@ -29,7 +29,7 @@ use util::convert;
 use util::handlebars_helpers;
 use util::users as hab_users;
 
-pub const HOOK_PERMISSIONS: &'static str = "0755";
+pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "PH";
 
 #[derive(Debug, Clone)]
@@ -153,7 +153,6 @@ impl Hook {
     }
 
     pub fn compile(&self, context: Option<&ServiceConfig>) -> Result<()> {
-        let runas = format!("{}:{}", &self.user, &self.group);
         if let Some(ctx) = context {
             debug!("Rendering hook {:?}", self);
             let mut handlebars = Handlebars::new();
@@ -172,12 +171,12 @@ impl Hook {
                 .mode(0o770)
                 .open(&self.path));
             try!(write!(&mut file, "{}", data));
-            try!(util::perm::set_owner(&self.path, &runas));
+            try!(util::perm::set_owner(&self.path, &self.user, &self.group));
             try!(util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
             Ok(())
         } else {
             try!(fs::copy(&self.template, &self.path));
-            try!(util::perm::set_owner(&self.path, &runas));
+            try!(util::perm::set_owner(&self.path, &self.user, &self.group));
             try!(util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
             Ok(())
         }

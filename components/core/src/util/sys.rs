@@ -14,36 +14,22 @@
 
 use std::ffi::CStr;
 use std::mem;
-use std::process::Command;
+use std::net::{IpAddr, UdpSocket};
 
-use errno::errno;
 use libc;
 
+use errno::errno;
 use error::{Error, Result};
 
-pub fn ip(path: Option<&str>) -> Result<String> {
-    debug!("Shelling out to determine IP address");
-    let mut cmd = Command::new("sh");
-    cmd.arg("-c").arg("ip route get 8.8.8.8 | awk '{printf \"%s\", $NF; exit}'");
-    if let Some(path) = path {
-        cmd.env("PATH", path);
-        debug!("Setting shell out PATH={}", path);
-    }
-    let output = try!(cmd.output());
-    match output.status.success() {
-        true => {
-            debug!("IP address is {}", String::from_utf8_lossy(&output.stdout));
-            let ip = try!(String::from_utf8(output.stdout));
-            Ok(ip)
-        }
-        false => {
-            debug!("IP address command returned: OUT: {} ERR: {}",
-                   String::from_utf8_lossy(&output.stdout),
-                   String::from_utf8_lossy(&output.stderr));
-            Err(Error::NoOutboundAddr)
-        }
-    }
+static GOOGLE_DNS: &'static str = "8.8.8.8:53";
+
+pub fn ip() -> Result<IpAddr> {
+    let socket = try!(UdpSocket::bind("0.0.0.0:0"));
+    let _ = try!(socket.connect(GOOGLE_DNS));
+    let addr =try!(socket.local_addr());
+    Ok(addr.ip())
 }
+
 
 #[derive(Debug)]
 pub struct Uname {

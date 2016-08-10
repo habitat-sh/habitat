@@ -12,71 +12,126 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::process::Command;
+use std::ffi::CString;
 use std::path::Path;
+
+use libc::{self, mode_t};
+use users;
 
 use error::{Error, Result};
 
-pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X) -> Result<()> {
+pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
     debug!("Attempting to set owner of {:?} to {:?}",
            &path.as_ref(),
            &owner.as_ref());
-    let output = try!(Command::new("chown")
-        .arg(owner.as_ref())
-        .arg(path.as_ref())
-        .output());
-    match output.status.success() {
-        true => Ok(()),
-        false => {
-            Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
-                                                &path.as_ref(),
-                                                &owner.as_ref())))
+
+    let uid = match users::get_user_by_name(&owner.as_ref()) .map(|u| u.uid()) {
+        Some(user) => user,
+        None => {
+            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting user.",
+                              &path.as_ref(),
+                              &owner.as_ref(),
+                              &group.as_ref());
+            return Err(Error::PermissionFailed(msg))
+        }
+    };
+
+    let gid = match users::get_group_by_name(&group.as_ref()) .map(|g| g.gid()) {
+        Some(group) => group,
+        None => {
+            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting group.",
+                              &path.as_ref(),
+                              &owner.as_ref(),
+                              &group.as_ref());
+            return Err(Error::PermissionFailed(msg))
+        }
+    };
+
+    let s_path = match path.as_ref().to_str() {
+        Some(s) => s,
+        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())))
+
+    };
+    let c_path = match CString::new(s_path) {
+        Ok(c) => c,
+        Err(e) => return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
+                                                             &path.as_ref(),
+                                                             e
+                                                            )))
+    };
+    let r_path = c_path.into_raw();
+
+    unsafe {
+        match libc::chown(r_path, uid, gid) {
+            0 => Ok(()),
+            _ => Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
+                                                     &path.as_ref(),
+                                                     &owner.as_ref())))
         }
     }
 }
 
-pub fn set_owner_and_group<T: AsRef<Path>, X: AsRef<str>>(path: T,
-                                                          owner: X,
-                                                          group: X)
-                                                          -> Result<()> {
-    debug!("Attempting to set owner of {:?} to {:?}:{:?}",
-           &path.as_ref(),
-           &owner.as_ref(),
-           &group.as_ref());
-    let user_and_group = format!("{}:{}", owner.as_ref(), group.as_ref());
+pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
+    let s_path = match path.as_ref().to_str() {
+        Some(s) => s,
+        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())))
 
-    let output = try!(Command::new("chown")
-        .arg(&user_and_group)
-        .arg(path.as_ref())
-        .output());
-    match output.status.success() {
-        true => Ok(()),
-        false => {
-            Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}:{:?}",
-                                                &path.as_ref(),
-                                                &owner.as_ref(),
-                                                &group.as_ref())))
+    };
+    let c_path = match CString::new(s_path) {
+        Ok(c) => c,
+        Err(e) => return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
+                                                             &path.as_ref(),
+                                                             e
+                                                            )))
+    };
+    let r_path = c_path.into_raw();
+
+    unsafe {
+        let result = libc::chmod(r_path, mode as mode_t);
+        CString::from_raw(r_path); // necessary to prevent leaks
+        match result {
+            0 => Ok(()),
+            _ => {
+                Err(Error::PermissionFailed(format!("Can't set permissions on {:?} to {:?}",
+                                                    &path.as_ref(),
+                                                    &mode)))
+            }
         }
     }
 }
 
-// When Rust stabilizes this interface, we can move to the cross
-// platform abstraction. Until then, if we move to Windows or some
-// other platform, this code will need to become platform specific.
-pub fn set_permissions<T: AsRef<Path>, X: AsRef<str>>(path: T, perm: X) -> Result<()> {
-    debug!("Attempting to set permissions on {:?} to {:?}",
-           &path.as_ref(),
-           &perm.as_ref());
-    let output = try!(Command::new("chmod")
-        .arg(perm.as_ref())
-        .arg(path.as_ref())
-        .output());
-    match output.status.success() {
-        true => Ok(()),
-        false => {
-            Err(Error::PermissionFailed(format!("Can't set permissions on {:?} to {:?}",
-                                                &path.as_ref(),
-                                                &perm.as_ref())))
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
+    use std::io::Write;
+    use std::path::Path;
+
+    use tempdir::TempDir;
+
+    use error::Error;
+    use super::*;
+
+    #[test]
+    fn chmod_ok_test() {
+        let tmp_dir = TempDir::new("foo").expect("create temp dir");
+        let file_path = tmp_dir.path().join("test.txt");
+        let mut tmp_file = File::create(&file_path).expect("create temp file");
+        writeln!(tmp_file, "foobar123").expect("write temp file");
+
+        let mode = 0o745;
+        assert!(set_permissions(file_path, mode).is_ok());
+        drop(tmp_file);
+        tmp_dir.close().expect("delete temp dir");
+    }
+
+    #[test]
+    fn chmod_fail_test() {
+        let mode = 0o745;
+        let badpath = Path::new("this_file_should_never_exist_deadbeef");
+        if let Err(Error::PermissionFailed(_)) = set_permissions(badpath, mode) {
+            assert!(true);
+        } else {
+            assert!(false);
         }
     }
 }

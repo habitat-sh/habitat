@@ -237,13 +237,13 @@ module HabTesting
         def initialize
             super
             @cleanup_filename = "cleanup_#{SecureRandom.hex(10)}.sh"
-            @hab_bin="/src/components/hab/target/debug/hab"
+            @hab_bin="/src/target/debug/hab"
             @hab_key_cache = "/hab/cache/keys"
             @hab_org = "org_#{unique_name()}"
             @hab_origin = "origin_#{unique_name()}"
             @hab_pkg_path = "/hab/pkgs"
             @hab_ring = "ring_#{unique_name()}"
-            @hab_sup_bin = "/src/components/sup/target/debug/hab-sup"
+            @hab_sup_bin = "/src/target/debug/hab-sup"
             @hab_svc_path = "/hab/svc"
             @hab_user = "user_#{unique_name()}"
             @log_dir = "./logs"

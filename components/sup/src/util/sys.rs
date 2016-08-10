@@ -12,40 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::process::Command;
+use std::ffi::CStr;
+use std::net::IpAddr;
+use std::str;
+
+use libc;
 
 use error::{Error, Result};
 use hcore::util::sys;
 
 static LOGKEY: &'static str = "SY";
 
-pub fn ip(path: Option<&str>) -> Result<String> {
-    match sys::ip(path) {
+pub fn ip() -> Result<IpAddr> {
+    match sys::ip() {
         Ok(s) => Ok(s),
         Err(e) => Err(sup_error!(Error::HabitatCore(e))),
     }
 }
 
-pub fn hostname(path: Option<&str>) -> Result<String> {
-    debug!("Shelling out to determine IP address");
-    let mut cmd = Command::new("sh");
-    cmd.arg("-c").arg("hostname | awk '{printf \"%s\", $NF; exit}'");
-    if let Some(path) = path {
-        cmd.env("PATH", path);
-        debug!("Setting shell out PATH={}", path);
-    }
-    let output = try!(cmd.output());
-    match output.status.success() {
-        true => {
-            debug!("Hostname address is {}",
-                   String::from_utf8_lossy(&output.stdout));
-            let hostname = try!(String::from_utf8(output.stdout));
-            Ok(hostname)
+
+extern {
+    pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
+}
+
+
+pub fn hostname() -> Result<String> {
+    debug!("Determining host name");
+    let len = 255;
+    let mut buf = Vec::<u8>::with_capacity(len);
+    let ptr = buf.as_mut_slice().as_mut_ptr();
+    let err = unsafe {
+        gethostname(ptr as *mut libc::c_char, len as libc::size_t)
+    };
+    match err {
+        0 => {
+            let slice = unsafe {
+                CStr::from_ptr(ptr as *const i8)
+            };
+            let s = try!(slice.to_str());
+            debug!("Hostname = {}", &s);
+            Ok(s.to_string())
         }
-        false => {
-            debug!("Hostname address command returned: OUT: {} ERR: {}",
-                   String::from_utf8_lossy(&output.stdout),
-                   String::from_utf8_lossy(&output.stderr));
+        n => {
+            debug!("gethostname failure: {}", n);
             Err(sup_error!(Error::IPFailed))
         }
     }
@@ -53,9 +62,9 @@ pub fn hostname(path: Option<&str>) -> Result<String> {
 
 pub fn to_toml() -> Result<String> {
     let mut toml_string = String::from("[sys]\n");
-    let ip = try!(ip(None));
+    let ip = try!(ip()).to_string();
     toml_string.push_str(&format!("ip = \"{}\"\n", ip));
-    let hostname = try!(hostname(None));
+    let hostname = try!(hostname());
     toml_string.push_str(&format!("hostname = \"{}\"\n", hostname));
     debug!("Sys Toml: {}", toml_string);
     Ok(toml_string)
