@@ -40,6 +40,12 @@ RUN curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y \
   && (cd /prep/rust-std-musl && ./install.sh --prefix=$(rustc --print sysroot)) \
   && rm -rf /prep \
   && rustc -V
+RUN URL=https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz \
+  && mkdir -p /prep/cargo \
+  && curl -s $URL | tar xvzfm - -C /prep \
+  && /prep/cargo-nightly-x86_64-unknown-linux-gnu/install.sh \
+  && rm -rf /prep \
+  && cargo --version
 RUN env -u CARGO_HOME cargo install protobuf && rm -rf /root/.cargo/registry
 
 RUN curl -sSL https://get.docker.io | sh && rm -rf /var/lib/apt/lists/* && docker -v

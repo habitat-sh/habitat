@@ -4,6 +4,7 @@ version = "0.8.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder HTTP API gateway"
 build = "build.rs"
+workspace = "../../"
 
 [[bin]]
 name = "bldr-api"
@@ -18,13 +19,11 @@ lazy_static = "*"
 log = "*"
 mount = "*"
 protobuf = "*"
-redis = "*"
 router = "*"
 rustc-serialize = "*"
 staticfile = "*"
 toml = "*"
 unicase = "*"
-urlencoded = "*"
 
 [dependencies.clap]
 version = "*"
@@ -46,6 +45,13 @@ path = "../builder-protocol"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[dependencies.redis]
+git = "https://github.com/habitat-sh/redis-rs"
+branch = "habitat"
+
+[replace]
+"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

@@ -1,0 +1,20 @@
+[workspace]
+members = [
+  "components/builder-api",
+  "components/builder-dbcache",
+  "components/builder-jobsrv",
+  "components/builder-protocol",
+  "components/builder-router",
+  "components/builder-sessionsrv",
+  "components/builder-vault",
+  "components/builder-worker",
+  "components/common",
+  "components/core",
+  "components/depot",
+  "components/depot-client",
+  "components/director",
+  "components/hab",
+  "components/http-client",
+  "components/net",
+  "components/sup",
+]

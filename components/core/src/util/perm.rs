@@ -35,7 +35,10 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X) -> Result<()>
     }
 }
 
-pub fn set_owner_and_group<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
+pub fn set_owner_and_group<T: AsRef<Path>, X: AsRef<str>>(path: T,
+                                                          owner: X,
+                                                          group: X)
+                                                          -> Result<()> {
     debug!("Attempting to set owner of {:?} to {:?}:{:?}",
            &path.as_ref(),
            &owner.as_ref(),
@@ -52,8 +55,7 @@ pub fn set_owner_and_group<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, gro
             Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}:{:?}",
                                                 &path.as_ref(),
                                                 &owner.as_ref(),
-                                                &group.as_ref()
-                                                )))
+                                                &group.as_ref())))
         }
     }
 }

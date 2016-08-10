@@ -150,9 +150,9 @@ impl GossipFile {
         Ok(cf)
     }
 
-    /// Updates this struct against another `GossipFile`. If true is returned, we have changed the gossip file
-    /// and the rumour should stay hot. If false is returned, nothing has changed and the rumour
-    /// can start to go cold. The algorithm is as follows:
+    /// Updates this struct against another `GossipFile`. If true is returned, we have changed the
+    /// gossip file and the rumour should stay hot. If false is returned, nothing has changed and
+    /// the rumour can start to go cold. The algorithm is as follows:
     ///
     /// * The `other` has a higher version number, use its data as our data
     /// * If the version numbers are identical but the data differs, loudly warn and return false
@@ -462,7 +462,6 @@ impl GossipFileList {
 
 #[cfg(test)]
 mod test {
-    use std::env;
     use std::io::prelude::*;
     use std::fs::File;
     use std::path::PathBuf;
@@ -477,17 +476,7 @@ mod test {
     use gossip_file::{GossipFile, FileWriteRetry, GOSSIP_TOML};
 
     fn fixture(name: &str) -> PathBuf {
-        env::current_exe()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .join("tests")
-            .join("fixtures")
-            .join(name)
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("fixtures").join(name)
     }
 
     #[test]

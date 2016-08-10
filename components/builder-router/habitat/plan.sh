@@ -6,7 +6,8 @@ pkg_license=('apachev2')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
-pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/rust core/gcc core/pkg-config)
+pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/cargo-nightly
+                core/rust core/gcc core/pkg-config)
 pkg_expose=(5562 5563)
 srv_bin="bldr-router"
 pkg_svc_run="bin/$srv_bin start -c ${pkg_svc_path}/config.toml"
@@ -40,7 +41,7 @@ do_build() {
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/../target/$rustc_target/$srv_bin $pkg_prefix/bin/$srv_bin
+  install -v -D $PLAN_CONTEXT/../../../target/$rustc_target/$srv_bin $pkg_prefix/bin/$srv_bin
 }
 
 do_download() {

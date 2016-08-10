@@ -282,7 +282,6 @@ impl BoxKeyPair {
 #[cfg(test)]
 mod test {
     use std::fs;
-    use std::io::BufRead;
     use std::str;
 
     use tempdir::TempDir;

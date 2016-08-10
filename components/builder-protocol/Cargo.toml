@@ -4,19 +4,26 @@ version = "0.8.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder Network Server Protocol"
 build = "build.rs"
+workspace = "../../"
 
 [dependencies]
 bitflags = "*"
 protobuf = "*"
-redis = "*"
 rustc-serialize = "*"
 time = "*"
 
 [dependencies.habitat_core]
 path = "../core"
 
+[dependencies.redis]
+git = "https://github.com/habitat-sh/redis-rs"
+branch = "habitat"
+
 [build-dependencies]
 pkg-config = "0.3"
+
+[replace]
+"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

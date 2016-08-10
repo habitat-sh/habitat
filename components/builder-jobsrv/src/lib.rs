@@ -20,8 +20,6 @@ extern crate linked_hash_map;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
-extern crate r2d2;
-extern crate r2d2_redis;
 extern crate redis;
 extern crate rustc_serialize;
 extern crate toml;

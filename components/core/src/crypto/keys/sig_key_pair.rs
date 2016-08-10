@@ -352,7 +352,7 @@ impl SigKeyPair {
     /// * If the key version is missing
     /// * If the key name with revision is missing
     /// * If the key value (the Bas64 payload) is missing
-    pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)>  {
+    pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
         let mut lines = content.lines();
         let pair_type = match lines.next() {
             Some(val) => {
