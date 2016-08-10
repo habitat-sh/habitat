@@ -21,7 +21,7 @@ set -e
 
 # The list of all specs to run after basic and env tests are run.
 # WITHOUT .rb suffix.
-all_specs=(crypto)
+all_specs=(crypto gossip)
 
 # sadly, this is NOT a banner of a cat. But, with a pull request,
 # YOU could make it so.

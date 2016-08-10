@@ -88,6 +88,9 @@ describe "Habitat CLI" do
             # register the output directory so files will be cleaned up if tests pass
             ctx.register_dir "#{ctx.hab_pkg_path}/#{ctx.hab_origin}"
 
+
+            puts "Looking for: Install of #{ctx.hab_origin}/simple_service/0.0.1/"\
+                                             "#{last_build["pkg_release"]} complete with 1 packages installed"
             # install the package
             result = ctx.cmd_expect("pkg install ./results/#{last_build["pkg_artifact"]}",
                                          "Install of #{ctx.hab_origin}/simple_service/0.0.1/"\

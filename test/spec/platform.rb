@@ -13,6 +13,7 @@
 # limitations under the License.
 
 require 'fileutils'
+require 'ipaddr'
 require 'mixlib/shellout'
 require 'open3'
 require 'pathname'
@@ -22,7 +23,14 @@ require 'singleton'
 require 'time'
 require 'timeout'
 
+
+# TODO: move these?
+require 'json'
+require 'net/http'
+require "uri"
+
 module HabTesting
+
 
     module Constants
         Metafiles = %w(BUILD_DEPS BUILD_TDEPS CFLAGS CPPFLAGS CXXFLAGS DEPS
@@ -57,8 +65,206 @@ module HabTesting
             end
             return results
         end
-    end
 
+        class Ring
+            attr_accessor :ctx
+            attr_accessor :members
+
+            def initialize(ctx, num_supervisors, package_to_run, group, org)
+                @ctx = ctx
+                listen_peer_port=9000
+                sidecar_port=8000
+                @members = []
+                num_supervisors.times do |i|
+                    if i > 0 then
+                        my_peer_port = listen_peer_port - 1
+                    else
+                        my_peer_port = nil
+                    end
+
+                    member = HabTesting::Utils::RingMember.new(i,
+                                                               @ctx,
+                                                               package_to_run,
+                                                               listen_peer_port,
+                                                               sidecar_port,
+                                                               group,
+                                                               org,
+                                                               my_peer_port)
+                    puts member if @cmd_debug
+                    @members << member
+                    listen_peer_port += 1
+                    sidecar_port += 1
+                end
+            end
+
+            # put the ring into /mnt/doom
+            def destroy()
+                @members.each do |member|
+                    member.stop()
+                end
+            end
+
+            def start
+                # TODO: wait until started!
+                @members.each do |member|
+                    member.start
+                end
+            end
+
+            def stop(signal=9)
+                @members.each do |member|
+                    member.stop(signal)
+                end
+            end
+
+            def wait_for_all_nodes_to_start
+                @ctx.wait_for("nodes to start") do
+                    begin
+                        @members.each do |member|
+                            member.get_status
+                        end
+                        true
+                    rescue
+                        false
+                    end
+                end
+            end
+
+            def wait_for_all_nodes_to_join
+                @ctx.wait_for("all nodes to join") do
+                    begin
+                        gossip = @members[0].get_gossip
+                        gossip["member_list"]["members"].length == 3
+                    rescue
+                        false
+                    end
+                end
+            end
+
+            def wait_until_node_stops(node_id)
+                @ctx.wait_until_exception("member #{node_id} to stop") do
+                    @members[node_id].get_status
+                end
+            end
+
+            def wait_until_node_starts(node_id)
+                @ctx.wait_until_no_exception("member #{node_id} to start") do
+                    @members[node_id].get_status
+                end
+            end
+
+        end
+
+        class RingMember
+            attr_accessor :ctx
+            attr_accessor :group
+            attr_accessor :http_port
+            attr_accessor :id
+            attr_accessor :org
+            attr_accessor :package
+            # someone elses supervisor port, we'll join to it
+            attr_accessor :peer_port
+            attr_accessor :pid
+            attr_accessor :port
+
+            def initialize(id, ctx, package, port, http_port, group, org, peer_port=nil)
+                @ctx = ctx
+                @group = group
+                @http_port = http_port
+                @id = id
+                @org = org
+                @package = package
+                @peer_port = peer_port
+                @port = port
+            end
+
+            def start
+                cmdline = "#{@ctx.hab_bin} start #{@package}" \
+                    " --listen-peer #{@ctx.public_ip}:#{@port}" \
+                    " --listen-http #{@ctx.public_ip}:#{@http_port}" \
+                    " --group #{@group} --org #{@org}"
+
+                if not @peer_port.nil? then
+                    # if we aren't the first, the join up to the previous sup
+                    # that's been started
+                    cmdline += " --peer #{@ctx.public_ip}:#{@peer_port}"
+                end
+
+                # TODO: redirecting output returns the shell pid, not the hab-sup pid
+                # so it's hard to kill these (maybe kill the group?)
+                #cmdline += " >> #{@ctx.log_file_name} 2>&1"
+
+                puts "» Starting ring member #{@id}"
+                puts "COMMAND LINE = #{cmdline}" if @ctx.cmd_debug
+                # create a new process group to make the child easier to terminate
+                @pid = spawn(cmdline, :pgroup => true, [:out, :err]=>@ctx.log_file_name)
+                # have the ctx keep track of all children we spawn
+                @ctx.all_children << [cmdline, @pid]
+                puts "★ Started ring member #{@id}, pid #{@pid}, gossip port #{@port}, http port #{@http_port}"
+            end
+
+            def restart(signal=9)
+                stop(signal)
+                start()
+            end
+
+            # todo: pull out Process.kill and make a ctx.kill method
+            # thats platform independent
+            def stop(signal=9)
+                puts "» Killing process #{@pid}"
+                begin
+                    Process.kill(signal, @pid)
+                    Process.wait(@pid)
+                rescue
+                    puts "Failed to kill process #{@pid}"
+                end
+                puts "★ Killed process #{@pid}"
+
+            end
+
+
+            def http_get(path, as_json=true)
+                http = Net::HTTP.new("#{@ctx.public_ip}", @http_port)
+                request = Net::HTTP::Get.new(path)
+                response = http.request(request)
+                puts "RESPONSE BODY = #{response.body}" if @ctx.cmd_debug
+                puts "RESPONSE CODE = #{response.code}" if @ctx.cmd_debug
+                # TODO: look at response code etc
+                if as_json then
+                    JSON.parse(response.body)
+                else
+                    response
+                end
+            end
+
+            def get_census
+                http_get("/census")
+            end
+
+            def get_config
+                # TODO: parse the toml?
+                http_get("/config", false)
+            end
+
+            def get_election
+                http_get("/election")
+            end
+
+            def get_gossip
+                http_get("/gossip")
+            end
+
+            def get_health
+                http_get("/health")
+            end
+
+            def get_status
+                # this doesn't return valid json
+                http_get("/status", false)
+            end
+        end
+
+    end
 
     TestDir = Struct.new(:path, :caller)
 
@@ -125,12 +331,21 @@ module HabTesting
         # We'll clean up directories upon completion if tests pass.
         attr_accessor :test_directories
 
+        # a known origin name for testing, we won't ever publish keys
+        # for this origin, as keys will be generated at the start of
+        # a test run if they do not exist.
+        attr_accessor :shared_test_origin
+
+
+        attr_accessor :public_ip
+
         def initialize
             @all_children = []
             @cleanup = true
             @cmd_debug = false
             @cmd_timeout_seconds = 30
             @test_directories = []
+            @shared_test_origin = "hab_test"
         end
 
         # generate a unique name for use in testing
@@ -149,14 +364,20 @@ module HabTesting
         end
 
 
+
         # Common setup for tests, including setting a test origin
         # and key generation.
         def common_setup
+            get_public_ip
+
             if not ENV['HAB_TEST_DEBUG'].nil? then
                 puts "★ Debugging enabled"
                 @cmd_debug = true
             end
             ENV['HAB_ORIGIN'] = @hab_origin
+
+            create_hab_test_origin
+
             puts "» Generating origin key"
             cmd_expect("origin key generate #{@hab_origin}",
                        "Generated origin key pair #{@hab_origin}")
@@ -171,9 +392,14 @@ module HabTesting
             cmd_expect("ring key generate #{@hab_ring}",
                        "Generated ring key pair #{@hab_ring}")
             puts "★ Generated ring key"
-
             # we don't generate a service key here because they depend
             # on the name of the service that's being run
+
+            # your first run will probably be slower as we need
+            # to build the simple_service fixture.
+            # Subsequent restarts of the tests will pickup
+            # the installed package.
+            build_and_install_shared_fixture
             puts "★ Setup complete"
             puts "-" * 80
         end
@@ -186,6 +412,38 @@ module HabTesting
                     puts "PID INFO: #{pidinfo}"
                 end
             end
+        end
+
+        def build_and_install_shared_fixture
+
+            installed_path = Pathname.new(@hab_pkg_path).
+                               join(@shared_test_origin).
+                               join("simple_service")
+            if installed_path.exist? then
+                puts "★ simple_service is already installed"
+                return
+            end
+            # /hab/pkgs/hab_test/simple_service/
+            prev_origin = ENV['HAB_ORIGIN']
+
+            begin
+                ENV['HAB_ORIGIN'] = @shared_test_origin
+                puts "» Building simple_service test fixture"
+                # building a package can take quite awhile, let's bump the timeout to
+                # 60 seconds to be sure we finish in time.
+                cmd_expect("studio build fixtures/simple_service",
+                                            "I love it when a plan.sh comes together",
+                                            :timeout_seconds => 60)
+                puts "★ Built simple_service test fixture"
+
+                puts "» Installing simple_service test fixture"
+                cmd_expect("pkg install ./results/hab_test-simple_service*.hart",
+                           "complete")
+                puts "★ simple_service installed"
+            ensure
+                ENV['HAB_ORIGIN'] = prev_origin
+            end
+
         end
 
         def register_dir(d)
@@ -203,8 +461,8 @@ module HabTesting
             sleep_increment_seconds = wait_options[:sleep_increment_seconds] || 1
             show_progress = wait_options[:show_progress] || true
 
-            puts "debug = #{debug}"
-            puts "sleep_increment_seconds = #{sleep_increment_seconds}"
+            puts "debug = #{debug}" if debug
+            puts "sleep_increment_seconds = #{sleep_increment_seconds}" if debug
 
             puts "Waiting for #{title}, max retries = #{max_retries}, max_wait_seconds = #{max_wait_seconds}"
             retries = 0
@@ -215,24 +473,55 @@ module HabTesting
                     puts "Calling block [retry #{retries} of #{max_retries}]" if debug
                     result = block.call
                     puts "block result = #{result}" if debug
-                    print "*" if show_progress
+                    print "." if show_progress
                     if result then
+                        puts " -> Success" if show_progress
                         return result
                     else
                         retries += 1
                     end
                     sleep(sleep_increment_seconds)
                 end
-                print "" if show_progress
+                puts "" if show_progress
                 if retries >= max_reties
                     throw "#{title} failed after #{retries} retries"
                 end
             end
+        end
 
+        def wait_until_exception(title, **wait_options, &block)
+            wait_for(title, wait_options) do
+                begin
+                    yield block
+                    false
+                rescue
+                    true
+                end
+            end
+        end
+
+        def wait_until_no_exception(title, **wait_options, &block)
+            wait_for(title, wait_options) do
+                begin
+                    yield block
+                    true
+                rescue
+                    false
+                end
+            end
+        end
+
+
+        # convenience method for creating a ring and "link" it to
+        # a ctx
+        def create_ring(num_supervisors, package_to_run, group, org)
+            return HabTesting::Utils::Ring.new(self, num_supervisors, package_to_run, group, org)
         end
     end
 
     class LinuxPlatform < Platform
+        attr_accessor :ip_path
+        attr_accessor :awk_path
 
         def initialize
             super
@@ -249,7 +538,20 @@ module HabTesting
             @log_dir = "./logs"
             @log_name = "hab_test-#{Time.now.utc.iso8601.gsub(/\:/, '-')}.log"
 
+
+            @ip_path = "/sbin/ip"
+            @awk_path = "/usr/bin/awk"
             banner()
+        end
+
+        def get_public_ip
+            puts "» Detecting IP"
+            ip = `#{@ip_path} route get 8.8.8.8 | #{@awk_path} '{printf "%s", $NF; exit}'`
+            # parse the result, it should be an ip
+            # if not, use this low-tech solution to make the tests fail
+            IPAddr.new(ip)
+            puts "★ Detected IP address as #{ip}"
+            @public_ip = ip
         end
 
         def common_setup
@@ -305,6 +607,13 @@ module HabTesting
 
         end
 
+
+        def show_env()
+            puts "X" * 80
+            puts `env`
+            puts "X" * 80
+        end
+
         # execute a `hab` subcommand and wait for the process to finish
         def cmd(cmdline, **cmd_options)
             debug = cmd_options[:debug] || @cmd_debug
@@ -326,11 +635,51 @@ module HabTesting
             return $?
         end
 
-        def show_env()
-            puts "X" * 80
-            puts `env`
-            puts "X" * 80
+        # runs a command in the background, returns a pid
+        # DON'T THIS, it has subtle bugs because of the | tee
+        # and pids
+        #def bg_cmd(cmdline, **cmd_options)
+        #    debug = cmd_options[:debug] || @cmd_debug
+
+        #    if debug then
+        #        puts "X" * 80
+        #        puts `env`
+        #        puts "X" * 80
+        #    end
+
+        #    fullcmdline = "#{@hab_bin} #{cmdline} | tee -a #{log_file_name()} 2>&1"
+        #    # record the command we'll be running in the log file
+        #    `echo #{fullcmdline} >> #{log_file_name()}`
+        #    puts " → #{fullcmdline}"
+        #    # TODO: replace this with Mixlib:::Shellout
+        #    pid = spawn(fullcmdline)
+        #    @all_children << [cmdline, pid]
+        #    return pid
+        #end
+
+
+        # create a common key that we use for testing only.
+        # These keys should never be uploaded to the Depot, and
+        # they're only generated if needed.
+        # It's ok if these keys stick around in between tests.
+        def create_hab_test_origin
+            re = Regexp.new(@shared_test_origin)
+
+            skip = Dir.entries(@hab_key_cache).any? do |f|
+                re =~ f
+            end
+
+            if skip then
+                puts "★ #{shared_test_origin} keys already exists"
+            else
+                puts "» Generating #{@shared_test_origin} origin key"
+                cmd_expect("origin key generate #{@shared_test_origin}",
+                        "Generated origin key pair")
+                puts "★ Generated #{@shared_test_origin} origin key"
+            end
         end
+
+
 
         # execute a possibly long-running process and wait for a particular string
         # in it's output. If the output is found, kill the process and return
