@@ -66,7 +66,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
 
     ![Screen shot of node.js tutorial output](/images/nodejs-tutorial-output.png)
 
-6. You can also re-run your Docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname=newvalue'`.
+6. You can also re-run your Docker container and update the message value when your Habitat service starts up. To do this, you must pass in a Docker environment variable with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2 tablename1={keyname3=newvalue3}'`.
 
     > Note: The package name in the environment variable must be uppercase and any dashes must be replaced with underscores.
 

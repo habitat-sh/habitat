@@ -10,7 +10,7 @@ Similar to specifying updates to individual settings at runtime, you can apply m
 ## Usage
 When submitting a configuration update to a service group, you must specify a peer in the ring to connect to, the version number of the configuration update, and the new configuration itself. Configuration updates can be either TOML passed into stdin, or passed in a TOML file that is referenced in `hab config apply`.
 
-Configuration updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. If the version number is less than or equal to the current version number, the change(s) will not be applied.
+Configuration updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. *If the version number is less than or equal to the current version number, the change(s) will not be applied.*
 
 Here are some examples of how to apply configuration changes through both the shell and through a TOML file.
 
@@ -23,6 +23,9 @@ Here are some examples of how to apply configuration changes through both the sh
       hab config apply --peer 172.17.0.3 myapp.prod 1 /tmp/newconfig.toml
 
   > Note: The filename of the configuration file is not important.
+
+  > Note: 1 is the version number. Increment this for
+  additional configuration updates.
 
     Your output would look something like this:
 
