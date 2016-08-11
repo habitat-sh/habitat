@@ -16,12 +16,20 @@ do_begin() {
 }
 
 do_prepare() {
+  # Can be either `--release` or `--debug` to determine cargo build strategy
+  build_type="--release"
+  build_line "Building artifacts with \`${build_type#--}' mode"
+
+  export rustc_target="x86_64-apple-darwin"
+  build_line "Setting rustc_target=$rustc_target"
+
   # Used by the `build.rs` program to set the version of the binaries
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
-  export rustc_target="x86_64-apple-darwin"
-  build_line "Setting rustc_target=$rustc_target"
+  # Used by Cargo to use a pristine, isolated directory for all compilation
+  export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 
   formulas="$PLAN_CONTEXT/mac/homebrew"
 
