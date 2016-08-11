@@ -57,7 +57,7 @@ fi
 
 if ! command -v brew >/dev/null; then
   info "Homebrew missing, attempting to install"
-  sudo -u $SUDO_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  sudo -u $SUDO_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
 fi
 
 # Homebrew pacakges required to run `hab-plan-build.sh
@@ -80,10 +80,30 @@ if ! command -v rustc >/dev/null; then
   curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y
 fi
 
-info "Updating PATH to include GNU toolchain from HomeBrew"
+cargo_bin=/opt/cargo/bin/cargo
+if [[ ! -f "$cargo_bin" ]] || [[ $($cargo_bin --version | cut -d ' ' -f 2) < "0.13.0-nightly" ]]; then
+  info "Cargo nightly missing or old, attempting to install"
+  cargo_workdir=/tmp/cargo-dl
+  mkdir -p "$cargo_workdir"
+  pushd /tmp/cargo-dl > /dev/null
+  cargo_url="https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-apple-darwin.tar.gz"
+  curl -LO "$cargo_url"
+  tar xf "$(basename $cargo_url)"
+  cd "$(basename ${cargo_url%.tar.gz})"
+  ./install.sh --prefix=/opt/cargo
+  popd > /dev/null
+  rm -rf "$cargo_workdir"
+fi
+
+if [[ ! -f /bin/hab ]]; then
+  info "Habitat CLI missing, attempting to install latest release"
+  sh $(dirname $0)/install.sh
+fi
+
+info "Updating PATH to include GNU toolchain from HomeBrew and custom Cargo"
 gnu_path="$(brew --prefix coreutils)/libexec/gnubin"
 gnu_path="$gnu_path:$(brew --prefix gnu-tar)/libexec/gnubin"
-export PATH="$gnu_path:$PATH"
+export PATH="$gnu_path:$(dirname $cargo_bin):$PATH"
 info "Setting PATH=$PATH"
 
 program="$(dirname $0)/../../plan-build/bin/hab-plan-build.sh"

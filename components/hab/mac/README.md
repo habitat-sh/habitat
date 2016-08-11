@@ -6,12 +6,14 @@ As Habitat currently does not have first class support for the Mac platform, a p
 * Homebrew
 * `coreutils`, `gnu-tar`, and `wget` Homebrew packages
 * Rust
+* Cargo nightly
 
-A final prerequisite of a `hab` binary itself is required by `hab-plan-build.sh` to sign the resulting Habitat artifact. This can be most easily accomplished by either bringing in an older build of `hab` or compiling it out of the source tree and placing the result somewhere in the `PATH` to be picked up by the build program. As we are using the build program, a secret origin key is also required in the Mac's key cache under `/hab/cache/keys`.
+A final prerequisite of a `hab` binary itself is required by `hab-plan-build.sh` to sign the resulting Habitat artifact. The `mac-build.sh` will install the latest release from Bintray if `/bin/hab` cannot be found locally, otherwise the `hab` on your `PATH` will be used. As we are using the build program, a secret origin key is also required in the Mac's key cache under `/hab/cache/keys`.
 
 ## Usage
 
 ```sh
+cd components/hab/mac
 sudo ./mac-build.sh
 ```
 
@@ -20,5 +22,5 @@ Assuming success, this will produce a local `./results` directory with the artif
 Alternatively, as `mac-build.sh` is a wrapper around the build program, it can be just as easily invoked from the root of the source tree with:
 
 ```sh
-sudo ./components/src/hab/mac/mac-build components/src/hab/mac
+sudo ./components/hab/mac/mac-build.sh components/hab/mac
 ```
