@@ -1,5 +1,5 @@
 pkg_name=hab-sup
-pkg_distname=$pkg_name
+_pkg_distname=$pkg_name
 pkg_origin=core
 pkg_version=0.8.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
@@ -9,27 +9,25 @@ pkg_deps=(
   core/busybox-static
   core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl
 )
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
+pkg_build_deps=(core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc)
 pkg_bin_dirs=(bin)
 
-program=$pkg_name
+bin=$_pkg_distname
 
 _common_prepare() {
   do_default_prepare
+
+  # Can be either `--release` or `--debug` to determine cargo build strategy
+  build_type="--release"
+  build_line "Building artifacts with \`${build_type#--}' mode"
 
   # Used by the `build.rs` program to set the version of the binaries
   export PLAN_VERSION="${pkg_version}/${pkg_release}"
   build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
-  # Used by Cargo to fetch registries/crates/etc.
-  export SSL_CERT_FILE=$(pkg_path_for cacerts)/ssl/cert.pem
-  build_line "Setting SSL_CERT_FILE=$SSL_CERT_FILE"
-
-  # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
-  # this used only at build time, we will use the version found in the gcc
-  # package proper--it won't find its way into the final binaries.
-  export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
-  build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+  # Used by Cargo to use a pristine, isolated directory for all compilation
+  export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
+  build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 }
 
 do_prepare() {
@@ -47,22 +45,19 @@ do_prepare() {
 
 do_build() {
   pushd $PLAN_CONTEXT > /dev/null
-  cargo clean --target=$rustc_target --verbose
-  cargo build \
-    -j $(nproc) \
-    --target=$rustc_target \
-    --release \
-    --verbose
+  cargo build ${build_type#--debug} --target=$rustc_target --verbose
   popd > /dev/null
 }
 
 do_install() {
-  install -v -D $PLAN_CONTEXT/target/$rustc_target/release/$program \
-    $pkg_prefix/bin/$program
+  install -v -D $CARGO_TARGET_DIR/$rustc_target/${build_type#--}/$bin \
+    $pkg_prefix/bin/$bin
 }
 
 do_strip() {
-  strip $pkg_prefix/bin/$program
+  if [[ "$build_type" != "--debug" ]]; then
+    do_default_strip
+  fi
 }
 
 # Turn the remaining default phases into no-ops

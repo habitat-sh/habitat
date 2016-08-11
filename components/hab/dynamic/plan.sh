@@ -6,7 +6,7 @@ pkg_deps=(
   core/glibc core/zlib core/xz core/bzip2 core/libarchive
   core/openssl core/libsodium core/gcc-libs
 )
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
+pkg_build_deps=(core/coreutils core/cargo-nightly core/rust core/gcc)
 pkg_bin_dirs=(bin)
 
 do_begin() {
