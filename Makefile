@@ -34,6 +34,7 @@ BIN = director hab sup
 LIB = builder-dbcache builder-protocol common core builder-depot-client http-client net
 SRV = builder-api builder-depot builder-jobsrv builder-sessionsrv builder-vault builder-worker
 ALL = $(BIN) $(LIB) $(SRV)
+VERSION := $(shell cat VERSION)
 
 .DEFAULT_GOAL := build-bin
 
@@ -133,6 +134,11 @@ distclean: clean ## fully cleans up project tree
 .PHONY: distclean
 endif
 
+changelog: image ## build the changelog
+	$(run) sh -c 'hab pkg install core/github_changelog_generator && \
+		hab pkg binlink core/github_changelog_generator github_changelog_generator && \
+		github_changelog_generator --future-release $(cat VERSION) --token $(GITHUB_TOKEN)'
+
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
 		cd components/sup && cargo doc && cd ../../ \
@@ -140,6 +146,9 @@ docs: image ## build the docs
 		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
 		cp -r images ./components/sup/target/doc/habitat_sup; \
 		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
+
+tag-release:
+	sh -c 'git tag -a $(VERSION) -m \"$(VERSION)\"'
 
 define BUILD
 build-$1: image ## builds the $1 component

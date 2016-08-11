@@ -300,7 +300,7 @@ fi
 # ## Default variables
 
 # The short version of the program name which is used in logging output
-_program=$(basename $0)
+_program=$(basename "$0")
 # The current version of this program
 HAB_PLAN_BUILD=0.0.1
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
@@ -379,7 +379,6 @@ graceful_exit=true
 
 # We want everything to be build as `rwx-r-x-r-x`
 umask 0022
-
 
 # ## Private/Internal helper functions
 #
@@ -1795,7 +1794,7 @@ do_check_wrapper() {
 # working directory for the install_files step is correct.
 do_install_wrapper() {
   build_line "Installing"
-  mkdir -pv $pkg_prefix
+  mkdir -pv "$pkg_prefix"
   pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
@@ -1980,16 +1979,16 @@ do_build_config() {
 # Default implementation for the `do_build_config()` phase.
 do_default_build_config() {
   build_line "Writing configuration"
-  if [[ -d $PLAN_CONTEXT/config ]]; then
-    cp -r $PLAN_CONTEXT/config $pkg_prefix
+  if [[ -d "$PLAN_CONTEXT/config" ]]; then
+    cp -r "$PLAN_CONTEXT/config" $pkg_prefix
     chmod 755 $pkg_prefix/config
   fi
-  if [[ -d $PLAN_CONTEXT/hooks ]]; then
-    cp -r $PLAN_CONTEXT/hooks $pkg_prefix
+  if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
+    cp -r "$PLAN_CONTEXT/hooks" $pkg_prefix
     chmod 755 $pkg_prefix/hooks
   fi
-  if [[ -f $PLAN_CONTEXT/default.toml ]]; then
-    cp $PLAN_CONTEXT/default.toml $pkg_prefix
+  if [[ -f "$PLAN_CONTEXT/default.toml" ]]; then
+    cp "$PLAN_CONTEXT/default.toml" $pkg_prefix
   fi
   return 0
 }
@@ -2010,7 +2009,7 @@ do_build_service() {
 # Default implementation of the `do_build_service()` phase.
 do_default_build_service() {
   build_line "Writing service management scripts"
-  if [[ -f $PLAN_CONTEXT/hooks/run ]]; then
+  if [[ -f "$PLAN_CONTEXT/hooks/run" ]]; then
     return 0
   else
     if [[ -n "${pkg_svc_run}" ]]; then
@@ -2182,7 +2181,7 @@ _generate_artifact() {
   local tarf="$(dirname $pkg_artifact)/.$(basename ${pkg_artifact/%.${_artifact_ext}/.tar})"
   local xzf="${tarf}.xz"
 
-  mkdir -pv "$(dirname $pkg_artifact)"
+  mkdir -pv "$(dirname "$pkg_artifact")"
   rm -fv $tarf $xzf $pkg_artifact
   $_tar_cmd -cf $tarf $pkg_prefix
   $_xz_cmd --compress -6 --threads=0 --verbose $tarf
@@ -2193,10 +2192,10 @@ _generate_artifact() {
 _prepare_build_outputs() {
   _pkg_sha256sum=$($_shasum_cmd $pkg_artifact | cut -d " " -f 1)
   _pkg_blake2bsum=$($HAB_BIN pkg hash $pkg_artifact)
-  mkdir -pv $pkg_output_path
-  cp -v $pkg_artifact $pkg_output_path/
+  mkdir -pv "$pkg_output_path"
+  cp -v "$pkg_artifact" "$pkg_output_path"/
 
-  cat <<-EOF > $pkg_output_path/last_build.env
+  cat <<-EOF > "$pkg_output_path"/last_build.env
 pkg_origin=$pkg_origin
 pkg_name=$pkg_name
 pkg_version=$pkg_version
@@ -2220,7 +2219,6 @@ do_default_end() {
   return 0
 }
 
-
 # # Main Flow
 
 # Parse depot flag (-u)
@@ -2242,9 +2240,9 @@ while getopts "u:" opt; do
 done
 
 # Expand the context path to an absolute path
-PLAN_CONTEXT="$(abspath $PLAN_CONTEXT)"
+PLAN_CONTEXT="$(abspath "$PLAN_CONTEXT")"
 # Expand the path of this program to an absolute path
-THIS_PROGRAM=$(abspath $0)
+THIS_PROGRAM=$(abspath "$0")
 
 # Now to ensure a `plan.sh` exists where we expect it. There are 2 possible
 # candidate locations relative to the `$PLAN_CONTEXT` directory: a `./plan.sh`
@@ -2272,7 +2270,7 @@ fi
 
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
 # paths in `plan.sh`
-cd $PLAN_CONTEXT
+cd "$PLAN_CONTEXT"
 
 # Load the Plan
 build_line "Loading $PLAN_CONTEXT/plan.sh"
@@ -2306,7 +2304,7 @@ fi
 # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
 # set by the `plan.sh`.
 if [[ -z "${pkg_filename+xxx}" ]]; then
-  pkg_filename="$(basename $pkg_source)"
+  pkg_filename="$(basename "$pkg_source")"
 fi
 
 # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
@@ -2357,7 +2355,7 @@ _resolve_dependencies
 _set_path
 
 # Download the source
-mkdir -pv $HAB_CACHE_SRC_PATH
+mkdir -pv "$HAB_CACHE_SRC_PATH"
 do_download
 
 # Verify the source
@@ -2416,7 +2414,7 @@ do_end
 build_line
 build_line "Source Cache: $HAB_CACHE_SRC_PATH/$pkg_dirname"
 build_line "Installed Path: $pkg_prefix"
-build_line "Artifact: $pkg_output_path/$(basename $pkg_artifact)"
+build_line "Artifact: $pkg_output_path/$(basename "$pkg_artifact")"
 build_line "Build Report: $pkg_output_path/last_build.env"
 build_line "SHA256 Checksum: $_pkg_sha256sum"
 build_line "Blake2b Checksum: $_pkg_blake2bsum"
