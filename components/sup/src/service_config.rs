@@ -572,15 +572,15 @@ pub struct Sys {
 
 impl Sys {
     fn new(config: &Config) -> Sys {
-        let ip = match util::sys::ip(None) {
-            Ok(ip) => ip,
+        let ip = match util::sys::ip() {
+            Ok(ip) => ip.to_string(),
             Err(e) => {
                 outputln!("IP Address lookup failed; using fallback of 127.0.0.1 ({})",
                           e);
                 String::from("127.0.0.1")
             }
         };
-        let hostname = match util::sys::hostname(None) {
+        let hostname = match util::sys::hostname() {
             Ok(ip) => ip,
             Err(e) => {
                 outputln!("Hostname lookup failed; using fallback of localhost ({})",

@@ -164,9 +164,7 @@ impl Package {
     pub fn create_svc_path(&self) -> Result<()> {
         let (user, group) = try!(hab_users::get_user_and_group(&self.pkg_install));
 
-        let runas = format!("{}:{}", user, group);
         debug!("Creating svc paths");
-
 
         if let Err(e) = Self::create_dir_all(self.pkg_install.svc_path()) {
             outputln!("Can't create directory {}",
@@ -178,22 +176,22 @@ impl Package {
         }
 
         try!(Self::create_dir_all(self.pkg_install.svc_config_path()));
-        try!(util::perm::set_owner(self.pkg_install.svc_config_path(), &runas));
-        try!(util::perm::set_permissions(self.pkg_install.svc_config_path(), "0700"));
+        try!(util::perm::set_owner(self.pkg_install.svc_config_path(), &user, &group));
+        try!(util::perm::set_permissions(self.pkg_install.svc_config_path(), 0o700));
         try!(Self::create_dir_all(self.pkg_install.svc_data_path()));
-        try!(util::perm::set_owner(self.pkg_install.svc_data_path(), &runas));
-        try!(util::perm::set_permissions(self.pkg_install.svc_data_path(), "0700"));
+        try!(util::perm::set_owner(self.pkg_install.svc_data_path(), &user, &group));
+        try!(util::perm::set_permissions(self.pkg_install.svc_data_path(), 0o700));
         try!(Self::create_dir_all(self.pkg_install.svc_files_path()));
-        try!(util::perm::set_owner(self.pkg_install.svc_files_path(), &runas));
-        try!(util::perm::set_permissions(self.pkg_install.svc_files_path(), "0700"));
+        try!(util::perm::set_owner(self.pkg_install.svc_files_path(), &user, &group));
+        try!(util::perm::set_permissions(self.pkg_install.svc_files_path(), 0o700));
         try!(Self::create_dir_all(self.pkg_install.svc_hooks_path()));
         try!(Self::create_dir_all(self.pkg_install.svc_var_path()));
-        try!(util::perm::set_owner(self.pkg_install.svc_var_path(), &runas));
-        try!(util::perm::set_permissions(self.pkg_install.svc_var_path(), "0700"));
+        try!(util::perm::set_owner(self.pkg_install.svc_var_path(), &user, &group));
+        try!(util::perm::set_permissions(self.pkg_install.svc_var_path(), 0o700));
         // TODO: Not 100% if this directory is still needed, but for the moment it's still here -
         // FIN
         try!(Self::create_dir_all(self.pkg_install.svc_path().join("toml")));
-        try!(util::perm::set_permissions(self.pkg_install.svc_path().join("toml"), "0700"));
+        try!(util::perm::set_permissions(self.pkg_install.svc_path().join("toml"), 0o700));
         Ok(())
     }
 

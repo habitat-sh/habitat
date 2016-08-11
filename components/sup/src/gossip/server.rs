@@ -89,7 +89,7 @@ impl Server {
                port: Option<String>)
                -> Server {
 
-        let hostname = util::sys::hostname(None).unwrap_or(String::from("unknown"));
+        let hostname = util::sys::hostname().unwrap_or(String::from("unknown"));
         let listen = format!("{}:{}", listen_ip, listen_port);
         let peer_listen = listen.clone();
         let peer_listen2 = peer_listen.clone();

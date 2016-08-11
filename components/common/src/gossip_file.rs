@@ -23,7 +23,7 @@ use std::str::FromStr;
 use hcore::crypto::{BoxKeyPair, default_cache_key_path};
 use hcore::fs;
 use hcore::service::ServiceGroup;
-use hcore::util::perm::{set_owner_and_group, set_permissions};
+use hcore::util::perm::{set_owner, set_permissions};
 use openssl::crypto::hash as openssl_hash;
 use rustc_serialize::{Encodable, Encoder};
 use rustc_serialize::hex::ToHex;
@@ -35,7 +35,7 @@ const IDEMPOTENCY_INTERVAL_MINUTES: i64 = 5;
 
 pub const GOSSIP_TOML: &'static str = "gossip.toml";
 
-pub const UPLOADED_FILE_PERMISSIONS: &'static str = "0770";
+pub const UPLOADED_FILE_PERMISSIONS: u32 = 0o770;
 
 /// The gossip file struct.
 #[derive(Clone, Debug, Eq, RustcDecodable, RustcEncodable)]
@@ -233,7 +233,7 @@ impl GossipFile {
                 }
             }
             try!(std::fs::rename(&new_filename, self.on_disk_path()));
-            try!(set_owner_and_group(&self.on_disk_path(), svc_user, svc_group));
+            try!(set_owner(&self.on_disk_path(), svc_user, svc_group));
             try!(set_permissions(&self.on_disk_path(), UPLOADED_FILE_PERMISSIONS));
             self.written = true;
             Ok(true)

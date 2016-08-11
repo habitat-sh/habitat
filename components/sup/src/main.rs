@@ -144,7 +144,10 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
         }
         env_path.push_str(path.to_string_lossy().as_ref());
     }
-    let default_gossip_ip = try!(ip(Some(&env_path)));
+
+    // NOTE: ip() returns an IpAddr, which we conveniently turn into a string
+    // via to_string().
+    let default_gossip_ip = try!(ip()).to_string();
     let (gossip_ip, gossip_port) = try!(parse_ip_port_with_defaults(
                                         sub_args.value_of("listen-peer"),
                                         &default_gossip_ip,
