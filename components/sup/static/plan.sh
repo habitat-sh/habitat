@@ -6,7 +6,7 @@ pkg_deps=(core/busybox-static)
 pkg_build_deps=(
   core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
   core/openssl-musl core/libsodium-musl
-  core/coreutils core/cacerts core/rust core/gcc
+  core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc
 )
 
 do_begin() {
@@ -34,4 +34,10 @@ do_prepare() {
   export OPENSSL_STATIC=true
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium-musl)/lib
   export SODIUM_STATIC=true
+
+  # Used to find libgcc_s.so.1 when compiling `build.rs` in dependencies. Since
+  # this used only at build time, we will use the version found in the gcc
+  # package proper--it won't find its way into the final binaries.
+  export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
+  build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 }
