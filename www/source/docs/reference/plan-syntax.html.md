@@ -167,7 +167,7 @@ pkg_svc_group
   ~~~
 
 pkg_description
-: Optional. A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. {::comment} This description will be displayed on the Web app when users search for or browse to your package. {:/comment}
+: Required for [core](https://github.com/habitat-sh/core-plans) plans, optional otherwise. A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. {::comment} This description will be displayed on the Web app when users search for or browse to your package. {:/comment}
 
   ~~~
   pkg_description=$(cat << EOF
