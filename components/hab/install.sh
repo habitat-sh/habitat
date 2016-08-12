@@ -50,6 +50,9 @@ sha256sum -c "$sha_file"
 zcat "$archive" | tar x -C "$workdir"
 # Directory containing the binary
 archive_dir="$(echo $archive | sed 's/.tar.gz$//')"
-# Install latest hab release using the extracted version and add/update symlink
-"$archive_dir/hab" install core/hab
-"$archive_dir/hab" pkg binlink core/hab hab
+# Install the latest release unless a specific version was provided
+ident="core/hab"
+if [ -n "${1:-}" ]; then ident="$ident/$1"; fi
+# Install hab release using the extracted version and add/update symlink
+"$archive_dir/hab" install "$ident"
+"$archive_dir/hab" pkg binlink "$ident" hab
