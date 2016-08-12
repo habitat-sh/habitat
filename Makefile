@@ -31,8 +31,8 @@ else
 endif
 
 BIN = director hab sup
-LIB = builder-dbcache builder-protocol common core depot-client http-client net
-SRV = builder-api builder-jobsrv builder-sessionsrv builder-vault builder-worker depot
+LIB = builder-dbcache builder-protocol common core builder-depot-client http-client net
+SRV = builder-api builder-depot builder-jobsrv builder-sessionsrv builder-vault builder-worker
 ALL = $(BIN) $(LIB) $(SRV)
 
 .DEFAULT_GOAL := build-bin

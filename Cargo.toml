@@ -2,6 +2,8 @@
 members = [
   "components/builder-api",
   "components/builder-dbcache",
+  "components/builder-depot",
+  "components/builder-depot-client",
   "components/builder-jobsrv",
   "components/builder-protocol",
   "components/builder-router",
@@ -10,8 +12,6 @@ members = [
   "components/builder-worker",
   "components/common",
   "components/core",
-  "components/depot",
-  "components/depot-client",
   "components/director",
   "components/hab",
   "components/http-client",

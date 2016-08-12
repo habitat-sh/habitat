@@ -45,7 +45,7 @@ path = "../core"
 path = "../common"
 
 [dependencies.habitat_depot_client]
-path = "../depot-client"
+path = "../builder-depot-client"
 
 [dependencies.uuid]
 version = "*"

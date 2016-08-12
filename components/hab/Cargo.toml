@@ -31,7 +31,7 @@ path = "../core"
 path = "../common"
 
 [dependencies.habitat_depot_client]
-path = "../depot-client"
+path = "../builder-depot-client"
 
 [dependencies.habitat_http_client]
 path = "../http-client"
