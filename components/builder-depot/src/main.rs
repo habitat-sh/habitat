@@ -68,14 +68,14 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@subcommand repair =>
             (about: "Verify and repair data integrity of the package Depot")
         )
-        (@subcommand view =>
-            (about: "Creates or lists views in the package Depot")
+        (@subcommand channel =>
+            (about: "Creates or lists channels in the package Depot")
             (@subcommand create =>
-                (about: "Create a new view over the package Depot")
-                (@arg view: <view> +required "Name of the view to create")
+                (about: "Create a new channel over the package Depot")
+                (@arg channel: <channel> +required "Name of the channel to create")
             )
             (@subcommand list =>
-                (about: "List views in the package Depot")
+                (about: "List channels in the package Depot")
             )
         )
     )
@@ -112,15 +112,15 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
     match matches.subcommand_name() {
         Some("start") => start(config),
         Some("repair") => repair(config),
-        Some(cmd @ "view") => {
+        Some(cmd @ "channel") => {
             let args = matches.subcommand_matches(cmd).unwrap();
             match args.subcommand_name() {
                 Some(cmd @ "create") => {
                     let args = args.subcommand_matches(cmd).unwrap();
-                    let name = args.value_of("view").unwrap();
-                    view_create(name, config)
+                    let name = args.value_of("channel").unwrap();
+                    channel_create(name, config)
                 }
-                Some("list") => view_list(config),
+                Some("list") => channel_list(config),
                 Some(cmd) => {
                     debug!("Dispatch failed, no match for command: {:?}", cmd);
                     Ok(())
@@ -164,37 +164,37 @@ pub fn repair(config: Config) -> Result<()> {
     Ok(())
 }
 
-/// Create a view with the given name in the depot.
+/// Create a channel with the given name in the depot.
 ///
 /// # Failures
 ///
 /// * The database cannot be read
 /// * A write transaction cannot be acquired.
-fn view_create(view: &str, config: Config) -> Result<()> {
+fn channel_create(channel: &str, config: Config) -> Result<()> {
     let ctx = Arc::new(Box::new(ServerContext::new()));
     let depot = try!(depot::Depot::new(config, ctx));
-    try!(depot.datastore.views.write(&view));
+    try!(depot.datastore.channels.write(&channel));
     Ok(())
 }
 
-/// List all views in the database.
+/// List all channels in the database.
 ///
 /// # Failures
 ///
 /// * The database cannot be read
 /// * A read transaction cannot be acquired.
-fn view_list(config: Config) -> Result<()> {
+fn channel_list(config: Config) -> Result<()> {
     let ctx = Arc::new(Box::new(ServerContext::new()));
     let depot = try!(depot::Depot::new(config, ctx));
-    let views = try!(depot.datastore.views.all());
-    if views.is_empty() {
-        println!("No views. Create one with `hab-depot view create`.");
+    let channels = try!(depot.datastore.channels.all());
+    if channels.is_empty() {
+        println!("No channels. Create one with `hab-depot channel create`.");
         return Ok(());
     }
-    let iter = views.iter();
-    println!("Listing {} view(s)", iter.len());
-    for view in iter {
-        println!("     {}", view);
+    let iter = channels.iter();
+    println!("Listing {} channel(s)", iter.len());
+    for channel in iter {
+        println!("     {}", channel);
     }
     Ok(())
 }

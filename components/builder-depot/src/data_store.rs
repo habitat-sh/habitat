@@ -29,7 +29,7 @@ use error::{Error, Result};
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
     pub packages: PackagesTable,
-    pub views: ViewsTable,
+    pub channels: ChannelsTable,
     pub origin_keys: OriginKeysTable,
 }
 
@@ -43,12 +43,12 @@ impl DataStore {
         let pool2 = pool.clone();
         let pool3 = pool.clone();
         let packages = PackagesTable::new(pool1);
-        let views = ViewsTable::new(pool2);
+        let channels = ChannelsTable::new(pool2);
         let origin_keys = OriginKeysTable::new(pool3);
         Ok(DataStore {
             pool: pool,
             packages: packages,
-            views: views,
+            channels: channels,
             origin_keys: origin_keys,
         })
     }
@@ -266,26 +266,26 @@ impl Bucket for PackagesIndex {
     }
 }
 
-/// Contains a mapping of view names and the packages found within that view.
+/// Contains a mapping of channel names and the packages found within that channel.
 ///
 /// This is how packages will be "promoted" between environments without duplicating data on disk.
-pub struct ViewsTable {
+pub struct ChannelsTable {
     pool: Arc<ConnectionPool>,
-    pub pkg_view_idx: PkgViewIndex,
-    pub view_pkg_idx: ViewPkgIndex,
+    pub pkg_channel_idx: PkgChannelIndex,
+    pub channel_pkg_idx: ChannelPkgIndex,
 }
 
-impl ViewsTable {
+impl ChannelsTable {
     pub fn new(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
         let pool2 = pool.clone();
-        let pkg_view_idx = PkgViewIndex::new(pool1);
-        let view_pkg_idx = ViewPkgIndex::new(pool2);
+        let pkg_channel_idx = PkgChannelIndex::new(pool1);
+        let channel_pkg_idx = ChannelPkgIndex::new(pool2);
 
-        ViewsTable {
+        ChannelsTable {
             pool: pool,
-            pkg_view_idx: pkg_view_idx,
-            view_pkg_idx: view_pkg_idx,
+            pkg_channel_idx: pkg_channel_idx,
+            channel_pkg_idx: channel_pkg_idx,
         }
     }
 
@@ -297,35 +297,35 @@ impl ViewsTable {
         }
     }
 
-    pub fn associate(&self, view: &str, pkg: &depotsrv::Package) -> Result<()> {
+    pub fn associate(&self, channel: &str, pkg: &depotsrv::Package) -> Result<()> {
         let script = redis::Script::new(r"
             redis.call('sadd', KEYS[1], ARGV[2]);
             redis.call('zadd', KEYS[2], 0, ARGV[1]);
         ");
         try!(script.arg(pkg.get_ident().to_string())
-            .arg(view.clone())
-            .key(PkgViewIndex::key(&pkg.get_ident()))
-            .key(ViewPkgIndex::key(&view.to_string()))
+            .arg(channel.clone())
+            .key(PkgChannelIndex::key(&pkg.get_ident()))
+            .key(ChannelPkgIndex::key(&channel.to_string()))
             .invoke(self.pool.get().unwrap().deref()));
         Ok(())
     }
 
-    pub fn is_member(&self, view: &str) -> Result<bool> {
+    pub fn is_member(&self, channel: &str) -> Result<bool> {
         let conn = self.pool.get().unwrap();
-        match conn.sismember(Self::prefix(), view) {
+        match conn.sismember(Self::prefix(), channel) {
             Ok(result) => Ok(result),
             Err(e) => Err(Error::from(e)),
         }
     }
 
-    pub fn write(&self, view: &str) -> Result<()> {
+    pub fn write(&self, channel: &str) -> Result<()> {
         let conn = self.pool().get().unwrap();
-        try!(conn.sadd(Self::prefix(), view));
+        try!(conn.sadd(Self::prefix(), channel));
         Ok(())
     }
 }
 
-impl Bucket for ViewsTable {
+impl Bucket for ChannelsTable {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -335,21 +335,21 @@ impl Bucket for ViewsTable {
     }
 }
 
-impl BasicSet for ViewsTable {
+impl BasicSet for ChannelsTable {
     type Record = depotsrv::View;
 }
 
-pub struct PkgViewIndex {
+pub struct PkgChannelIndex {
     pool: Arc<ConnectionPool>,
 }
 
-impl PkgViewIndex {
+impl PkgChannelIndex {
     pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        PkgViewIndex { pool: pool }
+        PkgChannelIndex { pool: pool }
     }
 }
 
-impl Bucket for PkgViewIndex {
+impl Bucket for PkgChannelIndex {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -359,23 +359,23 @@ impl Bucket for PkgViewIndex {
     }
 }
 
-impl IndexSet for PkgViewIndex {
+impl IndexSet for PkgChannelIndex {
     type Key = String;
     type Value = String;
 }
 
-pub struct ViewPkgIndex {
+pub struct ChannelPkgIndex {
     pool: Arc<ConnectionPool>,
 }
 
-impl ViewPkgIndex {
+impl ChannelPkgIndex {
     pub fn new(pool: Arc<ConnectionPool>) -> Self {
-        ViewPkgIndex { pool: pool }
+        ChannelPkgIndex { pool: pool }
     }
 
-    pub fn all(&self, view: &str, pkg: &str) -> Result<Vec<package::PackageIdent>> {
+    pub fn all(&self, channel: &str, pkg: &str) -> Result<Vec<package::PackageIdent>> {
         let conn = self.pool().get().unwrap();
-        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&view.to_string()),
+        match conn.zscan_match::<String, String, (String, u32)>(Self::key(&channel.to_string()),
                                                                 format!("{}*", pkg)) {
             Ok(set) => {
                 let set: Vec<package::PackageIdent> =
@@ -387,16 +387,16 @@ impl ViewPkgIndex {
         }
     }
 
-    pub fn is_member<T: Identifiable>(&self, view: &str, pkg: &T) -> Result<bool> {
+    pub fn is_member<T: Identifiable>(&self, channel: &str, pkg: &T) -> Result<bool> {
         let conn = self.pool().get().unwrap();
-        match conn.sismember(Self::key(&view.to_string()), pkg.to_string()) {
+        match conn.sismember(Self::key(&channel.to_string()), pkg.to_string()) {
             Ok(result) => Ok(result),
             Err(e) => Err(Error::from(e)),
         }
     }
 
-    pub fn latest(&self, view: &str, pkg: &str) -> Result<depotsrv::PackageIdent> {
-        match self.all(view, pkg) {
+    pub fn latest(&self, channel: &str, pkg: &str) -> Result<depotsrv::PackageIdent> {
+        match self.all(channel, pkg) {
             Ok(mut ids) => {
                 if let Some(id) = ids.pop() {
                     Ok(id.into())
@@ -409,7 +409,7 @@ impl ViewPkgIndex {
     }
 }
 
-impl Bucket for ViewPkgIndex {
+impl Bucket for ChannelPkgIndex {
     fn pool(&self) -> &ConnectionPool {
         &self.pool
     }
@@ -419,7 +419,7 @@ impl Bucket for ViewPkgIndex {
     }
 }
 
-impl IndexSet for ViewPkgIndex {
+impl IndexSet for ChannelPkgIndex {
     type Key = String;
     type Value = String;
 }
