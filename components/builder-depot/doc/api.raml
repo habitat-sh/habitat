@@ -104,16 +104,16 @@ baseUri: http://api.samplehost.com
                 200:
                 400:
                 500:
-/views:
+/channels:
   get:
-    description: List all views
+    description: List all channels
     responses:
       200:
         body:
           application/json:
             example: |
               {}
-  /{view}:
+  /{channelId}:
     /pkgs:
       /{origin}:
         get:

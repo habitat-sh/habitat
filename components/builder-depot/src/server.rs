@@ -1018,7 +1018,7 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn list_views(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
+fn list_channels(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
     let views = try!(depot.datastore.views.all());
     let body = json::encode(&views).unwrap();
 
@@ -1296,9 +1296,40 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
     let depot25 = depot.clone();
     let depot26 = depot.clone();
     let depot27 = depot.clone();
+    let depot28 = depot.clone();
+    let depot29 = depot.clone();
+    let depot30 = depot.clone();
+    let depot31 = depot.clone();
+    let depot32 = depot.clone();
+    let depot33 = depot.clone();
+    let depot34 = depot.clone();
+    let depot35 = depot.clone();
 
     let router = router!(
-        get "/views" => move |r: &mut Request| list_views(&depot1, r),
+        get "/channels" => move |r: &mut Request| list_channels(&depot28, r),
+        get "/channels/:view/pkgs/:origin" => move |r: &mut Request| list_packages(&depot29, r),
+        get "/channels/:view/pkgs/:origin/:pkg" => {
+            move |r: &mut Request| list_packages(&depot30, r)
+        },
+        get "/channels/:view/pkgs/:origin/:pkg/latest" => {
+            move |r: &mut Request| show_package(&depot31, r)
+        },
+        get "/channels/:view/pkgs/:origin/:pkg/:version" => {
+            move |r: &mut Request| list_packages(&depot32, r)
+        },
+        get "/channels/:view/pkgs/:origin/:pkg/:version/latest" => {
+            move |r: &mut Request| show_package(&depot33, r)
+        },
+        get "/channels/:view/pkgs/:origin/:pkg/:version/:release" => {
+            move |r: &mut Request| show_package(&depot34, r)
+        },
+        post "/channels/:view/pkgs/:origin/:pkg/:version/:release/promote" => {
+            move |r: &mut Request| promote_package(&depot35, r)
+        },
+
+        // JW: `views` is a deprecated term and now an alias for `channels`. These routes should be
+        // removed at a later date.
+        get "/views" => move |r: &mut Request| list_channels(&depot1, r),
         get "/views/:view/pkgs/:origin" => move |r: &mut Request| list_packages(&depot2, r),
         get "/views/:view/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot3, r),
         get "/views/:view/pkgs/:origin/:pkg/latest" => {
