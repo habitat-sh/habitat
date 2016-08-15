@@ -1,6 +1,6 @@
 pkg_name=hab-builder-jobsrv
 pkg_origin=core
-pkg_version=0.8.0
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz

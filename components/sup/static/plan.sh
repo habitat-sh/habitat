@@ -1,4 +1,4 @@
-source ../plan.sh
+PLAN_CONTEXT=$(dirname $PLAN_CONTEXT) source ../plan.sh
 
 pkg_name=hab-sup-static
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"

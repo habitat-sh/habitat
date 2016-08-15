@@ -85,6 +85,10 @@ fi
 eval "$cmd" | while read file; do
   case "${file##*.}" in
     rs)
+      if [ ! -e "$file" ]; then
+        # skip files which were deleted
+        break
+      fi
       if echo "$file" | grep -q "components/builder-protocol/src/message" >/dev/null; then
         info "Skipping generated Rust code file $file"
         break

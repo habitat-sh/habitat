@@ -1,0 +1,8 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/macosx-10.9"
+  config.vm.synced_folder File.expand_path("../../../../", __FILE__), "/src"
+  config.vm.provider "vmware_fusion" do |v|
+    v.vmx["memsize"] = (5 * 1024).to_s
+    v.vmx["numvcpus"] = "4"
+  end
+end

@@ -42,7 +42,7 @@ matrix:
     - ./support/ci/install_cargo.sh
     script:
     - ./support/ci/rust_tests.sh
-    - ./support/ci/specs.sh
+    # - ./support/ci/specs.sh
     - ./support/ci/lint.sh
   - language: rust
     env:
