@@ -345,6 +345,29 @@ run
   - When a package is updated, after the `init` hook has been called.
   - When the package config changes, after the `init` hook has been called, but before a `reconfigure` hook is called.
 
+  You can use this hook in place of `$pkg_svc_run` when you need more complex behavior such as setting environment variables or command options that are based on dynamic configuration.
+
+  Services run using this hook should do two things:
+
+  - Redirect stderr to stdout (e.g. with `exec 2>&1` at the start of the hook)
+  - Call the command to execute with `exec <command> <options>` rather than running the command directly. This ensures the command is executed in the same process and that the service will restart correctly on configuration changes.
+
+  A run hook can use the following as a template:
+
+  ~~~ bash
+  #!/bin/sh
+
+  # redirect stderr
+  exec 2>&1
+
+  # Set some environment variables
+  export MY_ENVIRONMENT_VARIABLE=1
+  export MY_OTHER_ENVIRONMENT_VARIABLE=2
+
+  # Run the command
+  exec my_command --option {{cfg.option}} --option2 {{cfg.option2}}
+  ~~~
+
 ***
 
 ## Runtime configuration settings
