@@ -34,7 +34,7 @@ git clone https://github.com/habitat-sh/habitat.git
 cd habitat && make
 ```
 
-- these docs were tested with: 
+- these docs were tested with:
 
 		docker run -it ubuntu:xenial /bin/bash
 
@@ -88,7 +88,7 @@ git clone https://github.com/habitat-sh/habitat.git
 cd habitat && make
 ```
 
-- these docs were tested with: 
+- these docs were tested with:
 
 		docker run -it ubuntu:14.04 /bin/bash
 
@@ -135,7 +135,7 @@ cd habitat && make
 
 ## General build notes
 
-- Once make has finished, executables will exist in `components/**/target/debug/foo`, where `foo` is the name of an executable (`hab`, `hab-sup`, `hab-depot`, etc).
+- Once make has finished, executables will exist in `/src/target/debug/foo`, where `foo` is the name of an executable (`hab`, `hab-sup`, `hab-depot`, etc).
 
 - Executable names are specified in each components `Cargo.toml` file in a TOML table like this:
 
