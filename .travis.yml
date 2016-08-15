@@ -46,7 +46,7 @@ matrix:
   - language: rust
     env:
     - COMPONENTS=lib LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
-    - AFFECTED_DIRS="components/builder-dbcache|components/builder-protocol|components/common|components/core|components/depot-client|components/http-client|components/net"
+    - AFFECTED_DIRS="components/builder-dbcache|components/builder-protocol|components/common|components/core|components/builder-depot-client|components/http-client|components/net"
     rust: stable
     sudo: false
     addons:
@@ -71,7 +71,7 @@ matrix:
       - components/builder-protocol/target
       - components/common/target
       - components/core/target
-      - components/depot-client/target
+      - components/builder-depot-client/target
       - components/net/target
     before_install:
     - ./support/ci/fast_pass.sh || exit 0
@@ -85,7 +85,7 @@ matrix:
   - language: rust
     env:
     - COMPONENTS=srv LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
-    - AFFECTED_DIRS="components/builder-api|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/depot"
+    - AFFECTED_DIRS="components/builder-api|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
     rust: stable
     sudo: false
     addons:
@@ -111,7 +111,7 @@ matrix:
       - components/builder-sessionsrv/target
       - components/builder-vault/target
       - components/builder-worker/target
-      - components/depot/target
+      - components/builder-depot/target
     before_install:
     - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh

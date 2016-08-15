@@ -18,7 +18,7 @@ toml = "*"
 path = "../core"
 
 [dependencies.habitat_depot_client]
-path = "../depot-client"
+path = "../builder-depot-client"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

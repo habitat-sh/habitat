@@ -38,7 +38,7 @@ branch = "habitat"
 path = "../core"
 
 [dependencies.habitat_depot]
-path = "../depot"
+path = "../builder-depot"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
