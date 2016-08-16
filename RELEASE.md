@@ -145,7 +145,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 
 # Release Notification
 
-1. Create a new post in [Habitat-Accountments](https://forums.habitat.sh/c/habitat-announcements)
+1. Create a new post in [Habitat Announcements](https://forums.habitat.sh/c/habitat-announcements)
 1. Message Slack channels and include the link to the release post
   1. cft-announce (Chef Slack)
   1. eng-announce (Chef Slack)
