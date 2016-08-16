@@ -40,7 +40,7 @@
 ### Offer Timely Help
 - Provide targeted/contextual help - make assumptions based upon their current setup (have they completed the install step?)
 - Use flags to scope the help docs (normal/frequent, all, install, emergency)
-- In times of emergency, provide a clear path to a human at Chef support (if possible) - remind of chef support email or phone number within help docs
+- In times of emergency, provide a clear path to a human at Chef support (if possible) - remind of Chef support email or phone number within help docs
 ### Embrace Design Constraints
 - Use characters (icons), progress bars, and color in your output
 - Provide an option to remove characters, progress bars and color (can break automated build tasks, for example, that humans aren’t reading/watching anyway)
@@ -48,7 +48,7 @@
 - Make output human readable and concise by default. Offer more/less verbose output as an option via a flag.
 - Examine the current state of the system and make output contextual
 - Identify for analogs and antilogs. Do repeat CLI experiences that you’ve enjoyed elsewhere; Don’t repeat mistakes others have made. (e.g. In Habitat, building a package follows a format like bundle install)
-- Write output with a clear messages that a) sets the stage with “what we’re about to do”, b) progress “what is happening now”, and c) “did it fail or succeed?” and if it failed explain why, then provide a recommendation/next step. If it succeeds, celebrate it with memorable/playful message.
+- Write output with a clear message that a) sets the stage with “what we’re about to do”, b) shows progress on “what is happening now”, and c) wrap-up with “did it fail or succeed?”. If it fails, then explain why and provide a recommended next step. If it succeeds, then consider celebrating with a playful message.
 ### Expose Your Personality
 - It’s a machine, but it doesn’t have to feel like one. Remind your users that there are people behind this product and that they care about your experience.
 - Don’t overuse this principle by being overly silly or ever-present (that will be annoying), but a couple of inside jokes or playfully-worded sentences (especially during moments of success) sprinkled throughout keeps things interesting and personable (e.g. when a plan builds successfully out last line of output is “I love it when a plan.sh comes together.”)
@@ -68,7 +68,7 @@
   - Do not send any sort of personally identifiable, private or sensitive data.
    - Outline every data point that you intend to capture and send.
    - Once it has been sent, leave no trace of that history.
-  - Avoid creating delays in the core experience. It goes without saying, but your users are here to accomplish a task and that is paramount to your data needs. Don’t optically degrade the UX to serve yourself and your analytical desires.
+  - Avoid creating delays or failures in the core experience. It goes without saying, but your users are here to accomplish a task and that is paramount to your data needs. Don’t degrade or break the UX to serve yourself and your analytical desires.
    - For example, piggyback other activities that require internet calls and note in the output of that command that you’re sending analytics data.
    - Batch data and send it in chunks.
   - Make opting in and out both simple and clear. User should be confident that when they opt out, all tracking remnants have been removed. Add a simple command (e.g. hab analytics off) along with manual instructions if they want to nuke the possibility on their own (e.g. delete the /analtyics/directory )
