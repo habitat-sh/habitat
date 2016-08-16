@@ -139,7 +139,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 
 1. Create release in GitHub
 1. Publish each Linux component to depot (`hab pkg upload results/*-x86_64-linux.hart`)
-1. [Release to Bintray](support/bintray-publish/README.md)
+1. [Release to Bintray](components/bintray-publish/README.md)
 1. Drink beer
 
 # Release Notification

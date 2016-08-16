@@ -10,7 +10,7 @@ pkg_bin_dirs=(bin)
 programs=(publish-hab publish-studio)
 
 do_build() {
-  cp -v $PLAN_CONTEXT/../../components/studio/build-docker-image.sh \
+  cp -v $PLAN_CONTEXT/../studio/build-docker-image.sh \
     build-docker-image
 
   local run_path=""
