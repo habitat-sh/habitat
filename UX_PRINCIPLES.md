@@ -1,15 +1,8 @@
 # Habitat CLI UX Principles
 
 ## Commands
-### Be Judicious
-- Be judicious with the number of available commands
-- Limit the number of nouns - keeps the cognitive load small; users can memorize the core commands (keep them writing plans, not fumbling and looking up commands)
-### Build Consistency
-- Using the noun before the verb fosters consistency; you also get help at the noun level (imagine your command set as a tree hierarchy branching out from the root); if you can remember the nouns then you can quickly get the list of verbs for that noun (e.g. hab package -help)
-- Use shortcuts sparingly - they’re certainly useful but obstruct understanding and meaning
-- Don’t treat flags as 2nd class citizens. Be aware of existing flags and consider how they can/will be used across multiple commands and subcommands.
+
 ### Make it Readable
-- Familiarity, simplicity and readability make it memorable. Docs are useful, but we don’t want people having to continually refer back to them.
 - Keep commands human readable and memorizable by using a sentence like structure `hab <noun> <verb>`
 - The consistent noun/verb format becomes rhythmic and builds a mental model if used properly
 - Use terms (nouns and verbs) that fit with a real-world analogy
@@ -18,6 +11,13 @@
 - Be careful with abbreviations - keep things speakable - imagine you are telling somebody else to run a command verbally, can they understand/interpret what you say without misspelling it? (this probably means it’s also easier for you to recall on your own as well)
 - Look out for flags that contain boolean wording. For example, try to avoid flags like `thing_disabled` or `thing_enabled`, or even worse, a boolean-ish flag that also takes a boolean value such as hab foo thing_disabled=false or hab foo thing_enabled=true.
  - Instead, take out boolean wording and just use the setting name like hab foo some_option=enabled or hab foo some_option=false
+### Be Judicious
+- Be judicious with the number of available commands
+- Limit the number of nouns - keeps the cognitive load small; users can memorize the core commands (keep them writing plans, not fumbling and looking up commands)
+### Build Consistency
+- Using the noun before the verb fosters consistency; you also get help at the noun level (imagine your command set as a tree hierarchy branching out from the root); if you can remember the nouns then you can quickly get the list of verbs for that noun (e.g. hab package -help)
+- Use shortcuts sparingly - they’re certainly useful but obstruct understanding and meaning
+- Don’t treat flags as 2nd class citizens. Be aware of existing flags and consider how they can/will be used across multiple commands and subcommands.
 ### Kill Your Darlings
 - If something feels confusing (even if it’s just single term), then get consensus and change it
 - Don’t ignore and postpone obvious shortcomings. Others see it too, as will users, so take the time to fix it
@@ -32,6 +32,7 @@
 - Provide guidepost commands that help people get started quickly and avoid common pitfalls
  - For example, use a ‘getting started’ command to streamline rote one-time setup and decrease the time it takes for a user to get to the ‘good stuff’ (i.e. shorten the time to delight)
 - If you find something unnecessarily (or annoyingly) complex as you use the product yourself, then it’s probably generating the same negative response for others. Consider how to simplify the flow and remove the potholes.
+- Familiarity, simplicity and readability make it memorable. Docs are useful, but we don’t want people having to continually refer back to them.
 ### Explain Yourself
 - Comment your code, be transparent, and use these as notes when building your help docs. If you have a public repo, then you can direct users there later to better understand the system and contribute (in addition to docs).
 
