@@ -10,7 +10,7 @@
 - Don’t treat flags as 2nd class citizens. Be aware of existing flags and consider how they can/will be used across multiple commands and subcommands.
 ### Make it Readable
 - Familiarity, simplicity and readability make it memorable. Docs are useful, but we don’t want people having to continually refer back to them.
-- Keep commands human readable and memorizable by using a sentence like structure `hab <noun> <verb>’
+- Keep commands human readable and memorizable by using a sentence like structure `hab <noun> <verb>`
 - The consistent noun/verb format becomes rhythmic and builds a mental model if used properly
 - Use terms (nouns and verbs) that fit with a real-world analogy
 - Be precise with meaning and pay attention to expectations when choosing words. For example, if you use a command like `hab pkg create` then the expectation should match the result (i.e. an actual package should be created, not simply a directory or scaffold).
