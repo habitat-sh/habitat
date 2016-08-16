@@ -10,7 +10,7 @@
 - Don’t make up words. Consider using a different term or add a dash instead of jamming words together or using words that don’t exist in the dictionary. People won’t remember how to spell it which in turn generates unnecessary confusion. Clarity is king.
 - Be careful with abbreviations - keep things speakable - imagine you are telling somebody else to run a command verbally, can they understand/interpret what you say without misspelling it? (this probably means it’s also easier for you to recall on your own as well).
 - Look out for flags that contain boolean wording. For example, try to avoid flags like `thing_disabled` or `thing_enabled`, or even worse, a boolean-ish flag that also takes a boolean value such as hab foo thing_disabled=false or hab foo thing_enabled=true.
- - Instead, take out boolean wording and just use the setting name like hab foo some_option=enabled or hab foo some_option=false.
+  - Instead, take out boolean wording and just use the setting name like hab foo some_option=enabled or hab foo some_option=false.
 
 ### Be Judicious
 - Be judicious with the number of available commands.
@@ -35,7 +35,7 @@
 
 ### Be a Good Host
 - Provide guidepost commands that help people get started quickly and avoid common pitfalls.
- - For example, use a ‘getting started’ command to streamline rote one-time setup and decrease the time it takes for a user to get to the ‘good stuff’ (i.e. shorten the time to delight).
+  - For example, use a ‘getting started’ command to streamline rote one-time setup and decrease the time it takes for a user to get to the ‘good stuff’ (i.e. shorten the time to delight).
 - If you find something unnecessarily (or annoyingly) complex as you use the product yourself, then it’s probably generating the same negative response for others. Consider how to simplify the flow and remove the potholes.
 - Familiarity, simplicity and readability make it memorable. Docs are useful, but we don’t want people having to continually refer back to them.
 
@@ -73,20 +73,20 @@
 
 ### Measure Effectiveness
 - It’s the command line so you can’t get any analytics, right? Wrong. As with a web or mobile application, you can still implement tracking with common tools like Google Analytics. That said, you have some unique challenges to address:
- - Treat the terminal experience as a more private and sacred interface for your users. Unlike the app world where there is obvious reliance upon the internet and thus an implied notion of less privacy, the command line experience feels more confined to the walls of your machine.
- - We’ve seen examples of community backlash when analytics were opted in by default (see homebrew) and it was not pretty. Given this more private setting, be courteous and transparent to retain trust and get the data you need. Some tips on accomplishing include:
-  - Set analytics as opt out by default unless you are absolutely certain (and have communicated thoroughly elsewhere) that you’re tracking things.
-  - Be explicit on what/when/why/how you are sending data. Include this level of detail in your permission request, code comments, and docs. Be transparent; leave nothing to the imagination.
-  - Find the right time to request permission. For example, provide some helpers for getting up and running (see ‘Be a Good Host’ above) and in return, after having helped them, ask for participation in your analytics program.
-  - Do not send any sort of personally identifiable, private or sensitive data.
-   - Outline every data point that you intend to capture and send.
-   - Once it has been sent, leave no trace of that history.
-  - Avoid creating delays or failures in the core experience. It goes without saying, but your users are here to accomplish a task and that is paramount to your data needs. Don’t degrade or break the UX to serve yourself and your analytical desires.
-   - For example, piggyback other activities that require internet calls and note in the output of that command that you’re sending analytics data.
-   - Batch data and send it in chunks.
-  - Make opting in and out both simple and clear. User should be confident that when they opt out, all tracking remnants have been removed. Add a simple command (e.g. hab analytics off) along with manual instructions if they want to nuke the possibility on their own (e.g. delete the /analtyics/directory).
+  - Treat the terminal experience as a more private and sacred interface for your users. Unlike the app world where there is obvious reliance upon the internet and thus an implied notion of less privacy, the command line experience feels more confined to the walls of your machine.
+  - We’ve seen examples of community backlash when analytics were opted in by default (see homebrew) and it was not pretty. Given this more private setting, be courteous and transparent to retain trust and get the data you need. Some tips on accomplishing include:
+   - Set analytics as opt out by default unless you are absolutely certain (and have communicated thoroughly elsewhere) that you’re tracking things.
+   - Be explicit on what/when/why/how you are sending data. Include this level of detail in your permission request, code comments, and docs. Be transparent; leave nothing to the imagination.
+   - Find the right time to request permission. For example, provide some helpers for getting up and running (see ‘Be a Good Host’ above) and in return, after having helped them, ask for participation in your analytics program.
+   - Do not send any sort of personally identifiable, private or sensitive data.
+    - Outline every data point that you intend to capture and send.
+    - Once it has been sent, leave no trace of that history.
+   - Avoid creating delays or failures in the core experience. It goes without saying, but your users are here to accomplish a task and that is paramount to your data needs. Don’t degrade or break the UX to serve yourself and your analytical desires.
+    - For example, piggyback other activities that require internet calls and note in the output of that command that you’re sending analytics data.
+    - Batch data and send it in chunks.
+   - Make opting in and out both simple and clear. User should be confident that when they opt out, all tracking remnants have been removed. Add a simple command (e.g. hab analytics off) along with manual instructions if they want to nuke the possibility on their own (e.g. delete the /analtyics/directory).
 - Do track things that will help you improve the CLI UX.
- - Which commands are most used? 
- - Which would be good indicators of usage trends?
- - Any larger product goals that you’re tracking? Are there any commands that help you track progress towards them?
- - Are there any errors or areas of concern you want to monitor?
+  - Which commands are most used? 
+  - Which would be good indicators of usage trends?
+  - Any larger product goals that you’re tracking? Are there any commands that help you track progress towards them?
+  - Are there any errors or areas of concern you want to monitor?
