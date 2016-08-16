@@ -137,7 +137,7 @@ endif
 changelog: image ## build the changelog
 	$(run) sh -c 'hab pkg install core/github_changelog_generator && \
 		hab pkg binlink core/github_changelog_generator github_changelog_generator && \
-		github_changelog_generator --future-release $(cat VERSION) --token $(GITHUB_TOKEN)'
+		github_changelog_generator --future-release $(VERSION) --token $(GITHUB_TOKEN)'
 
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \

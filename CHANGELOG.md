@@ -1,8 +1,19 @@
 # Habitat CHANGELOG
 
-## [Unreleased](https://github.com/habitat-sh/habitat/tree/HEAD)
+## [0.10.0-dev](https://github.com/habitat-sh/habitat/tree/0.10.0-dev) (08-16-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.0...0.10.0-dev)
 
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.8.0...HEAD)
+## Features & Enhancements
+
+- Document required structure of run hook [\#989](https://github.com/habitat-sh/habitat/issues/989)
+
+**Merged pull requests:**
+
+- Add CLI UX principles to repo [\#1158](https://github.com/habitat-sh/habitat/pull/1158) ([ryankeairns](https://github.com/ryankeairns))
+- Document use of exec in run hooks [\#1154](https://github.com/habitat-sh/habitat/pull/1154) ([mivok](https://github.com/mivok))
+
+## [0.9.0](https://github.com/habitat-sh/habitat/tree/0.9.0) (08-15-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.8.0...0.9.0)
 
 ## Features & Enhancements
 
@@ -33,6 +44,7 @@
 
 **Merged pull requests:**
 
+- update build docs [\#1156](https://github.com/habitat-sh/habitat/pull/1156) ([metadave](https://github.com/metadave))
 - CI will run specs contained in ./test [\#1152](https://github.com/habitat-sh/habitat/pull/1152) ([metadave](https://github.com/metadave))
 - Rename depot/depot-client to builder-depot/builder-depot-client [\#1150](https://github.com/habitat-sh/habitat/pull/1150) ([reset](https://github.com/reset))
 - \[hab\] Add an optional arg to install.sh to specify a version of hab. [\#1149](https://github.com/habitat-sh/habitat/pull/1149) ([fnichol](https://github.com/fnichol))
@@ -759,7 +771,6 @@
 
 **Merged pull requests:**
 
-- \[delivery\] Only fully rebuild devshell image once a day. [\#327](https://github.com/habitat-sh/habitat/pull/327) ([fnichol](https://github.com/fnichol))
 - Adds basic, wide open CORS support to depot [\#326](https://github.com/habitat-sh/habitat/pull/326) ([adamhjk](https://github.com/adamhjk))
 - Update project Makefiles and related build programs. [\#324](https://github.com/habitat-sh/habitat/pull/324) ([fnichol](https://github.com/fnichol))
 - add libsodium [\#323](https://github.com/habitat-sh/habitat/pull/323) ([metadave](https://github.com/metadave))
@@ -817,27 +828,20 @@
 - Initial version of httpd plan. [\#266](https://github.com/habitat-sh/habitat/pull/266) ([juliandunn](https://github.com/juliandunn))
 - build bldr-web in a studio [\#265](https://github.com/habitat-sh/habitat/pull/265) ([jtimberman](https://github.com/jtimberman))
 - calculate checksum and return as ETag for packages [\#263](https://github.com/habitat-sh/habitat/pull/263) ([reset](https://github.com/reset))
-- fix build\_deps in a few packages [\#262](https://github.com/habitat-sh/habitat/pull/262) ([juliandunn](https://github.com/juliandunn))
 - fixes for node, add phantomjs [\#261](https://github.com/habitat-sh/habitat/pull/261) ([jtimberman](https://github.com/jtimberman))
 - Organization Create Form [\#259](https://github.com/habitat-sh/habitat/pull/259) ([smith](https://github.com/smith))
-- Repositories [\#258](https://github.com/habitat-sh/habitat/pull/258) ([reset](https://github.com/reset))
 - match more explicitly when searching for metafiles [\#257](https://github.com/habitat-sh/habitat/pull/257) ([reset](https://github.com/reset))
 - clarify malformed metafile error message [\#256](https://github.com/habitat-sh/habitat/pull/256) ([reset](https://github.com/reset))
-- Break up actions and reducers into separate files [\#255](https://github.com/habitat-sh/habitat/pull/255) ([smith](https://github.com/smith))
 - Depot Fixes [\#254](https://github.com/habitat-sh/habitat/pull/254) ([reset](https://github.com/reset))
 - Fix for depot and origin [\#253](https://github.com/habitat-sh/habitat/pull/253) ([adamhjk](https://github.com/adamhjk))
 - Blank organization list page [\#252](https://github.com/habitat-sh/habitat/pull/252) ([smith](https://github.com/smith))
 - Add GitHub repo selection [\#251](https://github.com/habitat-sh/habitat/pull/251) ([smith](https://github.com/smith))
-- self documenting makefiles! [\#249](https://github.com/habitat-sh/habitat/pull/249) ([jtimberman](https://github.com/jtimberman))
 - Linked Accounts page [\#248](https://github.com/habitat-sh/habitat/pull/248) ([smith](https://github.com/smith))
-- install declared transitive dependencies on package installation [\#247](https://github.com/habitat-sh/habitat/pull/247) ([reset](https://github.com/reset))
 - convert references of derivation to origin, project wide [\#246](https://github.com/habitat-sh/habitat/pull/246) ([reset](https://github.com/reset))
 - adjuster is spelled wrong [\#245](https://github.com/habitat-sh/habitat/pull/245) ([juliandunn](https://github.com/juliandunn))
-- Project Page [\#244](https://github.com/habitat-sh/habitat/pull/244) ([smith](https://github.com/smith))
 - Functional tests passing in new studios [\#243](https://github.com/habitat-sh/habitat/pull/243) ([adamhjk](https://github.com/adamhjk))
 - \[plans\] Fix the bldr Plan and several dependent ones. [\#242](https://github.com/habitat-sh/habitat/pull/242) ([fnichol](https://github.com/fnichol))
 - Add a preamble [\#241](https://github.com/habitat-sh/habitat/pull/241) ([juliandunn](https://github.com/juliandunn))
-- \[plan\] Add plan for current Go \(1.6\) & for Go 1.4.3. [\#240](https://github.com/habitat-sh/habitat/pull/240) ([fnichol](https://github.com/fnichol))
 - Update `make gpg` instructions in README. [\#239](https://github.com/habitat-sh/habitat/pull/239) ([fnichol](https://github.com/fnichol))
 - build deps in a post studio world [\#238](https://github.com/habitat-sh/habitat/pull/238) ([jtimberman](https://github.com/jtimberman))
 - \[plan\] Add diffutils to the backline plan. [\#237](https://github.com/habitat-sh/habitat/pull/237) ([fnichol](https://github.com/fnichol))
@@ -849,23 +853,10 @@
 - \[bldr-build\] Add fix\_shebang, pkg\_interpreter\_for [\#231](https://github.com/habitat-sh/habitat/pull/231) ([jtimberman](https://github.com/jtimberman))
 - Notification system [\#229](https://github.com/habitat-sh/habitat/pull/229) ([smith](https://github.com/smith))
 - Reduce the complexity of the root Makefile. [\#228](https://github.com/habitat-sh/habitat/pull/228) ([fnichol](https://github.com/fnichol))
-- \[plans\] Correctly set dynamic linker for foundational Plans. [\#227](https://github.com/habitat-sh/habitat/pull/227) ([fnichol](https://github.com/fnichol))
 - Make studio run work [\#226](https://github.com/habitat-sh/habitat/pull/226) ([adamhjk](https://github.com/adamhjk))
-- Rename `make pkg-shell` to `make shell`. [\#225](https://github.com/habitat-sh/habitat/pull/225) ([fnichol](https://github.com/fnichol))
 - Create a project page [\#224](https://github.com/habitat-sh/habitat/pull/224) ([smith](https://github.com/smith))
 - \[plan\] De-optimize gmp plan. [\#223](https://github.com/habitat-sh/habitat/pull/223) ([fnichol](https://github.com/fnichol))
 - Development environment with studio [\#222](https://github.com/habitat-sh/habitat/pull/222) ([adamhjk](https://github.com/adamhjk))
-- Add projects list [\#221](https://github.com/habitat-sh/habitat/pull/221) ([smith](https://github.com/smith))
-- Adding docker build support to studios [\#220](https://github.com/habitat-sh/habitat/pull/220) ([adamhjk](https://github.com/adamhjk))
-- Add bind mounting of the docker socket [\#218](https://github.com/habitat-sh/habitat/pull/218) ([adamhjk](https://github.com/adamhjk))
-- Building up to bldr [\#217](https://github.com/habitat-sh/habitat/pull/217) ([adamhjk](https://github.com/adamhjk))
-- Upgrade to latest angular2 beta; migrate tsd \> typings [\#216](https://github.com/habitat-sh/habitat/pull/216) ([smith](https://github.com/smith))
-- Use the gossip layer for the Census and Election [\#215](https://github.com/habitat-sh/habitat/pull/215) ([adamhjk](https://github.com/adamhjk))
-- Update to Redis 3.0.7 [\#214](https://github.com/habitat-sh/habitat/pull/214) ([juliandunn](https://github.com/juliandunn))
-- \[bldr-build\] Bundled updates, week of February 8, 2016 [\#213](https://github.com/habitat-sh/habitat/pull/213) ([fnichol](https://github.com/fnichol))
-- Add end-to-end tests [\#212](https://github.com/habitat-sh/habitat/pull/212) ([smith](https://github.com/smith))
-- Downgrade angular to beta 2 [\#211](https://github.com/habitat-sh/habitat/pull/211) ([smith](https://github.com/smith))
-- Simulate log streaming [\#210](https://github.com/habitat-sh/habitat/pull/210) ([smith](https://github.com/smith))
 - add a short flag for --topology [\#209](https://github.com/habitat-sh/habitat/pull/209) ([metadave](https://github.com/metadave))
 - Multiple build view [\#207](https://github.com/habitat-sh/habitat/pull/207) ([smith](https://github.com/smith))
 - Update node and angular2 [\#206](https://github.com/habitat-sh/habitat/pull/206) ([smith](https://github.com/smith))

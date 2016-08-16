@@ -80,7 +80,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
     $ git checkout -b <branch>
     ```
 
-1. Update the contents of `VERSION` with the release's new version number
+1. Remove the `-dev` suffix from the version number found in the `VERSION` file
 
     ```
     $ vi ~/code/habitat/VERSION
@@ -142,6 +142,13 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 1. Publish each Linux component to depot (`hab pkg upload results/*-x86_64-linux.hart`)
 1. [Release to Bintray](support/bintray-publish/README.md)
 1. Drink beer
+
+## Bump Version
+
+1. Update the version number found in the `VERSION` file to the next target release and append the `-dev` suffix to that number
+1. Issue a PR and merge it yourself
+
+> Example: If the release version was `0.9.0` then the contents of `VERSION` might read `0.10.0-dev` if your next target is `0.10.0`.
 
 # Release Notification
 
