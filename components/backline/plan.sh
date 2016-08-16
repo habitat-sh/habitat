@@ -1,8 +1,8 @@
 pkg_name=hab-backline
 pkg_origin=core
-pkg_version=$(cat ../../VERSION)
+pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-pkg_license=('apachev2')
+pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_build_deps=()
 
