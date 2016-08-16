@@ -151,6 +151,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
   1. eng-announce (Chef Slack)
   1. habitat (Chef Slack)
   1. general (Habitat Slack)
+  1. announcements (Habitat Slack)
 
 # How-To: Build a Linux Component
 
