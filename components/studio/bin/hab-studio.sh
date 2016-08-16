@@ -870,7 +870,12 @@ chroot_env() {
     env="$env https_proxy=$https_proxy"
   fi
   if [ -n "${no_proxy:-}" ]; then
-    env="$env no_proxy=$no_proxy"
+    # If you pass whitespace here, bash will loose its mind when we do expansion
+    # in the exec later on. To spare you, and me, and everyone else, we go ahead
+    # and take care of that little whitespace problem for you.
+    #
+    # Thanks, Docker, for passing unneccessary spaces. You're a peach.
+    env="$env no_proxy=$(echo $no_proxy | $bb sed 's/, /,/g')"
   fi
 
   echo "$env"
