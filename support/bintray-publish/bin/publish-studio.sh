@@ -168,6 +168,7 @@ _main() {
 
 BINTRAY_ORG=habitat
 BINTRAY_REPO=stable
+PATH=@path@
 
 # The current version of this program
 version='@version@'

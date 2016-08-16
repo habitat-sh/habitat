@@ -121,19 +121,18 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
     ```
 
 1. Build each of the following components with the [instructions below](#how-to-build-a-linux-component)
-  1. hab
-  1. hab-dynamic
-  1. hab-sup
-  1. hab-sup-static
-  1. hab-director
-  1. builder-api
-  1. builder-depot
-  1. builder-jobsrv
-  1. builder-router
-  1. builder-sessionsrv
-  1. builder-vault
-  1. builder-worker
-1. [Build Linux Components](#how-to-build-linux-components)
+  * hab - `habitat/components/hab`
+  * hab-dynamic - `habitat/components/hab/dynamic`
+  * hab-sup - `habitat/components/sup`
+  * hab-sup-static - `habitat/components/sup/static`
+  * hab-director - `habitat/components/director`
+  * hab-builder-api - `habitat/components/builder-api`
+  * hab-builder-depot - `habitat/components/builder-depot`
+  * hab-builder-jobsrv - `habitat/components/builder-jobsrv`
+  * hab-builder-router - `habitat/components/builder-router`
+  * hab-builder-sessionsrv - `habitat/components/builder-sessionsrv`
+  * hab-builder-vault - `habitat/components/builder-vault`
+  * hab-builder-worker - `habitat/components/builder-worker`
 1. [Build Mac Components](#how-to-build-mac-components)
 
 ## Publish Release

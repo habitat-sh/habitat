@@ -53,15 +53,14 @@ $author
 Habitat CLI Bintray Publisher
 
 USAGE:
-        $program [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>
+        $program [FLAGS] [OPTIONS] <HART_FILE>
 
 COMMON FLAGS:
     -h  Prints this message
     -V  Prints version information
 
 ARGS:
-    <PKG_IDENT_OR_ARTIFACT>   A Habitat package identifier or a path to a
-                              local Habitat artifact
+    <HART_FILE> A path to a local Habitat artifact
 
 "
 }
@@ -171,10 +170,15 @@ info() {
 }
 
 _build_slim_release() {
-  info "Extracting Habitat package $ident_or_hart"
-  env FS_ROOT="$tmp_root" $_hab_cmd pkg install "$ident_or_hart"
+  info "Extracting Habitat package $target_hart"
+  if [ ! -e $target_hart ]; then
+    exit_with ".hart file not found at given path: $target_hart" 1
+  fi
+  mkdir -p "$tmp_root/hab/cache/artifacts"
+  cp $target_hart "$tmp_root/hab/cache/artifacts/"
+  env FS_ROOT="$tmp_root" $_hab_cmd pkg install "$target_hart"
   if [[ $(find "$tmp_root/hab/pkgs" -name hab -type f | wc -l) -ne 1 ]]; then
-    exit_with "$ident_or_hart did not contain a \`hab' binary" 2
+    exit_with "$target_hart did not contain a \`hab' binary" 2
   fi
 
   local hab_binary="$(find "$tmp_root/hab/pkgs" -name hab -type f)"
@@ -212,7 +216,7 @@ _build_slim_release() {
       $_zip_cmd -9 -r "$pkg_artifact" "$(basename $pkg_dir)"
       ;;
     *)
-      exit_with "$ident_or_hart has unknown TARGET=$pkg_target" 3
+      exit_with "$target_hart has unknown TARGET=$pkg_target" 3
       ;;
   esac
   popd >/dev/null
@@ -291,6 +295,7 @@ EOF
 
 BINTRAY_ORG=habitat
 BINTRAY_REPO=stable
+PATH=@path@
 
 # The current version of this program
 version='@version@'
@@ -340,7 +345,7 @@ if [[ -z "${BINTRAY_PASSPHRASE:-}" ]]; then
   exit_with "Required environment variable: BINTRAY_PASSPHRASE" 2
 fi
 
-ident_or_hart="$1"
+target_hart="$1"
 
 tmp_root="$(mktemp -d -t "${program}-XXXX")"
 trap 'rm -rf $tmp_root; exit $?' INT TERM EXIT

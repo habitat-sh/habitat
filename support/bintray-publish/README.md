@@ -47,10 +47,6 @@ Finally, run the publish program using `hab pkg exec` in order to have the
 program's `PATH` correctly set.
 
 ```sh
-# specifying a published version with a package identifier
-hab pkg exec core/hab-bintray-publish publish-hab core/hab
-
-# using a local package artifact
 hab pkg exec core/hab-bintray-publish publish-hab \
   ./results/core-hab-0.7.0-20160614231131-x86_64-darwin.hart
 ```
@@ -64,14 +60,6 @@ First, install the latest package from the Depot if it's not already installed:
 
 ```sh
 hab install core/hab-bintray-publish
-```
-
-Next, ensure that the 2 required credentials are exported as environment
-variables. The program will fail if any of the required variables are not
-present. Contact a Habitat core maintainer if you require access to Bintray.
-
-```sh
-export BINTRAY_USER=jdoe BINTRAY_KEY=mykey
 ```
 
 Finally, run the publish program using `hab pkg exec` in order to have the
