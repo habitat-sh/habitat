@@ -26,9 +26,9 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
        #!/bin/sh
        #
-       ln -sf {{pkg.path}}/package.json {{pkg.svc_path}}
-       ln -sf {{pkg.path}}/server.js {{pkg.svc_path}}
-       ln -sf {{pkg.path}}/node_modules {{pkg.svc_path}}
+       ln -sf {{pkg.path}}/package.json {{pkg.svc_var_path}}
+       ln -sf {{pkg.path}}/server.js {{pkg.svc_var_path}}
+       ln -sf {{pkg.path}}/node_modules {{pkg.svc_var_path}}
 
     This will symlink the files from the location where the package is installed to the directory used when the service starts.
 
@@ -37,7 +37,7 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
        #!/bin/sh
        #
-       cd {{pkg.svc_path}}
+       cd {{pkg.svc_var_path}}
 
        # `exec` makes it so the process that the Habitat supervisor uses is
        # `npm start`, rather than the run hook itself. `2>&1` makes it so both

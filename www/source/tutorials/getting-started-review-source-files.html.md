@@ -14,7 +14,7 @@ var http = require('http'),
     nconf = require('nconf');
 
 
-nconf.file({ file: 'config/config.json' });
+nconf.file({ file: '../config/config.json' });
 
 var handleRequest = function(request, response) {
     response.writeHead(200, {"Content-Type": "text/plain"});
@@ -46,7 +46,7 @@ Because we are using npm to start up our Node.js web app, the npm binary looks f
 ~~~ javascript
 {
     "name": "mytutorialapp",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Node.js tutorial app for Habitat",
     "author": "First Last <first.last@example.com>",
     "license": "MIT",
