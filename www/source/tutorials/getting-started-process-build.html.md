@@ -51,7 +51,7 @@ To show the portability of Habitat, you will export and run a Habitat service fr
         hab-sup(TP): Restarting because the service config was updated via the census
         mytutorialapp(SV): Starting
         mytutorialapp(O):
-        mytutorialapp(O): > mytutorialapp@0.1.0 start /hab/svc/mytutorialapp
+        mytutorialapp(O): > mytutorialapp@0.2.0 start /hab/svc/mytutorialapp
         mytutorialapp(O): > node server.js
         mytutorialapp(O):
         mytutorialapp(O): Running on http://0.0.0.0:8080

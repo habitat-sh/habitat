@@ -48,7 +48,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
 1. Set the `pkg_origin` value to the one created for you by `hab setup`. For the examples in this tutorial, it will be set to "myorigin". The "core" origin name is reserved. That name is used by the Habitat maintainers group to create foundational packages that you can use as dependencies in your packages. If you would like to browse them, they are located in the Habitat [core plans repo](https://github.com/habitat-sh/core-plans).
 2. Set the `pkg_name` value to "mytutorialapp".
-3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.1.0`.
+3. Because this is a package for a Node.js app, follow semantic versioning and set the `pkg_version` to `0.2.0`. A previous version of the tutorial used version `0.1.0`, however, the content related to that version no longer works with the latest Habitat.
 4. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
 5. Change the `pkg_source` value to point to the archive file that contains the source files described in the previous step. {::comment} Move this into a S3 bucket under the Habitat account before launch {:/comment}
 
@@ -56,7 +56,7 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
 6. Change the `pkg_shasum` value to the correct checksum for the tarball.
 
-        pkg_shasum=b54f8ada292b0249245385996221751f571e170162e0d464a26b958478cc9bfa
+        pkg_shasum=e4e988d9216775a4efa4f4304595d7ff31bdc0276d5b7198ad6166e13630aaa9
 
     > Note: If you modified the source files from the previous step and created your own archive, you will have to compute the sha256 value yourself. If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
@@ -87,7 +87,7 @@ To do both of those actions, we will implement our own **do_build()** and **do_i
 ~~~ bash
 do_build() {
   # The mytutorialapp source code is unpacked into a directory,
-  # mytutorialapp-0.1.0, at the root of $HAB_CACHE_SRC_PATH. If you were downloading
+  # mytutorialapp-0.2.0, at the root of $HAB_CACHE_SRC_PATH. If you were downloading
   # an archive that didn't match your package name and version, you would have to
   # copy the files into $HAB_CACHE_SRC_PATH.
 
@@ -115,7 +115,7 @@ Here's what your `plan.sh` should look like in the end:
 ~~~ bash
 pkg_origin=myorigin
 pkg_name=mytutorialapp
-pkg_version=0.1.0
+pkg_version=0.2.0
 pkg_maintainer="Your Name <your email address>"
 pkg_license=()
 pkg_source=https://s3-us-west-2.amazonaws.com/${pkg_name}/${pkg_name}-${pkg_version}.tar.gz
@@ -127,7 +127,7 @@ pkg_expose=(8080)
 
 do_build() {
   # The mytutorialapp source code is unpacked into a directory,
-  # mytutorialapp-0.1.0, at the root of $HAB_CACHE_SRC_PATH. If you were downloading
+  # mytutorialapp-0.2.0, at the root of $HAB_CACHE_SRC_PATH. If you were downloading
   # an archive that didn't match your package name and version, you would have to
   # copy the files into $HAB_CACHE_SRC_PATH.
 
@@ -195,17 +195,17 @@ For a complete listing of all of the plan settings, callbacks, and runtime hooks
         mytutorialapp: Creating manifest
         mytutorialapp: Generating package artifact
         /hab/pkgs/core/tar/1.28/20160427205719/bin/tar: Removing leading `/' from member names
-        /hab/cache/artifacts/.myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.tar (1/1)
+        /hab/cache/artifacts/.myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.tar (1/1)
         100 %       120.8 KiB / 910.0 KiB = 0.133
-        » Signing /hab/cache/artifacts/.myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.tar.xz
-        ☛ Signing /hab/cache/artifacts/.myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.tar.xz with myorigin-20160603183849 to create /hab/cache/artifacts/myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.hart
-        ★ Signed artifact /hab/cache/artifacts/myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.hart.
-        '/hab/cache/artifacts/myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.hart' -> '/src/results/myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.hart'
+        » Signing /hab/cache/artifacts/.myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.tar.xz
+        ☛ Signing /hab/cache/artifacts/.myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.tar.xz with myorigin-20160603183849 to create /hab/cache/artifacts/myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.hart
+        ★ Signed artifact /hab/cache/artifacts/myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.hart.
+        '/hab/cache/artifacts/myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.hart' -> '/src/results/myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.hart'
         mytutorialapp: hab-plan-build cleanup
         mytutorialapp:
-        mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.1.0
-        mytutorialapp: Installed Path: /hab/pkgs/myorigin/mytutorialapp/0.1.0/20160603223638
-        mytutorialapp: Artifact: /src/results/myorigin-mytutorialapp-0.1.0-20160603223638-x86_64-linux.hart
+        mytutorialapp: Source Cache: /hab/cache/src/mytutorialapp-0.2.0
+        mytutorialapp: Installed Path: /hab/pkgs/myorigin/mytutorialapp/0.2.0/20160603223638
+        mytutorialapp: Artifact: /src/results/myorigin-mytutorialapp-0.2.0-20160603223638-x86_64-linux.hart
         mytutorialapp: Build Report: /src/results/last_build.env
         mytutorialapp:
         mytutorialapp: I love it when a plan.sh comes together.
@@ -213,9 +213,9 @@ For a complete listing of all of the plan settings, callbacks, and runtime hooks
         mytutorialapp: Build time: 0m12s
         [3][default:/src:0]#
 
-    The source files are stored in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.1.0/20160521033718`).  Listing the contents of that directory will show you the source files copied over in the **do_install()** callback as well as the nconf module files. By default, this location is ephemeral. When you exit the studio, the studio environment is destroyed and recreated the next time you enter it.
+    The source files are stored in `/hab/pkgs/ORIGIN/PACKAGENAME/VERSION/RELEASE` (for example, `/hab/pkgs/myorigin/mytutorialapp/0.2.0/20160521033718`).  Listing the contents of that directory will show you the source files copied over in the **do_install()** callback as well as the nconf module files. By default, this location is ephemeral. When you exit the studio, the studio environment is destroyed and recreated the next time you enter it.
 
-    The package created is stored in a relative `results` directory (for example, `/src/results/myorigin-mytutorialapp-0.1.0-20160521033718-x86_64-linux.hart`) that persists when you exit the studio.
+    The package created is stored in a relative `results` directory (for example, `/src/results/myorigin-mytutorialapp-0.2.0-20160521033718-x86_64-linux.hart`) that persists when you exit the studio.
 
 Right now, your package builds, but will not do anything at runtime. The next step is to add hooks to your plan. These will link to the correct files during initialization and start the npm binary.
 
