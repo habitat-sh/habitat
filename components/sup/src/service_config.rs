@@ -167,7 +167,10 @@ impl ServiceConfig {
         for config in config_files.iter() {
             let path = pi.installed_path().join("config").join(config);
             debug!("Config template {} at {:?}", config, &path);
-            try!(handlebars.register_template_file(config, &path));
+            if let Err(e) = handlebars.register_template_file(config, &path) {
+                outputln!("Error parsing config template file {}: {}", path.to_string_lossy(), e);
+                return Err(sup_error!(Error::HandlebarsTemplateFileError(e)))
+            }
         }
 
         let final_data = convert::toml_to_json(final_toml);
