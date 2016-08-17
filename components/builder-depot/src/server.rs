@@ -1304,6 +1304,15 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
     let depot33 = depot.clone();
     let depot34 = depot.clone();
     let depot35 = depot.clone();
+    let depot36 = depot.clone();
+    let depot37 = depot.clone();
+    let depot38 = depot.clone();
+    let depot39 = depot.clone();
+    let depot40 = depot.clone();
+    let depot41 = depot.clone();
+    let depot42 = depot.clone();
+    let depot43 = depot.clone();
+
 
     let router = router!(
         get "/channels" => move |r: &mut Request| list_channels(&depot28, r),
@@ -1326,6 +1335,16 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
         post "/channels/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
             move |r: &mut Request| promote_package(&depot35, r)
         },
+        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => {
+            move |r: &mut Request| download_package(&depot36, r)
+        },
+        get "/channels/:channel/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot37, r),
+        get "/channels/:channel/origins/:origin/keys/latest" => {
+            move |r: &mut Request| download_latest_origin_key(&depot38, r)
+        },
+        get "/channels/:channel/origins/:origin/keys/:revision" => {
+            move |r: &mut Request| download_origin_key(&depot39, r)
+        },
 
         // JW: `views` is a deprecated term and now an alias for `channels`. These routes should be
         // removed at a later date.
@@ -1346,6 +1365,16 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
         },
         post "/views/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
             move |r: &mut Request| promote_package(&depot8, r)
+        },
+        get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => {
+            move |r: &mut Request| download_package(&depot40, r)
+        },
+        get "/views/:view/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot41, r),
+        get "/views/:view/origins/:origin/keys/latest" => {
+            move |r: &mut Request| download_latest_origin_key(&depot42, r)
+        },
+        get "/views/:view/origins/:origin/keys/:revision" => {
+            move |r: &mut Request| download_origin_key(&depot43, r)
         },
 
         get "/pkgs/search/:query" => move |r: &mut Request| search_packages(&depot9, r),
