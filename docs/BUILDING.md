@@ -27,6 +27,11 @@ apt-get update && apt-get install -y --no-install-recommends \
     wget
 
 curl -sSf https://static.rust-lang.org/rustup.sh | sh
+wget -nv https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
+  tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
+  sudo cargo-nightly-x86_64-unknown-linux-gnu/install.sh &&
+  rm -rf cargo-nightly-x86_64-unknown-linux-gnu \
+    cargo-nightly-x86_64-unknown-linux-gnu.tar.gz
 (adduser --system hab || true) && (addgroup --system hab || true)
 ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
 
@@ -81,6 +86,11 @@ git clone https://github.com/zeromq/czmq.git
 (cd czmq && ./autogen.sh && ./configure && make install && ldconfig)
 
 curl -sSf https://static.rust-lang.org/rustup.sh | sh
+wget -nv https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
+  tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
+  sudo cargo-nightly-x86_64-unknown-linux-gnu/install.sh &&
+  rm -rf cargo-nightly-x86_64-unknown-linux-gnu \
+    cargo-nightly-x86_64-unknown-linux-gnu.tar.gz
 (adduser --system hab || true) && (addgroup --system hab || true)
 ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
 
@@ -114,6 +124,11 @@ git clone https://github.com/jedisct1/libsodium.git
 
 # Install Rust
 curl -sSf https://static.rust-lang.org/rustup.sh | sh
+wget -nv https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
+  tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
+  sudo cargo-nightly-x86_64-unknown-linux-gnu/install.sh &&
+  rm -rf cargo-nightly-x86_64-unknown-linux-gnu \
+    cargo-nightly-x86_64-unknown-linux-gnu.tar.gz
 
 # Setup hab user and group
 useradd --system hab
@@ -141,6 +156,3 @@ cd habitat && make
 
 		[[bin]]
 		name = "hab-depot"
-
-
-
