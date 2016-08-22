@@ -9,22 +9,24 @@ As a way to start to understand plans, let's look at an example `plan.sh` for [z
 
 ~~~ bash
 pkg_name=zlib
-pkg_distname=$pkg_name
+pkg_description="The zlib library"
+pkg_upstream_url=http://zlib.net
 pkg_origin=core
 pkg_version=1.2.8
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('zlib')
-pkg_source=http://zlib.net/current/${pkg_distname}-${pkg_version}.tar.gz
+pkg_source=http://downloads.sourceforge.net/project/libpng/$pkg_name/${pkg_version}/${pkg_name}-${pkg_version}.tar.gz
 pkg_shasum=36658cb768a54c1d4dec43c3116c27ed893e88b02ecfcb44f2166f9c0b7f2a0d
-pkg_dirname=${pkg_distname}-${pkg_version}
+pkg_dirname=${pkg_name}-${pkg_version}
 pkg_deps=(core/glibc)
 pkg_build_deps=(core/coreutils core/diffutils core/patch core/make core/gcc)
 pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 ~~~
 
-It has the name of the software, the version, where to download it,
-a checksum to verify the contents are what we expect, a single run dependency on `core/glibc`, build dependencies on `core/coreutils`, `core/diffutils`, `core/patch`, `core/make`, `core/gcc`, and it has the resulting libraries in `lib` and header files in `include`.
+It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, a single run dependency on 
+`core/glibc`, build dependencies on `core/coreutils`, `core/diffutils`, `core/patch`, `core/make`, `core/gcc`, and it has the resulting libraries in `lib` 
+and header files in `include`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
 
@@ -84,9 +86,9 @@ The main steps in the buildtime workflow are the following:
 The following sections describe each of these steps in more detail.
 
 #### Create your package identifier
-The origin defines packages that are conceptually related to each other. For example, the "core" origin packages are foundational to building other packages. If you would like to browse them, they are located in the [plans directory](https://github.com/habitat-sh/habitat/tree/master/plans) of the Habitat repo.
+The origin defines packages that are conceptually related to each other. For example, the "core" origin packages are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans).
 
-> Note: The "core" origin name is reserved for members of the Habitat maintainers group.
+> Note: The "core" origin name is reserved for the foundational library and binary packages owned by the Habitat maintainers group.
 
 Creating packages for a specific origin requires that you also have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the studio. For more information on keys, see [Keys](/docs/concepts-keys).
 
