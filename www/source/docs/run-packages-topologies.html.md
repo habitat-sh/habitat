@@ -16,13 +16,13 @@ In a leader-follower topology, one of the members of the service group is electe
 
 As with any topology using leader election, you must start at least three peers using the `--topology leader` flag to the supervisor.
 
-       hab start yourname/yourdb --topology leader --group yourdb.production
+       hab start yourname/yourdb --topology leader --group production
 
 The first supervisor will block until it has quorum. You would start additional members by pointing them at the ring, using the `--peer` argument:
 
-       hab start yourname/yourdb --topology leader --group yourdb.production --peer 192.168.5.4
+       hab start yourname/yourdb --topology leader --group production --peer 192.168.5.4
 
-Note that the `--peer` need not be a peer that is in the service group `yourdb.production`; it merely needs to be one in the ring that the other member(s) are in.
+> Note: The `--peer` service does not need to be a peer that is in the same service group; it merely needs to be in the same ring that the other member(s) are in.
 
 Once you have quorum, one member is elected a leader, the supervisors in the service group update the service's configuration in concordance with the policy defned at package build time, and the service group starts up.
 
