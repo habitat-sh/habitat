@@ -43,8 +43,11 @@ reference the peer IP address of the previous service specified in the superviso
 
     hab start myorigin/myapp --group prod --peer 172.17.0.2
 
- The output for this new service shows that it has either formed a new ring with the service above, or joined 
- an existing ring where the other service was a member. 
+> Note: The default port for listening to gossip rumors is `9634` unless specified at runtime by the initial service (through `--listen-peer` option 
+at start up) and by any peers connecting to it through the `--peer` option. See `hab start --help` for more information and examples.
+ 
+The output for this new service shows that it has either formed a new ring with the service above, or joined 
+an existing ring where the other service was a member. 
 
     hab-sup(MN): Starting myorigin/myapp
     hab-sup(GS): Supervisor 172.17.0.3: 426f2b49-fb04-41fa-b656-f43260ab122e
