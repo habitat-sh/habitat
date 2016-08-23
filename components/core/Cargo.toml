@@ -14,7 +14,6 @@ regex = "*"
 rustc-serialize = "*"
 toml = "*"
 url = "*"
-users = "*"
 
 ### !!NOTE!! sodiumoxide and libsodium-sys are using an override, via the
 ### .cargo/config file. When https://github.com/dnaq/sodiumoxide/pull/103
@@ -22,6 +21,9 @@ users = "*"
 sodiumoxide = "*"
 libsodium-sys = "*"
 time = "*"
+
+[target.'cfg(not(windows))'.dependencies]
+users = "*"
 
 [dev-dependencies]
 tempdir = "*"
