@@ -30,7 +30,12 @@ extern crate tempdir;
 extern crate time;
 extern crate toml;
 extern crate url as extern_url;
-extern crate users;
+
+#[cfg(not(windows))]
+extern crate users as linux_users;
+
+#[cfg(windows)]
+extern crate win_users;
 
 pub use self::error::{Error, Result};
 
@@ -43,3 +48,7 @@ pub mod service;
 pub mod url;
 pub mod util;
 pub mod crypto;
+pub mod platforms;
+
+pub use platforms::filesystem as filesystem;
+pub use platforms::users as users; 

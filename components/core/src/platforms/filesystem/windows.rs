@@ -12,19 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::{IpAddr, UdpSocket};
+use libc::{c_int, c_char};
 
-use error::{Result};
-
-pub use platforms::system::{uname, Uname};
-
-static GOOGLE_DNS: &'static str = "8.8.8.8:53";
-
-pub fn ip() -> Result<IpAddr> {
-    let socket = try!(UdpSocket::bind("0.0.0.0:0"));
-    let _ = try!(socket.connect(GOOGLE_DNS));
-    let addr =try!(socket.local_addr());
-    Ok(addr.ip())
+pub fn chown(r_path: *const c_char, uid: u32, gid: u32) -> c_int {
+    unimplemented!();
 }
 
-
+pub fn chmod(r_path: *const c_char, mode: u32) -> c_int {
+    unimplemented!();
+}
