@@ -312,6 +312,28 @@ struct Cfg {
 fn toml_merge(left: &toml::Table, right: &toml::Table) -> toml::Table {
     let mut final_map = toml::Table::new();
     for (left_key, left_value) in left.iter() {
+        // attempt to merge nested tables
+        let a = right.get(left_key).and_then(|v| v.as_table());
+        let b = left.get(left_key).and_then(|v| v.as_table());
+        match (a, b) {
+            (Some(left_t), Some(right_t)) => {
+                let new_table = toml_merge(left_t, right_t);
+                let table_as_value = toml::Value::Table(new_table);
+                final_map.insert(left_key.clone(), table_as_value);
+                continue;
+            }
+            (Some(_), _) => {
+                // this occurs when the value type in left != type in right
+                warn!("TOML structure mismatch for key {}", &left_key);
+                continue;
+            }
+            (_, Some(_)) => {
+                // this occurs when the value type in left != type in right
+                warn!("TOML structure mismatch for key {}", &left_key);
+            }
+            (_, _) => () // left and right are not toml::Tables
+        }
+
         match right.get(left_key) {
             Some(right_value) => {
                 final_map.insert(left_key.clone(), right_value.clone());
@@ -321,6 +343,7 @@ fn toml_merge(left: &toml::Table, right: &toml::Table) -> toml::Table {
             }
         }
     }
+
     for (right_key, right_value) in right.iter() {
         if !final_map.contains_key(right_key) {
             final_map.insert(right_key.clone(), right_value.clone());
@@ -632,6 +655,7 @@ mod test {
     use std::str::FromStr;
 
     use regex::Regex;
+    use toml;
 
     use census::{CensusEntry, Census, CensusList};
     use config::{gcache, Config};
@@ -640,6 +664,7 @@ mod test {
     use package::Package;
     use service_config::ServiceConfig;
     use VERSION;
+    use super::toml_merge;
 
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(
@@ -696,6 +721,51 @@ mod test {
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
+    }
+
+
+    #[test]
+    fn merge() {
+        let left_config = "[server]
+            port = \"8080\"
+            shutdown-port = \"8005\"
+            redirect-port = \"8443\"";
+
+        let right_config = "server = { port=\"9090\" }";
+        let left = toml::Parser::new(left_config).parse().unwrap();
+        let right = toml::Parser::new(right_config).parse().unwrap();
+        {
+            let result = toml_merge(&left, &right);
+            assert!(result.contains_key("server"));
+            let server = result.get("server").unwrap().as_table().unwrap();
+            assert!(server.contains_key("port"));
+            assert_eq!("8080", server.get("port").unwrap().as_str().unwrap());
+            assert!(server.contains_key("shutdown-port"));
+            assert_eq!("8005", server.get("shutdown-port").unwrap().as_str().unwrap());
+            assert!(server.contains_key("redirect-port"));
+            assert_eq!("8443", server.get("redirect-port").unwrap().as_str().unwrap());
+        }
+
+        {
+            let result = toml_merge(&right, &left);
+            assert!(result.contains_key("server"));
+            let server = result.get("server").unwrap().as_table().unwrap();
+            assert!(server.contains_key("port"));
+            assert_eq!("9090", server.get("port").unwrap().as_str().unwrap());
+            assert!(server.contains_key("shutdown-port"));
+            assert_eq!("8005", server.get("shutdown-port").unwrap().as_str().unwrap());
+            assert!(server.contains_key("redirect-port"));
+            assert_eq!("8443", server.get("redirect-port").unwrap().as_str().unwrap());
+        }
+
+        {
+            let different_types = "server = \"cat\"";
+            let diff_types = toml::Parser::new(different_types).parse().unwrap();
+            let result = toml_merge(&left, &diff_types);
+            println!("{:?}", result);
+            let server = result.get("server").unwrap().as_str().unwrap();
+            assert_eq!("cat", server);
+        }
     }
 
     mod sys {
