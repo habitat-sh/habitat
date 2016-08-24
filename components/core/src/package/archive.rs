@@ -188,6 +188,8 @@ impl PackageArchive {
         let writer = writer::Disk::new();
         let mut extract_options = ExtractOptions::new();
         extract_options.add(ExtractOption::Time);
+        extract_options.add(ExtractOption::Owner);
+        extract_options.add(ExtractOption::Permissions);
         try!(writer.set_options(&extract_options));
         try!(writer.set_standard_lookup());
         try!(writer.write(&mut reader, Some(root.to_string_lossy().as_ref())));
