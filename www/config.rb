@@ -77,3 +77,4 @@ set :markdown, coderay_line_numbers: :table
 # redirect 'about/index.html', to: 'about/why-habitat.html'
 redirect 'about/index.html', to: 'about/announcement.html'
 redirect 'docs/index.html', to: 'docs/overview.html'
+redirect 'docs/build-packages-overview.html', to: 'docs/create-packages-build.html'
