@@ -6,6 +6,8 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh"
 pkg_source=nosuchfile.tar.xz
 pkg_license=("apache2")
 pkg_deps=(core/nginx core/curl)
+pkg_svc_user="root"
+pkg_svc_group="root"
 
 do_begin() {
   return 0
