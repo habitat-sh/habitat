@@ -12,19 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::{IpAddr, UdpSocket};
+use linux_users;
 
-use error::{Result};
-
-pub use platforms::system::{uname, Uname};
-
-static GOOGLE_DNS: &'static str = "8.8.8.8:53";
-
-pub fn ip() -> Result<IpAddr> {
-    let socket = try!(UdpSocket::bind("0.0.0.0:0"));
-    let _ = try!(socket.connect(GOOGLE_DNS));
-    let addr =try!(socket.local_addr());
-    Ok(addr.ip())
+pub fn get_uid_by_name(owner: &str) -> Option<u32> {
+    linux_users::get_user_by_name(owner) .map(|u| u.uid())
 }
 
+pub fn get_gid_by_name(group: &str) -> Option<u32> {
+    linux_users::get_group_by_name(&group.as_ref()) .map(|g| g.gid())
+}
 
+pub fn get_effective_uid() -> u32 {
+    linux_users::get_effective_uid()
+}
