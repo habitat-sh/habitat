@@ -81,7 +81,7 @@ pub mod setup {
         para("While you can build and run Habitat packages without sharing them on the public \
               depot, doing so allows you to collaborate with the Habitat community. In addition, \
               it is how you can perform continuous deployment with Habitat.");
-        para("The depot uses GitHub authentication with an access token \
+        para("The depot uses GitHub authentication with an access token with the user:email scope \
               (https://help.github.com/articles/creating-an-access-token-for-command-line-use/).");
         para("If you would like to share your packages on the depot, please enter your GitHub \
               access token. Otherwise, just enter No.");
