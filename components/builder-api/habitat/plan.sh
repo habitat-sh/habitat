@@ -10,6 +10,8 @@ pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts cor
 pkg_expose=(9636)
 bin="bldr-api"
 pkg_svc_run="bin/$bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_user="root"
+pkg_svc_group="root"
 
 do_prepare() {
   rm -Rdf $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version
