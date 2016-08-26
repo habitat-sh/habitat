@@ -16,7 +16,7 @@ use std::net::{IpAddr, UdpSocket};
 
 use error::Result;
 
-pub use platforms::system::{uname, Uname};
+pub use os::system::{uname, Uname};
 
 static GOOGLE_DNS: &'static str = "8.8.8.8:53";
 
