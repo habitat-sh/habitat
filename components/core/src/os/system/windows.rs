@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::{IpAddr, UdpSocket};
-
 use error::Result;
 
-pub use os::system::{uname, Uname};
+#[derive(Debug)]
+pub struct Uname {
+    pub sys_name: String,
+    pub node_name: String,
+    pub release: String,
+    pub version: String,
+    pub machine: String,
+}
 
-static GOOGLE_DNS: &'static str = "8.8.8.8:53";
-
-pub fn ip() -> Result<IpAddr> {
-    let socket = try!(UdpSocket::bind("0.0.0.0:0"));
-    let _ = try!(socket.connect(GOOGLE_DNS));
-    let addr = try!(socket.local_addr());
-    Ok(addr.ip())
+pub fn uname() -> Result<Uname> {
+    unimplemented!();
 }

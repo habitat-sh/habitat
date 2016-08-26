@@ -15,7 +15,7 @@
 use std::ffi::CString;
 use std::path::Path;
 
-use libc::{self, mode_t};
+use filesystem;
 use users;
 
 use error::{Error, Result};
@@ -25,48 +25,53 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
            &path.as_ref(),
            &owner.as_ref());
 
-    let uid = match users::get_user_by_name(&owner.as_ref()) .map(|u| u.uid()) {
+    let uid = match users::get_uid_by_name(&owner.as_ref()) {
         Some(user) => user,
         None => {
             let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting user.",
                               &path.as_ref(),
                               &owner.as_ref(),
                               &group.as_ref());
-            return Err(Error::PermissionFailed(msg))
+            return Err(Error::PermissionFailed(msg));
         }
     };
 
-    let gid = match users::get_group_by_name(&group.as_ref()) .map(|g| g.gid()) {
+    let gid = match users::get_gid_by_name(&group.as_ref()) {
         Some(group) => group,
         None => {
             let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting group.",
                               &path.as_ref(),
                               &owner.as_ref(),
                               &group.as_ref());
-            return Err(Error::PermissionFailed(msg))
+            return Err(Error::PermissionFailed(msg));
         }
     };
 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
-        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())))
+        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref()))),
 
     };
     let c_path = match CString::new(s_path) {
         Ok(c) => c,
-        Err(e) => return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
-                                                             &path.as_ref(),
-                                                             e
-                                                            )))
+        Err(e) => {
+            return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
+                                                       &path.as_ref(),
+                                                       e)))
+        }
     };
     let r_path = c_path.into_raw();
-
     unsafe {
-        match libc::chown(r_path, uid, gid) {
+        let result = filesystem::chown(r_path, uid, gid);
+        CString::from_raw(r_path); // necessary to prevent leaks
+
+        match result {
             0 => Ok(()),
-            _ => Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
-                                                     &path.as_ref(),
-                                                     &owner.as_ref())))
+            _ => {
+                Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
+                                                    &path.as_ref(),
+                                                    &owner.as_ref())))
+            }
         }
     }
 }
@@ -74,28 +79,26 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
 pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
-        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())))
+        None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref()))),
 
     };
     let c_path = match CString::new(s_path) {
         Ok(c) => c,
-        Err(e) => return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
-                                                             &path.as_ref(),
-                                                             e
-                                                            )))
+        Err(e) => {
+            return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
+                                                       &path.as_ref(),
+                                                       e)))
+        }
     };
     let r_path = c_path.into_raw();
 
-    unsafe {
-        let result = libc::chmod(r_path, mode as mode_t);
-        CString::from_raw(r_path); // necessary to prevent leaks
-        match result {
-            0 => Ok(()),
-            _ => {
-                Err(Error::PermissionFailed(format!("Can't set permissions on {:?} to {:?}",
-                                                    &path.as_ref(),
-                                                    &mode)))
-            }
+    let result = filesystem::chmod(r_path, mode);
+    match result {
+        0 => Ok(()),
+        _ => {
+            Err(Error::PermissionFailed(format!("Can't set permissions on {:?} to {:?}",
+                                                &path.as_ref(),
+                                                &mode)))
         }
     }
 }
