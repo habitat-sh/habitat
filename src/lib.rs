@@ -45,7 +45,7 @@ pub mod service;
 pub mod url;
 pub mod util;
 pub mod crypto;
-pub mod platforms;
+pub mod os;
 
-pub use platforms::filesystem;
-pub use platforms::users;
+pub use os::filesystem;
+pub use os::users;
