@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
+import {Component} from "@angular/core";
 import {GravatarComponent} from "../GravatarComponent";
 import {icon} from "../util";
 
@@ -27,7 +27,7 @@ import {icon} from "../util";
         <input (search)="searchKeyup(q.value)" (keyup)="searchKeyup(q.value)" type=search #q>
         <ul class="results" *ngIf="org.memberSearchResults.size > 0">
             <li (click)="addClick(result, i)"
-                *ngFor="#result of org.memberSearchResults; #i = index"
+                *ngFor="let result of org.memberSearchResults; let i = index"
                 [class.addable]="result.canBeAdded">
                 <span class="grav">
                     <gravatar size=16 [email]="result.email"></gravatar>
@@ -44,7 +44,7 @@ import {icon} from "../util";
             </li>
         </ul>
         <ul class="members">
-            <li *ngFor="#member of org.members; #i = index">
+            <li *ngFor="let member of org.members; let i = index">
                 <gravatar size=16 [email]="member.email"></gravatar>
                 <span class="username">{{member.username}}</span>
                 <span class="name">{{member.name}}</span>

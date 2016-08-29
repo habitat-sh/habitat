@@ -16,7 +16,7 @@ import {Observable} from "rxjs";
 import {Observer} from "rxjs/Observer";
 import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/distinctUntilChanged";
-import {Control} from "angular2/common";
+import {Control} from "@angular/common";
 
 // Wraps an async validator with a static `debounce` method, so you can debounce
 // async validation.

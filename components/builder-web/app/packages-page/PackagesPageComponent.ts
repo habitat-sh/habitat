@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Control} from "angular2/common";
-import {Component, OnInit} from "angular2/core";
-import {RouteParams} from "angular2/router";
+import {FormControl} from "@angular/forms";
+import {Component, OnInit, OnDestroy} from "@angular/core";
+import {ActivatedRoute} from "@angular/router";
 import {AppStore} from "../AppStore";
 import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {SpinnerComponent} from "../SpinnerComponent";
 import {filterPackagesBy, setPackagesSearchQuery} from "../actions/index";
 import {requireSignIn} from "../util";
 import {PackagesListComponent} from "../packages-list/PackagesListComponent";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
     directives: [PackageBreadcrumbsComponent, SpinnerComponent, PackagesListComponent],
@@ -29,11 +30,10 @@ import {PackagesListComponent} from "../packages-list/PackagesListComponent";
         <div class="page-title">
             <h2>Search Packages</h2>
             <h4>
-                <span *ngIf="searchQuery || routeParams.params['query']">Search Results</span>
+                <span *ngIf="searchQuery || query">Search Results</span>
                 <package-breadcrumbs
                     *ngIf="!searchQuery"
-                    [ident]="routeParams.params"
-                    [params]="routeParams.params">
+                    [ident]="packageParams()">
                 </package-breadcrumbs>
             </h4>
             <hab-spinner [isSpinning]="ui.loading" [onClick]="spinnerFetchPackages">
@@ -41,7 +41,7 @@ import {PackagesListComponent} from "../packages-list/PackagesListComponent";
         </div>
         <div class="page-body">
             <input type="search" autofocus
-                [ngFormControl]="searchBox"
+                [formControl]="searchBox"
                 placeholder="Search Packages&hellip;">
 
             <hab-packages-list
@@ -60,13 +60,28 @@ import {PackagesListComponent} from "../packages-list/PackagesListComponent";
     </div>`,
 })
 
-export class PackagesPageComponent implements OnInit {
+export class PackagesPageComponent implements OnInit, OnDestroy {
     private perPage: number = 50;
-    private searchBox: Control;
+    private searchBox: FormControl;
     private spinnerFetchPackages: Function;
+    private name: string;
+    private origin: string;
+    private version: string;
+    private query: string;
+    private sub: Subscription;
 
-    constructor(private store: AppStore, private routeParams: RouteParams) {
+    constructor(private store: AppStore, private route: ActivatedRoute) {
         this.spinnerFetchPackages = this.fetchPackages.bind(this);
+        this.sub = route.params.subscribe(params => {
+            this.name = params["name"];
+            this.origin = params["origin"];
+            this.version = params["version"];
+            this.query = params["query"];
+        });
+    }
+
+    ngOnDestroy() {
+        this.sub.unsubscribe();
     }
 
     get packages() {
@@ -86,25 +101,34 @@ export class PackagesPageComponent implements OnInit {
     }
 
     public ngOnInit() {
-        if ("query" in this.routeParams.params) {
-            this.search(this.routeParams.params["query"]);
+        if (this.query) {
+            this.search(this.query);
         } else {
             this.fetchPackages();
         }
 
-        this.searchBox = new Control(this.searchQuery);
+        this.searchBox = new FormControl(this.searchQuery);
 
         this.searchBox.valueChanges.debounceTime(400).distinctUntilChanged().
             subscribe(query => this.search(query));
     }
 
+    private packageParams() {
+        return {
+            name: this.name,
+            origin: this.origin,
+            version: this.version,
+            query: this.query
+        };
+    }
+
     private fetchPackages() {
-        this.store.dispatch(filterPackagesBy(this.routeParams.params,
+        this.store.dispatch(filterPackagesBy(this.packageParams(),
             this.searchQuery));
     }
 
     private fetchMorePackages() {
-        this.store.dispatch(filterPackagesBy(this.routeParams.params,
+        this.store.dispatch(filterPackagesBy(this.route.params,
             this.searchQuery,
             this.store.getState().packages.nextRange));
         return false;

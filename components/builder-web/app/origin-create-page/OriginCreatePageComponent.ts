@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Control, ControlGroup, FormBuilder, Validators} from "angular2/common";
-import {AfterViewInit, Component, OnInit} from "angular2/core";
+import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
+import {AfterViewInit, Component, OnInit} from "@angular/core";
 import {Observable} from "rxjs";
 import {AppStore} from "../AppStore";
 import {AsyncValidator} from "../AsyncValidator";
@@ -32,7 +32,7 @@ import {requireSignIn} from "../util";
         <div class="page-body has-sidebar">
             <div class="page-body--main">
                 <form class="hab-origin-create--form"
-                      [ngFormModel]="form"
+                      [formGroup]="form"
                       (ngSubmit)="createOrigin(form.value)"
                       #formValues="ngForm">
                     <label for="name">Origin Name</label>
@@ -69,10 +69,10 @@ import {requireSignIn} from "../util";
 
 export class OriginCreatePageComponent implements AfterViewInit, OnInit {
     private builderApiClient: BuilderApiClient;
-    private form: ControlGroup;
+    private form: FormGroup;
     private isOriginAvailable: Function;
     private maxLength = 255;
-    private name: Control;
+    private name: FormControl;
 
     constructor(private formBuilder: FormBuilder, private store: AppStore) {
         this.form = formBuilder.group({});

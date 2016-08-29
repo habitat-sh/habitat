@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouteParams, RouterLink} from "angular2/router";
+import {Component, OnInit, OnDestroy} from "@angular/core";
+import {RouterLink, ActivatedRoute} from "@angular/router";
 import {AppStore} from "../AppStore";
 import {fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
     fetchOriginPublicKeys, inviteUserToOrigin, setCurrentOriginAddingPublicKey,
@@ -29,6 +29,13 @@ import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
 import {requireSignIn} from "../util";
 import {PackagesListComponent} from "../packages-list/PackagesListComponent";
+import {Subscription} from "rxjs/Subscription";
+
+export enum ProjectStatus {
+    Connect,
+    Settings,
+    Lacking
+}
 
 @Component({
     directives: [KeyAddFormComponent, KeyListComponent,
@@ -38,7 +45,7 @@ import {PackagesListComponent} from "../packages-list/PackagesListComponent";
     <div class="hab-origin">
         <div class="page-title">
             <a class="button hab-origin--pkgs-link"
-                [routerLink]="['PackagesForOrigin', { origin: origin.name }]">
+                [routerLink]="['/pkgs', origin.name]">
                 View <em>{{origin.name}}</em> packages
             </a>
             <h2>{{origin.name}}</h2>
@@ -72,21 +79,21 @@ import {PackagesListComponent} from "../packages-list/PackagesListComponent";
                         <div class="pkg-col-3">Versions</div>
                     </div>
 
-                    <div *ngFor="#pkg of packages" class="pkg-container">
+                    <div *ngFor="let pkg of packages" class="pkg-container">
                       <div class="pkg-col-1">
                         <h3>{{pkg.name}}</h3>
                       </div>
                       <div class="pkg-col-2">
-                        <a href (click)="projectSettings(pkg)" *ngIf="projectForPackage(pkg)">
+                        <a href (click)="projectSettings(pkg)" *ngIf="projectForPackage(pkg) === projectStatus.Settings">
                           <img src="../assets/images/icon-gear.svg" alt="Settings" title="Settings">
                         </a>
-                        <a href (click)="linkToRepo(pkg)" *ngIf="!projectForPackage(pkg)">
+                        <a href (click)="linkToRepo(pkg)" *ngIf="projectForPackage(pkg) === projectStatus.Connect">
                           <img src="../assets/images/icon-link.svg" alt="Connect a Repo" title="Connect a Repo">
                         </a>
+                        <img src="../assets/images/icon-gear.svg" alt="Settings" title="Settings" class="disabled-settings" *ngIf="projectForPackage(pkg) === projectStatus.Lacking">
                       </div>
                       <div class="pkg-col-3">
-                        <a [routerLink]="['PackagesForOriginAndName', { origin: pkg.origin,
-                                                                          name: pkg.name }]">
+                        <a [routerLink]="['/pkgs', pkg.origin, pkg.name]">
                           <img src="../assets/images/icon-layers.svg" alt="Versions" title="Versions">
                         </a>
                       </div>
@@ -180,14 +187,17 @@ import {PackagesListComponent} from "../packages-list/PackagesListComponent";
     </div>`,
 })
 
-export class OriginPageComponent implements OnInit {
+export class OriginPageComponent implements OnInit, OnDestroy {
     private onPrivateKeyCloseClick: Function;
     private onPublicKeyCloseClick: Function;
     private onUserInvitationSubmit: Function;
     private uploadPrivateKey: Function;
     private uploadPublicKey: Function;
+    private originParam: string;
+    private sub: Subscription;
+    private projectStatus = ProjectStatus;
 
-    constructor(private routeParams: RouteParams, private store: AppStore) {
+    constructor(private route: ActivatedRoute, private store: AppStore) {
         this.onPrivateKeyCloseClick = () =>
             this.setOriginAddingPrivateKey(false);
         this.onPublicKeyCloseClick = () =>
@@ -204,6 +214,14 @@ export class OriginPageComponent implements OnInit {
                 this.origin.name,
                 this.gitHubAuthToken
             ));
+
+        this.sub = route.params.subscribe(params => {
+            this.originParam = params["origin"];
+        });
+    }
+
+    ngOnDestroy() {
+        this.sub.unsubscribe();
     }
 
     get addingPrivateKey() {
@@ -243,14 +261,13 @@ export class OriginPageComponent implements OnInit {
     // populate more data by dispatching `fetchOrigin`.
     get origin() {
         const currentOriginFromState = this.store.getState().origins.current;
-        const params = this.routeParams.params;
 
         // Use the current origin from the state if it's the same origin we want
         // here.
-        if (currentOriginFromState.name === params["origin"]) {
+        if (currentOriginFromState.name === this.originParam) {
             return currentOriginFromState;
         } else {
-            return Origin({ name: params["origin"] });
+            return Origin({ name: this.originParam });
         }
     }
 
@@ -275,7 +292,7 @@ export class OriginPageComponent implements OnInit {
             originName: p.origin,
             packageName: p.name
         }));
-        this.store.dispatch(requestRoute(["ProjectCreate"]));
+        this.store.dispatch(requestRoute(["/projects", "create"]));
         return false;
     }
 
@@ -285,7 +302,7 @@ export class OriginPageComponent implements OnInit {
             packageName: p.name
         }));
         this.store.dispatch(setCurrentProject(this.projectForPackage(p)));
-        this.store.dispatch(requestRoute(["ProjectSettings", { origin: p.origin, name: p.name }]));
+        this.store.dispatch(requestRoute(["/projects", p.origin, p.name, "settings"]));
         return false;
     }
 
@@ -304,7 +321,19 @@ export class OriginPageComponent implements OnInit {
     }
 
     private projectForPackage(p) {
-        return this.store.getState().projects.added.find(proj => { return proj["id"] === this.projectId(p); });
+        let proj = this.store.getState().projects.added.find(proj => {
+            return proj["id"] === this.projectId(p);
+        });
+
+        if (proj) {
+            if (proj["vcs"] && proj["vcs"]["url"]) {
+                return ProjectStatus.Settings;
+            } else {
+                return ProjectStatus.Lacking;
+            }
+        } else {
+            return ProjectStatus.Connect;
+        }
     }
 
     public ngOnInit() {

@@ -1,20 +1,26 @@
 {
-  "name": "habitat",
-  "ambientDependencies": {
-    "angular-protractor": "github:DefinitelyTyped/DefinitelyTyped/angular-protractor/angular-protractor.d.ts#17fa1e5f269189f7f8e0f53f8c443e6c2eac562c",
-    "assertion-error": "github:DefinitelyTyped/DefinitelyTyped/assertion-error/assertion-error.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4",
-    "blueimp-md5": "github:DefinitelyTyped/DefinitelyTyped/blueimp-md5/blueimp-md5.d.ts#6f8c162bf5e43442e0520f8f2fbc55d7cacc349d",
-    "chai": "github:DefinitelyTyped/DefinitelyTyped/chai/chai.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4",
-    "chai-as-promised": "github:DefinitelyTyped/DefinitelyTyped/chai-as-promised/chai-as-promised.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4",
-    "js-cookie": "github:DefinitelyTyped/DefinitelyTyped/js-cookie/js-cookie.d.ts#7de6c3dd94feaeb21f20054b9f30d5dabc5efabd",
-    "marked": "github:DefinitelyTyped/DefinitelyTyped/marked/marked.d.ts#9cfdb11648f823b889287c770254b85b78a7a4a4",
-    "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#e69fe60f2d6377ea4fae539493997b098f52cad1",
-    "moment": "github:DefinitelyTyped/DefinitelyTyped/moment/moment.d.ts#3030a4be536b6530c06b80081f1333dc0de4d703",
-    "moment-node": "github:DefinitelyTyped/DefinitelyTyped/moment/moment-node.d.ts#3030a4be536b6530c06b80081f1333dc0de4d703",
-    "promises-a-plus": "github:DefinitelyTyped/DefinitelyTyped/promises-a-plus/promises-a-plus.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4",
-    "redux": "github:DefinitelyTyped/DefinitelyTyped/redux/redux.d.ts#717a5fdb079f8dd7c19f1b22f7f656dd990f0ccf",
-    "redux-thunk": "github:DefinitelyTyped/DefinitelyTyped/redux-thunk/redux-thunk.d.ts#717a5fdb079f8dd7c19f1b22f7f656dd990f0ccf",
-    "require": "github:DefinitelyTyped/DefinitelyTyped/requirejs/require.d.ts#853544cb7068af64bdb10ef1ae0c54d3aa3a80f6",
-    "selenium-webdriver": "github:DefinitelyTyped/DefinitelyTyped/selenium-webdriver/selenium-webdriver.d.ts#1a5b2a729d35b1d41e2d15818db013a3644c6ba4"
+  "resolution": {
+    "main": "typings/main",
+    "browser": "typings/browser"
+  },
+  "globalDependencies": {
+    "angular-protractor": "registry:dt/angular-protractor#1.5.0+20160425143459",
+    "assertion-error": "registry:dt/assertion-error#1.0.0+20160316155526",
+    "blueimp-md5": "registry:dt/blueimp-md5#1.1.0+20160316155526",
+    "chai": "registry:dt/chai#3.4.0+20160601211834",
+    "chai-as-promised": "registry:dt/chai-as-promised#0.0.0+20160423070304",
+    "core-js": "registry:dt/core-js#0.0.0+20160725163759",
+    "js-cookie": "registry:dt/js-cookie#2.0.0+20160317120654",
+    "linq": "registry:dt/linq#2.2.0+20160619013616",
+    "marked": "registry:dt/marked#0.0.0+20160325085301",
+    "mocha": "registry:dt/mocha#2.2.5+20160720003353",
+    "moment": "registry:dt/moment#2.11.1+20160829143156",
+    "promises-a-plus": "registry:dt/promises-a-plus#0.0.0+20160317120654",
+    "redux": "registry:dt/redux#3.5.2+20160703092728",
+    "redux-thunk": "registry:dt/redux-thunk#2.1.0+20160703120921",
+    "require": "registry:dt/require#2.1.20+20160316155526",
+    "selenium-webdriver": "registry:dt/selenium-webdriver#2.44.0+20160317120654",
+    "whatwg-fetch": "registry:dt/whatwg-fetch#0.0.0+20160829180742",
+    "whatwg-streams": "registry:dt/whatwg-streams#0.0.0+20160829180742"
   }
 }

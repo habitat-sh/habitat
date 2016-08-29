@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import {AppStore} from "../AppStore";
-import {Component, OnInit} from "angular2/core";
+import {Component, OnInit} from "@angular/core";
 import {fetchExplore} from "../actions/index";
-import {RouterLink} from "angular2/router";
+import {RouterLink} from "@angular/router";
 
 @Component({
     directives: [RouterLink],
@@ -26,8 +26,8 @@ import {RouterLink} from "angular2/router";
       </div>
       <div class="page-body">
           <ul class="hab-packages-plan-list">
-              <li class="hab-packages-package" *ngFor="#item of store.getState().packages.explore">
-                  <a [routerLink]="['PackagesForName', { name: item.name }]">
+              <li class="hab-packages-package" *ngFor="let item of store.getState().packages.explore">
+                  <a [routerLink]="['/pkgs', '*', item.name]">
                       <span class="title">{{item.name}}</span>
                       <div class="info">
                           <span class="stars">{{item.starCount}} ★</span>

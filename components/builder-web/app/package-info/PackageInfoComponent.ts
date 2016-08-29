@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input} from "angular2/core";
+import {Component, Input} from "@angular/core";
 
 @Component({
     selector: "hab-package-info",
@@ -29,7 +29,7 @@ import {Component, Input} from "angular2/core";
             <dd>{{package.checksum}}</dd>
             <dt *ngIf="package.exposes.length > 0">Exposed Ports</dt>
             <dd *ngIf="package.exposes.length > 0">
-              <span *ngFor="#port of package.exposes">{{port}} </span>
+              <span *ngFor="let port of package.exposes">{{port}} </span>
             </dd>
           </dl>
         </div>

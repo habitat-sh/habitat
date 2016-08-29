@@ -19,7 +19,7 @@ export const RESET_REDIRECT_ROUTE = "RESET_REDIRECT_ROUTE";
 
 export function goHome() {
     return dispatch => {
-        dispatch(requestRoute(["PackagesForOrigin", { origin: "core" }]));
+        dispatch(requestRoute(["/pkgs", "core"]));
     };
 }
 

@@ -9,8 +9,8 @@ module.exports = function (config) {
 
         // list of files / patterns to load in the browser
         files: [
-            "node_modules/es6-shim/es6-shim.js",
-            "app/tests-entry.ts",
+          "node_modules/core-js/client/core.js",
+          "app/tests-entry.ts",
         ],
 
         plugins: [
@@ -27,7 +27,7 @@ module.exports = function (config) {
         // preprocess matching files before serving them to the browser
         // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
         preprocessors: {
-            "app/tests-entry.ts": ["webpack", "sourcemap", "coverage"],
+            "app/tests-entry.ts": ["webpack", "sourcemap", "coverage"]
         },
 
         // test results reporter to use
@@ -43,7 +43,7 @@ module.exports = function (config) {
             module: {
                 loaders: [
                     { test: /\.ts$/, loader: "awesome-typescript-loader", exclude: /node_modules/ },
-                ],
+                ]
             },
             debug: false
         },
@@ -80,6 +80,6 @@ module.exports = function (config) {
 
         // Concurrency level
         // how many browser should be started simultaneous
-        concurrency: Infinity,
-    })
-}
+        concurrency: Infinity
+    });
+};

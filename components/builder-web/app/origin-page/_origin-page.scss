@@ -38,6 +38,10 @@
       @include omega();
     }
 
+    .disabled-settings {
+      opacity: 0.2;
+    }
+
     .origin-package-item {
       border: 1px solid $light-gray;
       border-color: $hab-blue-light;

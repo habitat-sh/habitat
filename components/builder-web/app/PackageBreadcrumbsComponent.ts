@@ -12,44 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component} from "@angular/core";
+import {RouterLink} from "@angular/router";
 
 @Component({
     directives: [RouterLink],
-    inputs: ["ident", "params"],
+    inputs: ["ident"],
     selector: "package-breadcrumbs",
     template: `
     <span class="hab-package-breadcrumbs">
-        <a [routerLink]="['PackagesForOrigin',
-            { origin: ident.origin }]">
+        <a [routerLink]="['/pkgs', ident.origin]">
             {{ident.origin}}
         </a>
         <span *ngIf="ident.name">/</span>
-        <a [routerLink]="['PackagesForOriginAndName',
-            { origin: ident.origin,
-                name: ident.name }]">
+        <a [routerLink]="['/pkgs', ident.origin, ident.name]">
             {{ident.name}}
         </a>
         <span *ngIf="ident.version">/</span>
-        <a [routerLink]="['PackagesForOriginAndNameAndVersion',
-            { origin: ident.origin, name: ident.name,
-                version: ident.version }]">
+        <a [routerLink]="['/pkgs', ident.origin, ident.name, ident.version]">
             {{ident.version}}
         </a>
         <span *ngIf="ident.release">/</span>
-        <a [routerLink]="['Package',
-            { origin: ident.origin, name: ident.name,
-                version: ident.version, release: ident.release }]">
+        <a [routerLink]="['/pkgs', ident.origin, ident.name, ident.version, ident.release]">
             {{ident.release}}
         </a>
     </span>`
 })
 
 export class PackageBreadcrumbsComponent {
-    private params;
-
-    constructor() {
-        this.params = this.params || {};
-    }
 }

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component} from "@angular/core";
+import {RouterLink} from "@angular/router";
 import config from "../config";
 import {UserNavComponent} from "./user-nav/UserNavComponent";
 
@@ -25,7 +25,7 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
     template: `
       <div class="main-nav--container clearfix">
         <div class="main-nav--logo">
-          <a [routerLink]="['PackagesForOrigin', { origin: 'core' }]"><h1>{{appName}}</h1></a>
+          <a [routerLink]="['/pkgs', 'core']"><h1>{{appName}}</h1></a>
         </div>
         <nav class="main-nav--links-wrap">
           <div class="main-nav--toggle">
@@ -48,7 +48,7 @@ import {UserNavComponent} from "./user-nav/UserNavComponent";
                     [signOut]="signOut"
                     [toggleUserNavMenu]="toggleUserNavMenu"></user-nav>
           <ul class="main-nav--links">
-            <li class="main-nav--link"><a class="search-packages" [routerLink]="['PackagesForOrigin', { origin: 'core' }]">Search Packages</a></li>
+            <li class="main-nav--link"><a class="search-packages" [routerLink]="['/pkgs', 'core']">Search Packages</a></li>
             <li class="main-nav--link"><a class="docs" href="{{config['docs_url']}}">Docs</a></li>
             <li class="main-nav--link"><a class="tutorials" href="{{config['tutorials_url']}}">Tutorials</a></li>
             <li class="main-nav--link"><a class="community" href="{{config['community_url']}}">Community</a></li>

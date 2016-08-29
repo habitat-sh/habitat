@@ -43,7 +43,7 @@ export function finishAddingOrg(values) {
             body: values.namespace,
             type: SUCCESS,
         }));
-        dispatch(requestRoute(["Organizations"]));
+        dispatch(requestRoute(["/orgs"]));
     };
 }
 

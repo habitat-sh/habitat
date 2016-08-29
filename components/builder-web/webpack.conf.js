@@ -15,36 +15,35 @@ if (isProduction) {
         new webpack.optimize.UglifyJsPlugin({
             compress: {
                 drop_debugger: false,
-                warnings: false,
+                warnings: false
             },
             mangle: false,
-            sourceMap: true,
+            sourceMap: true
         })
-    )
+    );
 }
 
 module.exports = {
     devtool: "source-map",
-    entry: "./app/boot.ts",
+    entry: "./app/main.ts",
     output: {
-        filename: "assets/app.js",
+        filename: "assets/app.js"
     },
     resolve: {
-        extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"],
+        extensions: ["", ".webpack.js", ".web.js", ".ts", ".js"]
     },
     module: {
         preLoaders: [
             { test: /\.ts$/, loader: "tslint" },
         ],
-        loaders: loaders,
-        noParse: [/angular2\/bundles\/.+/],
+        loaders: loaders
     },
     plugins: plugins,
     stats: {
-        chunks: false,
+        chunks: false
     },
     tslint: {
         emitErrors: true,
-        failOnHint: true,
-    },
-}
+        failOnHint: true
+    }
+};

@@ -120,7 +120,7 @@ matrix:
     - ./support/ci/rust_tests.sh
     - ./support/ci/lint.sh
   - language: node_js
-    node_js: 4.2.6
+    node_js: 4.4.3
     sudo: required
     env:
     - CXX=g++-4.8

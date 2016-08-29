@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component, Input} from "@angular/core";
+import {RouterLink} from "@angular/router";
 import config from "../config";
 
 @Component({
@@ -40,8 +40,8 @@ import config from "../config";
                 </ul>
                 <ul class="no-bullet">
                     <li><h4>Habitat Web</h4></li>
-                    <li class="footer--sitemap--link"><a [routerLink]="['SignIn']">Sign In</a></li>
-                    <li class="footer--sitemap--link"><a [routerLink]="['PackagesForOrigin', { origin: 'core' }]">Search Packages</a></li>
+                    <li class="footer--sitemap--link"><a [routerLink]="['/sign-in']">Sign In</a></li>
+                    <li class="footer--sitemap--link"><a [routerLink]="['/pkgs', 'core']">Search Packages</a></li>
                 </ul>
                 <ul class="no-bullet">
                     <li><h4>More</h4></li>

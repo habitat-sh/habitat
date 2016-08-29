@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouteParams, RouterLink} from "angular2/router";
+import {Component, OnInit, OnDestroy} from "@angular/core";
+import {ActivatedRoute} from "@angular/router";
 import {FeatureFlags} from "../Privilege";
 import {AppStore} from "../AppStore";
 import {Package} from "../records/Package";
@@ -21,16 +21,17 @@ import {Origin} from "../records/Origin";
 import {PackageBreadcrumbsComponent} from "../PackageBreadcrumbsComponent";
 import {PackageListComponent} from "./PackageListComponent";
 import {SpinnerComponent} from "../SpinnerComponent";
-import {isPackage, packageString} from "../util";
+import {isPackage, isSignedIn} from "../util";
 import {fetchPackage, fetchProject, setProjectHint, requestRoute} from "../actions/index";
 import {BuilderApiClient} from "../BuilderApiClient";
 import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
 import {PackageInfoComponent} from "../package-info/PackageInfoComponent";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
-    directives: [PackageBreadcrumbsComponent, PackageListComponent, RouterLink,
-                 SpinnerComponent, TabsComponent, TabComponent, PackageInfoComponent],
+    directives: [PackageBreadcrumbsComponent, PackageListComponent,
+        SpinnerComponent, TabsComponent, TabComponent, PackageInfoComponent],
     template: `
     <div class="hab-package page-title">
         <h2>Package</h2>
@@ -53,7 +54,7 @@ import {PackageInfoComponent} from "../package-info/PackageInfoComponent";
     <div *ngIf="showRepoButton" class="project-header">
       <button class="build-project-button" (click)="createProject()">Connect a repo</button> As a member of the {{origin}} origin, you can setup automated builds for this package by connecting a repo.
     </div>
-    <div *ngIf="showRepoButton" class="page-body has-sidebar">
+    <div class="page-body has-sidebar">
       <hab-package-info [package]="package"></hab-package-info>
     </div>
     <tabs *ngIf="!ui.loading && ui.exists && projectExists">
@@ -74,11 +75,27 @@ import {PackageInfoComponent} from "../package-info/PackageInfoComponent";
     `,
 })
 
-export class PackagePageComponent implements OnInit {
+export class PackagePageComponent implements OnInit, OnDestroy {
     private spinnerFetchPackage: Function;
+    private originParam: string;
+    private nameParam: string;
+    private versionParam: string;
+    private releaseParam: string;
+    private sub: Subscription;
 
-    constructor(private routeParams: RouteParams, private store: AppStore) {
+    constructor(private route: ActivatedRoute, private store: AppStore) {
         this.spinnerFetchPackage = this.fetchPackage.bind(this);
+
+        this.sub = route.params.subscribe(params => {
+            this.originParam = params["origin"];
+            this.nameParam = params["name"];
+            this.versionParam = params["version"];
+            this.releaseParam = params["release"];
+        });
+    }
+
+    ngOnDestroy() {
+        this.sub.unsubscribe();
     }
 
     get features() {
@@ -90,14 +107,13 @@ export class PackagePageComponent implements OnInit {
     // populate more data by dispatching setCurrentPackage.
     get package() {
         const currentPackageFromState = this.store.getState().packages.current;
-        const params = this.routeParams.params;
 
         // Use the currentPackage from the state if it's the same package we want
         // here.
-        if (isPackage(currentPackageFromState || {}, { ident: params })) {
+        if (isPackage(currentPackageFromState || {}, { ident: this.packageParams() })) {
             return currentPackageFromState;
         } else {
-            return Package({ ident: params });
+            return Package({ ident: this.packageParams() });
         }
     }
 
@@ -135,7 +151,7 @@ export class PackagePageComponent implements OnInit {
     }
 
     viewOrigin() {
-        this.store.dispatch(requestRoute(["Origin", {origin: this.origin}]));
+        this.store.dispatch(requestRoute(["/origins", this.origin]));
     }
 
     createProject() {
@@ -143,7 +159,7 @@ export class PackagePageComponent implements OnInit {
             originName: this.package.ident.origin,
             packageName: this.package.ident.name
         }));
-        this.store.dispatch(requestRoute(["ProjectCreate"]));
+        this.store.dispatch(requestRoute(["/projects", "create"]));
     }
 
     public ngOnInit() {
@@ -151,13 +167,22 @@ export class PackagePageComponent implements OnInit {
         this.fetchProject();
     }
 
+    private packageParams() {
+        return {
+            origin: this.originParam,
+            name: this.nameParam,
+            version: this.versionParam,
+            release: this.releaseParam
+        };
+    }
+
     private fetchPackage () {
         this.store.dispatch(fetchPackage(this.package));
     }
 
     private fetchProject() {
-        this.store.dispatch(fetchProject(this.projectId, this.token, false));
+        if (isSignedIn()) {
+            this.store.dispatch(fetchProject(this.projectId, this.token, false));
+        }
     }
-
-    private packageString(params) { return packageString(params); }
 }

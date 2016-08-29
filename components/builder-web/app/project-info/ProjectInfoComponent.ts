@@ -12,29 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input, OnInit} from "angular2/core";
+import {Component, Input, OnInit} from "@angular/core";
 import {CheckingInputComponent} from "../CheckingInputComponent";
-import {Control, ControlGroup, FormBuilder, Validators} from "angular2/common";
+import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {GitHubApiClient} from "../GitHubApiClient";
 import {AppStore} from "../AppStore";
 import {addProject, fetchProject, updateProject} from "../actions/index";
-import {RouterLink} from "angular2/router";
+import {RouterLink} from "@angular/router";
 
 @Component({
     selector: "hab-project-info",
     directives: [CheckingInputComponent, RouterLink],
     template: `
-    <form [ngFormModel]="form" (ngSubmit)="submitProject(form.value)" #formValues="ngForm">
+    <form [formGroup]="form" (ngSubmit)="submitProject(form.value)" #formValues="ngForm">
       <div class="scm-repo-fields">
           <label>GitHub Repository</label>
           <div *ngIf="repo">
               <a href="https://github.com/{{ownerAndRepo}}" target="_blank">
                   {{ownerAndRepo}}
               </a>
-              <a [routerLink]='["SCMRepos"]' href="#">(change)</a>
+              <a [routerLink]="['/scm-repos']" href="#">(change)</a>
           </div>
           <div *ngIf="!repo">
-              <a [routerLink]='["SCMRepos"]' href="#">
+              <a [routerLink]="['/scm-repos']" href="#">
                   (select a GitHub repository)
               </a>
           </div>
@@ -66,7 +66,7 @@ import {RouterLink} from "angular2/router";
 })
 
 export class ProjectInfoComponent implements OnInit {
-    private form: ControlGroup;
+    private form: FormGroup;
     private doesFileExist: Function;
 
     @Input() project: Object;
@@ -116,14 +116,15 @@ export class ProjectInfoComponent implements OnInit {
         if (this.redirectRoute) {
             rr = this.redirectRoute;
         } else if (currentPackage === undefined || currentPackage.ident.origin === undefined) {
-            rr = ["Origin", { origin: values["origin"] }];
+            rr = ["origins", values["origin"]];
         } else {
-            rr = ["Package", {
-                origin: currentPackage.ident.origin,
-                name: currentPackage.ident.name,
-                version: currentPackage.ident.version,
-                release: currentPackage.ident.release
-            }];
+            rr = [
+                "pkgs",
+                currentPackage.ident.origin,
+                currentPackage.ident.name,
+                currentPackage.ident.version,
+                currentPackage.ident.release
+            ];
         }
 
         if (this.project) {

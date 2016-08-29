@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
+import {Component} from "@angular/core";
 import {TabComponent} from "./TabComponent";
 
 @Component({
     selector: "tabs",
     template: `
     <ul class="hab-tabs">
-        <li *ngFor="#tab of tabs"
+        <li *ngFor="let tab of tabs"
             [ngClass]="{ active: tab.active }"
             (click)="selectTab(tab)">{{tab.tabTitle}}</li>
     </ul>

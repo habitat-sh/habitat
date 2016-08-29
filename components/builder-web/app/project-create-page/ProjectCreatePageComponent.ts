@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
+import {Component, OnInit, OnDestroy} from "@angular/core";
 import {requireSignIn} from "../util";
-import {RouteParams} from "angular2/router";
+import {ActivatedRoute} from "@angular/router";
 import {AppStore} from "../AppStore";
 import {ProjectInfoComponent} from "../project-info/ProjectInfoComponent";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
     directives: [ProjectInfoComponent],
@@ -34,15 +35,18 @@ import {ProjectInfoComponent} from "../project-info/ProjectInfoComponent";
     </div>`
 })
 
-export class ProjectCreatePageComponent implements OnInit {
-    constructor(private routeParams: RouteParams, private store: AppStore) {}
+export class ProjectCreatePageComponent implements OnInit, OnDestroy {
+    private sub: Subscription;
+    private repoParam: string;
+
+    constructor(private route: ActivatedRoute, private store: AppStore) {
+        this.sub = route.queryParams.subscribe(params => {
+            this.repoParam = params["repo"];
+        });
+    }
 
     get repo() {
-        if (this.routeParams.params["repo"]) {
-            return this.routeParams.params["repo"];
-        } else {
-            return undefined;
-        }
+        return this.repoParam || undefined;
     }
 
     get packageName() {
@@ -51,6 +55,10 @@ export class ProjectCreatePageComponent implements OnInit {
 
     get ownerAndRepo() {
         return this.repo ? decodeURIComponent(this.repo) : this.repo;
+    }
+
+    ngOnDestroy() {
+        this.sub.unsubscribe();
     }
 
     public ngOnInit() {

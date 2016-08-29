@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input, OnInit} from "angular2/core";
-import {Control, ControlGroup, FormBuilder, Validators} from "angular2/common";
+import {Component, Input, OnInit} from "@angular/core";
+import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {parseKey} from "../util";
 
 @Component({
     selector: "hab-key-add-form",
     template: `
-    <form class="hab-key-add-form" [ngFormModel]="form" #formValues="ngForm"
+    <form class="hab-key-add-form" [formGroup]="form" #formValues="ngForm"
         (ngSubmit)="submit(formValues.value.key)">
         <a class="hab-key-add-form--close" href="#" (click)="onCloseClick()">
             Close
@@ -33,7 +33,7 @@ import {parseKey} from "../util";
         <textarea
             autofocus
             name="key"
-            [ngFormControl]="form.controls['key']"
+            [formControl]="form.controls['key']"
             placeholder="Begins with '{{keyFileHeaderPrefix}}'"
             rows=6></textarea>
         <div class="hab-key-add-form--submit">
@@ -69,8 +69,8 @@ export class KeyAddFormComponent implements OnInit {
     @Input() originName: string;
     @Input() uploadKey: Function;
 
-    private form: ControlGroup;
-    private control: Control;
+    private form: FormGroup;
+    private control: FormControl;
 
     constructor(private formBuilder: FormBuilder) {
         this.form = formBuilder.group({});
@@ -106,7 +106,7 @@ export class KeyAddFormComponent implements OnInit {
     }
 
     public ngOnInit() {
-        this.control = new Control(
+        this.control = new FormControl(
             "",
             Validators.compose([
                 Validators.required,

@@ -16,6 +16,7 @@ import * as moment from "moment";
 import {requestRoute} from "./actions/index";
 import config from "./config";
 import {Project} from "./records/Project";
+import {AppStore} from "./AppStore";
 
 // Create a GitHub login URL
 export function createGitHubLoginUrl(state) {
@@ -115,10 +116,15 @@ export function parseKey(key) {
     };
 }
 
+export function isSignedIn() {
+    const store = new AppStore();
+    return !!store.getState().gitHub.authToken;
+}
+
 // Given a page component, check if the user is signed in and redirect if not
 export function requireSignIn(pageComponent) {
     const store = pageComponent.store;
     const hasToken = !!store.getState().gitHub.authToken;
 
-    if (!hasToken) { store.dispatch(requestRoute(["SignIn"])); }
+    if (!hasToken) { store.dispatch(requestRoute(["/sign-in"])); }
 }

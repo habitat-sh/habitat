@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input} from "angular2/core";
+import {Component, Input} from "@angular/core";
 import {List} from "immutable";
-import {RouterLink} from "angular2/router";
+import {RouterLink} from "@angular/router";
 
 @Component({
     selector: "hab-packages-list",
@@ -29,11 +29,11 @@ import {RouterLink} from "angular2/router";
                 </span>
             </p>
         </div>
-        <li class="hab-packages-package" *ngFor="#pkg of packages">
-            <a [routerLink]="['Package', { origin: pkg.origin,
-                                            name: pkg.name,
-                                            version: pkg.version,
-                                            release: pkg.release }]">
+        <li class="hab-packages-package" *ngFor="let pkg of packages">
+            <a [routerLink]="['/pkgs', pkg.origin,
+                                      pkg.name,
+                                      pkg.version,
+                                      pkg.release]">
                 <div class="item-title">
                     <h3>{{pkg.origin}} / {{pkg.name}}</h3>
                     <h4>{{pkg.version}} / {{pkg.release}}</h4>

@@ -12,15 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "@angular/core";
+///<reference path="../typings/browser/index.d.ts" />
+///<reference path='../node_modules/immutable/dist/immutable.d.ts'/>
 
-@Component({
-    inputs: ["isSpinning", "onClick"],
-    selector: "hab-spinner",
-    template: `
-    <span (click)="onClick()" [class.spinning]="isSpinning"
-        class="hab-spinner"></span>
-    `
-})
+// Include the nav control from the main website
+require("./zepto-custom");
+import "./nav";
 
-export class SpinnerComponent { }
+import "reflect-metadata";
+import "zone.js/dist/zone";
+
+import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
+import { enableProdMode } from "@angular/core";
+import { AppModule } from "./app.module";
+import config from "./config";
+
+if (config["environment"] === "production") {
+  enableProdMode();
+}
+
+platformBrowserDynamic().bootstrapModule(AppModule);
