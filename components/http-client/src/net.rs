@@ -58,7 +58,7 @@ impl<S: SslClient> NetworkConnector for ProxyHttpsConnector<S> {
                 // We can't yet use hyper directly and therefore use the underlying http parsing
                 // library to establish the connection and parse the response. This implementation
                 // is largely based on hyper's internal proxy tunneling code.
-                let mut connect_msg = format!("{method} {host}:{port} {version}\r\nHost \
+                let mut connect_msg = format!("{method} {host}:{port} {version}\r\nHost: \
                                                {host}:{port}\r\n",
                                               method = Method::Connect,
                                               version = HttpVersion::Http11,
