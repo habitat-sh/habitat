@@ -2,7 +2,7 @@
 
 ACTION=$1
 ALL_ACTIONS="start stop build restart"
-ALL_SERVICES="api router jobsrv sessionsrv vault"
+ALL_SERVICES="api admin router jobsrv sessionsrv vault"
 
 # Ensure a place for pidfiles exists
 mkdir -p /src/tmp/run-api

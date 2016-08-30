@@ -34,9 +34,7 @@ matrix:
       directories:
       - "$HOME/rust"
       - "$HOME/pkgs"
-      - components/director/target
-      - components/hab/target
-      - components/sup/target
+      - target
     before_install:
     - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh
@@ -74,12 +72,7 @@ matrix:
       directories:
       - "$HOME/rust"
       - "$HOME/pkgs"
-      - components/builder-dbcache/target
-      - components/builder-protocol/target
-      - components/common/target
-      - components/core/target
-      - components/builder-depot-client/target
-      - components/net/target
+      - target
     before_install:
     - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh
@@ -92,7 +85,7 @@ matrix:
   - language: rust
     env:
     - COMPONENTS=srv LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
-    - AFFECTED_DIRS="components/builder-api|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
+    - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
     rust: stable
     sudo: false
     addons:
@@ -116,12 +109,7 @@ matrix:
       directories:
       - "$HOME/rust"
       - "$HOME/pkgs"
-      - components/builder-api/target
-      - components/builder-jobsrv/target
-      - components/builder-sessionsrv/target
-      - components/builder-vault/target
-      - components/builder-worker/target
-      - components/builder-depot/target
+      - target
     before_install:
     - ./support/ci/fast_pass.sh || exit 0
     - ./support/ci/compile_libsodium.sh

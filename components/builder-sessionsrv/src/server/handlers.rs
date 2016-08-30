@@ -157,6 +157,7 @@ pub fn session_get(req: &mut Envelope,
     Ok(())
 }
 
+// Determine permissions and toggle feature flags on for the given Sesssion
 fn set_features(state: &ServerState, session: &mut proto::Session) -> Result<()> {
     let mut flags = FeatureFlags::empty();
     let teams = try!(state.github.teams(session.get_token()));

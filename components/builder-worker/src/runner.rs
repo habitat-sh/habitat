@@ -21,7 +21,7 @@ use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
 use zmq;
 
-use error::{Error, Result};
+use error::Result;
 use studio;
 use vcs;
 
@@ -166,7 +166,7 @@ impl RunnerMgr {
         try!(self.sock.bind(INPROC_ADDR));
         rz.send(()).unwrap();
         loop {
-            let mut job: proto::Job = try!(self.recv_job());
+            let job: proto::Job = try!(self.recv_job());
             try!(self.send_ack(&job));
             try!(self.execute_job(job));
         }

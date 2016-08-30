@@ -15,7 +15,6 @@
 //! Configuration for a Habitat JobSrv Worker
 
 use std::collections::BTreeMap;
-use std::net;
 
 use hab_core::config::{ConfigFile, ParseInto};
 use toml;
@@ -56,8 +55,7 @@ impl ConfigFile for Config {
 
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
-        // JW TODO: parse job_servers into the config
-        // try!(toml.parse_into("cfg.job_servers", &mut cfg.job_servers));
+        try!(toml.parse_into("cfg.job_servers", &mut cfg.job_servers));
         Ok(cfg)
     }
 }
