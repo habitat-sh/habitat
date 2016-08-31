@@ -87,11 +87,43 @@ find_system_commands() {
 # clean directory with native filesystem permissions which is outside the
 # source code tree.
 build_docker_image() {
+  local ident_file="$(hab pkg path $1)/IDENT"
+  if [[ ! -f "$ident_file" ]]; then
+    hab pkg install $1 # try to install it
+  fi
+
+  pkg_name=$(package_name_for $1)
+  pkg_origin=$(package_origin_for $ident_file)
+  pkg_ident=$(package_ident_for $ident_file)
+  pkg_version=$(version_num_for $ident_file)
+
+  BASE_PKGS=$(base_pkgs $@)
+  DOCKER_BASE_TAG="${pkg_ident}_base:$(base_pkg_hash $BASE_PKGS)"
+  DOCKER_BASE_TAG_ALT="${pkg_origin}/habitat_export_base:$(base_pkg_hash $BASE_PKGS)"
+
+  # create base layer image
+  DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
+  pushd $DOCKER_CONTEXT > /dev/null
+  docker_base_image $@
+  popd > /dev/null
+  rm -rf "$DOCKER_CONTEXT"
+
+  # build runtime image
   DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
   pushd $DOCKER_CONTEXT > /dev/null
   docker_image $@
   popd > /dev/null
   rm -rf "$DOCKER_CONTEXT"
+}
+
+package_origin_for() {
+  local ident_file="$1"
+  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 }'
+}
+
+package_ident_for() {
+  local ident_file="$1"
+  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 }'
 }
 
 package_name_for() {
@@ -101,40 +133,85 @@ package_name_for() {
 
 package_exposes() {
   local pkg="$1"
-  local expose_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name EXPOSES)
+  local expose_file="$(hab pkg path $pkg)/EXPOSES"
   if [ -f "$expose_file" ]; then
     cat $expose_file
   fi
 }
 
-package_version_tag() {
-  local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
-  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":" $3 "-" $4 }'
+version_num_for() {
+  local ident_file="$1"
+  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $3 "-" $4 }'
 }
 
-package_latest_tag() {
-  local pkg="$1"
-  local ident_file=$(find $DOCKER_CONTEXT/rootfs/$HAB_ROOT_PATH/pkgs/$pkg -name IDENT)
-  cat $ident_file | awk 'BEGIN { FS = "/" }; { print $1 "/" $2 ":latest" }'
+# Collect all dependencies for requested packages
+base_pkgs() {
+  local BUILD_PKGS="$@"
+  for p in $BUILD_PKGS; do
+    hab pkg install $p >/dev/null
+    cat $(hab pkg path $p)/DEPS >> /tmp/_all_deps
+  done
+  (cat /tmp/_all_deps | sort | uniq) && rm -f /tmp/_all_deps
 }
 
-docker_image() {
-  env PKGS="$@" NO_MOUNT=1 hab-studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
-  local pkg_name=$(package_name_for $1)
-  local version_tag=$(package_version_tag $1)
-  local latest_tag=$(package_latest_tag $1)
+base_pkg_hash() {
+  echo "$@" | sha256sum | cut -b1-16
+}
+
+docker_base_image() {
+
+  if [[ -n "$(docker images -q $DOCKER_BASE_TAG 2> /dev/null)" ]]; then
+    # image already exists
+    echo "base docker image $DOCKER_BASE_TAG already built; skipping rebuild"
+    return 0;
+  fi
+
+  if [[ -n "$(docker images -q $DOCKER_BASE_TAG_ALT 2> /dev/null)" ]]; then
+    # image already exists
+    echo "base docker image $DOCKER_BASE_TAG_ALT already built; skipping rebuild"
+    # create a tag alias for our package
+    docker tag $DOCKER_BASE_TAG_ALT $DOCKER_BASE_TAG
+    DOCKER_BASE_TAG="$DOCKER_BASE_TAG_ALT"
+    return 0;
+  fi
+
+  env PKGS="$BASE_PKGS" NO_MOUNT=1 hab-studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
   echo "$1" > $DOCKER_CONTEXT/rootfs/.hab_pkg
+
+  # create base image Dockerfile
   cat <<EOT > $DOCKER_CONTEXT/Dockerfile
 FROM scratch
 ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH= | cut -d' ' -f2-)
 WORKDIR /
 ADD rootfs /
+EOT
+
+  docker build --force-rm --no-cache -t $DOCKER_BASE_TAG .
+  docker tag $DOCKER_BASE_TAG $DOCKER_BASE_TAG_ALT
+}
+
+docker_image() {
+  local version_tag="${pkg_ident}:${pkg_version}"
+  local latest_tag="${pkg_ident}:latest"
+
+  local pkg_file=$(ls /hab/cache/artifacts/$(cat $(hab pkg path $pkg_ident)/IDENT | tr '/' '-')-*)
+  cp -a $pkg_file $DOCKER_CONTEXT/
+  pkg_file=$(basename $pkg_file)
+
+  cat <<EOT > $DOCKER_CONTEXT/Dockerfile
+FROM ${DOCKER_BASE_TAG}
+COPY ${pkg_file} /tmp/
+RUN hab pkg install /tmp/${pkg_file} && rm -f /tmp/${pkg_file}
+
+RUN mkdir -p $HAB_ROOT_PATH/svc/${pkg_name}/data \
+             $HAB_ROOT_PATH/svc/${pkg_name}/config \
+      && chown -R 42:42 $HAB_ROOT_PATH/svc/${pkg_name}
 VOLUME $HAB_ROOT_PATH/svc/${pkg_name}/data $HAB_ROOT_PATH/svc/${pkg_name}/config
 EXPOSE 9631 $(package_exposes $1)
 ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
+
   docker build --force-rm --no-cache -t $version_tag .
   docker tag $version_tag $latest_tag
 }
