@@ -16,8 +16,6 @@ extern crate habitat_builder_dbcache as dbcache;
 extern crate habitat_builder_protocol as protocol;
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
-#[macro_use]
-extern crate bitflags;
 extern crate bodyparser;
 extern crate crypto;
 #[macro_use]
@@ -61,24 +59,22 @@ use crypto::sha2::Sha256;
 use crypto::digest::Digest;
 use hab_core::package::{Identifiable, PackageArchive};
 use hab_net::oauth::github::GitHubClient;
-use hab_net::server::{NetIdent, ServerContext};
+use hab_net::server::NetIdent;
 use data_store::DataStore;
 
 pub struct Depot {
     pub config: Config,
     pub datastore: DataStore,
-    context: Arc<Box<ServerContext>>,
     github: GitHubClient,
 }
 
 impl Depot {
-    pub fn new(config: Config, ctx: Arc<Box<ServerContext>>) -> Result<Arc<Depot>> {
+    pub fn new(config: Config) -> Result<Arc<Depot>> {
         let datastore = try!(DataStore::open(&config));
         let github = GitHubClient::new(&config);
         Ok(Arc::new(Depot {
             config: config,
             datastore: datastore,
-            context: ctx,
             github: github,
         }))
     }

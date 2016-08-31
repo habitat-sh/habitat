@@ -7,7 +7,6 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
-bitflags = "*"
 protobuf = "*"
 rustc-serialize = "*"
 time = "*"

@@ -15,10 +15,12 @@
 pub mod archive;
 pub mod ident;
 pub mod install;
+pub mod plan;
 
 pub use self::archive::{FromArchive, PackageArchive};
 pub use self::ident::{Identifiable, PackageIdent};
 pub use self::install::PackageInstall;
+pub use self::plan::Plan;
 
 use std::fmt;
 

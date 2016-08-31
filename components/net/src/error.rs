@@ -36,6 +36,7 @@ pub enum Error {
     HTTP(hyper::status::StatusCode),
     MissingScope(String),
     Protobuf(protobuf::ProtobufError),
+    RequiredConfigField(&'static str),
     Sys,
     Zmq(zmq::Error),
 }
@@ -54,6 +55,9 @@ impl fmt::Display for Error {
             Error::HTTP(ref e) => format!("{}", e),
             Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
+            Error::RequiredConfigField(ref e) => {
+                format!("Missing required field in configuration, {}", e)
+            }
             Error::Sys => format!("Internal system error"),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -73,6 +77,7 @@ impl error::Error for Error {
             Error::MaxHops => "Received a message containing too many network hops",
             Error::MissingScope(_) => "Missing GitHub authorization scope.",
             Error::Protobuf(ref err) => err.description(),
+            Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Sys => "Internal system error",
             Error::Zmq(ref err) => err.description(),
         }

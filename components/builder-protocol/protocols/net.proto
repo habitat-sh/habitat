@@ -30,6 +30,7 @@ enum ErrCode {
   ACCESS_DENIED = 7;
   SESSION_EXPIRED = 8;
   ENTITY_CONFLICT = 9;
+  ZMQ = 10;
 }
 
 message NetError {
@@ -37,5 +38,6 @@ message NetError {
   required string msg = 2;
 }
 
+message NetOk {}
 message Ping {}
 message Pong {}

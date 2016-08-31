@@ -17,17 +17,21 @@
 //! to the appropriate receiver of a message.
 
 use std::net;
-use std::sync::{mpsc, Arc};
+use std::result;
+use std::sync::mpsc;
 use std::thread::{self, JoinHandle};
 
 use fnv::FnvHasher;
-use protobuf::{parse_from_bytes, Message};
+use protobuf::{self, parse_from_bytes, Message};
 use protocol::{self, Routable, RouteKey};
+use protocol::net::{ErrCode, NetError};
 use zmq;
 
 use config::ToAddrString;
 use error::Result;
-use server::ServerContext;
+use server::ZMQ_CONTEXT;
+
+pub type RouteResult<T> = result::Result<T, NetError>;
 
 /// Time to wait before timing out a message receive for a `BrokerConn`.
 pub const RECV_TIMEOUT_MS: i32 = 5_000;
@@ -48,10 +52,10 @@ impl BrokerConn {
     ///
     /// # Errors
     ///
-    /// * A socket cannot be created for within the given `zmq::Context`
-    /// * The socket cannot be configured
-    pub fn new(ctx: &ServerContext) -> Result<Self> {
-        let socket = try!(ctx.as_mut().socket(zmq::REQ));
+    /// * Socket could not be created
+    /// * Socket could not be configured
+    pub fn new() -> Result<Self> {
+        let socket = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::REQ));
         try!(socket.set_rcvtimeo(RECV_TIMEOUT_MS));
         try!(socket.set_sndtimeo(SEND_TIMEOUT_MS));
         try!(socket.set_immediate(true));
@@ -71,7 +75,8 @@ impl BrokerConn {
         Ok(())
     }
 
-    /// Routes a message to the connected broker, through a router, and to appropriate service.
+    /// Routes a message to the connected broker, through a router, and to appropriate service,
+    /// waits for a response, and then parses and returns the value of the response.
     ///
     /// # Errors
     ///
@@ -80,7 +85,39 @@ impl BrokerConn {
     /// # Panics
     ///
     /// * Could not serialize message
-    pub fn route<M: Routable>(&mut self, msg: &M) -> Result<()> {
+    pub fn route<M: Routable, R: protobuf::MessageStatic>(&mut self, msg: &M) -> RouteResult<R> {
+        if self.route_async(msg).is_err() {
+            return Err(protocol::net::err(ErrCode::ZMQ, "net:route:1"));
+        }
+        match self.recv() {
+            Ok(rep) => {
+                if rep.get_message_id() == "NetError" {
+                    let err = parse_from_bytes(rep.get_body()).unwrap();
+                    return Err(err);
+                }
+                match parse_from_bytes::<R>(rep.get_body()) {
+                    Ok(entity) => Ok(entity),
+                    Err(_) => {
+                        unreachable!("net:route, unexpected response, message_id={}",
+                                     rep.get_message_id())
+                    }
+                }
+            }
+            Err(_) => Err(protocol::net::err(ErrCode::ZMQ, "net:route:3")),
+        }
+    }
+
+    /// Asynchronously routes a message to the connected broker, through a router, and to
+    /// appropriate service.
+    ///
+    /// # Errors
+    ///
+    /// * One or more message frames cannot be sent to the Broker's queue
+    ///
+    /// # Panics
+    ///
+    /// * Could not serialize message
+    pub fn route_async<M: Routable>(&mut self, msg: &M) -> Result<()> {
         let route_hash = msg.route_key().map(|key| key.hash(&mut self.hasher));
         let req = protocol::Message::new(msg).routing(route_hash).build();
         let bytes = req.write_to_bytes().unwrap();
@@ -121,9 +158,9 @@ impl Broker {
     /// # Panics
     ///
     /// * Could not read `zmq::Context` due to deadlock or poisoning
-    fn new(net_ident: String, ctx: &ServerContext) -> Result<Self> {
-        let fe = try!(ctx.as_mut().socket(zmq::ROUTER));
-        let be = try!(ctx.as_mut().socket(zmq::DEALER));
+    fn new(net_ident: String) -> Result<Self> {
+        let fe = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER));
+        let be = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         try!(fe.set_identity(net_ident.as_bytes()));
         try!(be.set_rcvtimeo(RECV_TIMEOUT_MS));
         try!(be.set_sndtimeo(SEND_TIMEOUT_MS));
@@ -139,13 +176,13 @@ impl Broker {
     /// # Errors
     ///
     /// * Could not connect to `Broker`
-    /// * Could not create socket within `zmq::Context`
+    /// * Could not create socket
     ///
     /// # Panics
     ///
     /// * Could not read `zmq::Context` due to deadlock or poisoning
-    pub fn connect(ctx: &ServerContext) -> Result<BrokerConn> {
-        let mut conn = try!(BrokerConn::new(ctx));
+    pub fn connect() -> Result<BrokerConn> {
+        let mut conn = try!(BrokerConn::new());
         try!(conn.connect(ROUTE_INPROC_ADDR));
         Ok(conn)
     }
@@ -156,16 +193,13 @@ impl Broker {
     /// # Panics
     ///
     /// * Broker crashed during startup
-    pub fn run(net_ident: String,
-               ctx: Arc<Box<ServerContext>>,
-               routers: &Vec<net::SocketAddrV4>)
-               -> JoinHandle<()> {
+    pub fn run(net_ident: String, routers: &Vec<net::SocketAddrV4>) -> JoinHandle<()> {
         let (tx, rx) = mpsc::sync_channel(1);
         let addrs = routers.iter().map(|a| a.to_addr_string()).collect();
         let handle = thread::Builder::new()
             .name("router-broker".to_string())
             .spawn(move || {
-                let mut broker = Self::new(net_ident, &ctx).unwrap();
+                let mut broker = Self::new(net_ident).unwrap();
                 broker.start(tx, addrs).unwrap();
             })
             .unwrap();

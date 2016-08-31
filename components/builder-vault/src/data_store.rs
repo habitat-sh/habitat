@@ -15,7 +15,7 @@
 use std::ops::Deref;
 use std::sync::Arc;
 
-use dbcache::{self, data_store, ConnectionPool, Bucket, IndexSet, InstaSet};
+use dbcache::{self, data_store, ConnectionPool, BasicSet, Bucket, IndexSet, InstaSet};
 use protobuf::Message;
 use protocol::{vault, InstaId, Persistable};
 use redis::{self, Commands, PipelineCommands};
@@ -26,6 +26,7 @@ use protocol::vault as proto;
 pub struct DataStore {
     pub pool: Arc<ConnectionPool>,
     pub origins: OriginTable,
+    pub projects: ProjectTable,
 }
 
 impl data_store::Pool for DataStore {
@@ -33,11 +34,14 @@ impl data_store::Pool for DataStore {
 
     fn init(pool: Arc<ConnectionPool>) -> Self {
         let pool1 = pool.clone();
+        let pool2 = pool.clone();
         let origins = OriginTable::new(pool1);
+        let projects = ProjectTable::new(pool2);
 
         DataStore {
             pool: pool,
             origins: origins,
+            projects: projects,
         }
     }
 }
@@ -179,9 +183,9 @@ impl InstaSet for OriginTable {
         "origins_seq"
     }
 
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
+    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -190,15 +194,19 @@ impl InstaSet for OriginTable {
             record.set_primary_key(*insta_id);
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
                 .hset(OriginNameIdx::prefix(),
                       record.get_name().to_string(),
                       record.get_id())
                 .ignore()
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .query(conn.deref())
         }));
-        Ok(())
+        match ret {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => unreachable!("received unexpected return code from redis-hsetnx: {}", ret),
+        }
     }
 }
 
@@ -254,9 +262,9 @@ impl InstaSet for OriginSecretKeysTable {
         "origin_secret_key_seq"
     }
 
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
+    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -266,12 +274,16 @@ impl InstaSet for OriginSecretKeysTable {
 
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .query(conn.deref())
 
         }));
-        Ok(())
+        match ret {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => unreachable!("received unexpected return code from redis-setnx: {}", ret),
+        }
     }
 }
 
@@ -353,9 +365,9 @@ impl InstaSet for OriginInvitesTable {
         "origin_invites_key_seq"
     }
 
-    fn write(&self, record: &mut Self::Record) -> dbcache::Result<()> {
+    fn write(&self, record: &mut Self::Record) -> dbcache::Result<bool> {
         let conn = try!(self.pool().get());
-        try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let (ret,): (i32,) = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -367,16 +379,42 @@ impl InstaSet for OriginInvitesTable {
             debug!("origin invite = {:?}", &record);
             txn.set(Self::seq_id(), record.primary_key())
                 .ignore()
-                .set(Self::key(&record.primary_key()),
-                     record.write_to_bytes().unwrap())
-                .ignore()
+                .set_nx(Self::key(&record.primary_key()),
+                        record.write_to_bytes().unwrap())
                 .sadd(account_to_invites_key, record.primary_key())
                 .ignore()
                 .sadd(origin_to_invites_key, record.primary_key())
                 .ignore()
                 .query(conn.deref())
         }));
-
-        Ok(())
+        match ret {
+            1 => Ok(true),
+            0 => Ok(false),
+            _ => unreachable!("received unexpected return code from redis-hsetnx: {}", ret),
+        }
     }
+}
+
+pub struct ProjectTable {
+    pool: Arc<ConnectionPool>,
+}
+
+impl ProjectTable {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        ProjectTable { pool: pool }
+    }
+}
+
+impl Bucket for ProjectTable {
+    fn pool(&self) -> &ConnectionPool {
+        &self.pool
+    }
+
+    fn prefix() -> &'static str {
+        "project"
+    }
+}
+
+impl BasicSet for ProjectTable {
+    type Record = vault::Project;
 }

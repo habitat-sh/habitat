@@ -16,6 +16,18 @@ use std::net;
 
 use num_cpus;
 
+/// URL to GitHub API endpoint
+pub const DEFAULT_GITHUB_URL: &'static str = "https://api.github.com";
+/// Default Client ID for providing a default value in development environments only. This is
+/// associated to the habitat-sh GitHub account and is configured to re-direct and point to a local
+/// builder-api.
+///
+/// See https://github.com/settings/connections/applications/0c2f738a7d0bd300de10
+pub const DEV_GITHUB_CLIENT_ID: &'static str = "0c2f738a7d0bd300de10";
+/// Default Client Secret for development purposes only. See the `DEV_GITHUB_CLIENT_ID` for
+/// additional comments.
+pub const DEV_GITHUB_CLIENT_SECRET: &'static str = "438223113eeb6e7edf2d2f91a232b72de72b9bdf";
+
 pub trait DispatcherCfg {
     fn default_worker_count() -> usize {
         // JW TODO: increase default count after r2d2 connection pools are moved to be owned

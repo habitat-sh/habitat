@@ -17,12 +17,14 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use git2;
 use hab_core;
 use protobuf;
 use zmq;
 
 #[derive(Debug)]
 pub enum Error {
+    Git(git2::Error),
     HabitatCore(hab_core::Error),
     IO(io::Error),
     Protobuf(protobuf::ProtobufError),
@@ -34,6 +36,7 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::Git(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
@@ -46,11 +49,18 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::Git(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }
+    }
+}
+
+impl From<git2::Error> for Error {
+    fn from(err: git2::Error) -> Error {
+        Error::Git(err)
     }
 }
 

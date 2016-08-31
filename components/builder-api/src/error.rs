@@ -18,6 +18,7 @@ use std::io;
 use std::result;
 
 use hab_core;
+use hab_net;
 use depot;
 use hyper;
 use protobuf;
@@ -33,8 +34,8 @@ pub enum Error {
     HTTP(hyper::status::StatusCode),
     IO(io::Error),
     JsonDecode(json::DecoderError),
+    NetError(hab_net::Error),
     Protobuf(protobuf::ProtobufError),
-    RequiredConfigField(&'static str),
     Zmq(zmq::Error),
 }
 
@@ -50,10 +51,8 @@ impl fmt::Display for Error {
             Error::HTTP(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
+            Error::NetError(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
-            Error::RequiredConfigField(ref e) => {
-                format!("Missing required field in configuration, {}", e)
-            }
             Error::Zmq(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -70,8 +69,8 @@ impl error::Error for Error {
             Error::HTTP(_) => "Non-200 HTTP response.",
             Error::IO(ref err) => err.description(),
             Error::JsonDecode(ref err) => err.description(),
+            Error::NetError(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
-            Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Zmq(ref err) => err.description(),
         }
     }
@@ -80,6 +79,12 @@ impl error::Error for Error {
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error {
         Error::HabitatCore(err)
+    }
+}
+
+impl From<hab_net::Error> for Error {
+    fn from(err: hab_net::Error) -> Self {
+        Error::NetError(err)
     }
 }
 

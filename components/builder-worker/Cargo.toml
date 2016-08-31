@@ -12,6 +12,7 @@ doc = false
 
 [dependencies]
 env_logger = "*"
+git2 = "*"
 log = "*"
 protobuf = "*"
 toml = "*"

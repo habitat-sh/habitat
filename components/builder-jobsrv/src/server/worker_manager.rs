@@ -19,7 +19,7 @@ use std::thread::{self, JoinHandle};
 use dbcache::InstaSet;
 use linked_hash_map::LinkedHashMap;
 use hab_net::config::ToAddrString;
-use hab_net::server::{Service, ZMQ_CONTEXT};
+use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv;
 use zmq;

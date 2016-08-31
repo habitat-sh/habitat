@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use std;
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Read;
 use std::net;
@@ -268,6 +269,49 @@ impl ParseInto<Vec<u64>> for toml::Value {
                     } else {
                         return Err(Error::ConfigInvalidArray(field));
                     }
+                }
+                *out = buf;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidArray(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl ParseInto<BTreeMap<String, String>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut BTreeMap<String, String>) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            let buf: BTreeMap<String, String> = val.as_table()
+                .unwrap()
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.as_str().unwrap().to_string()))
+                .collect();
+            *out = buf;
+            Ok(true)
+        } else {
+            Ok(false)
+        }
+    }
+}
+
+impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
+    fn parse_into(&self,
+                  field: &'static str,
+                  out: &mut Vec<BTreeMap<String, String>>)
+                  -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_slice() {
+                let mut buf = vec![];
+                for m in v.iter() {
+                    let map: BTreeMap<String, String> = m.as_table()
+                        .unwrap()
+                        .iter()
+                        .map(|(k, v)| (k.to_string(), v.as_str().unwrap().to_string()))
+                        .collect();
+                    buf.push(map);
                 }
                 *out = buf;
                 Ok(true)

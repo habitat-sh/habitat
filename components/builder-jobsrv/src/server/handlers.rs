@@ -14,7 +14,7 @@
 
 //! A collection of handlers for the JobSrv dispatcher
 
-use dbcache::{self, ExpiringSet, IndexSet, InstaSet};
+use dbcache::{self, InstaSet};
 use hab_net::server::Envelope;
 use protocol::net::{self, ErrCode};
 use protocol::jobsrv as proto;
@@ -27,8 +27,8 @@ pub fn job_create(req: &mut Envelope,
                   sock: &mut zmq::Socket,
                   state: &mut ServerState)
                   -> Result<()> {
-    let mut job = proto::Job::new();
-    job.set_state(proto::JobState::default());
+    let msg: proto::JobSpec = try!(req.parse_msg());
+    let mut job: proto::Job = msg.into();
     state.datastore().jobs.write(&mut job).unwrap();
     state.datastore().job_queue.enqueue(&job).unwrap();
     try!(state.worker_mgr().notify_work());

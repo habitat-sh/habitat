@@ -30,7 +30,17 @@ pub enum Error {
     BadJobState,
 }
 
-impl Routable for JobCreate {
+impl Into<Job> for JobSpec {
+    fn into(mut self) -> Job {
+        let mut job = Job::new();
+        job.set_owner_id(self.get_owner_id());
+        job.set_state(JobState::default());
+        job.set_project(self.take_project());
+        job
+    }
+}
+
+impl Routable for JobSpec {
     type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {

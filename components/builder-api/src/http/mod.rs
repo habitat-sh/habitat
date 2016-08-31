@@ -20,17 +20,15 @@ use std::sync::{mpsc, Arc};
 use std::thread::{self, JoinHandle};
 
 use depot;
+use hab_net::http::middleware::*;
 use hab_net::oauth::github::GitHubClient;
+use hab_net::privilege;
 use iron::prelude::*;
-use iron::AfterMiddleware;
-use iron::headers;
-use iron::method::Method;
 use iron::Protocol;
 use mount::Mount;
+use persistent;
 use staticfile::Static;
-use unicase::UniCase;
 
-use super::server::ZMQ_CONTEXT;
 use config::Config;
 use error::Result;
 use self::handlers::*;
@@ -41,21 +39,27 @@ const HTTP_THREAD_COUNT: usize = 128;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
-    let github = GitHubClient::new(&*config);
-
+    let basic = Authenticated::default();
+    let bldr = Authenticated::default().require(privilege::BUILDER);
     let router = router!(
-        get "/status" => move |r: &mut Request| status(r),
-        get "/authenticate/:code" => move |r: &mut Request| session_create(r, &github),
+        get "/status" => status,
+        get "/authenticate/:code" => session_create,
 
-        post "/jobs" => move |r: &mut Request| job_create(r),
-        get "/jobs/:id" => move |r: &mut Request| job_show(r),
+        post "/jobs" => XHandler::new(job_create).before(bldr),
+        get "/jobs/:id" => XHandler::new(job_show).before(bldr),
 
-        get "/user/invitations" => move |r: &mut Request| list_account_invitations(r),
-        put "/user/invitations/:invitation_id" => move |r: &mut Request| accept_invitation(r),
-        get "/user/origins" => move |r: &mut Request| list_user_origins(r),
+        get "/user/invitations" => XHandler::new(list_account_invitations).before(basic),
+        put "/user/invitations/:invitation_id" => XHandler::new(accept_invitation).before(basic),
+        get "/user/origins" => XHandler::new(list_user_origins).before(basic),
 
+        post "/projects" => XHandler::new(project_create).before(bldr),
+        get "/projects/:origin/:name" => XHandler::new(project_show).before(bldr),
+        put "/projects/:origin/:name" => XHandler::new(project_update).before(bldr),
+        delete "/projects/:origin/:name" => XHandler::new(project_delete).before(bldr),
     );
     let mut chain = Chain::new(router);
+    chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
+    chain.link_before(RouteBroker);
     chain.link_after(Cors);
     Ok(chain)
 }
@@ -75,8 +79,7 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let (tx, rx) = mpsc::sync_channel(1);
 
     let addr = config.http_addr.clone();
-    let ctx1 = ZMQ_CONTEXT.clone();
-    let depot = try!(depot::Depot::new(config.depot.clone(), ctx1));
+    let depot = try!(depot::Depot::new(config.depot.clone()));
     let depot_chain = try!(depot::server::router(depot));
 
     let mut mount = Mount::new();
@@ -99,18 +102,5 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     match rx.recv() {
         Ok(()) => Ok(handle),
         Err(e) => panic!("http-srv thread startup error, err={}", e),
-    }
-}
-
-struct Cors;
-
-impl AfterMiddleware for Cors {
-    fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
-        res.headers.set(headers::AccessControlAllowOrigin::Any);
-        res.headers
-            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned())]));
-        res.headers
-            .set(headers::AccessControlAllowMethods(vec![Method::Put]));
-        Ok(res)
     }
 }

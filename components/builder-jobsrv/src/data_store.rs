@@ -14,10 +14,10 @@
 
 use std::sync::Arc;
 
-use dbcache::{data_store, ConnectionPool, Bucket, IndexSet, InstaSet};
+use dbcache::{data_store, ConnectionPool, Bucket, InstaSet};
 use protocol::InstaId;
 use protocol::jobsrv::Job;
-use redis::{Commands, PipelineCommands};
+use redis::Commands;
 
 use config::Config;
 use error::Result;

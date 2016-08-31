@@ -38,9 +38,7 @@ pub struct ServerState {
 
 impl ServerState {
     pub fn new(datastore: DataStore) -> Self {
-        ServerState {
-            datastore: Arc::new(Box::new(datastore)),
-        }
+        ServerState { datastore: Arc::new(Box::new(datastore)) }
     }
 }
 
@@ -85,6 +83,10 @@ impl Dispatcher for Worker {
             "OriginMemberListRequest" => handlers::origin_member_list(message, sock, state),
             "AccountOriginListRequest" => handlers::account_origin_list(message, sock, state),
             "OriginSecretKeyCreate" => handlers::origin_secret_key_create(message, sock, state),
+            "ProjectCreate" => handlers::project_create(message, sock, state),
+            "ProjectDelete" => handlers::project_delete(message, sock, state),
+            "ProjectGet" => handlers::project_get(message, sock, state),
+            "ProjectUpdate" => handlers::project_update(message, sock, state),
             _ => panic!("unhandled message"),
         }
     }

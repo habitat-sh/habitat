@@ -18,7 +18,6 @@ pub mod worker_manager;
 use std::ops::Deref;
 use std::sync::{Arc, RwLock};
 
-use dbcache::InstaSet;
 use dbcache::data_store::Pool;
 use hab_net::dispatcher::prelude::*;
 use hab_net::{Application, Supervisor};
@@ -94,7 +93,7 @@ impl Dispatcher for Worker {
                 state: &mut Self::State)
                 -> Result<()> {
         match message.message_id() {
-            "JobCreate" => handlers::job_create(message, sock, state),
+            "JobSpec" => handlers::job_create(message, sock, state),
             "JobGet" => handlers::job_get(message, sock, state),
             _ => panic!("unexpected message: {:?}", message.message_id()),
         }

@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "components/builder-admin",
   "components/builder-api",
   "components/builder-dbcache",
   "components/builder-depot",

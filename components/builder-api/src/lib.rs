@@ -24,11 +24,13 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 extern crate mount;
+extern crate persistent;
 extern crate protobuf;
 extern crate redis;
 #[macro_use]
 extern crate router;
 extern crate rustc_serialize;
+extern crate serde_json;
 extern crate staticfile;
 extern crate toml;
 extern crate unicase;

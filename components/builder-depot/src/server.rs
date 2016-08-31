@@ -27,7 +27,7 @@ use hab_core::crypto::SigKeyPair;
 use hab_net;
 use hab_net::config::RouteAddrs;
 use hab_net::routing::Broker;
-use hab_net::server::{NetIdent, ServerContext};
+use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::{ContentType, Vary};
 use iron::prelude::*;
@@ -93,14 +93,14 @@ pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Res
                     return Err(render_net_error(&err));
                 }
             };
-            let mut conn = Broker::connect(&depot.context).unwrap();
+            let mut conn = Broker::connect().unwrap();
             let mut request = SessionCreate::new();
             request.set_token(token.to_string());
             request.set_extern_id(user.id);
             request.set_email(email);
             request.set_name(user.login);
             request.set_provider(OAuthProvider::GitHub);
-            conn.route(&request).unwrap();
+            conn.route_async(&request).unwrap();
             match conn.recv() {
                 Ok(rep) => {
                     match rep.get_message_id() {
@@ -141,10 +141,10 @@ pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Res
 pub fn authenticate(depot: &Depot, req: &mut Request) -> result::Result<Session, Response> {
     match req.headers.get::<Authorization<Bearer>>() {
         Some(&Authorization(Bearer { ref token })) => {
-            let mut conn = Broker::connect(&depot.context).unwrap();
+            let mut conn = Broker::connect().unwrap();
             let mut request = SessionGet::new();
             request.set_token(token.to_string());
-            conn.route(&request).unwrap();
+            conn.route_async(&request).unwrap();
             match conn.recv() {
                 Ok(rep) => {
                     match rep.get_message_id() {
@@ -195,8 +195,8 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
         return Ok(Response::with(status::UnprocessableEntity));
     }
 
-    let mut conn = Broker::connect(&depot.context).unwrap();
-    conn.route(&request).unwrap();
+    let mut conn = Broker::connect().unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -219,17 +219,17 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin.to_string(),
         _ => return Ok(Response::with(status::BadRequest)),
     };
 
-    let mut conn = Broker::connect(&depot.context).unwrap();
+    let mut conn = Broker::connect().unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin);
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -254,11 +254,11 @@ pub fn origin_show(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
-    let mut conn = Broker::connect(&depot.context).unwrap();
+pub fn get_origin(origin: &str) -> Result<Option<Origin>> {
+    let mut conn = Broker::connect().unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin.to_string());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -284,8 +284,8 @@ pub fn get_origin(depot: &Depot, origin: &str) -> Result<Option<Origin>> {
     }
 }
 
-pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) -> bool {
-    let mut conn = Broker::connect(&depot.context).unwrap();
+pub fn check_origin_access(account_id: u64, origin_name: &str) -> bool {
+    let mut conn = Broker::connect().unwrap();
 
     let mut request = CheckOriginAccessRequest::new();
     // !!!NOTE!!!
@@ -295,7 +295,7 @@ pub fn check_origin_access(depot: &Depot, account_id: u64, origin_name: &str) ->
     request.set_account_id(account_id);
     request.set_origin_name(origin_name.to_string());
 
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -336,15 +336,15 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
            &user_to_invite,
            &origin);
 
-    if !check_origin_access(&depot, session.get_id(), &origin) {
+    if !check_origin_access(session.get_id(), &origin) {
         return Ok(Response::with(status::Forbidden));
     }
 
     // Lookup the users account_id
-    let mut conn = Broker::connect(&depot.context).unwrap();
+    let mut conn = Broker::connect().unwrap();
     let mut request = AccountGet::new();
     request.set_name(user_to_invite.to_string());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
 
     let acct_obj = match conn.recv() {
         Ok(rep) => {
@@ -366,7 +366,7 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
         }
     };
 
-    let origin_obj = match try!(get_origin(&depot, &origin)) {
+    let origin_obj = match try!(get_origin(&origin)) {
         Some(origin) => origin,
         None => {
             debug!("Origin {} not found", &origin);
@@ -382,7 +382,7 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
     invite_request.set_origin_name(origin_obj.get_name().to_string());
     invite_request.set_owner_id(session.get_id());
 
-    conn.route(&invite_request).unwrap();
+    conn.route_async(&invite_request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -423,20 +423,20 @@ pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<R
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(&depot, session.get_id(), &origin_name) {
+    if !check_origin_access(session.get_id(), &origin_name) {
         return Ok(Response::with(status::Forbidden));
     }
 
-    let mut conn = Broker::connect(&depot.context).unwrap();
+    let mut conn = Broker::connect().unwrap();
     let mut request = OriginInvitationListRequest::new();
 
-    let origin = match try!(get_origin(&depot, origin_name)) {
+    let origin = match try!(get_origin(origin_name)) {
         Some(o) => o,
         None => return Ok(Response::with(status::NotFound)),
     };
 
     request.set_origin_id(origin.get_id());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -476,20 +476,20 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(&depot, session.get_id(), &origin_name) {
+    if !check_origin_access(session.get_id(), &origin_name) {
         return Ok(Response::with(status::Forbidden));
     }
 
-    let mut conn = Broker::connect(&depot.context).unwrap();
+    let mut conn = Broker::connect().unwrap();
     let mut request = OriginMemberListRequest::new();
 
-    let origin = match try!(get_origin(&depot, origin_name)) {
+    let origin = match try!(get_origin(origin_name)) {
         Some(o) => o,
         None => return Ok(Response::with(status::NotFound)),
     };
 
     request.set_origin_id(origin.get_id());
-    conn.route(&request).unwrap();
+    conn.route_async(&request).unwrap();
     match conn.recv() {
         Ok(rep) => {
             match rep.get_message_id() {
@@ -584,7 +584,7 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Err(response) => return Ok(response),
         };
 
-        if !check_origin_access(&depot, session.get_id(), &origin) {
+        if !check_origin_access(session.get_id(), &origin) {
             return Ok(Response::with(status::Forbidden));
         }
     }
@@ -649,12 +649,11 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(&depot, session.get_id(), &name) {
+    if !check_origin_access(session.get_id(), &name) {
         return Ok(Response::with(status::Forbidden));
     }
 
-
-    let o = match try!(get_origin(&depot, name)) {
+    let o = match try!(get_origin(name)) {
         Some(o) => o,
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -696,8 +695,8 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
     request.set_body(key_content);
     request.set_owner_id(0);
 
-    let mut conn = Broker::connect(&depot.context).unwrap();
-    conn.route(&request).unwrap();
+    let mut conn = Broker::connect().unwrap();
+    conn.route_async(&request).unwrap();
     Ok(Response::with(status::Created))
 }
 
@@ -725,7 +724,7 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
             Err(response) => return Ok(response),
         };
 
-        if !check_origin_access(&depot, session.get_id(), &ident.get_origin()) {
+        if !check_origin_access(session.get_id(), &ident.get_origin()) {
             return Ok(Response::with(status::Forbidden));
         }
 
@@ -1164,7 +1163,7 @@ fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     match depot.datastore.channels.is_member(channel) {
         Ok(true) => {
             let ident = ident_from_params(params);
-            if !check_origin_access(&depot, session.get_id(), &ident.get_origin()) {
+            if !check_origin_access(session.get_id(), &ident.get_origin()) {
                 return Ok(Response::with(status::Forbidden));
             }
             match depot.datastore.packages.find(&ident) {
@@ -1287,7 +1286,6 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
     let depot16 = depot.clone();
     let depot17 = depot.clone();
     let depot18 = depot.clone();
-    let depot19 = depot.clone();
     let depot20 = depot.clone();
     let depot21 = depot.clone();
     let depot22 = depot.clone();
@@ -1400,7 +1398,7 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
         // TODO
         //delete "/origins/:origin" => move |r: &mut Request| origin_delete(&depot17, r),
 
-        get "/origins/:origin" => move |r: &mut Request| origin_show(&depot19, r),
+        get "/origins/:origin" => move |r: &mut Request| origin_show(r),
 
         get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot20, r),
         get "/origins/:origin/keys/latest" => {
@@ -1432,12 +1430,9 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
 
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
-
-    let ctx = Arc::new(Box::new(ServerContext::new()));
-    let ctx1 = ctx.clone();
-    let depot = try!(Depot::new(config.clone(), ctx));
+    let depot = try!(Depot::new(config.clone()));
     let v1 = try!(router(depot.clone()));
-    let broker = Broker::run(Depot::net_ident(), ctx1, &config.route_addrs().clone());
+    let broker = Broker::run(Depot::net_ident(), &config.route_addrs().clone());
 
     let mut mount = Mount::new();
     mount.mount("/v1", v1);

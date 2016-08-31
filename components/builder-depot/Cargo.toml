@@ -11,7 +11,7 @@ name = "hab-depot"
 doc = false
 
 [dependencies]
-bitflags = "*"
+bodyparser = "*"
 env_logger = "*"
 hyper = "*"
 iron = "*"
@@ -32,9 +32,6 @@ time = "*"
 toml = "*"
 unicase = "*"
 walkdir = "*"
-
-[dependencies.bodyparser]
-git = "https://github.com/iron/body-parser.git"
 
 [dependencies.clap]
 version = "*"

@@ -1,4 +1,5 @@
 package jobsrv;
+import "protocols/vault.proto";
 
 enum Os {
   Linux = 1;
@@ -27,13 +28,16 @@ message Heartbeat {
 
 message Job {
   required uint64 id = 1;
-  required JobState state = 2;
+  required uint64 owner_id = 2;
+  required JobState state = 3;
+  required vault.Project project = 4;
 }
 
 message JobGet {
   required uint64 id = 1;
 }
 
-message JobCreate {
+message JobSpec {
   required uint64 owner_id = 1;
+  required vault.Project project = 2;
 }

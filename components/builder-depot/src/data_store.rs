@@ -100,7 +100,7 @@ impl Bucket for PackagesTable {
 impl BasicSet for PackagesTable {
     type Record = depotsrv::Package;
 
-    fn write(&self, record: &depotsrv::Package) -> result::Result<(), dbcache::Error> {
+    fn write(&self, record: &depotsrv::Package) -> result::Result<bool, dbcache::Error> {
         let conn = self.pool().get().unwrap();
         let keys = [Self::key(record),
                     PackagesIndex::origin_idx(&record),
@@ -112,7 +112,7 @@ impl BasicSet for PackagesTable {
             PackagesIndex::write(&mut txn, &record);
             txn.query(conn.deref())
         }));
-        Ok(())
+        Ok(true)
     }
 }
 

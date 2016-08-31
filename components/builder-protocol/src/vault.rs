@@ -71,7 +71,6 @@ impl Routable for OriginMemberListRequest {
     }
 }
 
-
 impl Persistable for OriginSecretKey {
     type Key = u64;
 
@@ -83,7 +82,6 @@ impl Persistable for OriginSecretKey {
         self.set_id(value);
     }
 }
-
 
 impl Routable for OriginSecretKeyCreate {
     type H = InstaId;
@@ -133,7 +131,6 @@ impl ToJson for OriginInvitation {
     }
 }
 
-
 impl Routable for AccountInvitationListRequest {
     type H = u64;
 
@@ -151,7 +148,6 @@ impl Routable for AccountInvitationListResponse {
         Some(self.get_account_id())
     }
 }
-
 
 impl ToJson for AccountInvitationListResponse {
     fn to_json(&self) -> Json {
@@ -181,7 +177,6 @@ impl Routable for OriginInvitationListResponse {
     }
 }
 
-
 impl ToJson for OriginInvitationListResponse {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
@@ -191,7 +186,6 @@ impl ToJson for OriginInvitationListResponse {
         Json::Object(m)
     }
 }
-
 
 impl Routable for OriginInvitationAcceptRequest {
     type H = u64;
@@ -238,5 +232,59 @@ impl Routable for CheckOriginAccessRequest {
     fn route_key(&self) -> Option<Self::H> {
         // TODO!
         Some(self.get_account_id())
+    }
+}
+
+impl Routable for ProjectGet {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_id().to_string())
+    }
+}
+
+impl Routable for ProjectCreate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_project().get_id().to_string())
+    }
+}
+
+impl Routable for ProjectDelete {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_id().to_string())
+    }
+}
+
+impl Routable for ProjectUpdate {
+    type H = String;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(self.get_project().get_id().to_string())
+    }
+}
+
+impl Persistable for Project {
+    type Key = String;
+
+    fn primary_key(&self) -> Self::Key {
+        self.get_id().to_string()
+    }
+
+    fn set_primary_key(&mut self, value: Self::Key) {
+        self.set_id(value);
+    }
+}
+
+impl ToJson for Project {
+    fn to_json(&self) -> Json {
+        let mut m = BTreeMap::new();
+        m.insert("id".to_string(), self.get_id().to_json());
+        m.insert("plan_path".to_string(),
+                 self.get_plan_path().to_string().to_json());
+        Json::Object(m)
     }
 }

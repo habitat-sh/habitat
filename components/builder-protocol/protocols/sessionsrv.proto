@@ -15,16 +15,46 @@ message AccountGet {
   required string name = 1;
 }
 
+message AccountSearch {
+  required AccountSearchKey key = 1;
+  required string value = 2;
+}
+
+enum AccountSearchKey {
+  Id = 0;
+  Name = 1;
+}
+
+message GrantFlagToTeam {
+  required uint32 flag = 1;
+  required uint64 team_id = 2;
+}
+
+message RevokeFlagFromTeam {
+  required uint32 flag = 1;
+  required uint64 team_id = 2;
+}
+
+message ListFlagGrants {
+  required uint32 flag = 1;
+}
+
+message FlagGrants {
+  repeated uint64 teams = 1;
+}
+
 message Session {
   required uint64 id = 1;
   required string email = 2;
   required string name = 3;
   required string token = 4;
+  required uint32 flags = 5;
 }
 
 message SessionToken {
   required string token = 1;
   required uint64 owner_id = 2;
+  required OAuthProvider provider = 3;
 }
 
 message SessionCreate {
@@ -38,5 +68,3 @@ message SessionCreate {
 message SessionGet {
   required string token = 1;
 }
-
-
