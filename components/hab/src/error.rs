@@ -98,7 +98,9 @@ impl error::Error for Error {
                 "Package archive was unreadable or had unexpected contents"
             }
             Error::PathPrefixError(ref err) => err.description(),
-            Error::ProvidesError(_) => "Can't find a package that provides the given search parameter",
+            Error::ProvidesError(_) => {
+                "Can't find a package that provides the given search parameter"
+            }
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",
         }
