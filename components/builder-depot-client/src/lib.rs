@@ -274,6 +274,24 @@ impl Client {
         }
     }
 
+    /// Returns a vector of PackageIdent structs
+    ///
+    /// # Failures
+    ///
+    /// * Remote depot unavailable
+    pub fn search_package(&self, search_term: String) -> Result<Vec<hab_core::package::PackageIdent>> {
+        let mut res = try!(self.inner.get(&format!("pkgs/search/{}", search_term)).send());
+        match res.status {
+            hyper::status::StatusCode::Ok | hyper::status::StatusCode::PartialContent => {
+                let mut encoded = String::new();
+                try!(res.read_to_string(&mut encoded));
+                let packages: Vec<hab_core::package::PackageIdent> = json::decode(&encoded).unwrap();
+                Ok(packages)
+            },
+            _ => Err(Error::HTTP(res.status))
+        }
+    }
+
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
         rb.header(Authorization(Bearer { token: token.to_string() }))
     }

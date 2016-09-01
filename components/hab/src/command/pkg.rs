@@ -362,6 +362,33 @@ pub mod provides {
     }
 }
 
+pub mod search {
+    use error::Result;
+    use depot_client::Client;
+    use {PRODUCT, VERSION};
+
+    pub fn start(st: &str, url: &str) -> Result<()> {
+        let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
+        match depot_client.search_package(st.to_string()) {
+            Ok(packages) => {
+                match packages.len() {
+                    0 => { println!("No packages found that match '{}'", st); }
+                    _ => {
+                        for p in &packages {
+                            println!("{}/{}/{}/{}", p.origin, p.name, p.version.clone().unwrap(), p.release.clone().unwrap());
+                        }
+                        if packages.len() == 50 {
+                            println!("Search returned too many items, only showing the first 50");
+                        }
+                    }
+                }
+            },
+            Err(e) => println!("{}", e)
+        }
+        Ok(())
+    }
+}
+
 pub mod sign {
     use std::path::Path;
 

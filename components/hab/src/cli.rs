@@ -177,6 +177,11 @@ pub fn get() -> App<'static, 'static> {
                 (@arg FULL_RELEASES: -r "Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)")
                 (@arg FULL_PATHS: -p "Show full path to file")
             )
+            (@subcommand search =>
+                (about: "Search for a package on a Depot")
+                (@arg SEARCH_TERM: +required +takes_value "Search term")
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL")
+            )
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
                 (aliases: &["s", "si", "sig"])
