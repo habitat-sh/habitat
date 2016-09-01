@@ -10,4 +10,4 @@ if command -v rustfmt >/dev/null; then
   fi
 fi
 
-cargo install --vers $version rustfmt
+cargo install --vers $version --force rustfmt
