@@ -59,7 +59,7 @@ if ! command -v rustfmt >/dev/null; then
 fi
 
 info "Checking for version $rf_version of rustfmt"
-actual="$(rustfmt --version)"
+actual="$(rustfmt --version | cut -d ' ' -f 1)"
 if [[ "$actual" != "0.5.0" ]]; then
   exit_with "\`rustfmt' version $actual doesn't match expected: $rf_version" 2
 fi
