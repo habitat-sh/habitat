@@ -16,7 +16,7 @@ import "whatwg-fetch";
 import {URLSearchParams} from "angular2/http";
 import * as cookies from "js-cookie";
 import config from "../config";
-import {attemptSignIn, addNotification, goHome, requestRoute, setSigningInFlag,
+import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setSigningInFlag,
     signOut} from "./index";
 import {DANGER, WARNING} from "./notifications";
 
@@ -62,13 +62,14 @@ export function authenticateWithGitHub(token = undefined) {
                 }
             }).then(data => {
                 dispatch(populateGitHubUserData(data));
+                dispatch(fetchMyOrigins(token));
                 dispatch(attemptSignIn(data["login"]));
             }).catch(error => {
                 // We can assume an error from the response is a 401; anything
                 // else is probably a transient failure on GitHub's end, which
                 // we can expect to clear when we try to sign in again.
                 //
-                // When we get an unauthorized response, out token is no
+                // When we get an unauthorized response, our token is no
                 // longer valid, so sign out.
                 dispatch(signOut());
                 dispatch(addNotification({
@@ -143,14 +144,6 @@ export function onGitHubOrgSelect(org, username) {
     return dispatch => {
         dispatch(setSelectedGitHubOrg(org));
         dispatch(fetchGitHubRepos(org, 1, username));
-    };
-}
-
-export function onGitHubRepoSelect(repo) {
-    return dispatch => {
-        dispatch(requestRoute(
-            ["ProjectCreate", { repo: encodeURIComponent(repo) }]
-        ));
     };
 }
 

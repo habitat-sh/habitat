@@ -17,7 +17,7 @@ import {Observable} from "rxjs";
 import {BuilderApiClient} from "../BuilderApiClient";
 import {addNotification} from "./notifications";
 import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
-import {requestRoute} from "./router";
+import {requestRoute, resetRedirectRoute} from "./router";
 import {packageString} from "../util";
 
 // The ansi_up module does not have TypeScript type definitions, so it needs to
@@ -33,11 +33,15 @@ export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
 export const SET_PROJECTS = "SET_PROJECTS";
 export const DELETE_PROJECT = "DELETE_PROJECT";
+export const DEPOPULATE_PROJECT = "DEPOPULATE_PROJECT";
+export const SET_PROJECT_HINT = "SET_PROJECT_HINT";
+export const RESET_PROJECT_HINT = "RESET_PROJECT_HINT";
 
-export function addProject(project: Object, token: string) {
+export function addProject(project: Object, token: string, route: Array<String>) {
     return dispatch => {
         new BuilderApiClient(token).createProject(project).then(response => {
-            dispatch(requestRoute(["Projects"]));
+            dispatch(resetProjectHint());
+            dispatch(requestRoute(route));
             dispatch(addNotification({
                 title: "Project created",
                 body: `Created ${response["id"]}.`,
@@ -89,7 +93,20 @@ function fetchBuildLog(pkg, builds) {
     };
 }
 
-export function fetchProject(id: string, token: string) {
+export function setProjectHint(hint: Object) {
+    return {
+        type: SET_PROJECT_HINT,
+        payload: hint
+    };
+}
+
+export function resetProjectHint() {
+    return {
+        type: RESET_PROJECT_HINT
+    };
+}
+
+export function fetchProject(id: string, token: string, alert: boolean) {
     return dispatch => {
         new BuilderApiClient(token).getProject(id).then(response => {
             dispatch(
@@ -99,13 +116,25 @@ export function fetchProject(id: string, token: string) {
                 }, response)
               )
             );
+            dispatch(populateProject(response));
         }).catch(error => {
-            dispatch(addNotification({
-                title: "Failed to fetch project",
-                body: error.message,
-                type: DANGER,
-            }));
+            if (alert) {
+              dispatch(addNotification({
+                  title: "Failed to fetch project",
+                  body: error.message,
+                  type: DANGER,
+              }));
+            }
         });
+    };
+}
+
+export function fetchProjectsForPackages(packages: Array<Object>, token: string) {
+    return dispatch => {
+        for (let pkg of packages) {
+            let id = `${pkg["origin"]}/${pkg["name"]}`;
+            dispatch(fetchProject(id, token, false));
+        }
     };
 }
 
@@ -117,16 +146,18 @@ export function fetchProjects(token: string) {
     };
 }
 
-export function deleteProject(id: string, token: string) {
+export function deleteProject(id: string, token: string, origin: string) {
     return dispatch => {
         new BuilderApiClient(token).deleteProject(id).then(response => {
-            dispatch(requestRoute(["Projects"]));
+            dispatch(resetProjectHint());
+            dispatch(requestRoute(["Origin", { origin: origin }]));
             dispatch(addNotification({
                 title: "Project deleted",
                 body: `Deleted ${id}.`,
                 type: SUCCESS
             }));
             dispatch(actuallyDeleteProject(id));
+            dispatch(depopulateProject(id));
         }).catch(error => {
             dispatch(addNotification({
                 title: "Failed to delete project",
@@ -134,6 +165,34 @@ export function deleteProject(id: string, token: string) {
                 type: DANGER,
             }));
         });
+    };
+}
+
+export function updateProject(projectId: string, project: Object, token: string, route: Array<String>) {
+    return dispatch => {
+        new BuilderApiClient(token).updateProject(projectId, project).then(response => {
+            dispatch(resetProjectHint());
+            dispatch(resetRedirectRoute());
+            dispatch(requestRoute(route));
+            dispatch(addNotification({
+                title: "Project updated",
+                body: `Updated ${projectId}.`,
+                type: SUCCESS
+            }));
+        }).catch(error => {
+            dispatch(addNotification({
+                title: "Failed to update project",
+                body: error.message,
+                type: DANGER,
+            }));
+        });
+    };
+}
+
+function depopulateProject(projectId) {
+    return {
+        type: DEPOPULATE_PROJECT,
+        payload: projectId
     };
 }
 

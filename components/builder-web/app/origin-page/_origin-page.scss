@@ -15,11 +15,51 @@
 .hab-origin {
   &--left {
     @include span-columns(8);
+
+    .pkg-container {
+      @include span-columns(8 of 8);
+      padding: rem(10);
+      border-bottom: 1px solid $light-gray;
+    }
+
+    .pkg-col-1 {
+      text-align: left;
+      @include span-columns(4 of 8);
+    }
+
+    .pkg-col-2 {
+      text-align: right;
+      @include span-columns(2 of 8);
+    }
+
+    .pkg-col-3 {
+      text-align: right;
+      @include span-columns(2 of 8);
+      @include omega();
+    }
+
+    .origin-package-item {
+      border: 1px solid $light-gray;
+      border-color: $hab-blue-light;
+      border-radius: $global-radius;
+      color: inherit;
+      display: block;
+      margin-bottom: 0.5em;
+      padding: 1em 1.5em;
+      position: relative;
+
+      a {
+        position: static;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        display: inline;
+      }
+    }
   }
 
   &--right {
     @include span-columns(4);
-    @include omega;
     border-left: 1px solid $light-gray;
     padding-left: $base-spacing;
   }
@@ -42,6 +82,10 @@
     > h3 {
       margin-bottom: rem(30);
     }
+  }
+
+  &--pkg-list {
+    margin-top: rem(30);
   }
 }
 

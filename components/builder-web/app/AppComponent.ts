@@ -32,6 +32,7 @@ import {RouteConfig, Router, RouterOutlet} from "angular2/router";
 import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
+import {ProjectSettingsPageComponent} from "./project-settings-page/ProjectSettingsPageComponent";
 import {authenticateWithGitHub, loadSessionState, removeNotification,
     requestGitHubAuthToken, routeChange, setGitHubAuthState,
     setPackagesSearchQuery, signOut, toggleUserNavMenu} from "./actions/index";
@@ -149,6 +150,11 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
         path: "/projects/:origin/:name",
         name: "Project",
         component: ProjectPageComponent
+    },
+    {
+        path: "/projects/:origin/:name/settings",
+        name: "ProjectSettings",
+        component: ProjectSettingsPageComponent
     },
     {
         path: "/scm-repos",

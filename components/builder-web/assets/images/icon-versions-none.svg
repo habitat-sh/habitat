@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 39.1 (31720) - http://www.bohemiancoding.com/sketch -->
+    <title>icon-versions-none</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Web-App---Origins" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" opacity="0.400000006">
+        <g id="Web-App---Origin-Packages-List-dotnet-connected" transform="translate(-903.000000, -545.000000)" fill="#C3C6C8">
+            <g id="Body" transform="translate(330.000000, 100.000000)">
+                <g id="Desc" transform="translate(25.000000, 265.000000)">
+                    <g id="icon-versions-none" transform="translate(548.000000, 180.000000)">
+                        <path d="M19.81,15.9412058 L21,15.0244145 L19.57,13.5994021 L18.38,14.5156951 L19.81,15.9412058 L19.81,15.9412058 Z M19.36,11.2371699 L21,9.9715994 L12,2.99651221 L9.09,5.25809666 L16.96,13.1106129 L19.36,11.2371699 L19.36,11.2371699 Z M3.27,2 L2,3.2655705 L6.22,7.47035376 L3,9.9715994 L4.63,11.2371699 L12,16.9476831 L14.1,15.32287 L15.53,16.7483807 L12,19.4788241 L4.63,13.7683109 L3,15.0244145 L12,22 L16.95,18.1629297 L20.73,21.9297459 L22,20.6646736 L3.27,2 L3.27,2 Z" id="Fill-258"></path>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

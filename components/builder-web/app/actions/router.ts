@@ -14,6 +14,8 @@
 
 export const ROUTE_CHANGE = "ROUTE_CHANGE";
 export const ROUTE_REQUESTED = "ROUTE_REQUESTED";
+export const SET_REDIRECT_ROUTE = "SET_REDIRECT_ROUTE";
+export const RESET_REDIRECT_ROUTE = "RESET_REDIRECT_ROUTE";
 
 export function goHome() {
     return dispatch => {
@@ -32,5 +34,18 @@ export function requestRoute(requestedRoute: Array<any>) {
     return {
         type: ROUTE_REQUESTED,
         payload: requestedRoute
+    };
+}
+
+export function setRedirectRoute(redirectRoute: Array<any>) {
+    return {
+        type: SET_REDIRECT_ROUTE,
+        payload: redirectRoute
+    };
+}
+
+export function resetRedirectRoute() {
+    return {
+        type: RESET_REDIRECT_ROUTE
     };
 }
