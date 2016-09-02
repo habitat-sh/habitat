@@ -31,10 +31,8 @@ build() {
       local bin=bldr-job-srv
     fi
     # If the compiled binary does not exist, compile it
-    if [[ ! -f "$binroot/debug/$bin" ]]; then
-      echo "Compiling builder-$service..."
-      (cd "$root/$dir" && cargo build)
-    fi
+    echo "Compiling builder-$service..."
+    cd "$root/$dir" && cargo build
   done
 }
 

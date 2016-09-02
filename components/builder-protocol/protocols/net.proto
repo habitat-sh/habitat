@@ -31,6 +31,7 @@ enum ErrCode {
   SESSION_EXPIRED = 8;
   ENTITY_CONFLICT = 9;
   ZMQ = 10;
+  DATA_STORE = 11;
 }
 
 message NetError {

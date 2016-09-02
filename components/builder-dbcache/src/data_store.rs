@@ -213,7 +213,7 @@ pub trait InstaSet: Bucket {
     /// An ID will be automatically created and assigned as the primary key of given record.
     fn write(&self, record: &mut Self::Record) -> Result<bool> {
         let conn = try!(self.pool().get());
-        match try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
+        let rep = try!(redis::transaction(conn.deref(), &[Self::seq_id()], |txn| {
             let sequence_id: u64 = match conn.get::<&'static str, u64>(Self::seq_id()) {
                 Ok(value) => value + 1,
                 _ => 0,
@@ -224,14 +224,12 @@ pub trait InstaSet: Bucket {
                 .ignore()
                 .set_nx(Self::key(&record.primary_key()),
                         record.write_to_bytes().unwrap())
-                .query(conn.deref())
-        })) {
-            1 => Ok(true),
-            0 => Ok(false),
-            code => {
-                unreachable!("received unexpected return code from redis-hsetnx: {}",
-                             code)
-            }
+                .query::<Option<Vec<u32>>>(conn.deref())
+        }));
+        if rep.len() == 1 && rep[0] == 1 {
+            Ok(true)
+        } else {
+            Ok(false)
         }
     }
 }
