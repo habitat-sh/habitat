@@ -17,28 +17,26 @@ use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
 use std::result;
-use std::sync::Arc;
 
 use bodyparser;
 use dbcache::{self, BasicSet};
 use hab_core::package::{Identifiable, FromArchive, PackageArchive};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
-use hab_net;
 use hab_net::config::RouteAddrs;
+use hab_net::http::controller::*;
 use hab_net::routing::Broker;
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::{ContentType, Vary};
 use iron::prelude::*;
-use iron::{status, headers, AfterMiddleware};
-use iron::headers::{Authorization, Bearer};
+use iron::{status, headers};
 use iron::request::Body;
 use mount::Mount;
-use protobuf;
+use persistent;
 use protocol::depotsrv;
-use protocol::net::{self, NetError, ErrCode};
-use protocol::sessionsrv::{Account, AccountGet, OAuthProvider, Session, SessionCreate, SessionGet};
+use protocol::net::ErrCode;
+use protocol::sessionsrv::{Account, AccountGet};
 use protocol::vault::*;
 use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
@@ -54,133 +52,13 @@ const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
-/// Return an IronResult containing the body of a NetError and the appropriate HTTP response status
-/// for the corresponding NetError.
-///
-/// For example, a NetError::ENTITY_NOT_FOUND will result in an HTTP response containing the body
-/// of the NetError with an HTTP status of 404.
-///
-/// # Panics
-///
-/// * The given encoded message was not a NetError
-/// * The given messsage could not be decoded
-/// * The NetError could not be encoded to JSON
-fn render_net_error(err: &NetError) -> Response {
-    let encoded = json::encode(&err.to_json()).unwrap();
-    let status = match err.get_code() {
-        ErrCode::ENTITY_CONFLICT => status::Conflict,
-        ErrCode::ENTITY_NOT_FOUND => status::NotFound,
-        ErrCode::NO_SHARD => status::ServiceUnavailable,
-        ErrCode::TIMEOUT => status::RequestTimeout,
-        ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
-        ErrCode::SESSION_EXPIRED => status::Unauthorized,
-        _ => status::InternalServerError,
-    };
-    Response::with((status, encoded))
-}
-
-pub fn session_create(depot: &Depot, token: &str) -> result::Result<Session, Response> {
-    match depot.github.user(&token) {
-        Ok(user) => {
-            // Select primary email. If no primary email can be found, use any email. If no email
-            // is associated with account return an access denied error.
-            let email = match depot.github.emails(&token) {
-                Ok(ref emails) => {
-                    emails.iter().find(|e| e.primary).unwrap_or(&emails[0]).email.clone()
-                }
-                Err(_) => {
-                    let err = net::err(ErrCode::ACCESS_DENIED, "dp:auth:0");
-                    return Err(render_net_error(&err));
-                }
-            };
-            let mut conn = Broker::connect().unwrap();
-            let mut request = SessionCreate::new();
-            request.set_token(token.to_string());
-            request.set_extern_id(user.id);
-            request.set_email(email);
-            request.set_name(user.login);
-            request.set_provider(OAuthProvider::GitHub);
-            conn.route_async(&request).unwrap();
-            match conn.recv() {
-                Ok(rep) => {
-                    match rep.get_message_id() {
-                        "Session" => {
-                            let token: Session = protobuf::parse_from_bytes(rep.get_body())
-                                .unwrap();
-                            Ok(token)
-                        }
-                        "NetError" => {
-                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            Err(render_net_error(&err))
-                        }
-                        _ => unreachable!("unexpected msg: {:?}", rep),
-                    }
-                }
-                Err(e) => {
-                    error!("{:?}", e);
-                    Err(Response::with(status::ServiceUnavailable))
-                }
-            }
-        }
-        Err(hab_net::Error::GitHubAPI(ref m)) => {
-            Err(Response::with((status::Unauthorized, json::encode(m).unwrap())))
-        }
-        Err(e @ hab_net::Error::JsonDecode(_)) => {
-            debug!("github user get, err={:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "dp:auth:1");
-            Err(render_net_error(&err))
-        }
-        Err(e) => {
-            debug!("github user get, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "dp:auth:2");
-            Err(render_net_error(&err))
-        }
-    }
-}
-
-pub fn authenticate(depot: &Depot, req: &mut Request) -> result::Result<Session, Response> {
-    match req.headers.get::<Authorization<Bearer>>() {
-        Some(&Authorization(Bearer { ref token })) => {
-            let mut conn = Broker::connect().unwrap();
-            let mut request = SessionGet::new();
-            request.set_token(token.to_string());
-            conn.route_async(&request).unwrap();
-            match conn.recv() {
-                Ok(rep) => {
-                    match rep.get_message_id() {
-                        "Session" => {
-                            let session = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            Ok(session)
-                        }
-                        "NetError" => {
-                            let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                            if err.get_code() == ErrCode::SESSION_EXPIRED {
-                                session_create(depot, token)
-                            } else {
-                                Err(render_net_error(&err))
-                            }
-                        }
-                        _ => unreachable!("unexpected msg: {:?}", rep),
-                    }
-                }
-                Err(e) => {
-                    error!("session get, err={:?}", e);
-                    Err(Response::with(status::InternalServerError))
-                }
-            }
-        }
-        _ => Err(Response::with(status::Unauthorized)),
-    }
-}
-
-pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let session = match authenticate(&depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
+pub fn origin_create(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginCreate::new();
-    request.set_owner_id(session.get_id());
-    request.set_owner_name(session.get_name().to_string());
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_owner_id(session.get_id());
+        request.set_owner_name(session.get_name().to_string());
+    }
     match req.get::<bodyparser::Json>() {
         Ok(Some(body)) => {
             match body.find("name") {
@@ -196,26 +74,9 @@ pub fn origin_create(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 
     let mut conn = Broker::connect().unwrap();
-    conn.route_async(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Origin" => {
-                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&origin.to_json()).unwrap();
-                    Ok(Response::with((status::Created, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+    match conn.route::<OriginCreate, Origin>(&request) {
+        Ok(origin) => Ok(render_json(status::Created, &origin)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -229,28 +90,13 @@ pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin);
-    conn.route_async(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Origin" => {
-                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&origin.to_json()).unwrap();
-                    let mut response = Response::with((status::Ok, encoded));
-                    dont_cache_response(&mut response);
-                    Ok(response)
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
+    match conn.route::<OriginGet, Origin>(&request) {
+        Ok(origin) => {
+            let mut response = render_json(status::Ok, &origin);
+            dont_cache_response(&mut response);
+            Ok(response)
         }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
@@ -258,35 +104,20 @@ pub fn get_origin(origin: &str) -> Result<Option<Origin>> {
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginGet::new();
     request.set_name(origin.to_string());
-    conn.route_async(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Origin" => {
-                    let origin: Origin = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(Some(origin))
-                }
-                "NetError" => {
-                    // TODO: This function can't swallow this error. This has to propogate back
-                    // to the caller so they know there was an issue and the origin may
-                    // potentially exist.
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    debug!("get_origin error: {:?}", err);
-                    Ok(None)
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
+    match conn.route::<OriginGet, Origin>(&request) {
+        Ok(origin) => Ok(Some(origin)),
+        Err(err) => {
+            if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
+                Ok(None)
+            } else {
+                // JW TODO: propogate error properly
+                Ok(None)
             }
-        }
-        Err(e) => {
-            error!("{:?}", e);
-            Err(Error::from(e))
         }
     }
 }
 
 pub fn check_origin_access(account_id: u64, origin_name: &str) -> bool {
-    let mut conn = Broker::connect().unwrap();
-
     let mut request = CheckOriginAccessRequest::new();
     // !!!NOTE!!!
     // only account_id and origin_name are implemented in
@@ -294,40 +125,21 @@ pub fn check_origin_access(account_id: u64, origin_name: &str) -> bool {
     // !!!NOTE!!!
     request.set_account_id(account_id);
     request.set_origin_name(origin_name.to_string());
-
-    conn.route_async(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "CheckOriginAccessResponse" => {
-                    let response: CheckOriginAccessResponse =
-                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    response.get_has_access()
-                }
-                "NetError" => false,
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            debug!("Error checking origin access: {}", e);
-            false
-        }
+    let mut conn = Broker::connect().unwrap();
+    // TODO: This function is dangerous, it swallows errors and should be refactored.
+    match conn.route::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&request) {
+        Ok(response) => response.get_has_access(),
+        Err(_) => false,
     }
 }
 
-pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
-
+pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-
     let user_to_invite = match params.find("username") {
         Some(username) => username,
         None => return Ok(Response::with(status::BadRequest)),
@@ -335,89 +147,39 @@ pub fn invite_to_origin(depot: &Depot, req: &mut Request) -> IronResult<Response
     debug!("Creating invitation for user {} origin {}",
            &user_to_invite,
            &origin);
-
     if !check_origin_access(session.get_id(), &origin) {
         return Ok(Response::with(status::Forbidden));
     }
-
-    // Lookup the users account_id
     let mut conn = Broker::connect().unwrap();
     let mut request = AccountGet::new();
-    request.set_name(user_to_invite.to_string());
-    conn.route_async(&request).unwrap();
-
-    let acct_obj = match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "Account" => {
-                    let account: Account = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    account
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    return Ok(render_net_error(&err));
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
-        }
-        Err(e) => {
-            debug!("Error inviting to origin: {}", e);
-            return Ok(Response::with(status::NotFound));
-        }
-    };
-
-    let origin_obj = match try!(get_origin(&origin)) {
-        Some(origin) => origin,
-        None => {
-            debug!("Origin {} not found", &origin);
-            return Ok(Response::with(status::NotFound));
-        }
-    };
-
-    // store invitations in the vault
     let mut invite_request = OriginInvitationCreate::new();
-    invite_request.set_account_id(acct_obj.get_id());
-    invite_request.set_account_name(acct_obj.get_name().to_string());
-    invite_request.set_origin_id(origin_obj.get_id());
-    invite_request.set_origin_name(origin_obj.get_name().to_string());
+    request.set_name(user_to_invite.to_string());
+    // Lookup the users account_id
+    match conn.route::<AccountGet, Account>(&request) {
+        Ok(mut account) => {
+            invite_request.set_account_id(account.get_id());
+            invite_request.set_account_name(account.take_name());
+        }
+        Err(err) => return Ok(render_net_error(&err)),
+    };
+    match try!(get_origin(&origin)) {
+        Some(mut origin) => {
+            invite_request.set_origin_id(origin.get_id());
+            invite_request.set_origin_name(origin.take_name());
+        }
+        None => return Ok(Response::with(status::NotFound)),
+    };
     invite_request.set_owner_id(session.get_id());
-
-    conn.route_async(&invite_request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "OriginInvitation" => {
-                    // we don't do anything with the invitation, but we could
-                    // if we want to!
-                    let _invite: OriginInvitation = protobuf::parse_from_bytes(rep.get_body())
-                        .unwrap();
-                    let encoded = json::encode(&origin.to_json()).unwrap();
-                    Ok(Response::with((status::Created, encoded)))
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-
-            }
-        }
-        Err(e) => {
-            debug!("Error: {}", &e);
-            return Ok(Response::with(status::InternalServerError));
-        }
+    // store invitations in the vault
+    match conn.route::<OriginInvitationCreate, OriginInvitation>(&invite_request) {
+        Ok(invitation) => Ok(render_json(status::Created, &invitation)),
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
-pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("list_origin_invitations");
-
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
+pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
     let origin_name = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -430,47 +192,24 @@ pub fn list_origin_invitations(depot: &Depot, req: &mut Request) -> IronResult<R
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginInvitationListRequest::new();
 
-    let origin = match try!(get_origin(origin_name)) {
-        Some(o) => o,
+    match try!(get_origin(origin_name)) {
+        Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
 
-    request.set_origin_id(origin.get_id());
-    conn.route_async(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "OriginInvitationListResponse" => {
-                    let invites: OriginInvitationListResponse =
-                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&invites.to_json()).unwrap();
-                    let mut response = Response::with((status::Ok, encoded));
-                    dont_cache_response(&mut response);
-                    Ok(response)
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
+    match conn.route::<OriginInvitationListRequest, OriginInvitationListResponse>(&request) {
+        Ok(list) => {
+            let mut response = render_json(status::Ok, &list);
+            dont_cache_response(&mut response);
+            Ok(response)
         }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
 
-pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("list_origin_members");
-
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
-    };
+pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
     let origin_name = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -482,39 +221,19 @@ pub fn list_origin_members(depot: &Depot, req: &mut Request) -> IronResult<Respo
 
     let mut conn = Broker::connect().unwrap();
     let mut request = OriginMemberListRequest::new();
-
-    let origin = match try!(get_origin(origin_name)) {
-        Some(o) => o,
+    match try!(get_origin(origin_name)) {
+        Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
-
-    request.set_origin_id(origin.get_id());
-    conn.route_async(&request).unwrap();
-    match conn.recv() {
-        Ok(rep) => {
-            match rep.get_message_id() {
-                "OriginMemberListResponse" => {
-                    let members: OriginMemberListResponse =
-                        protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    let encoded = json::encode(&members.to_json()).unwrap();
-                    let mut response = Response::with((status::Ok, encoded));
-                    dont_cache_response(&mut response);
-                    Ok(response)
-                }
-                "NetError" => {
-                    let err: NetError = protobuf::parse_from_bytes(rep.get_body()).unwrap();
-                    Ok(render_net_error(&err))
-                }
-                _ => unreachable!("unexpected msg: {:?}", rep),
-            }
+    match conn.route::<OriginMemberListRequest, OriginMemberListResponse>(&request) {
+        Ok(list) => {
+            let mut response = render_json(status::Ok, &list);
+            dont_cache_response(&mut response);
+            Ok(response)
         }
-        Err(e) => {
-            error!("{:?}", e);
-            Ok(Response::with(status::ServiceUnavailable))
-        }
+        Err(err) => Ok(render_net_error(&err)),
     }
 }
-
 
 fn write_string_to_file(filename: &PathBuf, body: String) -> Result<bool> {
     let path = filename.parent().unwrap();
@@ -558,8 +277,8 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     Ok(true)
 }
 
-fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("Upload Origin Key {:?}", req);
+fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
 
     // this lets us get around ownership/mutability issues
     fn get_origin_and_revision(req: &mut Request) -> Option<(String, String)> {
@@ -579,11 +298,7 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     };
 
     if !depot.config.insecure {
-        let session = match authenticate(depot, req) {
-            Ok(session) => session,
-            Err(response) => return Ok(response),
-        };
-
+        let session = req.extensions.get::<Authenticated>().unwrap();
         if !check_origin_access(session.get_id(), &origin) {
             return Ok(Response::with(status::Forbidden));
         }
@@ -628,41 +343,33 @@ fn upload_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => {
-            return Ok(response);
-        }
-    };
-
+    let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
-    let name = match params.find("origin") {
-        Some(origin) => origin,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
-    let revision = match params.find("revision") {
-        Some(revision) => revision,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
-    if !check_origin_access(session.get_id(), &name) {
-        return Ok(Response::with(status::Forbidden));
-    }
-
-    let o = match try!(get_origin(name)) {
-        Some(o) => o,
-        None => return Ok(Response::with(status::NotFound)),
-    };
 
     let mut request = OriginSecretKeyCreate::new();
     request.set_owner_id(session.get_id());
-    request.set_origin_id(o.get_id());
-    request.set_name(name.to_string());
-    request.set_revision(revision.to_string());
+
+    match params.find("origin") {
+        Some(origin) => {
+            if !check_origin_access(session.get_id(), origin) {
+                return Ok(Response::with(status::Forbidden));
+            }
+            match try!(get_origin(origin)) {
+                Some(mut origin) => {
+                    request.set_name(origin.take_name());
+                    request.set_origin_id(origin.get_id());
+                }
+                None => return Ok(Response::with(status::NotFound)),
+            };
+        }
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+    match params.find("revision") {
+        Some(revision) => request.set_revision(revision.to_string()),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
 
     let mut key_content = Vec::new();
     if let Err(e) = req.body.read_to_end(&mut key_content) {
@@ -696,11 +403,14 @@ fn upload_origin_secret_key(depot: &Depot, req: &mut Request) -> IronResult<Resp
     request.set_owner_id(0);
 
     let mut conn = Broker::connect().unwrap();
-    conn.route_async(&request).unwrap();
-    Ok(Response::with(status::Created))
+    match conn.route::<OriginSecretKeyCreate, OriginSecretKey>(&request) {
+        Ok(_) => Ok(Response::with(status::Created)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
 }
 
-fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+fn upload_package(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     // this lets us get around ownership/mutability issues
     fn get_ident_and_checksum(req: &mut Request) -> Option<(String, depotsrv::PackageIdent)> {
         debug!("Upload {:?}", req);
@@ -719,20 +429,14 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     };
 
     if !depot.config.insecure {
-        let session = match authenticate(depot, req) {
-            Ok(session) => session,
-            Err(response) => return Ok(response),
-        };
-
+        let session = req.extensions.get::<Authenticated>().unwrap();
         if !check_origin_access(session.get_id(), &ident.get_origin()) {
             return Ok(Response::with(status::Forbidden));
         }
-
         if !ident.fully_qualified() {
             return Ok(Response::with(status::BadRequest));
         }
     }
-
 
     match depot.datastore.packages.find(&ident) {
         Ok(_) |
@@ -787,15 +491,13 @@ fn upload_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("Download origin key {:?}", req);
+fn download_origin_key(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-
     let revision = match params.find("revision") {
         Some(revision) => revision,
         None => return Ok(Response::with(status::BadRequest)),
@@ -830,10 +532,9 @@ fn download_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response>
     Ok(response)
 }
 
-fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("Download latest origin key {:?}", req);
+fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -869,8 +570,8 @@ fn download_latest_origin_key(depot: &Depot, req: &mut Request) -> IronResult<Re
     Ok(response)
 }
 
-fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    debug!("Download {:?}", req);
+fn download_package(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
     let ident = ident_from_params(params);
 
@@ -911,13 +612,13 @@ fn download_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-
     match depot.datastore.origin_keys.all(origin) {
         Ok(revisions) => {
             let body = json::encode(&revisions.to_json()).unwrap();
@@ -933,7 +634,8 @@ fn list_origin_keys(depot: &Depot, req: &mut Request) -> IronResult<Response> {
 
 }
 
-fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+fn list_packages(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let (offset, num) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
@@ -1017,7 +719,8 @@ fn list_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn list_channels(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
+fn list_channels(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let channels = try!(depot.datastore.channels.all());
     let body = json::encode(&channels).unwrap();
 
@@ -1026,7 +729,8 @@ fn list_channels(depot: &Depot, _req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
-fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+fn show_package(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
     let mut ident = ident_from_params(params);
 
@@ -1103,7 +807,8 @@ fn show_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn search_packages(depot: &Depot, req: &mut Request) -> IronResult<Response> {
+fn search_packages(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let (offset, num) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
@@ -1151,18 +856,17 @@ fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Res
     Ok(response)
 }
 
-fn promote_package(depot: &Depot, req: &mut Request) -> IronResult<Response> {
-    let session = match authenticate(depot, req) {
-        Ok(session) => session,
-        Err(response) => return Ok(response),
+fn promote_package(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let session = req.extensions.get::<Authenticated>().unwrap();
+    let (channel, ident) = {
+        let params = req.extensions.get::<Router>().unwrap();
+        let channel = params.find("channel").unwrap();
+        let ident = ident_from_params(params);
+        (channel, ident)
     };
-
-    let params = req.extensions.get::<Router>().unwrap();
-    let channel = params.find("channel").unwrap();
-
     match depot.datastore.channels.is_member(channel) {
         Ok(true) => {
-            let ident = ident_from_params(params);
             if !check_origin_access(session.get_id(), &ident.get_origin()) {
                 return Ok(Response::with(status::Forbidden));
             }
@@ -1251,179 +955,82 @@ fn dont_cache_response(response: &mut Response) {
                              vec![format!("private, no-cache, no-store").into_bytes()]);
 }
 
-struct Cors;
-
-impl AfterMiddleware for Cors {
-    fn after(&self, _req: &mut Request, mut res: Response) -> IronResult<Response> {
-        res.headers.set(headers::AccessControlAllowOrigin::Any);
-        res.headers
-            .set(headers::AccessControlExposeHeaders(vec![UniCase("content-range".to_owned()),
-                                                          UniCase("next-range".to_owned()),
-                                                          UniCase("x-content-range".to_owned())]));
-        res.headers
-            .set(headers::AccessControlAllowHeaders(vec![UniCase("authorization".to_owned()),
-                                                         UniCase("range".to_owned())]));
-        Ok(res)
-    }
-}
-
-pub fn router(depot: Arc<Depot>) -> Result<Chain> {
-    let depot1 = depot.clone();
-    let depot2 = depot.clone();
-    let depot3 = depot.clone();
-    let depot4 = depot.clone();
-    let depot5 = depot.clone();
-    let depot6 = depot.clone();
-    let depot7 = depot.clone();
-    let depot8 = depot.clone();
-    let depot9 = depot.clone();
-    let depot10 = depot.clone();
-    let depot11 = depot.clone();
-    let depot12 = depot.clone();
-    let depot13 = depot.clone();
-    let depot14 = depot.clone();
-    let depot15 = depot.clone();
-    let depot16 = depot.clone();
-    let depot17 = depot.clone();
-    let depot18 = depot.clone();
-    let depot20 = depot.clone();
-    let depot21 = depot.clone();
-    let depot22 = depot.clone();
-    let depot23 = depot.clone();
-    let depot24 = depot.clone();
-    let depot25 = depot.clone();
-    let depot26 = depot.clone();
-    let depot27 = depot.clone();
-    let depot28 = depot.clone();
-    let depot29 = depot.clone();
-    let depot30 = depot.clone();
-    let depot31 = depot.clone();
-    let depot32 = depot.clone();
-    let depot33 = depot.clone();
-    let depot34 = depot.clone();
-    let depot35 = depot.clone();
-    let depot36 = depot.clone();
-    let depot37 = depot.clone();
-    let depot38 = depot.clone();
-    let depot39 = depot.clone();
-    let depot40 = depot.clone();
-    let depot41 = depot.clone();
-    let depot42 = depot.clone();
-    let depot43 = depot.clone();
-
-
+pub fn router(depot: Depot) -> Result<Chain> {
+    let basic = Authenticated::default();
     let router = router!(
-        get "/channels" => move |r: &mut Request| list_channels(&depot28, r),
-        get "/channels/:channel/pkgs/:origin" => move |r: &mut Request| list_packages(&depot29, r),
-        get "/channels/:channel/pkgs/:origin/:pkg" => {
-            move |r: &mut Request| list_packages(&depot30, r)
-        },
-        get "/channels/:channel/pkgs/:origin/:pkg/latest" => {
-            move |r: &mut Request| show_package(&depot31, r)
-        },
-        get "/channels/:channel/pkgs/:origin/:pkg/:version" => {
-            move |r: &mut Request| list_packages(&depot32, r)
-        },
-        get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => {
-            move |r: &mut Request| show_package(&depot33, r)
-        },
-        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => {
-            move |r: &mut Request| show_package(&depot34, r)
-        },
+        get "/channels" => list_channels,
+        get "/channels/:channel/pkgs/:origin" => list_packages,
+        get "/channels/:channel/pkgs/:origin/:pkg" => list_packages,
+        get "/channels/:channel/pkgs/:origin/:pkg/latest" => show_package,
+        get "/channels/:channel/pkgs/:origin/:pkg/:version" => list_packages,
+        get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
+        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => show_package,
         post "/channels/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-            move |r: &mut Request| promote_package(&depot35, r)
+            XHandler::new(promote_package).before(basic)
         },
-        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => {
-            move |r: &mut Request| download_package(&depot36, r)
-        },
-        get "/channels/:channel/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot37, r),
-        get "/channels/:channel/origins/:origin/keys/latest" => {
-            move |r: &mut Request| download_latest_origin_key(&depot38, r)
-        },
-        get "/channels/:channel/origins/:origin/keys/:revision" => {
-            move |r: &mut Request| download_origin_key(&depot39, r)
-        },
+        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => download_package,
+        get "/channels/:channel/origins/:origin/keys" => list_origin_keys,
+        get "/channels/:channel/origins/:origin/keys/latest" => download_latest_origin_key,
+        get "/channels/:channel/origins/:origin/keys/:revision" => download_origin_key,
 
         // JW: `views` is a deprecated term and now an alias for `channels`. These routes should be
         // removed at a later date.
-        get "/views" => move |r: &mut Request| list_channels(&depot1, r),
-        get "/views/:channel/pkgs/:origin" => move |r: &mut Request| list_packages(&depot2, r),
-        get "/views/:channel/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot3, r),
-        get "/views/:channel/pkgs/:origin/:pkg/latest" => {
-            move |r: &mut Request| show_package(&depot4, r)
-        },
-        get "/views/:channel/pkgs/:origin/:pkg/:version" => {
-            move |r: &mut Request| list_packages(&depot5, r)
-        },
-        get "/views/:channel/pkgs/:origin/:pkg/:version/latest" => {
-            move |r: &mut Request| show_package(&depot6, r)
-        },
-        get "/views/:channel/pkgs/:origin/:pkg/:version/:release" => {
-            move |r: &mut Request| show_package(&depot7, r)
-        },
+        get "/views" => list_channels,
+        get "/views/:channel/pkgs/:origin" => list_packages,
+        get "/views/:channel/pkgs/:origin/:pkg" => list_packages,
+        get "/views/:channel/pkgs/:origin/:pkg/latest" => show_package,
+        get "/views/:channel/pkgs/:origin/:pkg/:version" => list_packages,
+        get "/views/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
+        get "/views/:channel/pkgs/:origin/:pkg/:version/:release" => show_package,
         post "/views/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-            move |r: &mut Request| promote_package(&depot8, r)
+            XHandler::new(promote_package).before(basic)
         },
-        get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => {
-            move |r: &mut Request| download_package(&depot40, r)
-        },
-        get "/views/:view/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot41, r),
-        get "/views/:view/origins/:origin/keys/latest" => {
-            move |r: &mut Request| download_latest_origin_key(&depot42, r)
-        },
-        get "/views/:view/origins/:origin/keys/:revision" => {
-            move |r: &mut Request| download_origin_key(&depot43, r)
-        },
+        get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => download_package,
+        get "/views/:view/origins/:origin/keys" => list_origin_keys,
+        get "/views/:view/origins/:origin/keys/latest" => download_latest_origin_key,
+        get "/views/:view/origins/:origin/keys/:revision" => download_origin_key,
 
-        get "/pkgs/search/:query" => move |r: &mut Request| search_packages(&depot9, r),
-        get "/pkgs/:origin" => move |r: &mut Request| list_packages(&depot10, r),
-        get "/pkgs/:origin/:pkg" => move |r: &mut Request| list_packages(&depot11, r),
-        get "/pkgs/:origin/:pkg/latest" => move |r: &mut Request| show_package(&depot12, r),
-        get "/pkgs/:origin/:pkg/:version" => move |r: &mut Request| list_packages(&depot13, r),
-        get "/pkgs/:origin/:pkg/:version/latest" => {
-            move |r: &mut Request| show_package(&depot14, r)
-        },
-        get "/pkgs/:origin/:pkg/:version/:release" => {
-            move |r: &mut Request| show_package(&depot15, r)
-        },
+        get "/pkgs/search/:query" => search_packages,
+        get "/pkgs/:origin" => list_packages,
+        get "/pkgs/:origin/:pkg" => list_packages,
+        get "/pkgs/:origin/:pkg/latest" => show_package,
+        get "/pkgs/:origin/:pkg/:version" => list_packages,
+        get "/pkgs/:origin/:pkg/:version/latest" => show_package,
+        get "/pkgs/:origin/:pkg/:version/:release" => show_package,
 
-        get "/pkgs/:origin/:pkg/:version/:release/download" => {
-            move |r: &mut Request| download_package(&depot16, r)
-        },
+        get "/pkgs/:origin/:pkg/:version/:release/download" => download_package,
         post "/pkgs/:origin/:pkg/:version/:release" => {
-            move |r: &mut Request| upload_package(&depot17, r)
+            if depot.config.insecure {
+                XHandler::new(upload_package)
+            } else {
+                XHandler::new(upload_package).before(basic)
+            }
         },
 
-        post "/origins" => move |r: &mut Request| origin_create(&depot18, r),
-        // TODO
-        //delete "/origins/:origin" => move |r: &mut Request| origin_delete(&depot17, r),
+        post "/origins" => XHandler::new(origin_create).before(basic),
+        get "/origins/:origin" => origin_show,
 
-        get "/origins/:origin" => move |r: &mut Request| origin_show(r),
-
-        get "/origins/:origin/keys" => move |r: &mut Request| list_origin_keys(&depot20, r),
-        get "/origins/:origin/keys/latest" => {
-            move |r: &mut Request| download_latest_origin_key(&depot21, r)
-        },
-        get "/origins/:origin/keys/:revision" => {
-            move |r: &mut Request| download_origin_key(&depot22, r)
-        },
+        get "/origins/:origin/keys" => list_origin_keys,
+        get "/origins/:origin/keys/latest" => download_latest_origin_key,
+        get "/origins/:origin/keys/:revision" => download_origin_key,
         post "/origins/:origin/keys/:revision" => {
-            move |r: &mut Request| upload_origin_key(&depot23, r)
+            if depot.config.insecure {
+                XHandler::new(upload_origin_key)
+            } else {
+                XHandler::new(upload_origin_key).before(basic)
+            }
         },
         post "/origins/:origin/secret_keys/:revision" => {
-            move |r: &mut Request| upload_origin_secret_key(&depot24, r)
+            XHandler::new(upload_origin_secret_key).before(basic)
         },
         post "/origins/:origin/users/:username/invitations" => {
-            move |r: &mut Request| invite_to_origin(&depot25, r)
+            XHandler::new(invite_to_origin).before(basic)
         },
-        get "/origins/:origin/invitations" => {
-            move |r: &mut Request| list_origin_invitations(&depot26, r)
-        },
-        get "/origins/:origin/users" => {
-            move |r: &mut Request| list_origin_members(&depot27, r)
-        },
+        get "/origins/:origin/invitations" => XHandler::new(list_origin_invitations).before(basic),
+        get "/origins/:origin/users" => XHandler::new(list_origin_members).before(basic),
     );
     let mut chain = Chain::new(router);
+    chain.link(persistent::Read::<Depot>::both(depot));
     chain.link_after(Cors);
     Ok(chain)
 }
@@ -1431,7 +1038,7 @@ pub fn router(depot: Arc<Depot>) -> Result<Chain> {
 pub fn run(config: Config) -> Result<()> {
     let listen_addr = config.listen_addr.clone();
     let depot = try!(Depot::new(config.clone()));
-    let v1 = try!(router(depot.clone()));
+    let v1 = try!(router(depot));
     let broker = Broker::run(Depot::net_ident(), &config.route_addrs().clone());
 
     let mut mount = Mount::new();

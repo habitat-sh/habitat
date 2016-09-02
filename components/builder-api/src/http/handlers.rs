@@ -23,14 +23,13 @@ use iron::prelude::*;
 use iron::status;
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobSpec};
-use protocol::sessionsrv::{OAuthProvider, Session, SessionCreate};
 use protocol::vault::*;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 use rustc_serialize::base64::FromBase64;
 use serde_json::Value;
 
-pub fn session_create(req: &mut Request) -> IronResult<Response> {
+pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let code = {
         let params = req.extensions.get::<Router>().unwrap();
         params.find("code").unwrap().to_string()
@@ -38,42 +37,8 @@ pub fn session_create(req: &mut Request) -> IronResult<Response> {
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     match github.authenticate(&code) {
         Ok(token) => {
-            match github.user(&token) {
-                Ok(user) => {
-                    // Select primary email. If no primary email can be found, use any email. If
-                    // no email is associated with account return an access denied error.
-                    let email = match github.emails(&token) {
-                        Ok(ref emails) => {
-                            emails.iter().find(|e| e.primary).unwrap_or(&emails[0]).email.clone()
-                        }
-                        Err(_) => {
-                            let err = net::err(ErrCode::ACCESS_DENIED, "rg:auth:0");
-                            return Ok(render_net_error(&err));
-                        }
-                    };
-                    let mut conn = Broker::connect().unwrap();
-                    let mut request = SessionCreate::new();
-                    request.set_token(token);
-                    request.set_extern_id(user.id);
-                    request.set_email(email);
-                    request.set_name(user.login);
-                    request.set_provider(OAuthProvider::GitHub);
-                    match conn.route::<SessionCreate, Session>(&request) {
-                        Ok(session) => Ok(render_json(status::Ok, &session)),
-                        Err(err) => Ok(render_net_error(&err)),
-                    }
-                }
-                Err(e @ hab_net::Error::JsonDecode(_)) => {
-                    debug!("github user get, err={:?}", e);
-                    let err = net::err(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
-                    Ok(render_net_error(&err))
-                }
-                Err(e) => {
-                    debug!("github user get, err={:?}", e);
-                    let err = net::err(ErrCode::BUG, "rg:auth:2");
-                    Ok(render_net_error(&err))
-                }
-            }
+            let session = try!(session_create(&github, &token));
+            Ok(render_json(status::Ok, &session))
         }
         Err(hab_net::Error::Auth(e)) => {
             debug!("github authentication, err={:?}", e);
