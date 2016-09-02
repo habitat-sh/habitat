@@ -91,9 +91,11 @@ pub trait Dispatcher: Sized + Send {
                 Ok(msg) => {
                     debug!("OnMessage, {:?}", &msg);
                     envelope.msg = msg;
-                    try!(Self::dispatch(&mut envelope, &mut sock, &mut state));
+                    if let Some(err) = Self::dispatch(&mut envelope, &mut sock, &mut state).err() {
+                        warn!("dispatch error, {}", err);
+                    }
                 }
-                Err(e) => warn!("erorr parsing message, err={}", e),
+                Err(e) => warn!("OnMessage bad message, {}", e),
             }
             envelope.reset();
         }

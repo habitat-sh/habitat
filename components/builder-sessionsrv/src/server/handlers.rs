@@ -30,12 +30,12 @@ pub fn account_get(req: &mut Envelope,
     match state.datastore.accounts.find_by_username(&msg.get_name().to_string()) {
         Ok(account) => try!(req.reply_complete(sock, &account)),
         Err(dbcache::Error::EntityNotFound) => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account_get:0");
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "ss:account-get:0");
             try!(req.reply_complete(sock, &err));
         }
         Err(e) => {
-            error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::INTERNAL, "ss:account_get:1");
+            error!("{}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account-get:1");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -63,8 +63,8 @@ pub fn account_search(req: &mut Envelope,
             try!(req.reply_complete(sock, &err));
         }
         Err(e) => {
-            error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::INTERNAL, "ss:account-search:1");
+            error!("{}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:account-search:1");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -118,8 +118,12 @@ pub fn session_create(req: &mut Envelope,
     session_token.set_token(msg.take_token());
     session_token.set_owner_id(account.get_id());
     session_token.set_provider(msg.get_provider());
-    // JW TODO: handle database error & return net error case
-    try!(state.datastore.sessions.write(&mut session_token));
+    if let Some(e) = state.datastore.sessions.write(&mut session_token).err() {
+        error!("{}", e);
+        let err = net::err(ErrCode::DATA_STORE, "ss:session-create:0");
+        try!(req.reply_complete(sock, &err));
+        return Ok(());
+    }
     let mut session: proto::Session = account.into();
     session.set_token(session_token.take_token());
     // JW TODO: handle this and reply with a partial auth (sans features) if they can't be obtained
@@ -149,8 +153,8 @@ pub fn session_get(req: &mut Envelope,
             try!(req.reply_complete(sock, &err));
         }
         Err(e) => {
-            error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::INTERNAL, "ss:auth:5");
+            error!("{}", e);
+            let err = net::err(ErrCode::DATA_STORE, "ss:auth:5");
             try!(req.reply_complete(sock, &err));
         }
     }

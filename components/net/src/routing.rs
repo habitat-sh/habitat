@@ -98,12 +98,14 @@ impl BrokerConn {
                 match parse_from_bytes::<R>(rep.get_body()) {
                     Ok(entity) => Ok(entity),
                     Err(_) => {
-                        unreachable!("net:route, unexpected response, message_id={}",
-                                     rep.get_message_id())
+                        unreachable!("unexpected response, message_id={}", rep.get_message_id())
                     }
                 }
             }
-            Err(_) => Err(protocol::net::err(ErrCode::ZMQ, "net:route:3")),
+            Err(e) => {
+                debug!("recv err, {}", e);
+                Err(protocol::net::err(ErrCode::ZMQ, "net:route:3"))
+            }
         }
     }
 
