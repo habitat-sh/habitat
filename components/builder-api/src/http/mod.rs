@@ -43,7 +43,7 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
     let bldr = Authenticated::default().require(privilege::BUILDER);
     let router = router!(
         get "/status" => status,
-        get "/authenticate/:code" => session_create,
+        get "/authenticate/:code" => github_authenticate,
 
         post "/jobs" => XHandler::new(job_create).before(bldr),
         get "/jobs/:id" => XHandler::new(job_show).before(bldr),

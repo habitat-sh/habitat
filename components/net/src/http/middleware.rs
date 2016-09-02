@@ -152,7 +152,7 @@ impl AfterMiddleware for Cors {
     }
 }
 
-fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session> {
+pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session> {
     match github.user(&token) {
         Ok(user) => {
             // Select primary email. If no primary email can be found, use any email. If

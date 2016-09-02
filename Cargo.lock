@@ -453,6 +453,7 @@ dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "persistent 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2_redis 0.4.0 (git+https://github.com/habitat-sh/r2d2-redis.git?branch=habitat)",
