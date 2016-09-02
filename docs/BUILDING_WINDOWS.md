@@ -20,7 +20,7 @@ choco install vcredist2013
 choco install visualcppbuildtools --version 14.0.25123
 
 # several cmake based builds
-choco install cmake
+choco install cmake.portable
 
 ## a few more pre-reqs for the OpenSSL builds
 choco install StrawberryPerl
