@@ -5,6 +5,10 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 build = "../build.rs"
 workspace = "../../"
 
+[[bin]]
+name = "hab"
+doc = false
+
 [dependencies]
 ansi_term = "*"
 env_logger = "*"

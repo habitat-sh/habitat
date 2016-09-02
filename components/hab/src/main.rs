@@ -12,35 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_core as hcore;
-extern crate habitat_common as common;
-extern crate habitat_depot_client as depot_client;
-extern crate habitat_http_client as http_client;
-
 extern crate ansi_term;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
-extern crate hyper;
+extern crate hab;
+extern crate habitat_core as hcore;
+extern crate habitat_common as common;
 #[macro_use]
 extern crate log;
-extern crate pbr;
-extern crate regex;
-extern crate rustc_serialize;
-extern crate toml;
-extern crate url;
-// Temporary depdency for gossip/rumor injection code duplication.
-extern crate utp;
-extern crate uuid;
-extern crate walkdir;
-
-mod analytics;
-mod cli;
-mod command;
-mod config;
-mod error;
-mod exec;
-mod gossip;
 
 use std::env;
 use std::ffi::OsString;
@@ -52,7 +32,6 @@ use std::thread;
 use ansi_term::Colour::Red;
 use clap::ArgMatches;
 
-use error::{Error, Result};
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
 use hcore::crypto::keys::PairType;
@@ -61,10 +40,9 @@ use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use gossip::hab_gossip;
-
-const PRODUCT: &'static str = "hab";
-const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+use hab::{analytics, cli, command, config, PRODUCT, VERSION};
+use hab::error::{Error, Result};
+use hab::gossip::hab_gossip;
 
 /// Makes the --auth-token CLI param optional when this env var is set
 const HABITAT_AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
