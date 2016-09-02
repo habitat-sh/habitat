@@ -126,6 +126,7 @@ fn start() -> Result<()> {
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
                 ("provides", Some(m)) => try!(sub_pkg_provides(m)),
+                ("search", Some(m)) => try!(sub_pkg_search(m)),
                 ("sign", Some(m)) => try!(sub_pkg_sign(m)),
                 ("upload", Some(m)) => try!(sub_pkg_upload(m)),
                 ("verify", Some(m)) => try!(sub_pkg_verify(m)),
@@ -438,6 +439,13 @@ fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
     let full_paths = m.is_present("FULL_PATHS");
 
     command::pkg::provides::start(&filename, &fs_root_path, full_releases, full_paths)
+}
+
+fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
+    let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
+    let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
+    let search_term = m.value_of("SEARCH_TERM").unwrap();
+    command::pkg::search::start(&search_term, &url)
 }
 
 fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
