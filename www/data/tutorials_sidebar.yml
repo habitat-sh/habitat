@@ -5,24 +5,22 @@ sidebar_links:
   - title: Introduction
     link: "/tutorials"
   - title: Getting started with Habitat <span>&plus;</span>
-    link: "/tutorials/getting-started-overview/"
+    link: "/tutorials/getting-started/overview/"
     sub_links:
     - title: Basic concepts
-      link: "/tutorials/getting-started-basic-concepts/"
+      link: "/tutorials/getting-started/mac/basic-concepts/"
     - title: Set up your environment
-      link: "/tutorials/getting-started-setup-environment/"
-    - title: Review the source files
-      link: "/tutorials/getting-started-review-source-files/"
+      link: "/tutorials/getting-started/mac/setup-environment/"
     - title: Create your first plan
-      link: "/tutorials/getting-started-create-plan/"
+      link: "/tutorials/getting-started/mac/create-plan/"
     - title: Add hooks to your plan
-      link: "/tutorials/getting-started-add-hooks/"
+      link: "/tutorials/getting-started/mac/add-hooks/"
     - title: Add configuration to your plan
-      link: "/tutorials/getting-started-configure-plan/"
+      link: "/tutorials/getting-started/mac/configure-plan/"
     - title: Process your build
-      link: "/tutorials/getting-started-process-build/"
+      link: "/tutorials/getting-started/mac/process-build/"
     - title: Next steps
-      link: "/tutorials/getting-started-next-steps/"
+      link: "/tutorials/getting-started/next-steps/"
 - title: Quick Links
   links:
   - title: Habitat docs

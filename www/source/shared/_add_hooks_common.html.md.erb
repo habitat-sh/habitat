@@ -1,9 +1,4 @@
----
-title: Add hooks to your plan
----
-
-# Add hooks to your plan
-Now that you have copied over the correct files into the correct build-time location, you must copy them over into the correct location used at runtime and start the `npm` binary. To do that, we are going to use hooks, which are scripts that respond to specific events during the lifecycle of a running service.
+Now that you have copied over the correct files into the correct build-time location, you must copy them over into the correct runtime location and start the `npm` binary. To do that, we are going to use hooks, which are scripts that respond to specific events during the lifecycle of a running service.
 
 The `init` and `run` hooks are responsible for defining behavior during initialization and when the child service/application starts up. We use these hooks to ensure our Node.js application runs correctly.
 
@@ -11,15 +6,15 @@ Perform the following operations in the same directory where the `plan.sh` file 
 
   > Note: These steps can also be done outside of the studio environment.
 
-1. Inside the studio, change directory to `/src` and make a new sub-directory called hooks.
+1. Inside the studio, change directory to `/src/habitat` and make a new sub-directory called hooks.
 
-       [4][default:/src:0]# cd /src
-       [5][default:/src:0]# mkdir -p hooks
+       [3][default:/src:0]# cd /src/habitat
+       [4][default:/src/habitat:0]# mkdir -p hooks
 
 2. Change to the hooks directory and create two new files, init and run.
 
-       [6][default:/src:0]# cd hooks
-       [7][default:/src/hooks:0]# touch init run
+       [5][default:/src/habitat:0]# cd hooks
+       [6][default:/src/habitat/hooks:0]# touch init run
 
 3. Open `init` in your text editor.
 4. Hooks use [shebangs](https://en.wikipedia.org/wiki/Shebang_(Unix)) to decide which interpreter to use when running their scripts. In the case of the `init` and `run` hooks in our plan, we will use the system shell, so add the following to the `init` hook file:
@@ -48,9 +43,3 @@ Perform the following operations in the same directory where the `plan.sh` file 
 7. Save the `run` hook file.
 
 This application would almost work except the `config.json` file that was originally part of the source files was not copied over in our plan. This was on purpose. In the next step, you'll learn how to create a templatized version of a configuration file for your application that you can use to modify the configuration settings at runtime.
-
-<hr>
-<ul class="main-content--button-nav">
-  <li><a href="/tutorials/getting-started-configure-plan" class="button cta">Next - Add configuration to your plan</a></li>
-  <li><a href="/tutorials/getting-started-create-plan/">Back to previous step</a></li>
-</ul>

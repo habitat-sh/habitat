@@ -16,8 +16,7 @@ If your host machine is running Linux, do the following to run your packages:
 
 * Add the `hab` user and group.
 
-      sudo useradd hab -u 42 -g 42 -d / -s /bin/sh -r
-      sudo groupadd -og 42 hab
+     <%= partial "/shared/add_hab_user_group" %>
 
 * Run the `hab` CLI as root.
 
