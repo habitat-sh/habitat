@@ -13,11 +13,19 @@
 // limitations under the License.
 
 use libc::{c_int, c_char};
+use std::ffi::CStr;
+use std::path::Path;
 
 pub fn chown(r_path: *const c_char, uid: u32, gid: u32) -> c_int {
     unimplemented!();
 }
 
 pub fn chmod(r_path: *const c_char, mode: u32) -> c_int {
-    unimplemented!();
+    unsafe {
+        let path = CStr::from_ptr(r_path).to_str().unwrap();
+        match Path::new(path).exists() {
+            false => 1,
+            true => 0
+        } 
+    }
 }
