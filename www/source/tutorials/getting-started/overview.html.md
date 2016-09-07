@@ -24,6 +24,6 @@ Before starting this tutorial, you need to have the following:
 The remainder of the steps in this tutorial will be tailored by platform, so select the OS platform where you wish to build and run Habitat packages. If you want to change the platform at any step in the tutorial, use the selector at the top of the page.
 
 <ul class="main-content--button-nav">
-  <li><a href="/tutorials/getting-started/mac/basic-concepts" class="button cta">Mac</a></li>
-  <li><a href="/tutorials/getting-started/linux/basic-concepts" class="button cta">Linux</a></li>
+  <li><a href="/tutorials/getting-started/mac/basic-concepts" class="button cta">Continue with Mac version</a></li>
+  <li><a href="/tutorials/getting-started/linux/basic-concepts" class="button cta">Continue with Linux version</a></li>
 </ul>

@@ -2,10 +2,12 @@
 title: Process your build
 ---
 
-<div class="slider--nav">
-  <a class="button" href="/tutorials/getting-started/mac/process-build">Mac</a>
-  <a class="button" href="/tutorials/getting-started/linux/process-build">Linux</a>
-</div>
+<ul class="main-content--version">
+  <li>Current version:</li>
+  <li><a class="active" href="/tutorials/getting-started/mac/process-build">Mac</a></li>
+  <li><a href="/tutorials/getting-started/linux/process-build">Linux</a></li>
+</ul>
+<hr />
 
 # Run your service (Mac)
 <%= partial "/shared/process_build_common" %>
@@ -26,7 +28,7 @@ To show the portability of Habitat, export and run a Habitat service from within
 
         [1][default:/src:0]# build
 
-3. Run `hab pkg export docker <youroriginname>/mytutorialapp` with the origin you chose at setup. 
+3. Run `hab pkg export docker <youroriginname>/mytutorialapp` with the origin you chose at setup.
 
         [2][default:/src:0]# hab pkg export docker myorigin/mytutorialapp
 
@@ -42,7 +44,7 @@ To show the portability of Habitat, export and run a Habitat service from within
 
     <%= partial "/shared/process_build_run_output" %>
 
-5. Because we are running this service in a Docker container on our host machine using Docker for Mac, you can simply connect to the Node.js app through your <a href="http://localhost:8080" target="_blank">localhost</a>. 
+5. Because we are running this service in a Docker container on our host machine using Docker for Mac, you can simply connect to the Node.js app through your <a href="http://localhost:8080" target="_blank">localhost</a>.
 
     Here's an example of what you should see in your browser:
 

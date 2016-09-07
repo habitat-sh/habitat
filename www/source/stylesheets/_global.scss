@@ -69,7 +69,7 @@
     li {
       display: inline-block;
       margin-left: rem-calc(30);
-      margin-top: rem-calc(10);
+      margin-top: 0;
       vertical-align: top;
 
       a:not(.button) {
@@ -83,7 +83,37 @@
       &:first-child {
         margin: 0;
       }
+
+      + li a:not(.button) {
+        display: inline-block;
+        margin-top: rem-calc(10);
+      }
     }
+}
+
+.main-content--version {
+  display: block;
+  list-style: none;
+  margin: rem-calc(-20) rem-calc(10) 0 0;
+  text-align: right;
+
+  li {
+    display: inline-block;
+    margin-left: rem-calc(10);
+
+    a.active {
+      font-weight: bold;
+    }
+
+    a.active:before {
+       content:  "\2713 ";
+       padding-right: rem-calc(4);
+    }
+  }
+
+  + hr {
+    margin: rem-calc(15) 0 rem-calc(30);
+  }
 }
 
 .main-content--link-nav {

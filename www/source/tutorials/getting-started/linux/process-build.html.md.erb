@@ -2,10 +2,12 @@
 title: Process your build
 ---
 
-<div class="slider--nav">
-  <a class="button" href="/tutorials/getting-started/mac/process-build">Mac</a>
-  <a class="button" href="/tutorials/getting-started/linux/process-build">Linux</a>
-</div>
+<ul class="main-content--version">
+  <li>Current version:</li>
+  <li><a href="/tutorials/getting-started/mac/process-build">Mac</a></li>
+  <li><a class="active" href="/tutorials/getting-started/linux/process-build">Linux</a></li>
+</ul>
+<hr />
 
 # Run your service (Linux)
 <%= partial "/shared/process_build_common" %>
@@ -41,10 +43,10 @@ Before we can run our service, we need to rebuild our package to include the cha
        hab-sup(SC): Updated config.json
        hab-sup(TP): Restarting because the service config was updated via the census
        mytutorialapp(SV): Starting
-       mytutorialapp(O): 
+       mytutorialapp(O):
        mytutorialapp(O): > mytutorialapp@0.2.0 start /hab/svc/mytutorialapp/var
        mytutorialapp(O): > node server.js
-       mytutorialapp(O): 
+       mytutorialapp(O):
        mytutorialapp(O): Running on http://0.0.0.0:8080
 
 
@@ -54,9 +56,9 @@ Before we can run our service, we need to rebuild our package to include the cha
 
     ![Screen shot of node.js tutorial output](/images/nodejs-tutorial-output-linux.png)
 
-5. You can also update the message value when your Habitat service starts up. To do this, you must pass in an 
-environment variable with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2'`. For 
-multiline environment variables, such as those in a TOML table, it's preferrable to place your changes in a .toml 
+5. You can also update the message value when your Habitat service starts up. To do this, you must pass in an
+environment variable with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2'`. For
+multiline environment variables, such as those in a TOML table, it's preferrable to place your changes in a .toml
 file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
     > Note: The package name in the environment variable must be uppercase, any dashes must be replaced with underscores, and if you are overriding values in a TOML table, you must override all values in the table.
@@ -70,9 +72,9 @@ file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
     ![Screen shot of node.js output with new message](/images/nodejs-tutorial-update-output-linux.png)
 
 ### Run services outside of the studio
-As mentioned above, running services from within the studio is great for testing purposes, but in a real deployment scenario, packages will be downloaded, installed, and then run outside of a studio environment. 
+As mentioned above, running services from within the studio is great for testing purposes, but in a real deployment scenario, packages will be downloaded, installed, and then run outside of a studio environment.
 
-To natively run services on your Linux host machine, do the following: 
+To natively run services on your Linux host machine, do the following:
 
 1. Build your package in the studio and then exit back to your host machine.
 2. Add the `hab` user and group to your machine. This is the default user and group for the child process in a service and they must be present for your service to run.
@@ -87,7 +89,7 @@ To natively run services on your Linux host machine, do the following:
        cd ~/habitat-example-plans/mytutorialapp/results
        sudo hab install myorigin-mytutorialapp-0.2.0-20160902224802-x86_64-linux.hart
 
-4. Run `sudo hab start origin/packagename`. 
+4. Run `sudo hab start origin/packagename`.
 
        sudo hab start myorigin/mytutorialapp
 
@@ -96,23 +98,23 @@ To natively run services on your Linux host machine, do the following:
 ## (Optional) Run in a Docker container
 To show the portability of Habitat, you can also export and run a Habitat service from within a Docker container through the following steps:
 
-1. If your Linux distribution does not have the Docker engine installed, see [Install Docker Engine](https://docs.docker.com/engine/installation/) for the installation instructions. 
+1. If your Linux distribution does not have the Docker engine installed, see [Install Docker Engine](https://docs.docker.com/engine/installation/) for the installation instructions.
 
 2. Re-enter the studio.
 
        $ cd ~/habitat-example-plans/mytutorialapp
        $ sudo hab studio enter
-       [1][default:/src:0]# 
+       [1][default:/src:0]#
 
-3. Create a Docker image containing your package by running `hab pkg export docker origin/packagename` with the origin and name of your package. 
+3. Create a Docker image containing your package by running `hab pkg export docker origin/packagename` with the origin and name of your package.
 
        [2][default:/src:0]# hab pkg export docker myorigin/mytutorialapp
-        
+
     Habitat will proceed to unpack and install all necessary Habitat packages, including a Habitat supervisor, the mytutorialapp package, and all of its runtime dependencies. Then it will create an image using the Docker scratch image as the base and build up the rest of the image from there.
 
 4. Once that process has completed, exit out of the studio and run a Docker container from any terminal window that has access to the Docker CLI on your host machine.
 
-    > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, if you have not added your user to the `Docker` group, you will have to run `docker` with root privileges. 
+    > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine. Also, if you have not added your user to the `Docker` group, you will have to run `docker` with root privileges.
 
        $ docker run -it -p 8080:8080 myorigin/mytutorialapp
 
