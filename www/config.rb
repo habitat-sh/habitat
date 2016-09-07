@@ -13,6 +13,7 @@ page '/*.txt', layout: false
 
 # With alternative layout
 page 'about/*', layout: :sidebar, locals: { sidebar_layout: 'about' }
+page 'tutorials/getting-started/linux/*', layout: :sidebar, locals: { sidebar_layout: 'linux_tutorial' }
 page 'tutorials/*', layout: :sidebar, locals: { sidebar_layout: 'tutorials' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
