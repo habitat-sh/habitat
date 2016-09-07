@@ -197,11 +197,28 @@ code {
     border-radius: 7px;
     background: transparent;
     border: 1px solid $hab-orange;
+
+    &.footer--cta-button {
+      box-shadow: none;
+      margin-left: rem-calc(20);
+      text-shadow: none;
+
+      &:hover {
+        @include shadow-float;
+        transition: all .2s;
+      }      
+    }
   }
 }
 
 .button.cta{
   @include primary-button;
+
+  &.outline {
+    background-image: none;
+    color: $body-font-color;
+    text-shadow: none;
+  }
 }
 
 // Small text below CTAs
