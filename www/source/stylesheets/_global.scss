@@ -202,6 +202,12 @@ code {
 
 .button.cta{
   @include primary-button;
+
+  &.outline {
+    background-image: none;
+    color: $body-font-color;
+    text-shadow: none;
+  }
 }
 
 // Small text below CTAs
