@@ -2285,15 +2285,19 @@ if [[ -n "$HAB_ORIGIN" ]]; then
   pkg_origin="$HAB_ORIGIN"
 fi
 
-# `$pkg_origin` is a required metadata key
-if [[ -z "${pkg_origin}" ]]; then
-  exit_with "Failed to build. 'pkg_origin' must be set." 1
-fi
-
-# `$pkg_version` is a required metadata key
-if [[ -z "${pkg_version}" ]]; then
-  exit_with "Failed to build. 'pkg_version' must be set." 1
-fi
+# Test for all required metadata keys
+required_variables=(
+  pkg_name
+  pkg_origin
+  pkg_source
+  pkg_version
+)
+for var in "${required_variables[@]}"
+do
+  if [[ -z "${!var}" ]] ; then
+    exit_with "Failed to build. '${var}' must be set." 1
+  fi
+done
 
 # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
