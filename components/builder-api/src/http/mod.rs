@@ -39,23 +39,25 @@ const HTTP_THREAD_COUNT: usize = 128;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
-    let basic = Authenticated::default();
-    let bldr = Authenticated::default().require(privilege::BUILDER);
+    let basic = Authenticated::new(&*config);
+    let bldr = Authenticated::new(&*config).require(privilege::BUILDER);
     let router = router!(
         get "/status" => status,
         get "/authenticate/:code" => github_authenticate,
 
-        post "/jobs" => XHandler::new(job_create).before(bldr),
-        get "/jobs/:id" => XHandler::new(job_show).before(bldr),
+        post "/jobs" => XHandler::new(job_create).before(bldr.clone()),
+        get "/jobs/:id" => XHandler::new(job_show).before(bldr.clone()),
 
-        get "/user/invitations" => XHandler::new(list_account_invitations).before(basic),
-        put "/user/invitations/:invitation_id" => XHandler::new(accept_invitation).before(basic),
-        get "/user/origins" => XHandler::new(list_user_origins).before(basic),
+        get "/user/invitations" => XHandler::new(list_account_invitations).before(basic.clone()),
+        put "/user/invitations/:invitation_id" => {
+            XHandler::new(accept_invitation).before(basic.clone())
+        },
+        get "/user/origins" => XHandler::new(list_user_origins).before(basic.clone()),
 
-        post "/projects" => XHandler::new(project_create).before(bldr),
-        get "/projects/:origin/:name" => XHandler::new(project_show).before(bldr),
-        put "/projects/:origin/:name" => XHandler::new(project_update).before(bldr),
-        delete "/projects/:origin/:name" => XHandler::new(project_delete).before(bldr),
+        post "/projects" => XHandler::new(project_create).before(bldr.clone()),
+        get "/projects/:origin/:name" => XHandler::new(project_show).before(bldr.clone()),
+        put "/projects/:origin/:name" => XHandler::new(project_update).before(bldr.clone()),
+        delete "/projects/:origin/:name" => XHandler::new(project_delete).before(bldr.clone()),
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));

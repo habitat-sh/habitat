@@ -411,22 +411,18 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
 
 fn upload_package(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
-    // this lets us get around ownership/mutability issues
-    fn get_ident_and_checksum(req: &mut Request) -> Option<(String, depotsrv::PackageIdent)> {
-        debug!("Upload {:?}", req);
-        let checksum_from_param = match extract_query_value("checksum", req) {
-            Some(checksum) => checksum,
-            None => return None,
-        };
-        let params = req.extensions.get::<Router>().unwrap();
-        let ident = ident_from_params(params);
-        Some((checksum_from_param, ident))
-    }
-
-    let (checksum_from_param, ident) = match get_ident_and_checksum(req) {
-        Some((checksum_from_param, ident)) => (checksum_from_param, ident),
+    let checksum_from_param = match extract_query_value("checksum", req) {
+        Some(checksum) => checksum,
         None => return Ok(Response::with(status::BadRequest)),
     };
+    let ident = {
+        let params = req.extensions.get::<Router>().unwrap();
+        ident_from_params(params)
+    };
+
+    debug!("UPLOADING checksum={}, ident={}",
+           checksum_from_param,
+           ident);
 
     if !depot.config.insecure {
         let session = req.extensions.get::<Authenticated>().unwrap();
@@ -956,7 +952,7 @@ fn dont_cache_response(response: &mut Response) {
 }
 
 pub fn router(depot: Depot) -> Result<Chain> {
-    let basic = Authenticated::default();
+    let basic = Authenticated::new(&depot.config);
     let router = router!(
         get "/channels" => list_channels,
         get "/channels/:channel/pkgs/:origin" => list_packages,
@@ -966,7 +962,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
         get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
         get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => show_package,
         post "/channels/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-            XHandler::new(promote_package).before(basic)
+            XHandler::new(promote_package).before(basic.clone())
         },
         get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => download_package,
         get "/channels/:channel/origins/:origin/keys" => list_origin_keys,
@@ -983,7 +979,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
         get "/views/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
         get "/views/:channel/pkgs/:origin/:pkg/:version/:release" => show_package,
         post "/views/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-            XHandler::new(promote_package).before(basic)
+            XHandler::new(promote_package).before(basic.clone())
         },
         get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => download_package,
         get "/views/:view/origins/:origin/keys" => list_origin_keys,
@@ -1003,11 +999,11 @@ pub fn router(depot: Depot) -> Result<Chain> {
             if depot.config.insecure {
                 XHandler::new(upload_package)
             } else {
-                XHandler::new(upload_package).before(basic)
+                XHandler::new(upload_package).before(basic.clone())
             }
         },
 
-        post "/origins" => XHandler::new(origin_create).before(basic),
+        post "/origins" => XHandler::new(origin_create).before(basic.clone()),
         get "/origins/:origin" => origin_show,
 
         get "/origins/:origin/keys" => list_origin_keys,
@@ -1017,17 +1013,19 @@ pub fn router(depot: Depot) -> Result<Chain> {
             if depot.config.insecure {
                 XHandler::new(upload_origin_key)
             } else {
-                XHandler::new(upload_origin_key).before(basic)
+                XHandler::new(upload_origin_key).before(basic.clone())
             }
         },
         post "/origins/:origin/secret_keys/:revision" => {
-            XHandler::new(upload_origin_secret_key).before(basic)
+            XHandler::new(upload_origin_secret_key).before(basic.clone())
         },
         post "/origins/:origin/users/:username/invitations" => {
-            XHandler::new(invite_to_origin).before(basic)
+            XHandler::new(invite_to_origin).before(basic.clone())
         },
-        get "/origins/:origin/invitations" => XHandler::new(list_origin_invitations).before(basic),
-        get "/origins/:origin/users" => XHandler::new(list_origin_members).before(basic),
+        get "/origins/:origin/invitations" => {
+            XHandler::new(list_origin_invitations).before(basic.clone())
+        },
+        get "/origins/:origin/users" => XHandler::new(list_origin_members).before(basic.clone()),
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<Depot>::both(depot));

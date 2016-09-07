@@ -20,7 +20,6 @@ use iron::prelude::*;
 use iron::status;
 use iron::typemap::Key;
 use unicase::UniCase;
-use persistent;
 use protocol::sessionsrv::*;
 use protocol::net::{self, ErrCode};
 use rustc_serialize::json::{self, ToJson};
@@ -29,6 +28,7 @@ use super::super::error::Error;
 use super::super::routing::{Broker, BrokerConn};
 use super::super::oauth::github::GitHubClient;
 use super::HttpError;
+use config;
 use privilege::FeatureFlags;
 
 /// Wrapper around the standard `iron::Chain` to assist in adding middleware on a per-handler basis
@@ -85,13 +85,45 @@ impl BeforeMiddleware for RouteBroker {
     }
 }
 
-#[derive(Clone, Copy)]
-pub struct Authenticated(FeatureFlags);
+#[derive(Clone)]
+pub struct Authenticated {
+    github: GitHubClient,
+    features: FeatureFlags,
+}
 
 impl Authenticated {
+    pub fn new<T: config::GitHubOAuth>(config: &T) -> Self {
+        let github = GitHubClient::new(config);
+        Authenticated {
+            github: github,
+            features: FeatureFlags::empty(),
+        }
+    }
+
     pub fn require(mut self, flag: FeatureFlags) -> Self {
-        self.0.insert(flag);
+        self.features.insert(flag);
         self
+    }
+
+    fn authenticate(&self, conn: &mut BrokerConn, token: &str) -> IronResult<Session> {
+        let mut request = SessionGet::new();
+        request.set_token(token.to_string());
+        match conn.route::<SessionGet, Session>(&request) {
+            Ok(session) => Ok(session),
+            Err(err) => {
+                if err.get_code() == ErrCode::SESSION_EXPIRED {
+                    let session = try!(session_create(&self.github, token));
+                    let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
+                    if !flags.contains(self.features) {
+                        return Err(IronError::new(HttpError::Authorization, status::Forbidden));
+                    }
+                    Ok(session)
+                } else {
+                    let encoded = json::encode(&err.to_json()).unwrap();
+                    Err(IronError::new(HttpError::Authorization, (encoded, status::Unauthorized)))
+                }
+            }
+        }
     }
 }
 
@@ -99,41 +131,22 @@ impl Key for Authenticated {
     type Value = Session;
 }
 
-impl Default for Authenticated {
-    fn default() -> Self {
-        Authenticated(FeatureFlags::empty())
-    }
-}
-
 impl BeforeMiddleware for Authenticated {
     fn before(&self, req: &mut Request) -> IronResult<()> {
-        let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
         let session = {
             match req.headers.get::<Authorization<Bearer>>() {
                 Some(&Authorization(Bearer { ref token })) => {
-                    let mut conn = req.extensions.get_mut::<RouteBroker>().unwrap();
-                    let mut request = SessionGet::new();
-                    request.set_token(token.to_string());
-                    match conn.route::<SessionGet, Session>(&request) {
-                        Ok(session) => session,
-                        Err(err) => {
-                            if err.get_code() == ErrCode::SESSION_EXPIRED {
-                                try!(session_create(&github, token))
-                            } else {
-                                let encoded = json::encode(&err.to_json()).unwrap();
-                                return Err(IronError::new(HttpError::Authorization,
-                                                          (encoded, status::Unauthorized)));
-                            }
+                    match req.extensions.get_mut::<RouteBroker>() {
+                        Some(broker) => try!(self.authenticate(broker, token)),
+                        None => {
+                            let mut broker = Broker::connect().unwrap();
+                            try!(self.authenticate(&mut broker, token))
                         }
                     }
                 }
                 _ => return Err(IronError::new(HttpError::Authorization, status::Unauthorized)),
             }
         };
-        let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
-        if !flags.contains(self.0) {
-            return Err(IronError::new(HttpError::Authorization, status::Forbidden));
-        }
         req.extensions.insert::<Self>(session);
         Ok(())
     }
