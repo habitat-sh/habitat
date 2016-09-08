@@ -28,6 +28,7 @@ use error::{Error, Result};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
 
+#[derive(Clone)]
 pub struct GitHubClient {
     pub url: String,
     pub client_id: String,

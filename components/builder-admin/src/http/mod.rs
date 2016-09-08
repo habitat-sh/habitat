@@ -38,15 +38,17 @@ const HTTP_THREAD_COUNT: usize = 128;
 
 /// Create a new `iron::Chain` containing a Router and it's required middleware
 pub fn router(config: Arc<Config>) -> Result<Chain> {
-    let admin = Authenticated::default().require(privilege::ADMIN);
+    let admin = Authenticated::new(&*config).require(privilege::ADMIN);
     let router = router!(
         get "/status" => status,
-        post "/search" => XHandler::new(search).before(admin),
-        get "/accounts/:id" => XHandler::new(account_show).before(admin),
-        get "/features" => XHandler::new(features_list).before(admin),
-        get "/features/:id/teams" => XHandler::new(feature_grants_list).before(admin),
-        post "/features/:id/teams" => XHandler::new(feature_grant).before(admin),
-        delete "/features/:feature/teams/:id" => XHandler::new(feature_revoke).before(admin),
+        post "/search" => XHandler::new(search).before(admin.clone()),
+        get "/accounts/:id" => XHandler::new(account_show).before(admin.clone()),
+        get "/features" => XHandler::new(features_list).before(admin.clone()),
+        get "/features/:id/teams" => XHandler::new(feature_grants_list).before(admin.clone()),
+        post "/features/:id/teams" => XHandler::new(feature_grant).before(admin.clone()),
+        delete "/features/:feature/teams/:id" => {
+            XHandler::new(feature_revoke).before(admin.clone())
+        }
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
