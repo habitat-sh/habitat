@@ -130,12 +130,13 @@ on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
 1. Sign and commit your change
 1. Push your feature branch to GitHub, and create a Pull Request
 
-## Running the Builder API locally
+## Running a Builder service cluster locally
 
-Run `make api-shell`. A shell will start with the API services running. The API
-will be available on port 9636 of your Docker host.
+A service cluster can be started in your host machine with `make bldr-run` or within a docker
+container with `make bldr-run-shell`. The public API will be available on port 9636 and the admin
+API will be available on port 8080.
 
-Inside the shell, run the `api` command to manage the API server processes.
+> Note: some manual setup is required to run a Builder cluster on your host machine. This process will be automated in the future, but for now your mileage may vary.
 
 ### Signing Your Commits
 

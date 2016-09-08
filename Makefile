@@ -21,7 +21,7 @@ ifneq ($(IN_DOCKER),)
 	compose_cmd := env http_proxy= https_proxy= docker-compose
 	common_run := $(compose_cmd) run --rm $(run_args)
 	run := $(common_run) shell
-	api_run := $(common_run) -p 9636:9636 shell
+	bldr_run := $(common_run) -p 9636:9636 -p 8080:8080 shell
 	docs_host := ${DOCKER_HOST}
 	docs_run := $(common_run) -p 9633:9633 shell
 else
@@ -98,10 +98,6 @@ help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
 
-api-shell: image ## launches a development shell running the API
-	$(api_run) sh -c 'cp /src/support/run-api.sh /usr/local/sbin/api && api build && api start && bash'
-.PHONY: api-shell
-
 shell: image ## launches a development shell
 	$(run)
 .PHONY: shell
@@ -170,7 +166,11 @@ endef
 $(foreach component,$(ALL),$(eval $(call BLDR_BUILD,$(component))))
 
 bldr-run: bldr-build
-	support/forego start -f support/Procfile.bldr
+	support/mac/bin/forego start -f support/Procfile.mac -e support/bldr.env
+
+bldr-run-shell: build-srv ## launches a development shell running the API
+	$(bldr_run) sh -c '/src/support/linux/bin/forego start -f support/Procfile.linux -e support/bldr.env'
+.PHONY: bldr-run-shell
 
 define UNIT
 unit-$1: image ## executes the $1 component's unit test suite

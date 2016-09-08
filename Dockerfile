@@ -4,6 +4,7 @@ MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ca-certificates \
+    cmake \
     curl \
     file \
     gdb \
@@ -20,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     protobuf-compiler \
     redis-server \
+    software-properties-common \
     sudo \
     tmux \
     vim \

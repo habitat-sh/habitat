@@ -1,7 +1,7 @@
 habitatConfig({
     // The URL for the Habitat API service (including the API version.) If
-    // running the API services locally with `make api-shell` from the root of
-    // the habitat repo, this will be localhost (if running Docker for Mac or
+    // running the API services locally with `make bldr-run` or `make bldr-run-shell` from the root
+    // of the habitat repo, this will be localhost (if running Docker for Mac or
     // Linux) or the result of `$(docker-machine ip default)` if using Docker
     // in a virtual Machine.
     habitat_api_url: "http://localhost:9636/v1",
