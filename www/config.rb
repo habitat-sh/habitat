@@ -13,6 +13,7 @@ page '/*.txt', layout: false
 
 # With alternative layout
 page 'about/*', layout: :sidebar, locals: { sidebar_layout: 'about' }
+page 'tutorials/getting-started/linux/*', layout: :sidebar, locals: { sidebar_layout: 'linux_tutorial' }
 page 'tutorials/*', layout: :sidebar, locals: { sidebar_layout: 'tutorials' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
@@ -60,6 +61,7 @@ end
 
 activate :autoprefixer
 activate :directory_indexes
+set :trailing_slash, false
 
 activate :s3_sync do |s3_sync|
   s3_sync.path_style = false
@@ -78,3 +80,11 @@ set :markdown, coderay_line_numbers: :table
 redirect 'about/index.html', to: 'about/announcement.html'
 redirect 'docs/index.html', to: 'docs/overview.html'
 redirect 'docs/build-packages-overview.html', to: 'docs/create-packages-build.html'
+redirect 'tutorials/getting-started-overview.html', to: 'tutorials/getting-started/overview.html'
+redirect 'tutorials/getting-started-basic-concepts.html', to: 'tutorials/getting-started/mac/basic-concepts.html'
+redirect 'tutorials/getting-started-setup-environment.html', to: 'tutorials/getting-started/mac/setup-environment.html' 
+redirect 'tutorials/getting-started-review-source-files.html', to: 'tutorials/getting-started/mac/create-plan.html'
+redirect 'tutorials/getting-started-create-plan.html', to: 'tutorials/getting-started/mac/create-plan.html'
+redirect 'tutorials/getting-started-add-hooks.html', to: 'tutorials/getting-started/mac/add-hooks.html'
+redirect 'tutorials/getting-started-configure-plan.html', to: 'tutorials/getting-started/mac/configure-plan.html'
+redirect 'tutorials/getting-started-process-build.html', to: 'tutorials/getting-started/mac/process-build.html'

@@ -3,7 +3,7 @@ title: Creating Habitat plans
 ---
 
 # Create plans
-At the center of Habitat packaging is the plan. This is a folder comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package.
+At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package.
 
 As a way to start to understand plans, let's look at an example `plan.sh` for [zlib](http://www.zlib.net/):
 
@@ -49,7 +49,7 @@ To create a plan, do the following:
 
 1. In a terminal window, create a new directory for your plan. This directory is known as the plan context.
 
-2. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the hab-plan-build command to build your package, so create a plan.sh file in your plan context and open it.
+2. All plans must have a `plan.sh` at the root of the plan context. This file will be used by the `hab-plan-build` command to build your package, so create a plan.sh file in your plan context and open it.
 
        $EDITOR plan.sh
 
@@ -123,6 +123,8 @@ do_download() {
 ~~~
 
 After you have either specified your source in `pkg_source`, or overridden the **do_download()** callback, create a sha256 checksum for your source archive and enter it as the `pkg_shasum` value. The build script will verify this after it has downloaded the archive.
+
+> Note: If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
 If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference/plan-syntax#callbacks) for more details.
 

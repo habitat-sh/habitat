@@ -1,6 +1,6 @@
 # helper methods for source/layouts/sidebar.slim
 module SidebarHelpers
-  SIDEBAR_LAYOUTS = %w(about docs legal tutorials)
+  SIDEBAR_LAYOUTS = %w(about docs legal tutorials linux_tutorial)
 
   def sidebar_data(sidebar_layout)
     unless SIDEBAR_LAYOUTS.include?(sidebar_layout)
