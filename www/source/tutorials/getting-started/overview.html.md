@@ -16,7 +16,9 @@ Before starting this tutorial, you need to have the following:
 *   The `hab` command-line interface tool. See [Get Habitat](/docs/get-habitat) if you don't already have this installed on your machine.
 *    An active GitHub account is recommended. If you don't already have an account, [sign up](https://github.com/) for one now. Note: This is required to upload and share your packages with others in the Habitat community.
 *   Your favorite text editor.
-*   If you are running Mac OS X on your host machine, then you need [Docker for Mac](https://www.docker.com/products/docker) installed. Make sure you have a Docker machine running before proceeding through the tutorial.
+*   If you are running Mac OS X on your host machine, then you need [Docker for Mac](https://www.docker.com/products/docker) installed. Make sure you have a Docker machine running before proceeding through the tutorial. 
+
+    Docker is not required for the Linux version of the tutorial unless you choose to create a Docker container from your package. 
 
     > Note: The minimum Docker version for Habitat is greater than or equal to the version specified in the core/docker plan, which currently is 1.11.2.
 
