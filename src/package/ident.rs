@@ -189,20 +189,57 @@ impl PartialOrd for PackageIdent {
         if self.release.is_some() && other.release.is_none() {
             return Some(Ordering::Greater);
         }
-        let ord = match version_sort(self.version.as_ref().unwrap(),
-                                     other.version.as_ref().unwrap()) {
-            Ok(ord) => ord,
+        match version_sort(self.version.as_ref().unwrap(),
+                           other.version.as_ref().unwrap()) {
+            ord @ Ok(Ordering::Greater) |
+            ord @ Ok(Ordering::Less) => ord.ok(),
+            Ok(Ordering::Equal) => Some(self.release.cmp(&other.release)),
             Err(e) => {
                 error!("This was a very bad version number: {:?}", e);
                 return None;
             }
-        };
-        match ord {
-            Ordering::Greater => return Some(Ordering::Greater),
-            Ordering::Less => return Some(Ordering::Less),
-            Ordering::Equal => {
-                return Some(self.release.cmp(&other.release));
-            }
+        }
+    }
+}
+
+impl Ord for PackageIdent {
+    /// Packages can be compared according to the following:
+    ///
+    /// * origin is ignored in the comparison - my redis and
+    ///   your redis compare the same.
+    /// * If the names are not equal, they cannot be compared.
+    /// * If the versions are greater/lesser, return that as
+    ///   the ordering.
+    /// * If the versions are equal, return the greater/lesser
+    ///   for the release.
+    fn cmp(&self, other: &PackageIdent) -> Ordering {
+        if self.name != other.name {
+            return self.name.cmp(&other.name);
+        }
+        if self.version.is_none() && other.version.is_none() {
+            return Ordering::Equal;
+        }
+        if self.version.is_none() && other.version.is_some() {
+            return Ordering::Less;
+        }
+        if self.version.is_some() && other.version.is_none() {
+            return Ordering::Greater;
+        }
+        if self.release.is_none() && other.release.is_none() {
+            return Ordering::Equal;
+        }
+        if self.release.is_none() && other.release.is_some() {
+            return Ordering::Less;
+        }
+        if self.release.is_some() && other.release.is_none() {
+            return Ordering::Greater;
+        }
+        match version_sort(self.version.as_ref().unwrap(),
+                           other.version.as_ref().unwrap()) {
+            ord @ Ok(Ordering::Greater) |
+            ord @ Ok(Ordering::Less) => ord.unwrap(),
+            Ok(Ordering::Equal) => self.release.cmp(&other.release),
+            Err(_) => Ordering::Less,
         }
     }
 }
@@ -211,7 +248,8 @@ impl PartialOrd for PackageIdent {
 ///
 /// We are a bit more strict than your average package management solution on versioning.
 /// What we support is the "some number of digits or dots" (the version number),
-/// followed by an optional "-" and any alphanumeric string (the extension). When determining sort order, we:
+/// followed by an optional "-" and any alphanumeric string (the extension). When determining sort
+/// order, we:
 ///
 /// * Separate the version numbers from the extensions
 /// * Split the version numbers into an array of digits on any '.' characters. Digits are convered
