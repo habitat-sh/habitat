@@ -141,12 +141,13 @@ impl PackagesIndex {
         let conn = self.pool().get().unwrap();
         match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), offset, count) {
             Ok(ids) => {
-                let ids = ids.iter()
-                    .map(|id| {
-                        let p = package::PackageIdent::from_str(id).unwrap();
-                        depotsrv::PackageIdent::from(p)
-                    })
-                    .collect();
+                // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
+                // is pre-sorted on write. For now, we'll do it on read each time.
+                let mut ids: Vec<package::PackageIdent> =
+                    ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
+                ids.sort();
+                ids.reverse();
+                let ids = ids.into_iter().map(|id| depotsrv::PackageIdent::from(id)).collect();
                 Ok(ids)
             }
             Err(e) => Err(Error::from(e)),
@@ -155,21 +156,18 @@ impl PackagesIndex {
 
     pub fn latest<T: Identifiable>(&self, id: &T) -> Result<depotsrv::PackageIdent> {
         let conn = self.pool().get().unwrap();
-        let key = PackagesIndex::key(&id.to_string());
-        match redis::cmd("SORT")
-            .arg(key)
-            .arg("LIMIT")
-            .arg(0)
-            .arg(1)
-            .arg("ALPHA")
-            .arg("DESC")
-            .query::<Vec<String>>(conn.deref()) {
+        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&id.to_string()), 0, 1) {
+            Ok(ref ids) if ids.len() <= 0 => {
+                return Err(Error::DataStore(dbcache::Error::EntityNotFound))
+            }
             Ok(ids) => {
-                if ids.is_empty() {
-                    return Err(Error::DataStore(dbcache::Error::EntityNotFound));
-                }
-                let ident = package::PackageIdent::from_str(&ids[0]).unwrap();
-                Ok(depotsrv::PackageIdent::from(ident))
+                // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
+                // is pre-sorted on write. For now, we'll do it on read each time.
+                let mut ids: Vec<package::PackageIdent> =
+                    ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
+                ids.sort();
+                ids.reverse();
+                Ok(depotsrv::PackageIdent::from(ids.remove(0)))
             }
             Err(e) => Err(Error::from(e)),
         }
@@ -378,9 +376,13 @@ impl ChannelPkgIndex {
         match conn.zscan_match::<String, String, (String, u32)>(Self::key(&channel.to_string()),
                                                                 format!("{}*", pkg)) {
             Ok(set) => {
-                let set: Vec<package::PackageIdent> =
+                // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
+                // is pre-sorted on write. For now, we'll do it on read each time.
+                let mut set: Vec<package::PackageIdent> =
                     set.map(|(id, _)| package::PackageIdent::from_str(&id).unwrap())
                         .collect();
+                set.sort();
+                set.reverse();
                 Ok(set)
             }
             Err(e) => Err(Error::from(e)),
@@ -397,13 +399,8 @@ impl ChannelPkgIndex {
 
     pub fn latest(&self, channel: &str, pkg: &str) -> Result<depotsrv::PackageIdent> {
         match self.all(channel, pkg) {
-            Ok(mut ids) => {
-                if let Some(id) = ids.pop() {
-                    Ok(id.into())
-                } else {
-                    Err(Error::DataStore(dbcache::Error::EntityNotFound))
-                }
-            }
+            Ok(ref ids) if ids.len() <= 0 => Err(Error::DataStore(dbcache::Error::EntityNotFound)),
+            Ok(mut ids) => Ok(depotsrv::PackageIdent::from(ids.remove(0))),
             Err(e) => Err(Error::from(e)),
         }
     }
