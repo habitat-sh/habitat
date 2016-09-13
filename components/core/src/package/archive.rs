@@ -199,12 +199,13 @@ impl PackageArchive {
 
     fn read_deps(&mut self, file: MetaFile) -> Result<Vec<PackageIdent>> {
         let mut deps: Vec<PackageIdent> = vec![];
+        let filename = format!("{}", &file);
         match self.read_metadata(file) {
             Ok(Some(body)) => {
-                debug!("body = [{}]", &body);
-                let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
+                debug!("body {} = [{}]", &filename, &body);
+                let ids: Vec<String> = body.lines().map(|d| d.to_string()).collect();
                 for id in &ids {
-                    debug!("id = [{}]", &id);
+                    debug!("id {} = [{}]", &filename, &id);
                     let package = try!(PackageIdent::from_str(id));
                     if !package.fully_qualified() {
                         // JW TODO: use a more appropriate erorr to describe the invalid
@@ -257,14 +258,19 @@ impl PackageArchive {
                     Ok(Some(bytes)) => {
                         match str::from_utf8(bytes) {
                             Ok(content) => {
-                                buf.push_str(content.trim());
+                                // You used to trim. Now you don't, because you were trimming
+                                // in the wrong place. Sometimes a buffer ends (or starts!) with
+                                // a newline.
+                                buf.push_str(content);
                             }
                             Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
                         }
                     }
                     Ok(None) => {
                         debug!("content = {}", &buf);
-                        metadata.insert(matched_type.unwrap(), buf);
+                        // Hey, before you go - we are trimming whitespace for you. This
+                        // is handy, because later on, you just want the string you want.
+                        metadata.insert(matched_type.unwrap(), String::from(buf.trim()));
                         break;
                     }
                     Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
