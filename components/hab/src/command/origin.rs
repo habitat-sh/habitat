@@ -54,7 +54,7 @@ pub mod key {
     pub mod download {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Green, Yellow};
+        use common::ui::{Status, UI};
         use depot_client::Client;
         use hcore::crypto::SigKeyPair;
 
@@ -62,7 +62,8 @@ pub mod key {
         use common::command::ProgressBar;
         use error::Result;
 
-        pub fn start(depot: &str,
+        pub fn start(ui: &mut UI,
+                     depot: &str,
                      origin: &str,
                      revision: Option<&str>,
                      cache: &Path)
@@ -71,33 +72,30 @@ pub mod key {
             match revision {
                 Some(revision) => {
                     let nwr = format!("{}-{}", origin, revision);
-                    let msg = format!("» Downloading public origin key {}", &nwr);
-                    println!("{}", Yellow.bold().paint(msg));
-                    try!(download_key(&depot_client, &nwr, origin, revision, cache));
-                    println!("{}",
-                             Blue.paint(format!("★ Download of {} public origin key completed.",
-                                                &nwr)));
+                    try!(ui.begin(format!("Downloading public origin key {}", &nwr)));
+                    try!(download_key(ui, &depot_client, &nwr, origin, revision, cache));
+                    try!(ui.end(format!("Download of {} public origin key completed.", &nwr)));
                 }
                 None => {
-                    let msg = format!("» Downloading public origin keys for {}", origin);
-                    println!("{}", Yellow.bold().paint(msg));
+                    try!(ui.begin(format!("Downloading public origin keys for {}", origin)));
                     for key in try!(depot_client.show_origin_keys(origin)) {
                         let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
-                        try!(download_key(&depot_client,
+                        try!(download_key(ui,
+                                          &depot_client,
                                           &nwr,
                                           key.get_origin(),
                                           key.get_revision(),
                                           cache));
                     }
-                    println!("{}",
-                             Blue.paint(format!("★ Download of {} public origin keys completed.",
-                                                &origin)));
+                    try!(ui.end(format!("Download of {} public origin keys completed.", &origin)));
                 }
             };
             Ok(())
         }
 
-        fn download_key(depot_client: &Client,
+        // TODO fin: use UI to signal whether or not to use progress bars
+        fn download_key(ui: &mut UI,
+                        depot_client: &Client,
                         nwr: &str,
                         name: &str,
                         rev: &str,
@@ -105,13 +103,13 @@ pub mod key {
                         -> Result<()> {
             match SigKeyPair::get_public_key_path(&nwr, &cache) {
                 Ok(_) => {
-                    println!("{} {}", Green.paint("→ Using"), &nwr);
+                    try!(ui.status(Status::Using, &nwr));
                 }
                 Err(_) => {
-                    println!("{} {}", Green.bold().paint("↓ Downloading"), &nwr);
+                    try!(ui.status(Status::Downloading, &nwr));
                     let mut progress = ProgressBar::default();
                     try!(depot_client.fetch_origin_key(name, rev, cache, Some(&mut progress)));
-                    println!("{} {}", Green.bold().paint("☑ Cached"), &nwr);
+                    try!(ui.status(Status::Cached, &nwr));
                 }
             }
             Ok(())
@@ -150,18 +148,15 @@ pub mod key {
     pub mod generate {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Yellow};
+        use common::ui::UI;
         use hcore::crypto::SigKeyPair;
 
         use error::Result;
 
-        pub fn start(origin: &str, cache: &Path) -> Result<()> {
-            println!("{}",
-                     Yellow.bold().paint(format!("» Generating origin key for {}", &origin)));
+        pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
+            try!(ui.begin(format!("Generating origin key for {}", &origin)));
             let pair = try!(SigKeyPair::generate_pair_for_origin(origin, cache));
-            println!("{}",
-                     Blue.paint(format!("★ Generated origin key pair {}.",
-                                        &pair.name_with_rev())));
+            try!(ui.end(format!("Generated origin key pair {}.", &pair.name_with_rev())));
             Ok(())
         }
     }
@@ -169,19 +164,17 @@ pub mod key {
     pub mod import {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Yellow};
+        use common::ui::UI;
         use hcore::crypto::SigKeyPair;
 
         use error::Result;
 
-        pub fn start(content: &str, cache: &Path) -> Result<()> {
-            println!("{}",
-                     Yellow.bold().paint(format!("» Importing origin key from standard input")));
+        pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
+            try!(ui.begin("Importing origin key from standard input"));
             let (pair, pair_type) = try!(SigKeyPair::write_file_from_str(content, cache));
-            println!("{}",
-                     Blue.paint(format!("★ Imported {} origin key {}.",
-                                        &pair_type,
-                                        &pair.name_with_rev())));
+            try!(ui.end(format!("Imported {} origin key {}.",
+                                &pair_type,
+                                &pair.name_with_rev())));
             Ok(())
         }
     }
@@ -189,34 +182,29 @@ pub mod key {
     pub mod upload {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Green, Yellow};
+        use common::command::ProgressBar;
+        use common::ui::{Status, UI};
+        use depot_client::{self, Client};
+        use hcore::crypto::keys::parse_name_with_rev;
+        use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
         use hyper::status::StatusCode::{Forbidden, Unauthorized};
 
-        use common::command::ProgressBar;
-        use depot_client::{self, Client};
-        use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
-        use hcore::crypto::keys::parse_name_with_rev;
         use super::get_name_with_rev;
-
         use {PRODUCT, VERSION};
         use error::{Error, Result};
 
-        pub fn start(depot: &str,
+        pub fn start(ui: &mut UI,
+                     depot: &str,
                      token: &str,
                      public_keyfile: &Path,
                      secret_keyfile: Option<&Path>)
                      -> Result<()> {
             let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
-            println!("{}",
-                     Yellow.bold()
-                         .paint(format!("» Uploading public origin key {}",
-                                        public_keyfile.display())));
+            try!(ui.begin(format!("Uploading public origin key {}", public_keyfile.display())));
 
             let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
             let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-            println!("{} {}",
-                     Green.bold().paint("↑ Uploading"),
-                     public_keyfile.display());
+            try!(ui.status(Status::Uploading, public_keyfile.display()));
             let mut progress = ProgressBar::default();
 
             match depot_client.put_origin_key(&name,
@@ -225,7 +213,7 @@ pub mod key {
                                               token,
                                               Some(&mut progress)) {
                 Ok(()) => {
-                    println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
+                    try!(ui.status(Status::Uploaded, &name_with_rev));
                 }
                 Err(e @ depot_client::Error::HTTP(Forbidden)) |
                 Err(e @ depot_client::Error::HTTP(Unauthorized)) => {
@@ -234,26 +222,21 @@ pub mod key {
 
                 Err(e @ depot_client::Error::HTTP(_)) => {
                     debug!("Error uploading public key {}", e);
-                    println!("{} {}",
-                             Yellow.bold()
-                                 .paint("✓ Public key revision already exists in the depot"),
-                             &name_with_rev);
+                    try!(ui.status(Status::Using,
+                                   format!("public key revision {} which already \
+                                           exists in the depot", &name_with_rev)));
                 }
                 Err(e) => {
                     return Err(Error::DepotClient(e));
                 }
             };
+            try!(ui.end(format!("Upload of public origin key {} complete.", &name_with_rev)));
 
-            println!("{}",
-                     Blue.paint(format!("★ Upload of public origin key {} complete.",
-                                        &name_with_rev)));
             if let Some(secret_keyfile) = secret_keyfile {
                 let name_with_rev = try!(get_name_with_rev(&secret_keyfile,
                                                            SECRET_SIG_KEY_VERSION));
                 let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-                println!("{} {}",
-                         Green.bold().paint("↑ Uploading"),
-                         secret_keyfile.display());
+                try!(ui.status(Status::Uploading, secret_keyfile.display()));
                 let mut progress = ProgressBar::default();
                 match depot_client.put_origin_secret_key(&name,
                                                          &rev,
@@ -261,11 +244,9 @@ pub mod key {
                                                          token,
                                                          Some(&mut progress)) {
                     Ok(()) => {
-
-                        println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
-                        println!("{}",
-                                 Blue.paint(format!("★ Upload of secret origin key {} complete.",
-                                                    &name_with_rev)));
+                        try!(ui.status(Status::Uploaded, &name_with_rev));
+                        try!(ui.end(format!("Upload of secret origin key {} complete.",
+                                            &name_with_rev)));
                     }
                     Err(e) => {
                         return Err(Error::DepotClient(e));
@@ -280,43 +261,41 @@ pub mod key {
     pub mod upload_latest {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Green, Yellow};
-        use hyper::status::StatusCode::{Forbidden, Unauthorized};
-
         use common::command::ProgressBar;
+        use common::ui::{Status, UI};
         use depot_client::{self, Client};
         use error::{Error, Result};
         use hcore::crypto::keys::parse_name_with_rev;
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION, SigKeyPair};
+        use hyper::status::StatusCode::{Forbidden, Unauthorized};
+
         use super::get_name_with_rev;
         use {PRODUCT, VERSION};
 
-        pub fn start(depot: &str,
+        pub fn start(ui: &mut UI,
+                     depot: &str,
                      token: &str,
                      origin: &str,
                      with_secret: bool,
                      cache: &Path)
                      -> Result<()> {
             let depot_client = try!(Client::new(depot, PRODUCT, VERSION, None));
+            try!(ui.begin(format!("Uploading latest public origin key {}", &origin)));
             let latest = try!(SigKeyPair::get_latest_pair_for(origin, cache));
             let public_keyfile = try!(SigKeyPair::get_public_key_path(&latest.name_with_rev(),
                                                                       cache));
-
             let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
-
             let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-
-
-            println!("{} {}",
-                     Green.bold().paint("↑ Uploading public key"),
-                     public_keyfile.display());
+            try!(ui.status(Status::Uploading, public_keyfile.display()));
             let mut progress = ProgressBar::default();
 
-
-
-            match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, Some(&mut progress)) {
+            match depot_client.put_origin_key(&name,
+                                              &rev,
+                                              &public_keyfile,
+                                              token,
+                                              Some(&mut progress)) {
                 Ok(()) => {
-                    println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
+                    try!(ui.status(Status::Uploaded, &name_with_rev));
                 }
                 Err(e @ depot_client::Error::HTTP(Forbidden)) |
                 Err(e @ depot_client::Error::HTTP(Unauthorized)) => {
@@ -324,19 +303,15 @@ pub mod key {
                 }
                 Err(e @ depot_client::Error::HTTP(_)) => {
                     debug!("Error uploading public key {}", e);
-                    println!("{} {}",
-                             Yellow.bold()
-                                 .paint("✓ Public key revision already exists in the depot"),
-                             &name_with_rev);
+                    try!(ui.status(Status::Using,
+                                   format!("public key revision {} which already \
+                                           exists in the depot", &name_with_rev)));
                 }
                 Err(e) => {
                     return Err(Error::DepotClient(e));
                 }
             };
-
-            println!("{}",
-                     Blue.paint(format!("★ Upload of public origin key {} complete.",
-                                        &name_with_rev)));
+            try!(ui.end(format!("Upload of public origin key {} complete.", &name_with_rev)));
 
             if with_secret {
                 let secret_keyfile = try!(SigKeyPair::get_secret_key_path(&latest.name_with_rev(),
@@ -346,9 +321,7 @@ pub mod key {
                 // check the SECRET_SIG_KEY_VERSION
                 let name_with_rev = try!(get_name_with_rev(&secret_keyfile,
                                                            SECRET_SIG_KEY_VERSION));
-                println!("{} {}",
-                         Green.bold().paint("↑ Uploading secret key"),
-                         secret_keyfile.display());
+                try!(ui.status(Status::Uploading, secret_keyfile.display()));
                 let mut progress = ProgressBar::default();
                 match depot_client.put_origin_secret_key(&name,
                                                          &rev,
@@ -356,11 +329,9 @@ pub mod key {
                                                          token,
                                                          Some(&mut progress)) {
                     Ok(()) => {
-
-                        println!("{} {}", Green.bold().paint("✓ Uploaded"), &name_with_rev);
-                        println!("{}",
-                                 Blue.paint(format!("★ Upload of secret origin key {} complete.",
-                                                    &name_with_rev)));
+                        try!(ui.status(Status::Uploaded, &name_with_rev));
+                        try!(ui.end(format!("Upload of secret origin key {} complete.",
+                                            &name_with_rev)));
                     }
                     Err(e) => {
                         return Err(Error::DepotClient(e));
@@ -370,8 +341,4 @@ pub mod key {
             Ok(())
         }
     }
-
-
-
-
 }

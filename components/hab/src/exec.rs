@@ -20,8 +20,8 @@ use std::os::unix::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::ptr;
 
-use ansi_term::Colour::Cyan;
 use common;
+use common::ui::{Status, UI};
 use hcore;
 use hcore::fs::cache_artifact_path;
 use hcore::package::{PackageIdent, PackageInstall};
@@ -77,7 +77,8 @@ pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
 #[allow(dead_code)] // Currently only used on Linux platforms
-pub fn command_from_pkg(command: &str,
+pub fn command_from_pkg(ui: &mut UI,
+                        command: &str,
                         ident: &PackageIdent,
                         cache_key_path: &Path,
                         retry: u8)
@@ -95,17 +96,16 @@ pub fn command_from_pkg(command: &str,
             }
         }
         Err(hcore::Error::PackageNotFound(_)) => {
-            println!("{}",
-                     Cyan.bold()
-                         .paint(format!("∵ Package for {} not found, installing", &ident)));
-            try!(common::command::package::install::start(&default_depot_url(),
+            try!(ui.status(Status::Missing, format!("package for {}", &ident)));
+            try!(common::command::package::install::start(ui,
+                                                          &default_depot_url(),
                                                           &ident.to_string(),
                                                           PRODUCT,
                                                           VERSION,
                                                           fs_root_path,
                                                           &cache_artifact_path(None),
                                                           cache_key_path));
-            command_from_pkg(&command, &ident, &cache_key_path, retry + 1)
+            command_from_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => return Err(Error::from(e)),
     }

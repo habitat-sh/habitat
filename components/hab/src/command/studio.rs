@@ -15,12 +15,13 @@
 use std::env;
 use std::ffi::OsString;
 
+use common::ui::UI;
 use hcore::env as henv;
 
 use config;
 use error::Result;
 
-pub fn start(args: Vec<OsString>) -> Result<()> {
+pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
     // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
     // or `docker` execv call.
@@ -31,7 +32,7 @@ pub fn start(args: Vec<OsString>) -> Result<()> {
             env::set_var("HAB_ORIGIN", default_origin);
         }
     }
-    inner::start(args)
+    inner::start(ui, args)
 }
 
 #[cfg(target_os = "linux")]
@@ -40,6 +41,7 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
+    use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
     use hcore::fs::find_command;
@@ -52,13 +54,17 @@ mod inner {
     const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
     const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
 
-    pub fn start(args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(STUDIO_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
                 let ident = try!(PackageIdent::from_str(STUDIO_PACKAGE_IDENT));
-                try!(exec::command_from_pkg(STUDIO_CMD, &ident, &default_cache_key_path(None), 0))
+                try!(exec::command_from_pkg(ui,
+                                            STUDIO_CMD,
+                                            &ident,
+                                            &default_cache_key_path(None),
+                                            0))
             }
         };
 
@@ -76,6 +82,7 @@ mod inner {
     use std::env;
     use std::ffi::OsString;
 
+    use common::ui::UI;
     use hcore::crypto::default_cache_key_path;
     use hcore::env as henv;
     use hcore::fs::{CACHE_KEY_PATH, find_command};
@@ -89,7 +96,7 @@ mod inner {
     const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 
-    pub fn start(args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
         let image = henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(DOCKER_IMAGE.to_string());
 

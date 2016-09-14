@@ -39,7 +39,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use ansi_term::Colour::{Blue, Green, Yellow};
 use depot_client::Client;
 use hcore;
 use hcore::crypto::{artifact, SigKeyPair};
@@ -48,8 +47,10 @@ use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall}
 
 use command::ProgressBar;
 use error::{Error, Result};
+use ui::{Status, UI};
 
-pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
+pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(ui: &mut UI,
+                                                 url: &str,
                                                  ident_or_archive: &str,
                                                  product: &str,
                                                  version: &str,
@@ -69,9 +70,9 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(url: &str,
                                      cache_key_path.as_ref()));
 
     if Path::new(ident_or_archive).is_file() {
-        task.from_artifact(&Path::new(ident_or_archive))
+        task.from_artifact(ui, &Path::new(ident_or_archive))
     } else {
-        task.from_ident(try!(PackageIdent::from_str(ident_or_archive)))
+        task.from_ident(ui, try!(PackageIdent::from_str(ident_or_archive)))
     }
 }
 
@@ -98,71 +99,67 @@ impl<'a> InstallTask<'a> {
         })
     }
 
-    pub fn from_ident(&self, ident: PackageIdent) -> Result<PackageIdent> {
-        println!("{}",
-                 Yellow.bold().paint(format!("» Installing {}", &ident)));
+    pub fn from_ident(&self, ui: &mut UI, ident: PackageIdent) -> Result<PackageIdent> {
+        try!(ui.begin(format!("Installing {}", &ident)));
         let mut ident = ident;
         if !ident.fully_qualified() {
             ident = try!(self.fetch_latest_pkg_ident_for(ident));
         }
         if try!(self.is_package_installed(&ident)) {
-            println!("{} {}", Green.paint("→ Using"), &ident);
-            println!("{}",
-                     Blue.paint(format!("★ Install of {} complete with {} new packages \
-                                         installed.",
-                                        &ident,
-                                        0)));
+            try!(ui.status(Status::Using, &ident));
+            try!(ui.end(format!("Install of {} complete with {} new packages installed.",
+                                &ident,
+                                0)));
             return Ok(ident);
         }
 
-        self.install_package(ident, None)
+        self.install_package(ui, ident, None)
     }
 
-    pub fn from_artifact(&self, artifact_path: &Path) -> Result<PackageIdent> {
+    pub fn from_artifact(&self, ui: &mut UI, artifact_path: &Path) -> Result<PackageIdent> {
         let ident = try!(PackageArchive::new(artifact_path).ident());
         if try!(self.is_package_installed(&ident)) {
-            println!("{} {}", Green.paint("→ Using"), &ident);
-            println!("{}",
-                     Blue.paint(format!("★ Install of {} complete with {} new packages \
-                                         installed.",
-                                        &ident,
-                                        0)));
+            try!(ui.status(Status::Using, &ident));
+            try!(ui.end(format!("Install of {} complete with {} new packages installed.",
+                                &ident,
+                                0)));
             return Ok(ident);
         }
         try!(self.cache_artifact(&ident, artifact_path));
         let src_path = artifact_path.parent().unwrap();
 
-        self.install_package(ident, Some(src_path))
+        self.install_package(ui, ident, Some(src_path))
     }
 
     fn install_package(&self,
+                       ui: &mut UI,
                        ident: PackageIdent,
                        src_path: Option<&Path>)
                        -> Result<PackageIdent> {
-        let mut artifact = try!(self.get_cached_artifact(ident.clone(), src_path));
+        let mut artifact = try!(self.get_cached_artifact(ui, ident.clone(), src_path));
         let mut artifacts: Vec<PackageArchive> = Vec::new();
 
         for ident in try!(artifact.tdeps()) {
             if try!(self.is_package_installed(&ident)) {
-                println!("{} {}", Green.paint("→ Using"), ident);
+                try!(ui.status(Status::Using, &ident));
             } else {
-                artifacts.push(try!(self.get_cached_artifact(ident, src_path)));
+                artifacts.push(try!(self.get_cached_artifact(ui, ident, src_path)));
             }
         }
         artifacts.push(artifact);
 
         let num_installed = artifacts.len();
         for mut artifact in artifacts {
-            try!(self.extract_artifact(&mut artifact));
+            try!(self.extract_artifact(ui, &mut artifact));
         }
-        println!("{}",
-                 Blue.paint(format!("★ Install of {} complete with {} new packages installed.",
-                                    &ident,
-                                    num_installed)));
+        try!(ui.end(format!("Install of {} complete with {} new packages installed.",
+                            &ident,
+                            num_installed)));
         Ok(ident)
     }
 
     fn get_cached_artifact(&self,
+                           ui: &mut UI,
                            ident: PackageIdent,
                            src_path: Option<&Path>)
                            -> Result<PackageArchive> {
@@ -170,19 +167,17 @@ impl<'a> InstallTask<'a> {
             debug!("Found {} in artifact cache, skipping remote download",
                    &ident);
         } else {
-            try!(self.fetch_artifact(&ident, src_path));
+            try!(self.fetch_artifact(ui, &ident, src_path));
         }
 
         let mut artifact = PackageArchive::new(try!(self.cached_artifact_path(&ident)));
-        try!(self.verify_artifact(&ident, &mut artifact));
+        try!(self.verify_artifact(ui, &ident, &mut artifact));
         Ok(artifact)
     }
 
-    fn extract_artifact(&self, artifact: &mut PackageArchive) -> Result<()> {
+    fn extract_artifact(&self, ui: &mut UI, artifact: &mut PackageArchive) -> Result<()> {
         try!(artifact.unpack(Some(self.fs_root_path)));
-        println!("{} {}",
-                 Green.bold().paint("✓ Installed"),
-                 try!(artifact.ident()));
+        try!(ui.status(Status::Installed, try!(artifact.ident())));
         Ok(())
     }
 
@@ -212,7 +207,11 @@ impl<'a> InstallTask<'a> {
         Ok(try!(self.depot_client.show_package(fuzzy_ident)).into())
     }
 
-    fn fetch_artifact(&self, ident: &PackageIdent, src_path: Option<&Path>) -> Result<()> {
+    fn fetch_artifact(&self,
+                      ui: &mut UI,
+                      ident: &PackageIdent,
+                      src_path: Option<&Path>)
+                      -> Result<()> {
         if let Some(src_path) = src_path {
             let name = match ident.archive_name() {
                 Some(n) => n,
@@ -226,24 +225,22 @@ impl<'a> InstallTask<'a> {
             }
         }
 
-        println!("{} {}", Green.bold().paint("↓ Downloading"), ident);
+        try!(ui.status(Status::Downloading, ident));
         let mut progress = ProgressBar::default();
         try!(self.depot_client
             .fetch_package(ident.clone(), self.cache_artifact_path, Some(&mut progress)));
         Ok(())
     }
 
-    fn fetch_origin_key(&self, name_with_rev: &str) -> Result<()> {
-        println!("{} {} public origin key",
-                 Green.bold().paint("↓ Downloading"),
-                 &name_with_rev);
+    fn fetch_origin_key(&self, ui: &mut UI, name_with_rev: &str) -> Result<()> {
+        try!(ui.status(Status::Downloading,
+                       format!("{} public origin key", &name_with_rev)));
         let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
         let mut progress = ProgressBar::default();
         try!(self.depot_client
             .fetch_origin_key(&name, &rev, self.cache_key_path, Some(&mut progress)));
-        println!("{} {} public origin key",
-                 Green.bold().paint("☑ Cached"),
-                 &name_with_rev);
+        try!(ui.status(Status::Cached,
+                       format!("{} public origin key", &name_with_rev)));
         Ok(())
     }
 
@@ -258,7 +255,11 @@ impl<'a> InstallTask<'a> {
         Ok(())
     }
 
-    fn verify_artifact(&self, ident: &PackageIdent, artifact: &mut PackageArchive) -> Result<()> {
+    fn verify_artifact(&self,
+                       ui: &mut UI,
+                       ident: &PackageIdent,
+                       artifact: &mut PackageArchive)
+                       -> Result<()> {
         let artifact_ident = try!(artifact.ident());
         if ident != &artifact_ident {
             return Err(Error::ArtifactIdentMismatch((artifact.file_name(),
@@ -268,7 +269,7 @@ impl<'a> InstallTask<'a> {
 
         let nwr = try!(artifact::artifact_signer(&artifact.path));
         if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {
-            try!(self.fetch_origin_key(&nwr));
+            try!(self.fetch_origin_key(ui, &nwr));
         }
 
         try!(artifact.verify(&self.cache_key_path));

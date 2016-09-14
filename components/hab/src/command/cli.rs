@@ -18,6 +18,7 @@ pub mod setup {
     use std::process;
 
     use ansi_term::Colour::{Cyan, Green, White};
+    use common::ui::UI;
     use hcore::crypto::SigKeyPair;
     use hcore::env;
 
@@ -26,7 +27,8 @@ pub mod setup {
     use config;
     use error::Result;
 
-    pub fn start(cache_path: &Path, analytics_path: &Path) -> Result<()> {
+    // @TODO fin: Move `title`, `para`, etc into UI
+    pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()> {
         let mut generated_origin = false;
 
         println!("");
@@ -66,7 +68,7 @@ pub mod setup {
                 para("For more information on the use of origin keys, please consult the \
                       documentation at https://www.habitat.sh/docs/concepts-keys/#origin-keys");
                 if try!(ask_create_origin(&origin)) {
-                    try!(create_origin(&origin, cache_path));
+                    try!(create_origin(ui, &origin, cache_path));
                     generated_origin = true;
                 } else {
                     para(&format!("You might want to create an origin key later with: `hab \
@@ -148,8 +150,8 @@ pub mod setup {
         }
     }
 
-    fn create_origin(origin: &str, cache_path: &Path) -> Result<()> {
-        let result = command::origin::key::generate::start(&origin, cache_path);
+    fn create_origin(ui: &mut UI, origin: &str, cache_path: &Path) -> Result<()> {
+        let result = command::origin::key::generate::start(ui, &origin, cache_path);
         println!("");
         result
     }

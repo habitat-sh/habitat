@@ -15,22 +15,22 @@
 pub mod upload {
     use std::path::Path;
 
-    use ansi_term::Colour::{Blue, Green, Yellow};
-    use hcore::crypto::{BoxKeyPair, SymKey};
     use common::gossip_file::GossipFile;
+    use common::ui::{Status, UI};
+    use hcore::crypto::{BoxKeyPair, SymKey};
 
     use error::Result;
     use gossip::{self, hab_gossip};
 
-    pub fn start(peers: &Vec<String>,
+    pub fn start(ui: &mut UI,
+                 peers: &Vec<String>,
                  ring_key: Option<&SymKey>,
                  user_pair: &BoxKeyPair,
                  service_pair: &BoxKeyPair,
                  number: u64,
                  file_path: &Path)
                  -> Result<()> {
-        println!("{}",
-                 Yellow.bold().paint(format!("» Uploading file {}", &file_path.display())));
+        try!(ui.begin(format!("Uploading file {}", &file_path.display())));
         let file =
             try!(GossipFile::from_file_encrypt(&user_pair, &service_pair, file_path, number));
 
@@ -38,20 +38,18 @@ pub mod upload {
         let mut list = hab_gossip::RumorList::new();
         list.add_rumor(rumor);
         if let Some(ring_key) = ring_key {
-            println!("{} communication to \"{}\" ring with {}",
-                     Green.bold().paint("☛ Encrypting"),
-                     &ring_key.name,
-                     &ring_key.name_with_rev());
-
+            try!(ui.status(Status::Encrypting,
+                           format!("communication to \"{}\" ring with {}",
+                                   &ring_key.name,
+                                   &ring_key.name_with_rev())));
         }
-        println!("{} {} for {} into ring via {:?}",
-                 Green.bold().paint("↑ Uploading"),
-                 &file_path.display(),
-                 &service_pair.name,
-                 &peers);
+        try!(ui.status(Status::Uploading,
+                       format!("{} for {} into ring via {:?}",
+                               &file_path.display(),
+                               &service_pair.name,
+                               &peers)));
         try!(gossip::send_rumors_to_peers(&peers, ring_key, &list));
-        println!("{}",
-                 Blue.paint(format!("★ Upload of {} complete.", &file_path.display())));
+        try!(ui.end(format!("Upload of {} complete.", &file_path.display())));
         Ok(())
     }
 }

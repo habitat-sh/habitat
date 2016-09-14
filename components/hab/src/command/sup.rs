@@ -14,10 +14,12 @@
 
 use std::ffi::OsString;
 
+use common::ui::UI;
+
 use error::Result;
 
-pub fn start(args: Vec<OsString>) -> Result<()> {
-    inner::start(args)
+pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    inner::start(ui, args)
 }
 
 #[cfg(target_os = "linux")]
@@ -26,6 +28,7 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
+    use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
     use hcore::fs::find_command;
@@ -41,7 +44,7 @@ mod inner {
     const FEAT_STATIC: &'static str = "HAB_FEAT_SUP_STATIC";
     const SUP_STATIC_PACKAGE_IDENT: &'static str = "core/hab-sup-static";
 
-    pub fn start(args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let sup_ident = match henv::var(FEAT_STATIC) {
             Ok(_) => {
                 debug!("Enabling statically compiled Supervisor from {}",
@@ -55,7 +58,7 @@ mod inner {
             Err(_) => {
                 init();
                 let ident = try!(PackageIdent::from_str(sup_ident));
-                try!(exec::command_from_pkg(SUP_CMD, &ident, &default_cache_key_path(None), 0))
+                try!(exec::command_from_pkg(ui, SUP_CMD, &ident, &default_cache_key_path(None), 0))
             }
         };
 
@@ -73,10 +76,11 @@ mod inner {
     use std::ffi::OsString;
 
     use ansi_term::Colour::Yellow;
+    use common::ui::UI;
 
     use error::{Error, Result};
 
-    pub fn start(_args: Vec<OsString>) -> Result<()> {
+    pub fn start(_ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         let msg = format!("∅ Launching a native Supervisor on this operating system is not yet \
                            supported. Try running this command again on a 64-bit Linux \

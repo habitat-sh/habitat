@@ -32,6 +32,7 @@ use std::thread;
 use ansi_term::Colour::Red;
 use clap::ArgMatches;
 
+use common::ui::UI;
 use hcore::env as henv;
 use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
 use hcore::crypto::keys::PairType;
@@ -70,7 +71,8 @@ fn main() {
 }
 
 fn start() -> Result<()> {
-    try!(exec_subcommand_if_called());
+    let mut ui = UI::default();
+    try!(exec_subcommand_if_called(&mut ui));
 
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
@@ -81,35 +83,35 @@ fn start() -> Result<()> {
             e.exit();
         });
     match app_matches.subcommand() {
-        ("apply", Some(m)) => try!(sub_config_apply(m)),
+        ("apply", Some(m)) => try!(sub_config_apply(&mut ui, m)),
         ("cli", Some(matches)) => {
             match matches.subcommand() {
-                ("setup", Some(_)) => try!(sub_cli_setup()),
+                ("setup", Some(_)) => try!(sub_cli_setup(&mut ui)),
                 _ => unreachable!(),
             }
         }
         ("config", Some(matches)) => {
             match matches.subcommand() {
-                ("apply", Some(m)) => try!(sub_config_apply(m)),
+                ("apply", Some(m)) => try!(sub_config_apply(&mut ui, m)),
                 _ => unreachable!(),
             }
         }
         ("file", Some(matches)) => {
             match matches.subcommand() {
-                ("upload", Some(m)) => try!(sub_file_upload(m)),
+                ("upload", Some(m)) => try!(sub_file_upload(&mut ui, m)),
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => try!(sub_pkg_install(m)),
+        ("install", Some(m)) => try!(sub_pkg_install(&mut ui, m)),
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("download", Some(sc)) => try!(sub_origin_key_download(sc)),
+                        ("download", Some(sc)) => try!(sub_origin_key_download(&mut ui, sc)),
                         ("export", Some(sc)) => try!(sub_origin_key_export(sc)),
-                        ("generate", Some(sc)) => try!(sub_origin_key_generate(sc)),
-                        ("import", Some(_)) => try!(sub_origin_key_import()),
-                        ("upload", Some(sc)) => try!(sub_origin_key_upload(sc)),
+                        ("generate", Some(sc)) => try!(sub_origin_key_generate(&mut ui, sc)),
+                        ("import", Some(_)) => try!(sub_origin_key_import(&mut ui)),
+                        ("upload", Some(sc)) => try!(sub_origin_key_upload(&mut ui, sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -118,18 +120,18 @@ fn start() -> Result<()> {
         }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
-                ("binlink", Some(m)) => try!(sub_pkg_binlink(m)),
-                ("build", Some(m)) => try!(sub_pkg_build(m)),
+                ("binlink", Some(m)) => try!(sub_pkg_binlink(&mut ui, m)),
+                ("build", Some(m)) => try!(sub_pkg_build(&mut ui, m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
-                ("export", Some(m)) => try!(sub_pkg_export(m)),
+                ("export", Some(m)) => try!(sub_pkg_export(&mut ui, m)),
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
-                ("install", Some(m)) => try!(sub_pkg_install(m)),
+                ("install", Some(m)) => try!(sub_pkg_install(&mut ui, m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
                 ("provides", Some(m)) => try!(sub_pkg_provides(m)),
                 ("search", Some(m)) => try!(sub_pkg_search(m)),
-                ("sign", Some(m)) => try!(sub_pkg_sign(m)),
-                ("upload", Some(m)) => try!(sub_pkg_upload(m)),
-                ("verify", Some(m)) => try!(sub_pkg_verify(m)),
+                ("sign", Some(m)) => try!(sub_pkg_sign(&mut ui, m)),
+                ("upload", Some(m)) => try!(sub_pkg_upload(&mut ui, m)),
+                ("verify", Some(m)) => try!(sub_pkg_verify(&mut ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -138,8 +140,8 @@ fn start() -> Result<()> {
                 ("key", Some(m)) => {
                     match m.subcommand() {
                         ("export", Some(sc)) => try!(sub_ring_key_export(sc)),
-                        ("import", Some(_)) => try!(sub_ring_key_import()),
-                        ("generate", Some(sc)) => try!(sub_ring_key_generate(sc)),
+                        ("import", Some(_)) => try!(sub_ring_key_import(&mut ui)),
+                        ("generate", Some(sc)) => try!(sub_ring_key_generate(&mut ui, sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -150,19 +152,19 @@ fn start() -> Result<()> {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("generate", Some(sc)) => try!(sub_service_key_generate(sc)),
+                        ("generate", Some(sc)) => try!(sub_service_key_generate(&mut ui, sc)),
                         _ => unreachable!(),
                     }
                 }
                 _ => unreachable!(),
             }
         }
-        ("setup", Some(_)) => try!(sub_cli_setup()),
+        ("setup", Some(_)) => try!(sub_cli_setup(&mut ui)),
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("generate", Some(sc)) => try!(sub_user_key_generate(sc)),
+                        ("generate", Some(sc)) => try!(sub_user_key_generate(&mut ui, sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -174,16 +176,17 @@ fn start() -> Result<()> {
     Ok(())
 }
 
-fn sub_cli_setup() -> Result<()> {
+fn sub_cli_setup(ui: &mut UI) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     init();
 
-    command::cli::setup::start(&default_cache_key_path(fs_root_path),
+    command::cli::setup::start(ui,
+                               &default_cache_key_path(fs_root_path),
                                &cache_analytics_path(fs_root_path))
 }
 
-fn sub_config_apply(m: &ArgMatches) -> Result<()> {
+fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
@@ -216,10 +219,10 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     };
     sg.organization = org;
 
-    command::config::apply::start(&peers, ring_key.as_ref(), &sg, number, file_path)
+    command::config::apply::start(ui, &peers, ring_key.as_ref(), &sg, number, file_path)
 }
 
-fn sub_file_upload(m: &ArgMatches) -> Result<()> {
+fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
 
@@ -263,7 +266,8 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
     let user = try!(user_param_or_env(&m));
     let user_pair = try!(BoxKeyPair::get_latest_pair_for(&user, &cache));
 
-    command::file::upload::start(&peers,
+    command::file::upload::start(ui,
+                                 &peers,
                                  ring_key.as_ref(),
                                  &user_pair,
                                  &service_pair,
@@ -271,7 +275,7 @@ fn sub_file_upload(m: &ArgMatches) -> Result<()> {
                                  file_path)
 }
 
-fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
+fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let origin = m.value_of("ORIGIN").unwrap();
@@ -279,7 +283,8 @@ fn sub_origin_key_download(m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
 
-    command::origin::key::download::start(&url,
+    command::origin::key::download::start(ui,
+                                          &url,
                                           &origin,
                                           revision,
                                           &default_cache_key_path(fs_root_path))
@@ -295,26 +300,26 @@ fn sub_origin_key_export(m: &ArgMatches) -> Result<()> {
     command::origin::key::export::start(origin, pair_type, &default_cache_key_path(fs_root_path))
 }
 
-fn sub_origin_key_generate(m: &ArgMatches) -> Result<()> {
+fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let origin = try!(origin_param_or_env(&m));
     init();
 
-    command::origin::key::generate::start(&origin, &default_cache_key_path(fs_root_path))
+    command::origin::key::generate::start(ui, &origin, &default_cache_key_path(fs_root_path))
 }
 
-fn sub_origin_key_import() -> Result<()> {
+fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let mut content = String::new();
     try!(io::stdin().read_to_string(&mut content));
     init();
 
-    command::origin::key::import::start(&content, &default_cache_key_path(fs_root_path))
+    command::origin::key::import::start(ui, &content, &default_cache_key_path(fs_root_path))
 }
 
-fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
+fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
@@ -329,7 +334,8 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
         let origin = m.value_of("ORIGIN").unwrap();
         // you can either specify files, or infer the latest key names
         let with_secret = m.is_present("WITH_SECRET");
-        command::origin::key::upload_latest::start(url,
+        command::origin::key::upload_latest::start(ui,
+                                                   url,
                                                    &token,
                                                    origin,
                                                    with_secret,
@@ -337,21 +343,21 @@ fn sub_origin_key_upload(m: &ArgMatches) -> Result<()> {
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
-        command::origin::key::upload::start(url, &token, &keyfile, secret_keyfile)
+        command::origin::key::upload::start(ui, url, &token, &keyfile, secret_keyfile)
     }
 }
 
-fn sub_pkg_binlink(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Path::new(&fs_root);
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let binary = m.value_of("BINARY").unwrap();
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
 
-    command::pkg::binlink::start(&ident, &binary, &dest_dir, &fs_root_path)
+    command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &fs_root_path)
 }
 
-fn sub_pkg_build(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
 
@@ -377,7 +383,7 @@ fn sub_pkg_build(m: &ArgMatches) -> Result<()> {
     };
     let reuse = m.is_present("REUSE");
 
-    command::pkg::build::start(plan_context, root, src, keys, reuse)
+    command::pkg::build::start(ui, plan_context, root, src, keys, reuse)
 }
 
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
@@ -387,11 +393,11 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
     command::pkg::exec::start(&ident, cmd, cmd_args)
 }
 
-fn sub_pkg_export(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let format = &m.value_of("FORMAT").unwrap();
     let export_fmt = try!(command::pkg::export::format_for(&format));
-    command::pkg::export::start(&ident, &export_fmt)
+    command::pkg::export::start(ui, &ident, &export_fmt)
 }
 
 fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
@@ -401,7 +407,7 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     command::pkg::hash::start(&source)
 }
 
-fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
@@ -410,7 +416,8 @@ fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     init();
 
     for ident_or_artifact in ident_or_artifacts {
-        try!(common::command::package::install::start(url,
+        try!(common::command::package::install::start(ui,
+                                                      url,
                                                       ident_or_artifact,
                                                       PRODUCT,
                                                       VERSION,
@@ -448,7 +455,7 @@ fn sub_pkg_search(m: &ArgMatches) -> Result<()> {
     command::pkg::search::start(&search_term, &url)
 }
 
-fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let src = Path::new(m.value_of("SOURCE").unwrap());
@@ -457,10 +464,10 @@ fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
     let pair = try!(SigKeyPair::get_latest_pair_for(&try!(origin_param_or_env(&m)),
                                                     &default_cache_key_path(fs_root_path)));
 
-    command::pkg::sign::start(&pair, &src, &dst)
+    command::pkg::sign::start(ui, &pair, &src, &dst)
 }
 
-fn sub_pkg_upload(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
@@ -472,18 +479,18 @@ fn sub_pkg_upload(m: &ArgMatches) -> Result<()> {
     let token = try!(auth_token_param_or_env(&m));
     let artifact_paths = m.values_of("HART_FILE").unwrap();
     for artifact_path in artifact_paths {
-        try!(command::pkg::upload::start(&url, &token, &artifact_path, &key_path));
+        try!(command::pkg::upload::start(ui, &url, &token, &artifact_path, &key_path));
     }
     Ok(())
 }
 
-fn sub_pkg_verify(m: &ArgMatches) -> Result<()> {
+fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let src = Path::new(m.value_of("SOURCE").unwrap());
     init();
 
-    command::pkg::verify::start(&src, &default_cache_key_path(fs_root_path))
+    command::pkg::verify::start(ui, &src, &default_cache_key_path(fs_root_path))
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
@@ -495,54 +502,55 @@ fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
     command::ring::key::export::start(ring, &default_cache_key_path(fs_root_path))
 }
 
-fn sub_ring_key_generate(m: &ArgMatches) -> Result<()> {
+fn sub_ring_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let ring = m.value_of("RING").unwrap();
     init();
 
-    command::ring::key::generate::start(ring, &default_cache_key_path(fs_root_path))
+    command::ring::key::generate::start(ui, ring, &default_cache_key_path(fs_root_path))
 }
 
-fn sub_ring_key_import() -> Result<()> {
+fn sub_ring_key_import(ui: &mut UI) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let mut content = String::new();
     try!(io::stdin().read_to_string(&mut content));
     init();
 
-    command::ring::key::import::start(&content, &default_cache_key_path(fs_root_path))
+    command::ring::key::import::start(ui, &content, &default_cache_key_path(fs_root_path))
 }
 
-fn sub_service_key_generate(m: &ArgMatches) -> Result<()> {
+fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let org = try!(org_param_or_env(&m));
     let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     init();
 
-    command::service::key::generate::start(&org,
+    command::service::key::generate::start(ui,
+                                           &org,
                                            &service_group,
                                            &default_cache_key_path(fs_root_path))
 }
 
-fn sub_user_key_generate(m: &ArgMatches) -> Result<()> {
+fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let user = m.value_of("USER").unwrap(); // clap required
     init();
 
-    command::user::key::generate::start(user, &default_cache_key_path(fs_root_path))
+    command::user::key::generate::start(ui, user, &default_cache_key_path(fs_root_path))
 }
 
-fn exec_subcommand_if_called() -> Result<()> {
+fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
     match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
-            command::studio::start(env::args_os().skip(2).collect())
+            command::studio::start(ui, env::args_os().skip(2).collect())
         }
-        ("sup", _) => command::sup::start(env::args_os().skip(2).collect()),
-        ("start", _) => command::sup::start(env::args_os().skip(1).collect()),
+        ("sup", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
+        ("start", _) => command::sup::start(ui, env::args_os().skip(1).collect()),
         _ => Ok(()),
     }
 }
