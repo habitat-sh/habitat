@@ -221,8 +221,8 @@ impl ProxyBasicAuthorization {
 /// use std;
 /// use habitat_http_client::proxy;
 ///
-/// std::env::set_var("http_proxy", "http://lower.example.com");
 /// std::env::set_var("HTTP_PROXY", "http://upper.example.com");
+/// std::env::set_var("http_proxy", "http://lower.example.com");
 /// let info = proxy::http_proxy().unwrap().unwrap();
 ///
 /// assert_eq!(info.host(), "lower.example.com");
@@ -309,8 +309,8 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 /// use std;
 /// use habitat_http_client::proxy;
 ///
-/// std::env::set_var("https_proxy", "http://lower.example.com");
 /// std::env::set_var("HTTPS_PROXY", "http://upper.example.com");
+/// std::env::set_var("https_proxy", "http://lower.example.com");
 /// let info = proxy::https_proxy().unwrap().unwrap();
 ///
 /// assert_eq!(info.host(), "lower.example.com");
@@ -416,10 +416,10 @@ pub fn https_proxy() -> Result<Option<ProxyInfo>> {
 /// use habitat_http_client::proxy;
 ///
 /// fn main() {
-///     std::env::set_var("https_proxy", "http://lower.example.com");
 ///     std::env::set_var("HTTPS_PROXY", "http://upper.example.com");
-///     std::env::set_var("no_proxy", ".lower,localdomain.com");
+///     std::env::set_var("https_proxy", "http://lower.example.com");
 ///     std::env::set_var("NO_PROXY", ".upper.localdomain.com");
+///     std::env::set_var("no_proxy", ".lower,localdomain.com");
 ///     let for_domain = Url::from_str("https://server.lower.localdomain.com").unwrap();
 ///     let info = proxy::proxy_unless_domain_exempted(Some(&for_domain)).unwrap();
 ///
