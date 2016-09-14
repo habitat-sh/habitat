@@ -95,19 +95,19 @@ To install Middleman, follow these instructions:
 
 1. Change to the `www` directory and type:
 
-       bundle install --path=vendor
+       `bundle install --path=vendor`
 
 2. To build the documentation, either before or after you make your change, change to the `www` directory and type:
 
-       bundle exec middleman build
+       `bundle exec middleman build`
 
 3. The documentation is built into the `source` directory. You can instruct Middleman to serve the site by typing:
 
-       bundle exec middleman serve
+       `bundle exec middleman serve`
 
 4. Middleman will start a small webserver on your computer and indicate what URL you should load in your browser to preview it.
 
-       == View your site at "http://mylaptop.example.com:4567", "http://192.168.1.101:4567"
+       `== View your site at "http://mylaptop.example.com:4567", "http://192.168.1.101:4567"`
 
 5. You can continue to make changes to the documentation files and Middleman will reload them live.
 6. Press `Ctrl-C` to terminate the webserver when you are finished working with Middleman.
