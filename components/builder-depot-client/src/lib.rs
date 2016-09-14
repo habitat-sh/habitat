@@ -73,12 +73,15 @@ impl Client {
     /// * Key cannot be found
     /// * Remote Depot is not available
     /// * File cannot be created and written to
-    pub fn fetch_origin_key<P: AsRef<Path> + ?Sized>(&self,
-                                                     origin: &str,
-                                                     revision: &str,
-                                                     dst_path: &P,
-                                                     progress: Option<&mut DisplayProgress>)
-                                                     -> Result<PathBuf> {
+    pub fn fetch_origin_key<D, P: ?Sized>(&self,
+                                          origin: &str,
+                                          revision: &str,
+                                          dst_path: &P,
+                                          progress: Option<D>)
+                                          -> Result<PathBuf>
+        where P: AsRef<Path>,
+              D: DisplayProgress + Sized
+    {
         self.download(&format!("origins/{}/keys/{}", origin, revision),
                       dst_path.as_ref(),
                       progress)
@@ -109,18 +112,20 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_key(&self,
-                          origin: &str,
-                          revision: &str,
-                          src_path: &Path,
-                          token: &str,
-                          progress: Option<&mut DisplayProgress>)
-                          -> Result<()> {
+    pub fn put_origin_key<D>(&self,
+                             origin: &str,
+                             revision: &str,
+                             src_path: &Path,
+                             token: &str,
+                             progress: Option<D>)
+                             -> Result<()>
+        where D: DisplayProgress + Sized
+    {
         let path = format!("origins/{}/keys/{}", &origin, &revision);
         let mut file = try!(File::open(src_path));
         let file_size = try!(file.metadata()).len();
 
-        let result = if let Some(progress) = progress {
+        let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
             self.add_authz(self.inner.post(&path), token)
@@ -148,18 +153,20 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_secret_key(&self,
-                                 origin: &str,
-                                 revision: &str,
-                                 src_path: &Path,
-                                 token: &str,
-                                 progress: Option<&mut DisplayProgress>)
-                                 -> Result<()> {
+    pub fn put_origin_secret_key<D>(&self,
+                                    origin: &str,
+                                    revision: &str,
+                                    src_path: &Path,
+                                    token: &str,
+                                    progress: Option<D>)
+                                    -> Result<()>
+        where D: DisplayProgress + Sized
+    {
         let path = format!("origins/{}/secret_keys/{}", &origin, &revision);
         let mut file = try!(File::open(src_path));
         let file_size = try!(file.metadata()).len();
 
-        let result = if let Some(progress) = progress {
+        let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
             self.add_authz(self.inner.post(&path), token)
@@ -189,11 +196,15 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Depot is not available
     /// * File cannot be created and written to
-    pub fn fetch_package<P: AsRef<Path> + ?Sized, I: Identifiable>(&self,
-                                                  ident: I,
-                                                  dst_path: &P,
-                                                  progress: Option<&mut DisplayProgress>)
-                                                  -> Result<PackageArchive> {
+    pub fn fetch_package<D, I, P: ?Sized>(&self,
+                                          ident: I,
+                                          dst_path: &P,
+                                          progress: Option<D>)
+                                          -> Result<PackageArchive>
+        where P: AsRef<Path>,
+              I: Identifiable,
+              D: DisplayProgress + Sized
+    {
         match self.download(&format!("pkgs/{}/download", ident),
                             dst_path.as_ref(),
                             progress) {
@@ -241,11 +252,13 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_package(&self,
-                       pa: &mut PackageArchive,
-                       token: &str,
-                       progress: Option<&mut DisplayProgress>)
-                       -> Result<()> {
+    pub fn put_package<D>(&self,
+                          pa: &mut PackageArchive,
+                          token: &str,
+                          progress: Option<D>)
+                          -> Result<()>
+        where D: DisplayProgress + Sized
+    {
         let checksum = try!(pa.checksum());
         let ident = try!(pa.ident());
         let mut file = try!(File::open(&pa.path));
@@ -256,7 +269,7 @@ impl Client {
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = if let Some(progress) = progress {
+        let result = if let Some(mut progress) = progress {
             progress.size(file_size);
             let mut reader = TeeReader::new(file, progress);
             self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
@@ -279,16 +292,20 @@ impl Client {
     /// # Failures
     ///
     /// * Remote depot unavailable
-    pub fn search_package(&self, search_term: String) -> Result<Vec<hab_core::package::PackageIdent>> {
+    pub fn search_package(&self,
+                          search_term: String)
+                          -> Result<Vec<hab_core::package::PackageIdent>> {
         let mut res = try!(self.inner.get(&format!("pkgs/search/{}", search_term)).send());
         match res.status {
-            hyper::status::StatusCode::Ok | hyper::status::StatusCode::PartialContent => {
+            hyper::status::StatusCode::Ok |
+            hyper::status::StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 try!(res.read_to_string(&mut encoded));
-                let packages: Vec<hab_core::package::PackageIdent> = json::decode(&encoded).unwrap();
+                let packages: Vec<hab_core::package::PackageIdent> = json::decode(&encoded)
+                    .unwrap();
                 Ok(packages)
-            },
-            _ => Err(Error::HTTP(res.status))
+            }
+            _ => Err(Error::HTTP(res.status)),
         }
     }
 
@@ -304,11 +321,9 @@ impl Client {
         }
     }
 
-    fn download(&self,
-                path: &str,
-                dst_path: &Path,
-                progress: Option<&mut DisplayProgress>)
-                -> Result<PathBuf> {
+    fn download<D>(&self, path: &str, dst_path: &Path, progress: Option<D>) -> Result<PathBuf>
+        where D: DisplayProgress + Sized
+    {
         let mut res = try!(self.inner.get(path).send());
         debug!("Response: {:?}", res);
 
@@ -326,7 +341,7 @@ impl Client {
         debug!("Writing to {}", &tmp_file_path.display());
         let mut f = try!(File::create(&tmp_file_path));
         match progress {
-            Some(progress) => {
+            Some(mut progress) => {
                 let size: u64 =
                     res.headers.get::<hyper::header::ContentLength>().map_or(0, |v| **v);
                 progress.size(size);

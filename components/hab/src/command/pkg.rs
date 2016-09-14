@@ -443,7 +443,6 @@ pub mod upload {
     use std::path::{Path, PathBuf};
 
     use ansi_term::Colour::Red;
-    use common::command::ProgressBar;
     use common::ui::{Status, UI};
     use depot_client::{self, Client};
     use hcore::crypto::artifact::get_artifact_header;
@@ -483,7 +482,7 @@ pub mod upload {
         let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
 
         try!(ui.begin(format!("Uploading public origin key {}", &public_keyfile_name)));
-        match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, None) {
+        match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
             Ok(()) => {
                 try!(ui.status(Status::Uploaded,
                                format!("public origin key {}", &public_keyfile_name)));
@@ -536,8 +535,7 @@ pub mod upload {
                          mut archive: &mut PackageArchive)
                          -> Result<()> {
         try!(ui.status(Status::Uploading, archive.path.display()));
-        let mut progress = ProgressBar::default();
-        match depot_client.put_package(&mut archive, token, Some(&mut progress)) {
+        match depot_client.put_package(&mut archive, token, ui.progress()) {
             Ok(()) => (),
             Err(depot_client::Error::HTTP(StatusCode::Conflict)) => {
                 println!("Package already exists on remote; skipping.");

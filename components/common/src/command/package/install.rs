@@ -45,7 +45,6 @@ use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall};
 
-use command::ProgressBar;
 use error::{Error, Result};
 use ui::{Status, UI};
 
@@ -226,9 +225,8 @@ impl<'a> InstallTask<'a> {
         }
 
         try!(ui.status(Status::Downloading, ident));
-        let mut progress = ProgressBar::default();
         try!(self.depot_client
-            .fetch_package(ident.clone(), self.cache_artifact_path, Some(&mut progress)));
+            .fetch_package(ident.clone(), self.cache_artifact_path, ui.progress()));
         Ok(())
     }
 
@@ -236,9 +234,7 @@ impl<'a> InstallTask<'a> {
         try!(ui.status(Status::Downloading,
                        format!("{} public origin key", &name_with_rev)));
         let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-        let mut progress = ProgressBar::default();
-        try!(self.depot_client
-            .fetch_origin_key(&name, &rev, self.cache_key_path, Some(&mut progress)));
+        try!(self.depot_client.fetch_origin_key(&name, &rev, self.cache_key_path, ui.progress()));
         try!(ui.status(Status::Cached,
                        format!("{} public origin key", &name_with_rev)));
         Ok(())

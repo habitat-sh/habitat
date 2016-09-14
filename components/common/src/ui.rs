@@ -16,8 +16,10 @@ use std::fmt;
 use std::io::{self, Read, Write};
 
 use ansi_term::Colour;
-use term::{Terminal, TerminfoTerminal};
+use depot_client::DisplayProgress;
+use pbr;
 use term::terminfo::TermInfo;
+use term::{Terminal, TerminfoTerminal};
 
 use error::Result;
 use self::tty::StdStream;
@@ -97,6 +99,14 @@ impl UI {
         }
         try!(stream.flush());
         Ok(())
+    }
+
+    pub fn progress(&mut self) -> Option<ProgressBar> {
+        if self.shell.out.is_a_terminal() {
+            Some(ProgressBar::default())
+        } else {
+            None
+        }
     }
 
     fn write_heading<T: ToString>(stream: &mut OutputStream,
@@ -364,5 +374,61 @@ mod tty {
             let mut out = 0;
             kernel32::GetConsoleMode(handle, &mut out) != 0
         }
+    }
+}
+
+/// A moving progress bar to track progress of a sized event, similar to wget, curl, npm, etc.
+///
+/// This is designed to satisfy a generic behavior which sets the size of the task (usually a
+/// number of bytes representing the total download/upload/transfer size) and will be a generic
+/// writer (i.e. implementing the `Write` trait) as a means to increase progress towards
+/// completion.
+pub struct ProgressBar {
+    bar: pbr::ProgressBar,
+    total: u64,
+    current: u64,
+}
+
+impl Default for ProgressBar {
+    fn default() -> Self {
+        ProgressBar {
+            bar: pbr::ProgressBar::new(0),
+            total: 0,
+            current: 0,
+        }
+    }
+}
+
+impl DisplayProgress for ProgressBar {
+    fn size(&mut self, size: u64) {
+        self.bar = pbr::ProgressBar::new(size);
+        self.bar.set_units(pbr::Units::Bytes);
+        self.bar.show_tick = true;
+        self.bar.message("    ");
+        self.total = size;
+    }
+
+    fn finish(&mut self) {
+        println!("");
+        io::stdout().flush().ok().expect("flush() fail");
+    }
+}
+
+impl Write for ProgressBar {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self.bar.write(buf) {
+            Ok(n) => {
+                self.current += n as u64;
+                if self.current == self.total {
+                    self.finish();
+                }
+                Ok(n)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.bar.flush()
     }
 }
