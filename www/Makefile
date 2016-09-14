@@ -1,6 +1,9 @@
-build:
+build: clean
 	bundle exec middleman build
 .PHONY: build
+
+clean:
+	rm -Rdf build
 
 sync: export AWS_BUCKET=habitat-www
 sync: export AWS_DEFAULT_REGION=us-west-2
