@@ -279,20 +279,7 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
-
-    // this lets us get around ownership/mutability issues
-    fn get_origin_and_revision(req: &mut Request) -> Option<(String, String)> {
-        let params = req.extensions.get::<Router>().unwrap();
-        let origin = params.find("origin").map(|s| s.to_string());
-        let revision = params.find("revision").map(|s| s.to_string());
-        match (origin, revision) {
-            (None, _) => None,
-            (_, None) => None,
-            (Some(origin), Some(revision)) => Some((origin, revision)),
-        }
-    }
-
-    let (origin, revision) = match get_origin_and_revision(req) {
+    let (origin, revision) = match extract_origin_and_revision(req) {
         Some((origin, revision)) => (origin, revision),
         None => return Ok(Response::with(status::BadRequest)),
     };
@@ -517,13 +504,8 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
     let mut response = Response::with((status::Ok, origin_keyfile));
-    // use set_raw because we're having problems with Iron's Hyper 0.8.x
-    // and the newer Hyper 0.9.4. TODO: change back to set() once
-    // Iron updates to Hyper 0.9.x.
-    response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
-    response.headers.set_raw("content-disposition",
-                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
-                                      .into_bytes()]);
+    response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
+    response.headers.set(XFileName(xfilename));
     do_cache_response(&mut response);
     Ok(response)
 }
@@ -555,13 +537,8 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let xfilename = origin_keyfile.file_name().unwrap().to_string_lossy().into_owned();
     let mut response = Response::with((status::Ok, origin_keyfile));
-    // use set_raw because we're having problems with Iron's Hyper 0.8.x
-    // and the newer Hyper 0.9.4. TODO: change back to set() once
-    // Iron updates to Hyper 0.9.x.
-    response.headers.set_raw("X-Filename", vec![xfilename.clone().into_bytes()]);
-    response.headers.set_raw("content-disposition",
-                             vec![format!("attachment; filename=\"{}\"", xfilename.clone())
-                                      .into_bytes()]);
+    response.headers.set(ContentDisposition(format!("attachment; filename=\"{}\"", xfilename)));
+    response.headers.set(XFileName(xfilename));
     dont_cache_response(&mut response);
     Ok(response)
 }
@@ -577,17 +554,11 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
                 match fs::metadata(&archive.path) {
                     Ok(_) => {
                         let mut response = Response::with((status::Ok, archive.path.clone()));
-                        // use set_raw because we're having problems with Iron's Hyper 0.8.x
-                        // and the newer Hyper 0.9.4. TODO: change back to set() once
-                        // Iron updates to Hyper 0.9.x.
-
                         do_cache_response(&mut response);
                         response.headers
-                            .set_raw("X-Filename", vec![archive.file_name().clone().into_bytes()]);
-                        response.headers.set_raw("content-disposition",
-                                                 vec![format!("attachment; filename=\"{}\"",
-                                                              archive.file_name().clone())
-                                                          .into_bytes()]);
+                            .set(ContentDisposition(format!("attachment; filename=\"{}\"",
+                                                            archive.file_name())));
+                        response.headers.set(XFileName(archive.file_name()));
                         Ok(response)
                     }
                     Err(_) => Ok(Response::with(status::NotFound)),
@@ -651,19 +622,19 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             Ok(packages) => {
                 let count = depot.datastore.packages.index.count(&ident).unwrap();
                 let body = json::encode(&packages).unwrap();
-                let next_range = vec![format!("{}", num + 1).into_bytes()];
-                let mut response = if count as isize >= (num + 1) {
+                let next_range = num + 1;
+                let mut response = if count as isize >= next_range {
                     let mut response = Response::with((status::PartialContent, body));
-                    response.headers.set_raw("Next-Range", next_range);
+                    response.headers.set(NextRange(next_range));
                     response
                 } else {
                     Response::with((status::Ok, body))
                 };
-                let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
-                response.headers.set_raw("Content-Range", range.clone());
+                let range = format!("{}..{}; count={}", offset, num, count);
+                response.headers.set(ContentRange(range.clone()));
                 // We set both of these because Fastly was stripping the
                 // Content-Range, so we use both until we can get that fixed.
-                response.headers.set_raw("X-Content-Range", range);
+                response.headers.set(XContentRange(range));
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
@@ -684,19 +655,19 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             Ok(packages) => {
                 let count = depot.datastore.packages.index.count(&ident).unwrap();
                 let body = json::encode(&packages).unwrap();
-                let next_range = vec![format!("{}", num + 1).into_bytes()];
-                let mut response = if count as isize >= (num + 1) {
+                let next_range = num + 1;
+                let mut response = if count as isize >= next_range {
                     let mut response = Response::with((status::PartialContent, body));
-                    response.headers.set_raw("Next-Range", next_range);
+                    response.headers.set(NextRange(next_range));
                     response
                 } else {
                     Response::with((status::Ok, body))
                 };
-                let range = vec![format!("{}..{}; count={}", offset, num, count).into_bytes()];
-                response.headers.set_raw("Content-Range", range.clone());
+                let range = format!("{}..{}; count={}", offset, num, count);
+                response.headers.set(ContentRange(range.clone()));
                 // We set both of these because Fastly was stripping the
                 // Content-Range, so we use both until we can get that fixed.
-                response.headers.set_raw("X-Content-Range", range);
+                response.headers.set(XContentRange(range));
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
@@ -813,19 +784,18 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     let partial = params.find("query").unwrap();
     let packages = depot.datastore.packages.index.search(partial, offset, num).unwrap();
     let body = json::encode(&packages).unwrap();
-    let next_range = vec![format!("{}", num + 1).into_bytes()];
     let mut response = if packages.len() as isize >= (num - offset) {
         let mut response = Response::with((status::PartialContent, body));
-        response.headers.set_raw("Next-Range", next_range);
+        response.headers.set(NextRange(num + 1));
         response
     } else {
         Response::with((status::Ok, body))
     };
-    let range = vec![format!("{}..{}", offset, num).into_bytes()];
-    response.headers.set_raw("Content-Range", range.clone());
+    let range = format!("{}..{}", offset, num);
+    response.headers.set(ContentRange(range.clone()));
     // We set both of these because Fastly was stripping the
     // Content-Range, so we use both until we can get that fixed.
-    response.headers.set_raw("X-Content-Range", range);
+    response.headers.set(XContentRange(range));
     response.headers.set(ContentType(Mime(TopLevel::Application,
                                           SubLevel::Json,
                                           vec![(Attr::Charset, Value::Utf8)])));
@@ -837,10 +807,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Response> {
     let body = json::encode(&pkg.to_json()).unwrap();
     let mut response = Response::with((status::Ok, body));
-    // use set_raw because we're having problems with Iron's Hyper 0.8.x
-    // and the newer Hyper 0.9.4.
-    // TODO: change back to set() once Iron updates to Hyper 0.9.x.
-    response.headers.set_raw("ETag", vec![pkg.get_checksum().to_string().into_bytes()]);
+    response.headers.set(ETag(pkg.get_checksum().to_string()));
     response.headers.set(ContentType(Mime(TopLevel::Application,
                                           SubLevel::Json,
                                           vec![(Attr::Charset, Value::Utf8)])));
@@ -941,14 +908,23 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
+fn extract_origin_and_revision(req: &mut Request) -> Option<(String, String)> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = params.find("origin").map(|s| s.to_string());
+    let revision = params.find("revision").map(|s| s.to_string());
+    match (origin, revision) {
+        (None, _) => None,
+        (_, None) => None,
+        (Some(origin), Some(revision)) => Some((origin, revision)),
+    }
+}
+
 fn do_cache_response(response: &mut Response) {
-    response.headers.set_raw("Cache-Control",
-                             vec![format!("public, max-age={}", ONE_YEAR_IN_SECS).into_bytes()]);
+    response.headers.set(CacheControl(format!("public, max-age={}", ONE_YEAR_IN_SECS)));
 }
 
 fn dont_cache_response(response: &mut Response) {
-    response.headers.set_raw("Cache-Control",
-                             vec![format!("private, no-cache, no-store").into_bytes()]);
+    response.headers.set(CacheControl(format!("private, no-cache, no-store")));
 }
 
 pub fn router(depot: Depot) -> Result<Chain> {

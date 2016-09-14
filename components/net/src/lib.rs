@@ -16,6 +16,7 @@
 extern crate bitflags;
 extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
+#[macro_use]
 extern crate hyper;
 extern crate iron;
 #[macro_use]

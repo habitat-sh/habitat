@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod controller;
+pub mod headers;
 pub mod middleware;
 pub mod rendering;
 
