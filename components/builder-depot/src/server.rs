@@ -42,11 +42,12 @@ use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
 use unicase::UniCase;
 use urlencoded::UrlEncodedQuery;
-use serde_json;
 
 use super::Depot;
 use config::Config;
 use error::{Error, Result};
+
+include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
@@ -59,14 +60,9 @@ pub fn origin_create(req: &mut Request) -> IronResult<Response> {
         request.set_owner_id(session.get_id());
         request.set_owner_name(session.get_name().to_string());
     }
-    match req.get::<bodyparser::Json>() {
-        Ok(Some(body)) => {
-            match body.find("name") {
-                Some(&serde_json::Value::String(ref origin)) => request.set_name(origin.to_owned()),
-                _ => return Ok(Response::with(status::BadRequest)),
-            }
-        }
-        _ => return Ok(Response::with(status::BadRequest)),
+    match req.get::<bodyparser::Struct<OriginCreateReq>>() {
+        Ok(Some(body)) => request.set_name(body.name),
+        _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
 
     if !keys::is_valid_origin_name(request.get_name()) {
