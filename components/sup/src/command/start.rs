@@ -61,6 +61,7 @@ use std::path::Path;
 
 use ansi_term::Colour::Yellow;
 use common::command::package::install;
+use common::ui::UI;
 use depot_client::Client;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
@@ -83,6 +84,7 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> Result<()> {
+    let mut ui = UI::default();
     match Package::load(config.package(), None) {
         Ok(mut package) => {
             let update_strategy = config.update_strategy();
@@ -105,7 +107,8 @@ pub fn package(config: &Config) -> Result<()> {
                     let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
                     if &latest_ident > package.ident() {
                         outputln!("Downloading latest version from Depot: {}", latest_ident);
-                        let new_pkg_data = try!(install::start(url,
+                        let new_pkg_data = try!(install::start(&mut ui,
+                                                               url,
                                                                &latest_ident.to_string(),
                                                                PRODUCT,
                                                                VERSION,
@@ -126,7 +129,8 @@ pub fn package(config: &Config) -> Result<()> {
             let url = config.url();
             let new_pkg_data = match config.local_artifact() {
                 Some(artifact) => {
-                    try!(install::start(url,
+                    try!(install::start(&mut ui,
+                                        url,
                                         &artifact,
                                         PRODUCT,
                                         VERSION,
@@ -138,7 +142,8 @@ pub fn package(config: &Config) -> Result<()> {
                     outputln!("Searching for {} in remote {}",
                               Yellow.bold().paint(config.package().to_string()),
                               url);
-                    try!(install::start(url,
+                    try!(install::start(&mut ui,
+                                        url,
                                         &config.package().to_string(),
                                         PRODUCT,
                                         VERSION,

@@ -6,11 +6,13 @@ workspace = "../../"
 
 [dependencies]
 ansi_term = "*"
+libc = "*"
 log = "*"
 openssl = "0.7" # lock until hyper bumps to 0.8+
 pbr = "0.2" # lock until ready to support 0.3+ interface
 regex = "*"
 rustc-serialize = "*"
+term = "*"
 time = "*"
 toml = "*"
 

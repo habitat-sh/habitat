@@ -36,17 +36,15 @@ pub mod key {
     pub mod generate {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Yellow};
+        use common::ui::UI;
         use hcore::crypto::SymKey;
 
         use error::Result;
 
-        pub fn start(ring: &str, cache: &Path) -> Result<()> {
-            println!("{}",
-                     Yellow.bold().paint(format!("» Generating ring key for {}", &ring)));
+        pub fn start(ui: &mut UI, ring: &str, cache: &Path) -> Result<()> {
+            try!(ui.begin(format!("Generating ring key for {}", &ring)));
             let pair = try!(SymKey::generate_pair_for_ring(ring, cache));
-            println!("{}",
-                     Blue.paint(format!("★ Generated ring key pair {}.", &pair.name_with_rev())));
+            try!(ui.end(format!("Generated ring key pair {}.", &pair.name_with_rev())));
             Ok(())
         }
     }
@@ -54,19 +52,17 @@ pub mod key {
     pub mod import {
         use std::path::Path;
 
-        use ansi_term::Colour::{Blue, Yellow};
+        use common::ui::UI;
         use hcore::crypto::SymKey;
 
         use error::Result;
 
-        pub fn start(content: &str, cache: &Path) -> Result<()> {
-            println!("{}",
-                     Yellow.bold().paint(format!("» Importing ring key from standard input")));
+        pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
+            try!(ui.begin("Importing ring key from standard input"));
             let (pair, pair_type) = try!(SymKey::write_file_from_str(content, cache));
-            println!("{}",
-                     Blue.paint(format!("★ Imported {} ring key {}.",
-                                        &pair_type,
-                                        &pair.name_with_rev())));
+            try!(ui.end(format!("Imported {} ring key {}.",
+                                &pair_type,
+                                &pair.name_with_rev())));
             Ok(())
         }
     }
