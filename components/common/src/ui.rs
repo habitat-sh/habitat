@@ -310,7 +310,7 @@ impl WriteStream {
             }
         } else {
             // If we fail to get a windows console, we try to get a `TermInfo` one
-            Ok(Shell::get_terminfo_term(out))
+            Ok(Self::get_terminfo_term(writeable))
         }
     }
 
