@@ -12,43 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hab_net::privilege;
-
 #[derive(Clone, Serialize, Deserialize)]
-pub struct FeatureGrant {
-    team_id: u64,
+pub struct JobCreateReq {
+    pub project_id: String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct FeatureFlagList(Vec<FeatureFlag>);
-
-impl Default for FeatureFlagList {
-    fn default() -> Self {
-        let mut list = vec![];
-        list.push(FeatureFlag::new("Admin", privilege::ADMIN.bits()));
-        list.push(FeatureFlag::new("Builder", privilege::BUILDER.bits()));
-        FeatureFlagList(list)
-    }
+pub struct ProjectCreateReq {
+    pub origin: String,
+    pub plan_path: String,
+    pub github: GitHubProject,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct FeatureFlag {
-    name: String,
-    id: u32,
-}
-
-impl FeatureFlag {
-    pub fn new(name: &'static str, id: u32) -> Self {
-        FeatureFlag {
-            name: name.to_string(),
-            id: id,
-        }
-    }
+pub struct ProjectUpdateReq {
+    pub plan_path: String,
+    pub github: GitHubProject,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct SearchTerm {
-    pub attr: String,
-    pub entity: String,
-    pub value: String,
+pub struct GitHubProject {
+    pub organization: String,
+    pub repo: String,
 }

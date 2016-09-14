@@ -23,7 +23,7 @@ use protocol::net::NetOk;
 use protocol::search::FromSearchPair;
 use protocol::sessionsrv::*;
 use router::Router;
-use serde_json::{self, Value};
+use serde_json;
 
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 
@@ -111,22 +111,17 @@ pub fn status(_req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn search(req: &mut Request) -> IronResult<Response> {
-    match req.get::<bodyparser::Json>() {
-        Ok(Some(ref body)) => {
-            let attr = match body.find("attr") {
-                Some(&Value::String(ref s)) => s.to_string(),
-                _ => return Ok(Response::with(status::UnprocessableEntity)),
-            };
-            let value = match body.find("value") {
-                Some(&Value::String(ref s)) => s.to_string(),
-                _ => return Ok(Response::with(status::UnprocessableEntity)),
-            };
-            match body.find("entity") {
-                Some(&Value::String(ref s)) if &*s == "account" => search_account(attr, value),
-                _ => Ok(Response::with(status::UnprocessableEntity)),
+    match req.get::<bodyparser::Struct<SearchTerm>>() {
+        Ok(Some(body)) => {
+            match &*body.entity.to_lowercase() {
+                "account" => search_account(body.attr, body.value),
+                entity => {
+                    Ok(Response::with((status::UnprocessableEntity,
+                                       format!("Unknown search entity: {}", entity))))
+                }
             }
         }
-        _ => Ok(Response::with(status::BadRequest)),
+        _ => Ok(Response::with(status::UnprocessableEntity)),
     }
 }
 

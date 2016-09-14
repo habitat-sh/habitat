@@ -27,7 +27,8 @@ use protocol::vault::*;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 use rustc_serialize::base64::FromBase64;
-use serde_json::Value;
+
+include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let code = {
@@ -61,14 +62,9 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 pub fn job_create(req: &mut Request) -> IronResult<Response> {
     let mut project_get = ProjectGet::new();
     {
-        match req.get::<bodyparser::Json>() {
-            Ok(Some(ref body)) => {
-                match body.find("project_id") {
-                    Some(&Value::String(ref val)) => project_get.set_id(val.to_string()),
-                    _ => return Ok(Response::with(status::UnprocessableEntity)),
-                }
-            }
-            _ => return Ok(Response::with(status::BadRequest)),
+        match req.get::<bodyparser::Struct<JobCreateReq>>() {
+            Ok(Some(body)) => project_get.set_id(body.project_id),
+            _ => return Ok(Response::with(status::UnprocessableEntity)),
         }
     }
     let session = req.extensions.get::<Authenticated>().unwrap();
@@ -131,23 +127,41 @@ pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
 }
 
 pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
-    let session = req.extensions.get::<Authenticated>().unwrap();
-    let params = &req.extensions.get::<Router>().unwrap();
-    let invitation_id = match params.find("invitation_id").unwrap().parse::<u64>() {
-        Ok(value) => value,
-        Err(_) => return Ok(Response::with(status::BadRequest)),
-    };
-
-    // TODO: read the body to determine "ignore"
-    let ignore_val = false;
-
-    let mut conn = Broker::connect().unwrap();
     let mut request = OriginInvitationAcceptRequest::new();
+    request.set_ignore(false);
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_account_accepting_request(session.get_id());
+    }
+    {
+        let params = &req.extensions.get::<Router>().unwrap();
+        match params.find("invitation_id").unwrap().parse::<u64>() {
+            Ok(value) => request.set_invite_id(value),
+            Err(_) => return Ok(Response::with(status::BadRequest)),
+        }
+    }
+    let mut conn = Broker::connect().unwrap();
+    match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
+        Ok(_invites) => Ok(Response::with(status::NoContent)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
 
-    // make sure we're not trying to accept someone else's request
-    request.set_account_accepting_request(session.get_id());
-    request.set_invite_id(invitation_id);
-    request.set_ignore(ignore_val);
+pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
+    let mut request = OriginInvitationAcceptRequest::new();
+    request.set_ignore(true);
+    {
+        let session = req.extensions.get::<Authenticated>().unwrap();
+        request.set_account_accepting_request(session.get_id());
+    }
+    {
+        let params = &req.extensions.get::<Router>().unwrap();
+        match params.find("invitation_id").unwrap().parse::<u64>() {
+            Ok(value) => request.set_invite_id(value),
+            Err(_) => return Ok(Response::with(status::BadRequest)),
+        }
+    }
+    let mut conn = Broker::connect().unwrap();
     match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
         Ok(_invites) => Ok(Response::with(status::NoContent)),
         Err(err) => Ok(render_net_error(&err)),
@@ -161,61 +175,37 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
     let mut origin_get = OriginGet::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap().clone();
-    let (organization, repo): (String, String) = {
-        match req.get::<bodyparser::Json>() {
-            Ok(Some(body)) => {
-                match body.find("origin") {
-                    Some(&Value::String(ref val)) => {
-                        // JW TODO: check to see if we are a member of the origin
-                        origin_get.set_name(val.to_string())
-                    }
-                    _ => {
-                        return Ok(Response::with((status::UnprocessableEntity,
-                                                  "Missing required field: `origin`")))
-                    }
-                }
-                match body.find("plan_path") {
-                    Some(&Value::String(ref val)) => project.set_plan_path(val.to_string()),
-                    _ => {
-                        return Ok(Response::with((status::UnprocessableEntity,
-                                                  "Missing required field: `plan_path`")))
-                    }
-                }
-                match body.find("github") {
-                    Some(&Value::Object(ref map)) => {
-                        let mut vcs = VCSGit::new();
-                        let organization = match map.get("organization") {
-                            Some(&Value::String(ref val)) => val.to_string(),
-                            _ => {
-                                return Ok(Response::with((status::UnprocessableEntity,
-                                                          "Missing required field: \
-                                                           `github.organization`")))
-                            }
-                        };
-                        let repo = match map.get("repo") {
-                            Some(&Value::String(ref val)) => val.to_string(),
-                            _ => {
-                                return Ok(Response::with((status::UnprocessableEntity,
-                                                          "Missing required field: `github.repo`")))
-                            }
-                        };
-                        match github.repo(&session.get_token(), &organization, &repo) {
-                            Ok(repo) => vcs.set_url(repo.clone_url),
-                            Err(_) => {
-                                return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1")))
-                            }
-                        }
-                        project.set_git(vcs);
-                        (organization, repo)
-                    }
-                    _ => {
-                        return Ok(Response::with((status::UnprocessableEntity,
-                                                  "Missing required field: `github`")))
-                    }
-                }
+    let (organization, repo) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+        Ok(Some(body)) => {
+            if body.origin.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `origin`")));
             }
-            _ => return Ok(Response::with(status::BadRequest)),
+            if body.plan_path.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `plan_path`")));
+            }
+            if body.github.organization.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `github.organization`")));
+            }
+            if body.github.repo.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `github.repo`")));
+            }
+            let mut vcs = VCSGit::new();
+            origin_get.set_name(body.origin);
+            project.set_plan_path(body.plan_path);
+            match github.repo(&session.get_token(),
+                              &body.github.organization,
+                              &body.github.repo) {
+                Ok(repo) => vcs.set_url(repo.clone_url),
+                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:1"))),
+            }
+            project.set_git(vcs);
+            (body.github.organization, body.github.repo)
         }
+        _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
     let mut conn = Broker::connect().unwrap();
     let origin = match conn.route::<OriginGet, Origin>(&origin_get) {
@@ -273,53 +263,33 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
     let mut request = ProjectUpdate::new();
     let mut project = Project::new();
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
-    let (organization, repo): (String, String) = {
-        match req.get::<bodyparser::Json>() {
-            Ok(Some(body)) => {
-                match body.find("plan_path") {
-                    Some(&Value::String(ref val)) => project.set_plan_path(val.to_string()),
-                    _ => {
-                        return Ok(Response::with((status::UnprocessableEntity,
-                                                  "Missing required field: `plan_path`")))
-                    }
-                }
-                match body.find("github") {
-                    Some(&Value::Object(ref map)) => {
-                        let mut vcs = VCSGit::new();
-                        let organization = match map.get("organization") {
-                            Some(&Value::String(ref val)) => val.to_string(),
-                            _ => {
-                                return Ok(Response::with((status::UnprocessableEntity,
-                                                          "Missing required field: \
-                                                           `github.organization`")))
-                            }
-                        };
-                        let repo = match map.get("repo") {
-                            Some(&Value::String(ref val)) => val.to_string(),
-                            _ => {
-                                return Ok(Response::with((status::UnprocessableEntity,
-                                                          "Missing required field: \
-                                                           `github.repo`")))
-                            }
-                        };
-                        let session = req.extensions.get::<Authenticated>().unwrap();
-                        match github.repo(&session.get_token(), &organization, &repo) {
-                            Ok(repo) => vcs.set_url(repo.clone_url),
-                            Err(_) => {
-                                return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1")))
-                            }
-                        }
-                        project.set_git(vcs);
-                        (organization, repo)
-                    }
-                    _ => {
-                        return Ok(Response::with((status::UnprocessableEntity,
-                                                  "Missing required field: `github`")))
-                    }
-                }
+    let (organization, repo) = match req.get::<bodyparser::Struct<ProjectCreateReq>>() {
+        Ok(Some(body)) => {
+            if body.plan_path.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `plan_path`")));
             }
-            _ => return Ok(Response::with(status::BadRequest)),
+            if body.github.organization.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `github.organization`")));
+            }
+            if body.github.repo.len() <= 0 {
+                return Ok(Response::with((status::UnprocessableEntity,
+                                          "Missing value for field: `github.repo`")));
+            }
+            let session = req.extensions.get::<Authenticated>().unwrap();
+            let mut vcs = VCSGit::new();
+            project.set_plan_path(body.plan_path);
+            match github.repo(&session.get_token(),
+                              &body.github.organization,
+                              &body.github.repo) {
+                Ok(repo) => vcs.set_url(repo.clone_url),
+                Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pu:1"))),
+            }
+            project.set_git(vcs);
+            (body.github.organization, body.github.repo)
         }
+        _ => return Ok(Response::with(status::UnprocessableEntity)),
     };
     let mut conn = Broker::connect().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap();

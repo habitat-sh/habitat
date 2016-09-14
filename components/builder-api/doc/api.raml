@@ -202,6 +202,11 @@ securitySchemes:
         get:
             securedBy: [oauth_2_0]
     /{invitationId}:
+        delete:
+            securedBy: [oauth_2_0]
+            responses:
+                204:
+                    description: Invitation successfully ignored
         put:
             securedBy: [oauth_2_0]
             responses:
