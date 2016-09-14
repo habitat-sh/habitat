@@ -30,6 +30,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::util;
 
 use self::hooks::{HookTable, HOOK_PERMISSIONS};
+use config::gconfig;
 use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use service_config::ServiceConfig;
@@ -54,7 +55,6 @@ pub struct Package {
     pub tdeps: Vec<PackageIdent>,
     pub pkg_install: PackageInstall,
 }
-
 
 impl Package {
     /// Verifies a package is within the package home and returns a struct representing that
@@ -118,7 +118,7 @@ impl Package {
     }
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {
-        let base = self.pkg_install.installed_path().join("hooks");
+        let base = self.config_from().join("hooks");
         match *hook_type {
             HookType::Init => base.join(INIT_FILENAME),
             HookType::HealthCheck => base.join(HEALTHCHECK_FILENAME),
@@ -204,7 +204,7 @@ impl Package {
         let svc_run = self.pkg_install.svc_path().join(RUN_FILENAME);
         debug!("svc_run = {}", &svc_run.to_str().unwrap());
         if let Some(hook) = self.hooks().run_hook {
-            debug!("Comiling hook");
+            debug!("Compiling hook");
             try!(hook.compile(Some(context)));
             try!(std::fs::copy(hook.path, &svc_run));
             try!(util::perm::set_permissions(&svc_run.to_str().unwrap(), HOOK_PERMISSIONS));
@@ -230,18 +230,28 @@ impl Package {
         Ok(())
     }
 
+    pub fn config_from(&self) -> PathBuf {
+        gconfig().config_from().as_ref().map_or(
+            self.pkg_install.installed_path().clone(),
+            |p| PathBuf::from(p)
+        )
+    }
+
     /// Return an iterator of the configuration file names to render.
     ///
     /// This does not return the full path, for convenience with the path
     /// helpers above.
     pub fn config_files(&self) -> Result<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        match std::fs::read_dir(self.path().join("config")) {
+        let config_dir = self.config_from().join("config");
+        debug!("Loading configuration from {:?}", config_dir);
+        match std::fs::read_dir(config_dir) {
             Ok(config_dir) => {
                 for config in config_dir {
                     let config = try!(config);
                     match config.path().file_name() {
                         Some(filename) => {
+                            debug!("Looking in {:?}", filename);
                             files.push(filename.to_string_lossy().into_owned().to_string());
                         }
                         None => unreachable!(),

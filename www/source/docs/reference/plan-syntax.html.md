@@ -14,6 +14,7 @@ This syntax guide is divided into six parts:
 - [Hooks](#hooks)
 - [Runtime configuration settings](#runtime-configuration-settings)
 - [Utility functions](#utility-functions)
+- [Iterative development](#iterative-development)
 
 ## Basic settings
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
@@ -539,3 +540,22 @@ exit_with "Something bad happened" 55
 
 trim()
 : Trims leading and trailing whitespace characters from a bash variable.
+
+***
+
+## Iterative Development
+To assist in creating new packages, or modifying existing ones, the supervisor
+has an option to allow you to use the configuration directly from a specific
+directory, rather than the one it includes in the compiled artifact. This can
+significantly shorten the cycle time when working on configuration and hooks.
+
+First, build the plan as you normally would. Second, when you start the
+supervisor, pass the name of the directory with your plan inside it:
+
+```
+$ hab start core/redis --config-from /src
+```
+
+This would take the configuration and hooks from /src, rather than from the
+package you have previously built. When the configuration is as you want it,
+do a final rebuild of the package.

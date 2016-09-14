@@ -205,7 +205,7 @@ impl<'a> HookTable<'a> {
     }
 
     pub fn load_hooks(&mut self) -> &mut Self {
-        let path = &self.package.path().join("hooks");
+        let path = &self.package.config_from().join("hooks");
         match fs::metadata(path) {
             Ok(meta) => {
                 if meta.is_dir() {

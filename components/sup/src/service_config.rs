@@ -161,8 +161,8 @@ impl ServiceConfig {
         // more explicit... in a minute, we render all the config files anyway.
         let config_files = try!(pkg.config_files());
         for config in config_files.iter() {
-            let path = pi.installed_path().join("config").join(config);
-            debug!("Config template {} at {:?}", config, &path);
+            let path = pkg.config_from().join("config").join(config);
+            debug!("Config template {} from {:?}", config, &path);
             if let Err(e) = handlebars.register_template_file(config, &path) {
                 outputln!("Error parsing config template file {}: {}",
                           path.to_string_lossy(),
@@ -363,7 +363,7 @@ impl Cfg {
 
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
         // Default
-        let mut file = match File::open(pkg.path().join("default.toml")) {
+        let mut file = match File::open(pkg.config_from().join("default.toml")) {
             Ok(file) => file,
             Err(e) => {
                 debug!("Failed to open default.toml: {}", e);
