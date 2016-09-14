@@ -59,7 +59,6 @@ pub mod key {
         use hcore::crypto::SigKeyPair;
 
         use {PRODUCT, VERSION};
-        use common::command::ProgressBar;
         use error::Result;
 
         pub fn start(ui: &mut UI,
@@ -107,8 +106,7 @@ pub mod key {
                 }
                 Err(_) => {
                     try!(ui.status(Status::Downloading, &nwr));
-                    let mut progress = ProgressBar::default();
-                    try!(depot_client.fetch_origin_key(name, rev, cache, Some(&mut progress)));
+                    try!(depot_client.fetch_origin_key(name, rev, cache, ui.progress()));
                     try!(ui.status(Status::Cached, &nwr));
                 }
             }
@@ -182,7 +180,6 @@ pub mod key {
     pub mod upload {
         use std::path::Path;
 
-        use common::command::ProgressBar;
         use common::ui::{Status, UI};
         use depot_client::{self, Client};
         use hcore::crypto::keys::parse_name_with_rev;
@@ -205,13 +202,8 @@ pub mod key {
             let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
             let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
             try!(ui.status(Status::Uploading, public_keyfile.display()));
-            let mut progress = ProgressBar::default();
 
-            match depot_client.put_origin_key(&name,
-                                              &rev,
-                                              public_keyfile,
-                                              token,
-                                              Some(&mut progress)) {
+            match depot_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
                 Ok(()) => {
                     try!(ui.status(Status::Uploaded, &name_with_rev));
                 }
@@ -224,7 +216,8 @@ pub mod key {
                     debug!("Error uploading public key {}", e);
                     try!(ui.status(Status::Using,
                                    format!("public key revision {} which already \
-                                           exists in the depot", &name_with_rev)));
+                                           exists in the depot",
+                                           &name_with_rev)));
                 }
                 Err(e) => {
                     return Err(Error::DepotClient(e));
@@ -237,12 +230,11 @@ pub mod key {
                                                            SECRET_SIG_KEY_VERSION));
                 let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
                 try!(ui.status(Status::Uploading, secret_keyfile.display()));
-                let mut progress = ProgressBar::default();
                 match depot_client.put_origin_secret_key(&name,
                                                          &rev,
                                                          secret_keyfile,
                                                          token,
-                                                         Some(&mut progress)) {
+                                                         ui.progress()) {
                     Ok(()) => {
                         try!(ui.status(Status::Uploaded, &name_with_rev));
                         try!(ui.end(format!("Upload of secret origin key {} complete.",
@@ -261,7 +253,6 @@ pub mod key {
     pub mod upload_latest {
         use std::path::Path;
 
-        use common::command::ProgressBar;
         use common::ui::{Status, UI};
         use depot_client::{self, Client};
         use error::{Error, Result};
@@ -287,13 +278,8 @@ pub mod key {
             let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
             let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
             try!(ui.status(Status::Uploading, public_keyfile.display()));
-            let mut progress = ProgressBar::default();
 
-            match depot_client.put_origin_key(&name,
-                                              &rev,
-                                              &public_keyfile,
-                                              token,
-                                              Some(&mut progress)) {
+            match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
                 Ok(()) => {
                     try!(ui.status(Status::Uploaded, &name_with_rev));
                 }
@@ -305,7 +291,8 @@ pub mod key {
                     debug!("Error uploading public key {}", e);
                     try!(ui.status(Status::Using,
                                    format!("public key revision {} which already \
-                                           exists in the depot", &name_with_rev)));
+                                           exists in the depot",
+                                           &name_with_rev)));
                 }
                 Err(e) => {
                     return Err(Error::DepotClient(e));
@@ -322,12 +309,11 @@ pub mod key {
                 let name_with_rev = try!(get_name_with_rev(&secret_keyfile,
                                                            SECRET_SIG_KEY_VERSION));
                 try!(ui.status(Status::Uploading, secret_keyfile.display()));
-                let mut progress = ProgressBar::default();
                 match depot_client.put_origin_secret_key(&name,
                                                          &rev,
                                                          &secret_keyfile,
                                                          token,
-                                                         Some(&mut progress)) {
+                                                         ui.progress()) {
                     Ok(()) => {
                         try!(ui.status(Status::Uploaded, &name_with_rev));
                         try!(ui.end(format!("Upload of secret origin key {} complete.",
