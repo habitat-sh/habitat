@@ -9,7 +9,7 @@ pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/
 pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc core/pkg-config)
 pkg_expose=(5562 5563)
 bin="bldr-router"
-pkg_svc_run="bin/$bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 
 do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy

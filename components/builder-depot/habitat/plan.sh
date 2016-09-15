@@ -8,7 +8,7 @@ pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl c
 pkg_build_deps=(core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc core/pkg-config)
 pkg_bin_dirs=(bin)
 bin="$pkg_name"
-pkg_svc_run="bin/$bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 
 do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy
