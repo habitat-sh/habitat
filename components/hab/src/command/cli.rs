@@ -196,13 +196,13 @@ pub mod setup {
     }
 
     fn opt_in_analytics(ui: &mut UI, analytics_path: &Path, generated_origin: bool) -> Result<()> {
-        let result = analytics::opt_in(analytics_path, generated_origin);
+        let result = analytics::opt_in(ui, analytics_path, generated_origin);
         try!(ui.br());
         result
     }
 
     fn opt_out_analytics(ui: &mut UI, analytics_path: &Path) -> Result<()> {
-        let result = analytics::opt_out(analytics_path);
+        let result = analytics::opt_out(ui, analytics_path);
         try!(ui.br());
         result
     }
