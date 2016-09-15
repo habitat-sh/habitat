@@ -13,7 +13,8 @@
 // limitations under the License.
 
 use std::fmt;
-use std::io::{self, Read, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
+use std::process;
 
 use ansi_term::Colour;
 use depot_client::DisplayProgress;
@@ -109,6 +110,161 @@ impl UI {
         }
     }
 
+    pub fn title(&mut self, text: &str) -> Result<()> {
+        let ref mut stream = self.shell.out;
+        match stream.is_colored() {
+            true => {
+                try!(write!(stream, "{}\n", Colour::Green.bold().paint(text)));
+                try!(write!(stream,
+                            "{}\n\n",
+                            Colour::Green.bold()
+                                .paint(format!("{:=<width$}", "", width = text.chars().count()))));
+            }
+            false => {
+                try!(write!(stream, "{}\n", text));
+                try!(write!(stream,
+                            "{}\n\n",
+                            format!("{:=<width$}", "", width = text.chars().count())));
+            }
+        }
+        try!(stream.flush());
+        Ok(())
+    }
+
+    pub fn heading(&mut self, text: &str) -> Result<()> {
+        let ref mut stream = self.shell.out;
+        match stream.is_colored() {
+            true => {
+                try!(write!(stream, "{}\n\n", Colour::Green.bold().paint(text)));
+            }
+            false => {
+                try!(write!(stream, "{}\n\n", text));
+            }
+        }
+        try!(stream.flush());
+        Ok(())
+    }
+
+    pub fn para(&mut self, text: &str) -> Result<()> {
+        Self::print_wrapped(&mut self.shell.out, text, 75, 2)
+    }
+
+    pub fn br(&mut self) -> Result<()> {
+        let ref mut stream = self.shell.out;
+        try!(write!(stream, "\n"));
+        try!(stream.flush());
+        Ok(())
+    }
+
+    pub fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool> {
+        let ref mut stream = self.shell.out;
+        let choice = match default {
+            Some(yes) => {
+                if yes {
+                    match stream.is_colored() {
+                        true => {
+                            format!("{}{}{}",
+                                    Colour::White.paint("["),
+                                    Colour::White.bold().paint("Yes"),
+                                    Colour::White.paint("/no/quit]"))
+                        }
+                        false => format!("[Yes/no/quit]"),
+                    }
+                } else {
+                    match stream.is_colored() {
+                        true => {
+                            format!("{}{}{}",
+                                    Colour::White.paint("[yes/"),
+                                    Colour::White.bold().paint("No"),
+                                    Colour::White.paint("/quit]"))
+                        }
+                        false => format!("[yes/No/quit]"),
+                    }
+                }
+            }
+            None => {
+                match stream.is_colored() {
+                    true => format!("{}", Colour::White.paint("[yes/no/quit]")),
+                    false => format!("[yes/no/quit]"),
+                }
+            }
+        };
+        loop {
+            try!(stream.flush());
+            match stream.is_colored() {
+                true => {
+                    try!(write!(stream, "{} {} ", Colour::Cyan.paint(question), choice));
+                }
+                false => {
+                    try!(write!(stream, "{} {} ", question, choice));
+                }
+            }
+            try!(stream.flush());
+            let mut response = String::new();
+            {
+                let reference = self.shell.input.by_ref();
+                try!(BufReader::new(reference).read_line(&mut response));
+            }
+            match response.trim().chars().next().unwrap_or('\n') {
+                'y' | 'Y' => return Ok(true),
+                'n' | 'N' => return Ok(false),
+                'q' | 'Q' => process::exit(0),
+                '\n' => {
+                    match default {
+                        Some(default) => return Ok(default),
+                        None => continue,
+                    }
+                }
+                _ => continue,
+            }
+        }
+    }
+
+    pub fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
+        let ref mut stream = self.shell.out;
+        let choice = match default {
+            Some(d) => {
+                match stream.is_colored() {
+                    true => {
+                        format!(" {}{}{}",
+                                Colour::White.paint("[default: "),
+                                Colour::White.bold().paint(d),
+                                Colour::White.paint("]"))
+                    }
+                    false => format!(" [default: {}]", d),
+                }
+            }
+            None => "".to_string(),
+        };
+        loop {
+            try!(stream.flush());
+            match stream.is_colored() {
+                true => {
+                    try!(write!(stream,
+                                "{}{} ",
+                                Colour::Cyan.paint(format!("{}:", question)),
+                                choice));
+                }
+                false => {
+                    try!(write!(stream, "{}{} ", format!("{}:", question), choice));
+                }
+            }
+            try!(stream.flush());
+            let mut response = String::new();
+            {
+                let reference = self.shell.input.by_ref();
+                try!(BufReader::new(reference).read_line(&mut response));
+            }
+            if response.trim().is_empty() {
+                match default {
+                    Some(d) => return Ok(d.to_string()),
+                    None => continue,
+                }
+            }
+            return Ok(response.trim().to_string());
+        }
+    }
+
     fn write_heading<T: ToString>(stream: &mut OutputStream,
                                   color: Colour,
                                   symbol: char,
@@ -121,6 +277,34 @@ impl UI {
                             color.bold().paint(format!("{} {}", symbol, message.to_string()))))
             }
             false => try!(write!(stream, "{} {}\n", symbol, message.to_string())),
+        }
+        try!(stream.flush());
+        Ok(())
+    }
+
+    fn print_wrapped(stream: &mut OutputStream,
+                     text: &str,
+                     wrap_width: usize,
+                     left_indent: usize)
+                     -> Result<()> {
+        for line in text.split("\n\n") {
+            let mut buffer = String::new();
+            let mut width = 0;
+            for word in line.split_whitespace() {
+                let wl = word.chars().count();
+                if (width + wl + 1) > (wrap_width - left_indent) {
+                    try!(write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent));
+                    buffer.clear();
+                    width = 0;
+                }
+                width = width + wl + 1;
+                buffer.push_str(word);
+                buffer.push(' ');
+            }
+            if !buffer.is_empty() {
+                try!(write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent));
+            }
+            try!(write!(stream, "\n"));
         }
         try!(stream.flush());
         Ok(())
