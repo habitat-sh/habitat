@@ -1,13 +1,69 @@
 # Habitat CHANGELOG
 
+## [0.9.2](https://github.com/habitat-sh/habitat/tree/0.9.2) (09-15-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.1...0.9.2)
+
+## Features & Enhancements
+
+- Update Getting Started tutorial to use Docker for Mac instead of Docker Toolbox [\#1130](https://github.com/habitat-sh/habitat/issues/1130)
+- \[hab\] Final UI additions to control coloring/formatting for errors and analytics [\#1239](https://github.com/habitat-sh/habitat/pull/1239) ([fnichol](https://github.com/fnichol))
+- \[hab,sup\] Add formatted output & input methods to `UI`. [\#1237](https://github.com/habitat-sh/habitat/pull/1237) ([fnichol](https://github.com/fnichol))
+- \[hab,sup\] Add `UI\#progress\(\)` method to control progress bar behavior. [\#1233](https://github.com/habitat-sh/habitat/pull/1233) ([fnichol](https://github.com/fnichol))
+- Clean the middleman build before building [\#1232](https://github.com/habitat-sh/habitat/pull/1232) ([reset](https://github.com/reset))
+- Just enough code to make the core crate tests pass [\#1231](https://github.com/habitat-sh/habitat/pull/1231) ([smurawski](https://github.com/smurawski))
+- \[hab,sup\] Add common UI subsystem to manage output display. [\#1228](https://github.com/habitat-sh/habitat/pull/1228) ([fnichol](https://github.com/fnichol))
+- Use `bodyparser::Struct` to parse request bodies in HTTP Gateways [\#1227](https://github.com/habitat-sh/habitat/pull/1227) ([reset](https://github.com/reset))
+- Revert back to typed headers in HTTP gateways [\#1226](https://github.com/habitat-sh/habitat/pull/1226) ([reset](https://github.com/reset))
+- add README & Makefile to www project [\#1223](https://github.com/habitat-sh/habitat/pull/1223) ([reset](https://github.com/reset))
+- Getting started tutorial split by OS, UX updates, and more [\#1220](https://github.com/habitat-sh/habitat/pull/1220) ([davidwrede](https://github.com/davidwrede))
+- add/improve make targets for running & building builder services [\#1219](https://github.com/habitat-sh/habitat/pull/1219) ([reset](https://github.com/reset))
+- Make Authenticated middleware self contained [\#1217](https://github.com/habitat-sh/habitat/pull/1217) ([reset](https://github.com/reset))
+- \[hab\] Split code into lib & bin modules [\#1203](https://github.com/habitat-sh/habitat/pull/1203) ([fnichol](https://github.com/fnichol))
+- Adding package search from the CLI. Fixes \#1159 [\#1201](https://github.com/habitat-sh/habitat/pull/1201) ([nsdavidson](https://github.com/nsdavidson))
+
+## Bug fixes
+
+- build fails if pkg\_source is blank [\#870](https://github.com/habitat-sh/habitat/issues/870)
+- \[Cargo\] Update Cargo.lock from new Windows dependency additions. [\#1238](https://github.com/habitat-sh/habitat/pull/1238) ([fnichol](https://github.com/fnichol))
+- Move buffer trimming to the final buffer [\#1225](https://github.com/habitat-sh/habitat/pull/1225) ([adamhjk](https://github.com/adamhjk))
+- Quick fix for sorting package identifiers returned by the Depot API [\#1221](https://github.com/habitat-sh/habitat/pull/1221) ([reset](https://github.com/reset))
+
+**Closed issues:**
+
+- init hook returning invalid exit code [\#1222](https://github.com/habitat-sh/habitat/issues/1222)
+- 3e [\#1215](https://github.com/habitat-sh/habitat/issues/1215)
+
+**Merged pull requests:**
+
+- Static directory permissions [\#1241](https://github.com/habitat-sh/habitat/pull/1241) ([jtimberman](https://github.com/jtimberman))
+- Always render run script with chpst [\#1240](https://github.com/habitat-sh/habitat/pull/1240) ([jtimberman](https://github.com/jtimberman))
+- windows terminal support tweaks [\#1235](https://github.com/habitat-sh/habitat/pull/1235) ([smurawski](https://github.com/smurawski))
+- On windows, order matters - case does not [\#1234](https://github.com/habitat-sh/habitat/pull/1234) ([smurawski](https://github.com/smurawski))
+- Add Habitat Community Summit text to global message [\#1230](https://github.com/habitat-sh/habitat/pull/1230) ([magwalk](https://github.com/magwalk))
+- Adding download button to hero per AB test results [\#1218](https://github.com/habitat-sh/habitat/pull/1218) ([ryankeairns](https://github.com/ryankeairns))
+- docs\(README.md\) improve readability of commands [\#1216](https://github.com/habitat-sh/habitat/pull/1216) ([d2s](https://github.com/d2s))
+- Test for required metadata keys before build [\#1214](https://github.com/habitat-sh/habitat/pull/1214) ([miketheman](https://github.com/miketheman))
+- Fix deserialization error on InstaSet datastore write [\#1212](https://github.com/habitat-sh/habitat/pull/1212) ([reset](https://github.com/reset))
+- Fix package specification for cmake [\#1211](https://github.com/habitat-sh/habitat/pull/1211) ([smurawski](https://github.com/smurawski))
+- depot/builder-api refactors [\#1210](https://github.com/habitat-sh/habitat/pull/1210) ([reset](https://github.com/reset))
+- Update VERSION to the next one [\#1209](https://github.com/habitat-sh/habitat/pull/1209) ([raskchanky](https://github.com/raskchanky))
+- Integrate projects with the package details page [\#1157](https://github.com/habitat-sh/habitat/pull/1157) ([raskchanky](https://github.com/raskchanky))
+
 ## [0.9.1](https://github.com/habitat-sh/habitat/tree/0.9.1) (09-01-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.0...0.9.1)
 
 ## Features & Enhancements
 
+- `hab pkg search` or similar functionality [\#1159](https://github.com/habitat-sh/habitat/issues/1159)
 - Document required structure of run hook [\#989](https://github.com/habitat-sh/habitat/issues/989)
+- \[ci/lint\] Fix hard-coded rustfmt version in lint.sh. [\#1206](https://github.com/habitat-sh/habitat/pull/1206) ([fnichol](https://github.com/fnichol))
+- \[ci/lint\] Update rustfmt version parsing logic. [\#1205](https://github.com/habitat-sh/habitat/pull/1205) ([fnichol](https://github.com/fnichol))
+- \[ci/rustfmt\] Uninstall then install rustfmt when upgrading. [\#1204](https://github.com/habitat-sh/habitat/pull/1204) ([fnichol](https://github.com/fnichol))
+- \[ci/rustfmt\] Force install newer version of rustfmt when required. [\#1202](https://github.com/habitat-sh/habitat/pull/1202) ([fnichol](https://github.com/fnichol))
+- \[ci/rustfmt\] Upgrade to lint with rustfmt 0.6.0. [\#1200](https://github.com/habitat-sh/habitat/pull/1200) ([fnichol](https://github.com/fnichol))
 - Remove extra word [\#1191](https://github.com/habitat-sh/habitat/pull/1191) ([ksexton](https://github.com/ksexton))
 - Adds access token scope to CLI [\#1189](https://github.com/habitat-sh/habitat/pull/1189) ([freethejazz](https://github.com/freethejazz))
+- touchup backline plan file [\#1166](https://github.com/habitat-sh/habitat/pull/1166) ([reset](https://github.com/reset))
 - Adding routes for downloading packages and keys from views [\#1141](https://github.com/habitat-sh/habitat/pull/1141) ([nsdavidson](https://github.com/nsdavidson))
 - GitHub building & Admin Gateway [\#1070](https://github.com/habitat-sh/habitat/pull/1070) ([reset](https://github.com/reset))
 
@@ -18,8 +74,10 @@
 - Habitat tutorial fails to run init hook due to permissions problems [\#1168](https://github.com/habitat-sh/habitat/issues/1168)
 - build error: 'ssl:error:SslError' is undefined [\#1155](https://github.com/habitat-sh/habitat/issues/1155)
 - Non-existent hab user/group results in `Failed to set permissions` error [\#755](https://github.com/habitat-sh/habitat/issues/755)
+- \[http-client\] Add missing colon on Host header when connecting to proxy. [\#1199](https://github.com/habitat-sh/habitat/pull/1199) ([fnichol](https://github.com/fnichol))
 - \[core\] Use 'Owner' and 'Permissions' during unpack [\#1187](https://github.com/habitat-sh/habitat/pull/1187) ([fujin](https://github.com/fujin))
 - update mytutorialapp to work with Habitat 0.9.0 [\#1169](https://github.com/habitat-sh/habitat/pull/1169) ([metadave](https://github.com/metadave))
+- Quote no\_proxy correctly [\#1162](https://github.com/habitat-sh/habitat/pull/1162) ([adamhjk](https://github.com/adamhjk))
 
 **Closed issues:**
 
@@ -30,12 +88,7 @@
 
 **Merged pull requests:**
 
-- \[ci/lint\] Fix hard-coded rustfmt version in lint.sh. [\#1206](https://github.com/habitat-sh/habitat/pull/1206) ([fnichol](https://github.com/fnichol))
-- \[ci/lint\] Update rustfmt version parsing logic. [\#1205](https://github.com/habitat-sh/habitat/pull/1205) ([fnichol](https://github.com/fnichol))
-- \[ci/rustfmt\] Uninstall then install rustfmt when upgrading. [\#1204](https://github.com/habitat-sh/habitat/pull/1204) ([fnichol](https://github.com/fnichol))
-- \[ci/rustfmt\] Force install newer version of rustfmt when required. [\#1202](https://github.com/habitat-sh/habitat/pull/1202) ([fnichol](https://github.com/fnichol))
-- \[ci/rustfmt\] Upgrade to lint with rustfmt 0.6.0. [\#1200](https://github.com/habitat-sh/habitat/pull/1200) ([fnichol](https://github.com/fnichol))
-- \[http-client\] Add missing colon on Host header when connecting to proxy. [\#1199](https://github.com/habitat-sh/habitat/pull/1199) ([fnichol](https://github.com/fnichol))
+- Releasing 0.9.1 [\#1208](https://github.com/habitat-sh/habitat/pull/1208) ([raskchanky](https://github.com/raskchanky))
 - Start of Building on Windows doc [\#1198](https://github.com/habitat-sh/habitat/pull/1198) ([smurawski](https://github.com/smurawski))
 - builder-api should start as root/root [\#1196](https://github.com/habitat-sh/habitat/pull/1196) ([jtimberman](https://github.com/jtimberman))
 - Extract linux/mac specific behavior in the habitat core crate [\#1193](https://github.com/habitat-sh/habitat/pull/1193) ([smurawski](https://github.com/smurawski))
@@ -46,11 +99,9 @@
 - updated and clarified valid service group names [\#1177](https://github.com/habitat-sh/habitat/pull/1177) ([davidwrede](https://github.com/davidwrede))
 - \[docs\] Install cargo 0.13 nightly \(fixes \#1155\) [\#1176](https://github.com/habitat-sh/habitat/pull/1176) ([chetan](https://github.com/chetan))
 - files in a packages config directory are logged upon parse failure [\#1171](https://github.com/habitat-sh/habitat/pull/1171) ([metadave](https://github.com/metadave))
-- touchup backline plan file [\#1166](https://github.com/habitat-sh/habitat/pull/1166) ([reset](https://github.com/reset))
 - Start 0.10.0-dev [\#1165](https://github.com/habitat-sh/habitat/pull/1165) ([reset](https://github.com/reset))
 - Typo in "announcement" [\#1164](https://github.com/habitat-sh/habitat/pull/1164) ([juliandunn](https://github.com/juliandunn))
 - Habitat publishing guide and program fixes [\#1163](https://github.com/habitat-sh/habitat/pull/1163) ([reset](https://github.com/reset))
-- Quote no\_proxy correctly [\#1162](https://github.com/habitat-sh/habitat/pull/1162) ([adamhjk](https://github.com/adamhjk))
 - Add CLI UX principles to repo [\#1158](https://github.com/habitat-sh/habitat/pull/1158) ([ryankeairns](https://github.com/ryankeairns))
 - Document use of exec in run hooks [\#1154](https://github.com/habitat-sh/habitat/pull/1154) ([mivok](https://github.com/mivok))
 
@@ -66,6 +117,10 @@
 - Most executables and libraries are not stripped \(feature not bug?\) [\#1066](https://github.com/habitat-sh/habitat/issues/1066)
 - Failed to build habat on CentOS 7.2 [\#1063](https://github.com/habitat-sh/habitat/issues/1063)
 - Docs needed for do\_check callback [\#1039](https://github.com/habitat-sh/habitat/issues/1039)
+- \[hab\] Add an optional arg to install.sh to specify a version of hab. [\#1149](https://github.com/habitat-sh/habitat/pull/1149) ([fnichol](https://github.com/fnichol))
+- \[hab\] Mac build improvements [\#1144](https://github.com/habitat-sh/habitat/pull/1144) ([fnichol](https://github.com/fnichol))
+- Use a consistent template for Rust component Plans. [\#1142](https://github.com/habitat-sh/habitat/pull/1142) ([fnichol](https://github.com/fnichol))
+- Rewrite package install strategy. [\#1093](https://github.com/habitat-sh/habitat/pull/1093) ([fnichol](https://github.com/fnichol))
 - added Ubuntu 14.04 build docs [\#1068](https://github.com/habitat-sh/habitat/pull/1068) ([metadave](https://github.com/metadave))
 - add build docs for Ubuntu + Centos 7 [\#1064](https://github.com/habitat-sh/habitat/pull/1064) ([metadave](https://github.com/metadave))
 - Resolves issue \#1039 - do\_check\(\) documentation [\#1062](https://github.com/habitat-sh/habitat/pull/1062) ([bscott](https://github.com/bscott))
@@ -78,6 +133,7 @@
 - Wildcard fix\_interpreter throws error if the path contains directories [\#1045](https://github.com/habitat-sh/habitat/issues/1045)
 - studio plan is dependent on removed package - hab-static [\#974](https://github.com/habitat-sh/habitat/issues/974)
 - Rename remaining references of "view" to "channel" [\#1153](https://github.com/habitat-sh/habitat/pull/1153) ([reset](https://github.com/reset))
+- \[hab,hab-sup\] Fix progress bar/newline rendering issue. [\#1125](https://github.com/habitat-sh/habitat/pull/1125) ([fnichol](https://github.com/fnichol))
 
 **Closed issues:**
 
@@ -89,18 +145,14 @@
 - update build docs [\#1156](https://github.com/habitat-sh/habitat/pull/1156) ([metadave](https://github.com/metadave))
 - CI will run specs contained in ./test [\#1152](https://github.com/habitat-sh/habitat/pull/1152) ([metadave](https://github.com/metadave))
 - Rename depot/depot-client to builder-depot/builder-depot-client [\#1150](https://github.com/habitat-sh/habitat/pull/1150) ([reset](https://github.com/reset))
-- \[hab\] Add an optional arg to install.sh to specify a version of hab. [\#1149](https://github.com/habitat-sh/habitat/pull/1149) ([fnichol](https://github.com/fnichol))
 - specify that pkg\_description is not optional in www docs [\#1148](https://github.com/habitat-sh/habitat/pull/1148) ([metadave](https://github.com/metadave))
-- \[hab\] Mac build improvements [\#1144](https://github.com/habitat-sh/habitat/pull/1144) ([fnichol](https://github.com/fnichol))
 - replace shellouts with libc calls where possible [\#1143](https://github.com/habitat-sh/habitat/pull/1143) ([metadave](https://github.com/metadave))
-- Use a consistent template for Rust component Plans. [\#1142](https://github.com/habitat-sh/habitat/pull/1142) ([fnichol](https://github.com/fnichol))
 - Updating run-api.sh to work with new target location [\#1140](https://github.com/habitat-sh/habitat/pull/1140) ([nsdavidson](https://github.com/nsdavidson))
 - Clarify how to pass configuration updates [\#1139](https://github.com/habitat-sh/habitat/pull/1139) ([bdangit](https://github.com/bdangit))
 - Use Cargo "workspaces" to manage a project-wide Cargo.lock file [\#1136](https://github.com/habitat-sh/habitat/pull/1136) ([reset](https://github.com/reset))
 - Projects can be deleted via the API [\#1135](https://github.com/habitat-sh/habitat/pull/1135) ([raskchanky](https://github.com/raskchanky))
 - add Habitat testing framework [\#1133](https://github.com/habitat-sh/habitat/pull/1133) ([metadave](https://github.com/metadave))
 - Native Docker for Mac is now released. [\#1128](https://github.com/habitat-sh/habitat/pull/1128) ([juliandunn](https://github.com/juliandunn))
-- \[hab,hab-sup\] Fix progress bar/newline rendering issue. [\#1125](https://github.com/habitat-sh/habitat/pull/1125) ([fnichol](https://github.com/fnichol))
 - Copy no\_proxy settings to studio [\#1124](https://github.com/habitat-sh/habitat/pull/1124) ([stephenbm](https://github.com/stephenbm))
 - Fetch projects using the API [\#1122](https://github.com/habitat-sh/habitat/pull/1122) ([raskchanky](https://github.com/raskchanky))
 - Adds optimizely snippet to head [\#1121](https://github.com/habitat-sh/habitat/pull/1121) ([ryankeairns](https://github.com/ryankeairns))
@@ -117,7 +169,6 @@
 - \[core\] Set mtime on files while unpacking archive [\#1100](https://github.com/habitat-sh/habitat/pull/1100) ([stevendanna](https://github.com/stevendanna))
 - try the old bots once again :| [\#1097](https://github.com/habitat-sh/habitat/pull/1097) ([smith](https://github.com/smith))
 - api-shell make target [\#1095](https://github.com/habitat-sh/habitat/pull/1095) ([smith](https://github.com/smith))
-- Rewrite package install strategy. [\#1093](https://github.com/habitat-sh/habitat/pull/1093) ([fnichol](https://github.com/fnichol))
 - add application/json type to render\_package [\#1092](https://github.com/habitat-sh/habitat/pull/1092) ([lamont-granquist](https://github.com/lamont-granquist))
 - Set the SSL\_CERT\_FILE for the director [\#1091](https://github.com/habitat-sh/habitat/pull/1091) ([jtimberman](https://github.com/jtimberman))
 - Remove a leading space from the config file output [\#1088](https://github.com/habitat-sh/habitat/pull/1088) ([smith](https://github.com/smith))
@@ -146,6 +197,8 @@
 - pkg-config integration for plan-build [\#972](https://github.com/habitat-sh/habitat/issues/972)
 - hab-depot is built in debug mode [\#968](https://github.com/habitat-sh/habitat/issues/968)
 - CPPFLAGS not set by default [\#962](https://github.com/habitat-sh/habitat/issues/962)
+- \[hab,hab-sup,hab-director\] Add http & https proxy support. [\#1044](https://github.com/habitat-sh/habitat/pull/1044) ([fnichol](https://github.com/fnichol))
+- \[tf\] Update bootstrap.sh to use Bintray assets. [\#986](https://github.com/habitat-sh/habitat/pull/986) ([fnichol](https://github.com/fnichol))
 
 ## Bug fixes
 
@@ -185,7 +238,6 @@
 **Merged pull requests:**
 
 - Release 0.8.0. [\#1047](https://github.com/habitat-sh/habitat/pull/1047) ([fnichol](https://github.com/fnichol))
-- \[hab,hab-sup,hab-director\] Add http & https proxy support. [\#1044](https://github.com/habitat-sh/habitat/pull/1044) ([fnichol](https://github.com/fnichol))
 - Remove mapping of the REST API in dev shell [\#1043](https://github.com/habitat-sh/habitat/pull/1043) ([adamhjk](https://github.com/adamhjk))
 - invalid ENV syntax [\#1038](https://github.com/habitat-sh/habitat/pull/1038) ([julian7](https://github.com/julian7))
 - minor spelling fixes [\#1035](https://github.com/habitat-sh/habitat/pull/1035) ([bixu](https://github.com/bixu))
@@ -219,7 +271,6 @@
 - Update travis webhook for new homu [\#991](https://github.com/habitat-sh/habitat/pull/991) ([smith](https://github.com/smith))
 - Adding check of `alive` status to haproxy.conf [\#990](https://github.com/habitat-sh/habitat/pull/990) ([nsdavidson](https://github.com/nsdavidson))
 - \[plans\] Update to Go 1.6.2. [\#988](https://github.com/habitat-sh/habitat/pull/988) ([fnichol](https://github.com/fnichol))
-- \[tf\] Update bootstrap.sh to use Bintray assets. [\#986](https://github.com/habitat-sh/habitat/pull/986) ([fnichol](https://github.com/fnichol))
 - \[builder-web\] Make it so clicking outside the user-nav dropdown makes… [\#985](https://github.com/habitat-sh/habitat/pull/985) ([smith](https://github.com/smith))
 - Attach an EBS volume to the monolith [\#984](https://github.com/habitat-sh/habitat/pull/984) ([jtimberman](https://github.com/jtimberman))
 - Update bootstrap script to install hab 0.7.0 [\#983](https://github.com/habitat-sh/habitat/pull/983) ([jtimberman](https://github.com/jtimberman))
