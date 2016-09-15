@@ -75,17 +75,15 @@ mod inner {
     use std::env;
     use std::ffi::OsString;
 
-    use ansi_term::Colour::Yellow;
     use common::ui::UI;
 
     use error::{Error, Result};
 
     pub fn start(_ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
-        let msg = format!("∅ Launching a native Supervisor on this operating system is not yet \
-                           supported. Try running this command again on a 64-bit Linux \
-                           operating system.\n");
-        println!("{}", Yellow.bold().paint(msg));
+        try!(ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
+                   Try running this command again on a 64-bit Linux operating system."));
+        try!(ui.br());
         Err(Error::SubcommandNotSupported(subcmd))
     }
 }
