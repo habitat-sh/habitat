@@ -97,8 +97,9 @@ impl BrokerConn {
                 }
                 match parse_from_bytes::<R>(rep.get_body()) {
                     Ok(entity) => Ok(entity),
-                    Err(_) => {
-                        unreachable!("unexpected response, message_id={}", rep.get_message_id())
+                    Err(err) => {
+                        error!("bad route reply, err={}, reply={:?}", err, rep);
+                        Err(protocol::net::err(ErrCode::BUG, "net:route:2"))
                     }
                 }
             }
