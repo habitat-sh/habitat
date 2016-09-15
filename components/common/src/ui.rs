@@ -29,6 +29,7 @@ pub enum Status {
     Applying,
     Cached,
     Creating,
+    Deleting,
     Downloading,
     Encrypting,
     Installed,
@@ -48,10 +49,11 @@ impl Status {
             Status::Applying => ('↑', "Applying".into(), Colour::Green),
             Status::Cached => ('☑', "Cached".into(), Colour::Green),
             Status::Creating => ('Ω', "Creating".into(), Colour::Green),
+            Status::Deleting => ('☒', "Deleting".into(), Colour::Green),
             Status::Downloading => ('↓', "Downloading".into(), Colour::Green),
             Status::Encrypting => ('☛', "Encypting".into(), Colour::Green),
             Status::Installed => ('✓', "Installed".into(), Colour::Green),
-            Status::Missing => ('∵', "Missing".into(), Colour::Cyan),
+            Status::Missing => ('∵', "Missing".into(), Colour::Red),
             Status::Signed => ('✓', "Signed".into(), Colour::Cyan),
             Status::Signing => ('☛', "Signing".into(), Colour::Cyan),
             Status::Uploaded => ('✓', "Uploaded".into(), Colour::Green),
@@ -96,6 +98,42 @@ impl UI {
                             symbol,
                             status_str,
                             message.to_string()))
+            }
+        }
+        try!(stream.flush());
+        Ok(())
+    }
+
+    pub fn warn<T: fmt::Display>(&mut self, message: T) -> Result<()> {
+        let ref mut stream = self.shell.err;
+        match stream.is_colored() {
+            true => {
+                try!(write!(stream,
+                            "{}\n",
+                            Colour::Yellow.bold().paint(format!("∅ {}", message.to_string()))));
+            }
+            false => {
+                try!(write!(stream, "∅ {}\n", message.to_string()));
+            }
+        }
+        try!(stream.flush());
+        Ok(())
+    }
+
+    pub fn fatal<T: fmt::Display>(&mut self, message: T) -> Result<()> {
+        let ref mut stream = self.shell.err;
+        match stream.is_colored() {
+            true => {
+                try!(write!(stream,
+                            "{}\n",
+                            Colour::Red.bold()
+                                .paint(format!("✗✗✗\n✗✗✗ {}\n✗✗✗",
+                                               message.to_string()))));
+            }
+            false => {
+                try!(write!(stream,
+                            "✗✗✗\n✗✗✗ {}\n✗✗✗\n",
+                            message.to_string()));
             }
         }
         try!(stream.flush());

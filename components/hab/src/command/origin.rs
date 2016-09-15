@@ -92,7 +92,6 @@ pub mod key {
             Ok(())
         }
 
-        // TODO fin: use UI to signal whether or not to use progress bars
         fn download_key(ui: &mut UI,
                         depot_client: &Client,
                         nwr: &str,

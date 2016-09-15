@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate ansi_term;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
@@ -29,7 +28,6 @@ use std::path::Path;
 use std::str::FromStr;
 use std::thread;
 
-use ansi_term::Colour::Red;
 use clap::ArgMatches;
 
 use common::ui::UI;
@@ -62,17 +60,16 @@ const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
 
 fn main() {
     env_logger::init().unwrap();
+    let mut ui = UI::default();
     thread::spawn(|| analytics::instrument_subcommand());
-    if let Err(e) = start() {
-        println!("{}",
-                 Red.bold().paint(format!("✗✗✗\n✗✗✗ {}\n✗✗✗", e)));
+    if let Err(e) = start(&mut ui) {
+        ui.fatal(e).unwrap();
         std::process::exit(1)
     }
 }
 
-fn start() -> Result<()> {
-    let mut ui = UI::default();
-    try!(exec_subcommand_if_called(&mut ui));
+fn start(ui: &mut UI) -> Result<()> {
+    try!(exec_subcommand_if_called(ui));
 
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
@@ -83,35 +80,35 @@ fn start() -> Result<()> {
             e.exit();
         });
     match app_matches.subcommand() {
-        ("apply", Some(m)) => try!(sub_config_apply(&mut ui, m)),
+        ("apply", Some(m)) => try!(sub_config_apply(ui, m)),
         ("cli", Some(matches)) => {
             match matches.subcommand() {
-                ("setup", Some(_)) => try!(sub_cli_setup(&mut ui)),
+                ("setup", Some(_)) => try!(sub_cli_setup(ui)),
                 _ => unreachable!(),
             }
         }
         ("config", Some(matches)) => {
             match matches.subcommand() {
-                ("apply", Some(m)) => try!(sub_config_apply(&mut ui, m)),
+                ("apply", Some(m)) => try!(sub_config_apply(ui, m)),
                 _ => unreachable!(),
             }
         }
         ("file", Some(matches)) => {
             match matches.subcommand() {
-                ("upload", Some(m)) => try!(sub_file_upload(&mut ui, m)),
+                ("upload", Some(m)) => try!(sub_file_upload(ui, m)),
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => try!(sub_pkg_install(&mut ui, m)),
+        ("install", Some(m)) => try!(sub_pkg_install(ui, m)),
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("download", Some(sc)) => try!(sub_origin_key_download(&mut ui, sc)),
+                        ("download", Some(sc)) => try!(sub_origin_key_download(ui, sc)),
                         ("export", Some(sc)) => try!(sub_origin_key_export(sc)),
-                        ("generate", Some(sc)) => try!(sub_origin_key_generate(&mut ui, sc)),
-                        ("import", Some(_)) => try!(sub_origin_key_import(&mut ui)),
-                        ("upload", Some(sc)) => try!(sub_origin_key_upload(&mut ui, sc)),
+                        ("generate", Some(sc)) => try!(sub_origin_key_generate(ui, sc)),
+                        ("import", Some(_)) => try!(sub_origin_key_import(ui)),
+                        ("upload", Some(sc)) => try!(sub_origin_key_upload(ui, sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -120,18 +117,18 @@ fn start() -> Result<()> {
         }
         ("pkg", Some(matches)) => {
             match matches.subcommand() {
-                ("binlink", Some(m)) => try!(sub_pkg_binlink(&mut ui, m)),
-                ("build", Some(m)) => try!(sub_pkg_build(&mut ui, m)),
+                ("binlink", Some(m)) => try!(sub_pkg_binlink(ui, m)),
+                ("build", Some(m)) => try!(sub_pkg_build(ui, m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
-                ("export", Some(m)) => try!(sub_pkg_export(&mut ui, m)),
+                ("export", Some(m)) => try!(sub_pkg_export(ui, m)),
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
-                ("install", Some(m)) => try!(sub_pkg_install(&mut ui, m)),
+                ("install", Some(m)) => try!(sub_pkg_install(ui, m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
                 ("provides", Some(m)) => try!(sub_pkg_provides(m)),
                 ("search", Some(m)) => try!(sub_pkg_search(m)),
-                ("sign", Some(m)) => try!(sub_pkg_sign(&mut ui, m)),
-                ("upload", Some(m)) => try!(sub_pkg_upload(&mut ui, m)),
-                ("verify", Some(m)) => try!(sub_pkg_verify(&mut ui, m)),
+                ("sign", Some(m)) => try!(sub_pkg_sign(ui, m)),
+                ("upload", Some(m)) => try!(sub_pkg_upload(ui, m)),
+                ("verify", Some(m)) => try!(sub_pkg_verify(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -140,8 +137,8 @@ fn start() -> Result<()> {
                 ("key", Some(m)) => {
                     match m.subcommand() {
                         ("export", Some(sc)) => try!(sub_ring_key_export(sc)),
-                        ("import", Some(_)) => try!(sub_ring_key_import(&mut ui)),
-                        ("generate", Some(sc)) => try!(sub_ring_key_generate(&mut ui, sc)),
+                        ("import", Some(_)) => try!(sub_ring_key_import(ui)),
+                        ("generate", Some(sc)) => try!(sub_ring_key_generate(ui, sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -152,19 +149,19 @@ fn start() -> Result<()> {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("generate", Some(sc)) => try!(sub_service_key_generate(&mut ui, sc)),
+                        ("generate", Some(sc)) => try!(sub_service_key_generate(ui, sc)),
                         _ => unreachable!(),
                     }
                 }
                 _ => unreachable!(),
             }
         }
-        ("setup", Some(_)) => try!(sub_cli_setup(&mut ui)),
+        ("setup", Some(_)) => try!(sub_cli_setup(ui)),
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
                     match m.subcommand() {
-                        ("generate", Some(sc)) => try!(sub_user_key_generate(&mut ui, sc)),
+                        ("generate", Some(sc)) => try!(sub_user_key_generate(ui, sc)),
                         _ => unreachable!(),
                     }
                 }
@@ -396,7 +393,7 @@ fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
 fn sub_pkg_export(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let format = &m.value_of("FORMAT").unwrap();
-    let export_fmt = try!(command::pkg::export::format_for(&format));
+    let export_fmt = try!(command::pkg::export::format_for(ui, &format));
     command::pkg::export::start(ui, &ident, &export_fmt)
 }
 

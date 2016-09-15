@@ -160,8 +160,8 @@ pub mod export {
         inner::start(ui, ident, format)
     }
 
-    pub fn format_for(value: &str) -> Result<ExportFormat> {
-        inner::format_for(value)
+    pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
+        inner::format_for(ui, value)
     }
 
     #[cfg(target_os = "linux")]
@@ -182,7 +182,7 @@ pub mod export {
         use error::{Error, Result};
         use super::ExportFormat;
 
-        pub fn format_for(value: &str) -> Result<ExportFormat> {
+        pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
             match value {
                 "docker" => {
                     let format = ExportFormat {
@@ -239,20 +239,18 @@ pub mod export {
 
     #[cfg(not(target_os = "linux"))]
     mod inner {
-        use ansi_term::Colour::Yellow;
         use error::{Error, Result};
         use common::UI;
         use hcore::package::PackageIdent;
         use std::env;
         use super::ExportFormat;
 
-        // TODO fin: add a warning or error method on `UI` to handle messages below
-        pub fn format_for(value: &str) -> Result<ExportFormat> {
-            let msg = format!("∅ Exporting {} packages from this operating system is not yet \
+        pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
+            try!(ui.warn(format!("∅ Exporting {} packages from this operating system is not yet \
                                supported. Try running this command again on a 64-bit Linux \
                                operating system.\n",
-                              value);
-            println!("{}", Yellow.bold().paint(msg));
+                              value)));
+            try!(ui.br());
             let e = Error::UnsupportedExportFormat(value.to_string());
             Err(e)
         }
@@ -260,10 +258,9 @@ pub mod export {
         pub fn start(_ui: &mut UI, _ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
             let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
             let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
-            let msg = format!("∅ Exporting packages from this operating system is not yet \
-                               supported. Try running this command again on a 64-bit Linux \
-                               operating system.\n");
-            println!("{}", Yellow.bold().paint(msg));
+            try!(ui.warn("Exporting packages from this operating system is not yet supported. Try \
+                       running this command again on a 64-bit Linux operating system."));
+            try!(ui.br());
             Err(Error::SubcommandNotSupported(format!("{} {}", subcmd, subsubcmd)))
 
         }
@@ -442,7 +439,6 @@ pub mod upload {
 
     use std::path::{Path, PathBuf};
 
-    use ansi_term::Colour::Red;
     use common::ui::{Status, UI};
     use depot_client::{self, Client};
     use hcore::crypto::artifact::get_artifact_header;
@@ -580,11 +576,10 @@ pub mod upload {
                 }
             }
         } else {
-            // TODO fin: replace with a warning or error `UI` method call
-            println!("{} artifact for {} was not found in {}",
-                     Red.bold().paint("✗ Missing"),
-                     ident.archive_name().unwrap(),
-                     archives_dir.display());
+            try!(ui.status(Status::Missing,
+                           format!("artifact for {} was not found in {}",
+                                   ident.archive_name().unwrap(),
+                                   archives_dir.display())));
             return Err(Error::FileNotFound(archives_dir.to_string_lossy()
                 .into_owned()));
         }

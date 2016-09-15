@@ -190,8 +190,8 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::time::{UNIX_EPOCH, SystemTime};
 
-use ansi_term::Colour::{Blue, Green, Yellow};
 use clap;
+use common::ui::{Status, UI};
 use hcore;
 use http_client::ApiClient;
 use url::Url;
@@ -343,23 +343,23 @@ pub fn instrument_clap_error(err: &clap::Error) {
 /// * If the parent directory cannot be created
 /// * If an opt-out if exists but cannot be deleted
 /// * If an opt-in file cannot be created
-pub fn opt_in(analytics_path: &Path, origin_generated: bool) -> Result<()> {
-    println!("{}", Yellow.bold().paint("» Opting in to analytics"));
+pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Result<()> {
+    try!(ui.begin("Opting in to analytics"));
     // Create the parent directory which will contain the opt-in file
     try!(fs::create_dir_all(analytics_path));
     // Get the path to the opt-out file
     let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
     // If the opt-out file exists, delete it from disk
     if opt_out_path.exists() {
-        println!("{} {}", Green.paint("☒ Deleting"), opt_out_path.display());
+        try!(ui.status(Status::Deleting, opt_out_path.display()));
         try!(fs::remove_file(&opt_out_path));
     }
     // Get the path to the opt-in file
     let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
-    println!("{} {}", Green.paint("☑ Creating"), opt_in_path.display());
+    try!(ui.status(Status::Creating, opt_in_path.display()));
     // Create the opt-in file
     let _ = try!(File::create(opt_in_path));
-    println!("{}", Blue.paint("★ Analytics opted in, thank you!"));
+    try!(ui.end("Analytics opted in, thank you!"));
     // Record an event that the setup subcommand was invoked
     record_event(Event::Subcommand,
                  &format!("{}--{}--{}", PRODUCT, "cli", "setup"));
@@ -386,24 +386,23 @@ pub fn opt_in(analytics_path: &Path, origin_generated: bool) -> Result<()> {
 /// * If the parent directory cannot be created
 /// * If an opt-in if exists but cannot be deleted
 /// * If an opt-out file cannot be created
-pub fn opt_out(analytics_path: &Path) -> Result<()> {
-    println!("{}", Yellow.bold().paint("» Opting out of analytics"));
+pub fn opt_out(ui: &mut UI, analytics_path: &Path) -> Result<()> {
+    try!(ui.begin("Opting out of analytics"));
     // Create the parent directory which will contain the opt-in file
     try!(fs::create_dir_all(analytics_path));
     // Get the path to the opt-in file
     let opt_in_path = analytics_path.join(OPTED_IN_METAFILE);
     // If the opt-in file exists, delete it from disk
     if opt_in_path.exists() {
-        println!("{} {}", Green.paint("☒ Deleting"), opt_in_path.display());
+        try!(ui.status(Status::Deleting, opt_in_path.display()));
         try!(fs::remove_file(&opt_in_path));
     }
     // Get the path to the opt-out file
     let opt_out_path = analytics_path.join(OPTED_OUT_METAFILE);
-    println!("{} {}", Green.paint("☑ Creating"), opt_out_path.display());
+    try!(ui.status(Status::Creating, opt_out_path.display()));
     // Create the opt-out file
     let _ = try!(File::create(opt_out_path));
-    println!("{}",
-             Blue.paint("★ Analytics opted out, we salute you just the same!"));
+    try!(ui.end("Analytics opted out, we salute you just the same!"));
     // Return an empty Ok, representing a successful operation
     Ok(())
 }
