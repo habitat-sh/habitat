@@ -19,6 +19,11 @@
   letter-spacing: rem-calc(1);
   padding: 0.85em 1.65em;
   transition: all .2s;
+
+  &:hover {
+    background-color: transparent;
+    box-shadow: 0px 1px 24px 0px rgba(0,0,0,0.20);
+  }
 }
 
 @mixin primary-button {
