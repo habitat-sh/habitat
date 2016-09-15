@@ -188,6 +188,9 @@ impl Package {
         try!(Self::create_dir_all(self.pkg_install.svc_var_path()));
         try!(util::perm::set_owner(self.pkg_install.svc_var_path(), &user, &group));
         try!(util::perm::set_permissions(self.pkg_install.svc_var_path(), 0o700));
+        try!(Self::create_dir_all(self.pkg_install.svc_static_path()));
+        try!(util::perm::set_owner(self.pkg_install.svc_static_path(), &user, &group));
+        try!(util::perm::set_permissions(self.pkg_install.svc_static_path(), 0o700));
         // TODO: Not 100% if this directory is still needed, but for the moment it's still here -
         // FIN
         try!(Self::create_dir_all(self.pkg_install.svc_path().join("toml")));
