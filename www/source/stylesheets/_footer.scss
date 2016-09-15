@@ -26,21 +26,21 @@
 
 .footer--cta-heading {
   margin-bottom: rem-calc(40);
-  font-size: rem-calc(28);
+  font-size: rem-calc(24);
   text-shadow: 0px 2px 23px rgba(0,0,0,0.4);
 }
 
 .footer--cta-button {
   @extend .button;
   @include primary-button;
-  padding: rem-calc(18) rem-calc(40);
   box-shadow: 0px 2px 35px darken($hab-green, 20%);
 }
 
 .footer--cta-subtext {
   margin-bottom: 0;
+  margin-top: rem-calc(10);
   font-size: rem-calc(13);
-  color: lighten($hab-gray, 10%);
+  color: lighten($hab-gray, 15%);
 
   & > a {
     color: $white;
