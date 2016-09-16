@@ -10,5 +10,5 @@ if command -v rustfmt >/dev/null; then
   fi
 fi
 
-cargo uninstall rustfmt
+cargo uninstall rustfmt || true
 cargo install --vers $version rustfmt

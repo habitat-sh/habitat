@@ -27,7 +27,7 @@ use handlebars::Handlebars;
 
 use common::gossip_file::GOSSIP_TOML;
 use census::{Census, CensusList};
-use config::Config;
+use config::gconfig;
 use error::{Error, Result};
 use hcore::package::PackageInstall;
 use hcore::crypto;
@@ -67,17 +67,13 @@ impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(config: &Config,
-               package: &Package,
-               cl: &CensusList,
-               bindings: Vec<String>)
-               -> Result<ServiceConfig> {
+    pub fn new(package: &Package, cl: &CensusList, bindings: Vec<String>) -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         let bind = try!(Bind::new(bindings, &cl));
         Ok(ServiceConfig {
             pkg: Pkg::new(&package.pkg_install),
             hab: Hab::new(),
-            sys: Sys::new(&config),
+            sys: Sys::new(),
             cfg: cfg,
             svc: Svc::new(cl),
             bind: bind,
@@ -168,8 +164,10 @@ impl ServiceConfig {
             let path = pi.installed_path().join("config").join(config);
             debug!("Config template {} at {:?}", config, &path);
             if let Err(e) = handlebars.register_template_file(config, &path) {
-                outputln!("Error parsing config template file {}: {}", path.to_string_lossy(), e);
-                return Err(sup_error!(Error::HandlebarsTemplateFileError(e)))
+                outputln!("Error parsing config template file {}: {}",
+                          path.to_string_lossy(),
+                          e);
+                return Err(sup_error!(Error::HandlebarsTemplateFileError(e)));
             }
         }
 
@@ -522,13 +520,14 @@ impl Pkg {
             None => "".to_string(),
         };
 
-        let (default_svc_user, default_svc_group) = match hab_users::get_user_and_group(&pkg_install) {
-            Ok((svc_user, svc_group)) => (svc_user, svc_group),
-            Err(_e) => {
-                // TODO
-                panic!("Can't get default service and user");
-            }
-        };
+        let (default_svc_user, default_svc_group) =
+            match hab_users::get_user_and_group(&pkg_install) {
+                Ok((svc_user, svc_group)) => (svc_user, svc_group),
+                Err(_e) => {
+                    // TODO
+                    panic!("Can't get default service and user");
+                }
+            };
 
         let svc_user = pkg_install.svc_user().unwrap_or(None);
         let svc_group = pkg_install.svc_group().unwrap_or(None);
@@ -574,7 +573,7 @@ pub struct Sys {
 }
 
 impl Sys {
-    fn new(config: &Config) -> Sys {
+    fn new() -> Sys {
         let ip = match util::sys::ip() {
             Ok(ip) => ip.to_string(),
             Err(e) => {
@@ -594,10 +593,10 @@ impl Sys {
         Sys {
             ip: ip,
             hostname: hostname,
-            gossip_ip: config.gossip_listen_ip().to_string(),
-            gossip_port: config.gossip_listen_port(),
-            sidecar_ip: config.http_listen_ip().to_string(),
-            sidecar_port: config.http_listen_port(),
+            gossip_ip: gconfig().gossip_listen_ip().to_string(),
+            gossip_port: gconfig().gossip_listen_port(),
+            sidecar_ip: gconfig().http_listen_ip().to_string(),
+            sidecar_port: gconfig().http_listen_port(),
         }
     }
 
@@ -635,7 +634,7 @@ mod test {
     use regex::Regex;
 
     use census::{CensusEntry, Census, CensusList};
-    use config::Config;
+    use config::{gcache, Config};
     use gossip::member::MemberId;
     use hcore::package::{PackageIdent, PackageInstall};
     use package::Package;
@@ -667,9 +666,10 @@ mod test {
 
     #[test]
     fn to_toml_hab() {
+        gcache(Config::new());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&Config::default(), &pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -677,9 +677,10 @@ mod test {
 
     #[test]
     fn to_toml_pkg() {
+        gcache(Config::new());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&Config::default(), &pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
         assert_eq!(name, "sovereign");
@@ -687,9 +688,10 @@ mod test {
 
     #[test]
     fn to_toml_sys() {
+        gcache(Config::new());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&Config::default(), &pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
@@ -697,27 +699,30 @@ mod test {
     }
 
     mod sys {
-        use config::Config;
+        use config::{gcache, Config};
         use service_config::Sys;
         use regex::Regex;
 
         #[test]
         fn ip() {
-            let s = Sys::new(&Config::default());
+            gcache(Config::new());
+            let s = Sys::new();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
             assert!(re.is_match(&s.ip));
         }
 
         #[test]
         fn hostname() {
-            let s = Sys::new(&Config::default());
+            gcache(Config::new());
+            let s = Sys::new();
             let re = Regex::new(r"\w+").unwrap();
             assert!(re.is_match(&s.hostname));
         }
 
         #[test]
         fn to_toml() {
-            let s = Sys::new(&Config::default());
+            gcache(Config::new());
+            let s = Sys::new();
             let toml = s.to_toml().unwrap();
             let ip = toml.lookup("ip").unwrap().as_str().unwrap();
             let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();

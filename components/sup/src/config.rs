@@ -21,6 +21,8 @@
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
 use std::str::FromStr;
+use std::sync::{Once, ONCE_INIT};
+use std::mem;
 
 use hcore::package::PackageIdent;
 
@@ -29,6 +31,32 @@ use gossip::server::GOSSIP_DEFAULT_PORT;
 use topology::Topology;
 
 static LOGKEY: &'static str = "CFG";
+
+/// The Static Global Configuration.
+///
+/// This sets up a raw pointer, which we are going to transmute to a Box<Config>
+/// with the first call to gcache().
+static mut CONFIG: *const Config = 0 as *const Config;
+
+/// Store a configuration, for later use through `gconfig()`.
+///
+/// MUST BE CALLED BEFORE ANY CALLS TO `gconfig()`.
+pub fn gcache(config: Config) {
+    static ONCE: Once = ONCE_INIT;
+    unsafe {
+        ONCE.call_once(|| {
+            CONFIG = mem::transmute(Box::new(config));
+        });
+    }
+}
+
+/// Return a reference to our cached configuration.
+///
+/// This is unsafe, because we are de-referencing the raw pointer stored in
+/// CONFIG.
+pub fn gconfig() -> &'static Config {
+    unsafe { &*CONFIG }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 /// An enum with the various CLI commands. Used to keep track of what command was called.

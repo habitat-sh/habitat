@@ -26,14 +26,13 @@ use error::{Result, SupError};
 use package::Package;
 use state_machine::StateMachine;
 use topology::{self, State, Worker};
-use config::Config;
 
 /// Sets up the topology and calls run_internal.
 ///
 /// Add's the state transitions to the state machine, sets up the signal handlers, and runs the
 /// `topology::run_internal` function.
-pub fn run(package: Package, config: &Config) -> Result<()> {
-    let mut worker = try!(Worker::new(package, String::from("standalone"), config));
+pub fn run(package: Package) -> Result<()> {
+    let mut worker = try!(Worker::new(package, String::from("standalone")));
     let mut sm: StateMachine<State, Worker, SupError> = StateMachine::new(State::Initializing);
     sm.add_dispatch(State::Initializing, state_initializing);
     sm.add_dispatch(State::Starting, state_starting);

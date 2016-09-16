@@ -69,7 +69,7 @@ use hcore::package::PackageIdent;
 
 use {PRODUCT, VERSION};
 use error::Result;
-use config::{Config, UpdateStrategy};
+use config::{gconfig, UpdateStrategy};
 use package::Package;
 use topology::{self, Topology};
 
@@ -83,17 +83,17 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if it cannot find a package with the given name
 /// * Fails if the `run` method for the topology fails
 /// * Fails if an unknown topology was specified on the command line
-pub fn package(config: &Config) -> Result<()> {
+pub fn package() -> Result<()> {
     let mut ui = UI::default();
-    match Package::load(config.package(), None) {
+    match Package::load(gconfig().package(), None) {
         Ok(mut package) => {
-            let update_strategy = config.update_strategy();
+            let update_strategy = gconfig().update_strategy();
             match update_strategy {
                 UpdateStrategy::None => {}
                 _ => {
-                    let url = config.url();
+                    let url = gconfig().url();
                     outputln!("Checking Depot for newer versions...");
-                    // It is important to pass `config.package()` to `show_package()` instead
+                    // It is important to pass `gconfig().package()` to `show_package()` instead
                     // of the package identifier of the loaded package. This will ensure that
                     // if the operator starts a package while specifying a version number, they
                     // will only automaticaly receive release updates for the started package.
@@ -103,7 +103,7 @@ pub fn package(config: &Config) -> Result<()> {
                     // number, for the started  package.
                     let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
                     let latest_pkg_data =
-                        try!(depot_client.show_package((*config.package()).clone()));
+                        try!(depot_client.show_package((*gconfig().package()).clone()));
                     let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
                     if &latest_ident > package.ident() {
                         outputln!("Downloading latest version from Depot: {}", latest_ident);
@@ -121,13 +121,13 @@ pub fn package(config: &Config) -> Result<()> {
                     };
                 }
             }
-            start_package(package, config)
+            start_package(package)
         }
         Err(_) => {
             outputln!("{} is not installed",
-                      Yellow.bold().paint(config.package().to_string()));
-            let url = config.url();
-            let new_pkg_data = match config.local_artifact() {
+                      Yellow.bold().paint(gconfig().package().to_string()));
+            let url = gconfig().url();
+            let new_pkg_data = match gconfig().local_artifact() {
                 Some(artifact) => {
                     try!(install::start(&mut ui,
                                         url,
@@ -140,11 +140,11 @@ pub fn package(config: &Config) -> Result<()> {
                 }
                 None => {
                     outputln!("Searching for {} in remote {}",
-                              Yellow.bold().paint(config.package().to_string()),
+                              Yellow.bold().paint(gconfig().package().to_string()),
                               url);
                     try!(install::start(&mut ui,
                                         url,
-                                        &config.package().to_string(),
+                                        &gconfig().package().to_string(),
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
@@ -153,18 +153,18 @@ pub fn package(config: &Config) -> Result<()> {
                 }
             };
             let package = try!(Package::load(&new_pkg_data, None));
-            start_package(package, config)
+            start_package(package)
         }
     }
 }
 
-fn start_package(package: Package, config: &Config) -> Result<()> {
+fn start_package(package: Package) -> Result<()> {
     let run_path = try!(package.run_path());
     debug!("Setting the PATH to {}", run_path);
     env::set_var("PATH", &run_path);
-    match *config.topology() {
-        Topology::Standalone => topology::standalone::run(package, config),
-        Topology::Leader => topology::leader::run(package, config),
-        Topology::Initializer => topology::initializer::run(package, config),
+    match *gconfig().topology() {
+        Topology::Standalone => topology::standalone::run(package),
+        Topology::Leader => topology::leader::run(package),
+        Topology::Initializer => topology::initializer::run(package),
     }
 }

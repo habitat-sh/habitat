@@ -16,14 +16,14 @@ use topology::{self, standalone, State, Worker};
 use state_machine::StateMachine;
 use error::{Result, SupError};
 use package::Package;
-use config::Config;
+use config::gconfig;
 use census::MIN_QUORUM;
 use gossip::server;
 
 static LOGKEY: &'static str = "TL";
 
-pub fn run(package: Package, config: &Config) -> Result<()> {
-    let mut worker = try!(Worker::new(package, String::from("leader"), config));
+pub fn run(package: Package) -> Result<()> {
+    let mut worker = try!(Worker::new(package, String::from("leader")));
     let mut sm: StateMachine<State, Worker, SupError> = StateMachine::new(State::Init);
     sm.add_dispatch(State::Init, state_init);
     sm.add_dispatch(State::MinimumQuorum, state_minimum_quorum);
@@ -156,8 +156,7 @@ pub fn state_start_election(worker: &mut Worker) -> Result<(State, u64)> {
     outputln!("Starting election");
     let rumor_list = {
         let el = worker.election_list.read().unwrap();
-        el.generate_rumor_list_for(worker.package_name.clone(),
-                                   worker.config.group().to_string())
+        el.generate_rumor_list_for(worker.package_name.clone(), gconfig().group().to_string())
     };
     server::process_rumors(rumor_list,
                            worker.rumor_list.clone(),
@@ -197,7 +196,7 @@ pub fn state_election(worker: &mut Worker) -> Result<(State, u64)> {
         } else {
             if election.should_finish(&el.member_id, alive_population) {
                 Some(el.finished_rumor_list_for(worker.package_name.clone(),
-                                                worker.config.group().to_string()))
+                                                gconfig().group().to_string()))
             } else {
                 None
             }
