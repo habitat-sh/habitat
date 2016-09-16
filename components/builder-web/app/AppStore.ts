@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Injectable} from "angular2/core";
+import {Injectable} from "@angular/core";
 import {applyMiddleware, compose, createStore} from "redux";
 import rootReducer from "./reducers/index";
-import * as thunk from "redux-thunk";
+import thunk from "redux-thunk";
 
 const resetMiddleware = require("redux-reset").default;
 
@@ -35,7 +35,7 @@ const appStore = finalCreateStore(rootReducer);
 export class AppStore {
     private store = appStore;
 
-    getState() {
+    getState(): any {
         return this.store.getState();
     }
 

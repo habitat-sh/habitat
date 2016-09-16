@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouteParams, RouterLink} from "angular2/router";
+import {Component, OnInit} from "@angular/core";
+import {RouterLink} from "@angular/router";
 import {AppStore} from "../AppStore";
 import {setGitHubAuthState, signOut} from "../actions/index";
 import config from "../config";
@@ -67,7 +67,7 @@ import {createGitHubLoginUrl, icon} from "../util";
                 <a href="{{sourceCodeUrl}}">
                     {{appName}} source code
                 </a>,
-                <a [routerLink]="['Packages']">
+                <a [routerLink]="['/pkgs']">
                     public packages
                 </a>,
                 and
@@ -81,7 +81,7 @@ import {createGitHubLoginUrl, icon} from "../util";
 })
 
 export class SignInPageComponent implements OnInit {
-    constructor(private routeParams: RouteParams, private store: AppStore) { }
+    constructor(private store: AppStore) { }
 
     get appName() { return this.store.getState().app.name; }
 

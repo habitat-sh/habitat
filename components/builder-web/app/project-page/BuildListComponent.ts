@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component} from "@angular/core";
 import {duration, friendlyTime, packageString} from "../util";
 
 @Component({
-    directives: [RouterLink],
     inputs: ["builds", "logs", "project"],
     selector: "build-list",
     template: `
@@ -25,7 +23,7 @@ import {duration, friendlyTime, packageString} from "../util";
         No builds found.
     </p>
     <ul *ngIf="builds && builds.size > 0" class="hab-build-list">
-        <li *ngFor="#build of builds" class="{{build.status}}">
+        <li *ngFor="let build of builds" class="{{build.status}}">
             <span class="status color">{{build.status}}</span>
             <h1>
                 <span class="id color">#{{build.id}}</span>

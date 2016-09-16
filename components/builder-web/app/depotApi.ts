@@ -20,7 +20,7 @@ const urlPrefix = config["habitat_api_url"] || "";
 
 export function get(params, nextRange: number = 0) {
     const url = `${urlPrefix}/depot/pkgs/` +
-        ("query" in params ? `search/${params["query"]}`
+        (params["query"] ? `search/${params["query"]}`
                            : packageString(params));
 
     return new Promise((resolve, reject) => {

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input, OnInit} from "angular2/core";
-import {Control, ControlGroup, FormBuilder, Validators} from "angular2/common";
+import {Component, Input, OnInit} from "@angular/core";
+import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {List} from "immutable";
 import {TabComponent} from "../TabComponent";
 
@@ -28,11 +28,11 @@ import {TabComponent} from "../TabComponent";
                     <h3>Invite Member</h3>
                     <form
                         #formValues="ngForm"
-                        [ngFormModel]="form"
+                        [formGroup]="form"
                         (ngSubmit)="submit(formValues.value.username)">
                         <label>Add existing users by GitHub username</label>
                         <input type="search" name="username"
-                            [ngFormControl]="form.controls['username']">
+                            [formControl]="form.controls['username']">
                         <div class="hab-origin-members-tab--submit">
                             <button
                                 class="hab-origin-members-tab--save"
@@ -52,7 +52,7 @@ import {TabComponent} from "../TabComponent";
                     <h3>Pending Invitations</h3>
                     <p *ngIf="invitations.size === 0">No pending invitations.</p>
                     <ul class="pending">
-                        <li *ngFor="#invitation of invitations"
+                        <li *ngFor="let invitation of invitations"
                             class="hab-item-list hab-no-select">
                             <h3>{{invitation.account_name}}</h3>
                         </li>
@@ -63,7 +63,7 @@ import {TabComponent} from "../TabComponent";
                     <h3>Current Members</h3>
                     <p *ngIf="members.size === 0">No Members.</p>
                     <ul>
-                        <li *ngFor="#member of members"
+                        <li *ngFor="let member of members"
                             class="hab-item-list hab-no-select">
                             <h3>{{member}}</h3>
                         </li>
@@ -94,8 +94,8 @@ export class OriginMembersTabComponent implements OnInit {
     @Input() members: List<Object>;
     @Input() onSubmit: Function;
 
-    private form: ControlGroup;
-    private control: Control;
+    private form: FormGroup;
+    private control: FormControl;
 
     constructor(formBuilder: FormBuilder) {
         this.form = formBuilder.group({});
@@ -106,7 +106,7 @@ export class OriginMembersTabComponent implements OnInit {
     }
 
     public ngOnInit() {
-        this.control = new Control("", Validators.required);
+        this.control = new FormControl("", Validators.required);
         this.form.addControl("username", this.control);
     }
 }

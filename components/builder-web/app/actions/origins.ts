@@ -70,7 +70,7 @@ export function createOrigin(origin, token, isFirstOrigin = false) {
 
             dispatch(fetchMyOrigins(token));
             dispatch(setCurrentOriginCreatingFlag(false));
-            dispatch(requestRoute(["Origins"]));
+            dispatch(requestRoute(["/origins"]));
             dispatch(addNotification({
                 title: "Origin Created",
                 body: origin["default"] ?

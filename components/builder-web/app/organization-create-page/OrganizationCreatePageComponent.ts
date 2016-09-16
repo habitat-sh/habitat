@@ -16,8 +16,8 @@ import {addOrg, cancelOrgInvitation, inviteMemberToOrg, finishAddingOrg,
     performOrgMemberSearch, toggleMemberActionMenu} from "../actions/index";
 
 import {AppStore} from "../AppStore";
-import {Component} from "angular2/core";
-import {ControlGroup, FormBuilder, Validators} from "angular2/common";
+import {Component} from "@angular/core";
+import {FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {OrganizationMembersComponent} from
     "../organization-members/OrganizationMembersComponent";
 import {requireSignIn} from "../util";
@@ -54,7 +54,7 @@ const sidebar = `
         </div>
         <div class="page-body">
             <div class="step1" *ngIf="!saved">
-                <form [ngFormModel]="form"
+                <form [formGroup]="form"
                     (ngSubmit)="addOrg(form.value)"
                     #formValues="ngForm">
                     <div class="ns">
@@ -91,7 +91,7 @@ const sidebar = `
 })
 
 export class OrganizationCreatePageComponent {
-    private form: ControlGroup;
+    private form: FormGroup;
     private cancelOrgInvitation: Function;
     private inviteMemberToOrg: Function;
     private performOrgMemberSearch: Function;

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component, OnInit} from "@angular/core";
+import {RouterLink} from "@angular/router";
 
 @Component({
     directives: [RouterLink],
@@ -24,12 +24,12 @@ import {RouterLink} from "angular2/router";
         <h4>Dashboard</h4>
         <ul class="hab-side-nav--list">
             <li><a [class.active]='routeMatch("pkgs\/core")'
-                   [routerLink]="['PackagesForOrigin', { origin: 'core' }]">
+                   [routerLink]="['/pkgs', 'core']">
                 Packages
             </a></li>
             <li *ngIf="isSignedIn"><a
                    [class.active]='routeMatch("origins")'
-                   [routerLink]="['Origins']">Origins</a></li>
+                   [routerLink]="['/origins']">Origins</a></li>
         </ul>
     </nav>`
 })

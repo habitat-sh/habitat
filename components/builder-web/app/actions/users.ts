@@ -50,6 +50,6 @@ export function signOut() {
     return dispatch => {
         dispatch(removeSessionStorage());
         dispatch(resetAppState());
-        dispatch(requestRoute(["SignIn"]));
+        dispatch(requestRoute(["/sign-in"]));
     };
 }

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
+import {Component} from "@angular/core";
 
 @Component({
     inputs: ["notifications", "removeNotification"],
     selector: "hab-notifications",
     template: `
     <ul class="hab-notifications">
-        <li *ngFor="#n of notifications; #i = index" class="{{n.type}}">
+        <li *ngFor="let n of notifications; let i = index" class="{{n.type}}">
             <a class="dismiss" href="#" (click)="removeNotification(i)">&times;</a>
             <small>{{n.type}}</small>
             <h1>{{n.title}}</h1>

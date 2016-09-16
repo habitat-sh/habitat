@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
+import {Component, OnInit} from "@angular/core";
 import {AppStore} from "../AppStore";
 import {fetchGitHubOrgs, fetchGitHubRepos,
         onGitHubOrgSelect, setSelectedGitHubOrg, resetRedirectRoute} from "../actions/index";
 import {GitHubRepoPickerComponent} from
     "../github-repo-picker/GitHubRepoPickerComponent";
 import {requireSignIn} from "../util";
-import {Router} from "angular2/router";
+import {Router} from "@angular/router";
 
 @Component({
     directives: [GitHubRepoPickerComponent],
@@ -81,10 +81,7 @@ export class SCMReposPageComponent implements OnInit {
                 this.router.navigate(this.redirectRoute);
                 this.store.dispatch(resetRedirectRoute());
             } else {
-                this.router.navigate([
-                    "ProjectCreate",
-                    { repo: encodeURIComponent(repo) }
-                ]);
+                this.router.navigate(["/projects", "create"], {queryParams: {repo: encodeURIComponent(repo)}});
             }
 
             return false;

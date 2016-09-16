@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {OnInit, Component} from "angular2/core";
+import {OnInit, Component} from "@angular/core";
 import {List, Map, OrderedSet} from "immutable";
 import {SpinnerComponent} from "../SpinnerComponent";
 
@@ -40,7 +40,7 @@ import {SpinnerComponent} from "../SpinnerComponent";
                         {{user.get("login")}}
                     </a>
                 </li>
-                <li *ngFor="#org of orgs">
+                <li *ngFor="let org of orgs">
                     <a (click)='onOrgSelect(org.get("login"))' href="#"
                        [class.active]='org.get("login") === selectedOrg'>
                         <img height=16 width=16 src='{{org.get("avatar_url")}}?s=32'>
@@ -60,7 +60,7 @@ import {SpinnerComponent} from "../SpinnerComponent";
                 <li *ngIf="repos.size === 0 && selectedOrg && !areReposLoading">
                     No repositories found in '{{selectedOrg}}'
                 </li>
-                <li *ngFor="#repo of repos">
+                <li *ngFor="let repo of repos">
                     <a (click)='onRepoSelect(repo.get("full_name"))' href="#">
                         {{repo.get("name")}}
                     </a>

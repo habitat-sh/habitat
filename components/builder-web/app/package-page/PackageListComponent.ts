@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component} from "@angular/core";
+import {RouterLink} from "@angular/router";
 import {isPackage, packageString} from "../util";
 
 @Component({
@@ -23,11 +23,8 @@ import {isPackage, packageString} from "../util";
     template: `
     <ul class="hab-package-list">
         <li *ngIf="!packages || packages.length === 0">None</li>
-        <li *ngFor="#pkg of packages">
-            <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['Package', { origin: pkg.origin,
-                                                                                                  name: pkg.name,
-                                                                                                  version: pkg.version,
-                                                                                                  release: pkg.release }]">
+        <li *ngFor="let pkg of packages">
+            <a [ngClass]="{ active: isPackage(currentPackage, pkg) }" [routerLink]="['/pkgs', pkg.origin, pkg.name, pkg.version, pkg.release]">
                 {{packageString(pkg)}}
             </a>
         </li>

@@ -150,7 +150,7 @@ export function deleteProject(id: string, token: string, origin: string) {
     return dispatch => {
         new BuilderApiClient(token).deleteProject(id).then(response => {
             dispatch(resetProjectHint());
-            dispatch(requestRoute(["Origin", { origin: origin }]));
+            dispatch(requestRoute(["/origins", origin]));
             dispatch(addNotification({
                 title: "Project deleted",
                 body: `Deleted ${id}.`,
@@ -249,7 +249,7 @@ function simulateLogStream(build, response) {
     return dispatch => {
         // This is where we simulate a streaming build
         if (build.status === "running") {
-            const o = Observable.fromArray(response.split("\n")).concatMap(x =>
+            const o = Observable.from(response.split("\n")).concatMap(x =>
                 Observable.of(x).delay((() => Math.floor(Math.random() * 300))())
             );
             o.subscribe(

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, ElementRef, Input} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component, ElementRef, Input} from "@angular/core";
+import {RouterLink} from "@angular/router";
 
 @Component({
     directives: [RouterLink],
@@ -23,7 +23,7 @@ import {RouterLink} from "angular2/router";
     selector: "user-nav",
     template: `
     <div class="main-nav--cta" *ngIf="!isSignedIn">
-      <a class="button" [routerLink]="['SignIn']">Sign In</a>
+      <a class="button" [routerLink]="['/sign-in']">Sign In</a>
     </div>
     <div class="main-nav--profile" *ngIf="isSignedIn">
         <a class="main-nav--avatar" href="#">

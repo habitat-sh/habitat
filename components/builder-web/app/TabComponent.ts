@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Host} from "angular2/core";
+import {Component, Host} from "@angular/core";
 import {TabsComponent} from "./TabsComponent";
 
 @Component({

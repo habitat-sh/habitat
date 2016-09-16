@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component, OnInit} from "@angular/core";
+import {RouterLink} from "@angular/router";
 
 @Component({
     directives: [RouterLink],
@@ -23,7 +23,7 @@ import {RouterLink} from "angular2/router";
     template: `
     <div class="hab-origin-picker">
         <a *ngIf="isSignedIn && !currentOrigin.name"
-            [routerLink]="['OriginCreate']">
+            [routerLink]="['/origins', 'create']">
             Add Origin
         </a>
         <a class="hab-origin-picker--toggle"
@@ -37,7 +37,7 @@ import {RouterLink} from "angular2/router";
     </div>
     <ul class="hab-origin-picker--list"
         *ngIf="isOpen">
-        <li class="hab-origin-picker--list--item" *ngFor="#o of myOrigins">
+        <li class="hab-origin-picker--list--item" *ngFor="let o of myOrigins">
             <a href="#" (click)="clickSetCurrentOrigin(o)"
                [class.hab-origin-picker--list--current]="o.name == currentOrigin.name">
                 {{o.name}}
@@ -48,7 +48,7 @@ import {RouterLink} from "angular2/router";
             </a>
         </li>
         <li class="hab-origin-picker--list--item">
-            <a (click)="toggleOriginPicker()" [routerLink]="['Origins']">
+            <a (click)="toggleOriginPicker()" [routerLink]="['/origins']">
                 Manage Origins&hellip;
             </a>
         </li>

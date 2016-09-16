@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
+import {Component, OnInit, OnDestroy} from "@angular/core";
 import {AppStore} from "../AppStore";
-import {RouteParams} from "angular2/router";
+import {ActivatedRoute} from "@angular/router";
 import {ProjectInfoComponent} from "../project-info/ProjectInfoComponent";
 import {fetchProject} from "../actions/index";
 import {requireSignIn, isProject, projectFromParams} from "../util";
 import {setRedirectRoute} from "../actions/index";
+import {Subscription} from "rxjs/Subscription";
 
 // temporary
 import {Project} from "../records/Project";
@@ -41,9 +42,22 @@ import {Record} from "immutable";
     `
 })
 
-export class ProjectSettingsPageComponent implements OnInit {
-    constructor(private routeParams: RouteParams, private store: AppStore) {
+export class ProjectSettingsPageComponent implements OnInit, OnDestroy {
+    private querySub: Subscription;
+    private routeSub: Subscription;
+    private repo: string;
+    private origin: string;
+    private name: string;
+
+    constructor(private route: ActivatedRoute, private store: AppStore) {
         requireSignIn(this);
+        this.querySub = route.queryParams.subscribe(params => {
+            this.repo = params["repo"];
+        });
+        this.routeSub = route.params.subscribe(params => {
+            this.origin = params["origin"];
+            this.name = params["name"];
+        });
     }
 
     get packageName() {
@@ -51,22 +65,30 @@ export class ProjectSettingsPageComponent implements OnInit {
     }
 
     get ownerAndRepo() {
-        if (this.routeParams.params["repo"]) {
-            return decodeURIComponent(this.routeParams.params["repo"]);
+        if (this.repo) {
+            return decodeURIComponent(this.repo);
         } else {
-            let parts = this.project["vcs"]["url"].match(/^https?:\/\/.+?\/(.+?)\/(.+?)(?:\.git)?$/);
+            if (this.project && this.project["vcs"] && this.project["vcs"]["url"]) {
+                let parts = this.project["vcs"]["url"].match(/^https?:\/\/.+?\/(.+?)\/(.+?)(?:\.git)?$/);
 
-            if (parts === null) {
-                return undefined;
+                if (parts === null) {
+                    return undefined;
+                } else {
+                    return `${parts[1]}/${parts[2]}`;
+                }
             } else {
-                return `${parts[1]}/${parts[2]}`;
+                return undefined;
             }
         }
     }
 
     get project() {
         const currentProjectFromState = this.store.getState().projects.current;
-        const params = this.routeParams.params;
+        const params = {
+            origin: this.origin,
+            name: this.name
+        };
+
         let p = projectFromParams(params);
 
         if (isProject(currentProjectFromState || {}, p)) {
@@ -80,13 +102,18 @@ export class ProjectSettingsPageComponent implements OnInit {
         return this.store.getState().gitHub.authToken;
     }
 
+    ngOnDestroy() {
+        this.querySub.unsubscribe();
+        this.routeSub.unsubscribe();
+    }
+
     ngOnInit() {
         this.store.dispatch(fetchProject(this.project["id"], this.token, true));
 
-        if (this.routeParams.params["repo"]) {
-            this.store.dispatch(setRedirectRoute(["Origin", { origin: this.routeParams.params["origin"] }]));
+        if (this.repo) {
+            this.store.dispatch(setRedirectRoute(["/origins", this.origin]));
         } else {
-            this.store.dispatch(setRedirectRoute(["ProjectSettings", this.routeParams.params]));
+            this.store.dispatch(setRedirectRoute(["/projects", this.origin, this.name, "settings"]));
         }
     }
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input} from "angular2/core";
+import {Component, Input} from "@angular/core";
 import {List} from "immutable";
 import config from "../config";
 
@@ -26,7 +26,7 @@ import config from "../config";
         Select any key to download the file.
     </p>
     <ul class="hab-key-list--list" *ngIf="keys.size > 0">
-        <li *ngFor="#key of keys" class="hab-item-list--all-link hab-item-list">
+        <li *ngFor="let key of keys" class="hab-item-list--all-link hab-item-list">
             <h3><a href="{{apiUrl}}/depot{{key.location}}">
                 {{key.origin}}-{{key.revision}}
             </a></h3>

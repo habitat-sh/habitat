@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Control, ControlGroup, Validators} from "angular2/common";
-import {ChangeDetectorRef, Component, OnInit, OnChanges} from "angular2/core";
+import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {ChangeDetectorRef, Component, OnInit, OnChanges} from "@angular/core";
 import {AsyncValidator} from "./AsyncValidator";
 
 @Component({
@@ -34,7 +34,7 @@ import {AsyncValidator} from "./AsyncValidator";
                 autocomplete="off"
                 autofocus="{{autofocus}}"
                 id="{{id}}"
-                [ngFormControl]="form.controls[name]"
+                [formControl]="form.controls[name]"
                 placeholder="{{placeholder}}">
         </div>
         <small class="hab-checking-input--input-msg-wrap">
@@ -64,10 +64,10 @@ import {AsyncValidator} from "./AsyncValidator";
 
 export class CheckingInputComponent implements OnInit, OnChanges {
     private availableMessage: string;
-    private control: Control;
+    private control: FormControl;
     private defaultMaxLength = 255;
     private defaultPattern = "^[a-z0-9][a-z0-9_-]*$";
-    private form: ControlGroup;
+    private form: FormGroup;
     private isAvailable: Function;
     private maxLength;
     private name: string;
@@ -144,7 +144,7 @@ export class CheckingInputComponent implements OnInit, OnChanges {
             "is already in use";
         this.availableMessage = this.availableMessage || "is available";
 
-        this.control = new Control(
+        this.control = new FormControl(
             this.value,
             Validators.compose(validators),
             AsyncValidator.debounce(control => this.takenValidator(control))

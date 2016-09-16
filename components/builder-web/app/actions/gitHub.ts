@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import "whatwg-fetch";
-import {URLSearchParams} from "angular2/http";
+import {URLSearchParams} from "@angular/http";
 import * as cookies from "js-cookie";
 import config from "../config";
 import {attemptSignIn, addNotification, goHome, fetchMyOrigins, requestRoute, setSigningInFlag,

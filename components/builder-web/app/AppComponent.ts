@@ -12,27 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {Subscription} from "rxjs/Subscription";
 import {AppStore} from "./AppStore";
-import {Component, OnInit} from "angular2/core";
-import {ExplorePageComponent} from "./explore-page/ExplorePageComponent";
+import {Component, OnInit, OnDestroy} from "@angular/core";
+import {Router, RouterOutlet} from "@angular/router";
 import {FooterComponent} from "./footer/FooterComponent";
 import {HeaderComponent} from "./header/HeaderComponent";
 import {NotificationsComponent} from "./notifications/NotificationsComponent";
-import {OriginCreatePageComponent} from "./origin-create-page/OriginCreatePageComponent";
-import {OriginPageComponent} from "./origin-page/OriginPageComponent";
-import {OriginsPageComponent} from "./origins-page/OriginsPageComponent";
-import {OrganizationCreatePageComponent} from "./organization-create-page/OrganizationCreatePageComponent";
-import {OrganizationsPageComponent} from "./organizations-page/OrganizationsPageComponent";
-import {PackagePageComponent} from "./package-page/PackagePageComponent";
-import {PackagesPageComponent} from "./packages-page/PackagesPageComponent";
-import {ProjectCreatePageComponent} from "./project-create-page/ProjectCreatePageComponent";
-import {ProjectPageComponent} from "./project-page/ProjectPageComponent";
-import {ProjectsPageComponent} from "./projects-page/ProjectsPageComponent";
-import {RouteConfig, Router, RouterOutlet} from "angular2/router";
-import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
-import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
-import {ProjectSettingsPageComponent} from "./project-settings-page/ProjectSettingsPageComponent";
 import {authenticateWithGitHub, loadSessionState, removeNotification,
     requestGitHubAuthToken, routeChange, setGitHubAuthState,
     setPackagesSearchQuery, signOut, toggleUserNavMenu} from "./actions/index";
@@ -40,6 +27,7 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
 @Component({
     directives: [FooterComponent, HeaderComponent, NotificationsComponent,
         RouterOutlet, SideNavComponent],
+    providers: [AppStore],
     selector: "hab",
     template: `
     <div id="main-nav">
@@ -66,121 +54,20 @@ import {authenticateWithGitHub, loadSessionState, removeNotification,
     <hab-footer [currentYear]="state.app.currentYear"></hab-footer>`,
 })
 
-@RouteConfig([
-    {
-        path: "/",
-        redirectTo: ["PackagesForOrigin", { origin: "core" }],
-    },
-    {
-        path: "/explore",
-        name: "Explore",
-        component: ExplorePageComponent
-    },
-    {
-        path: "/origins",
-        name: "Origins",
-        component: OriginsPageComponent,
-    },
-    {
-        path: "/origins/create",
-        name: "OriginCreate",
-        component: OriginCreatePageComponent,
-    },
-    {
-        path: "/origins/:origin",
-        name: "Origin",
-        component: OriginPageComponent,
-    },
-    {
-        path: "/orgs",
-        name: "Organizations",
-        component: OrganizationsPageComponent,
-    },
-    {
-        path: "/orgs/create",
-        name: "OrganizationCreate",
-        component: OrganizationCreatePageComponent,
-    },
-    {
-        path: "/pkgs",
-        name: "Packages",
-        component: PackagesPageComponent
-    },
-    {
-        path: "/pkgs/*/:name",
-        name: "PackagesForName",
-        component: PackagesPageComponent
-    },
-    {
-        path: "/pkgs/:origin",
-        name: "PackagesForOrigin",
-        component: PackagesPageComponent
-    },
-    {
-        path: "/pkgs/:origin/:name",
-        name: "PackagesForOriginAndName",
-        component: PackagesPageComponent,
-    },
-    {
-        path: "/pkgs/:origin/:name/:version",
-        name: "PackagesForOriginAndNameAndVersion",
-        component: PackagesPageComponent,
-    },
-    {
-        path: "/pkgs/search/:query",
-        name: "PackagesSearch",
-        component: PackagesPageComponent,
-    },
-    {
-        path: "/pkgs/:origin/:name/:version/:release",
-        name: "Package",
-        component: PackagePageComponent
-    },
-    {
-        path: "/projects",
-        name: "Projects",
-        component: ProjectsPageComponent
-    },
-    {
-        path: "/projects/create",
-        name: "ProjectCreate",
-        component: ProjectCreatePageComponent
-    },
-    {
-        path: "/projects/:origin/:name",
-        name: "Project",
-        component: ProjectPageComponent
-    },
-    {
-        path: "/projects/:origin/:name/settings",
-        name: "ProjectSettings",
-        component: ProjectSettingsPageComponent
-    },
-    {
-        path: "/scm-repos",
-        name: "SCMRepos",
-        component: SCMReposPageComponent,
-    },
-    {
-        path: "/sign-in",
-        name: "SignIn",
-        component: SignInPageComponent
-    },
-])
-
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
     removeNotification: Function;
     signOut: Function;
     toggleUserNavMenu: Function;
     hideNav: boolean;
+    private sub: Subscription;
 
     constructor(private router: Router, private store: AppStore) {
         // Whenever the Angular route has an event, dispatch an event with the new
         // route data.
-        router.subscribe(value => {
+        this.sub = this.router.events.subscribe(event => {
             // Don't show the side nav on the Sign In screen
-            this.hideNav = value.indexOf("sign-in") !== -1;
-            store.dispatch(routeChange(value));
+            this.hideNav = event.url.indexOf("sign-in") !== -1;
+            store.dispatch(routeChange(event.url));
             // Clear the package search when the route changes
             store.dispatch(setPackagesSearchQuery(""));
         });
@@ -215,6 +102,10 @@ export class AppComponent implements OnInit {
     get state() { return this.store.getState(); }
 
     get user() { return this.state.users.current; }
+
+    ngOnDestroy() {
+        this.sub.unsubscribe();
+    }
 
     ngOnInit() {
         // Populate the GitHub authstate (used to get a token) in SessionStorage

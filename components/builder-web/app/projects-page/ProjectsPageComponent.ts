@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component, OnInit} from "@angular/core";
+import {RouterLink} from "@angular/router";
 import {fetchProjects} from "../actions/index";
 import {AppStore} from "../AppStore";
 import {requireSignIn} from "../util";
@@ -24,15 +24,15 @@ import {requireSignIn} from "../util";
     <div class="hab-projects">
         <div class="page-title">
             <h2>Projects</h2>
-            <a class="button create" [routerLink]="['ProjectCreate']">Add Project</a>
+            <a class="button create" [routerLink]="['/projects', 'create']">Add Project</a>
         </div>
         <div class="page-body">
             <ul class="hab-projects-list">
                 <li *ngIf="projects.size === 0">
                     You do not have any Projects yet.
                 </li>
-                <li *ngFor="#project of projects">
-                    <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="hab-item-list" href="#">
+                <li *ngFor="let project of projects">
+                    <a [routerLink]="['/projects', project.origin, project.name]" class="hab-item-list" href="#">
                         {{project.origin}} / {{project.name}}
                     </a>
                 </li>

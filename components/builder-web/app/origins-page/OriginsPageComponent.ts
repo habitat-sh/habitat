@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit} from "angular2/core";
-import {RouterLink} from "angular2/router";
+import {Component, OnInit} from "@angular/core";
+import {RouterLink} from "@angular/router";
 import {acceptOriginInvitation, fetchMyOriginInvitations, fetchMyOrigins}
     from "../actions/index";
 import {AppStore} from "../AppStore";
@@ -28,7 +28,7 @@ import {requireSignIn} from "../util";
                 Origins
             </h2>
             <a class="button create"
-               [routerLink]="['OriginCreate']">Add Origin</a>
+               [routerLink]="['/origins', 'create']">Add Origin</a>
         </div>
         <div *ngIf="!ui.loading" class="page-body">
             <p *ngIf="ui.errorMessage">
@@ -38,7 +38,7 @@ import {requireSignIn} from "../util";
                 <div class="hero">
                     <h3>You don't currently have any origins. Let's add one now.</h3>
                     <p>
-                        <a class="button cta" [routerLink]='["OriginCreate"]'>
+                        <a class="button cta" [routerLink]="['/origins', 'create']">
                             Add Origin
                         </a>
                     </p>
@@ -46,8 +46,8 @@ import {requireSignIn} from "../util";
             </div>
             <div *ngIf="origins.size > 0">
                 <ul class="hab-origins-list">
-                    <li *ngFor="#origin of origins">
-                        <a [routerLink]="['Origin', { origin: origin.name }]"
+                    <li *ngFor="let origin of origins">
+                        <a [routerLink]="['/origins', origin.name]"
                            class="hab-item-list">
                             <div class="hab-item-list--title">
                                 <h3>{{origin.name}}</h3>
@@ -59,7 +59,7 @@ import {requireSignIn} from "../util";
             <div *ngIf="invitations.size > 0">
                 <h3>Invitations</h3>
                 <ul>
-                    <li *ngFor="#invitation of invitations" class="hab-item-list hab-no-select">
+                    <li *ngFor="let invitation of invitations" class="hab-item-list hab-no-select">
                        <h3 class="hab-item-list--title">{{invitation.origin_name}}</h3>
                        <button
                            class="count"

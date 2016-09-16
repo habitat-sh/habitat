@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import {AppStore} from "../AppStore";
-import {Component} from "angular2/core";
+import {Component} from "@angular/core";
 import {GravatarComponent} from "../GravatarComponent";
-import {RouterLink} from "angular2/router";
+import {RouterLink} from "@angular/router";
 import {icon, requireSignIn} from "../util";
 
 @Component({
@@ -25,7 +25,7 @@ import {icon, requireSignIn} from "../util";
       <div class="page-title">
           <h2>Organizations</h2>
           <a *ngIf="orgs.size > 0" class="button create" href="#"
-             [routerLink]='["OrganizationCreate"]'>
+             [routerLink]="['/orgs', 'create']">
               Add Organization
           </a>
       </div>
@@ -34,7 +34,7 @@ import {icon, requireSignIn} from "../util";
               <div class="hero">
                   <h3>You don't currently have any organizations, let's add one now.</h3>
                   <p>
-                      <a class="button cta" [routerLink]='["OrganizationCreate"]'>
+                      <a class="button cta" [routerLink]="['/orgs', 'create']">
                           Add Organization
                       </a>
                   </p>
@@ -57,7 +57,7 @@ import {icon, requireSignIn} from "../util";
           </div>
           <div *ngIf="orgs.size > 0">
               <ul>
-                  <li *ngFor="#org of orgs">
+                  <li *ngFor="let org of orgs">
                       <a href="#" class="hab-item-list">
                           <div class="item-title">
                               <gravatar size=32 email="{{org.email}}"></gravatar>
