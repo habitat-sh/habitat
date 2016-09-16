@@ -164,6 +164,7 @@ export default Record({
             isSigningIn: false,
             isUserNavOpen: false,
             username: undefined,
+            flags: 0,
             gitHub: Map(),
         })(),
     })(),

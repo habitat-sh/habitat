@@ -14,6 +14,7 @@
 
 import {Component, OnInit} from "angular2/core";
 import {RouteParams, RouterLink} from "angular2/router";
+import {FeatureFlags} from "../Privilege";
 import {AppStore} from "../AppStore";
 import {Package} from "../records/Package";
 import {Origin} from "../records/Origin";
@@ -80,6 +81,10 @@ export class PackagePageComponent implements OnInit {
         this.spinnerFetchPackage = this.fetchPackage.bind(this);
     }
 
+    get features() {
+        return this.store.getState().users.current.flags;
+    }
+
     // Initially set up the package to be whatever comes from the params,
     // so we can query for its versions and releases. In ngOnInit, we'll
     // populate more data by dispatching setCurrentPackage.
@@ -125,7 +130,8 @@ export class PackagePageComponent implements OnInit {
     }
 
     get showRepoButton() {
-        return !this.ui.loading && this.ui.exists && !this.projectExists && this.memberOfOrigin;
+        return (this.features & FeatureFlags.BUILDER) && !this.ui.loading && this.ui.exists &&
+            !this.projectExists && this.memberOfOrigin;
     }
 
     viewOrigin() {
