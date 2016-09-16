@@ -265,6 +265,10 @@ $sub-hero-skew: 5deg;
 
     h2 {
       margin-bottom: rem-calc(60);
+
+      &.use-cases--title {
+        margin: 0 rem-calc(30) rem-calc(60);      
+      }
     }
   }
 
@@ -321,7 +325,8 @@ $sub-hero-skew: 5deg;
 
   h4 {
     border-bottom: 1px solid $hab-gray-light;
-    padding: rem-calc(30) rem-calc(30) rem-calc(20);
+    font-size: rem-calc(16);
+    padding: rem-calc(24) rem-calc(30) rem-calc(20);
   }
 
   p {

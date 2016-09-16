@@ -8,11 +8,10 @@ section.hero
     .columns.medium-12
       .hero--content
         h1.hero--heading
-          | Everything your app needs, <br/> in a single artifact
+          | Your app and it's automation, packaged together
         p.hero--text
-          | Habitat is an open-source project that quickly frees your app from
-            underlying infrastructure while building in all the tools
-            needed to run and manage it in any environment.
+          | Habitat enables you to ship your application, to any platform,
+            along with all the tools you'll need to manage it in production. And it's all open-source :)
         a.button.cta href="/try" Try the Demo
         a.button.cta.outline href="/docs/get-habitat" Get Habitat
         p.cta-subtext
@@ -26,7 +25,7 @@ section.sub-hero
   .row
     .columns.medium-12
       .sub-hero--content
-        h2.sub-hero--heading How does Habitat work?
+        h2.sub-hero--heading What does Habitat do?
         .row
           .sub-hero--blurb.columns.medium-3
             .sub-hero--blurb-title
@@ -64,12 +63,13 @@ section.sub-hero
 section.main-section.first
   .row
     .columns.medium-12.text-center
-      h2 Where can Habitat help?
+      h2.use-cases--title
+        | It's much more than a packaging system.
       .use-cases
         .row
           .use-cases--wrap.columns.medium-5.medium-offset-1
             .use-cases--box
-              h4 Provide portability to any infrastructure
+              h4 Instant portability
               p
                 | Habitat artifacts are fully capable of running on their own or
                   you export them into a variety of images formats.
@@ -83,7 +83,7 @@ section.main-section.first
                 a href="/about/habitat-and-workload-placement/" Learn more
           .use-cases--wrap.columns.medium-5.end
             .use-cases--box
-              h4 Improve the container experience
+              h4 Improved container experience
               p
                 | Habitat makes it easy to build containers by using a structured
                   build language that allows you to use the same description to
@@ -99,7 +99,7 @@ section.main-section.first
         .row
           .use-cases--wrap.columns.medium-5.medium-offset-1
             .use-cases--box
-              h4 Move legacy apps to the cloud
+              h4 Modernize legacy apps
               p
                 | Rewriting legacy apps for the cloud is a daunting task,
                   especially if you have hundreds or thousands of them.
@@ -129,7 +129,7 @@ section.main-section.first
   .production-wrap
     .row
       .production--blurb.columns.medium-3.medium-offset-1
-        h2 What's available out-of-the-box?
+        h2 What's does Habitat provide?
         p
           | When you build a Habitat package you’re getting access to a host of
             built-in features typically attained through a tangled mess of 3rd
@@ -154,19 +154,19 @@ section.main-section.first
         .production--features-item
           img.production--icon[src="/images/icons/subhero-results.svg"
               onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Monitoring
-          p
-            | Check the health of your services and get configuration or
-              dependency version info via a customizable HTTP end point.
-          a href="/docs/run-packages-monitoring/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-platform.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
           h4 Isolated Build Environment
           p
             | Define your entire app in a plan file and generate reproducble,
               trustworthy, versioned builds in a clean room environment.
           a href="/docs/concepts-studio/" View docs
+        .production--features-item
+          img.production--icon[src="/images/icons/subhero-platform.svg"
+              onerror="this.src='/icons/subhero-manage.png'" alt=""]
+          h4 Monitoring
+          p
+            | Check the health of your services and get configuration or
+              dependency version info via a customizable HTTP end point.
+          a href="/docs/run-packages-monitoring/" View docs
         .production--features-item
           img.production--icon[src="/images/icons/subhero-manage.svg"
               onerror="this.src='/icons/subhero-manage.png'" alt=""]
@@ -188,19 +188,19 @@ section.main-section.first
         .production--features-item
           img.production--icon[src="/images/icons/subhero-manage.svg"
               onerror="this.src='/icons/subhero-manage.png'" alt=""]
-          h4 Secrets Management
-          p
-            | All communications to and between your services are secured with
-              high-grade encryption.
-          a href="/docs/run-packages-security/" View docs
-        .production--features-item
-          img.production--icon[src="/images/icons/subhero-results.svg"
-              onerror="this.src='/icons/subhero-manage.png'" alt=""]
           h4 Clustering Strategies
           p
             | Start up your services in a variety of built-in topologies such as
               leader/follower, standalone and initializer.
           a href="/docs/run-packages-topologies/" View docs
+        .production--features-item
+          img.production--icon[src="/images/icons/subhero-results.svg"
+              onerror="this.src='/icons/subhero-manage.png'" alt=""]
+          h4 Secrets Management
+          p
+            | All communications to and between your services are secured with
+              high-grade encryption.
+          a href="/docs/run-packages-security/" View docs
         .production--features-item.last-item
           img.production--icon[src="/images/icons/subhero-platform.svg"
               onerror="this.src='/icons/subhero-manage.png'" alt=""]
