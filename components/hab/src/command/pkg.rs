@@ -240,7 +240,7 @@ pub mod export {
     #[cfg(not(target_os = "linux"))]
     mod inner {
         use error::{Error, Result};
-        use common::UI;
+        use common::ui::UI;
         use hcore::package::PackageIdent;
         use std::env;
         use super::ExportFormat;
@@ -255,7 +255,7 @@ pub mod export {
             Err(e)
         }
 
-        pub fn start(_ui: &mut UI, _ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
+        pub fn start(ui: &mut UI, _ident: &PackageIdent, _format: &ExportFormat) -> Result<()> {
             let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
             let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
             try!(ui.warn("Exporting packages from this operating system is not yet supported. Try \

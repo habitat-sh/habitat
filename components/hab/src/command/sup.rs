@@ -79,7 +79,7 @@ mod inner {
 
     use error::{Error, Result};
 
-    pub fn start(_ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         try!(ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
                    Try running this command again on a 64-bit Linux operating system."));
