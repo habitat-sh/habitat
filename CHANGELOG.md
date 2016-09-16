@@ -1,5 +1,16 @@
 # Habitat CHANGELOG
 
+## [0.9.3](https://github.com/habitat-sh/habitat/tree/0.9.3) (09-16-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.2...0.9.3)
+
+## Bug fixes
+
+- \[hab\] Fix UI import for non-Linux \(i.e. Mac\) builds. [\#1245](https://github.com/habitat-sh/habitat/pull/1245) ([fnichol](https://github.com/fnichol))
+
+**Merged pull requests:**
+
+- Improve logging/handling when receiving an unexpected route reply [\#1244](https://github.com/habitat-sh/habitat/pull/1244) ([reset](https://github.com/reset))
+
 ## [0.9.2](https://github.com/habitat-sh/habitat/tree/0.9.2) (09-15-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.1...0.9.2)
 
