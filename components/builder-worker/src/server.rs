@@ -137,12 +137,6 @@ impl Server {
 
 impl NetIdent for Server {}
 
-impl Drop for Server {
-    fn drop(&mut self) {
-        self.fe_sock.close().unwrap();
-    }
-}
-
 pub fn run(config: Config) -> Result<()> {
     try!(Server::new(config)).run()
 }
