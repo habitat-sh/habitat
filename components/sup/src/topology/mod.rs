@@ -43,7 +43,7 @@ use common::gossip_file::GossipFileList;
 use package::{self, Package, PackageUpdaterActor};
 use util::signals::SignalNotifier;
 use error::{Result, SupError};
-use config::Config;
+use config::{gconfig, UpdateStrategy};
 use service_config::ServiceConfig;
 use sidecar;
 use supervisor::{RuntimeConfig, Supervisor};
@@ -54,7 +54,6 @@ use election::ElectionList;
 use time::SteadyTime;
 use util::signals;
 use util::users as hab_users;
-use config::UpdateStrategy;
 
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
@@ -95,13 +94,11 @@ pub enum State {
 }
 
 /// The topology `Worker` is where everything our state machine needs between states lives.
-pub struct Worker<'a> {
+pub struct Worker {
     /// The package we are supervising
     pub package: Arc<RwLock<Package>>,
     /// Name of the package being supervised
     pub package_name: String,
-    /// A pointer to our current Config
-    pub config: &'a Config,
     /// The topology we are running
     pub topology: String,
     /// Our Service Configuration; manages changes to our configuration,
@@ -123,11 +120,11 @@ pub struct Worker<'a> {
     pub return_state: Option<State>,
 }
 
-impl<'a> Worker<'a> {
+impl Worker {
     /// Create a new worker
     ///
     /// Automatically sets the backend to Etcd.
-    pub fn new(package: Package, topology: String, config: &'a Config) -> Result<Worker<'a>> {
+    pub fn new(package: Package, topology: String) -> Result<Worker> {
         let mut pkg_updater = None;
         let package_name = package.name.clone();
 
@@ -144,26 +141,26 @@ impl<'a> Worker<'a> {
         let pkg_lock_1 = pkg_lock.clone();
 
 
-        match config.update_strategy() {
+        match gconfig().update_strategy() {
             UpdateStrategy::None => {}
             _ => {
                 let pkg_lock_2 = pkg_lock.clone();
-                pkg_updater = Some(package::PackageUpdater::start(config.url(), pkg_lock_2));
+                pkg_updater = Some(package::PackageUpdater::start(gconfig().url(), pkg_lock_2));
             }
         }
 
-        let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen_ip()),
-                                                        config.gossip_listen_port(),
-                                                        config.gossip_permanent(),
-                                                        config.ring().clone(),
+        let gossip_server = gossip::server::Server::new(String::from(gconfig().gossip_listen_ip()),
+                                                        gconfig().gossip_listen_port(),
+                                                        gconfig().gossip_permanent(),
+                                                        gconfig().ring().clone(),
                                                         package_name.clone(),
-                                                        config.group().to_string(),
-                                                        config.organization().clone(),
+                                                        gconfig().group().to_string(),
+                                                        gconfig().organization().clone(),
                                                         Some(package_exposes),
                                                         package_port);
 
         try!(gossip_server.start_inbound());
-        try!(gossip_server.initial_peers(config.gossip_peer()));
+        try!(gossip_server.initial_peers(gconfig().gossip_peer()));
         gossip_server.start_outbound();
         gossip_server.start_failure_detector();
         census::start_health_adjuster(gossip_server.census_list.clone(),
@@ -173,7 +170,7 @@ impl<'a> Worker<'a> {
         let service_config = {
             let cl = gossip_server.census_list.read().unwrap();
             let pkg = pkg_lock.read().unwrap();
-            let sc = try!(ServiceConfig::new(&config, &pkg, &cl, config.bind()));
+            let sc = try!(ServiceConfig::new(&pkg, &cl, gconfig().bind()));
             sc
         };
         let service_config_lock = Arc::new(RwLock::new(service_config));
@@ -189,13 +186,12 @@ impl<'a> Worker<'a> {
         let sidecar_el = gossip_server.election_list.clone();
         let sidecar_sup = supervisor.clone();
         let sidecar_listen = try!(SocketAddrV4::from_str(&format!("{}:{}",
-                                                                  &config.http_listen_ip(),
-                                                                  config.http_listen_port())));
+                                                                  &gconfig().http_listen_ip(),
+                                                                  gconfig().http_listen_port())));
         Ok(Worker {
             package: pkg_lock,
             package_name: package_name,
             topology: topology,
-            config: config,
             census_list: gossip_server.census_list.clone(),
             rumor_list: gossip_server.rumor_list.clone(),
             election_list: gossip_server.election_list.clone(),
@@ -249,8 +245,8 @@ impl<'a> Worker<'a> {
 /// * The supervisor dies unexpectedly
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
-fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
-                    worker: &mut Worker<'a>)
+fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
+                    worker: &mut Worker)
                     -> Result<()> {
     {
         let package = worker.package.read().unwrap();
@@ -314,7 +310,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     let mut service_config = worker.service_config.write().unwrap();
                     let cl = worker.census_list.read().unwrap();
                     service_config.svc(&cl);
-                    service_config.bind(worker.config.bind(), &cl);
+                    service_config.bind(gconfig().bind(), &cl);
                 }
                 if write_rumor {
                     debug!("Writing our census rumor: {:#?}", me_clone);

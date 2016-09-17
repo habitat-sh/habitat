@@ -26,7 +26,7 @@ use std::io::prelude::*;
 use std::fs::File;
 
 use error::Result;
-use config::Config;
+use config::gconfig;
 use package::Package;
 
 /// Print the default.toml for a given package.
@@ -36,8 +36,8 @@ use package::Package;
 /// * If the package cannot be found
 /// * If the default.toml does not exist, or cannot be read
 /// * If we can't read the file into a string
-pub fn display(config: &Config) -> Result<()> {
-    let package = try!(Package::load(config.package(), None));
+pub fn display() -> Result<()> {
+    let package = try!(Package::load(gconfig().package(), None));
     let mut file = try!(File::open(package.path().join("default.toml")));
     let mut s = String::new();
     try!(file.read_to_string(&mut s));

@@ -38,7 +38,7 @@ use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use sup::config::{Command, Config, UpdateStrategy};
+use sup::config::{gcache, gconfig, Command, Config, UpdateStrategy};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::topology::Topology;
@@ -65,7 +65,7 @@ static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
-fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
+fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
@@ -218,10 +218,11 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
         config.set_organization(org.to_string());
     }
     debug!("Config:\n{:?}", config);
-    Ok(config)
+    gcache(config);
+    Ok({})
 }
 
-type Handler = fn(&Config) -> result::Result<(), sup::error::SupError>;
+type Handler = fn() -> result::Result<(), sup::error::SupError>;
 
 /// The entrypoint for the Supervisor.
 ///
@@ -315,7 +316,7 @@ fn main() {
     let sub_config = SubCommand::with_name("config")
         .about("Print the default.toml for a given package")
         .aliases(&["c", "co", "con", "conf", "confi"])
-        .arg(Arg::with_name("package")
+        .arg(Arg::with_name("pkg_ident_or_artifact")
             .index(1)
             .required(true)
             .help("Name of package"));
@@ -343,16 +344,16 @@ fn main() {
     debug!("subcommand name {:?}", &subcommand_name);
     debug!("Subcommand matches {:?}", &subcommand_matches);
 
-    let config = match config_from_args(subcommand_name, &subcommand_matches) {
-        Ok(config) => config,
+    match config_from_args(subcommand_name, &subcommand_matches) {
+        Ok(()) => {}
         Err(e) => return exit_with(e, 1),
     };
 
-    let result = match config.command() {
-        Command::ShellBash => shell_bash(&config),
-        Command::ShellSh => shell_sh(&config),
-        Command::Config => configure(&config),
-        Command::Start => start(&config),
+    let result = match gconfig().command() {
+        Command::ShellBash => shell_bash(),
+        Command::ShellSh => shell_sh(),
+        Command::Config => configure(),
+        Command::Start => start(),
     };
 
     match result {
@@ -370,30 +371,30 @@ fn exit_with(e: SupError, code: i32) {
 
 /// Start a sh shell
 #[allow(dead_code)]
-fn shell_sh(_config: &Config) -> Result<()> {
+fn shell_sh() -> Result<()> {
     shell::sh()
 }
 
 /// Start a bash shell
 #[allow(dead_code)]
-fn shell_bash(_config: &Config) -> Result<()> {
+fn shell_bash() -> Result<()> {
     shell::bash()
 }
 
 /// Show the configuration options for a service
 #[allow(dead_code)]
-fn configure(config: &Config) -> Result<()> {
-    try!(configure::display(config));
+fn configure() -> Result<()> {
+    try!(configure::display());
     Ok(())
 }
 
 /// Start a service
 #[allow(dead_code)]
-fn start(config: &Config) -> Result<()> {
+fn start() -> Result<()> {
     outputln!("Starting {}",
-              Yellow.bold().paint(config.package().to_string()));
-    try!(start::package(config));
+              Yellow.bold().paint(gconfig().package().to_string()));
+    try!(start::package());
     outputln!("Finished with {}",
-              Yellow.bold().paint(config.package().to_string()));
+              Yellow.bold().paint(gconfig().package().to_string()));
     Ok(())
 }

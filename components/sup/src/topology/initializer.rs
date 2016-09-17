@@ -20,7 +20,6 @@
 //! We guarantee that the leader will perform its initialization sequence before the
 //! followers attempt to run their initialization sequences.
 
-use config::Config;
 use error::{Result, SupError};
 use state_machine::StateMachine;
 use topology::{self, standalone, State, Worker};
@@ -34,8 +33,8 @@ enum InitGate {
     Done,
 }
 
-pub fn run(package: Package, config: &Config) -> Result<()> {
-    let mut worker = try!(Worker::new(package, String::from("initializer"), config));
+pub fn run(package: Package) -> Result<()> {
+    let mut worker = try!(Worker::new(package, String::from("initializer")));
     let mut sm: StateMachine<State, Worker, SupError> =
         StateMachine::new(State::DetermineViability);
     sm.add_dispatch(State::DetermineViability, state_determine_viability);
