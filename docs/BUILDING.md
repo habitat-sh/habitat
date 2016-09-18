@@ -26,7 +26,10 @@ apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     wget
 
-curl -sSf https://static.rust-lang.org/rustup.sh | sh
+curl -sSf https://sh.rustup.rs \
+    | sh -s -- -y --default-toolchain stable \
+  && rustup target add x86_64-unknown-linux-musl \
+  && rustc -V
 wget -nv https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
   tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
   sudo cargo-nightly-x86_64-unknown-linux-gnu/install.sh &&
@@ -85,7 +88,10 @@ git clone git://github.com/zeromq/libzmq.git
 git clone https://github.com/zeromq/czmq.git
 (cd czmq && ./autogen.sh && ./configure && make install && ldconfig)
 
-curl -sSf https://static.rust-lang.org/rustup.sh | sh
+curl -sSf https://sh.rustup.rs \
+    | sh -s -- -y --default-toolchain stable \
+  && rustup target add x86_64-unknown-linux-musl \
+  && rustc -V
 wget -nv https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
   tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
   sudo cargo-nightly-x86_64-unknown-linux-gnu/install.sh &&
@@ -123,7 +129,10 @@ git clone https://github.com/jedisct1/libsodium.git
 (cd libsodium && ./autogen.sh && ./configure && make && make install)
 
 # Install Rust
-curl -sSf https://static.rust-lang.org/rustup.sh | sh
+curl -sSf https://sh.rustup.rs \
+    | sh -s -- -y --default-toolchain stable \
+  && rustup target add x86_64-unknown-linux-musl \
+  && rustc -V
 wget -nv https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
   tar -xzf cargo-nightly-x86_64-unknown-linux-gnu.tar.gz && \
   sudo cargo-nightly-x86_64-unknown-linux-gnu/install.sh &&
