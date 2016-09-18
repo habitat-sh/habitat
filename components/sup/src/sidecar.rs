@@ -151,14 +151,19 @@ impl GenServer for Sidecar {
         let package_2 = state.package.clone();
         let config_1 = state.config.clone();
 
-        router.get(GET_CONFIG, move |r: &mut Request| config(&package_1, r));
+        router.get(GET_CONFIG,
+                   move |r: &mut Request| config(&package_1, r),
+                   "config");
 
         let supervisor_1 = state.supervisor.clone();
-        router.get(GET_STATUS, move |r: &mut Request| status(&supervisor_1, r));
+        router.get(GET_STATUS,
+                   move |r: &mut Request| status(&supervisor_1, r),
+                   "status");
 
         let supervisor_2 = state.supervisor.clone();
         router.get(GET_HEALTH,
-                   move |r: &mut Request| health(&package_2, &config_1, &supervisor_2, r));
+                   move |r: &mut Request| health(&package_2, &config_1, &supervisor_2, r),
+                   "health");
 
         let ml = state.member_list.clone();
         let rl = state.rumor_list.clone();
@@ -169,13 +174,16 @@ impl GenServer for Sidecar {
         let gfl = state.gossip_file_list.clone();
 
         router.get(GET_GOSSIP,
-                   move |r: &mut Request| gossip(&ml, &rl, &gfl, &detector, &id, r));
+                   move |r: &mut Request| gossip(&ml, &rl, &gfl, &detector, &id, r),
+                   "gossip");
 
         let cl1 = state.census_list.clone();
-        router.get(GET_CENSUS, move |r: &mut Request| census(&cl1, r));
+        router.get(GET_CENSUS, move |r: &mut Request| census(&cl1, r), "census");
 
         let el = state.election_list.clone();
-        router.get(GET_ELECTION, move |r: &mut Request| election(&el, r));
+        router.get(GET_ELECTION,
+                   move |r: &mut Request| election(&el, r),
+                   "election");
 
         match Iron::new(router).http(state.listen) {
             Ok(_) => HandleResult::NoReply(None),
