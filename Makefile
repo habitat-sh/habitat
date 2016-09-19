@@ -22,12 +22,15 @@ ifneq ($(IN_DOCKER),)
 	common_run := $(compose_cmd) run --rm $(run_args)
 	run := $(common_run) shell
 	bldr_run := $(common_run) -p 9636:9636 -p 8080:8080 shell
-	docs_host := ${DOCKER_HOST}
 	docs_run := $(common_run) -p 9633:9633 shell
 else
 	run :=
-	docs_host := 127.0.0.1
 	docs_run :=
+endif
+ifneq ($(DOCKER_HOST),)
+	docs_host := ${DOCKER_HOST}
+else
+	docs_host := 127.0.0.1
 endif
 
 BIN = director hab sup
@@ -105,7 +108,7 @@ shell: image ## launches a development shell
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\
 		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
-	$(docs_run) sh -c 'set -e; cd ./components/sup/target/doc; python -m SimpleHTTPServer 9633;'
+	$(docs_run) sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 .PHONY: serve-docs
 
 ifneq ($(IN_DOCKER),)
@@ -141,10 +144,10 @@ changelog: image ## build the changelog
 docs: image ## build the docs
 	$(run) sh -c 'set -ex; \
 		cd components/sup && cargo doc && cd ../../ \
-		rustdoc --crate-name habitat_sup README.md -o ./components/sup/target/doc/habitat_sup; \
-		docco -e .sh -o components/sup/target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
-		cp -r images ./components/sup/target/doc/habitat_sup; \
-		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > components/sup/target/doc/index.html;'
+		rustdoc --crate-name habitat_sup README.md -o ./target/doc/habitat_sup; \
+		docco -e .sh -o target/doc/habitat_sup/hab-plan-build components/plan-build/bin/hab-plan-build.sh; \
+		cp -r images ./target/doc/habitat_sup; \
+		echo "<meta http-equiv=refresh content=0;url=habitat_sup/index.html>" > target/doc/index.html;'
 
 tag-release:
 	sh -c 'git tag -a $(VERSION) -m \"$(VERSION)\"'
