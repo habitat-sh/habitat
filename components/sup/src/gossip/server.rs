@@ -23,23 +23,24 @@
 
 use threadpool::ThreadPool;
 
-use std::thread;
-use std::ops::Deref;
-use std::time::Duration;
-use std::sync::{Arc, RwLock};
 use std::net::{self, UdpSocket};
+use std::ops::Deref;
+use std::str::FromStr;
+use std::sync::{Arc, RwLock};
+use std::thread;
+use std::time::Duration;
 
 use common::gossip_file::GossipFileList;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::service::ServiceGroup;
 
+use census::{Census, CensusEntry, CensusList};
+use election::ElectionList;
+use error::Result;
 use gossip::client::Client;
+use gossip::detector::Detector;
 use gossip::member::{Member, MemberList, Health};
 use gossip::rumor::{Peer, Protocol, Rumor, RumorList, Message};
-use gossip::detector::Detector;
-use election::ElectionList;
-use census::{Census, CensusEntry, CensusList};
-use error::Result;
 use util;
 
 static LOGKEY: &'static str = "GS";
@@ -362,7 +363,6 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
 
     //debug!("#{:?} protocol {:?}", src, msg);
 
-    /*
     match msg {
         Protocol::Ping(from_peer, remote_rumor_list) => {
             debug!("Ping from {:?}", from_peer);
@@ -376,9 +376,16 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
                     from_peer.listening_on.clone()
                 }
             };
+            let rt = match net::SocketAddr::from_str(&respond_to) {
+                Ok(rt) => rt,
+                Err(e) => {
+                    println!("Error parsing response IP addr");
+                    return;
+                }
+            };
 
             // Create a client for that peer
-            let mut c = match Client::new(&respond_to[..], ring_key.deref().as_ref()) {
+            let mut c = match Client::new(rt, ring_key.deref().as_ref()) {
                 Ok(c) => c,
                 Err(e) => {
                     debug!("Failed to create a gossip client for {:?}; aborting: {}",
@@ -425,6 +432,11 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
                            election_list,
                            gossip_file_list);
         }
+        _ => {
+            println!("BOOM");
+        }
+    }
+        /*
         Protocol::Ack(mut from_peer, remote_rumor_list) => {
             // If this is a proxy ack, forward the results on
             if from_peer.proxy_to.is_some() {
