@@ -14,17 +14,17 @@
 
 //! The Gossip Client.
 //!
-//! This module takes a `UtpSocket`, and lets you send and receive messages with it. Messages are
+//! This module takes a `UdpSocket`, and lets you receive messages with it. Messages are
 //! encoded with json.
 //!
 
-use std::net::ToSocketAddrs;
+use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
 use std::str;
+use std::sync::{Arc, RwLock};
 
 use common::wire_message::WireMessage;
 use hcore::crypto::SymKey;
 use rustc_serialize::json;
-use utp::UtpSocket;
 
 use error::Result;
 use gossip::rumor::{Protocol, Peer, RumorList};
@@ -33,8 +33,9 @@ pub const BUFFER_SIZE: usize = 10000;
 
 /// A Gossip Client.
 pub struct Client<'a> {
-    pub socket: UtpSocket,
+    pub socket: Arc<RwLock<UdpSocket>>,
     ring_key: Option<&'a SymKey>,
+    dest_addr: SocketAddr,
 }
 
 impl<'a> Client<'a> {
@@ -44,18 +45,23 @@ impl<'a> Client<'a> {
     ///
     /// * If we cannot connect the UTP socket
     pub fn new<A: ToSocketAddrs>(dst: A, ring_key: Option<&'a SymKey>) -> Result<Client> {
-        let socket = try!(UtpSocket::connect(dst));
+        let socket = try!(UdpSocket::bind("0.0.0.0:0"));
+        let mut dest = try!(dst.to_socket_addrs());
+        // todo: use ok_or w/ custom error
+        let dest_addr = dest.next().unwrap();
         Ok(Client {
-            socket: socket,
+            socket: Arc::new(RwLock::new(socket)),
             ring_key: ring_key,
+            dest_addr: dest_addr,
         })
     }
 
-    /// Create a new client from a `UtpSocket`
-    pub fn from_socket(socket: UtpSocket, ring_key: Option<&'a SymKey>) -> Client {
+    /// Create a new client from a `UdpSocket`
+    pub fn from_socket(socket: Arc<RwLock<UdpSocket>>, dest_addr: SocketAddr, ring_key: Option<&'a SymKey>) -> Client {
         Client {
             socket: socket,
             ring_key: ring_key,
+            dest_addr: dest_addr,
         }
     }
 
@@ -94,6 +100,24 @@ impl<'a> Client<'a> {
         Ok(())
     }
 
+
+    // TODO: may be refactored out of Client
+    pub fn parse_udp_message(&mut self, data: Vec<u8>) -> Result<Protocol> {
+        let mut json_str = String::new();
+        let mut keep_reading_buffer = true;
+
+        let partial_str = try!(String::from_utf8(data));
+        json_str.push_str(&partial_str);
+
+        //debug!("Received protocol ({:?}): {}",
+        //       self.socket.peer_addr(),
+        //       json_str);
+        let wire_msg: WireMessage = try!(json::decode(&json_str));
+        Ok(try!(wire_msg.msg(self.ring_key)))
+    }
+
+
+    /*
     /// Receives a message.
     ///
     /// # Errors
@@ -123,6 +147,7 @@ impl<'a> Client<'a> {
         let wire_msg: WireMessage = try!(json::decode(&json_str));
         Ok(try!(wire_msg.msg(self.ring_key)))
     }
+    */
 
     /// Send a message.
     ///
@@ -139,7 +164,10 @@ impl<'a> Client<'a> {
             try!(json::encode(&wire_msg))
         };
         debug!("Encoded message {:#?}", encoded);
-        try!(self.socket.send_to(encoded.as_bytes()));
+        {
+            let s = self.socket.write().unwrap();
+            try!(s.send_to(encoded.as_bytes(), self.dest_addr));
+        }
         debug!("Sent protocol: {:?}", msg);
         Ok(())
     }

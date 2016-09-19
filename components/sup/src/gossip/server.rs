@@ -27,12 +27,11 @@ use std::thread;
 use std::ops::Deref;
 use std::time::Duration;
 use std::sync::{Arc, RwLock};
-use std::net;
+use std::net::{self, UdpSocket};
 
 use common::gossip_file::GossipFileList;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::service::ServiceGroup;
-use utp::{UtpListener, UtpSocket};
 
 use gossip::client::Client;
 use gossip::member::{Member, MemberList, Health};
@@ -73,6 +72,8 @@ pub struct Server {
     pub peer: Peer,
     /// An optional ring key used to encrypt messages with peers
     ring_key: Arc<Option<SymKey>>,
+
+    pub socket: Arc<RwLock<UdpSocket>>,
 }
 
 impl Server {
@@ -94,6 +95,8 @@ impl Server {
         let peer_listen = listen.clone();
         let peer_listen2 = peer_listen.clone();
 
+        // TODO: do we need to pass listen to child threads?
+        let socket = UdpSocket::bind(listen.as_str()).expect(&format!("Server Can't bind to {}", &listen));
         let member = Member::new(hostname, listen_ip, peer_listen2, permanent);
 
         let service_group = format!("{}.{}", service, group);
@@ -125,6 +128,7 @@ impl Server {
                                                                            group,
                                                                            organization)))),
             ring_key: Arc::new(ring_key),
+            socket: Arc::new(RwLock::new(socket)),
         };
 
         // Write our Alive Rumor
@@ -159,10 +163,10 @@ impl Server {
         let detector = self.detector.clone();
         let el = self.election_list.clone();
         let gfl = self.gossip_file_list.clone();
-        let listener = try!(UtpListener::bind(&self.listen[..]));
+        let socket = self.socket.clone();
         let _t = thread::Builder::new()
             .name("inbound".to_string())
-            .spawn(move || inbound(listener, key, my_peer, ml, rl, cl, detector, el, gfl));
+            .spawn(move || inbound(socket, key, my_peer, ml, rl, cl, detector, el, gfl));
         Ok(())
     }
 
@@ -174,9 +178,10 @@ impl Server {
         let rl = self.rumor_list.clone();
         let my_peer = self.peer.clone();
         let detector = self.detector.clone();
+        let socket = self.socket.clone();
         let _t = thread::Builder::new()
             .name("outbound".to_string())
-            .spawn(move || outbound(key, my_peer, ml, rl, detector));
+            .spawn(move || outbound(socket, key, my_peer, ml, rl, detector));
     }
 
     /// Starts the failure detector.
@@ -253,7 +258,7 @@ impl Server {
 /// INBOUND_MAX_THREADS concurrent requests.
 ///
 /// New requests are handled by passing them to `receive`.
-pub fn inbound(listener: UtpListener,
+pub fn inbound(socket: Arc<RwLock<UdpSocket>>,
                ring_key: Arc<Option<SymKey>>,
                my_peer: Peer,
                member_list: Arc<RwLock<MemberList>>,
@@ -263,7 +268,28 @@ pub fn inbound(listener: UtpListener,
                election_list: Arc<RwLock<ElectionList>>,
                gossip_file_list: Arc<RwLock<GossipFileList>>) {
     let pool = ThreadPool::new(INBOUND_MAX_THREADS);
-    for connection in listener.incoming() {
+    loop {
+        println!("WAITING FOR DATA");
+        let mut buf = [0; 65507];
+        let data_in = {
+            let s = socket.write().unwrap();
+            s.recv_from(&mut buf)
+        };
+
+        let src = match data_in {
+            Ok((amt, src)) => {
+                println!("Received {} bytes from {:?}", amt, src);
+                src
+            }
+            Err(e) => {
+                println!("Error reading from socket: {}", e);
+                continue;
+            }
+        };
+
+        let raw_data = buf.to_vec();
+
+        // TODO: do we really wait forever?
         loop {
             if pool.active_count() == pool.max_count() {
                 info!("{} of {} inbound threads full; delaying this round",
@@ -274,26 +300,22 @@ pub fn inbound(listener: UtpListener,
                 break;
             }
         }
-        match connection {
-            Ok((socket, src)) => {
-                debug!("Inbound connection from {:?}; {} of {} slots used",
-                       src,
-                       pool.active_count(),
-                       pool.max_count());
 
-                let key = ring_key.clone();
-                let my_peer = my_peer.clone();
-                let ml = member_list.clone();
-                let rl = rumor_list.clone();
-                let cl = census_list.clone();
-                let d1 = detector.clone();
-                let el = election_list.clone();
-                let gfl = gossip_file_list.clone();
+        debug!("Inbound connection from {:?}; {} of {} slots used",
+                src,
+                pool.active_count(),
+                pool.max_count());
 
-                pool.execute(move || receive(socket, src, key, my_peer, ml, rl, cl, d1, el, gfl));
-            }
-            _ => {}
-        }
+        let key = ring_key.clone();
+        let my_peer = my_peer.clone();
+        let ml = member_list.clone();
+        let rl = rumor_list.clone();
+        let cl = census_list.clone();
+        let d1 = detector.clone();
+        let el = election_list.clone();
+        let gfl = gossip_file_list.clone();
+        let sock = socket.clone();
+        pool.execute(move || receive(sock, src, raw_data, key, my_peer, ml, rl, cl, d1, el, gfl));
     }
 }
 
@@ -315,8 +337,9 @@ pub fn inbound(listener: UtpListener,
 /// ## PingReq(Peer, RumorList)
 /// * Create a connection to the requested Peer
 /// * Forward along the RumorList to that Peer as a Proxy Ping.
-fn receive(socket: UtpSocket,
-           src: net::SocketAddr,
+fn receive(socket: Arc<RwLock<UdpSocket>>,
+           from: net::SocketAddr,
+           data: Vec<u8>,
            ring_key: Arc<Option<SymKey>>,
            my_peer: Peer,
            member_list: Arc<RwLock<MemberList>>,
@@ -325,19 +348,21 @@ fn receive(socket: UtpSocket,
            detector: Arc<RwLock<Detector>>,
            election_list: Arc<RwLock<ElectionList>>,
            gossip_file_list: Arc<RwLock<GossipFileList>>) {
-    let mut client = Client::from_socket(socket, ring_key.deref().as_ref());
-    let msg = match client.recv_message() {
+
+    let mut client = Client::from_socket(socket.clone(), from, ring_key.deref().as_ref());
+    let msg = match client.parse_udp_message(data) {
         Ok(msg) => msg,
         Err(e) => {
             debug!("Failed to receive a message: {:#?} {:#?}",
-                   client.socket.peer_addr(),
+                   from,
                    e);
             return;
         }
     };
 
-    debug!("#{:?} protocol {:?}", src, msg);
+    //debug!("#{:?} protocol {:?}", src, msg);
 
+    /*
     match msg {
         Protocol::Ping(from_peer, remote_rumor_list) => {
             debug!("Ping from {:?}", from_peer);
@@ -473,6 +498,7 @@ fn receive(socket: UtpSocket,
                            gossip_file_list);
         }
     }
+*/
 }
 
 pub fn process_rumors(remote_rumors: RumorList,
@@ -560,7 +586,8 @@ pub fn process_rumors(remote_rumors: RumorList,
 ///
 /// Like inbound, it is backed by a thread pool - if we have more than OUTBOUND_MAX_THREADS running
 /// at once, we delay the next outbound message until a thread is free.
-pub fn outbound(ring_key: Arc<Option<SymKey>>,
+pub fn outbound(socket: Arc<RwLock<UdpSocket>>,
+                ring_key: Arc<Option<SymKey>>,
                 my_peer: Peer,
                 member_list: Arc<RwLock<MemberList>>,
                 rumor_list: Arc<RwLock<RumorList>>,
@@ -628,6 +655,8 @@ pub fn send_outbound(ring_key: Arc<Option<SymKey>>,
                      rumor_list: Arc<RwLock<RumorList>>,
                      member_list: Arc<RwLock<MemberList>>,
                      detector: Arc<RwLock<Detector>>) {
+    println!("send_outbound");
+    /*
     {
         let mut d = detector.write().unwrap();
         d.start(member.id.clone());
@@ -678,8 +707,11 @@ pub fn send_outbound(ring_key: Arc<Option<SymKey>>,
         let mut rl = rumor_list.write().unwrap();
         rl.update_heat_for(&member.id, &ping_rumors);
     }
+    */
 }
 
+
+/*
 /// Send a PingReq for a failed Ping. We pick targets from the Member List, and then send a PingReq
 /// to each of them, with our information filled in.
 pub fn send_pingreq(ring_key: Arc<Option<SymKey>>,
@@ -732,6 +764,7 @@ pub fn send_pingreq(ring_key: Arc<Option<SymKey>>,
         }
     }
 }
+*/
 
 /// The failure detector. Every 100ms, we check for any failed for confirmed timeouts within the
 /// detector. If we find a timeout, we update our rumor and the members entry. Additionally, if we
@@ -800,12 +833,15 @@ pub fn failure_detector(ring_key: Arc<Option<SymKey>>,
         for member_id in pingreq.iter() {
             let ml = member_list.read().unwrap();
             let member = ml.get(&member_id).unwrap().clone();
+            /*
+             TODO
             send_pingreq(ring_key.clone(),
                          my_peer.clone(),
                          member,
                          rumor_list.clone(),
                          member_list.clone(),
                          detector.clone());
+            */
         }
 
         thread::sleep(Duration::from_millis(100));
