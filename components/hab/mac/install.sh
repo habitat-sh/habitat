@@ -21,8 +21,8 @@ trap 'rm -rf $workdir; exit $?' INT TERM EXIT
 rm -rf "$workdir"
 mkdir -p "$workdir"
 cd "$workdir"
-wget $hab_url -O $workdir/hab-latest.zip
-wget $sha_url -O $workdir/hab-latest.zip.sha256sum
+curl -sL $hab_url > $workdir/hab-latest.zip
+curl -sL $sha_url > $workdir/hab-latest.zip.sha256sum
 
 # Set the target file name for the slim archive
 archive="$workdir/$(cat hab-latest.zip.sha256sum | cut -d ' ' -f 3)"
@@ -37,8 +37,8 @@ if command -v gpg >/dev/null; then
   sha_sig_file="${archive}.sha256sum.asc"
   key_url="https://bintray.com/user/downloadSubjectPublicKey?username=habitat"
   key_file="$workdir/habitat.asc"
-  wget "$sha_sig_url" -O "$sha_sig_file"
-  wget "$key_url" -O "$key_file"
+  curl -sL "$sha_sig_url" > "$sha_sig_file"
+  curl -sL "$key_url" > "$key_file"
   gpg --no-permission-warning --dearmor "$key_file"
   gpg --no-permission-warning --keyring "${key_file}.gpg" --verify "$sha_sig_file"
 fi
