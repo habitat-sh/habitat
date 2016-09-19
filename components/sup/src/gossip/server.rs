@@ -379,6 +379,7 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
             let rt = match net::SocketAddr::from_str(&respond_to) {
                 Ok(rt) => rt,
                 Err(e) => {
+                    // TODO: err msg
                     println!("Error parsing response IP addr");
                     return;
                 }
@@ -432,17 +433,22 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
                            election_list,
                            gossip_file_list);
         }
-        _ => {
-            println!("BOOM");
-        }
-    }
-        /*
         Protocol::Ack(mut from_peer, remote_rumor_list) => {
             // If this is a proxy ack, forward the results on
             if from_peer.proxy_to.is_some() {
                 debug!("Proxy Ack for {:?}", from_peer);
                 let forward_to = from_peer.proxy_to.take().unwrap();
-                let mut c = match Client::new(&forward_to[..], ring_key.deref().as_ref()) {
+
+                let rt = match net::SocketAddr::from_str(&forward_to) {
+                    Ok(rt) => rt,
+                    Err(e) => {
+                        // TODO: err msg
+                        println!("Error parsing response IP addr");
+                        return;
+                    }
+                };
+
+                let mut c = match Client::new(rt, ring_key.deref().as_ref()) {
                     Ok(c) => c,
                     Err(e) => {
                         debug!("Failed to create a gossip client to forward for {:?}; aborting: \
@@ -481,7 +487,17 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
                     return;
                 }
             };
-            let mut c = match Client::new(&proxy_to[..], ring_key.deref().as_ref()) {
+            // TODO: refactor this out
+            let rt = match net::SocketAddr::from_str(&proxy_to) {
+                Ok(rt) => rt,
+                Err(e) => {
+                    // TODO: err msg
+                    println!("Error parsing response IP addr");
+                    return;
+                }
+            };
+
+            let mut c = match Client::new(rt, ring_key.deref().as_ref()) {
                 Ok(c) => c,
                 Err(e) => {
                     debug!("Failed to create a gossip connection for sending ping-req to {} for \
@@ -510,7 +526,6 @@ fn receive(socket: Arc<RwLock<UdpSocket>>,
                            gossip_file_list);
         }
     }
-*/
 }
 
 pub fn process_rumors(remote_rumors: RumorList,
