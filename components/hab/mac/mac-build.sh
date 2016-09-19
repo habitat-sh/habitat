@@ -41,6 +41,25 @@ if (( $EUID != 0 )); then
   exit 1
 fi
 
+if [[ ! -f /bin/hab ]]; then
+  info "Habitat CLI missing, attempting to install latest release"
+  sh $(dirname $0)/install.sh
+fi
+
+while true; do
+  if [[ $(ls -1 /hab/cache/keys/core-*.sig.key 2> /dev/null | wc -l) -gt 0 ]]; then
+    break
+  else
+    info "System is missing core origin signing key"
+    info "You will be prompted to paste in the secret key now."
+    info "After pasting, type Ctrl-D to send EOF"
+    info ""
+    info "Paste your key now:"
+    info ""
+    hab origin key import
+  fi
+done
+
 if ! pkgutil --pkgs=com.apple.pkg.CLTools_Executables >/dev/null; then
   info "Xcode CLI tools missing, attempting to install"
   # Implementation graciously borrowed and modified from the build-essential
@@ -93,11 +112,6 @@ if [[ ! -f "$cargo_bin" ]] || [[ $($cargo_bin --version | cut -d ' ' -f 2) < "0.
   ./install.sh --prefix=/opt/cargo
   popd > /dev/null
   rm -rf "$cargo_workdir"
-fi
-
-if [[ ! -f /bin/hab ]]; then
-  info "Habitat CLI missing, attempting to install latest release"
-  sh $(dirname $0)/install.sh
 fi
 
 info "Updating PATH to include GNU toolchain from HomeBrew and custom Cargo"
