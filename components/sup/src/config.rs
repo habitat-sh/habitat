@@ -139,12 +139,24 @@ pub struct Config {
     version_number: u64,
     organization: Option<String>,
     ring: Option<String>,
+    config_from: Option<String>,
 }
 
 impl Config {
     /// Create a default `Config`
     pub fn new() -> Config {
         Config::default()
+    }
+
+    /// Set the config file from directory
+    pub fn set_config_from(&mut self, config_from: Option<String>) -> &mut Config {
+        self.config_from = config_from;
+        self
+    }
+
+    /// Return the config file from directory
+    pub fn config_from(&self) -> Option<&String> {
+        self.config_from.as_ref()
     }
 
     /// Set the archive

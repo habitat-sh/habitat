@@ -69,6 +69,9 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
+    if let Some(ref config_from) = sub_args.value_of("config-from") {
+        config.set_config_from(Some(config_from.to_string()));
+    }
     if let Some(ref strategy) = sub_args.value_of("strategy") {
         config.set_update_strategy(UpdateStrategy::from_str(strategy));
     }
@@ -277,6 +280,11 @@ fn main() {
         .arg(arg_group())
         .arg(arg_org())
         .arg(arg_strategy())
+        .arg(Arg::with_name("config-from")
+            .short("C")
+            .long("config-from")
+            .value_name("config-from")
+            .help("Use package config from this path, rather than the package itself"))
         .arg(Arg::with_name("topology")
             .short("t")
             .long("topology")
