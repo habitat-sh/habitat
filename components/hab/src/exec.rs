@@ -16,7 +16,7 @@ extern crate libc;
 
 use std;
 use std::ffi::{CString, OsString};
-use std::os::unix::ffi::OsStrExt;
+use hcore::os::ffi::OsStrExt;
 use std::path::{Path, PathBuf};
 use std::ptr;
 
