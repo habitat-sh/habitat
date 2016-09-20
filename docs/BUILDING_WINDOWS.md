@@ -9,49 +9,31 @@ This document is based on Windows 10 1607 (Anniversary update) or newer.  Most o
 All commands are in PowerShell unless otherwise stated.  It is assumed that you have `git` installed and configured.  Posh-Git is a handy PowerShell module for making `git` better in your PowerShell console (`install-module posh-git`).
 
 ```
-# install chocolatey
-iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-# get the Visual Studio 2013 C++ Runtime (required for the MSVC-based Rust toolchain)
-choco install vcredist2013
-
-# get the Visual Studio 2015 C++ Build Tools
-# this is what Rust will use to compile MSVC compatible code.
-choco install visualcppbuildtools --version 14.0.25123
-
-# several cmake based builds
-choco install cmake.portable
-
-## a few more pre-reqs for the OpenSSL builds
-choco install StrawberryPerl
-choco install nasm
-
-# Install rustup to manage your Rust toolchain.
-invoke-restmethod -usebasicparsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' -outfile "~/Downloads/rustup-init.exe"
-~/Downloads/rustup-init.exe
-
-# Get the nightly MSVC version of Rust
-# Latest seems to have issues.  The last nightly I've tested is 
-# nightly-2016-08-22-x86_64-pc-windows-msvc
-rustup install nightly-2016-08-22-x86_64-pc-windows-msvc
-
-# Install the psake PowerShell module
-# I'm currently using psake until we can transition to 
-# habitat builds natively
-import-module PowerShellGet -force
-install-module psake
-
 # Move to where you want to download the source
 # for this example, I'll use ~/source
 cd ~/source
 
 # Grab the current build scripts
-git clone https://github.com/smurawski/hab-build-script
+git clone https://github.com/smurawski/hab-build-script.git
 
 # Grab the latest source
 git clone https://github.com/habitat-sh/habitat.git
-cd habitat 
-rustup override set nightly-2016-08-22-x86_64-pc-windows-msvc 
+
+# Install the psake PowerShell module
+# I'm currently using psake until we can transition to 
+# habitat builds natively
+import-module PowerShellGet -force
+install-module psake -force
+
+# We are going to move into the build script directory
+cd ./hab-build-script
+
+# Option 1 - Install the pre-reqs for building
+# the pre-req checker will use chocolatey (installing if missing)
+invoke-psake -taskname pre_reqs
+
+# Option 2 - Or just start the default build task (see below)
+# (which will verify the pre-reqs and install if missing)
 ```
 ## To Build
 
@@ -65,10 +47,49 @@ function Start-VsDevShell {
 }
 ```
 
+
+### Get in the right working directory
+
 ```
-# Build
 Start-VsDevShell
 cd ~/source/hab-build-script
+```
+
+### Common Build Tasks
+
+#### Build
+
+```
+# The default task attempts to build the current project
+# that is in the process of being ported.  It also 
+# validates pre-reqs are installed and builds native dependencies. 
+
 invoke-psake
 ```
 
+```
+# Build all the currently ported crates
+
+invoke-psake -taskname build
+```
+
+```
+# Build the current crate in progress
+
+invoke-psake -taskname current_build
+```
+
+#### Test
+
+```
+# Test all the currently ported crates
+
+invoke-psake -taskname test
+```
+
+
+```
+# Run tests on the current crate in progress
+
+invoke-psake -taskname current_test
+```
