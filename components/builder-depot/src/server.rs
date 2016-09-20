@@ -926,48 +926,71 @@ fn dont_cache_response(response: &mut Response) {
 pub fn router(depot: Depot) -> Result<Chain> {
     let basic = Authenticated::new(&depot.config);
     let router = router!(
-        get "/channels" => list_channels,
-        get "/channels/:channel/pkgs/:origin" => list_packages,
-        get "/channels/:channel/pkgs/:origin/:pkg" => list_packages,
-        get "/channels/:channel/pkgs/:origin/:pkg/latest" => show_package,
-        get "/channels/:channel/pkgs/:origin/:pkg/:version" => list_packages,
-        get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
-        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => show_package,
-        post "/channels/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-            XHandler::new(promote_package).before(basic.clone())
+        channels: get "/channels" => list_channels,
+        channel_packages: get "/channels/:channel/pkgs/:origin" => list_packages,
+        channel_packages: get "/channels/:channel/pkgs/:origin/:pkg" => list_packages,
+        channel_package_latest: get "/channels/:channel/pkgs/:origin/:pkg/latest" => show_package,
+        channel_packages: get "/channels/:channel/pkgs/:origin/:pkg/:version" => list_packages,
+        channel_package: get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
+        channel_package: get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => {
+            show_package
         },
-        get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => download_package,
-        get "/channels/:channel/origins/:origin/keys" => list_origin_keys,
-        get "/channels/:channel/origins/:origin/keys/latest" => download_latest_origin_key,
-        get "/channels/:channel/origins/:origin/keys/:revision" => download_origin_key,
+        channel_package_promote:
+            post "/channels/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
+                XHandler::new(promote_package).before(basic.clone())
+        },
+        channel_package_download:
+            get "/channels/:channel/pkgs/:origin/:pkg/:version/:release/download" => {
+                download_package
+        },
+
+        channel_origin_keys: get "/channels/:channel/origins/:origin/keys" => list_origin_keys,
+        channel_origin_key_latest: get "/channels/:channel/origins/:origin/keys/latest" => {
+            download_latest_origin_key
+        },
+        channel_origin_key: get "/channels/:channel/origins/:origin/keys/:revision" => {
+            download_origin_key
+        },
 
         // JW: `views` is a deprecated term and now an alias for `channels`. These routes should be
         // removed at a later date.
-        get "/views" => list_channels,
-        get "/views/:channel/pkgs/:origin" => list_packages,
-        get "/views/:channel/pkgs/:origin/:pkg" => list_packages,
-        get "/views/:channel/pkgs/:origin/:pkg/latest" => show_package,
-        get "/views/:channel/pkgs/:origin/:pkg/:version" => list_packages,
-        get "/views/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
-        get "/views/:channel/pkgs/:origin/:pkg/:version/:release" => show_package,
-        post "/views/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-            XHandler::new(promote_package).before(basic.clone())
+        views: get "/views" => list_channels,
+        view_packages: get "/views/:channel/pkgs/:origin" => list_packages,
+        view_packages: get "/views/:channel/pkgs/:origin/:pkg" => list_packages,
+        view_package: get "/views/:channel/pkgs/:origin/:pkg/latest" => show_package,
+        view_packages: get "/views/:channel/pkgs/:origin/:pkg/:version" => list_packages,
+        view_package_latest: get "/views/:channel/pkgs/:origin/:pkg/:version/latest" => {
+            show_package
         },
-        get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => download_package,
-        get "/views/:view/origins/:origin/keys" => list_origin_keys,
-        get "/views/:view/origins/:origin/keys/latest" => download_latest_origin_key,
-        get "/views/:view/origins/:origin/keys/:revision" => download_origin_key,
+        view_package: get "/views/:channel/pkgs/:origin/:pkg/:version/:release" => {
+            show_package
+        },
+        view_package_promote:
+            post "/views/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
+                XHandler::new(promote_package).before(basic.clone())
+        },
+        view_package_download:
+            get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => download_package,
+        view_origin_keys: get "/views/:view/origins/:origin/keys" => list_origin_keys,
+        view_origin_key_latest: get "/views/:view/origins/:origin/keys/latest" => {
+            download_latest_origin_key
+        },
+        view_origin_key: get "/views/:view/origins/:origin/keys/:revision" => {
+            download_origin_key
+        },
 
-        get "/pkgs/search/:query" => search_packages,
-        get "/pkgs/:origin" => list_packages,
-        get "/pkgs/:origin/:pkg" => list_packages,
-        get "/pkgs/:origin/:pkg/latest" => show_package,
-        get "/pkgs/:origin/:pkg/:version" => list_packages,
-        get "/pkgs/:origin/:pkg/:version/latest" => show_package,
-        get "/pkgs/:origin/:pkg/:version/:release" => show_package,
+        package_search: get "/pkgs/search/:query" => search_packages,
+        packages: get "/pkgs/:origin" => list_packages,
+        packages: get "/pkgs/:origin/:pkg" => list_packages,
+        package: get "/pkgs/:origin/:pkg/latest" => show_package,
+        packages: get "/pkgs/:origin/:pkg/:version" => list_packages,
+        package: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
+        package: get "/pkgs/:origin/:pkg/:version/:release" => show_package,
 
-        get "/pkgs/:origin/:pkg/:version/:release/download" => download_package,
-        post "/pkgs/:origin/:pkg/:version/:release" => {
+        package_download: get "/pkgs/:origin/:pkg/:version/:release/download" => {
+            download_package
+        },
+        package_upload: post "/pkgs/:origin/:pkg/:version/:release" => {
             if depot.config.insecure {
                 XHandler::new(upload_package)
             } else {
@@ -975,29 +998,33 @@ pub fn router(depot: Depot) -> Result<Chain> {
             }
         },
 
-        post "/origins" => XHandler::new(origin_create).before(basic.clone()),
-        get "/origins/:origin" => origin_show,
+        origin_create: post "/origins" => {
+            XHandler::new(origin_create).before(basic.clone())
+        },
+        origin: get "/origins/:origin" => origin_show,
 
-        get "/origins/:origin/keys" => list_origin_keys,
-        get "/origins/:origin/keys/latest" => download_latest_origin_key,
-        get "/origins/:origin/keys/:revision" => download_origin_key,
-        post "/origins/:origin/keys/:revision" => {
+        origin_keys: get "/origins/:origin/keys" => list_origin_keys,
+        origin_key_latest: get "/origins/:origin/keys/latest" => download_latest_origin_key,
+        origin_key: get "/origins/:origin/keys/:revision" => download_origin_key,
+        origin_key_create: post "/origins/:origin/keys/:revision" => {
             if depot.config.insecure {
                 XHandler::new(upload_origin_key)
             } else {
                 XHandler::new(upload_origin_key).before(basic.clone())
             }
         },
-        post "/origins/:origin/secret_keys/:revision" => {
+        origin_secret_key_create: post "/origins/:origin/secret_keys/:revision" => {
             XHandler::new(upload_origin_secret_key).before(basic.clone())
         },
-        post "/origins/:origin/users/:username/invitations" => {
+        origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
             XHandler::new(invite_to_origin).before(basic.clone())
         },
-        get "/origins/:origin/invitations" => {
+        origin_invitations: get "/origins/:origin/invitations" => {
             XHandler::new(list_origin_invitations).before(basic.clone())
         },
-        get "/origins/:origin/users" => XHandler::new(list_origin_members).before(basic.clone()),
+        origin_users: get "/origins/:origin/users" => {
+            XHandler::new(list_origin_members).before(basic.clone())
+        }
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<Depot>::both(depot));

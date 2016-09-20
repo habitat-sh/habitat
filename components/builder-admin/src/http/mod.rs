@@ -40,13 +40,17 @@ const HTTP_THREAD_COUNT: usize = 128;
 pub fn router(config: Arc<Config>) -> Result<Chain> {
     let admin = Authenticated::new(&*config).require(privilege::ADMIN);
     let router = router!(
-        get "/status" => status,
-        post "/search" => XHandler::new(search).before(admin.clone()),
-        get "/accounts/:id" => XHandler::new(account_show).before(admin.clone()),
-        get "/features" => XHandler::new(features_list).before(admin.clone()),
-        get "/features/:id/teams" => XHandler::new(feature_grants_list).before(admin.clone()),
-        post "/features/:id/teams" => XHandler::new(feature_grant).before(admin.clone()),
-        delete "/features/:feature/teams/:id" => {
+        status: get "/status" => status,
+        search: post "/search" => XHandler::new(search).before(admin.clone()),
+        account: get "/accounts/:id" => XHandler::new(account_show).before(admin.clone()),
+        features: get "/features" => XHandler::new(features_list).before(admin.clone()),
+        feature_teams: get "/features/:id/teams" => {
+            XHandler::new(feature_grants_list).before(admin.clone())
+        },
+        edit_feature_teams: post "/features/:id/teams" => {
+            XHandler::new(feature_grant).before(admin.clone())
+        },
+        delete_feature_team: "/features/:feature/teams/:id" => {
             XHandler::new(feature_revoke).before(admin.clone())
         }
     );
