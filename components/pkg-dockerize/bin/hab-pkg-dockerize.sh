@@ -83,6 +83,15 @@ find_system_commands() {
   fi
 }
 
+
+add_trailing_slash() {
+  STR="$1"
+  length=${#STR}
+  last_char=${STR:length-1:1}
+  [[ $last_char != "/" ]] && STR="$STR/"; :
+  echo $STR
+}
+
 # Wraps `dockerfile` to ensure that a Docker image build is being executed in a
 # clean directory with native filesystem permissions which is outside the
 # source code tree.
@@ -92,14 +101,18 @@ build_docker_image() {
     hab pkg install $1 # try to install it
   fi
 
+  if [[ -n "$DOCKER_REGISTRY_URL" ]]; then
+    DOCKER_REGISTRY_URL=$(add_trailing_slash "$DOCKER_REGISTRY_URL")
+  fi
+
   pkg_name=$(package_name_for $1)
   pkg_origin=$(package_origin_for $ident_file)
   pkg_ident=$(package_ident_for $ident_file)
   pkg_version=$(version_num_for $ident_file)
 
   BASE_PKGS=$(base_pkgs $@)
-  DOCKER_BASE_TAG="${pkg_ident}_base:$(base_pkg_hash $BASE_PKGS)"
-  DOCKER_BASE_TAG_ALT="${pkg_origin}/habitat_export_base:$(base_pkg_hash $BASE_PKGS)"
+  DOCKER_BASE_TAG="${DOCKER_REGISTRY_URL}${pkg_ident}_base:$(base_pkg_hash $BASE_PKGS)"
+  DOCKER_BASE_TAG_ALT="${DOCKER_REGISTRY_URL}${pkg_origin}/habitat_export_base:$(base_pkg_hash $BASE_PKGS)"
 
   # create base layer image
   DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
@@ -107,6 +120,9 @@ build_docker_image() {
   docker_base_image $@
   popd > /dev/null
   rm -rf "$DOCKER_CONTEXT"
+
+
+  DOCKER_RUN_TAG="${DOCKER_REGISTRY_URL}${pkg_ident}"
 
   # build runtime image
   DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
@@ -191,9 +207,6 @@ EOT
 }
 
 docker_image() {
-  local version_tag="${pkg_ident}:${pkg_version}"
-  local latest_tag="${pkg_ident}:latest"
-
   local pkg_file=$(ls /hab/cache/artifacts/$(cat $(hab pkg path $pkg_ident)/IDENT | tr '/' '-')-*)
   cp -a $pkg_file $DOCKER_CONTEXT/
   pkg_file=$(basename $pkg_file)
@@ -212,8 +225,20 @@ ENTRYPOINT ["/init.sh"]
 CMD ["start", "$1"]
 EOT
 
-  docker build --force-rm --no-cache -t $version_tag .
-  docker tag $version_tag $latest_tag
+  docker build --force-rm --no-cache -t "${DOCKER_RUN_TAG}:${pkg_version}" .
+  docker tag "${DOCKER_RUN_TAG}:${pkg_version}" "${DOCKER_RUN_TAG}:latest"
+}
+
+push_docker_image() {
+  if [[ -z "$DOCKER_REGISTRY_URL" ]]; then
+    return 0; # nothing to do
+  fi
+
+  # push images/tags we created to registry
+  docker push $DOCKER_BASE_TAG
+  docker push $DOCKER_BASE_TAG_ALT
+  docker push "${DOCKER_RUN_TAG}:${pkg_version}"
+  docker push "${DOCKER_RUN_TAG}:latest"
 }
 
 # The root of the filesystem. If the program is running on a seperate
@@ -223,6 +248,10 @@ EOT
 # The root path of the Habitat file system. If the `$HAB_ROOT_PATH` environment
 # variable is set, this value is overridden, otherwise it is set to its default
 : ${HAB_ROOT_PATH:=$FS_ROOT/hab}
+
+# Set a default docker registry url (empty)
+# If set, images will be tagged with this prefix
+: ${DOCKER_REGISTRY_URL:=""}
 
 # The current version of Habitat Studio
 version='@version@'
@@ -240,4 +269,5 @@ elif [ "$@" == "--help" ]; then
   print_help
 else
   build_docker_image $@
+  push_docker_image
 fi
