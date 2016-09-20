@@ -11,7 +11,7 @@ body.try-hab {
 
 #content-outer {
   @include small-nav {
-    padding-top: $header-height-mobile;
+    padding-top: $header-height-mobile + 90;
   }
 
   &.has-sticky-nav {

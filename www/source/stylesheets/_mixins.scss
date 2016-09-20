@@ -17,8 +17,13 @@
   color: $body-font-color;
   font-size: rem-calc(16);
   letter-spacing: rem-calc(1);
-  padding: 0.85em 1.65em;
+  padding: rem-calc(15) rem-calc(20);
   transition: all .2s;
+
+  &:hover {
+    background-color: transparent;
+    box-shadow: 0px 1px 24px 0px rgba(0,0,0,0.20);
+  }
 }
 
 @mixin primary-button {

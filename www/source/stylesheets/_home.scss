@@ -35,6 +35,13 @@ $home-medium-breakpoint: rem-calc(880);
   }
 }
 
+hr {
+  border-color: $hab-gray-light;
+  margin: rem-calc(90) auto;
+  max-width: rem-calc(900);
+  width: 80%;
+}
+
 // Hero
 .hero {
   min-height: rem-calc(600);
@@ -66,6 +73,10 @@ $home-medium-breakpoint: rem-calc(880);
 
   @media (max-width: rem-calc(400)) {
     margin-bottom: 112%;
+
+    .button + .button {
+      margin-left: rem-calc(10);
+    }
   }
 
   @media (min-width: 376px) {
@@ -151,7 +162,7 @@ $sub-hero-skew: 5deg;
 .sub-hero {
   position: relative;
   z-index: 2;
-  padding: rem-calc(160) 0 rem-calc(120);
+  padding: rem-calc(120) 0 rem-calc(120);
   margin-top: rem-calc(-100);
   background-image: linear-gradient(240deg, $hab-blue-grey, darken($hab-blue-grey, 5%));
   color: $white;
@@ -190,8 +201,12 @@ $sub-hero-skew: 5deg;
 }
 
 .sub-hero--heading {
-  margin-bottom: rem-calc(60);
+  margin: rem-calc(90) 5% rem-calc(60);
   @extend %section-heading;
+
+  @include breakpoint(medium) {
+    margin: 0 auto rem-calc(60);
+  }
 }
 
 .sub-hero--icon {
@@ -209,6 +224,14 @@ $sub-hero-skew: 5deg;
   }
 }
 
+.sub-hero--blurb-title {
+  h4 {
+    display: inline-block;
+    margin-left: rem-calc(15);
+    vertical-align: middle;
+  }
+}
+
 .sub-hero--graphic {
   position: absolute;
   z-index: 2;
@@ -222,31 +245,35 @@ $sub-hero-skew: 5deg;
 }
 
 .sub-hero--button {
+  @include button;
+  color: $white;
   margin: rem-calc(40) 0 rem-calc(-35);
 
   @include small-home {
-    margin: rem-calc(20) 0 0 6%;
+    margin: rem-calc(20) 0 0 5%;
+    max-width: rem-calc(240);
   }
 }
 
 // Main section
 .main-section {
-  padding: rem-calc(120) 0;
 
   &.first {
     padding-top: rem-calc(160);
-    margin-top: rem-calc(-50);
+    margin-top: rem-calc(-20);
     background: url('/images/graphics/main-section-first-watermark.svg') no-repeat center rem-calc(-160);
+
+    h2 {
+      margin-bottom: rem-calc(60);
+
+      &.use-cases--title {
+        margin: 0 rem-calc(30) rem-calc(60);      
+      }
+    }
   }
 
   &.last {
-    padding-bottom: rem-calc(90);
-    background-image: url('/images/graphics/main-section-last-watermark.svg'),
-      linear-gradient(to bottom, lighten($hab-gray, 10%), $hab-white 21%),
-      linear-gradient(to left, lighten($hab-gray, 10%), $hab-white 21%);
-    background-repeat: no-repeat, no-repeat, no-repeat;
-    background-position: 90% rem-calc(-150), 0 0, 0 0;
-    background-position: calc(50% + 310px) rem-calc(-150), 0 0, 0 0;
+    padding: 0 5% rem-calc(60);
   }
 
   h2 {
@@ -254,12 +281,13 @@ $sub-hero-skew: 5deg;
   }
 
   @include small-home {
-    padding: rem-calc(60) 0;
+    padding: 0;
 
     &.first {
       margin-top: rem-calc(-17);
       background-position: center rem-calc(-50);
       background-size: rem-calc(410) auto;
+      padding-top: rem-calc(120);
     }
   }
 }
@@ -278,300 +306,112 @@ $sub-hero-skew: 5deg;
   max-width: rem-calc(86);
 }
 
-// Feature slider
-.slider--nav {
-  display: inline-block;
-  padding: rem-calc(5);
-  border: 1px solid $hab-orange;
-  margin: rem-calc(20) 0 rem-calc(40);
-  border-radius: rem-calc(4);
-
-  .button {
-    margin-bottom: 0;
-    background: transparent;
-    color: $hab-green;
-
-    &:first-child {
-      margin-right: rem-calc(5);
-    }
-
-    &.is-active,
-    &:hover,
-    &:active,
-    &:focus {
-      background: $hab-green;
-      color: $white;
-    }
-  }
+// Use cases section
+.use-cases--wrap {
+  padding: 0 rem-calc(10);
 }
-
-.slides {
+.use-cases--box {
+  @include shadow-float;
+  background-color: $hab-white;
+  border-radius: $global-radius;
+  min-height: rem-calc(460);
   position: relative;
-  padding-bottom: rem-calc(1000);
+  transform: scale(1);
+  transition: all .1s;
 
-  @include breakpoint(large) {
-    padding-bottom: rem-calc(700);
+  h4, p {
+    text-align: left;
   }
-}
-
-.slide {
-  position: absolute;
-  display: none;
-}
-
-.slide--subtext {
-  font-style: italic;
-
-  em {
-    text-decoration: underline;
-  }
-}
-
-.slide--blurbs {
-  @extend .no-bullet;
-  margin-top: rem-calc(40);
-
-  @include breakpoint(large) {
-    margin-top: rem-calc(90);
-    text-align: right;
-  }
-}
-
-.slide--blurb {
-  margin-bottom: rem-calc(35);
 
   h4 {
-    margin-bottom: rem-calc(10);
-  }
-}
-
-.slide--main-img {
-  display: block;
-  margin: 0 auto;
-}
-
-#slide--build-packages .slide--main-img {
-  margin: rem-calc(35) auto;
-}
-
-// Solutions section - with large arrow
-.solutions-wrap {
-  position: relative;
-  top: rem-calc(-30);
-  overflow: hidden;
-  min-height: rem-calc(490);
-}
-
-.solutions--blurb__large {
-  display: none;
-
-  @include large-home {
-    display: block;
-    position: absolute;
-    top: 0;
-    right: 40%;
-    width: rem-calc(1600);
-  }
-
-  @media (min-width: rem-calc(1550)) {
-    right: 45%;
-  }
-}
-
-.solutions--blurb__mobile {
-  background: url('/images/graphics/solutions-bg-mobile.svg') no-repeat $hab-green;
-  background-size: cover;
-  color: $white;
-  padding: rem-calc(30) rem-calc(10);
-  margin-bottom: rem-calc(60);
-  text-align: center;
-  font-size: rem-calc(20);
-  box-shadow: 2px 2px 34px rgba($hab-blue-grey, 0.52);
-
-  & > p {
-    max-width: rem-calc(400);
-    margin: 0 auto 1.25rem;
-  }
-
-  @include medium-home {
-    margin-top: rem-calc(90);
-  }
-
-  @include large-home {
-    display: none;
-  }
-}
-
-.solutions--logos {
-  width: 90%;
-  max-width: rem-calc(190);
-  margin: 0 auto;
-
-  @include large-home {
-    @include grid-column(40%);
-    float: right;
-    margin: rem-calc(190) 0 0;
-    max-width: initial;
-  }
-}
-
-.solutions--logo {
-  position: relative;
-  height: rem-calc(40);
-  width: 100%;
-  max-width: rem-calc(200);
-  margin: 0 auto rem-calc(30);
-
-
-  & > img {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    max-height: 100%;
-    transform: translateY(-50%) translateX(-50%);
-  }
-
-  @include large-home {
-    float: left;
-    max-width: initial;
-    width: 45%;
-    text-align: center;
-    margin: 0 0 rem-calc(30);
-
-    &:nth-child(odd) {
-      margin-right: 10%;
-    }
-  }
-}
-
-// In Production Section
-.production--blurb {
-  padding: rem-calc(60) 5%;
-  text-align: center;
-
-  @media (min-width: 1040px) {
-    padding: rem-calc(120) rem-calc(90) rem-calc(120) 0.9375rem;
-  }
-
-  @include breakpoint(medium) {
-    text-align: right;
-    border-right: 1px solid $hab-gray;
-  }
-}
-
-.production--graphic {
-  padding: rem-calc(30) 10% rem-calc(60);
-
-  @include breakpoint(medium) {
-    padding: rem-calc(30) 10% rem-calc(60) 5%;
-  }
-
-  @media (min-width: 1040px) {
-    padding: rem-calc(60) 9% 0;
-  }
-
-  img {
-    width: 100%;
-  }
-}
-
-.production--icons-text {
-  position: relative;
-  text-align: center;
-
-  & > p {
-    position: absolute;
-    width: 100%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    font-family: $header-font-family;
-    font-size: rem-calc(14);
-
-    &.is-active {
-      opacity: 1;
-    }
-  }
-}
-
-.production--icons {
-  padding: rem-calc(20) 0;
-  border-top: 1px solid $hab-gray;
-  margin-top: rem-calc(20);
-  text-align: center;
-}
-
-.production--icon {
-  display: inline-block;
-  margin-right: 7%;
-
-  &:last-child {
-    margin-right: 0;
-  }
-
-  &.is-active {
-    border-bottom: 2px solid $hab-orange;
-  }
-
-  &.is-active path,
-  &:hover path {
-    fill: $hab-orange;
-  }
-
-  & > svg {
-    cursor: pointer;
-
-    path {
-      transition: fill 0.3s ease;
-    }
-  }
-}
-
-// Managing Legacy Apps Section
-.legacy-section {
-  padding: rem-calc(90) 0;
-  background-image: url('/images/graphics/legacy-watermark.svg'),
-    linear-gradient(240deg, $hab-blue-grey, darken($hab-blue-grey, 5%));
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-  color: $white;
-  text-align: center;
-  overflow: hidden;
-
-  h2 {
-    font-size: rem-calc(32);
-
-    @include small-home {
-      font-size: rem-calc(18)
-    }
+    border-bottom: 1px solid $hab-gray-light;
+    font-size: rem-calc(16);
+    padding: rem-calc(24) rem-calc(30) rem-calc(20);
   }
 
   p {
-    width: 100%;
-    max-width: rem-calc(595);
-    margin: 0 auto rem-calc(30);
-    color: $hab-gray;
+    font-size: rem-calc(14);
+    padding: rem-calc(10) rem-calc(30) 0;
+  }
+
+  &:hover {
+    transform: scale(1.02);
+    transition: all .2s;
+  }
+
+  @include breakpoint(large) {
+    min-height: rem-calc(390);
+  };
+}
+
+.use-cases--box-footer {
+  background-color: $hab-green;
+  border-radius: 0 0 $global-radius $global-radius;
+  bottom: 0;
+  padding: rem-calc(20) rem-calc(30);
+  position: absolute;
+  text-align: right;
+  width: 100%;
+
+  a {
+    color: $hab-white;
+
+    &:hover {
+      border-bottom: 1px solid;
+    }
+  }
+
+  a::after {
+    content: "\2192";
+    margin-left: rem-calc(8);
+    transition: all .2s;
   }
 }
 
-.legacy-section--image {
-  position: relative;
-  height: rem-calc(400);
+.use-cases--icon {
+  position: absolute;
+  bottom: rem-calc(32);
+  left: rem-calc(22);
+}
 
-  & > img {
-    position: absolute;
-    width: rem-calc(1100);
-    height: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: initial;
+// In Production Section
+.production-wrap {
+  padding: 0 5%;
+
+  @include breakpoint(medium) {
+    background-image: url('/images/graphics/main-section-last-watermark.svg');
+    background-repeat: no-repeat;
+    background-position: calc(50% + 270px) 100%;
+    padding: rem-calc(30) 0;
+  }
+}
+.production-wrap .production--blurb {
+  margin-bottom: rem-calc(60);
+
+  h2 {
+    margin-bottom: rem-calc(30);
+  }
+}
+.production--features-item {
+  margin-bottom: rem-calc(60);
+  position: relative;
+
+  p {
+    color: $hab-gray;
   }
 
-  @include small-home {
-    height: rem-calc(266);
+  &.last-item {
+    margin-bottom: 0;
+  }
+}
+.production--icon {
+  display: none;
 
-    & > img {
-      width: rem-calc(710);
-    }
+  @include breakpoint(medium) {
+    display: block;
+    left: rem-calc(-45);
+    position: absolute;
+    top: rem-calc(-9);
   }
 }
 
@@ -587,7 +427,7 @@ $testimonials-slider-transition: 1s;
 .testimonial {
   position: absolute;
   width: 100%;
-  margin-bottom: rem-calc(42);
+  margin-bottom: rem-calc(30);
   opacity: 0;
   transition: opacity $testimonials-slider-transition ease;
 
@@ -616,7 +456,7 @@ $testimonials-slider-transition: 1s;
   }
 
   @include breakpoint(medium) {
-    width: 35%;
+    width: 37.2%;
     margin-right: 1%;
     padding-bottom: 15%;
 
@@ -630,18 +470,19 @@ $testimonials-slider-transition: 1s;
 
 .testimonial--blurb {
   @include breakpoint(medium) {
-    width: 63%;
+    width: 60.8%;
   }
 }
 
 .testimonial--blurb--text {
-  margin-bottom: rem-calc(10);
+  margin-bottom: rem-calc(20);
   font-style: italic;
   font-size: rem-calc(18);
 }
 
 .testimonial--blurb--attr {
-  margin-bottom: 0;
+  display: block;
+  margin-bottom: rem-calc(20);
   font-size: rem-calc(13);
   font-family: $header-font-family;
 }
