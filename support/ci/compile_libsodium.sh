@@ -5,7 +5,7 @@ version=1.0.8
 nv=libsodium-$version
 source=https://download.libsodium.org/libsodium/releases/${nv}.tar.gz
 prefix=$HOME/pkgs/libsodium/$version
-
+echo "LIBSODIUM PREFIX = ${prefix}"
 # If installed, exit early!
 if [ -d "$prefix" ]; then
   echo "--> Detected $nv installed under $prefix, skipping compile"

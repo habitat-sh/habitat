@@ -5,6 +5,7 @@ version=3.2.0
 nv=libarchive-$version
 source=http://www.libarchive.org/downloads/${nv}.tar.gz
 prefix=$HOME/pkgs/libarchive/$version
+echo "LIBARCHIVE PREFIX = ${prefix}"
 
 # If installed, exit early!
 if [ -d "$prefix" ]; then

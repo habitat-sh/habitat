@@ -28,7 +28,15 @@ all_specs=(crypto)
 cat banner
 
 # load in common test env vars
-HAB=/bin/hab
+if [ "${TRAVIS}" = "true" ]; then
+    export HAB_TEST_BIN_DIR=/root/hab_bins
+    export PATH=$PATH:$HAB_TEST_BIN_DIR
+    HAB=${HAB_TEST_BIN_DIR}/hab
+    adduser --system hab || true
+    addgroup --system hab || true
+else
+    HAB=/bin/hab
+fi
 
 export INSPEC_PACKAGE=core/inspec
 export RUBY_PACKAGE=core/ruby
@@ -50,11 +58,10 @@ echo "Installing Habitat testing packages..."
 install_package ${INSPEC_PACKAGE} "Chef Inspec"
 install_package ${BUNDLER_PACKAGE} "Bundler"
 
-
-INSPEC_BUNDLE="$(hab pkg path $INSPEC_PACKAGE)/bundle"
+INSPEC_BUNDLE="$(${HAB} pkg path $INSPEC_PACKAGE)/bundle"
 GEM_HOME="${INSPEC_BUNDLE}/ruby/${RUBY_VERSION}"
-GEM_PATH="$(hab pkg path ${RUBY_PACKAGE})/lib/ruby/gems/${RUBY_VERSION}:$(hab pkg path ${BUNDLER_PACKAGE}):${GEM_HOME}"
-LD_LIBRARY_PATH="$(hab pkg path core/gcc-libs)/lib)"
+GEM_PATH="$(${HAB} pkg path ${RUBY_PACKAGE})/lib/ruby/gems/${RUBY_VERSION}:$(${HAB} pkg path ${BUNDLER_PACKAGE}):${GEM_HOME}"
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$(${HAB} pkg path core/gcc-libs)/lib)"
 export INSPEC_BUNDLE
 export GEM_HOME
 export GEM_PATH

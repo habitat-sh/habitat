@@ -57,7 +57,6 @@ static DEFAULT_GROUP: &'static str = "default";
 
 static DEFAULT_HTTP_LISTEN_IP: &'static str = "0.0.0.0";
 static DEFAULT_HTTP_LISTEN_PORT: u16 = 9631;
-
 const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634;
 
 static RING_ENVVAR: &'static str = "HAB_RING";

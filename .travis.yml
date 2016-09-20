@@ -8,9 +8,30 @@ env:
   - PATH=$HOME/bin:$HOME/.cargo/bin:$PATH
 matrix:
   include:
+  - language: ruby
+    rvm: 2.3.1
+    env:
+    - AFFECTED_DIRS="components/hab|components/sup"
+    sudo: required
+    addons:
+      apt:
+        packages:
+        - build-essential
+        - ca-certificates
+        - curl
+        - wget
+    cache:
+      apt: true
+      cargo: true
+      directories:
+      - /root/travis_bootstrap
+    before_install:
+    - ./support/ci/fast_pass.sh || exit 0
+    script:
+    - sudo ./support/ci/specs.sh
   - language: rust
     env:
-    - COMPONENTS=bin LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
+    - COMPONENTS=bin LIBSODIUM=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE=$HOME/pkgs/libarchive/3.2.0 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE/lib/pkgconfig:$LIBSODIUM/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE/lib:$LIBSODIUM/lib"
     - AFFECTED_DIRS="components/director|components/hab|components/sup"
     rust: stable
     sudo: false
@@ -44,7 +65,6 @@ matrix:
     - ./support/ci/install_cargo.sh
     script:
     - ./support/ci/rust_tests.sh
-    # - ./support/ci/specs.sh
     - ./support/ci/lint.sh
   - language: rust
     env:

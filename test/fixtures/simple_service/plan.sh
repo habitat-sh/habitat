@@ -6,7 +6,7 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=()
-pkg_svc_run="bin/simple_service"
+pkg_svc_run="simple_service"
 
 do_download() {
   return 0

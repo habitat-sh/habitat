@@ -236,14 +236,15 @@ module HabTesting
 
         def initialize
             super
+            bin_base = ENV['HAB_TEST_BIN_DIR'] || "/src/target/debug"
             @cleanup_filename = "cleanup_#{SecureRandom.hex(10)}.sh"
-            @hab_bin="/src/target/debug/hab"
+            @hab_bin="#{bin_base}/hab"
             @hab_key_cache = "/hab/cache/keys"
             @hab_org = "org_#{unique_name()}"
             @hab_origin = "origin_#{unique_name()}"
             @hab_pkg_path = "/hab/pkgs"
             @hab_ring = "ring_#{unique_name()}"
-            @hab_sup_bin = "/src/target/debug/hab-sup"
+            @hab_sup_bin = "#{bin_base}/hab-sup"
             @hab_svc_path = "/hab/svc"
             @hab_user = "user_#{unique_name()}"
             @log_dir = "./logs"
@@ -301,6 +302,9 @@ module HabTesting
             if not @cleanup
                 puts "WARNING: not cleaning up testing environment"
                 puts "Please run #{@cleanup_filename} manually"
+                if ENV['TRAVIS'] then
+                    `cat #{log_file_name()}`
+                end
             end
 
         end
@@ -349,17 +353,16 @@ module HabTesting
             # record the command we'll be running in the log file
             `echo #{fullcmdline} >> #{log_file_name()}`
             puts " → #{fullcmdline}"
-
             output_log = open(log_file_name(), 'a')
             begin
-                Open3.popen3(fullcmdline) do |stdin, stdout, stderr, wait_thread|
+                Open3.popen2e(ENV, fullcmdline) do |stdin, stdout_err, wait_thread|
                     @all_children << [fullcmdline, wait_thread.pid]
                     puts "Started child process id #{wait_thread[:pid]}" if debug
                     found = false
                     begin
                         Timeout::timeout(timeout) do
                             loop do
-                                line = stdout.readline()
+                                line = stdout_err.readline()
                                 output_log.puts line
                                 puts line if debug
                                 if line.include?(desired_output) then
