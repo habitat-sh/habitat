@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use libc::{self, c_int, c_char, mode_t};
+#[cfg(windows)]
+mod windows;
 
-pub use std::os::unix::fs::symlink;
+#[cfg(windows)]
+pub use self::windows::OsStrExt3 as OsStrExt;
 
-pub fn chown(r_path: *const c_char, uid: u32, gid: u32) -> c_int {
-    unsafe { libc::chown(r_path, uid, gid) }
-}
-
-pub fn chmod(r_path: *const c_char, mode: u32) -> c_int {
-    unsafe { libc::chmod(r_path, mode as mode_t) }
-}
+#[cfg(not(windows))]
+pub use std::os::unix::ffi::OsStrExt;
