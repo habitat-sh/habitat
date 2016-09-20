@@ -50,7 +50,7 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
         edit_feature_teams: post "/features/:id/teams" => {
             XHandler::new(feature_grant).before(admin.clone())
         },
-        delete_feature_team: "/features/:feature/teams/:id" => {
+        delete_feature_team: delete "/features/:feature/teams/:id" => {
             XHandler::new(feature_revoke).before(admin.clone())
         }
     );
