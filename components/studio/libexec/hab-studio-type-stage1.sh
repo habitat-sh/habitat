@@ -91,5 +91,5 @@ PROFILE
 }
 
 _hab() {
-  $bb env FS_ROOT=$HAB_STUDIO_ROOT $hab $*
+  $bb env FS_ROOT=$HAB_STUDIO_ROOT HAB_CACHE_KEY_PATH= $hab $*
 }

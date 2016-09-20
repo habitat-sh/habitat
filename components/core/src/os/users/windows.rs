@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::path::PathBuf;
+
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
     unimplemented!();
 }
@@ -21,5 +23,9 @@ pub fn get_gid_by_name(group: &str) -> Option<u32> {
 }
 
 pub fn get_effective_uid() -> u32 {
+    unimplemented!();
+}
+
+pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
     unimplemented!();
 }

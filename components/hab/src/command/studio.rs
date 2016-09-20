@@ -16,7 +16,10 @@ use std::env;
 use std::ffi::OsString;
 
 use common::ui::UI;
+use hcore::crypto::CACHE_KEY_PATH_ENV_VAR;
 use hcore::env as henv;
+use hcore::fs::CACHE_KEY_PATH;
+use hcore::os::users;
 
 use config;
 use error::Result;
@@ -26,12 +29,33 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
     // or `docker` execv call.
     if henv::var("HAB_ORIGIN").is_err() {
-        let config = try!(config::load());
+        let config = try!(config::load_with_sudo_user());
         if let Some(default_origin) = config.origin {
             debug!("Setting default origin {} via CLI config", &default_origin);
             env::set_var("HAB_ORIGIN", default_origin);
         }
     }
+
+    // If the `$HAB_CACHE_KEY_PATH` environment variable is not present, check if we are running
+    // under a `sudo` invocation. If so, determine the non-root user that issued the command in
+    // order to set their key cache location in the environment variable. This is done so that the
+    // `hab-studio` command will find the correct key cache or so that the correct directory will
+    // be volume mounted when used with Docker.
+    if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
+        if let Some(sudo_user) = henv::sudo_user() {
+            if let Some(home) = users::get_home_for_user(&sudo_user) {
+                let cache_key_path = home.join(format!(".{}", CACHE_KEY_PATH));
+                debug!("Setting cache_key_path for SUDO_USER={} to: {}",
+                       &sudo_user,
+                       cache_key_path.display());
+                env::set_var(CACHE_KEY_PATH_ENV_VAR, cache_key_path);
+                // Prevent any inner `hab` invocations from triggering similar logic: we will be
+                // operating in the context `hab-studio` which is running with rootlike privileges.
+                env::remove_var("SUDO_USER");
+            }
+        }
+    }
+
     inner::start(ui, args)
 }
 

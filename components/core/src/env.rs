@@ -77,3 +77,59 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
         None => None,
     }
 }
+
+/// Fetches the environment variable `SUDO_USER` from the current process, but only if the value is
+/// not `"root"`.
+///
+/// This function is special-purpose for a Habitat-centric interpretation of this value. If the
+/// root user is running a command with `sudo`, then the environment will contain a
+/// `SUDO_USER=root` value. However, Habitat considers root's home for caches, etc. to be under
+/// the `/hab` directory (as opposed to root's `$HOME`).
+///
+/// # Examples
+///
+/// With no environment variable present:
+///
+/// ```
+/// use std;
+/// use habitat_core;
+///
+/// std::env::remove_var("SUDO_USER");
+/// match habitat_core::env::sudo_user() {
+///     Some(val) => panic!("The environment variable is set but should be unset!"),
+///     None => println!("No SUDO_USER set in the environment"),
+/// }
+/// ```
+///
+/// With a non-root user set:
+///
+/// ```
+/// use std;
+/// use habitat_core;
+///
+/// std::env::set_var("SUDO_USER", "bob");
+/// match habitat_core::env::sudo_user() {
+///     Some(val) => assert_eq!(val, "bob"),
+///     None => panic!("The environment variable is set and should be bob"),
+/// }
+/// ```
+///
+/// With the root user set:
+///
+/// ```
+/// use std;
+/// use habitat_core;
+///
+/// std::env::set_var("SUDO_USER", "root");
+/// match habitat_core::env::sudo_user() {
+///     Some(val) => panic!("The environment variable is set to root and should return with None!"),
+///     None => println!("No non-root SUDO_USER set in the environment"),
+/// }
+/// ```
+///
+pub fn sudo_user() -> std::option::Option<String> {
+    match self::var("SUDO_USER") {
+        Ok(val) => if val != "root" { Some(val) } else { None },
+        Err(_) => None,
+    }
+}
