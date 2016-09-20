@@ -2,6 +2,7 @@ branches:
   only:
   - master
   - auto
+  - /^test_development-.*$/
 env:
   global:
   - PATH=$HOME/bin:$HOME/.cargo/bin:$PATH
