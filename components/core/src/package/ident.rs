@@ -216,24 +216,6 @@ impl Ord for PackageIdent {
         if self.name != other.name {
             return self.name.cmp(&other.name);
         }
-        if self.version.is_none() && other.version.is_none() {
-            return Ordering::Equal;
-        }
-        if self.version.is_none() && other.version.is_some() {
-            return Ordering::Less;
-        }
-        if self.version.is_some() && other.version.is_none() {
-            return Ordering::Greater;
-        }
-        if self.release.is_none() && other.release.is_none() {
-            return Ordering::Equal;
-        }
-        if self.release.is_none() && other.release.is_some() {
-            return Ordering::Less;
-        }
-        if self.release.is_some() && other.release.is_none() {
-            return Ordering::Greater;
-        }
         match version_sort(self.version.as_ref().unwrap(),
                            other.version.as_ref().unwrap()) {
             ord @ Ok(Ordering::Greater) |

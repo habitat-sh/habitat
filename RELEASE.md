@@ -127,6 +127,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
   * hab-sup-static - `habitat/components/sup/static`
   * hab-director - `habitat/components/director`
   * hab-builder-api - `habitat/components/builder-api`
+  * hab-builder-admin - `habitat/components/builder-admin`
   * hab-builder-depot - `habitat/components/builder-depot`
   * hab-builder-jobsrv - `habitat/components/builder-jobsrv`
   * hab-builder-router - `habitat/components/builder-router`

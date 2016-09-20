@@ -156,15 +156,17 @@ impl PackagesIndex {
 
     pub fn latest<T: Identifiable>(&self, id: &T) -> Result<depotsrv::PackageIdent> {
         let conn = self.pool().get().unwrap();
-        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&id.to_string()), 0, 1) {
+        match conn.zrange::<String, Vec<String>>(PackagesIndex::key(&id.to_string()), 0, -1) {
             Ok(ref ids) if ids.len() <= 0 => {
                 return Err(Error::DataStore(dbcache::Error::EntityNotFound))
             }
             Ok(ids) => {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
-                let mut ids: Vec<package::PackageIdent> =
-                    ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
+                let mut ids: Vec<package::PackageIdent> = ids.iter()
+                    .map(|id| package::PackageIdent::from_str(id).unwrap())
+                    .filter(|p| p.fully_qualified())
+                    .collect();
                 ids.sort();
                 ids.reverse();
                 Ok(depotsrv::PackageIdent::from(ids.remove(0)))
