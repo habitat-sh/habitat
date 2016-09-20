@@ -17,10 +17,11 @@
 pub mod binlink {
     use std::fs;
     use std::path::Path;
-    use std::os::unix;
+
 
     use common::ui::{Status, UI};
     use hcore::package::{PackageIdent, PackageInstall};
+    use hcore::os::filesystem;
 
     use error::{Error, Result};
     use exec::find_command_in_pkg;
@@ -54,10 +55,10 @@ pub mod binlink {
             Ok(path) => {
                 if path != src {
                     try!(fs::remove_file(&dst));
-                    try!(unix::fs::symlink(&src, &dst));
+                    try!(filesystem::symlink(&src, &dst));
                 }
             }
-            Err(_) => try!(unix::fs::symlink(&src, &dst)),
+            Err(_) => try!(filesystem::symlink(&src, &dst)),
         }
         try!(ui.end(format!("Binary {} from {} symlinked to {}",
                             &binary,
