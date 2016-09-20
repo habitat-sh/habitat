@@ -25,7 +25,7 @@ use threadpool::ThreadPool;
 
 use std::net::{self, UdpSocket};
 use std::ops::Deref;
-use std::str::FromStr;
+use std::str::{self, FromStr};
 use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
@@ -97,7 +97,9 @@ impl Server {
         let peer_listen2 = peer_listen.clone();
 
         // TODO: do we need to pass listen to child threads?
-        let socket = UdpSocket::bind(listen.as_str()).expect(&format!("Server Can't bind to {}", &listen));
+        let mut socket = UdpSocket::bind(listen.as_str()).expect(&format!("Server Can't bind to {}", &listen));
+        // TODO: set super short timeouts or non blocking
+        //socket.set_nonblocking(true);
         let member = Member::new(hostname, listen_ip, peer_listen2, permanent);
 
         let service_group = format!("{}.{}", service, group);
@@ -270,17 +272,18 @@ pub fn inbound(socket: Arc<RwLock<UdpSocket>>,
                gossip_file_list: Arc<RwLock<GossipFileList>>) {
     let pool = ThreadPool::new(INBOUND_MAX_THREADS);
     loop {
-        println!("WAITING FOR DATA");
+        //println!("WAITING FOR DATA");
         let mut buf = [0; 65507];
         let data_in = {
             let s = socket.write().unwrap();
             s.recv_from(&mut buf)
         };
 
-        let src = match data_in {
+        let (data_len, src) = match data_in {
             Ok((amt, src)) => {
+                // TODO: Refactor this
                 println!("Received {} bytes from {:?}", amt, src);
-                src
+                (amt, src)
             }
             Err(e) => {
                 println!("Error reading from socket: {}", e);
@@ -288,7 +291,17 @@ pub fn inbound(socket: Arc<RwLock<UdpSocket>>,
             }
         };
 
-        let raw_data = buf.to_vec();
+        let partial_str = match str::from_utf8(&buf[..data_len]) {
+            Ok(s) => s,
+            Err(e) => {
+                println!("Error parsing input data {}", e);
+                continue;
+            }
+        };
+        let raw_data = partial_str.to_string().into_bytes();
+
+        //let raw_data = buf.to_vec();
+        //println!("BUF LEN = {}", raw_data.len());
 
         // TODO: do we really wait forever?
         loop {
@@ -682,8 +695,6 @@ pub fn send_outbound(ring_key: Arc<Option<SymKey>>,
                      rumor_list: Arc<RwLock<RumorList>>,
                      member_list: Arc<RwLock<MemberList>>,
                      detector: Arc<RwLock<Detector>>) {
-    println!("send_outbound");
-    /*
     {
         let mut d = detector.write().unwrap();
         d.start(member.id.clone());
@@ -734,11 +745,9 @@ pub fn send_outbound(ring_key: Arc<Option<SymKey>>,
         let mut rl = rumor_list.write().unwrap();
         rl.update_heat_for(&member.id, &ping_rumors);
     }
-    */
 }
 
 
-/*
 /// Send a PingReq for a failed Ping. We pick targets from the Member List, and then send a PingReq
 /// to each of them, with our information filled in.
 pub fn send_pingreq(ring_key: Arc<Option<SymKey>>,
@@ -791,7 +800,6 @@ pub fn send_pingreq(ring_key: Arc<Option<SymKey>>,
         }
     }
 }
-*/
 
 /// The failure detector. Every 100ms, we check for any failed for confirmed timeouts within the
 /// detector. If we find a timeout, we update our rumor and the members entry. Additionally, if we

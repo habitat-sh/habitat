@@ -136,9 +136,11 @@ impl Detector {
             }
         }
         for member_id in failed_members.iter() {
+            println!("Marking {} as failed", &member_id);
             self.failed(member_id);
         }
         for member_id in confirmed_members.iter() {
+            println!("Marking {} as confirmed", &member_id);
             self.open_requests.remove(member_id);
         }
         (pingreq_members, failed_members, confirmed_members)
