@@ -1,12 +1,13 @@
 pkg_name=hab-builder-worker
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
+pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION-BLDR")
 pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
-pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc core/pkg-config)
+pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreutils core/cacerts
+  core/cargo-nightly core/rust core/gcc core/pkg-config core/zlib)
 bin="bldr-worker"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 
@@ -26,13 +27,18 @@ do_prepare() {
   export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
 
-  export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
-  export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
-  export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
-  export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
-  export PROTOBUF_PREFIX=$(pkg_path_for protobuf)
-  export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
-  export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
+  export LIBARCHIVE_LIB_DIR="$(pkg_path_for libarchive)/lib"
+  export LIBARCHIVE_INCLUDE_DIR="$(pkg_path_for libarchive)/include"
+  export OPENSSL_LIB_DIR="$(pkg_path_for openssl)/lib"
+  export OPENSSL_INCLUDE_DIR="$(pkg_path_for openssl)/include"
+  export PROTOBUF_PREFIX="$(pkg_path_for protobuf)"
+  export SODIUM_LIB_DIR="$(pkg_path_for libsodium)/lib"
+  export LIBZMQ_PREFIX="$(pkg_path_for zeromq)"
+
+  # Used by libssh2-sys
+  export DEP_OPENSSL_ROOT="$(pkg_path_for openssl)"
+  export DEP_Z_ROOT="$(pkg_path_for zlib)"
+  export DEP_Z_INCLUDE="$(pkg_path_for zlib)/include"
 }
 
 do_build() {
