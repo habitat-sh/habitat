@@ -21,5 +21,5 @@ pub fn get_gid_by_name(group: &str) -> Option<u32> {
 }
 
 pub fn get_effective_uid() -> u32 {
-    unimplemented!();
+    0u32
 }
