@@ -14,15 +14,22 @@
 
 use error::Result;
 
+// We can probably pull this from Win32_OperatingSystem
 #[derive(Debug)]
 pub struct Uname {
-    pub sys_name: String,
-    pub node_name: String,
-    pub release: String,
-    pub version: String,
-    pub machine: String,
+    pub sys_name: String, // static - Windows
+    pub node_name: String, // __SERVER
+    pub release: String, // Version
+    pub version: String, // Caption
+    pub machine: String, // OSArchitecture - but converted to standard x86_64 or i386
 }
 
 pub fn uname() -> Result<Uname> {
-    unimplemented!();
+    Ok(Uname{
+        sys_name: String::from("Windows"),
+        node_name: String::from("CHEF-WIN10"),
+        release: String::from("10.0.14915"),
+        version: String::from("Microsoft Windows 10 Enterprise Insider Preview"),
+        machine: String::from("x86_64"),
+    })
 }
