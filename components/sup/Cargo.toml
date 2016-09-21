@@ -37,6 +37,7 @@ lazy_static = "*"
 handlebars = "*"
 wonder = "*"
 users = "*"
+walkdir = "*"
 
 [dependencies.habitat_core]
 path = "../core"

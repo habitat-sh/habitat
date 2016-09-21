@@ -37,6 +37,7 @@ use service_config::ServiceConfig;
 use supervisor::Supervisor;
 use util::path::busybox_paths;
 use util::users as hab_users;
+use walkdir::WalkDir;
 
 static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
@@ -243,23 +244,27 @@ impl Package {
     /// helpers above.
     pub fn config_files(&self) -> Result<Vec<String>> {
         let mut files: Vec<String> = Vec::new();
-        let config_dir = self.config_from().join("config");
-        debug!("Loading configuration from {:?}", config_dir);
-        match std::fs::read_dir(config_dir) {
-            Ok(config_dir) => {
-                for config in config_dir {
-                    let config = try!(config);
-                    match config.path().file_name() {
-                        Some(filename) => {
-                            debug!("Looking in {:?}", filename);
-                            files.push(filename.to_string_lossy().into_owned().to_string());
-                        }
-                        None => unreachable!(),
-                    }
-                }
+        let cfg_dir = self.path().join("config");
+
+        match std::fs::metadata(&cfg_dir).map(|d| d.is_dir()) {
+            Err(_) | Ok(false) => {
+                return Ok(files)
             }
-            Err(e) => {
-                debug!("No config directory in package: {}", e);
+            Ok(true) => ()
+        };
+
+        for entry in WalkDir::new(&cfg_dir) {
+            if let Err(e) = entry {
+                debug!("Can't process config file: {}", e);
+                continue;
+            }
+            let entry = entry.unwrap();
+            if entry.path().is_file() {
+                if let Ok(rel_path) = entry.path().strip_prefix(&cfg_dir) {
+                    let f = rel_path.to_string_lossy().into_owned();
+                    debug!("Detected config file: {}", &f);
+                    files.push(f);
+                }
             }
         }
         Ok(files)
