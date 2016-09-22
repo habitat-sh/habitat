@@ -83,7 +83,7 @@ pub mod setup {
                       community. In addition, it is how you can perform continuous deployment \
                       with Habitat."));
         try!(ui.para("The depot uses GitHub authentication with an access token with the \
-                      user:email scope (https://help.github.\
+                      user scope (https://help.github.\
                       com/articles/creating-an-access-token-for-command-line-use/)."));
         try!(ui.para("If you would like to share your packages on the depot, please enter your \
                       GitHub access token. Otherwise, just enter No."));
