@@ -46,6 +46,7 @@ Lieutenant and may have many maintainers.
 * [Jamie Winsor](https://github.com/reset)
 * [Brian Scott](https://github.com/bscott)
 * [Josh Black](https://github.com/raskchanky)
+* [Steven Murawski](https://github.com/smurawski)
 
 ### Habitat Builder Web Application
 
@@ -72,6 +73,7 @@ The web application for the Habitat builder and depot.
 * [Fletcher Nichol](https://github.com/fnichol)
 * [Dave Parfitt](https://github.com/metadave)
 * [Brian Scott](https://github.com/bscott)
+* [Steven Murawski](https://github.com/smurawski)
 
 ### Documentation
 
