@@ -1,7 +1,7 @@
 branches:
   only:
   - master
-  - auto
+  - /^sentinel.+$/
   - /^test_development-.*$/
 env:
   global:
@@ -168,4 +168,9 @@ matrix:
     install: "(cd www && bundle install)"
     script: ./support/ci/deploy_website.sh
 notifications:
-  webhooks: http://old-bots.habitat.sh:54856/travis
+  webhooks:
+    urls:
+      - http://bots.habitat.sh:4567/travis
+    on_success: always
+    on_failure: always
+    on_start: always
