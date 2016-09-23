@@ -17,6 +17,10 @@ function New-PathString([string]$StartingPath, [string]$Path) {
     }
 }
 
+function Test-AppVeyor {
+    (test-path env:\APPVEYOR) -and (-not [bool]::Parse($env:APPVEYOR))
+} 
+
 # Make sure that chocolatey is installed and up to date
 # (required for dependencies)
 if (-not (get-command choco -ErrorAction SilentlyContinue)) {
@@ -39,7 +43,7 @@ $ChocolateyHabitatLibDir = "$env:ChocolateyInstall\lib\habitat_native_dependenci
 $ChocolateyHabitatIncludeDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\include"
 $ChocolateyHabitatBinDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\bin"
 
-if (-not [bool]::Parse($env:APPVEYOR)) {
+if (-not (Test-AppVeyor)) {
     # We need the Visual C 2013 Runtime for the Win32 ABI Rust
     choco install 'vcredist2013' --confirm --allowemptychecksum
 
@@ -86,7 +90,7 @@ $env:OPENSSL_STATIC             = $true
 
 
 # Start the build
-if (-not [bool]::Parse($env:APPVEYOR)) {
+if (-not (Test-AppVeyor)) {
     Push-Location "$psscriptroot\.."
     invoke-expression "$cargo clean"
     Invoke-Expression "$cargo build" 
