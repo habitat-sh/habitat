@@ -59,7 +59,7 @@ securitySchemes:
                 schema: origin
                 example: |
                     {
-                        "name": "reset",
+                        "name": "reset"
                     }
         responses:
             200:
@@ -127,6 +127,14 @@ securitySchemes:
                                 core-20160423193745
 
                                 Jpmj1gD9oTFCgz3wSLltt/QB6RTmNRWoUTe+xhDTIHc=
+                    responses:
+                        201:
+                            description: Key successfully uploaded
+                        403:
+                            description: Authenticated user not a member of the given Origin
+                        409:
+                            description: Key already exists in Origin
+        /secret_keys:
         /users:
             get:
                 description: List all members of an origin

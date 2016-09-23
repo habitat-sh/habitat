@@ -25,7 +25,7 @@ use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_net::config::RouteAddrs;
 use hab_net::http::controller::*;
-use hab_net::routing::Broker;
+use hab_net::routing::{Broker, BrokerConn};
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::{ContentType, Vary};
@@ -96,8 +96,7 @@ pub fn origin_show(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-pub fn get_origin(origin: &str) -> Result<Option<Origin>> {
-    let mut conn = Broker::connect().unwrap();
+pub fn get_origin(conn: &mut BrokerConn, origin: &str) -> IronResult<Option<Origin>> {
     let mut request = OriginGet::new();
     request.set_name(origin.to_string());
     match conn.route::<OriginGet, Origin>(&request) {
@@ -106,26 +105,28 @@ pub fn get_origin(origin: &str) -> Result<Option<Origin>> {
             if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
                 Ok(None)
             } else {
-                // JW TODO: propogate error properly
-                Ok(None)
+                let body = json::encode(&err.to_json()).unwrap();
+                let status = net_err_to_http(err.get_code());
+                Err(IronError::new(err, (body, status)))
             }
         }
     }
 }
 
-pub fn check_origin_access(account_id: u64, origin_name: &str) -> bool {
+pub fn check_origin_access<T: ToString>(conn: &mut BrokerConn,
+                                        account_id: u64,
+                                        origin: T)
+                                        -> IronResult<bool> {
     let mut request = CheckOriginAccessRequest::new();
-    // !!!NOTE!!!
-    // only account_id and origin_name are implemented in
-    // CheckOriginAccessRequest
-    // !!!NOTE!!!
     request.set_account_id(account_id);
-    request.set_origin_name(origin_name.to_string());
-    let mut conn = Broker::connect().unwrap();
-    // TODO: This function is dangerous, it swallows errors and should be refactored.
+    request.set_origin_name(origin.to_string());
     match conn.route::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&request) {
-        Ok(response) => response.get_has_access(),
-        Err(_) => false,
+        Ok(response) => Ok(response.get_has_access()),
+        Err(err) => {
+            let body = json::encode(&err.to_json()).unwrap();
+            let status = net_err_to_http(err.get_code());
+            Err(IronError::new(err, (body, status)))
+        }
     }
 }
 
@@ -140,13 +141,13 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         Some(username) => username,
         None => return Ok(Response::with(status::BadRequest)),
     };
+    let mut conn = Broker::connect().unwrap();
     debug!("Creating invitation for user {} origin {}",
            &user_to_invite,
            &origin);
-    if !check_origin_access(session.get_id(), &origin) {
+    if !try!(check_origin_access(&mut conn, session.get_id(), &origin)) {
         return Ok(Response::with(status::Forbidden));
     }
-    let mut conn = Broker::connect().unwrap();
     let mut request = AccountGet::new();
     let mut invite_request = OriginInvitationCreate::new();
     request.set_name(user_to_invite.to_string());
@@ -158,7 +159,7 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         }
         Err(err) => return Ok(render_net_error(&err)),
     };
-    match try!(get_origin(&origin)) {
+    match try!(get_origin(&mut conn, &origin)) {
         Some(mut origin) => {
             invite_request.set_origin_id(origin.get_id());
             invite_request.set_origin_name(origin.take_name());
@@ -181,14 +182,13 @@ pub fn list_origin_invitations(req: &mut Request) -> IronResult<Response> {
         None => return Ok(Response::with(status::BadRequest)),
     };
 
-    if !check_origin_access(session.get_id(), &origin_name) {
+    let mut conn = Broker::connect().unwrap();
+    if !try!(check_origin_access(&mut conn, session.get_id(), &origin_name)) {
         return Ok(Response::with(status::Forbidden));
     }
 
-    let mut conn = Broker::connect().unwrap();
     let mut request = OriginInvitationListRequest::new();
-
-    match try!(get_origin(origin_name)) {
+    match try!(get_origin(&mut conn, origin_name)) {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -210,14 +210,14 @@ pub fn list_origin_members(req: &mut Request) -> IronResult<Response> {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
+    let mut conn = Broker::connect().unwrap();
 
-    if !check_origin_access(session.get_id(), &origin_name) {
+    if !try!(check_origin_access(&mut conn, session.get_id(), &origin_name)) {
         return Ok(Response::with(status::Forbidden));
     }
 
-    let mut conn = Broker::connect().unwrap();
     let mut request = OriginMemberListRequest::new();
-    match try!(get_origin(origin_name)) {
+    match try!(get_origin(&mut conn, origin_name)) {
         Some(origin) => request.set_origin_id(origin.get_id()),
         None => return Ok(Response::with(status::NotFound)),
     };
@@ -275,14 +275,13 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
 
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
-    let (origin, revision) = match extract_origin_and_revision(req) {
-        Some((origin, revision)) => (origin, revision),
-        None => return Ok(Response::with(status::BadRequest)),
-    };
-
+    let params = req.extensions.get::<Router>().unwrap();
+    let origin = params.find("origin").unwrap();
+    let revision = params.find("revision").unwrap();
     if !depot.config.insecure {
         let session = req.extensions.get::<Authenticated>().unwrap();
-        if !check_origin_access(session.get_id(), &origin) {
+        let mut conn = Broker::connect().unwrap();
+        if !try!(check_origin_access(&mut conn, session.get_id(), origin)) {
             return Ok(Response::with(status::Forbidden));
         }
     }
@@ -290,33 +289,31 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     let mut content = String::new();
     if let Err(e) = req.body.read_to_string(&mut content) {
         debug!("Can't read public key upload content: {}", e);
-        return Ok(Response::with(status::BadRequest));
+        return Ok(Response::with(status::NotAcceptable));
     }
 
     match SigKeyPair::parse_key_str(&content) {
-        Ok((PairType::Public, _, _)) => {
-            debug!("Received a valid public key");
-        }
+        Ok((PairType::Public, _, _)) => (),
         Ok(_) => {
-            debug!("Received a secret key instead of a public key");
-            return Ok(Response::with(status::BadRequest));
+            return Ok(Response::with((status::NotAcceptable,
+                                      format!("Received a secret key instead of a public key"))));
         }
         Err(e) => {
-            debug!("Invalid public key content: {}", e);
-            return Ok(Response::with(status::BadRequest));
+            return Ok(Response::with((status::NotAcceptable,
+                                      format!("Invalid public key content: {}", e))));
         }
     }
 
-    let origin_keyfile = depot.key_path(&origin, &revision);
-    debug!("Writing key file {}", origin_keyfile.to_string_lossy());
+    let origin_keyfile = depot.key_path(origin, revision);
+    // TODO: We can't just check if the keyfile exists on disk since this operation also requires
+    // an entry in the database. This operation should instead check the database since that is
+    // the last step of writing an origin key and represents the success.
     if origin_keyfile.is_file() {
         return Ok(Response::with(status::Conflict));
     }
-
+    debug!("Writing key file {}", origin_keyfile.to_string_lossy());
     try!(write_string_to_file(&origin_keyfile, content));
-
-    // don't write to Redis if the file wasn't written
-    depot.datastore.origin_keys.write(&origin, &revision).unwrap();
+    try!(depot.datastore.origin_keys.write(&origin, &revision));
 
     let mut response = Response::with((status::Created,
                                        format!("/origins/{}/keys/{}", &origin, &revision)));
@@ -330,16 +327,16 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
     let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-
+    let mut conn = Broker::connect().unwrap();
     let mut request = OriginSecretKeyCreate::new();
     request.set_owner_id(session.get_id());
 
     match params.find("origin") {
         Some(origin) => {
-            if !check_origin_access(session.get_id(), origin) {
+            if !try!(check_origin_access(&mut conn, session.get_id(), origin)) {
                 return Ok(Response::with(status::Forbidden));
             }
-            match try!(get_origin(origin)) {
+            match try!(get_origin(&mut conn, origin)) {
                 Some(mut origin) => {
                     request.set_name(origin.take_name());
                     request.set_origin_id(origin.get_id());
@@ -385,7 +382,6 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     request.set_body(key_content);
     request.set_owner_id(0);
 
-    let mut conn = Broker::connect().unwrap();
     match conn.route::<OriginSecretKeyCreate, OriginSecretKey>(&request) {
         Ok(_) => Ok(Response::with(status::Created)),
         Err(err) => Ok(render_net_error(&err)),
@@ -402,6 +398,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         ident_from_params(params)
     };
+    let mut conn = Broker::connect().unwrap();
 
     debug!("UPLOADING checksum={}, ident={}",
            checksum_from_param,
@@ -409,7 +406,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
     if !depot.config.insecure {
         let session = req.extensions.get::<Authenticated>().unwrap();
-        if !check_origin_access(session.get_id(), &ident.get_origin()) {
+        if !try!(check_origin_access(&mut conn, session.get_id(), &ident.get_origin())) {
             return Ok(Response::with(status::Forbidden));
         }
         if !ident.fully_qualified() {
@@ -820,9 +817,10 @@ fn promote_package(req: &mut Request) -> IronResult<Response> {
         let ident = ident_from_params(params);
         (channel, ident)
     };
+    let mut conn = Broker::connect().unwrap();
     match depot.datastore.channels.is_member(channel) {
         Ok(true) => {
-            if !check_origin_access(session.get_id(), &ident.get_origin()) {
+            if !try!(check_origin_access(&mut conn, session.get_id(), &ident.get_origin())) {
                 return Ok(Response::with(status::Forbidden));
             }
             match depot.datastore.packages.find(&ident) {
@@ -900,17 +898,6 @@ fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     }
 }
 
-fn extract_origin_and_revision(req: &mut Request) -> Option<(String, String)> {
-    let params = req.extensions.get::<Router>().unwrap();
-    let origin = params.find("origin").map(|s| s.to_string());
-    let revision = params.find("revision").map(|s| s.to_string());
-    match (origin, revision) {
-        (None, _) => None,
-        (_, None) => None,
-        (Some(origin), Some(revision)) => Some((origin, revision)),
-    }
-}
-
 fn do_cache_response(response: &mut Response) {
     response.headers.set(CacheControl(format!("public, max-age={}", ONE_YEAR_IN_SECS)));
 }
@@ -924,10 +911,12 @@ pub fn router(depot: Depot) -> Result<Chain> {
     let router = router!(
         channels: get "/channels" => list_channels,
         channel_packages: get "/channels/:channel/pkgs/:origin" => list_packages,
-        channel_packages: get "/channels/:channel/pkgs/:origin/:pkg" => list_packages,
+        channel_packages_pkg: get "/channels/:channel/pkgs/:origin/:pkg" => list_packages,
         channel_package_latest: get "/channels/:channel/pkgs/:origin/:pkg/latest" => show_package,
-        channel_packages: get "/channels/:channel/pkgs/:origin/:pkg/:version" => list_packages,
-        channel_package: get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
+        channel_packages_version:
+            get "/channels/:channel/pkgs/:origin/:pkg/:version" => list_packages,
+        channel_package_version_latest:
+            get "/channels/:channel/pkgs/:origin/:pkg/:version/latest" => show_package,
         channel_package: get "/channels/:channel/pkgs/:origin/:pkg/:version/:release" => {
             show_package
         },
@@ -948,39 +937,12 @@ pub fn router(depot: Depot) -> Result<Chain> {
             download_origin_key
         },
 
-        // JW: `views` is a deprecated term and now an alias for `channels`. These routes should be
-        // removed at a later date.
-        views: get "/views" => list_channels,
-        view_packages: get "/views/:channel/pkgs/:origin" => list_packages,
-        view_packages: get "/views/:channel/pkgs/:origin/:pkg" => list_packages,
-        view_package: get "/views/:channel/pkgs/:origin/:pkg/latest" => show_package,
-        view_packages: get "/views/:channel/pkgs/:origin/:pkg/:version" => list_packages,
-        view_package_latest: get "/views/:channel/pkgs/:origin/:pkg/:version/latest" => {
-            show_package
-        },
-        view_package: get "/views/:channel/pkgs/:origin/:pkg/:version/:release" => {
-            show_package
-        },
-        view_package_promote:
-            post "/views/:channel/pkgs/:origin/:pkg/:version/:release/promote" => {
-                XHandler::new(promote_package).before(basic.clone())
-        },
-        view_package_download:
-            get "/views/:view/pkgs/:origin/:pkg/:version/:release/download" => download_package,
-        view_origin_keys: get "/views/:view/origins/:origin/keys" => list_origin_keys,
-        view_origin_key_latest: get "/views/:view/origins/:origin/keys/latest" => {
-            download_latest_origin_key
-        },
-        view_origin_key: get "/views/:view/origins/:origin/keys/:revision" => {
-            download_origin_key
-        },
-
         package_search: get "/pkgs/search/:query" => search_packages,
         packages: get "/pkgs/:origin" => list_packages,
-        packages: get "/pkgs/:origin/:pkg" => list_packages,
-        package: get "/pkgs/:origin/:pkg/latest" => show_package,
-        packages: get "/pkgs/:origin/:pkg/:version" => list_packages,
-        package: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
+        packages_pkg: get "/pkgs/:origin/:pkg" => list_packages,
+        package_pkg_latest: get "/pkgs/:origin/:pkg/latest" => show_package,
+        packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,
+        package_version_latest: get "/pkgs/:origin/:pkg/:version/latest" => show_package,
         package: get "/pkgs/:origin/:pkg/:version/:release" => show_package,
 
         package_download: get "/pkgs/:origin/:pkg/:version/:release/download" => {
