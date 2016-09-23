@@ -82,6 +82,7 @@ info "Purging container hab cache"
 rm -rf $FS_ROOT/hab/cache
 
 ident="$(hab pkg path core/hab-studio | rev | cut -d '/' -f 1-4 | rev)"
+short_version=$(echo $ident | awk -F/ '{print $3}')
 version=$(echo $ident | awk -F/ '{print $3 "-" $4}')
 
 cat <<EOF > $tmp_root/Dockerfile
@@ -100,9 +101,13 @@ docker build --no-cache -t ${IMAGE_NAME}:$version .
 info "Tagging latest image to ${IMAGE_NAME}:$version"
 docker tag ${IMAGE_NAME}:$version ${IMAGE_NAME}:latest
 
+info "Tagging latest image to ${IMAGE_NAME}:$short_version"
+docker tag ${IMAGE_NAME}:$version ${IMAGE_NAME}:$short_version
+
 cat <<-EOF > "$start_dir/results/last_image.env"
 docker_image=$IMAGE_NAME
 docker_image_version=$version
+docker_image_short_version=$short_version
 EOF
 
 info
