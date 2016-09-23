@@ -27,6 +27,7 @@ use config;
 use error::{Error, Result};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
+const AUTH_SCOPE: &'static str = "user";
 
 #[derive(Clone)]
 pub struct GitHubClient {
@@ -58,11 +59,10 @@ impl GitHubClient {
             try!(rep.read_to_string(&mut encoded));
             match json::decode(&encoded) {
                 Ok(msg @ AuthOk { .. }) => {
-                    let scope = "user:email".to_string();
-                    if msg.has_scope(&scope) {
+                    if msg.has_scope(AUTH_SCOPE) {
                         Ok(msg.access_token)
                     } else {
-                        Err(Error::MissingScope(scope))
+                        Err(Error::MissingScope(AUTH_SCOPE.to_string()))
                     }
                 }
                 Err(_) => {
@@ -84,7 +84,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let contents: Contents = json::decode(&body).unwrap();
         Ok(contents)
@@ -97,7 +97,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let repo: Repo = json::decode(&body).unwrap();
         Ok(repo)
@@ -110,7 +110,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let user: User = json::decode(&body).unwrap();
         Ok(user)
@@ -123,7 +123,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let emails: Vec<Email> = try!(json::decode(&body));
         Ok(emails)
@@ -136,7 +136,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let orgs: Vec<Organization> = try!(json::decode(&body));
         Ok(orgs)
@@ -149,7 +149,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let teams: Vec<Team> = try!(json::decode(&body));
         Ok(teams)

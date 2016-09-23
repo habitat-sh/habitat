@@ -578,10 +578,7 @@ fn download_package(req: &mut Request) -> IronResult<Response> {
 fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
-    let origin = match params.find("origin") {
-        Some(origin) => origin,
-        None => return Ok(Response::with(status::BadRequest)),
-    };
+    let origin = params.find("origin").unwrap();
     match depot.datastore.origin_keys.all(origin) {
         Ok(revisions) => {
             let body = json::encode(&revisions.to_json()).unwrap();
@@ -594,7 +591,6 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
             Ok(Response::with(status::InternalServerError))
         }
     }
-
 }
 
 fn list_packages(req: &mut Request) -> IronResult<Response> {

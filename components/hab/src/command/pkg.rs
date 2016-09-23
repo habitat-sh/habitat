@@ -18,7 +18,6 @@ pub mod binlink {
     use std::fs;
     use std::path::Path;
 
-
     use common::ui::{Status, UI};
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::os::filesystem;
@@ -373,27 +372,22 @@ pub mod search {
 
     pub fn start(st: &str, url: &str) -> Result<()> {
         let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
-        match depot_client.search_package(st.to_string()) {
-            Ok(packages) => {
-                match packages.len() {
-                    0 => {
-                        println!("No packages found that match '{}'", st);
-                    }
-                    _ => {
-                        for p in &packages {
-                            println!("{}/{}/{}/{}",
-                                     p.origin,
-                                     p.name,
-                                     p.version.clone().unwrap(),
-                                     p.release.clone().unwrap());
-                        }
-                        if packages.len() == 50 {
-                            println!("Search returned too many items, only showing the first 50");
-                        }
-                    }
+        let (packages, more) = try!(depot_client.search_package(st.to_string()));
+        match packages.len() {
+            0 => println!("No packages found that match '{}'", st),
+            _ => {
+                for p in &packages {
+                    println!("{}/{}/{}/{}",
+                             p.origin,
+                             p.name,
+                             p.version.clone().unwrap(),
+                             p.release.clone().unwrap());
+                }
+                if more {
+                    println!("Search returned too many items, only showing the first {}",
+                             packages.len());
                 }
             }
-            Err(e) => println!("{}", e),
         }
         Ok(())
     }
@@ -445,7 +439,7 @@ pub mod upload {
     use hcore::crypto::artifact::get_artifact_header;
     use hcore::crypto::keys::parse_name_with_rev;
     use hcore::package::{PackageArchive, PackageIdent};
-    use hyper::status::StatusCode::{self, Forbidden, Unauthorized};
+    use hyper::status::StatusCode;
 
     use {PRODUCT, VERSION};
     use error::{Error, Result};
@@ -484,19 +478,11 @@ pub mod upload {
                 try!(ui.status(Status::Uploaded,
                                format!("public origin key {}", &public_keyfile_name)));
             }
-            Err(e @ depot_client::Error::HTTP(Forbidden)) |
-            Err(e @ depot_client::Error::HTTP(Unauthorized)) => {
-                return Err(Error::from(e));
-            }
-
-            Err(e @ depot_client::Error::HTTP(_)) => {
-                debug!("Error uploading public key {}", e);
+            Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
                 try!(ui.status(Status::Using,
                                format!("existing public origin key {}", &public_keyfile_name)));
             }
-            Err(e) => {
-                return Err(Error::DepotClient(e));
-            }
+            Err(err) => return Err(Error::from(err)),
         };
 
         try!(ui.begin(format!("Uploading {}", archive_path.as_ref().display())));
@@ -504,7 +490,7 @@ pub mod upload {
         for dep in tdeps.into_iter() {
             match depot_client.show_package(dep.clone()) {
                 Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &dep))),
-                Err(depot_client::Error::RemotePackageNotFound(_)) => {
+                Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
                     let candidate_path = match archive_path.as_ref().parent() {
                         Some(p) => PathBuf::from(p),
                         None => unreachable!(),
@@ -516,13 +502,17 @@ pub mod upload {
         }
         let ident = try!(archive.ident());
         match depot_client.show_package(ident.clone()) {
-            Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &ident))),
-            Err(_) => {
-                try!(upload_into_depot(ui, &depot_client, token, &ident, &mut archive));
+            Ok(_) => {
+                try!(ui.status(Status::Using, format!("existing {}", &ident)));
+                Ok(())
             }
+            Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
+                try!(upload_into_depot(ui, &depot_client, token, &ident, &mut archive));
+                try!(ui.end(format!("Upload of {} complete.", &ident)));
+                Ok(())
+            }
+            Err(e) => Err(Error::from(e)),
         }
-        try!(ui.end(format!("Upload of {} complete.", &ident)));
-        Ok(())
     }
 
     fn upload_into_depot(ui: &mut UI,
@@ -534,21 +524,14 @@ pub mod upload {
         try!(ui.status(Status::Uploading, archive.path.display()));
         match depot_client.put_package(&mut archive, token, ui.progress()) {
             Ok(()) => (),
-            Err(depot_client::Error::HTTP(StatusCode::Conflict)) => {
+            Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
                 println!("Package already exists on remote; skipping.");
             }
-            Err(depot_client::Error::HTTP(StatusCode::UnprocessableEntity)) => {
+            Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
                 return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
             }
-            Err(e @ depot_client::Error::HTTP(_)) => {
-                println!("Unexpected response from remote");
-                return Err(Error::from(e));
-            }
-            Err(e) => {
-                println!("The package might exist on the remote - we fast abort, so.. :)");
-                return Err(Error::from(e));
-            }
-        };
+            Err(e) => return Err(Error::from(e)),
+        }
         try!(ui.status(Status::Uploaded, ident));
         Ok(())
     }
@@ -560,29 +543,15 @@ pub mod upload {
                           archives_dir: &PathBuf)
                           -> Result<()> {
         let candidate_path = archives_dir.join(ident.archive_name().unwrap());
-
         if candidate_path.is_file() {
             let mut archive = PackageArchive::new(candidate_path);
-            match upload_into_depot(ui, &depot_client, token, &ident, &mut archive) {
-                Ok(()) => Ok(()),
-                Err(Error::DepotClient(depot_client::Error::HTTP(e))) => {
-                    return Err(Error::DepotClient(depot_client::Error::HTTP(e)))
-                }
-                Err(Error::PackageArchiveMalformed(e)) => {
-                    return Err(Error::PackageArchiveMalformed(e))
-                }
-                Err(e) => {
-                    println!("Unknown error encountered: {:?}", e);
-                    return Err(e);
-                }
-            }
+            upload_into_depot(ui, &depot_client, token, &ident, &mut archive)
         } else {
             try!(ui.status(Status::Missing,
                            format!("artifact for {} was not found in {}",
                                    ident.archive_name().unwrap(),
                                    archives_dir.display())));
-            return Err(Error::FileNotFound(archives_dir.to_string_lossy()
-                .into_owned()));
+            Err(Error::FileNotFound(archives_dir.to_string_lossy().into_owned()))
         }
     }
 }

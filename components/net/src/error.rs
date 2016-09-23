@@ -28,7 +28,7 @@ use oauth;
 #[derive(Debug)]
 pub enum Error {
     Auth(oauth::github::AuthErr),
-    GitHubAPI(HashMap<String, String>),
+    GitHubAPI(hyper::status::StatusCode, HashMap<String, String>),
     IO(io::Error),
     HyperError(hyper::error::Error),
     JsonDecode(json::DecoderError),
@@ -47,7 +47,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::Auth(ref e) => format!("GitHub Authentication error, {}", e),
-            Error::GitHubAPI(ref e) => format!("GitHub API error, {:?}", e),
+            Error::GitHubAPI(ref c, ref m) => format!("[{}] {:?}", c, m),
             Error::IO(ref e) => format!("{}", e),
             Error::HyperError(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
@@ -69,7 +69,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Auth(_) => "GitHub authorization error.",
-            Error::GitHubAPI(_) => "GitHub API error.",
+            Error::GitHubAPI(_, _) => "GitHub API error.",
             Error::IO(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",

@@ -49,7 +49,7 @@ pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerSta
         }
         Err(e) => {
             error!("datastore error, err={:?}", e);
-            let err = net::err(ErrCode::INTERNAL, "jb:job-get:2");
+            let err = net::err(ErrCode::DATA_STORE, "jb:job-get:2");
             try!(req.reply_complete(sock, &err));
         }
     }
