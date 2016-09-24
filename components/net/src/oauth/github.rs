@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::error::Error as StdError;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
+use std::result::Result as StdResult;
 
 use hyper::{self, Url};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
-use protocol::sessionsrv;
+use protocol::{net, sessionsrv};
 use rustc_serialize::json;
 
 use config;
@@ -380,20 +382,25 @@ pub enum AuthResp {
     AuthErr,
 }
 
-fn http_get(url: Url, token: &str) -> Result<hyper::client::response::Response> {
+fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Response, net::NetError> {
     hyper::Client::new()
         .get(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(|e| Error::from(e))
+        .map_err(hyper_to_net_err)
 }
 
-fn http_post(url: Url) -> Result<hyper::client::response::Response> {
+fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetError> {
     hyper::Client::new()
         .post(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
+        .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(|e| Error::from(e))
+        .map_err(hyper_to_net_err)
+}
+
+fn hyper_to_net_err(err: hyper::error::Error) -> net::NetError {
+    net::err(net::ErrCode::BAD_REMOTE_REPLY, err.description())
 }
