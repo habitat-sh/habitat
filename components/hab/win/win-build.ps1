@@ -18,7 +18,7 @@ function New-PathString([string]$StartingPath, [string]$Path) {
 }
 
 function Test-AppVeyor {
-    (test-path env:\APPVEYOR) -and (-not [bool]::Parse($env:APPVEYOR))
+    (test-path env:\APPVEYOR) -and ([bool]::Parse($env:APPVEYOR))
 } 
 
 # Make sure that chocolatey is installed and up to date
