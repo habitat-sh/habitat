@@ -30,7 +30,7 @@ cd ./hab-build-script
 
 # Option 1 - Install the pre-reqs for building
 # the pre-req checker will use chocolatey (installing if missing)
-invoke-psake -taskname pre_reqs
+invoke-psake -tasklist pre_reqs
 
 # Option 2 - Or just start the default build task (see below)
 # (which will verify the pre-reqs and install if missing)
@@ -70,13 +70,13 @@ invoke-psake
 ```
 # Build all the currently ported crates
 
-invoke-psake -taskname build
+invoke-psake -tasklist build
 ```
 
 ```
 # Build the current crate in progress
 
-invoke-psake -taskname current_build
+invoke-psake -tasklist current_build
 ```
 
 #### Test
@@ -84,12 +84,12 @@ invoke-psake -taskname current_build
 ```
 # Test all the currently ported crates
 
-invoke-psake -taskname test
+invoke-psake -tasklist test
 ```
 
 
 ```
 # Run tests on the current crate in progress
 
-invoke-psake -taskname current_test
+invoke-psake -tasklist current_test
 ```
