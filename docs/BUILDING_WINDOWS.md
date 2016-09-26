@@ -30,12 +30,53 @@ cd ./hab-build-script
 
 # Option 1 - Install the pre-reqs for building
 # the pre-req checker will use chocolatey (installing if missing)
-invoke-psake -taskname pre_reqs
+invoke-psake -tasklist pre_reqs
 
 # Option 2 - Or just start the default build task (see below)
 # (which will verify the pre-reqs and install if missing)
 ```
-## To Build
+## Building
+
+### Common Build Tasks
+
+#### Build
+
+```
+# The default task attempts to build the current project
+# that is in the process of being ported.  It also 
+# validates pre-reqs are installed.. 
+
+invoke-psake
+```
+
+```
+# Build all the currently ported crates
+
+invoke-psake -tasklist build_all
+```
+
+```
+# Build only the current crate in progress
+
+invoke-psake -tasklist current_build
+```
+
+#### Test
+
+```
+# Test all the currently ported crates
+
+invoke-psake -tasklist test_all
+```
+
+
+```
+# Run tests on the current crate in progress
+
+invoke-psake -tasklist current_test
+```
+
+#### Building the native dependencies
 
 You'll want to start in a fresh PowerShell instance, with the Visual C++ Build Tools paths and environment variables set.
 
@@ -47,49 +88,10 @@ function Start-VsDevShell {
 }
 ```
 
-
-### Get in the right working directory
+then 
 
 ```
-Start-VsDevShell
+Start-VsDevShell 
 cd ~/source/hab-build-script
-```
-
-### Common Build Tasks
-
-#### Build
-
-```
-# The default task attempts to build the current project
-# that is in the process of being ported.  It also 
-# validates pre-reqs are installed and builds native dependencies. 
-
-invoke-psake
-```
-
-```
-# Build all the currently ported crates
-
-invoke-psake -taskname build
-```
-
-```
-# Build the current crate in progress
-
-invoke-psake -taskname current_build
-```
-
-#### Test
-
-```
-# Test all the currently ported crates
-
-invoke-psake -taskname test
-```
-
-
-```
-# Run tests on the current crate in progress
-
-invoke-psake -taskname current_test
+invoke-psake -tasklist build_native_deps
 ```
