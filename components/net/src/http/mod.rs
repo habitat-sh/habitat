@@ -33,5 +33,6 @@ pub fn net_err_to_http(err: ErrCode) -> StatusCode {
         ErrCode::ENTITY_CONFLICT => StatusCode::Conflict,
         ErrCode::ZMQ => StatusCode::ServiceUnavailable,
         ErrCode::DATA_STORE => StatusCode::ServiceUnavailable,
+        ErrCode::AUTH_SCOPE => StatusCode::Forbidden,
     }
 }
