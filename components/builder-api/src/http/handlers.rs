@@ -42,18 +42,9 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
             let session = try!(session_create(&github, &token));
             Ok(render_json(status::Ok, &session))
         }
-        Err(hab_net::Error::Auth(e)) => {
-            debug!("github authentication, err={:?}", e);
-            let err = net::err(ErrCode::REMOTE_REJECTED, e.error);
-            Ok(render_net_error(&err))
-        }
-        Err(e @ hab_net::Error::JsonDecode(_)) => {
-            debug!("github authentication, err={:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
-            Ok(render_net_error(&err))
-        }
+        Err(hab_net::Error::Net(err)) => Ok(render_net_error(&err)),
         Err(e) => {
-            error!("github authentication, err={:?}", e);
+            error!("unhandled github authentication, err={:?}", e);
             let err = net::err(ErrCode::BUG, "rg:auth:0");
             Ok(render_net_error(&err))
         }

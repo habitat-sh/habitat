@@ -59,17 +59,27 @@ impl GitHubClient {
         if rep.status.is_success() {
             let mut encoded = String::new();
             try!(rep.read_to_string(&mut encoded));
-            match json::decode(&encoded) {
-                Ok(msg @ AuthOk { .. }) => {
+            match json::decode::<AuthOk>(&encoded) {
+                Ok(msg) => {
                     if msg.has_scope(AUTH_SCOPE) {
                         Ok(msg.access_token)
                     } else {
-                        Err(Error::MissingScope(AUTH_SCOPE.to_string()))
+                        let msg = format!("Missing OAuth scope(s), '{}'", AUTH_SCOPE);
+                        let err = net::err(net::ErrCode::AUTH_SCOPE, msg);
+                        Err(Error::from(err))
                     }
                 }
                 Err(_) => {
-                    let err: AuthErr = try!(json::decode(&encoded));
-                    Err(Error::from(err))
+                    match json::decode::<AuthErr>(&encoded) {
+                        Ok(gh_err) => {
+                            let err = net::err(net::ErrCode::ACCESS_DENIED, gh_err.error);
+                            Err(Error::from(err))
+                        }
+                        Err(_) => {
+                            let err = net::err(net::ErrCode::BAD_REMOTE_REPLY, "net:github:0");
+                            Err(Error::from(err))
+                        }
+                    }
                 }
             }
         } else {

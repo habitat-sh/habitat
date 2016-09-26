@@ -50,6 +50,7 @@ impl error::Error for NetError {
             ErrCode::ENTITY_CONFLICT => "Entity already exists in datastore.",
             ErrCode::ZMQ => "Network error.",
             ErrCode::DATA_STORE => "Database error.",
+            ErrCode::AUTH_SCOPE => "Additional authorization scope required for action.",
         }
     }
 }
