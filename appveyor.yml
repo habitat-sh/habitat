@@ -1,0 +1,27 @@
+
+image: Visual Studio 2015
+
+cache:
+    - c:\Program Files (x86)\Rust
+
+branches:
+  only:
+    - master
+
+init:
+  - git config --global core.eol lf
+
+skip_tags: true
+
+clone_folder: c:\projects\habitat
+
+install:
+  - ps: ./components/hab/win/win-build.ps1
+  - rustc -V
+  - cargo -V
+
+build: false
+
+test_script:
+  - cd c:\projects\habitat\components\hab
+  - cargo build --verbose
