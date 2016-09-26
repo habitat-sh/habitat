@@ -13,8 +13,12 @@
 // limitations under the License.
 
 use std::collections::BTreeMap;
+use std::error;
+use std::fmt;
+use std::result;
 
 use protobuf::core::ProtobufEnum;
+use rustc_serialize::{Decoder, Decodable};
 use rustc_serialize::json::{Json, ToJson};
 
 pub use message::net::*;
@@ -24,6 +28,42 @@ pub fn err<M: Into<String>>(code: ErrCode, msg: M) -> NetError {
     err.set_code(code);
     err.set_msg(msg.into());
     err
+}
+
+impl fmt::Display for NetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[err: {:?}, msg: {}]", self.get_code(), self.get_msg())
+    }
+}
+
+impl error::Error for NetError {
+    fn description(&self) -> &str {
+        match self.get_code() {
+            ErrCode::BUG => "An unexpected error occurred.",
+            ErrCode::TIMEOUT => "Network timeout.",
+            ErrCode::REMOTE_REJECTED => "Remote server rejected request.",
+            ErrCode::BAD_REMOTE_REPLY => "Remote server returned a bad response.",
+            ErrCode::ENTITY_NOT_FOUND => "Entity not found in datastore.",
+            ErrCode::NO_SHARD => "Shard not available.",
+            ErrCode::ACCESS_DENIED => "Operation not allowed by authenticated.",
+            ErrCode::SESSION_EXPIRED => "Session expired, user should re-authenticate.",
+            ErrCode::ENTITY_CONFLICT => "Entity already exists in datastore.",
+            ErrCode::ZMQ => "Network error.",
+            ErrCode::DATA_STORE => "Database error.",
+        }
+    }
+}
+
+impl Decodable for NetError {
+    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
+        d.read_struct("NetError", 2, |d| {
+            let mut err = NetError::new();
+            let code: i32 = try!(d.read_struct_field("code", 0, |d| Decodable::decode(d)));
+            err.set_code(ErrCode::from_i32(code).unwrap());
+            err.set_msg(try!(d.read_struct_field("msg", 1, |d| Decodable::decode(d))));
+            Ok(err)
+        })
+    }
 }
 
 impl ToJson for ErrCode {
@@ -45,10 +85,20 @@ impl ToJson for NetError {
 mod tests {
     use protobuf::Message;
     use super::*;
+    use rustc_serialize::json::{self, ToJson};
 
     #[test]
     fn message_id() {
         let msg = Ping::new();
         assert_eq!(msg.descriptor().name(), "Ping");
+    }
+
+    #[test]
+    fn net_err_json_serialization() {
+        let err = err(ErrCode::ACCESS_DENIED, "net:1:err");
+        let encoded = json::encode(&err.to_json()).unwrap();
+        let decoded: NetError = json::decode(&encoded).unwrap();
+        assert_eq!(decoded.get_code(), ErrCode::ACCESS_DENIED);
+        assert_eq!(decoded.get_msg(), "net:1:err");
     }
 }

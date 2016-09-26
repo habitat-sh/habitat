@@ -98,13 +98,13 @@ impl BrokerConn {
                 match parse_from_bytes::<R>(rep.get_body()) {
                     Ok(entity) => Ok(entity),
                     Err(err) => {
-                        error!("bad route reply, err={}, reply={:?}", err, rep);
+                        error!("route-recv bad-reply, err={}, reply={:?}", err, rep);
                         Err(protocol::net::err(ErrCode::BUG, "net:route:2"))
                     }
                 }
             }
             Err(e) => {
-                debug!("recv err, {}", e);
+                error!("route-recv, err={}", e);
                 Err(protocol::net::err(ErrCode::ZMQ, "net:route:3"))
             }
         }

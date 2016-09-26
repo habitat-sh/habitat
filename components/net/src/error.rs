@@ -20,6 +20,7 @@ use std::result;
 
 use hyper;
 use protobuf;
+use protocol::net;
 use rustc_serialize::json;
 use zmq;
 
@@ -28,11 +29,11 @@ use oauth;
 #[derive(Debug)]
 pub enum Error {
     Auth(oauth::github::AuthErr),
-    GitHubAPI(HashMap<String, String>),
+    GitHubAPI(hyper::status::StatusCode, HashMap<String, String>),
     IO(io::Error),
-    HyperError(hyper::error::Error),
     JsonDecode(json::DecoderError),
     MaxHops,
+    Net(net::NetError),
     HTTP(hyper::status::StatusCode),
     MissingScope(String),
     Protobuf(protobuf::ProtobufError),
@@ -47,11 +48,11 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::Auth(ref e) => format!("GitHub Authentication error, {}", e),
-            Error::GitHubAPI(ref e) => format!("GitHub API error, {:?}", e),
+            Error::GitHubAPI(ref c, ref m) => format!("[{}] {:?}", c, m),
             Error::IO(ref e) => format!("{}", e),
-            Error::HyperError(ref e) => format!("{}", e),
             Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
             Error::MaxHops => format!("Received a message containing too many network hops"),
+            Error::Net(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
@@ -69,24 +70,18 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::Auth(_) => "GitHub authorization error.",
-            Error::GitHubAPI(_) => "GitHub API error.",
+            Error::GitHubAPI(_, _) => "GitHub API error.",
             Error::IO(ref err) => err.description(),
-            Error::HyperError(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",
             Error::JsonDecode(ref err) => err.description(),
             Error::MaxHops => "Received a message containing too many network hops",
+            Error::Net(ref err) => err.description(),
             Error::MissingScope(_) => "Missing GitHub authorization scope.",
             Error::Protobuf(ref err) => err.description(),
             Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Sys => "Internal system error",
             Error::Zmq(ref err) => err.description(),
         }
-    }
-}
-
-impl From<hyper::error::Error> for Error {
-    fn from(err: hyper::error::Error) -> Self {
-        Error::HyperError(err)
     }
 }
 
@@ -111,6 +106,12 @@ impl From<oauth::github::AuthErr> for Error {
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Error {
         Error::Protobuf(err)
+    }
+}
+
+impl From<net::NetError> for Error {
+    fn from(err: net::NetError) -> Error {
+        Error::Net(err)
     }
 }
 

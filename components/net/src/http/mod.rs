@@ -17,27 +17,21 @@ pub mod headers;
 pub mod middleware;
 pub mod rendering;
 
-use std::error;
-use std::fmt;
+use hyper::status::StatusCode;
+use protocol::net::ErrCode;
 
-#[derive(Debug)]
-pub enum HttpError {
-    Authorization,
-}
-
-impl fmt::Display for HttpError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            HttpError::Authorization => format!("not authenticated"),
-        };
-        write!(f, "{}", msg)
-    }
-}
-
-impl error::Error for HttpError {
-    fn description(&self) -> &str {
-        match *self {
-            HttpError::Authorization => "not authenticated",
-        }
+pub fn net_err_to_http(err: ErrCode) -> StatusCode {
+    match err {
+        ErrCode::BUG => StatusCode::InternalServerError,
+        ErrCode::TIMEOUT => StatusCode::RequestTimeout,
+        ErrCode::REMOTE_REJECTED => StatusCode::NotAcceptable,
+        ErrCode::BAD_REMOTE_REPLY => StatusCode::BadGateway,
+        ErrCode::ENTITY_NOT_FOUND => StatusCode::NotFound,
+        ErrCode::NO_SHARD => StatusCode::ServiceUnavailable,
+        ErrCode::ACCESS_DENIED => StatusCode::Unauthorized,
+        ErrCode::SESSION_EXPIRED => StatusCode::Unauthorized,
+        ErrCode::ENTITY_CONFLICT => StatusCode::Conflict,
+        ErrCode::ZMQ => StatusCode::ServiceUnavailable,
+        ErrCode::DATA_STORE => StatusCode::ServiceUnavailable,
     }
 }

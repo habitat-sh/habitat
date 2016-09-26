@@ -13,7 +13,6 @@
 // limitations under the License.
 
 pub mod key {
-
     use std::fs::File;
     use std::io::{BufRead, BufReader};
     use std::path::Path;
@@ -50,7 +49,6 @@ pub mod key {
         Ok(name_with_rev)
     }
 
-
     pub mod download {
         use std::path::Path;
 
@@ -59,7 +57,7 @@ pub mod key {
         use hcore::crypto::SigKeyPair;
 
         use {PRODUCT, VERSION};
-        use error::Result;
+        use error::{Error, Result};
 
         pub fn start(ui: &mut UI,
                      depot: &str,
@@ -72,24 +70,40 @@ pub mod key {
                 Some(revision) => {
                     let nwr = format!("{}-{}", origin, revision);
                     try!(ui.begin(format!("Downloading public origin key {}", &nwr)));
-                    try!(download_key(ui, &depot_client, &nwr, origin, revision, cache));
-                    try!(ui.end(format!("Download of {} public origin key completed.", &nwr)));
+                    match download_key(ui, &depot_client, &nwr, origin, revision, cache) {
+                        Ok(()) => {
+                            let msg = format!("Download of {} public origin key completed.", nwr);
+                            try!(ui.end(msg));
+                            Ok(())
+                        }
+                        Err(e) => Err(e),
+                    }
                 }
                 None => {
                     try!(ui.begin(format!("Downloading public origin keys for {}", origin)));
-                    for key in try!(depot_client.show_origin_keys(origin)) {
-                        let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
-                        try!(download_key(ui,
-                                          &depot_client,
-                                          &nwr,
-                                          key.get_origin(),
-                                          key.get_revision(),
-                                          cache));
+                    match depot_client.show_origin_keys(origin) {
+                        Ok(ref keys) if keys.len() == 0 => {
+                            try!(ui.end(format!("No public keys for {}.", origin)));
+                            Ok(())
+                        }
+                        Ok(keys) => {
+                            for key in keys {
+                                let nwr = format!("{}-{}", key.get_origin(), key.get_revision());
+                                try!(download_key(ui,
+                                                  &depot_client,
+                                                  &nwr,
+                                                  key.get_origin(),
+                                                  key.get_revision(),
+                                                  cache));
+                            }
+                            try!(ui.end(format!("Download of {} public origin keys completed.",
+                                                &origin)));
+                            Ok(())
+                        }
+                        Err(e) => Err(Error::from(e)),
                     }
-                    try!(ui.end(format!("Download of {} public origin keys completed.", &origin)));
                 }
-            };
-            Ok(())
+            }
         }
 
         fn download_key(ui: &mut UI,
@@ -100,9 +114,7 @@ pub mod key {
                         cache: &Path)
                         -> Result<()> {
             match SigKeyPair::get_public_key_path(&nwr, &cache) {
-                Ok(_) => {
-                    try!(ui.status(Status::Using, &nwr));
-                }
+                Ok(_) => try!(ui.status(Status::Using, &nwr)),
                 Err(_) => {
                     try!(ui.status(Status::Downloading, &nwr));
                     try!(depot_client.fetch_origin_key(name, rev, cache, ui.progress()));
@@ -183,7 +195,7 @@ pub mod key {
         use depot_client::{self, Client};
         use hcore::crypto::keys::parse_name_with_rev;
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
-        use hyper::status::StatusCode::{Forbidden, Unauthorized};
+        use hyper::status::StatusCode;
 
         use super::get_name_with_rev;
         use {PRODUCT, VERSION};
@@ -203,25 +215,15 @@ pub mod key {
             try!(ui.status(Status::Uploading, public_keyfile.display()));
 
             match depot_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
-                Ok(()) => {
-                    try!(ui.status(Status::Uploaded, &name_with_rev));
-                }
-                Err(e @ depot_client::Error::HTTP(Forbidden)) |
-                Err(e @ depot_client::Error::HTTP(Unauthorized)) => {
-                    return Err(Error::from(e));
-                }
-
-                Err(e @ depot_client::Error::HTTP(_)) => {
-                    debug!("Error uploading public key {}", e);
+                Ok(()) => try!(ui.status(Status::Uploaded, &name_with_rev)),
+                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
                     try!(ui.status(Status::Using,
                                    format!("public key revision {} which already \
                                            exists in the depot",
                                            &name_with_rev)));
                 }
-                Err(e) => {
-                    return Err(Error::DepotClient(e));
-                }
-            };
+                Err(err) => return Err(Error::from(err)),
+            }
             try!(ui.end(format!("Upload of public origin key {} complete.", &name_with_rev)));
 
             if let Some(secret_keyfile) = secret_keyfile {
@@ -242,7 +244,7 @@ pub mod key {
                     Err(e) => {
                         return Err(Error::DepotClient(e));
                     }
-                };
+                }
             }
 
             Ok(())
@@ -257,7 +259,7 @@ pub mod key {
         use error::{Error, Result};
         use hcore::crypto::keys::parse_name_with_rev;
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION, SigKeyPair};
-        use hyper::status::StatusCode::{Forbidden, Unauthorized};
+        use hyper::status::StatusCode;
 
         use super::get_name_with_rev;
         use {PRODUCT, VERSION};
@@ -279,24 +281,15 @@ pub mod key {
             try!(ui.status(Status::Uploading, public_keyfile.display()));
 
             match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
-                Ok(()) => {
-                    try!(ui.status(Status::Uploaded, &name_with_rev));
-                }
-                Err(e @ depot_client::Error::HTTP(Forbidden)) |
-                Err(e @ depot_client::Error::HTTP(Unauthorized)) => {
-                    return Err(Error::from(e));
-                }
-                Err(e @ depot_client::Error::HTTP(_)) => {
-                    debug!("Error uploading public key {}", e);
+                Ok(()) => try!(ui.status(Status::Uploaded, &name_with_rev)),
+                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
                     try!(ui.status(Status::Using,
                                    format!("public key revision {} which already \
                                            exists in the depot",
                                            &name_with_rev)));
                 }
-                Err(e) => {
-                    return Err(Error::DepotClient(e));
-                }
-            };
+                Err(err) => return Err(Error::from(err)),
+            }
             try!(ui.end(format!("Upload of public origin key {} complete.", &name_with_rev)));
 
             if with_secret {

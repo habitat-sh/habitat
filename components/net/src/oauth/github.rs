@@ -12,21 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::error::Error as StdError;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
+use std::result::Result as StdResult;
 
 use hyper::{self, Url};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
-use protocol::sessionsrv;
+use protocol::{net, sessionsrv};
 use rustc_serialize::json;
 
 use config;
 use error::{Error, Result};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
+const AUTH_SCOPE: &'static str = "user";
 
 #[derive(Clone)]
 pub struct GitHubClient {
@@ -58,11 +61,10 @@ impl GitHubClient {
             try!(rep.read_to_string(&mut encoded));
             match json::decode(&encoded) {
                 Ok(msg @ AuthOk { .. }) => {
-                    let scope = "user:email".to_string();
-                    if msg.has_scope(&scope) {
+                    if msg.has_scope(AUTH_SCOPE) {
                         Ok(msg.access_token)
                     } else {
-                        Err(Error::MissingScope(scope))
+                        Err(Error::MissingScope(AUTH_SCOPE.to_string()))
                     }
                 }
                 Err(_) => {
@@ -84,7 +86,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let contents: Contents = json::decode(&body).unwrap();
         Ok(contents)
@@ -97,7 +99,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let repo: Repo = json::decode(&body).unwrap();
         Ok(repo)
@@ -110,7 +112,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let user: User = json::decode(&body).unwrap();
         Ok(user)
@@ -123,7 +125,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let emails: Vec<Email> = try!(json::decode(&body));
         Ok(emails)
@@ -136,7 +138,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let orgs: Vec<Organization> = try!(json::decode(&body));
         Ok(orgs)
@@ -149,7 +151,7 @@ impl GitHubClient {
         try!(rep.read_to_string(&mut body));
         if rep.status != StatusCode::Ok {
             let err: HashMap<String, String> = try!(json::decode(&body));
-            return Err(Error::GitHubAPI(err));
+            return Err(Error::GitHubAPI(rep.status, err));
         }
         let teams: Vec<Team> = try!(json::decode(&body));
         Ok(teams)
@@ -380,20 +382,25 @@ pub enum AuthResp {
     AuthErr,
 }
 
-fn http_get(url: Url, token: &str) -> Result<hyper::client::response::Response> {
+fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Response, net::NetError> {
     hyper::Client::new()
         .get(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(|e| Error::from(e))
+        .map_err(hyper_to_net_err)
 }
 
-fn http_post(url: Url) -> Result<hyper::client::response::Response> {
+fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetError> {
     hyper::Client::new()
         .post(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
+        .header(UserAgent(USER_AGENT.to_string()))
         .send()
-        .map_err(|e| Error::from(e))
+        .map_err(hyper_to_net_err)
+}
+
+fn hyper_to_net_err(err: hyper::error::Error) -> net::NetError {
+    net::err(net::ErrCode::BAD_REMOTE_REPLY, err.description())
 }

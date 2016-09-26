@@ -20,21 +20,18 @@ use std::result;
 use hyper;
 use url;
 
-use hab_core::{self, package};
-use hab_core::package::Identifiable;
+use hab_core;
 use hab_http;
 
 #[derive(Debug)]
 pub enum Error {
+    APIError(hyper::status::StatusCode, String),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
-    HTTP(hyper::status::StatusCode),
     HyperError(hyper::error::Error),
     IO(io::Error),
     NoFilePart,
     NoXFilename,
-    RemoteOriginKeyNotFound(String),
-    RemotePackageNotFound(package::PackageIdent),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
 }
@@ -44,9 +41,10 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
+            Error::APIError(ref c, ref m) if m.len() > 0 => format!("[{}] {}", c, m),
+            Error::APIError(ref c, _) => format!("[{}]", c),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatHttpClient(ref e) => format!("{}", e),
-            Error::HTTP(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
             Error::NoFilePart => {
@@ -55,14 +53,6 @@ impl fmt::Display for Error {
             }
             Error::NoXFilename => {
                 format!("Invalid download from a Depot - missing X-Filename header")
-            }
-            Error::RemoteOriginKeyNotFound(ref e) => format!("{}", e),
-            Error::RemotePackageNotFound(ref pkg) => {
-                if pkg.fully_qualified() {
-                    format!("Cannot find package in any sources: {}", pkg)
-                } else {
-                    format!("Cannot find a release of package in any sources: {}", pkg)
-                }
             }
             Error::UrlParseError(ref e) => format!("{}", e),
             Error::WriteSyncFailed => {
@@ -76,17 +66,15 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
+            Error::APIError(_, _) => "Received a non-2XX response code from API",
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatHttpClient(ref err) => err.description(),
-            Error::HTTP(_) => "Received an HTTP error",
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
-            Error::RemoteOriginKeyNotFound(_) => "Remote origin key not found",
-            Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::UrlParseError(ref err) => err.description(),
             Error::WriteSyncFailed => {
                 "Could not write to destination; bytes written was 0 on a non-0 buffer"

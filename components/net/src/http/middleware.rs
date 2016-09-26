@@ -24,10 +24,10 @@ use protocol::sessionsrv::*;
 use protocol::net::{self, ErrCode};
 use rustc_serialize::json::{self, ToJson};
 
+use super::net_err_to_http;
 use super::super::error::Error;
 use super::super::routing::{Broker, BrokerConn};
 use super::super::oauth::github::GitHubClient;
-use super::HttpError;
 use config;
 use privilege::FeatureFlags;
 
@@ -115,12 +115,14 @@ impl Authenticated {
                     let session = try!(session_create(&self.github, token));
                     let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
                     if !flags.contains(self.features) {
-                        return Err(IronError::new(HttpError::Authorization, status::Forbidden));
+                        let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:0");
+                        return Err(IronError::new(err, status::Forbidden));
                     }
                     Ok(session)
                 } else {
-                    let encoded = json::encode(&err.to_json()).unwrap();
-                    Err(IronError::new(HttpError::Authorization, (encoded, status::Unauthorized)))
+                    let status = net_err_to_http(err.get_code());
+                    let body = json::encode(&err.to_json()).unwrap();
+                    Err(IronError::new(err, (body, status)))
                 }
             }
         }
@@ -144,7 +146,10 @@ impl BeforeMiddleware for Authenticated {
                         }
                     }
                 }
-                _ => return Err(IronError::new(HttpError::Authorization, status::Unauthorized)),
+                _ => {
+                    let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:1");
+                    return Err(IronError::new(err, status::Unauthorized));
+                }
             }
         };
         req.extensions.insert::<Self>(session);
@@ -176,10 +181,10 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                     emails.iter().find(|e| e.primary).unwrap_or(&emails[0]).email.clone()
                 }
                 Err(_) => {
-                    let err = net::err(ErrCode::ACCESS_DENIED, "rg:auth:0");
-                    let encoded = json::encode(&err.to_json()).unwrap();
-                    return Err(IronError::new(HttpError::Authorization,
-                                              (encoded, status::Unauthorized)));
+                    let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:0");
+                    let status = net_err_to_http(err.get_code());
+                    let body = json::encode(&err.to_json()).unwrap();
+                    return Err(IronError::new(err, (body, status)));
                 }
             };
             let mut conn = Broker::connect().unwrap();
@@ -192,22 +197,38 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
             match conn.route::<SessionCreate, Session>(&request) {
                 Ok(session) => Ok(session),
                 Err(err) => {
-                    let encoded = json::encode(&err.to_json()).unwrap();
-                    Err(IronError::new(HttpError::Authorization, (encoded, status::Unauthorized)))
+                    let body = json::encode(&err.to_json()).unwrap();
+                    let status = net_err_to_http(err.get_code());
+                    Err(IronError::new(err, (body, status)))
                 }
             }
         }
+        Err(Error::GitHubAPI(status::Unauthorized, _)) => {
+            let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:1");
+            let status = net_err_to_http(err.get_code());
+            let body = json::encode(&err.to_json()).unwrap();
+            Err(IronError::new(err, (body, status)))
+        }
+        Err(e @ Error::GitHubAPI(_, _)) => {
+            warn!("Unexpected response from GitHub, {:?}", e);
+            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "net:session-create:2");
+            let status = net_err_to_http(err.get_code());
+            let body = json::encode(&err.to_json()).unwrap();
+            Err(IronError::new(err, (body, status)))
+        }
         Err(e @ Error::JsonDecode(_)) => {
-            debug!("github user get, err={:?}", e);
-            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "rg:auth:1");
-            let encoded = json::encode(&err.to_json()).unwrap();
-            Err(IronError::new(HttpError::Authorization, (encoded, status::Unauthorized)))
+            warn!("Bad response body from GitHub, {:?}", e);
+            let err = net::err(ErrCode::BAD_REMOTE_REPLY, "net:session-create:3");
+            let status = net_err_to_http(err.get_code());
+            let body = json::encode(&err.to_json()).unwrap();
+            Err(IronError::new(err, (body, status)))
         }
         Err(e) => {
-            debug!("github user get, err={:?}", e);
-            let err = net::err(ErrCode::BUG, "rg:auth:2");
-            let encoded = json::encode(&err.to_json()).unwrap();
-            Err(IronError::new(HttpError::Authorization, (encoded, status::Unauthorized)))
+            error!("Unexpected error, err={:?}", e);
+            let err = net::err(ErrCode::BUG, "net:session-create:4");
+            let status = net_err_to_http(err.get_code());
+            let body = json::encode(&err.to_json()).unwrap();
+            Err(IronError::new(err, (body, status)))
         }
     }
 }

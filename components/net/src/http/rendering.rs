@@ -17,8 +17,10 @@ use iron::mime::{Mime, TopLevel, SubLevel};
 use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::status;
-use protocol::net::{NetError, ErrCode};
+use protocol::net::NetError;
 use rustc_serialize::json::{self, ToJson};
+
+use super::net_err_to_http;
 
 pub fn render_json<T: ToJson>(status: status::Status, response: &T) -> Response {
     let encoded = json::encode(&response.to_json()).unwrap();
@@ -38,14 +40,5 @@ pub fn render_json<T: ToJson>(status: status::Status, response: &T) -> Response 
 /// * The given messsage could not be decoded
 /// * The NetError could not be encoded to JSON
 pub fn render_net_error(err: &NetError) -> Response {
-    let status = match err.get_code() {
-        ErrCode::ENTITY_NOT_FOUND => status::NotFound,
-        ErrCode::ENTITY_CONFLICT => status::Conflict,
-        ErrCode::NO_SHARD => status::ServiceUnavailable,
-        ErrCode::TIMEOUT => status::RequestTimeout,
-        ErrCode::BAD_REMOTE_REPLY => status::BadGateway,
-        ErrCode::SESSION_EXPIRED => status::Unauthorized,
-        _ => status::InternalServerError,
-    };
-    render_json(status, err)
+    render_json(net_err_to_http(err.get_code()), err)
 }
