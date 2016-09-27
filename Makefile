@@ -38,6 +38,7 @@ LIB = builder-dbcache builder-protocol common core builder-depot-client http-cli
 SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-vault builder-worker
 ALL = $(BIN) $(LIB) $(SRV)
 VERSION := $(shell cat VERSION)
+VERSION_BLDR := $(shell cat VERSION-BLDR)
 
 .DEFAULT_GOAL := build-bin
 
@@ -151,6 +152,9 @@ docs: image ## build the docs
 
 tag-release:
 	sh -c 'git tag -a $(VERSION) -m \"$(VERSION)\"'
+
+bldr-tag-release:
+	sh -c 'git tag -a BLDR-$(VERSION_BLDR) -m \"$(VERSION_BLDR)\"'
 
 define BUILD
 build-$1: image ## builds the $1 component

@@ -126,14 +126,6 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
   * hab-sup - `habitat/components/sup`
   * hab-sup-static - `habitat/components/sup/static`
   * hab-director - `habitat/components/director`
-  * hab-builder-api - `habitat/components/builder-api`
-  * hab-builder-admin - `habitat/components/builder-admin`
-  * hab-builder-depot - `habitat/components/builder-depot`
-  * hab-builder-jobsrv - `habitat/components/builder-jobsrv`
-  * hab-builder-router - `habitat/components/builder-router`
-  * hab-builder-sessionsrv - `habitat/components/builder-sessionsrv`
-  * hab-builder-vault - `habitat/components/builder-vault`
-  * hab-builder-worker - `habitat/components/builder-worker`
 1. [Build Mac Components](#how-to-build-mac-components)
 
 ## Publish Release
