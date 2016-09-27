@@ -247,6 +247,7 @@ impl<'a> InstallTask<'a> {
                 return Err(Error::HabitatCore(hcore::Error::InvalidPackageIdent(ident.to_string())))
             }
         };
+        try!(fs::create_dir_all(self.cache_artifact_path));
         try!(fs::copy(artifact_path, self.cache_artifact_path.join(name)));
         Ok(())
     }
