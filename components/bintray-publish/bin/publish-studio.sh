@@ -153,6 +153,8 @@ _main() {
 
   info "Pushing ${docker_image}:$docker_image_version"
   docker push "${docker_image}:$docker_image_version"
+  info "Pushing ${docker_image}:$docker_image_short_version tag for $docker_image_version"
+  docker push "${docker_image}:$docker_image_short_version"
   info "Pushing latest tag for $docker_image_version"
   docker push "${docker_image}:latest"
 

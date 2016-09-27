@@ -111,6 +111,7 @@ mod inner {
     use hcore::env as henv;
     use hcore::fs::{CACHE_KEY_PATH, find_command};
 
+    use VERSION;
     use error::{Error, Result};
     use exec;
 
@@ -122,7 +123,8 @@ mod inner {
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
-        let image = henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(DOCKER_IMAGE.to_string());
+        let image = henv::var(DOCKER_IMAGE_ENVVAR)
+            .unwrap_or(format!("{}:{}", DOCKER_IMAGE, VERSION));
 
         let cmd = match find_command(&docker) {
             Some(cmd) => cmd,
