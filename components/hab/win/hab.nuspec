@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>hab</id>
+    <title>hab development build</title>
+    <version>0.9.4-alpha</version>
+    <authors>Habitat Maintainers</authors>
+    <owners>Habitat Maintainers</owners>
+    <summary>Pre-release build of hab for Windows</summary>
+    <description>This is a pre-release build for testing only. 
+    </description>
+    <projectUrl>https://habitat.sh</projectUrl>
+    <projectSourceUrl>https://github.com/habitat-sh/habitat</projectSourceUrl>
+    <docsUrl>https://www.habitat.sh/docs/overview/</docsUrl>
+    <mailingListUrl>https://forums.habitat.sh/</mailingListUrl>
+    <bugTrackerUrl>https://github.com/habitat-sh/habitat/issues</bugTrackerUrl>
+    <tags>hab</tags>
+    <copyright>Copyright (c) 2016 Chef Software Inc. and/or applicable contributors</copyright>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <releaseNotes>This is a pre-release build for testing only.</releaseNotes>
+  </metadata>
+  <files>
+    <file src="..\..\..\target\Debug\hab.exe" target="tools" />
+    <file src="C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll" target="tools" />
+  </files>
+</package>
