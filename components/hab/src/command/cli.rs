@@ -82,8 +82,8 @@ pub mod setup {
                       public depot, doing so allows you to collaborate with the Habitat \
                       community. In addition, it is how you can perform continuous deployment \
                       with Habitat."));
-        try!(ui.para("The depot uses GitHub authentication with an access token with the \
-                      user scope (https://help.github.\
+        try!(ui.para("The depot uses GitHub authentication by personal access token with the \
+                      user:email and read:org scopes (https://help.github.\
                       com/articles/creating-an-access-token-for-command-line-use/)."));
         try!(ui.para("If you would like to share your packages on the depot, please enter your \
                       GitHub access token. Otherwise, just enter No."));

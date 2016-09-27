@@ -27,7 +27,7 @@ The `hab` command-line interface (CLI) tool downloads its other components when 
 
    <%= partial "/shared/setup_environment_script_step" %>
 
-   > Note: The only rights the GitHub personal authorization token needs at present is `user` since it is used for authentication and to determine features based on team membership. Also, you can opt-out of providing usage data at a later point in time by re-running the `hab setup` subcommand and typing `No` when asked if you want to provide usage data.
+   > Note: The GitHub personal access token needs the `user:email` and `read:org` scopes. Habitat uses this for authentication and to determine features based on team membership. Also, you can opt-out of providing usage data at a later point in time by re-running the `hab setup` subcommand and typing `No` when asked if you want to provide usage data.
 
 That's it. You're all set up and ready to create your first package. The first step in that process is to create a plan.
 

@@ -29,7 +29,12 @@ use config;
 use error::{Error, Result};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
-const AUTH_SCOPE: &'static str = "user";
+// These OAuth scopes are required for a user to be authenticated. If this list is updated, then
+// the front-end also needs to be updated in `components/builder-web/app/util.ts`. Both the
+// front-end app and back-end app should have identical requirements to make things easier for
+// our users and less cumbersome for us to message out.
+// https://developer.github.com/v3/oauth/#scopes
+const AUTH_SCOPES: &'static [&'static str] = &["user:email", "read:org"];
 
 #[derive(Clone)]
 pub struct GitHubClient {
@@ -61,10 +66,11 @@ impl GitHubClient {
             try!(rep.read_to_string(&mut encoded));
             match json::decode::<AuthOk>(&encoded) {
                 Ok(msg) => {
-                    if msg.has_scope(AUTH_SCOPE) {
+                    let missing = msg.missing_auth_scopes();
+                    if missing.is_empty() {
                         Ok(msg.access_token)
                     } else {
-                        let msg = format!("Missing OAuth scope(s), '{}'", AUTH_SCOPE);
+                        let msg = format!("Missing OAuth scope(s), '{}'", missing.join(", "));
                         let err = net::err(net::ErrCode::AUTH_SCOPE, msg);
                         Err(Error::from(err))
                     }
@@ -364,8 +370,14 @@ pub struct AuthOk {
 }
 
 impl AuthOk {
-    pub fn has_scope(&self, grant: &str) -> bool {
-        self.scope.split(",").collect::<Vec<&str>>().iter().any(|&p| p == grant)
+    pub fn missing_auth_scopes(&self) -> Vec<&'static str> {
+        let mut scopes = vec![];
+        for scope in AUTH_SCOPES.iter() {
+            if !self.scope.split(",").collect::<Vec<&str>>().iter().any(|p| p == scope) {
+                scopes.push(*scope);
+            }
+        }
+        scopes
     }
 }
 
