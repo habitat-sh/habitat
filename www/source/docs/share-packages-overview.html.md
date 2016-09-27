@@ -26,7 +26,7 @@ You can create your own origin in the depot or be invited to join an existing on
 
 ## Setting up hab to authenticate to the depot
 
-Because the depot uses GitHub to authenticate, you must generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) for use with the `hab` command-line utility. The only rights the GitHub personal authorization token needs at present is `user` since it is used for authentication and to determine features based on team membership.
+Because the depot uses GitHub to authenticate, you must generate a [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) for use with the `hab` command-line utility. The GitHub personal access token needs the `user:email` and `read:org` scopes. Habitat uses this for authentication and to determine features based on team membership.
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference/environment-vars/) to this value, so that any commands requiring authentication will use it.
 

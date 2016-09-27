@@ -35,7 +35,6 @@ pub enum Error {
     MaxHops,
     Net(net::NetError),
     HTTP(hyper::status::StatusCode),
-    MissingScope(String),
     Protobuf(protobuf::ProtobufError),
     RequiredConfigField(&'static str),
     Sys,
@@ -54,7 +53,6 @@ impl fmt::Display for Error {
             Error::MaxHops => format!("Received a message containing too many network hops"),
             Error::Net(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
-            Error::MissingScope(ref e) => format!("Missing GitHub permission: {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::RequiredConfigField(ref e) => {
                 format!("Missing required field in configuration, {}", e)
@@ -76,7 +74,6 @@ impl error::Error for Error {
             Error::JsonDecode(ref err) => err.description(),
             Error::MaxHops => "Received a message containing too many network hops",
             Error::Net(ref err) => err.description(),
-            Error::MissingScope(_) => "Missing GitHub authorization scope.",
             Error::Protobuf(ref err) => err.description(),
             Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Sys => "Internal system error",

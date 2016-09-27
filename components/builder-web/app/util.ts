@@ -18,12 +18,18 @@ import config from "./config";
 import {Project} from "./records/Project";
 import {AppStore} from "./AppStore";
 
+// These OAuth scopes are required for a user to be authenticated. If this list is updated, then
+// the back-end also needs to be updated in `components/net/src/oauth/github.rs`. Both the
+// front-end app and back-end app should have identical requirements to make things easier for
+// our users and less cumbersome for us to message out.
+const AUTH_SCOPES = ["user:email", "read:org"];
+
 // Create a GitHub login URL
 export function createGitHubLoginUrl(state) {
     const params = {
         client_id: config["github_client_id"],
         redirect_uri: `${window.location.protocol}//${window.location.host}`,
-        scope: "user,read:org",
+        scope: AUTH_SCOPES.join(","),
         state
     };
     const urlPrefix = "https://github.com/login/oauth/authorize";
