@@ -23,7 +23,7 @@ export function createGitHubLoginUrl(state) {
     const params = {
         client_id: config["github_client_id"],
         redirect_uri: `${window.location.protocol}//${window.location.host}`,
-        scope: "user:email,read:org",
+        scope: "user,read:org",
         state
     };
     const urlPrefix = "https://github.com/login/oauth/authorize";
