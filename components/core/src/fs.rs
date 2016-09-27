@@ -201,11 +201,37 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
                 if candidate.is_file() {
                     return Some(candidate);
                 }
+                else {
+                    match find_command_with_pathext(&candidate) {
+                        Some(result) => return Some(result),
+                        None => {}
+                    } 
+                }
             }
             None
         }
         None => None,
     }
+}
+
+// Windows relies on path extensions to resolve commands like `docker` to `docker.exe`
+// Path extensions are found in the PATHEXT environment variable.
+fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
+    match henv::var_os("PATHEXT") {
+        Some(pathexts) => {
+            for pathext in env::split_paths(&pathexts) {
+                let mut source_candidate = candidate.to_path_buf();
+                let extension = pathext.to_str().unwrap().trim_matches('.');
+                source_candidate.set_extension(extension);
+                let current_candidate = source_candidate.to_path_buf(); 
+                if current_candidate.is_file() {
+                    return Some(current_candidate);
+                }
+            }
+        },
+        None => return None,
+    };
+    None
 }
 
 /// Returns whether or not the current process is running with a root effective user id or not.
