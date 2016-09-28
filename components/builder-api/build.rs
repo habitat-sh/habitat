@@ -38,5 +38,5 @@ fn write_version_file() {
         _ => read_version(),
     };
     let mut f = File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("VERSION")).unwrap();
-    f.write_all(version.as_bytes()).unwrap();
+    f.write_all(version.trim().as_bytes()).unwrap();
 }
