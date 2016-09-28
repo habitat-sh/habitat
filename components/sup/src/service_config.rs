@@ -368,20 +368,20 @@ impl Cfg {
     }
 
     fn to_toml(&self) -> toml::Value {
-        let mut left = toml::Table::new();
-        if let Some(toml::Value::Table(ref right)) = self.default {
-            left = toml_merge(&left, right);
+        let mut output_toml = toml::Table::new();
+        if let Some(toml::Value::Table(ref default_cfg)) = self.default {
+            output_toml = toml_merge(default_cfg, &output_toml);
         }
-        if let Some(toml::Value::Table(ref right)) = self.user {
-            left = toml_merge(&left, right);
+        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
+            output_toml = toml_merge(user_cfg, &output_toml);
         }
-        if let Some(toml::Value::Table(ref right)) = self.gossip {
-            left = toml_merge(&left, right);
+        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
+            output_toml = toml_merge(gossip_cfg, &output_toml);
         }
-        if let Some(toml::Value::Table(ref right)) = self.environment {
-            left = toml_merge(&left, right);
+        if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
+            output_toml = toml_merge(env_cfg, &output_toml);
         }
-        toml::Value::Table(left)
+        toml::Value::Table(output_toml)
     }
 
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
@@ -726,28 +726,16 @@ mod test {
 
     #[test]
     fn merge() {
-        let left_config = "[server]
+        let default_config = "[server]
             port = \"8080\"
             shutdown-port = \"8005\"
             redirect-port = \"8443\"";
 
-        let right_config = "server = { port=\"9090\" }";
-        let left = toml::Parser::new(left_config).parse().unwrap();
-        let right = toml::Parser::new(right_config).parse().unwrap();
+        let override_config = "server = { port=\"9090\" }";
+        let default_toml = toml::Parser::new(default_config).parse().unwrap();
+        let override_toml = toml::Parser::new(override_config).parse().unwrap();
         {
-            let result = toml_merge(&left, &right);
-            assert!(result.contains_key("server"));
-            let server = result.get("server").unwrap().as_table().unwrap();
-            assert!(server.contains_key("port"));
-            assert_eq!("8080", server.get("port").unwrap().as_str().unwrap());
-            assert!(server.contains_key("shutdown-port"));
-            assert_eq!("8005", server.get("shutdown-port").unwrap().as_str().unwrap());
-            assert!(server.contains_key("redirect-port"));
-            assert_eq!("8443", server.get("redirect-port").unwrap().as_str().unwrap());
-        }
-
-        {
-            let result = toml_merge(&right, &left);
+            let result = toml_merge(&override_toml, &default_toml);
             assert!(result.contains_key("server"));
             let server = result.get("server").unwrap().as_table().unwrap();
             assert!(server.contains_key("port"));
@@ -756,15 +744,6 @@ mod test {
             assert_eq!("8005", server.get("shutdown-port").unwrap().as_str().unwrap());
             assert!(server.contains_key("redirect-port"));
             assert_eq!("8443", server.get("redirect-port").unwrap().as_str().unwrap());
-        }
-
-        {
-            let different_types = "server = \"cat\"";
-            let diff_types = toml::Parser::new(different_types).parse().unwrap();
-            let result = toml_merge(&left, &diff_types);
-            println!("{:?}", result);
-            let server = result.get("server").unwrap().as_str().unwrap();
-            assert_eq!("cat", server);
         }
     }
 
