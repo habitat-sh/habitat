@@ -13,3 +13,34 @@ As Habitat currently does not have first class support for the Windows platform,
 cd components/hab/win
 ./win-build.ps1
 ```
+
+
+# Chocolatey package
+
+## Creating a package
+
+```powershell
+cd components/hab
+choco pack ./win/hab.nuspec --version $YOUR_VERSION_HERE
+```
+
+## How to install
+
+### Local package
+
+```powershell
+cd components/hab
+choco install hab -confirm -s . --version $YOUR_VERSION_HERE --allowemptychecksum --pre --force
+```
+
+### MyGet Feed
+
+```
+choco install hab --confirm -s https://www.myget.org/F/habitat/api/v2  --allowemptychecksums --pre --force
+```
+
+## How to uninstall
+
+```powershell
+choco uninstall hab
+```
