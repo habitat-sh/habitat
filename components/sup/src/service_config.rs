@@ -312,6 +312,28 @@ struct Cfg {
 fn toml_merge(left: &toml::Table, right: &toml::Table) -> toml::Table {
     let mut final_map = toml::Table::new();
     for (left_key, left_value) in left.iter() {
+        // attempt to merge nested tables
+        let a = right.get(left_key).and_then(|v| v.as_table());
+        let b = left.get(left_key).and_then(|v| v.as_table());
+        match (a, b) {
+            (Some(left_t), Some(right_t)) => {
+                let new_table = toml_merge(left_t, right_t);
+                let table_as_value = toml::Value::Table(new_table);
+                final_map.insert(left_key.clone(), table_as_value);
+                continue;
+            }
+            (Some(_), _) => {
+                // this occurs when the value type in left != type in right
+                warn!("TOML structure mismatch for key {}", &left_key);
+                continue;
+            }
+            (_, Some(_)) => {
+                // this occurs when the value type in left != type in right
+                warn!("TOML structure mismatch for key {}", &left_key);
+            }
+            (_, _) => () // left and right are not toml::Tables
+        }
+
         match right.get(left_key) {
             Some(right_value) => {
                 final_map.insert(left_key.clone(), right_value.clone());
@@ -321,6 +343,7 @@ fn toml_merge(left: &toml::Table, right: &toml::Table) -> toml::Table {
             }
         }
     }
+
     for (right_key, right_value) in right.iter() {
         if !final_map.contains_key(right_key) {
             final_map.insert(right_key.clone(), right_value.clone());
@@ -345,20 +368,20 @@ impl Cfg {
     }
 
     fn to_toml(&self) -> toml::Value {
-        let mut left = toml::Table::new();
-        if let Some(toml::Value::Table(ref right)) = self.default {
-            left = toml_merge(&left, right);
+        let mut output_toml = toml::Table::new();
+        if let Some(toml::Value::Table(ref default_cfg)) = self.default {
+            output_toml = toml_merge(default_cfg, &output_toml);
         }
-        if let Some(toml::Value::Table(ref right)) = self.user {
-            left = toml_merge(&left, right);
+        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
+            output_toml = toml_merge(user_cfg, &output_toml);
         }
-        if let Some(toml::Value::Table(ref right)) = self.gossip {
-            left = toml_merge(&left, right);
+        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
+            output_toml = toml_merge(gossip_cfg, &output_toml);
         }
-        if let Some(toml::Value::Table(ref right)) = self.environment {
-            left = toml_merge(&left, right);
+        if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
+            output_toml = toml_merge(env_cfg, &output_toml);
         }
-        toml::Value::Table(left)
+        toml::Value::Table(output_toml)
     }
 
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
@@ -632,6 +655,7 @@ mod test {
     use std::str::FromStr;
 
     use regex::Regex;
+    use toml;
 
     use census::{CensusEntry, Census, CensusList};
     use config::{gcache, Config};
@@ -640,6 +664,7 @@ mod test {
     use package::Package;
     use service_config::ServiceConfig;
     use VERSION;
+    use super::toml_merge;
 
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(
@@ -696,6 +721,30 @@ mod test {
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
         assert!(re.is_match(&ip));
+    }
+
+
+    #[test]
+    fn merge() {
+        let default_config = "[server]
+            port = \"8080\"
+            shutdown-port = \"8005\"
+            redirect-port = \"8443\"";
+
+        let override_config = "server = { port=\"9090\" }";
+        let default_toml = toml::Parser::new(default_config).parse().unwrap();
+        let override_toml = toml::Parser::new(override_config).parse().unwrap();
+        {
+            let result = toml_merge(&override_toml, &default_toml);
+            assert!(result.contains_key("server"));
+            let server = result.get("server").unwrap().as_table().unwrap();
+            assert!(server.contains_key("port"));
+            assert_eq!("9090", server.get("port").unwrap().as_str().unwrap());
+            assert!(server.contains_key("shutdown-port"));
+            assert_eq!("8005", server.get("shutdown-port").unwrap().as_str().unwrap());
+            assert!(server.contains_key("redirect-port"));
+            assert_eq!("8443", server.get("redirect-port").unwrap().as_str().unwrap());
+        }
     }
 
     mod sys {
