@@ -23,6 +23,7 @@
   </metadata>
   <files>
     <file src="..\..\..\target\Debug\hab.exe" target="tools" />
+    <file src="C:\Windows\System32\vcruntime140.dll" target="tools"/>
     <file src="C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll" target="tools" />
   </files>
 </package>
