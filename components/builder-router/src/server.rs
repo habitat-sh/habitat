@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use hab_net;
@@ -29,19 +29,18 @@ use error::{Error, Result};
 
 pub type ServerMap = HashMap<Protocol, HashMap<ShardId, hab_net::ServerReg>>;
 
-pub struct Server<'a> {
+pub struct Server {
     config: Arc<Mutex<Config>>,
     fe_sock: zmq::Socket,
     hb_sock: zmq::Socket,
     servers: ServerMap,
-    active: HashSet<&'a hab_net::ServerReg>,
     state: SocketState,
     envelope: Envelope,
     req: zmq::Message,
     rng: rand::ThreadRng,
 }
 
-impl<'a> Server<'a> {
+impl Server {
     pub fn new(config: Config) -> Self {
         let fe_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER).unwrap();
         let hb_sock = (**ZMQ_CONTEXT).as_mut().socket(zmq::ROUTER).unwrap();
@@ -52,7 +51,6 @@ impl<'a> Server<'a> {
             fe_sock: fe_sock,
             hb_sock: hb_sock,
             servers: ServerMap::new(),
-            active: HashSet::new(),
             state: SocketState::default(),
             envelope: Envelope::default(),
             req: zmq::Message::new().unwrap(),
@@ -282,7 +280,7 @@ impl<'a> Server<'a> {
     }
 }
 
-impl<'a> Application for Server<'a> {
+impl Application for Server {
     type Error = Error;
 
     fn run(&mut self) -> Result<()> {
@@ -323,7 +321,6 @@ impl<'a> Application for Server<'a> {
             hb_msg = false;
             fe_msg = false;
         }
-        Ok(())
     }
 }
 

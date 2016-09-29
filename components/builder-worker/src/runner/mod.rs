@@ -12,64 +12,148 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::PathBuf;
-use std::sync::mpsc;
+pub mod logger;
+pub mod workspace;
+
+use std::ffi::OsString;
+use std::io::{BufRead, BufReader};
+use std::path::Path;
+use std::process::{Command, Stdio};
+use std::str::FromStr;
+use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
+use depot_client;
+use hab_core::package::archive::PackageArchive;
+use hab_core::package::install::PackageInstall;
+use hab_core::package::PackageIdent;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
 use zmq;
 
-use error::Result;
-use studio;
+use self::logger::Logger;
+use self::workspace::Workspace;
+use config::Config;
+use error::{Error, Result};
 use vcs;
+use {PRODUCT, VERSION};
 
-/// In-memory zmq address of Job Runner
+/// In-memory zmq address of Job RunnerMgr
 const INPROC_ADDR: &'static str = "inproc://runner";
 /// Protocol message to indicate the Job Runner has received a work request
 const WORK_ACK: &'static str = "A";
 /// Protocol message to indicate the Job Runner has completed a work request
 const WORK_COMPLETE: &'static str = "C";
 
+lazy_static! {
+    static ref STUDIO_PKG: PackageIdent = PackageIdent::from_str("core/hab-studio").unwrap();
+}
+
 pub struct Runner {
     pub job: proto::Job,
-    pub workspace: PathBuf,
+    auth_token: String,
+    workspace: Workspace,
 }
 
 impl Runner {
-    pub fn new(job: proto::Job) -> Self {
-        // JW TODO: this needs to be cleaned or something maybe? Stored somewhere?
-        // Would be pretty awesome if the workspace could be shelved into S3 and then re-mounted
-        // during a run.
-        let workspace = PathBuf::from("/tmp/workspace");
+    pub fn new(job: proto::Job, config: &Config) -> Self {
         Runner {
+            auth_token: config.auth_token.clone(),
+            workspace: Workspace::new(config.data_path.clone(), &job),
             job: job,
-            workspace: workspace,
         }
     }
 
     pub fn run(&mut self) -> () {
-        // the studio should be cloning the workspace I think
-        if let Some(err) = vcs::clone(&self.job, &self.workspace).err() {
-            println!("CLONE ERROR={:?}", err);
+        if let Some(err) = self.workspace.setup().err() {
+            error!("WORKSPACE SETUP ERR={:?}", err);
             return self.fail();
         }
-        if let Some(err) = studio::build(&self.job, &self.workspace).err() {
-            println!("BUILD ERROR={:?}", err);
+        let mut logger = logger::Logger::new(&self.workspace);
+        // JW TODO: How are we going to get the secret keys for this thing?
+        if let Some(err) = vcs::clone(&self.job, &self.workspace.src()).err() {
+            error!("CLONE ERROR={}", err);
+            return self.fail();
+        }
+        let mut archive = match self.build(&mut logger) {
+            Ok(archive) => archive,
+            Err(err) => {
+                error!("STUDIO ERR={}", err);
+                return self.fail();
+            }
+        };
+        if !self.post_process(&mut archive) {
+            // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
+            // If the job is killed then we can kill the shelved artifacts.
             return self.fail();
         }
         self.complete()
     }
 
+    pub fn build(&self, logger: &mut Logger) -> Result<PackageArchive> {
+        let args = vec![OsString::from("-s"),
+                        OsString::from(self.workspace.src()),
+                        OsString::from("-r"),
+                        OsString::from(self.workspace.studio()),
+                        OsString::from("build"),
+                        OsString::from("-R"),
+                        OsString::from(Path::new(self.job.get_project().get_plan_path())
+                            .parent()
+                            .unwrap())];
+        let command = match PackageInstall::load(&STUDIO_PKG, None) {
+            Ok(package) => format!("{}/hab-studio", package.paths().unwrap()[0].display()),
+            Err(_) => panic!("should install core/hab-studio because it's missing?"),
+        };
+        debug!("building, cmd={:?}, args={:?}", command, args);
+        let mut child = Command::new(command)
+            .args(&args)
+            .env_clear()
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("failed to spawn child");
+        if let Some(ref mut stdout) = child.stdout {
+            for line in BufReader::new(stdout).lines() {
+                let mut l: String = line.unwrap();
+                let eol: &str = "\n";
+                l = l + eol;
+                logger.log(l.as_bytes());
+            }
+        }
+        let exit_status = child.wait().expect("failed to wait on child");
+        println!("DONE: {:?}", exit_status);
+        if exit_status.success() {
+            // actually figure out where the thing that was built came from by reading the results
+            // of last_build.env
+            let archive = PackageArchive::new(self.workspace.src().join("results"));
+            Ok(archive)
+        } else {
+            Err(Error::BuildFailure(exit_status.code().unwrap_or(-1)))
+        }
+    }
+
     fn complete(&mut self) -> () {
-        // clean workspace?
+        self.workspace.teardown().err().map(|e| error!("{}", e));
         self.job.set_state(proto::JobState::Complete);
     }
 
     fn fail(&mut self) -> () {
-        // clean workspace?
         self.job.set_state(proto::JobState::Failed);
+    }
+
+    fn post_process(&self, archive: &mut PackageArchive) -> bool {
+        // JW TODO: In the future we'll support multiple and configurable post processors, but for
+        // now let's just publish to the public depot
+        //
+        // Things to solve right now
+        // * Where do we get the token for authentication?
+        //      * Should the workers ask for a lease from the JobSrv?
+        let client =
+            depot_client::Client::new("https://app.habitat.sh/v1/depot", PRODUCT, VERSION, None)
+                .unwrap();
+        client.x_put_package(archive, &self.auth_token).unwrap();
+        true
     }
 }
 
@@ -134,16 +218,17 @@ impl RunnerCli {
 pub struct RunnerMgr {
     sock: zmq::Socket,
     msg: zmq::Message,
+    config: Arc<RwLock<Config>>,
 }
 
 impl RunnerMgr {
     /// Start the Job Runner
-    pub fn start() -> Result<JoinHandle<()>> {
+    pub fn start(config: Arc<RwLock<Config>>) -> Result<JoinHandle<()>> {
         let (tx, rx) = mpsc::sync_channel(0);
         let handle = thread::Builder::new()
             .name("runner".to_string())
             .spawn(move || {
-                let mut runner = Self::new().unwrap();
+                let mut runner = Self::new(config).unwrap();
                 runner.run(tx).unwrap();
             })
             .unwrap();
@@ -153,11 +238,12 @@ impl RunnerMgr {
         }
     }
 
-    fn new() -> Result<Self> {
+    fn new(config: Arc<RwLock<Config>>) -> Result<Self> {
         let sock = try!((**ZMQ_CONTEXT).as_mut().socket(zmq::DEALER));
         Ok(RunnerMgr {
             sock: sock,
             msg: zmq::Message::new().unwrap(),
+            config: config,
         })
     }
 
@@ -170,11 +256,12 @@ impl RunnerMgr {
             try!(self.send_ack(&job));
             try!(self.execute_job(job));
         }
-        Ok(())
     }
 
     fn execute_job(&mut self, job: proto::Job) -> Result<()> {
-        let mut runner = Runner::new(job);
+        let mut runner = {
+            Runner::new(job, &self.config.read().unwrap())
+        };
         debug!("executing work, job={:?}", runner.job);
         runner.run();
         self.send_complete(&runner.job)

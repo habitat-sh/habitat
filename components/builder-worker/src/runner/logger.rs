@@ -12,22 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::process::Command;
-use std::path::Path;
+use std::fs::File;
+use std::io::Write;
 
-use protocol::jobsrv as proto;
+use super::workspace::Workspace;
 
-use error::Result;
+pub struct Logger {
+    file: File,
+}
 
-pub fn build(job: &proto::Job, root: &Path) -> Result<()> {
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(format!("hab studio build {:?}",
-                     root.join(job.get_project().get_plan_path())))
-        .output()
-        .unwrap();
-    println!("status: {}", output.status);
-    println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-    println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
-    Ok(())
+impl Logger {
+    pub fn new(workspace: &Workspace) -> Self {
+        Logger { file: File::create(workspace.log()).expect("Failed to initialize logger") }
+    }
+
+    pub fn log(&mut self, msg: &[u8]) -> () {
+        self.file.write_all(msg).expect("unable to write to log file");
+    }
+}
+
+impl Drop for Logger {
+    fn drop(&mut self) {
+        self.file.sync_all().expect("unable to sync log file");
+    }
 }
