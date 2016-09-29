@@ -1,5 +1,73 @@
 # Habitat CHANGELOG
 
+## [0.10.0](https://github.com/habitat-sh/habitat/tree/0.10.0) (09-29-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/BLDR-0.10.0...0.10.0)
+
+## Features & Enhancements
+
+- \[documentation\] Testing locally compiled dependencies without `hab pkg upload`-ing [\#1273](https://github.com/habitat-sh/habitat/issues/1273)
+- Move Homu to bots.habitat.sh [\#1113](https://github.com/habitat-sh/habitat/issues/1113)
+- Bot Monitoring [\#1111](https://github.com/habitat-sh/habitat/issues/1111)
+- \[plans\] Curl plan should support/find CA certificates out of the box [\#718](https://github.com/habitat-sh/habitat/issues/718)
+- Add all deps to the chocolatey package of hab dev build for Windows [\#1295](https://github.com/habitat-sh/habitat/pull/1295) ([smurawski](https://github.com/smurawski))
+- Support windows command resolution [\#1290](https://github.com/habitat-sh/habitat/pull/1290) ([smurawski](https://github.com/smurawski))
+- Add step to BUILDING for sourcing cargo env to fix make error [\#1286](https://github.com/habitat-sh/habitat/pull/1286) ([robbkidd](https://github.com/robbkidd))
+- Adding a nuspec template for  [\#1283](https://github.com/habitat-sh/habitat/pull/1283) ([smurawski](https://github.com/smurawski))
+- Adding a build script for the Windows `hab` binary and AppVeyor Integration [\#1279](https://github.com/habitat-sh/habitat/pull/1279) ([smurawski](https://github.com/smurawski))
+- move platform dependent calls from hab to core [\#1264](https://github.com/habitat-sh/habitat/pull/1264) ([smurawski](https://github.com/smurawski))
+- Cleaning up the windows build docs [\#1262](https://github.com/habitat-sh/habitat/pull/1262) ([smurawski](https://github.com/smurawski))
+- \[hab/mac\] Prompt for core origin key when performing a Mac hab release. [\#1258](https://github.com/habitat-sh/habitat/pull/1258) ([fnichol](https://github.com/fnichol))
+- \[devshell\] Use rustup in Dockerfile. [\#1257](https://github.com/habitat-sh/habitat/pull/1257) ([fnichol](https://github.com/fnichol))
+- Iterate on plans with --config-from [\#1256](https://github.com/habitat-sh/habitat/pull/1256) ([adamhjk](https://github.com/adamhjk))
+- `pkg\_source` is required [\#1254](https://github.com/habitat-sh/habitat/pull/1254) ([nathenharvey](https://github.com/nathenharvey))
+- Convert supervisor config to global singleton [\#1246](https://github.com/habitat-sh/habitat/pull/1246) ([adamhjk](https://github.com/adamhjk))
+
+## Bug fixes
+
+- `hab pkg hash` doesn't work with filenames with commas [\#1151](https://github.com/habitat-sh/habitat/issues/1151)
+- service\_config::toml\_merge handles toml::Tables \(rebased w/ changed order\) [\#1294](https://github.com/habitat-sh/habitat/pull/1294) ([robbkidd](https://github.com/robbkidd))
+- \[hab\] Fix missing artifact cache directory using `FS\_ROOT` env var. [\#1287](https://github.com/habitat-sh/habitat/pull/1287) ([fnichol](https://github.com/fnichol))
+- \[Makefile\] Repair `serve-docs` target & support Docker for Mac. [\#1259](https://github.com/habitat-sh/habitat/pull/1259) ([fnichol](https://github.com/fnichol))
+
+**Closed issues:**
+
+- want `hab pkg build` to do multithreaded `xz` compression when more than one core available [\#1253](https://github.com/habitat-sh/habitat/issues/1253)
+- Unclear message when token has incorrect scope [\#1105](https://github.com/habitat-sh/habitat/issues/1105)
+
+**Merged pull requests:**
+
+- Fix bug with inclusion of whitespace in VERSION constant [\#1297](https://github.com/habitat-sh/habitat/pull/1297) ([reset](https://github.com/reset))
+- Require less broad OAuth scopes [\#1293](https://github.com/habitat-sh/habitat/pull/1293) ([reset](https://github.com/reset))
+- \[WIP\] Ensure the hab versions inside and outside of a studio match [\#1292](https://github.com/habitat-sh/habitat/pull/1292) ([raskchanky](https://github.com/raskchanky))
+- Request full user scope on web login [\#1289](https://github.com/habitat-sh/habitat/pull/1289) ([reset](https://github.com/reset))
+- Remove the Waffle badge as we aren't currently using it. [\#1288](https://github.com/habitat-sh/habitat/pull/1288) ([juliandunn](https://github.com/juliandunn))
+- Bldr-0.11.0-dev [\#1284](https://github.com/habitat-sh/habitat/pull/1284) ([reset](https://github.com/reset))
+- Improve messaging for failed login due to missing OAuth scope\(s\) [\#1282](https://github.com/habitat-sh/habitat/pull/1282) ([reset](https://github.com/reset))
+- Update to Windows Build Docs [\#1281](https://github.com/habitat-sh/habitat/pull/1281) ([smurawski](https://github.com/smurawski))
+- Improve client & server error reporting [\#1277](https://github.com/habitat-sh/habitat/pull/1277) ([reset](https://github.com/reset))
+- A few small copy edits for the website home page [\#1276](https://github.com/habitat-sh/habitat/pull/1276) ([ryankeairns](https://github.com/ryankeairns))
+- Add Steven as a maintainer [\#1275](https://github.com/habitat-sh/habitat/pull/1275) ([smurawski](https://github.com/smurawski))
+- Updating linux hab setup instructions and minor copy edits [\#1274](https://github.com/habitat-sh/habitat/pull/1274) ([davidwrede](https://github.com/davidwrede))
+- Use new sentinel testing branches [\#1272](https://github.com/habitat-sh/habitat/pull/1272) ([adamhjk](https://github.com/adamhjk))
+- Update documentation references for user scope [\#1271](https://github.com/habitat-sh/habitat/pull/1271) ([jtimberman](https://github.com/jtimberman))
+- Stub out uname and effective\_uid to make hab run [\#1270](https://github.com/habitat-sh/habitat/pull/1270) ([smurawski](https://github.com/smurawski))
+- \[hab\] Read user's keys when running `hab pkg build` with `sudo`. [\#1269](https://github.com/habitat-sh/habitat/pull/1269) ([fnichol](https://github.com/fnichol))
+- Builder 0.10.0 [\#1266](https://github.com/habitat-sh/habitat/pull/1266) ([reset](https://github.com/reset))
+- branches that have test\_development-.\* will run tests [\#1261](https://github.com/habitat-sh/habitat/pull/1261) ([metadave](https://github.com/metadave))
+- Update Admin, API, and Depot route definitions with names [\#1260](https://github.com/habitat-sh/habitat/pull/1260) ([reset](https://github.com/reset))
+- Update Cargo dependencies [\#1255](https://github.com/habitat-sh/habitat/pull/1255) ([adamhjk](https://github.com/adamhjk))
+- Bump VERSION to 0.10.0-dev. [\#1251](https://github.com/habitat-sh/habitat/pull/1251) ([fnichol](https://github.com/fnichol))
+- Home page copy updates [\#1247](https://github.com/habitat-sh/habitat/pull/1247) ([ryankeairns](https://github.com/ryankeairns))
+- Upgrade to Angular 2 RC-5 [\#1213](https://github.com/habitat-sh/habitat/pull/1213) ([raskchanky](https://github.com/raskchanky))
+
+## [BLDR-0.10.0](https://github.com/habitat-sh/habitat/tree/BLDR-0.10.0) (09-16-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.3...BLDR-0.10.0)
+
+**Merged pull requests:**
+
+- Update clap to fix hashing file names with commas. [\#1250](https://github.com/habitat-sh/habitat/pull/1250) ([raskchanky](https://github.com/raskchanky))
+- Plumb feature flags into builder-web [\#1249](https://github.com/habitat-sh/habitat/pull/1249) ([reset](https://github.com/reset))
+
 ## [0.9.3](https://github.com/habitat-sh/habitat/tree/0.9.3) (09-16-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.9.2...0.9.3)
 
@@ -9,6 +77,7 @@
 
 **Merged pull requests:**
 
+- version bump and changelog update for 0.9.3 [\#1248](https://github.com/habitat-sh/habitat/pull/1248) ([metadave](https://github.com/metadave))
 - Improve logging/handling when receiving an unexpected route reply [\#1244](https://github.com/habitat-sh/habitat/pull/1244) ([reset](https://github.com/reset))
 
 ## [0.9.2](https://github.com/habitat-sh/habitat/tree/0.9.2) (09-15-2016)
