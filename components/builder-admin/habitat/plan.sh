@@ -6,7 +6,7 @@ pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
-pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts core/cargo-nightly
+pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/pkg-config)
 bin="bldr-admin"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"

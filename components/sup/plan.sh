@@ -9,7 +9,7 @@ pkg_deps=(
   core/busybox-static
   core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl
 )
-pkg_build_deps=(core/coreutils core/cacerts core/cargo-nightly core/rust core/gcc)
+pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname

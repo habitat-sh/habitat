@@ -7,7 +7,7 @@ pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
 pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreutils core/cacerts
-  core/cargo-nightly core/rust core/gcc core/pkg-config core/zlib)
+  core/rust core/gcc core/pkg-config core/zlib)
 bin="bldr-worker"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 
