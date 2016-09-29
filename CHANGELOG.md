@@ -1,5 +1,21 @@
 # Habitat CHANGELOG
 
+## [0.10.1](https://github.com/habitat-sh/habitat/tree/0.10.1) (09-29-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.0...0.10.1)
+
+## Features & Enhancements
+
+- Drop Cargo nightly requirement as of Rust 1.12.0 release. [\#1299](https://github.com/habitat-sh/habitat/pull/1299) ([fnichol](https://github.com/fnichol))
+
+## Bug fixes
+
+- hab won't install packages if /hab/cache/artifacts isn't present [\#1291](https://github.com/habitat-sh/habitat/issues/1291)
+- Fix issue entering studios in release versions of hab [\#1302](https://github.com/habitat-sh/habitat/pull/1302) ([reset](https://github.com/reset))
+
+**Merged pull requests:**
+
+- Start 0.11.0-dev [\#1300](https://github.com/habitat-sh/habitat/pull/1300) ([reset](https://github.com/reset))
+
 ## [0.10.0](https://github.com/habitat-sh/habitat/tree/0.10.0) (09-29-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/BLDR-0.10.0...0.10.0)
 
