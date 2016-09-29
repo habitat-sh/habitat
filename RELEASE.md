@@ -184,7 +184,7 @@ target component.
 
 # How-To: Build Mac Components
 
-1. Ensure no pre-exiting old virtual machine, then turn on and enter the system
+1. Ensure no pre-existing old virtual machine, then turn on and enter the system
 
 	```
 	$ cd ~/code/habitat/components/hab/mac
