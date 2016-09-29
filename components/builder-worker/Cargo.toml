@@ -13,6 +13,7 @@ doc = false
 [dependencies]
 env_logger = "*"
 git2 = "*"
+lazy_static = "*"
 log = "*"
 protobuf = "*"
 toml = "*"
@@ -29,6 +30,9 @@ path = "../core"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[dependencies.habitat_depot_client]
+path = "../builder-depot-client"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

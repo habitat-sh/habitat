@@ -7,15 +7,11 @@
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
-#![allow(box_pointers)]
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![allow(trivial_casts)]
-#![allow(unsafe_code)]
 #![allow(unused_imports)]
-#![allow(unused_results)]
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -132,10 +128,10 @@ impl ::protobuf::Message for RouteInfo {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.protocol {
+        for value in self.protocol.iter() {
             my_size += ::protobuf::rt::enum_size(1, *value);
         };
-        for value in &self.hash {
+        for value in self.hash.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -413,13 +409,13 @@ impl ::protobuf::Message for Msg {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.message_id {
+        for value in self.message_id.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in &self.body {
+        for value in self.body.iter() {
             my_size += ::protobuf::rt::bytes_size(2, &value);
         };
-        for value in &self.route_info {
+        for value in self.route_info.iter() {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -659,10 +655,10 @@ impl ::protobuf::Message for NetError {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.code {
+        for value in self.code.iter() {
             my_size += ::protobuf::rt::enum_size(1, *value);
         };
-        for value in &self.msg {
+        for value in self.msg.iter() {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());

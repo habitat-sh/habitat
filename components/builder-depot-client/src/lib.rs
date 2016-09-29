@@ -298,6 +298,27 @@ impl Client {
         }
     }
 
+    pub fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
+        let checksum = try!(pa.checksum());
+        let ident = try!(pa.ident());
+        let mut file = try!(File::open(&pa.path));
+        let file_size = try!(file.metadata()).len();
+        let path = format!("pkgs/{}", ident);
+        let customize = |url: &mut Url| {
+            url.query_pairs_mut().append_pair("checksum", &checksum);
+        };
+        debug!("Reading from {}", &pa.path.display());
+
+        let result = self.add_authz(self.inner.post_with_custom_url(&path, customize), token)
+            .body(Body::SizedBody(&mut file, file_size))
+            .send();
+        match result {
+            Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
+            Ok(response) => Err(err_from_response(response)),
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
     /// Returns a vector of PackageIdent structs
     ///
     /// # Failures

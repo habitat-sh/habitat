@@ -152,7 +152,6 @@ impl WorkerMgr {
                 try!(self.distribute_work());
             }
         }
-        Ok(())
     }
 
     fn poll_timeout(&self) -> i64 {

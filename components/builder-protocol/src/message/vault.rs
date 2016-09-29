@@ -7,15 +7,11 @@
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
-#![allow(box_pointers)]
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![allow(trivial_casts)]
-#![allow(unsafe_code)]
 #![allow(unused_imports)]
-#![allow(unused_results)]
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -220,16 +216,16 @@ impl ::protobuf::Message for Origin {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
+        for value in self.id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.name {
+        for value in self.name.iter() {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(3, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.private_key_name {
+        for value in self.private_key_name.iter() {
             my_size += ::protobuf::rt::string_size(4, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -520,13 +516,13 @@ impl ::protobuf::Message for OriginCreate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.name {
+        for value in self.name.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.owner_name {
+        for value in self.owner_name.iter() {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -732,7 +728,7 @@ impl ::protobuf::Message for OriginDelete {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.name {
+        for value in self.name.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -918,7 +914,7 @@ impl ::protobuf::Message for OriginGet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.name {
+        for value in self.name.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1122,10 +1118,10 @@ impl ::protobuf::Message for OriginMemberRemove {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.user_id {
+        for value in self.user_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1308,7 +1304,7 @@ impl ::protobuf::Message for OriginMemberListRequest {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1511,10 +1507,10 @@ impl ::protobuf::Message for OriginMemberListResponse {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.members {
+        for value in self.members.iter() {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1526,7 +1522,7 @@ impl ::protobuf::Message for OriginMemberListResponse {
         if let Some(v) = self.origin_id {
             try!(os.write_uint64(1, v));
         };
-        for v in &self.members {
+        for v in self.members.iter() {
             try!(os.write_string(2, &v));
         };
         try!(os.write_unknown_fields(self.get_unknown_fields()));
@@ -1696,7 +1692,7 @@ impl ::protobuf::Message for AccountOriginListRequest {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.account_id {
+        for value in self.account_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1899,10 +1895,10 @@ impl ::protobuf::Message for AccountOriginListResponse {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.account_id {
+        for value in self.account_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.origins {
+        for value in self.origins.iter() {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1914,7 +1910,7 @@ impl ::protobuf::Message for AccountOriginListResponse {
         if let Some(v) = self.account_id {
             try!(os.write_uint64(1, v));
         };
-        for v in &self.origins {
+        for v in self.origins.iter() {
             try!(os.write_string(2, &v));
         };
         try!(os.write_unknown_fields(self.get_unknown_fields()));
@@ -2642,7 +2638,7 @@ impl ::protobuf::Message for AccountInvitationListRequest {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.account_id {
+        for value in self.account_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -2845,10 +2841,10 @@ impl ::protobuf::Message for AccountInvitationListResponse {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.account_id {
+        for value in self.account_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.invitations {
+        for value in self.invitations.iter() {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -2861,7 +2857,7 @@ impl ::protobuf::Message for AccountInvitationListResponse {
         if let Some(v) = self.account_id {
             try!(os.write_uint64(1, v));
         };
-        for v in &self.invitations {
+        for v in self.invitations.iter() {
             try!(os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited));
             try!(os.write_raw_varint32(v.get_cached_size()));
             try!(v.write_to_with_cached_sizes(os));
@@ -3033,7 +3029,7 @@ impl ::protobuf::Message for OriginInvitationListRequest {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -3236,10 +3232,10 @@ impl ::protobuf::Message for OriginInvitationListResponse {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.invitations {
+        for value in self.invitations.iter() {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -3252,7 +3248,7 @@ impl ::protobuf::Message for OriginInvitationListResponse {
         if let Some(v) = self.origin_id {
             try!(os.write_uint64(1, v));
         };
-        for v in &self.invitations {
+        for v in self.invitations.iter() {
             try!(os.write_tag(2, ::protobuf::wire_format::WireTypeLengthDelimited));
             try!(os.write_raw_varint32(v.get_cached_size()));
             try!(v.write_to_with_cached_sizes(os));
@@ -3605,22 +3601,22 @@ impl ::protobuf::Message for OriginInvitation {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
+        for value in self.id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.account_id {
+        for value in self.account_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.account_name {
+        for value in self.account_name.iter() {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(4, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.origin_name {
+        for value in self.origin_name.iter() {
             my_size += ::protobuf::rt::string_size(5, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(6, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -3993,19 +3989,19 @@ impl ::protobuf::Message for OriginInvitationCreate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.account_id {
+        for value in self.account_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.account_name {
+        for value in self.account_name.iter() {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(3, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.origin_name {
+        for value in self.origin_name.iter() {
             my_size += ::protobuf::rt::string_size(4, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(5, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -4280,10 +4276,10 @@ impl ::protobuf::Message for OriginInvitationAcceptRequest {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.account_accepting_request {
+        for value in self.account_accepting_request.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.invite_id {
+        for value in self.invite_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         if self.ignore.is_some() {
@@ -4801,22 +4797,22 @@ impl ::protobuf::Message for OriginSecretKey {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
+        for value in self.id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.name {
+        for value in self.name.iter() {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in &self.revision {
+        for value in self.revision.iter() {
             my_size += ::protobuf::rt::string_size(4, &value);
         };
-        for value in &self.body {
+        for value in self.body.iter() {
             my_size += ::protobuf::rt::bytes_size(5, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(6, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -5202,19 +5198,19 @@ impl ::protobuf::Message for OriginSecretKeyCreate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.origin_id {
+        for value in self.origin_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.name {
+        for value in self.name.iter() {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in &self.revision {
+        for value in self.revision.iter() {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in &self.body {
+        for value in self.body.iter() {
             my_size += ::protobuf::rt::bytes_size(4, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(5, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -5579,13 +5575,13 @@ impl ::protobuf::Message for Project {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
+        for value in self.id.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in &self.owner_id {
+        for value in self.owner_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.plan_path {
+        for value in self.plan_path.iter() {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
         if let ::std::option::Option::Some(ref v) = self.vcs {
@@ -5843,10 +5839,10 @@ impl ::protobuf::Message for ProjectUpdate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.requestor_id {
+        for value in self.requestor_id.iter() {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in &self.project {
+        for value in self.project.iter() {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -6042,7 +6038,7 @@ impl ::protobuf::Message for ProjectCreate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.project {
+        for value in self.project.iter() {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -6262,10 +6258,10 @@ impl ::protobuf::Message for ProjectDelete {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
+        for value in self.id.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in &self.requestor_id {
+        for value in self.requestor_id.iter() {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -6461,7 +6457,7 @@ impl ::protobuf::Message for ProjectGet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.id {
+        for value in self.id.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -6647,7 +6643,7 @@ impl ::protobuf::Message for VCSGit {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in &self.url {
+        for value in self.url.iter() {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());

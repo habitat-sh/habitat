@@ -189,7 +189,6 @@ impl HeartbeatMgr {
                 cli_sock_msg = false;
             }
         }
-        Ok(())
     }
 
     // Set internal state to `PulseState::Pause` and notify client OK
