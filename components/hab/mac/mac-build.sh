@@ -97,27 +97,14 @@ install_if_missing hab-libarchive $(dirname $0)/homebrew/hab-libarchive.rb
 if ! command -v rustc >/dev/null; then
   info "Rust missing, attempting to install"
   curl -s https://static.rust-lang.org/rustup.sh | sh -s -- -y
+  rustc --version
+  cargo --version
 fi
 
-cargo_bin=/opt/cargo/bin/cargo
-if [[ ! -f "$cargo_bin" ]] || [[ $($cargo_bin --version | cut -d ' ' -f 2) < "0.13.0-nightly" ]]; then
-  info "Cargo nightly missing or old, attempting to install"
-  cargo_workdir=/tmp/cargo-dl
-  mkdir -p "$cargo_workdir"
-  pushd /tmp/cargo-dl > /dev/null
-  cargo_url="https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-apple-darwin.tar.gz"
-  curl -LO "$cargo_url"
-  tar xf "$(basename $cargo_url)"
-  cd "$(basename ${cargo_url%.tar.gz})"
-  ./install.sh --prefix=/opt/cargo
-  popd > /dev/null
-  rm -rf "$cargo_workdir"
-fi
-
-info "Updating PATH to include GNU toolchain from HomeBrew and custom Cargo"
+info "Updating PATH to include GNU toolchain from HomeBrew"
 gnu_path="$(brew --prefix coreutils)/libexec/gnubin"
 gnu_path="$gnu_path:$(brew --prefix gnu-tar)/libexec/gnubin"
-export PATH="$gnu_path:$(dirname $cargo_bin):$PATH"
+export PATH="$gnu_path:$PATH"
 info "Setting PATH=$PATH"
 
 program="$(dirname $0)/../../plan-build/bin/hab-plan-build.sh"
