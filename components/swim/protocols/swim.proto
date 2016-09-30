@@ -1,0 +1,43 @@
+syntax = "proto2";
+
+message Member {
+  optional string id = 1;
+  optional uint64 incarnation = 2;
+  optional string address = 3;
+  optional bool persistent = 4 [default = false];
+}
+
+message Ping {
+  optional Member from = 1;
+  optional Member forward_to = 2;
+}
+
+message Ack {
+  optional Member from = 1;
+  optional Member forward_to = 2;
+}
+
+message PingReq {
+  optional Member from = 1;
+  optional Member target = 2;
+}
+
+message Membership {
+  enum Health { ALIVE = 1; SUSPECT = 2; CONFIRMED = 3; };
+
+  optional Member member = 1;
+  optional Health health = 2;
+}
+
+message Swim {
+  enum Type { PING = 1; ACK = 2; PINGREQ = 3; };
+
+  // Identifies which field is filled in.
+  required Type type = 1;
+
+  // Optional
+  optional Ping ping = 2;
+  optional Ack ack = 3;
+  optional PingReq pingreq = 4;
+  repeated Membership membership = 5;
+}

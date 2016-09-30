@@ -18,4 +18,5 @@ members = [
   "components/http-client",
   "components/net",
   "components/sup",
+  "components/swim",
 ]
