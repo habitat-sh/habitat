@@ -1,5 +1,19 @@
 # Habitat CHANGELOG
 
+## [0.10.2](https://github.com/habitat-sh/habitat/tree/0.10.2) (09-30-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.1...0.10.2)
+
+## Bug fixes
+
+- Unable to update config values specified in default.toml - 0.10.1 [\#1307](https://github.com/habitat-sh/habitat/issues/1307)
+- The command "hab sup config package" should output the default.toml of the package. [\#1301](https://github.com/habitat-sh/habitat/issues/1301)
+- fix merging top-level config values [\#1308](https://github.com/habitat-sh/habitat/pull/1308) ([robbkidd](https://github.com/robbkidd))
+
+**Merged pull requests:**
+
+- Adding text on updating services through env var + title changes [\#1311](https://github.com/habitat-sh/habitat/pull/1311) ([davidwrede](https://github.com/davidwrede))
+- Start 0.11.0-dev [\#1305](https://github.com/habitat-sh/habitat/pull/1305) ([reset](https://github.com/reset))
+
 ## [0.10.1](https://github.com/habitat-sh/habitat/tree/0.10.1) (09-29-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.0...0.10.1)
 
@@ -14,6 +28,7 @@
 
 **Merged pull requests:**
 
+- 0.10.1 [\#1303](https://github.com/habitat-sh/habitat/pull/1303) ([reset](https://github.com/reset))
 - Start 0.11.0-dev [\#1300](https://github.com/habitat-sh/habitat/pull/1300) ([reset](https://github.com/reset))
 
 ## [0.10.0](https://github.com/habitat-sh/habitat/tree/0.10.0) (09-29-2016)
@@ -52,7 +67,9 @@
 
 **Merged pull requests:**
 
+- Release 0.10.0 [\#1298](https://github.com/habitat-sh/habitat/pull/1298) ([reset](https://github.com/reset))
 - Fix bug with inclusion of whitespace in VERSION constant [\#1297](https://github.com/habitat-sh/habitat/pull/1297) ([reset](https://github.com/reset))
+- Fix text alignment by removing one word from copy. [\#1296](https://github.com/habitat-sh/habitat/pull/1296) ([juliandunn](https://github.com/juliandunn))
 - Require less broad OAuth scopes [\#1293](https://github.com/habitat-sh/habitat/pull/1293) ([reset](https://github.com/reset))
 - \[WIP\] Ensure the hab versions inside and outside of a studio match [\#1292](https://github.com/habitat-sh/habitat/pull/1292) ([raskchanky](https://github.com/raskchanky))
 - Request full user scope on web login [\#1289](https://github.com/habitat-sh/habitat/pull/1289) ([reset](https://github.com/reset))
