@@ -309,46 +309,39 @@ struct Cfg {
 }
 
 // Shallow merges two toml tables.
-fn toml_merge(left: &toml::Table, right: &toml::Table) -> toml::Table {
-    let mut final_map = toml::Table::new();
-    for (left_key, left_value) in left.iter() {
+fn toml_merge(existing: &toml::Table, ovr: &toml::Table) -> toml::Table {
+    let mut final_map = existing.clone();
+    for (ovr_key, ovr_value) in ovr.iter() {
+
         // attempt to merge nested tables
-        let a = right.get(left_key).and_then(|v| v.as_table());
-        let b = left.get(left_key).and_then(|v| v.as_table());
-        match (a, b) {
-            (Some(left_t), Some(right_t)) => {
-                let new_table = toml_merge(left_t, right_t);
+        let existing_v = existing.get(ovr_key).and_then(|v| v.as_table());
+        let ovr_v = ovr.get(ovr_key).and_then(|v| v.as_table());
+        if let None = existing.get(ovr_key) {
+            final_map.insert(ovr_key.clone(), ovr_value.clone());
+        }
+        match (existing_v, ovr_v) {
+            (Some(existing_t), Some(ovr_t)) => {
+                let new_table = toml_merge(existing_t, ovr_t);
                 let table_as_value = toml::Value::Table(new_table);
-                final_map.insert(left_key.clone(), table_as_value);
+                final_map.insert(ovr_key.clone(), table_as_value);
                 continue;
             }
             (Some(_), _) => {
-                // this occurs when the value type in left != type in right
-                warn!("TOML structure mismatch for key {}", &left_key);
+                // this occurs when the value type in ovr != type in existing
+                warn!("TOML structure mismatch for key {}", &ovr_key);
                 continue;
             }
             (_, Some(_)) => {
-                // this occurs when the value type in left != type in right
-                warn!("TOML structure mismatch for key {}", &left_key);
+                // this occurs when the value type in ovr != type in existing
+                warn!("TOML structure mismatch for key {}", &ovr_key);
             }
-            (_, _) => () // left and right are not toml::Tables
+            (_, _) => () // ovr and existing are not toml::Tables
         }
 
-        match right.get(left_key) {
-            Some(right_value) => {
-                final_map.insert(left_key.clone(), right_value.clone());
-            }
-            None => {
-                final_map.insert(left_key.clone(), left_value.clone());
-            }
-        }
+        // if we have an override value, always include it
+        final_map.insert(ovr_key.clone(), ovr_value.clone());
     }
 
-    for (right_key, right_value) in right.iter() {
-        if !final_map.contains_key(right_key) {
-            final_map.insert(right_key.clone(), right_value.clone());
-        }
-    }
     final_map
 }
 
@@ -370,16 +363,16 @@ impl Cfg {
     fn to_toml(&self) -> toml::Value {
         let mut output_toml = toml::Table::new();
         if let Some(toml::Value::Table(ref default_cfg)) = self.default {
-            output_toml = toml_merge(default_cfg, &output_toml);
+            output_toml = toml_merge(&output_toml, default_cfg);
         }
         if let Some(toml::Value::Table(ref user_cfg)) = self.user {
-            output_toml = toml_merge(user_cfg, &output_toml);
+            output_toml = toml_merge(&output_toml, user_cfg);
         }
         if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
-            output_toml = toml_merge(gossip_cfg, &output_toml);
+            output_toml = toml_merge(&output_toml, gossip_cfg);
         }
         if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
-            output_toml = toml_merge(env_cfg, &output_toml);
+            output_toml = toml_merge(&output_toml, env_cfg);
         }
         toml::Value::Table(output_toml)
     }
@@ -723,19 +716,51 @@ mod test {
         assert!(re.is_match(&ip));
     }
 
-
     #[test]
-    fn merge() {
-        let default_config = "[server]
+    fn merge_into_an_empty_start() {
+        let override_config = "rando_key = \"rando_override\"
+            [server]
+            port=\"9090\"
+            [server.nested]
+            nest = true";
+        let default_toml = toml::Table::new();
+        let override_toml = toml::Parser::new(override_config).parse().unwrap();
+        {
+            let result = toml_merge(&default_toml, &override_toml);
+            assert!(result.contains_key("rando_key"));
+            assert_eq!("rando_override", result.get("rando_key").unwrap().as_str().unwrap());
+            assert!(result.contains_key("server"));
+            let server = result.get("server").unwrap().as_table().unwrap();
+            assert!(server.contains_key("port"));
+            assert_eq!("9090", server.get("port").unwrap().as_str().unwrap());
+            let nested = server.get("nested").unwrap().as_table().unwrap();
+            assert!(nested.contains_key("nest"));
+            assert_eq!(true, nested.get("nest").unwrap().as_bool().unwrap());
+        }
+    }
+    #[test]
+    fn merge_a_few_things() {
+        let default_config = "rando_key = \"thisisdefault\"
+            [server]
             port = \"8080\"
             shutdown-port = \"8005\"
-            redirect-port = \"8443\"";
+            redirect-port = \"8443\"
 
-        let override_config = "server = { port=\"9090\" }";
+            [server.nested]
+            nest = false
+            message = \"don't override me bro\"";
+
+        let override_config = "rando_key = \"rando_override\"
+            [server]
+            port=\"9090\"
+            [server.nested]
+            nest = true";
         let default_toml = toml::Parser::new(default_config).parse().unwrap();
         let override_toml = toml::Parser::new(override_config).parse().unwrap();
         {
-            let result = toml_merge(&override_toml, &default_toml);
+            let result = toml_merge(&default_toml, &override_toml);
+            assert!(result.contains_key("rando_key"));
+            assert_eq!("rando_override", result.get("rando_key").unwrap().as_str().unwrap());
             assert!(result.contains_key("server"));
             let server = result.get("server").unwrap().as_table().unwrap();
             assert!(server.contains_key("port"));
@@ -744,6 +769,33 @@ mod test {
             assert_eq!("8005", server.get("shutdown-port").unwrap().as_str().unwrap());
             assert!(server.contains_key("redirect-port"));
             assert_eq!("8443", server.get("redirect-port").unwrap().as_str().unwrap());
+            let nested = server.get("nested").unwrap().as_table().unwrap();
+            assert!(nested.contains_key("nest"));
+            assert_eq!(true, nested.get("nest").unwrap().as_bool().unwrap());
+        }
+    }
+
+    #[test]
+    fn merge_only_keys() {
+        let default_config = "rando_key = \"thisisdefault\"
+            port = \"8080\"
+            shutdown-port = \"8005\"
+            redirect-port = \"8443\"";
+
+        let override_config = "port=\"9090\"
+            rando_key = \"rando_override\"";
+        let default_toml = toml::Parser::new(default_config).parse().unwrap();
+        let override_toml = toml::Parser::new(override_config).parse().unwrap();
+        {
+            let result = toml_merge(&default_toml, &override_toml);
+            assert!(result.contains_key("rando_key"));
+            assert_eq!("rando_override", result.get("rando_key").unwrap().as_str().unwrap());
+            assert!(result.contains_key("port"));
+            assert_eq!("9090", result.get("port").unwrap().as_str().unwrap());
+            assert!(result.contains_key("shutdown-port"));
+            assert_eq!("8005", result.get("shutdown-port").unwrap().as_str().unwrap());
+            assert!(result.contains_key("redirect-port"));
+            assert_eq!("8443", result.get("redirect-port").unwrap().as_str().unwrap());
         }
     }
 
