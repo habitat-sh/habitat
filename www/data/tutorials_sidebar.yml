@@ -17,7 +17,7 @@ sidebar_links:
       link: "/tutorials/getting-started/mac/add-hooks/"
     - title: Add configuration to your plan
       link: "/tutorials/getting-started/mac/configure-plan/"
-    - title: Process your build
+    - title: Run your service
       link: "/tutorials/getting-started/mac/process-build/"
     - title: Next steps
       link: "/tutorials/getting-started/next-steps/"

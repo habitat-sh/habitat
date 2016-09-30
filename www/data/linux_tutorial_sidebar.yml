@@ -17,7 +17,7 @@ sidebar_links:
       link: "/tutorials/getting-started/linux/add-hooks/"
     - title: Add configuration to your plan
       link: "/tutorials/getting-started/linux/configure-plan/"
-    - title: Process your build
+    - title: Run your service
       link: "/tutorials/getting-started/linux/process-build/"
     - title: Next steps
       link: "/tutorials/getting-started/next-steps/"
