@@ -129,9 +129,9 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 
 ## Publish Release
 
-1. Create release in GitHub
-1. Publish each Linux component to depot (`hab pkg upload results/*-x86_64-linux.hart`)
-1. [Release to Bintray](components/bintray-publish/README.md)
+1. Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
+1. Publish each Linux component to the Depot (`hab pkg upload results/*-x86_64-linux.hart`)
+1. [Release to Bintray](#how-to-release-to-bintray)
 1. Drink beer
 
 ## Bump Version
@@ -200,3 +200,35 @@ target component.
 	$ cd /src/components/hab/mac
 	$ sudo ./mac-build.sh
 	```
+
+# How-To: Release to Bintray
+
+1. On your workstation, change your code directory and enter a studio
+
+    ```
+    $ cd ~/code
+    $ hab studio enter
+    ```
+
+1. Install the Bintray publishing code and export your credentials
+
+    ```
+    $ hab install core/hab-bintray-publish
+    $ export BINTRAY_USER=yourusername BINTRAY_KEY=yourkey BINTRAY_PASSPHRASE=commongpgkeypassphrase
+    ```
+
+1. Publish the new Docker Studio image
+    ```
+    $ hab pkg exec core/hab-bintray-publish publish-studio
+    ```
+
+1. Publish the Linux and Mac artifacts by selecting the appropriate `.hart` file
+
+    ```
+    $ hab pkg exec core/hab-bintray-publish publish-hab \
+      ./results/core-hab-0.10.2-20160930230245-x86_64-linux.hart
+    $ hab pkg exec core/hab-bintray-publish publish-hab \
+      ./habitat/components/hab/mac/results/core-hab-0.10.2-20160930230245-x86_64-darwin.hart
+    ```
+
+More documentation for the Bintray releasing software can be found in the component's [Readme](components/bintray-publish/README.md).
