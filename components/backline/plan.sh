@@ -14,6 +14,7 @@ pkg_deps=(
   core/mg
   core/util-linux
   core/vim
+  core/ncurses
 )
 
 do_download() {
