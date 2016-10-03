@@ -23,12 +23,6 @@ use hcore::os::users;
 
 use config;
 use error::Result;
-use VERSION;
-
-pub const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
-const DOCKER_CMD: &'static str = "docker";
-const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
-const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
@@ -63,23 +57,6 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     }
 
     inner::start(ui, args)
-}
-
-/// Retrieves the
-pub fn image_identifier() -> String {
-    let version: Vec<&str> = VERSION.split("/").collect();
-    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", DOCKER_IMAGE, version[0]))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use VERSION;
-
-    #[test]
-    fn retrieve_image_identifier() {
-        assert_eq!(image_identifier(), format!("{}:{}", DOCKER_IMAGE, VERSION));
-    }
 }
 
 #[cfg(target_os = "linux")]
@@ -136,7 +113,12 @@ mod inner {
     use hcore::fs::{CACHE_KEY_PATH, find_command};
 
     use error::{Error, Result};
-    use super::{DOCKER_CMD, DOCKER_CMD_ENVVAR, image_identifier};
+    use VERSION;
+
+    const DOCKER_CMD: &'static str = "docker";
+    const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
+    const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
+    const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
@@ -168,8 +150,8 @@ mod inner {
             .arg("/var/run/docker.sock:/var/run/docker.sock")
             .arg("--volume")
             .arg(format!("{}:/{}",
-                     default_cache_key_path(None).to_string_lossy(),
-                     CACHE_KEY_PATH))
+                         default_cache_key_path(None).to_string_lossy(),
+                         CACHE_KEY_PATH))
             .arg("--volume")
             .arg(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()))
             .arg(image_identifier());
@@ -192,5 +174,23 @@ mod inner {
         // https://docs.docker.com/engine/reference/run/#/exit-status
         // this currently just passes the exit code from Docker directly.
         exit(status.code().unwrap())
+    }
+
+    /// Returns the Docker Studio image with tag for the desired version which corresponds to the
+    /// same version (minus release) as this program.
+    fn image_identifier() -> String {
+        let version: Vec<&str> = VERSION.split("/").collect();
+        henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}:{}", DOCKER_IMAGE, version[0]))
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::{image_identifier, DOCKER_IMAGE};
+        use VERSION;
+
+        #[test]
+        fn retrieve_image_identifier() {
+            assert_eq!(image_identifier(), format!("{}:{}", DOCKER_IMAGE, VERSION));
+        }
     }
 }
