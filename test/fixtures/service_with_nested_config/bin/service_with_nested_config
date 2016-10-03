@@ -1,0 +1,24 @@
+#!/bin/sh
+
+EXIT_NOW=0
+
+set_exit_now() {
+  EXIT_NOW=1
+}
+
+trap "set_exit_now" INT TERM HUP
+echo Starting service_with_nested_config
+echo "### Base level configuration file ###"
+cat /hab/svc/service_with_nested_config/config/base_level.conf
+echo "### Second level configuration file ###"
+cat /hab/svc/service_with_nested_config/config/subdir/one_deep.conf
+echo "### Third level configuration file ###"
+cat /hab/svc/service_with_nested_config/config/subdir/nextdir/two_deep.conf
+
+while [ 1 ]; do
+  if [ $EXIT_NOW = 1 ]; then
+     echo "Exiting on signal"
+     exit 0
+  fi
+  sleep 1
+done

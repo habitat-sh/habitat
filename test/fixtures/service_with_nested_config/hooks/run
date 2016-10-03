@@ -1,0 +1,3 @@
+cp -r {{pkg.path}}/bin {{pkg.svc_path}}
+cd {{pkg.svc_path}}
+exec ./bin/service_with_nested_config
