@@ -122,18 +122,24 @@ impl UI {
 
     pub fn fatal<T: fmt::Display>(&mut self, message: T) -> Result<()> {
         let ref mut stream = self.shell.err;
+        let formatted_message = message.to_string()
+            .lines()
+            .map(|line| format!("✗✗✗ {}", line))
+            .collect::<Vec<_>>()
+            .join("\n");
+
         match stream.is_colored() {
             true => {
                 try!(write!(stream,
                             "{}\n",
                             Colour::Red.bold()
-                                .paint(format!("✗✗✗\n✗✗✗ {}\n✗✗✗",
-                                               message.to_string()))));
+                                .paint(format!("✗✗✗\n{}\n✗✗✗",
+                                               formatted_message))));
             }
             false => {
                 try!(write!(stream,
-                            "✗✗✗\n✗✗✗ {}\n✗✗✗\n",
-                            message.to_string()));
+                            "✗✗✗\n{}\n✗✗✗\n",
+                            formatted_message));
             }
         }
         try!(stream.flush());
