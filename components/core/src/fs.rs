@@ -20,7 +20,10 @@ use users;
 use env as henv;
 
 /// The default filesystem root path
+#[cfg(not(target_os="windows"))]
 pub const FS_ROOT_PATH: &'static str = "/";
+#[cfg(target_os="windows")]
+pub const FS_ROOT_PATH: &'static str = concat!(env!("SYSTEMDRIVE"), "/");
 /// The default root path of the Habitat filesytem
 pub const ROOT_PATH: &'static str = "hab";
 /// The default path for any analytics related files
