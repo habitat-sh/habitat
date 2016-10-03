@@ -122,7 +122,6 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 
 1. Build each of the following components with the [instructions below](#how-to-build-a-linux-component)
   * hab - `habitat/components/hab`
-  * hab-dynamic - `habitat/components/hab/dynamic`
   * hab-sup - `habitat/components/sup`
   * hab-sup-static - `habitat/components/sup/static`
   * hab-director - `habitat/components/director`
