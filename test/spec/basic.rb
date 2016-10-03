@@ -67,7 +67,7 @@ describe "Habitat CLI" do
             # 60 seconds to be sure we finish in time.
             result = ctx.cmd_expect("studio build fixtures/simple_service",
                                          "I love it when a plan.sh comes together",
-                                         :timeout_seconds => 60)
+                                         :timeout_seconds => 300, :debug => false)
             # as the build command MUST complete, we check return code
             expect(result.exited?).to be true
             expect(result.exitstatus).to eq 0
