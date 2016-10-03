@@ -32,6 +32,9 @@ pub enum Error {
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     DepotClient(depot_client::Error),
+    DockerDaemonDown,
+    DockerNetworkDown(String),
+    DockerImageNotFound(String),
     ExecCommandNotFound(String),
     FFINulError(ffi::NulError),
     FileNotFound(String),
@@ -56,6 +59,22 @@ impl fmt::Display for Error {
             }
             Error::CryptoCLI(ref e) => format!("{}", e),
             Error::DepotClient(ref err) => format!("{}", err),
+            Error::DockerDaemonDown => {
+                format!("Can not connect to Docker. Is the Docker daemon running?")
+            }
+            Error::DockerNetworkDown(ref e) => {
+                format!("The Docker image {} is unreachable due to a network error.\nThe \
+                         image must be reachable to ensure the versions of hab inside and \
+                         outside the studio match.\nYou can specify your own Docker image using \
+                         the HAB_DOCKER_STUDIO_IMAGE environment variable.",
+                        e)
+            }
+            Error::DockerImageNotFound(ref e) => {
+                format!("The Docker image {} was not found in the docker registry.\nYou can \
+                         specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
+                         environment variable.",
+                        e)
+            }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
@@ -88,6 +107,9 @@ impl error::Error for Error {
             }
             Error::CryptoCLI(_) => "A cryptographic error has occurred",
             Error::DepotClient(ref err) => err.description(),
+            Error::DockerDaemonDown => "The Docker daemon could not be found.",
+            Error::DockerNetworkDown(_) => "The Docker registry is unreachable.",
+            Error::DockerImageNotFound(_) => "The Docker image was not found.",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::FFINulError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",

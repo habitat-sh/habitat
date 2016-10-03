@@ -105,7 +105,7 @@ mod inner {
 mod inner {
     use std::env;
     use std::ffi::OsString;
-    use std::process::{Command, exit};
+    use std::process::{Command, Stdio, exit};
 
     use common::ui::UI;
     use hcore::crypto::default_cache_key_path;
@@ -127,6 +127,34 @@ mod inner {
             Some(cmd) => cmd,
             None => return Err(Error::ExecCommandNotFound(docker.to_string())),
         };
+
+        let child = Command::new(&cmd)
+            .arg("pull")
+            .arg(&image_identifier())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("docker failed to start");
+
+        let output = child.wait_with_output()
+            .expect("failed to wait on child");
+
+        if output.status.success() {
+            debug!("Docker image is reachable. Proceeding with launching docker.");
+        } else {
+            debug!("Docker image is unreachable. Exit code = {:?}",
+                   output.status);
+
+            let err_output = String::from_utf8(output.stderr).unwrap();
+
+            if err_output.contains("image") && err_output.contains("not found") {
+                return Err(Error::DockerImageNotFound(image_identifier().to_string()));
+            } else if err_output.contains("Cannot connect to the Docker daemon") {
+                return Err(Error::DockerDaemonDown);
+            } else {
+                return Err(Error::DockerNetworkDown(image_identifier().to_string()));
+            }
+        }
 
         let mut command = Command::new(&cmd);
         command.arg("run")
