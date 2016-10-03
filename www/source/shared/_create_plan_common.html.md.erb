@@ -46,7 +46,8 @@ In your terminal window, do the following:
        pkg_version=0.2.0
        pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
        pkg_license=()
-       pkg_source=https://github.com/habitat-sh/habitat-example-plans
+       pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
+       pkg_source=nosuchfile.tar.gz
        pkg_deps=()
        pkg_expose=()
 
@@ -54,7 +55,8 @@ Let's walk through these settings:
 
 - The `pkg_origin`, `pkg_name`, and `pkg_version` settings form the package identifier information.
 - The `pkg_maintainer` and `pkg_license` settings provide contact and license type information.
-- The `pkg_source` is a URL that specifies where to download the source from.
+- The `pkg_upstream_url` is used to provide project website metadata.
+- The `pkg_source` is a URL that specifies where to download the source from. If you are building the source locally, or do not need to download a file, you must still provide a non-empty string value.
 - The `pkg_deps` corresponds to the runtime package dependencies, and `pkg_expose` opens a network port when a Docker container is created (must be used along with the `-p` runtime option to publish it to the host machine).
 
 ## Modify the plan
@@ -66,13 +68,14 @@ We now have a skeleton plan, but we need to modify some of its settings before w
 
     > Note: A previous version of the tutorial used version `0.1.0`; however, the content related to that version no longer works with the latest version of Habitat.
 3. Because this is a tutorial, you don't have to change the `pkg_maintainer` value to your email address; however, when you upload packages for others to consume, you should include your contact information.
-4. Our Node.js application depends on the `node` and `npm` binaries at runtime, so include one of the core Habitat packages, `core/node`, as a runtime dependency. Transitive dependencies, such as `core/glibc` used by `core/node`, do not need to be listed when creating plans.
+4. Leave the `pkg_upstream_url` and `pkg_source` values as they are. The `pkg_upstream_url` is a metadata setting for your project/application -- in this case, the `habitat-example-plans` GitHub repo. The `pkg_source` setting is required, but since you will be building your package with cloned source files, you do not need to specify a valid URL. 
+5. Our Node.js application depends on the `node` and `npm` binaries at runtime, so include one of the core Habitat packages, `core/node`, as a runtime dependency. Transitive dependencies, such as `core/glibc` used by `core/node`, do not need to be listed when creating plans.
 
         pkg_deps=(core/node)
 
    > Note: Later on in this topic we are going to install the `nconf` module into our package, which requires the `npm` binary; however, we do not need to include `core/node` as a build dependency because the build script automatically installs build and runtime dependencies and adds their bin directories to the `$PATH` variable before building the package. So, if you need the same dependent binary for both build and runtime operations, you only need to include it as a runtime dependency.
 
-5. Set the `pkg_expose` value to `8080`. The `pkg_expose` setting creates an `EXPOSE` instruction in a generated Dockerfile, which we will use to create an optional Docker container; however, specifying the `pkg_expose` value does not publish this port for access by the host machine. We will do that later.
+6. Set the `pkg_expose` value to `8080`. The `pkg_expose` setting creates an `EXPOSE` instruction in a generated Dockerfile, which we will use to create an optional Docker container; however, specifying the `pkg_expose` value does not publish this port for access by the host machine. We will do that later.
 
    Add the following line to your plan:
 
@@ -143,7 +146,8 @@ pkg_name=mytutorialapp
 pkg_version=0.2.0
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=()
-pkg_source=https://github.com/habitat-sh/habitat-example-plans
+pkg_upstream_url=https://github.com/habitat-sh/habitat-example-plans
+pkg_source=nosuchfile.tar.gz
 pkg_deps=(core/node)
 pkg_expose=(8080)
 
