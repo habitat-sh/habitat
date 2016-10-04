@@ -352,6 +352,8 @@ pkg_lib_dirs=()
 pkg_bin_dirs=()
 # The path inside a package that contains header files - used in `CFLAGS`
 pkg_include_dirs=()
+# The path(s) inside a package that contain pkg-config (.pc) files
+pkg_pconfig_dirs=()
 # The command to run the service - must not fork or return
 pkg_svc_run=''
 # An array of ports to expose.
@@ -1883,13 +1885,28 @@ _build_metadata() {
   fi
 
   local pconfig_path_part=""
-  for inc in "${pkg_pconfig_dirs[@]}"; do
-    if [[ -z "$pconfig_path_part" ]]; then
-      pconfig_path_part="${pkg_prefix}/${inc}"
-    else
-      pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${inc}"
-    fi
-  done
+  if [ ${#pkg_pconfig_dirs[@]} -eq 0 ]; then
+    # Plan doesn't define pkg-config paths so let's try to find them in the conventional locations
+    local locations=(lib/pkgconfig share/pkgconfig)
+    for dir in "${locations[@]}"; do
+      if [[ -d "${pkg_prefix}/${dir}" ]]; then
+        if [[ -z "$pconfig_path_part" ]]; then
+          pconfig_path_part="${pkg_prefix}/${dir}"
+        else
+          pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${dir}"
+        fi
+      fi
+    done
+  else
+    # Plan explicitly defines pkg-config paths so we don't provide defaults
+    for inc in "${pkg_pconfig_dirs[@]}"; do
+      if [[ -z "$pconfig_path_part" ]]; then
+        pconfig_path_part="${pkg_prefix}/${inc}"
+      else
+        pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${inc}"
+      fi
+    done
+  fi
   if [[ -n "${pconfig_path_part}" ]]; then
     echo $pconfig_path_part > $pkg_prefix/PKG_CONFIG_PATH
   fi
