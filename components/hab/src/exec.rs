@@ -14,11 +14,9 @@
 
 extern crate libc;
 
-use std;
-use std::ffi::{CString, OsString};
-use hcore::os::ffi::OsStrExt;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::ptr;
+use std::process::{Command, exit};
 
 use common;
 use common::ui::{Status, UI};
@@ -33,36 +31,21 @@ use error::{Error, Result};
 #[allow(dead_code)] // Currently only used on Linux platforms
 const MAX_RETRIES: u8 = 4;
 
-/// Makes an `execv(3)` system call to become a new program.
-///
-/// Note that if successful, this function will not return.
+/// Makes an `std::process::Command` call.
 ///
 /// # Failures
 ///
 /// * Command and/or command arguments cannot be converted into `CString`
 pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    // A massive thanks to the `exec` crate which pointed to the correct invocation
-    // behavior--namely to pass null-terminated string pointers.
-    //
-    // Source: https://github.com/faradayio/exec-rs/blob/master/src/lib.rs
+    debug!("Calling std::process::Command: ({:?}) {:?}", command.display(), &args);
+    let mut command = Command::new(command);
 
-    debug!("Calling execv: ({:?}) {:?}", command.display(), &args);
-    let prog_cstring = try!(CString::new(command.as_os_str().as_bytes()));
-    let arg_cstrings = try!(args.into_iter()
-        .map(|arg| CString::new(arg.as_os_str().as_bytes()))
-        .collect::<std::result::Result<Vec<_>, _>>());
-    let mut arg_charptrs: Vec<_> = arg_cstrings.iter()
-        .map(|arg| arg.as_bytes_with_nul().as_ptr() as *const i8)
-        .collect();
-    arg_charptrs.insert(0,
-                        prog_cstring.clone().as_bytes_with_nul().as_ptr() as *const i8);
-    arg_charptrs.push(ptr::null());
-
-    unsafe {
-        libc::execv(prog_cstring.as_bytes_with_nul().as_ptr() as *const i8,
-                    arg_charptrs.as_mut_ptr());
+    for arg in &args {
+        command.arg(arg);
     }
-    Ok(())
+    let status = command.status().expect(&(format!("{:?} failed to start.", &command)));
+    // Let's bubble back up the error codes from the command we shell'd out to
+    exit(status.code().unwrap())
 }
 
 /// Returns the absolute path to the given command from the given package identifier.
