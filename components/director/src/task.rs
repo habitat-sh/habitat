@@ -133,11 +133,7 @@ impl Task {
     }
 
     pub fn status(&self) -> String {
-        let desc = if self.is_up() {
-            "Started"
-        } else {
-            "Stopped"
-        };
+        let desc = if self.is_up() { "Started" } else { "Stopped" };
         format!("{}: {} for {}",
                 self.service_def.to_string(),
                 desc,

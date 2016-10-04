@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate habitat_common as hcommon;
 extern crate habitat_core as hcore;
 #[macro_use]
 extern crate habitat_sup as hsup;

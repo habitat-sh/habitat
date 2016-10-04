@@ -18,15 +18,18 @@ use std::fmt;
 use std::net;
 use std::result;
 
+use hcommon;
 use hcore;
 
 #[derive(Debug)]
 pub enum Error {
     AddrParseError(net::AddrParseError),
     DirectorError(String),
+    HabitatCommon(hcommon::Error),
     HabitatCore(hcore::Error),
     IO(io::Error),
     NoServices,
+    RootRequired,
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -36,9 +39,13 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::AddrParseError(ref e) => format!("Can't parse IP address {}", e),
             Error::DirectorError(ref e) => format!("Director error: {}", e),
+            Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::NoServices => "No services specified in configuration".to_string(),
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation".to_string()
+            }
         };
         write!(f, "{}", msg)
     }
@@ -49,10 +56,20 @@ impl error::Error for Error {
         match *self {
             Error::AddrParseError(_) => "Can't parse IP address",
             Error::DirectorError(_) => "Director Error",
+            Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::NoServices => "No services specified in configuration",
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation"
+            }
         }
+    }
+}
+
+impl From<hcommon::Error> for Error {
+    fn from(err: hcommon::Error) -> Error {
+        Error::HabitatCommon(err)
     }
 }
 

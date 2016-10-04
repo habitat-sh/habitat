@@ -180,6 +180,7 @@
 #[macro_use]
 extern crate habitat_director as director;
 extern crate habitat_core as hcore;
+extern crate habitat_common as hcommon;
 #[macro_use]
 extern crate habitat_sup as hsup;
 #[macro_use]
@@ -190,7 +191,9 @@ extern crate log;
 
 use std::process;
 
+use hcommon::ui::UI;
 use hcore::config::ConfigFile;
+use hcore::fs::am_i_root;
 
 use director::config::Config;
 use director::controller::Controller;
@@ -253,6 +256,15 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
 }
 
 fn start(config: Config) -> Result<()> {
+    let mut ui = UI::default();
+    if !am_i_root() {
+        try!(ui.warn("Running the Habitat Supervisor requires root or administrator privileges. \
+                      Please retry this command as a super user or use a privilege-granting \
+                      facility such as sudo."));
+        try!(ui.br());
+        return Err(Error::RootRequired);
+    }
+
     outputln!("Starting Controller");
     let ec = ExecContext::default();
     let mut controller = Controller::new(config, ec);

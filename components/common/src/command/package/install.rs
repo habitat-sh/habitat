@@ -41,6 +41,7 @@ use std::str::FromStr;
 
 use depot_client::Client;
 use hcore;
+use hcore::fs::am_i_root;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall};
@@ -61,6 +62,14 @@ pub fn start<P1: ?Sized, P2: ?Sized, P3: ?Sized>(ui: &mut UI,
           P2: AsRef<Path>,
           P3: AsRef<Path>
 {
+    if !am_i_root() {
+        try!(ui.warn("Installing a package requires root or administrator privileges. Please retry \
+                   this command as a super user or use a privilege-granting facility such as \
+                   sudo."));
+        try!(ui.br());
+        return Err(Error::RootRequired);
+    }
+
     let task = try!(InstallTask::new(url,
                                      product,
                                      version,
