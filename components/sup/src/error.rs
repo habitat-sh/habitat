@@ -129,6 +129,7 @@ pub enum Error {
     PackageNotFound(package::PackageIdent),
     Permissions(String),
     RemotePackageNotFound(package::PackageIdent),
+    RootRequired,
     SignalFailed,
     SignalNotifierStarted,
     StrFromUtf8Error(str::Utf8Error),
@@ -208,6 +209,9 @@ impl fmt::Display for SupError {
                     format!("Cannot find a release of package in any sources: {}", pkg)
                 }
             }
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation".to_string()
+            }
             Error::SignalFailed => format!("Failed to send a signal to the child process"),
             Error::SignalNotifierStarted => {
                 format!("Only one instance of a Signal Notifier may be running")
@@ -279,6 +283,9 @@ impl error::Error for SupError {
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::Permissions(_) => "File system permissions error",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation"
+            }
             Error::SignalFailed => "Failed to send a signal to the child process",
             Error::SignalNotifierStarted => "Only one instance of a Signal Notifier may be running",
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",

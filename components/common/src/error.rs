@@ -39,6 +39,7 @@ pub enum Error {
     IO(io::Error),
     JsonDecode(json::DecoderError),
     JsonEncode(json::EncoderError),
+    RootRequired,
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     WireDecode(String),
@@ -68,6 +69,9 @@ impl fmt::Display for Error {
             Error::IO(ref err) => format!("{}", err),
             Error::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
             Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation".to_string()
+            }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::WireDecode(ref m) => format!("Failed to decode wire message: {}", m),
@@ -94,6 +98,9 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::JsonDecode(_) => "JSON decoding error: {:?}",
             Error::JsonEncode(_) => "JSON encoding error",
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation"
+            }
             Error::StrFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
             Error::WireDecode(_) => "Failed to decode wire message",

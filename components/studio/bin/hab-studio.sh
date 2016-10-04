@@ -818,6 +818,32 @@ info() {
   return 0
 }
 
+# **Internal** Exit if current user is not root.
+ensure_root() {
+  # Early return if we are root, yay!
+  if [ $($bb id -u) -eq 0 ]; then
+    return
+  fi
+
+  # Otherwise, prepare to die with message formatting similar to the `hab` program.
+  local msg
+  local fatal
+
+  warn_msg="Running Habitat Studio requires root or administrator privileges. \
+Please retry this command as a super user or use a privilege-granting facility such as sudo."
+  fatal_msg="Root or administrator permissions required to complete operation"
+
+  case "${TERM:-}" in
+    *term | xterm-* | rxvt | screen | screen-*)
+      printf -- "\033[0;33m∅ $warn_msg\033[0m\n\n\033[0;31m✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\033[0m\n"
+      ;;
+    *)
+      printf -- "∅ $warn_msg\n\n✗✗✗\n✗✗✗ $fatal_msg\n✗✗✗\n"
+      ;;
+  esac
+  exit 9
+}
+
 # **Internal** Exit the program with an error message and a status code.
 #
 # ```sh
@@ -973,6 +999,8 @@ version='@version@'
 author='@author@'
 # The short version of the program name which is used in logging output
 program=$($bb basename $0)
+
+ensure_root
 
 
 # ## CLI Argument Parsing

@@ -33,6 +33,9 @@ features = [ "suggestions", "color", "unstable" ]
 [dependencies.habitat_core]
 path = "../core"
 
+[dependencies.habitat_common]
+path = "../common"
+
 [dependencies.habitat_sup]
 path = "../sup"
 
