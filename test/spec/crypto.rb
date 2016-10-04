@@ -30,13 +30,13 @@ describe "Habitat crypto" do
 
             signed_file="#{file.path}.signed"
 
-            result = ctx.cmd_expect("pkg sign #{file.path} #{signed_file} --origin #{ctx.hab_origin}",
+            result = ctx.hab_cmd_expect("pkg sign #{file.path} #{signed_file} --origin #{ctx.hab_origin}",
                                     "Signed artifact")
 
             expect(result.exited?).to be true
             expect(result.exitstatus).to eq 0
 
-            result = ctx.cmd_expect("pkg verify #{signed_file}",
+            result = ctx.hab_cmd_expect("pkg verify #{signed_file}",
                                     "Verified artifact")
             expect(result.exited?).to be true
             expect(result.exitstatus).to eq 0

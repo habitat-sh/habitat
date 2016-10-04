@@ -61,7 +61,6 @@ module HabTesting
 
 
     TestDir = Struct.new(:path, :caller)
-
     # The intent of the Platform class is to store any platform-independent
     # variables.
     class Platform
@@ -336,20 +335,37 @@ module HabTesting
             puts "X" * 80
         end
 
+        # calls the compiled hab binary
+        def hab_cmd_expect(cmdline, desired_output, **cmd_options)
+            cmd_options[:bin] = @hab_bin
+            cmd_expect(cmdline, desired_output, cmd_options)
+        end
+
+        # calls the compiled hab-sup binary
+        def sup_cmd_expect(cmdline, desired_output, **cmd_options)
+            cmd_options[:bin] = @hab_sup_bin
+            cmd_expect(cmdline, desired_output, cmd_options)
+
+        end
+
         # execute a possibly long-running process and wait for a particular string
         # in it's output. If the output is found, kill the process and return
         # it's exit status. Otherwise, raise an exception so specs fail quickly.
+        # This form allows you to specify an alternate binary via cmd_options :bin
+        # parameter, however the default is @hab_bin. Note if you're trying to
+        # run a sup command via `hab`, you might not be hitting the compiled `hab-sup`
+        # binary.
         def cmd_expect(cmdline, desired_output, **cmd_options)
             puts "X" * 80 if @cmd_debug
             puts cmd_options if @cmd_debug
             debug = cmd_options[:debug] || @cmd_debug
 
+            bin = cmd_options[:bin] || @hab_bin
             timeout = cmd_options[:timeout_seconds] || @cmd_timeout_seconds
             kill_when_found = cmd_options[:kill_when_found] || false
             show_env() if debug
             # passing output to | tee
-            #fullcmdline = "#{@hab_bin} #{cmdline} | tee -a #{log_file_name()} 2>&1"
-            fullcmdline = "#{@hab_bin} #{cmdline}"
+            fullcmdline = "#{bin} #{cmdline}"
             # record the command we'll be running in the log file
             `echo #{fullcmdline} >> #{log_file_name()}`
             puts " → #{fullcmdline}"

@@ -188,6 +188,7 @@ impl Package {
         try!(Self::create_dir_all(self.pkg_install.svc_var_path()));
         try!(util::perm::set_owner(self.pkg_install.svc_var_path(), &user, &group));
         try!(util::perm::set_permissions(self.pkg_install.svc_var_path(), 0o700));
+        try!(Self::remove_symlink(self.pkg_install.svc_static_path()));
         try!(Self::create_dir_all(self.pkg_install.svc_static_path()));
         try!(util::perm::set_owner(self.pkg_install.svc_static_path(), &user, &group));
         try!(util::perm::set_permissions(self.pkg_install.svc_static_path(), 0o700));
@@ -195,6 +196,22 @@ impl Package {
         // FIN
         try!(Self::create_dir_all(self.pkg_install.svc_path().join("toml")));
         try!(util::perm::set_permissions(self.pkg_install.svc_path().join("toml"), 0o700));
+        Ok(())
+    }
+
+    /// attempt to remove a symlink in the /svc/run/foo/ directory if
+    /// the link exists.
+    fn remove_symlink<P: AsRef<Path>>(p: P) -> Result<()> {
+        let p = p.as_ref();
+        if !p.exists() {
+            return Ok(())
+        }
+        // note: we're NOT using p.metadata() here as that will follow the
+        // symlink, which returns smd.file_type().is_symlink() == false in all cases.
+        let smd = try!(p.symlink_metadata());
+        if smd.file_type().is_symlink() {
+            try!(std::fs::remove_file(p));
+        }
         Ok(())
     }
 
@@ -214,6 +231,7 @@ impl Package {
                 Ok(_) => {
                     debug!("run file = {}", &run.to_str().unwrap());
                     debug!("svc_run file = {}", &svc_run.to_str().unwrap());
+                    try!(Self::remove_symlink(&svc_run));
                     try!(std::fs::copy(&run, &svc_run));
                     try!(util::perm::set_permissions(&svc_run, HOOK_PERMISSIONS));
                 }

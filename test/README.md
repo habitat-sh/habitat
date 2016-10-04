@@ -52,8 +52,8 @@ Create a new spec in the `./test/spec/` directory, and then add the file basenam
 Here's a template you can use for a new spec.
 
 ```
-# it's safest to use `require_relative` with `spec_helper`, 
-# as different modes of running the tests have different require 
+# it's safest to use `require_relative` with `spec_helper`,
+# as different modes of running the tests have different require
 # behaviors. We can't fully rely on a `.rspec` file.
 require_relative 'spec_helper'
 
@@ -68,7 +68,7 @@ describe "Foo" do
 
 	 # This method lets us prevent cleanup of the test environment
 	 # in the event of a test failure.
-    # You don't need this if you want the test environment to 
+    # You don't need this if you want the test environment to
     # cleanup all generated test directories and keys even
     # if your tests fail.
     after(:each) do |example|
@@ -94,10 +94,10 @@ The platform context is available in your specs via the `ctx` object.
 
 ### Testing guidelines
 
-- Try not to hardcode any platform specific paths. 
+- Try not to hardcode any platform specific paths.
 	- Use `Pathname` to join paths if possible, so we can leverage tests in a Windows testing suite.
 
-#### **Never use a `sleep()` in a test** 
+#### **Never use a `sleep()` in a test**
 	- Use `ctx.wait_for` instead, it will make the tests more reliable and faster, as we don't have to wait for a full `sleep()` to check results. For example, if you normally wait 30 seconds for operation X to occur but it finishes in 5, `ctx.wait_for` will return after 5 seconds where `sleep()` is sleeping for 30.
 
 ```
@@ -115,17 +115,32 @@ Additional options that can be passed to `wait_for` are as follows:
 - `show_progress`: Show a `*` character for each eval of the block that's passed in. Default: `true`
 
 
-#### Running `hab` commands
-- The `ctx.cmd_expect` method runs a `hab` subcommand, which may be a long-running process, and looks for output. 
+#### Running `hab` or `hab-sup` commands
+
+- The `ctx.cmd_expect` method runs a `hab` subcommand, which may be a long-running process, and looks for output.
+
+There are 2 additional forms of this method
+
+- `ctx.hab_cmd_expect` - used to call the compiled `hab` binary, not to be used for `hab-sup` subcommands.
+- `ctx.sup_cmd_expect` - used to call the compiled `hab-sup` binary, not to be used for `hab` subcommands.
+
 
 Additional params can be passed to the `cmd_expect` function:
 - `:timeout_seconds` - the number of seconds to wait for expected output before failing
 - `:kill_when_found` - If the desired output is found, send a KILL signal to this child and return.
+- `:bin` - fully qualified path to the hab or hab-sup binary you'd like to use to run a command.
+
+
+###### Which one do I use?
+
+- If you want to test a `hab` subcommand, use `ctx.hab_cmd_expect`.
+- If you want to test a `hab-sup` subcommand, use `ctx.sup_cmd_expect`.
+- If you want something more flexible, use `ctx.cmd_expect` with any of the additional params defined above.
 
 For example, to build a plan and wait for success:
 
 ```
-result = ctx.cmd_expect("studio build fixtures/simple_service",
+result = ctx.hab_cmd_expect("studio build fixtures/simple_service",
                          "I love it when a plan.sh comes together",
                          :timeout_seconds => 60)
 ```
@@ -136,7 +151,7 @@ In this example, if building a plan takes longer than 60 seconds, the result wil
 In the next example, we start a Habitat supervisor (which never exits), and look for the text `Shipping out to Boston`. If the text isn't detected in `ctx.cmd_timeout_seconds` (default: 30 seconds), then the result will indicate failure.
 
 ```
-result = ctx.cmd_expect("start #{ctx.hab_origin}/simple_service",
+result = ctx.sup_cmd_expect("start #{ctx.hab_origin}/simple_service",
                                          "Shipping out to Boston",
                                          :kill_when_found => true)
 ```
