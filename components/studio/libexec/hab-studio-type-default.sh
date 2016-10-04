@@ -88,6 +88,9 @@ alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
+# Set TERMINFO so hab can give us a delightful experience.
+export TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
+
 PROFILE
 
   echo "${run_user}:x:42:42:root:/:/bin/sh" >> $HAB_STUDIO_ROOT/etc/passwd
