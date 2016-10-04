@@ -20,6 +20,38 @@ required credentials relating to the Bintray platform:
 * `BINTRAY_PASSPHRASE` - Passphrase for Bintray GPG signing key, required only
   for `publish-hab`
 
+## TL;DR Publishing
+
+We use the following in our release process:
+
+1. On your workstation, change your code directory and enter a studio
+
+    ```
+    $ cd ~/code
+    $ hab studio enter
+    ```
+
+1. Install the Bintray publishing code and export your credentials
+
+    ```
+    $ hab install core/hab-bintray-publish
+    $ export BINTRAY_USER=yourusername BINTRAY_KEY=yourkey BINTRAY_PASSPHRASE=commongpgkeypassphrase
+    ```
+
+1. Publish the new Docker Studio image
+    ```
+    $ hab pkg exec core/hab-bintray-publish publish-studio
+    ```
+
+1. Publish the Linux and Mac artifacts by selecting the appropriate `.hart` file
+
+    ```
+    $ hab pkg exec core/hab-bintray-publish publish-hab \
+      ./results/core-hab-0.10.2-20160930230245-x86_64-linux.hart
+    $ hab pkg exec core/hab-bintray-publish publish-hab \
+      ./habitat/components/hab/mac/results/core-hab-0.10.2-20160930230245-x86_64-darwin.hart
+    ```
+
 ## Publishing `hab` binaries
 
 The software to publish binaries is shipped and executed as a Habitat package
