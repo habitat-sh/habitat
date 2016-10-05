@@ -93,7 +93,7 @@ mod inner {
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(exec::exec_command(cmd, args));
+            try!(process::become_command(cmd, args));
         } else {
             return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
         }
@@ -105,12 +105,13 @@ mod inner {
 mod inner {
     use std::env;
     use std::ffi::OsString;
-    use std::process::{Command, Stdio, exit};
+    use std::process::{Command, Stdio};
 
     use common::ui::UI;
     use hcore::crypto::default_cache_key_path;
     use hcore::env as henv;
     use hcore::fs::{CACHE_KEY_PATH, find_command};
+    use hcore::os::process;
 
     use error::{Error, Result};
     use VERSION;
@@ -156,12 +157,11 @@ mod inner {
             }
         }
 
-        let mut command = Command::new(&cmd);
-        command.arg("run")
-            .arg("--rm")
-            .arg("--tty")
-            .arg("--interactive")
-            .arg("--privileged");
+        let mut cmd_args: Vec<OsString> = vec!["run".into(),
+                                               "--rm".into(),
+                                               "--tty".into(),
+                                               "--interactive".into(),
+                                               "--privileged".into()];
 
         let env_vars = vec!["HAB_DEPOT_URL", "HAB_ORIGIN", "http_proxy", "https_proxy"];
         for var in env_vars {
@@ -169,24 +169,22 @@ mod inner {
                 debug!("Propagating environment variable into container: {}={}",
                        var,
                        val);
-                command.arg("--env");
-                command.arg(format!("{}={}", var, val));
+                cmd_args.push("--env".into());
+                cmd_args.push(format!("{}={}", var, val).into());
             }
         }
 
-        command.arg("--volume")
-            .arg("/var/run/docker.sock:/var/run/docker.sock")
-            .arg("--volume")
-            .arg(format!("{}:/{}",
-                         default_cache_key_path(None).to_string_lossy(),
-                         CACHE_KEY_PATH))
-            .arg("--volume")
-            .arg(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()))
-            .arg(image_identifier());
-
-        for arg in &args {
-            command.arg(arg);
-        }
+        cmd_args.push("--volume".into());
+        cmd_args.push("/var/run/docker.sock:/var/run/docker.sock".into());
+        cmd_args.push("--volume".into());
+        cmd_args.push(format!("{}:/{}",
+                              default_cache_key_path(None).to_string_lossy(),
+                              CACHE_KEY_PATH)
+            .into());
+        cmd_args.push("--volume".into());
+        cmd_args.push(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()).into());
+        cmd_args.push(image_identifier().into());
+        cmd_args.extend_from_slice(args.as_slice());
 
         for var in vec!["http_proxy", "https_proxy"] {
             if let Ok(_) = henv::var(var) {
@@ -197,11 +195,7 @@ mod inner {
             }
         }
 
-        let status = command.status().expect(&(format!("{:?} failed to start.", &cmd)));
-        // Replace with specific errors based on exit code?
-        // https://docs.docker.com/engine/reference/run/#/exit-status
-        // this currently just passes the exit code from Docker directly.
-        exit(status.code().unwrap())
+        Ok(try!(process::become_command(cmd, cmd_args)))
     }
 
     /// Returns the Docker Studio image with tag for the desired version which corresponds to the

@@ -12,8 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod users;
-pub mod filesystem;
-pub mod system;
-pub mod ffi;
-pub mod process;
+#[cfg(windows)]
+mod windows;
+
+#[cfg(windows)]
+pub use self::windows::become_command;
+
+#[cfg(not(windows))]
+pub mod linux;
+
+#[cfg(not(windows))]
+pub use self::linux::become_command;

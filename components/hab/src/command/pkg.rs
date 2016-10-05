@@ -108,11 +108,11 @@ pub mod exec {
     use std::env;
     use std::ffi::OsString;
 
+    use hcore::os::process;
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::fs::find_command;
 
     use error::{Error, Result};
-    use exec;
 
     pub fn start(ident: &PackageIdent, command: &str, args: Vec<OsString>) -> Result<()> {
         let pkg_install = try!(PackageInstall::load(&ident, None));
@@ -129,7 +129,7 @@ pub mod exec {
             display_args.push_str(arg.to_string_lossy().as_ref());
         }
         info!("Running: {}", display_args);
-        exec::exec_command(command, args)
+        Ok(try!(process::become_command(command, args)))
     }
 }
 
