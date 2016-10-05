@@ -9,18 +9,14 @@ errno = "*"
 lazy_static = "*"
 libarchive = "*"
 libc = "*"
+libsodium-sys = "*"
 log = "*"
 regex = "*"
 rustc-serialize = "*"
+sodiumoxide = "*"
+time = "*"
 toml = "*"
 url = "*"
-
-### !!NOTE!! sodiumoxide and libsodium-sys are using an override, via the
-### .cargo/config file. When https://github.com/dnaq/sodiumoxide/pull/103
-### is merged, we can get rid of this hack.
-sodiumoxide = "*"
-libsodium-sys = "*"
-time = "*"
 
 [target.'cfg(not(windows))'.dependencies]
 users = "*"

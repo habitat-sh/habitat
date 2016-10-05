@@ -189,7 +189,7 @@ pub fn svc_var_path(service_name: &str) -> PathBuf {
 /// If the command represents an absolute path, then the `PATH` seaching will not be performed. If
 /// no absolute path can be found for the command, then `None` is returned.
 ///
-/// On Windows, the PATHEXT environment variable contains common extensions for commands, 
+/// On Windows, the PATHEXT environment variable contains common extensions for commands,
 /// for example allowing "docker.exe" to be found when searching for "docker".
 ///
 /// # Examples
@@ -275,7 +275,7 @@ fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
                     }
                 }
             }
-            None => {},
+            None => {}
         };
     }
     None
@@ -301,9 +301,8 @@ mod test_find_command {
     }
 
     fn setup_empty_pathext() {
-        match env::var("PATHEXT") {
-            Ok(val) => env::remove_var("PATHEXT"),
-            Err(e) => {}
+        if env::var("PATHEXT").is_ok() {
+            env::remove_var("PATHEXT")
         }
     }
 
