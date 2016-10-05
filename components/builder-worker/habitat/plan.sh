@@ -5,9 +5,10 @@ pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
-pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive)
+pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive
+  core/zlib)
 pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreutils core/cacerts
-  core/rust core/gcc core/pkg-config core/zlib)
+  core/rust core/gcc core/pkg-config)
 bin="bldr-worker"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
 
@@ -36,9 +37,13 @@ do_prepare() {
   export LIBZMQ_PREFIX="$(pkg_path_for zeromq)"
 
   # Used by libssh2-sys
-  export DEP_OPENSSL_ROOT="$(pkg_path_for openssl)"
   export DEP_Z_ROOT="$(pkg_path_for zlib)"
   export DEP_Z_INCLUDE="$(pkg_path_for zlib)/include"
+
+  # Temporarily set PKG_CONFIG_PATH - this can be removed after all core packages are rebuilt with
+  # hab-plan-build 0.11.x and pushed to the public depot.
+  export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(pkg_path_for zlib)/lib/pkgconfig"
+  export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(pkg_path_for openssl)/lib/pkgconfig"
 }
 
 do_build() {
