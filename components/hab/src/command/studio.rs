@@ -25,6 +25,8 @@ use config;
 use error::Result;
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    try!(inner::rerun_with_sudo_if_needed(ui));
+
     // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
     // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
     // or `docker` execv call.
@@ -61,6 +63,7 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
+    use std::env;
     use std::ffi::OsString;
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -68,7 +71,8 @@ mod inner {
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
-    use hcore::fs::find_command;
+    use hcore::fs::{am_i_root, find_command};
+    use hcore::os::process;
     use hcore::package::PackageIdent;
 
     use error::{Error, Result};
@@ -77,6 +81,7 @@ mod inner {
     const STUDIO_CMD: &'static str = "hab-studio";
     const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
     const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
+    const SUDO_CMD: &'static str = "sudo";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(STUDIO_CMD_ENVVAR) {
@@ -98,6 +103,32 @@ mod inner {
             return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
         }
         Ok(())
+    }
+
+    pub fn rerun_with_sudo_if_needed(ui: &mut UI) -> Result<()> {
+        // If I have root permissions, early return, we are done.
+        if am_i_root() {
+            return Ok(());
+        }
+
+        // Otherwise we will try to re-run this program using `sudo`
+        match find_command(SUDO_CMD) {
+            Some(sudo_prog) => {
+                let mut args: Vec<OsString> =
+                    vec!["-p".into(), "[sudo hab-studio] password for %u: ".into(), "-E".into()];
+                args.append(&mut env::args_os().collect());
+                Ok(try!(process::become_command(sudo_prog, args)))
+            }
+            None => {
+                try!(ui.warn(format!("Could not find the `{}' command, is it in your PATH?",
+                                     SUDO_CMD)));
+                try!(ui.warn("Running Habitat Studio requires root or administrator privileges. \
+                              Please retry this command as a super user or use a \
+                              privilege-granting facility such as sudo."));
+                try!(ui.br());
+                Err(Error::RootRequired)
+            }
+        }
     }
 }
 
@@ -196,6 +227,11 @@ mod inner {
         }
 
         Ok(try!(process::become_command(cmd, cmd_args)))
+    }
+
+    pub fn rerun_with_sudo_if_needed(_ui: &mut UI) -> Result<()> {
+        // No sudo calls necessary here--we are calling `docker` commands instead
+        Ok(())
     }
 
     /// Returns the Docker Studio image with tag for the desired version which corresponds to the
