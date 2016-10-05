@@ -327,12 +327,6 @@ impl<'a> Application for Server<'a> {
     }
 }
 
-impl<'a> Drop for Server<'a> {
-    fn drop(&mut self) {
-        self.fe_sock.close().unwrap();
-    }
-}
-
 enum SocketState {
     Ready,
     Hops,

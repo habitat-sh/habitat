@@ -305,11 +305,6 @@ impl RouteConn {
         })
     }
 
-    pub fn close(&mut self) -> Result<()> {
-        try!(self.socket.close());
-        Ok(())
-    }
-
     pub fn connect(&mut self, addr: &str) -> Result<()> {
         try!(self.socket.connect(addr));
         Ok(())
@@ -332,11 +327,5 @@ impl RouteConn {
         let bytes = try!(req.write_to_bytes());
         try!(self.socket.send(&bytes, 0));
         Ok(())
-    }
-}
-
-impl Drop for RouteConn {
-    fn drop(&mut self) {
-        self.close().unwrap();
     }
 }

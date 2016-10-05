@@ -64,9 +64,7 @@ git = "https://github.com/habitat-sh/urlencoded.git"
 branch = "habitat"
 
 [dependencies.zmq]
-# git = "https://github.com/erickt/rust-zmq.git"
-git = "https://github.com/reset/rust-zmq.git"
-branch = "habitat"
+git = "https://github.com/erickt/rust-zmq.git"
 
 [build-dependencies]
 serde_codegen = "*"

@@ -43,6 +43,9 @@ do_prepare() {
 }
 
 do_build() {
+  export LIBRARY_PATH=$LIBZMQ_PREFIX/lib
+  build_line "Setting LIBRARY_PATH=$LIBRARY_PATH"
+
   pushd $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version > /dev/null
   export HOME=$HAB_CACHE_SRC_PATH
   npm install

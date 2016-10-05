@@ -99,7 +99,6 @@ pub trait Dispatcher: Sized + Send {
             }
             envelope.reset();
         }
-        try!(sock.close());
         Ok(())
     }
 }

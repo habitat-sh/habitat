@@ -20,9 +20,7 @@ time = "*"
 unicase = "*"
 
 [dependencies.zmq]
-# git = "https://github.com/erickt/rust-zmq.git"
-git = "https://github.com/reset/rust-zmq.git"
-branch = "habitat"
+git = "https://github.com/erickt/rust-zmq.git"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
