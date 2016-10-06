@@ -41,5 +41,9 @@ export class TabsComponent {
     selectTab(tab: TabComponent) {
         this.tabs.forEach(tab => tab.active = false);
         tab.active = true;
+
+        if (typeof tab.onSelect === "function") {
+            tab.onSelect();
+        }
     }
 }

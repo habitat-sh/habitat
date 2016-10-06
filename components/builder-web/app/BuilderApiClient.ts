@@ -234,9 +234,18 @@ export class BuilderApiClient {
             }).then(response => {
                 if (response.ok) {
                     resolve(true);
-                // Getting a 404 means the user does not exist.
                 } else if (response.status === 404) {
-                    reject(new Error(`User '${username}' does not exist`));
+                    let err = new Error(`User '${username}' does not exist`);
+
+                    response.text().then(msg => {
+                        if (msg.match(/valid GitHub user/)) {
+                            reject(new Error(msg));
+                        } else {
+                            reject(err);
+                        }
+                    }).catch(error => {
+                        reject(err);
+                    });
                 } else if (response.status === 409) {
                     reject(new Error(`An invitation already exists for '${username}'`));
                 } else {

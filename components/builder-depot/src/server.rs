@@ -27,6 +27,7 @@ use hab_net::config::RouteAddrs;
 use hab_net::http::controller::*;
 use hab_net::routing::{Broker, BrokerConn};
 use hab_net::server::NetIdent;
+use hab_net::oauth::github::GitHubClient;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
 use iron::headers::{ContentType, Vary};
 use iron::prelude::*;
@@ -131,8 +132,10 @@ pub fn check_origin_access<T: ToString>(conn: &mut BrokerConn,
 }
 
 pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let session = req.extensions.get::<Authenticated>().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
+    let gh = GitHubClient::new(&depot.config);
     let origin = match params.find("origin") {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
@@ -154,10 +157,26 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
     // Lookup the users account_id
     match conn.route::<AccountGet, Account>(&request) {
         Ok(mut account) => {
+            debug!("Successfully found account for user {}, with account ID {}",
+                   &user_to_invite,
+                   &account.get_id());
             invite_request.set_account_id(account.get_id());
             invite_request.set_account_name(account.take_name());
         }
-        Err(err) => return Ok(render_net_error(&err)),
+        Err(err) => {
+            debug!("Failed to find account for user {}. Error = {:?}",
+                   &user_to_invite,
+                   &err);
+
+            if gh.other_user(&session.get_token(), &user_to_invite).is_ok() {
+                return Ok(Response::with((status::NotFound,
+                                          "This is a valid GitHub user but they have not logged \
+                                           into the Habitat depot yet. Once they login to the \
+                                           depot, you can invite them to your origin.")));
+            }
+
+            return Ok(render_net_error(&err));
+        }
     };
     match try!(get_origin(&mut conn, &origin)) {
         Some(mut origin) => {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, OnInit, OnDestroy} from "@angular/core";
+import {Component, OnDestroy} from "@angular/core";
 import {ActivatedRoute} from "@angular/router";
 import {FeatureFlags} from "../Privilege";
 import {AppStore} from "../AppStore";
@@ -75,7 +75,7 @@ import {Subscription} from "rxjs/Subscription";
     `,
 })
 
-export class PackagePageComponent implements OnInit, OnDestroy {
+export class PackagePageComponent implements OnDestroy {
     private spinnerFetchPackage: Function;
     private originParam: string;
     private nameParam: string;
@@ -91,6 +91,8 @@ export class PackagePageComponent implements OnInit, OnDestroy {
             this.nameParam = params["name"];
             this.versionParam = params["version"];
             this.releaseParam = params["release"];
+            this.fetchPackage();
+            this.fetchProject();
         });
     }
 
@@ -160,11 +162,6 @@ export class PackagePageComponent implements OnInit, OnDestroy {
             packageName: this.package.ident.name
         }));
         this.store.dispatch(requestRoute(["/projects", "create"]));
-    }
-
-    public ngOnInit() {
-        this.fetchPackage();
-        this.fetchProject();
     }
 
     private packageParams() {

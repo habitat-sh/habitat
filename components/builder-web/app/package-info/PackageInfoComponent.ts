@@ -13,9 +13,11 @@
 // limitations under the License.
 
 import {Component, Input} from "@angular/core";
+import {PackageListComponent} from "../package-page/PackageListComponent";
 
 @Component({
     selector: "hab-package-info",
+    directives: [PackageListComponent],
     template: `
     <div class="has-sidebar">
       <div class="page-body--main">
