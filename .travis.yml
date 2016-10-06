@@ -53,10 +53,7 @@ matrix:
       apt: true
       cargo: true
       directories:
-        - "$HOME/rust"
         - "$HOME/pkgs"
-        - "$HOME/.cargo"
-        - target
     before_install:
       - ./support/ci/fast_pass.sh || exit 0
       - ./support/ci/compile_libsodium.sh
@@ -90,10 +87,7 @@ matrix:
       apt: true
       cargo: true
       directories:
-        - "$HOME/rust"
         - "$HOME/pkgs"
-        - "$HOME/.cargo"
-        - target
     before_install:
       - ./support/ci/fast_pass.sh || exit 0
       - ./support/ci/compile_libsodium.sh
@@ -127,10 +121,7 @@ matrix:
       apt: true
       cargo: true
       directories:
-        - "$HOME/rust"
         - "$HOME/pkgs"
-        - "$HOME/.cargo"
-        - target
     before_install:
       - ./support/ci/fast_pass.sh || exit 0
       - ./support/ci/compile_libsodium.sh
