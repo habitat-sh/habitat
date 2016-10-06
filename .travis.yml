@@ -5,7 +5,7 @@ branches:
     - /^test_development-.*$/
 env:
   global:
-    - PATH=$HOME/bin:$HOME/.cargo/bin:$PATH
+    - PATH=$HOME/.cargo/bin:$PATH
 matrix:
   include:
   - language: ruby
@@ -63,7 +63,6 @@ matrix:
       - ./support/ci/compile_libarchive.sh
       - ./support/ci/compile_zmq.sh
       - ./support/ci/install_rustfmt.sh
-      - ./support/ci/install_cargo.sh
     script:
       - ./support/ci/rust_tests.sh
       - ./support/ci/lint.sh
@@ -101,7 +100,6 @@ matrix:
       - ./support/ci/compile_libarchive.sh
       - ./support/ci/compile_zmq.sh
       - ./support/ci/install_rustfmt.sh
-      - ./support/ci/install_cargo.sh
     script:
       - ./support/ci/rust_tests.sh
       - ./support/ci/lint.sh
@@ -139,7 +137,6 @@ matrix:
       - ./support/ci/compile_libarchive.sh
       - ./support/ci/compile_zmq.sh
       - ./support/ci/install_rustfmt.sh
-      - ./support/ci/install_cargo.sh
     script:
       - ./support/ci/rust_tests.sh
       - ./support/ci/lint.sh
