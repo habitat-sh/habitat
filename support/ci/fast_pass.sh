@@ -7,12 +7,14 @@
 # .travis.yml in the `before_install`, we exit non-zero if we want the build to
 # be skipped, so we can do `|| exit 0` in the YAML.
 
-# Don't do anything if $AFFECTED_DIRS is not set
-if [ -z "$AFFECTED_DIRS" ]; then
+if [ -n "$STEAM_ROLLER" ]; then
+  echo 'STEAM_ROLLER is set. Not exiting and running everything.'
+elif [ -z "$AFFECTED_DIRS" ]; then
+  # Don't do anything if $AFFECTED_DIRS is not set
   echo 'AFFECTED_DIRS is not set. Not exiting and running everything.'
-# If $AFFECTED_DIRS (a "|" separated list of directories) is set, see if we have
-# any changes
 else
+  # If $AFFECTED_DIRS (a "|" separated list of directories) is set, see if we have
+  # any changes
   git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -qE "^($AFFECTED_DIRS)" || {
     echo "No files in $AFFECTED_DIRS have changed. Skipping CI run."
     exit 1
