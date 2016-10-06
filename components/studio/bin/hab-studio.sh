@@ -617,7 +617,7 @@ record() {
     $bb mkdir -p $($bb dirname $log)
     unset BUSYBOX LOGDIR
 
-    $bb script -c "$bb env -i $env $cmd $*" $log
+    $bb script -c "$bb env -i $env $cmd $*" -e $log
   ); return $?
 }
 
