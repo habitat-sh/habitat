@@ -252,6 +252,12 @@ module HabTesting
             banner()
         end
 
+        def local_ip 
+            # note, this is defined in LinuxPlatform, because that's the only
+            # place it will work!
+            `/sbin/ip route get 8.8.8.8 | /usr/bin/awk '{printf \"%s\", $NF; exit}'`
+        end
+
         def common_setup
             super
         end
@@ -333,6 +339,21 @@ module HabTesting
             puts "X" * 80
             puts `env`
             puts "X" * 80
+        end
+
+        # starts a supervisor, dev MUST read output or process may block
+        # When the supplied block exits, kill the supervisor
+        def sup_spawn(cmdline, **cmd_options, &block)
+            puts "X" * 80 if @cmd_debug
+            puts cmd_options if @cmd_debug
+            bin = cmd_options[:bin] || @hab_sup_bin
+            fullcmdline = "#{bin} #{cmdline}"
+
+            Open3.popen2(fullcmdline) do |stdin, stdout_err, wait_thread|
+                block.call(stdin, stdout_err, wait_thread)
+                puts "Sending KILL to supervisor"
+                Process.kill('KILL', wait_thread.pid)
+            end
         end
 
         # calls the compiled hab binary

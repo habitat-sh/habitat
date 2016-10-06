@@ -290,6 +290,12 @@ fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
 
         let mut restart_process = false;
 
+        let has_reconfigure = {
+            let package = worker.package.read().unwrap();
+            let service_config = worker.service_config.write().unwrap();
+            try!(package.reconfigure(&service_config))
+        };
+
         // This section, and the following really need to be refactored:
         //
         // 1. We check to see if we are in an event a bunch of times
@@ -335,7 +341,6 @@ fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
                             try!(package.copy_run(&service_config));
                             outputln!("Restarting because the service config was updated via the \
                                        census");
-                            let has_reconfigure = try!(package.reconfigure(&service_config));
                             if !has_reconfigure {
                                 restart_process = true;
                             }
@@ -373,7 +378,9 @@ fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
                 let package = worker.package.read().unwrap();
                 let existed = try!(package.file_updated(&service_config));
                 if !existed {
-                    restart_process = true;
+                    if !has_reconfigure {
+                        restart_process = true;
+                    }
                 }
             }
             if needs_reconfigure {
@@ -382,7 +389,6 @@ fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
                 service_config.cfg(&package);
                 if try!(service_config.write(&package)) {
                     try!(package.copy_run(&service_config));
-                    let has_reconfigure = try!(package.reconfigure(&service_config));
                     if !has_reconfigure {
                         restart_process = true;
                     }
