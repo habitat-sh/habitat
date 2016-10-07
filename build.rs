@@ -4,3 +4,6 @@ extern crate gcc;
 fn main() {
     gcc::compile_library("libadmincheck.a", &["./src/os/users/admincheck.c"]);
 }
+
+#[cfg(not(windows))]
+fn main() {}

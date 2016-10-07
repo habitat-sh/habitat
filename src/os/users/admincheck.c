@@ -7,26 +7,30 @@
 TOKEN_ELEVATION_TYPE s_elevationType = TokenElevationTypeDefault;
 BOOL                 s_bIsAdmin = FALSE;
 
-// returns 0 if an admin
-// returns 1 if not
-int GetElevationState()
+// returns 0 if an admin and/or elevated
+// returns 1 if a filtered user token (admin but UAC'd)
+// returns 2 if a regular user
+// returns 5 if none of the standard elevation types match
+// returns 10 if GetProcessElevation failed
+int GetUserTokenStatus()
 {
+    int user_token_status = 10;
     if (GetProcessElevation(&s_elevationType, &s_bIsAdmin)) {
         switch(s_elevationType) {
             // Default user or UAC is disabled
             case TokenElevationTypeDefault:  
                 if (IsUserAnAdmin()) {
-                    return 0;
+                    user_token_status = 0;
                 } else {
-                    return 1;
+                    user_token_status =  2;
                 }
             break;
             // Process has been successfully elevated
             case TokenElevationTypeFull:
                 if (IsUserAnAdmin()) {
-                    return 0;
+                    user_token_status =  0;
                 } else {
-                    return 1;
+                    user_token_status =  0;
                 }
             break; 
             // Process is running with limited privileges
@@ -34,15 +38,15 @@ int GetElevationState()
                 if (IsUserAnAdmin()) {
                     // Not sure what capabilities a filtered admin has
                     // So, for now, I'll treat that as non-admin
-                    return 1;
+                    user_token_status =  3;
                 } else {
-                    return 1;
+                    user_token_status =  1;
                 }
             break;
         }
-        return 1;
+        user_token_status =  5;
     }
-    return 1;
+    return user_token_status;
 } 
 
 BOOL GetProcessElevation(TOKEN_ELEVATION_TYPE* pElevationType, BOOL* pIsAdmin) {
