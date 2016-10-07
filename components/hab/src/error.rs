@@ -44,6 +44,7 @@ pub enum Error {
     PackageArchiveMalformed(String),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
+    RootRequired,
     SubcommandNotSupported(String),
     UnsupportedExportFormat(String),
 }
@@ -89,6 +90,9 @@ impl fmt::Display for Error {
             }
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation".to_string()
+            }
             Error::SubcommandNotSupported(ref e) => {
                 format!("Subcommand `{}' not supported on this operating system", e)
             }
@@ -122,6 +126,9 @@ impl error::Error for Error {
             Error::PathPrefixError(ref err) => err.description(),
             Error::ProvidesError(_) => {
                 "Can't find a package that provides the given search parameter"
+            }
+            Error::RootRequired => {
+                "Root or administrator permissions required to complete operation"
             }
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",

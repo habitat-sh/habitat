@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate libc;
-
-use std::ffi::OsString;
 use std::path::{Path, PathBuf};
-use std::process::{Command, exit};
 
 use common;
 use common::ui::{Status, UI};
@@ -30,23 +26,6 @@ use error::{Error, Result};
 
 #[allow(dead_code)] // Currently only used on Linux platforms
 const MAX_RETRIES: u8 = 4;
-
-/// Makes an `std::process::Command` call.
-///
-/// # Failures
-///
-/// * Command and/or command arguments cannot be converted into `CString`
-pub fn exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    debug!("Calling std::process::Command: ({:?}) {:?}", command.display(), &args);
-    let mut command = Command::new(command);
-
-    for arg in &args {
-        command.arg(arg);
-    }
-    let status = command.status().expect(&(format!("{:?} failed to start.", &command)));
-    // Let's bubble back up the error codes from the command we shell'd out to
-    exit(status.code().unwrap())
-}
 
 /// Returns the absolute path to the given command from the given package identifier.
 ///

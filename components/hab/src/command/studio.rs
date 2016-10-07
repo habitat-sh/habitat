@@ -25,6 +25,8 @@ use config;
 use error::Result;
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    try!(inner::rerun_with_sudo_if_needed(ui));
+
     // If the `$HAB_ORIGIN` environment variable is not present, then see if a default is set in
     // the CLI config. If so, set it as the `$HAB_ORIGIN` environment variable for the `hab-studio`
     // or `docker` execv call.
@@ -61,6 +63,7 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
+    use std::env;
     use std::ffi::OsString;
     use std::path::PathBuf;
     use std::str::FromStr;
@@ -68,7 +71,8 @@ mod inner {
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
-    use hcore::fs::find_command;
+    use hcore::fs::{am_i_root, find_command};
+    use hcore::os::process;
     use hcore::package::PackageIdent;
 
     use error::{Error, Result};
@@ -77,6 +81,7 @@ mod inner {
     const STUDIO_CMD: &'static str = "hab-studio";
     const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
     const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
+    const SUDO_CMD: &'static str = "sudo";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(STUDIO_CMD_ENVVAR) {
@@ -93,11 +98,37 @@ mod inner {
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            try!(exec::exec_command(cmd, args));
+            try!(process::become_command(cmd, args));
         } else {
             return Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()));
         }
         Ok(())
+    }
+
+    pub fn rerun_with_sudo_if_needed(ui: &mut UI) -> Result<()> {
+        // If I have root permissions, early return, we are done.
+        if am_i_root() {
+            return Ok(());
+        }
+
+        // Otherwise we will try to re-run this program using `sudo`
+        match find_command(SUDO_CMD) {
+            Some(sudo_prog) => {
+                let mut args: Vec<OsString> =
+                    vec!["-p".into(), "[sudo hab-studio] password for %u: ".into(), "-E".into()];
+                args.append(&mut env::args_os().collect());
+                Ok(try!(process::become_command(sudo_prog, args)))
+            }
+            None => {
+                try!(ui.warn(format!("Could not find the `{}' command, is it in your PATH?",
+                                     SUDO_CMD)));
+                try!(ui.warn("Running Habitat Studio requires root or administrator privileges. \
+                              Please retry this command as a super user or use a \
+                              privilege-granting facility such as sudo."));
+                try!(ui.br());
+                Err(Error::RootRequired)
+            }
+        }
     }
 }
 
@@ -105,12 +136,13 @@ mod inner {
 mod inner {
     use std::env;
     use std::ffi::OsString;
-    use std::process::{Command, Stdio, exit};
+    use std::process::{Command, Stdio};
 
     use common::ui::UI;
     use hcore::crypto::default_cache_key_path;
     use hcore::env as henv;
     use hcore::fs::{CACHE_KEY_PATH, find_command};
+    use hcore::os::process;
 
     use error::{Error, Result};
     use VERSION;
@@ -156,12 +188,11 @@ mod inner {
             }
         }
 
-        let mut command = Command::new(&cmd);
-        command.arg("run")
-            .arg("--rm")
-            .arg("--tty")
-            .arg("--interactive")
-            .arg("--privileged");
+        let mut cmd_args: Vec<OsString> = vec!["run".into(),
+                                               "--rm".into(),
+                                               "--tty".into(),
+                                               "--interactive".into(),
+                                               "--privileged".into()];
 
         let env_vars = vec!["HAB_DEPOT_URL", "HAB_ORIGIN", "http_proxy", "https_proxy"];
         for var in env_vars {
@@ -169,24 +200,22 @@ mod inner {
                 debug!("Propagating environment variable into container: {}={}",
                        var,
                        val);
-                command.arg("--env");
-                command.arg(format!("{}={}", var, val));
+                cmd_args.push("--env".into());
+                cmd_args.push(format!("{}={}", var, val).into());
             }
         }
 
-        command.arg("--volume")
-            .arg("/var/run/docker.sock:/var/run/docker.sock")
-            .arg("--volume")
-            .arg(format!("{}:/{}",
-                         default_cache_key_path(None).to_string_lossy(),
-                         CACHE_KEY_PATH))
-            .arg("--volume")
-            .arg(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()))
-            .arg(image_identifier());
-
-        for arg in &args {
-            command.arg(arg);
-        }
+        cmd_args.push("--volume".into());
+        cmd_args.push("/var/run/docker.sock:/var/run/docker.sock".into());
+        cmd_args.push("--volume".into());
+        cmd_args.push(format!("{}:/{}",
+                              default_cache_key_path(None).to_string_lossy(),
+                              CACHE_KEY_PATH)
+            .into());
+        cmd_args.push("--volume".into());
+        cmd_args.push(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()).into());
+        cmd_args.push(image_identifier().into());
+        cmd_args.extend_from_slice(args.as_slice());
 
         for var in vec!["http_proxy", "https_proxy"] {
             if let Ok(_) = henv::var(var) {
@@ -197,11 +226,12 @@ mod inner {
             }
         }
 
-        let status = command.status().expect(&(format!("{:?} failed to start.", &cmd)));
-        // Replace with specific errors based on exit code?
-        // https://docs.docker.com/engine/reference/run/#/exit-status
-        // this currently just passes the exit code from Docker directly.
-        exit(status.code().unwrap())
+        Ok(try!(process::become_command(cmd, cmd_args)))
+    }
+
+    pub fn rerun_with_sudo_if_needed(_ui: &mut UI) -> Result<()> {
+        // No sudo calls necessary here--we are calling `docker` commands instead
+        Ok(())
     }
 
     /// Returns the Docker Studio image with tag for the desired version which corresponds to the

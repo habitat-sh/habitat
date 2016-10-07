@@ -32,6 +32,7 @@ mod inner {
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
     use hcore::fs::find_command;
+    use hcore::os::process;
     use hcore::package::PackageIdent;
 
     use error::{Error, Result};
@@ -63,7 +64,7 @@ mod inner {
         };
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-            exec::exec_command(cmd, args)
+            Ok(try!(process::become_command(cmd, args)))
         } else {
             Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()))
         }
