@@ -14,6 +14,8 @@
 
 require 'fileutils'
 require 'pathname'
+require 'tempfile'
+require 'timeout'
 
 # TODO: .rspec file doesn't seem to be honored, so we need
 # to manually include the spec_helper here
@@ -67,8 +69,8 @@ describe "Habitat CLI" do
             # building a package can take quite awhile, let's bump the timeout to
             # 60 seconds to be sure we finish in time.
             result = ctx.hab_cmd_expect("studio build fixtures/simple_service",
-                                         "I love it when a plan.sh comes together",
-                                         :timeout_seconds => 300, :debug => false)
+                                        "I love it when a plan.sh comes together",
+                                        :timeout_seconds => 300, :debug => false)
             # as the build command MUST complete, we check return code
             expect(result.exited?).to be true
             expect(result.exitstatus).to eq 0
@@ -91,9 +93,9 @@ describe "Habitat CLI" do
 
             # install the package
             result = ctx.hab_cmd_expect("pkg install ./results/#{last_build["pkg_artifact"]}",
-                                         "Install of #{ctx.hab_origin}/simple_service/0.0.1/"\
-                                             "#{last_build["pkg_release"]} complete",
-                                             :kill_when_found => false)
+                                        "Install of #{ctx.hab_origin}/simple_service/0.0.1/"\
+                                        "#{last_build["pkg_release"]} complete",
+                                        :kill_when_found => false)
             # as the installation command MUST complete, we check return code
             expect(result.exited?).to be true
             expect(result.exitstatus).to eq 0
@@ -120,8 +122,8 @@ describe "Habitat CLI" do
             # This is a long running process, so kill it when we've found the output
             # that we're looking for.
             result = ctx.sup_cmd_expect("start #{ctx.hab_origin}/simple_service",
-                                         "Shipping out to Boston",
-                                         :kill_when_found => true)
+                                        "Shipping out to Boston",
+                                        :kill_when_found => true)
             # don't check the process status here, we killed it!
         end
     end
@@ -132,103 +134,174 @@ describe "Habitat CLI" do
     # copies run and static instead, but we shouldn't crash if we
     # detect an existing run or static symlink.
     it "should not fail with older Habitat run and static symlinks" do
-            ctx.register_dir "results"
+        ctx.register_dir "results"
 
-            # install an older version of hab-sup that creates
-            # static and run symlinks
-            result = ctx.hab_cmd_expect("pkg install core/hab-sup/0.6.0/20160612142506",
+        # install an older version of hab-sup that creates
+        # static and run symlinks
+        result = ctx.hab_cmd_expect("pkg install core/hab-sup/0.6.0/20160612142506",
                                     "Install of core/hab-sup/0.6.0/20160612142506 complete",
                                     :timeout_seconds => 60)
-            expect(result.exited?).to be true
-            expect(result.exitstatus).to eq 0
+        expect(result.exited?).to be true
+        expect(result.exitstatus).to eq 0
 
-            # build a fixture
-            result = ctx.hab_cmd_expect("studio build fixtures/simple_service_with_run_and_static",
+        # build a fixture
+        result = ctx.hab_cmd_expect("studio build fixtures/simple_service_with_run_and_static",
                                     "I love it when a plan.sh comes together",
                                     :timeout_seconds => 60, :debug => false)
 
-            expect(result.exited?).to be true
-            expect(result.exitstatus).to eq 0
+        expect(result.exited?).to be true
+        expect(result.exitstatus).to eq 0
 
-            # read the ./results/last_build.env into a Hash
-            last_build = HabTesting::Utils::parse_last_build()
+        # read the ./results/last_build.env into a Hash
+        last_build = HabTesting::Utils::parse_last_build()
 
-            # register the output directory so files will be cleaned up if tests pass
-            ctx.register_dir "#{ctx.hab_pkg_path}/#{ctx.hab_origin}"
-            # cleanup the service directory when finished
-            ctx.register_dir "#{ctx.hab_svc_path}/simple_service_with_run_and_static"
+        # register the output directory so files will be cleaned up if tests pass
+        ctx.register_dir "#{ctx.hab_pkg_path}/#{ctx.hab_origin}"
+        # cleanup the service directory when finished
+        ctx.register_dir "#{ctx.hab_svc_path}/simple_service_with_run_and_static"
 
-            # install the fixture
-            result = ctx.hab_cmd_expect("pkg install ./results/#{last_build["pkg_artifact"]}",
+        # install the fixture
+        result = ctx.hab_cmd_expect("pkg install ./results/#{last_build["pkg_artifact"]}",
                                     "Install of #{ctx.hab_origin}/simple_service_with_run_and_static/0.0.1/"\
                                     "#{last_build["pkg_release"]} complete",
                                     :kill_when_found => false,
                                     :debug => false)
-            # as the installation command MUST complete, we check return code
-            expect(result.exited?).to be true
-            expect(result.exitstatus).to eq 0
+        # as the installation command MUST complete, we check return code
+        expect(result.exited?).to be true
+        expect(result.exitstatus).to eq 0
 
 
-            # start the fixture and ensure we have static and run symlinks
-            old_hab_sup_path = Pathname.new(ctx.hab_pkg_path).join("core",
-                                                                   "hab-sup",
-                                                                   "0.6.0",
-                                                                   "20160612142506",
-                                                                   "bin",
-                                                                   "hab-sup")
-
-
-            static_src  = Pathname.new(ctx.hab_pkg_path).join(ctx.hab_origin,
-                                                              "simple_service_with_run_and_static",
-                                                              "0.0.1",
-                                                              last_build["pkg_release"],
-                                                              "static")
-            static_dest = Pathname.new(ctx.hab_svc_path).join("simple_service_with_run_and_static", "static")
-
-            FileUtils.mkdir_p Pathname.new(ctx.hab_svc_path).join("simple_service_with_run_and_static")
-            File.symlink(static_src, static_dest)
-
-            result = ctx.cmd_expect("start #{ctx.hab_origin}/simple_service_with_run_and_static",
-                                    "Shipping out to Boston",
-                                    :timeout_seconds => 60,
-                                    :kill_when_found => true,
-                                    :bin => old_hab_sup_path,
-                                    :debug => false)
-
-
-            run_path = Pathname.new(ctx.hab_svc_path).join("simple_service_with_run_and_static", "run")
-            expect(File.exist?(run_path)).to be true
-            # it's a symlink!
-            expect(File.symlink?(run_path)).to be true
-
-            expect(File.exist?(static_dest)).to be true
-            # it's a symlink!
-            expect(File.symlink?(static_dest)).to be true
-
-            # remove the previous version of hab and use the latest
-            # Probably not needed, but we need to be careful which hab-sup binary we're calling to
-            # via cli calls to `hab`
-            old_pkg_path = Pathname.new(ctx.hab_pkg_path).join("core",
+        # start the fixture and ensure we have static and run symlinks
+        old_hab_sup_path = Pathname.new(ctx.hab_pkg_path).join("core",
                                                                "hab-sup",
                                                                "0.6.0",
-                                                               "20160612142506")
-            FileUtils.rm_rf(old_pkg_path);
+                                                               "20160612142506",
+                                                               "bin",
+                                                               "hab-sup")
 
-            # start with the LASTEST version of hab-sup, which should remove the symlink
-            # and copy the run file
-            result = ctx.sup_cmd_expect("start #{ctx.hab_origin}/simple_service_with_run_and_static",
+
+        static_src  = Pathname.new(ctx.hab_pkg_path).join(ctx.hab_origin,
+                                                          "simple_service_with_run_and_static",
+                                                          "0.0.1",
+                                                          last_build["pkg_release"],
+                                                          "static")
+        static_dest = Pathname.new(ctx.hab_svc_path).join("simple_service_with_run_and_static", "static")
+
+        FileUtils.mkdir_p Pathname.new(ctx.hab_svc_path).join("simple_service_with_run_and_static")
+        File.symlink(static_src, static_dest)
+
+        result = ctx.cmd_expect("start #{ctx.hab_origin}/simple_service_with_run_and_static",
+                                "Shipping out to Boston",
+                                :timeout_seconds => 60,
+                                :kill_when_found => true,
+                                :bin => old_hab_sup_path,
+                                :debug => false)
+
+
+        run_path = Pathname.new(ctx.hab_svc_path).join("simple_service_with_run_and_static", "run")
+        expect(File.exist?(run_path)).to be true
+        # it's a symlink!
+        expect(File.symlink?(run_path)).to be true
+
+        expect(File.exist?(static_dest)).to be true
+        # it's a symlink!
+        expect(File.symlink?(static_dest)).to be true
+
+        # remove the previous version of hab and use the latest
+        # Probably not needed, but we need to be careful which hab-sup binary we're calling to
+        # via cli calls to `hab`
+        old_pkg_path = Pathname.new(ctx.hab_pkg_path).join("core",
+                                                           "hab-sup",
+                                                           "0.6.0",
+                                                           "20160612142506")
+        FileUtils.rm_rf(old_pkg_path);
+
+        # start with the LASTEST version of hab-sup, which should remove the symlink
+        # and copy the run file
+        result = ctx.sup_cmd_expect("start #{ctx.hab_origin}/simple_service_with_run_and_static",
                                     "Shipping out to Boston",
                                     :timeout_seconds => 60,
                                     :kill_when_found => true,
                                     :debug => false)
 
-            expect(File.exist?(run_path)).to be true
-            # ensure that "run" isn't a symlink anymore
-            expect(File.symlink?(run_path)).to be false
+        expect(File.exist?(run_path)).to be true
+        # ensure that "run" isn't a symlink anymore
+        expect(File.symlink?(run_path)).to be false
 
-            expect(File.exist?(static_dest)).to be true
-            # ensure that "static" isn't a symlink anymore
-            expect(File.symlink?(static_dest)).to be false
+        expect(File.exist?(static_dest)).to be true
+        # ensure that "static" isn't a symlink anymore
+        expect(File.symlink?(static_dest)).to be false
     end
+
+
+    def start_and_config_apply(package, expected_reconfig_text)
+        ctx.register_dir "results"
+
+        # build a fixture
+        result = ctx.hab_cmd_expect("studio build fixtures/#{package}",
+                                    "I love it when a plan.sh comes together",
+                                    :timeout_seconds => 60, :debug => false)
+
+        expect(result.exited?).to be true
+        expect(result.exitstatus).to eq 0
+
+        # read the ./results/last_build.env into a Hash
+        last_build = HabTesting::Utils::parse_last_build()
+
+        # register the output directory so files will be cleaned up if tests pass
+        ctx.register_dir "#{ctx.hab_pkg_path}/#{ctx.hab_origin}"
+        # cleanup the service directory when finished
+        ctx.register_dir "#{ctx.hab_svc_path}/#{package}"
+
+        # install the fixture
+        result = ctx.hab_cmd_expect("pkg install ./results/#{last_build["pkg_artifact"]}",
+                                    "Install of #{ctx.hab_origin}/#{package}/0.0.1/"\
+                                    "#{last_build["pkg_release"]} complete",
+                                    :kill_when_found => false,
+                                    :debug => false)
+        # as the installation command MUST complete, we check return code
+        expect(result.exited?).to be true
+        expect(result.exitstatus).to eq 0
+
+        tomlfile = Tempfile.new('new_config')
+        tomlfile.write("foo = 1")
+        timeout = 30
+
+
+        Timeout::timeout(timeout) do
+            ctx.sup_spawn("start #{ctx.hab_origin}/#{package}") do |stdin, stdout_err, t|
+                # wait for the service to fully start
+                loop do
+                    line = stdout_err.readline()
+                    puts line
+                    if line.include?("Shipping out to Boston") then
+                        break
+                    end
+                end
+
+                # upload a new config to trigger a restart
+                ctx.cmd("config apply -p #{ctx.local_ip}:9634 #{package}.default 1 #{tomlfile.path}")
+                loop do
+                    line = stdout_err.readline()
+                    puts line
+                    if line.include?(expected_reconfig_text) then
+                        break
+                    end
+                end
+            end # ctx.sup_spawn
+        end # Timeout::timeout
+    end
+
+    it "doesn't send a SIGTERM to child process if reconfigure hook exists" do
+        start_and_config_apply("simple_service_with_reconfigure", "RUNNING RECONFIGURE HOOK")
+    end
+
+    it "sends a SIGTERM to a child process if a reconfigure hook doesn't exist" do
+        start_and_config_apply("simple_service_without_reconfigure", "RECEIVED TERM")
+    end
+
 end
+
+
+
 
