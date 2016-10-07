@@ -43,8 +43,9 @@ int GetUserTokenStatus()
                     user_token_status =  1;
                 }
             break;
+            default:
+                user_token_status =  5;
         }
-        user_token_status =  5;
     }
     return user_token_status;
 } 
