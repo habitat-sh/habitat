@@ -2300,6 +2300,9 @@ if [[ -n "$HAB_ORIGIN" ]]; then
   pkg_origin="$HAB_ORIGIN"
 fi
 
+# Validate metadata
+build_line "Validating plan metadata"
+
 # Test for all required metadata keys
 required_variables=(
   pkg_name
@@ -2313,6 +2316,12 @@ do
     exit_with "Failed to build. '${var}' must be set." 1
   fi
 done
+
+# Test to ensure package name contains only valid characters
+if [[ ! "${pkg_name}" =~ ^[A-Za-z0-9_-]+$ ]];
+then
+  exit_with "Failed to build. Package name '${pkg_name}' contains invalid characters." 1
+fi
 
 # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
 # from prior pkg_svc_* variables that were set before the Plan was loaded.
