@@ -398,6 +398,12 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         ident_from_params(params)
     };
+
+    if !ident.valid() {
+        info!("Invalid package identifier: {}", ident);
+        return Ok(Response::with(status::BadRequest));
+    }
+
     let mut conn = Broker::connect().unwrap();
 
     debug!("UPLOADING checksum={}, ident={}",
