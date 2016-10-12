@@ -1,0 +1,38 @@
+---
+title: Getting set up with Habitat | Mac
+---
+
+<ul class="main-content--version">
+  <li>Current version:</li>
+  <li><a class="active" href="/tutorials/getting-started/mac/setup-environment">Mac</a></li>
+  <li><a href="/tutorials/getting-started/linux/setup-environment">Linux</a></li>
+</ul>
+<hr />
+
+# Set up your environment
+The `hab` command-line interface (CLI) tool downloads its other components when it needs them, so setup for Habitat is centered on where you want the `hab` CLI installed and getting it integrated into your shell.
+
+1.  Open a terminal window. Change directory to the directory where you want to place the `hab` CLI and copy the `hab` CLI to that directory.
+
+        mkdir -p ~/bin
+        cp where/you/extracted/hab ~/bin
+
+2. Add the location for the `hab` CLI to your `PATH` environment variable.
+
+       export PATH=$PATH:~/bin
+
+    To keep from typing this in for every terminal window you use, add the above statement to your shell profile.
+
+3. Run `hab setup` and follow the instructions in the setup script.
+
+   <%= partial "/shared/setup_environment_script_step" %>
+
+   > Note: The GitHub personal access token needs the `user:email` and `read:org` scopes. Habitat uses this for authentication and to determine features based on team membership. Also, you can opt-out of providing usage data at a later point in time by re-running the `hab setup` subcommand and typing `No` when asked if you want to provide usage data.
+
+That's it. You're all set up and ready to create your first package. The first step in that process is to create a plan.
+
+<hr>
+<ul class="main-content--button-nav">
+  <li><a href="/tutorials/getting-started/win/create-plan" class="button cta">Next - Create your first plan</a></li>
+  <li><a href="/tutorials/getting-started/basic-concepts/">Back to previous step</a></li>
+</ul>
