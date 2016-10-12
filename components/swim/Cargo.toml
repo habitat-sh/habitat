@@ -1,0 +1,33 @@
+[package]
+name = "habitat_swim"
+version = "0.1.0"
+authors = ["Adam Jacob <adam@chef.io>"]
+build = "build.rs"
+workspace = "../../"
+
+[[bin]]
+name = "swim"
+doc = false
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[dependencies]
+protobuf = "*"
+rustc-serialize = "*"
+rand = "*"
+log = "*"
+env_logger = "*"
+time = "*"
+
+[dependencies.uuid]
+version = "*"
+features = ["rustc-serialize", "v4"]
+
+[dependencies.habitat_core]
+path = "../core"
+
+[features]
+functional = []
+protocols = []
+
