@@ -57,6 +57,8 @@ if (-not (Test-AppVeyor)) {
 
     # We need the Visual C++ tools to build Rust crates (provides a compiler and linker) 
     choco install 'visualcppbuildtools' --version '14.0.25123' --confirm --allowemptychecksum
+
+    choco install 7zip
 }
 
 # Install Rust Nightly (since there aren't MSVC nightly cargo builds)
@@ -91,6 +93,7 @@ if (-not (Test-AppVeyor)) {
 }
 
 # Set Environment Variables for the build
+$env:PATH                       = New-PathString -StartingPath $env:PATH    -Path 'C:\Program Files\7-Zip'
 $env:LIB                        = New-PathString -StartingPath $env:LIB     -Path $ChocolateyHabitatLibDir
 $env:INCLUDE                    = New-PathString -StartingPath $env:INCLUDE -Path $ChocolateyHabitatIncludeDir
 $env:PATH                       = New-PathString -StartingPath $env:PATH    -Path $ChocolateyHabitatBinDir
@@ -113,15 +116,34 @@ Pop-Location
 
 # Create the archive
 $pkgRoot = "results"
-New-Item -ItemType Directory -Path $pkgRoot -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $pkgRoot -ErrorAction SilentlyContinue -Force
 
+$pkgName = 'hab'
+$pkgOrigin = 'core'
 $pkgRelease = (Get-Date).ToString('yyyyMMddhhmmss')
 $pkgVersion = (Get-Content -Path ..\..\..\VERSION | Out-String).Trim()
-$pkgArtifact = "$pkgRoot/core-hab-$pkgVersion-$pkgRelease-x86_64-windows"
-Compress-Archive -Path @(
+$pkgArtifact = "$pkgRoot/$pkgOrigin-$pkgName-$pkgVersion-$pkgRelease-x86_64-windows"
+$pkgFiles = @(
     '..\..\..\target\Release\hab.exe',
     'C:\Windows\System32\vcruntime140.dll',
     'C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll'
-    ) -DestinationPath "$pkgArtifact.zip"
+)
+$pkgTempDir = "./hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" 
+$pkgBinDir =  "$pkgTempDir/bin"
+mkdir $pkgBinDir -Force | Out-Null
+Copy-Item $pkgFiles -Destination $pkgBinDir
+"$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/IDENT" -Encoding ascii
+"" | out-file "$pkgTempDir/BUILD_DEPS" -Encoding ascii
+"" | out-file "$pkgTempDir/BUILD_TDEPS" -Encoding ascii
+"" | out-file "$pkgTempDir/FILES" -Encoding ascii
+"" | out-file "$pkgTempDir/MANIFEST" -Encoding ascii
+"/hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" | out-file "$pkgTempDir/PATH" -Encoding ascii
+"" | out-file "$pkgTempDir/SVC_GROUP" -Encoding ascii
+"" | out-file "$pkgTempDir/SVC_USER" -Encoding ascii
+"x86_64-windows" | out-file "$pkgTempDir/TARGET" -Encoding ascii
+7z.exe a -ttar "$pkgArtifact.tar" ./hab
+7z.exe a -txz "$pkgArtifact.tar.xz" "$pkgArtifact.tar"
+hab pkg sign --origin $pkgOrigin "$pkgArtifact.tar.xz" "$pkgArtifact.hart"
+rm "$pkgArtifact.tar", "$pkgArtifact.tar.xz", "./hab" -Recurse -force
 
 exit $LASTEXITCODE
