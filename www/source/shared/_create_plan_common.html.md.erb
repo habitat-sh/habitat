@@ -1,3 +1,5 @@
+
+
 Creating a plan starts with identifying and referencing the application code that you want to package and automate. Habitat provides several different ways to refer and include application code in your package: by downloading a tarball of the source and compiling it when building the package, by referring to a local source directory, or by using a pre-built binary and bundling it up in your package.
 
 To demonstrate Habitat code residing in the same repo as your source code, you are going to clone a simple Node.js application with a `habitat` subdirectory already created for you. Then you will modify the plan and do a test build to verify you have the basic process working correctly. By having the Habitat plan live in the same directory as your source code, the Habitat package for your application can be built right alongside your source code for testing and deployment purposes.
@@ -10,9 +12,16 @@ The Node.js application in this tutorial is a simple web app that displays a mes
        cd ~
        git clone https://github.com/habitat-sh/habitat-example-plans
 
-2. After you have successfully cloned the repo, change directory to the `mytutorialapp` directory.
+1. After you have successfully cloned the repo, change directory to the `mytutorialapp` directory.
 
        cd ~/habitat-example-plans/mytutorialapp
+
+<% if is_windows %>
+1. Change CRLF line endings to be LF line endings.
+
+       git config core.eol lf
+       git config core.autocrlf input
+<% end %>
 
 The `/source` directory contains three files that comprise the Node.js application: `server.js`, `package.json`, and `config.json`.
 

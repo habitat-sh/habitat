@@ -16,7 +16,7 @@ Before starting this tutorial, you need to have the following:
 *   The `hab` command-line interface tool. See [Get Habitat](/docs/get-habitat) if you don't already have this installed on your machine.
 *    An active GitHub account is recommended. If you don't already have an account, [sign up](https://github.com/) for one now. Note: This is required to upload and share your packages with others in the Habitat community.
 *   Your favorite text editor.
-*   If you are running Mac OS X on your host machine, then you need [Docker for Mac](https://www.docker.com/products/docker) installed. Make sure you have a Docker machine running before proceeding through the tutorial. 
+*   If you are running Mac OS X on your host machine, then you need [Docker for Mac](https://www.docker.com/products/docker#/mac) installed, and if you are running Microsoft Windows, you will need [Docker for Windows](https://www.docker.com/products/docker#/windows) installed. Make sure you have a Docker machine running before proceeding through the tutorial. 
 
     Docker is not required for the Linux version of the tutorial unless you choose to create a Docker container from your package. 
 
@@ -26,6 +26,7 @@ Before starting this tutorial, you need to have the following:
 The remainder of the steps in this tutorial will be tailored by platform, so select the OS platform where you wish to build and run Habitat packages. If you want to change the platform at any step in the tutorial, use the selector at the top of the page.
 
 <ul class="main-content--button-nav">
-  <li><a href="/tutorials/getting-started/mac/basic-concepts" class="button cta">Continue with Mac version</a></li>
-  <li><a href="/tutorials/getting-started/linux/basic-concepts" class="button cta">Continue with Linux version</a></li>
+  <li><a href="/tutorials/getting-started/mac/basic-concepts" class="button cta">Mac version</a></li>
+  <li><a href="/tutorials/getting-started/linux/basic-concepts" class="button cta">Linux version</a></li>
+  <li><a href="/tutorials/getting-started/windows/basic-concepts" class="button cta">Windows version</a></li>
 </ul>
