@@ -1,5 +1,60 @@
 # Habitat CHANGELOG
 
+## [0.11.0](https://github.com/habitat-sh/habitat/tree/0.11.0) (10-11-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.2...0.11.0)
+
+## Features & Enhancements
+
+- Port Hab command-line tool to Windows [\#1192](https://github.com/habitat-sh/habitat/issues/1192)
+- Warn when docker-based studio is out of date [\#1167](https://github.com/habitat-sh/habitat/issues/1167)
+- Version ordering seems to be alpha sorted and needs to following some kind of versioning comparison scheme [\#1090](https://github.com/habitat-sh/habitat/issues/1090)
+- Package names with a dot generate invalid default group [\#1089](https://github.com/habitat-sh/habitat/issues/1089)
+- Check write permissions before attempting to download [\#960](https://github.com/habitat-sh/habitat/issues/960)
+- Sodiumoxide cargo config override can be removed [\#952](https://github.com/habitat-sh/habitat/issues/952)
+- be able to modify and rebuild from plan.sh without rerunning a full build. [\#927](https://github.com/habitat-sh/habitat/issues/927)
+- \[builder-web\] Upgrade to new Angular 2 Router [\#885](https://github.com/habitat-sh/habitat/issues/885)
+- \[builder-web\] Upgrade to Angular 2 RC [\#884](https://github.com/habitat-sh/habitat/issues/884)
+- Really fix the admin status check on Windows this time [\#1342](https://github.com/habitat-sh/habitat/pull/1342) ([smurawski](https://github.com/smurawski))
+- \[hab\] Attempt to call `sudo` on `hab studio \*` for non-root users. [\#1329](https://github.com/habitat-sh/habitat/pull/1329) ([fnichol](https://github.com/fnichol))
+- Remove vendored sodiumoxide and libsodium-sys from components [\#1326](https://github.com/habitat-sh/habitat/pull/1326) ([reset](https://github.com/reset))
+- Detect, warn, & exit on operations that require root/admin permissions. [\#1325](https://github.com/habitat-sh/habitat/pull/1325) ([fnichol](https://github.com/fnichol))
+- Set sensible defaults for pkg\_pconfig\_dirs plan variable [\#1323](https://github.com/habitat-sh/habitat/pull/1323) ([reset](https://github.com/reset))
+- Improve error messages around Docker [\#1322](https://github.com/habitat-sh/habitat/pull/1322) ([raskchanky](https://github.com/raskchanky))
+- \[hab\] Refactor constants to remove unused warns in studio subcmd. [\#1321](https://github.com/habitat-sh/habitat/pull/1321) ([fnichol](https://github.com/fnichol))
+- \[hab\] Retire `core/hab-dynamic` Plan. [\#1320](https://github.com/habitat-sh/habitat/pull/1320) ([fnichol](https://github.com/fnichol))
+- Updating tutorial content and example code [\#1319](https://github.com/habitat-sh/habitat/pull/1319) ([davidwrede](https://github.com/davidwrede))
+- Add terminfo to studio for colorization [\#1318](https://github.com/habitat-sh/habitat/pull/1318) ([smacfarlane](https://github.com/smacfarlane))
+- Streamline Bintray release instructions in RELEASE.md. [\#1316](https://github.com/habitat-sh/habitat/pull/1316) ([fnichol](https://github.com/fnichol))
+- Streamline Bintray release instructions in RELEASE.md. [\#1316](https://github.com/habitat-sh/habitat/pull/1316) ([fnichol](https://github.com/fnichol))
+- `hab studio enter` on Windows via Docker! [\#1309](https://github.com/habitat-sh/habitat/pull/1309) ([smurawski](https://github.com/smurawski))
+- Remove unconditional reference to sudo\(8\). [\#1304](https://github.com/habitat-sh/habitat/pull/1304) ([juliandunn](https://github.com/juliandunn))
+- Update to latest ZeroMQ crate [\#1252](https://github.com/habitat-sh/habitat/pull/1252) ([reset](https://github.com/reset))
+
+## Bug fixes
+
+- "Invalid status provided" on Habitat 0.10.1 because it tries to send data to Google [\#1306](https://github.com/habitat-sh/habitat/issues/1306)
+- hab pkg build returns code 0 on error [\#1285](https://github.com/habitat-sh/habitat/issues/1285)
+- Generated svc `run` script assumes binaries are on path [\#1268](https://github.com/habitat-sh/habitat/issues/1268)
+- Check filetype of static/run in svc directory before writing to [\#1267](https://github.com/habitat-sh/habitat/issues/1267)
+- Overriding nested \(table\) config vars clobbers defaults [\#1184](https://github.com/habitat-sh/habitat/issues/1184)
+- hab pkg upload fails if public key isn't present in /hab/cache/keys [\#1172](https://github.com/habitat-sh/habitat/issues/1172)
+- Version ordering seems to be alpha sorted and needs to following some kind of versioning comparison scheme [\#1090](https://github.com/habitat-sh/habitat/issues/1090)
+- Package names with a dot generate invalid default group [\#1089](https://github.com/habitat-sh/habitat/issues/1089)
+- replacing execv in exec.rs with std::process::Command [\#1324](https://github.com/habitat-sh/habitat/pull/1324) ([rrxtns](https://github.com/rrxtns))
+
+**Closed issues:**
+
+- Depot fails to link package to GitHub repo due to CORS issue [\#1344](https://github.com/habitat-sh/habitat/issues/1344)
+
+**Merged pull requests:**
+
+- Add windows binaries to available downloads [\#1348](https://github.com/habitat-sh/habitat/pull/1348) ([mwrock](https://github.com/mwrock))
+- \[core\] Check invalid characters in package name on upload [\#1347](https://github.com/habitat-sh/habitat/pull/1347) ([chefsalim](https://github.com/chefsalim))
+- \[build\] Validate characters in plan name [\#1345](https://github.com/habitat-sh/habitat/pull/1345) ([chefsalim](https://github.com/chefsalim))
+- Fix build step in builder-worker plan [\#1328](https://github.com/habitat-sh/habitat/pull/1328) ([reset](https://github.com/reset))
+- Bump VERSION to 0.11.0-dev. [\#1315](https://github.com/habitat-sh/habitat/pull/1315) ([fnichol](https://github.com/fnichol))
+- SWIM as an independent library [\#1310](https://github.com/habitat-sh/habitat/pull/1310) ([adamhjk](https://github.com/adamhjk))
+
 ## [0.10.2](https://github.com/habitat-sh/habitat/tree/0.10.2) (09-30-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.10.1...0.10.2)
 
