@@ -89,7 +89,7 @@ The Habitat Builder web application is in the components/builder-web directory. 
 
 ## Documentation
 
-Habitat's website and documentation is generated using [Middleman](https://middlemanapp.com/) and is located in the `www` directory of the Habitat source code. To work on the documentation, you will need to have a working [Ruby](https://ruby-lang.org) installation and Bundler. We recommend Ruby 2.3.1 or greater.
+Habitat's website and documentation is generated using [Middleman](https://middlemanapp.com/) and is located in the `www` directory of the Habitat source code. To work on the documentation, you will need to have a working [Ruby](https://ruby-lang.org) installation and Bundler. We recommend Ruby 2.3.1 or greater. If there is any problem with build then use build --help for detailed manual on build.
 
 To install Middleman, follow these instructions:
 
