@@ -169,6 +169,21 @@ info() {
   return 0
 }
 
+_build_windows_release() {
+  pkg_target="x86_64-windows"
+  pkg_ident="core/hab/$(cat "./VERSION")/$(date -u +%Y%m%d%H%M%S)"
+  pkg_origin="$(echo $pkg_ident | cut -d '/' -f 1)"
+  pkg_name="$(echo $pkg_ident | cut -d '/' -f 2)"
+  pkg_version="$(echo $pkg_ident | cut -d '/' -f 3)"
+  pkg_release="$(echo $pkg_ident | cut -d '/' -f 4)"
+  pkg_arch="$(echo $pkg_target | cut -d '-' -f 1)"
+  pkg_kernel="$(echo $pkg_target | cut -d '-' -f 2)"
+  pkg_artifact=$target_hart
+  pushd "$(dirname $pkg_artifact)" >/dev/null
+  sha256sum $(basename $pkg_artifact) > "$(basename $pkg_artifact).sha256sum"
+  popd
+}
+
 _build_slim_release() {
   info "Extracting Habitat package $target_hart"
   if [ ! -e $target_hart ]; then
@@ -270,7 +285,15 @@ _publish_slim_release() {
 
 # **Internal** Main program.
 _main() {
-  _build_slim_release
+  case "$target_hart" in
+    *-windows.zip)
+      _build_windows_release
+      ;;
+    *)
+      _build_slim_release
+      ;;
+  esac
+
   _publish_slim_release
 
   cat <<-EOF > $start_dir/results/last_build.env
