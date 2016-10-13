@@ -23,14 +23,7 @@ _Habitat for Linux requires a 64-bit processor with a kernel greater than 2.6.32
 <a class="button" href="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux">Download Habitat for Linux</a>
 
 ### For Windows
-To start using Habitat on Windows, download the following binary.  
-If you intend to build Habitat packages on your Windows PC, you will also need to install [Docker for Windows](https://docs.docker.com/docker-for-windows/).  
-_Habitat for Windows requires 64bit Windows 10 Pro, Enterprise and Education (1511 November update, Build 10586 or later) and Microsoft Hyper-V.
-
-> Note: Currently Habitat can only build and manage linux based packages. Support for Windows based applications is coming.
-
-<a class="button" href="https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows">Download Habitat for Windows</a>
-<a class="button secondary" href="https://download.docker.com/win/stable/InstallDocker.msi">Download Docker for Windows</a>
+Habitat currently runs on Mac and Linux operating systems only. Windows support is coming soon.
 
 <hr>
 
