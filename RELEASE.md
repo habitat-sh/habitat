@@ -126,6 +126,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
   * hab-sup-static - `habitat/components/sup/static`
   * hab-director - `habitat/components/director`
 1. [Build Mac Components](#how-to-build-mac-components)
+1. [Build Windows Components](#how-to-build-windows-components)
 
 ## Publish Release
 
@@ -201,6 +202,18 @@ target component.
 	$ sudo ./mac-build.sh
 	```
 
+# How-To: Build Windows Components
+
+1. Ensure no pre-existing old virtual machine, then provision a new Windows machine
+
+    ```
+    $ cd ~/code/habitat/components/hab/win
+    $ vagrant destroy
+    $ vagrant up
+    ```
+
+The script provisioner in the Vagrantfile will pull down all dependencies and build the windows hab binary.
+
 # How-To: Release to Bintray
 
 1. On your workstation, change your code directory and enter a studio
@@ -222,13 +235,15 @@ target component.
     $ hab pkg exec core/hab-bintray-publish publish-studio
     ```
 
-1. Publish the Linux and Mac artifacts by selecting the appropriate `.hart` file
+1. Publish the Linux, Mac and Windows artifacts by selecting the appropriate `.hart` file
 
     ```
     $ hab pkg exec core/hab-bintray-publish publish-hab \
       ./results/core-hab-0.10.2-20160930230245-x86_64-linux.hart
     $ hab pkg exec core/hab-bintray-publish publish-hab \
       ./habitat/components/hab/mac/results/core-hab-0.10.2-20160930230245-x86_64-darwin.hart
+    $ hab pkg exec core/hab-bintray-publish publish-hab \
+      ./habitat/components/hab/win/results/core-hab-0.10.2-20160930230245-x86_64-windows.zip      
     ```
 
 More documentation for the Bintray releasing software can be found in the component's [Readme](components/bintray-publish/README.md).

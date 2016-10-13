@@ -1,0 +1,10 @@
+$script = <<SCRIPT
+cd /src/components/hab/win
+./win-build.ps1
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "mwrock/Windows2016"
+  config.vm.synced_folder File.expand_path("../../../../", __FILE__), "/src"
+  config.vm.provision "shell", inline: $script
+end
