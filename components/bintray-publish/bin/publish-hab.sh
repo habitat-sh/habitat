@@ -169,21 +169,6 @@ info() {
   return 0
 }
 
-_build_windows_release() {
-  pkg_target="x86_64-windows"
-  pkg_ident="core/hab/$(cat "./VERSION")/$(date -u +%Y%m%d%H%M%S)"
-  pkg_origin="$(echo $pkg_ident | cut -d '/' -f 1)"
-  pkg_name="$(echo $pkg_ident | cut -d '/' -f 2)"
-  pkg_version="$(echo $pkg_ident | cut -d '/' -f 3)"
-  pkg_release="$(echo $pkg_ident | cut -d '/' -f 4)"
-  pkg_arch="$(echo $pkg_target | cut -d '-' -f 1)"
-  pkg_kernel="$(echo $pkg_target | cut -d '-' -f 2)"
-  pkg_artifact=$target_hart
-  pushd "$(dirname $pkg_artifact)" >/dev/null
-  sha256sum $(basename $pkg_artifact) > "$(basename $pkg_artifact).sha256sum"
-  popd
-}
-
 _build_slim_release() {
   info "Extracting Habitat package $target_hart"
   if [ ! -e $target_hart ]; then
@@ -192,16 +177,16 @@ _build_slim_release() {
   mkdir -p "$tmp_root/hab/cache/artifacts"
   cp $target_hart "$tmp_root/hab/cache/artifacts/"
   env FS_ROOT="$tmp_root" $_hab_cmd pkg install "$target_hart"
-  if [[ $(find "$tmp_root/hab/pkgs" -name hab -type f | wc -l) -ne 1 ]]; then
+  if [[ $(find "$tmp_root/hab/pkgs" \( -name hab -or -name hab.exe \) -type f | wc -l) -ne 1 ]]; then
     exit_with "$target_hart did not contain a \`hab' binary" 2
   fi
 
-  local hab_binary="$(find "$tmp_root/hab/pkgs" -name hab -type f)"
+  local hab_binary="$(find "$tmp_root/hab/pkgs" \( -name hab -or -name hab.exe \) -type f)"
   local pkg_path="$(dirname $(dirname $hab_binary))"
-  pkg_target="$(cat $pkg_path/TARGET)"
+  pkg_target="$(cat $pkg_path/TARGET | tr --delete '\r')"
   pkg_arch="$(echo $pkg_target | cut -d '-' -f 1)"
   pkg_kernel="$(echo $pkg_target | cut -d '-' -f 2)"
-  pkg_ident="$(cat $pkg_path/IDENT)"
+  pkg_ident="$(cat $pkg_path/IDENT | tr --delete '\r')"
   pkg_origin="$(echo $pkg_ident | cut -d '/' -f 1)"
   pkg_name="$(echo $pkg_ident | cut -d '/' -f 2)"
   pkg_version="$(echo $pkg_ident | cut -d '/' -f 3)"
@@ -213,7 +198,12 @@ _build_slim_release() {
   info "Copying $hab_binary to $(basename $pkg_dir)"
   mkdir -p "$pkg_dir"
   mkdir -p "$start_dir/results"
-  cp -p "$hab_binary" "$pkg_dir/$(basename $hab_binary)"
+  
+  if [[ $pkg_target == *"windows" ]]; then
+    for file in $(dirname $hab_binary)/*; do cp -p "$file" "$pkg_dir/";done
+  else
+    cp -p "$hab_binary" "$pkg_dir/$(basename $hab_binary)"
+  fi
 
   info "Compressing \`hab' binary"
   pushd "$build_dir" >/dev/null
@@ -226,6 +216,11 @@ _build_slim_release() {
       $_gzip_cmd -9 -c "$tarball" > "$pkg_artifact"
       ;;
     *-darwin)
+      pkg_artifact="$start_dir/results/${archive_name}.zip"
+      rm -fv "$pkg_artifact"
+      $_zip_cmd -9 -r "$pkg_artifact" "$(basename $pkg_dir)"
+      ;;
+    *-windows)
       pkg_artifact="$start_dir/results/${archive_name}.zip"
       rm -fv "$pkg_artifact"
       $_zip_cmd -9 -r "$pkg_artifact" "$(basename $pkg_dir)"
@@ -285,16 +280,9 @@ _publish_slim_release() {
 
 # **Internal** Main program.
 _main() {
-  case "$target_hart" in
-    *-windows.zip)
-      _build_windows_release
-      ;;
-    *)
-      _build_slim_release
-      ;;
-  esac
 
-  _publish_slim_release
+  _build_slim_release 
+ # _publish_slim_release
 
   cat <<-EOF > $start_dir/results/last_build.env
 pkg_origin=$pkg_origin
