@@ -1,5 +1,6 @@
 $script = <<SCRIPT
 cd /src/components/hab/win
+$env:ORIGIN_KEY = "#{ENV['ORIGIN_KEY']}"
 ./win-build.ps1
 SCRIPT
 
