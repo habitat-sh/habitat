@@ -20,7 +20,7 @@ The `hab` command-line interface (CLI) tool downloads its other components when 
 
 2. Add the location for the `hab` CLI to your `PATH` environment variable.
 
-       $env:PATH = $env:PATH;$env:USERPROFILE/bin
+       $env:PATH += "$env:PATH;$env:USERPROFILE/bin"
 
     To keep from typing this in for every PowerShell window you use, add the above statement to your PowerShell profile.
 

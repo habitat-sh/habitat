@@ -7,6 +7,13 @@ To demonstrate Habitat code residing in the same repo as your source code, you a
 ## Clone the project
 The Node.js application in this tutorial is a simple web app that displays a message to anyone who connects to the application. You can configure both the listening port and the message.
 
+<% if is_windows %>
+1. Change the default Git for Windows CRLF line endings setting to be LF line endings.
+
+       git config --global core.eol lf
+       git config --global core.autocrlf input
+<% end %>
+
 1. Clone the habitat-example-plans repo onto your local machine. In this example, a directory called `habitat-example-plans` will be created in the `$HOME` directory.
 
        cd ~
@@ -15,13 +22,6 @@ The Node.js application in this tutorial is a simple web app that displays a mes
 1. After you have successfully cloned the repo, change directory to the `mytutorialapp` directory.
 
        cd ~/habitat-example-plans/mytutorialapp
-
-<% if is_windows %>
-1. Change CRLF line endings to be LF line endings.
-
-       git config core.eol lf
-       git config core.autocrlf input
-<% end %>
 
 The `/source` directory contains three files that comprise the Node.js application: `server.js`, `package.json`, and `config.json`.
 
