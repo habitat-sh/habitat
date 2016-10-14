@@ -41,4 +41,22 @@ export class GitHubApiClient {
             }).catch(error => reject(error));
         });
     }
+
+    public getUser(username: string) {
+        return new Promise((resolve, reject) => {
+            fetch(`${this.urlPrefix}/users/${username}?access_token=${this.token}`, {
+                method: "GET"
+            }).then(response => {
+                if (response.ok) {
+                    resolve(response.json());
+                } else {
+                    if (response.status === 404) {
+                        reject(new Error(`User '${username}' does not exist.`));
+                    } else {
+                        reject(new Error(response.statusText));
+                    }
+                }
+            }).catch(error => reject(error));
+        });
+    }
 }
