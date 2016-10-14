@@ -16,7 +16,7 @@ title: Creating your first plan
 ## Entering the studio and doing an initial build
 The studio is a minimal, clean, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment for you
 to build and test your Habitat packages. The studio itself is a Habitat package, and all of the dependent packages for the studio will be downloaded,
-unpacked, and installed. The studio will also import the secret origin key created during `hab setup`. When running Mac OS X on your host machine, the studio runs
+unpacked, and installed. The studio will also import the secret origin key created during `hab setup`. When running Windows 10 on your host machine, the studio runs
 inside a Docker container as root.
 
 Packages are built in the studio through the `hab-plan-build` script, which handles creating Habitat packages from plan files.
@@ -30,7 +30,7 @@ In this tutorial, because we are copying source files from within our repo into 
 
        cd ~/habitat-example-plans/mytutorialapp/
 
-2. Make sure Docker for Mac is running and then enter into the studio environment.
+2. Make sure Docker for Windows is running and then enter into the studio environment.
 
        hab studio enter
 
