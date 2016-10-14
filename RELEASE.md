@@ -209,10 +209,11 @@ target component.
     ```
     $ cd ~/code/habitat/components/hab/win
     $ vagrant destroy
+    $ export ORIGIN_KEY=hab origin key export core --type secret
     $ vagrant up
     ```
 
-The script provisioner in the Vagrantfile will pull down all dependencies and build the windows hab binary.
+The script provisioner in the Vagrantfile will extract the core origin key from your environment and feed it to a powershell script on the Windows machine for import. It will also pull down all dependencies and build the windows hab binary.
 
 # How-To: Release to Bintray
 
@@ -243,7 +244,7 @@ The script provisioner in the Vagrantfile will pull down all dependencies and bu
     $ hab pkg exec core/hab-bintray-publish publish-hab \
       ./habitat/components/hab/mac/results/core-hab-0.10.2-20160930230245-x86_64-darwin.hart
     $ hab pkg exec core/hab-bintray-publish publish-hab \
-      ./habitat/components/hab/win/results/core-hab-0.10.2-20160930230245-x86_64-windows.zip      
+      ./habitat/components/hab/win/results/core-hab-0.10.2-20160930230245-x86_64-windows.hart
     ```
 
 More documentation for the Bintray releasing software can be found in the component's [Readme](components/bintray-publish/README.md).

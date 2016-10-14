@@ -215,12 +215,7 @@ _build_slim_release() {
       rm -fv "$pkg_artifact"
       $_gzip_cmd -9 -c "$tarball" > "$pkg_artifact"
       ;;
-    *-darwin)
-      pkg_artifact="$start_dir/results/${archive_name}.zip"
-      rm -fv "$pkg_artifact"
-      $_zip_cmd -9 -r "$pkg_artifact" "$(basename $pkg_dir)"
-      ;;
-    *-windows)
+    *-darwin | *-windows)
       pkg_artifact="$start_dir/results/${archive_name}.zip"
       rm -fv "$pkg_artifact"
       $_zip_cmd -9 -r "$pkg_artifact" "$(basename $pkg_dir)"
@@ -282,7 +277,7 @@ _publish_slim_release() {
 _main() {
 
   _build_slim_release 
- # _publish_slim_release
+  _publish_slim_release
 
   cat <<-EOF > $start_dir/results/last_build.env
 pkg_origin=$pkg_origin

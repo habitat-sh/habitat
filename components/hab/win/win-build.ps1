@@ -58,7 +58,7 @@ if (-not (Test-AppVeyor)) {
     # We need the Visual C++ tools to build Rust crates (provides a compiler and linker) 
     choco install 'visualcppbuildtools' --version '14.0.25123' --confirm --allowemptychecksum
 
-    choco install 7zip
+    choco install 7zip --version '16.02.0.20160811' --confirm
 }
 
 # Install Rust Nightly (since there aren't MSVC nightly cargo builds)
@@ -114,6 +114,14 @@ invoke-expression "$cargo clean"
 Invoke-Expression "$cargo build --release" 
 Pop-Location
 
+# Import origin key
+if (!(Test-Path "/hab/cache/keys/core-*.sig.key")) {
+    if(!$env:ORIGIN_KEY) {
+       throw "You do not have the core origin key imported on this machine. Please ensure the key is exported to the ORIGIN_KEY environment variable."
+    }
+    $env:ORIGIN_KEY | & '..\..\..\target\Release\hab.exe' origin key import
+}
+
 # Create the archive
 $pkgRoot = "results"
 New-Item -ItemType Directory -Path $pkgRoot -ErrorAction SilentlyContinue -Force
@@ -143,7 +151,7 @@ Copy-Item $pkgFiles -Destination $pkgBinDir
 "x86_64-windows" | out-file "$pkgTempDir/TARGET" -Encoding ascii
 7z.exe a -ttar "$pkgArtifact.tar" ./hab
 7z.exe a -txz "$pkgArtifact.tar.xz" "$pkgArtifact.tar"
-hab pkg sign --origin $pkgOrigin "$pkgArtifact.tar.xz" "$pkgArtifact.hart"
+..\..\..\target\Release\hab.exe pkg sign --origin $pkgOrigin "$pkgArtifact.tar.xz" "$pkgArtifact.hart"
 rm "$pkgArtifact.tar", "$pkgArtifact.tar.xz", "./hab" -Recurse -force
 
 exit $LASTEXITCODE
