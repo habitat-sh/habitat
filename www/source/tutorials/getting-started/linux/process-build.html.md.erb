@@ -19,7 +19,7 @@ Before we can run our service, we need to rebuild our package to include the cha
 1. If you are not in the studio environment, change over to your plan directory and enter the studio.
 
         cd ~/habitat-example-plans/mytutorialapp
-        sudo hab studio enter
+        hab studio enter
 
 2. Build your mytutorialapp package.
 
@@ -84,13 +84,17 @@ To natively run services on your Linux host machine, do the following:
 
    > Note: One of the reasons you can run a service from within the studio is that the `hab` user is created for you when you enter the studio environment.
 
-3. Run `sudo hab install path/to/results/packagefilename.hart`. This will install your package in the same location on the host machine as it does in the studio (i.e. `/hab/pkgs`). Make sure you are in the
+3. Copy the origin public key you created during `hab setup` to `/hab/cache/keys`. Unless your public key has been uploaded to the public depot, you will have to place it in the global key cache before you can install your package for local testing.
+
+       sudo cp ~/.hab/cache/keys/myorigin-20160712195536.pub /hab/cache/keys
+
+4. Run `sudo hab install path/to/results/packagefilename.hart`. This will install your package in the same location on the host machine as it does in the studio (i.e. `/hab/pkgs`). Make sure you are in the
 `results` directory of `mytutorialapp` and the install the package.
 
        cd ~/habitat-example-plans/mytutorialapp/results
        sudo hab install myorigin-mytutorialapp-0.2.0-20160902224802-x86_64-linux.hart
 
-4. Run `sudo hab start origin/packagename`.
+5. Run `sudo hab start origin/packagename`.
 
        sudo hab start myorigin/mytutorialapp
 
@@ -104,7 +108,7 @@ To show the portability of Habitat, you can also export and run a Habitat servic
 2. Re-enter the studio.
 
        $ cd ~/habitat-example-plans/mytutorialapp
-       $ sudo hab studio enter
+       $ hab studio enter
        [1][default:/src:0]#
 
 3. Create a Docker image containing your package by running `hab pkg export docker origin/packagename` with the origin and name of your package.
