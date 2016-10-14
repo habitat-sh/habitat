@@ -175,6 +175,10 @@ $(foreach component,$(ALL),$(eval $(call BLDR_BUILD,$(component))))
 bldr-run: bldr-build
 	support/mac/bin/forego start -f support/Procfile.mac -e support/bldr.env
 
+bldr-shell: build-srv ## launches a development shell with forwarded ports but doesn't run anything
+	$(bldr_run)
+.PHONY: bldr-shell
+
 bldr-run-shell: build-srv ## launches a development shell running the API
 	$(bldr_run) sh -c '/src/support/linux/bin/forego start -f support/Procfile.linux -e support/bldr.env'
 .PHONY: bldr-run-shell

@@ -7,11 +7,15 @@
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
+#![allow(box_pointers)]
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(trivial_casts)]
+#![allow(unsafe_code)]
 #![allow(unused_imports)]
+#![allow(unused_results)]
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -110,7 +114,7 @@ impl ::protobuf::Message for Connect {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.registration.iter() {
+        for value in &self.registration {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
@@ -616,10 +620,10 @@ impl ::protobuf::Message for Registration {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.protocol.iter() {
+        for value in &self.protocol {
             my_size += ::protobuf::rt::enum_size(1, *value);
         };
-        for value in self.endpoint.iter() {
+        for value in &self.endpoint {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
         if !self.shards.is_empty() {
@@ -641,7 +645,7 @@ impl ::protobuf::Message for Registration {
             try!(os.write_tag(3, ::protobuf::wire_format::WireTypeLengthDelimited));
             // TODO: Data size is computed again, it should be cached
             try!(os.write_raw_varint32(::protobuf::rt::vec_packed_varint_data_size(&self.shards)));
-            for v in self.shards.iter() {
+            for v in &self.shards {
                 try!(os.write_uint32_no_tag(*v));
             };
         };

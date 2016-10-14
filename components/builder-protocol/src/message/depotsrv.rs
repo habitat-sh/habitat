@@ -7,11 +7,15 @@
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
+#![allow(box_pointers)]
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(trivial_casts)]
+#![allow(unsafe_code)]
 #![allow(unused_imports)]
+#![allow(unused_results)]
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -239,16 +243,16 @@ impl ::protobuf::Message for PackageIdent {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.origin.iter() {
+        for value in &self.origin {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in self.name.iter() {
+        for value in &self.name {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in self.version.iter() {
+        for value in &self.version {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in self.release.iter() {
+        for value in &self.release {
             my_size += ::protobuf::rt::string_size(4, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -680,28 +684,28 @@ impl ::protobuf::Message for Package {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.ident.iter() {
+        for value in &self.ident {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
-        for value in self.checksum.iter() {
+        for value in &self.checksum {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in self.manifest.iter() {
+        for value in &self.manifest {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in self.deps.iter() {
+        for value in &self.deps {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
-        for value in self.tdeps.iter() {
+        for value in &self.tdeps {
             let len = value.compute_size();
             my_size += 1 + ::protobuf::rt::compute_raw_varint32_size(len) + len;
         };
         if !self.exposes.is_empty() {
             my_size += ::protobuf::rt::vec_packed_varint_size(6, &self.exposes);
         };
-        for value in self.config.iter() {
+        for value in &self.config {
             my_size += ::protobuf::rt::string_size(7, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -721,12 +725,12 @@ impl ::protobuf::Message for Package {
         if let Some(v) = self.manifest.as_ref() {
             try!(os.write_string(3, &v));
         };
-        for v in self.deps.iter() {
+        for v in &self.deps {
             try!(os.write_tag(4, ::protobuf::wire_format::WireTypeLengthDelimited));
             try!(os.write_raw_varint32(v.get_cached_size()));
             try!(v.write_to_with_cached_sizes(os));
         };
-        for v in self.tdeps.iter() {
+        for v in &self.tdeps {
             try!(os.write_tag(5, ::protobuf::wire_format::WireTypeLengthDelimited));
             try!(os.write_raw_varint32(v.get_cached_size()));
             try!(v.write_to_with_cached_sizes(os));
@@ -735,7 +739,7 @@ impl ::protobuf::Message for Package {
             try!(os.write_tag(6, ::protobuf::wire_format::WireTypeLengthDelimited));
             // TODO: Data size is computed again, it should be cached
             try!(os.write_raw_varint32(::protobuf::rt::vec_packed_varint_data_size(&self.exposes)));
-            for v in self.exposes.iter() {
+            for v in &self.exposes {
                 try!(os.write_uint32_no_tag(*v));
             };
         };
@@ -955,7 +959,7 @@ impl ::protobuf::Message for View {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.name.iter() {
+        for value in &self.name {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1229,13 +1233,13 @@ impl ::protobuf::Message for OriginKeyIdent {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.origin.iter() {
+        for value in &self.origin {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in self.revision.iter() {
+        for value in &self.revision {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in self.location.iter() {
+        for value in &self.location {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());

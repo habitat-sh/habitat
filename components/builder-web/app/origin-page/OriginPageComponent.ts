@@ -19,7 +19,7 @@ import {fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
     fetchOriginPublicKeys, inviteUserToOrigin, setCurrentOriginAddingPublicKey,
     setCurrentOriginAddingPrivateKey, uploadOriginPrivateKey,
     uploadOriginPublicKey, filterPackagesBy, fetchProjectsForPackages,
-    setProjectHint, requestRoute, setCurrentProject} from "../actions/index";
+        setProjectHint, requestRoute, setCurrentProject} from "../actions/index";
 import config from "../config";
 import {KeyAddFormComponent} from "./KeyAddFormComponent";
 import {KeyListComponent} from "./KeyListComponent";
@@ -31,11 +31,17 @@ import {requireSignIn} from "../util";
 import {PackagesListComponent} from "../packages-list/PackagesListComponent";
 import {Subscription} from "rxjs/Subscription";
 import {FeatureFlags} from "../Privilege";
+import {List} from "immutable";
 
 export enum ProjectStatus {
     Connect,
     Settings,
     Lacking
+}
+
+export enum KeyType {
+    Public,
+    Private
 }
 
 @Component({
@@ -138,7 +144,8 @@ export enum ProjectStatus {
                             <hab-key-list
                                 *ngIf="!ui.publicKeyListErrorMessage"
                                 [keys]="publicKeys"
-                                type="public origin">
+                                type="public origin"
+                                [keyType]="keyType.Public">
                             </hab-key-list>
                         </div>
                         <hr>
@@ -157,6 +164,12 @@ export enum ProjectStatus {
                                 [originName]="origin.name"
                                 [uploadKey]="uploadPrivateKey">
                             </hab-key-add-form>
+                            <hab-key-list
+                                *ngIf="privateKeyNames.size > 0"
+                                [keys]="privateKeyNames"
+                                type="private origin"
+                                [keyType]="keyType.Private">
+                            </hab-key-list>
                             <ul class="bullet">
                                 <li>For security purposes, private keys can not be viewed or downloaded.</li>
                                 <li>Only one private key exists for an origin at a
@@ -202,6 +215,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     private sub: Subscription;
     private projectStatus = ProjectStatus;
     public loadPackages: Function;
+    public keyType = KeyType;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
         this.onPrivateKeyCloseClick = () =>
@@ -264,6 +278,14 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     get publicKeys() {
         return this.store.getState().origins.currentPublicKeys;
+    }
+
+    get privateKeyNames() {
+        if (this.origin.private_key_name) {
+            return List([this.origin.private_key_name]);
+        } else {
+            return List([]);
+        }
     }
 
     // Initially set up the origin to be whatever comes from the params,

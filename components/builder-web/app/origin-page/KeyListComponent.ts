@@ -15,6 +15,7 @@
 import {Component, Input} from "@angular/core";
 import {List} from "immutable";
 import config from "../config";
+import {KeyType} from "./OriginPageComponent";
 
 @Component({
     selector: "hab-key-list",
@@ -22,14 +23,17 @@ import config from "../config";
     <p *ngIf="keys.size === 0">
         No {{type}} keys found.
     </p>
-    <p *ngIf="keys.size > 0">
+    <p *ngIf="keys.size > 0 && publicKey">
         Select any key to download the file.
     </p>
     <ul class="hab-key-list--list" *ngIf="keys.size > 0">
         <li *ngFor="let key of keys" class="hab-item-list--all-link hab-item-list">
-            <h3><a href="{{apiUrl}}/depot{{key.location}}">
+            <h3>
+              <a href="{{apiUrl}}/depot{{key.location}}" *ngIf="publicKey">
                 {{key.origin}}-{{key.revision}}
-            </a></h3>
+              </a>
+              <span *ngIf="!publicKey">{{key}}</span>
+            </h3>
         </li>
     </ul>`,
 })
@@ -37,6 +41,11 @@ import config from "../config";
 export class KeyListComponent {
     @Input() keys: List<any>;
     @Input() type: string;
+    @Input() keyType: KeyType;
 
     get apiUrl() { return config["habitat_api_url"]; }
+
+    get publicKey() {
+        return this.keyType === KeyType.Public;
+    }
 }
