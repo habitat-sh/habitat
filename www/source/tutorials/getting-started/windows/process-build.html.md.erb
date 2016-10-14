@@ -4,16 +4,16 @@ title: Process your build
 
 <ul class="main-content--version">
   <li>Current version:</li>
-  <li><a class="active" href="/tutorials/getting-started/mac/process-build">Mac</a></li>
+  <li><a href="/tutorials/getting-started/mac/process-build">Mac</a></li>
   <li><a href="/tutorials/getting-started/linux/process-build">Linux</a></li>
-  <li><a href="/tutorials/getting-started/windows/process-build">Windows</a></li>
+  <li><a class="active" href="/tutorials/getting-started/windows/process-build">Windows</a></li>
 </ul>
 <hr />
 
 # Run your service
 <%= partial "/shared/process_build_common" %>
 
-Because the host operating system is OS X in this version of the tutorial, you must run your package inside a Docker container.
+Because the host operating system is Microsoft Windows in this version of the tutorial, you must run your package inside a Docker container.
 
 ## Run in a Docker container
 To show the portability of Habitat, export and run a Habitat service from within a Docker container through the following steps:
@@ -35,7 +35,7 @@ To show the portability of Habitat, export and run a Habitat service from within
 
     Habitat will proceed to unpack and install all necessary Habitat packages, including a Habitat supervisor, the mytutorialapp package, and all of its runtime dependencies. Then it will create an image using the Docker scratch image as the base and build up the rest of the image from there.
 
-4. Once that process has completed, exit out of the studio, make sure Docker for Mac is running and run your Docker image inside a container on your host machine.
+4. Once that process has completed, exit out of the studio, make sure Docker for Windows is running and run your Docker image inside a container on your host machine.
 
     > Note: We have to publish the Docker container port number to allow that container to be accessed by the host machine.
 
@@ -45,7 +45,7 @@ To show the portability of Habitat, export and run a Habitat service from within
 
     <%= partial "/shared/process_build_run_output" %>
 
-5. Because we are running this service in a Docker container on our host machine using Docker for Mac, you can simply connect to the Node.js app through your <a href="http://localhost:8080" target="_blank">localhost</a>.
+5. Because we are running this service in a Docker container on our host machine using Docker for Windows, you can simply connect to the Node.js app through your <a href="http://localhost:8080" target="_blank">localhost</a>.
 
     Here's an example of what you should see in your browser:
 
@@ -68,5 +68,5 @@ Congratulations, you have successfully built a package from scratch, run it loca
 <hr>
 <ul class="main-content--button-nav">
   <li><a href="/tutorials/getting-started/next-steps" class="button cta">Next Steps</a></li>
-  <li><a href="/tutorials/getting-started/mac/configure-plan/">Back to previous step</a></li>
+  <li><a href="/tutorials/getting-started/windows/configure-plan/">Back to previous step</a></li>
 </ul>

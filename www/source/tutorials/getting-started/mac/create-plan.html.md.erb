@@ -6,11 +6,12 @@ title: Creating your first plan
   <li>Current version:</li>
   <li><a class="active" href="/tutorials/getting-started/mac/create-plan">Mac</a></li>
   <li><a href="/tutorials/getting-started/linux/create-plan">Linux</a></li>
+  <li><a href="/tutorials/getting-started/windows/create-plan">Windows</a></li>
 </ul>
 <hr />
 
 # Create your first plan
-<%= partial "/shared/create_plan_common" %>
+<%= partial "/shared/create_plan_common", locals: { is_windows: false }%>
 
 ## Entering the studio and doing an initial build
 The studio is a minimal, clean, [chrooted](https://en.wikipedia.org/wiki/Chroot) shell environment for you
