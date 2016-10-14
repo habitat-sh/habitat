@@ -209,7 +209,7 @@ target component.
     ```
     $ cd ~/code/habitat/components/hab/win
     $ vagrant destroy
-    $ export ORIGIN_KEY=hab origin key export core --type secret
+    $ export ORIGIN_KEY=$(hab origin key export core --type secret)
     $ vagrant up
     ```
 

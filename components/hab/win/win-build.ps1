@@ -111,7 +111,7 @@ if (Test-AppVeyor) { return }
 # Start the build
 Push-Location "$psscriptroot\.."
 invoke-expression "$cargo clean"
-Invoke-Expression "$cargo build --release" 
+Invoke-Expression "$cargo build --release" -ErrorAction Stop
 Pop-Location
 
 # Import origin key

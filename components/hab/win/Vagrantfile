@@ -1,7 +1,16 @@
 $script = <<SCRIPT
-cd /src/components/hab/win
+
+# Virtual Box provider's synced folder implementation does not
+# work well with the habitat compile so we copy to a 
+# "real" folder
+Copy-Item /src /src2 -Recurse -Force
+
+cd /src2/components/hab/win
 $env:ORIGIN_KEY = "#{ENV['ORIGIN_KEY']}"
 ./win-build.ps1
+
+# Now copy the built artifacts back
+Copy-Item /src2/components/hab/win/results /src/components/hab/win -Recurse -Force
 SCRIPT
 
 Vagrant.configure("2") do |config|
