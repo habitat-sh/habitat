@@ -71,7 +71,7 @@ mod inner {
     use common::ui::UI;
     use hcore::crypto::{init, default_cache_key_path};
     use hcore::env as henv;
-    use hcore::fs::{am_i_root, find_command};
+    use hcore::fs::{am_i_root, find_command, cache_path};
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
@@ -109,6 +109,15 @@ mod inner {
         // If I have root permissions, early return, we are done.
         if am_i_root() {
             return Ok(());
+        }
+
+        // Make sure we have run 'hab setup' already (i.e, .hab folder exists)
+        let cache_dir = cache_path(None);
+        if !cache_dir.exists() {
+            try!(ui.warn(format!("Could not find cache path: `{}'.", cache_dir.display())));
+            try!(ui.warn("Please retry this command after running 'hab setup'"));
+            try!(ui.br());
+            return Err(Error::FileNotFound(cache_dir.to_string_lossy().into_owned()));
         }
 
         // Otherwise we will try to re-run this program using `sudo`
