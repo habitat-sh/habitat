@@ -60,7 +60,7 @@ A non-interactive build is one in which Habitat creates a studio for you, builds
 
 3. The resulting package is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parseable metadata about the build.
 
-By default, the studio is reset to a clean state after the package is built; however you can reuse a previous studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
+By default, the studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 
 For more information on how to define a plan and build a package, how to create origin signing keys, and how to run a Habitat service, see the [getting started tutorial](/tutorials/getting-started-overview).
 
