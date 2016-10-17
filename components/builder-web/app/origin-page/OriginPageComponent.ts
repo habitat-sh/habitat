@@ -30,6 +30,7 @@ import {TabsComponent} from "../TabsComponent";
 import {requireSignIn} from "../util";
 import {PackagesListComponent} from "../packages-list/PackagesListComponent";
 import {Subscription} from "rxjs/Subscription";
+import {FeatureFlags} from "../Privilege";
 
 export enum ProjectStatus {
     Connect,
@@ -60,7 +61,7 @@ export enum ProjectStatus {
             </p>
         </div>
         <tabs *ngIf="ui.exists && !ui.loading">
-            <tab tabTitle="Packages">
+            <tab tabTitle="Packages" [onSelect]="loadPackages">
               <div class="page-body has-sidebar">
                 <div class="hab-origin--left hab-origin--pkg-list">
                   <div *ngIf="noPackages">
@@ -75,7 +76,8 @@ export enum ProjectStatus {
                   <div *ngIf="!noPackages">
                     <div class="pkg-container">
                         <div class="pkg-col-1">Package Name</div>
-                        <div class="pkg-col-2">Build Settings</div>
+                        <div class="pkg-col-2" *ngIf="!builder">&nbsp;</div>
+                        <div class="pkg-col-2" *ngIf="builder">Build Settings</div>
                         <div class="pkg-col-3">Versions</div>
                     </div>
 
@@ -83,7 +85,8 @@ export enum ProjectStatus {
                       <div class="pkg-col-1">
                         <h3>{{pkg.name}}</h3>
                       </div>
-                      <div class="pkg-col-2">
+                      <div class="pkg-col-2" *ngIf="!builder">&nbsp;</div>
+                      <div class="pkg-col-2" *ngIf="builder">
                         <a href (click)="projectSettings(pkg)" *ngIf="projectForPackage(pkg) === projectStatus.Settings">
                           <img src="../assets/images/icon-gear.svg" alt="Settings" title="Settings">
                         </a>
@@ -114,12 +117,13 @@ export enum ProjectStatus {
                         <div class="hab-origin--key-list">
                             <h3>Public Origin Keys</h3>
                             <p><button
+                                *ngIf="iAmPartOfThisOrigin"
                                 (click)="setOriginAddingPublicKey(true)"
                                 [disabled]="addingPublicKey">
                                 Upload public origin key
                             </button></p>
                             <hab-key-add-form
-                                *ngIf="addingPublicKey"
+                                *ngIf="iAmPartOfThisOrigin && addingPublicKey"
                                 [docsUrl]="docsUrl"
                                 [errorMessage]="ui.publicKeyErrorMessage"
                                 keyFileHeaderPrefix="SIG-PUB-1"
@@ -138,7 +142,7 @@ export enum ProjectStatus {
                             </hab-key-list>
                         </div>
                         <hr>
-                        <div class="hab-origin--key-list">
+                        <div class="hab-origin--key-list" *ngIf="iAmPartOfThisOrigin">
                             <h3>Private Origin Keys</h3>
                             <p><button
                                 (click)="setOriginAddingPrivateKey(true)"
@@ -181,7 +185,8 @@ export enum ProjectStatus {
                 [errorMessage]="ui.userInviteErrorMessage"
                 [invitations]="invitations"
                 [members]="members"
-                [onSubmit]="onUserInvitationSubmit">
+                [onSubmit]="onUserInvitationSubmit"
+                *ngIf="iAmPartOfThisOrigin">
             </hab-origin-members-tab>
         </tabs>
     </div>`,
@@ -196,6 +201,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     private originParam: string;
     private sub: Subscription;
     private projectStatus = ProjectStatus;
+    public loadPackages: Function;
 
     constructor(private route: ActivatedRoute, private store: AppStore) {
         this.onPrivateKeyCloseClick = () =>
@@ -224,6 +230,14 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         this.sub.unsubscribe();
     }
 
+    get features() {
+        return this.store.getState().users.current.flags;
+    }
+
+    get builder() {
+        return (this.features & FeatureFlags.BUILDER);
+    }
+
     get addingPrivateKey() {
         return this.ui.addingPrivateKey;
     }
@@ -250,10 +264,6 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     get publicKeys() {
         return this.store.getState().origins.currentPublicKeys;
-    }
-
-    get source() {
-        return "origin";
     }
 
     // Initially set up the origin to be whatever comes from the params,
@@ -285,6 +295,10 @@ export class OriginPageComponent implements OnInit, OnDestroy {
 
     get noPackages() {
         return (!this.packagesUi.exists || this.packages.size === 0) && !this.packagesUi.loading;
+    }
+
+    get iAmPartOfThisOrigin() {
+        return this.members.size > 0;
     }
 
     private linkToRepo(p): boolean {
@@ -336,6 +350,12 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         }
     }
 
+    public getPackages() {
+        this.store.dispatch(filterPackagesBy(
+            {origin: this.origin.name}, "", 0, true, this.gitHubAuthToken
+        ));
+    }
+
     public ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
@@ -348,8 +368,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         this.store.dispatch(fetchOriginInvitations(
             this.origin.name, this.gitHubAuthToken
         ));
-        this.store.dispatch(filterPackagesBy(
-            {origin: this.origin.name}, "", 0, true, this.gitHubAuthToken
-        ));
+        this.getPackages();
+        this.loadPackages = this.getPackages.bind(this);
     }
 }

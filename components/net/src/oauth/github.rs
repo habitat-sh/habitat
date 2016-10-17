@@ -134,6 +134,19 @@ impl GitHubClient {
         Ok(user)
     }
 
+    pub fn other_user(&self, token: &str, username: &str) -> Result<User> {
+        let url = Url::parse(&format!("{}/users/{}", self.url, username)).unwrap();
+        let mut rep = try!(http_get(url, token));
+        let mut body = String::new();
+        try!(rep.read_to_string(&mut body));
+        if rep.status != StatusCode::Ok {
+            let err: HashMap<String, String> = try!(json::decode(&body));
+            return Err(Error::GitHubAPI(rep.status, err));
+        }
+        let user: User = json::decode(&body).unwrap();
+        Ok(user)
+    }
+
     pub fn emails(&self, token: &str) -> Result<Vec<Email>> {
         let url = Url::parse(&format!("{}/user/emails", self.url)).unwrap();
         let mut rep = try!(http_get(url, token));

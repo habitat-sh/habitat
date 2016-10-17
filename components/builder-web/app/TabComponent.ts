@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Host} from "@angular/core";
+import {Component, Input, Host} from "@angular/core";
 import {TabsComponent} from "./TabsComponent";
 
 @Component({
     selector: "tab",
-    inputs: ["tabTitle"],
     template: `
     <div [hidden]="!active">
         <ng-content></ng-content>
@@ -25,6 +24,9 @@ import {TabsComponent} from "./TabsComponent";
 })
 
 export class TabComponent {
+    @Input() tabTitle: string;
+    @Input() public onSelect: Function;
+
     public active: boolean;
 
     constructor(tabs: TabsComponent) {

@@ -15,6 +15,7 @@
 import "whatwg-fetch";
 import config from "./config";
 import {parseKey} from "./util";
+import {GitHubApiClient} from "./GitHubApiClient";
 
 export class BuilderApiClient {
     private headers;
@@ -234,9 +235,11 @@ export class BuilderApiClient {
             }).then(response => {
                 if (response.ok) {
                     resolve(true);
-                // Getting a 404 means the user does not exist.
                 } else if (response.status === 404) {
-                    reject(new Error(`User '${username}' does not exist`));
+                    new GitHubApiClient(this.token).getUser(username).then(ghResponse => {
+                        let msg = "This is a valid GitHub user but they have not logged into the Habitat depot yet. Once they login to the depot, you can invite them to your origin.";
+                        reject(new Error(msg));
+                    }).catch(error => reject(error));
                 } else if (response.status === 409) {
                     reject(new Error(`An invitation already exists for '${username}'`));
                 } else {
