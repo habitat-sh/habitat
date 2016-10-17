@@ -39,11 +39,6 @@ do_prepare() {
   # Used by libssh2-sys
   export DEP_Z_ROOT="$(pkg_path_for zlib)"
   export DEP_Z_INCLUDE="$(pkg_path_for zlib)/include"
-
-  # Temporarily set PKG_CONFIG_PATH - this can be removed after all core packages are rebuilt with
-  # hab-plan-build 0.11.x and pushed to the public depot.
-  export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(pkg_path_for zlib)/lib/pkgconfig"
-  export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(pkg_path_for openssl)/lib/pkgconfig"
 }
 
 do_build() {
