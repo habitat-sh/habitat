@@ -6,6 +6,9 @@ build: clean
 clean:
 	rm -Rdf build
 
+run: build
+	bundle exec middleman serve
+
 sync: export AWS_BUCKET=habitat-www
 sync: export AWS_DEFAULT_REGION=us-west-2
 sync: build check-env
