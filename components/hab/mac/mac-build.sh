@@ -43,7 +43,7 @@ fi
 
 if [[ ! -f /bin/hab ]]; then
   info "Habitat CLI missing, attempting to install latest release"
-  sh $(dirname $0)/install.sh
+  sh $(dirname $0)/../install.sh
 fi
 
 while true; do

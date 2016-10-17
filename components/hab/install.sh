@@ -16,7 +16,7 @@
 #
 
 # Fails on unset variables & whenever a command returns a non-zero exit code.
-set -eux
+set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
@@ -58,6 +58,10 @@ checksum_mismatch() {
 
 unable_to_retrieve_package() {
   echo "Unable to retrieve a valid package!"
+  echo ""
+  echo "We attempt to use several different programs to download the package from the"
+  echo "downloads site. Usually, this means we could not find the 'wget' or 'curl'"
+  echo "program on your system. We need one of these installed before we can proceed."
   report_bug
   if test "x$download_url" != "x"; then
     echo "Download URL: $download_url"
