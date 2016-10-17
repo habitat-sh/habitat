@@ -3,6 +3,7 @@ image: Visual Studio 2015
 
 cache:
     - c:\Program Files (x86)\Rust
+    - c:\Users\appveyor\.cargo
 
 branches:
   only:
@@ -15,6 +16,11 @@ skip_tags: true
 
 clone_folder: c:\projects\habitat
 
+environment:
+  matrix:
+    - hab_build_action: "test;build"
+      hab_components: "core;http-client;builder-protocol;builder-depot-client;common;hab"
+
 install:
   - ps: ./components/hab/win/win-build.ps1
   - rustc -V
@@ -23,5 +29,4 @@ install:
 build: false
 
 test_script:
-  - cd c:\projects\habitat\components\hab
-  - cargo build --verbose
+  - c:\projects\habitat\support\ci\appveyor.bat
