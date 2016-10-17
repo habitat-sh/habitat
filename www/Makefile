@@ -1,4 +1,5 @@
 build: clean
+	bundle install
 	bundle exec middleman build
 .PHONY: build
 

@@ -31,12 +31,6 @@ Static site content for www.habitat.sh
    $ cd www
    ```
 
-1. Ensure you have all the required gems installed, if this is your first time completing this process.
-
-   ```
-   $ bundle install
-   ```
-
 1. Run the deploy make task
 
     ```
