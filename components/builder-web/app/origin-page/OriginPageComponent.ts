@@ -387,7 +387,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     public ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
-        this.store.dispatch(fetchMyOrigins());
+        this.store.dispatch(fetchMyOrigins(this.gitHubAuthToken));
         this.store.dispatch(fetchOriginPublicKeys(
             this.origin.name, this.gitHubAuthToken
         ));

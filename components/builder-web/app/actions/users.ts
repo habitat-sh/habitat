@@ -13,6 +13,8 @@
 // limitations under the License.
 
 import {requestRoute, removeSessionStorage, resetAppState} from "./index";
+import {setCookie} from "./gitHub";
+import * as cookies from "js-cookie";
 
 export const SET_FEATURE_FLAGS = "SET_FEATURE_FLAGS";
 export const SET_SIGNING_IN_FLAG = "SET_SIGNING_IN_FLAG";
@@ -27,9 +29,18 @@ export function attemptSignIn(username) {
 }
 
 export function setFeatureFlags(payload) {
+    setCookie("featureFlags", payload);
+
     return {
         type: SET_FEATURE_FLAGS,
         payload,
+    };
+}
+
+export function loadFeatureFlags() {
+    return {
+        type: SET_FEATURE_FLAGS,
+        payload: cookies.get("featureFlags")
     };
 }
 

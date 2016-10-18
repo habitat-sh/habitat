@@ -16,7 +16,7 @@ import {Observable} from "rxjs";
 import {Observer} from "rxjs/Observer";
 import "rxjs/add/operator/debounceTime";
 import "rxjs/add/operator/distinctUntilChanged";
-import {Control} from "@angular/common";
+import {FormControl} from "@angular/forms";
 
 // Wraps an async validator with a static `debounce` method, so you can debounce
 // async validation.
@@ -33,8 +33,8 @@ import {Control} from "@angular/common";
 export class AsyncValidator {
     private validate;
 
-    constructor(validator: (control: Control) => any, debounceTime = 300) {
-        let source: any = new Observable((observer: Observer<Control>) => {
+    constructor(validator: (control: FormControl) => any, debounceTime = 300) {
+        let source: any = new Observable((observer: Observer<FormControl>) => {
             this.validate = (control) => observer.next(control);
         });
 
@@ -57,7 +57,7 @@ export class AsyncValidator {
         };
     }
 
-    static debounce(validator: (control: Control) => any, debounceTime = 400) {
+    static debounce(validator: (control: FormControl) => any, debounceTime = 400) {
         const asyncValidator = new this(validator, debounceTime);
         return asyncValidator.getValidator();
     }

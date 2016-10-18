@@ -287,6 +287,16 @@ impl ToJson for Project {
         m.insert("id".to_string(), self.get_id().to_json());
         m.insert("plan_path".to_string(),
                  self.get_plan_path().to_string().to_json());
+        m.insert("vcs".to_string(), self.get_git().to_json());
+        Json::Object(m)
+    }
+}
+
+impl ToJson for VCSGit {
+    fn to_json(&self) -> Json {
+        let mut m = BTreeMap::new();
+        m.insert("type".to_string(), "git".to_string().to_json());
+        m.insert("url".to_string(), self.get_url().to_string().to_json());
         Json::Object(m)
     }
 }

@@ -141,9 +141,10 @@ export default Record({
             maintainer: Record({
 
             })(),
-            sourceRepository: Record({
-
-            })(),
+            vcs: Record({
+                type: "git",
+                url: undefined
+            }),
             builds: List(),
             buildLogs: Map(),
             ui: Record({

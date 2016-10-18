@@ -173,6 +173,7 @@ export function removeSessionStorage() {
     return dispatch => {
         cookies.remove("gitHubAuthState");
         cookies.remove("gitHubAuthToken");
+        cookies.remove("featureFlags");
     };
 }
 
@@ -221,7 +222,7 @@ function resetGitHubRepos() {
     };
 }
 
-function setCookie (key, value) {
+export function setCookie (key, value) {
     return cookies.set(key, value, {
         secure: window.location.protocol === "https"
     });

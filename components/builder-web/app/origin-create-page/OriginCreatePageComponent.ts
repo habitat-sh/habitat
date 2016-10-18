@@ -14,7 +14,6 @@
 
 import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {AfterViewInit, Component, OnInit} from "@angular/core";
-import {Observable} from "rxjs";
 import {AppStore} from "../AppStore";
 import {AsyncValidator} from "../AsyncValidator";
 import {CheckingInputComponent} from "../CheckingInputComponent";
