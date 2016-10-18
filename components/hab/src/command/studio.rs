@@ -163,8 +163,8 @@ mod inner {
         let child = Command::new(&cmd)
             .arg("pull")
             .arg(&image_identifier())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
             .spawn()
             .expect("docker failed to start");
 
