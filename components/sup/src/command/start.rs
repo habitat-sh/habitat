@@ -63,7 +63,6 @@ use ansi_term::Colour::Yellow;
 use common::command::package::install;
 use common::ui::UI;
 use depot_client::Client;
-use hcore::crypto::default_cache_key_path;
 use hcore::fs::{am_i_root, cache_artifact_path, FS_ROOT_PATH};
 use hcore::package::PackageIdent;
 
@@ -121,8 +120,7 @@ pub fn package() -> Result<()> {
                                                                PRODUCT,
                                                                VERSION,
                                                                Path::new(FS_ROOT_PATH),
-                                                               &cache_artifact_path(None),
-                                                               &default_cache_key_path(None)));
+                                                               &cache_artifact_path(None)));
                         package = try!(Package::load(&new_pkg_data, None));
                     } else {
                         outputln!("Already running latest.");
@@ -143,8 +141,7 @@ pub fn package() -> Result<()> {
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
-                                        &cache_artifact_path(None),
-                                        &default_cache_key_path(None)))
+                                        &cache_artifact_path(None)))
                 }
                 None => {
                     outputln!("Searching for {} in remote {}",
@@ -156,8 +153,7 @@ pub fn package() -> Result<()> {
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
-                                        &cache_artifact_path(None),
-                                        &default_cache_key_path(None)))
+                                        &cache_artifact_path(None)))
                 }
             };
             let package = try!(Package::load(&new_pkg_data, None));
