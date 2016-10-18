@@ -5,6 +5,7 @@ message Origin {
   required uint64 id = 1;
   required string name = 2;
   required uint64 owner_id = 3;
+  optional string private_key_name = 4;
 }
 
 message OriginCreate {

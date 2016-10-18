@@ -51,6 +51,8 @@ impl ToJson for Origin {
         m.insert("name".to_string(), self.get_name().to_json());
         m.insert("owner_id".to_string(),
                  self.get_owner_id().to_string().to_json());
+        m.insert("private_key_name".to_string(),
+                 self.get_private_key_name().to_json());
         Json::Object(m)
     }
 }

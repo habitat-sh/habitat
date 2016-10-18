@@ -52,6 +52,7 @@ pub struct OriginTable {
     pub origin_secret_keys: OriginSecretKeysTable,
     pub invites: OriginInvitesTable,
     pub name_idx: OriginNameIdx,
+    pub key_idx: OriginKeyNameIdx,
 }
 
 impl OriginTable {
@@ -59,16 +60,19 @@ impl OriginTable {
         let pool1 = pool.clone();
         let pool2 = pool.clone();
         let pool3 = pool.clone();
+        let pool4 = pool.clone();
 
         let origin_secret_keys = OriginSecretKeysTable::new(pool1);
         let invites = OriginInvitesTable::new(pool2);
         let name_idx = OriginNameIdx::new(pool3);
+        let key_idx = OriginKeyNameIdx::new(pool4);
 
         OriginTable {
             pool: pool,
             origin_secret_keys: origin_secret_keys,
             invites: invites,
             name_idx: name_idx,
+            key_idx: key_idx,
         }
     }
 
@@ -235,6 +239,32 @@ impl IndexSet for OriginNameIdx {
     type Value = u64;
 }
 
+// create an index for secret keys as well
+pub struct OriginKeyNameIdx {
+    pool: Arc<ConnectionPool>,
+}
+
+impl OriginKeyNameIdx {
+    pub fn new(pool: Arc<ConnectionPool>) -> Self {
+        OriginKeyNameIdx { pool: pool }
+    }
+}
+
+impl Bucket for OriginKeyNameIdx {
+    fn pool(&self) -> &ConnectionPool {
+        &self.pool
+    }
+
+    fn prefix() -> &'static str {
+        "origin:key:name:index"
+    }
+}
+
+impl IndexSet for OriginKeyNameIdx {
+    type Key = String;
+    type Value = u64;
+}
+
 pub struct OriginSecretKeysTable {
     pool: Arc<ConnectionPool>,
 }
@@ -273,6 +303,10 @@ impl InstaSet for OriginSecretKeysTable {
             record.set_primary_key(*insta_id);
 
             txn.set(Self::seq_id(), record.primary_key())
+                .ignore()
+                .hset(OriginKeyNameIdx::prefix(),
+                      record.get_name().to_string(),
+                      record.primary_key())
                 .ignore()
                 .set_nx(Self::key(&record.primary_key()),
                         record.write_to_bytes().unwrap())

@@ -18,6 +18,7 @@ export const Origin = Record({
     id: undefined,
     name: undefined,
     owner_id: undefined,
+    private_key_name: undefined,
     privateKeys: List(),
     publicKeys: List(),
 });

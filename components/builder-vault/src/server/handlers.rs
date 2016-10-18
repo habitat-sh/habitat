@@ -96,7 +96,19 @@ pub fn origin_get(req: &mut Envelope,
     let mut msg: proto::OriginGet = try!(req.parse_msg());
     match state.datastore.origins.name_idx.find(&msg.take_name()) {
         Ok(origin_id) => {
-            let origin = state.datastore.origins.find(&origin_id).unwrap();
+            let mut origin = state.datastore.origins.find(&origin_id).unwrap();
+
+            match state.datastore.origins.key_idx.find(&origin.get_name().to_string()) {
+                Ok(key_id) => {
+                    let secret_key =
+                        state.datastore.origins.origin_secret_keys.find(&key_id).unwrap();
+                    origin.set_private_key_name(format!("{}-{}",
+                                                        secret_key.get_name(),
+                                                        secret_key.get_revision()));
+                }
+                Err(e) => debug!("error looking for secret key {:?}", e),
+            };
+
             try!(req.reply_complete(sock, &origin));
         }
         Err(dbcache::Error::EntityNotFound) => {
