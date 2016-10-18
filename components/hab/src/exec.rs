@@ -65,8 +65,7 @@ pub fn command_from_pkg(ui: &mut UI,
                                                           PRODUCT,
                                                           VERSION,
                                                           fs_root_path,
-                                                          &cache_artifact_path(None),
-                                                          cache_key_path));
+                                                          &cache_artifact_path(None)));
             command_from_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => return Err(Error::from(e)),

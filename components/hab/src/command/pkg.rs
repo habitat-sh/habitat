@@ -172,7 +172,6 @@ pub mod export {
 
         use common::command::package::install;
         use common::ui::{Status, UI};
-        use hcore::crypto::default_cache_key_path;
         use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
         use hcore::package::{PackageIdent, PackageInstall};
         use hcore::url::default_depot_url;
@@ -228,8 +227,7 @@ pub mod export {
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
-                                        &cache_artifact_path(None),
-                                        &default_cache_key_path(None)));
+                                        &cache_artifact_path(None)));
                 }
             }
             let pkg_arg = OsString::from(&ident.to_string());

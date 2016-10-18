@@ -419,8 +419,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
                                                       PRODUCT,
                                                       VERSION,
                                                       Path::new(&fs_root),
-                                                      &cache_artifact_path(fs_root_path),
-                                                      &default_cache_key_path(fs_root_path)));
+                                                      &cache_artifact_path(fs_root_path)));
     }
     Ok(())
 }
