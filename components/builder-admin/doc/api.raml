@@ -78,19 +78,6 @@ securitySchemes:
                 description: Server fault
             503:
                 description: Service temporarily unavailable
-/authenticate/{code}:
-    get:
-        responses:
-            200:
-                body:
-                    application/json:
-                        example: |
-                            {
-                                "token": "0b79bab50daca910b000d4f1a2b675d604257e42",
-                                "email": "reset@chef.io",
-                                "name": "reset",
-                                "id": 73089155726360582
-                            }
 /search:
     post:
         description: |
@@ -102,8 +89,8 @@ securitySchemes:
                 example: |
                     {
                         "entity": "account",
-                        "attr": "email",
-                        "value": "reset@chef.io"
+                        "attr": "name",
+                        "value": "reset"
                     }
         responses:
             200:
