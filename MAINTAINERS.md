@@ -47,6 +47,7 @@ Lieutenant and may have many maintainers.
 * [Brian Scott](https://github.com/bscott)
 * [Josh Black](https://github.com/raskchanky)
 * [Steven Murawski](https://github.com/smurawski)
+* [Ian Henry](https://github.com/eeyun)
 
 ### Habitat Builder Web Application
 
@@ -74,6 +75,7 @@ The web application for the Habitat builder and depot.
 * [Dave Parfitt](https://github.com/metadave)
 * [Brian Scott](https://github.com/bscott)
 * [Steven Murawski](https://github.com/smurawski)
+* [Ian Henry](https://github.com/eeyun)
 
 ### Documentation
 
@@ -89,3 +91,4 @@ tutorials and reference materials.
 
 * [Ryan Keairns](https://github.com/ryankeairns)
 * [Brian Scott](https://github.com/bscott)
+* [Ian Henry](https://github.com/eeyun)
