@@ -350,8 +350,8 @@ subcommand_run() {
 new_studio() {
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type
-  if [ -s $studio_config ]; then
-    . $studio_config
+  if [ -s "$studio_config" ]; then
+    . "$studio_config"
     STUDIO_TYPE=$studio_type
   fi
 
@@ -558,7 +558,7 @@ EOF
   finish_setup
 
   # Add a Studio configuration file at the root of the filesystem
-  $bb cat <<EOF > $studio_config
+  $bb cat <<EOF > "$studio_config"
 studio_type="$studio_type"
 studio_path="$studio_path"
 studio_env_command="$studio_env_command"
@@ -645,8 +645,8 @@ enter_studio() {
   fi
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
-  if [ -s $studio_config ]; then
-    . $studio_config
+  if [ -s "$studio_config" ]; then
+    . "$studio_config"
     STUDIO_TYPE=$studio_type
   else
     STUDIO_TYPE=unknown
@@ -675,8 +675,8 @@ build_studio() {
   fi
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
-  if [ -s $studio_config ]; then
-    . $studio_config
+  if [ -s "$studio_config" ]; then
+    . "$studio_config"
     STUDIO_TYPE=$studio_type
   else
     STUDIO_TYPE=unknown
@@ -710,8 +710,8 @@ run_studio() {
   fi
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
-  if [ -s $studio_config ]; then
-    . $studio_config
+  if [ -s "$studio_config" ]; then
+    . "$studio_config"
     STUDIO_TYPE=$studio_type
   else
     STUDIO_TYPE=unknown
@@ -734,8 +734,8 @@ run_studio() {
 rm_studio() {
   # Check if a pre-existing Studio configuration is found and use that to
   # determine the type. If no config is found, set the type to `unknown`.
-  if [ -s $studio_config ]; then
-    . $studio_config
+  if [ -s "$studio_config" ]; then
+    . "$studio_config"
     STUDIO_TYPE=$studio_type
   else
     STUDIO_TYPE=unknown
