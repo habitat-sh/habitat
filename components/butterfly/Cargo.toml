@@ -1,12 +1,12 @@
 [package]
-name = "habitat_swim"
+name = "habitat_butterfly"
 version = "0.1.0"
 authors = ["Adam Jacob <adam@chef.io>"]
 build = "build.rs"
 workspace = "../../"
 
 [[bin]]
-name = "swim"
+name = "butterfly"
 doc = false
 
 [build-dependencies]
@@ -19,13 +19,17 @@ rand = "*"
 log = "*"
 env_logger = "*"
 time = "*"
+threadpool = "*"
 
 [dependencies.uuid]
 version = "*"
 features = ["rustc-serialize", "v4"]
 
-[dependencies.habitat_core]
-path = "../core"
+[dependencies.habitat_net]
+path = "../net"
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq.git"
 
 [features]
 functional = []

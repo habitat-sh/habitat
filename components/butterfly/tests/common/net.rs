@@ -19,13 +19,13 @@ use std::time::Duration;
 use time::SteadyTime;
 
 use common;
-use habitat_swim::server::Server;
-use habitat_swim::member::{Member, Health};
-use habitat_swim::server::outbound::Timing;
+use habitat_butterfly::server::Server;
+use habitat_butterfly::member::{Member, Health};
+use habitat_butterfly::server::timing::Timing;
 
 #[derive(Debug)]
 pub struct SwimNet {
-    members: Vec<Server>,
+    pub members: Vec<Server>,
 }
 
 impl Deref for SwimNet {
@@ -53,11 +53,13 @@ impl SwimNet {
 
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
         let to = common::member_from_server(&self.members[to_entry]);
+        trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         self.members[from_entry].insert_member(to, Health::Alive);
     }
 
     // Fully mesh the network
     pub fn mesh(&mut self) {
+        trace_it!(TEST_NET: self, "Mesh");
         for pos in 0..self.members.len() {
             let mut to_mesh: Vec<Member> = Vec::new();
             for x_pos in 0..self.members.len() {
@@ -79,8 +81,11 @@ impl SwimNet {
             self.members.get(from_entry).expect("Asked for a network member who is out of bounds");
         let to =
             self.members.get(to_entry).expect("Asked for a network member who is out of bounds");
-        let to_addr = to.socket.local_addr().expect("Socket does not have an address");
-        from.add_to_blacklist(to_addr);
+        trace_it!(TEST: &self.members[from_entry], format!("Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        from.add_to_blacklist(String::from(to.member
+            .read()
+            .expect("Member lock is poisoned")
+            .get_id()));
     }
 
     pub fn unblacklist(&self, from_entry: usize, to_entry: usize) {
@@ -88,8 +93,8 @@ impl SwimNet {
             self.members.get(from_entry).expect("Asked for a network member who is out of bounds");
         let to =
             self.members.get(to_entry).expect("Asked for a network member who is out of bounds");
-        let to_addr = to.socket.local_addr().expect("Socket does not have an address");
-        from.remove_from_blacklist(&to_addr);
+        trace_it!(TEST: &self.members[from_entry], format!("Un-Blacklisted {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
+        from.remove_from_blacklist(to.member_id());
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
@@ -185,10 +190,12 @@ impl SwimNet {
         loop {
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
+                    trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                     return true;
                 }
             }
             if self.check_rounds(&rounds_in) {
+                trace_it!(TEST: &self.members[from_entry], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                 println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
                          self.members[from_entry],
                          self.members[to_check]);
@@ -206,11 +213,19 @@ impl SwimNet {
             } else {
                 false
             }) {
+                trace_it!(TEST_NET: self,
+                          format!("Health {} {} as {}",
+                                  self.members[to_check].name(),
+                                  self.members[to_check].member_id(),
+                                  health));
                 return true;
             } else if self.check_rounds(&rounds_in) {
                 for (i, some_health) in network_health.iter().enumerate() {
                     match some_health {
-                        &Some(ref health) => println!("{}: {:?}", i, health),
+                        &Some(ref health) => {
+                            println!("{}: {:?}", i, health);
+                            trace_it!(TEST: &self.members[i], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                        }
                         &None => {}
                     }
                 }

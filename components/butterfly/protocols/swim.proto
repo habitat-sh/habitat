@@ -4,7 +4,9 @@ message Member {
   optional string id = 1;
   optional uint64 incarnation = 2;
   optional string address = 3;
-  optional bool persistent = 4 [default = false];
+  optional int32 swim_port = 4;
+  optional int32 gossip_port = 5;
+  optional bool persistent = 6 [default = false];
 }
 
 message Ping {
@@ -40,4 +42,18 @@ message Swim {
   optional Ack ack = 3;
   optional PingReq pingreq = 4;
   repeated Membership membership = 5;
+}
+
+message Rumor {
+  enum Type {
+    Member = 1;
+  }
+
+  required Type type = 1;
+  repeated string tag = 2;
+  optional string from_id = 3;
+  optional string from_address = 4;
+
+  // Everything else must be optional
+  optional Membership member = 5;
 }

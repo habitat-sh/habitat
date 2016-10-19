@@ -103,8 +103,9 @@ impl Member {
     ///
     /// This function panics if the address is un-parseable. In practice, it shouldn't be
     /// un-parseable, since its set from the inbound socket directly.
-    pub fn socket_address(&self) -> SocketAddr {
-        match self.get_address().parse() {
+    pub fn swim_socket_address(&self) -> SocketAddr {
+        let address_str = format!("{}:{}", self.get_address(), self.get_swim_port());
+        match address_str.parse() {
             Ok(addr) => addr,
             Err(e) => {
                 panic!("Cannot parse member {:?} address: {}", self, e);
@@ -139,14 +140,6 @@ impl<'a> From<&'a ProtoMember> for Member {
     }
 }
 
-impl From<SocketAddr> for Member {
-    fn from(socket: SocketAddr) -> Member {
-        let mut member = Member::new();
-        member.set_address(format!("{}", socket));
-        member
-    }
-}
-
 impl From<Member> for RumorKey {
     fn from(member: Member) -> RumorKey {
         RumorKey::new("member", member.get_id())
@@ -174,6 +167,7 @@ pub struct MemberList {
     members: Arc<RwLock<HashMap<UuidSimple, Member>>>,
     health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
     suspect: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
+    initial_members: Arc<RwLock<Vec<Member>>>,
 }
 
 impl MemberList {
@@ -183,6 +177,21 @@ impl MemberList {
             members: Arc::new(RwLock::new(HashMap::new())),
             health: Arc::new(RwLock::new(HashMap::new())),
             suspect: Arc::new(RwLock::new(HashMap::new())),
+            initial_members: Arc::new(RwLock::new(Vec::new())),
+        }
+    }
+
+    pub fn add_initial_member(&self, member: Member) {
+        let mut im = self.initial_members.write().expect("Initial members lock is poisoned");
+        im.push(member);
+    }
+
+    pub fn with_initial_members<F>(&self, mut with_closure: F) -> ()
+        where F: FnMut(Member)
+    {
+        let mut im = self.initial_members.write().expect("Initial members lock is poisoned");
+        for member in im.drain(0..) {
+            with_closure(member);
         }
     }
 
@@ -271,6 +280,14 @@ impl MemberList {
         }
     }
 
+    /// Returns the health of the member, if the member exists.
+    pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
+        match self.health.read().expect("Health lock is poisoned").get(member_id) {
+            Some(health) => Some(health.clone()),
+            None => None,
+        }
+    }
+
     /// Returns true if the members health is the same as `health`. False otherwise.
     pub fn check_health_of(&self, member: &Member, health: Health) -> bool {
         match self.health.read().expect("Health lock is poisoned").get(member.get_id()) {
@@ -280,9 +297,18 @@ impl MemberList {
         }
     }
 
+    /// Returns true if the members health is the same as `health`. False otherwise.
+    pub fn check_health_of_by_id(&self, member_id: &str, health: Health) -> bool {
+        match self.health.read().expect("Health lock is poisoned").get(member_id) {
+            Some(real_health) if *real_health == health => true,
+            Some(_) => false,
+            None => false,
+        }
+    }
+
     /// Returns true if the member is alive, suspect, or persistent; used during the target
     /// selection phase of the outbound thread.
-    pub fn member_alive_suspect_or_persistent(&self, member: &Member) -> bool {
+    pub fn pingable(&self, member: &Member) -> bool {
         if member.get_persistent() {
             return true;
         }
@@ -319,13 +345,12 @@ impl MemberList {
     /// Returns a protobuf membership record for the given member id.
     pub fn membership_for(&self, member_id: &str) -> ProtoMembership {
         let mut pm = ProtoMembership::new();
-        let mhealth: ProtoMembership_Health =
-            self.health
-                .read()
-                .expect("Health lock is poisoned")
-                .get(member_id)
-                .expect("Should have membership before calling membership_for")
-                .into();
+        let mhealth: ProtoMembership_Health = self.health
+            .read()
+            .expect("Health lock is poisoned")
+            .get(member_id)
+            .expect("Should have membership before calling membership_for")
+            .into();
         let ml = self.members.read().expect("Member list lock is poisoned");
         let member = ml.get(member_id)
             .expect("Should have membership before calling membership_for");
@@ -355,19 +380,23 @@ impl MemberList {
 
     /// Takes a function whose first argument is a member, and calls it for every pingreq target.
     pub fn with_pingreq_targets<F>(&self,
-                                   sending_member: &Member,
-                                   target_member: &Member,
+                                   sending_member_id: &str,
+                                   target_member_id: &str,
                                    mut with_closure: F)
                                    -> ()
-        where F: FnMut(&Member) -> ()
+        where F: FnMut(Member) -> ()
     {
-        let ml = self.members.read().expect("Member list lock is poisoned");
-        let mut members: Vec<&Member> = ml.values().collect();
+        // This will lead to nested read locks if you don't deal with making a copy
+        let mut members: Vec<Member> = {
+            let ml = self.members.read().expect("Member list lock is poisoned");
+            ml.values().map(|v| v.clone()).collect()
+        };
         let mut rng = thread_rng();
         rng.shuffle(&mut members);
         for member in members.into_iter()
             .filter(|m| {
-                m.get_id() != sending_member.get_id() && m.get_id() != target_member.get_id()
+                m.get_id() != sending_member_id && m.get_id() != target_member_id &&
+                self.check_health_of_by_id(m.get_id(), Health::Alive)
             })
             .take(PINGREQ_TARGETS) {
             with_closure(member);
@@ -496,7 +525,7 @@ mod tests {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut counter: usize = 0;
-                ml.with_pingreq_targets(from, target, |_m| counter += 1);
+                ml.with_pingreq_targets(from.get_id(), target.get_id(), |_m| counter += 1);
                 assert_eq!(counter, PINGREQ_TARGETS);
             });
         }
@@ -508,9 +537,11 @@ mod tests {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut excluded_appears: bool = false;
-                ml.with_pingreq_targets(from, target, |m| if m.get_id() == from.get_id() {
-                    excluded_appears = true
-                });
+                ml.with_pingreq_targets(from.get_id(),
+                                        target.get_id(),
+                                        |m| if m.get_id() == from.get_id() {
+                                            excluded_appears = true
+                                        });
                 assert_eq!(excluded_appears, false);
             });
         }
@@ -522,9 +553,11 @@ mod tests {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut excluded_appears: bool = false;
-                ml.with_pingreq_targets(from, target, |m| if m.get_id() == target.get_id() {
-                    excluded_appears = true
-                });
+                ml.with_pingreq_targets(from.get_id(),
+                                        target.get_id(),
+                                        |m| if m.get_id() == target.get_id() {
+                                            excluded_appears = true
+                                        });
                 assert_eq!(excluded_appears, false);
             });
         }
@@ -536,7 +569,7 @@ mod tests {
                 let from = i.nth(0).unwrap();
                 let target = i.nth(1).unwrap();
                 let mut counter: isize = 0;
-                ml.with_pingreq_targets(from, target, |_m| counter += 1);
+                ml.with_pingreq_targets(from.get_id(), target.get_id(), |_m| counter += 1);
                 assert_eq!(counter, 1);
             });
         }
