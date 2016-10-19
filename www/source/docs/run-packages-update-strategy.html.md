@@ -18,7 +18,7 @@ To start a supervisor with the auto-update strategy, pass the `--strategy` argum
 
 ## Configuring an Update Strategy with a Depot Channel
 
-A _channel_ in a depot is a point-in-time snapshot of the state of the depot. In point of fact, it is a [materialized channel](https://en.wikipedia.org/wiki/Materialized_channel) of the depot, starting with the specific `origin/package/version/release` quad, and encapsulating all of the transitive dependencies of that quad. This is very useful for continuous deployment purposes:
+A _channel_ in a depot is a point-in-time snapshot of the state of the depot. In point of fact, it is a [materialized view](https://en.wikipedia.org/wiki/Materialized_view) of the depot, starting with the specific `origin/package/version/release` quad, and encapsulating all of the transitive dependencies of that quad. This is very useful for continuous deployment purposes:
 
 * By convention, you name the channel in the depot after the name of your service group (e.g. `myapp.production`)
 * You deliver new versions of `myapp` as Habitat packages to the depot
