@@ -607,7 +607,11 @@ record() {
       >&2 echo "Usage: record <SESSION> [CMD [ARG ..]]"
       return 1
     fi
-    name=$1; shift
+    name="$(awk -F '=' '/^pkg_name/ {print $2}' $1/plan.sh 2>/dev/null | sed "s/['\"]//g")"
+    if [[ -z "${name:-}" ]]; then
+      name="unknown"
+    fi
+    shift
     cmd="${1:-${SHELL:-sh} -l}"; shift
     bb=${BUSYBOX:-}
     env="$($bb env \
