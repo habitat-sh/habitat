@@ -22,6 +22,9 @@ use common;
 use habitat_butterfly::server::Server;
 use habitat_butterfly::member::{Member, Health};
 use habitat_butterfly::server::timing::Timing;
+use habitat_butterfly::service::Service;
+use habitat_butterfly::message::swim::Election_Status;
+use habitat_core::service::ServiceGroup;
 
 #[derive(Debug)]
 pub struct SwimNet {
@@ -123,12 +126,24 @@ impl SwimNet {
         3
     }
 
+    pub fn max_gossip_rounds(&self) -> isize {
+        5
+    }
+
     pub fn rounds(&self) -> Vec<isize> {
-        self.members.iter().map(|m| m.rounds()).collect()
+        self.members.iter().map(|m| m.swim_rounds()).collect()
     }
 
     pub fn rounds_in(&self, count: isize) -> Vec<isize> {
         self.rounds().iter().map(|r| r + count).collect()
+    }
+
+    pub fn gossip_rounds(&self) -> Vec<isize> {
+        self.members.iter().map(|m| m.gossip_rounds()).collect()
+    }
+
+    pub fn gossip_rounds_in(&self, count: isize) -> Vec<isize> {
+        self.gossip_rounds().iter().map(|r| r + count).collect()
     }
 
     pub fn check_rounds(&self, rounds_in: &Vec<isize>) -> bool {
@@ -137,7 +152,7 @@ impl SwimNet {
             if self.members[i].paused() {
                 finished.push(true);
             } else {
-                if self.members[i].rounds() > *round {
+                if self.members[i].swim_rounds() > *round {
                     finished.push(true);
                 } else {
                     finished.push(false);
@@ -161,12 +176,103 @@ impl SwimNet {
         }
     }
 
+    pub fn check_gossip_rounds(&self, rounds_in: &Vec<isize>) -> bool {
+        let mut finished = Vec::with_capacity(rounds_in.len());
+        for (i, round) in rounds_in.into_iter().enumerate() {
+            if self.members[i].paused() {
+                finished.push(true);
+            } else {
+                if self.members[i].gossip_rounds() > *round {
+                    finished.push(true);
+                } else {
+                    finished.push(false);
+                }
+            }
+        }
+        if finished.iter().all(|m| m == &true) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn wait_for_gossip_rounds(&self, rounds: isize) {
+        let rounds_in = self.gossip_rounds_in(rounds);
+        loop {
+            if self.check_gossip_rounds(&rounds_in) {
+                return;
+            }
+            thread::sleep(Duration::from_millis(500));
+        }
+    }
+
+    pub fn wait_for_election_status(&self,
+                                    e_num: usize,
+                                    key: &str,
+                                    status: Election_Status)
+                                    -> bool {
+        let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
+        loop {
+            let mut result = false;
+            let server =
+                self.members.get(e_num).expect("Asked for a network member who is out of bounds");
+            server.election_store.with_rumor(key, "election", |e| {
+                if e.is_some() && e.unwrap().get_status() == status {
+                    result = true;
+                }
+            });
+            if result {
+                return true;
+            }
+            if self.check_gossip_rounds(&rounds_in) {
+                println!("Failed election check for status {:?}: {:#?}",
+                         status,
+                         self.members[e_num].election_store);
+                return false;
+            }
+        }
+    }
+
+    pub fn wait_for_equal_election(&self, left: usize, right: usize, key: &str) -> bool {
+        let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
+        loop {
+            let mut result = false;
+
+            let left_server = self.members
+                .get(left)
+                .expect("Asked for a network member who is out of bounds");
+            let right_server = self.members
+                .get(right)
+                .expect("Asked for a network member who is out of bounds");
+
+            left_server.election_store.with_rumor(key, "election", |l| {
+                right_server.election_store.with_rumor(key, "election", |r| {
+                    result = l.is_some() && r.is_some() && l.unwrap() == r.unwrap();
+                });
+            });
+            if result {
+                return true;
+            }
+            if self.check_gossip_rounds(&rounds_in) {
+                println!("Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
+                         self.members[left].election_store,
+                         self.members[right].election_store,
+                         );
+                return false;
+            }
+        }
+    }
+
     pub fn partition(&self, left_range: Range<usize>, right_range: Range<usize>) {
         let left: Vec<usize> = left_range.collect();
         let right: Vec<usize> = right_range.collect();
         for l in left.iter() {
             for r in right.iter() {
                 println!("Partitioning {} from {}", *l, *r);
+                if l == r {
+                    continue;
+                }
                 self.blacklist(*l, *r);
                 self.blacklist(*r, *l);
             }
@@ -196,6 +302,7 @@ impl SwimNet {
             }
             if self.check_rounds(&rounds_in) {
                 trace_it!(TEST: &self.members[from_entry], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
+                println!("MEMBERS: {:#?}", self.members);
                 println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
                          self.members[from_entry],
                          self.members[to_check]);
@@ -247,6 +354,19 @@ impl SwimNet {
             }
         }
     }
+
+    pub fn add_service(&mut self, member: usize, service: &str) {
+        let s = Service::new(self[member].member_id(),
+                             ServiceGroup::new(service, "prod", None),
+                             "localhost",
+                             "127.0.0.1",
+                             vec![4040, 4041, 4042]);
+        self[member].insert_service(s);
+    }
+
+    pub fn add_election(&mut self, member: usize, service: &str, suitability: u64) {
+        self[member].start_election(ServiceGroup::new(service, "prod", None), suitability, 0);
+    }
 }
 
 macro_rules! assert_health_of {
@@ -273,9 +393,38 @@ macro_rules! assert_wait_for_health_of {
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_network_health_of($to, $health), "Member {} does not always have health {}", $to, $health)
+        assert!($network.wait_for_network_health_of($to, $health), "Member {} does not always have health {}", $to, $health);
     };
     ($network:expr, $from: expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_health_of($from, $to, $health), "Member {} does not see {} as {}", $from, $to, $health)
+        assert!($network.wait_for_health_of($from, $to, $health), "Member {} does not see {} as {}", $from, $to, $health);
+    };
+}
+
+macro_rules! assert_wait_for_election_status {
+    ($network:expr, [$range:expr], $key:expr, $status: expr) => {
+        for x in $range {
+            assert!($network.wait_for_election_status(x, $key, $status));
+        }
+    };
+    ($network:expr, $to:expr, $key:expr, $status: expr) => {
+        assert!($network.wait_for_election_status($to, $key, $status));
+    };
+}
+
+macro_rules! assert_wait_for_equal_election {
+    ($network:expr, $left:expr, $right:expr, $key:expr) => {
+        assert!($network.wait_for_equal_election($left, $right, $key));
+    };
+    ($network:expr, [$from: expr, $to:expr], $key:expr) => {
+        let left: Vec<usize> = $from.collect();
+        let right: Vec<usize> = $to.collect();
+        for l in left.iter() {
+            for r in right.iter() {
+                if l == r {
+                    continue;
+                }
+                assert!($network.wait_for_equal_election(*l, *r, $key), "Member {} is not equal to {}", l, r);
+            }
+        }
     };
 }

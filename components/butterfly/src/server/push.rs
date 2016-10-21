@@ -63,13 +63,9 @@ impl<'a> Push<'a> {
                 continue;
             }
 
-            let mut check_list = self.server
-                .member_list
-                .check_list(self.server
-                    .member
-                    .read()
-                    .expect("Member is poisoned")
-                    .get_id());
+            self.server.update_gossip_round();
+
+            let mut check_list = self.server.member_list.check_list(self.server.member_id());
 
             'fanout: loop {
                 let mut thread_list = Vec::with_capacity(FANOUT);
@@ -89,7 +85,11 @@ impl<'a> Push<'a> {
                         continue;
                     }
 
-                    if self.server.member_list.pingable(&member) {
+                    // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to
+                    // persistent members that are confirmed dead. When the failure detector thread
+                    // finds them alive again, we'll go ahead and get back to the business at hand.
+                    if self.server.member_list.pingable(&member) &&
+                       !self.server.member_list.persistent_and_confirmed(&member) {
                         let rumors = self.server.rumor_list.rumors(member.get_id());
                         if rumors.len() > 0 {
                             let sc = self.server.clone();
@@ -111,10 +111,7 @@ impl<'a> Push<'a> {
                 }
                 let num_threads = thread_list.len();
                 for guard in thread_list.drain(0..num_threads) {
-                    match guard.join() {
-                        Ok(()) => {}
-                        Err(e) => println!("Push worker died: {:?}", e),
-                    }
+                    let _ = guard.join().map_err(|e| println!("Push worker died: {:?}", e));
                 }
                 'gossip_period: loop {
                     if SteadyTime::now() > next_gossip {
@@ -163,28 +160,58 @@ impl PushWorker {
                 return;
             }
         }
-        'rumorlist: for &(ref rumor, ref _heat) in rumors.iter() {
-            let send_rumor = match &rumor.kind[..] {
-                "member" => self.create_member_rumor(&rumor),
+        'rumorlist: for &(ref rumor_key, ref _heat) in rumors.iter() {
+            let rumor_as_bytes = match rumor_key.kind {
+                ProtoRumor_Type::Member => {
+                    let send_rumor = self.create_member_rumor(&rumor_key);
+                    trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    match send_rumor.write_to_bytes() {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!("Could not write our own rumor to bytes; abandoning \
+                                            sending rumor: {:?}",
+                                     e);
+                            continue 'rumorlist;
+                        }
+                    }
+                }
+                ProtoRumor_Type::Service => {
+                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    match self.server
+                        .service_store
+                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!("Could not write our own rumor to bytes; abandoning \
+                                            sending rumor: {:?}",
+                                     e);
+                            continue 'rumorlist;
+                        }
+                    }
+                }
+                ProtoRumor_Type::Election => {
+                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    match self.server
+                        .election_store
+                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!("Could not write our own rumor to bytes; abandoning \
+                                            sending rumor: {:?}",
+                                     e);
+                            continue 'rumorlist;
+                        }
+                    }
+                }
                 k => {
                     println!("Unknown rumor type; add it to the push server {:?}", k);
                     continue 'rumorlist;
                 }
             };
-            let rumor_as_bytes = match send_rumor.write_to_bytes() {
-                Ok(bytes) => bytes,
-                Err(e) => {
-                    println!("Could not write our own rumor to bytes; abandoning \
-                                            sending rumor: {:?}",
-                             e);
-                    continue 'rumorlist;
-                }
-            };
             match socket.send(&rumor_as_bytes[..], 0) {
-                Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor, member),
+                Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
                 Err(e) => println!("Could not send rumor to {:?}; ZMQ said: {:?}", member, e),
             }
-            trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), to_addr, &send_rumor);
         }
         self.server.rumor_list.update_heat(member.get_id(), &rumors);
     }
@@ -192,22 +219,17 @@ impl PushWorker {
     /// Given a rumorkey, creates a protobuf rumor for sharing.
     fn create_member_rumor(&self, rumor_key: &RumorKey) -> ProtoRumor {
         let mut member: ProtoMember = ProtoMember::new();
-        self.server.member_list.with_member(&rumor_key.key, |m| {
+        self.server.member_list.with_member(&rumor_key.key(), |m| {
             // TODO: This should not stand
             member = m.unwrap().proto.clone();
         });
         let mut membership = ProtoMembership::new();
         membership.set_member(member);
-        membership.set_health(self.server.member_list.health_of_by_id(&rumor_key.key).unwrap().into());
+        membership.set_health(self.server.member_list.health_of_by_id(&rumor_key.key()).unwrap().into());
         let mut rumor = ProtoRumor::new();
         rumor.set_field_type(ProtoRumor_Type::Member);
         rumor.set_member(membership);
-        rumor.set_from_id(String::from(self.server
-            .member
-            .read()
-            .expect("Member lock is poisoned")
-            .get_id()));
-        rumor.set_from_address(format!("{}", self.server.gossip_addr()));
+        rumor.set_from_id(String::from(self.server.member_id()));
         rumor
     }
 }

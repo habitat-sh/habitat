@@ -180,7 +180,7 @@ impl<'a> Inbound<'a> {
             Ok(()) => {}
             Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
         }
-        self.server.insert_from_rumors(membership);
+        self.server.insert_member_from_rumors(membership);
     }
 
     /// Process ping messages.
@@ -209,6 +209,6 @@ impl<'a> Inbound<'a> {
             .iter()
             .map(|m| (Member::from(m.get_member()), Health::from(m.get_health())))
             .collect();
-        self.server.insert_from_rumors(membership);
+        self.server.insert_member_from_rumors(membership);
     }
 }

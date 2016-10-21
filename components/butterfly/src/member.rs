@@ -27,7 +27,7 @@ use time::SteadyTime;
 
 use rumor::RumorKey;
 use message::swim::{Member as ProtoMember, Membership as ProtoMembership,
-                    Membership_Health as ProtoMembership_Health};
+                    Membership_Health as ProtoMembership_Health, Rumor_Type};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -142,19 +142,19 @@ impl<'a> From<&'a ProtoMember> for Member {
 
 impl From<Member> for RumorKey {
     fn from(member: Member) -> RumorKey {
-        RumorKey::new("member", member.get_id())
+        RumorKey::new(Rumor_Type::Member, member.get_id(), "")
     }
 }
 
 impl<'a> From<&'a Member> for RumorKey {
     fn from(member: &'a Member) -> RumorKey {
-        RumorKey::new("member", member.get_id())
+        RumorKey::new(Rumor_Type::Member, member.get_id(), "")
     }
 }
 
 impl<'a> From<&'a &'a Member> for RumorKey {
     fn from(member: &'a &'a Member) -> RumorKey {
-        RumorKey::new("member", member.get_id())
+        RumorKey::new(Rumor_Type::Member, member.get_id(), "")
     }
 }
 
@@ -315,6 +315,12 @@ impl MemberList {
         self.check_health_of(member, Health::Alive) || self.check_health_of(member, Health::Suspect)
     }
 
+    /// Returns true if we are pinging this member because they are persistent, but we think they
+    /// are gone.
+    pub fn persistent_and_confirmed(&self, member: &Member) -> bool {
+        member.get_persistent() && self.check_health_of(member, Health::Confirmed)
+    }
+
     /// Updates the health of a member without touching the member itself. Returns true if the
     /// health changed, false otherwise.
     pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
@@ -449,6 +455,10 @@ impl MemberList {
     pub fn expire(&self, member_id: &str) {
         let mut suspects = self.suspect.write().expect("Suspect list lock is poisoned");
         suspects.remove(member_id);
+    }
+
+    pub fn contains_member(&self, member_id: &str) -> bool {
+        self.members.read().expect("Member list lock is poisoned").contains_key(member_id)
     }
 }
 

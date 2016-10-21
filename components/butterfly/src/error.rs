@@ -25,6 +25,7 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     BadMessage(String),
     CannotBind(io::Error),
+    NonExistentRumor(String, String),
     ProtobufError(protobuf::ProtobufError),
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
@@ -36,6 +37,11 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadMessage(ref err) => format!("Bad Message: {:?}", err),
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
+            Error::NonExistentRumor(ref member_id, ref rumor_id) => {
+                format!("Non existent rumor asked to be written to bytes: {} {}",
+                        member_id,
+                        rumor_id)
+            }
             Error::ProtobufError(ref err) => format!("ProtoBuf Error: {}", err),
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
@@ -54,6 +60,9 @@ impl error::Error for Error {
         match *self {
             Error::BadMessage(ref _err) => "Bad Protobuf Message; should be Ping/Ack/PingReq",
             Error::CannotBind(ref _err) => "Cannot bind to port",
+            Error::NonExistentRumor(ref _member_id, ref _rumor_id) => {
+                "Cannot write rumor to bytes because it does not exist"
+            }
             Error::ProtobufError(ref err) => err.description(),
             Error::SocketSetReadTimeout(ref _err) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(ref _err) => "Cannot set UDP socket write timeout",

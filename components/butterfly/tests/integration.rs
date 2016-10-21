@@ -16,9 +16,11 @@ extern crate env_logger;
 extern crate time;
 #[macro_use]
 extern crate habitat_butterfly;
+extern crate habitat_core;
 
 #[macro_use]
 mod common;
+mod rumor;
 
 use habitat_butterfly::member::Health;
 
