@@ -14,12 +14,13 @@
 
 extern crate env_logger;
 extern crate time;
-extern crate habitat_swim;
+#[macro_use]
+extern crate habitat_butterfly;
 
 #[macro_use]
 mod common;
 
-use habitat_swim::member::Health;
+use habitat_butterfly::member::Health;
 
 #[test]
 fn two_members_meshed_confirm_one_member() {
@@ -28,6 +29,7 @@ fn two_members_meshed_confirm_one_member() {
     assert_wait_for_health_of!(net, 0, 1, Health::Alive);
     assert_wait_for_health_of!(net, 1, 0, Health::Alive);
 
+    trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
     assert_wait_for_health_of!(net, 1, 0, Health::Suspect);
     assert_wait_for_health_of!(net, 1, 0, Health::Confirmed);
@@ -37,6 +39,7 @@ fn two_members_meshed_confirm_one_member() {
 fn six_members_meshed_confirm_one_member() {
     let mut net = common::net::SwimNet::new(6);
     net.mesh();
+    trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
     assert_wait_for_health_of!(net, 0, Health::Confirmed);
 }
@@ -44,9 +47,10 @@ fn six_members_meshed_confirm_one_member() {
 #[test]
 fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
     let mut net = common::net::SwimNet::new(6);
+    trace_it!(TEST_NET: net, "Mesh");
     net.mesh();
     net.blacklist(0, 1);
-    net.wait_for_rounds(1);
+    net.wait_for_rounds(2);
     assert_wait_for_health_of!(net, 1, Health::Alive);
 }
 
@@ -84,7 +88,7 @@ fn six_members_unmeshed_confirm_one_member() {
 }
 
 #[test]
-fn six_members_unmeshed_partition_and_rejoin_no_permanant_peers() {
+fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
     let mut net = common::net::SwimNet::new(6);
     net.connect(0, 1);
     net.connect(1, 2);
@@ -95,12 +99,11 @@ fn six_members_unmeshed_partition_and_rejoin_no_permanant_peers() {
     net.partition(0..3, 3..6);
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Confirmed);
     net.unpartition(0..3, 3..6);
-    net.wait_for_rounds(1);
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Confirmed);
 }
 
 #[test]
-fn six_members_unmeshed_partition_and_rejoin_permanant_peers() {
+fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
     let mut net = common::net::SwimNet::new(6);
     net[0].member.write().expect("Member lock is poisoned").set_persistent(true);
     net[4].member.write().expect("Member lock is poisoned").set_persistent(true);
@@ -113,7 +116,6 @@ fn six_members_unmeshed_partition_and_rejoin_permanant_peers() {
     net.partition(0..3, 3..6);
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Confirmed);
     net.unpartition(0..3, 3..6);
-    net.wait_for_rounds(1);
     assert_wait_for_health_of!(net, [0..3, 3..6], Health::Alive);
 }
 

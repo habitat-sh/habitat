@@ -28,7 +28,7 @@ pub enum Error {
     ProtobufError(protobuf::ProtobufError),
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
-    ServerCloneError,
+    SocketCloneError,
 }
 
 impl fmt::Display for Error {
@@ -42,8 +42,8 @@ impl fmt::Display for Error {
             }
             Error::SocketSetWriteTimeout(ref err) => {
                 format!("Cannot set UDP socket write timeout: {}", err)
-            },
-            Error::ServerCloneError => format!("Cannot clone the underlying UDP socket"),
+            }
+            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
         };
         write!(f, "{}", msg)
     }
@@ -57,7 +57,7 @@ impl error::Error for Error {
             Error::ProtobufError(ref err) => err.description(),
             Error::SocketSetReadTimeout(ref _err) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(ref _err) => "Cannot set UDP socket write timeout",
-            Error::ServerCloneError => "Cannot clone the underlying UDP socket",
+            Error::SocketCloneError => "Cannot clone the underlying UDP socket",
         }
     }
 }

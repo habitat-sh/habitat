@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! This is the [SWIM](https://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf) implementation for Habitat.
+//! Butterfly is the [SWIM](https://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf)
+//! implementation for Habitat, along with a ZeroMQ based gossip protocol.
 //!
 //! It implements SWIM+Susp+Inf. It uses Newscast-style "heat" tracking to share membership rumors,
 //! while trying to keep UDP packet sizes below 512 bytes. It has the following changes:
@@ -24,20 +25,29 @@
 //! 1. Members can be marked "persistent", which means that they will always be taken through the
 //!    Probe cycle, regardless of their status. This allows networks to heal from partitions.
 //!
-//! The library consists of a single SWIM Server, which has three working threads:
+//! The SWIM implementation has three working threads:
 //!
 //! 1. An inbound thread, handling receipt of SWIM messages.
 //! 1. An outbound thread, which handles the Ping->PingReq cycle and protocol timing.
 //! 1. An expire thread, which handles timing out suspected members.
 //!
+//! The Gossip implementation has two working threads:
+//!
+//! 1. A 'push' thread, which fans out to 5 members every second (or longer, if it takes longer
+//!    than 1 second to send all the messages to all the members in the fan-out; no more frequently
+//!    than one second).
+//! 1. A 'pull' thread, which takes messages from any push source and applies them locally.
+//!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
+extern crate habitat_net;
 #[macro_use]
 extern crate log;
 extern crate protobuf;
 extern crate rand;
 extern crate time;
 extern crate uuid;
+extern crate zmq;
 
 #[macro_use]
 pub mod trace;

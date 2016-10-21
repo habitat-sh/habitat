@@ -17,24 +17,29 @@ pub mod net;
 
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 
-use habitat_swim::server::Server;
-use habitat_swim::member::Member;
-use habitat_swim::trace::Trace;
-use habitat_swim::server::outbound::Timing;
+use habitat_butterfly::server::Server;
+use habitat_butterfly::member::Member;
+use habitat_butterfly::trace::Trace;
+use habitat_butterfly::server::timing::Timing;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 
 pub fn start_server(name: &str) -> Server {
     SERVER_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
-    let my_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
-    let listen = format!("127.0.0.1:{}", my_port);
-    let server = Server::new(&listen[..], Member::new(), Trace::default()).unwrap();
-    {
-        let mut server_name = server.name.write().expect("Server name lock is poisoned");
-        server_name.clear();
-        server_name.push_str(name);
-    }
-    server.start(Timing::default());
+    let swim_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
+    let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
+    let listen_swim = format!("127.0.0.1:{}", swim_port);
+    let listen_gossip = format!("127.0.0.1:{}", gossip_port);
+    let mut member = Member::new();
+    member.set_swim_port(swim_port as i32);
+    member.set_gossip_port(gossip_port as i32);
+    let server = Server::new(&listen_swim[..],
+                             &listen_gossip[..],
+                             member,
+                             Trace::default(),
+                             Some(String::from(name)))
+        .unwrap();
+    server.start(Timing::default()).expect("Cannot start server");
     server
 }
 
@@ -43,6 +48,8 @@ pub fn member_from_server(server: &Server) -> Member {
     let server_member = server.member.read().expect("Member lock is poisoned");
     new_member.set_id(String::from(server_member.get_id()));
     new_member.set_incarnation(server_member.get_incarnation());
-    new_member.set_address(format!("127.0.0.1:{}", server.port()));
+    new_member.set_address(String::from("127.0.0.1"));
+    new_member.set_swim_port(server.swim_port() as i32);
+    new_member.set_gossip_port(server.gossip_port() as i32);
     new_member
 }
