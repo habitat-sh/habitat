@@ -1183,7 +1183,7 @@ abspath() {
 # download_file http://example.com/file.tar.gz file.tar.gz abc123...
 # # File matches checksum: download is skipped, local file is used
 # download_file http://example.com/file.tar.gz file.tar.gz ohnoes...
-# # File donesn't match checksum: local file removed, download attempted
+# # File doesn't match checksum: local file removed, download attempted
 # ```
 #
 # Will return 0 if a file was downloaded or if a valid cached file was found.
