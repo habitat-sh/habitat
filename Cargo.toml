@@ -26,11 +26,8 @@ url = "*"
 users = "*"
 
 [dev-dependencies]
+hyper = "*"
 tempdir = "*"
-
-[dev-dependencies.hyper]
-version = "*"
-default-features = false
 
 [features]
 functional = []
