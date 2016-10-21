@@ -1322,6 +1322,11 @@ fix_interpreter() {
         continue
       fi
 
+      # Resolve symbolic links to fix the actual file instead of replacing it
+      if [[ -L $t ]]; then
+        t="$(readlink --canonicalize --no-newline "$t")"
+      fi
+
       build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
       sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
     done
