@@ -271,6 +271,7 @@ export function uploadOriginPrivateKey(key: string , token: string) {
         new BuilderApiClient(token).createOriginKey(key).then(() => {
             dispatch(setOriginPrivateKeyUploadErrorMessage(undefined));
             dispatch(setCurrentOriginAddingPrivateKey(false));
+            dispatch(fetchOrigin(parseKey(key).origin));  // we need this to make the keys appear after upload
             dispatch(addNotification({
                 title: "Origin Private Key Uploaded",
                 body: `'${parseKey(key).name}' has been uploaded`,
