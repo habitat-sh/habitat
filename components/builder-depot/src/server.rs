@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::borrow::Cow;
 use std::fs::{self, File};
 use std::io::{Read, Write, BufWriter};
 use std::path::PathBuf;
@@ -28,7 +27,7 @@ use hab_net::http::controller::*;
 use hab_net::routing::{Broker, BrokerConn};
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
-use iron::headers::{ContentType, Vary};
+use iron::headers::ContentType;
 use iron::prelude::*;
 use iron::{status, headers};
 use iron::request::Body;
@@ -40,7 +39,7 @@ use protocol::sessionsrv::{Account, AccountGet};
 use protocol::vault::*;
 use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
-use unicase::UniCase;
+use rustc_serialize::Encodable;
 use urlencoded::UrlEncodedQuery;
 
 use super::Depot;
@@ -52,6 +51,31 @@ include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
+
+#[derive(RustcEncodable)]
+pub struct PackageResults<'a, T: 'a>
+    where T: Encodable
+{
+    pub range_start: isize,
+    pub range_end: isize,
+    pub total_count: isize,
+    pub package_list: &'a Vec<T>,
+}
+
+fn package_results_json<T: Encodable>(packages: &Vec<T>,
+                                      count: isize,
+                                      start: isize,
+                                      end: isize)
+                                      -> String {
+    let results = PackageResults {
+        range_start: start,
+        range_end: end,
+        total_count: count,
+        package_list: packages,
+    };
+
+    json::encode(&results).unwrap()
+}
 
 pub fn origin_create(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginCreate::new();
@@ -598,7 +622,7 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
 
 fn list_packages(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
-    let (offset, num) = match extract_pagination(req) {
+    let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
     };
@@ -616,24 +640,17 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
         match depot.datastore.channels.channel_pkg_idx.all(channel, &ident) {
             Ok(packages) => {
                 let count = depot.datastore.packages.index.count(&ident).unwrap();
-                let body = json::encode(&packages).unwrap();
-                let next_range = num + 1;
-                let mut response = if count as isize >= next_range {
-                    let mut response = Response::with((status::PartialContent, body));
-                    response.headers.set(NextRange(next_range));
-                    response
+                let body = package_results_json(&packages, count as isize, start, stop);
+
+                let mut response = if count as isize > (stop + 1) {
+                    Response::with((status::PartialContent, body))
                 } else {
                     Response::with((status::Ok, body))
                 };
-                let range = format!("{}..{}; count={}", offset, num, count);
-                response.headers.set(ContentRange(range.clone()));
-                // We set both of these because Fastly was stripping the
-                // Content-Range, so we use both until we can get that fixed.
-                response.headers.set(XContentRange(range));
+
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
-                response.headers.set(Vary::Items(vec![UniCase("range".to_owned())]));
                 dont_cache_response(&mut response);
                 Ok(response)
             }
@@ -646,27 +663,24 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
             }
         }
     } else {
-        match depot.datastore.packages.index.list(&ident, offset, num) {
+        match depot.datastore.packages.index.list(&ident, start, stop) {
             Ok(packages) => {
                 let count = depot.datastore.packages.index.count(&ident).unwrap();
-                let body = json::encode(&packages).unwrap();
-                let next_range = num + 1;
-                let mut response = if count as isize >= next_range {
-                    let mut response = Response::with((status::PartialContent, body));
-                    response.headers.set(NextRange(next_range));
-                    response
+                debug!("list_packages start: {}, stop: {}, total count: {}",
+                       start,
+                       stop,
+                       count);
+                let body = package_results_json(&packages, count as isize, start, stop);
+
+                let mut response = if count as isize > (stop + 1) {
+                    Response::with((status::PartialContent, body))
                 } else {
                     Response::with((status::Ok, body))
                 };
-                let range = format!("{}..{}; count={}", offset, num, count);
-                response.headers.set(ContentRange(range.clone()));
-                // We set both of these because Fastly was stripping the
-                // Content-Range, so we use both until we can get that fixed.
-                response.headers.set(XContentRange(range));
+
                 response.headers.set(ContentType(Mime(TopLevel::Application,
                                                       SubLevel::Json,
                                                       vec![(Attr::Charset, Value::Utf8)])));
-                response.headers.set(Vary::Items(vec![UniCase("range".to_owned())]));
                 dont_cache_response(&mut response);
                 Ok(response)
             }
@@ -771,30 +785,35 @@ fn show_package(req: &mut Request) -> IronResult<Response> {
 
 fn search_packages(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
-    let (offset, num) = match extract_pagination(req) {
+    let (start, stop) = match extract_pagination(req) {
         Ok(range) => range,
         Err(response) => return Ok(response),
     };
     let params = req.extensions.get::<Router>().unwrap();
     let partial = params.find("query").unwrap();
-    let packages = depot.datastore.packages.index.search(partial, offset, num).unwrap();
-    let body = json::encode(&packages).unwrap();
-    let mut response = if packages.len() as isize >= (num - offset) {
-        let mut response = Response::with((status::PartialContent, body));
-        response.headers.set(NextRange(num + 1));
-        response
+
+    // Note: the search call takes offset and count values
+    let (packages, total_count) =
+        depot.datastore.packages.index.search(partial, start, stop - start + 1).unwrap();
+
+    debug!("search_packages offset: {}, count: {}, packages len: {}, total_count: {}",
+           start,
+           stop - start + 1,
+           packages.len(),
+           total_count);
+
+    let body = package_results_json(&packages, total_count, start, stop);
+
+    let mut response = if total_count > (stop + 1) {
+        Response::with((status::PartialContent, body))
     } else {
         Response::with((status::Ok, body))
     };
-    let range = format!("{}..{}", offset, num);
-    response.headers.set(ContentRange(range.clone()));
-    // We set both of these because Fastly was stripping the
-    // Content-Range, so we use both until we can get that fixed.
-    response.headers.set(XContentRange(range));
+
     response.headers.set(ContentType(Mime(TopLevel::Application,
                                           SubLevel::Json,
                                           vec![(Attr::Charset, Value::Utf8)])));
-    response.headers.set(Vary::Items(vec![UniCase("range".to_owned())]));
+
     dont_cache_response(&mut response);
     Ok(response)
 }
@@ -863,28 +882,26 @@ fn ident_from_params(params: &Params) -> depotsrv::PackageIdent {
 }
 
 // Returns a tuple representing the from and to values representing a paginated set.
+// The range (start, stop) values are zero-based.
 //
 // These values can be passed to a sorted set in Redis to return a paginated list.
 fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Response> {
+    let range_from_param = match extract_query_value("range", req) {
+        Some(range) => range,
+        None => PAGINATION_RANGE_DEFAULT.to_string(),
+    };
+
     let offset = {
-        match req.headers.get_raw("range") {
-            Some(bytes) if bytes.len() > 0 => {
-                let header = Cow::Borrowed(&bytes[0]);
-                match String::from_utf8(header.into_owned()) {
-                    Ok(raw) => {
-                        match raw.parse::<usize>() {
-                            Ok(range) if range > 0 => (range - 1) as isize,
-                            Ok(range) => range as isize,
-                            Err(_) => return Err(Response::with(status::BadRequest)),
-                        }
-                    }
-                    Err(_) => return Err(Response::with(status::BadRequest)),
-                }
-            }
-            _ => PAGINATION_RANGE_DEFAULT,
+        match range_from_param.parse::<usize>() {
+            Ok(range) => range as isize,
+            Err(_) => return Err(Response::with(status::BadRequest)),
         }
     };
-    Ok((offset, offset + PAGINATION_RANGE_MAX))
+
+    debug!("extract_pagination range: (start, end): ({}, {})",
+           offset,
+           (offset + PAGINATION_RANGE_MAX - 1));
+    Ok((offset, offset + PAGINATION_RANGE_MAX - 1))
 }
 
 fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {

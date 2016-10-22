@@ -107,6 +107,15 @@ export enum KeyType {
                         </a>
                       </div>
                     </div>
+
+                    <div *ngIf="packages.size < totalCount">
+                        Showing {{packages.size}} of {{totalCount}} packages.
+                        <a href="#" (click)="fetchMorePackages()">
+                            Load
+                            {{(totalCount - packages.size) > perPage ? perPage : totalCount - packages.size }}
+                            more</a>.
+                    </div>
+
                   </div>
                 </div>
                 <div class="hab-origin--right hab-origin--pkg-list">
@@ -315,6 +324,10 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return this.store.getState().packages.visible;
     }
 
+    get totalCount() {
+        return this.store.getState().packages.totalCount;
+    }
+
     get noPackages() {
         return (!this.packagesUi.exists || this.packages.size === 0) && !this.packagesUi.loading;
     }
@@ -382,6 +395,17 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         this.store.dispatch(filterPackagesBy(
             {origin: this.origin.name}, "", 0, true, this.gitHubAuthToken
         ));
+    }
+
+    private fetchMorePackages() {
+        this.store.dispatch(filterPackagesBy(
+            {origin: this.origin.name},
+            "",
+            this.store.getState().packages.nextRange,
+            true,
+            this.gitHubAuthToken);
+
+        return false;
     }
 
     public ngOnInit() {
