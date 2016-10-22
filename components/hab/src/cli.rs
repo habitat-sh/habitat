@@ -209,6 +209,13 @@ pub fn get() -> App<'static, 'static> {
                     "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
+            (@subcommand header =>
+                (about: "Returns the Habitat Artifact header")
+                (aliases: &["hea", "head", "heade", "header"])
+                (@arg SOURCE: +required {file_exists}
+                    "A path to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
         )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")

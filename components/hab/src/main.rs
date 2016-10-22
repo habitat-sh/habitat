@@ -129,6 +129,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("sign", Some(m)) => try!(sub_pkg_sign(ui, m)),
                 ("upload", Some(m)) => try!(sub_pkg_upload(ui, m)),
                 ("verify", Some(m)) => try!(sub_pkg_verify(ui, m)),
+                ("header", Some(m)) => try!(sub_pkg_header(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -487,6 +488,13 @@ fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     init();
 
     command::pkg::verify::start(ui, &src, &default_cache_key_path(fs_root_path))
+}
+
+fn sub_pkg_header(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let src = Path::new(m.value_of("SOURCE").unwrap());
+    init();
+
+    command::pkg::header::start(ui, &src)
 }
 
 fn sub_ring_key_export(m: &ArgMatches) -> Result<()> {
