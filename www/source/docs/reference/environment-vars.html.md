@@ -20,3 +20,12 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
 | `HAB_USER` | supervisor | no default | User key to use when running with [service group encryption](/docs/run-packages-security/#service-group-encryption) |
 
+# Customizing Studio
+
+When you enter a studio, Habitat will attempt to locate `/src/.studiorc` and
+source it.  Think `~/.bashrc`. This file can be used to export any
+environment variables like the ones you see above as well as any other shell
+customizations to help you develop your plans from within the studio.
+
+To use this feature, place a `.studiorc` in the current working directory
+where you will run `hab studio enter`.
