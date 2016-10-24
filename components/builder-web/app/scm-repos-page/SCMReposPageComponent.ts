@@ -77,8 +77,7 @@ export class SCMReposPageComponent implements OnInit {
 
         this.onRepoSelect = (repo) => {
             if (typeof this.redirectRoute === "object" && this.redirectRoute.length) {
-                this.redirectRoute[1]["repo"] = repo;
-                this.router.navigate(this.redirectRoute);
+                this.router.navigate(this.redirectRoute, {queryParams: {repo: encodeURIComponent(repo)}});
                 this.store.dispatch(resetRedirectRoute());
             } else {
                 this.router.navigate(["/projects", "create"], {queryParams: {repo: encodeURIComponent(repo)}});

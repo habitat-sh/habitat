@@ -22,7 +22,7 @@ import {NotificationsComponent} from "./notifications/NotificationsComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {authenticateWithGitHub, loadSessionState, removeNotification,
     requestGitHubAuthToken, routeChange, setGitHubAuthState,
-    setPackagesSearchQuery, signOut, toggleUserNavMenu} from "./actions/index";
+    setPackagesSearchQuery, signOut, toggleUserNavMenu, loadFeatureFlags} from "./actions/index";
 
 @Component({
     directives: [FooterComponent, HeaderComponent, NotificationsComponent,
@@ -127,5 +127,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.store.dispatch(
             authenticateWithGitHub(this.state.gitHub.authToken)
         );
+
+        this.store.dispatch(loadFeatureFlags());
     }
 }

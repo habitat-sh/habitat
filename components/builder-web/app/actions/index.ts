@@ -176,6 +176,7 @@ export const attemptSignIn = usersActions.attemptSignIn;
 export const setSigningInFlag = usersActions.setSigningInFlag;
 export const toggleUserNavMenu = usersActions.toggleUserNavMenu;
 export const signOut = usersActions.signOut;
+export const loadFeatureFlags = usersActions.loadFeatureFlags;
 
 export function resetAppState() {
     return {

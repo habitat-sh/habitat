@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component, Input, OnInit} from "@angular/core";
+import {Component, Input, OnInit, AfterViewInit} from "@angular/core";
 import {CheckingInputComponent} from "../CheckingInputComponent";
 import {FormControl, FormGroup, FormBuilder, Validators} from "@angular/forms";
 import {GitHubApiClient} from "../GitHubApiClient";
@@ -65,7 +65,7 @@ import {RouterLink} from "@angular/router";
     `
 })
 
-export class ProjectInfoComponent implements OnInit {
+export class ProjectInfoComponent implements AfterViewInit, OnInit {
     private form: FormGroup;
     private doesFileExist: Function;
 
@@ -75,11 +75,11 @@ export class ProjectInfoComponent implements OnInit {
     constructor(private formBuilder: FormBuilder, private store: AppStore) {}
 
     get repoOwner() {
-        return (this.ownerAndRepo || "").split("/")[0];
+        return (this.ownerAndRepo || "/").split("/")[0];
     }
 
     get repo() {
-        return (this.ownerAndRepo || "").split("/")[1];
+        return (this.ownerAndRepo || "/").split("/")[1];
     }
 
     get token() {
@@ -136,23 +136,24 @@ export class ProjectInfoComponent implements OnInit {
         return false;
     }
 
-    public ngOnInit() {
-        this.form = this.formBuilder.group({
-            repo: [this.repo || "", Validators.required],
-            plan_path: ["plan.sh", Validators.required],
-        });
-
-        this.doesFileExist = function (path) {
-            return new GitHubApiClient(
-                this.store.getState().gitHub.authToken
-            ).doesFileExist(this.repoOwner, this.repo, path);
-        }.bind(this);
-
+    ngAfterViewInit() {
         // Wait a second to set the fields as dirty to do validation on page
         // load. Doing this later in the lifecycle causes a changed after it was
         // checked error.
         setTimeout(() => {
             this.form.controls["plan_path"].markAsDirty();
          } , 1000);
+    }
+
+    public ngOnInit() {
+        this.form = this.formBuilder.group({
+            repo: [this.repo || "", Validators.required]
+        });
+
+        this.doesFileExist = path => {
+            return new GitHubApiClient(
+                this.store.getState().gitHub.authToken
+            ).doesFileExist(this.repoOwner, this.repo, path);
+        };
     }
 }

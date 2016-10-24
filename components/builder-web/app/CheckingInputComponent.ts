@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import {FormControl, FormGroup, Validators} from "@angular/forms";
-import {ChangeDetectorRef, Component, OnInit, OnChanges} from "@angular/core";
+import {Component, OnInit} from "@angular/core";
 import {AsyncValidator} from "./AsyncValidator";
 
 @Component({
@@ -62,7 +62,7 @@ import {AsyncValidator} from "./AsyncValidator";
     </div>`
 })
 
-export class CheckingInputComponent implements OnInit, OnChanges {
+export class CheckingInputComponent implements OnInit {
     private availableMessage: string;
     private control: FormControl;
     private defaultMaxLength = 255;
@@ -74,8 +74,6 @@ export class CheckingInputComponent implements OnInit, OnChanges {
     private notAvailableMessage: string;
     private pattern;
     private value: string;
-
-    constructor(private cdr: ChangeDetectorRef) { }
 
     private patternValidator(control) {
         const value = control.value;
@@ -103,22 +101,6 @@ export class CheckingInputComponent implements OnInit, OnChanges {
                 resolve(null);
             }
         });
-    }
-
-    public ngOnChanges(change) {
-        // this function gets called _a lot_ at various states in the component's
-        // lifecycle, so let's make sure we've got what we need before proceeding.
-        if (!this.control) {
-            return;
-        }
-
-        if (change["value"]) {
-            this.value = change["value"]["currentValue"];
-
-            if (this.value) {
-                this.control.updateValue(this.value);
-            }
-        }
     }
 
     public ngOnInit() {
@@ -151,6 +133,5 @@ export class CheckingInputComponent implements OnInit, OnChanges {
         );
 
         this.form.addControl(this.name, this.control);
-        this.cdr.detectChanges();
     }
 }
