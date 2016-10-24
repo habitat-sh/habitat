@@ -16,9 +16,9 @@ import {Component, OnInit, OnDestroy} from "@angular/core";
 import {RouterLink, ActivatedRoute} from "@angular/router";
 import {AppStore} from "../AppStore";
 import {fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
-    fetchOriginPublicKeys, inviteUserToOrigin, setCurrentOriginAddingPublicKey,
-    setCurrentOriginAddingPrivateKey, uploadOriginPrivateKey,
-    uploadOriginPublicKey, filterPackagesBy, fetchProjectsForPackages,
+        fetchOriginPublicKeys, inviteUserToOrigin, setCurrentOriginAddingPublicKey,
+        setCurrentOriginAddingPrivateKey, uploadOriginPrivateKey,
+        uploadOriginPublicKey, filterPackagesBy, fetchMyOrigins,
         setProjectHint, requestRoute, setCurrentProject} from "../actions/index";
 import config from "../config";
 import {KeyAddFormComponent} from "./KeyAddFormComponent";
@@ -319,8 +319,14 @@ export class OriginPageComponent implements OnInit, OnDestroy {
         return (!this.packagesUi.exists || this.packages.size === 0) && !this.packagesUi.loading;
     }
 
+    get myOrigins() {
+        return this.store.getState().origins.mine;
+    }
+
     get iAmPartOfThisOrigin() {
-        return this.members.size > 0;
+        return !!this.myOrigins.find(org => {
+            return org["name"] === this.origin.name;
+        });
     }
 
     private linkToRepo(p): boolean {
@@ -381,6 +387,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     public ngOnInit() {
         requireSignIn(this);
         this.store.dispatch(fetchOrigin(this.origin.name));
+        this.store.dispatch(fetchMyOrigins());
         this.store.dispatch(fetchOriginPublicKeys(
             this.origin.name, this.gitHubAuthToken
         ));
