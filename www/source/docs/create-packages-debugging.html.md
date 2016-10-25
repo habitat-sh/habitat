@@ -65,7 +65,18 @@ Aliases
   quit-program  Alias for `exit-program`.
 ~~~
 
-Type `quit` when you are done with the debugger, and the remainder of the build will continue. If you wish to abort the build entirely, type `quit-program`.
+  Type `quit` when you are done with the debugger, and the remainder of the build will continue. If you wish to abort the build entirely, type `quit-program`.
+
+### Outputting the run hook to STDOUT
+
+  If you want to output your run hook to STDOUT you can add this underneath the
+  top line.
+
+~~~
+#!/bin/bash -xe
+
+exec 2>&1 # output to STDOUT
+~~~
 
 <hr>
 <ul class="main-content--link-nav">
