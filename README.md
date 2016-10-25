@@ -51,13 +51,9 @@ by having a convention cover it. When we do need to configure things, we set rea
 
 ## Setup On Mac OS X
 
-1. [Install Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_mac/) (you'll need
-   at least Docker 1.9 and docker-machine 0.5. Both are included in Docker
-   Toolbox)
-1. [Install VMWare Fusion](https://www.vmware.com/products/fusion.html)
-1. Delete the default docker-machine image: `docker-machine rm default`
-1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, RAM, or Disk space as needed. This determines how fast you can compile the project and build software. (Adam uses 4 CPUs, 8GB of RAM)
-1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
+1. [Install Docker](https://docs.docker.com/engine/installation/mac/#/docker-for-mac) (you'll need
+   at least Docker 1.9.)
+1. (Optional) Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. Checkout the source by running `git clone git@github.com:habitat-sh/habitat.git; cd habitat`
 1. Run `make`
 1. (Optional) Run `make test` if you want to run the tests. This will take a while.
