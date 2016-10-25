@@ -52,7 +52,7 @@ by having a convention cover it. When we do need to configure things, we set rea
 ## Setup On Mac OS X
 
 1. [Install Docker](https://docs.docker.com/engine/installation/mac/#/docker-for-mac) (you'll need
-   at least Docker 1.9.
+   at least Docker 1.9.)
 1. (Optional) Consider adding `eval "$(docker-machine env default)"` to your shell initialization
 1. Checkout the source by running `git clone git@github.com:habitat-sh/habitat.git; cd habitat`
 1. Run `make`
