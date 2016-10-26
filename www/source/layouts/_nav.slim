@@ -1,10 +1,12 @@
 #main-nav class="#{layout_class}"
 
-  / Uncomment to enable the global message
-  / IMPORTANT NOTE: When the global message is enabled, add an additional 90px of
-  / top padding to #content-outer (for the small breakpoint) in layout.scss or
-  / the hero title gets covered by the navigation on mobile devices
-  = partial "layouts/message"
+  / GLOBAL MESSAGE BANNER
+  / Uncomment the layouts/message partial to display the global message
+  / IMPORTANT NOTE: When the global message is displayed, add an additional 90px
+  / of top padding to #content-outer (for the small breakpoint) in layout.scss
+  / or the hero title gets covered by the navigation on mobile devices
+
+  / = partial "layouts/message"
 
   .main-nav--container.clearfix
     .main-nav--logo
