@@ -23,7 +23,7 @@ use protocol::net::ErrCode;
 pub fn net_err_to_http(err: ErrCode) -> StatusCode {
     match err {
         ErrCode::BUG => StatusCode::InternalServerError,
-        ErrCode::TIMEOUT => StatusCode::RequestTimeout,
+        ErrCode::TIMEOUT => StatusCode::GatewayTimeout,
         ErrCode::REMOTE_REJECTED => StatusCode::NotAcceptable,
         ErrCode::BAD_REMOTE_REPLY => StatusCode::BadGateway,
         ErrCode::ENTITY_NOT_FOUND => StatusCode::NotFound,

@@ -17,6 +17,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::io::Read;
 use std::result::Result as StdResult;
+use std::time::Duration;
 
 use hyper::{self, Url};
 use hyper::status::StatusCode;
@@ -29,6 +30,7 @@ use config;
 use error::{Error, Result};
 
 const USER_AGENT: &'static str = "Habitat-Builder";
+const HTTP_TIMEOUT: u64 = 3_000;
 // These OAuth scopes are required for a user to be authenticated. If this list is updated, then
 // the front-end also needs to be updated in `components/builder-web/app/util.ts`. Both the
 // front-end app and back-end app should have identical requirements to make things easier for
@@ -418,8 +420,10 @@ pub enum AuthResp {
 }
 
 fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Response, net::NetError> {
-    hyper::Client::new()
-        .get(url)
+    let mut client = hyper::Client::new();
+    client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
+    client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
+    client.get(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
@@ -428,8 +432,10 @@ fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Respons
 }
 
 fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetError> {
-    hyper::Client::new()
-        .post(url)
+    let mut client = hyper::Client::new();
+    client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
+    client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
+    client.post(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
