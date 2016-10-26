@@ -28,7 +28,7 @@ use protocol::net::{ErrCode, NetError};
 use zmq;
 
 use config::ToAddrString;
-use error::Result;
+use error::{Error, Result};
 use server::ZMQ_CONTEXT;
 
 pub type RouteResult<T> = result::Result<T, NetError>;
@@ -103,9 +103,16 @@ impl BrokerConn {
                     }
                 }
             }
-            Err(e) => {
-                error!("route-recv, err={}", e);
-                Err(protocol::net::err(ErrCode::ZMQ, "net:route:3"))
+            Err(Error::Zmq(zmq::Error::EAGAIN)) => {
+                Err(protocol::net::err(ErrCode::TIMEOUT, "net:route:3"))
+            }
+            Err(Error::Zmq(err)) => {
+                error!("route-recv, code={}, msg={}", err, err.to_raw());
+                Err(protocol::net::err(ErrCode::ZMQ, "net:route:4"))
+            }
+            Err(err) => {
+                error!("route-recv, err={:?}", err);
+                Err(protocol::net::err(ErrCode::BUG, "net:route:5"))
             }
         }
     }
