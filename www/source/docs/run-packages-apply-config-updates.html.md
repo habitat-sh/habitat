@@ -57,7 +57,7 @@ Here are some examples of how to apply configuration changes through both the sh
        Configuration applied to: 172.17.0.3:9634
        ★ Applied configuration.
 
-    The services in the myapp.prod service group will restart according to the service group's [update strategy](/docs/run-packages-update-strategy).
+  The services in the myapp.prod service group will restart according to the service group's [update strategy](/docs/run-packages-update-strategy).
 
       Writing new file from gossip: /hab/svc/myapp/gossip.toml
       hab-sup(SC): Updated config.json
