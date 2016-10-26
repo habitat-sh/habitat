@@ -100,7 +100,9 @@ impl ArtifactHeader {
 /// Read only the header of the artifact, fails if any of the components
 /// are invalid/missing. Each component of the header has it's whitespace
 /// stripped before returning in an `ArtifactHeader` struct
-pub fn get_artifact_header<P: AsRef<Path>>(src: &P) -> Result<ArtifactHeader> {
+pub fn get_artifact_header<P: ?Sized>(src: &P) -> Result<ArtifactHeader>
+    where P: AsRef<Path>
+{
     let f = try!(File::open(src));
     let mut your_format_version = String::new();
     let mut your_key_name = String::new();

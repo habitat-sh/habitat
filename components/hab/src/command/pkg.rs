@@ -571,3 +571,32 @@ pub mod verify {
         Ok(())
     }
 }
+
+pub mod header {
+    use std::path::Path;
+
+    use common::ui::UI;
+    use hcore::crypto::artifact;
+    use std::io::{self, Write};
+
+    use error::Result;
+
+    pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
+        try!(ui.begin(format!("Reading package header for {}", &src.display())));
+        try!(ui.para(""));
+        let artifact_header = artifact::get_artifact_header(src);
+        if artifact_header.is_ok() {
+            let header = artifact_header.unwrap();
+            try!(io::stdout().write(format!("Package        : {}\n", &src.display()).as_bytes()));
+            try!(io::stdout()
+                .write(format!("Format Version : {}\n", header.format_version).as_bytes()));
+            try!(io::stdout().write(format!("Key Name       : {}\n", header.key_name).as_bytes()));
+            try!(io::stdout().write(format!("Hash Type      : {}\n", header.hash_type).as_bytes()));
+            try!(io::stdout()
+                .write(format!("Raw Signature  : {}\n", header.signature_raw).as_bytes()));
+        } else {
+            try!(ui.warn("Failed to read package header."));
+        }
+        Ok(())
+    }
+}
