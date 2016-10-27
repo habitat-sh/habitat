@@ -127,6 +127,7 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
   * hab-director - `habitat/components/director`
 1. [Build Mac Components](#how-to-build-mac-components)
 1. [Build Windows Components](#how-to-build-windows-components)
+Angular 2 has published a style guide (https://angular.io/styleguide), and a tool for linting according to that style guide (https://www.npmjs.com/package/codelyzer.) We should start following these guidelines where appropriate and using codelyzer in the lint process.
 
 ## Publish Release
 
