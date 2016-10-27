@@ -11,12 +11,12 @@ applications that have automation built-in. This provides modern
 applications that:
 
 * Provide repeatable builds
-* Run from single, immutable assets
+* Run from single, immutable asset
 * Allow for runtime configuration for multiple deployment scenarios
-* Are agnostic to operating environment (works the same on bare metal, virtualization, containers, PaaS)
+* Are operating environment agnostic (works the same on bare metal, virtualization, containers, PaaS)
 * Provide idempotent behavior (the same inputs to the same asset provide the same outcome)
 * Provide convergent behavior (each service makes progress towards the correct behavior in the face of failure)
-* Expose promises to those who rely on it
+* Expose promises to those who rely on them
 * Provide a low barrier to entry
 * Are language agnostic
 
@@ -34,7 +34,7 @@ tooling for the platform, and provide as little abstraction as necessary. When w
 we choose one - and we make it the one that is most user-serviceable.
 1. Keep it light. The runtime component of Habitat is used as a process supervisor - it needs to stay lean. No run-times.
 1. Convention over configuration, with reasonable defaults. Where possible, we remove the need to configure things
-by having a convention cover it. When we do need to configure things, we set reasonable defaults.
+by having a convention to cover it. When we do need to configure things, we set reasonable defaults.
 1. Call things what they are.
 1. It has to feel great to the end user. If it doesn't feel great, it's a bug.
 1. Write documentation as you go. Internal and external.
@@ -64,7 +64,7 @@ Everything should come up green. Congratulations - you have a working Habitat de
 
 **Optional:** This project compiles and runs inside Docker containers so while
 installing the Rust language isn't strictly necessary, you might want a local
-copy of Rust on your workstation (some editors' language support require an
+copy of Rust on your workstation (some editors' language support requires an
 installed version). To [install stable
 Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
 https://static.rust-lang.org/rustup.sh | sh`. Additionally, the project
