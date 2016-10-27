@@ -5,15 +5,7 @@
 This installation method uses as many packages from Ubuntu as possible. If you'd like to build additional components from source, see the next section.
 
 ```
-apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
-    curl \
-    file \
-    gdb \
-    git \
-    iproute2 \
-    libarchive-dev \
+
     libprotobuf-dev \
     libsodium-dev \
     libssl-dev \
