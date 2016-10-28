@@ -195,6 +195,18 @@ mod inner {
                                                "--interactive".into(),
                                                "--privileged".into()];
 
+        // All the args already placed in `cmd_args` are things that we don't want to insert again.
+        // Later args such as `--env` will overwrite any options (potentially) set mistakenly here.
+        if let Ok(ops) = henv::var(DOCKER_OPS) {
+            let ops = ops.split(" ")
+                .map(|v| v.into())
+                // Ensure we're not passing something like `--tty` again here.
+                .filter(|v| !cmd_args.contains(v))
+                .collect::<Vec<_>>();
+            debug!("Docker ops originating from DOCKER_OPS = {:?}", ops);
+            cmd_args.extend_from_slice(ops.as_slice());
+        }
+
         let env_vars = vec!["HAB_DEPOT_URL", "HAB_ORIGIN", "http_proxy", "https_proxy"];
         for var in env_vars {
             if let Ok(val) = henv::var(var) {
@@ -215,11 +227,6 @@ mod inner {
             .into());
         cmd_args.push("--volume".into());
         cmd_args.push(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()).into());
-
-        if let Ok(ops) = henv::var(DOCKER_OPS) {
-            let ops = ops.split(" ").map(|v| v.into()).collect::<Vec<_>>();
-            cmd_args.extend_from_slice(ops.as_slice());
-        }
 
         cmd_args.push(image_identifier().into());
         cmd_args.extend_from_slice(args.as_slice());
