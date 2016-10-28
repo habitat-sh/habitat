@@ -28,16 +28,22 @@ pub mod timing;
 use std::collections::HashSet;
 use std::fmt;
 use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
+use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::channel;
 use std::time::Duration;
 use std::thread;
 
+use habitat_core::service::ServiceGroup;
+
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
 use trace::{Trace, TraceKind};
-use rumor::{RumorList, RumorKey};
+use rumor::{Rumor, RumorStore, RumorList, RumorKey};
+use service::Service;
+use election::Election;
+use message::swim::Election_Status;
 
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
@@ -47,12 +53,15 @@ pub struct Server {
     pub member: Arc<RwLock<Member>>,
     pub member_list: MemberList,
     pub rumor_list: RumorList,
+    pub service_store: RumorStore<Service>,
+    pub election_store: RumorStore<Election>,
     pub swim_addr: Arc<RwLock<SocketAddr>>,
     pub gossip_addr: Arc<RwLock<SocketAddr>>,
     // These are all here for testing support
     pub pause: Arc<AtomicBool>,
     pub trace: Arc<RwLock<Trace>>,
-    pub rounds: Arc<AtomicIsize>,
+    pub swim_rounds: Arc<AtomicIsize>,
+    pub gossip_rounds: Arc<AtomicIsize>,
     pub blacklist: Arc<RwLock<HashSet<String>>>,
 }
 
@@ -79,11 +88,14 @@ impl Server {
             member: Arc::new(RwLock::new(member)),
             member_list: MemberList::new(),
             rumor_list: RumorList::default(),
+            service_store: RumorStore::default(),
+            election_store: RumorStore::default(),
             swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
             gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
             pause: Arc::new(AtomicBool::new(false)),
             trace: Arc::new(RwLock::new(trace)),
-            rounds: Arc::new(AtomicIsize::new(0)),
+            swim_rounds: Arc::new(AtomicIsize::new(0)),
+            gossip_rounds: Arc::new(AtomicIsize::new(0)),
             blacklist: Arc::new(RwLock::new(HashSet::new())),
         })
     }
@@ -93,21 +105,45 @@ impl Server {
     ///
     /// This is useful in integration testing, to allow tests to time out after a worst-case
     /// boundary in rounds.
-    pub fn rounds(&self) -> isize {
-        self.rounds.load(Ordering::SeqCst)
+    pub fn swim_rounds(&self) -> isize {
+        self.swim_rounds.load(Ordering::SeqCst)
     }
 
     /// Adds 1 to the current round, atomically.
-    pub fn update_round(&self) {
-        let current_round = self.rounds.load(Ordering::SeqCst);
+    pub fn update_swim_round(&self) {
+        let current_round = self.swim_rounds.load(Ordering::SeqCst);
         match current_round.checked_add(1) {
             Some(_number) => {
-                self.rounds.fetch_add(1, Ordering::SeqCst);
+                self.swim_rounds.fetch_add(1, Ordering::SeqCst);
             }
             None => {
-                debug!("Exceeded an isize integer in rounds. Congratulations, this is a very \
-                        long running supervisor!");
-                self.rounds.store(0, Ordering::SeqCst);
+                debug!("Exceeded an isize integer in swim-rounds. Congratulations, this is a \
+                        very long running supervisor!");
+                self.swim_rounds.store(0, Ordering::SeqCst);
+            }
+        }
+    }
+
+    /// Every iteration of the gossip protocol (which means every member has been sent if they
+    /// are available) increments the round. If we exceed an isize in rounds, we reset to 0.
+    ///
+    /// This is useful in integration testing, to allow tests to time out after a worst-case
+    /// boundary in rounds.
+    pub fn gossip_rounds(&self) -> isize {
+        self.gossip_rounds.load(Ordering::SeqCst)
+    }
+
+    /// Adds 1 to the current round, atomically.
+    pub fn update_gossip_round(&self) {
+        let current_round = self.gossip_rounds.load(Ordering::SeqCst);
+        match current_round.checked_add(1) {
+            Some(_number) => {
+                self.gossip_rounds.fetch_add(1, Ordering::SeqCst);
+            }
+            None => {
+                debug!("Exceeded an isize integer in gossip-rounds. Congratulations, this is a \
+                        very long running supervisor!");
+                self.gossip_rounds.store(0, Ordering::SeqCst);
             }
         }
     }
@@ -281,36 +317,220 @@ impl Server {
         }
     }
 
+    /// Given a membership record and some health, insert it into the Member List.
+    pub fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
+        let mut incremented_incarnation = false;
+        let rk: RumorKey = RumorKey::from(&member);
+        if member.get_id() == self.member_id() {
+            if health != Health::Alive {
+                let mut me = self.member.write().expect("Member lock is poisoned");
+                let mut incarnation = me.get_incarnation();
+                incarnation += 1;
+                me.set_incarnation(incarnation);
+                health = Health::Alive;
+                incremented_incarnation = true;
+            }
+        }
+        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
+        // of just how the logic goes. The value of the trace is really high, though, so we suck it
+        // for now.
+        let trace_member_id = String::from(member.get_id());
+        let trace_incarnation = member.get_incarnation();
+        let trace_health = health.clone();
+
+        if self.member_list.insert(member, health) || incremented_incarnation {
+            trace_it!(MEMBERSHIP: self,
+                      TraceKind::MemberUpdate,
+                      trace_member_id,
+                      trace_incarnation,
+                      trace_health);
+            self.rumor_list.insert(rk);
+        }
+    }
+
     /// Insert members from a list of received rumors.
-    pub fn insert_from_rumors(&self, members: Vec<(Member, Health)>) {
-        for (member, mut health) in members.into_iter() {
-            let mut incremented_incarnation = false;
-            let rk: RumorKey = RumorKey::from(&member);
-            if member.get_id() == self.member_id() {
-                if health != Health::Alive {
-                    let mut me = self.member.write().expect("Member lock is poisoned");
-                    let mut incarnation = me.get_incarnation();
-                    incarnation += 1;
-                    me.set_incarnation(incarnation);
-                    health = Health::Alive;
-                    incremented_incarnation = true;
+    pub fn insert_member_from_rumors(&self, members: Vec<(Member, Health)>) {
+        for (member, health) in members.into_iter() {
+            self.insert_member_from_rumor(member, health);
+        }
+    }
+
+    /// Insert a service rumor into the service store.
+    pub fn insert_service(&self, service: Service) {
+        let rk = RumorKey::from(&service);
+        if self.service_store.insert(service) {
+            self.rumor_list.insert(rk);
+        }
+    }
+
+    /// Get all the Member ID's who are present in a given service group.
+    pub fn get_electorate(&self, key: &str) -> Vec<String> {
+        let mut electorate = vec![];
+        self.service_store.with_rumors(key, |s| {
+            if self.member_list
+                .check_health_of_by_id(s.get_member_id(), Health::Alive) {
+                electorate.push(String::from(s.get_member_id()));
+            }
+        });
+        electorate
+    }
+
+    /// Check if a given service group has quorum to run an election.
+    ///
+    /// A given group has quorum if, from this servers perspective, it has an alive population that
+    /// is over 50%, and at least 3 members.
+    pub fn check_quorum(&self, key: &str) -> bool {
+        let electorate = self.get_electorate(key);
+
+        let total_population = self.service_store.len_for_key(key);
+        let alive_population = electorate.len();
+
+        if total_population < 3 {
+            info!("Quorum size: {}/3 - election cannot complete",
+                  total_population);
+            return false;
+        }
+
+        if total_population % 2 == 0 {
+            warn!("This census has an even population. If half the membership fails, quorum will \
+                   never be met, and no leader will be elected. Add another instance to the \
+                   service group!");
+        }
+
+        alive_population >= ((total_population / 2) + 1)
+    }
+
+    /// Start an election for the given service group, declaring this members suitability and the
+    /// term for the election.
+    pub fn start_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
+        let mut e = Election::new(self.member_id(), sg, suitability);
+        e.set_term(term);
+        let ek = RumorKey::from(&e);
+        if !self.check_quorum(e.key()) {
+            e.no_quorum();
+        }
+        self.election_store
+            .insert(e);
+        self.rumor_list.insert(ek);
+    }
+
+    /// Check to see if this server needs to restart a given election. This happens when:
+    ///
+    /// a) We are the leader, and we have lost quorum with the rest of the group.
+    /// b) We are not the leader, and we have detected that the leader is confirmed dead.
+    pub fn restart_elections(&self) {
+        let mut elections_to_restart = vec![];
+        self.election_store.with_keys(|(service_group, rumors)| {
+            if self.service_store.contains_rumor(&service_group, self.member_id()) {
+                // This is safe; there is only one id for an election, and it is "election"
+                let election = rumors.get("election")
+                    .expect("Lost an election struct between looking it up and reading it.");
+                // If we are finished, and the leader is dead, we should restart the election
+                if election.get_member_id() == self.member_id() {
+                    // If we are the leader, and we have lost quorum, we should restart the election
+                    if self.check_quorum(election.key()) == false {
+                        warn!("Restarting election with a new term as the leader has lost quorum: {:?}", election);
+                        elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+
+                    }
+                } else if election.get_status() == Election_Status::Finished {
+                    if self.member_list
+                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
+                            warn!("Restarting election with a new term as the leader is dead {}: {:?}", self.member_id(), election);
+                            elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+                    }
                 }
             }
-            // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-            // of just how the logic goes. The value of the trace is really high, though, so we suck it
-            // for now.
-            let trace_member_id = String::from(member.get_id());
-            let trace_incarnation = member.get_incarnation();
-            let trace_health = health.clone();
+        });
+        for (service_group, old_term) in elections_to_restart {
+            let sg = match ServiceGroup::from_str(&service_group) {
+                Ok(sg) => sg,
+                Err(e) => {
+                    error!("Failed to process service group from string '{}': {}",
+                           service_group,
+                           e);
+                    return;
+                }
+            };
+            let term = old_term + 1;
+            warn!("Starting a new election for {} {}", sg, term);
+            self.election_store.remove(&service_group, "election");
+            self.start_election(sg, 0, term);
+        }
+    }
 
-            if self.member_list.insert(member, health) || incremented_incarnation {
-                trace_it!(MEMBERSHIP: self,
-                          TraceKind::MemberUpdate,
-                          trace_member_id,
-                          trace_incarnation,
-                          trace_health);
-                self.rumor_list.insert(rk);
+    /// Insert an election into the election store. Handles creating a new election rumor for this
+    /// member on receipt of an election rumor for a service this server cares about. Also handles
+    /// stopping the election if we are the winner and we have enough votes.
+    pub fn insert_election(&self, mut election: Election) {
+        let rk = RumorKey::from(&election);
+
+        // If this is an election for a service group we care about
+        if self.service_store.contains_rumor(election.get_service_group(), self.member_id()) {
+            // And the election store already has an election rumor for this election
+            if self.election_store.contains_rumor(election.key(), election.id()) {
+                let mut new_term = false;
+                self.election_store.with_rumor(election.key(), election.id(), |ce| {
+                    new_term = election.get_term() > ce.unwrap().get_term()
+                });
+                if new_term {
+                    self.election_store.remove(election.key(), election.id());
+                    let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                        Ok(sg) => sg,
+                        Err(e) => {
+                            error!("Election malformed; cannot parse service group: {}", e);
+                            return;
+                        }
+                    };
+                    self.start_election(sg, 0, election.get_term());
+                }
+                // If we are the member that this election is voting for, then check to see if the election
+                // is over! If it is, mark this election as final before you process it.
+                if self.member_id() == election.get_member_id() {
+                    if self.check_quorum(election.key()) {
+                        let electorate = self.get_electorate(election.key());
+                        let mut num_votes = 0;
+                        for vote in election.get_votes().iter() {
+                            if electorate.contains(vote) {
+                                num_votes += 1;
+                            }
+                        }
+                        if num_votes == electorate.len() {
+                            debug!("Election is finished: {:#?}", election);
+                            election.finish();
+                        } else {
+                            debug!("I have quorum, but election is not finished {}/{}",
+                                   num_votes,
+                                   electorate.len());
+                        }
+                    } else {
+                        election.no_quorum();
+                        warn!("Election lacks quorum: {:#?}", election);
+                    }
+                }
+            } else {
+                // Otherwise, we need to create a new election object for ourselves prior to
+                // merging.
+                let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                    Ok(sg) => sg,
+                    Err(e) => {
+                        error!("Election malformed; cannot parse service group: {}", e);
+                        return;
+                    }
+                };
+                self.start_election(sg, 0, election.get_term());
             }
+            if !election.is_finished() {
+                let has_quorum = self.check_quorum(election.key());
+                if has_quorum {
+                    election.running();
+                } else {
+                    election.no_quorum();
+                }
+            }
+        }
+        if self.election_store.insert(election) {
+            self.rumor_list.insert(rk);
         }
     }
 }

@@ -22,6 +22,7 @@ use std::time::Duration;
 
 use time::SteadyTime;
 
+use message::swim::Rumor_Type;
 use member::Health;
 use rumor::RumorKey;
 use server::Server;
@@ -60,7 +61,7 @@ impl<'a> Expire<'a> {
             });
             for mid in expired_list.iter() {
                 self.server.member_list.expire(mid);
-                self.server.rumor_list.insert(RumorKey::new("member", mid.clone()));
+                self.server.rumor_list.insert(RumorKey::new(Rumor_Type::Member, mid.clone(), ""));
             }
             thread::sleep(Duration::from_millis(500));
         }

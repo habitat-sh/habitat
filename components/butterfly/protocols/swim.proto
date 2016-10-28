@@ -31,6 +31,27 @@ message Membership {
   optional Health health = 2;
 }
 
+message Election {
+  enum Status { Running = 1; NoQuorum = 2; Finished = 3; };
+
+  optional string member_id = 1;
+  optional string service_group = 2;
+  optional uint64 term = 3;
+  optional uint64 suitability = 4;
+  optional Status status = 5;
+  repeated string votes = 6;
+}
+
+message Service {
+  optional string member_id = 1;
+  optional string service_group = 2;
+  optional uint64 incarnation = 3;
+  optional string ip = 4;
+  optional string hostname = 5;
+  optional uint32 port = 6;
+  repeated uint32 exposes = 7;
+}
+
 message Swim {
   enum Type { PING = 1; ACK = 2; PINGREQ = 3; };
 
@@ -47,13 +68,19 @@ message Swim {
 message Rumor {
   enum Type {
     Member = 1;
+    Service = 2;
+    Election = 3;
+    Fake = 4;
+    Fake2 = 5;
   }
 
   required Type type = 1;
   repeated string tag = 2;
   optional string from_id = 3;
-  optional string from_address = 4;
 
   // Everything else must be optional
-  optional Membership member = 5;
+  optional Membership member = 4;
+  optional Service service = 5;
+  optional Election election = 6;
 }
+

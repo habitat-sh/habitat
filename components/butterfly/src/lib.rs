@@ -40,6 +40,7 @@
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
+extern crate habitat_core;
 extern crate habitat_net;
 #[macro_use]
 extern crate log;
@@ -51,8 +52,11 @@ extern crate zmq;
 
 #[macro_use]
 pub mod trace;
-mod error;
+
+pub mod error;
 pub mod member;
-mod message;
-pub mod server;
+pub mod message;
 pub mod rumor;
+pub mod server;
+pub mod service;
+pub mod election;

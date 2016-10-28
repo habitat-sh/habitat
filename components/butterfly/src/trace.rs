@@ -328,7 +328,7 @@ macro_rules! trace_it {
             }
         }
     };
-    (GOSSIP: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr, $payload:expr) => {
+    (GOSSIP: $server:expr, $msg_type:expr, $to_member_id:expr, $payload:expr) => {
         {
             let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
             if trace_on {
@@ -339,12 +339,13 @@ macro_rules! trace_it {
                 let thread = thread::current();
                 let thread_name = thread.name().unwrap_or("undefined");
                 let listening = format!("{}", $server.gossip_addr());
-                let to_addr = format!("{}", $to_addr);
                 let member_id = $server.member_id();
                 let server_name = $server.name();
                 let rp = match $payload.get_field_type() {
                     Rumor_Type::Member => format!("{}-{}-{:?}", $payload.get_member().get_member().get_id(), $payload.get_member().get_member().get_incarnation(), $payload.get_member().get_health()),
-// _ => format!("{}", member.get_id())
+                    Rumor_Type::Service => format!("{}-{}-{}", $payload.get_service().get_member_id(), $payload.get_service().get_service_group(), $payload.get_service().get_incarnation()),
+                    Rumor_Type::Election => format!("{}-{}-{}-{}-{:?}-{:?}", $payload.get_election().get_member_id(), $payload.get_election().get_service_group(), $payload.get_election().get_term(), $payload.get_election().get_suitability(), $payload.get_election().get_status(), $payload.get_election().get_votes()),
+                    Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
                 };
 
                 let mut tw = TraceWrite::new($msg_type, module_path!(), line!(), thread_name);
@@ -352,7 +353,6 @@ macro_rules! trace_it {
                 tw.member_id = Some(member_id);
                 tw.to_member_id = Some($to_member_id);
                 tw.listening = Some(&listening);
-                tw.to_addr = Some(&to_addr);
                 tw.swim = None;
                 tw.rumor = Some(&rp);
                 trace.write(tw);

@@ -28,6 +28,9 @@ features = ["rustc-serialize", "v4"]
 [dependencies.habitat_net]
 path = "../net"
 
+[dependencies.habitat_core]
+path = "../core"
+
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq.git"
 

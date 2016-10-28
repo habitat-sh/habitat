@@ -75,14 +75,21 @@ impl<'a> Pull<'a> {
                       proto.get_from_id());
                 continue 'recv;
             }
-            trace_it!(GOSSIP: &self.server, TraceKind::RecvRumor, proto.get_from_id(), proto.get_from_address(), &proto);
+            trace_it!(GOSSIP: &self.server, TraceKind::RecvRumor, proto.get_from_id(), &proto);
             match proto.get_field_type() {
                 Rumor_Type::Member => {
                     let member = proto.mut_member().take_member().into();
                     let health = proto.mut_member().get_health().into();
-                    let members = vec![(member, health)];
-                    self.server.insert_from_rumors(members);
+                    self.server.insert_member_from_rumor(member, health);
                 }
+                Rumor_Type::Service => {
+                    self.server.insert_service(proto.into());
+                }
+                Rumor_Type::Election => {
+                    self.server.insert_election(proto.into());
+                }
+                Rumor_Type::Fake |
+                Rumor_Type::Fake2 => debug!("Nothing to do for fake rumor types"),
             }
         }
     }

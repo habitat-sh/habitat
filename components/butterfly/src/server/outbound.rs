@@ -26,7 +26,7 @@ use std::fmt;
 use time::SteadyTime;
 use protobuf::{Message, RepeatedField};
 
-use message::swim::{Ack, Ping, PingReq, Swim, Swim_Type};
+use message::swim::{Ack, Ping, PingReq, Swim, Swim_Type, Rumor_Type};
 use server::Server;
 use server::timing::Timing;
 use member::{Member, Health};
@@ -94,7 +94,7 @@ impl<'a> Outbound<'a> {
                 continue;
             }
 
-            self.server.update_round();
+            self.server.update_swim_round();
 
             let check_list = self.server
                 .member_list
@@ -217,12 +217,24 @@ impl<'a> Outbound<'a> {
 
 /// Populate a SWIM message with rumors.
 pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut Swim) {
-    let rumors = server.rumor_list.take_by_kind(target.get_id(), 6, "member");
     let mut membership_entries = RepeatedField::new();
-    for &(ref rkey, _heat) in rumors.iter() {
-        membership_entries.push(server.member_list.membership_for(&rkey.key));
+    // If this isn't the first time we are communicating with this target, we want to include this
+    // targets current status. This ensures that members always get a "Confirmed" rumor, before we
+    // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
+    if server.member_list.contains_member(target.get_id()) {
+        let always_target = server.member_list.membership_for(target.get_id());
+        membership_entries.push(always_target);
     }
-    server.rumor_list.update_heat(target.get_id(), &rumors);
+    let rumors = server.rumor_list.take_by_kind(target.get_id(), 5, Rumor_Type::Member);
+    for &(ref rkey, _heat) in rumors.iter() {
+        membership_entries.push(server.member_list.membership_for(&rkey.key()));
+    }
+    // We don't want to update the heat for rumors that we know we are sending to a target that is
+    // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
+    // rumors.
+    if !server.member_list.persistent_and_confirmed(target) {
+        server.rumor_list.update_heat(target.get_id(), &rumors);
+    }
     swim.set_membership(membership_entries);
 }
 
