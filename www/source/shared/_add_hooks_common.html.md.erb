@@ -1,4 +1,4 @@
-Now that you have copied over the correct files into the correct build-time location, you must copy them over into the correct runtime location and start the `npm` binary. To do that, we are going to use hooks, which are scripts that respond to specific events during the lifecycle of a running service.
+Now that you have copied over the correct files into the correct build-time location, you must copy them over into the correct runtime location and start the `node` binary. To do that, we are going to use hooks, which are scripts that respond to specific events during the lifecycle of a running service.
 
 The `init` and `run` hooks are responsible for defining behavior during initialization and when the child service/application starts up. We use these hooks to ensure our Node.js application runs correctly.
 
@@ -28,17 +28,17 @@ Perform the following operations in the same directory where the `plan.sh` file 
     This will symlink the files from the location where the package is installed to the directory used when the service starts.
 
 5. Save the `init` file and open the `run` hook file.
-6. The `run` hook is where we are actually going to start our Node.js application, so add the shebang, change to the service directory to make sure the `npm` binary starts in it, and then run `npm start`.
+6. The `run` hook is where we are actually going to start our Node.js application, so add the shebang, change to the service directory to make sure the `node` binary starts in it, and then run `node server.js`.
 
        #!/bin/sh
        #
        cd {{pkg.svc_var_path}}
 
        # `exec` makes it so the process that the Habitat supervisor uses is
-       # `npm start`, rather than the run hook itself. `2>&1` makes it so both
+       # `node server.js`, rather than the run hook itself. `2>&1` makes it so both
        # standard output and standard error go to the standard output stream,
        # so all the logs from the application go to the same place.
-       exec npm start 2>&1
+       exec node server.js 2>&1
 
 7. Save the `run` hook file.
 
