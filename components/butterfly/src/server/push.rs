@@ -189,6 +189,20 @@ impl PushWorker {
                         }
                     }
                 }
+                ProtoRumor_Type::ServiceConfig => {
+                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    match self.server
+                        .service_config_store
+                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!("Could not write our own rumor to bytes; abandoning \
+                                            sending rumor: {:?}",
+                                     e);
+                            continue 'rumorlist;
+                        }
+                    }
+                }
                 ProtoRumor_Type::Election => {
                     // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
                     match self.server
@@ -208,7 +222,14 @@ impl PushWorker {
                     continue 'rumorlist;
                 }
             };
-            match socket.send(&rumor_as_bytes[..], 0) {
+            let payload = match self.server.generate_wire(rumor_as_bytes) {
+                Ok(payload) => payload,
+                Err(e) => {
+                    error!("Generating protobuf failed: {}", e);
+                    continue 'rumorlist;
+                }
+            };
+            match socket.send(&payload, 0) {
                 Ok(()) => debug!("Sent rumor {:?} to {:?}", rumor_key, member),
                 Err(e) => println!("Could not send rumor to {:?}; ZMQ said: {:?}", member, e),
             }

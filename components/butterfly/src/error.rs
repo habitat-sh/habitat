@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use habitat_core;
+
 use protobuf;
 
+use std::io;
+use std::string::FromUtf8Error;
 use std::error;
 use std::fmt;
-use std::io;
 use std::result;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -25,8 +28,10 @@ pub type Result<T> = result::Result<T, Error>;
 pub enum Error {
     BadMessage(String),
     CannotBind(io::Error),
+    HabitatCore(habitat_core::error::Error),
     NonExistentRumor(String, String),
     ProtobufError(protobuf::ProtobufError),
+    ServiceConfigNotUtf8(FromUtf8Error),
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
     SocketCloneError,
@@ -37,12 +42,17 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::BadMessage(ref err) => format!("Bad Message: {:?}", err),
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
+            Error::HabitatCore(ref err) => format!("{}", err),
             Error::NonExistentRumor(ref member_id, ref rumor_id) => {
                 format!("Non existent rumor asked to be written to bytes: {} {}",
                         member_id,
                         rumor_id)
             }
             Error::ProtobufError(ref err) => format!("ProtoBuf Error: {}", err),
+            Error::ServiceConfigNotUtf8(ref err) => {
+                format!("Cannot decode service configuration; it is not UTF-8: {}",
+                        err)
+            }
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
             }
@@ -60,10 +70,12 @@ impl error::Error for Error {
         match *self {
             Error::BadMessage(ref _err) => "Bad Protobuf Message; should be Ping/Ack/PingReq",
             Error::CannotBind(ref _err) => "Cannot bind to port",
+            Error::HabitatCore(ref _err) => "Habitat core error",
             Error::NonExistentRumor(ref _member_id, ref _rumor_id) => {
                 "Cannot write rumor to bytes because it does not exist"
             }
             Error::ProtobufError(ref err) => err.description(),
+            Error::ServiceConfigNotUtf8(ref _err) => "Cannot convert a service config to UTF-8",
             Error::SocketSetReadTimeout(ref _err) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(ref _err) => "Cannot set UDP socket write timeout",
             Error::SocketCloneError => "Cannot clone the underlying UDP socket",
@@ -74,5 +86,11 @@ impl error::Error for Error {
 impl From<protobuf::ProtobufError> for Error {
     fn from(err: protobuf::ProtobufError) -> Error {
         Error::ProtobufError(err)
+    }
+}
+
+impl From<habitat_core::error::Error> for Error {
+    fn from(err: habitat_core::error::Error) -> Error {
+        Error::HabitatCore(err)
     }
 }

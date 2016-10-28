@@ -52,6 +52,14 @@ message Service {
   repeated uint32 exposes = 7;
 }
 
+message ServiceConfig {
+  optional string member_id = 1;
+  optional string service_group = 2;
+  optional uint64 incarnation = 3;
+  optional bool encrypted = 4;
+  optional bytes config = 5;
+}
+
 message Swim {
   enum Type { PING = 1; ACK = 2; PINGREQ = 3; };
 
@@ -70,8 +78,9 @@ message Rumor {
     Member = 1;
     Service = 2;
     Election = 3;
-    Fake = 4;
-    Fake2 = 5;
+    ServiceConfig = 4;
+    Fake = 5;
+    Fake2 = 6;
   }
 
   required Type type = 1;
@@ -81,6 +90,12 @@ message Rumor {
   // Everything else must be optional
   optional Membership member = 4;
   optional Service service = 5;
-  optional Election election = 6;
+  optional ServiceConfig service_config = 6;
+  optional Election election = 7;
 }
 
+message Wire {
+  optional bool encrypted = 1;
+  optional bytes nonce = 2;
+  optional bytes payload = 3;
+}

@@ -23,6 +23,7 @@ use habitat_butterfly::server::Server;
 use habitat_butterfly::member::{Member, Health};
 use habitat_butterfly::server::timing::Timing;
 use habitat_butterfly::service::Service;
+use habitat_butterfly::service_config::ServiceConfig;
 use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
 
@@ -363,6 +364,15 @@ impl SwimNet {
                              vec![4040, 4041, 4042]);
         self[member].insert_service(s);
     }
+
+    pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
+        let config_bytes: Vec<u8> = Vec::from(config);
+        let s = ServiceConfig::new(self[member].member_id(),
+                                   ServiceGroup::new(service, "prod", None),
+                                   config_bytes);
+        self[member].insert_service_config(s);
+    }
+
 
     pub fn add_election(&mut self, member: usize, service: &str, suitability: u64) {
         self[member].start_election(ServiceGroup::new(service, "prod", None), suitability, 0);

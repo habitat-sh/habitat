@@ -36,14 +36,17 @@ use std::time::Duration;
 use std::thread;
 
 use habitat_core::service::ServiceGroup;
+use habitat_core::crypto::SymKey;
 
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
 use trace::{Trace, TraceKind};
 use rumor::{Rumor, RumorStore, RumorList, RumorKey};
 use service::Service;
+use service_config::ServiceConfig;
 use election::Election;
-use message::swim::Election_Status;
+use message::swim::{Wire as ProtoWire, Election_Status};
+use protobuf::{self, Message};
 
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
@@ -52,8 +55,10 @@ pub struct Server {
     pub member_id: Arc<String>,
     pub member: Arc<RwLock<Member>>,
     pub member_list: MemberList,
+    pub ring_key: Arc<Option<SymKey>>,
     pub rumor_list: RumorList,
     pub service_store: RumorStore<Service>,
+    pub service_config_store: RumorStore<ServiceConfig>,
     pub election_store: RumorStore<Election>,
     pub swim_addr: Arc<RwLock<SocketAddr>>,
     pub gossip_addr: Arc<RwLock<SocketAddr>>,
@@ -87,8 +92,10 @@ impl Server {
             member_id: Arc::new(String::from(member.get_id())),
             member: Arc::new(RwLock::new(member)),
             member_list: MemberList::new(),
+            ring_key: Arc::new(None),
             rumor_list: RumorList::default(),
             service_store: RumorStore::default(),
+            service_config_store: RumorStore::default(),
             election_store: RumorStore::default(),
             swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
             gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
@@ -363,6 +370,14 @@ impl Server {
         }
     }
 
+    /// Insert a service config rumor into the service store.
+    pub fn insert_service_config(&self, service_config: ServiceConfig) {
+        let rk = RumorKey::from(&service_config);
+        if self.service_config_store.insert(service_config) {
+            self.rumor_list.insert(rk);
+        }
+    }
+
     /// Get all the Member ID's who are present in a given service group.
     pub fn get_electorate(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
@@ -531,6 +546,28 @@ impl Server {
         }
         if self.election_store.insert(election) {
             self.rumor_list.insert(rk);
+        }
+    }
+
+    fn generate_wire(&self, payload: Vec<u8>) -> Result<Vec<u8>> {
+        let mut wire = ProtoWire::new();
+        if let Some(ref ring_key) = *self.ring_key {
+            wire.set_encrypted(true);
+            let (nonce, encrypted_payload) = try!(ring_key.encrypt(&payload));
+            wire.set_nonce(nonce);
+            wire.set_payload(encrypted_payload);
+        } else {
+            wire.set_payload(payload);
+        }
+        Ok(try!(wire.write_to_bytes()))
+    }
+
+    fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
+        let mut wire: ProtoWire = try!(protobuf::parse_from_bytes(payload));
+        if let Some(ref ring_key) = *self.ring_key {
+            Ok(try!(ring_key.decrypt(wire.get_nonce(), wire.get_payload())))
+        } else {
+            Ok(wire.take_payload())
         }
     }
 }

@@ -344,6 +344,11 @@ macro_rules! trace_it {
                 let rp = match $payload.get_field_type() {
                     Rumor_Type::Member => format!("{}-{}-{:?}", $payload.get_member().get_member().get_id(), $payload.get_member().get_member().get_incarnation(), $payload.get_member().get_health()),
                     Rumor_Type::Service => format!("{}-{}-{}", $payload.get_service().get_member_id(), $payload.get_service().get_service_group(), $payload.get_service().get_incarnation()),
+                    Rumor_Type::ServiceConfig => format!("{}-{}-{}-{}",
+                                                         $payload.get_service_config().get_member_id(),
+                                                         $payload.get_service_config().get_service_group(),
+                                                         $payload.get_service_config().get_incarnation(),
+                                                         $payload.get_service_config().get_encrypted()),
                     Rumor_Type::Election => format!("{}-{}-{}-{}-{:?}-{:?}", $payload.get_election().get_member_id(), $payload.get_election().get_service_group(), $payload.get_election().get_term(), $payload.get_election().get_suitability(), $payload.get_election().get_status(), $payload.get_election().get_votes()),
                     Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
                 };
