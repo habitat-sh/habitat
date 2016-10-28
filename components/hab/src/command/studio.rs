@@ -151,6 +151,7 @@ mod inner {
     const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
     const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
+    const DOCKER_OPS: &'static str = "HAB_DOCKER_OPS";
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
@@ -214,6 +215,12 @@ mod inner {
             .into());
         cmd_args.push("--volume".into());
         cmd_args.push(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()).into());
+
+        if let Ok(ops) = henv::var(DOCKER_OPS) {
+            let ops = ops.split(" ").map(|v| v.into()).collect::<Vec<_>>();
+            cmd_args.extend_from_slice(ops.as_slice());
+        }
+
         cmd_args.push(image_identifier().into());
         cmd_args.extend_from_slice(args.as_slice());
 
@@ -226,6 +233,7 @@ mod inner {
             }
         }
 
+        debug!("Docker arguments = {:?}", cmd_args);
         Ok(try!(process::become_command(cmd, cmd_args)))
     }
 
