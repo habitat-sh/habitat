@@ -2,7 +2,6 @@ UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
 	IN_DOCKER := true
 endif
-
 ifneq ($(IN_DOCKER),)
 	build_args := --build-arg HAB_DEPOT_URL=$(HAB_DEPOT_URL)
 	run_args := -e HAB_DEPOT_URL=$(HAB_DEPOT_URL)
@@ -15,7 +14,6 @@ ifneq ($(IN_DOCKER),)
 		build_args := $(build_args) --build-arg https_proxy="${https_proxy}"
 		run_args := $(run_args) -e https_proxy="${https_proxy}"
 	endif
-
 	dimage := habitat/devshell
 	docker_cmd := env http_proxy= https_proxy= docker
 	compose_cmd := env http_proxy= https_proxy= docker-compose
@@ -32,7 +30,6 @@ ifneq ($(DOCKER_HOST),)
 else
 	docs_host := 127.0.0.1
 endif
-
 BIN = director hab sup
 LIB = builder-dbcache builder-protocol common core builder-depot-client http-client net butterfly
 SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-vault builder-worker
