@@ -151,7 +151,7 @@ mod inner {
     const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
     const DOCKER_IMAGE: &'static str = "habitat-docker-registry.bintray.io/studio";
     const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
-    const DOCKER_OPS: &'static str = "HAB_DOCKER_OPS";
+    const DOCKER_OPTS: &'static str = "HAB_DOCKER_OPTS";
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let docker = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
@@ -197,13 +197,13 @@ mod inner {
 
         // All the args already placed in `cmd_args` are things that we don't want to insert again.
         // Later args such as `--env` will overwrite any options (potentially) set mistakenly here.
-        if let Ok(ops) = henv::var(DOCKER_OPS) {
+        if let Ok(ops) = henv::var(DOCKER_OPTS) {
             let ops = ops.split(" ")
                 .map(|v| v.into())
                 // Ensure we're not passing something like `--tty` again here.
                 .filter(|v| !cmd_args.contains(v))
                 .collect::<Vec<_>>();
-            debug!("Docker ops originating from DOCKER_OPS = {:?}", ops);
+            debug!("Docker ops originating from DOCKER_OPTS = {:?}", ops);
             cmd_args.extend_from_slice(ops.as_slice());
         }
 
