@@ -162,6 +162,10 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["ha", "has"])
                 (@arg SOURCE: +required {file_exists} "A filepath of the target")
             )
+            (@subcommand initialize =>
+                (about: "Generates common package specific configuration files")
+                (aliases: &["init"])
+            )
             (subcommand: sub_pkg_install().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
             (@subcommand path =>
