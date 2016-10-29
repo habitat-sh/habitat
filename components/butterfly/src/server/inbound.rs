@@ -59,7 +59,17 @@ impl<'a> Inbound<'a> {
             }
             match self.socket.recv_from(&mut recv_buffer[..]) {
                 Ok((length, addr)) => {
-                    let msg: Swim = match protobuf::parse_from_bytes(&recv_buffer[0..length]) {
+                    let swim_payload = match self.server.unwrap_wire(&recv_buffer[0..length]) {
+                        Ok(swim_payload) => swim_payload,
+                        Err(e) => {
+                            // NOTE: In the future, we might want to blacklist people who send us
+                            // garbage all the time.
+                            error!("Error parsing protobuf: {:?}", e);
+                            continue;
+                        }
+                    };
+
+                    let msg: Swim = match protobuf::parse_from_bytes(&swim_payload) {
                         Ok(msg) => msg,
                         Err(e) => {
                             // NOTE: In the future, we might want to blacklist people who send us

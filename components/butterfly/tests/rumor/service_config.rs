@@ -12,6 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod service;
-pub mod service_config;
-pub mod election;
+
+use common;
+
+#[test]
+fn two_members_share_service_config() {
+    let mut net = common::net::SwimNet::new(2);
+    net.mesh();
+    net.add_service_config(0, "witcher", "tcp-backlog = 128");
+    net.wait_for_gossip_rounds(1);
+    net[1].service_config_store.with_rumor("witcher.prod", "config", |u| assert!(u.is_some()));
+}

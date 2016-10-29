@@ -59,4 +59,5 @@ pub mod message;
 pub mod rumor;
 pub mod server;
 pub mod service;
+pub mod service_config;
 pub mod election;

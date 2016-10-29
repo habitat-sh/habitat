@@ -251,7 +251,21 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
     pingreq.set_target(target.proto.clone());
     swim.set_pingreq(pingreq);
     populate_membership_rumors(server, target, &mut swim);
-    match socket.send_to(&swim.write_to_bytes().unwrap(), addr) {
+    let bytes = match swim.write_to_bytes() {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+    let payload = match server.generate_wire(bytes) {
+        Ok(payload) => payload,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+    match socket.send_to(&payload, addr) {
         Ok(_s) => {
             info!("Sent PingReq to {}@{} for {}@{}",
                   pingreq_target.get_id(),
@@ -295,7 +309,22 @@ pub fn ping(server: &Server,
     swim.set_ping(ping);
     populate_membership_rumors(server, target, &mut swim);
 
-    match socket.send_to(&swim.write_to_bytes().unwrap(), addr) {
+    let bytes = match swim.write_to_bytes() {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+    let payload = match server.generate_wire(bytes) {
+        Ok(payload) => payload,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+
+    match socket.send_to(&payload, addr) {
         Ok(_s) => {
             if forward_to.is_some() {
                 info!("Sent Ping to {} on behalf of {}@{}",
@@ -322,7 +351,23 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, swim: 
               swim.get_ack().get_from().get_id(),
               addr,
               &swim);
-    match socket.send_to(&swim.write_to_bytes().unwrap(), addr) {
+
+    let bytes = match swim.write_to_bytes() {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+    let payload = match server.generate_wire(bytes) {
+        Ok(payload) => payload,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+
+    match socket.send_to(&payload, addr) {
         Ok(_s) => {
             info!("Forwarded ack to {}@{}",
                   swim.get_ack().get_from().get_id(),
@@ -356,7 +401,23 @@ pub fn ack(server: &Server,
     }
     swim.set_ack(ack);
     populate_membership_rumors(server, target, &mut swim);
-    match socket.send_to(&swim.write_to_bytes().unwrap(), addr) {
+
+    let bytes = match swim.write_to_bytes() {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+    let payload = match server.generate_wire(bytes) {
+        Ok(payload) => payload,
+        Err(e) => {
+            error!("Generating protobuf failed: {}", e);
+            return;
+        }
+    };
+
+    match socket.send_to(&payload, addr) {
         Ok(_s) => {
             info!("Sent ack to {}@{}",
                   swim.get_ack().get_from().get_id(),

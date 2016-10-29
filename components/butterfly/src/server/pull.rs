@@ -63,7 +63,16 @@ impl<'a> Pull<'a> {
                     continue 'recv;
                 }
             };
-            let mut proto: Rumor = match protobuf::parse_from_bytes(&msg) {
+            let payload = match self.server.unwrap_wire(&msg) {
+                Ok(payload) => payload,
+                Err(e) => {
+                    // NOTE: In the future, we might want to blacklist people who send us
+                    // garbage all the time.
+                    error!("Error parsing protobuf: {:?}", e);
+                    continue;
+                }
+            };
+            let mut proto: Rumor = match protobuf::parse_from_bytes(&payload) {
                 Ok(proto) => proto,
                 Err(e) => {
                     error!("Error parsing protobuf: {:?}", e);
@@ -84,6 +93,9 @@ impl<'a> Pull<'a> {
                 }
                 Rumor_Type::Service => {
                     self.server.insert_service(proto.into());
+                }
+                Rumor_Type::ServiceConfig => {
+                    self.server.insert_service_config(proto.into());
                 }
                 Rumor_Type::Election => {
                     self.server.insert_election(proto.into());
