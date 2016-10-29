@@ -375,11 +375,17 @@ pub mod search {
             0 => println!("No packages found that match '{}'", st),
             _ => {
                 for p in &packages {
-                    println!("{}/{}/{}/{}",
-                             p.origin,
-                             p.name,
-                             p.version.clone().unwrap(),
-                             p.release.clone().unwrap());
+                    if let (&Some(ref version), &Some(ref release)) = (&p.version, &p.release) {
+                        println!("{}/{}/{}/{}",
+                                 p.origin,
+                                 p.name,
+                                 version,
+                                 release);
+                    } else {
+                        println!("{}/{}",
+                                 p.origin,
+                                 p.name);
+                    }
                 }
                 if more {
                     println!("Search returned too many items, only showing the first {}",
