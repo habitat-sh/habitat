@@ -436,7 +436,7 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
 fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Path::new(&fs_root);
-    // FILE is requied, should be safe to unwrap
+    // FILE is required, should be safe to unwrap
     let filename = m.value_of("FILE").unwrap();
 
     let full_releases = m.is_present("FULL_RELEASES");
