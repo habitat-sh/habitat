@@ -35,18 +35,18 @@ pub mod create {
         // Build out the variables passed.
         let handlebars = Handlebars::new();
         let mut data = HashMap::new();
-        data.insert("pkg_name".to_string(), name);
-        data.insert("pkg_origin".to_string(), origin);
+        data.insert("pkg_name".to_string(), name.clone());
+        data.insert("pkg_origin".to_string(), origin.clone());
 
         // Unlike hooks we want to render the configured variables to the `plan.sh`
         let rendered_plan = try!(handlebars.template_render(PLAN_TEMPLATE, &data));
-        try!(create_with_template(ui, "habitat/plan.sh", &rendered_plan));
+        try!(create_with_template(ui, &format!("{}/plan.sh", name), &rendered_plan));
         try!(ui.para("The `plan.sh` is the foundation of your new habitat. You can \
             define core metadata, dependencies, and tasks. More documentation here: \
             https://www.habitat.sh/docs/reference/plan-syntax/"));
 
-        try!(create_with_template(ui, "habitat/hooks/init", INIT_HOOK_TEMPLATE));
-        try!(create_with_template(ui, "habitat/hooks/run", RUN_HOOK_TEMPLATE));
+        try!(create_with_template(ui, &format!("{}/hooks/init", name), INIT_HOOK_TEMPLATE));
+        try!(create_with_template(ui, &format!("{}/hooks/run", name), RUN_HOOK_TEMPLATE));
         try!(ui.para("The `hooks` directory is where you can create a number of automation hooks \
             into your habitat. We'll make an `init` and a `run` hook to get you started, but there \
             are more hooks to create and tweak! See the full list with info here: \
