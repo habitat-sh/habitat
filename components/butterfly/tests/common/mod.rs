@@ -21,10 +21,11 @@ use habitat_butterfly::server::Server;
 use habitat_butterfly::member::Member;
 use habitat_butterfly::trace::Trace;
 use habitat_butterfly::server::timing::Timing;
+use habitat_core::crypto::keys::sym_key::SymKey;
 
 static SERVER_PORT: AtomicUsize = ATOMIC_USIZE_INIT;
 
-pub fn start_server(name: &str) -> Server {
+pub fn start_server(name: &str, ring_key: Option<SymKey>) -> Server {
     SERVER_PORT.compare_and_swap(0, 6666, Ordering::Relaxed);
     let swim_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
     let gossip_port = SERVER_PORT.fetch_add(1, Ordering::Relaxed);
@@ -37,6 +38,7 @@ pub fn start_server(name: &str) -> Server {
                              &listen_gossip[..],
                              member,
                              Trace::default(),
+                             ring_key,
                              Some(String::from(name)))
         .unwrap();
     server.start(Timing::default()).expect("Cannot start server");
