@@ -222,11 +222,11 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to plans and other app-specific configuration.")
             (aliases: &["pl", "pla"])
             (@setting ArgRequiredElseHelp)
-            (@subcommand initialize =>
+            (@subcommand create =>
                 (about: "Generates common package specific configuration files")
-                (aliases: &["init"])
+                (aliases: &["c", "cr", "cre", "crea", "creat"])
+                (@arg PKG_NAME: +required +takes_value "Name for the new app")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
-                (@arg NAME: --name -n +takes_value "Name for the new app")
             )
         )
         (@subcommand ring =>

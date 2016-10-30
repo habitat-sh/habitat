@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod initialize {
+pub mod create {
     use std::fs::create_dir_all;
     use std::fs::File;
     use std::io::Write;
@@ -24,8 +24,8 @@ pub mod initialize {
     use common::ui::{UI, Status};
     use error::Result;
 
-    const PLAN_TEMPLATE: &'static str = "plan {{origin}}/{{name}}";
-    const RUN_HOOK_TEMPLATE: &'static str = "hook {{origin}}/{{name}}";
+    const PLAN_TEMPLATE: &'static str = "plan {{pkg_origin}}/{{pkg_name}}";
+    const RUN_HOOK_TEMPLATE: &'static str = "hook {{pkg_origin}}/{{pkg_name}}";
 
     pub fn start(ui: &mut UI, origin: String, name: String) -> Result<()> {
         try!(ui.begin("Constructing a cozy habitat for your app..."));
@@ -34,8 +34,8 @@ pub mod initialize {
         // Build out the variables passed.
         let handlebars = Handlebars::new();
         let mut data = HashMap::new();
-        data.insert("name".to_string(), name);
-        data.insert("origin".to_string(), origin);
+        data.insert("pkg_name".to_string(), name);
+        data.insert("pkg_origin".to_string(), origin);
 
         let rendered_plan = try!(handlebars.template_render(PLAN_TEMPLATE, &data));
         try!(create_with_template(ui, "habitat/plan.sh", rendered_plan));
