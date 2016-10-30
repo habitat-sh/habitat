@@ -162,10 +162,6 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["ha", "has"])
                 (@arg SOURCE: +required {file_exists} "A filepath of the target")
             )
-            (@subcommand initialize =>
-                (about: "Generates common package specific configuration files")
-                (aliases: &["init"])
-            )
             (subcommand: sub_pkg_install().aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
             (@subcommand path =>
@@ -220,6 +216,15 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SOURCE: +required {file_exists}
                     "A path to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
+            )
+        )
+        (@subcommand plan =>
+            (about: "Commands relating to plans and other app-specific configuration.")
+            (aliases: &["pl", "pla"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand initialize =>
+                (about: "Generates common package specific configuration files")
+                (aliases: &["init"])
             )
         )
         (@subcommand ring =>

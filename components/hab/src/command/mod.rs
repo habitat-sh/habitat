@@ -16,6 +16,7 @@ pub mod cli;
 pub mod config;
 pub mod file;
 pub mod pkg;
+pub mod plan;
 pub mod origin;
 pub mod ring;
 pub mod service;

@@ -122,7 +122,6 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("export", Some(m)) => try!(sub_pkg_export(ui, m)),
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
-                ("initialize", Some(m)) => try!(sub_pkg_initialize(ui, m)),
                 ("install", Some(m)) => try!(sub_pkg_install(ui, m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
                 ("provides", Some(m)) => try!(sub_pkg_provides(m)),
@@ -131,6 +130,12 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("upload", Some(m)) => try!(sub_pkg_upload(ui, m)),
                 ("verify", Some(m)) => try!(sub_pkg_verify(ui, m)),
                 ("header", Some(m)) => try!(sub_pkg_header(ui, m)),
+                _ => unreachable!(),
+            }
+        }
+        ("plan", Some(matches)) => {
+            match matches.subcommand() {
+                ("initialize", Some(m)) => try!(sub_plan_initialize(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -406,8 +411,8 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     command::pkg::hash::start(&source)
 }
 
-fn sub_pkg_initialize(ui: &mut UI, _m: &ArgMatches) -> Result<()> {
-    command::pkg::initialize::start(ui)
+fn sub_plan_initialize(ui: &mut UI, _m: &ArgMatches) -> Result<()> {
+    command::plan::initialize::start(ui)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
