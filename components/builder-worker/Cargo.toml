@@ -13,6 +13,7 @@ doc = false
 [dependencies]
 env_logger = "*"
 git2 = "*"
+lazy_static = "*"
 log = "*"
 protobuf = "*"
 toml = "*"
@@ -24,11 +25,20 @@ features = [ "suggestions", "color", "unstable" ]
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq.git"
 
+[dependencies.hab]
+path = "../hab"
+
+[dependencies.habitat_common]
+path = "../common"
+
 [dependencies.habitat_core]
 path = "../core"
 
 [dependencies.habitat_net]
 path = "../net"
+
+[dependencies.habitat_depot_client]
+path = "../builder-depot-client"
 
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"

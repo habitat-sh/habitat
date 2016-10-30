@@ -22,6 +22,11 @@ use toml;
 use error::{Error, Result};
 
 pub struct Config {
+    /// Token for authenticating with the public builder-api
+    pub auth_token: String,
+    /// Filepath where peristent application data is stored
+    pub data_path: String,
+    /// List of Job Servers to connect to
     pub job_servers: Vec<BTreeMap<String, String>>,
 }
 
@@ -46,7 +51,11 @@ impl Default for Config {
         jobsrv.insert("ip".to_string(), "127.0.0.1".to_string());
         jobsrv.insert("port".to_string(), "5566".to_string());
         jobsrv.insert("heartbeat".to_string(), "5567".to_string());
-        Config { job_servers: vec![jobsrv] }
+        Config {
+            auth_token: "1234".to_string(),
+            data_path: "/hab/svc/hab-builder-worker/data".to_string(),
+            job_servers: vec![jobsrv],
+        }
     }
 }
 
@@ -55,6 +64,7 @@ impl ConfigFile for Config {
 
     fn from_toml(toml: toml::Value) -> Result<Self> {
         let mut cfg = Config::default();
+        try!(toml.parse_into("cfg.data_path", &mut cfg.data_path));
         try!(toml.parse_into("cfg.job_servers", &mut cfg.job_servers));
         Ok(cfg)
     }

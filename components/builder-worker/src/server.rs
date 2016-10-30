@@ -61,12 +61,10 @@ impl Server {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        let cfg1 = self.config.clone();
-        let heartbeat = try!(HeartbeatMgr::start(cfg1));
-        let runner = try!(RunnerMgr::start());
+        try!(HeartbeatMgr::start(self.config.clone()));
+        try!(RunnerMgr::start(self.config.clone()));
         try!(self.hb_cli.connect());
         try!(self.runner_cli.connect());
-
         {
             let cfg = self.config.read().unwrap();
             for (_, queue) in cfg.jobsrv_addrs() {
@@ -74,7 +72,6 @@ impl Server {
                 try!(self.fe_sock.connect(&queue));
             }
         }
-
         let mut fe_msg = false;
         let mut runner_msg = false;
         loop {
@@ -117,9 +114,6 @@ impl Server {
                 fe_msg = false;
             }
         }
-        heartbeat.join().unwrap();
-        runner.join().unwrap();
-        Ok(())
     }
 
     fn set_busy(&mut self) -> Result<()> {
