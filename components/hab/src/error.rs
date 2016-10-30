@@ -22,6 +22,7 @@ use std::result;
 use depot_client;
 use common;
 use hcore;
+use handlebars;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -40,6 +41,7 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
+    HandlebarsRenderError(handlebars::TemplateRenderError),
     IO(io::Error),
     PackageArchiveMalformed(String),
     PathPrefixError(path::StripPrefixError),
@@ -83,6 +85,7 @@ impl fmt::Display for Error {
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HabitatCommon(ref e) => format!("{}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::HandlebarsRenderError(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
@@ -119,6 +122,7 @@ impl error::Error for Error {
             Error::FileNotFound(_) => "File not found",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
+            Error::HandlebarsRenderError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"
@@ -157,6 +161,12 @@ impl From<ffi::NulError> for Error {
 impl From<hcore::Error> for Error {
     fn from(err: hcore::Error) -> Error {
         Error::HabitatCore(err)
+    }
+}
+
+impl From<handlebars::TemplateRenderError> for Error {
+    fn from(err: handlebars::TemplateRenderError) -> Error {
+        Error::HandlebarsRenderError(err)
     }
 }
 

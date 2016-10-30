@@ -17,22 +17,33 @@ pub mod initialize {
     use std::fs::File;
     use std::io::Write;
     use std::path::Path;
+    use std::collections::HashMap;
+
+    use handlebars::Handlebars;
 
     use common::ui::{UI, Status};
     use error::Result;
 
-    const PLAN_TEMPLATE: &'static [u8] = b"test plan.sh";
-    const RUN_HOOK_TEMPLATE: &'static [u8] = b"test run hook";
+    const PLAN_TEMPLATE: &'static str = "plan {{origin}}/{{name}}";
+    const RUN_HOOK_TEMPLATE: &'static str = "hook {{origin}}/{{name}}";
 
-    pub fn start(ui: &mut UI) -> Result<()> {
+    pub fn start(ui: &mut UI, origin: String, name: String) -> Result<()> {
         try!(ui.begin("Constructing a cozy habitat for your app..."));
         try!(ui.br());
 
-        try!(create_with_template(ui, "habitat/plan.sh", PLAN_TEMPLATE));
+        // Build out the variables passed.
+        let handlebars = Handlebars::new();
+        let mut data = HashMap::new();
+        data.insert("name".to_string(), name);
+        data.insert("origin".to_string(), origin);
+
+        let rendered_plan = try!(handlebars.template_render(PLAN_TEMPLATE, &data));
+        try!(create_with_template(ui, "habitat/plan.sh", rendered_plan));
         try!(ui.para("The `plan.sh` is the foundation of your new habitat. You can \
             define core metadata, dependencies, and tasks. More documentation here: TODO"));
 
-        try!(create_with_template(ui, "habitat/hooks/run", RUN_HOOK_TEMPLATE));
+        let rendered_run_hook = try!(handlebars.template_render(RUN_HOOK_TEMPLATE, &data));
+        try!(create_with_template(ui, "habitat/hooks/run", rendered_run_hook));
         try!(ui.para("The `hooks` directory is where you can create a number of automation hooks \
             into your habitat. We'll make a `run` hook to get you started, but there are more \
             hooks to create and tweak! See the full list with info here: TODO"));
@@ -41,17 +52,20 @@ pub mod initialize {
         Ok(())
     }
 
-    fn create_with_template(ui: &mut UI, location: &str, template:  &[u8]) -> Result<()> {
+    fn create_with_template(ui: &mut UI, location: &str, template:  String) -> Result<()> {
         let path = Path::new(&location);
         match path.exists() {
             false => {
                 try!(ui.status(Status::Creating, format!("file: {}", location)));
+                // If the directory doesn't exist we need to make it.
                 if let Some(directory) = path.parent() {
                     try!(create_dir_all(directory));
                 }
-                try!(File::create(path).and_then(|mut file| file.write(template)));
+                // Create and then render the template with Handlebars
+                try!(File::create(path).and_then(|mut file| file.write(template.as_bytes())));
             },
             true => {
+                // If the user has already configured a file overwriting would be impolite.
                 try!(ui.status(Status::Using, format!("existing file: {}", location)));
             }
         };

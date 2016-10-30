@@ -225,6 +225,8 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand initialize =>
                 (about: "Generates common package specific configuration files")
                 (aliases: &["init"])
+                (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
+                (@arg NAME: --name -n +takes_value "Name for the new app")
             )
         )
         (@subcommand ring =>
