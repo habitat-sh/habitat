@@ -24,8 +24,9 @@ pub mod create {
     use common::ui::{UI, Status};
     use error::Result;
 
-    const PLAN_TEMPLATE: &'static str = "plan {{pkg_origin}}/{{pkg_name}}";
-    const RUN_HOOK_TEMPLATE: &'static str = "hook {{pkg_origin}}/{{pkg_name}}";
+    const PLAN_TEMPLATE: &'static str = include_str!("../../static/template_plan.sh");
+    const RUN_HOOK_TEMPLATE: &'static str = include_str!("../../static/template_run");
+    const INIT_HOOK_TEMPLATE: &'static str = include_str!("../../static/template_init");
 
     pub fn start(ui: &mut UI, origin: String, name: String) -> Result<()> {
         try!(ui.begin("Constructing a cozy habitat for your app..."));
@@ -37,22 +38,25 @@ pub mod create {
         data.insert("pkg_name".to_string(), name);
         data.insert("pkg_origin".to_string(), origin);
 
+        // Unlike hooks we want to render the configured variables to the `plan.sh`
         let rendered_plan = try!(handlebars.template_render(PLAN_TEMPLATE, &data));
-        try!(create_with_template(ui, "habitat/plan.sh", rendered_plan));
+        try!(create_with_template(ui, "habitat/plan.sh", &rendered_plan));
         try!(ui.para("The `plan.sh` is the foundation of your new habitat. You can \
-            define core metadata, dependencies, and tasks. More documentation here: TODO"));
+            define core metadata, dependencies, and tasks. More documentation here: \
+            https://www.habitat.sh/docs/reference/plan-syntax/"));
 
-        let rendered_run_hook = try!(handlebars.template_render(RUN_HOOK_TEMPLATE, &data));
-        try!(create_with_template(ui, "habitat/hooks/run", rendered_run_hook));
+        try!(create_with_template(ui, "habitat/hooks/init", INIT_HOOK_TEMPLATE));
+        try!(create_with_template(ui, "habitat/hooks/run", RUN_HOOK_TEMPLATE));
         try!(ui.para("The `hooks` directory is where you can create a number of automation hooks \
-            into your habitat. We'll make a `run` hook to get you started, but there are more \
-            hooks to create and tweak! See the full list with info here: TODO"));
+            into your habitat. We'll make an `init` and a `run` hook to get you started, but there \
+            are more hooks to create and tweak! See the full list with info here: \
+            https://www.habitat.sh/docs/reference/plan-syntax/#hooks"));
 
         try!(ui.end("A happy abode for your code has been initialized! Now it's time to explore!"));
         Ok(())
     }
 
-    fn create_with_template(ui: &mut UI, location: &str, template:  String) -> Result<()> {
+    fn create_with_template(ui: &mut UI, location: &str, template:  &str) -> Result<()> {
         let path = Path::new(&location);
         match path.exists() {
             false => {
