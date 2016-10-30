@@ -72,6 +72,8 @@ sidebar_links:
   - title: Container orchestration
     link: "/docs/container-orchestration/"
     sub_links:
+    - title: Amazon EC2 Container Service
+      link: "/docs/container-orchestration-ecs/"
     - title: Apache Mesos and DC/OS
       link: "/docs/container-orchestration-mesos/"
     - title: Kubernetes
