@@ -259,12 +259,7 @@ pub mod hab_gossip {
         pub fn reset_heat_for(&mut self, rumor_id: &RumorId) {
             for (_member_id, mut rumor_heat) in self.heat.iter_mut() {
                 debug!("Reset heat for {:?}", rumor_id);
-                if rumor_heat.contains_key(rumor_id) {
-                    let mut count = rumor_heat.get_mut(rumor_id).unwrap();
-                    *count = 0;
-                } else {
-                    rumor_heat.insert(rumor_id.clone(), 0);
-                }
+                *rumor_heat.entry(*rumor_id).or_insert(0) = 0;
             }
         }
     }

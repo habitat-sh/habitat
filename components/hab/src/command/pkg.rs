@@ -375,11 +375,17 @@ pub mod search {
             0 => println!("No packages found that match '{}'", st),
             _ => {
                 for p in &packages {
-                    println!("{}/{}/{}/{}",
-                             p.origin,
-                             p.name,
-                             p.version.clone().unwrap(),
-                             p.release.clone().unwrap());
+                    if let (&Some(ref version), &Some(ref release)) = (&p.version, &p.release) {
+                        println!("{}/{}/{}/{}",
+                                 p.origin,
+                                 p.name,
+                                 version,
+                                 release);
+                    } else {
+                        println!("{}/{}",
+                                 p.origin,
+                                 p.name);
+                    }
                 }
                 if more {
                     println!("Search returned too many items, only showing the first {}",
@@ -584,9 +590,7 @@ pub mod header {
     pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
         try!(ui.begin(format!("Reading package header for {}", &src.display())));
         try!(ui.para(""));
-        let artifact_header = artifact::get_artifact_header(src);
-        if artifact_header.is_ok() {
-            let header = artifact_header.unwrap();
+        if let Ok(header) = artifact::get_artifact_header(src) {
             try!(io::stdout().write(format!("Package        : {}\n", &src.display()).as_bytes()));
             try!(io::stdout()
                 .write(format!("Format Version : {}\n", header.format_version).as_bytes()));
