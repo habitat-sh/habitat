@@ -16,12 +16,13 @@
 use common;
 
 #[test]
-fn two_members_share_service_config() {
+fn two_members_share_service_files() {
     let mut net = common::net::SwimNet::new(2);
     net.mesh();
-    net.add_service_config(0, "witcher", "tcp-backlog = 128");
+    net.add_service_file(0,
+                         "witcher",
+                         "yeppers",
+                         "I like to have contents in my file");
     net.wait_for_gossip_rounds(1);
-    net[1]
-        .service_config_store
-        .with_rumor("witcher.prod", "service_config", |u| assert!(u.is_some()));
+    net[1].service_file_store.with_rumor("witcher.prod", "service_file", |u| assert!(u.is_some()));
 }

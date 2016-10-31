@@ -37,8 +37,7 @@ pub struct ServiceConfig {
 
 impl PartialOrd for ServiceConfig {
     fn partial_cmp(&self, other: &ServiceConfig) -> Option<Ordering> {
-        if self.get_member_id() != other.get_member_id() ||
-           self.get_service_group() != other.get_service_group() {
+        if self.get_service_group() != other.get_service_group() {
             None
         } else {
             Some(self.get_incarnation().cmp(&other.get_incarnation()))
@@ -48,7 +47,6 @@ impl PartialOrd for ServiceConfig {
 
 impl PartialEq for ServiceConfig {
     fn eq(&self, other: &ServiceConfig) -> bool {
-        self.get_member_id() == other.get_member_id() &&
         self.get_service_group() == other.get_service_group() &&
         self.get_incarnation() == other.get_incarnation() &&
         self.get_encrypted() == other.get_encrypted() &&
@@ -89,12 +87,10 @@ impl ServiceConfig {
     {
         let mut rumor = ProtoRumor::new();
         let from_id = member_id.into();
-        let real_member_id = from_id.clone();
         rumor.set_from_id(from_id);
         rumor.set_field_type(ProtoRumor_Type::ServiceConfig);
 
         let mut proto = ProtoServiceConfig::new();
-        proto.set_member_id(real_member_id);
         proto.set_service_group(format!("{}", service_group));
         proto.set_incarnation(0);
         proto.set_config(config);
@@ -141,8 +137,7 @@ impl Rumor for ServiceConfig {
     }
 
     fn id(&self) -> &str {
-        "config"
-        // self.get_member_id()
+        "service_config"
     }
 
     fn key(&self) -> &str {
@@ -175,14 +170,6 @@ mod tests {
     fn identical_service_config_are_equal() {
         let s1 = create_service_config("adam", "yep");
         let s2 = create_service_config("adam", "yep");
-        assert_eq!(s1, s2);
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed")]
-    fn service_configs_with_different_member_ids_are_not_equal() {
-        let s1 = create_service_config("adam", "yep");
-        let s2 = create_service_config("shanku", "yep");
         assert_eq!(s1, s2);
     }
 

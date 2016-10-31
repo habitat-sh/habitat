@@ -97,6 +97,9 @@ impl<'a> Pull<'a> {
                 Rumor_Type::ServiceConfig => {
                     self.server.insert_service_config(proto.into());
                 }
+                Rumor_Type::ServiceFile => {
+                    self.server.insert_service_file(proto.into());
+                }
                 Rumor_Type::Election => {
                     self.server.insert_election(proto.into());
                 }
