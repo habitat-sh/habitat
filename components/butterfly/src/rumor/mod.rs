@@ -23,6 +23,11 @@
 //! New rumors need to implement the `From` trait for `RumorKey`, and then can track the arrival of
 //! new rumors, and dispatch them according to thier `kind`.
 
+pub mod election;
+pub mod service;
+pub mod service_config;
+pub mod service_file;
+
 use std::collections::HashMap;
 use std::default::Default;
 use std::sync::{Arc, RwLock};

@@ -43,10 +43,10 @@ use error::{Result, Error};
 use member::{Member, Health, MemberList};
 use trace::{Trace, TraceKind};
 use rumor::{Rumor, RumorStore, RumorList, RumorKey};
-use service::Service;
-use service_config::ServiceConfig;
-use service_file::ServiceFile;
-use election::Election;
+use rumor::service::Service;
+use rumor::service_config::ServiceConfig;
+use rumor::service_file::ServiceFile;
+use rumor::election::Election;
 use message::swim::{Wire as ProtoWire, Election_Status};
 use protobuf::{self, Message};
 
