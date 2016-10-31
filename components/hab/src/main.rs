@@ -136,7 +136,7 @@ fn start(ui: &mut UI) -> Result<()> {
         }
         ("plan", Some(matches)) => {
             match matches.subcommand() {
-                ("create", Some(m)) => try!(sub_plan_create(ui, m)),
+                ("init", Some(m)) => try!(sub_plan_init(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -412,10 +412,10 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
     command::pkg::hash::start(&source)
 }
 
-fn sub_plan_create(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let name = m.value_of("PKG_NAME").unwrap().into(); // Required by clap
+fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let name = m.value_of("PKG_NAME").map(|v| v.into());
     let origin = try!(origin_param_or_env(&m));
-    command::plan::create::start(ui, origin, name)
+    command::plan::init::start(ui, origin, name)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {

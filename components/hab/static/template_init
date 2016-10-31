@@ -1,4 +1,0 @@
-#! /bin/sh
-# This hook is run when a Habitat topology starts.
-
-ln -sf {{pkg.path}}/my_command {{pkg.svc_var_path}}

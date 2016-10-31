@@ -222,10 +222,12 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to plans and other app-specific configuration.")
             (aliases: &["pl", "pla"])
             (@setting ArgRequiredElseHelp)
-            (@subcommand create =>
-                (about: "Generates common package specific configuration files")
-                (aliases: &["c", "cr", "cre", "crea", "creat"])
-                (@arg PKG_NAME: +required +takes_value "Name for the new app")
+            (@subcommand init =>
+                (about: "Generates common package specific configuration files. Executing without \
+                    argument will create a `habitat` directory in your current folder for the plan. \
+                    If `PKG_NAME` is specified it will create a folder with that name.")
+                (aliases: &["i", "in", "ini"])
+                (@arg PKG_NAME: +takes_value "Name for the new app.")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
             )
         )
