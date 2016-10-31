@@ -171,6 +171,30 @@ cd habitat && make
 		  docker run -it centos:centos7 /bin/bash
 
 
+## Windows
+These instructions are based on Windows 10 1607 (Anniversary update) or newer.  Most of it will probably work downlevel.
+
+All commands are in PowerShell unless otherwise stated.  It is assumed that you have `git` installed and configured.  Posh-Git is a handy PowerShell module for making `git` better in your PowerShell console (`install-module posh-git`).
+
+```
+# Clone the Windows build script
+git clone https://github.com/smurawski/hab-build-script.git
+
+# Clone the Habitat source
+git clone https://github.com/habitat-sh/habitat.git
+
+# Install the psake PowerShell module
+import-module PowerShellGet -force
+install-module psake -force
+
+# Change into build script directory
+cd ./hab-build-script
+
+# Build Habitat
+invoke-psake
+```
+
+
 ## General build notes
 
 - Once make has finished, executables will exist in `/src/target/debug/foo`, where `foo` is the name of an executable (`hab`, `hab-sup`, `hab-depot`, etc).
@@ -179,3 +203,41 @@ cd habitat && make
 
 		[[bin]]
 		name = "hab-depot"
+
+
+## Windows build notes
+The Windows build scripts referenced above and the default build task `invoke-psake` attempts to build the full habitat project as well as validates pre-reqs are installed. This is not always and ideal way to build or test. In some cases the following tasks may be more appropriate.
+
+```
+# Build all the currently ported crates
+invoke-psake -tasklist build_all
+
+# Build only the current crate in progress
+invoke-psake -tasklist current_build
+
+# Test all the currently ported crates
+invoke-psake -tasklist test_all
+
+# Run tests on the current crate in progress
+invoke-psake -tasklist current_test
+```
+
+#### Building the native dependencies
+
+You'll want to start in a fresh PowerShell instance, with the Visual C++ Build Tools paths and environment variables set.
+
+I use a handy `Start-VsDevShell` function in my profile.
+
+```
+function Start-VsDevShell {
+  cmd.exe --% /k ""C:\Program Files (x86)\Microsoft Visual C++ Build Tools\vcbuildtools.bat" amd64" & powershell
+}
+```
+
+then
+
+```
+Start-VsDevShell
+cd ~/source/hab-build-script
+invoke-psake -tasklist build_native_deps
+```
