@@ -58,7 +58,3 @@ pub mod member;
 pub mod message;
 pub mod rumor;
 pub mod server;
-pub mod service;
-pub mod service_config;
-pub mod service_file;
-pub mod election;
