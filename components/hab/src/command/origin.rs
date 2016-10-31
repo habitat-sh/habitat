@@ -53,11 +53,13 @@ pub mod key {
         use std::path::Path;
 
         use common::ui::{Status, UI};
-        use depot_client::Client;
+        use depot_client::{self, Client};
         use hcore::crypto::SigKeyPair;
 
         use {PRODUCT, VERSION};
         use error::{Error, Result};
+
+        use retry::retry;
 
         pub fn start(ui: &mut UI,
                      depot: &str,
@@ -116,9 +118,16 @@ pub mod key {
             match SigKeyPair::get_public_key_path(&nwr, &cache) {
                 Ok(_) => try!(ui.status(Status::Using, &nwr)),
                 Err(_) => {
-                    try!(ui.status(Status::Downloading, &nwr));
-                    try!(depot_client.fetch_origin_key(name, rev, cache, ui.progress()));
-                    try!(ui.status(Status::Cached, &nwr));
+                    let download_fn = || -> Result<()> {
+                        try!(ui.status(Status::Downloading, &nwr));
+                        try!(depot_client.fetch_origin_key(name, rev, cache, ui.progress()));
+                        try!(ui.status(Status::Cached, &nwr));
+                        Ok(())
+                    };
+
+                    if retry(5, 3000, download_fn, |res| res.is_ok()).is_err() {
+                        return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried 5 times but could not download {}/{} origin key. Giving up.", &name, &rev))));
+                    }
                 }
             }
             Ok(())
