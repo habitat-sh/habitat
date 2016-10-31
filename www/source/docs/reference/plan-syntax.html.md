@@ -353,6 +353,8 @@ run
   - Redirect stderr to stdout (e.g. with `exec 2>&1` at the start of the hook)
   - Call the command to execute with `exec <command> <options>` rather than running the command directly. This ensures the command is executed in the same process and that the service will restart correctly on configuration changes.
 
+  It is important to also consider what side effects the command to execute will have. For example, does the command spin off other processes in separate process groups? If so, they may not be cleaned up automatically when the system is reconfigured. In general, the command executed should behave in a manner similar to a daemon, and be able to clean up properly after itself when it receives a SIGTERM, and properly forward signals to other processes that it creates. For an even more specific example: let's say you are trying to start a node.js service. Instead of your command being `npm start`, you should use `node server.js` directly.
+
   A run hook can use the following as a template:
 
   ~~~ bash
@@ -451,7 +453,7 @@ svc_group_default
 - the effective group id
 
 ### cfg
-These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package. 
+These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package.
 
 ***
 
