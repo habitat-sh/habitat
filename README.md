@@ -180,7 +180,7 @@ incoming commands from reviewers to approve PRs. These commands are
 routed to a [homu](https://github.com/barosl/homu) bot that will
 automatically merge a PR when sufficient reviewers have provided a +1
 (or r+ in homu terminology).
-
+Often you can find the source of the problem either (1) by turning on debug logging or (2) knowing what files each command tries to access; however, it would speed up problem solving if the original error message had the path of the file that hab failed to read.
 
 ### Delegating pull request merge access
 
