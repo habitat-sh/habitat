@@ -33,6 +33,7 @@ use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
 use util::signals;
+use util::users as hab_users;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
@@ -118,6 +119,27 @@ impl fmt::Display for ProcessState {
     }
 }
 
+
+/// Additional params used to start the Supervisor.
+/// These params are outside the scope of what is in
+/// Supervisor.package_ident, and aren't runtime params that are stored
+/// in the top-level Supervisor struct (such as PID etc)
+#[derive(Debug)]
+pub struct RuntimeConfig {
+    pub svc_user: String,
+    pub svc_group: String,
+}
+
+impl RuntimeConfig {
+    pub fn new(svc_user: String, svc_group: String) -> RuntimeConfig {
+        RuntimeConfig {
+            svc_user: svc_user,
+            svc_group: svc_group,
+        }
+    }
+}
+
+
 #[derive(Debug)]
 pub struct Supervisor {
     pub pid: Option<Pid>,
@@ -125,16 +147,18 @@ pub struct Supervisor {
     pub state: ProcessState,
     pub state_entered: SteadyTime,
     pub has_started: bool,
+    pub runtime_config: RuntimeConfig,
 }
 
 impl Supervisor {
-    pub fn new(package_ident: PackageIdent) -> Supervisor {
+    pub fn new(package_ident: PackageIdent, runtime_config: RuntimeConfig) -> Supervisor {
         Supervisor {
             pid: None,
             package_ident: package_ident,
             state: ProcessState::Down,
             state_entered: SteadyTime::now(),
             has_started: false,
+            runtime_config: runtime_config,
         }
     }
 
@@ -159,11 +183,11 @@ impl Supervisor {
         if self.pid.is_none() {
             outputln!(preamble & self.package_ident.name, "Starting");
             self.enter_state(ProcessState::Start);
-            let mut child = try!(Command::new(self.run_cmd())
-                .stdin(Stdio::null())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn());
+
+            let mut cmd = Command::new(self.run_cmd());
+            try!(self.start_platform(&mut cmd));
+            let mut child = try!(cmd.spawn());
+
             self.pid = Some(child.id());
             try!(self.create_pidfile());
             let package_name = self.package_ident.name.clone();
@@ -176,6 +200,34 @@ impl Supervisor {
             outputln!(preamble & self.package_ident.name, "Already started");
         }
         Ok(())
+    }
+
+    #[cfg(any(target_os="linux", target_os="macos"))]
+    fn start_platform(&mut self, cmd: &mut Command) -> Result<()> {
+        use std::os::unix::process::CommandExt;
+        let uid = hab_users::user_name_to_uid(&self.runtime_config.svc_user);
+        let gid = hab_users::group_name_to_gid(&self.runtime_config.svc_group);
+        if let None = uid {
+            panic!("Can't determine uid");
+        }
+
+        if let None = gid {
+            panic!("Can't determine gid");
+        }
+
+        let uid = uid.unwrap();
+        let gid = gid.unwrap();
+        cmd.stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .uid(uid)
+            .gid(gid);
+        Ok(())
+    }
+
+    #[cfg(target_os = "windows")]
+    fn start_platform(&mut self, cmd: &mut Command) -> Result<()> {
+        unimplemented!();
     }
 
     /// Send a SIGTERM to a process, wait 8 seconds, then send SIGKILL

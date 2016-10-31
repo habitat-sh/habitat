@@ -20,7 +20,6 @@ use std::result;
 use std::str;
 use std::string;
 
-use extern_url;
 use libarchive;
 use regex;
 
@@ -53,8 +52,6 @@ pub enum Error {
     FileNotFound(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
-    /// Occurs when an improper http or https proxy value is given.
-    InvalidProxyValue(String),
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
@@ -72,7 +69,7 @@ pub enum Error {
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
     /// Occurs when setting ownership or permissions on a file or directory fails.
-    PermissionFailed,
+    PermissionFailed(String),
     /// When an error occurs parsing or compiling a regular expression.
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
@@ -81,8 +78,6 @@ pub enum Error {
     UnameFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
     Utf8Error(str::Utf8Error),
-    /// When an error occurs attempting to parse a string into a URL.
-    UrlParseError(extern_url::ParseError),
 }
 
 impl fmt::Display for Error {
@@ -120,7 +115,6 @@ impl fmt::Display for Error {
                          origin/name (example: acme/redis)",
                         e)
             }
-            Error::InvalidProxyValue(ref e) => format!("Invalid proxy value: {:?}", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!("Invalid service group: {:?}. A valid service group string is in the form \
                          service.group (example: redis.production)",
@@ -141,12 +135,11 @@ impl fmt::Display for Error {
                 }
             }
             Error::ParseIntError(ref e) => format!("{}", e),
-            Error::PermissionFailed => format!("Failed to set permissions"),
+            Error::PermissionFailed(ref e) => format!("{}", e),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::UnameFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
-            Error::UrlParseError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -176,7 +169,6 @@ impl error::Error for Error {
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
             }
-            Error::InvalidProxyValue(_) => "Invalid proxy value",
             Error::InvalidServiceGroup(_) => {
                 "Service group strings must be in service.group format (example: redis.production)"
             }
@@ -187,12 +179,11 @@ impl error::Error for Error {
             Error::NoOutboundAddr => "Failed to discover the outbound IP address",
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
-            Error::PermissionFailed => "Failed to set permissions",
+            Error::PermissionFailed(_) => "Failed to set permissions",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::UnameFailed(_) => "uname failed",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
-            Error::UrlParseError(ref err) => err.description(),
         }
     }
 }
@@ -206,12 +197,6 @@ impl From<string::FromUtf8Error> for Error {
 impl From<str::Utf8Error> for Error {
     fn from(err: str::Utf8Error) -> Self {
         Error::Utf8Error(err)
-    }
-}
-
-impl From<extern_url::ParseError> for Error {
-    fn from(err: extern_url::ParseError) -> Self {
-        Error::UrlParseError(err)
     }
 }
 

@@ -1,0 +1,49 @@
+// Overrides to make the Google Search results look better
+.gsc-table-result,
+.gsc-above-wrapper-area-container,
+.gsc-resultsHeader,
+.gsc-search-box,
+.gcsc-branding {
+  tbody {
+    background: transparent;
+    border: none;
+  }
+}
+
+.gsc-search-box {
+  td.gsc-input,
+  td.gsc-search-button,
+  td.gsc-clear-button {
+    padding: initial;
+  }
+
+  td.gsc-search-box {
+    padding-right: 12px;
+  }
+}
+
+input.gsc-input {
+  margin-bottom: 0;
+}
+
+.gsc-above-wrapper-area-container td {
+  padding: initial;
+}
+
+.gsc-resultsHeader {
+  display: none;
+}
+
+#___gcse_0 {
+  .gsc-control-cse {
+    padding: 0;
+  }
+
+  .gsc-results .gsc-cursor-box .gsc-cursor-current-page {
+    color: $white;
+    border-color: $hab-green;
+    background: $hab-green;
+    text-shadow: none;
+    border-radius: 3px;
+  }
+}

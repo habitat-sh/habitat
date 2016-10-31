@@ -42,7 +42,7 @@ pub mod setup {
               set a default origin now, you will have to tell package building commands each \
               time what origin to use.");
         para("For more information on origins and how they are used in building packages, \
-              please consult the docs at https://www.habitat.sh/docs/build-packages-overview/");
+              please consult the docs at https://www.habitat.sh/docs/create-packages-overview/");
         if try!(ask_default_origin()) {
             println!("");
             para("Enter the name of your origin. If you plan to publish your packages publicly, \

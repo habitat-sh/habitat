@@ -38,7 +38,12 @@ Perform the following operations in the same directory where the `plan.sh` file 
        #!/bin/sh
        #
        cd {{pkg.svc_path}}
-       npm start
+
+       # `exec` makes it so the process that the Habitat supervisor uses is
+       # `npm start`, rather than the run hook itself. `2>&1` makes it so both
+       # standard output and standard error go to the standard output stream,
+       # so all the logs from the application go to the same place.
+       exec npm start 2>&1
 
 7. Save the `run` hook file.
 

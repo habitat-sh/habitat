@@ -1,3 +1,0 @@
-#!/bin/sh
-#
-$(hab pkg path core/openvpn)/bin/openvpn --config {{pkg.svc_config_path}}/server.conf

@@ -20,7 +20,7 @@ use std::str::{self, FromStr};
 
 use libarchive::writer;
 use libarchive::reader::{self, Reader};
-use libarchive::archive::{Entry, ReadFilter, ReadFormat};
+use libarchive::archive::{Entry, ReadFilter, ReadFormat, ExtractOption, ExtractOptions};
 use regex::Regex;
 
 use error::{Error, Result};
@@ -186,6 +186,9 @@ impl PackageArchive {
         try!(builder.support_filter(ReadFilter::Xz));
         let mut reader = try!(builder.open_stream(tar_reader));
         let writer = writer::Disk::new();
+        let mut extract_options = ExtractOptions::new();
+        extract_options.add(ExtractOption::Time);
+        try!(writer.set_options(&extract_options));
         try!(writer.set_standard_lookup());
         try!(writer.write(&mut reader, Some(root.to_string_lossy().as_ref())));
         try!(writer.close());
@@ -196,8 +199,10 @@ impl PackageArchive {
         let mut deps: Vec<PackageIdent> = vec![];
         match self.read_metadata(file) {
             Ok(Some(body)) => {
+                debug!("body = [{}]", &body);
                 let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
                 for id in &ids {
+                    debug!("id = [{}]", &id);
                     let package = try!(PackageIdent::from_str(id));
                     if !package.fully_qualified() {
                         // JW TODO: use a more appropriate erorr to describe the invalid
@@ -244,18 +249,25 @@ impl PackageArchive {
                 continue;
             }
 
-            match reader.read_block() {
-                Ok(Some(bytes)) => {
-                    match str::from_utf8(bytes) {
-                        Ok(content) => {
-                            metadata.insert(matched_type.unwrap(), content.trim().to_string());
+            let mut buf = String::new();
+            loop {
+                match reader.read_block() {
+                    Ok(Some(bytes)) => {
+                        match str::from_utf8(bytes) {
+                            Ok(content) => {
+                                buf.push_str(content.trim());
+                            }
+                            Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
                         }
-                        Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
                     }
+                    Ok(None) => {
+                        debug!("content = {}", &buf);
+                        metadata.insert(matched_type.unwrap(), buf);
+                        break;
+                    }
+                    Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
                 }
-                Ok(None) => (),
-                Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
-            }
+            }//inner loop
 
             if matched_count == METAFILE_REGXS.len() as u8 {
                 break;
@@ -300,4 +312,21 @@ mod test {
     pub fn fixtures() -> PathBuf {
         root().join("fixtures")
     }
+
+    #[test]
+    fn reading_artifact_deps() {
+        let mut hart = PackageArchive::new(fixtures()
+            .join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
+        let _ = hart.deps().unwrap();
+        let _ = hart.tdeps().unwrap();
+    }
+
+    #[test]
+    fn reading_artifact_large_tdeps() {
+        let mut hart = PackageArchive::new(fixtures()
+            .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
+        let tdeps = hart.tdeps().unwrap();
+        assert_eq!(1024, tdeps.len());
+    }
+
 }

@@ -33,8 +33,8 @@ import {SCMReposPageComponent} from "./scm-repos-page/SCMReposPageComponent";
 import {SideNavComponent} from "./side-nav/SideNavComponent";
 import {SignInPageComponent} from "./sign-in-page/SignInPageComponent";
 import {authenticateWithGitHub, loadSessionState, removeNotification,
-    requestGitHubAuthToken, routeChange, setGitHubAuthState, signOut,
-    toggleUserNavMenu} from "./actions/index";
+    requestGitHubAuthToken, routeChange, setGitHubAuthState,
+    setPackagesSearchQuery, signOut, toggleUserNavMenu} from "./actions/index";
 
 @Component({
     directives: [FooterComponent, HeaderComponent, NotificationsComponent,
@@ -175,6 +175,8 @@ export class AppComponent implements OnInit {
             // Don't show the side nav on the Sign In screen
             this.hideNav = value.indexOf("sign-in") !== -1;
             store.dispatch(routeChange(value));
+            // Clear the package search when the route changes
+            store.dispatch(setPackagesSearchQuery(""));
         });
 
         // Listen for changes on the state.

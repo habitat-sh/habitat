@@ -1,9 +1,9 @@
 [root]
 name = "habitat_core"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libarchive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -61,7 +61,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "hyper"
-version = "0.9.6"
+version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",

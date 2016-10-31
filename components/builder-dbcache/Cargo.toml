@@ -1,6 +1,6 @@
 [package]
 name = "habitat_builder_dbcache"
-version = "0.7.0"
+version = "0.8.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder Database Access Library"
 

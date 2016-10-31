@@ -59,13 +59,17 @@ xz --compress -9 --threads=0 --verbose ${dst/.xz/}
 
 ## Part III: Stage 1
 
-In this stage, we rebuild all the base packages needed by Habitat using the tools (compiler, etc.) from the existing tools tarball. You will need to have a depot locally running on your system, as well as the latest version of the studio.
+In this stage, we rebuild all the base packages needed by Habitat using the tools (compiler, etc.) from the existing tools tarball. You will need to have a depot locally running on your system, the latest version of the studio, and you'll need a copy of the core-plans on your local disk.
 
 ~~~
 rm -rf /hab
 ./components/hab/install.sh
 hab install ~ubuntu/results/core-hab-studio-0.6.0-20160701030246-x86_64-linux.hart
 hab origin key generate core
+~~~
+
+~~~
+git clone https://github.com/habitat-sh/core-plans.git plans
 ~~~
 
 ~~~
@@ -165,4 +169,3 @@ hab studio enter
 ~~~
 cat all_order | while read plan; do build $plan || break; done
 ~~~
-

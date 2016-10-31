@@ -23,7 +23,7 @@ use std::io::prelude::*;
 use ansi_term::Colour::Purple;
 use rustc_serialize::Encodable;
 use toml;
-use handlebars::{Handlebars, JsonRender};
+use handlebars::Handlebars;
 
 use common::gossip_file::GOSSIP_TOML;
 use census::{Census, CensusList};
@@ -31,9 +31,12 @@ use config::Config;
 use error::{Error, Result};
 use hcore::package::PackageInstall;
 use hcore::crypto;
+
 use package::Package;
 use util;
 use util::convert;
+use util::handlebars_helpers;
+use util::users as hab_users;
 use VERSION;
 
 static LOGKEY: &'static str = "SC";
@@ -147,9 +150,13 @@ impl ServiceConfig {
             let mut last_toml = try!(File::create(pi.svc_path().join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
+        let mut handlebars = Handlebars::new();
+
+        debug!("Registering handlebars helpers");
+        handlebars.register_helper("json", Box::new(handlebars_helpers::json_helper));
+        handlebars.register_helper("toml", Box::new(handlebars_helpers::toml_helper));
 
         debug!("Registering configuration templates");
-        let mut handlebars = Handlebars::new();
         // By default, handlebars escapes HTML. We don't want that.
         handlebars.register_escape_fn(never_escape_fn);
 
@@ -468,6 +475,10 @@ pub struct Pkg {
     pub svc_files_path: String,
     pub svc_static_path: String,
     pub svc_var_path: String,
+    pub svc_user: Option<String>,
+    pub svc_group: Option<String>,
+    pub svc_user_default: String,
+    pub svc_group_default: String,
 }
 
 impl Pkg {
@@ -507,6 +518,18 @@ impl Pkg {
             Some(r) => r.clone(),
             None => "".to_string(),
         };
+
+        let (default_svc_user, default_svc_group) = match hab_users::get_user_and_group(&pkg_install) {
+            Ok((svc_user, svc_group)) => (svc_user, svc_group),
+            Err(_e) => {
+                // TODO
+                panic!("Can't get default service and user");
+            }
+        };
+
+        let svc_user = pkg_install.svc_user().unwrap_or(None);
+        let svc_group = pkg_install.svc_group().unwrap_or(None);
+
         Pkg {
             origin: ident.origin.clone(),
             name: ident.name.clone(),
@@ -522,6 +545,10 @@ impl Pkg {
             svc_files_path: pkg_install.svc_files_path().to_string_lossy().into_owned(),
             svc_static_path: pkg_install.svc_static_path().to_string_lossy().into_owned(),
             svc_var_path: pkg_install.svc_var_path().to_string_lossy().into_owned(),
+            svc_user: svc_user,
+            svc_group: svc_group,
+            svc_user_default: default_svc_user,
+            svc_group_default: default_svc_group,
         }
     }
 

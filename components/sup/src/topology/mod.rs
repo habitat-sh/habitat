@@ -37,26 +37,29 @@ use std::time::Duration;
 
 use wonder;
 
-use state_machine::StateMachine;
 use census::{self, CensusList};
 use common::gossip_file::GossipFileList;
-use package::{self, Package, PackageUpdaterActor};
-use util::signals::SignalNotifier;
-use error::{Result, SupError};
 use config::Config;
+use config::UpdateStrategy;
+use election::ElectionList;
+use error::{Result, SupError};
+use gossip::member::MemberList;
+use gossip::rumor::{Rumor, RumorList};
+use gossip;
+use package::{self, Package, PackageUpdaterActor};
 use service_config::ServiceConfig;
 use sidecar;
-use supervisor::Supervisor;
-use gossip;
-use gossip::rumor::{Rumor, RumorList};
-use gossip::member::MemberList;
-use election::ElectionList;
+use state_machine::StateMachine;
+use supervisor::{RuntimeConfig, Supervisor};
 use time::SteadyTime;
+use util::events::{EventMessage, EventSink, EventSinkActor};
+use util::signals::SignalNotifier;
 use util::signals;
-use config::UpdateStrategy;
+use util::users as hab_users;
 
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
+
 
 #[derive(PartialEq, Eq, Debug, RustcEncodable)]
 pub enum Topology {
@@ -120,6 +123,7 @@ pub struct Worker<'a> {
     /// The service supervisor
     pub supervisor: Arc<RwLock<Supervisor>>,
     pub return_state: Option<State>,
+    pub event_actor: EventSinkActor,
 }
 
 impl<'a> Worker<'a> {
@@ -129,6 +133,13 @@ impl<'a> Worker<'a> {
     pub fn new(package: Package, topology: String, config: &'a Config) -> Result<Worker<'a>> {
         let mut pkg_updater = None;
         let package_name = package.name.clone();
+
+        let (svc_user, svc_group) = try!(hab_users::get_user_and_group(&package.pkg_install));
+        outputln!("Child process will run as user={}, group={}",
+                  &svc_user,
+                  &svc_group);
+        let runtime_config = RuntimeConfig::new(svc_user, svc_group);
+
         let package_exposes = package.exposes().clone();
         let package_port = package_exposes.first().map(|e| e.clone());
         let package_ident = package.ident().clone();
@@ -137,14 +148,17 @@ impl<'a> Worker<'a> {
 
 
         match config.update_strategy() {
-            UpdateStrategy::None => {},
+            UpdateStrategy::None => {}
             _ => {
                 let pkg_lock_2 = pkg_lock.clone();
-                if let &Some(ref url) = config.url() {
-                    pkg_updater = Some(package::PackageUpdater::start(url, pkg_lock_2));
-                }
+                pkg_updater = Some(package::PackageUpdater::start(config.url(), pkg_lock_2));
             }
         }
+
+        let event_actor = wonder::actor::Builder::new(EventSink)
+            .name("event-sink".to_string())
+            .start(())
+            .unwrap();
 
         let gossip_server = gossip::server::Server::new(String::from(config.gossip_listen_ip()),
                                                         config.gossip_listen_port(),
@@ -173,7 +187,7 @@ impl<'a> Worker<'a> {
         let service_config_lock = Arc::new(RwLock::new(service_config));
         let service_config_lock_1 = service_config_lock.clone();
 
-        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident)));
+        let supervisor = Arc::new(RwLock::new(Supervisor::new(package_ident, runtime_config)));
 
         let sidecar_ml = gossip_server.member_list.clone();
         let sidecar_rl = gossip_server.rumor_list.clone();
@@ -210,6 +224,7 @@ impl<'a> Worker<'a> {
             supervisor: supervisor,
             pkg_updater: pkg_updater,
             return_state: None,
+            event_actor: event_actor
         })
     }
 
@@ -223,6 +238,11 @@ impl<'a> Worker<'a> {
         let package = self.package.read().unwrap();
         try!(package.copy_run(&service_config));
         Ok(())
+    }
+
+    pub fn send_event(&self, event: &str) {
+        self.event_actor.cast(EventMessage::Event(event.to_string()));
+
     }
 }
 
@@ -355,7 +375,11 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     gossip_file_list.needs_write()
                 };
                 if needs_write {
-                    try!(gossip_file_list.write())
+                    let supervisor = worker.supervisor.read().unwrap();
+                    let svc_user = &supervisor.runtime_config.svc_user;
+                    let svc_group = &supervisor.runtime_config.svc_group;
+
+                    try!(gossip_file_list.write(svc_user, svc_group))
                 } else {
                     (false, false)
                 }
@@ -364,6 +388,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 let service_config = worker.service_config.read().unwrap();
                 let package = worker.package.read().unwrap();
                 let existed = try!(package.file_updated(&service_config));
+                let _ = worker.send_event("FileUpdated");
                 if !existed {
                     restart_process = true;
                 }
@@ -375,6 +400,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 if try!(service_config.write(&package)) {
                     try!(package.copy_run(&service_config));
                     let existed = try!(package.reconfigure(&service_config));
+                    let _ = worker.send_event("Reconfigure");
                     if !existed {
                         restart_process = true;
                     }
@@ -414,6 +440,7 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                     if restart_process {
                         // And we have ever started before...
                         if supervisor.has_started {
+                            let _ = worker.event_actor.cast(EventMessage::Event("Restart".to_string()));
                             // Restart
                             try!(supervisor.restart());
                         }
@@ -421,6 +448,8 @@ fn run_internal<'a>(sm: &mut StateMachine<State, Worker<'a>, SupError>,
                 }
             }
         }
+
+        let _ = worker.event_actor.cast(EventMessage::Event("Iterate".to_string()));
 
         // Next state!
         try!(sm.next(worker));

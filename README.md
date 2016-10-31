@@ -2,6 +2,7 @@
 
 [![Build Status](https://api.travis-ci.org/habitat-sh/habitat.svg?branch=master)](https://travis-ci.org/habitat-sh/habitat)
 [![Slack](http://slack.habitat.sh/badge.svg)](http://slack.habitat.sh/)
+[![Stories in Ready](https://badge.waffle.io/habitat-sh/habitat.png?label=ready&title=Ready)](https://waffle.io/habitat-sh/habitat)
 
 Want to try Habitat? [Get started here](https://www.habitat.sh/try/).
 
@@ -50,10 +51,10 @@ by having a convention cover it. When we do need to configure things, we set rea
 
 ## Setup On Mac OS X
 
-1. [Install Docker Toolbox](http://docs.docker.com/mac/step_one/) (you'll need
+1. [Install Docker Toolbox](https://docs.docker.com/toolbox/toolbox_install_mac/) (you'll need
    at least Docker 1.9 and docker-machine 0.5. Both are included in Docker
    Toolbox)
-1. [Install VMWare Fusion](https://www.vmware.com/products/fusion)
+1. [Install VMWare Fusion](https://www.vmware.com/products/fusion.html)
 1. Delete the default docker-machine image: `docker-machine rm default`
 1. Create a new one with vmware fusion: `docker-machine create -d vmwarefusion --vmwarefusion-memory-size 4096 --vmwarefusion-cpu-count 2 --vmwarefusion-disk-size 40960 default`. Feel free to increase the number of CPUs, RAM, or Disk space as needed. This determines how fast you can compile the project and build software. (Adam uses 4 CPUs, 8GB of RAM)
 1. Consider adding `eval "$(docker-machine env default)"` to your shell initialization
@@ -79,27 +80,7 @@ installed as above), is to run `cargo install rustfmt` and adding
 
 ## Setup on native Linux
 
-1. [Install Docker](https://docs.docker.com/linux/step_one/) **Note: You may need to logout and then login again after this step**
-1. [Install Docker Compose](https://docs.docker.com/compose/install/)
-1. Checkout the source by running `git clone git@github.com:habitat-sh/habitat.git; cd habitat`
-1. Run `make`
-1. Run `make test`
-
-Everything should come up green. Congratulations - you have a working Habitat development environment.
-
-**Note:** The Makefile targets are documented. Run `make help` to show the output. Habitat requires `perl`.
-
-**Optional:** This project compiles and runs inside Docker containers so while
-installing the Rust language isn't strictly necessary, you might want a local
-copy of Rust on your workstation (some editors' language support require an
-installed version). To [install stable
-Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
-https://static.rust-lang.org/rustup.sh | sh`. Additionally, the project
-maintainers use [rustfmt](https://github.com/rust-lang-nursery/rustfmt) for
-code formatting. If you are submitting changes, please ensure that your work
-has been run through rustfmt. An easy way to install it (assuming you have Rust
-installed as above), is to run `cargo install rustfmt` and adding
-`$HOME/.cargo/bin` to your `PATH`.
+see [docs/BUILDING.md](docs/BUILDING.md) for platform specific info.
 
 ## Web Application
 
@@ -148,6 +129,13 @@ on port `9633`. You can then read the docs at `http://<DOCKER_HOST>:9633/`
 1. You can use `cargo run -- foobar` to pass options to the built binary
 1. Sign and commit your change
 1. Push your feature branch to GitHub, and create a Pull Request
+
+## Running the Builder API locally
+
+Run `make api-shell`. A shell will start with the API services running. The API
+will be available on port 9636 of your Docker host.
+
+Inside the shell, run the `api` command to manage the API server processes.
 
 ### Signing Your Commits
 
@@ -216,6 +204,20 @@ incoming commands from reviewers to approve PRs. These commands are
 routed to a [homu](https://github.com/barosl/homu) bot that will
 automatically merge a PR when sufficient reviewers have provided a +1
 (or r+ in homu terminology).
+
+
+### Delegating pull request merge access
+
+A Habitat core maintainer can delegate pull request merge access to a contributor via
+
+	@thesentinels delegate=username
+
+If you've been given approval to merge, you can do so by appending a comment to the pull request containing the following text:
+
+	@thesentinels r+
+
+Note: **do not** click the Merge Pull Request button if it's enabled.
+
 
 ## License
 

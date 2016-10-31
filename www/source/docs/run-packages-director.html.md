@@ -35,6 +35,32 @@ the service table definition:
 
 > Note:  CLI arguments specified in config.toml are split on whitespace.
 
+
+Services can provide environment variables in the form of a TOML table which follows the following format:
+
+	[services.<origin>.<name>.<group>.<organization>.env]
+	ENV1="some value"
+	ENV2="some other value" 
+
+> Note: Environment variables MUST be specified as valid TOML strings. 
+
+For example:
+
+	# Specify custom JAVA_HOME and CLASSPATH environment variables
+	[services.core.java_app.somegroup.someorg]
+	start = "--permanent-peer"
+	[services.core.java_app.somegroup.someorg.env]
+	JAVA_HOME="/some/path/"
+	CLASSPATH="/some/classpath/foo.jar"
+	
+	[services.core.rngd.foo.someorg]
+	start = "--permanent-peer --foo=bar"
+	[services.core.rngd.foo.someorg.env]
+	JAVA_HOME="/a/different/path/"
+	# we don't specify CLASSPATH here, so it won't be set for core/rngd
+
+> Note: We current don't support global environment variables.
+
 ## Using the director
 When run in a supervisor, the director can be started using the `hab start` command.
 

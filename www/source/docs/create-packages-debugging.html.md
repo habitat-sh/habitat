@@ -23,7 +23,7 @@ The build system will proceed until the point where the `attach` function is inv
 ~~~
 ### Attaching to debugging session
 
-From: /src/plans/yourapp/plan.sh @ line 15 :
+From: /src/yourapp/plan.sh @ line 15 :
 
     5: pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
     6: pkg_source=http://download.yourapp.io/releases/${pkg_name}-${pkg_version}.tar.gz

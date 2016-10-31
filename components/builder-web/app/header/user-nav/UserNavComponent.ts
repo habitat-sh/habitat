@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {Component} from "angular2/core";
+import {Component, ElementRef, Input} from "angular2/core";
 import {RouterLink} from "angular2/router";
 
 @Component({
     directives: [RouterLink],
-    inputs: ["isOpen", "isSignedIn", "username", "avatarUrl", "signOut",
-        "toggleUserNavMenu"],
+    host: {
+        "(document:click)": "toggle($event)",
+    },
     selector: "user-nav",
     template: `
     <div class="main-nav--cta" *ngIf="!isSignedIn">
       <a class="button" [routerLink]="['SignIn']">Sign In</a>
     </div>
     <div class="main-nav--profile" *ngIf="isSignedIn">
-        <a class="main-nav--avatar" href="#" (click)="toggleUserNavMenu()">
+        <a class="main-nav--avatar" href="#">
             <img height=24 src="{{avatarUrl}}" />
         </a>
         <ul class="main-nav--dropdown" *ngIf="isOpen">
@@ -37,4 +38,27 @@ import {RouterLink} from "angular2/router";
     </div>`,
 })
 
-export class UserNavComponent { }
+export class UserNavComponent {
+    @Input() isOpen: boolean;
+    @Input() isSignedIn: boolean;
+    @Input() username: string;
+    @Input() avatarUrl: string;
+    @Input() signOut: Function;
+    @Input() toggleUserNavMenu: Function;
+
+    constructor(private element: ElementRef) {}
+
+    // This will be triggered on *any* click on the document. Toggle the menu
+    // if it's already open and clicked on outide the dropdown, or if it's not
+    // open and we click on this component's elements (the thing that opens the
+    // dropdown)
+    //
+    // This makes it so the dropdown closes if you click somewhere you would
+    // expect would make it close.
+    private toggle(event) {
+        if ((this.isOpen && !event.target.closest(".main-nav--dropdown")) ||
+            (!this.isOpen && this.element.nativeElement.contains(event.target))) {
+            this.toggleUserNavMenu();
+        }
+    }
+}

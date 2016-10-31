@@ -13,12 +13,12 @@
 // limitations under the License.
 
 //! This is the building block of complicated topologies which require a leader. It is
-//! used when a single member of your cluster should perform additional applications
+//! used when a single member of your cluster should perform additional application-
 //! level initialization and/or if the other members of your cluster need to perform
 //! additional initialization steps.
 //!
-//! We guarantee that the leader will perform it's initialization sequence before the
-//! followers attempt to run thier initialization sequences.
+//! We guarantee that the leader will perform its initialization sequence before the
+//! followers attempt to run their initialization sequences.
 
 use config::Config;
 use error::{Result, SupError};

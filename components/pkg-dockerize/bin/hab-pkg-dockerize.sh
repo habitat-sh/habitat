@@ -127,7 +127,7 @@ docker_image() {
   echo "$1" > $DOCKER_CONTEXT/rootfs/.hab_pkg
   cat <<EOT > $DOCKER_CONTEXT/Dockerfile
 FROM scratch
-ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH)
+ENV $(cat $DOCKER_CONTEXT/rootfs/init.sh | grep PATH= | cut -d' ' -f2-)
 WORKDIR /
 ADD rootfs /
 VOLUME $HAB_ROOT_PATH/svc/${pkg_name}/data $HAB_ROOT_PATH/svc/${pkg_name}/config

@@ -33,6 +33,7 @@ pub mod controller;
 pub use self::config::Config;
 pub use self::error::{Error, Result};
 
+use std::collections::HashMap;
 use std::fmt;
 use std::result;
 use std::str::FromStr;
@@ -49,6 +50,7 @@ pub struct ServiceDef {
     pub ident: PackageIdent,
     pub service_group: ServiceGroup,
     pub cli_args: Option<String>,
+    pub env: HashMap<String, String>,
 }
 
 impl ServiceDef {
@@ -57,6 +59,7 @@ impl ServiceDef {
             ident: ident,
             service_group: service_group,
             cli_args: None,
+            env: HashMap::new(),
         }
     }
 }

@@ -1,11 +1,14 @@
 [root]
 name = "habitat_http_client"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
- "habitat_core 0.7.0",
- "hyper 0.9.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_core 0.8.0",
+ "httparse 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.9.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl 0.7.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
+ "url 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -58,7 +61,7 @@ dependencies = [
 
 [[package]]
 name = "habitat_core"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "errno 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -90,7 +93,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "hyper"
-version = "0.9.6"
+version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",

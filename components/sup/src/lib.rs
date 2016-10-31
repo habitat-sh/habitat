@@ -67,6 +67,7 @@ extern crate urlencoded;
 extern crate openssl;
 #[macro_use]
 extern crate lazy_static;
+extern crate cadence;
 
 #[macro_export]
 /// Creates a new SupError, embedding the current file name, line number, column, and module path.
@@ -289,5 +290,5 @@ lazy_static!{
     };
 }
 
-#[allow(dead_code)]
+const PRODUCT: &'static str = "hab-sup";
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");

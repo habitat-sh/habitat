@@ -143,8 +143,8 @@
 #
 # ### pkg_include_dirs
 # An array of paths, relative to the final install of the software, where
-# headers can be found. Used to populate `CFLAGS` for software that depends on
-# your package.
+# headers can be found. Used to populate `CFLAGS`, `CPPFLAGS` and `CXXFLAGS`
+# for software that depends on your package.
 # ```
 # pkg_include_dirs=(include)
 # ```
@@ -155,6 +155,14 @@
 # your package.
 # ```
 # pkg_bin_dirs=(bin)
+# ```
+#
+# ### pkg_pconfig_dirs
+# An array of paths, relative to the final install of the software,
+# where pkg-config metadata (.pc files) can be found.  Used to populate
+# PKG_CONFIG_PATH for software that depends on your package.
+# ```
+# pkg_pconfig_dirs=(lib/pkgconfig)
 # ```
 #
 # ### pkg_svc_run
@@ -324,9 +332,9 @@ INITIAL_PATH="$PATH"
 # The value of `pwd` on initial start of this program
 INITIAL_PWD="$(pwd)"
 # The target architecture this plan will be built for
-pkg_arch=$(uname -m | tr [[:upper:]] [[:lower:]])
+pkg_arch=$(uname -m | tr '[:upper:]' '[:lower:]')
 # The target system (i.e. operating system variant) this plan will be built for
-pkg_sys=$(uname -s | tr [[:upper:]] [[:lower:]])
+pkg_sys=$(uname -s | tr '[:upper:]' '[:lower:]')
 # The full target tuple this plan will be built for
 pkg_target="${pkg_arch}-${pkg_sys}"
 # The package's origin (i.e. acme)
@@ -1308,6 +1316,11 @@ fix_interpreter() {
     fi
 
     for t in ${targets}; do
+      if [[ ! -f $t ]]; then
+        debug "Ignoring non-file target: ${t}"
+        continue
+      fi
+
       build_line "Replacing '${interpreter_old}' with '${interpreter_new}' in '${t}'"
       sed -e "s#\#\!${interpreter_old}#\#\!${interpreter_new}#" -i $t
     done
@@ -1608,10 +1621,11 @@ _build_environment() {
     fi
   done
 
-  # Build `$CFLAGS` and `$LDFLAGS` containing any direct dependency's `CFLAGS`
-  # or `LDFLAGS` entries respectively (build or run). If the software to be
-  # built requires the path to headers or shared libraries, it must be a
-  # direct dependency, not transitive.
+  # Build `$CFLAGS`, `$CPPFLAGS`, `$CXXFLAGS` and `$LDFLAGS` containing any
+  # direct dependency's `CFLAGS`, `CPPFLAGS`, `CXXFLAGS` or `LDFLAGS` entries
+  # respectively (build or run). If the software to be built requires the path
+  # to headers or shared libraries, it must be a direct dependency, not
+  # transitive.
   for dep_path in "${pkg_all_deps_resolved[@]}"; do
     if [[ -f "$dep_path/CFLAGS" ]]; then
       local data=$(cat $dep_path/CFLAGS)
@@ -1621,7 +1635,42 @@ _build_environment() {
       else
         export CFLAGS="$trimmed"
       fi
+      if [[ ! -f "$dep_path/CPPFLAGS" ]]; then
+        if [[ -n "$CPPFLAGS" ]]; then
+          export CPPFLAGS="$CPPFLAGS $trimmed"
+        else
+          export CPPFLAGS="$trimmed"
+        fi
+      fi
+      if [[ ! -f "$dep_path/CXXFLAGS" ]]; then
+        if [[ -n "$CXXFLAGS" ]]; then
+          export CXXFLAGS="$CXXFLAGS $trimmed"
+        else
+          export CXXFLAGS="$trimmed"
+        fi
+      fi
     fi
+
+    if [[ -f "$dep_path/CPPFLAGS" ]]; then
+      local data=$(cat $dep_path/CPPFLAGS)
+      local trimmed=$(trim $data)
+      if [[ -n "$CPPFLAGS" ]]; then
+        export CPPFLAGS="$CPPFLAGS $trimmed"
+      else
+        export CPPFLAGS="$trimmed"
+      fi
+    fi
+
+    if [[ -f "$dep_path/CXXFLAGS" ]]; then
+      local data=$(cat $dep_path/CXXFLAGS)
+      local trimmed=$(trim $data)
+      if [[ -n "$CXXFLAGS" ]]; then
+        export CXXFLAGS="$CXXFLAGS $trimmed"
+      else
+        export CXXFLAGS="$trimmed"
+      fi
+    fi
+
     if [[ -f "$dep_path/LDFLAGS" ]]; then
       local data=$(cat $dep_path/LDFLAGS)
       local trimmed=$(trim $data)
@@ -1629,6 +1678,16 @@ _build_environment() {
         export LDFLAGS="$LDFLAGS $trimmed"
       else
         export LDFLAGS="$trimmed"
+      fi
+    fi
+
+    if [[ -f "$dep_path/PKG_CONFIG_PATH" ]]; then
+      local data=$(cat ${dep_path}/PKG_CONFIG_PATH)
+      local trimmed=$(trim $data)
+      if [[ -n "$PKG_CONFIG_PATH" ]]; then
+        export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${trimmed}"
+      else
+        export PKG_CONFIG_PATH="$trimmed"
       fi
     fi
   done
@@ -1641,7 +1700,10 @@ _build_environment() {
   build_line "Setting PREFIX=$PREFIX"
   build_line "Setting LD_RUN_PATH=$LD_RUN_PATH"
   build_line "Setting CFLAGS=$CFLAGS"
+  build_line "Setting CXXFLAGS=$CXXFLAGS"
+  build_line "Setting CPPFLAGS=$CPPFLAGS"
   build_line "Setting LDFLAGS=$LDFLAGS"
+  build_line "Setting PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
   return 0
 }
 
@@ -1755,6 +1817,7 @@ do_default_install() {
 #
 # * `$pkg_prefix/BUILD_DEPS` - Any dependencies we need build the package
 # * `$pkg_prefix/CFLAGS` - Any CFLAGS for things that link against us
+# * `$pkg_prefix/PKG_CONFIG_PATH` - Any PKG_CONFIG_PATH entries for things that depend on us
 # * `$pkg_prefix/DEPS` - Any dependencies we need to use the package at runtime
 # * `$pkg_prefix/EXPOSES` - Any ports we expose
 # * `$pkg_prefix/FILES` - blake2b checksums of all files in the package
@@ -1794,6 +1857,42 @@ _build_metadata() {
   done
   if [[ -n "${cflags_part}" ]]; then
     echo $cflags_part > $pkg_prefix/CFLAGS
+  fi
+
+  local cppflags_part=""
+  for inc in "${pkg_include_dirs[@]}"; do
+    if [[ -z "$cppflags_part" ]]; then
+      cppflags_part="-I${pkg_prefix}/${inc}"
+    else
+      cppflags_part="$cppflags_part -I${pkg_prefix}/${inc}"
+    fi
+  done
+  if [[ -n "${cppflags_part}" ]]; then
+    echo $cppflags_part > $pkg_prefix/CPPFLAGS
+  fi
+
+  local cxxflags_part=""
+  for inc in "${pkg_include_dirs[@]}"; do
+    if [[ -z "$cxxflags_part" ]]; then
+      cxxflags_part="-I${pkg_prefix}/${inc}"
+    else
+      cxxflags_part="$cxxflags_part -I${pkg_prefix}/${inc}"
+    fi
+  done
+  if [[ -n "${cxxflags_part}" ]]; then
+    echo $cxxflags_part > $pkg_prefix/CXXFLAGS
+  fi
+
+  local pconfig_path_part=""
+  for inc in "${pkg_pconfig_dirs[@]}"; do
+    if [[ -z "$pconfig_path_part" ]]; then
+      pconfig_path_part="${pkg_prefix}/${inc}"
+    else
+      pconfig_path_part="${pconfig_path_part}:${pkg_prefix}/${inc}"
+    fi
+  done
+  if [[ -n "${pconfig_path_part}" ]]; then
+    echo $pconfig_path_part > $pkg_prefix/PKG_CONFIG_PATH
   fi
 
   local path_part=""
@@ -1853,13 +1952,16 @@ _build_metadata() {
   echo "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}" \
     >> $pkg_prefix/IDENT
 
+  echo "$pkg_svc_user" > $pkg_prefix/SVC_USER
+  echo "$pkg_svc_group" > $pkg_prefix/SVC_GROUP
+
   # Generate the blake2b hashes of all the files in the package. This
   # is not in the resulting MANIFEST because MANIFEST is included!
   pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   build_line "Generating blake2b hashes of all files in the package"
   find $pkg_prefix -type f \
     | $_sort_cmd \
-    | while read file; do _b2sum $file; done > ${pkg_name}_blake2bsums
+    | while read file; do _b2sum "$file"; done > ${pkg_name}_blake2bsums
 
   build_line "Generating signed metadata FILES"
   $HAB_BIN pkg sign --origin $pkg_origin ${pkg_name}_blake2bsums $pkg_prefix/FILES
@@ -1949,7 +2051,7 @@ do_strip() {
 # Default implementation for the `do_strip()` phase.
 do_default_strip() {
   build_line "Stripping unneeded symbols from binaries and libraries"
-  find $pkg_prefix -type f -perm u+w -print0 2> /dev/null \
+  find $pkg_prefix -type f -perm -u+w -print0 2> /dev/null \
     | while read -rd '' f; do
       case "$(file -bi "$f")" in
         *application/x-executable*) strip --strip-all "$f";;
@@ -1999,6 +2101,18 @@ _build_manifest() {
     local _cflags_string="$CFLAGS"
   fi
 
+  if [[ -z "$CPPFLAGS" ]]; then
+    local _cppflags_string="no CPPFLAGS"
+  else
+    local _cppflags_string="$CPPFLAGS"
+  fi
+
+  if [[ -z "$CXXFLAGS" ]]; then
+    local _cxxflags_string="no CXXFLAGS"
+  else
+    local _cxxflags_string="$CXXFLAGS"
+  fi
+
   if [[ -z "$LDFLAGS" ]]; then
     local _ldflags_string="no LDFLAGS"
   else
@@ -2036,6 +2150,8 @@ $pkg_description
 
 \`\`\`bash
 CFLAGS: $_cflags_string
+CPPFLAGS: $_cppflags_string
+CXXFLAGS: $_cxxflags_string
 LDFLAGS: $_ldflags_string
 LD_RUN_PATH: $_ldrunpath_string
 \`\`\`
@@ -2055,7 +2171,9 @@ EOT
 # TODO: (jtimberman) If `hab pkg hash` itself starts to output
 # like `sha256sum` at some point, we'll need to update this function.
 _b2sum() {
-  echo -en "$($HAB_BIN pkg hash $1)  $1\n"
+  local filename="$1"
+  local hash_val=$(hab pkg hash "$filename")
+  echo -en "$hash_val  $filename\n"
 }
 
 # **Internal** Create the package artifact with `tar`/`hab pkg sign`

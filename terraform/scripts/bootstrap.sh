@@ -1,9 +1,11 @@
 #!/bin/bash
 set -eux
 
-VERSION="0.6.0"
-RELEASE="20160610050853"
-PLATFORM="x86_64-linux"
+VERSION="0.7.0"
+RELEASE="20160614230104"
+ARCH="x86_64"
+KERNEL="linux"
+PLATFORM="${ARCH}-${KERNEL}"
 
 sudo adduser --group hab || echo "Group 'hab' already exists"
 sudo useradd -g hab hab || echo "User 'hab' already exists"
@@ -17,37 +19,40 @@ set -eu
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 # Download URL for the `core/hab` Habitat artifact
-hart_url="http://s3-us-west-2.amazonaws.com/habitat-sh/core-hab-${VERSION}-${RELEASE}-${PLATFORM}.hart"
-# Shasum for the Habitat artifact, used to verify the download
-hart_sha="7695e9acb6a223482be44ec6ccdbe978eb4494444ee200ac1caedf89f28eed6b"
-# Download location of the Habitat artifact
-hart_file="/tmp/$(basename $hart_url)"
+hab_url="https://bintray.com/habitat/stable/download_file?file_path=${KERNEL}%2F${ARCH}%2Fhab-${VERSION}-${RELEASE}-${PLATFORM}.tar.gz"
+# Down URL for the shasum digest
+sha_url="${hab_url}.sha256sum"
+# Download location for the temporary files
+workdir="${TMPDIR:-/tmp}/hab"
 
 # Add a trap to clean up any interrupted file downloads
-trap 'rm -f $hart_file; exit $?' INT TERM EXIT
+trap 'rm -rf $workdir; exit $?' INT TERM EXIT
 
-# Download and verify Habitat artifact by comparing checksums
-rm -f $hart_file
-curl -L $hart_url -o $hart_file
-checksum=$(sha256sum $hart_file | cut -d ' ' -f 1)
-if [ "$hart_sha" != "$checksum" ]; then
-  >&2 echo ">>> Checksum invalid for $hart_file"
-  >&2 echo ">>> (Expected: $hart_sha  Computed: $checksum)"
-  exit 1
-fi
+# Download the Habitat slim archive and its shasum digest
+rm -rf "$workdir"
+mkdir -p "$workdir"
+cd "$workdir"
+curl -L $hab_url -o $workdir/hab.tar.gz
+curl -L $sha_url -o $workdir/hab.tar.gz.sha256sum
 
-# Extract hart into destination, ignoring the signed header info
-tail -n +6 $hart_file | xzcat | sudo tar xf - -C /
-# Add symlink for convenience under `/bin`
-sudo /$(tail -n +6 $hart_file | xzcat | sudo tar t | head -n 1)bin/hab pkg binlink core/hab hab
+# Set the target file name for the slim archive
+archive="$workdir/$(cat hab.tar.gz.sha256sum | cut -d ' ' -f 3)"
+mv -v "$workdir/hab.tar.gz" "$archive"
+# Set the target file name for the shasum digest
+sha_file="${archive}.sha256sum"
+mv -v "$workdir/hab.tar.gz.sha256sum" "${archive}.sha256sum"
 
-# Clear the file download and extraction clean trap
-trap - INT TERM EXIT
-rm -f $hart_file
+# Verify the provided shasum digest matches the downloaded archive
+sha256sum -c "$sha_file"
 
-sudo hab install core/hab > /dev/null 2>&1
+# Extract the archive into a temporary directory
+zcat "$archive" | tar x -C "$workdir"
+# Directory containing the binary
+archive_dir="$(echo $archive | sed 's/.tar.gz$//')"
+
+sudo "$archive_dir/hab" install core/hab > /dev/null 2>&1
+sudo "$archive_dir/hab" pkg binlink core/hab hab
 sudo hab install core/hab-sup > /dev/null 2>&1
 sudo hab install core/hab-director > /dev/null 2>&1
-sudo hab pkg binlink core/hab hab
 # JW TODO: give director the same treatment as sup in hab
 sudo hab pkg binlink core/hab-director hab-director

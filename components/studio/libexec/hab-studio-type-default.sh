@@ -20,7 +20,27 @@ finish_setup() {
       # will use the outside cache key path, whereas the `_hab` function has
       # the `$FS_ROOT` set for the inside of the Studio. We're copying from
       # the outside in, using `hab` twice. I love my job.
-      $hab origin key export --type secret $key | _hab origin key import
+
+      # if we don't set +e here, then the subshell exits upon
+      # error without any output
+      set +e
+      key_text=$($hab origin key export --type secret $key)
+      # capture the result now before calling other commands
+      # that will overwrite the result
+      local result=$?
+      # reenable exit upon error
+      set -e
+
+      # NOTE: quotes MUST appear around ${key_text} to preserve
+      # newlines in the hab export output
+      if [ $result -eq 0 ]; then
+        echo "${key_text}" | _hab origin key import
+      else
+        echo "Error exporting $key key"
+        # key_text will contain an error message
+        echo "${key_text}"
+        exit 1
+      fi
     done
   fi
 

@@ -60,14 +60,14 @@ use std::env;
 use std::path::Path;
 
 use ansi_term::Colour::Yellow;
-use common::command::ProgressBar;
 use common::command::package::install;
 use depot_client::Client;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{cache_artifact_path, FS_ROOT_PATH};
 use hcore::package::PackageIdent;
 
-use error::{Error, Result};
+use {PRODUCT, VERSION};
+use error::Result;
 use config::{Config, UpdateStrategy};
 use package::Package;
 use topology::{self, Topology};
@@ -84,36 +84,38 @@ static LOGKEY: &'static str = "CS";
 /// * Fails if an unknown topology was specified on the command line
 pub fn package(config: &Config) -> Result<()> {
     match Package::load(config.package(), None) {
-        Ok(package) => {
+        Ok(mut package) => {
             let update_strategy = config.update_strategy();
             match update_strategy {
                 UpdateStrategy::None => {}
                 _ => {
-                    if let &Some(ref url) = config.url() {
-                        outputln!("Checking remote for newer versions...");
-                        // It is important to pass `config.package()` to `show_package()` instead of the
-                        // package identifier of the loaded package. This will ensure that if the operator
-                        // starts a package while specifying a version number, they will only automaticaly
-                        // receive release updates for the started package.
-                        //
-                        // If the operator does not specify a version number they will automatically receive
-                        // updates for any releases, regardless of version number, for the started  package.
-                        let depot_client = try!(Client::new(url, None));
-                        let latest_pkg_data =
-                            try!(depot_client.show_package((*config.package()).clone()));
-                        let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
-                        if &latest_ident > package.ident() {
-                            outputln!("Downloading latest version from remote: {}", latest_ident);
-                            let mut progress = ProgressBar::default();
-                            let archive = try!(depot_client.fetch_package(latest_ident,
-                                               &cache_artifact_path(None),
-                                               Some(&mut progress)));
-                            try!(archive.verify(&default_cache_key_path(None)));
-                            try!(archive.unpack(None));
-                        } else {
-                            outputln!("Already running latest.");
-                        };
-                    }
+                    let url = config.url();
+                    outputln!("Checking Depot for newer versions...");
+                    // It is important to pass `config.package()` to `show_package()` instead
+                    // of the package identifier of the loaded package. This will ensure that
+                    // if the operator starts a package while specifying a version number, they
+                    // will only automaticaly receive release updates for the started package.
+                    //
+                    // If the operator does not specify a version number they will
+                    // automatically receive updates for any releases, regardless of version
+                    // number, for the started  package.
+                    let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
+                    let latest_pkg_data =
+                        try!(depot_client.show_package((*config.package()).clone()));
+                    let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
+                    if &latest_ident > package.ident() {
+                        outputln!("Downloading latest version from Depot: {}", latest_ident);
+                        let new_pkg_data = try!(install::start(url,
+                                                               &latest_ident.to_string(),
+                                                               PRODUCT,
+                                                               VERSION,
+                                                               Path::new(FS_ROOT_PATH),
+                                                               &cache_artifact_path(None),
+                                                               &default_cache_key_path(None)));
+                        package = try!(Package::load(&new_pkg_data, None));
+                    } else {
+                        outputln!("Already running latest.");
+                    };
                 }
             }
             start_package(package, config)
@@ -121,22 +123,32 @@ pub fn package(config: &Config) -> Result<()> {
         Err(_) => {
             outputln!("{} is not installed",
                       Yellow.bold().paint(config.package().to_string()));
-            match *config.url() {
-                Some(ref url) => {
+            let url = config.url();
+            let new_pkg_data = match config.local_artifact() {
+                Some(artifact) => {
+                    try!(install::start(url,
+                                        &artifact,
+                                        PRODUCT,
+                                        VERSION,
+                                        Path::new(FS_ROOT_PATH),
+                                        &cache_artifact_path(None),
+                                        &default_cache_key_path(None)))
+                }
+                None => {
                     outputln!("Searching for {} in remote {}",
                               Yellow.bold().paint(config.package().to_string()),
                               url);
-                    let new_pkg_data = try!(install::from_url(url,
-                                                              config.package(),
-                                                              Path::new(FS_ROOT_PATH),
-                                                              &cache_artifact_path(None),
-                                                              &default_cache_key_path(None)));
-                    let package = try!(Package::load(&new_pkg_data.get_ident().clone().into(),
-                                                     None));
-                    start_package(package, config)
+                    try!(install::start(url,
+                                        &config.package().to_string(),
+                                        PRODUCT,
+                                        VERSION,
+                                        Path::new(FS_ROOT_PATH),
+                                        &cache_artifact_path(None),
+                                        &default_cache_key_path(None)))
                 }
-                None => Err(sup_error!(Error::PackageNotFound(config.package().clone()))),
-            }
+            };
+            let package = try!(Package::load(&new_pkg_data, None));
+            start_package(package, config)
         }
     }
 }

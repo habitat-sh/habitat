@@ -15,9 +15,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libczmq-dev \
     man \
     musl-tools \
+    net-tools \
     npm \
     pkg-config \
     protobuf-compiler \
+    redis-server \
     sudo \
     tmux \
     vim \
@@ -47,7 +49,6 @@ RUN (adduser --system hab || true) && (addgroup --system hab || true)
 
 COPY support/devshell_profile.sh /root/.bash_profile
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
-COPY .delivery/scripts/git_src_checkout.sh /usr/local/bin
 COPY components/hab/install.sh /tmp
 RUN /tmp/install.sh \
   && hab install core/busybox-static \

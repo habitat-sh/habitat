@@ -174,6 +174,7 @@ pub mod export {
         use std::path::Path;
         use std::str::FromStr;
         use super::ExportFormat;
+        use {PRODUCT, VERSION};
 
         pub fn format_for(value: &str) -> Result<ExportFormat> {
             match value {
@@ -198,6 +199,13 @@ pub mod export {
                     };
                     Ok(format)
                 }
+                "tar" => {
+                    let format = ExportFormat {
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-tarize")),
+                        cmd: "hab-pkg-tarize".to_string(),
+                    };
+                    Ok(format)
+                }
                 _ => Err(Error::UnsupportedExportFormat(value.to_string())),
             }
         }
@@ -211,11 +219,13 @@ pub mod export {
                     println!("Searching for {} in remote {}",
                              &format_ident.to_string(),
                              &default_depot_url());
-                    try!(install::from_url(&default_depot_url(),
-                                           format_ident,
-                                           Path::new(FS_ROOT_PATH),
-                                           &cache_artifact_path(None),
-                                           &default_cache_key_path(None)));
+                    try!(install::start(&default_depot_url(),
+                                        &format_ident.to_string(),
+                                        PRODUCT,
+                                        VERSION,
+                                        Path::new(FS_ROOT_PATH),
+                                        &cache_artifact_path(None),
+                                        &default_cache_key_path(None)));
                 }
             }
             let pkg_arg = OsString::from(&ident.to_string());
@@ -280,6 +290,78 @@ pub mod path {
     }
 }
 
+pub mod provides {
+    use std::collections::HashSet;
+    use std::path::Path;
+
+    use walkdir::WalkDir;
+
+    use error::{Error, Result};
+    use hcore::fs::PKG_PATH;
+
+    pub fn start(filename: &str,
+                 fs_root_path: &Path,
+                 full_releases: bool,
+                 full_path: bool)
+                 -> Result<()> {
+        let mut found = HashSet::new();
+        // count the # of directories in the path to the package dir
+        // ex: /hab/pkg == 2
+        let prefix_count = Path::new(PKG_PATH).components().count();
+        // the location of installed packages
+        let pkg_root = fs_root_path.join(PKG_PATH);
+
+        let mut found_any = false;
+
+        // recursively walk the directories in pkg_root looking for matches
+        for entry in WalkDir::new(pkg_root).into_iter().filter_map(|e| e.ok()) {
+            if let Some(f) = entry.path().file_name().and_then(|f| f.to_str()) {
+
+                if filename == f {
+                    found_any = true;
+                    let mut comps = entry.path().components();
+
+                    // skip prefix_count segments of the path
+                    let _ = try!(comps.nth(prefix_count).ok_or(Error::FileNotFound(f.to_string())));
+
+                    let segments = if full_releases {
+                        // take all 4 segments of the path
+                        // ex: core/busybox-static/1.24.2/20160708162350
+                        comps.take(4)
+                    } else {
+                        // only take 2 segments of the path
+                        // ex: core/busybox-static
+                        comps.take(2)
+                    };
+
+                    let mapped_segs: Vec<String> =
+                        segments.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
+                    let pkg_name = mapped_segs.join("/");
+
+                    // if we show the full path, then don't bother stuffing
+                    // the result into the found HashSet, as we want to
+                    // print out each path we find.
+                    if full_path {
+                        println!("{}: {}", &pkg_name, &entry.path().to_string_lossy());
+                    } else {
+                        found.insert(pkg_name);
+                    }
+                }
+            }
+        }
+        // if we're not using full_path, then using a set will filter out
+        // duplicates. This shows the filtered set of matches
+        for entry in &found {
+            println!("{}", entry);
+        }
+        if found_any {
+            Ok(())
+        } else {
+            Err(Error::ProvidesError(filename.to_string()))
+        }
+    }
+}
+
 pub mod sign {
     use std::path::Path;
 
@@ -331,6 +413,7 @@ pub mod upload {
     use depot_client::{self, Client};
     use hyper::status::StatusCode::{self, Forbidden, Unauthorized};
 
+    use {PRODUCT, VERSION};
     use error::{Error, Result};
 
     /// Upload a package from the cache to a Depot. The latest version/release of the package
@@ -358,7 +441,7 @@ pub mod upload {
                  Green.paint(format!("☛ Artifact signed with {}", &public_keyfile_name)));
 
         let (name, rev) = try!(parse_name_with_rev(&hart_header.key_name));
-        let depot_client = try!(Client::new(url, None));
+        let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
 
         println!("{}",
                  Yellow.bold().paint(format!("» Uploading origin key {}", &public_keyfile_name)));

@@ -58,6 +58,9 @@ export default function projects(state = initialState["projects"], action) {
         case actionTypes.SET_CURRENT_PROJECT:
             return state.mergeIn(["current"], Record(action.payload)());
 
+        case actionTypes.DELETE_PROJECT:
+            return state.remove("current");
+
         case actionTypes.SET_PROJECTS:
             return state.set("all",
                 state.get("added").concat(List(action.payload)));

@@ -23,7 +23,9 @@ extern crate ansi_term;
 extern crate libc;
 #[macro_use]
 extern crate clap;
+extern crate cadence;
 
+use std::path::Path;
 use std::process;
 use std::result;
 use std::str::FromStr;
@@ -34,7 +36,7 @@ use hcore::env as henv;
 use hcore::fs;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::crypto::init as crypto_init;
-use hcore::package::PackageIdent;
+use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use sup::config::{Command, Config, UpdateStrategy};
@@ -64,7 +66,7 @@ static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
 
 /// Creates a [Config](config/struct.Config.html) from global args
 /// and subcommand args.
-fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
+fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<Config> {
     let mut config = Config::new();
     let command = try!(Command::from_str(subcommand));
     config.set_command(command);
@@ -74,9 +76,15 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     if let Some(ref archive) = sub_args.value_of("archive") {
         config.set_archive(archive.to_string());
     }
-    if let Some(ref package) = sub_args.value_of("package") {
-        let ident = try!(PackageIdent::from_str(package));
-        config.set_package(ident);
+    if let Some(ref ident_or_artifact) = sub_args.value_of("pkg_ident_or_artifact") {
+        if Path::new(ident_or_artifact).is_file() {
+            let ident = try!(PackageArchive::new(Path::new(ident_or_artifact)).ident());
+            config.set_package(ident);
+            config.set_local_artifact(ident_or_artifact.to_string());
+        } else {
+            let ident = try!(PackageIdent::from_str(ident_or_artifact));
+            config.set_package(ident);
+        }
     }
     if let Some(key) = sub_args.value_of("key") {
         config.set_key(key.to_string());
@@ -164,7 +172,7 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
         None => vec![],
     };
     config.set_gossip_peer(gossip_peers);
-    if sub_args.value_of("permanent-peer").is_some() {
+    if sub_args.is_present("permanent-peer") {
         config.set_gossip_permanent(true);
     }
     if let Some(sg) = sub_args.value_of("service-group") {
@@ -198,13 +206,12 @@ fn config_from_args(args: &ArgMatches, subcommand: &str, sub_args: &ArgMatches) 
     if let Some(ring) = ring {
         config.set_ring(ring.name_with_rev());
     }
-    if args.value_of("verbose").is_some() {
+    if sub_args.is_present("verbose") {
         sup::output::set_verbose(true);
     }
-    if args.value_of("no-color").is_some() {
+    if sub_args.is_present("no-color") {
         sup::output::set_no_color(true);
     }
-
     if let Some(org) = sub_args.value_of("organization") {
         config.set_organization(org.to_string());
     }
@@ -256,12 +263,13 @@ fn main() {
     };
 
     let sub_start = SubCommand::with_name("start")
-        .about("Start a Habitat-supervised service from a package")
+        .about("Start a Habitat-supervised service from a package or artifact")
         .aliases(&["st", "sta", "star"])
-        .arg(Arg::with_name("package")
+        .arg(Arg::with_name("pkg_ident_or_artifact")
             .index(1)
             .required(true)
-            .help("Name of package to start"))
+            .help("A Habitat package identifier (ex: acme/redis) or a filepath to a Habitat \
+                   Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"))
         .arg(arg_url())
         .arg(arg_group())
         .arg(arg_org())
@@ -328,11 +336,12 @@ fn main() {
     let matches = args.get_matches();
 
     debug!("clap matches {:?}", matches);
-
     let subcommand_name = matches.subcommand_name().unwrap();
     let subcommand_matches = matches.subcommand_matches(subcommand_name).unwrap();
+    debug!("subcommand name {:?}", &subcommand_name);
+    debug!("Subcommand matches {:?}", &subcommand_matches);
 
-    let config = match config_from_args(&matches, subcommand_name, &subcommand_matches) {
+    let config = match config_from_args(subcommand_name, &subcommand_matches) {
         Ok(config) => config,
         Err(e) => return exit_with(e, 1),
     };

@@ -18,6 +18,7 @@ temp_utp = "*"
 toml = "*"
 url = "*"
 uuid = "0.1"
+walkdir = "*"
 
 [dependencies.clap]
 version = "*"

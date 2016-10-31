@@ -164,7 +164,6 @@ matrix:
     - secure: "SFcY62bzpxUVD6ZDE23KudYX5gCt9fuH8QE2wAE+Pu4LPj9SKQyOwpbx3Aej2EzPk14RNA2HKXr3jY+rGdSpNrSyTmbf2IMOolVjIDSoT2xD5E+hAARfuurjHH8l9Bwb8KRiPG3oxcM85oXU6kd882SN5CsM3jY65vj94I/SMZYpUB7KSUQP8ji7hoE1eVeXQWi2AM+fjPFwWG1BhiP16j7SyAaDCAI+jDAeTplrdg10pxIKv7ef1wOHahyGlORdxubAilQW+dZuubMjl2qgPem8FQRmYSLJNEAvj663QYZf1XfH1fDYavW7J0l9vj4E8BwXUAdYn20JPwR6HSI/XsJrpxEc/PEt/2HqhTPAnxVwKQkXEgbKxCamPDIwBANwhjOdetY9dR8w9W4rsJ7wT7WQw40chlFO1gU8Ct4dIlCYogtTBxRdrCObTWRkGlsEH2XNxt4lE4xoE79njlQqNj/Wq0FeyljLPIaK90E1C9O0Q5Li1LaiIQTxyaoivLGELXrsysvkRwEOOCGiFt6w8P1LDEqoKz7Z5tu7+dbh3c31KCgPsgo150/Q4+plnq6+GoY+3ejWac7qf+q1dbp5Gx4lNPBKKuUylhx7TYUlpAp3hLcoA3fs245eYbbv1+fJ1SLIFGYNTHzRRmbB1bZaHQeHl8dMNuMh4JVDexAuCXc="
     before_install: ./support/ci/fast_pass.sh || exit 0
     install: "(cd www && bundle install)"
-    script: "(cd www && ./bin/middleman build)"
-    after_script: ./support/ci/deploy_website.sh
+    script: ./support/ci/deploy_website.sh
 notifications:
-  webhooks: http://52.37.151.35:54856/travis
+  webhooks: http://old-bots.habitat.sh:54856/travis

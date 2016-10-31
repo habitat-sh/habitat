@@ -29,8 +29,7 @@ import {requireSignIn} from "../util";
         <div class="page-body">
             <ul class="hab-projects-list">
                 <li *ngIf="projects.size === 0">
-                    You do not have any Projects yet. Why not
-                    <a [routerLink]="['ProjectCreate']">create one</a>?
+                    You do not have any Projects yet.
                 </li>
                 <li *ngFor="#project of projects">
                     <a [routerLink]="['Project', { origin: project.origin, name: project.name }]" class="hab-item-list" href="#">
@@ -47,11 +46,15 @@ export class ProjectsPageComponent implements OnInit {
         requireSignIn(this);
     }
 
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
     get projects() {
         return this.store.getState().projects.all;
     }
 
     ngOnInit() {
-        this.store.dispatch(fetchProjects());
+        this.store.dispatch(fetchProjects(this.token));
     }
 }

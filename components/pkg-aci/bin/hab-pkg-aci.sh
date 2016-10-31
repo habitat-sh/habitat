@@ -152,7 +152,7 @@ build_aci() {
 : ${HAB_ROOT_PATH:=$FS_ROOT/hab}
 # Directory to write ACIs to. If $HAB_RESULTS_DIR environment variable
 # is set, this value is overriden
-: ${HAB_RESULTS_DIR:=/src/plans/results}
+: ${HAB_RESULTS_DIR:=/src/results}
 
 # The current version of Habitat Studio
 version='@version@'

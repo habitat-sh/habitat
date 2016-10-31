@@ -1,9 +1,9 @@
 resource "aws_iam_user" "www" {
-  name = "${var.www_user}"
+  name = "www-${var.env}"
 }
 
 resource "aws_iam_user_policy" "www" {
-  name = "${var.www_user}"
+  name = "www-${var.env}"
   user = "${aws_iam_user.www.name}"
 
   policy = <<EOF
@@ -30,7 +30,7 @@ EOF
 }
 
 resource "aws_s3_bucket" "www" {
-  bucket = "${var.www_bucket_name}"
+  bucket = "habitat-www-${var.env}"
   acl    = "public-read"
 
   website {
@@ -48,7 +48,7 @@ resource "aws_s3_bucket" "www" {
           "*"
         ]
       },
-      "Resource": "arn:aws:s3:::${var.www_bucket_name}/*",
+      "Resource": "arn:aws:s3:::habitat-www-${var.env}/*",
       "Action": "s3:GetObject"
     },
     {
@@ -56,7 +56,7 @@ resource "aws_s3_bucket" "www" {
       "Principal": {
         "AWS": "arn:aws:iam::${var.aws_account_id}:user/${aws_iam_user.www.name}"
       },
-      "Resource": "arn:aws:s3:::${var.www_bucket_name}",
+      "Resource": "arn:aws:s3:::habitat-www-${var.env}",
       "Action": "s3:*"
     },
     {
@@ -64,7 +64,7 @@ resource "aws_s3_bucket" "www" {
       "Principal": {
         "AWS": "arn:aws:iam::${var.aws_account_id}:user/${aws_iam_user.www.name}"
       },
-      "Resource": "arn:aws:s3:::${var.www_bucket_name}/*",
+      "Resource": "arn:aws:s3:::habitat-www-${var.env}/*",
       "Action": "s3:*"
     }
   ]

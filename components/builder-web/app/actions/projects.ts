@@ -14,6 +14,7 @@
 
 import * as fakeApi from "../fakeApi";
 import {Observable} from "rxjs";
+import {BuilderApiClient} from "../BuilderApiClient";
 import {addNotification} from "./notifications";
 import {DANGER, INFO, SUCCESS, WARNING} from "./notifications";
 import {requestRoute} from "./router";
@@ -31,17 +32,24 @@ export const POPULATE_BUILD_LOG = "POPULATE_BUILD_LOG";
 export const POPULATE_PROJECT = "POPULATE_PROJECT";
 export const SET_CURRENT_PROJECT = "SET_CURRENT_PROJECT";
 export const SET_PROJECTS = "SET_PROJECTS";
+export const DELETE_PROJECT = "DELETE_PROJECT";
 
-export function addProject(project) {
+export function addProject(project: Object, token: string) {
     return dispatch => {
-        // TODO: put this back. Removed the method when the builder api client
-        //       underwhen some changes
+        new BuilderApiClient(token).createProject(project).then(response => {
+            dispatch(requestRoute(["Projects"]));
+            dispatch(addNotification({
+                title: "Project created",
+                body: `Created ${response["id"]}.`,
+                type: SUCCESS,
+            }));
+        }).catch(error => {
             dispatch(addNotification({
                 title: "Failed to Create project",
-                body: "",
+                body: error.message,
                 type: DANGER,
             }));
-
+        });
     };
 }
 
@@ -81,32 +89,60 @@ function fetchBuildLog(pkg, builds) {
     };
 }
 
-export function fetchProject(params) {
+export function fetchProject(id: string, token: string) {
     return dispatch => {
-        fakeApi.get(`projects/${params["origin"]}/${params["name"]}.json`).then(response => {
+        new BuilderApiClient(token).getProject(id).then(response => {
             dispatch(
-                setCurrentProject(
-                    Object.assign({
-                        ui: { exists: true, loading: false }
-                    }, response)
-                )
+              setCurrentProject(
+                Object.assign({
+                  ui: { exists: true, loading: false }
+                }, response)
+              )
             );
         }).catch(error => {
-            dispatch(setCurrentProject({
-                ui: { exists: false, loading: false }
+            dispatch(addNotification({
+                title: "Failed to fetch project",
+                body: error.message,
+                type: DANGER,
             }));
         });
     };
 }
 
-export function fetchProjects() {
+export function fetchProjects(token: string) {
     return dispatch => {
-        fakeApi.get("projects.json").then(response => {
+        new BuilderApiClient(token).getProjects().then(response => {
             dispatch(setProjects(response));
         });
     };
 }
 
+export function deleteProject(id: string, token: string) {
+    return dispatch => {
+        new BuilderApiClient(token).deleteProject(id).then(response => {
+            dispatch(requestRoute(["Projects"]));
+            dispatch(addNotification({
+                title: "Project deleted",
+                body: `Deleted ${id}.`,
+                type: SUCCESS
+            }));
+            dispatch(actuallyDeleteProject(id));
+        }).catch(error => {
+            dispatch(addNotification({
+                title: "Failed to delete project",
+                body: error.message,
+                type: DANGER,
+            }));
+        });
+    };
+}
+
+function actuallyDeleteProject(projectId) {
+    return {
+        type: DELETE_PROJECT,
+        payload: projectId,
+    };
+}
 
 function finishBuildStream(build) {
     return {

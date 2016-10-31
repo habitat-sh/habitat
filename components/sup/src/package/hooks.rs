@@ -22,10 +22,14 @@ use std::process::{Command, Stdio};
 use handlebars::Handlebars;
 
 use error::{Error, Result};
+use hcore::util;
 use package::Package;
 use service_config::{ServiceConfig, never_escape_fn};
 use util::convert;
+use util::handlebars_helpers;
+use util::users as hab_users;
 
+pub const HOOK_PERMISSIONS: &'static str = "0755";
 static LOGKEY: &'static str = "PH";
 
 #[derive(Debug, Clone)]
@@ -54,24 +58,31 @@ pub struct Hook {
     pub htype: HookType,
     pub template: PathBuf,
     pub path: PathBuf,
+    pub user: String,
+    pub group: String,
 }
 
 impl Hook {
-    pub fn new(htype: HookType, template: PathBuf, path: PathBuf) -> Self {
+    pub fn new(htype: HookType,
+               template: PathBuf,
+               path: PathBuf,
+               user: String,
+               group: String)
+               -> Self {
         Hook {
             htype: htype,
             template: template,
             path: path,
+            user: user,
+            group: group,
         }
     }
 
     pub fn run(&self, context: Option<&ServiceConfig>) -> Result<String> {
         try!(self.compile(context));
-        let mut child = try!(Command::new(&self.path)
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn());
+        let mut cmd = Command::new(&self.path);
+        try!(self.run_platform(&mut cmd));
+        let mut child = try!(cmd.spawn());
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,
@@ -113,10 +124,41 @@ impl Hook {
         }
     }
 
+    #[cfg(any(target_os="linux", target_os="macos"))]
+    fn run_platform(&self, cmd: &mut Command) -> Result<()> {
+        use std::os::unix::process::CommandExt;
+        let uid = hab_users::user_name_to_uid(&self.user);
+        let gid = hab_users::group_name_to_gid(&self.group);
+        if let None = uid {
+            panic!("Can't determine uid");
+        }
+
+        if let None = gid {
+            panic!("Can't determine gid");
+        }
+
+        let uid = uid.unwrap();
+        let gid = gid.unwrap();
+        cmd.stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .uid(uid)
+            .gid(gid);
+        Ok(())
+    }
+
+    #[cfg(target_os = "windows")]
+    fn run_platform(&self, cmd: &mut Command) -> Result<()> {
+        unimplemented!();
+    }
+
     pub fn compile(&self, context: Option<&ServiceConfig>) -> Result<()> {
+        let runas = format!("{}:{}", &self.user, &self.group);
         if let Some(ctx) = context {
             debug!("Rendering hook {:?}", self);
             let mut handlebars = Handlebars::new();
+            handlebars.register_helper("json", Box::new(handlebars_helpers::json_helper));
+            handlebars.register_helper("toml", Box::new(handlebars_helpers::toml_helper));
             handlebars.register_escape_fn(never_escape_fn);
             try!(handlebars.register_template_file("hook", &self.template));
             let toml = try!(ctx.to_toml());
@@ -130,9 +172,13 @@ impl Hook {
                 .mode(0o770)
                 .open(&self.path));
             try!(write!(&mut file, "{}", data));
+            try!(util::perm::set_owner(&self.path, &runas));
+            try!(util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
             Ok(())
         } else {
             try!(fs::copy(&self.template, &self.path));
+            try!(util::perm::set_owner(&self.path, &runas));
+            try!(util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
             Ok(())
         }
     }
@@ -179,8 +225,11 @@ impl<'a> HookTable<'a> {
     fn load_hook(&self, hook_type: HookType) -> Option<Hook> {
         let template = self.package.hook_template_path(&hook_type);
         let concrete = self.package.hook_path(&hook_type);
+        let (user, group) = hab_users::get_user_and_group(&self.package.pkg_install)
+            .expect("Can't determine user:group");
+
         match fs::metadata(&template) {
-            Ok(_) => Some(Hook::new(hook_type, template, concrete)),
+            Ok(_) => Some(Hook::new(hook_type, template, concrete, user, group)),
             Err(_) => None,
         }
     }

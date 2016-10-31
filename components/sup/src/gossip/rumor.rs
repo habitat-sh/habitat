@@ -21,7 +21,6 @@ use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 
 use common::gossip_file::GossipFile;
-use rustc_serialize::Encodable;
 use uuid::Uuid;
 
 use census::CensusEntry;

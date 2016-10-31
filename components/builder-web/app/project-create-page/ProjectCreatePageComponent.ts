@@ -15,7 +15,7 @@
 import {Component, OnInit} from "angular2/core";
 import {ControlGroup, FormBuilder, Validators} from "angular2/common";
 import {RouteParams, RouterLink} from "angular2/router";
-import {addProject} from "../actions/index";
+import {addProject, fetchMyOrigins} from "../actions/index";
 import {AppStore} from "../AppStore";
 import {CheckingInputComponent} from "../CheckingInputComponent";
 import {GitHubApiClient} from "../GitHubApiClient";
@@ -53,22 +53,11 @@ import {requireSignIn} from "../util";
                       <label for="origin">Project Origin</label>
                       <select ngControl="origin"
                               id="origin">
+                          <option></option>
                           <option *ngFor="#origin of myOrigins">
                               {{origin.name}}
                           </option>
                       </select>
-                  </div>
-                  <div class="name">
-                      <label for="name">Project Name</label>
-                      <hab-checking-input autofocus=true
-                                          displayName="Name"
-                                          [form]="form"
-                                          id="name"
-                                          [isAvailable]="false"
-                                          name="name"
-                                          placeholder="Required. Max 40 characters."
-                                          [value]="repo">
-                      </hab-checking-input>
                   </div>
                   <div class="plan">
                       <label for="plan">Path to Plan file</label>
@@ -79,10 +68,10 @@ import {requireSignIn} from "../util";
                                           id="plan"
                                           [isAvailable]="doesFileExist"
                                           [maxLength]="false"
-                                          name="plan"
+                                          name="plan_path"
                                           notAvailableMessage="does not exist in repository"
                                           [pattern]="false"
-                                          value="/plan.sh">
+                                          value="plan.sh">
                       </hab-checking-input>
                   </div>
                   <div class="submit">
@@ -106,9 +95,9 @@ export class ProjectCreatePageComponent implements OnInit {
         private routeParams: RouteParams, private store: AppStore) {
         this.form = formBuilder.group({
             repo: [this.repo || "", Validators.required],
-            origin: [this.store.getState().origins.current.name,
+            origin: [this.myOrigins.first(),
                 Validators.required],
-            plan: ["/plan.sh", Validators.required],
+            plan_path: ["/plan.sh", Validators.required],
         });
 
         this.doesFileExist = function (path) {
@@ -141,20 +130,30 @@ export class ProjectCreatePageComponent implements OnInit {
         return (this.ownerAndRepo || "").split("/")[1];
     }
 
+    get token() {
+        return this.store.getState().gitHub.authToken;
+    }
+
     private addProject(values) {
-        this.store.dispatch(addProject(values));
+        // Change the format to match what the server wants
+        values.github = {
+            organization: this.repoOwner,
+            repo: this.repo
+        };
+        delete values.repo;
+
+        this.store.dispatch(addProject(values, this.token));
         return false;
     }
 
     public ngOnInit() {
         requireSignIn(this);
-
+        this.store.dispatch(fetchMyOrigins(this.token));
         // Wait a second to set the fields as dirty to do validation on page
         // load. Doing this later in the lifecycle causes a changed after it was
         // checked error.
         setTimeout(() => {
-            this.form.controls["plan"].markAsDirty();
-            this.form.controls["name"].markAsDirty();
+            this.form.controls["plan_path"].markAsDirty();
          } , 1000);
     }
 }

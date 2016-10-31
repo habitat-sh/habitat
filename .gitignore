@@ -4,11 +4,12 @@ terraform.tfstate*
 .delivery/cli.toml
 .tags*
 log/
-plans/log/
-plans/tmp/
 results/
 tmp/
 .vagrant/
 *.sig.key
 *.box.key
 *.sym.key
+test/logs
+test/results
+test/cleanup.sh

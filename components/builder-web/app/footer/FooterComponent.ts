@@ -58,7 +58,11 @@ import config from "../config";
             </div>
         </div>
         <div class="footer--legal">
-            <p class="footer--copyright">&copy; {{currentYear}} <a href="http://chef.io">Chef Software, Inc</a>. All Rights Reserved. Patent Pending.</p>
+            <p class="footer--copyright">
+                &copy; {{currentYear}} <a href="http://chef.io">Chef Software, Inc</a>. All Rights Reserved. Patent Pending.
+                <span class="footer--version">{{config["version"]}}</span>
+            </p>
+
         </div>
     </footer>`,
 })

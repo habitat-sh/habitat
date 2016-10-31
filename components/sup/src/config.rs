@@ -85,7 +85,8 @@ impl Default for Command {
 pub struct Config {
     command: Command,
     package: PackageIdent,
-    url: Option<String>,
+    local_artifact: Option<String>,
+    url: String,
     topology: Topology,
     group: String,
     path: String,
@@ -261,12 +262,12 @@ impl Config {
 
     /// Set the url
     pub fn set_url(&mut self, url: String) -> &mut Config {
-        self.url = Some(url);
+        self.url = url;
         self
     }
 
     /// Return the url
-    pub fn url(&self) -> &Option<String> {
+    pub fn url(&self) -> &str {
         &self.url
     }
 
@@ -382,6 +383,15 @@ impl Config {
         &self.package
     }
 
+    pub fn set_local_artifact(&mut self, artifact: String) -> &mut Config {
+        self.local_artifact = Some(artifact);
+        self
+    }
+
+    pub fn local_artifact(&self) -> Option<&str> {
+        self.local_artifact.as_ref().map(String::as_ref)
+    }
+
     pub fn set_organization(&mut self, org: String) -> &mut Config {
         self.organization = Some(org);
         self
@@ -439,7 +449,7 @@ mod tests {
     fn url() {
         let mut c = Config::new();
         c.set_url(String::from("http://foolio.com"));
-        assert_eq!(c.url().as_ref().unwrap(), "http://foolio.com");
+        assert_eq!(c.url(), "http://foolio.com");
     }
 
     #[test]

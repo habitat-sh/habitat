@@ -32,6 +32,7 @@ extern crate url;
 // Temporary depdency for gossip/rumor injection code duplication.
 extern crate utp;
 extern crate uuid;
+extern crate walkdir;
 
 mod analytics;
 mod cli;
@@ -62,6 +63,7 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use gossip::hab_gossip;
 
+const PRODUCT: &'static str = "hab";
 const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// Makes the --auth-token CLI param optional when this env var is set
@@ -145,6 +147,7 @@ fn start() -> Result<()> {
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
                 ("install", Some(m)) => try!(sub_pkg_install(m)),
                 ("path", Some(m)) => try!(sub_pkg_path(m)),
+                ("provides", Some(m)) => try!(sub_pkg_provides(m)),
                 ("sign", Some(m)) => try!(sub_pkg_sign(m)),
                 ("upload", Some(m)) => try!(sub_pkg_upload(m)),
                 ("verify", Some(m)) => try!(sub_pkg_verify(m)),
@@ -230,7 +233,7 @@ fn sub_config_apply(m: &ArgMatches) -> Result<()> {
     // use the org if it's passed in on the CLI or set in an env var
     let org = match org_param_or_env(&m) {
         Ok(org) => Some(org.to_string()),
-        Err(_e) => None
+        Err(_e) => None,
     };
     sg.organization = org;
 
@@ -430,6 +433,8 @@ fn sub_pkg_install(m: &ArgMatches) -> Result<()> {
     for ident_or_artifact in ident_or_artifacts {
         try!(common::command::package::install::start(url,
                                                       ident_or_artifact,
+                                                      PRODUCT,
+                                                      VERSION,
                                                       Path::new(&fs_root),
                                                       &cache_artifact_path(fs_root_path),
                                                       &default_cache_key_path(fs_root_path)));
@@ -443,6 +448,18 @@ fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
 
     command::pkg::path::start(&ident, &fs_root_path)
+}
+
+fn sub_pkg_provides(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Path::new(&fs_root);
+    // FILE is requied, should be safe to unwrap
+    let filename = m.value_of("FILE").unwrap();
+
+    let full_releases = m.is_present("FULL_RELEASES");
+    let full_paths = m.is_present("FULL_PATHS");
+
+    command::pkg::provides::start(&filename, &fs_root_path, full_releases, full_paths)
 }
 
 fn sub_pkg_sign(m: &ArgMatches) -> Result<()> {
