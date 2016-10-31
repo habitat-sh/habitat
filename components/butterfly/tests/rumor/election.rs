@@ -66,7 +66,7 @@ fn two_members_find_quorum_when_a_third_comes() {
     assert_wait_for_equal_election!(net, [0..2, 0..2], "witcher.prod");
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::NoQuorum);
 
-    net.members.push(common::start_server("2"));
+    net.members.push(common::start_server("2", None));
     net.add_service(2, "witcher");
     net.connect(2, 0);
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::Finished);

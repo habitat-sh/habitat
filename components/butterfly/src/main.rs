@@ -46,6 +46,7 @@ fn main() {
                                      gossip_bind_addr,
                                      member,
                                      trace::Trace::default(),
+                                     None,
                                      None)
         .unwrap();
     println!("Server ID: {}", server.member_id);

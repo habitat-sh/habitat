@@ -36,6 +36,12 @@ impl fmt::Debug for SymKey {
 }
 
 impl SymKey {
+    pub fn generate_in_memory<S: ToString>(name: S) -> Result<Self> {
+        let revision = try!(mk_revision_string());
+        let secret_key = secretbox::gen_key();
+        Ok(SymKey::new(name.to_string(), revision, Some(()), Some(secret_key)))
+    }
+
     pub fn generate_pair_for_ring<P: AsRef<Path> + ?Sized>(name: &str,
                                                            cache_key_path: &P)
                                                            -> Result<Self> {

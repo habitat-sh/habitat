@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The SWIM server.
+//! The Butterfly server.
 //!
-//! Creates `Server` structs, that hold everything we need to run the SWIM protocol. Winds up with
-//! 3 separate threads - inbound (incoming connections), outbound (the Probe protocl), and expire
-//! (turning Suspect members into Confirmed members).
+//! Creates `Server` structs, that hold everything we need to run the SWIM and Gossip protocol.
+//! Winds up with 5 separate threads - inbound (incoming connections), outbound (the Probe
+//! protocol), expire (turning Suspect members into Confirmed members), push (the fan-out rumors),
+//! and pull (the inbound receipt of rumors.).
 
 pub mod expire;
 pub mod inbound;
@@ -72,11 +73,12 @@ pub struct Server {
 
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
-    /// `Trace` struct.
+    /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
     pub fn new<A: ToSocketAddrs>(swim_addr: A,
                                  gossip_addr: A,
                                  member: Member,
                                  trace: Trace,
+                                 ring_key: Option<SymKey>,
                                  name: Option<String>)
                                  -> Result<Server> {
         let swim_socket_addr = match swim_addr.to_socket_addrs() {
@@ -92,7 +94,7 @@ impl Server {
             member_id: Arc::new(String::from(member.get_id())),
             member: Arc::new(RwLock::new(member)),
             member_list: MemberList::new(),
-            ring_key: Arc::new(None),
+            ring_key: Arc::new(ring_key),
             rumor_list: RumorList::default(),
             service_store: RumorStore::default(),
             service_config_store: RumorStore::default(),
@@ -608,6 +610,7 @@ mod tests {
                         &gossip_listen[..],
                         member,
                         Trace::default(),
+                        None,
                         None)
                 .unwrap()
         }

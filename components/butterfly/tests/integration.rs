@@ -21,6 +21,7 @@ extern crate habitat_core;
 #[macro_use]
 mod common;
 mod rumor;
+mod encryption;
 
 use habitat_butterfly::member::Health;
 

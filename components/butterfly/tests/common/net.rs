@@ -26,6 +26,7 @@ use habitat_butterfly::service::Service;
 use habitat_butterfly::service_config::ServiceConfig;
 use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
+use habitat_core::crypto::keys::sym_key::SymKey;
 
 #[derive(Debug)]
 pub struct SwimNet {
@@ -50,7 +51,16 @@ impl SwimNet {
     pub fn new(count: usize) -> SwimNet {
         let mut members = Vec::with_capacity(count);
         for x in 0..count {
-            members.push(common::start_server(&format!("{}", x)));
+            members.push(common::start_server(&format!("{}", x), None));
+        }
+        SwimNet { members: members }
+    }
+
+    pub fn new_ring_encryption(count: usize, ring_key: Option<SymKey>) -> SwimNet {
+        let mut members = Vec::with_capacity(count);
+        for x in 0..count {
+            let rk = ring_key.clone();
+            members.push(common::start_server(&format!("{}", x), rk));
         }
         SwimNet { members: members }
     }
