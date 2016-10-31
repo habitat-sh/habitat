@@ -172,10 +172,6 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     net[4].restart_elections();
     assert_wait_for_election_status!(net, 0, "witcher.prod", Election_Status::NoQuorum);
     assert_wait_for_election_status!(net, 1, "witcher.prod", Election_Status::NoQuorum);
-    // Because of the timing here, its possible that the other two finish the election before we
-    // get around to testing them, causing a false positive. All we really care about is they all
-    // finish.
-    assert_wait_for_election_status!(net, 2, "witcher.prod", Election_Status::Running);
     assert_wait_for_election_status!(net, 2, "witcher.prod", Election_Status::Finished);
     assert_wait_for_election_status!(net, 3, "witcher.prod", Election_Status::Finished);
     assert_wait_for_election_status!(net, 4, "witcher.prod", Election_Status::Finished);
