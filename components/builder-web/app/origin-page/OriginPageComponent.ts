@@ -403,7 +403,7 @@ export class OriginPageComponent implements OnInit, OnDestroy {
             "",
             this.store.getState().packages.nextRange,
             true,
-            this.gitHubAuthToken);
+            this.gitHubAuthToken));
 
         return false;
     }

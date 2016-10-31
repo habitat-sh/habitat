@@ -36,10 +36,17 @@ export function get(params, nextRange: number = 0) {
             }
 
             response.json().then(resultsObj => {
+                let results;
+
                 const endRange = parseInt(resultsObj.range_end, 10);
                 const totalCount = parseInt(resultsObj.total_count, 10);
                 const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
-                const results = resultsObj.package_list;
+
+                if (resultsObj["package_list"]) {
+                    results = resultsObj["package_list"];
+                } else {
+                    results = resultsObj;
+                }
 
                 resolve({ results, totalCount, nextRange });
             });
