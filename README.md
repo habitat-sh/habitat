@@ -85,7 +85,7 @@ The Habitat Builder web application is in the components/builder-web directory. 
 
 ## Documentation
 
-Habitat's website and documentation is located in the `www` directory of the Habitat source code. See [it's README](www/README.md) for more information.
+Habitat's website and documentation is located in the `www` directory of the Habitat source code. See [it's README](www/README.md) for more information. build --help does not work in this
 
 ### Documentation for Rust Crates
 
