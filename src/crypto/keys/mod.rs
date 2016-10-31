@@ -214,15 +214,13 @@ fn get_key_revisions(keyname: &str, cache_key_path: &Path) -> Result<Vec<String>
         }
     };
     for path in paths {
-        match path {
+        let p = match path {
             Ok(ref p) => p,
             Err(e) => {
                 debug!("Error reading path {}", e);
                 return Err(Error::CryptoError(format!("Error reading key path {}", e)));
             }
         };
-
-        let p: fs::DirEntry = path.unwrap();
 
         match p.metadata() {
             Ok(md) => {
