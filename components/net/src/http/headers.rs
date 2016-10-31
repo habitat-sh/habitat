@@ -14,8 +14,5 @@
 
 header! { (CacheControl, "Cache-Control") => [String] }
 header! { (ContentDisposition, "Content-Disposition") => [String] }
-header! { (ContentRange, "Content-Range") => [String] }
-header! { (NextRange, "Next-Range") => [isize] }
-header! { (XContentRange, "X-Content-Range") => [String] }
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }

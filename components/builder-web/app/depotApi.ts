@@ -21,12 +21,11 @@ const urlPrefix = config["habitat_api_url"] || "";
 export function get(params, nextRange: number = 0) {
     const url = `${urlPrefix}/depot/pkgs/` +
         (params["query"] ? `search/${params["query"]}`
-                           : packageString(params));
+                           : packageString(params)) +
+        `?range=${nextRange}`;
 
     return new Promise((resolve, reject) => {
-        fetch(url, {
-            headers: { "Range": nextRange.toString() }
-        }).then(response => {
+        fetch(url).then(response => {
             // Fail the promise if an error happens.
             //
             // If we're hitting the fake api, the 4xx response will show up
@@ -36,20 +35,12 @@ export function get(params, nextRange: number = 0) {
                 reject(new Error(response.statusText));
             }
 
-            const totalCount = parseInt(
-                // The caching proxy (Fastly) may strip out the Content-Range
-                // header on responses, so attempt to use the X-Content-Range
-                // as well until this is fixed.
-                (response.headers.get("Content-Range") ||
-                 response.headers.get("X-Content-Range") ||
-                 "").split("=")[1],
-                10
-            );
-            const nextRange = parseInt(response.headers.get("Next-Range"), 10);
+            response.json().then(resultsObj => {
+                const endRange = parseInt(resultsObj.range_end, 10);
+                const totalCount = parseInt(resultsObj.total_count, 10);
+                const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
+                const results = resultsObj.package_list;
 
-            const headers = response.headers;
-
-            response.json().then(results => {
                 resolve({ results, totalCount, nextRange });
             });
 

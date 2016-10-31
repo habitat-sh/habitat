@@ -133,20 +133,17 @@ impl PackagesIndex {
         Ok(val)
     }
 
-    pub fn list(&self,
-                id: &str,
-                offset: isize,
-                count: isize)
-                -> Result<Vec<depotsrv::PackageIdent>> {
+    pub fn list(&self, id: &str, start: isize, stop: isize) -> Result<Vec<depotsrv::PackageIdent>> {
         let conn = self.pool().get().unwrap();
-        match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), offset, count) {
+
+        // Note: start and stop are INCLUSIVE ranges
+        match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), start, stop) {
             Ok(ids) => {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
                 let mut ids: Vec<package::PackageIdent> =
                     ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
                 ids.sort();
-                ids.reverse();
                 let ids = ids.into_iter().map(|id| depotsrv::PackageIdent::from(id)).collect();
                 Ok(ids)
             }
@@ -175,7 +172,9 @@ impl PackagesIndex {
         }
     }
 
-    /// Returns a vector of package identifiers matching a partial pattern.
+    /// Returns a tuple with a vector of package identifiers matching a partial pattern
+    /// (up to the passed in count values), and a value indicating the total count of all the
+    ///  values that match the query.
     ///
     /// This search behaves as an "auto-complete" search by returning package identifiers that
     /// contain a match for the pattern. The match is applied to each of the four parts of a package
@@ -186,10 +185,13 @@ impl PackagesIndex {
                   partial: &str,
                   offset: isize,
                   count: isize)
-                  -> Result<Vec<depotsrv::PackageIdent>> {
+                  -> Result<(Vec<depotsrv::PackageIdent>, isize)> {
         let min = format!("[{}", partial);
         let max = format!("[{}{}", partial, r"xff");
         let conn = self.pool().get().unwrap();
+
+        let total_count: isize = try!(conn.zlexcount(Self::prefix(), min.clone(), max.clone()));
+
         match conn.zrangebylex_limit::<&'static str, String, String, Vec<String>>(Self::prefix(),
                                                                                   min,
                                                                                   max,
@@ -203,7 +205,8 @@ impl PackagesIndex {
                         depotsrv::PackageIdent::from(p)
                     })
                     .collect();
-                Ok(i)
+
+                Ok((i, total_count))
             }
             Err(e) => Err(Error::from(e)),
         }
