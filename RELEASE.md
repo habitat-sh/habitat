@@ -5,19 +5,19 @@ from the master branch on a bi-weekly schedule occurring every other Thursday.
 
 ## Workstation Preparation
 
-1. Create a `code` directory
+1. Create a `code` directory.
 
     ```
     $ mkdir -p ~/code
     ```
 
-1. Clone the Habitat repository into a subdirectory of your code directory
+1. Clone the Habitat repository into a subdirectory of your code directory.
 
     ```
     $ git clone git@github.com:habitat-sh/habitat.git ~/code/habitat
     ```
 
-1. Clone the core-plans repository into a subdirectory of your code directory
+1. Clone the core-plans repository into a subdirectory of your code directory.
 
     ```
     $ git clone git@github.com:habitat-sh/core-plans.git ~/code/core-plans
@@ -158,7 +158,7 @@ Before we begin a build of a plan we first need to determine which other plans f
 and core-plans repository depend on it and re-build each of those packages after we build our
 target component.
 
-> note: Dependency re-build will later be handled automatically by the Builder service
+> Note: Dependency re-build will later be handled automatically by the Builder service
 
 1. From outside of a studio, change into your code directory and run the build-dependent-order tool with the component's package identifier as the first argument. This will output a list of dependent packages. In the following example we will assume we are rebuilding `core/hab`
 
