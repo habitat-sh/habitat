@@ -1,5 +1,31 @@
 # Building Habitat from source
 
+## Mac OS X
+
+1. [Install Docker](https://docs.docker.com/engine/installation/mac/#/docker-for-mac) (you'll need
+   at least Docker 1.9.)
+1. (Optional) Consider adding `eval "$(docker-machine env default)"` to your shell initialization
+1. Checkout the source by running `git clone git@github.com:habitat-sh/habitat.git; cd habitat`
+1. Run `make`
+1. (Optional) Run `make test` if you want to run the tests. This will take a while.
+
+Everything should come up green. Congratulations - you have a working Habitat development environment.
+
+**Note:** The Makefile targets are documented. Run `make help` to show the output. Habitat requires `perl`.
+
+**Optional:** This project compiles and runs inside Docker containers so while
+installing the Rust language isn't strictly necessary, you might want a local
+copy of Rust on your workstation (some editors' language support require an
+installed version). To [install stable
+Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
+https://static.rust-lang.org/rustup.sh | sh`. Additionally, the project
+maintainers use [rustfmt](https://github.com/rust-lang-nursery/rustfmt) for
+code formatting. If you are submitting changes, please ensure that your work
+has been run through rustfmt. An easy way to install it (assuming you have Rust
+installed as above), is to run `cargo install rustfmt` and adding
+`$HOME/.cargo/bin` to your `PATH`.
+
+
 ## Ubuntu: Xenial
 
 This installation method uses as many packages from Ubuntu as possible. If you'd like to build additional components from source, see the next section.
