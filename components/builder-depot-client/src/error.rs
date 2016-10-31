@@ -32,6 +32,7 @@ pub enum Error {
     IO(io::Error),
     NoFilePart,
     NoXFilename,
+    UploadFailed(String),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
 }
@@ -54,6 +55,7 @@ impl fmt::Display for Error {
             Error::NoXFilename => {
                 format!("Invalid download from a Depot - missing X-Filename header")
             }
+            Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
             Error::WriteSyncFailed => {
                 format!("Could not write to destination; perhaps the disk is full?")
@@ -75,6 +77,7 @@ impl error::Error for Error {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
+            Error::UploadFailed(_) => "Upload failed",
             Error::UrlParseError(ref err) => err.description(),
             Error::WriteSyncFailed => {
                 "Could not write to destination; bytes written was 0 on a non-0 buffer"
