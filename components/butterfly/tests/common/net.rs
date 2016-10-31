@@ -24,6 +24,7 @@ use habitat_butterfly::member::{Member, Health};
 use habitat_butterfly::server::timing::Timing;
 use habitat_butterfly::service::Service;
 use habitat_butterfly::service_config::ServiceConfig;
+use habitat_butterfly::service_file::ServiceFile;
 use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::keys::sym_key::SymKey;
@@ -383,6 +384,14 @@ impl SwimNet {
         self[member].insert_service_config(s);
     }
 
+    pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
+        let body_bytes: Vec<u8> = Vec::from(body);
+        let s = ServiceFile::new(self[member].member_id(),
+                                 ServiceGroup::new(service, "prod", None),
+                                 filename,
+                                 body_bytes);
+        self[member].insert_service_file(s);
+    }
 
     pub fn add_election(&mut self, member: usize, service: &str, suitability: u64) {
         self[member].start_election(ServiceGroup::new(service, "prod", None), suitability, 0);

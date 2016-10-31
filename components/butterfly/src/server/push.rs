@@ -203,6 +203,20 @@ impl PushWorker {
                         }
                     }
                 }
+                ProtoRumor_Type::ServiceFile => {
+                    // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
+                    match self.server
+                        .service_file_store
+                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            println!("Could not write our own rumor to bytes; abandoning \
+                                            sending rumor: {:?}",
+                                     e);
+                            continue 'rumorlist;
+                        }
+                    }
+                }
                 ProtoRumor_Type::Election => {
                     // trace_it!(GOSSIP: &self.server, TraceKind::SendRumor, member.get_id(), &send_rumor);
                     match self.server
@@ -217,8 +231,9 @@ impl PushWorker {
                         }
                     }
                 }
-                k => {
-                    println!("Unknown rumor type; add it to the push server {:?}", k);
+                ProtoRumor_Type::Fake |
+                ProtoRumor_Type::Fake2 => {
+                    debug!("You have fake rumors; how odd!");
                     continue 'rumorlist;
                 }
             };

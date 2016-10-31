@@ -45,6 +45,7 @@ use trace::{Trace, TraceKind};
 use rumor::{Rumor, RumorStore, RumorList, RumorKey};
 use service::Service;
 use service_config::ServiceConfig;
+use service_file::ServiceFile;
 use election::Election;
 use message::swim::{Wire as ProtoWire, Election_Status};
 use protobuf::{self, Message};
@@ -60,6 +61,7 @@ pub struct Server {
     pub rumor_list: RumorList,
     pub service_store: RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
+    pub service_file_store: RumorStore<ServiceFile>,
     pub election_store: RumorStore<Election>,
     pub swim_addr: Arc<RwLock<SocketAddr>>,
     pub gossip_addr: Arc<RwLock<SocketAddr>>,
@@ -98,6 +100,7 @@ impl Server {
             rumor_list: RumorList::default(),
             service_store: RumorStore::default(),
             service_config_store: RumorStore::default(),
+            service_file_store: RumorStore::default(),
             election_store: RumorStore::default(),
             swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
             gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
@@ -372,10 +375,18 @@ impl Server {
         }
     }
 
-    /// Insert a service config rumor into the service store.
+    /// Insert a service file rumor into the service store.
     pub fn insert_service_config(&self, service_config: ServiceConfig) {
         let rk = RumorKey::from(&service_config);
         if self.service_config_store.insert(service_config) {
+            self.rumor_list.insert(rk);
+        }
+    }
+
+    /// Insert a service file rumor into the service store.
+    pub fn insert_service_file(&self, service_file: ServiceFile) {
+        let rk = RumorKey::from(&service_file);
+        if self.service_file_store.insert(service_file) {
             self.rumor_list.insert(rk);
         }
     }

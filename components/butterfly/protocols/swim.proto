@@ -53,11 +53,18 @@ message Service {
 }
 
 message ServiceConfig {
-  optional string member_id = 1;
-  optional string service_group = 2;
-  optional uint64 incarnation = 3;
-  optional bool encrypted = 4;
-  optional bytes config = 5;
+  optional string service_group = 1;
+  optional uint64 incarnation = 2;
+  optional bool encrypted = 3;
+  optional bytes config = 4;
+}
+
+message ServiceFile {
+  optional string service_group = 1;
+  optional uint64 incarnation = 2;
+  optional bool encrypted = 3;
+  optional string filename = 4;
+  optional bytes body = 5;
 }
 
 message Swim {
@@ -79,8 +86,9 @@ message Rumor {
     Service = 2;
     Election = 3;
     ServiceConfig = 4;
-    Fake = 5;
-    Fake2 = 6;
+    ServiceFile = 5;
+    Fake = 6;
+    Fake2 = 7;
   }
 
   required Type type = 1;
@@ -91,7 +99,8 @@ message Rumor {
   optional Membership member = 4;
   optional Service service = 5;
   optional ServiceConfig service_config = 6;
-  optional Election election = 7;
+  optional ServiceFile service_file = 7;
+  optional Election election = 8;
 }
 
 message Wire {
