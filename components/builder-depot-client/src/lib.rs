@@ -42,10 +42,27 @@ use hyper::header::{Authorization, Bearer};
 use hyper::Url;
 use protocol::{depotsrv, net};
 use rustc_serialize::json;
+use rustc_serialize::Decodable;
 use tee::TeeReader;
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
+
+
+#[derive(RustcDecodable)]
+pub struct PackageResults<T>
+    where T: Decodable
+{
+    pub range_start: isize,
+    pub range_end: isize,
+    pub total_count: isize,
+    pub package_list: Vec<T>,
+}
+
+fn package_results_from_json<T: Decodable>(encoded: &str) -> PackageResults<T> {
+    let results: PackageResults<T> = json::decode(&encoded).unwrap();
+    results
+}
 
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);
@@ -289,14 +306,19 @@ impl Client {
     pub fn search_package(&self,
                           search_term: String)
                           -> Result<(Vec<hab_core::package::PackageIdent>, bool)> {
+
         let mut res = try!(self.inner.get(&format!("pkgs/search/{}", search_term)).send());
         match res.status {
             StatusCode::Ok |
             StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 try!(res.read_to_string(&mut encoded));
-                let packages: Vec<hab_core::package::PackageIdent> = json::decode(&encoded)
-                    .unwrap();
+
+                let package_results: PackageResults<hab_core::package::PackageIdent> =
+                    package_results_from_json(&encoded);
+
+                let packages: Vec<hab_core::package::PackageIdent> = package_results.package_list;
+
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
             _ => Err(err_from_response(res)),
