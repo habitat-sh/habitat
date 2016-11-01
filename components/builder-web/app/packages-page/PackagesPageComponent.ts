@@ -128,7 +128,7 @@ export class PackagesPageComponent implements OnInit, OnDestroy {
     }
 
     private fetchMorePackages() {
-        this.store.dispatch(filterPackagesBy(this.route.params,
+        this.store.dispatch(filterPackagesBy(this.packageParams(),
             this.searchQuery,
             this.store.getState().packages.nextRange));
         return false;
