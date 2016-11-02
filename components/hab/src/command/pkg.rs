@@ -376,15 +376,9 @@ pub mod search {
             _ => {
                 for p in &packages {
                     if let (&Some(ref version), &Some(ref release)) = (&p.version, &p.release) {
-                        println!("{}/{}/{}/{}",
-                                 p.origin,
-                                 p.name,
-                                 version,
-                                 release);
+                        println!("{}/{}/{}/{}", p.origin, p.name, version, release);
                     } else {
-                        println!("{}/{}",
-                                 p.origin,
-                                 p.name);
+                        println!("{}/{}", p.origin, p.name);
                     }
                 }
                 if more {
@@ -439,6 +433,7 @@ pub mod upload {
     use std::path::{Path, PathBuf};
 
     use common::ui::{Status, UI};
+    use common::command::package::install::{RETRIES, RETRY_WAIT};
     use depot_client::{self, Client};
     use hcore::crypto::artifact::get_artifact_header;
     use hcore::crypto::keys::parse_name_with_rev;
@@ -502,13 +497,13 @@ pub mod upload {
                         Some(p) => PathBuf::from(p),
                         None => unreachable!(),
                     };
-                    if retry(5,
-                             3000,
+                    if retry(RETRIES,
+                             RETRY_WAIT,
                              || attempt_upload_dep(ui, &depot_client, token, &dep, &candidate_path),
                              |res| res.is_ok())
                         .is_err() {
                         return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                          5 times \
+                                                                                          {} times \
                                                                                           but \
                                                                                           could \
                                                                                           not \
@@ -516,6 +511,7 @@ pub mod upload {
                                                                                           {}. \
                                                                                           Giving \
                                                                                           up.",
+                                                                                         RETRIES,
                                                                                          &dep))));
                     }
                 }
@@ -529,17 +525,18 @@ pub mod upload {
                 Ok(())
             }
             Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
-                if retry(5,
-                         3000,
+                if retry(RETRIES,
+                         RETRY_WAIT,
                          || upload_into_depot(ui, &depot_client, token, &ident, &mut archive),
                          |res| res.is_ok())
                     .is_err() {
                     return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                      5 times \
+                                                                                      {} times \
                                                                                       but could \
                                                                                       not upload \
                                                                                       {}. Giving \
                                                                                       up.",
+                                                                                     RETRIES,
                                                                                      &ident))));
                 }
                 try!(ui.end(format!("Upload of {} complete.", &ident)));

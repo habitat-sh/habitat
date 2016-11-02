@@ -55,6 +55,7 @@ pub mod key {
         use common::ui::{Status, UI};
         use depot_client::{self, Client};
         use hcore::crypto::SigKeyPair;
+        use common::command::package::install::{RETRIES, RETRY_WAIT};
 
         use {PRODUCT, VERSION};
         use error::{Error, Result};
@@ -125,11 +126,11 @@ pub mod key {
                         Ok(())
                     };
 
-                    if retry(5, 3000, download_fn, |res| res.is_ok()).is_err() {
+                    if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
                         return Err(Error::from(depot_client::Error::DownloadFailed(format!(
-                                        "We tried 5 times but could not \
+                                        "We tried {} times but could not \
                                          download {}/{} origin key. Giving up.",
-                                        &name, &rev))));
+                                        RETRIES, &name, &rev))));
                     }
                 }
             }
@@ -204,6 +205,7 @@ pub mod key {
         use std::path::Path;
 
         use common::ui::{Status, UI};
+        use common::command::package::install::{RETRIES, RETRY_WAIT};
         use depot_client::{self, Client};
         use hcore::crypto::keys::parse_name_with_rev;
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
@@ -243,15 +245,16 @@ pub mod key {
                     Ok(())
                 };
 
-                if retry(5, 3000, upload_fn, |res| res.is_ok()).is_err() {
+                if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
                     return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                      5 times \
+                                                                                      {} times \
                                                                                       but could \
                                                                                       not upload \
                                                                                       {}/{} public \
                                                                                       origin key. \
                                                                                       Giving up.\
                                                                                       ",
+                                                                                     RETRIES,
                                                                                      &name,
                                                                                      &rev))));
                 }
@@ -283,15 +286,16 @@ pub mod key {
                     }
                 };
 
-                if retry(5, 3000, upload_fn, |res| res.is_ok()).is_err() {
+                if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
                     return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
-                                                                                      5 times \
+                                                                                      {} times \
                                                                                       but could \
                                                                                       not upload \
                                                                                       {}/{} secret \
                                                                                       origin key. \
                                                                                       Giving up.\
                                                                                       ",
+                                                                                     RETRIES,
                                                                                      &name,
                                                                                      &rev))));
                 }

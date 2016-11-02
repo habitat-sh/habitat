@@ -51,6 +51,9 @@ use ui::{Status, UI};
 
 use retry::retry;
 
+pub const RETRIES: u64 = 5;
+pub const RETRY_WAIT: u64 = 3000;
+
 pub fn start<P1: ?Sized, P2: ?Sized>(ui: &mut UI,
                                      url: &str,
                                      ident_or_archive: &str,
@@ -178,16 +181,17 @@ impl<'a> InstallTask<'a> {
             debug!("Found {} in artifact cache, skipping remote download",
                    &ident);
         } else {
-            if retry(5,
-                     3000,
+            if retry(RETRIES,
+                     RETRY_WAIT,
                      || self.fetch_artifact(ui, &ident, src_path),
                      |res| res.is_ok())
                 .is_err() {
-                return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried 5 \
+                return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried {} \
                                                                                     times but \
                                                                                     could not \
                                                                                     download {}. \
                                                                                     Giving up.",
+                                                                                   RETRIES,
                                                                                    &ident))));
             }
         }
