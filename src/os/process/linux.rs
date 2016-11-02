@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use libc::{pid_t, c_int};
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::os::unix::process::CommandExt;
@@ -19,8 +20,16 @@ use std::process::Command;
 
 use error::Result;
 
+extern "C" {
+    fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
+}
+
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_exec_command(command, args)
+}
+
+pub fn wait_for_exit(pid: u32, status: *mut c_int) -> u32 {
+    unsafe { waitpid(pid as i32, status, 1 as c_int) as u32 }
 }
 
 /// Makes an `execvp(3)` system call to become a new program.
