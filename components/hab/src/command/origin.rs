@@ -126,7 +126,10 @@ pub mod key {
                     };
 
                     if retry(5, 3000, download_fn, |res| res.is_ok()).is_err() {
-                        return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried 5 times but could not download {}/{} origin key. Giving up.", &name, &rev))));
+                        return Err(Error::from(depot_client::Error::DownloadFailed(format!(
+                                        "We tried 5 times but could not \
+                                         download {}/{} origin key. Giving up.",
+                                        &name, &rev))));
                     }
                 }
             }
@@ -205,6 +208,7 @@ pub mod key {
         use hcore::crypto::keys::parse_name_with_rev;
         use hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
         use hyper::status::StatusCode;
+        use retry::retry;
 
         use super::get_name_with_rev;
         use {PRODUCT, VERSION};
@@ -221,38 +225,75 @@ pub mod key {
 
             let name_with_rev = try!(get_name_with_rev(&public_keyfile, PUBLIC_SIG_KEY_VERSION));
             let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-            try!(ui.status(Status::Uploading, public_keyfile.display()));
 
-            match depot_client.put_origin_key(&name, &rev, public_keyfile, token, ui.progress()) {
-                Ok(()) => try!(ui.status(Status::Uploaded, &name_with_rev)),
-                Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
-                    try!(ui.status(Status::Using,
-                                   format!("public key revision {} which already \
-                                           exists in the depot",
-                                           &name_with_rev)));
+            {
+                let upload_fn = || -> Result<()> {
+                    try!(ui.status(Status::Uploading, public_keyfile.display()));
+                    match depot_client.put_origin_key(
+                        &name, &rev, public_keyfile, token, ui.progress()) {
+                        Ok(()) => try!(ui.status(Status::Uploaded, &name_with_rev)),
+                        Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
+                            try!(ui.status(Status::Using,
+                                        format!("public key revision {} which already \
+                                                    exists in the depot",
+                                                &name_with_rev)));
+                        }
+                        Err(err) => return Err(Error::from(err)),
+                    }
+                    Ok(())
+                };
+
+                if retry(5, 3000, upload_fn, |res| res.is_ok()).is_err() {
+                    return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+                                                                                      5 times \
+                                                                                      but could \
+                                                                                      not upload \
+                                                                                      {}/{} public \
+                                                                                      origin key. \
+                                                                                      Giving up.\
+                                                                                      ",
+                                                                                     &name,
+                                                                                     &rev))));
                 }
-                Err(err) => return Err(Error::from(err)),
             }
+
             try!(ui.end(format!("Upload of public origin key {} complete.", &name_with_rev)));
 
             if let Some(secret_keyfile) = secret_keyfile {
                 let name_with_rev = try!(get_name_with_rev(&secret_keyfile,
                                                            SECRET_SIG_KEY_VERSION));
                 let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-                try!(ui.status(Status::Uploading, secret_keyfile.display()));
-                match depot_client.put_origin_secret_key(&name,
-                                                         &rev,
-                                                         secret_keyfile,
-                                                         token,
-                                                         ui.progress()) {
-                    Ok(()) => {
-                        try!(ui.status(Status::Uploaded, &name_with_rev));
-                        try!(ui.end(format!("Upload of secret origin key {} complete.",
-                                            &name_with_rev)));
+
+                let upload_fn = || -> Result<()> {
+                    try!(ui.status(Status::Uploading, secret_keyfile.display()));
+                    match depot_client.put_origin_secret_key(&name,
+                                                             &rev,
+                                                             secret_keyfile,
+                                                             token,
+                                                             ui.progress()) {
+                        Ok(()) => {
+                            try!(ui.status(Status::Uploaded, &name_with_rev));
+                            try!(ui.end(format!("Upload of secret origin key {} complete.",
+                                                &name_with_rev)));
+                            Ok(())
+                        }
+                        Err(e) => {
+                            return Err(Error::DepotClient(e));
+                        }
                     }
-                    Err(e) => {
-                        return Err(Error::DepotClient(e));
-                    }
+                };
+
+                if retry(5, 3000, upload_fn, |res| res.is_ok()).is_err() {
+                    return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+                                                                                      5 times \
+                                                                                      but could \
+                                                                                      not upload \
+                                                                                      {}/{} secret \
+                                                                                      origin key. \
+                                                                                      Giving up.\
+                                                                                      ",
+                                                                                     &name,
+                                                                                     &rev))));
                 }
             }
 
