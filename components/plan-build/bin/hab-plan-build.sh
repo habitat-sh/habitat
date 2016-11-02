@@ -382,6 +382,13 @@ graceful_exit=true
 # We want everything to be build as `rwx-r-x-r-x`
 umask 0022
 
+# In order to ensure that the external environment does not affect the build
+# time behavior of a Plan, we explicitly unset several know environment
+# variables which are known to be used by underlying autoconf-like tools
+# and other build software.
+unset TERMINFO
+
+
 # ## Private/Internal helper functions
 #
 # These functions are part of the private/internal API of this program and
