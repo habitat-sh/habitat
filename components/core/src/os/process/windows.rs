@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use libc::c_int;
 use std::ffi::OsString;
 use std::path::PathBuf;
 use std::process::{self, Command};
@@ -20,6 +21,10 @@ use error::Result;
 
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_child_command(command, args)
+}
+
+pub fn wait_for_exit(pid: u32, status: *mut c_int) -> u32 {
+    unimplemented!();
 }
 
 /// Executes a command as a child process and exits with the child's exit code.
