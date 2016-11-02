@@ -32,7 +32,6 @@ pub enum Error {
     CryptoKeyError(String),
     GossipFileRelativePath(String),
     DepotClient(depot_client::Error),
-    DownloadError(String),
     FileNameError,
     HabitatCore(hcore::Error),
     InvalidTomlError(String),
@@ -64,7 +63,6 @@ impl fmt::Display for Error {
                         s)
             }
             Error::DepotClient(ref err) => format!("{}", err),
-            Error::DownloadError(ref s) => format!("Download failed: {}", s),
             Error::FileNameError => format!("Failed to extract a filename"),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::InvalidTomlError(ref e) => format!("Invalid TOML: {}", e),
@@ -94,7 +92,6 @@ impl error::Error for Error {
                 "Path for gossip file cannot have relative components (eg: ..)"
             }
             Error::DepotClient(ref err) => err.description(),
-            Error::DownloadError(_) => "Download failed",
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::HabitatCore(ref err) => err.description(),
             Error::InvalidTomlError(_) => "Invalid TOML",

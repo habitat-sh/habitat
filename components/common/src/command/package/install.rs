@@ -39,7 +39,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use depot_client::Client;
+use depot_client::{self, Client};
 use hcore;
 use hcore::fs::{am_i_root, cache_key_path};
 use hcore::crypto::{artifact, SigKeyPair};
@@ -183,9 +183,12 @@ impl<'a> InstallTask<'a> {
                      || self.fetch_artifact(ui, &ident, src_path),
                      |res| res.is_ok())
                 .is_err() {
-                return Err(Error::DownloadError("We tried to download 5 times and were \
-                                                 unsuccessful. Giving up."
-                    .to_string()));
+                return Err(Error::from(depot_client::Error::DownloadFailed(format!("We tried 5 \
+                                                                                    times but \
+                                                                                    could not \
+                                                                                    download {}. \
+                                                                                    Giving up.",
+                                                                                   &ident))));
             }
         }
 
