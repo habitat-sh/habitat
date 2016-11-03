@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[allow(unused_variables)]
 #[cfg(windows)]
 mod windows;
+
 
 #[cfg(windows)]
 pub use self::windows::{chown, chmod, symlink};
