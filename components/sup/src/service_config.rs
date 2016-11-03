@@ -17,7 +17,8 @@
 use std::ascii::AsciiExt;
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
+use std::fs::{File, create_dir_all};
+use std::path::Path;
 use std::io::prelude::*;
 
 use ansi_term::Colour::Purple;
@@ -194,6 +195,9 @@ impl ServiceConfig {
                 debug!("Configuration {} does not exist; restarting", filename);
                 outputln!("Updated {}", Purple.bold().paint(config));
                 self.config_hash.insert(filename.clone(), file_hash);
+                if let Some(parent_path) = Path::new(&filename).parent() {
+                    try!(create_dir_all(parent_path));
+                }
                 let mut config_file = try!(File::create(&filename));
                 try!(config_file.write_all(&template_data.into_bytes()));
                 should_restart = true

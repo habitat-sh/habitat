@@ -66,6 +66,7 @@ extern crate threadpool;
 extern crate openssl;
 #[macro_use]
 extern crate lazy_static;
+extern crate walkdir;
 
 #[macro_export]
 /// Creates a new SupError, embedding the current file name, line number, column, and module path.
