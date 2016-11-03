@@ -13,9 +13,8 @@
 // limitations under the License.
 
 use std::fmt;
-use std::fs::{self, OpenOptions};
+use std::fs::{self, File, OpenOptions};
 use std::io::prelude::*;
-use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -163,14 +162,8 @@ impl Hook {
             let toml = try!(ctx.to_toml());
             let svc_data = convert::toml_to_json(toml);
             let data = try!(handlebars.render("hook", &svc_data));
-            let mut file = try!(OpenOptions::new()
-                .write(true)
-                .truncate(true)
-                .create(true)
-                .read(true)
-                .mode(0o770)
-                .open(&self.path));
-            try!(write!(&mut file, "{}", data));
+            let mut file = try!(File::create(&self.path));
+            try!(file.write_all(data.as_bytes()));
             try!(util::perm::set_owner(&self.path, &self.user, &self.group));
             try!(util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
             Ok(())
