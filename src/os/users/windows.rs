@@ -26,6 +26,14 @@ pub fn get_gid_by_name(group: &str) -> Option<u32> {
     unimplemented!();
 }
 
+pub fn get_current_username() -> Option<String> {
+    unimplemented!();
+}
+
+pub fn get_current_groupname() -> Option<String> {
+    unimplemented!();
+}
+
 pub fn get_effective_uid() -> u32 {
     unsafe { GetUserTokenStatus() }
 }
