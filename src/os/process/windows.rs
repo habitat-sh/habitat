@@ -27,6 +27,10 @@ pub fn wait_for_exit(pid: u32, status: *mut c_int) -> u32 {
     unimplemented!();
 }
 
+pub fn send_signal(pid: u32, sig: u32) -> u32 {
+    unimplemented!();
+}
+
 /// Executes a command as a child process and exits with the child's exit code.
 ///
 /// Note that if sucessful, this function will not return.
