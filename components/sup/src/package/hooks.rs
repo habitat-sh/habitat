@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::fmt;
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};

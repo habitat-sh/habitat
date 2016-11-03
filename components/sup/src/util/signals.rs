@@ -21,6 +21,7 @@
 use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 
+use hcore::os::process;
 use wonder::actor;
 use wonder::actor::{ActorSender, HandleResult, InitResult, StopReason};
 
@@ -39,7 +40,6 @@ static mut SIGNAL: AtomicUsize = ATOMIC_USIZE_INIT;
 // Functions from POSIX libc.
 extern "C" {
     fn signal(sig: u32, cb: unsafe extern "C" fn(u32)) -> unsafe extern "C" fn(u32);
-    fn kill(pid: i32, sig: u32) -> u32;
 }
 
 unsafe extern "C" fn handle_signal(signal: u32) {
@@ -188,11 +188,9 @@ fn set_signal_handlers() {
 pub fn send_signal_to_pid(pid: u32, sig: Signal) -> Result<()> {
     let s = sig as u32;
     debug!("sending signal {} to pid {}", s, pid);
-    unsafe {
-        let result = kill(pid as i32, s);
-        match result {
-            0 => Ok(()),
-            _ => return Err(sup_error!(Error::SignalFailed)),
-        }
+    let result = process::send_signal(pid, s);
+    match result {
+        0 => Ok(()),
+        _ => return Err(sup_error!(Error::SignalFailed)),
     }
 }
