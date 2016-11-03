@@ -18,13 +18,12 @@ use std::path::Path;
 
 use protocol::jobsrv as proto;
 
-use error::Result;
+use error::{Error, Result};
 
 pub fn clone(job: &proto::Job, path: &Path) -> Result<()> {
     let project = job.get_project();
     if project.has_git() {
         return git::clone(project.get_git(), path);
     }
-    // actually return err here
-    Ok(())
+    Err(Error::UnknownVCS)
 }

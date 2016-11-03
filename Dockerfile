@@ -50,6 +50,7 @@ COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY components/hab/install.sh /tmp
 RUN /tmp/install.sh \
   && hab install core/busybox-static \
+  && hab install core/hab-studio \
   && rm -rf /tmp/install.sh /hab/cache
 
 WORKDIR /src

@@ -23,7 +23,7 @@ pub fn clone(vcs: &vault::VCSGit, path: &Path) -> Result<()> {
     debug!("cloning git repository, url={}, path={:?}",
            vcs.get_url(),
            path);
-    let repo = try!(git2::Repository::clone(vcs.get_url(), path));
+    try!(git2::Repository::clone(vcs.get_url(), path));
     debug!("cloned git repository");
     Ok(())
 }
