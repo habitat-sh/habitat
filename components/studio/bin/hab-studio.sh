@@ -887,6 +887,11 @@ chroot_env() {
   if [ -n "${HAB_ORIGIN:-}" ]; then
     env="$env HAB_ORIGIN=$HAB_ORIGIN"
   fi
+  # If a Habitat config filetype ignore string is set, then propogate it
+  # into the Studio's environment.
+  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    env="$env HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
+  fi
   # If HTTP proxy variables are detected in the current environment, propagate
   # them into the Studio's environment.
   if [ -n "${http_proxy:-}" ]; then
@@ -916,6 +921,9 @@ report_env_vars() {
   fi
   if [ -n "${HAB_DEPOT_URL:-}" ]; then
     info "Exported: HAB_DEPOT_URL=$HAB_DEPOT_URL"
+  fi
+  if [ -n "${HAB_CONFIG_EXCLUDE:-}" ]; then
+    info "Exported: HAB_CONFIG_EXCLUDE=$HAB_CONFIG_EXCLUDE"
   fi
   if [ -n "${http_proxy:-}" ]; then
     info "Exported: http_proxy=$http_proxy"

@@ -2009,7 +2009,24 @@ do_build_config() {
 do_default_build_config() {
   build_line "Writing configuration"
   if [[ -d "$PLAN_CONTEXT/config" ]]; then
-    cp -r "$PLAN_CONTEXT/config" $pkg_prefix
+    if [ -z "${HAB_CONFIG_EXCLUDE:-}" ]; then
+      # HAB_CONFIG_EXCLUDE not set, use defaults
+      config_exclude_exts=("*.sw?" "*~" "*.bak")
+    else
+      IFS=',' read -a config_exclude_exts <<< "$HAB_CONFIG_EXCLUDE"
+    fi
+    find_exclusions=""
+    for ext in "${config_exclude_exts[@]}"; do
+      find_exclusions+=" ! -name '$ext'"
+    done
+    find "$PLAN_CONTEXT/config" $find_exclusions | while read FILE
+    do
+      if [[ -d "$FILE" ]]; then
+        mkdir "$pkg_prefix${FILE#$PLAN_CONTEXT}"
+      else
+        cp "$FILE" "$pkg_prefix${FILE#$PLAN_CONTEXT}"
+      fi
+    done
     chmod 755 $pkg_prefix/config
   fi
   if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
