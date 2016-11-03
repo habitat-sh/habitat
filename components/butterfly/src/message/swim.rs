@@ -84,12 +84,12 @@ impl Member {
         if self.id.is_none() {
             self.id.set_default();
         };
-        self.id.as_mut().unwrap()
+        self.id.get_mut_ref()
     }
 
     // Take field
     pub fn take_id(&mut self) -> ::std::string::String {
-        self.id.take().unwrap_or_else(|| ::std::string::String::new())
+        self.id.take().unwrap_or_default()
     }
 
     pub fn get_id(&self) -> &str {
@@ -139,12 +139,12 @@ impl Member {
         if self.address.is_none() {
             self.address.set_default();
         };
-        self.address.as_mut().unwrap()
+        self.address.get_mut_ref()
     }
 
     // Take field
     pub fn take_address(&mut self) -> ::std::string::String {
-        self.address.take().unwrap_or_else(|| ::std::string::String::new())
+        self.address.take().unwrap_or_default()
     }
 
     pub fn get_address(&self) -> &str {
@@ -477,7 +477,7 @@ impl Ping {
         if self.from.is_none() {
             self.from.set_default();
         };
-        self.from.as_mut().unwrap()
+        self.from.get_mut_ref()
     }
 
     // Take field
@@ -510,7 +510,7 @@ impl Ping {
         if self.forward_to.is_none() {
             self.forward_to.set_default();
         };
-        self.forward_to.as_mut().unwrap()
+        self.forward_to.get_mut_ref()
     }
 
     // Take field
@@ -714,7 +714,7 @@ impl Ack {
         if self.from.is_none() {
             self.from.set_default();
         };
-        self.from.as_mut().unwrap()
+        self.from.get_mut_ref()
     }
 
     // Take field
@@ -747,7 +747,7 @@ impl Ack {
         if self.forward_to.is_none() {
             self.forward_to.set_default();
         };
-        self.forward_to.as_mut().unwrap()
+        self.forward_to.get_mut_ref()
     }
 
     // Take field
@@ -951,7 +951,7 @@ impl PingReq {
         if self.from.is_none() {
             self.from.set_default();
         };
-        self.from.as_mut().unwrap()
+        self.from.get_mut_ref()
     }
 
     // Take field
@@ -984,7 +984,7 @@ impl PingReq {
         if self.target.is_none() {
             self.target.set_default();
         };
-        self.target.as_mut().unwrap()
+        self.target.get_mut_ref()
     }
 
     // Take field
@@ -1188,7 +1188,7 @@ impl Membership {
         if self.member.is_none() {
             self.member.set_default();
         };
-        self.member.as_mut().unwrap()
+        self.member.get_mut_ref()
     }
 
     // Take field
@@ -3092,7 +3092,7 @@ impl Swim {
         if self.ping.is_none() {
             self.ping.set_default();
         };
-        self.ping.as_mut().unwrap()
+        self.ping.get_mut_ref()
     }
 
     // Take field
@@ -3125,7 +3125,7 @@ impl Swim {
         if self.ack.is_none() {
             self.ack.set_default();
         };
-        self.ack.as_mut().unwrap()
+        self.ack.get_mut_ref()
     }
 
     // Take field
@@ -3158,7 +3158,7 @@ impl Swim {
         if self.pingreq.is_none() {
             self.pingreq.set_default();
         };
-        self.pingreq.as_mut().unwrap()
+        self.pingreq.get_mut_ref()
     }
 
     // Take field
@@ -3651,7 +3651,7 @@ impl Rumor {
         if self.service_config.is_none() {
             self.service_config.set_default();
         };
-        self.service_config.as_mut().unwrap()
+        self.service_config.get_mut_ref()
     }
 
     // Take field
@@ -3684,7 +3684,7 @@ impl Rumor {
         if self.service_file.is_none() {
             self.service_file.set_default();
         };
-        self.service_file.as_mut().unwrap()
+        self.service_file.get_mut_ref()
     }
 
     // Take field
@@ -3717,7 +3717,7 @@ impl Rumor {
         if self.election.is_none() {
             self.election.set_default();
         };
-        self.election.as_mut().unwrap()
+        self.election.get_mut_ref()
     }
 
     // Take field
