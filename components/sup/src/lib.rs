@@ -62,6 +62,8 @@ extern crate time;
 extern crate toml;
 extern crate persistent;
 #[macro_use]
+extern crate prometheus;
+#[macro_use]
 extern crate lazy_static;
 
 #[macro_export]
