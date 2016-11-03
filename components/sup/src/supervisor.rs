@@ -27,8 +27,9 @@ use std::process::{Command, Stdio, Child};
 use std::thread;
 
 use hcore;
+use hcore::os::process;
 use hcore::package::PackageIdent;
-use libc::{pid_t, c_int};
+use libc::c_int;
 use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
@@ -37,11 +38,6 @@ use util::users as hab_users;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
-
-// Functions from POSIX libc.
-extern "C" {
-    fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
-}
 
 /// A simple compatability type for external functions
 #[allow(non_camel_case_types)]
@@ -311,51 +307,49 @@ impl Supervisor {
             return Ok(());
         }
 
-        unsafe {
-            let mut status: c_int = 0;
-            let cpid = self.pid.unwrap() as pid_t;
-            match waitpid(cpid, &mut status, 1 as c_int) {
-                0 => {} // Nothing returned,
-                pid if pid == cpid => {
-                    if WIFEXITED(status) {
-                        let exit_code = WEXITSTATUS(status);
-                        outputln!("{} - process {} died with exit code {}",
-                                  self.package_ident.name,
-                                  pid,
-                                  exit_code);
-                    } else if WIFSIGNALED(status) {
-                        let exit_signal = WTERMSIG(status);
-                        outputln!("{} - process {} died with signal {}",
-                                  self.package_ident.name,
-                                  pid,
-                                  exit_signal);
-                    } else {
-                        outputln!("{} - process {} died, but I don't know how.",
-                                  self.package_ident.name,
-                                  pid);
+        let mut status: c_int = 0;
+        let cpid = self.pid.unwrap();
+        match process::wait_for_exit(cpid, &mut status) {
+            0 => {} // Nothing returned,
+            pid if pid == cpid => {
+                if WIFEXITED(status) {
+                    let exit_code = WEXITSTATUS(status);
+                    outputln!("{} - process {} died with exit code {}",
+                              self.package_ident.name,
+                              pid,
+                              exit_code);
+                } else if WIFSIGNALED(status) {
+                    let exit_signal = WTERMSIG(status);
+                    outputln!("{} - process {} died with signal {}",
+                              self.package_ident.name,
+                              pid,
+                              exit_signal);
+                } else {
+                    outputln!("{} - process {} died, but I don't know how.",
+                              self.package_ident.name,
+                              pid);
+                }
+                match self.state {
+                    ProcessState::Up | ProcessState::Start | ProcessState::Restart => {
+                        outputln!("{} - Service exited", self.package_ident.name);
+                        self.pid = None;
                     }
-                    match self.state {
-                        ProcessState::Up | ProcessState::Start | ProcessState::Restart => {
-                            outputln!("{} - Service exited", self.package_ident.name);
-                            self.pid = None;
-                        }
-                        ProcessState::Down => {
-                            self.enter_state(ProcessState::Down);
-                            self.pid = None;
-                        }
+                    ProcessState::Down => {
+                        self.enter_state(ProcessState::Down);
+                        self.pid = None;
                     }
                 }
-                // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
-                pid => {
-                    if WIFEXITED(status) {
-                        let exit_code = WEXITSTATUS(status);
-                        debug!("Process {} died with exit code {}", pid, exit_code);
-                    } else if WIFSIGNALED(status) {
-                        let exit_signal = WTERMSIG(status);
-                        debug!("Process {} terminated with signal {}", pid, exit_signal);
-                    } else {
-                        debug!("Process {} died, but I don't know how.", pid);
-                    }
+            }
+            // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
+            pid => {
+                if WIFEXITED(status) {
+                    let exit_code = WEXITSTATUS(status);
+                    debug!("Process {} died with exit code {}", pid, exit_code);
+                } else if WIFSIGNALED(status) {
+                    let exit_signal = WTERMSIG(status);
+                    debug!("Process {} terminated with signal {}", pid, exit_signal);
+                } else {
+                    debug!("Process {} died, but I don't know how.", pid);
                 }
             }
         }
