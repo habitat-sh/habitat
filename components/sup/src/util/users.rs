@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(any(target_os="linux", target_os="macos"))]
-extern crate users;
-
 use error::{Result, Error};
+use hcore::os::users;
 use hcore::package::PackageInstall;
 
 static LOGKEY: &'static str = "UR";
@@ -30,7 +28,6 @@ const DEFAULT_GROUP: &'static str = "hab";
 ///     b) we are the specified user:group
 ///     c) fail otherwise
 /// If pkg_svc_user and pkg_svc_group have NOT been defined, return None.
-#[cfg(any(target_os="linux", target_os="macos"))]
 fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(String, String)>> {
     let svc_user = try!(pkg_install.svc_user());
     let svc_group = try!(pkg_install.svc_group());
@@ -40,12 +37,12 @@ fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(Stri
             // these MUST exist in order to continue
             debug!("SVC_USER = {}", &user);
             debug!("SVC_GROUP = {}", &group);
-            if let None = users::get_user_by_name(&user) {
+            if let None = users::get_uid_by_name(&user) {
                 return Err(sup_error!(Error::Permissions(format!("Package requires user {} to \
                                                                   exist, but it doesn't",
                                                                  user))));
             }
-            if let None = users::get_group_by_name(&group) {
+            if let None = users::get_gid_by_name(&group) {
                 return Err(sup_error!(Error::Permissions(format!("Package requires group {} \
                                                                   to exist, but it doesn't",
                                                                  group))));
@@ -88,12 +85,11 @@ fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(Stri
 
 /// checks to see if hab/hab exists, if not, fall back to
 /// current user/group. If that fails, then return an error.
-#[cfg(any(target_os="linux", target_os="macos"))]
 fn get_default_user_and_group() -> Result<(String, String)> {
-    let user = users::get_user_by_name(DEFAULT_USER);
-    let group = users::get_group_by_name(DEFAULT_GROUP);
-    match (user, group) {
-        (Some(user), Some(group)) => return Ok((user.name().to_string(), group.name().to_string())),
+    let uid = users::get_uid_by_name(DEFAULT_USER);
+    let gid = users::get_gid_by_name(DEFAULT_GROUP);
+    match (uid, gid) {
+        (Some(uid), Some(gid)) => return Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
         _ => {
             debug!("hab:hab does NOT exist");
             let user = users::get_current_username();
@@ -126,18 +122,15 @@ pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, Strin
     }
 }
 
-#[cfg(any(target_os="linux", target_os="macos"))]
-pub fn user_name_to_uid(user: &str) -> Option<u32> {
-    users::get_user_by_name(user).map(|u| u.uid())
-}
-
-#[cfg(any(target_os="linux", target_os="macos"))]
-pub fn group_name_to_gid(group: &str) -> Option<u32> {
-    users::get_group_by_name(group).map(|g| g.gid())
-}
-
 #[cfg(target_os = "windows")]
 pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     unimplemented!();
 }
 
+pub fn user_name_to_uid(user: &str) -> Option<u32> {
+    users::get_uid_by_name(user)
+}
+
+pub fn group_name_to_gid(group: &str) -> Option<u32> {
+    users::get_gid_by_name(group)
+}
