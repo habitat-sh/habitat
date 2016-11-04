@@ -207,7 +207,7 @@ target component.
 1. Ensure no pre-existing old virtual machine, then provision a new Windows machine
 
     ```
-    $ cd ~/code/habitat/components/hab/win
+    $ cd ~/code/habitat/support/win
     $ vagrant destroy
     $ export ORIGIN_KEY=$(hab origin key export core --type secret)
     $ vagrant up

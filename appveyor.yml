@@ -22,7 +22,7 @@ environment:
       hab_components: "core;http-client;builder-protocol;builder-depot-client;common;hab"
 
 install:
-  - ps: ./components/hab/win/win-build.ps1
+  - ps: ./build.ps1 -Configure -SkipBuild
   - rustc -V
   - cargo -V
 

@@ -1,6 +1,6 @@
 # Building a hab Windows Binary
 
-As Habitat currently does not have first class support for the Windows platform, a pragmatic approach has been taken to build a `hab` binary for Windows. A wrapper script called `win-build.ps1` attempts to install any missing pre-requisites and then building a `hab` binary. Currently, the following are required on the Mac system performing the build:
+As Habitat currently does not have first class support for the Windows platform, a pragmatic approach has been taken to build a `hab` binary for Windows. A wrapper script called `build.ps1` will build the binary and, if passed `-Configure`, attempt to install any missing pre-requisites. Currently, the following are required on the Mac system performing the build:
 
 * Chocolatey
 * Win32 builds of libarchive, libsodium, bzip2, zlib, xz, and openssl via a custom Chocolatey package 
@@ -10,10 +10,8 @@ As Habitat currently does not have first class support for the Windows platform,
 ## Usage
 
 ```powershell
-cd components/hab/win
-./win-build.ps1
+./build.ps1 ./components/hab -Configure
 ```
-
 
 # Chocolatey package
 
