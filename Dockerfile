@@ -43,7 +43,8 @@ RUN env -u CARGO_HOME cargo install protobuf && rm -rf /root/.cargo/registry
 RUN curl -sSL https://get.docker.io | sh && rm -rf /var/lib/apt/lists/* && docker -v
 RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
 
-RUN (adduser --system hab || true) && (addgroup --system hab || true)
+RUN (adduser --system hab || true) && (addgroup --system hab || true) \
+  && useradd -m -s /bin/bash -G sudo jdoe && echo jdoe:1234 | chpasswd
 
 COPY support/devshell_profile.sh /root/.bash_profile
 COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
