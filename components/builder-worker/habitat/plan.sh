@@ -6,7 +6,7 @@ pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/gcc-libs core/zeromq core/libsodium core/libarchive
-  core/zlib core/hab-studio)
+  core/zlib core/hab-studio core/curl)
 pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreutils core/cacerts
   core/rust core/gcc core/pkg-config)
 bin="bldr-worker"
