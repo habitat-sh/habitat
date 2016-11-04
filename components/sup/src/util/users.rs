@@ -112,7 +112,6 @@ fn get_default_user_and_group() -> Result<(String, String)> {
 /// if not, we'll try and use hab/hab.
 /// If hab/hab doesn't exist, try to use (current username, current group).
 /// If that doesn't work, then give up.
-#[cfg(any(target_os="linux", target_os="macos"))]
 pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     if let Some((user, group)) = try!(check_pkg_user_and_group(&pkg_install)) {
         Ok((user, group))
@@ -120,11 +119,6 @@ pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, Strin
         let defaults = try!(get_default_user_and_group());
         Ok(defaults)
     }
-}
-
-#[cfg(target_os = "windows")]
-pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
-    unimplemented!();
 }
 
 pub fn user_name_to_uid(user: &str) -> Option<u32> {
