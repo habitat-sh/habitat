@@ -13,6 +13,7 @@ doc = false
 ansi_term = "*"
 env_logger = "*"
 hyper = "*"
+handlebars = "*"
 libc = "*"
 log = "*"
 pbr = "*"

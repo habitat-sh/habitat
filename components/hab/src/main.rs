@@ -18,6 +18,7 @@ extern crate env_logger;
 extern crate hab;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
+extern crate handlebars;
 #[macro_use]
 extern crate log;
 
@@ -130,6 +131,12 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("upload", Some(m)) => try!(sub_pkg_upload(ui, m)),
                 ("verify", Some(m)) => try!(sub_pkg_verify(ui, m)),
                 ("header", Some(m)) => try!(sub_pkg_header(ui, m)),
+                _ => unreachable!(),
+            }
+        }
+        ("plan", Some(matches)) => {
+            match matches.subcommand() {
+                ("init", Some(m)) => try!(sub_plan_init(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -403,6 +410,12 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 
     init();
     command::pkg::hash::start(&source)
+}
+
+fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let name = m.value_of("PKG_NAME").map(|v| v.into());
+    let origin = try!(origin_param_or_env(&m));
+    command::plan::init::start(ui, origin, name)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {

@@ -218,6 +218,19 @@ pub fn get() -> App<'static, 'static> {
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
             )
         )
+        (@subcommand plan =>
+            (about: "Commands relating to plans and other app-specific configuration.")
+            (aliases: &["pl", "pla"])
+            (@setting ArgRequiredElseHelp)
+            (@subcommand init =>
+                (about: "Generates common package specific configuration files. Executing without \
+                    argument will create a `habitat` directory in your current folder for the plan. \
+                    If `PKG_NAME` is specified it will create a folder with that name.")
+                (aliases: &["i", "in", "ini"])
+                (@arg PKG_NAME: +takes_value "Name for the new app.")
+                (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
+            )
+        )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")
             (aliases: &["r", "ri", "rin"])
