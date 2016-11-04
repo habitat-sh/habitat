@@ -21,6 +21,7 @@ use std::process::Command;
 use error::Result;
 
 extern "C" {
+    fn kill(pid: i32, sig: u32) -> u32;
     fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
 }
 
@@ -30,6 +31,13 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 pub fn wait_for_exit(pid: u32, status: *mut c_int) -> u32 {
     unsafe { waitpid(pid as i32, status, 1 as c_int) as u32 }
+}
+
+/// send a Unix signal to a pid
+pub fn send_signal(pid: u32, sig: u32) -> u32 {
+    unsafe {
+        kill(pid as i32, sig)
+    }
 }
 
 /// Makes an `execvp(3)` system call to become a new program.

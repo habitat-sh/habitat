@@ -17,10 +17,10 @@
 mod windows;
 
 #[cfg(windows)]
-pub use self::windows::{become_command, wait_for_exit};
+pub use self::windows::{become_command, wait_for_exit, send_signal};
 
 #[cfg(not(windows))]
 pub mod linux;
 
 #[cfg(not(windows))]
-pub use self::linux::{become_command, wait_for_exit};
+pub use self::linux::{become_command, wait_for_exit, send_signal};
