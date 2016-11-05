@@ -1,0 +1,15 @@
+[package]
+name = "habitat_butterfly_test"
+version = "0.1.0"
+authors = ["Adam Jacob <adam@chef.io>"]
+workspace = "../../"
+
+[dependencies]
+env_logger = "*"
+time = "*"
+
+[dependencies.habitat_butterfly]
+path = "../butterfly"
+
+[dependencies.habitat_core]
+path = "../core"

@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use btest;
+//! Contains the cross-platform signal behavior.
 
-#[test]
-fn two_members_share_services() {
-    let mut net = btest::SwimNet::new(2);
-    net.mesh();
-    net.add_service(0, "witcher");
-    net.wait_for_rounds(2);
-    net[1].service_store.with_rumor("witcher.prod", net[0].member_id(), |u| assert!(u.is_some()));
+pub enum SignalEvent {
+    Shutdown,
+    Passthrough(u32),
 }
+
+#[cfg(unix)]
+mod unix;
+
+#[cfg(unix)]
+pub use manager::signals::unix::{init, check_for_signal, send_signal};

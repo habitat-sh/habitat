@@ -80,21 +80,30 @@ impl<'a> Outbound<'a> {
     /// If the probe completes before the next protocol period is scheduled, waits for the protocol
     /// period to finish before starting the next probe.
     pub fn run(&mut self) {
-        self.server.member_list.with_initial_members(|member| {
-            ping(&self.server,
-                 &self.socket,
-                 &member,
-                 member.swim_socket_address(),
-                 None);
-        });
-
+        let mut have_members = false;
         loop {
+            if !have_members {
+                if self.server.member_list.len() > 0 {
+                    have_members = true;
+                } else {
+                    self.server.member_list.with_initial_members(|member| {
+                        ping(&self.server,
+                             &self.socket,
+                             &member,
+                             member.swim_socket_address(),
+                             None);
+                    });
+                }
+            }
+
             if self.server.pause.load(Ordering::Relaxed) {
                 thread::sleep(Duration::from_millis(100));
                 continue;
             }
 
             self.server.update_swim_round();
+
+            let long_wait = self.timing.next_protocol_period();
 
             let check_list = self.server
                 .member_list
@@ -120,6 +129,11 @@ impl<'a> Outbound<'a> {
                         thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
                     }
                 }
+            }
+
+            if SteadyTime::now() <= long_wait {
+                let wait_time = long_wait - SteadyTime::now();
+                thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
             }
         }
     }

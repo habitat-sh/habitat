@@ -290,7 +290,9 @@ pub fn inbound(listener: UtpListener,
                 let el = election_list.clone();
                 let gfl = gossip_file_list.clone();
 
-                pool.execute(move || receive(socket, src, key, my_peer, ml, rl, cl, d1, el, gfl));
+                pool.execute(move || {
+                    receive(socket, src, key, my_peer, ml, rl, cl, d1, el, gfl)
+                });
             }
             _ => {}
         }

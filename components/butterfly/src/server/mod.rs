@@ -454,7 +454,7 @@ impl Server {
                 let election = rumors.get("election")
                     .expect("Lost an election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
-                if election.get_member_id() == self.member_id() {
+                if election.get_status() == Election_Status::Finished && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!("Restarting election with a new term as the leader has lost quorum: {:?}", election);
@@ -560,6 +560,28 @@ impl Server {
         if self.election_store.insert(election) {
             self.rumor_list.insert(rk);
         }
+    }
+
+    /// Returns (incarnation, config) if the service group has a configuration.
+    pub fn service_config_for(&self,
+                              service_group: &str,
+                              incarnation: Option<u64>)
+                              -> Option<(u64, String)> {
+        let mut result = None;
+        self.service_config_store
+            .with_rumor(service_group, "service_config", |maybe_sc| {
+                if let Some(sc) = maybe_sc {
+                    if incarnation.is_none() || sc.get_incarnation() > incarnation.unwrap() {
+                        match sc.config() {
+                            Ok(config) => result = Some((sc.get_incarnation(), config)),
+                            Err(e) => {
+                                warn!("Cannot decrypt service config for {}: {}", service_group, e)
+                            }
+                        }
+                    }
+                }
+            });
+        result
     }
 
     fn generate_wire(&self, payload: Vec<u8>) -> Result<Vec<u8>> {

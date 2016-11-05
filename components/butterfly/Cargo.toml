@@ -9,6 +9,9 @@ workspace = "../../"
 name = "butterfly"
 doc = false
 
+[dev-dependencies.habitat_butterfly_test]
+path = "../butterfly-test"
+
 [build-dependencies]
 pkg-config = "0.3"
 

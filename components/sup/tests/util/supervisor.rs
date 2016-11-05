@@ -21,8 +21,6 @@ use hyper::client::Client;
 use std::io::Read;
 use regex::Regex;
 
-use sup::gossip::server::GOSSIP_DEFAULT_PORT;
-
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Supervisor {

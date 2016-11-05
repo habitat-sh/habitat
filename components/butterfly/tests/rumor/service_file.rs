@@ -13,11 +13,11 @@
 // limitations under the License.
 
 
-use common;
+use btest;
 
 #[test]
 fn two_members_share_service_files() {
-    let mut net = common::net::SwimNet::new(2);
+    let mut net = btest::SwimNet::new(2);
     net.mesh();
     net.add_service_file(0,
                          "witcher",

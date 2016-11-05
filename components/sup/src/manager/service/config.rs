@@ -26,12 +26,11 @@ use toml;
 use handlebars::Handlebars;
 
 use common::gossip_file::GOSSIP_TOML;
-use census::{Census, CensusList};
+use manager::census::{CensusEntry, Census, CensusList};
 use config::gconfig;
 use error::{Error, Result};
 use hcore::package::PackageInstall;
 use hcore::crypto;
-
 use package::Package;
 use util;
 use util::convert;
@@ -52,9 +51,6 @@ pub struct ServiceConfig {
     cfg: Cfg,
     svc: Svc,
     bind: Bind,
-    // Keeps a list of the configuration files we have renders, and only re-writes them if they
-    // have changed.
-    config_hash: HashMap<String, String>,
     // Set to 'true' if we have data that needs to be sent to a configuration file
     pub needs_write: bool,
 }
@@ -67,7 +63,11 @@ impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
     /// fail, and indeed, we want it to - it causes the program to crash if we can not render the
     /// first pass of the configuration file.
-    pub fn new(package: &Package, cl: &CensusList, bindings: Vec<String>) -> Result<ServiceConfig> {
+    pub fn new(service_group: &str,
+               package: &Package,
+               cl: &CensusList,
+               bindings: Vec<String>)
+               -> Result<ServiceConfig> {
         let cfg = try!(Cfg::new(package));
         let bind = try!(Bind::new(bindings, &cl));
         Ok(ServiceConfig {
@@ -75,9 +75,8 @@ impl ServiceConfig {
             hab: Hab::new(),
             sys: Sys::new(),
             cfg: cfg,
-            svc: Svc::new(cl),
+            svc: Svc::new(service_group, cl),
             bind: bind,
-            config_hash: HashMap::new(),
             needs_write: true,
         })
     }
@@ -114,8 +113,8 @@ impl ServiceConfig {
     }
 
     /// Replace the `svc` data.
-    pub fn svc(&mut self, cl: &CensusList) {
-        self.svc = Svc::new(cl);
+    pub fn svc(&mut self, service_group: &str, cl: &CensusList) {
+        self.svc = Svc::new(service_group, cl);
         self.needs_write = true
     }
 
@@ -176,27 +175,35 @@ impl ServiceConfig {
         for config in config_files {
             debug!("Rendering template {}", &config);
             let template_data = try!(handlebars.render(&config, &final_data));
-            let file_hash = try!(crypto::hash::hash_string(&template_data));
+            let template_hash = try!(crypto::hash::hash_string(&template_data));
             let filename = pi.svc_config_path().join(&config).to_string_lossy().into_owned();
-            if self.config_hash.contains_key(&filename) {
-                if file_hash == *self.config_hash.get(&filename).unwrap() {
-                    debug!("Configuration {} has not changed; not restarting", filename);
+            let file_hash = match crypto::hash::hash_file(&filename) {
+                Ok(file_hash) => file_hash,
+                Err(e) => {
+                    debug!("Cannot read the file in order to hash it: {}", e);
+                    String::new()
+                }
+            };
+
+            if file_hash.is_empty() {
+                debug!("Configuration {} does not exist; restarting", filename);
+                outputln!("Updated {} {}", Purple.bold().paint(config), template_hash);
+                let mut config_file = try!(File::create(&filename));
+                try!(config_file.write_all(&template_data.into_bytes()));
+                should_restart = true
+            } else {
+                if file_hash == template_hash {
+                    debug!("Configuration {} {} has not changed; not restarting.",
+                           filename,
+                           file_hash);
                     continue;
                 } else {
                     debug!("Configuration {} has changed; restarting", filename);
-                    outputln!("Updated {}", Purple.bold().paint(config));
-                    self.config_hash.insert(filename.clone(), file_hash);
+                    outputln!("Updated {} {}", Purple.bold().paint(config), template_hash);
                     let mut config_file = try!(File::create(&filename));
                     try!(config_file.write_all(&template_data.into_bytes()));
                     should_restart = true;
                 }
-            } else {
-                debug!("Configuration {} does not exist; restarting", filename);
-                outputln!("Updated {}", Purple.bold().paint(config));
-                self.config_hash.insert(filename.clone(), file_hash);
-                let mut config_file = try!(File::create(&filename));
-                try!(config_file.write_all(&template_data.into_bytes()));
-                should_restart = true
             }
         }
         self.needs_write = false;
@@ -251,19 +258,20 @@ struct Svc {
 }
 
 impl Svc {
-    fn new(cl: &CensusList) -> Svc {
-        let mut top = service_entry(cl.local_census());
+    fn new(service_group: &str, cl: &CensusList) -> Svc {
+        let mut top = service_entry(cl.get(service_group).unwrap());
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::Table::new();
         for (_sg, c) in cl.iter() {
             all.push(toml::Value::Table(service_entry(c)));
-            let mut group = if named.contains_key(&c.service) {
-                named.get(&c.service).unwrap().as_table().unwrap().clone()
+            let mut group = if named.contains_key(c.get_service()) {
+                named.get(c.get_service()).unwrap().as_table().unwrap().clone()
             } else {
                 toml::Table::new()
             };
-            group.insert(c.group.clone(), toml::Value::Table(service_entry(c)));
-            named.insert(c.service.clone(), toml::Value::Table(group));
+            group.insert(String::from(c.get_group()),
+                         toml::Value::Table(service_entry(c)));
+            named.insert(String::from(c.get_service()), toml::Value::Table(group));
         }
         top.insert("all".to_string(), toml::Value::Array(all));
         top.insert("named".to_string(), toml::Value::Table(named));
@@ -276,9 +284,9 @@ impl Svc {
 }
 
 fn service_entry(census: &Census) -> toml::Table {
-    let service = toml::Value::String(census.service.clone());
-    let group = toml::Value::String(census.group.clone());
-    let ident = toml::Value::String(census.service_group());
+    let service = toml::Value::String(String::from(census.get_service()));
+    let group = toml::Value::String(String::from(census.get_group()));
+    let ident = toml::Value::String(census.get_service_group());
     let me = toml::encode(census.me());
     let leader = census.get_leader().map(|ce| toml::encode(ce));
     let mut members: Vec<toml::Value> = Vec::new();
@@ -649,25 +657,25 @@ mod test {
 
     use regex::Regex;
     use toml;
+    use uuid::Uuid;
 
-    use census::{CensusEntry, Census, CensusList};
+    use manager::census::{CensusEntry, CensusList};
     use config::{gcache, Config};
-    use gossip::member::MemberId;
     use hcore::package::{PackageIdent, PackageInstall};
     use package::Package;
-    use service_config::ServiceConfig;
+    use super::ServiceConfig;
     use VERSION;
     use super::toml_merge;
 
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(
-            PackageIdent::from_str("neurosis/sovereign/2000/20160222201258").unwrap(),
+            PackageIdent::from_str("neurosis/redis/2000/20160222201258").unwrap(),
             PathBuf::from("/"),
             PathBuf::from("/fakeo"),
             PathBuf::from("/fakeo/here"));
         Package {
             origin: String::from("neurosis"),
-            name: String::from("sovereign"),
+            name: String::from("redis"),
             version: String::from("2000"),
             release: String::from("20160222201258"),
             deps: Vec::new(),
@@ -677,9 +685,14 @@ mod test {
     }
 
     fn gen_census_list() -> CensusList {
-        let ce = CensusEntry::new("redis", "default", MemberId::new_v4());
-        let c = Census::new(ce);
-        CensusList::new(c)
+        let mut ce = CensusEntry::default();
+        let member_id = Uuid::new_v4();
+        ce.set_member_id(format!("{}", member_id.simple()));
+        ce.set_service(String::from("redis"));
+        ce.set_group(String::from("default"));
+        let mut cl = CensusList::new();
+        cl.insert(format!("{}", member_id.simple()), ce);
+        cl
     }
 
     #[test]
@@ -687,7 +700,7 @@ mod test {
         gcache(Config::new());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let version = toml.lookup("hab.version").unwrap().as_str().unwrap();
         assert_eq!(version, VERSION);
@@ -698,10 +711,10 @@ mod test {
         gcache(Config::new());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let name = toml.lookup("pkg.name").unwrap().as_str().unwrap();
-        assert_eq!(name, "sovereign");
+        assert_eq!(name, "redis");
     }
 
     #[test]
@@ -709,7 +722,7 @@ mod test {
         gcache(Config::new());
         let pkg = gen_pkg();
         let cl = gen_census_list();
-        let sc = ServiceConfig::new(&pkg, &cl, Vec::new()).unwrap();
+        let sc = ServiceConfig::new("redis.default", &pkg, &cl, Vec::new()).unwrap();
         let toml = sc.to_toml().unwrap();
         let ip = toml.lookup("sys.ip").unwrap().as_str().unwrap();
         let re = Regex::new(r"\d+\.\d+\.\d+\.\d+").unwrap();
@@ -808,7 +821,7 @@ mod test {
 
     mod sys {
         use config::{gcache, Config};
-        use service_config::Sys;
+        use super::super::Sys;
         use regex::Regex;
 
         #[test]
@@ -839,7 +852,7 @@ mod test {
     }
 
     mod hab {
-        use service_config::Hab;
+        use super::super::Hab;
         use VERSION;
 
         #[test]

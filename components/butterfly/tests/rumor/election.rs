@@ -15,11 +15,11 @@
 use habitat_butterfly::member::Health;
 use habitat_butterfly::message::swim::Election_Status;
 
-use common;
+use btest;
 
 #[test]
 fn three_members_run_election() {
-    let mut net = common::net::SwimNet::new(3);
+    let mut net = btest::SwimNet::new(3);
     net.mesh();
     net.add_service(0, "witcher");
     net.add_service(1, "witcher");
@@ -35,7 +35,7 @@ fn three_members_run_election() {
 
 #[test]
 fn three_members_run_election_from_one_starting_rumor() {
-    let mut net = common::net::SwimNet::new(3);
+    let mut net = btest::SwimNet::new(3);
     net.mesh();
     net.add_service(0, "witcher");
     net.add_service(1, "witcher");
@@ -47,7 +47,7 @@ fn three_members_run_election_from_one_starting_rumor() {
 
 #[test]
 fn two_members_fail_to_find_quorum() {
-    let mut net = common::net::SwimNet::new(2);
+    let mut net = btest::SwimNet::new(2);
     net.mesh();
     net.add_service(0, "witcher");
     net.add_service(1, "witcher");
@@ -58,7 +58,7 @@ fn two_members_fail_to_find_quorum() {
 
 #[test]
 fn two_members_find_quorum_when_a_third_comes() {
-    let mut net = common::net::SwimNet::new(2);
+    let mut net = btest::SwimNet::new(2);
     net.mesh();
     net.add_service(0, "witcher");
     net.add_service(1, "witcher");
@@ -66,7 +66,7 @@ fn two_members_find_quorum_when_a_third_comes() {
     assert_wait_for_equal_election!(net, [0..2, 0..2], "witcher.prod");
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::NoQuorum);
 
-    net.members.push(common::start_server("2", None));
+    net.members.push(btest::start_server("2", None));
     net.add_service(2, "witcher");
     net.connect(2, 0);
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::Finished);
@@ -75,7 +75,7 @@ fn two_members_find_quorum_when_a_third_comes() {
 
 #[test]
 fn five_members_elect_a_new_leader_when_the_old_one_dies() {
-    let mut net = common::net::SwimNet::new(5);
+    let mut net = btest::SwimNet::new(5);
     net.mesh();
     net.add_service(0, "witcher");
     net.add_service(1, "witcher");
@@ -133,7 +133,7 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
 
 #[test]
 fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
-    let mut net = common::net::SwimNet::new(5);
+    let mut net = btest::SwimNet::new(5);
     net[0].member.write().expect("Member lock is poisoned").set_persistent(true);
     net[4].member.write().expect("Member lock is poisoned").set_persistent(true);
     net.add_service(0, "witcher");
