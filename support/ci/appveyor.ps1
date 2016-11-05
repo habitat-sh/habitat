@@ -9,10 +9,14 @@ $RunTests = (git diff master --name-only |
 
 foreach ($BuildAction in ($env:hab_build_action -split ';')) {
     if (($RunTests -or (test-path env:HAB_FORCE_BUILD)) -and ($BuildAction -like 'build')) {
-        pushd "c:/projects/habitat/components/hab"
-        cargo build
-        if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}    
-        popd
+        @('hab', 'sup') |
+        foreach-object {
+            Write-Host "Building $_..."
+            pushd "c:/projects/habitat/components/$_"
+            cargo build
+            if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
+            popd
+        }
         ./target/debug/hab.exe --version
         if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}            
     }
