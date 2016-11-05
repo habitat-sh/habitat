@@ -2017,7 +2017,7 @@ do_default_build_config() {
     fi
     find_exclusions=""
     for ext in "${config_exclude_exts[@]}"; do
-      find_exclusions+=" ! -name '$ext'"
+      find_exclusions+=" ! -name $ext"
     done
     find "$PLAN_CONTEXT/config" $find_exclusions | while read FILE
     do
