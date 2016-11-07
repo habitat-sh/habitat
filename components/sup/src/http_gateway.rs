@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
@@ -26,6 +27,8 @@ use iron::typemap;
 use persistent;
 use router::Router;
 use serde_json;
+use prometheus::{CounterVec, HistogramVec, TextEncoder, Encoder};
+use prometheus;
 
 use config::gconfig;
 use error::{Result, Error, SupError};
@@ -33,6 +36,21 @@ use health_check;
 use manager;
 
 static LOGKEY: &'static str = "HG";
+
+
+lazy_static! {
+    static ref HTTP_COUNTER: CounterVec = register_counter_vec!(
+        opts!(
+            "http_requests_total",
+            "Total number of HTTP requests made."),
+        &["handler"]).unwrap();
+
+    static ref HTTP_REQ_HISTOGRAM: HistogramVec = register_histogram_vec!(
+        histogram_opts!(
+            "http_request_duration_seconds",
+            "HTTP request latencies in seconds."),
+        &["handler"]).unwrap();
+}
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct ListenAddr(SocketAddr);
@@ -93,16 +111,32 @@ impl typemap::Key for ManagerState {
 
 pub struct Server(Iron<Chain>);
 
+
+// Simple macro to encapsulate the HTTP metrics for each endpoint
+macro_rules! with_metrics {
+    ($method:expr, $name:expr) => {{
+        let mut labels = HashMap::new();
+        labels.insert("handler", $name);
+        
+        HTTP_COUNTER.with(&labels.clone()).inc();
+        let timer = HTTP_REQ_HISTOGRAM.with(&labels).start_timer();
+        let result = $method;
+        timer.observe_duration();
+        result
+    }}
+}
+
 impl Server {
     pub fn new(manager_state: manager::State) -> Self {
         let router = router!(
-            butterfly: get "/butterfly" => butterfly,
-            census: get "/census" => census,
-            services: get "/services" => services,
-            service_config: get "/services/:svc/:group/config" => config,
-            service_health: get "/services/:svc/:group/health" => health,
-            service_config_org: get "/services/:svc/:group/:org/config" => config,
-            service_health_org: get "/services/:svc/:group/:org/health" => health,
+            butterfly: get "/butterfly" => with_metrics!(butterfly, "butterfly"),
+            census: get "/census" => with_metrics!(census, "census"),
+            metrics: get "/metrics" => with_metrics!(metrics, "metrics"),
+            services: get "/services" => with_metrics!(services, "services"),
+            service_config: get "/services/:svc/:group/config" => with_metrics!(config, "config"),
+            service_health: get "/services/:svc/:group/health" => with_metrics!(health, "health"),
+            service_config_org: get "/services/:svc/:group/:org/config" => with_metrics!(config, "config"),
+            service_health_org: get "/services/:svc/:group/:org/health" => with_metrics!(health, "config"),
         );
         let mut chain = Chain::new(router);
         chain.link(persistent::Read::<ManagerState>::both(manager_state));
@@ -120,6 +154,7 @@ impl Server {
         Ok(handle)
     }
 }
+
 
 fn butterfly(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
@@ -178,6 +213,15 @@ fn services(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
     let data = state.services.read().unwrap();
     Ok(Response::with((status::Ok, serde_json::to_string(&*data).unwrap())))
+}
+
+fn metrics(_req: &mut Request) -> IronResult<Response> {
+    let mut buffer = vec![];
+    let encoder = TextEncoder::new();
+    let metric_familys = prometheus::gather();
+    encoder.encode(&metric_familys, &mut buffer).unwrap();
+
+    Ok(Response::with((status::Ok, String::from_utf8(buffer).unwrap())))
 }
 
 impl Into<Response> for health_check::CheckResult {

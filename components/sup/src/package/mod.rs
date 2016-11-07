@@ -37,6 +37,7 @@ use manager::service::config::ServiceConfig;
 use supervisor::Supervisor;
 use util::path;
 use util::users as hab_users;
+use prometheus::Opts;
 
 static LOGKEY: &'static str = "PK";
 const INIT_FILENAME: &'static str = "init";
@@ -44,6 +45,8 @@ const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
+const HABITAT_PACKAGE_INFO_NAME: &'static str = "habitat_package_info";
+const HABITAT_PACKAGE_INFO_DESC: &'static str = "package version information";
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Package {
@@ -335,6 +338,16 @@ impl Package {
                 Ok(health_check::CheckResult::Critical)
             }
         }
+    }
+
+    pub fn register_metrics(&self) {
+        let version_opts = Opts::new(HABITAT_PACKAGE_INFO_NAME, HABITAT_PACKAGE_INFO_DESC)
+            .const_label("origin", &self.origin.clone())
+            .const_label("name", &self.name.clone())
+            .const_label("version", &self.version.clone())
+            .const_label("release", &self.release.clone());
+        let version_gauge = register_gauge!(version_opts).unwrap();
+        version_gauge.set(1.0);
     }
 
     pub fn hooks(&self) -> HookTable {
