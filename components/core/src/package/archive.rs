@@ -25,7 +25,7 @@ use regex::Regex;
 
 use error::{Error, Result};
 use crypto::{artifact, hash};
-use package::{Identifiable, PackageIdent, MetaFile};
+use package::{Identifiable, PackageIdent, PackageTarget, MetaFile};
 
 lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
@@ -40,6 +40,7 @@ lazy_static! {
         map.insert(MetaFile::LdFlags, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdFlags)).unwrap());
         map.insert(MetaFile::Manifest, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Manifest)).unwrap());
         map.insert(MetaFile::Path, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Path)).unwrap());
+        map.insert(MetaFile::Target, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Target)).unwrap());
         map
     };
 }
@@ -153,6 +154,14 @@ impl PackageArchive {
     pub fn path(&mut self) -> Result<Option<String>> {
         match self.read_metadata(MetaFile::Path) {
             Ok(data) => Ok(data.cloned()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn target(&mut self) -> Result<PackageTarget> {
+        match self.read_metadata(MetaFile::Target) {
+            Ok(None) => Err(Error::MetaFileNotFound(MetaFile::Target)),
+            Ok(Some(data)) => PackageTarget::from_str(&data),
             Err(e) => Err(e),
         }
     }
@@ -295,6 +304,8 @@ pub trait FromArchive: Sized {
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
+    use os::system::Uname;
+    use package::Target;
     use super::*;
 
     #[test]
@@ -331,5 +342,46 @@ mod test {
         let tdeps = hart.tdeps().unwrap();
         assert_eq!(1024, tdeps.len());
     }
+
+    #[test]
+    fn reading_artifact_target() {
+        let mut hart = PackageArchive::new(fixtures()
+            .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
+        let target = hart.target().unwrap();
+        assert_eq!(target.platform, "linux");
+        assert_eq!(target.architecture, "x86_64");
+    }
+
+    #[test]
+    fn testing_artifact_valid_for_platform() {
+        let mut hart = PackageArchive::new(fixtures()
+            .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
+        let current_system = Uname {
+            sys_name: "linux".to_string(),
+            node_name: "test_node".to_string(),
+            release: "4.2.0-25-generic".to_string(),
+            version: "#30-Ubuntu SMP Mon Jan 18 12:31:50 UTC 201".to_string(),
+            machine: "x86_64".to_string(),
+        };
+        let target = hart.target().unwrap();
+        let _ = target.valid_for(current_system).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn testing_artifact_invalid_for_platform() {
+        let mut hart = PackageArchive::new(fixtures()
+            .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
+        let current_system = Uname {
+            sys_name: "windows".to_string(),
+            node_name: "test_node".to_string(),
+            release: "Server 2008 R2".to_string(),
+            version: "6.1.7601".to_string(),
+            machine: "x86_64".to_string(),
+        };
+        let target = hart.target().unwrap();
+        let _ = target.valid_for(current_system).unwrap();
+    }
+
 
 }

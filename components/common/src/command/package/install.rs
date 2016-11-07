@@ -42,21 +42,22 @@ use std::str::FromStr;
 use depot_client::Client;
 use hcore;
 use hcore::fs::{am_i_root, cache_key_path};
+use hcore::os::system;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall};
+use hcore::package::{Identifiable, PackageArchive, PackageIdent, Target, PackageInstall};
 
 use error::{Error, Result};
 use ui::{Status, UI};
 
 pub fn start<P1: ?Sized, P2: ?Sized>(ui: &mut UI,
-                                                 url: &str,
-                                                 ident_or_archive: &str,
-                                                 product: &str,
-                                                 version: &str,
-                                                 fs_root_path: &P1,
-                                                 cache_artifact_path: &P2)
-                                                 -> Result<PackageIdent>
+                                     url: &str,
+                                     ident_or_archive: &str,
+                                     product: &str,
+                                     version: &str,
+                                     fs_root_path: &P1,
+                                     cache_artifact_path: &P2)
+                                     -> Result<PackageIdent>
     where P1: AsRef<Path>,
           P2: AsRef<Path>
 {
@@ -273,6 +274,9 @@ impl<'a> InstallTask<'a> {
                                                      artifact_ident.to_string(),
                                                      ident.to_string())));
         }
+
+        let artifact_target = try!(artifact.target());
+        try!(artifact_target.valid_for(try!(system::uname())));
 
         let nwr = try!(artifact::artifact_signer(&artifact.path));
         if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {
