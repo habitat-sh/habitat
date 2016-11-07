@@ -16,11 +16,13 @@ pub mod archive;
 pub mod ident;
 pub mod install;
 pub mod plan;
+pub mod target;
 
 pub use self::archive::{FromArchive, PackageArchive};
 pub use self::ident::{Identifiable, PackageIdent};
 pub use self::install::PackageInstall;
 pub use self::plan::Plan;
+pub use self::target::{Target, PackageTarget};
 
 use std::fmt;
 
@@ -38,6 +40,7 @@ pub enum MetaFile {
     Path,
     SvcUser,
     SvcGroup,
+    Target,
 }
 
 impl fmt::Display for MetaFile {
@@ -55,6 +58,7 @@ impl fmt::Display for MetaFile {
             MetaFile::Path => "PATH",
             MetaFile::SvcUser => "SVC_USER",
             MetaFile::SvcGroup => "SVC_GROUP",
+            MetaFile::Target => "TARGET",
         };
         write!(f, "{}", id)
     }

@@ -412,6 +412,7 @@ mod test_find_command {
             }
 
             #[test]
+            #[allow(non_snake_case)]
             fn command_exists_with_extension_in_PATHEXT() {
                 setup_environment();
                 let result = find_command("bin_with_extension");
@@ -419,6 +420,7 @@ mod test_find_command {
             }
 
             #[test]
+            #[allow(non_snake_case)]
             fn command_exists_with_extension_not_in_PATHEXT() {
                 setup_environment();
                 let result = find_command("win95_dominator");
