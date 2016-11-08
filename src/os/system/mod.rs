@@ -12,14 +12,80 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt;
+use std::result;
+use std::str::FromStr;
+
+use error::Error;
+
 #[cfg(windows)]
 mod windows;
 
 #[cfg(windows)]
-pub use self::windows::{uname, Uname};
+pub use self::windows::uname;
 
 #[cfg(not(windows))]
 pub mod linux;
 
 #[cfg(not(windows))]
-pub use self::linux::{uname, Uname};
+pub use self::linux::uname;
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Hash, Clone, RustcEncodable, RustcDecodable, Eq, PartialEq)]
+pub enum Architecture {
+    X86_64,
+}
+
+#[derive(Debug, Hash, Clone, RustcEncodable, RustcDecodable, Eq, PartialEq)]
+pub enum Platform {
+    Linux,
+    Windows,
+}
+
+#[derive(Debug)]
+pub struct Uname {
+    pub sys_name: String,
+    pub node_name: String,
+    pub release: String,
+    pub version: String,
+    pub machine: String,
+}
+
+impl fmt::Display for Architecture {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let architecture_string = format!("{:?}", self);
+        write!(f, "{}", architecture_string.to_lowercase())
+    }
+}
+
+impl fmt::Display for Platform {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let platform_string = format!("{:?}", self);
+        write!(f, "{}", platform_string.to_lowercase())
+    }
+}
+
+impl FromStr for Architecture {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        let architecture = value.trim().to_lowercase();
+        match architecture.as_ref() {
+            "x86_64" => Ok(Architecture::X86_64),
+            _ => return Err(Error::InvalidArchitecture(value.to_string())),
+        }
+    }
+}
+
+impl FromStr for Platform {
+    type Err = Error;
+
+    fn from_str(value: &str) -> result::Result<Self, Self::Err> {
+        let platform = value.trim().to_lowercase();
+        match platform.as_ref() {
+            "linux" => Ok(Platform::Linux),
+            "windows" => Ok(Platform::Windows),
+            _ => return Err(Error::InvalidPlatform(value.to_string())),
+        }
+    }
+}

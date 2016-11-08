@@ -55,9 +55,9 @@ pub enum Error {
     /// Occurs when a package target string cannot be successfully parsed.
     InvalidPackageTarget(String),
     /// Occurs when validating a package target for an unsupported architecture.
-    InvalidPackageTargetArchitecture(String),
+    InvalidArchitecture(String),
     /// Occurs when validating a package target for an unsupported platform.
-    InvalidPackageTargetPlatform(String),
+    InvalidPlatform(String),
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
@@ -126,16 +126,12 @@ impl fmt::Display for Error {
                         e)
             }
             Error::InvalidPackageTarget(ref e) => {
-                format!("Invalid package target: {:?}. A valid target is in the form \
+                format!("Invalid package target: {}. A valid target is in the form \
                          architecture-platform (example: x86_64-linux)",
                         e)
             }
-            Error::InvalidPackageTargetArchitecture(ref e) => {
-                format!("Invalid package target architecture: {:?}.", e)
-            }
-            Error::InvalidPackageTargetPlatform(ref e) => {
-                format!("Invalid package target platform: {:?}.", e)
-            }
+            Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
+            Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!("Invalid service group: {:?}. A valid service group string is in the form \
                          service.group (example: redis.production)",
@@ -195,10 +191,8 @@ impl error::Error for Error {
             Error::InvalidPackageTarget(_) => {
                 "Package targets must be in architecture-platform format (example: x86_64-linux)"
             }
-            Error::InvalidPackageTargetArchitecture(_) => {
-                "Unsupported target architecture supplied."
-            }
-            Error::InvalidPackageTargetPlatform(_) => "Unsupported target platform supplied.",
+            Error::InvalidArchitecture(_) => "Unsupported target architecture supplied.",
+            Error::InvalidPlatform(_) => "Unsupported target platform supplied.",
             Error::InvalidServiceGroup(_) => {
                 "Service group strings must be in service.group format (example: redis.production)"
             }

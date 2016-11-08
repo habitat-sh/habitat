@@ -304,8 +304,7 @@ pub trait FromArchive: Sized {
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
-    use os::system::Uname;
-    use package::Target;
+    use os::system::{Architecture, Platform};
     use super::*;
 
     #[test]
@@ -348,40 +347,7 @@ mod test {
         let mut hart = PackageArchive::new(fixtures()
             .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
         let target = hart.target().unwrap();
-        assert_eq!(target.platform, "linux");
-        assert_eq!(target.architecture, "x86_64");
+        assert_eq!(target.platform, Platform::Linux);
+        assert_eq!(target.architecture, Architecture::X86_64);
     }
-
-    #[test]
-    fn testing_artifact_valid_for_platform() {
-        let mut hart = PackageArchive::new(fixtures()
-            .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
-        let current_system = Uname {
-            sys_name: "linux".to_string(),
-            node_name: "test_node".to_string(),
-            release: "4.2.0-25-generic".to_string(),
-            version: "#30-Ubuntu SMP Mon Jan 18 12:31:50 UTC 201".to_string(),
-            machine: "x86_64".to_string(),
-        };
-        let target = hart.target().unwrap();
-        let _ = target.valid_for(current_system).unwrap();
-    }
-
-    #[test]
-    #[should_panic]
-    fn testing_artifact_invalid_for_platform() {
-        let mut hart = PackageArchive::new(fixtures()
-            .join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"));
-        let current_system = Uname {
-            sys_name: "windows".to_string(),
-            node_name: "test_node".to_string(),
-            release: "Server 2008 R2".to_string(),
-            version: "6.1.7601".to_string(),
-            machine: "x86_64".to_string(),
-        };
-        let target = hart.target().unwrap();
-        let _ = target.valid_for(current_system).unwrap();
-    }
-
-
 }
