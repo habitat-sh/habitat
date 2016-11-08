@@ -11,6 +11,8 @@ pkg_build_deps=(core/make core/cmake core/protobuf core/protobuf-rust core/coreu
   core/rust core/gcc core/pkg-config)
 bin="bldr-worker"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
+pkg_svc_user="root"
+pkg_svc_group="root"
 
 do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy
