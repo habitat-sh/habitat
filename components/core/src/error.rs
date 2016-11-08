@@ -52,6 +52,12 @@ pub enum Error {
     FileNotFound(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
+    /// Occurs when a package target string cannot be successfully parsed.
+    InvalidPackageTarget(String),
+    /// Occurs when validating a package target for an unsupported architecture.
+    InvalidArchitecture(String),
+    /// Occurs when validating a package target for an unsupported platform.
+    InvalidPlatform(String),
     /// Occurs when a service group string cannot be successfully parsed.
     InvalidServiceGroup(String),
     /// Occurs when making lower level IO calls.
@@ -76,6 +82,8 @@ pub enum Error {
     RegexParse(regex::Error),
     /// When an error occurs converting a `String` from a UTF-8 byte vector.
     StringFromUtf8Error(string::FromUtf8Error),
+    /// When the system target (platform and architecture) do not match the package target.
+    TargetMatchError(String),
     /// Occurs when a `uname` libc call returns an error.
     UnameFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
@@ -117,6 +125,13 @@ impl fmt::Display for Error {
                          origin/name (example: acme/redis)",
                         e)
             }
+            Error::InvalidPackageTarget(ref e) => {
+                format!("Invalid package target: {}. A valid target is in the form \
+                         architecture-platform (example: x86_64-linux)",
+                        e)
+            }
+            Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
+            Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
                 format!("Invalid service group: {:?}. A valid service group string is in the form \
                          service.group (example: redis.production)",
@@ -141,6 +156,7 @@ impl fmt::Display for Error {
             Error::PermissionFailed(ref e) => format!("{}", e),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
+            Error::TargetMatchError(ref e) => format!("{}", e),
             Error::UnameFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
         };
@@ -172,6 +188,11 @@ impl error::Error for Error {
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
             }
+            Error::InvalidPackageTarget(_) => {
+                "Package targets must be in architecture-platform format (example: x86_64-linux)"
+            }
+            Error::InvalidArchitecture(_) => "Unsupported target architecture supplied.",
+            Error::InvalidPlatform(_) => "Unsupported target platform supplied.",
             Error::InvalidServiceGroup(_) => {
                 "Service group strings must be in service.group format (example: redis.production)"
             }
@@ -186,6 +207,7 @@ impl error::Error for Error {
             Error::PlanMalformed => "Failed to read or parse contents of Plan file",
             Error::RegexParse(_) => "Failed to parse a regular expression",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
+            Error::TargetMatchError(_) => "System target does not match package target",
             Error::UnameFailed(_) => "uname failed",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
         }

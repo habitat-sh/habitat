@@ -12,17 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use os::system::Uname;
 use error::Result;
-
-// We can probably pull this from Win32_OperatingSystem
-#[derive(Debug)]
-pub struct Uname {
-    pub sys_name: String, // static - Windows
-    pub node_name: String, // __SERVER
-    pub release: String, // Version
-    pub version: String, // Caption
-    pub machine: String, // OSArchitecture - but converted to standard x86_64 or i386
-}
 
 pub fn uname() -> Result<Uname> {
     Ok(Uname {

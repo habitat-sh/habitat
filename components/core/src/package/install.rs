@@ -23,7 +23,7 @@ use std::str::FromStr;
 
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
-use package::{Identifiable, MetaFile, PackageIdent};
+use package::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 
 #[derive(Clone, Debug)]
 pub struct PackageInstall {
@@ -44,6 +44,17 @@ impl PackageInstall {
     /// An optional `fs_root` path may be provided to search for a package that is mounted on a
     /// filesystem not currently rooted at `/`.
     pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
+        let package_install = try!(Self::resolve_package_install(ident, fs_root_path));
+        let package_target = try!(package_install.target());
+        match package_target.validate() {
+            Ok(()) => Ok(package_install),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn resolve_package_install(ident: &PackageIdent,
+                               fs_root_path: Option<&Path>)
+                               -> Result<PackageInstall> {
         let fs_root_path = fs_root_path.unwrap_or(Path::new("/"));
         let package_root_path = fs_root_path.join(PKG_PATH);
         if !package_root_path.exists() {
@@ -239,6 +250,13 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::SvcGroup) {
             Ok(body) => Ok(Some(body)),
             Err(Error::MetaFileNotFound(MetaFile::SvcGroup)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn target(&self) -> Result<PackageTarget> {
+        match self.read_metafile(MetaFile::Target) {
+            Ok(body) => PackageTarget::from_str(&body),
             Err(e) => Err(e),
         }
     }
