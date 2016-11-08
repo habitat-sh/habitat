@@ -2068,6 +2068,7 @@ do_default_build_service() {
       build_line "Writing ${pkg_prefix}/run script to run ${pkg_svc_run} as ${pkg_svc_user}:${pkg_svc_group}"
       cat <<EOT >> $pkg_prefix/run
 #!/bin/sh
+export HOME=$pkg_svc_data_path
 cd $pkg_svc_path
 
 if [ "\$(whoami)" = "root" ]; then
