@@ -23,7 +23,6 @@ use std::str::FromStr;
 
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
-use os::system;
 use package::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 
 #[derive(Clone, Debug)]
@@ -47,7 +46,7 @@ impl PackageInstall {
     pub fn load(ident: &PackageIdent, fs_root_path: Option<&Path>) -> Result<PackageInstall> {
         let package_install = try!(Self::resolve_package_install(ident, fs_root_path));
         let package_target = try!(package_install.target());
-        match package_target.valid_for(try!(system::uname())) {
+        match package_target.validate() {
             Ok(()) => Ok(package_install),
             Err(e) => Err(e),
         }

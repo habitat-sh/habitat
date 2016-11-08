@@ -42,7 +42,6 @@ use std::str::FromStr;
 use depot_client::Client;
 use hcore;
 use hcore::fs::{am_i_root, cache_key_path};
-use hcore::os::system;
 use hcore::crypto::{artifact, SigKeyPair};
 use hcore::crypto::keys::parse_name_with_rev;
 use hcore::package::{Identifiable, PackageArchive, PackageIdent, Target, PackageInstall};
@@ -276,7 +275,7 @@ impl<'a> InstallTask<'a> {
         }
 
         let artifact_target = try!(artifact.target());
-        try!(artifact_target.valid_for(try!(system::uname())));
+        try!(artifact_target.validate());
 
         let nwr = try!(artifact::artifact_signer(&artifact.path));
         if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.cache_key_path) {

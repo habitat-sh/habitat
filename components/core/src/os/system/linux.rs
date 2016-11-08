@@ -17,18 +17,9 @@ use std::mem;
 
 use libc;
 
+use os::system::Uname;
 use errno::errno;
 use error::{Error, Result};
-
-
-#[derive(Debug)]
-pub struct Uname {
-    pub sys_name: String,
-    pub node_name: String,
-    pub release: String,
-    pub version: String,
-    pub machine: String,
-}
 
 pub fn uname() -> Result<Uname> {
     unsafe { uname_libc() }
