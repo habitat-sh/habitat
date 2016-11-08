@@ -19,6 +19,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
+use package::PackageTarget;
 use error::{Error, Result};
 
 pub trait Identifiable: fmt::Display + Into<PackageIdent> {
@@ -85,11 +86,14 @@ impl PackageIdent {
 
     pub fn archive_name(&self) -> Option<String> {
         if self.fully_qualified() {
-            Some(format!("{}-{}-{}-{}-x86_64-linux.hart",
+            let default_target = PackageTarget::default();
+            Some(format!("{}-{}-{}-{}-{}-{}.hart",
                          self.origin,
                          self.name,
                          self.version.as_ref().unwrap(),
-                         self.release.as_ref().unwrap()))
+                         self.release.as_ref().unwrap(),
+                         default_target.architecture,
+                         default_target.platform))
         } else {
             None
         }
