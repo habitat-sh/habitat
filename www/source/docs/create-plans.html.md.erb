@@ -116,7 +116,7 @@ do_download() {
   git checkout $pkg_version
   popd
   tar -cjvf $HAB_CACHE_SRC_PATH/${pkg_name}-${pkg_version}.tar.bz2 \
-      --transform "s,^\./chef,chef${pkg_version}," ./chef \
+      --transform "s,^\./chef,chef-${pkg_version}," ./chef \
       --exclude chef/.git --exclude chef/spec
   pkg_shasum=$(trim $(sha256sum $HAB_CACHE_SRC_PATH/${pkg_filename} | cut -d " " -f 1))
 }
