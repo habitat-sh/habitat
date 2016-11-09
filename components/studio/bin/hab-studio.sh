@@ -609,7 +609,11 @@ record() {
     fi
     name="$(awk -F '=' '/^pkg_name/ {print $2}' $1/plan.sh 2>/dev/null | sed "s/['\"]//g")"
     if [[ -z "${name:-}" ]]; then
-      name="unknown"
+      if [[ -f $1/habitat/plan.sh ]]; then
+        name="$(awk -F '=' '/^pkg_name/ {print $2}' $1/habitat/plan.sh 2>/dev/null | sed "s/['\"]//g")"
+      else
+        name="unknown"
+      fi
     fi
     shift
     cmd="${1:-${SHELL:-sh} -l}"; shift
