@@ -1,5 +1,50 @@
 # Habitat CHANGELOG
 
+## [0.13.0](https://github.com/habitat-sh/habitat/tree/0.13.0) (11-10-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.12.1...0.13.0)
+
+## Features & Enhancements
+
+- want `hab pkg build` to do multithreaded `xz` compression when more than one core available [\#1253](https://github.com/habitat-sh/habitat/issues/1253)
+- Allow ignoring of certain file types \(e.g. \*.swp\) in config/ dir during build [\#1120](https://github.com/habitat-sh/habitat/issues/1120)
+- Emacs keybindings difficult to use inside docker-based studio [\#1102](https://github.com/habitat-sh/habitat/issues/1102)
+- \[feature request\] plan.sh generator [\#953](https://github.com/habitat-sh/habitat/issues/953)
+- Fix running builds with packaged builder worker [\#1462](https://github.com/habitat-sh/habitat/pull/1462) ([reset](https://github.com/reset))
+- Make `archive\_name` platform/architecture aware [\#1461](https://github.com/habitat-sh/habitat/pull/1461) ([smurawski](https://github.com/smurawski))
+- Add missing hyphen to do\_download example [\#1460](https://github.com/habitat-sh/habitat/pull/1460) ([ksexton](https://github.com/ksexton))
+- add target awareness to PackageArchive and PackageInstall [\#1458](https://github.com/habitat-sh/habitat/pull/1458) ([smurawski](https://github.com/smurawski))
+- Fix file extension exclusion [\#1457](https://github.com/habitat-sh/habitat/pull/1457) ([chefsalim](https://github.com/chefsalim))
+- \[devshell\] Add a non-root user, jdoe, for root/sudo checking codepaths. [\#1456](https://github.com/habitat-sh/habitat/pull/1456) ([fnichol](https://github.com/fnichol))
+- Hide image checking logic in Makefile display output. [\#1455](https://github.com/habitat-sh/habitat/pull/1455) ([fnichol](https://github.com/fnichol))
+- Hide image checking logic in Makefile display output. [\#1455](https://github.com/habitat-sh/habitat/pull/1455) ([fnichol](https://github.com/fnichol))
+- win-build can now point to any component and has switches for configuring and packaging hab [\#1451](https://github.com/habitat-sh/habitat/pull/1451) ([mwrock](https://github.com/mwrock))
+- Move process signalling to core [\#1450](https://github.com/habitat-sh/habitat/pull/1450) ([mwrock](https://github.com/mwrock))
+- Quiet the unused variable warnings in stubbed out functions [\#1449](https://github.com/habitat-sh/habitat/pull/1449) ([smurawski](https://github.com/smurawski))
+- write hooks file using ::create to be os portable [\#1448](https://github.com/habitat-sh/habitat/pull/1448) ([mwrock](https://github.com/mwrock))
+- Move user functions from sup to core [\#1447](https://github.com/habitat-sh/habitat/pull/1447) ([mwrock](https://github.com/mwrock))
+- pull the supervisor waitpid into core to be handled separately by os [\#1443](https://github.com/habitat-sh/habitat/pull/1443) ([mwrock](https://github.com/mwrock))
+- Create the `hab plan init` command. [\#1416](https://github.com/habitat-sh/habitat/pull/1416) ([Hoverbear](https://github.com/Hoverbear))
+- Added a new DEBUGGING run section  [\#1398](https://github.com/habitat-sh/habitat/pull/1398) ([jjasghar](https://github.com/jjasghar))
+- Implement ability to exclude config files through the HAB\_CONFIG\_EXCLUDE variable [\#1389](https://github.com/habitat-sh/habitat/pull/1389) ([efyang](https://github.com/efyang))
+- Set logfile name based on pkg\_name [\#1384](https://github.com/habitat-sh/habitat/pull/1384) ([smacfarlane](https://github.com/smacfarlane))
+
+## Bug fixes
+
+- studio terminal bug in 0.12.0 [\#1435](https://github.com/habitat-sh/habitat/issues/1435)
+- Origins do not display until logging back in [\#1161](https://github.com/habitat-sh/habitat/issues/1161)
+- \[hab/mac\] Fix mac-build.sh for new install.sh logic. [\#1454](https://github.com/habitat-sh/habitat/pull/1454) ([fnichol](https://github.com/fnichol))
+
+**Closed issues:**
+
+- 'make' failing to finish on \(minimally\) OSX [\#1411](https://github.com/habitat-sh/habitat/issues/1411)
+
+**Merged pull requests:**
+
+- Add segment snippet to website and web app [\#1466](https://github.com/habitat-sh/habitat/pull/1466) ([ryankeairns](https://github.com/ryankeairns))
+- Fix unhandled case in build logfile name detection [\#1464](https://github.com/habitat-sh/habitat/pull/1464) ([smacfarlane](https://github.com/smacfarlane))
+- Add core/curl as runtime dep for builder-worker [\#1452](https://github.com/habitat-sh/habitat/pull/1452) ([reset](https://github.com/reset))
+- Worker building plans from GitHub source [\#1437](https://github.com/habitat-sh/habitat/pull/1437) ([reset](https://github.com/reset))
+
 ## [0.12.1](https://github.com/habitat-sh/habitat/tree/0.12.1) (11-02-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.12.0...0.12.1)
 
