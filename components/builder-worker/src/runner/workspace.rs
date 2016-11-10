@@ -17,13 +17,12 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use hab_core::package::PackageArchive;
-use protocol::jobsrv as proto;
 
+use super::Job;
 use error::Result;
 
 pub struct Workspace {
-    pub job: proto::Job,
-    log: PathBuf,
+    pub job: Job,
     out: PathBuf,
     src: PathBuf,
     studio: PathBuf,
@@ -31,11 +30,10 @@ pub struct Workspace {
 }
 
 impl Workspace {
-    pub fn new(data_path: String, job: proto::Job) -> Self {
+    pub fn new(data_path: String, job: Job) -> Self {
         let root = PathBuf::from(data_path).join(job.get_id().to_string());
         Workspace {
             job: job,
-            log: root.join("build.log"),
             out: root.join("out"),
             src: root.join("src"),
             studio: root.join("studio"),
@@ -47,11 +45,6 @@ impl Workspace {
     pub fn last_built(&self) -> Result<PackageArchive> {
         let build = try!(LastBuild::from_file(self.out().join("last_build.env")));
         Ok(PackageArchive::new(self.out().join(build.pkg_artifact)))
-    }
-
-    /// Filepath to the `build.log` for the build
-    pub fn log(&self) -> &Path {
-        &self.log
     }
 
     /// Directory to the output directory containing built artifacts from studio build

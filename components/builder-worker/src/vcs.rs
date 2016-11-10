@@ -19,11 +19,16 @@ use protocol::vault;
 
 use error::Result;
 
-pub fn clone(vcs: &vault::VCSGit, path: &Path) -> Result<()> {
-    debug!("cloning git repository, url={}, path={:?}",
-           vcs.get_url(),
-           path);
-    try!(git2::Repository::clone(vcs.get_url(), path));
-    debug!("cloned git repository");
-    Ok(())
+pub trait RemoteSource {
+    fn clone(&self, path: &Path) -> Result<()>;
+}
+
+impl RemoteSource for vault::VCSGit {
+    fn clone(&self, path: &Path) -> Result<()> {
+        debug!("cloning git repository, url={}, path={:?}",
+               self.get_url(),
+               path);
+        try!(git2::Repository::clone(self.get_url(), path));
+        Ok(())
+    }
 }
