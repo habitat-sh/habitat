@@ -72,6 +72,14 @@ impl Job {
         }
         unreachable!("unknown vcs associated with job's project");
     }
+
+    pub fn origin(&self) -> &str {
+        let items = self.0.get_project().get_id().split("/").collect::<Vec<&str>>();
+        assert!(items.len() == 2,
+                format!("Invalid project identifier - {}",
+                        self.0.get_project().get_id()));
+        items[0]
+    }
 }
 
 impl Deref for Job {
@@ -155,7 +163,7 @@ impl Runner {
                         OsString::from("-r"),
                         OsString::from(self.workspace.studio()),
                         OsString::from("-k"),
-                        OsString::from("core"),
+                        OsString::from(self.job().origin()),
                         OsString::from("build"),
                         OsString::from(Path::new(self.job().get_project().get_plan_path())
                             .parent()
@@ -392,5 +400,21 @@ fn studio_cmd() -> String {
             panic!("core/hab-studio not found! This should be available as it is a runtime \
                     dependency in the worker's plan.sh and also present in our dev Dockerfile")
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use protocol::{jobsrv, vault};
+
+    #[test]
+    fn extract_origin_from_job() {
+        let mut inner = jobsrv::Job::new();
+        let mut project = vault::Project::new();
+        project.set_id("core/nginx".to_string());
+        inner.set_project(project);
+        let job = Job::new(inner);
+        assert_eq!(job.origin(), "core");
     }
 }
