@@ -168,7 +168,7 @@ Given a default.toml that looks like:
 
     [web]
 
-    port = 00
+    port = 80
 
 and a template:
 
