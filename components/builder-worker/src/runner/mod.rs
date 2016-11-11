@@ -14,6 +14,7 @@
 
 pub mod logger;
 pub mod workspace;
+pub mod postprocessor;
 
 use std::ffi::OsString;
 use std::fs;
@@ -24,9 +25,6 @@ use std::str::FromStr;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
-use depot_client;
-
-use hab_core;
 use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
@@ -36,11 +34,11 @@ use protocol::jobsrv as proto;
 use zmq;
 
 use self::logger::Logger;
+use self::postprocessor::PostProcessor;
 use self::workspace::Workspace;
 use config::Config;
 use error::{Error, Result};
 use vcs;
-use {PRODUCT, VERSION};
 
 /// In-memory zmq address of Job RunnerMgr
 const INPROC_ADDR: &'static str = "inproc://runner";
@@ -89,10 +87,19 @@ impl Runner {
                 return self.fail();
             }
         };
-        if !self.post_process(&mut archive) {
+
+        let mut post_processor = PostProcessor::new(&self.workspace);
+
+        if !post_processor.run(&mut archive, &self.auth_token) {
             // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
             // If the job is killed then we can kill the shelved artifacts.
             return self.fail();
+        }
+
+        if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
+            error!("unable to remove out directory ({}), ERR={:?}",
+                   self.workspace.out().display(),
+                   err)
         }
         self.complete()
     }
@@ -148,27 +155,6 @@ impl Runner {
     fn fail(&mut self) -> () {
         self.teardown().err().map(|e| error!("{}", e));
         self.workspace.job.set_state(proto::JobState::Failed);
-    }
-
-    fn post_process(&self, archive: &mut PackageArchive) -> bool {
-        // JW TODO: In the future we'll support multiple and configurable post processors, but for
-        // now let's just publish to the public depot
-        //
-        // Things to solve right now
-        // * Where do we get the token for authentication?
-        //      * Should the workers ask for a lease from the JobSrv?
-        let client =
-            depot_client::Client::new(&hab_core::url::default_depot_url(), PRODUCT, VERSION, None)
-                .unwrap();
-        if let Some(err) = client.x_put_package(archive, &self.auth_token).err() {
-            error!("post processing error, ERR={:?}", err);
-        }
-        if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
-            error!("unable to remove out directory ({}), ERR={:?}",
-                   self.workspace.out().display(),
-                   err)
-        }
-        true
     }
 
     fn setup(&self) -> Result<()> {

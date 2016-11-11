@@ -119,7 +119,15 @@ impl GitHubClient {
             let err: HashMap<String, String> = try!(json::decode(&body));
             return Err(Error::GitHubAPI(rep.status, err));
         }
-        let repo: Repo = json::decode(&body).unwrap();
+
+        let repo: Repo = match json::decode(&body) {
+            Ok(r) => r,
+            Err(e) => {
+                debug!("github repo decode failed: {}. response body: {}", e, body);
+                return Err(Error::from(e));
+            }
+        };
+
         Ok(repo)
     }
 
@@ -211,7 +219,7 @@ pub struct Repo {
     pub owner: User,
     pub private: bool,
     pub html_url: String,
-    pub description: String,
+    pub description: Option<String>,
     pub fork: bool,
     pub url: String,
     pub forks_url: String,

@@ -87,7 +87,10 @@ impl Dispatcher for Worker {
             "ProjectDelete" => handlers::project_delete(message, sock, state),
             "ProjectGet" => handlers::project_get(message, sock, state),
             "ProjectUpdate" => handlers::project_update(message, sock, state),
-            _ => panic!("unhandled message"),
+            _ => {
+                debug!("dispatch: unhandled message: {}", message.message_id());
+                Ok(())
+            }
         }
     }
 

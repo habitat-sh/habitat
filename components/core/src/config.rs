@@ -152,6 +152,21 @@ impl ParseInto<Option<String>> for toml::Value {
     }
 }
 
+impl ParseInto<bool> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut bool) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_bool() {
+                *out = v as bool;
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidString(field))
+            }
+        } else {
+            Ok(false)
+        }
+    }
+}
+
 impl ParseInto<usize> for toml::Value {
     fn parse_into(&self, field: &'static str, out: &mut usize) -> Result<bool> {
         if let Some(val) = self.lookup(field) {
