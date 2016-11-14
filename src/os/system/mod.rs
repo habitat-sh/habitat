@@ -40,6 +40,7 @@ pub enum Architecture {
 pub enum Platform {
     Linux,
     Windows,
+    MacOS,
 }
 
 #[derive(Debug)]
@@ -85,6 +86,7 @@ impl FromStr for Platform {
         match platform.as_ref() {
             "linux" => Ok(Platform::Linux),
             "windows" => Ok(Platform::Windows),
+            "macos" => Ok(Platform::MacOS),
             _ => return Err(Error::InvalidPlatform(value.to_string())),
         }
     }
