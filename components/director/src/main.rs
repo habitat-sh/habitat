@@ -226,7 +226,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@subcommand start =>
-            (about: "Run a Habitat package Depot")
+            (about: "Run a Habitat director")
             (@arg config: -c --config +takes_value +global
              "Path to configuration file. [default: config.toml]")
         )
