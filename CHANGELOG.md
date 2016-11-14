@@ -1,5 +1,26 @@
 # Habitat CHANGELOG
 
+## [0.13.1](https://github.com/habitat-sh/habitat/tree/0.13.1) (11-14-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.13.0...0.13.1)
+
+## Features & Enhancements
+
+- Retry network operations if they fail [\#1446](https://github.com/habitat-sh/habitat/pull/1446) ([raskchanky](https://github.com/raskchanky))
+
+## Bug fixes
+
+- hab 0.12.1 binary in docker studio 0.13.0 [\#1477](https://github.com/habitat-sh/habitat/issues/1477)
+- Running build outside studio leads to odd log filenames [\#888](https://github.com/habitat-sh/habitat/issues/888)
+
+**Merged pull requests:**
+
+- Fix broken platform support for MacOS [\#1479](https://github.com/habitat-sh/habitat/pull/1479) ([reset](https://github.com/reset))
+- Fix string to say director instead of depot [\#1478](https://github.com/habitat-sh/habitat/pull/1478) ([smith](https://github.com/smith))
+- Add post-processing infra to builder-worker [\#1476](https://github.com/habitat-sh/habitat/pull/1476) ([chefsalim](https://github.com/chefsalim))
+- Release docs [\#1475](https://github.com/habitat-sh/habitat/pull/1475) ([mwrock](https://github.com/mwrock))
+- bumping version for development [\#1474](https://github.com/habitat-sh/habitat/pull/1474) ([mwrock](https://github.com/mwrock))
+- it's 80 not 00 [\#1473](https://github.com/habitat-sh/habitat/pull/1473) ([jjasghar](https://github.com/jjasghar))
+
 ## [0.13.0](https://github.com/habitat-sh/habitat/tree/0.13.0) (11-10-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.12.1...0.13.0)
 
