@@ -21,6 +21,7 @@ extern crate log;
 extern crate openssl;
 extern crate pbr;
 extern crate regex;
+extern crate retry;
 extern crate rustc_serialize;
 #[cfg(test)]
 extern crate tempdir;

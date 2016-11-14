@@ -26,6 +26,7 @@ extern crate hyper;
 extern crate log;
 extern crate pbr;
 extern crate regex;
+extern crate retry;
 extern crate rustc_serialize;
 extern crate toml;
 extern crate url;

@@ -26,12 +26,14 @@ use hab_http;
 #[derive(Debug)]
 pub enum Error {
     APIError(hyper::status::StatusCode, String),
+    DownloadFailed(String),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
     HyperError(hyper::error::Error),
     IO(io::Error),
     NoFilePart,
     NoXFilename,
+    UploadFailed(String),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
 }
@@ -43,6 +45,7 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::APIError(ref c, ref m) if m.len() > 0 => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
+            Error::DownloadFailed(ref s) => format!("Download failed: {}", s),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatHttpClient(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
@@ -54,6 +57,7 @@ impl fmt::Display for Error {
             Error::NoXFilename => {
                 format!("Invalid download from a Depot - missing X-Filename header")
             }
+            Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
             Error::WriteSyncFailed => {
                 format!("Could not write to destination; perhaps the disk is full?")
@@ -67,6 +71,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::APIError(_, _) => "Received a non-2XX response code from API",
+            Error::DownloadFailed(_) => "Download failed",
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatHttpClient(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
@@ -75,6 +80,7 @@ impl error::Error for Error {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
+            Error::UploadFailed(_) => "Upload failed",
             Error::UrlParseError(ref err) => err.description(),
             Error::WriteSyncFailed => {
                 "Could not write to destination; bytes written was 0 on a non-0 buffer"

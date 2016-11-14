@@ -14,6 +14,7 @@
 
 use std::sync::Arc;
 use std::path::Path;
+use std::time::Duration;
 
 use hab_core::util::sys;
 use hyper::client::Client as HyperClient;
@@ -229,17 +230,25 @@ impl ApiClient {
 fn new_hyper_client(for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Result<HyperClient> {
     let ctx = try!(ssl_ctx(fs_root_path));
     let ssl_client = Openssl { context: Arc::new(ctx) };
+    let timeout = Some(Duration::from_secs(5));
+
     match try!(proxy_unless_domain_exempted(for_domain)) {
         Some(proxy) => {
             debug!("Using proxy {}:{}...", proxy.host(), proxy.port());
             let connector = try!(ProxyHttpsConnector::new(proxy, ssl_client));
             let pool = Pool::with_connector(Config::default(), connector);
-            Ok(HyperClient::with_protocol(Http11Protocol::with_connector(pool)))
+            let mut client = HyperClient::with_protocol(Http11Protocol::with_connector(pool));
+            client.set_read_timeout(timeout);
+            client.set_write_timeout(timeout);
+            Ok(client)
         }
         None => {
             let connector = HttpsConnector::new(ssl_client);
             let pool = Pool::with_connector(Config::default(), connector);
-            Ok(HyperClient::with_protocol(Http11Protocol::with_connector(pool)))
+            let mut client = HyperClient::with_protocol(Http11Protocol::with_connector(pool));
+            client.set_read_timeout(timeout);
+            client.set_write_timeout(timeout);
+            Ok(client)
         }
     }
 }

@@ -376,15 +376,9 @@ pub mod search {
             _ => {
                 for p in &packages {
                     if let (&Some(ref version), &Some(ref release)) = (&p.version, &p.release) {
-                        println!("{}/{}/{}/{}",
-                                 p.origin,
-                                 p.name,
-                                 version,
-                                 release);
+                        println!("{}/{}/{}/{}", p.origin, p.name, version, release);
                     } else {
-                        println!("{}/{}",
-                                 p.origin,
-                                 p.name);
+                        println!("{}/{}", p.origin, p.name);
                     }
                 }
                 if more {
@@ -439,6 +433,7 @@ pub mod upload {
     use std::path::{Path, PathBuf};
 
     use common::ui::{Status, UI};
+    use common::command::package::install::{RETRIES, RETRY_WAIT};
     use depot_client::{self, Client};
     use hcore::crypto::artifact::get_artifact_header;
     use hcore::crypto::keys::parse_name_with_rev;
@@ -447,6 +442,8 @@ pub mod upload {
 
     use {PRODUCT, VERSION};
     use error::{Error, Result};
+
+    use retry::retry;
 
     /// Upload a package from the cache to a Depot. The latest version/release of the package
     /// will be uploaded if not specified.
@@ -477,6 +474,7 @@ pub mod upload {
         let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
 
         try!(ui.begin(format!("Uploading public origin key {}", &public_keyfile_name)));
+
         match depot_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
             Ok(()) => {
                 try!(ui.status(Status::Uploaded,
@@ -499,7 +497,23 @@ pub mod upload {
                         Some(p) => PathBuf::from(p),
                         None => unreachable!(),
                     };
-                    try!(attempt_upload_dep(ui, &depot_client, token, &dep, &candidate_path));
+                    if retry(RETRIES,
+                             RETRY_WAIT,
+                             || attempt_upload_dep(ui, &depot_client, token, &dep, &candidate_path),
+                             |res| res.is_ok())
+                        .is_err() {
+                        return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+                                                                                          {} times \
+                                                                                          but \
+                                                                                          could \
+                                                                                          not \
+                                                                                          upload \
+                                                                                          {}. \
+                                                                                          Giving \
+                                                                                          up.",
+                                                                                         RETRIES,
+                                                                                         &dep))));
+                    }
                 }
                 Err(e) => return Err(Error::from(e)),
             }
@@ -511,7 +525,20 @@ pub mod upload {
                 Ok(())
             }
             Err(depot_client::Error::APIError(StatusCode::NotFound, _)) => {
-                try!(upload_into_depot(ui, &depot_client, token, &ident, &mut archive));
+                if retry(RETRIES,
+                         RETRY_WAIT,
+                         || upload_into_depot(ui, &depot_client, token, &ident, &mut archive),
+                         |res| res.is_ok())
+                    .is_err() {
+                    return Err(Error::from(depot_client::Error::UploadFailed(format!("We tried \
+                                                                                      {} times \
+                                                                                      but could \
+                                                                                      not upload \
+                                                                                      {}. Giving \
+                                                                                      up.",
+                                                                                     RETRIES,
+                                                                                     &ident))));
+                }
                 try!(ui.end(format!("Upload of {} complete.", &ident)));
                 Ok(())
             }
@@ -527,7 +554,7 @@ pub mod upload {
                          -> Result<()> {
         try!(ui.status(Status::Uploading, archive.path.display()));
         match depot_client.put_package(&mut archive, token, ui.progress()) {
-            Ok(()) => (),
+            Ok(_) => (),
             Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
                 println!("Package already exists on remote; skipping.");
             }
@@ -535,7 +562,7 @@ pub mod upload {
                 return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
             }
             Err(e) => return Err(Error::from(e)),
-        }
+        };
         try!(ui.status(Status::Uploaded, ident));
         Ok(())
     }

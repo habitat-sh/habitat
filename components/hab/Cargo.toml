@@ -18,6 +18,7 @@ libc = "*"
 log = "*"
 pbr = "*"
 regex = "*"
+retry = "*"
 rustc-serialize = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 temp_utp = "*"
