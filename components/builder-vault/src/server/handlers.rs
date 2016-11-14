@@ -45,11 +45,6 @@ pub fn origin_check_access(req: &mut Envelope,
                            sock: &mut zmq::Socket,
                            state: &mut ServerState)
                            -> Result<()> {
-    // !!!NOTE!!!
-    // !!!NOTE!!!
-    // only account_id and origin_name are implemented
-    // !!!NOTE!!!
-    // !!!NOTE!!!
     let msg: proto::CheckOriginAccessRequest = try!(req.parse_msg());
     let is_member = try!(state.datastore
         .origins
@@ -68,7 +63,6 @@ pub fn origin_create(req: &mut Envelope,
     let mut origin = proto::Origin::new();
     origin.set_name(msg.get_name().to_string());
     origin.set_owner_id(msg.get_owner_id());
-
     if let Ok(_origin) = state.datastore
         .origins
         .name_idx
@@ -76,11 +70,7 @@ pub fn origin_create(req: &mut Envelope,
         let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-create:0");
         try!(req.reply_complete(sock, &err));
     }
-
     try!(state.datastore.origins.write(&mut origin));
-
-    // after the origin is written and has an id, add the owner
-    // to the list of members
     debug!("Adding owner as origin member: {}", &msg.get_owner_name());
     try!(state.datastore
         .origins
@@ -129,8 +119,6 @@ pub fn origin_invitation_accept(req: &mut Envelope,
                                 state: &mut ServerState)
                                 -> Result<()> {
     let msg: proto::OriginInvitationAcceptRequest = try!(req.parse_msg());
-
-    // we might not have an invite here if it's already been accepted
     match state.datastore.origins.invites.find(&msg.get_invite_id()) {
         Ok(invite) => {
             debug!("REQ    {:?}", &msg);
@@ -208,7 +196,6 @@ pub fn origin_invitation_list(req: &mut Envelope,
         .get_by_origin_id(msg.get_origin_id()));
     let mut resp = proto::OriginInvitationListResponse::new();
     resp.set_origin_id(msg.get_origin_id());
-
     let mut r_invites = RepeatedField::new();
     for invite in invites {
         r_invites.push(invite);
@@ -280,9 +267,41 @@ pub fn origin_secret_key_create(req: &mut Envelope,
     pk.set_origin_id(msg.get_origin_id());
     pk.set_owner_id(msg.get_owner_id());
     pk.set_body(msg.get_body().to_vec());
-    // DP TODO: handle db errors
-    try!(state.datastore.origins.origin_secret_keys.write(&mut pk));
-    try!(req.reply_complete(sock, &pk));
+    match state.datastore.origins.origin_secret_keys.write(&mut pk) {
+        Ok(true) => try!(req.reply_complete(sock, &pk)),
+        Ok(false) => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:origin-secret-key-create:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginSecretKeyCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-secret-key-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
+    Ok(())
+}
+
+pub fn origin_secret_key_get(req: &mut Envelope,
+                             sock: &mut zmq::Socket,
+                             state: &mut ServerState)
+                             -> Result<()> {
+    let mut msg: proto::OriginSecretKeyGet = try!(req.parse_msg());
+    match state.datastore.origins.key_idx.find(&msg.take_origin()) {
+        Ok(ref id) => {
+            let key = state.datastore.origins.origin_secret_keys.find(id).unwrap();
+            try!(req.reply_complete(sock, &key));
+        }
+        Err(dbcache::Error::EntityNotFound) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:origin-secret-key-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("OriginSecretKeyGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:origin-secret-key-get:1");
+            try!(req.reply_complete(sock, &err));
+        }
+    }
     Ok(())
 }
 
@@ -291,12 +310,17 @@ pub fn project_create(req: &mut Envelope,
                       state: &mut ServerState)
                       -> Result<()> {
     let mut project = try!(req.parse_msg::<proto::ProjectCreate>()).take_project();
-    // JW TODO: handle db errors
-    if try!(state.datastore.projects.write(&mut project)) {
-        try!(req.reply_complete(sock, &project));
-    } else {
-        let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:project-create:0");
-        try!(req.reply_complete(sock, &err));
+    match state.datastore.projects.write(&mut project) {
+        Ok(true) => try!(req.reply_complete(sock, &project)),
+        Ok(false) => {
+            let err = net::err(ErrCode::ENTITY_CONFLICT, "vt:project-create:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("ProjectCreate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:project-create:1");
+            try!(req.reply_complete(sock, &err));
+        }
     }
     Ok(())
 }
@@ -318,8 +342,13 @@ pub fn project_get(req: &mut Envelope,
     let mut msg: proto::ProjectGet = try!(req.parse_msg());
     match state.datastore.projects.find(&msg.take_id()) {
         Ok(ref project) => try!(req.reply_complete(sock, project)),
-        Err(_) => {
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:project_get:0");
+        Err(dbcache::Error::EntityNotFound) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:project-get:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("ProjectGet, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:project-get:1");
             try!(req.reply_complete(sock, &err));
         }
     }
@@ -333,9 +362,13 @@ pub fn project_update(req: &mut Envelope,
     let msg: proto::ProjectUpdate = try!(req.parse_msg());
     match state.datastore.projects.update(&msg.get_project()) {
         Ok(()) => try!(req.reply_complete(sock, &NetOk::new())),
-        Err(_) => {
-            // JW TODO: it isn't always entity not found, need to handle db error properly
-            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:project_update:0");
+        Err(dbcache::Error::EntityNotFound) => {
+            let err = net::err(ErrCode::ENTITY_NOT_FOUND, "vt:project-update:0");
+            try!(req.reply_complete(sock, &err));
+        }
+        Err(err) => {
+            error!("ProjectUpdate, err={:?}", err);
+            let err = net::err(ErrCode::DATA_STORE, "vt:project-update:1");
             try!(req.reply_complete(sock, &err));
         }
     }

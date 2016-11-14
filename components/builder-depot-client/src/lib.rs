@@ -22,6 +22,8 @@ extern crate hyper;
 extern crate log;
 extern crate pbr;
 extern crate rustc_serialize;
+extern crate serde;
+extern crate serde_json;
 extern crate tee;
 extern crate url;
 
@@ -41,13 +43,13 @@ use hyper::status::StatusCode;
 use hyper::header::{Authorization, Bearer};
 use hyper::Url;
 use protocol::{depotsrv, net};
-use rustc_serialize::json;
-use rustc_serialize::Decodable;
+use rustc_serialize::{json, Decodable};
 use tee::TeeReader;
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
 
+include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 
 #[derive(RustcDecodable)]
 pub struct PackageResults<T>
@@ -167,6 +169,30 @@ impl Client {
             }
             Err(e) => Err(Error::from(e)),
         }
+    }
+
+    /// Download a secret key from a remote Depot to the given filepath.
+    ///
+    /// # Failures
+    ///
+    /// * Remote Depot is not available
+    /// * File cannot be read
+    ///
+    /// # Panics
+    ///
+    /// * Authorization token was not set on client
+    pub fn fetch_origin_secret_key(&self, origin: &str, token: &str) -> Result<OriginSecretKey> {
+        let mut res =
+            try!(self.add_authz(self.inner.get(&format!("origins/{}/secret_keys/latest", origin)),
+                           token)
+                .send());
+        if res.status != StatusCode::Ok {
+            return Err(err_from_response(res));
+        }
+        let mut encoded = String::new();
+        try!(res.read_to_string(&mut encoded));
+        let key = serde_json::from_str(&encoded).unwrap();
+        Ok(key)
     }
 
     /// Upload a secret origin key to a remote Depot.

@@ -37,6 +37,7 @@ impl Default for State {
 
 pub struct Server {
     config: Arc<RwLock<Config>>,
+    /// Dealer Socket connected to JobSrv
     fe_sock: zmq::Socket,
     hb_cli: HeartbeatCli,
     runner_cli: RunnerCli,

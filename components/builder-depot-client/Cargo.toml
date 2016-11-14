@@ -2,6 +2,7 @@
 name = "habitat_depot_client"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "build.rs"
 workspace = "../../"
 
 [dependencies]
@@ -10,6 +11,8 @@ hyper = "*"
 log = "*"
 pbr = "*"
 rustc-serialize = "*"
+serde = "*"
+serde_json = "*"
 tee = "*"
 url = "*"
 
@@ -21,6 +24,9 @@ path = "../core"
 
 [dependencies.habitat_http_client]
 path = "../http-client"
+
+[build-dependencies]
+serde_codegen = "*"
 
 [features]
 functional = []

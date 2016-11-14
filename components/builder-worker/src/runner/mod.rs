@@ -27,6 +27,8 @@ use std::str::FromStr;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
+use depot_client;
+use hab_core::{self, crypto};
 use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
@@ -35,6 +37,7 @@ use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
 use zmq;
 
+use {PRODUCT, VERSION};
 use self::logger::Logger;
 use self::postprocessor::PostProcessor;
 use self::workspace::Workspace;
@@ -100,14 +103,19 @@ pub struct Runner {
     workspace: Workspace,
     auth_token: String,
     logger: Option<Logger>,
+    depot_cli: depot_client::Client,
 }
 
 impl Runner {
     pub fn new(job: Job, config: &Config) -> Self {
+        let depot_cli =
+            depot_client::Client::new(&hab_core::url::default_depot_url(), PRODUCT, VERSION, None)
+                .unwrap();
         Runner {
             auth_token: config.auth_token.clone(),
             workspace: Workspace::new(config.data_path.clone(), job),
             logger: None,
+            depot_cli: depot_cli,
         }
     }
 
@@ -128,21 +136,39 @@ impl Runner {
             error!("WORKSPACE SETUP ERR={:?}", err);
             return self.fail();
         }
-        // JW TODO: How are we going to get the secret keys for this thing?
+        match self.depot_cli.fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
+            Ok(key) => {
+                let cache = crypto::default_cache_key_path(None);
+                match crypto::SigKeyPair::write_file_from_str(&key.body, &cache) {
+                    Ok((pair, pair_type)) => {
+                        debug!("Imported {} origin key {}.",
+                               &pair_type,
+                               &pair.name_with_rev());
+                    }
+                    Err(err) => {
+                        error!("Unable to import secret key, err={}", err);
+                        return self.fail();
+                    }
+                }
+            }
+            Err(err) => {
+                error!("Unable to retrieve secret key, err={}", err);
+                return self.fail();
+            }
+        }
         if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
-            error!("CLONE ERROR={}", err);
+            error!("Unable to clone remote source repository, err={}", err);
             return self.fail();
         }
         let mut archive = match self.build() {
             Ok(archive) => archive,
             Err(err) => {
-                error!("STUDIO ERR={}", err);
+                error!("Unable to build in studio, err={}", err);
                 return self.fail();
             }
         };
 
         let mut post_processor = PostProcessor::new(&self.workspace);
-
         if !post_processor.run(&mut archive, &self.auth_token) {
             // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
             // If the job is killed then we can kill the shelved artifacts.
@@ -198,27 +224,6 @@ impl Runner {
         self.teardown().err().map(|e| error!("{}", e));
         self.workspace.job.set_state(JobState::Failed);
         self.workspace.job
-    }
-
-    fn post_process(&self, archive: &mut PackageArchive) -> bool {
-        // JW TODO: In the future we'll support multiple and configurable post processors, but for
-        // now let's just publish to the public depot
-        //
-        // Things to solve right now
-        // * Where do we get the token for authentication?
-        //      * Should the workers ask for a lease from the JobSrv?
-        let client =
-            depot_client::Client::new(&hab_core::url::default_depot_url(), PRODUCT, VERSION, None)
-                .unwrap();
-        if let Some(err) = client.x_put_package(archive, &self.auth_token).err() {
-            error!("post processing error, ERR={:?}", err);
-        }
-        if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
-            error!("unable to remove out directory ({}), ERR={:?}",
-                   self.workspace.out().display(),
-                   err)
-        }
-        true
     }
 
     fn setup(&mut self) -> Result<()> {

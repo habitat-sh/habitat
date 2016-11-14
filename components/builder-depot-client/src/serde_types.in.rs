@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-bitflags! {
-    pub flags FeatureFlags: u32 {
-        const ADMIN = 0b00000001,
-        const BUILDER = 0b00000010,
-        const BUILD_WORKER = 0b00000100,
-    }
+#[derive(Clone, Serialize, Deserialize)]
+pub struct OriginSecretKey {
+    pub id: String,
+    pub origin_id: String,
+    pub name: String,
+    pub revision: String,
+    pub body: String,
+    pub owner_id: String,
 }
