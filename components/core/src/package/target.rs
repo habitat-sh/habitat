@@ -48,12 +48,12 @@ impl PackageTarget {
     pub fn current_platform() -> Platform {
         if cfg!(target_os = "windows") {
             Platform::Windows
+        } else if cfg!(target_os = "linux") {
+            Platform::Linux
+        } else if cfg!(target_os = "macos") {
+            Platform::MacOS
         } else {
-            if cfg!(target_os = "linux") {
-                Platform::Linux
-            } else {
-                unimplemented!()
-            }
+            unreachable!("binary built for an unknown platform")
         }
     }
 
@@ -61,7 +61,7 @@ impl PackageTarget {
         if cfg!(target_arch = "x86_64") {
             Architecture::X86_64
         } else {
-            unimplemented!()
+            unreachable!("binary built for an unknown architecture")
         }
     }
 }
@@ -124,8 +124,13 @@ mod tests {
         let target = PackageTarget::default();
         if cfg!(target_os = "windows") {
             assert_eq!(target.platform, Platform::Windows);
-        } else {
+        } else if cfg!(target_os = "linux") {
             assert_eq!(target.platform, Platform::Linux);
+        } else if cfg!(target_os = "macos") {
+            assert_eq!(target.platform, Platform::MacOS);
+        } else {
+            unreachable!("Platform not defined for target_os! Fix this by adding a conditional \
+                          compilation to PackageTarget::current_platform()");
         }
         assert_eq!(target.architecture, Architecture::X86_64);
     }
@@ -140,13 +145,13 @@ mod tests {
     #[test]
     #[should_panic]
     fn package_target_with_reversed_target_string() {
-        let _ = PackageTarget::from_str("linux-x86_64").unwrap();
+        PackageTarget::from_str("linux-x86_64").unwrap();
     }
 
     #[test]
     #[should_panic]
     fn package_target_with_invalid_platform() {
-        let _ = PackageTarget::from_str("x86_64-intermezzos").unwrap();
+        PackageTarget::from_str("x86_64-intermezzos").unwrap();
     }
 
     #[test]
@@ -155,32 +160,40 @@ mod tests {
         let _ = PackageTarget::from_str("i986-linux").unwrap();
     }
 
+    #[test]
+    fn package_target_validate_matching_platform_and_architecture() {
+        current_platform_target().validate().unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn package_target_does_not_validate_different_platform() {
+        unsupported_platform_target().validate().unwrap();
+    }
+
     fn current_platform_target() -> PackageTarget {
         if cfg!(target_os = "windows") {
-            PackageTarget::from_str("x86_64-windows").unwrap()
-        } else {
+            return PackageTarget::from_str("x86_64-windows").unwrap();
+        } else if cfg!(target_os = "linux") {
             PackageTarget::from_str("x86_64-linux").unwrap()
+        } else if cfg!(target_os = "macos") {
+            PackageTarget::from_str("x86_64-macos").unwrap()
+        } else {
+            unreachable!("Test case not defined for target_os! Fix this by adding a conditional \
+                          compilation to tests::current_platform_target()");
         }
     }
 
     fn unsupported_platform_target() -> PackageTarget {
         if cfg!(target_os = "windows") {
             PackageTarget::from_str("x86_64-linux").unwrap()
-        } else {
+        } else if cfg!(target_os = "linux") {
             PackageTarget::from_str("x86_64-windows").unwrap()
+        } else if cfg!(target_os = "macos") {
+            PackageTarget::from_str("x86_64-windows").unwrap()
+        } else {
+            unreachable!("Test case not defined for target_os! Fix this by adding a conditional \
+                          compilation to tests::unsupported_platform_target()");
         }
-    }
-
-    #[test]
-    fn package_target_validate_matching_platform_and_architecture() {
-        let target = current_platform_target();
-        let _ = target.validate().unwrap();
-    }
-
-    #[test]
-    #[should_panic]
-    fn package_target_does_not_validate_different_platform() {
-        let target = unsupported_platform_target();
-        let _ = target.validate().unwrap();
     }
 }
