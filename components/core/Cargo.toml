@@ -25,6 +25,9 @@ url = "*"
 [target.'cfg(not(windows))'.dependencies]
 users = "*"
 
+[target.'cfg(windows)'.dependencies.habitat_win_users]
+path = "../win-users"
+
 [dev-dependencies]
 hyper = "*"
 tempdir = "*"

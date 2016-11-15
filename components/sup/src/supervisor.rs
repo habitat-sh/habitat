@@ -27,14 +27,13 @@ use std::process::{Command, Stdio, Child};
 use std::thread;
 
 use hcore;
-use hcore::os::process;
+use hcore::os::{process, users};
 use hcore::package::PackageIdent;
 use libc::c_int;
 use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
 use util::signals;
-use util::users as hab_users;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
@@ -201,8 +200,8 @@ impl Supervisor {
     #[cfg(any(target_os="linux", target_os="macos"))]
     fn start_platform(&mut self, cmd: &mut Command) -> Result<()> {
         use std::os::unix::process::CommandExt;
-        let uid = hab_users::user_name_to_uid(&self.runtime_config.svc_user);
-        let gid = hab_users::group_name_to_gid(&self.runtime_config.svc_group);
+        let uid = users::get_uid_by_name(&self.runtime_config.svc_user);
+        let gid = users::get_gid_by_name(&self.runtime_config.svc_group);
         if let None = uid {
             panic!("Can't determine uid");
         }
