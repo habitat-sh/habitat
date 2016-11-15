@@ -142,7 +142,7 @@ Download origin key(s) to `HAB_CACHE_KEY_PATH`
 
 **OPTIONS**
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL
+    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
 
 **ARGS**
 
@@ -215,7 +215,7 @@ Upload origin keys to the depot
 **OPTIONS**
 
     -z, --auth <AUTH_TOKEN>        Authentication token for the Depot
-    -u, --url <DEPOT_URL>          Use a specific Depot URL
+    -u, --url <DEPOT_URL>          Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
         --pubfile <PUBLIC_FILE>    Path to a local public origin key file on disk
         --secfile <SECRET_FILE>    Path to a local secret origin key file on disk
 
@@ -332,7 +332,7 @@ Installs a Habitat package from a Depot or locally from a Habitat Artifact
 
 **OPTIONS**
 
-    -u, --url <DEPOT_URL>    Use a specific Depot URL
+    -u, --url <DEPOT_URL>    Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
 
 **ARGS**
 
@@ -411,7 +411,7 @@ Uploads a local Habitat Artifact to a Depot
 **OPTIONS**
 
     -z, --auth <AUTH_TOKEN>    Authentication token for the Depot
-    -u, --url <DEPOT_URL>      Use a specific Depot URL
+    -u, --url <DEPOT_URL>      Use a specific Depot URL (ex: http://depot.example.com/v1/depot)
 
 **ARGS**
 
