@@ -64,10 +64,10 @@ fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(Stri
             let current_user = current_user.unwrap();
             let current_group = current_group.unwrap();
 
-            if current_user == "root" {
+            if current_user == users::root_level_account() {
                 Ok(Some((user, group)))
             } else {
-                if current_user == user && current_group == group {
+                if current_user == user && (cfg!(target_os = "windows") || current_group == group) {
                     // ok, sup is running as svc_user/svc_group already
                     Ok(Some((user, group)))
                 } else {
@@ -89,7 +89,7 @@ fn get_default_user_and_group() -> Result<(String, String)> {
     let uid = users::get_uid_by_name(DEFAULT_USER);
     let gid = users::get_gid_by_name(DEFAULT_GROUP);
     match (uid, gid) {
-        (Some(uid), Some(gid)) => return Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
+        (Some(_), Some(_)) => return Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
         _ => {
             debug!("hab:hab does NOT exist");
             let user = users::get_current_username();
@@ -119,12 +119,4 @@ pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, Strin
         let defaults = try!(get_default_user_and_group());
         Ok(defaults)
     }
-}
-
-pub fn user_name_to_uid(user: &str) -> Option<u32> {
-    users::get_uid_by_name(user)
-}
-
-pub fn group_name_to_gid(group: &str) -> Option<u32> {
-    users::get_gid_by_name(group)
 }

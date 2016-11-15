@@ -17,7 +17,7 @@ use std::ffi::CStr;
 use std::path::Path;
 use std::io;
 
-pub fn chown(r_path: *const c_char, uid: u32, gid: u32) -> c_int {
+pub fn chown(r_path: *const c_char, uid: String, gid: String) -> c_int {
     unimplemented!();
 }
 

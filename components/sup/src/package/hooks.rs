@@ -22,6 +22,7 @@ use handlebars::Handlebars;
 
 use error::{Error, Result};
 use hcore::util;
+use hcore::os::users;
 use package::Package;
 use service_config::{ServiceConfig, never_escape_fn};
 use util::convert;
@@ -126,8 +127,8 @@ impl Hook {
     #[cfg(any(target_os="linux", target_os="macos"))]
     fn run_platform(&self, cmd: &mut Command) -> Result<()> {
         use std::os::unix::process::CommandExt;
-        let uid = hab_users::user_name_to_uid(&self.user);
-        let gid = hab_users::group_name_to_gid(&self.group);
+        let uid = users::get_uid_by_name(&self.user);
+        let gid = users::get_gid_by_name(&self.group);
         if let None = uid {
             panic!("Can't determine uid");
         }

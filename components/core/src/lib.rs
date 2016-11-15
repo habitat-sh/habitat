@@ -34,6 +34,9 @@ extern crate url as extern_url;
 #[cfg(not(windows))]
 extern crate users as linux_users;
 
+#[cfg(windows)]
+extern crate habitat_win_users;
+
 pub use self::error::{Error, Result};
 
 pub mod config;
