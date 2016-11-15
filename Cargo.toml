@@ -1,0 +1,11 @@
+[package]
+name = "habitat_win_users"
+version = "0.0.0"
+authors = ["Matt Wrock <matt@mattwrock.com>"]
+description = "Habitat library for win32 account api calls"
+workspace = "../../"
+
+[target.'cfg(windows)'.dependencies]
+kernel32-sys = "*"
+widestring = "*"
+winapi = "*"
