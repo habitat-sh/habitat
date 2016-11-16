@@ -57,8 +57,6 @@ const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 
 const DEFAULT_BINLINK_DIR: &'static str = "/bin";
 
-const MAX_FILE_UPLOAD_SIZE_BYTES: u64 = 4096;
-
 fn main() {
     env_logger::init().unwrap();
     let mut ui = UI::default();
@@ -183,59 +181,6 @@ fn sub_cli_completers(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let shell = m.value_of("SHELL").expect("Missing Shell; A shell is required");
     cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
     Ok(())
-}
-
-fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
-    let fs_root_path = Some(Path::new(&fs_root));
-
-    let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
-    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
-    for p in peers.iter_mut() {
-        if p.find(':').is_none() {
-            p.push(':');
-            p.push_str(&hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
-        }
-    }
-    let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
-    let file_path = Path::new(m.value_of("FILE").unwrap()); // Required via clap
-    match file_path.metadata() {
-        Ok(md) => {
-            if md.len() > MAX_FILE_UPLOAD_SIZE_BYTES {
-                return Err(Error::CryptoCLI(format!("Maximum encrypted file size is {} bytes",
-                                                    MAX_FILE_UPLOAD_SIZE_BYTES)));
-            }
-        }
-        Err(e) => {
-            return Err(Error::CryptoCLI(format!("Error checking file metadata: {}", e)));
-
-        }
-    };
-
-    init();
-    let cache = default_cache_key_path(fs_root_path);
-    let ring_key = match m.value_of("RING") {
-        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
-        None => None,
-    };
-
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));  // Required via clap
-    // apply the organization name to the service group, either
-    // from HAB_ORG or the --org param
-    let org = try!(org_param_or_env(&m));
-    sg.organization = Some(org.to_string());
-    let service_pair = try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache));
-
-    let user = try!(user_param_or_env(&m));
-    let user_pair = try!(BoxKeyPair::get_latest_pair_for(&user, &cache));
-
-    command::file::upload::start(ui,
-                                 &peers,
-                                 ring_key.as_ref(),
-                                 &user_pair,
-                                 &service_pair,
-                                 number,
-                                 file_path)
 }
 
 fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches) -> Result<()> {

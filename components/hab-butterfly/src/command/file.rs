@@ -13,43 +13,64 @@
 // limitations under the License.
 
 pub mod upload {
+
     use std::path::Path;
+    use std::io::{self, Read};
+    use std::fs::File;
 
-    use common::gossip_file::GossipFile;
+    use butterfly::client::Client;
     use common::ui::{Status, UI};
-    use hcore::crypto::{BoxKeyPair, SymKey};
+    use hcore::crypto::{SymKey, BoxKeyPair};
+    use hcore::service::ServiceGroup;
 
-    use error::Result;
+    use error::{Error, Result};
     //    use gossip::{self, hab_gossip};
 
     pub fn start(ui: &mut UI,
+                 sg: &ServiceGroup,
+                 number: u64,
+                 file_path: &Path,
                  peers: &Vec<String>,
                  ring_key: Option<&SymKey>,
-                 user_pair: &BoxKeyPair,
-                 service_pair: &BoxKeyPair,
-                 number: u64,
-                 file_path: &Path)
+                 user_pair: Option<&BoxKeyPair>,
+                 service_pair: Option<&BoxKeyPair>)
                  -> Result<()> {
-        //         try!(ui.begin(format!("Uploading file {}", &file_path.display())));
-        //        let file =
-        //            try!(GossipFile::from_file_encrypt(&user_pair, &service_pair, file_path, number));
-        //
-        //        let rumor = hab_gossip::Rumor::gossip_file(file);
-        //        let mut list = hab_gossip::RumorList::new();
-        //        list.add_rumor(rumor);
-        //        if let Some(ring_key) = ring_key {
-        //            try!(ui.status(Status::Encrypting,
-        //                           format!("communication to \"{}\" ring with {}",
-        //                                   &ring_key.name,
-        //                                   &ring_key.name_with_rev())));
-        //        }
-        //        try!(ui.status(Status::Uploading,
-        //                       format!("{} for {} into ring via {:?}",
-        //                               &file_path.display(),
-        //                               &service_pair.name,
-        //                               &peers)));
-        //        try!(gossip::send_rumors_to_peers(&peers, ring_key, &list));
-        //        try!(ui.end(format!("Upload of {} complete.", &file_path.display())));
+        try!(ui.begin(format!("Uploading file {} to {} incarnation {}",
+                              &file_path.display(),
+                              sg,
+                              number)));
+        try!(ui.status(Status::Creating, format!("service file")));
+
+        let mut body = Vec::new();
+        let mut file = try!(File::open(&file_path));
+        try!(file.read_to_end(&mut body));
+
+        // Safe because clap checks that this is a real file that exists
+        let filename = file_path.file_name().unwrap().to_string_lossy().into_owned();
+
+        let mut encrypted = false;
+        if service_pair.is_some() && user_pair.is_some() {
+            try!(ui.status(Status::Encrypting,
+                           format!("file as {} for {}",
+                                   user_pair.unwrap().name_with_rev(),
+                                   service_pair.unwrap().name_with_rev())));
+            body = try!(user_pair.unwrap().encrypt(&body, service_pair.unwrap()));
+            encrypted = true;
+        }
+
+        for peer in peers.iter() {
+            try!(ui.status(Status::Applying, format!("to peer {}", peer)));
+            let mut client = try!(Client::new(peer, ring_key.map(|k| k.clone()))
+                .map_err(|e| Error::ButterflyError(format!("{}", e))));
+            try!(client.send_service_file(sg.clone(),
+                                   filename.clone(),
+                                   number,
+                                   body.clone(),
+                                   encrypted)
+                .map_err(|e| Error::ButterflyError(format!("{}", e))));
+        }
+        try!(ui.end("Uploaded file"));
+
         Ok(())
     }
 }

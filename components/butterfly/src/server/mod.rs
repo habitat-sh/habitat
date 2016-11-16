@@ -26,7 +26,7 @@ pub mod pull;
 pub mod push;
 pub mod timing;
 
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 use std::fmt;
 use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
 use std::result;
@@ -562,6 +562,30 @@ impl Server {
         if self.election_store.insert(election) {
             self.rumor_list.insert(rk);
         }
+    }
+
+    pub fn service_files_for(&self,
+                             service_group: &str,
+                             current_service_files: &HashMap<String, u64>)
+                             -> Vec<(u64, String, Vec<u8>)> {
+        let mut service_files = Vec::new();
+
+        self.service_file_store
+            .with_rumors(service_group, |sf| {
+                let current_incarnation = current_service_files.get(sf.get_filename());
+                if current_incarnation.is_none() ||
+                   sf.get_incarnation() > *current_incarnation.unwrap() {
+                    match sf.body() {
+                        Ok(body) => {
+                            service_files.push((sf.get_incarnation(), String::from(sf.get_filename()), body))
+                        }
+                        Err(e) => {
+                            warn!("Cannot decrypt service file for {} {} {}: {}", service_group, sf.get_filename(), sf.get_incarnation(), e)
+                        }
+                    }
+                }
+            });
+        service_files
     }
 
     /// Returns (incarnation, config) if the service group has a configuration.

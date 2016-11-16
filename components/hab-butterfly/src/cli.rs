@@ -40,14 +40,14 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
                 (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
                     "Target service group (ex: redis.default)")
-                (@arg FILE: +required {file_exists} "Path to local file on disk")
                 (@arg VERSION_NUMBER: +required
                     "A version number (positive integer) for this configuration (ex: 42)")
+                (@arg FILE: +required {file_exists} "Path to local file on disk")
                 (@arg ORG: --org +takes_value "Name of service organization")
-                (@arg USER: +takes_value "Name of the user key")
+                (@arg USER: -u --user +takes_value "Name of the user key")
                 (@arg PEER: -p --peer +takes_value
-                    "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-                    (default: 127.0.0.1:9634)")
+                    "A comma-delimited list of one or more Habitat Supervisor peers \
+                    (default: 127.0.0.1:9638)")
                 (@arg RING: -r --ring +takes_value
                     "Ring key name, which will encrypt communication messages")
             )
@@ -59,8 +59,8 @@ fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
         (about: "Applies a configuration to a group of Habitat Supervisors")
         (@arg PEER: -p --peer +takes_value
-            "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-            (default: 127.0.0.1:9634)")
+            "A comma-delimited list of one or more Habitat Supervisor peers \
+            (default: 127.0.0.1:9638)")
         (@arg RING: -r --ring +takes_value
             "Ring key name, which will encrypt communication messages")
         (@arg SERVICE_GROUP: +required {valid_service_group}
@@ -69,7 +69,8 @@ fn sub_config_apply() -> App<'static, 'static> {
             "A version number (positive integer) for this configuration (ex: 42)")
         (@arg FILE: {file_exists_or_stdin}
             "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-        (@arg ORG: --org +takes_value "Name of service organization")
+        (@arg ORG: --org +takes_value "Name of service organization to use for encryption")
+        (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
     )
 }
 
