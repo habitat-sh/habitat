@@ -62,22 +62,28 @@ pub mod init {
             https://www.habitat.sh/docs/reference/plan-syntax/"));
 
         let rendered_default_toml = try!(handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data));
-        try!(create_with_template(ui, &format!("{}/default.toml", root), &rendered_default_toml));
+        try!(create_with_template(ui,
+                                  &format!("{}/default.toml", root),
+                                  &rendered_default_toml));
         try!(ui.para("The `default.toml` allows you to declare default values for `cfg` prefixed
             variables. For more information see here:  \
             https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings"));
 
         let config_path = format!("{}/config/", root);
         match Path::new(&config_path).exists() {
-            true => try!(ui.status(Status::Using, format!("existing directory: {}", config_path))),
+            true => {
+                try!(ui.status(Status::Using,
+                               format!("existing directory: {}", config_path)))
+            }
             false => {
                 try!(ui.status(Status::Creating, format!("directory: {}", config_path)));
                 try!(create_dir_all(&config_path));
             }
         };
         try!(ui.para("The `config` directory is where you can set up configuration files for your \
-            app. They are influenced by `default.toml`. For more information see here: \
-            https://www.habitat.sh/docs/reference/plan-syntax/#runtime-configuration-settings"));
+                   app. They are influenced by `default.toml`. For more information see here: \
+                   https://www.habitat.\
+                   sh/docs/reference/plan-syntax/#runtime-configuration-settings"));
 
         let hooks_path = format!("{}/hooks/", root);
         match Path::new(&hooks_path).exists() {
@@ -87,10 +93,10 @@ pub mod init {
                 try!(create_dir_all(&hooks_path));
             }
         };
-        try!(ui.para("The `hooks` directory is where you can create a number of automation hooks \
-            into your habitat. There are several hooks to create and tweak! See the full list with \
-            info here: \
-            https://www.habitat.sh/docs/reference/plan-syntax/#hooks"));
+        try!(ui.para("The `hooks` directory is where you can create a number of automation \
+                      hooks into your habitat. There are several hooks to create and tweak! See \
+                      the full list with info here: \
+                      https://www.habitat.sh/docs/reference/plan-syntax/#hooks"));
 
         try!(ui.end("A happy abode for your code has been initialized! Now it's time to explore!"));
         Ok(())

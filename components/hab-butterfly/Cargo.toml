@@ -1,0 +1,56 @@
+[package]
+name = "hab-butterfly"
+version = "0.0.0"
+authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
+build = "../build.rs"
+workspace = "../../"
+
+[[bin]]
+name = "hab-butterfly"
+doc = false
+
+[dependencies]
+ansi_term = "*"
+env_logger = "*"
+hyper = "*"
+handlebars = "*"
+libc = "*"
+log = "*"
+pbr = "*"
+regex = "*"
+retry = "*"
+rustc-serialize = "*"
+# Temporary depdency for gossip/rumor injection code duplication.
+temp_utp = "*"
+toml = "*"
+url = "*"
+walkdir = "*"
+
+[dependencies.clap]
+version = "*"
+features = [ "suggestions", "color", "unstable" ]
+
+[dependencies.hab]
+path = "../hab"
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_common]
+path = "../common"
+
+[dependencies.habitat_butterfly]
+path = "../butterfly"
+
+[dependencies.habitat_depot_client]
+path = "../builder-depot-client"
+
+[dependencies.habitat_http_client]
+path = "../http-client"
+
+[dependencies.uuid]
+version = "*"
+features = ["rustc-serialize", "v4"]
+
+[features]
+functional = []

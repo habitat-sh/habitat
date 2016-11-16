@@ -1,4 +1,4 @@
-pkg_name=hab-sup
+pkg_name=hab-butterfly
 _pkg_distname=$pkg_name
 pkg_origin=core
 pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
@@ -47,6 +47,7 @@ do_prepare() {
 
 do_build() {
   export LIBRARY_PATH=$LIBZMQ_PREFIX/lib
+  build_line "Setting LIBRARY_PATH=$LIBRARY_PATH"
   pushd $PLAN_CONTEXT > /dev/null
   cargo build ${build_type#--debug} --target=$rustc_target --verbose
   popd > /dev/null
@@ -75,3 +76,4 @@ do_verify() {
 do_unpack() {
   return 0
 }
+

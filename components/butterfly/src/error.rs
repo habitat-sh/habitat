@@ -15,6 +15,7 @@
 use habitat_core;
 
 use protobuf;
+use zmq;
 
 use std::io;
 use std::string::FromUtf8Error;
@@ -35,6 +36,8 @@ pub enum Error {
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
     SocketCloneError,
+    ZmqConnectError(zmq::Error),
+    ZmqSendError(zmq::Error),
 }
 
 impl fmt::Display for Error {
@@ -60,6 +63,11 @@ impl fmt::Display for Error {
                 format!("Cannot set UDP socket write timeout: {}", err)
             }
             Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
+            Error::ZmqConnectError(ref err) => format!("Cannot connect ZMQ socket: {}", err),
+            Error::ZmqSendError(ref err) => {
+                format!("Cannot send message through ZMQ socket: {}", err)
+            }
+
         };
         write!(f, "{}", msg)
     }
@@ -79,6 +87,8 @@ impl error::Error for Error {
             Error::SocketSetReadTimeout(ref _err) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(ref _err) => "Cannot set UDP socket write timeout",
             Error::SocketCloneError => "Cannot clone the underlying UDP socket",
+            Error::ZmqConnectError(ref _err) => "Cannot connect ZMQ socket",
+            Error::ZmqSendError(ref _err) => "Cannot send message through ZMQ socket",
         }
     }
 }

@@ -47,8 +47,8 @@ use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
 use rumor::election::Election;
-use message::swim::{Wire as ProtoWire, Election_Status};
-use protobuf::{self, Message};
+use message;
+use message::swim::Election_Status;
 
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
@@ -585,25 +585,11 @@ impl Server {
     }
 
     fn generate_wire(&self, payload: Vec<u8>) -> Result<Vec<u8>> {
-        let mut wire = ProtoWire::new();
-        if let Some(ref ring_key) = *self.ring_key {
-            wire.set_encrypted(true);
-            let (nonce, encrypted_payload) = try!(ring_key.encrypt(&payload));
-            wire.set_nonce(nonce);
-            wire.set_payload(encrypted_payload);
-        } else {
-            wire.set_payload(payload);
-        }
-        Ok(try!(wire.write_to_bytes()))
+        message::generate_wire(payload, &self.ring_key)
     }
 
     fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
-        let mut wire: ProtoWire = try!(protobuf::parse_from_bytes(payload));
-        if let Some(ref ring_key) = *self.ring_key {
-            Ok(try!(ring_key.decrypt(wire.get_nonce(), wire.get_payload())))
-        } else {
-            Ok(wire.take_payload())
-        }
+        message::unwrap_wire(payload, &self.ring_key)
     }
 }
 
