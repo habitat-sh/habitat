@@ -17,6 +17,7 @@
 use bodyparser;
 use depot::server::check_origin_access;
 use hab_core::package::Plan;
+use hab_core::event::*;
 use hab_net;
 use hab_net::http::controller::*;
 use hab_net::routing::Broker;
@@ -30,6 +31,12 @@ use router::Router;
 use rustc_serialize::base64::FromBase64;
 
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+
+lazy_static! {
+    static ref EVENTLOG: EventLogger = {
+        EventLogger::new("hab-builder-api")
+       };
+}
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let code = {
@@ -223,6 +230,12 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         }
         Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),
     }
+
+    EVENTLOG.record_event(Event::ProjectCreate {
+        origin: origin.get_name(),
+        package: project.get_id(),
+    });
+
     project.set_owner_id(session.get_id());
     request.set_project(project);
     match conn.route::<ProjectCreate, Project>(&request) {
