@@ -48,6 +48,10 @@ impl ServiceGroup {
     pub fn dotted_org_or_empty(&self) -> String {
         self.organization.as_ref().map_or("".to_string(), |s| format!(".{}", &s))
     }
+
+    pub fn as_string(&self) -> String {
+        format!("{}", self)
+    }
 }
 
 impl fmt::Display for ServiceGroup {
