@@ -56,7 +56,8 @@ const BUSYBOX_IDENT: &'static str = "core/busybox-static";
 /// * If the parent directory of a located `busybox` binary cannot be computed
 /// * If the Supervisor is not executing inside a packge, and if no BusyBox package is installed,
 ///   and if no `busybox` binary can be found on the `PATH`
-pub fn busybox_paths() -> Result<Vec<PathBuf>> {
+#[cfg(any(target_os="linux", target_os="macos"))]
+pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
     // access the `../DEPS` metadata file and read it to get the specific version of BusyBox.
     let my_busybox_dep_ident = match env::current_exe() {
@@ -121,6 +122,12 @@ pub fn busybox_paths() -> Result<Vec<PathBuf>> {
         }
     };
     Ok(bb_paths)
+}
+
+#[cfg(target_os = "windows")]
+pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
+    let empty: Vec<PathBuf> = Vec::new();
+    Ok(empty)
 }
 
 /// Returns a `PackageIdent` for a BusyBox package, assuming it exists in the provided metafile.

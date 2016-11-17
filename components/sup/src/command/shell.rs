@@ -21,7 +21,7 @@ use hcore::fs::find_command;
 use libc;
 
 use error::{Error, Result};
-use util::path::busybox_paths;
+use util::path::interpreter_paths;
 
 /// Our output key
 static LOGKEY: &'static str = "SH";
@@ -42,7 +42,7 @@ pub fn sh() -> Result<()> {
 
 fn set_path() -> Result<()> {
     let mut paths = String::new();
-    for path in try!(busybox_paths()).iter() {
+    for path in try!(interpreter_paths()).iter() {
         if !paths.is_empty() {
             paths.push(':');
         }

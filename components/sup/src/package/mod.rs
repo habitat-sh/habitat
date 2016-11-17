@@ -35,7 +35,7 @@ use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use manager::service::config::ServiceConfig;
 use supervisor::Supervisor;
-use util::path::busybox_paths;
+use util::path::interpreter_paths;
 use util::users as hab_users;
 
 static LOGKEY: &'static str = "PK";
@@ -96,7 +96,7 @@ impl Package {
     }
 
     /// Returns a string with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox,
+    /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox(non-windows),
     /// plus the existing value of the PATH variable.
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
@@ -106,7 +106,7 @@ impl Package {
             Ok(r) => r,
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };
-        for path in try!(busybox_paths()).iter() {
+        for path in try!(interpreter_paths()).iter() {
             paths.push(':');
             paths.push_str(&path.to_string_lossy());
         }
