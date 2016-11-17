@@ -22,6 +22,10 @@ pub mod users;
 use std::net::Ipv4Addr;
 use std::net::SocketAddrV4;
 use std::str::FromStr;
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
+
+use hcore::os;
 
 use time;
 
@@ -63,6 +67,41 @@ pub fn parse_ip_port_with_defaults(s: Option<&str>,
     }
 
     return Err(sup_error!(Error::IPFailed));
+}
+
+#[cfg(any(target_os="linux", target_os="macos"))]
+pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
+    let mut cmd = Command::new(path);
+    use std::os::unix::process::CommandExt;
+    let uid = os::users::get_uid_by_name(user);
+    let gid = os::users::get_gid_by_name(group);
+    if let None = uid {
+        panic!("Can't determine uid");
+    }
+
+    if let None = gid {
+        panic!("Can't determine gid");
+    }
+
+    let uid = uid.unwrap();
+    let gid = gid.unwrap();
+    cmd.stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .uid(uid)
+        .gid(gid);
+    cmd
+}
+
+#[cfg(target_os = "windows")]
+pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
+    let mut cmd = Command::new("powershell.exe");
+    let ps_command = format!("iex $(gc {} | out-string)", path.to_str().unwrap());
+    cmd.arg("-command").arg(ps_command)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+    cmd
 }
 
 #[cfg(test)]
