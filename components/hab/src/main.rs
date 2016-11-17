@@ -33,7 +33,7 @@ use clap::{ArgMatches, Shell};
 
 use common::ui::UI;
 use hcore::env as henv;
-use hcore::crypto::{init, default_cache_key_path, BoxKeyPair, SigKeyPair, SymKey};
+use hcore::crypto::{init, default_cache_key_path, SigKeyPair};
 use hcore::crypto::keys::PairType;
 use hcore::fs::{cache_artifact_path, cache_analytics_path, cache_key_path, FS_ROOT_PATH};
 use hcore::service::ServiceGroup;
@@ -42,7 +42,6 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
 use hab::{analytics, cli, command, config, PRODUCT, VERSION};
 use hab::error::{Error, Result};
-use hab::gossip::hab_gossip;
 
 /// Makes the --auth-token CLI param optional when this env var is set
 const HABITAT_AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
@@ -50,8 +49,6 @@ const HABITAT_AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
-/// Makes the --user CLI param optional when this env var is set
-const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
 
 const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 
@@ -82,7 +79,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(_)) => try!(sub_cli_setup(ui)),
-                ("completers", Some(m)) => try!(sub_cli_completers(ui, m)),
+                ("completers", Some(m)) => try!(sub_cli_completers(m)),
                 _ => unreachable!(),
             }
         }
@@ -177,7 +174,7 @@ fn sub_cli_setup(ui: &mut UI) -> Result<()> {
                                &cache_analytics_path(fs_root_path))
 }
 
-fn sub_cli_completers(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+fn sub_cli_completers(m: &ArgMatches) -> Result<()> {
     let shell = m.value_of("SHELL").expect("Missing Shell; A shell is required");
     cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
     Ok(())
@@ -552,21 +549,6 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
             match henv::var(HABITAT_ORG_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
-            }
-        }
-    }
-}
-
-/// Check to see if the user has passed in a USER param.
-/// If not, check the HAB_USER env var. If that's
-/// empty too, then return an error.
-fn user_param_or_env(m: &ArgMatches) -> Result<String> {
-    match m.value_of("USER") {
-        Some(u) => Ok(u.to_string()),
-        None => {
-            match env::var(HABITAT_USER_ENVVAR) {
-                Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No user specified".to_string())),
             }
         }
     }

@@ -32,7 +32,5 @@ extern crate toml;
 pub use self::error::{Error, Result};
 
 pub mod command;
-pub mod gossip_file;
 pub mod error;
 pub mod ui;
-pub mod wire_message;

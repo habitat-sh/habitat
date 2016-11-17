@@ -78,7 +78,8 @@ impl Hook {
     }
 
     pub fn run(&self) -> Result<String> {
-        let mut child = try!(sup_util::create_command(self.path.clone(), &self.user, &self.group).spawn());
+        let mut child = try!(sup_util::create_command(self.path.clone(), &self.user, &self.group)
+            .spawn());
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,

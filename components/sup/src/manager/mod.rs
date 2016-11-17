@@ -148,14 +148,14 @@ impl Manager {
         if &update != last_update {
             let mut cl = CensusList::new();
             debug!("Updating census from butterfly data");
-            self.state.butterfly.service_store.with_keys(|(service_group, rumors)| {
-                for (member_id, service) in rumors.iter() {
+            self.state.butterfly.service_store.with_keys(|(_service_group, rumors)| {
+                for (_member_id, service) in rumors.iter() {
                     let mut ce = CensusEntry::default();
                     ce.populate_from_service(service);
                     cl.insert(String::from(self.state.butterfly.member_id()), ce);
                 }
             });
-            self.state.butterfly.election_store.with_keys(|(service_group, rumors)| {
+            self.state.butterfly.election_store.with_keys(|(_service_group, rumors)| {
                 // We know you have an election, and this is the only key in the hash
                 let election = rumors.get("election").unwrap();
                 cl.populate_from_election(election);
@@ -190,7 +190,12 @@ impl Manager {
                     .expect("Services lock is poisoned!")
                     .iter() {
                     outputln!("Forwarding signal {} to {}", signal_code, service);
-                    service.send_signal(signal_code);
+                    if let Err(e) = service.send_signal(signal_code) {
+                        outputln!("Failed to send signal {} to {}: {}",
+                                  signal_code,
+                                  service,
+                                  e);
+                    }
                 }
                 false
             }

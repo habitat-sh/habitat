@@ -15,17 +15,14 @@
 use std::net::Ipv4Addr;
 use std::net::SocketAddrV4;
 use std::str::FromStr;
-use std::sync::mpsc::TryRecvError;
 use std::thread;
 use std::time::Duration;
 
 use time::SteadyTime;
-use wonder;
 
 use error::Result;
 use hcore::util::sys::ip;
-use hsup::util::signals::SignalNotifier;
-use hsup::util::signals;
+use hsup::manager::signals;
 
 use super::Config;
 use super::task::{Task, ExecContext, ExecParams};
@@ -39,19 +36,16 @@ pub const FIRST_HTTP_PORT: u16 = 8000;
 pub struct Controller {
     pub config: Config,
     pub exec_ctx: ExecContext,
-    pub handler: wonder::actor::Actor<signals::Message>,
     pub children: Option<Vec<Task>>,
 }
 
 impl Controller {
     pub fn new(config: Config, exec_ctx: ExecContext) -> Controller {
+        signals::init();
+
         Controller {
             config: config,
             exec_ctx: exec_ctx,
-            handler: wonder::actor::Builder::new(SignalNotifier)
-                .name("signal-handler".to_string())
-                .start(())
-                .unwrap(),
             children: None,
         }
     }
@@ -126,42 +120,48 @@ impl Controller {
     /// This is called at each iteration in the self::start() loop.
     /// It's pulled out into it's own function so it can be tested.
     pub fn next_iteration(&mut self) -> Result<bool> {
-        match self.handler.receiver.try_recv() {
-            Ok(wonder::actor::Message::Cast(signals::Message::Signal(sig))) => {
-                debug!("SIG = {:?}", sig);
-                match sig {
-                    signals::Signal::SIGINT | signals::Signal::SIGTERM => {
-                        // Director shuts down, no return
-                        outputln!("Shutting down");
-                        return Ok(false);
-                    }
-                    _ => {
-                        let mut children = self.children.as_mut().unwrap();
-                        for child in children.iter_mut() {
-                            if let Some(pid) = child.pid {
-                                outputln!("Sending {:?} to child {} (pid {})",
-                                          &sig,
-                                          &child.service_def.to_string(),
-                                          &pid);
-                                if let Err(e) = signals::send_signal_to_pid(pid, sig.clone()) {
-                                    outputln!("Error sending {:?} to {} (pid {}): {}",
-                                              &sig,
-                                              &child.service_def.to_string(),
-                                              &pid,
-                                              e);
+        match signals::check_for_signal() {
+            Some(signals::SignalEvent::Shutdown) => {
+                let mut children = self.children.as_mut().unwrap();
+                for child in children.iter_mut() {
+                    if let Some(pid) = child.pid {
+                        outputln!("Sending SIGTERM to child {} (pid {})",
+                                  &child.service_def.to_string(),
+                                  &pid);
+                        if let Err(e) =
+                               signals::send_signal(pid, signals::unix::Signal::SIGTERM as u32) {
+                            outputln!("Error sending SIGTERM to {} (pid {}): {}",
+                                      &child.service_def.to_string(),
+                                      &pid,
+                                      e);
 
-                                }
-                            }
                         }
                     }
-                };
+                }
+                outputln!("Shutting down");
+                return Ok(false);
             }
-            Ok(_) => {}
-            Err(TryRecvError::Empty) => {}
-            Err(TryRecvError::Disconnected) => {
-                panic!("signal handler crashed!");
+            Some(signals::SignalEvent::Passthrough(signal_code)) => {
+                let mut children = self.children.as_mut().unwrap();
+                for child in children.iter_mut() {
+                    if let Some(pid) = child.pid {
+                        outputln!("Sending {:?} to child {} (pid {})",
+                                  &signal_code,
+                                  &child.service_def.to_string(),
+                                  &pid);
+                        if let Err(e) = signals::send_signal(pid, signal_code) {
+                            outputln!("Error sending {:?} to {} (pid {}): {}",
+                                      &signal_code,
+                                      &child.service_def.to_string(),
+                                      &pid,
+                                      e);
+
+                        }
+                    }
+                }
             }
-        };
+            None => {}
+        }
         // leaving this here as I unwrap a couple lines down
         // and I don't want to try and defeat the type system
         if let None = self.children {

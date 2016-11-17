@@ -20,7 +20,6 @@ extern crate url;
 extern crate habitat_sup as sup;
 extern crate habitat_common as common;
 extern crate habitat_core as hcore;
-extern crate uuid;
 extern crate rustc_serialize;
 
 // NOTE: These are temporarily disabled while we refactor the test suite around the new supervisor

@@ -59,13 +59,7 @@ extern crate iron;
 #[macro_use]
 extern crate router;
 extern crate time;
-extern crate wonder;
-extern crate uuid;
-extern crate utp;
 extern crate persistent;
-extern crate rand;
-extern crate threadpool;
-extern crate openssl;
 #[macro_use]
 extern crate lazy_static;
 
@@ -271,21 +265,15 @@ macro_rules! output_format {
     }
 }
 
-// pub mod census;
 pub mod command;
 pub mod config;
-// pub mod election;
 pub mod error;
-// pub mod gossip;
 pub mod health_check;
 pub mod http_gateway;
 pub mod manager;
 pub mod output;
 pub mod package;
-// pub mod service_config;
-// pub mod state_machine;
 pub mod supervisor;
-// pub mod topology;
 pub mod util;
 
 use std::env;

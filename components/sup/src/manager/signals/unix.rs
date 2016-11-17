@@ -17,7 +17,7 @@
 use std::sync::{Once, ONCE_INIT};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering, ATOMIC_USIZE_INIT, ATOMIC_BOOL_INIT};
 
-use error::{Error, Result, SupError};
+use error::{Error, Result};
 use super::SignalEvent;
 
 static LOGKEY: &'static str = "SI";
@@ -40,6 +40,7 @@ unsafe extern "C" fn handle_signal(signal: u32) {
 }
 
 /// `i32` representation of each Unix Signal of interest.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Signal {
     /// terminate process - terminal line hangup

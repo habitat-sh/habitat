@@ -55,8 +55,6 @@ use butterfly;
 use hyper;
 use rustc_serialize::json;
 use toml;
-use uuid;
-use wonder::actor;
 
 use common;
 use depot_client;
@@ -100,7 +98,6 @@ impl SupError {
 /// All the kinds of errors we produce.
 #[derive(Debug)]
 pub enum Error {
-    ActorError(actor::ActorError),
     ButterflyError(butterfly::error::Error),
     CommandNotImplemented,
     DbInvalidPath,
@@ -145,7 +142,6 @@ pub enum Error {
     TryRecvError(mpsc::TryRecvError),
     UnknownTopology(String),
     UnpackFailed,
-    UuidParseError(uuid::ParseError),
 }
 
 /// Our result type alias, for easy coding.
@@ -156,7 +152,6 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
-            Error::ActorError(ref err) => format!("Actor returned error: {:?}", err),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
@@ -236,7 +231,6 @@ impl fmt::Display for SupError {
             Error::TryRecvError(ref err) => format!("{}", err),
             Error::UnknownTopology(ref t) => format!("Unknown topology {}!", t),
             Error::UnpackFailed => format!("Failed to unpack a package"),
-            Error::UuidParseError(ref e) => format!("Uuid Parse Error: {:?}", e),
         };
         let cstring = Red.bold().paint(content).to_string();
         let progname = PROGRAM_NAME.as_str();
@@ -254,14 +248,13 @@ impl fmt::Display for SupError {
 impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
-            Error::ActorError(_) => "A running actor responded with an error",
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::HandlebarsTemplateFileError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
-            
+
             Error::CommandNotImplemented => "Command is not yet implemented!",
             Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             Error::DepotClient(ref err) => err.description(),
@@ -310,7 +303,6 @@ impl error::Error for SupError {
             Error::TryRecvError(_) => "A channel failed to recieve a response",
             Error::UnknownTopology(_) => "Unknown topology",
             Error::UnpackFailed => "Failed to unpack a package",
-            Error::UuidParseError(_) => "Uuid Parse Error",
         }
     }
 }
@@ -366,12 +358,6 @@ impl From<depot_client::Error> for SupError {
     }
 }
 
-impl From<uuid::ParseError> for SupError {
-    fn from(err: uuid::ParseError) -> SupError {
-        sup_error!(Error::UuidParseError(err))
-    }
-}
-
 impl From<ffi::NulError> for SupError {
     fn from(err: ffi::NulError) -> SupError {
         sup_error!(Error::NulError(err))
@@ -411,12 +397,6 @@ impl From<str::Utf8Error> for SupError {
 impl From<mpsc::TryRecvError> for SupError {
     fn from(err: mpsc::TryRecvError) -> SupError {
         sup_error!(Error::TryRecvError(err))
-    }
-}
-
-impl From<actor::ActorError> for SupError {
-    fn from(err: actor::ActorError) -> Self {
-        sup_error!(Error::ActorError(err))
     }
 }
 

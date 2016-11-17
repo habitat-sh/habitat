@@ -137,13 +137,10 @@ impl UI {
                 try!(write!(stream,
                             "{}\n",
                             Colour::Red.bold()
-                                .paint(format!("✗✗✗\n{}\n✗✗✗",
-                                               formatted_message))));
+                                .paint(format!("✗✗✗\n{}\n✗✗✗", formatted_message))));
             }
             false => {
-                try!(write!(stream,
-                            "✗✗✗\n{}\n✗✗✗\n",
-                            formatted_message));
+                try!(write!(stream, "✗✗✗\n{}\n✗✗✗\n", formatted_message));
             }
         }
         try!(stream.flush());

@@ -29,7 +29,7 @@ use hcore;
 use hcore::package::PackageIdent;
 use hsup::package::Package;
 use hsup::supervisor::{WEXITSTATUS, WIFEXITED, WIFSIGNALED, WTERMSIG, Pid};
-use hsup::util::signals;
+use hsup::manager::signals;
 use super::ServiceDef;
 use super::error::Error;
 
@@ -375,7 +375,7 @@ impl Task {
         let wait = match self.pid {
             Some(ref pid) => {
                 outputln!("Stopping {}", self.service_def.to_string());
-                let _ = signals::send_signal_to_pid(*pid, signals::Signal::SIGTERM);
+                let _ = signals::send_signal(*pid, signals::unix::Signal::SIGTERM as u32);
                 true
             }
             None => {
@@ -391,7 +391,7 @@ impl Task {
                     outputln!("{} process failed to stop with SIGTERM; sending SIGKILL",
                               self.service_def.to_string());
                     if let Some(pid) = self.pid {
-                        let _ = signals::send_signal_to_pid(pid, signals::Signal::SIGKILL);
+                        let _ = signals::send_signal(pid, signals::unix::Signal::SIGKILL as u32);
                     }
                     break;
                 }

@@ -30,8 +30,6 @@ extern crate retry;
 extern crate rustc_serialize;
 extern crate toml;
 extern crate url;
-// Temporary depdency for gossip/rumor injection code duplication.
-extern crate utp;
 extern crate uuid;
 extern crate walkdir;
 
@@ -41,7 +39,6 @@ pub mod command;
 pub mod config;
 pub mod error;
 mod exec;
-pub mod gossip;
 
 pub const PRODUCT: &'static str = "hab";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

@@ -36,7 +36,8 @@ use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
 use util;
-use util::signals;
+use manager::signals;
+use manager::signals::unix::Signal;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
@@ -204,7 +205,7 @@ impl Supervisor {
         let wait = match self.pid {
             Some(ref pid) => {
                 outputln!(preamble & self.package_ident.name, "Stopping");
-                try!(signals::send_signal_to_pid(*pid, signals::Signal::SIGTERM));
+                try!(signals::send_signal(*pid, Signal::SIGTERM as u32));
                 true
             }
             None => false,
@@ -217,7 +218,7 @@ impl Supervisor {
                     outputln!(preamble & self.package_ident.name,
                               "Process failed to stop with SIGTERM; sending SIGKILL");
                     if let Some(pid) = self.pid {
-                        try!(signals::send_signal_to_pid(pid, signals::Signal::SIGKILL));
+                        try!(signals::send_signal(pid, Signal::SIGKILL as u32));
                     }
                     break;
                 }
@@ -262,9 +263,9 @@ impl Supervisor {
     }
 
     /// Pass through a Unix signal to a process
-    pub fn send_unix_signal(&self, sig: signals::Signal) -> Result<()> {
+    pub fn send_unix_signal(&self, sig: Signal) -> Result<()> {
         if let Some(pid) = self.pid {
-            try!(signals::send_signal_to_pid(pid, sig));
+            try!(signals::send_signal(pid, sig as u32));
         }
         Ok(())
     }
