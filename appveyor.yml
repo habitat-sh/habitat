@@ -2,8 +2,8 @@
 image: Visual Studio 2015
 
 cache:
-    - c:\Program Files (x86)\Rust
-    - c:\Users\appveyor\.cargo
+    - C:\Program Files\Rust stable MSVC 1.13
+    - c:\cargo
 
 branches:
   only:
@@ -11,6 +11,7 @@ branches:
 
 init:
   - git config --global core.eol lf
+  - mkdir c:\cargo
 
 skip_tags: true
 
@@ -18,15 +19,28 @@ clone_folder: c:\projects\habitat
 
 environment:
   matrix:
-    - hab_build_action: "test;build"
+    - CARGO_HOME: "c:\\cargo"
+      hab_build_action: "test;build"
       hab_components: "core;http-client;builder-protocol;builder-depot-client;common;hab;sup;win-users"
 
-install:
-  - ps: ./build.ps1 -Configure -SkipBuild
-  - rustc -V
-  - cargo -V
-
-build: false
-
-test_script:
+build_script:
+  - ps: Update-AppveyorBuild -Version "$((gc -raw ./VERSION).trim())-$((Get-Date).ToString('yyyyMMddHHmmss'))" 
   - c:\projects\habitat\support\ci\appveyor.bat
+
+artifacts:
+  - path: hab-$(appveyor_build_version)-x86_64-windows.zip
+    name: HabCLI
+
+deploy:
+- provider: BinTray
+  username: smurawski
+  api_key:
+    secure: A+eSjC0ulsgkxVIQa3MKuE3tJQOevqELqtglbujYuLReEzzNqXUsclcWh+etQL3n
+  subject: habitat
+  repo: unstable
+  package: hab-x86_64-windows
+  publish: true
+  explode: true
+  artifact: HabCLI
+  on:
+    branch: master

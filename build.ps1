@@ -9,33 +9,22 @@ Builds Habitat components for Windows
 .DESCRIPTION
 This script builds habitat components, ensure that all necesary prerequisites
 are installed, and create hart packages for a windows hab binary.
-
-.Parameter Path
-The path to the component to be built. If not specified the current directory
-is used.
-
-.Parameter Configure
-When specified, all necessary prerequisites will be installed.
-
-.Parameter Clean
-When specified, a cargo clean will be invoked
-
-.Parameter Package
-When specified a .hart package of the hab component binary will be created
-
-.Parameter Package
-When specified a build will not be run
-
-.Parameter Release
-Use a optimized release build
 #>
 
 param (
+    # The path to the component to be built. If not specified the current directory is used.
     [string]$Path=".",
+    # When specified, all necessary prerequisites will be installed.
     [switch]$Configure,
+    # When specified, a cargo clean will be invoked.
     [switch]$Clean,
+    # When specified, cargo test will be invoked for the specified component.
+    [switch]$Test,
+    # When specified a .hart package of the component binary will be created.
     [switch]$Package,
+    # When specified a build will not be run.
     [switch]$SkipBuild,
+    # Use a optimized release build
     [switch]$Release
 )
 
@@ -103,12 +92,12 @@ function Invoke-Configure {
         rustup install stable-x86_64-pc-windows-msvc
     }
     else {
-        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.12\bin"
+        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.13\bin"
         if (-not (get-command rustc -ErrorAction SilentlyContinue)) {
             write-host "installing rust"
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.12.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-12-stable.msi"
-            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-12-stable.msi" -Wait
-            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.12\bin"
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.13.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-13-stable.msi"
+            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-13-stable.msi" -Wait
+            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.13\bin"
             while (-not (get-command cargo -ErrorAction SilentlyContinue)) {
                 Write-Warning "`tWaiting for `cargo` to be available."
                 start-sleep -Seconds 1
@@ -120,19 +109,50 @@ function Invoke-Configure {
     }
 }
 
+function Get-RustcCommand {
+    if(Test-RustUp) {
+        'rustup run stable-x86_64-pc-windows-msvc rustc'
+    }
+    else {
+        'rustc'
+    }
+}
+
+function Get-CargoCommand {
+    if(Test-RustUp) {
+        'rustup run stable-x86_64-pc-windows-msvc cargo'
+    }
+    else {
+        'cargo'
+    }
+}
+
+function Write-RustToolVersion {
+    Write-Host ""
+    Invoke-Expression "$(Get-RustcCommand) --version"
+    Invoke-Expression "$(Get-CargoCommand) --version"  
+    Write-Host ""
+}
+
 function Invoke-Build([string]$Path, [switch]$Clean, [switch]$Release) {
     $Path = Resolve-Path $Path
 
-    if(Test-RustUp) {
-        $cargo = 'rustup run stable-x86_64-pc-windows-msvc cargo'
-    }
-    else {
-        $cargo = 'cargo'
-    }
+    $cargo = Get-CargoCommand
 
     Push-Location "$Path"
     if($Clean) { invoke-expression "$cargo clean" }
     Invoke-Expression "$cargo build $(if ($Release) { '--release' })" -ErrorAction Stop
+    Pop-Location
+}
+
+function Invoke-Test([string]$Path, [switch]$Clean, [switch]$Release) {
+    $Path = Resolve-Path $Path
+
+    $cargo = Get-CargoCommand
+
+    Push-Location "$Path"
+    if($Clean) { invoke-expression "$cargo clean" }
+    Invoke-Expression "$cargo test $(if ($Release) { '--release' })" -ErrorAction Stop
     Pop-Location
 }
 
@@ -208,6 +228,9 @@ $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
 $env:OPENSSL_LIB_DIR            = $ChocolateyHabitatLibDir
 $env:OPENSSL_INCLUDE_DIR        = $ChocolateyHabitatIncludeDir
 
+Write-RustToolVersion
+
+if ($Test) { Invoke-Test $Path -Clean:$Clean -Release:$Release }
 if (!$SkipBuild) { Invoke-Build $Path -Clean:$Cean -Release:$Release }
 if($Package) { New-HartPackage }
 
