@@ -342,8 +342,8 @@ impl Census {
         }
     }
 
-    pub fn me(&self) -> &CensusEntry {
-        self.population.get(&self.member_id).unwrap()
+    pub fn me(&self) -> Option<&CensusEntry> {
+        self.population.get(&self.member_id)
     }
 
     pub fn get_leader(&self) -> Option<&CensusEntry> {
