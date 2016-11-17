@@ -141,14 +141,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
             .as_ref())
         .to_string());
 
-    let mut env_path = String::new();
-    for path in try!(busybox_paths()) {
-        if env_path.len() > 0 {
-            env_path.push(':');
-        }
-        env_path.push_str(path.to_string_lossy().as_ref());
-    }
-
     config.set_swim_listen(String::from(sub_args.value_of("listen-swim")
         .unwrap_or(DEFAULT_LISTEN_SWIM)));
     config.set_gossip_listen(String::from(sub_args.value_of("listen-gossip")
