@@ -297,13 +297,15 @@ impl PackageInstall {
         let mut deps: Vec<PackageIdent> = vec![];
         match self.read_metafile(file) {
             Ok(body) => {
-                let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
-                for id in &ids {
-                    let package = try!(PackageIdent::from_str(id));
-                    if !package.fully_qualified() {
-                        return Err(Error::InvalidPackageIdent(package.to_string()));
+                if body.len() > 0 {
+                    let ids: Vec<String> = body.split("\n").map(|d| d.to_string()).collect();
+                    for id in &ids {
+                        let package = try!(PackageIdent::from_str(id));
+                        if !package.fully_qualified() {
+                            return Err(Error::InvalidPackageIdent(package.to_string()));
+                        }
+                        deps.push(package);
                     }
-                    deps.push(package);
                 }
                 Ok(deps)
             }
