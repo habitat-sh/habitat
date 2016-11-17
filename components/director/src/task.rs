@@ -375,7 +375,7 @@ impl Task {
         let wait = match self.pid {
             Some(ref pid) => {
                 outputln!("Stopping {}", self.service_def.to_string());
-                let _ = signals::send_signal(*pid, signals::unix::Signal::SIGTERM as u32);
+                let _ = signals::send_signal(*pid, signals::Signal::SIGTERM as u32);
                 true
             }
             None => {
@@ -391,7 +391,7 @@ impl Task {
                     outputln!("{} process failed to stop with SIGTERM; sending SIGKILL",
                               self.service_def.to_string());
                     if let Some(pid) = self.pid {
-                        let _ = signals::send_signal(pid, signals::unix::Signal::SIGKILL as u32);
+                        let _ = signals::send_signal(pid, signals::Signal::SIGKILL as u32);
                     }
                     break;
                 }

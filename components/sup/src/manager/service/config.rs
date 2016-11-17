@@ -588,8 +588,6 @@ impl Pkg {
 pub struct Sys {
     pub ip: String,
     pub hostname: String,
-    pub gossip_ip: String,
-    pub gossip_port: u16,
     pub sidecar_ip: String,
     pub sidecar_port: u16,
 }
@@ -612,11 +610,10 @@ impl Sys {
                 String::from("localhost")
             }
         };
+
         Sys {
             ip: ip,
             hostname: hostname,
-            gossip_ip: gconfig().gossip_listen_ip().to_string(),
-            gossip_port: gconfig().gossip_listen_port(),
             sidecar_ip: gconfig().http_listen_addr().ip().to_string(),
             sidecar_port: gconfig().http_listen_addr().port(),
         }

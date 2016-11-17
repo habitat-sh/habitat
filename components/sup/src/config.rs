@@ -137,10 +137,7 @@ pub struct Config {
     key: String,
     email: Option<String>,
     expire_days: Option<u16>,
-    swim_listen: String,
     gossip_listen: String,
-    gossip_listen_ip: String,
-    gossip_listen_port: u16,
     userkey: Option<String>,
     servicekey: Option<String>,
     infile: Option<String>,
@@ -336,39 +333,12 @@ impl Config {
         &self.topology
     }
 
-    pub fn set_swim_listen(&mut self, swim_listen: String) -> &mut Config {
-        self.swim_listen = swim_listen;
-        self
-    }
-
-    pub fn swim_listen(&self) -> &str {
-        &self.swim_listen
-    }
-
     pub fn gossip_listen(&self) -> &str {
         &self.gossip_listen
     }
 
     pub fn set_gossip_listen(&mut self, gossip_listen: String) -> &mut Config {
         self.gossip_listen = gossip_listen;
-        self
-    }
-
-    pub fn gossip_listen_ip(&self) -> &str {
-        &self.gossip_listen_ip
-    }
-
-    pub fn set_gossip_listen_ip(&mut self, ip: String) -> &mut Config {
-        self.gossip_listen_ip = ip;
-        self
-    }
-
-    pub fn gossip_listen_port(&self) -> u16 {
-        self.gossip_listen_port
-    }
-
-    pub fn set_gossip_listen_port(&mut self, port: u16) -> &mut Config {
-        self.gossip_listen_port = port;
         self
     }
 

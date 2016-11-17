@@ -67,12 +67,11 @@ pub struct Manager {
 
 impl Manager {
     pub fn new() -> Result<Manager> {
-        let swim_addr: SocketAddr = try!(gconfig().swim_listen().parse());
         let gossip_addr: SocketAddr = try!(gconfig().gossip_listen().parse());
 
         let mut member = Member::new();
         member.set_persistent(gconfig().gossip_permanent());
-        member.set_swim_port(swim_addr.port() as i32);
+        member.set_swim_port(gossip_addr.port() as i32);
         member.set_gossip_port(gossip_addr.port() as i32);
 
         let ring_key = match gconfig().ring() {
@@ -83,7 +82,7 @@ impl Manager {
             &None => None,
         };
 
-        let server = try!(butterfly::Server::new(gconfig().swim_listen(),
+        let server = try!(butterfly::Server::new(gconfig().gossip_listen(),
                                                  gconfig().gossip_listen(),
                                                  member,
                                                  Trace::default(),
@@ -225,10 +224,7 @@ impl Manager {
         // Set the global signal handlers
         signals::init();
 
-        outputln!("Starting butterfly failure detector on {}",
-                  gconfig().swim_listen());
-        outputln!("Starting butterfly gossip distributor on {}",
-                  gconfig().gossip_listen());
+        outputln!("Starting butterfly on {}", gconfig().gossip_listen());
         try!(self.state.butterfly.start(Timing::default()));
         debug!("butterfly server started");
         outputln!("Starting http-gateway on {}", gconfig().http_listen_addr());

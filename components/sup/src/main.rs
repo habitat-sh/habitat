@@ -42,8 +42,6 @@ use sup::config::{gcache, gconfig, Command, Config, UpdateStrategy, Topology};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::http_gateway;
-use sup::util::parse_ip_port_with_defaults;
-use sup::util::sys::ip;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -54,9 +52,6 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
 
-const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634; // NOTE: Delete me
-
-static DEFAULT_LISTEN_SWIM: &'static str = "0.0.0.0:9638";
 static DEFAULT_LISTEN_GOSSIP: &'static str = "0.0.0.0:9638";
 
 static RING_ENVVAR: &'static str = "HAB_RING";
@@ -139,17 +134,8 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
             .as_ref())
         .to_string());
 
-    config.set_swim_listen(String::from(sub_args.value_of("listen-swim")
-        .unwrap_or(DEFAULT_LISTEN_SWIM)));
     config.set_gossip_listen(String::from(sub_args.value_of("listen-gossip")
         .unwrap_or(DEFAULT_LISTEN_GOSSIP)));
-    let default_gossip_ip = try!(ip()).to_string();
-    let (gossip_ip, gossip_port) = try!(parse_ip_port_with_defaults(
-                                        sub_args.value_of("listen-peer"),
-                                        &default_gossip_ip,
-                                        DEFAULT_GOSSIP_LISTEN_PORT));
-    config.set_gossip_listen_ip(gossip_ip);
-    config.set_gossip_listen_port(gossip_port);
     if let Some(addr_str) = sub_args.value_of("listen-http") {
         config.http_listen_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
@@ -286,18 +272,10 @@ fn main() {
             .value_name("ip:port")
             .multiple(true)
             .help("The listen address of an initial peer"))
-        .arg(Arg::with_name("listen-peer") // NOTE: Delete me
-            .long("listen-peer")
-            .value_name("ip:port")
-            .help("The listen address [default: ip_with_default_route:9634]"))
-        .arg(Arg::with_name("listen-swim")
-            .long("listen-swim")
+        .arg(Arg::with_name("listen-gossip")
+            .long("listen-gossip")
             .value_name("ip:port")
             .help("The listen address [default: 0.0.0.0:9638]"))
-        .arg(Arg::with_name("listen-gossip")
-            .long("listen-gosip")
-            .value_name("ip:port")
-            .help("The listen address [default: 0.0.0.0:9639]"))
         .arg(Arg::with_name("listen-http")
             .long("listen-http")
             .value_name("ip:port")

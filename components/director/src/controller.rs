@@ -128,8 +128,7 @@ impl Controller {
                         outputln!("Sending SIGTERM to child {} (pid {})",
                                   &child.service_def.to_string(),
                                   &pid);
-                        if let Err(e) =
-                               signals::send_signal(pid, signals::unix::Signal::SIGTERM as u32) {
+                        if let Err(e) = signals::send_signal(pid, signals::Signal::SIGTERM as u32) {
                             outputln!("Error sending SIGTERM to {} (pid {}): {}",
                                       &child.service_def.to_string(),
                                       &pid,

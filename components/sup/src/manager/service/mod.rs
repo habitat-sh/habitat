@@ -72,7 +72,9 @@ impl Service {
                   &svc_user,
                   &svc_group);
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
-        let supervisor = Supervisor::new(package.ident().clone(), runtime_config);
+        let supervisor = Supervisor::new(package.ident().clone(),
+                                         service_group.clone(),
+                                         runtime_config);
         Ok(Service {
             service_group: service_group,
             supervisor: supervisor,
