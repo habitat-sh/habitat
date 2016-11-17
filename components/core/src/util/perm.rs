@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ffi::CString;
 use std::path::Path;
 
 use filesystem;
@@ -52,26 +51,15 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
         None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref()))),
 
     };
-    let c_path = match CString::new(s_path) {
-        Ok(c) => c,
-        Err(e) => {
-            return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
-                                                       &path.as_ref(),
-                                                       e)))
-        }
-    };
-    let r_path = c_path.into_raw();
-    unsafe {
-        let result = filesystem::chown(r_path, uid, gid);
-        CString::from_raw(r_path); // necessary to prevent leaks
+    let result = filesystem::chown(s_path, uid, gid);
 
-        match result {
-            0 => Ok(()),
-            _ => {
-                Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
-                                                    &path.as_ref(),
-                                                    &owner.as_ref())))
-            }
+    match result {
+        Err(err) => Err(err),
+        Ok(0) => Ok(()),
+        _ => {
+            Err(Error::PermissionFailed(format!("Can't change owner of {:?} to {:?}",
+                                                &path.as_ref(),
+                                                &owner.as_ref())))
         }
     }
 }
@@ -82,19 +70,11 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
         None => return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref()))),
 
     };
-    let c_path = match CString::new(s_path) {
-        Ok(c) => c,
-        Err(e) => {
-            return Err(Error::PermissionFailed(format!("Can't create string from path {:?}: {}",
-                                                       &path.as_ref(),
-                                                       e)))
-        }
-    };
-    let r_path = c_path.into_raw();
 
-    let result = filesystem::chmod(r_path, mode);
+    let result = filesystem::chmod(s_path, mode);
     match result {
-        0 => Ok(()),
+        Err(err) => Err(err),
+        Ok(0) => Ok(()),
         _ => {
             Err(Error::PermissionFailed(format!("Can't set permissions on {:?} to {:?}",
                                                 &path.as_ref(),

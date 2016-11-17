@@ -12,23 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use libc::{c_int, c_char};
-use std::ffi::CStr;
+use libc::c_int;
 use std::path::Path;
 use std::io;
 
-pub fn chown(r_path: *const c_char, uid: String, gid: String) -> c_int {
-    unimplemented!();
+use error::Result;
+
+pub fn path_exists(path: &str) -> Result<c_int> {
+    match Path::new(path).exists() {
+        false => Ok(1),
+        true => Ok(0),
+    }
 }
 
-pub fn chmod(r_path: *const c_char, mode: u32) -> c_int {
-    unsafe {
-        let path = CStr::from_ptr(r_path).to_str().unwrap();
-        match Path::new(path).exists() {
-            false => 1,
-            true => 0,
-        }
-    }
+pub fn chown(path: &str, uid: String, gid: String) -> Result<c_int> {
+    path_exists(path)
+}
+
+pub fn chmod(path: &str, mode: u32) -> Result<c_int> {
+    path_exists(path)
 }
 
 pub fn symlink<P: AsRef<Path>, Q: AsRef<Path>>(src: P, dst: Q) -> io::Result<()> {
