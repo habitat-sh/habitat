@@ -12,9 +12,9 @@ body.try-hab {
 #content-outer {
   @include small-nav {
     // Use this padding when the global message is not being displayed
-    padding-top: $header-height-mobile;
+    // padding-top: $header-height-mobile;
     // Use this additional padding when the global message is being displayed
-    // padding-top: $header-height-mobile + 90;
+    padding-top: $header-height-mobile + 90;
   }
 
   &.has-sticky-nav {
