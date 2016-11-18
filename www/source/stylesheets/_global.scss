@@ -351,14 +351,32 @@ img {
 // ---------
 
 #global_message {
-  background-color: $hab-green;
+  background-color: $hab-blue;
   color: $white;
   text-align: center;
   padding: rem-calc(10) rem-calc(60);
+  transition: all .2s;
 
   a {
     color: $white;
-    font-size: rem-calc(14);
+    font-size: rem-calc(16);
+
+    &:after {
+        color: $hab-blue;
+        content: " \2192";
+        margin-left: -10px;
+        transition: all .2s;
+    }
+    &:hover:after {
+      color: $white;
+      margin-left: 0;
+      transition: all .2s;
+    }
+  }
+
+  &:hover {
+    background-color: darken($hab-blue, 2);
+    transition: all .2s;
   }
 }
 

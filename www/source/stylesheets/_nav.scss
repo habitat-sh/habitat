@@ -171,16 +171,14 @@ $main-nav-breakpoint: 769px;
 
   .button {
     @include button;
-    margin: rem-calc(7) 0 0 0;
-    padding: 0.85em 1em;
+    margin: rem-calc(4) 0 0 0;
 
     @include large-nav {
       margin: 0;
-      padding: 0.85em 1.65em;
     }
 
     &:hover {
-      @include primary-button;
+      @include shadow-float;
     }
   }
 
