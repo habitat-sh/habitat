@@ -161,6 +161,9 @@ impl Manager {
             });
             self.state.butterfly.member_list.with_members(|member| {
                 cl.populate_from_member(member);
+                if let Some(health) = self.state.butterfly.member_list.health_of(member) {
+                    cl.populate_from_health(member, health);
+                }
             });
             *self.state.census_list.write().expect("Census list lock is poisoned!") = cl;
             return Ok((true, update));

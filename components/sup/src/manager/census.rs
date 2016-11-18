@@ -19,7 +19,7 @@ use std::str::FromStr;
 use hcore::service::ServiceGroup;
 use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::rumor::election::{Election as ElectionRumor, Election_Status};
-use butterfly::member::Member;
+use butterfly::member::{Member, Health};
 
 static LOGKEY: &'static str = "CE";
 
@@ -282,6 +282,26 @@ impl CensusEntry {
         self.set_persistent(true);
     }
 
+    pub fn populate_from_health(&mut self, health: Health) {
+        match health {
+            Health::Alive => {
+                self.set_alive(true);
+                self.set_suspect(false);
+                self.set_confirmed(false);
+            }
+            Health::Suspect => {
+                self.set_alive(false);
+                self.set_suspect(true);
+                self.set_confirmed(false);
+            }
+            Health::Confirmed => {
+                self.set_alive(false);
+                self.set_suspect(false);
+                self.set_confirmed(true);
+            }
+        }
+    }
+
     pub fn populate_from_election(&mut self, election: &ElectionRumor) {
         match election.get_status() {
             Election_Status::Running => {
@@ -416,6 +436,16 @@ impl CensusList {
                 // We just checked, so its coolio
                 let mut ce = census.get_mut(member.get_id()).unwrap();
                 ce.populate_from_member(member);
+            }
+        }
+    }
+
+    pub fn populate_from_health(&mut self, member: &Member, health: Health) {
+        for (_service_group, census) in self.censuses.iter_mut() {
+            if census.contains_key(member.get_id()) {
+                // We just checked, so its coolio
+                let mut ce = census.get_mut(member.get_id()).unwrap();
+                ce.populate_from_health(health);
             }
         }
     }
