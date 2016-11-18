@@ -16,6 +16,7 @@ use std::ops::Deref;
 use std::result;
 use std::str::FromStr;
 use std::sync::Arc;
+use std::fmt;
 
 use dbcache::{self, ConnectionPool, Bucket, BasicSet, IndexSet};
 use hab_core::package::{self, Identifiable};
@@ -133,11 +134,39 @@ impl PackagesIndex {
         Ok(val)
     }
 
+    pub fn count_unique(&self, id: &str) -> Result<u64> {
+        let conn = self.pool().get().unwrap();
+        let val = try!(conn.zcount(Self::unique_key(&id.to_string()), 0, 0));
+        Ok(val)
+    }
+
     pub fn list(&self, id: &str, start: isize, stop: isize) -> Result<Vec<depotsrv::PackageIdent>> {
         let conn = self.pool().get().unwrap();
 
         // Note: start and stop are INCLUSIVE ranges
         match conn.zrange::<String, Vec<String>>(Self::key(&id.to_string()), start, stop) {
+            Ok(ids) => {
+                // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
+                // is pre-sorted on write. For now, we'll do it on read each time.
+                let mut ids: Vec<package::PackageIdent> =
+                    ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
+                ids.sort();
+                let ids = ids.into_iter().map(|id| depotsrv::PackageIdent::from(id)).collect();
+                Ok(ids)
+            }
+            Err(e) => Err(Error::from(e)),
+        }
+    }
+
+    pub fn unique(&self,
+                  id: &str,
+                  start: isize,
+                  stop: isize)
+                  -> Result<Vec<depotsrv::PackageIdent>> {
+        let conn = self.pool().get().unwrap();
+
+        // Note: start and stop are INCLUSIVE ranges
+        match conn.zrange::<String, Vec<String>>(Self::unique_key(&id.to_string()), start, stop) {
             Ok(ids) => {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
@@ -245,7 +274,7 @@ impl PackagesIndex {
                           record.get_ident().get_name()),
                   0)
             .ignore()
-            .zadd(Self::unique_idx(record), record.get_ident().get_name())
+            .zadd(Self::unique_idx(record), record.get_ident().get_name(), 0)
             .ignore();
     }
 
@@ -253,10 +282,12 @@ impl PackagesIndex {
         "package:ident:unique:index"
     }
 
+    fn unique_key<K: fmt::Display>(id: K) -> String {
+        format!("{}:{}", Self::unique_prefix(), id).to_lowercase()
+    }
+
     fn unique_idx(package: &depotsrv::Package) -> String {
-        format!("{}:{}",
-                Self::unique_prefix(),
-                package.get_ident().get_origin())
+        Self::unique_key(package.get_ident().get_origin())
     }
 
     fn origin_idx(package: &depotsrv::Package) -> String {
