@@ -30,7 +30,9 @@ install_if_missing() {
     local formula="$pkg"
   fi
 
-  if [[ $(brew list --versions $pkg | wc -l) -eq 0 ]]; then
+  echo $(sudo -u ${SUDO_USER} brew list --versions ${pkg})
+
+  if [[ $(sudo -u ${SUDO_USER} brew list --versions $pkg | wc -l) -eq 0 ]]; then
     info "Installing missing Homebrew package $formula"
     sudo -u $SUDO_USER brew install $formula
   fi
@@ -51,13 +53,7 @@ while true; do
   if [[ $(ls -1 /hab/cache/keys/core-*.sig.key 2> /dev/null | wc -l) -gt 0 ]]; then
     break
   else
-    info "System is missing core origin signing key"
-    info "You will be prompted to paste in the secret key now."
-    info "After pasting, type Ctrl-D to send EOF"
-    info ""
-    info "Paste your key now:"
-    info ""
-    hab origin key import
+    printf ${HAB_ORIGIN_KEY} | hab origin key import
   fi
 done
 
