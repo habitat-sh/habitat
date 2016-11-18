@@ -238,7 +238,25 @@ impl PackagesIndex {
                           record.get_ident().get_version(),
                           record.to_string()),
                   0)
+            .ignore()
+            .zadd(Self::unique_prefix(),
+                  format!("{}:{}",
+                          record.get_ident().get_origin(),
+                          record.get_ident().get_name()),
+                  0)
+            .ignore()
+            .zadd(Self::unique_idx(record), record.get_ident().get_name())
             .ignore();
+    }
+
+    fn unique_prefix() -> &'static str {
+        "package:ident:unique:index"
+    }
+
+    fn unique_idx(package: &depotsrv::Package) -> String {
+        format!("{}:{}",
+                Self::unique_prefix(),
+                package.get_ident().get_origin())
     }
 
     fn origin_idx(package: &depotsrv::Package) -> String {
