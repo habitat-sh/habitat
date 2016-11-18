@@ -81,9 +81,13 @@ impl<'a> Outbound<'a> {
     /// period to finish before starting the next probe.
     pub fn run(&mut self) {
         let mut have_members = false;
+        let num_initial = self.server.member_list.len_initial_members();
         loop {
-            if !have_members {
-                if self.server.member_list.len() > 0 {
+            if !have_members && num_initial != 0 {
+                // The minimum thats strictly more than half
+                let min_to_start = num_initial / 2 + 1;
+
+                if self.server.member_list.len() >= min_to_start {
                     have_members = true;
                 } else {
                     self.server.member_list.with_initial_members(|member| {

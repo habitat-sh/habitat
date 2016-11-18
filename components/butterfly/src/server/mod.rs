@@ -421,12 +421,6 @@ impl Server {
             return false;
         }
 
-        if total_population % 2 == 0 {
-            warn!("This census has an even population. If half the membership fails, quorum will \
-                   never be met, and no leader will be elected. Add another instance to the \
-                   service group!");
-        }
-
         alive_population >= ((total_population / 2) + 1)
     }
 
