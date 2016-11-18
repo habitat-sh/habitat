@@ -49,6 +49,7 @@ pub mod url;
 pub mod util;
 pub mod crypto;
 pub mod os;
+pub mod event;
 
 pub use os::filesystem;
 pub use os::users;
