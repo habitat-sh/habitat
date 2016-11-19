@@ -57,6 +57,8 @@ USAGE:
 
 COMMON FLAGS:
     -h  Prints this message
+    -o  Specify the Bintray organization to publish to (default: habitat)
+    -r  Specify the Bintray repo to publish to (default: stable)
     -V  Prints version information
 
 "
@@ -182,8 +184,14 @@ program=$(basename $0)
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts "Vh" opt; do
+while getopts "o:r:Vh" opt; do
   case $opt in
+    o)
+      BINTRAY_ORG=$OPTARG
+      ;;
+    r)
+      BINTRAY_REPO=$OPTARG
+      ;;
     V)
       echo "$program $version"
       exit 0

@@ -57,6 +57,8 @@ USAGE:
 
 COMMON FLAGS:
     -h  Prints this message
+    -o  Specify the Bintray organization to publish to (default: habitat)
+    -r  Specify the Bintray repo to publish to (default: stable)
     -V  Prints version information
 
 ARGS:
@@ -198,7 +200,7 @@ _build_slim_release() {
   info "Copying $hab_binary to $(basename $pkg_dir)"
   mkdir -p "$pkg_dir"
   mkdir -p "$start_dir/results"
-  
+
   if [[ $pkg_target == *"windows" ]]; then
     for file in $(dirname $hab_binary)/*; do cp -p "$file" "$pkg_dir/";done
   else
@@ -234,7 +236,6 @@ _publish_slim_release() {
   bintray_pkg="hab-${pkg_target}"
   bintray_version="$(echo $pkg_ident | cut -d '/' -f 3-4 | tr '/' '-')"
   bintray_endpoint="$BINTRAY_ORG/$BINTRAY_REPO/$bintray_pkg/$bintray_version"
-  # bintray_endpoint="$BINTRAY_ORG/$BINTRAY_REPO/hab-${pkg_target}/$bintray_version"
   bintray_path="$pkg_kernel/$pkg_arch"
 
   info "Creating Bintray package $bintray_pkg"
@@ -276,7 +277,7 @@ _publish_slim_release() {
 # **Internal** Main program.
 _main() {
 
-  _build_slim_release 
+  _build_slim_release
   _publish_slim_release
 
   cat <<-EOF > $start_dir/results/last_build.env
@@ -315,8 +316,14 @@ start_dir="$(pwd)"
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts "Vh" opt; do
+while getopts "o:r:Vh" opt; do
   case $opt in
+    o)
+      BINTRAY_ORG=$OPTARG
+      ;;
+    r)
+      BINTRAY_REPO=$OPTARG
+      ;;
     V)
       echo "$program $version"
       exit 0
