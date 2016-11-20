@@ -194,7 +194,7 @@ matrix:
       deploy:
         on: master
         provider: bintray
-        file: support/mac/hab-bintray.json
+        file: out/hab-bintray.json
         user: reset
         key:
           secure: tUt5GImsuFmiMYZQn7XPrB+g/NIWzXpnSatknEs7gsHnDbAOeXzBZUxAs2+Pr8RVEkw3WkNvAypiM05vqfSHWX0wAPZkyPciyMJRqr+VXUmN9+5eZt9if0e6S4Dr5tb+6JEN+v+xyj3JTOTyTLWZeVEWEZ4/dlUg+LLbX9C26rlkfmwHmJ4/20UoraEXynjfMRcoCyq8iKhkBXcg8QjvU9cgyPbRpPF+anz1v53Tr43Qhvu9CHg5M0WPYxh+aL53L968FWwnyzmAO1crCz3mozwBn0KY1dBIhGKdIErZu8FGNyZXqJBPQQ+f1pNY4D99SkHUh04SYJWSN8JnonYlhm7kBISF88uOQzr0BKZALlH3CXksX7w+01STN8y1LQwrKUif7YtpW8VD0KwroAVZrrOKY8I5d7K6RMW0QDlsO7i+kTI+Kpn5AGRXBumT4tlRlxGFMASUkELmtKgEJniGmaYhdTH0w+lreO2XQGThLBqOXyXym/4gmcsJyQmiyt6YOUqQZn9aa1XMvIJMdZG3XK1por5+AGZsNoquzBap/ncIESOwK3HB7NgI+cYlbp4qozA3reE1HzzMBLarvypafGZy6pymEkgrAyPtPNuy9EoJqyrRgVifxWVEVYtdXX79yYGfovhcGeyjLDfZvt8MUr27KvcJz4Il7sy4z14Il/s=
