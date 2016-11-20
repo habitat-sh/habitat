@@ -34,7 +34,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
       "name": "${pkg_version}-${pkg_release}"
     },
     "files": [
-      {"includePattern": "results/(.*\\.zip)"}
+      {"includePattern": "out/hab-x86_64-darwin.zip"}
     ],
     "publish": true
   }
