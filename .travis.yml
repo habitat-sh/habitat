@@ -8,176 +8,199 @@ env:
     - PATH=$HOME/.cargo/bin:$PATH
 matrix:
   include:
-  - language: ruby
-    rvm: 2.3.1
-    env:
-      - AFFECTED_DIRS="components/hab|components/sup"
-    sudo: required
-    addons:
-      apt:
-        packages:
-        - build-essential
-        - ca-certificates
-        - curl
-        - wget
-    cache:
-      apt: true
-      cargo: true
-      directories:
-      - /root/travis_bootstrap
-    before_install:
-      - ./support/ci/fast_pass.sh || exit 0
-    script:
-      - sudo ./support/ci/specs.sh
-  - language: rust
-    env:
-      - COMPONENTS=bin LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-      - AFFECTED_DIRS="components/director|components/hab|components/sup"
-    rust: stable
-    sudo: false
-    addons:
-      apt:
-        sources:
-          - kalakris-cmake
-        packages:
+    - os: linux
+      language: ruby
+      rvm: 2.3.1
+      env:
+        - AFFECTED_DIRS="components/hab|components/sup"
+      sudo: required
+      addons:
+        apt:
+          packages:
           - build-essential
           - ca-certificates
-          - cmake
           - curl
-          - libbz2-dev
-          - liblzma-dev
-          - libprotobuf-dev
-          - libssl-dev
-          - pkg-config
-    cache:
-      apt: true
-      cargo: true
-      directories:
-        - "$HOME/pkgs"
-    before_install:
-      - ./support/ci/fast_pass.sh || exit 0
-      - ./support/ci/compile_libsodium.sh
-      - ./support/ci/compile_libarchive.sh
-      - ./support/ci/compile_zmq.sh
-      - ./support/ci/install_rustfmt.sh
-    script:
-      - ./support/ci/rust_tests.sh
-      - ./support/ci/lint.sh
-  - language: rust
-    env:
-      - COMPONENTS=lib LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-      - AFFECTED_DIRS="components/builder-dbcache|components/builder-protocol|components/common|components/core|components/builder-depot-client|components/http-client|components/net|components/butterfly"
-    rust: stable
-    sudo: false
-    addons:
-      apt:
-        sources:
-          - kalakris-cmake
-        packages:
-          - build-essential
-          - ca-certificates
-          - cmake
-          - curl
-          - libbz2-dev
-          - liblzma-dev
-          - libprotobuf-dev
-          - libssl-dev
-          - pkg-config
-    cache:
-      apt: true
-      cargo: true
-      directories:
-        - "$HOME/pkgs"
-    before_install:
-      - ./support/ci/fast_pass.sh || exit 0
-      - ./support/ci/compile_libsodium.sh
-      - ./support/ci/compile_libarchive.sh
-      - ./support/ci/compile_zmq.sh
-      - ./support/ci/install_rustfmt.sh
-    script:
-      - ./support/ci/rust_tests.sh
-      - ./support/ci/lint.sh
-  - language: rust
-    env:
-      - COMPONENTS=srv LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
-      - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
-    rust: stable
-    sudo: false
-    addons:
-      apt:
-        sources:
-          - kalakris-cmake
-        packages:
-          - build-essential
-          - ca-certificates
-          - cmake
-          - curl
-          - libbz2-dev
-          - liblzma-dev
-          - libprotobuf-dev
-          - libssl-dev
-          - pkg-config
-    cache:
-      apt: true
-      cargo: true
-      directories:
-        - "$HOME/pkgs"
-    before_install:
-      - ./support/ci/fast_pass.sh || exit 0
-      - ./support/ci/compile_libsodium.sh
-      - ./support/ci/compile_libarchive.sh
-      - ./support/ci/compile_zmq.sh
-      - ./support/ci/install_rustfmt.sh
-    script:
-      - ./support/ci/rust_tests.sh
-      - ./support/ci/lint.sh
-  - language: node_js
-    node_js: 4.4.3
-    sudo: required
-    env:
-      - CXX=g++-4.8
-      - AFFECTED_DIRS="components/builder-web"
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-        packages:
-          - g++-4.8
           - wget
-    cache:
-      apt: true
-      directories:
-        - components/builder-web/node_modules
-        - components/builder-web/typings
-    before_install:
-      - ./support/ci/fast_pass.sh || exit 0
-      - npm config set spin=false
-    install:
-      - "(cd components/builder-web && npm install)"
-    script:
-      - "(cd components/builder-web && npm run travis)"
-      - sudo -E bash -c "./support/ci/build_builder_web.sh"
-  - language: ruby
-    rvm: 2.3.1
-    sudo: false
-    cache:
-      bundle: true
-      directories:
-        - www/build
-    env:
-      - AFFECTED_DIRS="www"
-      - AWS_BUCKET=habitat-www
-      - AWS_DEFAULT_REGION=us-west-2
-      - AWS_ACCESS_KEY_ID=AKIAIE3PM7VKCMUX7TIA
-      # AWS_SECRET_ACCESS_KEY
-      - secure: "QadoE7tZXlUoLcgqlQsJOb0B5CjW/pOz/geBe3ObzYJ0vs60JztT1ySbz0LSqiUWXJyWL+RroBcoauzILUBjN5uszFaxZQ80J5GL+bwhlLaK/PpIf/37HCXmEQ0yzJyGWMKsr0Mp6d2DXUC2XNqf1InmygEwGbgFZFzMvdZ2KB981EfxxzZNsQhxak/WFUjvvJ9m95OfSGerb8swvpIH0zIg0MG3Gmj+xPCI+4eSLOYa+xLkDIjBngEPKZ0Uvfg32fB6k47XktFRpOkoS6ecDxPF7fjqjVRF+j7Y9MkH+FvSOohF48u5klqYZA7SMAbGO5n4xRkDkA2Wn3XH8jnOkt307OGm2zvTRSa3QowaJgnHRfSsGy5+ql6J3w7Ap0jqCGWwqV3qldkyC7rblz3oRHhyB52xm283T4ptDuIN29UNn+zWOgk3sSKIO3jmShNc/x7l+DoTTuMz72hw1gd3YTrCJ651pTPDXjkCb5Yn7Gt4SxKPUENL+USHohHD69WuhruFawdgctFh1WhFLr2vTvqh1eHxU5oyXV4PJwXuG2wIqnGwjaAYoRph58r28GE8YX487MlLKpGL8xXOaEdcQaADRQVihE5QW9XOt/E3DWFA+Ntt+U0SsegY1HHT/lkA29U3inXV1Nvt6P1+AKz8AuYT4QndZSMI8K9YOUlcP8E="
-      # FASTLY_API_KEY
-      - secure: "t3dUI5oNwsB1gSP3DIwwxnY7z/NigMm4XgMrQuiU5xda4sL67JQ/sU8j00I3B9TnfA1fekMBzMOKES+F7SI1y+b6K7q+SOI4mgcNqRcQKJans6o6XuBVT9Tp8om7izxOgp0lVLuHxv4OVEhmhORTCWjk/jW1M45oG5oAYOvATsbQ/gZiVCKMrb8bSSpl6eSn5YqIvJiqDW707O2wUDJsdiS4bXTIVUtai+hCeIckitrrFWWkDNWnP0/OnFb3F2ka3lFRwfuUH8UQ6oqT4YcumngIMbIvBSCOBOenGagvrhpcX2m0cVDNY/sE6iv9c2HBSlEK6vaYAbkfX6mpNseruPPq7xv5HGBhj6wlkCHpML1xse7qbCTgzKUlIfkAQQljmUH7c/mN1i9YucoMtgJxRqZCiuoO/hNILcAoQFv14NvqUNOgGeYqHzi3RSxMeQxs3uLA1l0AZpLR6aPNOM9XZyVxhFw55htS5yY52rvXVz4TR1JF22RZesT8V/WpQoPSP1d4bmVVIqa83piqQJ65cMQ0YyhQWRLtWIipvKlztnwpSV/J2LjXzbZm4J//0ArCNx0wNggrkyL7xBpmgbLgRCgid9SUlIX1HPisdJkL/z7lmz9s05ppATiipy/PduaqCZ/Lpq4wMZ8S2ILLPbNtYx8EOPGjLspPnXbpHB4z73A="
-      # FASTLY_SERVICE_KEY
-      - secure: "SFcY62bzpxUVD6ZDE23KudYX5gCt9fuH8QE2wAE+Pu4LPj9SKQyOwpbx3Aej2EzPk14RNA2HKXr3jY+rGdSpNrSyTmbf2IMOolVjIDSoT2xD5E+hAARfuurjHH8l9Bwb8KRiPG3oxcM85oXU6kd882SN5CsM3jY65vj94I/SMZYpUB7KSUQP8ji7hoE1eVeXQWi2AM+fjPFwWG1BhiP16j7SyAaDCAI+jDAeTplrdg10pxIKv7ef1wOHahyGlORdxubAilQW+dZuubMjl2qgPem8FQRmYSLJNEAvj663QYZf1XfH1fDYavW7J0l9vj4E8BwXUAdYn20JPwR6HSI/XsJrpxEc/PEt/2HqhTPAnxVwKQkXEgbKxCamPDIwBANwhjOdetY9dR8w9W4rsJ7wT7WQw40chlFO1gU8Ct4dIlCYogtTBxRdrCObTWRkGlsEH2XNxt4lE4xoE79njlQqNj/Wq0FeyljLPIaK90E1C9O0Q5Li1LaiIQTxyaoivLGELXrsysvkRwEOOCGiFt6w8P1LDEqoKz7Z5tu7+dbh3c31KCgPsgo150/Q4+plnq6+GoY+3ejWac7qf+q1dbp5Gx4lNPBKKuUylhx7TYUlpAp3hLcoA3fs245eYbbv1+fJ1SLIFGYNTHzRRmbB1bZaHQeHl8dMNuMh4JVDexAuCXc="
-    before_install: ./support/ci/fast_pass.sh || exit 0
-    install: "(cd www && bundle install)"
-    script: ./support/ci/deploy_website.sh
+      cache:
+        apt: true
+        cargo: true
+        directories:
+        - /root/travis_bootstrap
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+      script:
+        - sudo ./support/ci/specs.sh
+    - os: linux
+      language: rust
+      env:
+        - COMPONENTS=bin LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
+        - AFFECTED_DIRS="components/director|components/hab|components/sup"
+      rust: stable
+      sudo: false
+      addons:
+        apt:
+          sources:
+            - kalakris-cmake
+          packages:
+            - build-essential
+            - ca-certificates
+            - cmake
+            - curl
+            - libbz2-dev
+            - liblzma-dev
+            - libprotobuf-dev
+            - libssl-dev
+            - pkg-config
+      cache:
+        apt: true
+        cargo: true
+        directories:
+          - "$HOME/pkgs"
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+        - ./support/ci/compile_libsodium.sh
+        - ./support/ci/compile_libarchive.sh
+        - ./support/ci/compile_zmq.sh
+        - ./support/ci/install_rustfmt.sh
+      script:
+        - ./support/ci/rust_tests.sh
+        - ./support/ci/lint.sh
+    - os: linux
+      language: rust
+      env:
+        - COMPONENTS=lib LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
+        - AFFECTED_DIRS="components/builder-dbcache|components/builder-protocol|components/common|components/core|components/builder-depot-client|components/http-client|components/net|components/butterfly"
+      rust: stable
+      sudo: false
+      addons:
+        apt:
+          sources:
+            - kalakris-cmake
+          packages:
+            - build-essential
+            - ca-certificates
+            - cmake
+            - curl
+            - libbz2-dev
+            - liblzma-dev
+            - libprotobuf-dev
+            - libssl-dev
+            - pkg-config
+      cache:
+        apt: true
+        cargo: true
+        directories:
+          - "$HOME/pkgs"
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+        - ./support/ci/compile_libsodium.sh
+        - ./support/ci/compile_libarchive.sh
+        - ./support/ci/compile_zmq.sh
+        - ./support/ci/install_rustfmt.sh
+      script:
+        - ./support/ci/rust_tests.sh
+        - ./support/ci/lint.sh
+    - os: linux
+      language: rust
+      env:
+        - COMPONENTS=srv LIBSODIUM_PREFIX=$HOME/pkgs/libsodium/1.0.8 LIBARCHIVE_PREFIX=$HOME/pkgs/libarchive/3.2.0 LIBZMQ_PREFIX=$HOME/pkgs/zeromq/4.1.4 PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$LIBARCHIVE_PREFIX/lib/pkgconfig:$LIBSODIUM_PREFIX/lib/pkgconfig:$LIBZMQ_PREFIX/lib/pkgconfig" LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$LIBARCHIVE_PREFIX/lib:$LIBSODIUM_PREFIX/lib:$LIBZMQ_PREFIX/lib" LIBRARY_PATH="$LIBRARY_PATH:$LIBZMQ_PREFIX/lib"
+        - AFFECTED_DIRS="components/builder-api|components/builder-admin|components/builder-jobsrv|components/builder-sessionsrv|components/builder-vault|components/builder-worker|components/builder-depot"
+      rust: stable
+      sudo: false
+      addons:
+        apt:
+          sources:
+            - kalakris-cmake
+          packages:
+            - build-essential
+            - ca-certificates
+            - cmake
+            - curl
+            - libbz2-dev
+            - liblzma-dev
+            - libprotobuf-dev
+            - libssl-dev
+            - pkg-config
+      cache:
+        apt: true
+        cargo: true
+        directories:
+          - "$HOME/pkgs"
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+        - ./support/ci/compile_libsodium.sh
+        - ./support/ci/compile_libarchive.sh
+        - ./support/ci/compile_zmq.sh
+        - ./support/ci/install_rustfmt.sh
+      script:
+        - ./support/ci/rust_tests.sh
+        - ./support/ci/lint.sh
+    - os: linux
+      language: node_js
+      node_js: 4.4.3
+      sudo: required
+      env:
+        - CXX=g++-4.8
+        - AFFECTED_DIRS="components/builder-web"
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
+            - wget
+      cache:
+        apt: true
+        directories:
+          - components/builder-web/node_modules
+          - components/builder-web/typings
+      before_install:
+        - ./support/ci/fast_pass.sh || exit 0
+        - npm config set spin=false
+      install:
+        - "(cd components/builder-web && npm install)"
+      script:
+        - "(cd components/builder-web && npm run travis)"
+        - sudo -E bash -c "./support/ci/build_builder_web.sh"
+    - os: linux
+      language: ruby
+      rvm: 2.3.1
+      sudo: false
+      cache:
+        bundle: true
+        directories:
+          - www/build
+      env:
+        - AFFECTED_DIRS="www"
+        - AWS_BUCKET=habitat-www
+        - AWS_DEFAULT_REGION=us-west-2
+        - AWS_ACCESS_KEY_ID=AKIAIE3PM7VKCMUX7TIA
+        # AWS_SECRET_ACCESS_KEY
+        - secure: "QadoE7tZXlUoLcgqlQsJOb0B5CjW/pOz/geBe3ObzYJ0vs60JztT1ySbz0LSqiUWXJyWL+RroBcoauzILUBjN5uszFaxZQ80J5GL+bwhlLaK/PpIf/37HCXmEQ0yzJyGWMKsr0Mp6d2DXUC2XNqf1InmygEwGbgFZFzMvdZ2KB981EfxxzZNsQhxak/WFUjvvJ9m95OfSGerb8swvpIH0zIg0MG3Gmj+xPCI+4eSLOYa+xLkDIjBngEPKZ0Uvfg32fB6k47XktFRpOkoS6ecDxPF7fjqjVRF+j7Y9MkH+FvSOohF48u5klqYZA7SMAbGO5n4xRkDkA2Wn3XH8jnOkt307OGm2zvTRSa3QowaJgnHRfSsGy5+ql6J3w7Ap0jqCGWwqV3qldkyC7rblz3oRHhyB52xm283T4ptDuIN29UNn+zWOgk3sSKIO3jmShNc/x7l+DoTTuMz72hw1gd3YTrCJ651pTPDXjkCb5Yn7Gt4SxKPUENL+USHohHD69WuhruFawdgctFh1WhFLr2vTvqh1eHxU5oyXV4PJwXuG2wIqnGwjaAYoRph58r28GE8YX487MlLKpGL8xXOaEdcQaADRQVihE5QW9XOt/E3DWFA+Ntt+U0SsegY1HHT/lkA29U3inXV1Nvt6P1+AKz8AuYT4QndZSMI8K9YOUlcP8E="
+        # FASTLY_API_KEY
+        - secure: "t3dUI5oNwsB1gSP3DIwwxnY7z/NigMm4XgMrQuiU5xda4sL67JQ/sU8j00I3B9TnfA1fekMBzMOKES+F7SI1y+b6K7q+SOI4mgcNqRcQKJans6o6XuBVT9Tp8om7izxOgp0lVLuHxv4OVEhmhORTCWjk/jW1M45oG5oAYOvATsbQ/gZiVCKMrb8bSSpl6eSn5YqIvJiqDW707O2wUDJsdiS4bXTIVUtai+hCeIckitrrFWWkDNWnP0/OnFb3F2ka3lFRwfuUH8UQ6oqT4YcumngIMbIvBSCOBOenGagvrhpcX2m0cVDNY/sE6iv9c2HBSlEK6vaYAbkfX6mpNseruPPq7xv5HGBhj6wlkCHpML1xse7qbCTgzKUlIfkAQQljmUH7c/mN1i9YucoMtgJxRqZCiuoO/hNILcAoQFv14NvqUNOgGeYqHzi3RSxMeQxs3uLA1l0AZpLR6aPNOM9XZyVxhFw55htS5yY52rvXVz4TR1JF22RZesT8V/WpQoPSP1d4bmVVIqa83piqQJ65cMQ0YyhQWRLtWIipvKlztnwpSV/J2LjXzbZm4J//0ArCNx0wNggrkyL7xBpmgbLgRCgid9SUlIX1HPisdJkL/z7lmz9s05ppATiipy/PduaqCZ/Lpq4wMZ8S2ILLPbNtYx8EOPGjLspPnXbpHB4z73A="
+        # FASTLY_SERVICE_KEY
+        - secure: "SFcY62bzpxUVD6ZDE23KudYX5gCt9fuH8QE2wAE+Pu4LPj9SKQyOwpbx3Aej2EzPk14RNA2HKXr3jY+rGdSpNrSyTmbf2IMOolVjIDSoT2xD5E+hAARfuurjHH8l9Bwb8KRiPG3oxcM85oXU6kd882SN5CsM3jY65vj94I/SMZYpUB7KSUQP8ji7hoE1eVeXQWi2AM+fjPFwWG1BhiP16j7SyAaDCAI+jDAeTplrdg10pxIKv7ef1wOHahyGlORdxubAilQW+dZuubMjl2qgPem8FQRmYSLJNEAvj663QYZf1XfH1fDYavW7J0l9vj4E8BwXUAdYn20JPwR6HSI/XsJrpxEc/PEt/2HqhTPAnxVwKQkXEgbKxCamPDIwBANwhjOdetY9dR8w9W4rsJ7wT7WQw40chlFO1gU8Ct4dIlCYogtTBxRdrCObTWRkGlsEH2XNxt4lE4xoE79njlQqNj/Wq0FeyljLPIaK90E1C9O0Q5Li1LaiIQTxyaoivLGELXrsysvkRwEOOCGiFt6w8P1LDEqoKz7Z5tu7+dbh3c31KCgPsgo150/Q4+plnq6+GoY+3ejWac7qf+q1dbp5Gx4lNPBKKuUylhx7TYUlpAp3hLcoA3fs245eYbbv1+fJ1SLIFGYNTHzRRmbB1bZaHQeHl8dMNuMh4JVDexAuCXc="
+      before_install: ./support/ci/fast_pass.sh || exit 0
+      install: "(cd www && bundle install)"
+      script: ./support/ci/deploy_website.sh
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      sudo: true
+      script: support/ci/macos-pkg.sh
+      env:
+        - secure: WUMBBYM1qMbmwXlf883rl6g5UqFTjtelawCOAhpSFSe9Kcit8HakutFr6b1NfTDF0b4S7R7YLj6j0Di2RP/Tk8brol/z/xmHHCWfFvadxhf/95HJbWmTeD0zDD3wpAbOfQCYHhSKYpLoXVpd/uZnnYLsTJNibFyO54SmOyApH0whHI0bYMZAOluB9vkIduH7Hv80lm4GA0xirHsuXYAirm0wYKdCx+ArWZfA9nci6NCa/D1swRvlmcnXeqvtTF3AJ5B6GP3+H5iDbam8anBe+dAe3YyqxTWw/+Th1h2F0h9Gghuh/dQNHZ7QqGV/rc5jY5jiRo41kptbgj8TBuY+4URsCfm/l5lKvm7GCtUp9LFq/rIaLLatp7mCwQeGwepWTnw9qe2scSP4XsyxusWbvxMQTfmccRq6dydwD1JgXy25pOKVTKY8uVk9THF5uvViYwsdUOGJWvkOHUZArHc0oSqi3cFp7DKTrP1nig4Oqd+9w6lbOPnEdWgGcu11k2rG/cpF0X/+sXD+CAR607ctVTxxW5WzZePtwqWqy5IujO4Uh8CnwUDB51TETbhIsteFHBwv2n08DUVEatew2sEhXJJ2eI3UMxnXPOFCI2197BoTjHU7FHW+z5Vx2JSKb6VTULCDHXYId4XjjVbh7WzyAEVkFituAcddqXpn6HOxqOo=
+      deploy:
+        on: master
+        provider: bintray
+        file: support/mac/hab-bintray.json
+        user: reset
+        key:
+          secure: tUt5GImsuFmiMYZQn7XPrB+g/NIWzXpnSatknEs7gsHnDbAOeXzBZUxAs2+Pr8RVEkw3WkNvAypiM05vqfSHWX0wAPZkyPciyMJRqr+VXUmN9+5eZt9if0e6S4Dr5tb+6JEN+v+xyj3JTOTyTLWZeVEWEZ4/dlUg+LLbX9C26rlkfmwHmJ4/20UoraEXynjfMRcoCyq8iKhkBXcg8QjvU9cgyPbRpPF+anz1v53Tr43Qhvu9CHg5M0WPYxh+aL53L968FWwnyzmAO1crCz3mozwBn0KY1dBIhGKdIErZu8FGNyZXqJBPQQ+f1pNY4D99SkHUh04SYJWSN8JnonYlhm7kBISF88uOQzr0BKZALlH3CXksX7w+01STN8y1LQwrKUif7YtpW8VD0KwroAVZrrOKY8I5d7K6RMW0QDlsO7i+kTI+Kpn5AGRXBumT4tlRlxGFMASUkELmtKgEJniGmaYhdTH0w+lreO2XQGThLBqOXyXym/4gmcsJyQmiyt6YOUqQZn9aa1XMvIJMdZG3XK1por5+AGZsNoquzBap/ncIESOwK3HB7NgI+cYlbp4qozA3reE1HzzMBLarvypafGZy6pymEkgrAyPtPNuy9EoJqyrRgVifxWVEVYtdXX79yYGfovhcGeyjLDfZvt8MUr27KvcJz4Il7sy4z14Il/s=
+        passphrase:
+          secure: T5yh1sXDt/oYvAXHdAIDsJIKScsrhi/l4Bta1YkwK+ghTRy08976exQLFKUttqIDX2noTI/82X48USG5NSSIOgXJ/dwJnvnZ38pkO2nOU4w3ntNy/YBG/NeQhNDISZ/RJ8HUzrKT5+IETN6TR/JsPfhrhCPilyVXdbPzpy1iki6NQH3DhIHqjWUcWm+jZQv76iOAyTi86i+f5czy4vUqAD/sX+ROoSUpDIot4xfh1SXztTSIr+jYsfeh521AMkkYjm4wQ9NthdTm+ysqLHmCKdYQE/RA+fnOU6PAk+4Rv/SJkffP2Ca4Mw6BmrVWcPeNPAJy1FV+Imp0jcOgp4d2L0ADSjZ0hc2Opi+4yQCjOwQpwnvUfjPtAIE49qWPy8b5bIGPJUY8L5z5FM5p6XoWvUZlpWbzO7KWSsxjLgx5k4PMIcuqYmXAs5CSlJcI+5xQgfo4WEkfOj3LQ0aLVBmgREowBAn7gMuzF0z7nLefoKTM5RRH6uMu1LZJSyvG9664oceeC2g/FSLG/8suwqKke82evkUPDhRfMP4vmxnfGND26GuHqmPrE3GL31SpNYsHHo9bOyoCMrngXmk+J2CIVxx4rED16iwiL1Xynj7Vd5z/a4BeaPnU35HSCNCbygFTI/H1co84b2jN1hZ+HhAYR4G+KT6QOQi3KBj7nmXz5QU=
+        dry-run: true
 notifications:
   webhooks:
     urls:
