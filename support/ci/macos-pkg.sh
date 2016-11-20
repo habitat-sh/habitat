@@ -35,7 +35,10 @@ cat <<- EOF > $src_root/out/hab-bintray.json
     "gpgSign": true
   },
   "files": [
-    {"includePattern": "out/(.*\.zip)", "uploadPattern": "$1"}
+    {
+      "includePattern": "out/hab-x86_64-darwin.zip",
+      "uploadPattern": "hab-${pkg_version}-${pkg_release}-x86_64-darwin.zip"
+    }
   ],
   "publish": true
 }
