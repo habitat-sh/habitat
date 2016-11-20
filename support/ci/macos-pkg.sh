@@ -31,10 +31,11 @@ cat <<- EOF > $src_root/out/hab-bintray.json
     "public_stats": false
   },
   "version": {
-    "name": "${pkg_version}-${pkg_release}"
+    "name": "${pkg_version}-${pkg_release}",
+    "gpgSign": true
   },
   "files": [
-    {"includePattern": "out/hab-x86_64-darwin.zip"}
+    {"includePattern": "out/(.*\.zip)", "uploadPattern": "$1"}
   ],
   "publish": true
 }
