@@ -6,7 +6,7 @@ set -eu
 
 src_root=$(dirname $0)/../../
 
-if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+if ([ "${TRAVIS_PULL_REQUEST}" = "false" ] && ["${TRAVIS_BRANCH}" = "master" ]); then
   sudo -E $src_root/components/hab/mac/mac-build.sh $src_root/components/hab/mac
   mkdir -p $src_root/out/hab-x86_64-darwin
   source $src_root/results/last_build.env
@@ -37,7 +37,7 @@ cat <<- EOF > $src_root/out/hab-bintray.json
   "files": [
     {
       "includePattern": "out/hab-x86_64-darwin.zip",
-      "uploadPattern": "hab-${pkg_version}-${pkg_release}-x86_64-darwin.zip"
+      "uploadPattern": "darwin/x86_64/hab-${pkg_version}-${pkg_release}-x86_64-darwin.zip"
     }
   ],
   "publish": true
