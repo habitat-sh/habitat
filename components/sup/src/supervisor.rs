@@ -33,7 +33,8 @@ use libc::c_int;
 use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
-use util::{create_command, signals};
+use util;
+use util::signals;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
@@ -177,7 +178,7 @@ impl Supervisor {
         if self.pid.is_none() {
             outputln!(preamble & self.package_ident.name, "Starting");
             self.enter_state(ProcessState::Start);
-            let mut child = try!(create_command(self.run_cmd(),
+            let mut child = try!(util::create_command(self.run_cmd(),
                 &self.runtime_config.svc_user,
                 &self.runtime_config.svc_group).spawn());
 

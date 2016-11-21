@@ -130,6 +130,18 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
     Ok(empty)
 }
 
+pub fn append_interpreter_and_path(orig_paths: &mut Vec<PathBuf>) -> Result<String> {
+    let mut paths = try!(interpreter_paths()).to_owned();
+    orig_paths.append(&mut paths);
+    if let Some(val) = env::var_os("PATH") {
+        let mut os_paths = env::split_paths(&val).collect::<Vec<PathBuf>>();
+        orig_paths.append(&mut os_paths);
+    }
+    let joined = try!(env::join_paths(orig_paths));
+    let path_str = joined.into_string().expect("Unable to convert OsStr path to string!");
+    Ok(path_str)
+}
+
 /// Returns a `PackageIdent` for a BusyBox package, assuming it exists in the provided metafile.
 fn busybox_dep_from_metafile(metafile: PathBuf) -> Option<PackageIdent> {
     let f = match File::open(metafile) {

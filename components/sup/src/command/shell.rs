@@ -15,13 +15,14 @@
 use std::env;
 use std::ffi::CString;
 use std::ptr;
+use std::path::PathBuf;
 
 use hcore::env as henv;
 use hcore::fs::find_command;
 use libc;
 
 use error::{Error, Result};
-use util::path::interpreter_paths;
+use util::path;
 
 /// Our output key
 static LOGKEY: &'static str = "SH";
@@ -41,19 +42,11 @@ pub fn sh() -> Result<()> {
 }
 
 fn set_path() -> Result<()> {
-    let mut paths = String::new();
-    for path in try!(interpreter_paths()).iter() {
-        if !paths.is_empty() {
-            paths.push(':');
-        }
-        paths.push_str(&path.to_string_lossy());
-    }
-    if let Some(val) = henv::var_os("PATH") {
-        paths.push(':');
-        paths.push_str(&val.to_string_lossy());
-    }
-    debug!("Setting the PATH to {}", &paths);
-    env::set_var("PATH", &paths);
+    let mut paths: Vec<PathBuf> = Vec::new();
+    let new_path = try!(path::append_interpreter_and_path(&mut paths));
+
+    debug!("Setting the PATH to {}", &new_path);
+    env::set_var("PATH", &new_path);
     Ok(())
 }
 

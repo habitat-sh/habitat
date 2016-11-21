@@ -35,7 +35,7 @@ use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use manager::service::config::ServiceConfig;
 use supervisor::Supervisor;
-use util::path::interpreter_paths;
+use util::path;
 use util::users as hab_users;
 
 static LOGKEY: &'static str = "PK";
@@ -103,18 +103,10 @@ impl Package {
     /// without having to worry much about context.
     pub fn run_path(&self) -> Result<String> {
         let mut paths = match self.pkg_install.runtime_path() {
-            Ok(r) => r,
+            Ok(r) => env::split_paths(&r).collect::<Vec<PathBuf>>(),
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };
-        for path in try!(interpreter_paths()).iter() {
-            paths.push(':');
-            paths.push_str(&path.to_string_lossy());
-        }
-        if let Some(val) = env::var_os("PATH") {
-            paths.push(':');
-            paths.push_str(&val.to_string_lossy());
-        }
-        Ok(paths)
+        path::append_interpreter_and_path(&mut paths)
     }
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {

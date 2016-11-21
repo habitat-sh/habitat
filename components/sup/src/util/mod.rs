@@ -73,18 +73,9 @@ pub fn parse_ip_port_with_defaults(s: Option<&str>,
 pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
     let mut cmd = Command::new(path);
     use std::os::unix::process::CommandExt;
-    let uid = os::users::get_uid_by_name(user);
-    let gid = os::users::get_gid_by_name(group);
-    if let None = uid {
-        panic!("Can't determine uid");
-    }
+    let uid = os::users::get_uid_by_name(user).expect("Can't determine uid");
+    let gid = os::users::get_gid_by_name(group).expect("Can't determine gid");
 
-    if let None = gid {
-        panic!("Can't determine gid");
-    }
-
-    let uid = uid.unwrap();
-    let gid = gid.unwrap();
     cmd.stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
