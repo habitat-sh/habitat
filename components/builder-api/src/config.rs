@@ -41,6 +41,8 @@ pub struct Config {
     pub github_client_secret: String,
     /// Path to UI files to host over HTTP. If not set the UI will be disabled.
     pub ui_root: Option<String>,
+    /// Whether to log events for funnel metrics
+    pub events_enabled: bool,
 }
 
 impl Config {
@@ -61,6 +63,7 @@ impl Default for Config {
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             ui_root: None,
+            events_enabled: false, // TODO: change to default to true later
         }
     }
 }
@@ -80,15 +83,18 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.depot.datastore_addr", &mut cfg.depot.datastore_addr));
         try!(toml.parse_into("cfg.github.url", &mut cfg.github_url));
         try!(toml.parse_into("cfg.github.url", &mut cfg.depot.github_url));
-        if !try!(toml.parse_into("cfg.github.client_id", &mut cfg.github_client_id)) {
+        try!(toml.parse_into("cfg.github.client_id", &mut cfg.github_client_id));
+        if cfg.github_client_id.is_empty() {
             return Err(Error::from(hab_net::Error::RequiredConfigField("github.client_id")));
         }
         try!(toml.parse_into("cfg.github.client_id", &mut cfg.depot.github_client_id));
-        if !try!(toml.parse_into("cfg.github.client_secret", &mut cfg.github_client_secret)) {
+        try!(toml.parse_into("cfg.github.client_secret", &mut cfg.github_client_secret));
+        if cfg.github_client_secret.is_empty() {
             return Err(Error::from(hab_net::Error::RequiredConfigField("github.client_secret")));
         }
         try!(toml.parse_into("cfg.github.client_secret",
                              &mut cfg.depot.github_client_secret));
+        try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
         Ok(cfg)
     }
 }
