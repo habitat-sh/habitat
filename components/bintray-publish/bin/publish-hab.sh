@@ -301,7 +301,7 @@ EOF
 # ## Default variables
 
 BINTRAY_ORG=habitat
-BINTRAY_REPO=${HAB_BINTRAY_REPO:-stable}
+BINTRAY_REPO=stable
 PATH=@path@
 
 # The current version of this program

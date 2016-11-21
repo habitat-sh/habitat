@@ -187,7 +187,6 @@ matrix:
     - os: linux
       env:
         - AFFECTED_DIRS="components/hab|components/common|components/core|components/builder-depot-client|components/http-client"
-        - HAB_BINTRAY_REPO=unstable
         # HAB_ORIGIN_KEY
         - secure: "uZ70GE8qK3GBgs7ZIsoy5DhPlHNs2hoLxLBGKq+u+0XrE017pOnW6mNHsn7J7i2r8CPtd4KFsFEN52wZSA+Sf96MFIL2w9E+geykBgbRMZzv4icuCf0xSGwm4iRMgZ9A08TfurMX6y6N+4JNsrCv9syVNuGq09EL2wLHPXOQhesMpodijQLcFikxfEXXbaWla1xHnYxJk+fbvYDoXVCbdqnpdeLTmGuQHFaaNI7jm1B3L/dl+IGZxwFdvqBT3G9mHiXBdyi8bALs7rcZNdV7PqtFFpp98zIeqwNHtHPd5cBRmqDRTRxucRSACS/lurrz9J+001a9RjPvUkYlLrn0hQY9pN6oo+kCpN/1r0bc17i4FbGx7R73FnFgPK/cno0ENBFygNZn7/jg6cENgjkBlHsZhc1+L1xhILo46nQU9XbWJrwelVYUOOGXI76tECOkGhkglx1vYK8fcMVLJMhL7psgPpbGbDJQDuAKhHS+75txNK+356ompNL+YUzeWZc4KSGZCNTQsPK+rsGttmA+JXtAaquFaY5xwSgyKHwETiSVg4dYXb3xh6goNxf2JTOZOosWaypyykHqcqsqCu2fzIDdmkgCx6I5/5q8I/7Z0es0jlUpHamlihZwe4E5YdYFCSouaDoeTnVdJKVI1p9fnAjpFqjivFgqLE/Z504vCNU="
         - BINTRAY_USER=smurawski

@@ -5,7 +5,7 @@ TEST_BIN_DIR=/root/hab_bins
 TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
 HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
 export HAB_ORIGIN=core
-export HAB_BINTRAY_REPO=unstable
+
 
 # download a hab binary to build hab from source in a studio
 wget -O hab.tar.gz "${HAB_DOWNLOAD_URL}"
@@ -37,5 +37,5 @@ if ([ "${TRAVIS_PULL_REQUEST}" = "false" ] && ["${TRAVIS_BRANCH}" = "master" ]);
     RELEASE=$(find ./results -name core-hab-0*.hart)
     echo "Publishing hab to unstable"
     ${TRAVIS_HAB} pkg install $PUBLISH
-    ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab $RELEASE
+    ${TRAVIS_HAB} pkg exec core/hab-bintray-publish publish-hab -r unstable $RELEASE
 fi
