@@ -6,7 +6,7 @@ set -eu
 
 src_root=$(dirname $0)/../../
 
-if ([ "${TRAVIS_PULL_REQUEST}" = "false" ] && ["${TRAVIS_BRANCH}" = "master" ]); then
+if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
   sudo -E $src_root/components/hab/mac/mac-build.sh $src_root/components/hab/mac
   mkdir -p $src_root/out/hab-x86_64-darwin
   source $src_root/results/last_build.env
