@@ -14,6 +14,7 @@
 
 extern crate bodyparser;
 extern crate habitat_builder_protocol as protocol;
+#[macro_use]
 extern crate habitat_core as hab_core;
 extern crate habitat_depot as depot;
 extern crate habitat_net as hab_net;

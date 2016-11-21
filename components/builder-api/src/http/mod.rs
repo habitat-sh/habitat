@@ -23,10 +23,11 @@ use depot;
 use hab_net::http::middleware::*;
 use hab_net::oauth::github::GitHubClient;
 use hab_net::privilege;
+use hab_core::event::EventLogger;
 use iron::prelude::*;
 use iron::Protocol;
 use mount::Mount;
-use persistent;
+use persistent::{self, Read};
 use staticfile::Static;
 
 use config::Config;
@@ -70,6 +71,8 @@ pub fn router(config: Arc<Config>) -> Result<Chain> {
     );
     let mut chain = Chain::new(router);
     chain.link(persistent::Read::<GitHubCli>::both(GitHubClient::new(&*config)));
+    chain.link(Read::<EventLog>::both(EventLogger::new("hab-builder-api", config.events_enabled)));
+
     chain.link_before(RouteBroker);
     chain.link_after(Cors);
     Ok(chain)

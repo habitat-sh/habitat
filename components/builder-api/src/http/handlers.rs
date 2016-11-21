@@ -23,6 +23,7 @@ use hab_net::http::controller::*;
 use hab_net::routing::Broker;
 use iron::prelude::*;
 use iron::status;
+use iron::typemap;
 use persistent;
 use protocol::jobsrv::{Job, JobGet, JobSpec};
 use protocol::vault::*;
@@ -30,13 +31,8 @@ use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
 use rustc_serialize::base64::FromBase64;
 
+define_event_log!();
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
-
-lazy_static! {
-    static ref EVENTLOG: EventLogger = {
-        EventLogger::new("hab-builder-api")
-       };
-}
 
 pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
     let code = {
@@ -231,10 +227,12 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),
     }
 
-    EVENTLOG.record_event(Event::ProjectCreate {
-        origin: origin.get_name(),
-        package: project.get_id(),
-    });
+    log_event!(req,
+               Event::ProjectCreate {
+                   origin: origin.get_name(),
+                   package: project.get_id(),
+                   account: &session.get_id().to_string(),
+               });
 
     project.set_owner_id(session.get_id());
     request.set_project(project);

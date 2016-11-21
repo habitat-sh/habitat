@@ -21,16 +21,40 @@ use std::fmt;
 use rustc_serialize::json::{ToJson, Json};
 use fs::svc_var_path;
 
+// Macros to help hooking in the event logger into an Iron chain,
+// and calling into the chained event logger.
+#[macro_export]
+macro_rules! define_event_log {
+    () => {
+        pub struct EventLog;
+        impl typemap::Key for EventLog {
+            type Value = EventLogger;
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! log_event {
+    ($req:ident, $evt:expr) => {{
+        let el = ($req).get::<persistent::Read<EventLog>>().unwrap();
+        el.record_event($evt)
+    }};
+}
+
 // Supported events
 #[derive(Debug, Clone)]
 pub enum Event<'a> {
-    ProjectCreate { origin: &'a str, package: &'a str },
+    ProjectCreate {
+        origin: &'a str,
+        package: &'a str,
+        account: &'a str,
+    },
 }
 
 impl<'a> fmt::Display for Event<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
-            Event::ProjectCreate { origin: _, package: _ } => "project-create",
+            Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
         };
         write!(f, "{}", msg)
     }
@@ -42,9 +66,10 @@ impl<'a> ToJson for Event<'a> {
         m.insert("name".to_string(), self.to_string().to_json());
 
         match *self {
-            Event::ProjectCreate { origin: ref o, package: ref p } => {
+            Event::ProjectCreate { origin: ref o, package: ref p, account: ref a } => {
                 m.insert("origin".to_string(), o.to_json());
                 m.insert("package".to_string(), p.to_json());
+                m.insert("account".to_string(), a.to_json());
             }
         };
         Json::Object(m)
@@ -59,6 +84,7 @@ impl<'a> ToJson for Event<'a> {
 //     "name": "project-create",
 //     "origin" : "myorigin"
 //     "package" : "mypackage"
+//     "account" : "133508078967455744"
 //   }
 // }
 
@@ -111,17 +137,23 @@ fn timestamp() -> String {
 
 pub struct EventLogger {
     log_dir: PathBuf,
+    enabled: bool,
 }
 
 impl EventLogger {
-    pub fn new(service_name: &str) -> Self {
-        EventLogger { log_dir: svc_var_path(&service_name) }
+    pub fn new(service_name: &str, enabled: bool) -> Self {
+        EventLogger {
+            log_dir: svc_var_path(&service_name),
+            enabled: enabled,
+        }
     }
 
     pub fn record_event(&self, event: Event) {
-        let envelope = Envelope::new(&event);
-        let file_path = self.log_dir.join(format!("event-{}.json", &envelope.timestamp));
-        write_file(&self.log_dir, &file_path, &envelope.to_json().to_string());
+        if self.enabled {
+            let envelope = Envelope::new(&event);
+            let file_path = self.log_dir.join(format!("event-{}.json", &envelope.timestamp));
+            write_file(&self.log_dir, &file_path, &envelope.to_json().to_string());
+        }
     }
 }
 
@@ -135,9 +167,10 @@ mod test {
         let event: Event = Event::ProjectCreate {
             origin: "myorigin",
             package: "mypackage",
+            account: "myaccount",
         };
 
-        let expected = r#"{"name":"project-create","origin":"myorigin","package":"mypackage"}"#;
+        let expected = r#"{"account":"myaccount","name":"project-create","origin":"myorigin","package":"mypackage"}"#;
         assert!(event.to_json().to_string() == expected.to_string());
     }
 
@@ -146,17 +179,18 @@ mod test {
         let event: Event = Event::ProjectCreate {
             origin: "myorigin",
             package: "mypackage",
+            account: "myaccount",
         };
 
         let envelope = Envelope::new(&event);
         let expected =
-            r#"{"event":{"name":"project-create","origin":"myorigin","package":"mypackage"}"#;
+            r#"{"event":{"account":"myaccount","name":"project-create","origin":"myorigin","package":"mypackage"}"#;
         assert!(envelope.to_json().to_string().starts_with(expected));
     }
 
     #[test]
     fn event_logger_path() {
-        let event_logger: EventLogger = EventLogger::new("foo");
+        let event_logger: EventLogger = EventLogger::new("foo", true);
         let expected = r#"foo"#;
         match event_logger.log_dir.to_str() {
             Some(s) => assert!(s.contains(expected)),
