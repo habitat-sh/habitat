@@ -4,13 +4,11 @@ build: clean
 .PHONY: build
 
 clean:
-	rm -Rdf build
+	rm -rf build
 
 run: build
 	bundle exec middleman serve
 
-sync: export AWS_BUCKET=habitat-www
-sync: export AWS_DEFAULT_REGION=us-west-2
 sync: build check-env
 	bundle exec middleman s3_sync
 .PHONY: sync
@@ -32,4 +30,10 @@ ifndef FASTLY_API_KEY
 endif
 ifndef FASTLY_SERVICE_KEY
 	$(error FASTLY_SERVICE_KEY is undefined)
+endif
+ifndef AWS_BUCKET
+	$(error AWS_BUCKET is undefined)
+endif
+ifndef AWS_DEFAULT_REGION
+	$(error AWS_DEFAULT_REGION is undefined)
 endif
