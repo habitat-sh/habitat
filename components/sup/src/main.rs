@@ -38,10 +38,9 @@ use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use sup::config::{gcache, gconfig, Command, Config, UpdateStrategy};
+use sup::config::{gcache, gconfig, Command, Config, UpdateStrategy, Topology};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
-use sup::topology::Topology;
 use sup::util::parse_ip_port_with_defaults;
 use sup::util::path::busybox_paths;
 use sup::util::sys::ip;
@@ -57,7 +56,10 @@ static DEFAULT_GROUP: &'static str = "default";
 
 static DEFAULT_HTTP_LISTEN_IP: &'static str = "0.0.0.0";
 static DEFAULT_HTTP_LISTEN_PORT: u16 = 9631;
-const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634;
+const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634; // NOTE: Delete me
+
+static DEFAULT_LISTEN_SWIM: &'static str = "0.0.0.0:9638";
+static DEFAULT_LISTEN_GOSSIP: &'static str = "0.0.0.0:9638";
 
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
@@ -146,6 +148,11 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
         }
         env_path.push_str(path.to_string_lossy().as_ref());
     }
+
+    config.set_swim_listen(String::from(sub_args.value_of("listen-swim")
+        .unwrap_or(DEFAULT_LISTEN_SWIM)));
+    config.set_gossip_listen(String::from(sub_args.value_of("listen-gossip")
+        .unwrap_or(DEFAULT_LISTEN_GOSSIP)));
 
     // NOTE: ip() returns an IpAddr, which we conveniently turn into a string
     // via to_string().
@@ -304,10 +311,18 @@ fn main() {
             .value_name("ip:port")
             .multiple(true)
             .help("The listen address of an initial peer"))
-        .arg(Arg::with_name("listen-peer")
+        .arg(Arg::with_name("listen-peer") // NOTE: Delete me
             .long("listen-peer")
             .value_name("ip:port")
             .help("The listen address [default: ip_with_default_route:9634]"))
+        .arg(Arg::with_name("listen-swim")
+            .long("listen-swim")
+            .value_name("ip:port")
+            .help("The listen address [default: 0.0.0.0:9638]"))
+        .arg(Arg::with_name("listen-gossip")
+            .long("listen-gosip")
+            .value_name("ip:port")
+            .help("The listen address [default: 0.0.0.0:9639]"))
         .arg(Arg::with_name("listen-http")
             .long("listen-http")
             .value_name("ip:port")

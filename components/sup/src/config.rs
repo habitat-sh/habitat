@@ -27,8 +27,6 @@ use std::mem;
 use hcore::package::PackageIdent;
 
 use error::{Error, SupError};
-use gossip::server::GOSSIP_DEFAULT_PORT;
-use topology::Topology;
 
 static LOGKEY: &'static str = "CFG";
 
@@ -67,7 +65,7 @@ pub enum Command {
     ShellSh,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UpdateStrategy {
     None,
     AtOnce,
@@ -85,6 +83,19 @@ impl UpdateStrategy {
 impl Default for UpdateStrategy {
     fn default() -> UpdateStrategy {
         UpdateStrategy::None
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, RustcEncodable, Clone, Copy)]
+pub enum Topology {
+    Standalone,
+    Leader,
+    Initializer,
+}
+
+impl Default for Topology {
+    fn default() -> Topology {
+        Topology::Standalone
     }
 }
 
@@ -123,6 +134,8 @@ pub struct Config {
     key: String,
     email: Option<String>,
     expire_days: Option<u16>,
+    swim_listen: String,
+    gossip_listen: String,
     gossip_listen_ip: String,
     gossip_listen_port: u16,
     http_listen_ip: String,
@@ -322,6 +335,24 @@ impl Config {
         &self.topology
     }
 
+    pub fn set_swim_listen(&mut self, swim_listen: String) -> &mut Config {
+        self.swim_listen = swim_listen;
+        self
+    }
+
+    pub fn swim_listen(&self) -> &str {
+        &self.swim_listen
+    }
+
+    pub fn gossip_listen(&self) -> &str {
+        &self.gossip_listen
+    }
+
+    pub fn set_gossip_listen(&mut self, gossip_listen: String) -> &mut Config {
+        self.gossip_listen = gossip_listen;
+        self
+    }
+
     pub fn gossip_listen_ip(&self) -> &str {
         &self.gossip_listen_ip
     }
@@ -407,7 +438,7 @@ impl Config {
     pub fn set_gossip_peer(&mut self, mut gp: Vec<String>) -> &mut Config {
         for p in gp.iter_mut() {
             if p.find(':').is_none() {
-                p.push_str(&format!(":{}", GOSSIP_DEFAULT_PORT));
+                p.push_str(&format!(":{}", 9638));
             }
         }
         self.gossip_peer = gp;
@@ -455,8 +486,7 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, Command};
-    use topology::Topology;
+    use super::{Config, Command, Topology};
 
     #[test]
     fn new() {

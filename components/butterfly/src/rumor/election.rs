@@ -28,8 +28,8 @@ use habitat_core::service::ServiceGroup;
 use protobuf::{Message, RepeatedField};
 
 use error::Result;
-use message::swim::{Election as ProtoElection, Election_Status, Rumor as ProtoRumor,
-                    Rumor_Type as ProtoRumor_Type};
+use message::swim::{Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
+pub use message::swim::Election_Status;
 use rumor::Rumor;
 
 /// An election.

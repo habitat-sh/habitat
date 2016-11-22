@@ -471,51 +471,25 @@ impl Census {
     pub fn dataset_initialized(&self) -> bool {
         let count = self.population
             .values()
-            .filter(|&ce| {
-                if ce.data_init {
-                    true
-                } else {
-                    false
-                }
-            })
+            .filter(|&ce| { if ce.data_init { true } else { false } })
             .count();
-        if count > 0 {
-            true
-        } else {
-            false
-        }
+        if count > 0 { true } else { false }
     }
 
     /// Is there a living leader in the census? Returns that entry.
     pub fn get_leader(&self) -> Option<&CensusEntry> {
         self.population
             .values()
-            .find(|&ce| {
-                if ce.leader && ce.alive {
-                    true
-                } else {
-                    false
-                }
-            })
+            .find(|&ce| { if ce.leader && ce.alive { true } else { false } })
     }
 
     /// Is there an alive leader in the census?
     pub fn has_leader(&self) -> bool {
         let count = self.population
             .values()
-            .filter(|&ce| {
-                if ce.leader && ce.alive {
-                    true
-                } else {
-                    false
-                }
-            })
+            .filter(|&ce| { if ce.leader && ce.alive { true } else { false } })
             .count();
-        if count > 0 {
-            true
-        } else {
-            false
-        }
+        if count > 0 { true } else { false }
     }
 
     /// Is there one leader, and everyone alive is a follower?
@@ -524,19 +498,9 @@ impl Census {
 
         let count = self.population
             .values()
-            .filter(|&ce| {
-                if ce.follower && ce.alive {
-                    true
-                } else {
-                    false
-                }
-            })
+            .filter(|&ce| { if ce.follower && ce.alive { true } else { false } })
             .count();
-        if count == size {
-            true
-        } else {
-            false
-        }
+        if count == size { true } else { false }
     }
 
     /// Decide who we should vote for, and return their CensusEntry.
@@ -653,11 +617,7 @@ impl Census {
         let total_pop = total_population as f32;
         let percent_alive: usize = ((alive_population.round() / total_pop.round()) * 100.0)
             .round() as usize;
-        if percent_alive > 50 {
-            true
-        } else {
-            false
-        }
+        if percent_alive > 50 { true } else { false }
     }
 
     pub fn no_leaders_allowed(&mut self) {

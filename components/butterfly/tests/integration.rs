@@ -16,10 +16,10 @@ extern crate env_logger;
 extern crate time;
 #[macro_use]
 extern crate habitat_butterfly;
+#[macro_use]
+extern crate habitat_butterfly_test as btest;
 extern crate habitat_core;
 
-#[macro_use]
-mod common;
 mod rumor;
 mod encryption;
 
@@ -27,7 +27,7 @@ use habitat_butterfly::member::Health;
 
 #[test]
 fn two_members_meshed_confirm_one_member() {
-    let mut net = common::net::SwimNet::new(2);
+    let mut net = btest::SwimNet::new(2);
     net.mesh();
     assert_wait_for_health_of!(net, 0, 1, Health::Alive);
     assert_wait_for_health_of!(net, 1, 0, Health::Alive);
@@ -40,7 +40,7 @@ fn two_members_meshed_confirm_one_member() {
 
 #[test]
 fn six_members_meshed_confirm_one_member() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     net.mesh();
     trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
@@ -49,7 +49,7 @@ fn six_members_meshed_confirm_one_member() {
 
 #[test]
 fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     trace_it!(TEST_NET: net, "Mesh");
     net.mesh();
     net.blacklist(0, 1);
@@ -59,7 +59,7 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
 
 #[test]
 fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     net.mesh();
     assert_wait_for_health_of!(net, 0, Health::Alive);
     net.partition(0..3, 3..6);
@@ -68,7 +68,7 @@ fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirm
 
 #[test]
 fn six_members_unmeshed_become_fully_meshed_via_gossip() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
     net.connect(1, 2);
     net.connect(2, 3);
@@ -79,7 +79,7 @@ fn six_members_unmeshed_become_fully_meshed_via_gossip() {
 
 #[test]
 fn six_members_unmeshed_confirm_one_member() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
     net.connect(1, 2);
     net.connect(2, 3);
@@ -92,7 +92,7 @@ fn six_members_unmeshed_confirm_one_member() {
 
 #[test]
 fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
     net.connect(1, 2);
     net.connect(2, 3);
@@ -107,7 +107,7 @@ fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
 
 #[test]
 fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
-    let mut net = common::net::SwimNet::new(6);
+    let mut net = btest::SwimNet::new(6);
     net[0].member.write().expect("Member lock is poisoned").set_persistent(true);
     net[4].member.write().expect("Member lock is poisoned").set_persistent(true);
     net.connect(0, 1);
@@ -125,7 +125,7 @@ fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
 #[test]
 #[ignore]
 fn fifty_members_meshed_confirm_one_member() {
-    let mut net = common::net::SwimNet::new(50);
+    let mut net = btest::SwimNet::new(50);
     net.mesh();
     net[0].pause();
     assert_wait_for_health_of!(net, 0, Health::Confirmed);

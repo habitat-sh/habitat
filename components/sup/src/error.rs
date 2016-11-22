@@ -41,6 +41,7 @@ use std::error;
 use std::ffi;
 use std::fmt;
 use std::net;
+use std::num;
 use std::result;
 use std::str;
 use std::string;
@@ -49,6 +50,7 @@ use std::sync::mpsc;
 use ansi_term::Colour::Red;
 use handlebars;
 use hcore::package::Identifiable;
+use butterfly;
 use hyper;
 use rustc_serialize::json;
 use toml;
@@ -98,6 +100,7 @@ impl SupError {
 #[derive(Debug)]
 pub enum Error {
     ActorError(actor::ActorError),
+    ButterflyError(butterfly::error::Error),
     CommandNotImplemented,
     DbInvalidPath,
     DepotClient(depot_client::Error),
@@ -115,6 +118,7 @@ pub enum Error {
     InvalidBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
+    InvalidPort(num::ParseIntError),
     InvalidServiceGroupString(String),
     Io(io::Error),
     IPFailed,
@@ -151,6 +155,7 @@ impl fmt::Display for SupError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
             Error::ActorError(ref err) => format!("Actor returned error: {:?}", err),
+            Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
@@ -174,6 +179,9 @@ impl fmt::Display for SupError {
             }
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
+            }
+            Error::InvalidPort(ref e) => {
+                format!("Invalid port number in package expose metadata: {}", e)
             }
             Error::InvalidPidFile => format!("Invalid child process PID file"),
             Error::InvalidServiceGroupString(ref e) => {
@@ -244,6 +252,7 @@ impl error::Error for SupError {
     fn description(&self) -> &str {
         match self.err {
             Error::ActorError(_) => "A running actor responded with an error",
+            Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::HandlebarsRenderError(ref err) => err.description(),
             Error::HandlebarsTemplateFileError(ref err) => err.description(),
@@ -259,6 +268,7 @@ impl error::Error for SupError {
             Error::HyperError(ref err) => err.description(),
             Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
+            Error::InvalidPort(_) => "Invalid port number in package expose metadata",
             Error::InvalidPidFile => "Invalid child process PID file",
             Error::InvalidServiceGroupString(_) => {
                 "Service group strings must be in service.group format (example: redis.default)"
@@ -312,6 +322,12 @@ fn toml_parser_string(errs: &Vec<toml::ParserError>) -> String {
 impl From<net::AddrParseError> for SupError {
     fn from(err: net::AddrParseError) -> SupError {
         sup_error!(Error::NetParseError(err))
+    }
+}
+
+impl From<butterfly::error::Error> for SupError {
+    fn from(err: butterfly::error::Error) -> SupError {
+        sup_error!(Error::ButterflyError(err))
     }
 }
 

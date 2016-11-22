@@ -21,7 +21,7 @@ environment:
   matrix:
     - CARGO_HOME: "c:\\cargo"
       hab_build_action: "test;build"
-      hab_components: "core;http-client;builder-protocol;builder-depot-client;common;hab;sup;win-users"
+      hab_components: "core;http-client;builder-protocol;builder-depot-client;common;win-users"
 
 build_script:
   - ps: Update-AppveyorBuild -Version "$((gc -raw ./VERSION).trim())-$((Get-Date).ToString('yyyyMMddHHmmss'))" 

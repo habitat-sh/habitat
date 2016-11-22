@@ -144,8 +144,8 @@ impl Election {
         if *self == remote_election {
             false
         } else if self.status == ElectionStatus::Running &&
-           remote_election.status == ElectionStatus::Finished &&
-           self.term == remote_election.term {
+                  remote_election.status == ElectionStatus::Finished &&
+                  self.term == remote_election.term {
             *self = remote_election;
             true
         } else if self.suitability > remote_election.suitability {
@@ -172,7 +172,7 @@ impl Election {
                 self.votes.insert(remote_election.leader_id);
                 true
             } else if self.leader_id.simple().to_string() <
-               remote_election.leader_id.simple().to_string() {
+                      remote_election.leader_id.simple().to_string() {
                 let old_votes = self.votes.clone();
                 let old_id = self.leader_id.clone();
                 *self = remote_election;

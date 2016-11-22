@@ -20,6 +20,7 @@ use std::iter::IntoIterator;
 use std::net::SocketAddr;
 use std::ops::{Deref, DerefMut};
 use std::sync::{Arc, RwLock};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use uuid::Uuid;
 use rand::{thread_rng, Rng};
@@ -168,6 +169,7 @@ pub struct MemberList {
     health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
     suspect: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
     initial_members: Arc<RwLock<Vec<Member>>>,
+    update_counter: Arc<AtomicUsize>,
 }
 
 impl MemberList {
@@ -178,7 +180,20 @@ impl MemberList {
             health: Arc::new(RwLock::new(HashMap::new())),
             suspect: Arc::new(RwLock::new(HashMap::new())),
             initial_members: Arc::new(RwLock::new(Vec::new())),
+            update_counter: Arc::new(AtomicUsize::new(0)),
         }
+    }
+
+    /// Increment the update counter for this store.
+    ///
+    /// We don't care if this repeats - it just needs to be unique for any given two states, which
+    /// it will be.
+    pub fn increment_update_counter(&self) {
+        self.update_counter.fetch_add(1, Ordering::Relaxed);
+    }
+
+    pub fn get_update_counter(&self) -> usize {
+        self.update_counter.load(Ordering::Relaxed)
     }
 
     pub fn add_initial_member(&self, member: Member) {
@@ -187,10 +202,10 @@ impl MemberList {
     }
 
     pub fn with_initial_members<F>(&self, mut with_closure: F) -> ()
-        where F: FnMut(Member)
+        where F: FnMut(&Member)
     {
-        let mut im = self.initial_members.write().expect("Initial members lock is poisoned");
-        for member in im.drain(0..) {
+        let im = self.initial_members.read().expect("Initial members lock is poisoned");
+        for member in im.iter() {
             with_closure(member);
         }
     }
@@ -251,6 +266,7 @@ impl MemberList {
         }
 
         if share_rumor == true {
+            self.increment_update_counter();
             self.health
                 .write()
                 .expect("Health lock is poisoned")
@@ -340,6 +356,7 @@ impl MemberList {
             .write()
             .expect("Health write lock is poisoned")
             .insert(String::from(member_id), health);
+        self.increment_update_counter();
         true
     }
 
@@ -434,8 +451,8 @@ impl MemberList {
     }
 
     /// Iterates over the member list, calling the function for each member.
-    pub fn with_members<F>(&self, with_closure: F) -> ()
-        where F: Fn(&Member) -> ()
+    pub fn with_members<F>(&self, mut with_closure: F) -> ()
+        where F: FnMut(&Member) -> ()
     {
         for member in self.members.read().expect("Member list lock is poisoned").values() {
             with_closure(member);

@@ -58,7 +58,7 @@ use util::users as hab_users;
 static LOGKEY: &'static str = "TP";
 static MINIMUM_LOOP_TIME_MS: i64 = 200;
 
-#[derive(PartialEq, Eq, Debug, RustcEncodable)]
+#[derive(PartialEq, Eq, Debug, RustcEncodable, Clone, Copy)]
 pub enum Topology {
     Standalone,
     Leader,
@@ -245,9 +245,7 @@ impl Worker {
 /// * The supervisor dies unexpectedly
 /// * The discovery subsystem returns an error
 /// * The topology state machine returns an error
-fn run_internal(sm: &mut StateMachine<State, Worker, SupError>,
-                    worker: &mut Worker)
-                    -> Result<()> {
+fn run_internal(sm: &mut StateMachine<State, Worker, SupError>, worker: &mut Worker) -> Result<()> {
     {
         let package = worker.package.read().unwrap();
         let service_config = worker.service_config.read().unwrap();

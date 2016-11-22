@@ -24,7 +24,7 @@ use error::{Error, Result};
 use hcore::util;
 use hcore::os::users;
 use package::Package;
-use service_config::{ServiceConfig, never_escape_fn};
+use manager::service::config::{ServiceConfig, never_escape_fn};
 use util::convert;
 use util::handlebars_helpers;
 use util::users as hab_users;
@@ -78,8 +78,7 @@ impl Hook {
         }
     }
 
-    pub fn run(&self, context: Option<&ServiceConfig>) -> Result<String> {
-        try!(self.compile(context));
+    pub fn run(&self) -> Result<String> {
         let mut cmd = Command::new(&self.path);
         try!(self.run_platform(&mut cmd));
         let mut child = try!(cmd.spawn());
@@ -195,6 +194,25 @@ impl<'a> HookTable<'a> {
             reconfigure_hook: None,
             file_updated_hook: None,
             run_hook: None,
+        }
+    }
+
+    pub fn compile_all(&mut self, context: &ServiceConfig) {
+        if let Some(ref hook) = self.init_hook {
+            hook.compile(Some(context))
+                .unwrap_or_else(|e| outputln!("Failed to compile init hook: {}", e));
+        }
+        if let Some(ref hook) = self.health_check_hook {
+            hook.compile(Some(context))
+                .unwrap_or_else(|e| outputln!("Failed to compile health check hook: {}", e));
+        }
+        if let Some(ref hook) = self.reconfigure_hook {
+            hook.compile(Some(context))
+                .unwrap_or_else(|e| outputln!("Failed to compile reconfigure hook: {}", e));
+        }
+        if let Some(ref hook) = self.file_updated_hook {
+            hook.compile(Some(context))
+                .unwrap_or_else(|e| outputln!("Failed to compile file updated hook: {}", e));
         }
     }
 

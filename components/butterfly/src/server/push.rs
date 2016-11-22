@@ -66,6 +66,7 @@ impl<'a> Push<'a> {
             self.server.update_gossip_round();
 
             let mut check_list = self.server.member_list.check_list(self.server.member_id());
+            let long_wait = self.timing.gossip_timeout();
 
             'fanout: loop {
                 let mut thread_list = Vec::with_capacity(FANOUT);
@@ -113,14 +114,16 @@ impl<'a> Push<'a> {
                 for guard in thread_list.drain(0..num_threads) {
                     let _ = guard.join().map_err(|e| println!("Push worker died: {:?}", e));
                 }
-                'gossip_period: loop {
-                    if SteadyTime::now() > next_gossip {
-                        break 'gossip_period;
-                    } else {
-                        thread::sleep(Duration::from_millis(100));
-                    }
+                if SteadyTime::now() < next_gossip {
+                    let wait_time = next_gossip - SteadyTime::now();
+                    thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
                 }
             }
+            if SteadyTime::now() < long_wait {
+                let wait_time = long_wait - SteadyTime::now();
+                thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
+            }
+
         }
     }
 }

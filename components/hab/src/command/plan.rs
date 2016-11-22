@@ -34,12 +34,18 @@ pub mod init {
         let (root, name) = match maybe_name {
             Some(name) => (name.clone(), name.clone()),
             // The name of the current working directory.
-            None => ("habitat".into(), canonicalize(".").ok()
-                .and_then(|path| path.components().last().and_then(|val| {
-                    // Type gymnastics!
-                    val.as_os_str().to_os_string().into_string().ok()
-                }))
-                .unwrap_or("unnamed".into())),
+            None => {
+                ("habitat".into(),
+                 canonicalize(".")
+                    .ok()
+                    .and_then(|path| {
+                        path.components().last().and_then(|val| {
+                            // Type gymnastics!
+                            val.as_os_str().to_os_string().into_string().ok()
+                        })
+                    })
+                    .unwrap_or("unnamed".into()))
+            }
         };
 
         // Build out the variables passed.
@@ -67,7 +73,7 @@ pub mod init {
             false => {
                 try!(ui.status(Status::Creating, format!("directory: {}", config_path)));
                 try!(create_dir_all(&config_path));
-            },
+            }
         };
         try!(ui.para("The `config` directory is where you can set up configuration files for your \
             app. They are influenced by `default.toml`. For more information see here: \
@@ -79,7 +85,7 @@ pub mod init {
             false => {
                 try!(ui.status(Status::Creating, format!("directory: {}", hooks_path)));
                 try!(create_dir_all(&hooks_path));
-            },
+            }
         };
         try!(ui.para("The `hooks` directory is where you can create a number of automation hooks \
             into your habitat. There are several hooks to create and tweak! See the full list with \
@@ -90,7 +96,7 @@ pub mod init {
         Ok(())
     }
 
-    fn create_with_template(ui: &mut UI, location: &str, template:  &str) -> Result<()> {
+    fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
         let path = Path::new(&location);
         match path.exists() {
             false => {
@@ -101,7 +107,7 @@ pub mod init {
                 }
                 // Create and then render the template with Handlebars
                 try!(File::create(path).and_then(|mut file| file.write(template.as_bytes())));
-            },
+            }
             true => {
                 // If the user has already configured a file overwriting would be impolite.
                 try!(ui.status(Status::Using, format!("existing file: {}", location)));

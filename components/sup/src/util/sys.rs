@@ -31,7 +31,7 @@ pub fn ip() -> Result<IpAddr> {
 }
 
 
-extern {
+extern "C" {
     pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
 }
 
@@ -41,14 +41,10 @@ pub fn hostname() -> Result<String> {
     let len = 255;
     let mut buf = Vec::<u8>::with_capacity(len);
     let ptr = buf.as_mut_slice().as_mut_ptr();
-    let err = unsafe {
-        gethostname(ptr as *mut libc::c_char, len as libc::size_t)
-    };
+    let err = unsafe { gethostname(ptr as *mut libc::c_char, len as libc::size_t) };
     match err {
         0 => {
-            let slice = unsafe {
-                CStr::from_ptr(ptr as *const i8)
-            };
+            let slice = unsafe { CStr::from_ptr(ptr as *const i8) };
             let s = try!(slice.to_str());
             debug!("Hostname = {}", &s);
             Ok(s.to_string())

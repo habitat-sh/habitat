@@ -70,7 +70,7 @@ use {PRODUCT, VERSION};
 use error::{Error, Result};
 use config::{gconfig, UpdateStrategy};
 use package::Package;
-use topology::{self, Topology};
+use manager::Manager;
 
 static LOGKEY: &'static str = "CS";
 
@@ -166,9 +166,8 @@ fn start_package(package: Package) -> Result<()> {
     let run_path = try!(package.run_path());
     debug!("Setting the PATH to {}", run_path);
     env::set_var("PATH", &run_path);
-    match *gconfig().topology() {
-        Topology::Standalone => topology::standalone::run(package),
-        Topology::Leader => topology::leader::run(package),
-        Topology::Initializer => topology::initializer::run(package),
-    }
+
+    let mut manager = try!(Manager::new());
+    manager.add_service(package, *gconfig().topology(), gconfig().update_strategy());
+    manager.run()
 }

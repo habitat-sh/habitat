@@ -33,7 +33,7 @@ use self::hooks::{HookTable, HOOK_PERMISSIONS};
 use config::gconfig;
 use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
-use service_config::ServiceConfig;
+use manager::service::config::ServiceConfig;
 use supervisor::Supervisor;
 use util::path::busybox_paths;
 use util::users as hab_users;
@@ -204,7 +204,7 @@ impl Package {
     fn remove_symlink<P: AsRef<Path>>(p: P) -> Result<()> {
         let p = p.as_ref();
         if !p.exists() {
-            return Ok(())
+            return Ok(());
         }
         // note: we're NOT using p.metadata() here as that will follow the
         // symlink, which returns smd.file_type().is_symlink() == false in all cases.
@@ -249,10 +249,8 @@ impl Package {
     }
 
     pub fn config_from(&self) -> PathBuf {
-        gconfig().config_from().as_ref().map_or(
-            self.pkg_install.installed_path().clone(),
-            |p| PathBuf::from(p)
-        )
+        gconfig().config_from().as_ref().map_or(self.pkg_install.installed_path().clone(),
+                                                |p| PathBuf::from(p))
     }
 
     /// Return an iterator of the configuration file names to render.
@@ -288,9 +286,9 @@ impl Package {
     }
 
     /// Run initialization hook if present
-    pub fn initialize(&self, context: &ServiceConfig) -> Result<()> {
+    pub fn initialize(&self) -> Result<()> {
         if let Some(hook) = self.hooks().init_hook {
-            match hook.run(Some(context)) {
+            match hook.run() {
                 Ok(_) => Ok(()),
                 Err(e) => Err(e),
             }
@@ -301,9 +299,9 @@ impl Package {
 
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default
     /// restart behavior.
-    pub fn reconfigure(&self, context: &ServiceConfig) -> Result<bool> {
+    pub fn reconfigure(&self) -> Result<bool> {
         if let Some(hook) = self.hooks().reconfigure_hook {
-            match hook.run(Some(context)) {
+            match hook.run() {
                 Ok(_) => Ok(true),
                 Err(e) => Err(e),
             }
@@ -313,9 +311,9 @@ impl Package {
     }
 
     /// Run file_updated hook if present
-    pub fn file_updated(&self, context: &ServiceConfig) -> Result<bool> {
+    pub fn file_updated(&self) -> Result<bool> {
         if let Some(hook) = self.hooks().file_updated_hook {
-            match hook.run(Some(context)) {
+            match hook.run() {
                 Ok(_) => Ok(true),
                 Err(e) => Err(e),
             }
@@ -324,12 +322,9 @@ impl Package {
         }
     }
 
-    pub fn health_check(&self,
-                        config: &ServiceConfig,
-                        supervisor: &Supervisor)
-                        -> Result<CheckResult> {
+    pub fn health_check(&self, supervisor: &Supervisor) -> Result<CheckResult> {
         if let Some(hook) = self.hooks().health_check_hook {
-            match hook.run(Some(config)) {
+            match hook.run() {
                 Ok(output) => Ok(health_check::CheckResult::ok(output)),
                 Err(SupError { err: Error::HookFailed(_, 1, output), .. }) => {
                     Ok(health_check::CheckResult::warning(output))

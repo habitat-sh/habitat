@@ -50,6 +50,7 @@ message Service {
   optional string hostname = 5;
   optional uint32 port = 6;
   repeated uint32 exposes = 7;
+  optional bool initialized = 8; 
 }
 
 message ServiceConfig {
