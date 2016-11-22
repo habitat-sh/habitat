@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # fail fast if we aren't on the desired branch or if this is a pull request
-if ([ "${TRAVIS_PULL_REQUEST}" = "true" ] || ["${TRAVIS_BRANCH}" != "smurawski/fix_linux_build" ]); then
+if [[ "${TRAVIS_PULL_REQUEST}" = "true" ]] || [[ "${TRAVIS_BRANCH}" != "master" ]]; then
+    echo "We only publish on successful builds of master."
     exit 0
 fi
 
@@ -11,7 +12,7 @@ TRAVIS_HAB=${BOOTSTRAP_DIR}/hab
 HAB_DOWNLOAD_URL="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux"
 export HAB_ORIGIN=core
 
-
+mkdir -p ${BOOTSTRAP_DIR}
 # download a hab binary to build hab from source in a studio
 wget -O hab.tar.gz "${HAB_DOWNLOAD_URL}"
 # install it in a custom location
@@ -44,7 +45,7 @@ rm -rf ./release/*
 echo "Building bintray-publish"
 ${TRAVIS_HAB} studio build habitat/components/bintray-publish > /root/bintray-publish_build.log 2>&1
 echo "Building hab"
-${TRAVIS_HAB} studio build habitat/components/hab > /root/hab_build.log 2>&1
+${TRAVIS_HAB} studio build habitat/components/hab
 echo "Built new unstable version of hab"
 
 echo "Publishing hab to unstable"
