@@ -15,7 +15,12 @@ elif [ -z "$AFFECTED_DIRS" ]; then
 else
   # If $AFFECTED_DIRS (a "|" separated list of directories) is set, see if we have
   # any changes
-  git diff --name-only "$TRAVIS_COMMIT_RANGE" | grep -qE "^($AFFECTED_DIRS)" || {
+
+  # TRAVIS_COMMIT_RANGE is empty for the first push to a new branch (which is how our bot
+  # validates before merge), so if TRAVIS_COMMIT_RANGE is empty, we'll look for the
+  # last merge commit and check from there.
+  COMMIT_RANGE=${TRAVIS_COMMIT_RANGE:-$(git show :/^Merge --pretty=format:%H)}
+  git diff --name-only "$COMMIT_RANGE" | grep -qE "^($AFFECTED_DIRS)" || {
     echo "No files in $AFFECTED_DIRS have changed. Skipping CI run."
     exit 1
   }

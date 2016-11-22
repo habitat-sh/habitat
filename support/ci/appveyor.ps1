@@ -6,7 +6,8 @@ function Test-ComponentChanged ($path) {
 }
 
 function Test-SourceChanged {
-    $BuildFiles = "appveyor.yml", "build.ps1", "support/ci/appveyor.ps1", "support/ci/appveyor.bat"
+    $BuildFiles = "appveyor.yml", "build.ps1", "support/ci/appveyor.ps1", "support/ci/appveyor.bat", 
+                  "Cargo.toml", "Cargo.lock"
     (git diff master --name-only | 
                 where-object {
                     ($BuildFiles -contains $_ ) -or
