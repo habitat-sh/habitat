@@ -29,7 +29,7 @@ use std::path::Path;
 use std::str::FromStr;
 use std::thread;
 
-use clap::ArgMatches;
+use clap::{ArgMatches, Shell};
 
 use common::ui::UI;
 use hcore::env as henv;
@@ -85,6 +85,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(_)) => try!(sub_cli_setup(ui)),
+                ("completers", Some(m)) => try!(sub_cli_completers(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -189,6 +190,12 @@ fn sub_cli_setup(ui: &mut UI) -> Result<()> {
     command::cli::setup::start(ui,
                                &default_cache_key_path(fs_root_path),
                                &cache_analytics_path(fs_root_path))
+}
+
+fn sub_cli_completers(ui: &mut UI, m: &ArgMatches) -> Result<()> {
+    let shell = m.value_of("SHELL").expect("Missing Shell; A shell is required");
+    cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
+    Ok(())
 }
 
 fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
