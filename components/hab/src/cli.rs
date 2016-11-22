@@ -332,14 +332,12 @@ fn sub_cli_completers() -> App<'static, 'static> {
     let supported_shells = ["bash", "fish", "zsh", "powershell"];
 
     // The clap_app! macro above is great but does not support the ability to specify a range of
-    // possible values. We wanted to fail here through the cli instead of pushing off a
+    // possible values. We wanted to fail here with an unsupported shell instead of pushing off a
     // bad value to clap.
-    let shell_help = format!("The name of the shell you want to generate the command-completion. \
-                  Supported Shells: {:?}",&supported_shells)
-        .as_str();
 
     sub.arg(Arg::with_name("SHELL")
-        .help(shell_help)
+        .help("The name of the shell you want to generate the command-completion. \
+                      Supported Shells: bash, fish, zsh, powershell")
         .short("s")
         .long("shell")
         .required(true)
