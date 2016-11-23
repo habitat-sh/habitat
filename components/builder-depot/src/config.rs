@@ -46,6 +46,8 @@ pub struct Config {
     pub github_client_secret: String,
     /// allows you to upload packages and public keys without auth
     pub insecure: bool,
+    /// Whether to log events for funnel metrics
+    pub events_enabled: bool,
 }
 
 impl ConfigFile for Config {
@@ -57,6 +59,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.bind_addr", &mut cfg.listen_addr));
         try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
+        try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
         Ok(cfg)
     }
 }
@@ -72,6 +75,7 @@ impl Default for Config {
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             insecure: false,
+            events_enabled: false, // TODO: change to default to true later
         }
     }
 }

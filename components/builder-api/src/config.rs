@@ -95,6 +95,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.github.client_secret",
                              &mut cfg.depot.github_client_secret));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
+        try!(toml.parse_into("cfg.events_enabled", &mut cfg.depot.events_enabled));
         Ok(cfg)
     }
 }

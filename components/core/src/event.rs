@@ -49,13 +49,51 @@ pub enum Event<'a> {
         package: &'a str,
         account: &'a str,
     },
+    PackageUpload {
+        origin: &'a str,
+        package: &'a str,
+        version: &'a str,
+        release: &'a str,
+        account: &'a str,
+    },
+    OriginKeyUpload {
+        origin: &'a str,
+        version: &'a str,
+        account: &'a str,
+    },
+    OriginSecretKeyUpload {
+        origin: &'a str,
+        version: &'a str,
+        account: &'a str,
+    },
+    OriginInvitationSend {
+        origin: &'a str,
+        user: &'a str,
+        id: &'a str,
+        account: &'a str,
+    },
+    OriginInvitationAccept { id: &'a str, account: &'a str },
+    OriginInvitationIgnore { id: &'a str, account: &'a str },
+    JobCreate { package: &'a str, account: &'a str },
+    GithubAuthenticate { user: &'a str, account: &'a str },
 }
 
 impl<'a> fmt::Display for Event<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
+            Event::PackageUpload { origin: _, package: _, version: _, release: _, account: _ } => {
+                "package-upload"
+            }
+            Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
+            Event::OriginSecretKeyUpload { origin: _, version: _, account: _ } => "origin-secret-key-upload",
+            Event::OriginInvitationSend { origin: _, user: _, id: _, account: _ } => "origin-invitation-send",
+            Event::OriginInvitationAccept { id: _, account: _ } => "origin-invitation-accept",
+            Event::OriginInvitationIgnore { id: _, account: _ } => "origin-invitation-ignore",
+            Event::JobCreate { package: _, account: _ } => "job-create",
+            Event::GithubAuthenticate { user: _, account: _ } => "github-authenticate",
         };
+
         write!(f, "{}", msg)
     }
 }
@@ -69,6 +107,52 @@ impl<'a> ToJson for Event<'a> {
             Event::ProjectCreate { origin: ref o, package: ref p, account: ref a } => {
                 m.insert("origin".to_string(), o.to_json());
                 m.insert("package".to_string(), p.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::PackageUpload { origin: ref o,
+                                   package: ref p,
+                                   version: ref v,
+                                   release: ref r,
+                                   account: ref a } => {
+                m.insert("origin".to_string(), o.to_json());
+                m.insert("package".to_string(), p.to_json());
+                m.insert("version".to_string(), v.to_json());
+                m.insert("release".to_string(), r.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::OriginInvitationSend { origin: ref o,
+                                          user: ref u,
+                                          id: ref i,
+                                          account: ref a } => {
+                m.insert("origin".to_string(), o.to_json());
+                m.insert("user".to_string(), u.to_json());
+                m.insert("id".to_string(), i.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::OriginInvitationAccept { id: ref i, account: ref a } => {
+                m.insert("id".to_string(), i.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::OriginInvitationIgnore { id: ref i, account: ref a } => {
+                m.insert("id".to_string(), i.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::JobCreate { package: ref p, account: ref a } => {
+                m.insert("package".to_string(), p.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::GithubAuthenticate { user: ref u, account: ref a } => {
+                m.insert("user".to_string(), u.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::OriginKeyUpload { origin: ref o, version: ref v, account: ref a } => {
+                m.insert("origin".to_string(), o.to_json());
+                m.insert("version".to_string(), v.to_json());
+                m.insert("account".to_string(), a.to_json());
+            }
+            Event::OriginSecretKeyUpload { origin: ref o, version: ref v, account: ref a } => {
+                m.insert("origin".to_string(), o.to_json());
+                m.insert("version".to_string(), v.to_json());
                 m.insert("account".to_string(), a.to_json());
             }
         };
