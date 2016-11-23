@@ -41,6 +41,7 @@ use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 use sup::config::{gcache, gconfig, Command, Config, UpdateStrategy, Topology};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
+use sup::http_gateway;
 use sup::util::parse_ip_port_with_defaults;
 use sup::util::sys::ip;
 
@@ -53,8 +54,6 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
 
-static DEFAULT_HTTP_LISTEN_IP: &'static str = "0.0.0.0";
-static DEFAULT_HTTP_LISTEN_PORT: u16 = 9631;
 const DEFAULT_GOSSIP_LISTEN_PORT: u16 = 9634; // NOTE: Delete me
 
 static DEFAULT_LISTEN_SWIM: &'static str = "0.0.0.0:9638";
@@ -144,31 +143,16 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
         .unwrap_or(DEFAULT_LISTEN_SWIM)));
     config.set_gossip_listen(String::from(sub_args.value_of("listen-gossip")
         .unwrap_or(DEFAULT_LISTEN_GOSSIP)));
-
-    // NOTE: ip() returns an IpAddr, which we conveniently turn into a string
-    // via to_string().
     let default_gossip_ip = try!(ip()).to_string();
     let (gossip_ip, gossip_port) = try!(parse_ip_port_with_defaults(
                                         sub_args.value_of("listen-peer"),
                                         &default_gossip_ip,
                                         DEFAULT_GOSSIP_LISTEN_PORT));
-
-    debug!("Gossip IP = {}", &gossip_ip);
-    debug!("Gossip port = {}", &gossip_port);
     config.set_gossip_listen_ip(gossip_ip);
     config.set_gossip_listen_port(gossip_port);
-
-    let (sidecar_ip, sidecar_port) = try!(parse_ip_port_with_defaults(
-                                            sub_args.value_of("listen-http"),
-                                            DEFAULT_HTTP_LISTEN_IP,
-                                            DEFAULT_HTTP_LISTEN_PORT));
-
-    debug!("HTTP IP = {}", &sidecar_ip);
-    debug!("HTTP port = {}", &sidecar_port);
-
-    config.set_http_listen_ip(sidecar_ip);
-    config.set_http_listen_port(sidecar_port);
-
+    if let Some(addr_str) = sub_args.value_of("listen-http") {
+        config.http_listen_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
+    }
     let gossip_peers = match sub_args.values_of("peer") {
         Some(gp) => gp.map(|s| s.to_string()).collect(),
         None => vec![],

@@ -30,7 +30,7 @@ use message::swim::{ServiceConfig as ProtoServiceConfig, Rumor as ProtoRumor,
 use rumor::Rumor;
 
 /// The service rumor
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, RustcEncodable)]
 pub struct ServiceConfig {
     pub proto: ProtoRumor,
 }

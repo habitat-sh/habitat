@@ -13,9 +13,7 @@
 // limitations under the License.
 
 pub mod hooks;
-pub mod updater;
 
-pub use self::updater::{PackageUpdater, PackageUpdaterActor, UpdaterMessage};
 pub use self::hooks::HookType;
 
 use std;
@@ -45,7 +43,7 @@ const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, RustcEncodable)]
 pub struct Package {
     pub origin: String,
     pub name: String,

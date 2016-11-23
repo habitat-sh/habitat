@@ -19,34 +19,32 @@ use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::sync::Arc;
 use std::sync::mpsc::{sync_channel, SyncSender, Receiver, TryRecvError};
-use std::thread;
-use std::time::Duration;
 
 use ansi_term::Colour::{Yellow, Red, Green};
-use time::{SteadyTime, Duration as TimeDuration};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
-use hcore::crypto::{hash, default_cache_key_path};
+use hcore::crypto::hash;
 use hcore::fs::{self, CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use hcore::util::perm::{set_owner, set_permissions};
 
 use {PRODUCT, VERSION};
-use depot_client::Client;
 use common::ui::UI;
-use supervisor::{Supervisor, RuntimeConfig};
-use package::Package;
+use config::{gconfig, UpdateStrategy, Topology};
+use depot_client::Client;
+use error::Result;
+use health_check;
 use manager::signals;
 use manager::census::CensusList;
 use manager::service::config::ServiceConfig;
+use package::Package;
+use supervisor::{Supervisor, RuntimeConfig};
 use util;
-use error::Result;
-use config::{gconfig, UpdateStrategy, Topology};
 
 static LOGKEY: &'static str = "SR";
-const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60000;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, RustcEncodable)]
 enum LastRestartDisplay {
     None,
     ElectionInProgress,
@@ -54,18 +52,17 @@ enum LastRestartDisplay {
     ElectionFinished,
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct Service {
-    service_group: ServiceGroup,
-    supervisor: Supervisor,
-    package: Package,
     pub needs_restart: bool,
-    topology: Topology, //    config: ServiceConfig,
-    update_strategy: UpdateStrategy,
-    update_thread_rx: Option<Receiver<Package>>,
-    last_restart_display: LastRestartDisplay,
-    initialized: bool,
+    pub package: Package,
     pub service_config_incarnation: Option<u64>,
+    pub service_group: ServiceGroup,
+    pub update_strategy: UpdateStrategy,
+    initialized: bool,
+    last_restart_display: LastRestartDisplay,
+    supervisor: Supervisor,
+    topology: Topology,
 }
 
 impl Service {
@@ -81,11 +78,6 @@ impl Service {
                   &svc_group);
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
         let supervisor = Supervisor::new(package.ident().clone(), runtime_config);
-        let update_thread_rx = if update_strategy != UpdateStrategy::None {
-            Some(run_update_strategy(package.ident().clone()))
-        } else {
-            None
-        };
         Ok(Service {
             service_group: service_group,
             supervisor: supervisor,
@@ -93,7 +85,6 @@ impl Service {
             topology: topology,
             needs_restart: false,
             update_strategy: update_strategy,
-            update_thread_rx: update_thread_rx,
             last_restart_display: LastRestartDisplay::None,
             initialized: false,
             service_config_incarnation: None,
@@ -195,38 +186,54 @@ impl Service {
             let mut new_file = match File::create(&new_filename) {
                 Ok(new_file) => new_file,
                 Err(e) => {
-                    outputln!(preamble self.service_group_str(), "Service configuration from butterfly failed to open the new file: {}", Red.bold().paint(format!("{}", e)));
+                    outputln!(preamble self.service_group_str(),
+                        "Service configuration from butterfly failed to open the new file: {}",
+                        Red.bold().paint(format!("{}", e)));
                     return false;
                 }
             };
 
             if let Err(e) = new_file.write_all(config.as_bytes()) {
-                outputln!(preamble self.service_group_str(), "Service configuration from butterfly failed to write: {}", Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group_str(),
+                    "Service configuration from butterfly failed to write: {}",
+                    Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
-                outputln!(preamble self.service_group_str(), "Service configuration from butterfly failed to rename: {}", Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group_str(),
+                    "Service configuration from butterfly failed to rename: {}",
+                    Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = set_owner(&on_disk_path,
                                       &self.supervisor.runtime_config.svc_user,
                                       &self.supervisor.runtime_config.svc_group) {
-                outputln!(preamble self.service_group_str(), "Service configuration from butterfly failed to set ownership: {}", Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group_str(),
+                    "Service configuration from butterfly failed to set ownership: {}",
+                    Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
             if let Err(e) = set_permissions(&on_disk_path, 0o770) {
-                outputln!(preamble self.service_group_str(), "Service configuration from butterfly failed to set permissions: {}", Red.bold().paint(format!("{}", e)));
+                outputln!(preamble self.service_group_str(),
+                    "Service configuration from butterfly failed to set permissions: {}",
+                    Red.bold().paint(format!("{}", e)));
                 return false;
             }
 
-            outputln!(preamble self.service_group_str(), "Service configuration updated from butterfly: {}", Green.bold().paint(new_checksum));
+            outputln!(preamble self.service_group_str(),
+                "Service configuration updated from butterfly: {}",
+                Green.bold().paint(new_checksum));
             true
         } else {
             false
         }
+    }
+
+    pub fn health_check(&self) -> Result<health_check::CheckResult> {
+        self.package.health_check(&self.supervisor)
     }
 
     pub fn initialize(&mut self) {
@@ -253,20 +260,22 @@ impl Service {
                     return;
                 }
             };
-
         self.package.create_svc_path();
-
         match service_config.write(&self.package) {
             Ok(true) => {
                 self.needs_restart = true;
                 match self.package.reconfigure() {
                     Ok(_) => {}
-                    Err(e) => outputln!(preamble self.service_group_str(), "Reconfiguration hook failed: {}", e),
+                    Err(e) => {
+                        outputln!(preamble self.service_group_str(),
+                            "Reconfiguration hook failed: {}", e);
+                    }
                 }
             }
             Ok(false) => {}
             Err(e) => {
-                outputln!(preamble self.service_group_str(), "Failed to write service configuration: {}", e);
+                outputln!(preamble self.service_group_str(),
+                    "Failed to write service configuration: {}", e);
             }
         }
 
@@ -275,85 +284,10 @@ impl Service {
         self.package.copy_run(&service_config);
         self.package.hooks().compile_all(&service_config);
     }
-
-    pub fn check_for_updated_package(&mut self) {
-        if self.update_thread_rx.is_some() {
-            match self.update_thread_rx.as_mut().unwrap().try_recv() {
-                Ok(package) => {
-                    outputln!(preamble self.service_group_str(), "Updated {} to {}", self.package, package);
-                    self.package = package;
-                    self.needs_restart = true;
-                }
-                Err(TryRecvError::Disconnected) => {
-                    outputln!(preamble self.service_group_str(), "Software update thread has died {}", "; disconnected");
-                    let receiver = run_update_strategy(self.package.ident().clone());
-                    self.update_thread_rx = Some(receiver);
-                }
-                Err(TryRecvError::Empty) => {}
-            }
-        }
-    }
 }
 
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.package)
-    }
-}
-
-pub fn run_update_strategy(package_ident: PackageIdent) -> Receiver<Package> {
-    let (tx, rx) = sync_channel(0);
-    let _ = thread::Builder::new()
-        .name(format!("update-{}", package_ident))
-        .spawn(move || update_strategy(package_ident, tx));
-    rx
-}
-
-pub fn update_strategy(package_ident: PackageIdent, tx_to_service: SyncSender<Package>) {
-    'check: loop {
-        let next_check = SteadyTime::now() +
-                         TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
-        let depot_client = match Client::new(gconfig().url(), PRODUCT, VERSION, None) {
-            Ok(client) => client,
-            Err(e) => {
-                debug!("Failed to create HTTP client: {:?}", e);
-                let time_to_wait = next_check - SteadyTime::now();
-                thread::sleep(Duration::from_millis(time_to_wait.num_milliseconds() as u64));
-                continue 'check;
-            }
-        };
-        match depot_client.show_package(package_ident.clone()) {
-            Ok(remote) => {
-                let latest_ident: PackageIdent = remote.get_ident().clone().into();
-                if latest_ident > package_ident {
-                    let mut ui = UI::default();
-                    match depot_client.fetch_package(latest_ident.clone(),
-                                                     &Path::new(FS_ROOT_PATH)
-                                                         .join(CACHE_ARTIFACT_PATH),
-                                                     ui.progress()) {
-                        Ok(archive) => {
-                            debug!("Updater downloaded new package to {:?}", archive);
-                            // JW TODO: actually handle verify and unpack results
-                            archive.verify(&default_cache_key_path(None)).unwrap();
-                            archive.unpack(None).unwrap();
-                            let latest_package = Package::load(&latest_ident, None).unwrap();
-                            tx_to_service.send(latest_package).unwrap_or_else(|e| {
-                                error!("Main thread has gone away; this is a disaster, mate.")
-                            });
-                        }
-                        Err(e) => {
-                            debug!("Failed to download package: {:?}", e);
-                        }
-                    }
-                } else {
-                    debug!("Package found is not newer than ours");
-                }
-            }
-            Err(e) => {
-                debug!("Updater failed to get latest package: {:?}", e);
-            }
-        }
-        let time_to_wait = next_check - SteadyTime::now();
-        thread::sleep(Duration::from_millis(time_to_wait.num_milliseconds() as u64));
     }
 }

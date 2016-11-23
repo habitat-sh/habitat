@@ -30,8 +30,11 @@ pub mod service_file;
 
 use std::collections::HashMap;
 use std::default::Default;
+use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
+
+use rustc_serialize::{Encoder, Encodable};
 
 use message::swim::Rumor_Type;
 use error::{Result, Error};
@@ -65,7 +68,7 @@ impl RumorKey {
 
 /// A representation of a Rumor; implemented by all the concrete types we share as rumors. The
 /// exception is the Membership rumor, since it's not actually a rumor in the same vein.
-pub trait Rumor {
+pub trait Rumor: Encodable {
     fn kind(&self) -> Rumor_Type;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
@@ -95,6 +98,19 @@ impl<T: Rumor + Clone> Default for RumorStore<T> {
             list: Arc::new(RwLock::new(HashMap::new())),
             update_counter: Arc::new(AtomicUsize::new(0)),
         }
+    }
+}
+
+impl<T: Rumor> Encodable for RumorStore<T> {
+    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
+        try!(s.emit_struct("RumorStore", 2, |s| {
+            try!(s.emit_struct_field("list", 0, |s| self.list.read().unwrap().encode(s)));
+            try!(s.emit_struct_field("update_counter",
+                                     1,
+                                     |s| self.update_counter.load(Ordering::Relaxed).encode(s)));
+            Ok(())
+        }));
+        Ok(())
     }
 }
 
@@ -280,7 +296,7 @@ mod tests {
     use message::swim::Rumor_Type;
     use error::Result;
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, RustcEncodable)]
     pub struct FakeRumor {
         pub id: String,
         pub key: String,
@@ -317,7 +333,7 @@ mod tests {
         }
     }
 
-    #[derive(Clone, Debug)]
+    #[derive(Clone, Debug, RustcEncodable)]
     pub struct TrumpRumor {
         pub id: String,
         pub key: String,

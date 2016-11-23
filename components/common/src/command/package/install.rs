@@ -117,7 +117,7 @@ impl<'a> InstallTask<'a> {
         try!(ui.begin(format!("Installing {}", &ident)));
         let mut ident = ident;
         if !ident.fully_qualified() {
-            ident = try!(self.fetch_latest_pkg_ident_for(ident));
+            ident = try!(self.fetch_latest_pkg_ident_for(&ident));
         }
         if try!(self.is_package_installed(&ident)) {
             try!(ui.status(Status::Using, &ident));
@@ -229,7 +229,7 @@ impl<'a> InstallTask<'a> {
         Ok(self.cache_artifact_path.join(name))
     }
 
-    fn fetch_latest_pkg_ident_for(&self, fuzzy_ident: PackageIdent) -> Result<PackageIdent> {
+    fn fetch_latest_pkg_ident_for(&self, fuzzy_ident: &PackageIdent) -> Result<PackageIdent> {
         Ok(try!(self.depot_client.show_package(fuzzy_ident)).into())
     }
 
@@ -252,8 +252,7 @@ impl<'a> InstallTask<'a> {
         }
 
         try!(ui.status(Status::Downloading, ident));
-        try!(self.depot_client
-            .fetch_package(ident.clone(), self.cache_artifact_path, ui.progress()));
+        try!(self.depot_client.fetch_package(ident, self.cache_artifact_path, ui.progress()));
         Ok(())
     }
 

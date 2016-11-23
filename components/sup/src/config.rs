@@ -20,13 +20,15 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use std::mem;
+use std::net::{SocketAddr, IpAddr};
 use std::str::FromStr;
 use std::sync::{Once, ONCE_INIT};
-use std::mem;
 
 use hcore::package::PackageIdent;
 
 use error::{Error, SupError};
+use http_gateway;
 
 static LOGKEY: &'static str = "CFG";
 
@@ -65,7 +67,7 @@ pub enum Command {
     ShellSh,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, RustcEncodable)]
 pub enum UpdateStrategy {
     None,
     AtOnce,
@@ -122,6 +124,7 @@ impl Default for Command {
 /// Holds our configuration options.
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
+    pub http_listen_addr: http_gateway::ListenAddr,
     command: Command,
     package: PackageIdent,
     local_artifact: Option<String>,
@@ -138,8 +141,6 @@ pub struct Config {
     gossip_listen: String,
     gossip_listen_ip: String,
     gossip_listen_port: u16,
-    http_listen_ip: String,
-    http_listen_port: u16,
     userkey: Option<String>,
     servicekey: Option<String>,
     infile: Option<String>,
@@ -371,21 +372,17 @@ impl Config {
         self
     }
 
-    pub fn http_listen_ip(&self) -> &str {
-        &self.http_listen_ip
+    pub fn http_listen_addr(&self) -> &SocketAddr {
+        &self.http_listen_addr
     }
 
-    pub fn set_http_listen_ip(&mut self, ip: String) -> &mut Config {
-        self.http_listen_ip = ip;
+    pub fn set_http_listen_ip(&mut self, ip: IpAddr) -> &mut Config {
+        self.http_listen_addr.set_ip(ip);
         self
     }
 
-    pub fn http_listen_port(&self) -> u16 {
-        self.http_listen_port
-    }
-
     pub fn set_http_listen_port(&mut self, port: u16) -> &mut Config {
-        self.http_listen_port = port;
+        self.http_listen_addr.set_port(port);
         self
     }
 

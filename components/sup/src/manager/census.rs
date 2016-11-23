@@ -292,7 +292,7 @@ impl CensusEntry {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct Census {
     population: HashMap<String, CensusEntry>,
     member_id: String,
@@ -345,8 +345,7 @@ impl Census {
     }
 }
 
-//
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct CensusList {
     censuses: HashMap<String, Census>,
 }

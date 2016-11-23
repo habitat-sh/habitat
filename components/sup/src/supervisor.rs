@@ -24,12 +24,14 @@ use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Child;
+use std::result;
 use std::thread;
 
 use hcore;
 use hcore::os::process;
 use hcore::package::PackageIdent;
 use libc::c_int;
+use rustc_serialize::{Encodable, Encoder};
 use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
@@ -95,7 +97,7 @@ pub fn WTERMSIG(status: c_int) -> c_int {
 
 pub type Pid = u32;
 
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub enum ProcessState {
     Down,
     Up,
@@ -120,7 +122,7 @@ impl fmt::Display for ProcessState {
 /// These params are outside the scope of what is in
 /// Supervisor.package_ident, and aren't runtime params that are stored
 /// in the top-level Supervisor struct (such as PID etc)
-#[derive(Debug)]
+#[derive(Debug, RustcEncodable)]
 pub struct RuntimeConfig {
     pub svc_user: String,
     pub svc_group: String,
@@ -179,8 +181,9 @@ impl Supervisor {
             outputln!(preamble & self.package_ident.name, "Starting");
             self.enter_state(ProcessState::Start);
             let mut child = try!(util::create_command(self.run_cmd(),
-                &self.runtime_config.svc_user,
-                &self.runtime_config.svc_group).spawn());
+                                                      &self.runtime_config.svc_user,
+                                                      &self.runtime_config.svc_group)
+                .spawn());
 
             self.pid = Some(child.id());
             try!(self.create_pidfile());
@@ -385,6 +388,23 @@ impl Supervisor {
             }
         };
         Ok(Some(pid))
+    }
+}
+
+impl Encodable for Supervisor {
+    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
+        try!(s.emit_struct("supervisor", 6, |s| {
+            try!(s.emit_struct_field("pid", 0, |s| self.pid.encode(s)));
+            try!(s.emit_struct_field("package_ident", 1, |s| self.package_ident.encode(s)));
+            try!(s.emit_struct_field("state", 2, |s| self.state.encode(s)));
+            try!(s.emit_struct_field("state_entered",
+                                     3,
+                                     |s| self.state_entered.to_string().encode(s)));
+            try!(s.emit_struct_field("has_started", 4, |s| self.has_started.encode(s)));
+            try!(s.emit_struct_field("runtime_config", 5, |s| self.runtime_config.encode(s)));
+            Ok(())
+        }));
+        Ok(())
     }
 }
 

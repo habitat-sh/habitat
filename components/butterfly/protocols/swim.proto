@@ -50,7 +50,7 @@ message Service {
   optional string hostname = 5;
   optional uint32 port = 6;
   repeated uint32 exposes = 7;
-  optional bool initialized = 8; 
+  optional bool initialized = 8;
 }
 
 message ServiceConfig {
@@ -73,11 +73,11 @@ message Swim {
 
   // Identifies which field is filled in.
   required Type type = 1;
-
-  // Optional
-  optional Ping ping = 2;
-  optional Ack ack = 3;
-  optional PingReq pingreq = 4;
+  oneof payload {
+    Ping ping = 2;
+    Ack ack = 3;
+    PingReq pingreq = 4;
+  }
   repeated Membership membership = 5;
 }
 
@@ -95,13 +95,13 @@ message Rumor {
   required Type type = 1;
   repeated string tag = 2;
   optional string from_id = 3;
-
-  // Everything else must be optional
-  optional Membership member = 4;
-  optional Service service = 5;
-  optional ServiceConfig service_config = 6;
-  optional ServiceFile service_file = 7;
-  optional Election election = 8;
+  oneof payload {
+    Membership member = 4;
+    Service service = 5;
+    ServiceConfig service_config = 6;
+    ServiceFile service_file = 7;
+    Election election = 8;
+  }
 }
 
 message Wire {

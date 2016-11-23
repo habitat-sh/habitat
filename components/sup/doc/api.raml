@@ -1,0 +1,75 @@
+#%RAML 0.8
+---
+title: Habitat Supervisor API
+
+baseUri: http://{rootUri}
+baseUriParameters:
+    rootUri:
+        description: The root URI for the Habitat Supervisor
+        example: localhost:9631
+mediaType: application/json
+/butterfly:
+    get:
+        description: Butterfly debug output
+        responses:
+            200:
+/census:
+    get:
+        description: Census debug output
+        responses:
+            200:
+/services:
+    get:
+        description: Service debug output
+        responses:
+            200:
+    /{name}/{group}/config:
+        get:
+            description: Get last configuration for the given service group
+            responses:
+                200:
+                    body:
+                        application/toml:
+                404:
+                    description: Service not found
+                503:
+                    description: Temporarily couldn't load configuration
+    /{name}/{group}/health:
+        get:
+            description: Health check status and output for the given service group
+            responses:
+                200:
+                    description: Health Check - Ok / Warning
+                    body:
+                        application/text:
+                404:
+                    description: Service not found
+                500:
+                    description: Health Check - Unknown
+                503:
+                    description: Health Check - Critical
+    /{name}/{group}/{organization}/config:
+        get:
+            description: Get last configuration for the given service group
+            responses:
+                200:
+                    body:
+                        application/toml:
+                404:
+                    description: Service not found
+                503:
+                    description: Temporarily couldn't load configuration
+    /{name}/{group}/{organization}/health:
+        get:
+            description: Health check status and output for the given service group
+            responses:
+                200:
+                    description: Health Check - Ok / Warning
+                    body:
+                        application/text:
+                404:
+                    description: Service not found
+                500:
+                    description: Health Check - Unknown
+                503:
+                    description: Health Check - Critical

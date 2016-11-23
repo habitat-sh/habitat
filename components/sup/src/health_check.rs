@@ -14,7 +14,7 @@
 
 use std::fmt::{self, Display, Formatter};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, RustcEncodable)]
 pub enum Status {
     Ok,
     Warning,
@@ -22,7 +22,7 @@ pub enum Status {
     Unknown,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, RustcEncodable)]
 pub struct CheckResult {
     pub status: Status,
     pub output: String,

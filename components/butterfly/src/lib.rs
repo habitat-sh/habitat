@@ -46,16 +46,18 @@ extern crate habitat_net;
 extern crate log;
 extern crate protobuf;
 extern crate rand;
+extern crate rustc_serialize;
 extern crate time;
 extern crate uuid;
 extern crate zmq;
 
 #[macro_use]
 pub mod trace;
-
+pub mod client;
 pub mod error;
 pub mod member;
 pub mod message;
 pub mod rumor;
 pub mod server;
-pub mod client;
+
+pub use server::Server;
