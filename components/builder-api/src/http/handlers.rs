@@ -39,10 +39,18 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
         let params = req.extensions.get::<Router>().unwrap();
         params.find("code").unwrap().to_string()
     };
+
     let github = req.get::<persistent::Read<GitHubCli>>().unwrap();
     match github.authenticate(&code) {
         Ok(token) => {
             let session = try!(session_create(&github, &token));
+
+            log_event!(req,
+                       Event::GithubAuthenticate {
+                           user: session.get_name(),
+                           account: &session.get_id().to_string(),
+                       });
+
             Ok(render_json(status::Ok, &session))
         }
         Err(hab_net::Error::Net(err)) => Ok(render_net_error(&err)),
@@ -62,17 +70,27 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
             _ => return Ok(Response::with(status::UnprocessableEntity)),
         }
     }
-    let session = req.extensions.get::<Authenticated>().unwrap();
+    // TODO: SA - Eliminate need to clone the session
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
     let mut conn = Broker::connect().unwrap();
     let project = match conn.route::<ProjectGet, Project>(&project_get) {
         Ok(project) => project,
         Err(err) => return Ok(render_net_error(&err)),
     };
+
     let mut job_spec: JobSpec = JobSpec::new();
     job_spec.set_owner_id(session.get_id());
     job_spec.set_project(project);
+
     match conn.route::<JobSpec, Job>(&job_spec) {
-        Ok(job) => Ok(render_json(status::Created, &job)),
+        Ok(job) => {
+            log_event!(req,
+                       Event::JobCreate {
+                           package: &job.get_project().get_id(),
+                           account: &session.get_id().to_string(),
+                       });
+            Ok(render_json(status::Created, &job))
+        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }
@@ -124,20 +142,26 @@ pub fn list_user_origins(req: &mut Request) -> IronResult<Response> {
 pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginInvitationAcceptRequest::new();
     request.set_ignore(false);
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        request.set_account_accepting_request(session.get_id());
+    // TODO: SA - Eliminate need to clone the session and params
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = &req.extensions.get::<Router>().unwrap().clone();
+
+    request.set_account_accepting_request(session.get_id());
+    match params.find("invitation_id").unwrap().parse::<u64>() {
+        Ok(value) => request.set_invite_id(value),
+        Err(_) => return Ok(Response::with(status::BadRequest)),
     }
-    {
-        let params = &req.extensions.get::<Router>().unwrap();
-        match params.find("invitation_id").unwrap().parse::<u64>() {
-            Ok(value) => request.set_invite_id(value),
-            Err(_) => return Ok(Response::with(status::BadRequest)),
-        }
-    }
+
     let mut conn = Broker::connect().unwrap();
     match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
-        Ok(_invites) => Ok(Response::with(status::NoContent)),
+        Ok(_invites) => {
+            log_event!(req,
+                       Event::OriginInvitationAccept {
+                           id: &request.get_invite_id().to_string(),
+                           account: &session.get_id().to_string(),
+                       });
+            Ok(Response::with(status::NoContent))
+        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }
@@ -145,20 +169,26 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
 pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
     let mut request = OriginInvitationAcceptRequest::new();
     request.set_ignore(true);
-    {
-        let session = req.extensions.get::<Authenticated>().unwrap();
-        request.set_account_accepting_request(session.get_id());
+    // TODO: SA - Eliminate need to clone the session and params
+    let session = req.extensions.get::<Authenticated>().unwrap().clone();
+    let params = &req.extensions.get::<Router>().unwrap().clone();
+
+    request.set_account_accepting_request(session.get_id());
+    match params.find("invitation_id").unwrap().parse::<u64>() {
+        Ok(value) => request.set_invite_id(value),
+        Err(_) => return Ok(Response::with(status::BadRequest)),
     }
-    {
-        let params = &req.extensions.get::<Router>().unwrap();
-        match params.find("invitation_id").unwrap().parse::<u64>() {
-            Ok(value) => request.set_invite_id(value),
-            Err(_) => return Ok(Response::with(status::BadRequest)),
-        }
-    }
+
     let mut conn = Broker::connect().unwrap();
     match conn.route::<OriginInvitationAcceptRequest, OriginInvitationAcceptResponse>(&request) {
-        Ok(_invites) => Ok(Response::with(status::NoContent)),
+        Ok(_invites) => {
+            log_event!(req,
+                       Event::OriginInvitationIgnore {
+                           id: &request.get_invite_id().to_string(),
+                           account: &session.get_id().to_string(),
+                       });
+            Ok(Response::with(status::NoContent))
+        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }
@@ -227,17 +257,18 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Err(_) => return Ok(Response::with((status::UnprocessableEntity, "rg:pc:2"))),
     }
 
-    log_event!(req,
-               Event::ProjectCreate {
-                   origin: origin.get_name(),
-                   package: project.get_id(),
-                   account: &session.get_id().to_string(),
-               });
-
     project.set_owner_id(session.get_id());
     request.set_project(project);
     match conn.route::<ProjectCreate, Project>(&request) {
-        Ok(response) => Ok(render_json(status::Created, &response)),
+        Ok(response) => {
+            log_event!(req,
+                       Event::ProjectCreate {
+                           origin: origin.get_name(),
+                           package: request.get_project().get_id(),
+                           account: &session.get_id().to_string(),
+                       });
+            Ok(render_json(status::Created, &response))
+        }
         Err(err) => Ok(render_net_error(&err)),
     }
 }

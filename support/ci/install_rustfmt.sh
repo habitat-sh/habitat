@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-version=0.6.2
+version=0.6.3
 
 if command -v rustfmt >/dev/null; then
   if [[ $(rustfmt --version | cut -d ' ' -f 1) = "$version" ]]; then
