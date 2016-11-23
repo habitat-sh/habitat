@@ -29,6 +29,8 @@ Static site content for www.habitat.sh
 1. [Setup your workstation](#setup)
 1. Configure your environment
 
+  * AWS_BUCKET - for production deploys, this should be `habitat-www`, for acceptance deploys `habitat-www-acceptance`
+  * AWS_DEFAULT_REGION - this should be `us-west-2`
   * AWS_ACCESS_KEY_ID - your personal AWS account identifier
   * AWS_SECRET_ACCESS_KEY - your AWS account's personal access key
   * FASTLY_API_KEY - your Fastly account's personal access key
