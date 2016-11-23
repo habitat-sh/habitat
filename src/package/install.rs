@@ -19,7 +19,10 @@ use std::env;
 use std::fs::{DirEntry, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
+use std::result;
 use std::str::FromStr;
+
+use rustc_serialize::{Encoder, Encodable};
 
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
@@ -410,9 +413,10 @@ impl PackageInstall {
         Ok(())
     }
 
-    /// Helper function for walk_versions. Walks the given release DirEntry for directories and recurses
-    /// into them to find version directories. Finally, a Package struct is built and concatenated onto
-    /// the given packages vector with the origin, name, version, and release of each.
+    /// Helper function for walk_versions. Walks the given release DirEntry for directories and
+    /// recurses into them to find version directories. Finally, a Package struct is built and
+    /// concatenated onto the given packages vector with the origin, name, version, and release of
+    /// each.
     fn walk_releases(origin: &String,
                      name: &String,
                      version: &DirEntry,
@@ -425,6 +429,25 @@ impl PackageInstall {
                 PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
             packages.push(ident)
         }
+        Ok(())
+    }
+}
+
+impl Encodable for PackageInstall {
+    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
+        try!(s.emit_struct("package_install", 4, |s| {
+            try!(s.emit_struct_field("ident", 0, |s| self.ident.encode(s)));
+            try!(s.emit_struct_field("fs_root_path",
+                                     1,
+                                     |s| self.fs_root_path.to_string_lossy().encode(s)));
+            try!(s.emit_struct_field("package_root_path",
+                                     2,
+                                     |s| self.package_root_path.to_string_lossy().encode(s)));
+            try!(s.emit_struct_field("installed_path",
+                                     3,
+                                     |s| self.installed_path.to_string_lossy().encode(s)));
+            Ok(())
+        }));
         Ok(())
     }
 }

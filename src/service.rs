@@ -91,18 +91,6 @@ mod test {
     use super::ServiceGroup;
 
     #[test]
-    fn service_group_fields() {
-        let sg = ServiceGroup {
-            service: "kayla".to_string(),
-            group: "album".to_string(),
-            organization: Some("flying_colors".to_string()),
-        };
-        assert_eq!(sg.service, "kayla");
-        assert_eq!(sg.group, "album");
-        assert_eq!(sg.organization, Some("flying_colors".to_string()));
-    }
-
-    #[test]
     fn fmt_without_organization() {
         let sg = ServiceGroup::new("kayla", "album", None);
         assert_eq!(&sg.to_string(), "kayla.album");
