@@ -1049,8 +1049,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
 
         package_search: get "/pkgs/search/:query" => search_packages,
         packages: get "/pkgs/:origin" => list_packages,
-        // JB TODO - this URL needs to change otherwise no one will be able to upload a package called "unique"
-        packages_unique: get "/pkgs/:origin/unique" => list_unique_packages,
+        packages_unique: get "/pkgs-unique/:origin" => list_unique_packages,
         packages_pkg: get "/pkgs/:origin/:pkg" => list_packages,
         package_pkg_latest: get "/pkgs/:origin/:pkg/latest" => show_package,
         packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,

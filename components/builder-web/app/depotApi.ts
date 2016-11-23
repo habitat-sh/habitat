@@ -18,6 +18,34 @@ import {packageString} from "./util";
 
 const urlPrefix = config["habitat_api_url"] || "";
 
+export function getUnique(origin: string, nextRange: number = 0) {
+    const url = `${urlPrefix}/depot/pkgs-unique/${origin}?range=${nextRange}`;
+
+    return new Promise((resolve, reject) => {
+        fetch(url).then(response => {
+            if (response.status >= 400) {
+                reject(new Error(response.statusText));
+            }
+
+            response.json().then(resultsObj => {
+                let results;
+
+                const endRange = parseInt(resultsObj.range_end, 10);
+                const totalCount = parseInt(resultsObj.total_count, 10);
+                const nextRange = totalCount > (endRange + 1) ? endRange + 1 : 0;
+
+                if (resultsObj["package_list"]) {
+                    results = resultsObj["package_list"];
+                } else {
+                    results = resultsObj;
+                }
+
+                resolve({ results, totalCount, nextRange });
+            });
+        }).catch(error => reject(error));
+    });
+}
+
 export function get(params, nextRange: number = 0) {
     const url = `${urlPrefix}/depot/pkgs/` +
         (params["query"] ? `search/${params["query"]}`

@@ -153,6 +153,7 @@ export const populateExplore = packageActions.populateExplore;
 export const setCurrentPackage = packageActions.setCurrentPackage;
 export const setPackagesSearchQuery = packageActions.setPackagesSearchQuery;
 export const setVisiblePackages = packageActions.setVisiblePackages;
+export const getUniquePackages = packageActions.getUniquePackages;
 
 export const addProject = projectActions.addProject;
 export const fetchBuilds = projectActions.fetchBuilds;

@@ -170,11 +170,12 @@ impl PackagesIndex {
             Ok(ids) => {
                 // JW TODO: This in-memory sorting logic can be removed once the Redis sorted set
                 // is pre-sorted on write. For now, we'll do it on read each time.
-                let mut ids: Vec<package::PackageIdent> =
-                    ids.iter().map(|id| package::PackageIdent::from_str(id).unwrap()).collect();
-                ids.sort();
-                let ids = ids.into_iter().map(|id| depotsrv::PackageIdent::from(id)).collect();
-                Ok(ids)
+                let mut idz: Vec<package::PackageIdent> = ids.iter()
+                    .map(|iz| package::PackageIdent::from_str(&format!("{}/{}", &id, &iz)).unwrap())
+                    .collect();
+                idz.sort();
+                let new_ids = idz.into_iter().map(|zd| depotsrv::PackageIdent::from(zd)).collect();
+                Ok(new_ids)
             }
             Err(e) => Err(Error::from(e)),
         }
