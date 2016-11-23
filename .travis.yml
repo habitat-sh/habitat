@@ -208,6 +208,7 @@ matrix:
           - /root/.cargo
       before_install:
         - ./support/ci/fast_pass.sh || exit 0
+        - if [[ ! -x ./support/ci/deploy_unstable.sh ]]; then chmod +x ./support/ci/deploy_unstable.sh; fi
       script:
         - sudo ./support/ci/deploy_unstable.sh
     - os: osx
