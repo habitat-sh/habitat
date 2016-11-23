@@ -47,6 +47,7 @@ pub fn get() -> App<'static, 'static> {
             (aliases: &["cl"])
             (@setting ArgRequiredElseHelp)
             (subcommand: sub_cli_setup().aliases(&["s", "se", "set", "setu"]))
+            (subcommand: sub_cli_completers().aliases(&["c", "co", "com", "comp"]))
         )
         (@subcommand config =>
             (about: "Commands relating to Habitat runtime config")
@@ -320,6 +321,28 @@ fn sub_cli_setup() -> App<'static, 'static> {
     clap_app!(@subcommand setup =>
         (about: "Sets up the CLI with reasonable defaults.")
     )
+}
+
+
+
+fn sub_cli_completers() -> App<'static, 'static> {
+    let sub = clap_app!(@subcommand completers =>
+        (about: "Creates command-line completers for your shell."));
+
+    let supported_shells = ["bash", "fish", "zsh", "powershell"];
+
+    // The clap_app! macro above is great but does not support the ability to specify a range of
+    // possible values. We wanted to fail here with an unsupported shell instead of pushing off a
+    // bad value to clap.
+
+    sub.arg(Arg::with_name("SHELL")
+        .help("The name of the shell you want to generate the command-completion. \
+                      Supported Shells: bash, fish, zsh, powershell")
+        .short("s")
+        .long("shell")
+        .required(true)
+        .takes_value(true)
+        .possible_values(&supported_shells))
 }
 
 fn sub_config_apply() -> App<'static, 'static> {

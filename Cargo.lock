@@ -49,7 +49,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "clap"
-version = "2.17.1"
+version = "2.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -170,7 +170,7 @@ name = "hab"
 version = "0.0.0"
 dependencies = [
  "ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_common 0.0.0",
  "habitat_core 0.0.0",
@@ -196,7 +196,7 @@ name = "habitat_builder_admin"
 version = "0.0.0"
 dependencies = [
  "bodyparser 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
@@ -225,7 +225,7 @@ name = "habitat_builder_api"
 version = "0.0.0"
 dependencies = [
  "bodyparser 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.0.0",
  "habitat_core 0.0.0",
@@ -270,7 +270,7 @@ dependencies = [
 name = "habitat_builder_jobsrv"
 version = "0.0.0"
 dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.0.0",
  "habitat_builder_protocol 0.0.0",
@@ -301,7 +301,7 @@ dependencies = [
 name = "habitat_builder_router"
 version = "0.0.0"
 dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.0.0",
  "habitat_builder_protocol 0.0.0",
@@ -319,7 +319,7 @@ name = "habitat_builder_sessionsrv"
 version = "0.0.0"
 dependencies = [
  "bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.0.0",
  "habitat_builder_protocol 0.0.0",
@@ -339,7 +339,7 @@ dependencies = [
 name = "habitat_builder_vault"
 version = "0.0.0"
 dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.0.0",
  "habitat_builder_protocol 0.0.0",
@@ -357,7 +357,7 @@ dependencies = [
 name = "habitat_builder_worker"
 version = "0.0.0"
 dependencies = [
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_protocol 0.0.0",
@@ -451,7 +451,7 @@ name = "habitat_depot"
 version = "0.0.0"
 dependencies = [
  "bodyparser 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_builder_dbcache 0.0.0",
  "habitat_builder_protocol 0.0.0",
@@ -508,7 +508,7 @@ name = "habitat_director"
 version = "0.0.0"
 dependencies = [
  "ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_common 0.0.0",
  "habitat_core 0.0.0",
@@ -563,7 +563,7 @@ name = "habitat_sup"
 version = "0.0.0"
 dependencies = [
  "ansi_term 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_butterfly 0.1.0",
  "habitat_common 0.0.0",
@@ -1554,7 +1554,7 @@ dependencies = [
 "checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
 "checksum bodyparser 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "07b171b407e583dc8f01011a713f20575a81ac60acecf3b8153012709aeb1fd6"
 "checksum broadcast 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fb214f702da3cc6aa1666520f40ea66f506644db5e1065be4bbc972f7ec3750b"
-"checksum clap 2.17.1 (registry+https://github.com/rust-lang/crates.io-index)" = "27dac76762fb56019b04aed3ccb43a770a18f80f9c2eb62ee1a18d9fb4ea2430"
+"checksum clap 2.19.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ef87e92396a3d29bf7e611c8a595be35ae90d9cb844a3571425900eaca4f51c8"
 "checksum cmake 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)" = "0e5bcf27e097a184c1df4437654ed98df3d7a516e8508a6ba45d8b092bbdf283"
 "checksum conduit-mime-types 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)" = "95ca30253581af809925ef68c2641cc140d6183f43e12e0af4992d53768bd7b8"
 "checksum cookie 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0e3d6405328b6edb412158b3b7710e2634e23f3614b9bb1c412df7952489a626"
