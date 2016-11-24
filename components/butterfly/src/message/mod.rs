@@ -12,4 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use habitat_core::crypto::SymKey;
+
+use error::Result;
+use message::swim::Wire;
+use protobuf::{self, Message};
+
 pub mod swim;
+
+pub fn generate_wire(payload: Vec<u8>, ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
+    let mut wire = Wire::new();
+    if let Some(ref ring_key) = *ring_key {
+        wire.set_encrypted(true);
+        let (nonce, encrypted_payload) = try!(ring_key.encrypt(&payload));
+        wire.set_nonce(nonce);
+        wire.set_payload(encrypted_payload);
+    } else {
+        wire.set_payload(payload);
+    }
+    Ok(try!(wire.write_to_bytes()))
+}
+
+pub fn unwrap_wire(payload: &[u8], ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
+    let mut wire: Wire = try!(protobuf::parse_from_bytes(payload));
+    if let Some(ref ring_key) = *ring_key {
+        Ok(try!(ring_key.decrypt(wire.get_nonce(), wire.get_payload())))
+    } else {
+        Ok(wire.take_payload())
+    }
+}

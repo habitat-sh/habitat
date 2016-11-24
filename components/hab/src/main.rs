@@ -81,23 +81,10 @@ fn start(ui: &mut UI) -> Result<()> {
             e.exit();
         });
     match app_matches.subcommand() {
-        ("apply", Some(m)) => try!(sub_config_apply(ui, m)),
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(_)) => try!(sub_cli_setup(ui)),
                 ("completers", Some(m)) => try!(sub_cli_completers(ui, m)),
-                _ => unreachable!(),
-            }
-        }
-        ("config", Some(matches)) => {
-            match matches.subcommand() {
-                ("apply", Some(m)) => try!(sub_config_apply(ui, m)),
-                _ => unreachable!(),
-            }
-        }
-        ("file", Some(matches)) => {
-            match matches.subcommand() {
-                ("upload", Some(m)) => try!(sub_file_upload(ui, m)),
                 _ => unreachable!(),
             }
         }
@@ -196,42 +183,6 @@ fn sub_cli_completers(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let shell = m.value_of("SHELL").expect("Missing Shell; A shell is required");
     cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
     Ok(())
-}
-
-fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
-    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
-    let fs_root_path = Some(Path::new(&fs_root));
-    let peers_str = m.value_of("PEER").unwrap_or("127.0.0.1");
-    let mut peers: Vec<String> = peers_str.split(",").map(|p| p.into()).collect();
-    for p in peers.iter_mut() {
-        if p.find(':').is_none() {
-            p.push(':');
-            p.push_str(&hab_gossip::GOSSIP_DEFAULT_PORT.to_string());
-        }
-    }
-    let number = value_t!(m, "VERSION_NUMBER", u64).unwrap_or_else(|e| e.exit());
-    let file_path = match m.value_of("FILE") {
-        Some("-") | None => None,
-        Some(p) => Some(Path::new(p)),
-    };
-
-    init();
-    let cache = default_cache_key_path(fs_root_path);
-    let ring_key = match m.value_of("RING") {
-        Some(name) => Some(try!(SymKey::get_latest_pair_for(&name, &cache))),
-        None => None,
-    };
-
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())); // Required via clap
-
-    // use the org if it's passed in on the CLI or set in an env var
-    let org = match org_param_or_env(&m) {
-        Ok(org) => Some(org.to_string()),
-        Err(_e) => None,
-    };
-    sg.organization = org;
-
-    command::config::apply::start(ui, &peers, ring_key.as_ref(), &sg, number, file_path)
 }
 
 fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -568,6 +519,15 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
     match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
+        ("butterfly", _) => command::butterfly::start(ui, env::args_os().skip(2).collect()),
+        ("apply", _) => {
+            let mut args: Vec<OsString> = env::args_os().skip(1).collect();
+            args.insert(0, OsString::from("config"));
+            command::butterfly::start(ui, args)
+        }
+        ("config", _) | ("file", _) => {
+            command::butterfly::start(ui, env::args_os().skip(1).collect())
+        }
         ("stu", _) | ("stud", _) | ("studi", _) | ("studio", _) => {
             command::studio::start(ui, env::args_os().skip(2).collect())
         }

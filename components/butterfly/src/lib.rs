@@ -58,3 +58,4 @@ pub mod member;
 pub mod message;
 pub mod rumor;
 pub mod server;
+pub mod client;

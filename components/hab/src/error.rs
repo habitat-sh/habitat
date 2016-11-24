@@ -30,6 +30,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[allow(dead_code)]
 pub enum Error {
     ArgumentError(&'static str),
+    ButterflyError(String),
     CommandNotFoundInPkg((String, String)),
     CryptoCLI(String),
     DepotClient(depot_client::Error),
@@ -49,12 +50,15 @@ pub enum Error {
     RootRequired,
     SubcommandNotSupported(String),
     UnsupportedExportFormat(String),
+    TomlError,
+    Utf8Error(String),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::ArgumentError(ref e) => format!("{}", e),
+            Error::ButterflyError(ref e) => format!("{}", e),
             Error::CommandNotFoundInPkg((ref p, ref c)) => {
                 format!("`{}' was not found under any 'PATH' directories in the {} package",
                         c,
@@ -100,6 +104,8 @@ impl fmt::Display for Error {
                 format!("Subcommand `{}' not supported on this operating system", e)
             }
             Error::UnsupportedExportFormat(ref e) => format!("Unsupported export format: {}", e),
+            Error::TomlError => format!("Invalid TOML"),
+            Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
         };
         write!(f, "{}", msg)
     }
@@ -109,6 +115,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
+            Error::ButterflyError(_) => "Butterfly has had an error",
             Error::CommandNotFoundInPkg(_) => {
                 "Command was not found under any 'PATH' directories in the package"
             }
@@ -136,6 +143,8 @@ impl error::Error for Error {
             }
             Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
             Error::UnsupportedExportFormat(_) => "Unsupported export format",
+            Error::TomlError => "Invalid TOML",
+            Error::Utf8Error(_) => "Error processing string as UTF-8",
         }
     }
 }
