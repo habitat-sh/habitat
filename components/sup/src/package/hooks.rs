@@ -16,18 +16,17 @@ use std::fmt;
 use std::fs::{self, File};
 use std::io::prelude::*;
 use std::path::PathBuf;
-use std::process::{Command, Stdio};
 
 use handlebars::Handlebars;
 
 use error::{Error, Result};
 use hcore::util;
-use hcore::os::users;
 use package::Package;
 use manager::service::config::{ServiceConfig, never_escape_fn};
 use util::convert;
 use util::handlebars_helpers;
 use util::users as hab_users;
+use util as sup_util;
 
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "PH";
@@ -79,9 +78,7 @@ impl Hook {
     }
 
     pub fn run(&self) -> Result<String> {
-        let mut cmd = Command::new(&self.path);
-        try!(self.run_platform(&mut cmd));
-        let mut child = try!(cmd.spawn());
+        let mut child = try!(sup_util::create_command(self.path.clone(), &self.user, &self.group).spawn());
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,
@@ -121,34 +118,6 @@ impl Hook {
                                              exit_status.code().unwrap_or(-1),
                                              String::from("Failed"))))
         }
-    }
-
-    #[cfg(any(target_os="linux", target_os="macos"))]
-    fn run_platform(&self, cmd: &mut Command) -> Result<()> {
-        use std::os::unix::process::CommandExt;
-        let uid = users::get_uid_by_name(&self.user);
-        let gid = users::get_gid_by_name(&self.group);
-        if let None = uid {
-            panic!("Can't determine uid");
-        }
-
-        if let None = gid {
-            panic!("Can't determine gid");
-        }
-
-        let uid = uid.unwrap();
-        let gid = gid.unwrap();
-        cmd.stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .uid(uid)
-            .gid(gid);
-        Ok(())
-    }
-
-    #[cfg(target_os = "windows")]
-    fn run_platform(&self, cmd: &mut Command) -> Result<()> {
-        unimplemented!();
     }
 
     pub fn compile(&self, context: Option<&ServiceConfig>) -> Result<()> {

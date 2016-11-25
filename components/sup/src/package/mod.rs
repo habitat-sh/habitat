@@ -35,7 +35,7 @@ use error::{Error, Result, SupError};
 use health_check::{self, CheckResult};
 use manager::service::config::ServiceConfig;
 use supervisor::Supervisor;
-use util::path::busybox_paths;
+use util::path;
 use util::users as hab_users;
 
 static LOGKEY: &'static str = "PK";
@@ -96,25 +96,17 @@ impl Package {
     }
 
     /// Returns a string with the full run path for this package. This path is composed of any
-    /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox,
+    /// binary paths specified by this package, or its TDEPS, plus a path to a BusyBox(non-windows),
     /// plus the existing value of the PATH variable.
     ///
     /// This means we work on any operating system, as long as you can invoke the Supervisor,
     /// without having to worry much about context.
     pub fn run_path(&self) -> Result<String> {
         let mut paths = match self.pkg_install.runtime_path() {
-            Ok(r) => r,
+            Ok(r) => env::split_paths(&r).collect::<Vec<PathBuf>>(),
             Err(e) => return Err(sup_error!(Error::HabitatCore(e))),
         };
-        for path in try!(busybox_paths()).iter() {
-            paths.push(':');
-            paths.push_str(&path.to_string_lossy());
-        }
-        if let Some(val) = env::var_os("PATH") {
-            paths.push(':');
-            paths.push_str(&val.to_string_lossy());
-        }
-        Ok(paths)
+        path::append_interpreter_and_path(&mut paths)
     }
 
     pub fn hook_template_path(&self, hook_type: &HookType) -> PathBuf {

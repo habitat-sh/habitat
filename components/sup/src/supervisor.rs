@@ -23,16 +23,17 @@ use std::fs::{self, File};
 use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
-use std::process::{Command, Stdio, Child};
+use std::process::Child;
 use std::thread;
 
 use hcore;
-use hcore::os::{process, users};
+use hcore::os::process;
 use hcore::package::PackageIdent;
 use libc::c_int;
 use time::{Duration, SteadyTime};
 
 use error::{Result, Error};
+use util;
 use util::signals;
 
 const PIDFILE_NAME: &'static str = "PID";
@@ -177,10 +178,9 @@ impl Supervisor {
         if self.pid.is_none() {
             outputln!(preamble & self.package_ident.name, "Starting");
             self.enter_state(ProcessState::Start);
-
-            let mut cmd = Command::new(self.run_cmd());
-            try!(self.start_platform(&mut cmd));
-            let mut child = try!(cmd.spawn());
+            let mut child = try!(util::create_command(self.run_cmd(),
+                &self.runtime_config.svc_user,
+                &self.runtime_config.svc_group).spawn());
 
             self.pid = Some(child.id());
             try!(self.create_pidfile());
@@ -194,34 +194,6 @@ impl Supervisor {
             outputln!(preamble & self.package_ident.name, "Already started");
         }
         Ok(())
-    }
-
-    #[cfg(any(target_os="linux", target_os="macos"))]
-    fn start_platform(&mut self, cmd: &mut Command) -> Result<()> {
-        use std::os::unix::process::CommandExt;
-        let uid = users::get_uid_by_name(&self.runtime_config.svc_user);
-        let gid = users::get_gid_by_name(&self.runtime_config.svc_group);
-        if let None = uid {
-            panic!("Can't determine uid");
-        }
-
-        if let None = gid {
-            panic!("Can't determine gid");
-        }
-
-        let uid = uid.unwrap();
-        let gid = gid.unwrap();
-        cmd.stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .uid(uid)
-            .gid(gid);
-        Ok(())
-    }
-
-    #[cfg(target_os = "windows")]
-    fn start_platform(&mut self, cmd: &mut Command) -> Result<()> {
-        unimplemented!();
     }
 
     /// Send a SIGTERM to a process, wait 8 seconds, then send SIGKILL

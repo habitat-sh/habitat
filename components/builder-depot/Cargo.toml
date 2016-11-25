@@ -64,7 +64,8 @@ git = "https://github.com/habitat-sh/urlencoded.git"
 branch = "habitat"
 
 [dependencies.zmq]
-git = "https://github.com/erickt/rust-zmq.git"
+git = "https://github.com/habitat-sh/rust-zmq.git"
+tag = "windows_fix_pr"
 
 [build-dependencies]
 serde_codegen = "*"

@@ -22,5 +22,11 @@ pub enum SignalEvent {
 #[cfg(unix)]
 mod unix;
 
+#[cfg(windows)]
+mod windows;
+
 #[cfg(unix)]
 pub use manager::signals::unix::{init, check_for_signal, send_signal};
+
+#[cfg(windows)]
+pub use manager::signals::windows::{init, check_for_signal, send_signal};

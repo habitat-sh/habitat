@@ -23,8 +23,9 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_child_command(command, args)
 }
 
+//TODO: REALLY wait for exit
 pub fn wait_for_exit(pid: u32, status: *mut c_int) -> u32 {
-    unimplemented!();
+    0
 }
 
 pub fn send_signal(pid: u32, sig: u32) -> u32 {

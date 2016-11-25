@@ -245,7 +245,7 @@ dependencies = [
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "urlencoded 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -275,7 +275,7 @@ dependencies = [
  "staticfile 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -310,7 +310,7 @@ dependencies = [
  "redis 0.7.0 (git+https://github.com/habitat-sh/redis-rs?branch=habitat)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -339,7 +339,7 @@ dependencies = [
  "protobuf 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -360,7 +360,7 @@ dependencies = [
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -378,7 +378,7 @@ dependencies = [
  "redis 0.7.0 (git+https://github.com/habitat-sh/redis-rs?branch=habitat)",
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -396,7 +396,7 @@ dependencies = [
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.0.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "toml 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -415,7 +415,7 @@ dependencies = [
  "threadpool 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -512,7 +512,7 @@ dependencies = [
  "urlencoded 0.4.0 (git+https://github.com/habitat-sh/urlencoded.git?branch=habitat)",
  "uuid 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -583,7 +583,7 @@ dependencies = [
  "rustc-serialize 0.3.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.35 (registry+https://github.com/rust-lang/crates.io-index)",
  "unicase 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
@@ -1559,17 +1559,17 @@ dependencies = [
 [[package]]
 name = "zmq"
 version = "0.8.0"
-source = "git+https://github.com/erickt/rust-zmq.git#5cd311a6127a7dd49920cc0a3f7f9501b155146c"
+source = "git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr#830530c5245024556f504ec44b5e7102fd2bae6e"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "zmq-sys 0.8.0 (git+https://github.com/erickt/rust-zmq.git)",
+ "zmq-sys 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)",
 ]
 
 [[package]]
 name = "zmq-sys"
 version = "0.8.0"
-source = "git+https://github.com/erickt/rust-zmq.git#5cd311a6127a7dd49920cc0a3f7f9501b155146c"
+source = "git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr#830530c5245024556f504ec44b5e7102fd2bae6e"
 dependencies = [
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1709,5 +1709,5 @@ dependencies = [
 "checksum winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)" = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 "checksum winapi-build 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 "checksum wonder 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "07666280a40a706383d9c32f5783c213ca4c9d745102d3f0c9916f5675aad563"
-"checksum zmq 0.8.0 (git+https://github.com/erickt/rust-zmq.git)" = "<none>"
-"checksum zmq-sys 0.8.0 (git+https://github.com/erickt/rust-zmq.git)" = "<none>"
+"checksum zmq 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)" = "<none>"
+"checksum zmq-sys 0.8.0 (git+https://github.com/habitat-sh/rust-zmq.git?tag=windows_fix_pr)" = "<none>"

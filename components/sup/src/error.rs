@@ -37,6 +37,7 @@
 //! it instead of the longer `Result` form.
 
 use std::io;
+use std::env;
 use std::error;
 use std::ffi;
 use std::fmt;
@@ -104,6 +105,7 @@ pub enum Error {
     CommandNotImplemented,
     DbInvalidPath,
     DepotClient(depot_client::Error),
+    EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
     FileNotFound(String),
     HabitatCommon(common::Error),
@@ -167,6 +169,7 @@ impl fmt::Display for SupError {
             Error::CommandNotImplemented => format!("Command is not yet implemented!"),
             Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             Error::DepotClient(ref err) => format!("{}", err),
+            Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HealthCheck(ref e) => format!("Health Check failed: {}", e),
             Error::HookFailed(ref t, ref e, ref o) => {
@@ -258,9 +261,11 @@ impl error::Error for SupError {
             Error::HandlebarsTemplateFileError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
+            
             Error::CommandNotImplemented => "Command is not yet implemented!",
             Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             Error::DepotClient(ref err) => err.description(),
+            Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
             Error::HealthCheck(_) => "Health Check returned an unknown status code",
             Error::HookFailed(_, _, _) => "Hook failed to run",
@@ -376,6 +381,12 @@ impl From<ffi::NulError> for SupError {
 impl From<io::Error> for SupError {
     fn from(err: io::Error) -> SupError {
         sup_error!(Error::Io(err))
+    }
+}
+
+impl From<env::JoinPathsError> for SupError {
+    fn from(err: env::JoinPathsError) -> SupError {
+        sup_error!(Error::EnvJoinPathsError(err))
     }
 }
 
