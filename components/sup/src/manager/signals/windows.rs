@@ -12,21 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Contains the cross-platform signal behavior.
+//! Traps and notifies signals.
 
-pub enum SignalEvent {
-    Shutdown,
-    Passthrough(u32),
+use error::{Error, Result, SupError};
+use super::SignalEvent;
+
+pub fn init() {}
+
+pub fn check_for_signal() -> Option<SignalEvent> {
+    None
 }
 
-#[cfg(unix)]
-mod unix;
-
-#[cfg(windows)]
-mod windows;
-
-#[cfg(unix)]
-pub use manager::signals::unix::{init, check_for_signal, send_signal};
-
-#[cfg(windows)]
-pub use manager::signals::windows::{init, check_for_signal, send_signal};
+/// send a signal to a pid
+pub fn send_signal(pid: u32, sig: u32) -> Result<()> {
+    debug!("sending no-op(windows) signal {} to pid {}", sig, pid);
+    Ok(())
+}

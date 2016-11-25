@@ -28,6 +28,11 @@ param (
     [switch]$Release
 )
 
+# Set Environment Variables for the build
+$ChocolateyHabitatLibDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\lib"
+$ChocolateyHabitatIncludeDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\include"
+$ChocolateyHabitatBinDir = "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin"
+
 ## Helper Functions
 function New-PathString([string]$StartingPath, [string]$Path) {
     if (-not [string]::IsNullOrEmpty($path)) {
@@ -77,6 +82,10 @@ function Invoke-Configure {
         choco install habitat_native_dependencies --confirm -s https://www.myget.org/F/habitat/api/v2  --allowemptychecksums
     }
 
+    choco install libzmq_vc120 --version 4.2.3 --confirm -s https://www.nuget.org/api/v2/ --allowemptychecksums
+    Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.imp.lib $ChocolateyHabitatLibDir\zmq.lib -Force
+    Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.dll $ChocolateyHabitatBinDir\libzmq.dll -Force
+
     if (-not (Test-AppVeyor)) {
         # We need the Visual C 2013 Runtime for the Win32 ABI Rust
         choco install 'vcredist2013' --confirm --allowemptychecksum
@@ -86,6 +95,7 @@ function Invoke-Configure {
 
         choco install 7zip --version '16.02.0.20160811' --confirm
     }
+
 
     # Install Rust Nightly (since there aren't MSVC nightly cargo builds)
     if (Test-RustUp) {
@@ -213,12 +223,8 @@ if (-not (Test-AppVeyor)) {
     $env:PATH = New-PathString -StartingPath $env:PATH -Path 'C:\Program Files (x86)\MSBuild\14.0\bin\amd64;C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\BIN\amd64;C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\VCPackages;C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319;C:\WINDOWS\Microsoft.NET\Framework64\;C:\Program Files (x86)\Windows Kits\10\bin\x64;C:\Program Files (x86)\Windows Kits\10\bin\x86;C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\x64\'
 }
 
-# Set Environment Variables for the build
-$ChocolateyHabitatLibDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\lib"
-$ChocolateyHabitatIncludeDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\include"
-
 $env:PATH                       = New-PathString -StartingPath $env:PATH    -Path 'C:\Program Files\7-Zip'
-$env:PATH                       = New-PathString -StartingPath $env:PATH    -Path 'C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin'
+$env:PATH                       = New-PathString -StartingPath $env:PATH    -Path $ChocolateyHabitatBinDir
 $env:LIB                        = New-PathString -StartingPath $env:LIB     -Path $ChocolateyHabitatLibDir
 $env:INCLUDE                    = New-PathString -StartingPath $env:INCLUDE -Path $ChocolateyHabitatIncludeDir
 $env:SODIUM_LIB_DIR             = $ChocolateyHabitatLibDir
@@ -227,6 +233,7 @@ $env:LIBARCHIVE_LIB_DIR         = $ChocolateyHabitatLibDir
 $env:OPENSSL_LIBS               = 'ssleay32:libeay32'
 $env:OPENSSL_LIB_DIR            = $ChocolateyHabitatLibDir
 $env:OPENSSL_INCLUDE_DIR        = $ChocolateyHabitatIncludeDir
+$env:LIBZMQ_PREFIX              = Split-Path $ChocolateyHabitatLibDir -Parent
 
 Write-RustToolVersion
 

@@ -26,7 +26,7 @@ use manager::service::config::{ServiceConfig, never_escape_fn};
 use util::convert;
 use util::handlebars_helpers;
 use util::users as hab_users;
-use util::create_command;
+use util as sup_util;
 
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "PH";
@@ -78,7 +78,7 @@ impl Hook {
     }
 
     pub fn run(&self) -> Result<String> {
-        let mut child = try!(create_command(self.path.clone(), &self.user, &self.group).spawn());
+        let mut child = try!(sup_util::create_command(self.path.clone(), &self.user, &self.group).spawn());
         {
             let mut c_stdout = match child.stdout {
                 Some(ref mut s) => s,

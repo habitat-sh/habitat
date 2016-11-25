@@ -109,7 +109,7 @@ impl<'a> Inbound<'a> {
                 }
                 Err(e) => {
                     match e.raw_os_error() {
-                        Some(35) | Some(11) => {
+                        Some(35) | Some(11) | Some(10035) | Some(10060) => {
                             // This is the normal non-blocking result, or a timeout
                         }
                         Some(_) => {
