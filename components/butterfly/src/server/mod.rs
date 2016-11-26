@@ -29,6 +29,7 @@ pub mod timing;
 use std::collections::HashSet;
 use std::fmt;
 use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
+use std::result;
 use std::str::FromStr;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
@@ -38,6 +39,7 @@ use std::thread;
 
 use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::SymKey;
+use rustc_serialize::{Encoder, Encodable};
 
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
@@ -590,6 +592,19 @@ impl Server {
 
     fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
         message::unwrap_wire(payload, &self.ring_key)
+    }
+}
+
+impl Encodable for Server {
+    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
+        try!(s.emit_struct("butterfly", 4, |s| {
+            try!(s.emit_struct_field("service", 0, |s| self.service_store.encode(s)));
+            try!(s.emit_struct_field("service_config", 1, |s| self.service_config_store.encode(s)));
+            try!(s.emit_struct_field("service_file", 2, |s| self.service_file_store.encode(s)));
+            try!(s.emit_struct_field("election", 3, |s| self.election_store.encode(s)));
+            Ok(())
+        }));
+        Ok(())
     }
 }
 

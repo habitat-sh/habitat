@@ -619,8 +619,8 @@ impl Sys {
             hostname: hostname,
             gossip_ip: gconfig().gossip_listen_ip().to_string(),
             gossip_port: gconfig().gossip_listen_port(),
-            sidecar_ip: gconfig().http_listen_ip().to_string(),
-            sidecar_port: gconfig().http_listen_port(),
+            sidecar_ip: gconfig().http_listen_addr().ip().to_string(),
+            sidecar_port: gconfig().http_listen_addr().port(),
         }
     }
 

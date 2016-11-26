@@ -62,6 +62,7 @@ extern crate time;
 extern crate wonder;
 extern crate uuid;
 extern crate utp;
+extern crate persistent;
 extern crate rand;
 extern crate threadpool;
 extern crate openssl;
@@ -270,22 +271,22 @@ macro_rules! output_format {
     }
 }
 
-pub mod output;
-pub mod error;
-pub mod command;
-pub mod util;
-pub mod package;
-// pub mod topology;
-// pub mod state_machine;
-// pub mod sidecar;
-pub mod health_check;
-pub mod config;
-// pub mod service_config;
 // pub mod census;
-// pub mod gossip;
+pub mod command;
+pub mod config;
 // pub mod election;
-pub mod supervisor;
+pub mod error;
+// pub mod gossip;
+pub mod health_check;
+pub mod http_gateway;
 pub mod manager;
+pub mod output;
+pub mod package;
+// pub mod service_config;
+// pub mod state_machine;
+pub mod supervisor;
+// pub mod topology;
+pub mod util;
 
 use std::env;
 use std::path::PathBuf;

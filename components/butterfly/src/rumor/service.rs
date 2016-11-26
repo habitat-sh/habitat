@@ -28,7 +28,7 @@ use message::swim::{Service as ProtoService, Rumor as ProtoRumor, Rumor_Type as 
 use rumor::Rumor;
 
 /// The service rumor
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, RustcEncodable)]
 pub struct Service {
     pub proto: ProtoRumor,
 }

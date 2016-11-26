@@ -109,8 +109,7 @@ pub fn package() -> Result<()> {
                     // automatically receive updates for any releases, regardless of version
                     // number, for the started  package.
                     let depot_client = try!(Client::new(url, PRODUCT, VERSION, None));
-                    let latest_pkg_data =
-                        try!(depot_client.show_package((*gconfig().package()).clone()));
+                    let latest_pkg_data = try!(depot_client.show_package(gconfig().package()));
                     let latest_ident: PackageIdent = latest_pkg_data.get_ident().clone().into();
                     if &latest_ident > package.ident() {
                         outputln!("Downloading latest version from Depot: {}", latest_ident);

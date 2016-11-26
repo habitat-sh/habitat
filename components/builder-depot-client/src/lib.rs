@@ -214,7 +214,7 @@ impl Client {
     /// * Remote Depot is not available
     /// * File cannot be created and written to
     pub fn fetch_package<D, I, P: ?Sized>(&self,
-                                          ident: I,
+                                          ident: &I,
                                           dst_path: &P,
                                           progress: Option<D>)
                                           -> Result<PackageArchive>
@@ -239,8 +239,8 @@ impl Client {
     ///
     /// * Package cannot be found
     /// * Remote Depot is not available
-    pub fn show_package<I: Identifiable>(&self, ident: I) -> Result<depotsrv::Package> {
-        let mut res = try!(self.inner.get(&self.path_show_package(&ident)).send());
+    pub fn show_package<I: Identifiable>(&self, ident: &I) -> Result<depotsrv::Package> {
+        let mut res = try!(self.inner.get(&self.path_show_package(ident)).send());
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
