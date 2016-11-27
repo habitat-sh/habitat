@@ -14,7 +14,7 @@
 
 //! Configuration for a Habitat RouteSrv service
 
-use std::net;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use hab_core::config::{ConfigFile, ParseInto};
 use toml;
@@ -24,7 +24,7 @@ use error::{Error, Result};
 #[derive(Debug)]
 pub struct Config {
     /// Listening net address for client connections
-    pub listen_addr: net::SocketAddrV4,
+    pub listen_addr: SocketAddr,
     /// Port for receiving service heartbeats
     pub heartbeat_port: u16,
 }
@@ -41,7 +41,7 @@ impl Config {
     }
 
     pub fn set_port(&mut self, port: u16) -> &mut Self {
-        self.listen_addr = net::SocketAddrV4::new(*self.listen_addr.ip(), port);
+        self.listen_addr.set_port(port);
         self
     }
 }
@@ -49,7 +49,7 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            listen_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 5562),
+            listen_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 5562)),
             heartbeat_port: 5563,
         }
     }

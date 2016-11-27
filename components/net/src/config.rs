@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net;
+use std::net::{SocketAddr, SocketAddrV4, SocketAddrV6};
 
 use num_cpus;
 
@@ -46,7 +46,7 @@ pub trait GitHubOAuth {
 }
 
 pub trait RouteAddrs {
-    fn route_addrs(&self) -> &Vec<net::SocketAddrV4>;
+    fn route_addrs(&self) -> &Vec<SocketAddr>;
 
     fn heartbeat_port(&self) -> u16 {
         5563
@@ -61,7 +61,19 @@ pub trait ToAddrString {
     fn to_addr_string(&self) -> String;
 }
 
-impl ToAddrString for net::SocketAddrV4 {
+impl ToAddrString for SocketAddr {
+    fn to_addr_string(&self) -> String {
+        format!("tcp://{}:{}", self.ip(), self.port())
+    }
+}
+
+impl ToAddrString for SocketAddrV4 {
+    fn to_addr_string(&self) -> String {
+        format!("tcp://{}:{}", self.ip(), self.port())
+    }
+}
+
+impl ToAddrString for SocketAddrV6 {
     fn to_addr_string(&self) -> String {
         format!("tcp://{}:{}", self.ip(), self.port())
     }

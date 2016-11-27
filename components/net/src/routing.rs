@@ -16,7 +16,6 @@
 //! connected to one or more `RouteSrv`. All messages are routed through a `RouteSrv` and forwarded
 //! to the appropriate receiver of a message.
 
-use std::net;
 use std::result;
 use std::sync::mpsc;
 use std::thread::{self, JoinHandle};
@@ -203,7 +202,7 @@ impl Broker {
     /// # Panics
     ///
     /// * Broker crashed during startup
-    pub fn run(net_ident: String, routers: &Vec<net::SocketAddrV4>) -> JoinHandle<()> {
+    pub fn run<T: ToAddrString>(net_ident: String, routers: &Vec<T>) -> JoinHandle<()> {
         let (tx, rx) = mpsc::sync_channel(1);
         let addrs = routers.iter().map(|a| a.to_addr_string()).collect();
         let handle = thread::Builder::new()

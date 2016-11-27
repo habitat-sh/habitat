@@ -19,7 +19,7 @@
 //! `InstaSet` and `IndexSet` below.
 
 use std::fmt;
-use std::net;
+use std::net::SocketAddr;
 use std::ops::Deref;
 use std::sync::Arc;
 use std::time::Duration;
@@ -268,7 +268,7 @@ pub trait IndexSet: Bucket {
     }
 }
 
-fn redis_connection_info(addr: &net::SocketAddrV4) -> redis::ConnectionInfo {
+fn redis_connection_info(addr: &SocketAddr) -> redis::ConnectionInfo {
     format!("redis://{}:{}", addr.ip(), addr.port())
         .into_connection_info()
         .unwrap()

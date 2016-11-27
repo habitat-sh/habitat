@@ -13,7 +13,7 @@
 // limitations under the License.
 // Configuration for a Habitat SessionSrv service
 
-use std::net;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use dbcache::config::DataStoreCfg;
 use hab_core::config::{ConfigFile, ParseInto};
@@ -28,9 +28,9 @@ use error::{Error, Result};
 
 pub struct Config {
     /// List of net addresses for routing servers to connect to.
-    pub routers: Vec<net::SocketAddrV4>,
+    pub routers: Vec<SocketAddr>,
     /// Net dddress to the persistent datastore.
-    pub datastore_addr: net::SocketAddrV4,
+    pub datastore_addr: SocketAddr,
     /// Connection retry timeout in milliseconds for datastore.
     pub datastore_retry_ms: u64,
     /// Number of database connections to start in pool.
@@ -55,8 +55,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            routers: vec![net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562)],
-            datastore_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 6379),
+            routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
+            datastore_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6379)),
             datastore_retry_ms: Self::default_connection_retry_ms(),
             pool_size: Self::default_pool_size(),
             heartbeat_port: 5563,
@@ -95,7 +95,7 @@ impl ConfigFile for Config {
 }
 
 impl DataStoreCfg for Config {
-    fn datastore_addr(&self) -> &net::SocketAddrV4 {
+    fn datastore_addr(&self) -> &SocketAddr {
         &self.datastore_addr
     }
 
@@ -129,7 +129,7 @@ impl GitHubOAuth for Config {
 }
 
 impl RouteAddrs for Config {
-    fn route_addrs(&self) -> &Vec<net::SocketAddrV4> {
+    fn route_addrs(&self) -> &Vec<SocketAddr> {
         &self.routers
     }
 

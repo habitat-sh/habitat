@@ -40,10 +40,10 @@ pub enum Error {
     ConfigFileSyntax(String),
     /// Expected a valid array of values for configuration field value.
     ConfigInvalidArray(&'static str),
-    /// Expected a valid Ipv4 network address for configuration field value.
-    ConfigInvalidIpv4Addr(&'static str),
-    /// Expected a valid SocketAddrV4 address pair for configuration field value.
-    ConfigInvalidSocketAddrV4(&'static str),
+    /// Expected a valid network address for configuration field value.
+    ConfigInvalidIpAddr(&'static str),
+    /// Expected a valid SocketAddr address pair for configuration field value.
+    ConfigInvalidSocketAddr(&'static str),
     /// Expected a string for configuration field value.
     ConfigInvalidString(&'static str),
     /// Crypto library error
@@ -106,12 +106,12 @@ impl fmt::Display for Error {
             Error::ConfigInvalidArray(ref f) => {
                 format!("Invalid array of values in config, field={}", f)
             }
-            Error::ConfigInvalidIpv4Addr(ref f) => {
-                format!("Invalid Ipv4 address in config, field={}. (example: \"127.0.0.0\")",
+            Error::ConfigInvalidIpAddr(ref f) => {
+                format!("Invalid address in config, field={}. (example: \"127.0.0.0\")",
                         f)
             }
-            Error::ConfigInvalidSocketAddrV4(ref f) => {
-                format!("Invalid Ipv4 network address pair in config, field={}. (example: \
+            Error::ConfigInvalidSocketAddr(ref f) => {
+                format!("Invalid network address pair in config, field={}. (example: \
                          \"127.0.0.0:8080\")",
                         f)
             }
@@ -174,11 +174,11 @@ impl error::Error for Error {
             Error::ConfigInvalidArray(_) => {
                 "Invalid array of values encountered while parsing a configuration file"
             }
-            Error::ConfigInvalidIpv4Addr(_) => {
-                "Invalid Ipv4 network address encountered while parsing a configuration file"
+            Error::ConfigInvalidIpAddr(_) => {
+                "Invalid network address encountered while parsing a configuration file"
             }
-            Error::ConfigInvalidSocketAddrV4(_) => {
-                "Invalid Ipv4 network address pair encountered while parsing a configuration file"
+            Error::ConfigInvalidSocketAddr(_) => {
+                "Invalid network address pair encountered while parsing a configuration file"
             }
             Error::ConfigInvalidString(_) => {
                 "Invalid string value encountered while parsing a configuration file"

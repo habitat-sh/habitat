@@ -14,7 +14,7 @@
 
 //! Configuration for a Habitat Builder-API service
 
-use std::net;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use hab_net;
 use hab_net::config::{DEFAULT_GITHUB_URL, DEV_GITHUB_CLIENT_ID, DEV_GITHUB_CLIENT_SECRET,
@@ -28,11 +28,11 @@ use error::{Error, Result};
 #[derive(Debug)]
 pub struct Config {
     /// Public listening net address for HTTP requests
-    pub http_addr: net::SocketAddrV4,
+    pub http_addr: SocketAddr,
     /// Depot's configuration
     pub depot: depot::Config,
     /// List of net addresses for routing servers to connect to
-    pub routers: Vec<net::SocketAddrV4>,
+    pub routers: Vec<SocketAddr>,
     /// URL to GitHub API
     pub github_url: String,
     /// Client identifier used for GitHub API requests
@@ -48,7 +48,7 @@ pub struct Config {
 impl Config {
     /// Set the port of the http listener
     pub fn set_port(&mut self, port: u16) -> &mut Self {
-        self.http_addr = net::SocketAddrV4::new(*self.http_addr.ip(), port);
+        self.http_addr.set_port(port);
         self
     }
 }
@@ -56,8 +56,8 @@ impl Config {
 impl Default for Config {
     fn default() -> Self {
         Config {
-            http_addr: net::SocketAddrV4::new(net::Ipv4Addr::new(0, 0, 0, 0), 9636),
-            routers: vec![net::SocketAddrV4::new(net::Ipv4Addr::new(127, 0, 0, 1), 5562)],
+            http_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9636)),
+            routers: vec![SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 5562))],
             depot: depot::Config::default(),
             github_url: DEFAULT_GITHUB_URL.to_string(),
             github_client_id: DEV_GITHUB_CLIENT_ID.to_string(),
@@ -101,7 +101,7 @@ impl ConfigFile for Config {
 }
 
 impl RouteAddrs for Config {
-    fn route_addrs(&self) -> &Vec<net::SocketAddrV4> {
+    fn route_addrs(&self) -> &Vec<SocketAddr> {
         &self.routers
     }
 }
