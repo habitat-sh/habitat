@@ -24,19 +24,14 @@ lazy_static = "*"
 libc = "*"
 log = "*"
 iron = "*"
-openssl = "*"
 persistent = "*"
-rand = "*"
 regex = "*"
 rustc-serialize = "*"
 router = "*"
-temp_utp = "*"
 tempdir = "*"
-threadpool = "*"
 time = "*"
 toml = "*"
 url = "*"
-wonder = "*"
 
 [dependencies.habitat_core]
 path = "../core"
@@ -49,10 +44,6 @@ path = "../builder-depot-client"
 
 [dependencies.habitat_butterfly]
 path = "../butterfly"
-
-[dependencies.uuid]
-version = "*"
-features = ["rustc-serialize", "v4"]
 
 [dependencies.clap]
 version = "*"

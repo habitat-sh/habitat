@@ -15,7 +15,6 @@
 /// Collect all the configuration data that is exposed to users, and render it.
 
 use std::ascii::AsciiExt;
-use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -25,8 +24,7 @@ use rustc_serialize::Encodable;
 use toml;
 use handlebars::Handlebars;
 
-use common::gossip_file::GOSSIP_TOML;
-use manager::census::{CensusEntry, Census, CensusList};
+use manager::census::{Census, CensusList};
 use config::gconfig;
 use error::{Error, Result};
 use hcore::package::PackageInstall;
@@ -437,10 +435,10 @@ impl Cfg {
     }
 
     fn load_gossip(&mut self, pkg: &Package) -> Result<()> {
-        let mut file = match File::open(pkg.svc_path().join(GOSSIP_TOML)) {
+        let mut file = match File::open(pkg.svc_path().join("gossip.toml")) {
             Ok(file) => file,
             Err(e) => {
-                debug!("Failed to open {}: {}", GOSSIP_TOML, e);
+                debug!("Failed to open gossip.toml: {}", e);
                 self.gossip = None;
                 return Ok(());
             }
@@ -454,7 +452,7 @@ impl Cfg {
                 self.gossip = Some(toml::Value::Table(toml));
             }
             Err(e) => {
-                outputln!("Failed to load {}: {}", GOSSIP_TOML, e);
+                outputln!("Failed to load gossip.toml: {}", e);
                 self.gossip = None;
             }
         }
@@ -590,8 +588,6 @@ impl Pkg {
 pub struct Sys {
     pub ip: String,
     pub hostname: String,
-    pub gossip_ip: String,
-    pub gossip_port: u16,
     pub sidecar_ip: String,
     pub sidecar_port: u16,
 }
@@ -614,11 +610,10 @@ impl Sys {
                 String::from("localhost")
             }
         };
+
         Sys {
             ip: ip,
             hostname: hostname,
-            gossip_ip: gconfig().gossip_listen_ip().to_string(),
-            gossip_port: gconfig().gossip_listen_port(),
             sidecar_ip: gconfig().http_listen_addr().ip().to_string(),
             sidecar_port: gconfig().http_listen_addr().port(),
         }
@@ -657,7 +652,6 @@ mod test {
 
     use regex::Regex;
     use toml;
-    use uuid::Uuid;
 
     use manager::census::{CensusEntry, CensusList};
     use config::{gcache, Config};
@@ -686,12 +680,12 @@ mod test {
 
     fn gen_census_list() -> CensusList {
         let mut ce = CensusEntry::default();
-        let member_id = Uuid::new_v4();
-        ce.set_member_id(format!("{}", member_id.simple()));
+        let member_id = "0000000000000000000";
+        ce.set_member_id(format!("{}", member_id));
         ce.set_service(String::from("redis"));
         ce.set_group(String::from("default"));
         let mut cl = CensusList::new();
-        cl.insert(format!("{}", member_id.simple()), ce);
+        cl.insert(format!("{}", member_id), ce);
         cl
     }
 

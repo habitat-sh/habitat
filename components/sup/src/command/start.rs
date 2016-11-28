@@ -167,6 +167,6 @@ fn start_package(package: Package) -> Result<()> {
     env::set_var("PATH", &run_path);
 
     let mut manager = try!(Manager::new());
-    manager.add_service(package, *gconfig().topology(), gconfig().update_strategy());
+    try!(manager.add_service(package, *gconfig().topology(), gconfig().update_strategy()));
     manager.run()
 }

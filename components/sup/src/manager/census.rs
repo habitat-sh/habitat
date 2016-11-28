@@ -388,7 +388,7 @@ impl CensusList {
     pub fn insert(&mut self, member_id: String, census_entry: CensusEntry) {
         let census =
             self.censuses.entry(census_entry.get_service_group()).or_insert(Census::new(member_id));
-        let result = if census.contains_key(census_entry.get_member_id()) {
+        if census.contains_key(census_entry.get_member_id()) {
             let entry = census.get_mut(census_entry.get_member_id()).unwrap();
             *entry = census_entry;
         } else {
@@ -411,7 +411,7 @@ impl CensusList {
     }
 
     pub fn populate_from_member(&mut self, member: &Member) {
-        for (service_group, census) in self.censuses.iter_mut() {
+        for (_service_group, census) in self.censuses.iter_mut() {
             if census.contains_key(member.get_id()) {
                 // We just checked, so its coolio
                 let mut ce = census.get_mut(member.get_id()).unwrap();

@@ -67,12 +67,11 @@ pub struct Manager {
 
 impl Manager {
     pub fn new() -> Result<Manager> {
-        let swim_addr: SocketAddr = try!(gconfig().swim_listen().parse());
         let gossip_addr: SocketAddr = try!(gconfig().gossip_listen().parse());
 
         let mut member = Member::new();
         member.set_persistent(gconfig().gossip_permanent());
-        member.set_swim_port(swim_addr.port() as i32);
+        member.set_swim_port(gossip_addr.port() as i32);
         member.set_gossip_port(gossip_addr.port() as i32);
 
         let ring_key = match gconfig().ring() {
@@ -83,7 +82,7 @@ impl Manager {
             &None => None,
         };
 
-        let server = try!(butterfly::Server::new(gconfig().swim_listen(),
+        let server = try!(butterfly::Server::new(gconfig().gossip_listen(),
                                                  gconfig().gossip_listen(),
                                                  member,
                                                  Trace::default(),
@@ -148,14 +147,14 @@ impl Manager {
         if &update != last_update {
             let mut cl = CensusList::new();
             debug!("Updating census from butterfly data");
-            self.state.butterfly.service_store.with_keys(|(service_group, rumors)| {
-                for (member_id, service) in rumors.iter() {
+            self.state.butterfly.service_store.with_keys(|(_service_group, rumors)| {
+                for (_member_id, service) in rumors.iter() {
                     let mut ce = CensusEntry::default();
                     ce.populate_from_service(service);
                     cl.insert(String::from(self.state.butterfly.member_id()), ce);
                 }
             });
-            self.state.butterfly.election_store.with_keys(|(service_group, rumors)| {
+            self.state.butterfly.election_store.with_keys(|(_service_group, rumors)| {
                 // We know you have an election, and this is the only key in the hash
                 let election = rumors.get("election").unwrap();
                 cl.populate_from_election(election);
@@ -190,7 +189,12 @@ impl Manager {
                     .expect("Services lock is poisoned!")
                     .iter() {
                     outputln!("Forwarding signal {} to {}", signal_code, service);
-                    service.send_signal(signal_code);
+                    if let Err(e) = service.send_signal(signal_code) {
+                        outputln!("Failed to send signal {} to {}: {}",
+                                  signal_code,
+                                  service,
+                                  e);
+                    }
                 }
                 false
             }
@@ -220,10 +224,7 @@ impl Manager {
         // Set the global signal handlers
         signals::init();
 
-        outputln!("Starting butterfly failure detector on {}",
-                  gconfig().swim_listen());
-        outputln!("Starting butterfly gossip distributor on {}",
-                  gconfig().gossip_listen());
+        outputln!("Starting butterfly on {}", gconfig().gossip_listen());
         try!(self.state.butterfly.start(Timing::default()));
         debug!("butterfly server started");
         outputln!("Starting http-gateway on {}", gconfig().http_listen_addr());

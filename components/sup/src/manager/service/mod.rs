@@ -19,21 +19,14 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
-use std::sync::Arc;
-use std::sync::mpsc::{sync_channel, SyncSender, Receiver, TryRecvError};
 
 use ansi_term::Colour::{Yellow, Red, Green};
-use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use hcore::crypto::hash;
-use hcore::fs::{self, CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
+use hcore::fs;
 use hcore::util::perm::{set_owner, set_permissions};
 
-use {PRODUCT, VERSION};
-use common::ui::UI;
 use config::{gconfig, UpdateStrategy, Topology};
-use depot_client::Client;
 use error::Result;
 use health_check;
 use manager::signals;
@@ -79,7 +72,9 @@ impl Service {
                   &svc_user,
                   &svc_group);
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
-        let supervisor = Supervisor::new(package.ident().clone(), runtime_config);
+        let supervisor = Supervisor::new(package.ident().clone(),
+                                         service_group.clone(),
+                                         runtime_config);
         Ok(Service {
             service_group: service_group,
             supervisor: supervisor,
@@ -353,7 +348,10 @@ impl Service {
                     return;
                 }
             };
-        self.package.create_svc_path();
+        match self.package.create_svc_path() {
+            Ok(_) => {}
+            Err(e) => outputln!("Failed to create the svc path: {}", e),
+        }
         match service_config.write(&self.package) {
             Ok(true) => {
                 self.needs_restart = true;
@@ -374,7 +372,9 @@ impl Service {
 
         self.package.hooks().load_hooks();
         // Probably worth moving the run hook under compile all, eventually
-        self.package.copy_run(&service_config);
+        if let Err(e) = self.package.copy_run(&service_config) {
+            outputln!("Failed to copy run hook: {}", e);
+        }
         self.package.hooks().compile_all(&service_config);
     }
 }

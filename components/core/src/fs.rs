@@ -294,6 +294,7 @@ mod test_find_command {
     use std::path::PathBuf;
     pub use super::find_command;
 
+    #[allow(dead_code)]
     fn setup_pathext() {
         let path_bufs = vec![PathBuf::from(".COM"), PathBuf::from(".EXE")];
         let new_path = env::join_paths(path_bufs).unwrap();

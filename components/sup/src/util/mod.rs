@@ -16,7 +16,6 @@ pub mod convert;
 pub mod handlebars_helpers;
 pub mod path;
 pub mod sys;
-pub mod signals;
 pub mod users;
 
 use std::net::Ipv4Addr;
@@ -88,7 +87,8 @@ pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
 pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
     let mut cmd = Command::new("powershell.exe");
     let ps_command = format!("iex $(gc {} | out-string)", path.to_str().unwrap());
-    cmd.arg("-command").arg(ps_command)
+    cmd.arg("-command")
+        .arg(ps_command)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());

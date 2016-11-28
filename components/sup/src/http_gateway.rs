@@ -15,13 +15,9 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
-use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
-use butterfly;
-use hcore::package::{Identifiable, PackageIdent};
 use hcore::service::ServiceGroup;
-use iron;
 use iron::prelude::*;
 use iron::status;
 use iron::typemap;
@@ -32,8 +28,7 @@ use rustc_serialize::json;
 use config::gconfig;
 use error::{Result, Error, SupError};
 use health_check;
-use manager::{self, census};
-use util::signals;
+use manager;
 
 static LOGKEY: &'static str = "HG";
 
