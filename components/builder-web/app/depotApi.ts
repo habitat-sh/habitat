@@ -19,7 +19,7 @@ import {packageString} from "./util";
 const urlPrefix = config["habitat_api_url"] || "";
 
 export function getUnique(origin: string, nextRange: number = 0) {
-    const url = `${urlPrefix}/depot/pkgs-unique/${origin}?range=${nextRange}`;
+    const url = `${urlPrefix}/depot/${origin}/pkgs?range=${nextRange}`;
 
     return new Promise((resolve, reject) => {
         fetch(url).then(response => {
