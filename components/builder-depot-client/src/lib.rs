@@ -155,7 +155,16 @@ impl Client {
         };
         match result {
             Ok(Response { status: StatusCode::Created, .. }) => Ok(()),
-            Ok(response) => Err(err_from_response(response)),
+            Ok(response) => {
+                if response.status == StatusCode::Unauthorized {
+                    Err(Error::APIError(response.status,
+                                        "Your GitHub token requires both user:email and read:org \
+                                         permissions."
+                                            .to_string()))
+                } else {
+                    Err(err_from_response(response))
+                }
+            }
             Err(e) => Err(Error::from(e)),
         }
     }
