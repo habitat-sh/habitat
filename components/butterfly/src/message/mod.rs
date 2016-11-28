@@ -15,6 +15,7 @@
 pub mod swim;
 
 use std::result;
+use std::str;
 
 use habitat_core::crypto::SymKey;
 use rustc_serialize::{Encoder, Encodable};
@@ -138,7 +139,10 @@ impl Encodable for swim::ServiceConfig {
             try!(s.emit_struct_field("service_group", 0, |s| self.get_service_group().encode(s)));
             try!(s.emit_struct_field("incarnation", 1, |s| self.get_incarnation().encode(s)));
             try!(s.emit_struct_field("encrypted", 2, |s| self.get_encrypted().encode(s)));
-            try!(s.emit_struct_field("config", 3, |s| self.get_config().encode(s)));
+            match str::from_utf8(self.get_config()) {
+                Ok(c) => try!(s.emit_struct_field("config", 3, |s| c.encode(s))),
+                Err(_) => try!(s.emit_struct_field("config", 3, |s| self.get_config().encode(s))),
+            }
             Ok(())
         }));
         Ok(())
@@ -152,7 +156,10 @@ impl Encodable for swim::ServiceFile {
             try!(s.emit_struct_field("incarnation", 1, |s| self.get_incarnation().encode(s)));
             try!(s.emit_struct_field("encrypted", 2, |s| self.get_encrypted().encode(s)));
             try!(s.emit_struct_field("filename", 3, |s| self.get_filename().encode(s)));
-            try!(s.emit_struct_field("body", 4, |s| self.get_body().encode(s)));
+            match str::from_utf8(self.get_body()) {
+                Ok(c) => try!(s.emit_struct_field("body", 3, |s| c.encode(s))),
+                Err(_) => try!(s.emit_struct_field("body", 3, |s| self.get_body().encode(s))),
+            }
             Ok(())
         }));
         Ok(())

@@ -48,6 +48,7 @@ pub struct CensusEntry {
     pub member_id: Option<String>,
     pub service: Option<String>,
     pub group: Option<String>,
+    pub org: Option<String>,
     pub hostname: Option<String>,
     pub address: Option<String>,
     pub ip: Option<String>,
@@ -67,7 +68,14 @@ pub struct CensusEntry {
 
 impl CensusEntry {
     pub fn get_service_group(&self) -> String {
-        format!("{}.{}", self.get_service(), self.get_group())
+        if self.org.is_some() {
+            format!("{}.{}@{}",
+                    self.get_service(),
+                    self.get_group(),
+                    self.get_org())
+        } else {
+            format!("{}.{}", self.get_service(), self.get_group())
+        }
     }
 
     pub fn get_member_id(&self) -> &str {
@@ -101,6 +109,17 @@ impl CensusEntry {
 
     pub fn set_group(&mut self, value: String) {
         self.group = Some(value);
+    }
+
+    pub fn get_org(&self) -> &str {
+        match self.org.as_ref() {
+            Some(v) => &v,
+            None => "",
+        }
+    }
+
+    pub fn set_org(&mut self, value: String) {
+        self.org = Some(value);
     }
 
     pub fn get_hostname(&self) -> &str {
@@ -248,6 +267,9 @@ impl CensusEntry {
         };
         self.set_service(sg.service.clone());
         self.set_group(sg.group.clone());
+        if sg.organization.is_some() {
+            self.set_org(sg.organization.unwrap().clone());
+        }
         self.set_ip(String::from(service_rumor.get_ip()));
         self.set_hostname(String::from(service_rumor.get_hostname()));
         self.set_port(format!("{}", service_rumor.get_port()));

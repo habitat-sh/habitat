@@ -24,6 +24,7 @@ use zmq;
 use message;
 use rumor::Rumor;
 use rumor::service_config::ServiceConfig;
+use rumor::service_file::ServiceFile;
 use error::{Result, Error};
 
 /// Holds a ZMQ Push socket, and an optional ring encryption key.
@@ -58,11 +59,27 @@ impl Client {
     pub fn send_service_config(&mut self,
                                service_group: ServiceGroup,
                                incarnation: u64,
-                               config: Vec<u8>)
+                               config: Vec<u8>,
+                               encrypted: bool)
                                -> Result<()> {
         let mut sc = ServiceConfig::new("butterflyclient", service_group, config);
         sc.set_incarnation(incarnation);
+        sc.set_encrypted(encrypted);
         self.send(sc)
+    }
+
+    /// Create a service file and send it to the server.
+    pub fn send_service_file<S: Into<String>>(&mut self,
+                                              service_group: ServiceGroup,
+                                              filename: S,
+                                              incarnation: u64,
+                                              body: Vec<u8>,
+                                              encrypted: bool)
+                                              -> Result<()> {
+        let mut sf = ServiceFile::new("butterflyclient", service_group, filename, body);
+        sf.set_incarnation(incarnation);
+        sf.set_encrypted(encrypted);
+        self.send(sf)
     }
 
     /// Send any `Rumor` to the server.

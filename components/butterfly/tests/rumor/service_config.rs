@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use btest;
 use habitat_core::service::ServiceGroup;
 use habitat_butterfly::client::Client;
-use btest;
 
 #[test]
 fn two_members_share_service_config() {
@@ -35,7 +35,10 @@ fn service_config_via_client() {
     let mut client = Client::new(net[0].gossip_addr(), None)
         .expect("Cannot create Butterfly Client");
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
-    client.send_service_config(ServiceGroup::new("witcher", "prod", None), 0, payload)
+    client.send_service_config(ServiceGroup::new("witcher", "prod", None),
+                             0,
+                             payload,
+                             false)
         .expect("Cannot send the service configuration");
     net.wait_for_gossip_rounds(1);
     net[1]

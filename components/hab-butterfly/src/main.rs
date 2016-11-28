@@ -115,14 +115,27 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
     let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())); // Required via clap
 
-    // use the org if it's passed in on the CLI or set in an env var
-    let org = match org_param_or_env(&m) {
-        Ok(org) => Some(org.to_string()),
-        Err(_e) => None,
-    };
-    sg.organization = org;
+    let org = org_param_or_env(&m);
+    let mut service_pair = None;
+    if let Some(org_name) = org {
+        sg.organization = Some(org_name.clone());
+        service_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache)));
+    }
 
-    command::config::apply::start(ui, &peers, ring_key.as_ref(), &sg, number, file_path)
+    let user = user_param_or_env(&m);
+    let mut user_pair = None;
+    if let Some(user_name) = user {
+        user_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&user_name, &cache)));
+    }
+
+    command::config::apply::start(ui,
+                                  &sg,
+                                  number,
+                                  file_path,
+                                  &peers,
+                                  ring_key.as_ref(),
+                                  user_pair.as_ref(),
+                                  service_pair.as_ref())
 }
 
 fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
@@ -159,23 +172,29 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
 
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));  // Required via clap
-    // apply the organization name to the service group, either
-    // from HAB_ORG or the --org param
-    let org = try!(org_param_or_env(&m));
-    sg.organization = Some(org.to_string());
-    let service_pair = try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache));
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())); // Required via clap
 
-    let user = try!(user_param_or_env(&m));
-    let user_pair = try!(BoxKeyPair::get_latest_pair_for(&user, &cache));
+    let org = org_param_or_env(&m);
+    let mut service_pair = None;
+    if let Some(org_name) = org {
+        sg.organization = Some(org_name.clone());
+        service_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache)));
+    }
+
+    let user = user_param_or_env(&m);
+    let mut user_pair = None;
+    if let Some(user_name) = user {
+        user_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&user_name, &cache)));
+    }
 
     command::file::upload::start(ui,
+                                 &sg,
+                                 number,
+                                 file_path,
                                  &peers,
                                  ring_key.as_ref(),
-                                 &user_pair,
-                                 &service_pair,
-                                 number,
-                                 file_path)
+                                 user_pair.as_ref(),
+                                 service_pair.as_ref())
 }
 
 /// Parse the raw program arguments and split off any arguments that will skip clap's parsing.
@@ -199,13 +218,13 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
 /// Check to see if the user has passed in an ORG param.
 /// If not, check the HABITAT_ORG env var. If that's
 /// empty too, then error.
-fn org_param_or_env(m: &ArgMatches) -> Result<String> {
+fn org_param_or_env(m: &ArgMatches) -> Option<String> {
     match m.value_of("ORG") {
-        Some(o) => Ok(o.to_string()),
+        Some(o) => Some(o.to_string()),
         None => {
             match henv::var(HABITAT_ORG_ENVVAR) {
-                Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
+                Ok(v) => Some(v),
+                Err(_) => None,
             }
         }
     }
@@ -214,13 +233,13 @@ fn org_param_or_env(m: &ArgMatches) -> Result<String> {
 /// Check to see if the user has passed in a USER param.
 /// If not, check the HAB_USER env var. If that's
 /// empty too, then return an error.
-fn user_param_or_env(m: &ArgMatches) -> Result<String> {
+fn user_param_or_env(m: &ArgMatches) -> Option<String> {
     match m.value_of("USER") {
-        Some(u) => Ok(u.to_string()),
+        Some(u) => Some(u.to_string()),
         None => {
             match env::var(HABITAT_USER_ENVVAR) {
-                Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No user specified".to_string())),
+                Ok(v) => Some(v),
+                Err(_) => None,
             }
         }
     }

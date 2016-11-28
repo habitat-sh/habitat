@@ -78,8 +78,7 @@ impl Manager {
         let ring_key = match gconfig().ring() {
             &Some(ref ring_with_revision) => {
                 outputln!("Joining ring {}", ring_with_revision);
-                Some(try!(SymKey::get_latest_pair_for(&ring_with_revision,
-                                                      &default_cache_key_path(None))))
+                Some(try!(SymKey::get_pair_for(&ring_with_revision, &default_cache_key_path(None))))
             }
             &None => None,
         };
@@ -270,16 +269,29 @@ impl Manager {
                 .write()
                 .expect("Services lock is poisoned!")
                 .iter_mut() {
+
                 // Write out any files we received via butterfly
-                // self.write_service_files(&service);
+                let mut service_files_updated = false;
+                for (incarnation, filename, body) in self.state
+                    .butterfly
+                    .service_files_for(&service.service_group_str(),
+                                       &service.current_service_files)
+                    .into_iter() {
+                    let result = service.write_butterfly_service_file(filename, incarnation, body);
+                    if service_files_updated == false && result == true {
+                        service_files_updated = true;
+                    }
+                }
+                if service_files_updated {
+                    service.file_updated();
+                }
 
                 // Write out any service configuration we received via butterfly
                 let mut service_config_updated = false;
-                if let Some((incarnation, config)) =
-                    self.state
-                        .butterfly
-                        .service_config_for(&service.service_group_str(),
-                                            service.service_config_incarnation) {
+                if let Some((incarnation, config)) = self.state
+                    .butterfly
+                    .service_config_for(&service.service_group_str(),
+                                        service.service_config_incarnation) {
                     service_config_updated = service.write_butterfly_service_config(config);
                     service.service_config_incarnation = Some(incarnation);
                 }
@@ -299,7 +311,7 @@ impl Manager {
                 let _ = service.check_process();
 
                 // Start or restart the service
-                if service.needs_restart || service.is_down() {
+                if service.initialized && (service.needs_restart || service.is_down()) {
                     match service.restart(&self.state
                         .census_list
                         .read()

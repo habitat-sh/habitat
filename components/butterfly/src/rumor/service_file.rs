@@ -143,7 +143,7 @@ impl Rumor for ServiceFile {
     }
 
     fn id(&self) -> &str {
-        "service_file"
+        self.get_filename()
     }
 
     fn key(&self) -> &str {

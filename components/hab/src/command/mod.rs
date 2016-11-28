@@ -14,7 +14,6 @@
 
 pub mod butterfly;
 pub mod cli;
-pub mod file;
 pub mod pkg;
 pub mod plan;
 pub mod origin;

@@ -15,6 +15,7 @@
 pub mod config;
 
 use std;
+use std::collections::HashMap;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
@@ -59,7 +60,8 @@ pub struct Service {
     pub service_config_incarnation: Option<u64>,
     pub service_group: ServiceGroup,
     pub update_strategy: UpdateStrategy,
-    initialized: bool,
+    pub current_service_files: HashMap<String, u64>,
+    pub initialized: bool,
     last_restart_display: LastRestartDisplay,
     supervisor: Supervisor,
     topology: Topology,
@@ -85,6 +87,7 @@ impl Service {
             topology: topology,
             needs_restart: false,
             update_strategy: update_strategy,
+            current_service_files: HashMap::new(),
             last_restart_display: LastRestartDisplay::None,
             initialized: false,
             service_config_incarnation: None,
@@ -92,9 +95,7 @@ impl Service {
     }
 
     pub fn service_group_str(&self) -> String {
-        format!("{}.{}",
-                self.service_group.service,
-                self.service_group.group)
+        format!("{}", self.service_group)
     }
 
     pub fn start(&mut self) -> Result<()> {
@@ -166,6 +167,85 @@ impl Service {
         self.supervisor.check_process()
     }
 
+    pub fn write_butterfly_service_file(&mut self,
+                                        filename: String,
+                                        incarnation: u64,
+                                        body: Vec<u8>)
+                                        -> bool {
+        self.current_service_files.insert(filename.clone(), incarnation);
+        let on_disk_path = fs::svc_files_path(&self.service_group.service).join(filename);
+        let current_checksum = match hash::hash_file(&on_disk_path) {
+            Ok(current_checksum) => current_checksum,
+            Err(e) => {
+                debug!("Failed to get current checksum for {:?}: {}",
+                       on_disk_path,
+                       e);
+                String::new()
+            }
+        };
+        let new_checksum = hash::hash_bytes(&body)
+            .expect("We failed to hash a Vec<u8> in a method that can't return an error; not \
+                     even sure what this means");
+        if new_checksum != current_checksum {
+            let new_filename = format!("{}.write", on_disk_path.to_string_lossy());
+
+            let mut new_file = match File::create(&new_filename) {
+                Ok(new_file) => new_file,
+                Err(e) => {
+                    outputln!(preamble self.service_group_str(),
+                        "Service file from butterfly failed to open the new file {}: {}",
+                        new_filename,
+                        Red.bold().paint(format!("{}", e)));
+                    return false;
+                }
+            };
+
+            if let Err(e) = new_file.write_all(&body) {
+                outputln!(preamble self.service_group_str(),
+                    "Service file from butterfly failed to write {}: {}",
+                    new_filename,
+                    Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = std::fs::rename(&new_filename, &on_disk_path) {
+                outputln!(preamble self.service_group_str(),
+                    "Service file from butterfly failed to rename {} to {}: {}",
+                    new_filename,
+                    on_disk_path.to_string_lossy(),
+                    Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = set_owner(&on_disk_path,
+                                      &self.supervisor.runtime_config.svc_user,
+                                      &self.supervisor.runtime_config.svc_group) {
+                outputln!(preamble self.service_group_str(),
+                    "Service file from butterfly failed to set ownership on {}: {}",
+                    on_disk_path.to_string_lossy(),
+                    Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
+                outputln!(preamble self.service_group_str(),
+                    "Service file from butterfly failed to set permissions on {}: {}",
+                    on_disk_path.to_string_lossy(),
+                    Red.bold().paint(format!("{}", e)));
+                return false;
+            }
+
+            outputln!(preamble self.service_group_str(),
+                "Service file updated from butterfly {}: {}",
+                on_disk_path.to_string_lossy(),
+                Green.bold().paint(new_checksum));
+            true
+        } else {
+            false
+        }
+    }
+
+
     pub fn write_butterfly_service_config(&mut self, config: String) -> bool {
         let on_disk_path = fs::svc_path(&self.service_group.service).join("gossip.toml");
         let current_checksum = match hash::hash_file(&on_disk_path) {
@@ -216,7 +296,7 @@ impl Service {
                 return false;
             }
 
-            if let Err(e) = set_permissions(&on_disk_path, 0o770) {
+            if let Err(e) = set_permissions(&on_disk_path, 0o640) {
                 outputln!(preamble self.service_group_str(),
                     "Service configuration from butterfly failed to set permissions: {}",
                     Red.bold().paint(format!("{}", e)));
@@ -236,15 +316,28 @@ impl Service {
         self.package.health_check(&self.supervisor)
     }
 
+    pub fn file_updated(&self) {
+        if self.initialized {
+            match self.package.file_updated() {
+                Ok(_) => outputln!(preamble self.service_group_str(), "{}", "File update hook succeeded."),
+                Err(e) => {
+                    outputln!(preamble self.service_group_str(), "File update hook failed: {}", e)
+                }
+            }
+        }
+    }
+
     pub fn initialize(&mut self) {
         if !self.initialized {
             match self.package.initialize() {
-                Ok(()) => outputln!(preamble self.service_group_str(), "{}", "Initializing"),
+                Ok(()) => {
+                    outputln!(preamble self.service_group_str(), "{}", "Initializing");
+                    self.initialized = true
+                }
                 Err(e) => {
                     outputln!(preamble self.service_group_str(), "Initialization failed: {}", e)
                 }
             }
-            self.initialized = true
         }
     }
 
