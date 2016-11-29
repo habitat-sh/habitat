@@ -162,31 +162,48 @@ mod inner {
         };
 
         let child = Command::new(&cmd)
-            .arg("pull")
+            .arg("images")
             .arg(&image_identifier())
+            .arg("-q")
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .spawn()
             .expect("docker failed to start");
 
-        let output = child.wait_with_output()
-            .expect("failed to wait on child");
+        let output = child.wait_with_output().expect("failed to wait on child");
+        let stdout = String::from_utf8(output.stdout).unwrap();
+        if stdout.is_empty() {
+            debug!("Failed to studio image locally.");
 
-        if output.status.success() {
-            debug!("Docker image is reachable. Proceeding with launching docker.");
-        } else {
-            debug!("Docker image is unreachable. Exit code = {:?}",
-                   output.status);
+            let child = Command::new(&cmd)
+                .arg("pull")
+                .arg(&image_identifier())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .spawn()
+                .expect("docker failed to start");
 
-            let err_output = String::from_utf8(output.stderr).unwrap();
+            let output = child.wait_with_output()
+                .expect("failed to wait on child");
 
-            if err_output.contains("image") && err_output.contains("not found") {
-                return Err(Error::DockerImageNotFound(image_identifier().to_string()));
-            } else if err_output.contains("Cannot connect to the Docker daemon") {
-                return Err(Error::DockerDaemonDown);
+            if output.status.success() {
+                debug!("Docker image is reachable. Proceeding with launching docker.");
             } else {
-                return Err(Error::DockerNetworkDown(image_identifier().to_string()));
+                debug!("Docker image is unreachable. Exit code = {:?}",
+                       output.status);
+
+                let err_output = String::from_utf8(output.stderr).unwrap();
+
+                if err_output.contains("image") && err_output.contains("not found") {
+                    return Err(Error::DockerImageNotFound(image_identifier().to_string()));
+                } else if err_output.contains("Cannot connect to the Docker daemon") {
+                    return Err(Error::DockerDaemonDown);
+                } else {
+                    return Err(Error::DockerNetworkDown(image_identifier().to_string()));
+                }
             }
+        } else {
+            debug!("Found studio image locally.");
         }
 
         let mut cmd_args: Vec<OsString> = vec!["run".into(),
