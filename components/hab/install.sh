@@ -274,7 +274,7 @@ do_install() {
       ;;
     "linux")
       ident="core/hab"
-      if [ -n "${1:-}" ]; then ident="$ident/$1"; fi
+      if [ ! -z "${version-}" ]; then ident="$ident/$version"; fi
       # Install hab release using the extracted version and add/update symlink
       "$archive_dir/hab" install "$ident"
       "$archive_dir/hab" pkg binlink "$ident" hab
@@ -285,13 +285,37 @@ do_install() {
 # Download location for the temporary files
 tmp_dir="${TMPDIR:-/tmp}/hab"
 
+# use stable channel by default
+channel="stable"
+
+# ## CLI Argument Parsing
+
+# Parse command line flags and options.
+while getopts "c:v:" opt; do
+  case $opt in
+    c)
+      channel=$OPTARG
+      ;;
+    v)
+      version=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [ "$channel" = "unstable" ]; then
+  export HAB_DEPOT_URL="${HAB_DEPOT_URL:-https://app.acceptance.habitat.sh/v1/depot}"
+fi
+
 # Add a trap to clean up any interrupted file downloads
 trap 'rm -rf $tmp_dir; exit $?' INT TERM EXIT
 rm -rf "$tmp_dir"
 (umask 077 && mkdir -p $tmp_dir) || exit 1
 
-# TODO: Handle versions!
-download_url="https://api.bintray.com/content/habitat/stable/$platform/x86_64/hab-%24latest-x86_64-$platform.$file_ext"
+download_url="https://api.bintray.com/content/habitat/$channel/$platform/x86_64/hab-%24latest-x86_64-$platform.$file_ext"
 bt_query="?bt_package=hab-x86_64-$platform"
 
 do_download "${download_url}${bt_query}" "${tmp_dir}/hab-latest.${file_ext}"
