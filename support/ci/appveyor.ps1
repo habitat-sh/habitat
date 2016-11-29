@@ -5,16 +5,35 @@ function Test-ComponentChanged ($path) {
     ($env:HAB_COMPONENTS -split ';') -contains $component
 }
 
+function Test-PullRequest() {
+    ($env:APPVEYOR_REPO_BRANCH -like 'master') -and
+        (test-path env:/APPVEYOR_PULL_REQUEST_NUMBER) -and 
+        (-not [string]::IsNullOrEmpty($env:APPVEYOR_PULL_REQUEST_NUMBER))
+}
+
+function Test-SentinelBuild() {
+    $env:APPVEYOR_REPO_BRANCH -like 'sentinel*'
+}
+
 function Test-SourceChanged {
+    $files = if (Test-PullRequest -or Test-SentinelBuild) {
+        # for pull requests or sentinel builds diff 
+        # against master
+        git diff master --name-only        
+    } else {
+        # for master builds, check against the last merge
+        git show :/^Merge --pretty=format:%H -m --name-only    
+    }
+
     $BuildFiles = "appveyor.yml", "build.ps1", "support/ci/appveyor.ps1", "support/ci/appveyor.bat", 
                   "Cargo.toml", "Cargo.lock"
-    (git diff master --name-only | 
-                where-object {
-                    ($BuildFiles -contains $_ ) -or
-                    (($_ -like 'components/*') -and 
-                        (Test-ComponentChanged $_))
-                }
-            ).count -ge 1
+    ($files | 
+        where-object {
+            ($BuildFiles -contains $_ ) -or
+            (($_ -like 'components/*') -and 
+                (Test-ComponentChanged $_))
+        }
+    ).count -ge 1
 } 
 
 pushd "c:/projects/habitat"
@@ -56,7 +75,8 @@ if (Test-SourceChanged -or (test-path env:HAB_FORCE_TEST)) {
                 "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\archive.dll", 
                 "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\libeay32.dll",
                 "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\ssleay32.dll",
-                "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\zlib.dll",    
+                "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\zlib.dll",
+                "C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\libzmq.dll",
                 "C:/Windows/System32/vcruntime140.dll"
         DestinationPath = "c:/projects/habitat/windows/x86_64/hab-$env:APPVEYOR_BUILD_VERSION-x86_64-windows.zip"
     }
