@@ -50,12 +50,31 @@ export function fetchPackage(pkg) {
     };
 }
 
+export function getUniquePackages(
+    origin: string,
+    nextRange: number = 0,
+    token: string = ""
+) {
+    return dispatch => {
+        if (nextRange === 0) {
+            dispatch(clearPackages());
+        }
+
+        depotApi.getUnique(origin, nextRange).then(response => {
+            dispatch(setVisiblePackages(response["results"]));
+            dispatch(setPackagesTotalCount(response["totalCount"]));
+            dispatch(setPackagesNextRange(response["nextRange"]));
+            dispatch(fetchProjectsForPackages(response["results"], token));
+        }).catch(error => {
+            dispatch(setVisiblePackages(undefined, error));
+        });
+    };
+}
+
 export function filterPackagesBy(
     params,
     query: string,
-    nextRange: number = 0,
-    fetchProjects: boolean = false,
-    token: string = ""
+    nextRange: number = 0
 ) {
     return dispatch => {
         if (nextRange === 0) {
@@ -70,10 +89,6 @@ export function filterPackagesBy(
             dispatch(setVisiblePackages(response["results"]));
             dispatch(setPackagesTotalCount(response["totalCount"]));
             dispatch(setPackagesNextRange(response["nextRange"]));
-
-            if (fetchProjects) {
-                dispatch(fetchProjectsForPackages(response["results"], token));
-            }
         }).catch(error => {
             dispatch(setVisiblePackages(undefined, error));
         });

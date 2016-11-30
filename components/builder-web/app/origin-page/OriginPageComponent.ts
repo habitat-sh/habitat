@@ -19,7 +19,7 @@ import {fetchOrigin, fetchOriginInvitations, fetchOriginMembers,
         fetchOriginPublicKeys, inviteUserToOrigin, setCurrentOriginAddingPublicKey,
         setCurrentOriginAddingPrivateKey, uploadOriginPrivateKey,
         uploadOriginPublicKey, filterPackagesBy, fetchMyOrigins,
-        setProjectHint, requestRoute, setCurrentProject} from "../actions/index";
+        setProjectHint, requestRoute, setCurrentProject, getUniquePackages} from "../actions/index";
 import config from "../config";
 import {KeyAddFormComponent} from "./KeyAddFormComponent";
 import {KeyListComponent} from "./KeyListComponent";
@@ -27,7 +27,7 @@ import {Origin} from "../records/Origin";
 import {OriginMembersTabComponent} from "./OriginMembersTabComponent";
 import {TabComponent} from "../TabComponent";
 import {TabsComponent} from "../TabsComponent";
-import {requireSignIn} from "../util";
+import {requireSignIn, packageString} from "../util";
 import {PackagesListComponent} from "../packages-list/PackagesListComponent";
 import {Subscription} from "rxjs/Subscription";
 import {FeatureFlags} from "../Privilege";
@@ -392,19 +392,15 @@ export class OriginPageComponent implements OnInit, OnDestroy {
     }
 
     public getPackages() {
-        this.store.dispatch(filterPackagesBy(
-            {origin: this.origin.name}, "", 0, true, this.gitHubAuthToken
-        ));
+        this.store.dispatch(getUniquePackages(this.origin.name, 0, this.gitHubAuthToken));
     }
 
     private fetchMorePackages() {
-        this.store.dispatch(filterPackagesBy(
-            {origin: this.origin.name},
-            "",
+        this.store.dispatch(getUniquePackages(
+            this.origin.name,
             this.store.getState().packages.nextRange,
-            true,
-            this.gitHubAuthToken));
-
+            this.gitHubAuthToken
+        ));
         return false;
     }
 

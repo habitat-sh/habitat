@@ -664,6 +664,49 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
     }
 }
 
+fn list_unique_packages(req: &mut Request) -> IronResult<Response> {
+    let depot = req.get::<persistent::Read<Depot>>().unwrap();
+    let (start, stop) = match extract_pagination(req) {
+        Ok(range) => range,
+        Err(response) => return Ok(response),
+    };
+    let params = req.extensions.get::<Router>().unwrap();
+    let ident: String = match params.find("origin") {
+        Some(origin) => origin.to_string(),
+        None => return Ok(Response::with(status::BadRequest)),
+    };
+
+    match depot.datastore.packages.index.unique(&ident, start, stop) {
+        Ok(packages) => {
+            let count = depot.datastore.packages.index.count_unique(&ident).unwrap();
+            debug!("list_unique_packages start: {}, stop: {}, total count: {}",
+                   start,
+                   stop,
+                   count);
+            let body = package_results_json(&packages, count as isize, start, stop);
+
+            let mut response = if count as isize > (stop + 1) {
+                Response::with((status::PartialContent, body))
+            } else {
+                Response::with((status::Ok, body))
+            };
+
+            response.headers.set(ContentType(Mime(TopLevel::Application,
+                                                  SubLevel::Json,
+                                                  vec![(Attr::Charset, Value::Utf8)])));
+            dont_cache_response(&mut response);
+            Ok(response)
+        }
+        Err(Error::DataStore(dbcache::Error::EntityNotFound)) => {
+            Ok(Response::with((status::NotFound)))
+        }
+        Err(e) => {
+            error!("list_packages:2, err={:?}", e);
+            Ok(Response::with(status::InternalServerError))
+        }
+    }
+}
+
 fn list_packages(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let (start, stop) = match extract_pagination(req) {
@@ -1006,6 +1049,7 @@ pub fn router(depot: Depot) -> Result<Chain> {
 
         package_search: get "/pkgs/search/:query" => search_packages,
         packages: get "/pkgs/:origin" => list_packages,
+        packages_unique: get "/:origin/pkgs" => list_unique_packages,
         packages_pkg: get "/pkgs/:origin/:pkg" => list_packages,
         package_pkg_latest: get "/pkgs/:origin/:pkg/latest" => show_package,
         packages_version: get "/pkgs/:origin/:pkg/:version" => list_packages,
