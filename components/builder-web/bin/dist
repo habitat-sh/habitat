@@ -13,13 +13,13 @@ mkdir -p dist/node_modules
 cp -R node_modules/octicons dist/node_modules
 cp habitat.conf.sample.js dist/habitat.conf.js
 
-CSS_SHA=$(openssl dgst -sha256 assets/app.css | cut -d ' ' -f 2)
-export CSS_SHA
-cp assets/app.css "dist/assets/app-$CSS_SHA.css"
-cp assets/app.css.map "dist/assets/app-$CSS_SHA.css.map"
+css_sha=$(openssl dgst -sha256 assets/app.css | cut -d ' ' -f 2)
+cp assets/app.css "dist/assets/app-${css_sha}.css"
+cp assets/app.css.map "dist/assets/app-${css_sha}.css.map"
 
-JS_SHA=$(openssl dgst -sha256 assets/app.js | cut -d ' ' -f 2)
-export JS_SHA
-cp assets/app.js "dist/assets/app-$JS_SHA.js"
-cp assets/app.js.map "dist/assets/app-$JS_SHA.js.map"
-node bin/add-shas-to-index.js > dist/index.html
+js_sha=$(openssl dgst -sha256 assets/app.js | cut -d ' ' -f 2)
+cp assets/app.js "dist/assets/app-${js_sha}.js"
+cp assets/app.js.map "dist/assets/app-${js_sha}.js.map"
+sed -e "/id=\"hab-css\"/ s/app\.css/app-${css_sha}\.css/" \
+    -e "/id=\"hab-js\"/ s/app\.js/app-${js_sha}\.js/" \
+    index.html > dist/index.html
