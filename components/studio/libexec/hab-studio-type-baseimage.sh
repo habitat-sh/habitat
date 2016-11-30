@@ -89,6 +89,8 @@ alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 
+# Add command line completion
+source <(hab cli completers --shell bash)
 PROFILE
 
   $bb cat <<EOT > $HAB_STUDIO_ROOT/etc/resolv.conf
