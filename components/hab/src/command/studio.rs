@@ -161,19 +161,16 @@ mod inner {
             None => return Err(Error::ExecCommandNotFound(docker.to_string())),
         };
 
-        let child = Command::new(&cmd)
+        let output = Command::new(&cmd)
             .arg("images")
             .arg(&image_identifier())
             .arg("-q")
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .spawn()
+            .output()
             .expect("docker failed to start");
 
-        let output = child.wait_with_output().expect("failed to wait on child");
         let stdout = String::from_utf8(output.stdout).unwrap();
         if stdout.is_empty() {
-            debug!("Failed to studio image locally.");
+            debug!("Failed to find studio image locally.");
 
             let child = Command::new(&cmd)
                 .arg("pull")
