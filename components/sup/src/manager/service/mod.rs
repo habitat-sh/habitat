@@ -103,7 +103,9 @@ impl Service {
                 if let Some(census) = census_list.get(&format!("{}.{}",
                                                                self.service_group.service,
                                                                self.service_group.group)) {
-                    let me = census.me();
+                    // We know perfectly well we are in this census, because we asked for
+                    // our own service group *by name*
+                    let me = census.me().unwrap();
                     if me.get_election_is_running() {
                         if self.last_restart_display != LastRestartDisplay::ElectionInProgress {
                             outputln!(preamble self.service_group_str(),

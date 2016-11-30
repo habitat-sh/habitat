@@ -285,7 +285,6 @@ fn service_entry(census: &Census) -> toml::Table {
     let service = toml::Value::String(String::from(census.get_service()));
     let group = toml::Value::String(String::from(census.get_group()));
     let ident = toml::Value::String(census.get_service_group());
-    let me = toml::encode(census.me());
     let leader = census.get_leader().map(|ce| toml::encode(ce));
     let mut members: Vec<toml::Value> = Vec::new();
     let mut member_id = toml::Table::new();
@@ -297,7 +296,10 @@ fn service_entry(census: &Census) -> toml::Table {
     result.insert("service".to_string(), service);
     result.insert("group".to_string(), group);
     result.insert("ident".to_string(), ident);
-    result.insert("me".to_string(), me);
+    if let Some(me) = census.me() {
+        let toml_me = toml::encode(me);
+        result.insert("me".to_string(), toml_me);
+    }
     if let Some(l) = leader {
         result.insert("leader".to_string(), l);
     }
