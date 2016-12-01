@@ -1,0 +1,7 @@
+# Default values that can be updated.
+
+# Message of the Day
+message = "Hello, World!"
+
+# The port number that is listening for requests.
+port = 8080
