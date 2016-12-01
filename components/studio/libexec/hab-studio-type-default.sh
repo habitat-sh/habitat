@@ -96,6 +96,8 @@ if [ -f /src/.studiorc ];then
   source /src/.studiorc
 fi
 
+# Add command line completion
+source <(hab cli completers --shell bash)
 PROFILE
 
   echo "${run_user}:x:42:42:root:/:/bin/sh" >> $HAB_STUDIO_ROOT/etc/passwd
