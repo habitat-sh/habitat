@@ -88,8 +88,7 @@ fn config_from_args(matches: &clap::ArgMatches) -> Result<Config> {
     };
     if let Some(port) = args.value_of("port") {
         if let Some(port) = u16::from_str(port).ok() {
-            let addr = net::SocketAddrV4::new(*config.listen_addr.ip(), port);
-            config.listen_addr = addr;
+            config.listen_addr.set_port(port);
         } else {
             return Err(Error::BadPort(port.to_string()));
         }

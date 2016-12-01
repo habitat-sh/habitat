@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net;
+use std::net::SocketAddr;
 
 use num_cpus;
 
@@ -26,6 +26,6 @@ pub trait DataStoreCfg {
     }
 
     fn connection_retry_ms(&self) -> u64;
-    fn datastore_addr(&self) -> &net::SocketAddrV4;
+    fn datastore_addr(&self) -> &SocketAddr;
     fn pool_size(&self) -> u32;
 }

@@ -16,7 +16,7 @@ use std;
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::Read;
-use std::net;
+use std::net::{IpAddr, SocketAddr};
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
@@ -54,19 +54,19 @@ pub trait ParseInto<T> {
     fn parse_into(&self, field: &'static str, out: &mut T) -> Result<bool>;
 }
 
-impl ParseInto<Vec<net::SocketAddrV4>> for toml::Value {
-    fn parse_into(&self, field: &'static str, out: &mut Vec<net::SocketAddrV4>) -> Result<bool> {
+impl ParseInto<Vec<SocketAddr>> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut Vec<SocketAddr>) -> Result<bool> {
         if let Some(val) = self.lookup(field) {
             if let Some(slice) = val.as_slice() {
                 let mut buf = vec![];
                 for entry in slice.iter() {
                     if let Some(v) = entry.as_str() {
-                        match net::SocketAddrV4::from_str(v) {
+                        match SocketAddr::from_str(v) {
                             Ok(addr) => buf.push(addr),
-                            Err(_) => return Err(Error::ConfigInvalidSocketAddrV4(field)),
+                            Err(_) => return Err(Error::ConfigInvalidSocketAddr(field)),
                         }
                     } else {
-                        return Err(Error::ConfigInvalidSocketAddrV4(field));
+                        return Err(Error::ConfigInvalidSocketAddr(field));
                     }
                 }
                 *out = buf;
@@ -81,19 +81,19 @@ impl ParseInto<Vec<net::SocketAddrV4>> for toml::Value {
     }
 }
 
-impl ParseInto<net::SocketAddrV4> for toml::Value {
-    fn parse_into(&self, field: &'static str, out: &mut net::SocketAddrV4) -> Result<bool> {
+impl ParseInto<SocketAddr> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut SocketAddr) -> Result<bool> {
         if let Some(val) = self.lookup(field) {
             if let Some(v) = val.as_str() {
-                match net::SocketAddrV4::from_str(v) {
+                match SocketAddr::from_str(v) {
                     Ok(addr) => {
                         *out = addr;
                         Ok(true)
                     }
-                    Err(_) => Err(Error::ConfigInvalidSocketAddrV4(field)),
+                    Err(_) => Err(Error::ConfigInvalidSocketAddr(field)),
                 }
             } else {
-                Err(Error::ConfigInvalidSocketAddrV4(field))
+                Err(Error::ConfigInvalidSocketAddr(field))
             }
         } else {
             Ok(false)
@@ -101,19 +101,19 @@ impl ParseInto<net::SocketAddrV4> for toml::Value {
     }
 }
 
-impl ParseInto<net::Ipv4Addr> for toml::Value {
-    fn parse_into(&self, field: &'static str, out: &mut net::Ipv4Addr) -> Result<bool> {
+impl ParseInto<IpAddr> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut IpAddr) -> Result<bool> {
         if let Some(val) = self.lookup(field) {
             if let Some(v) = val.as_str() {
-                match net::Ipv4Addr::from_str(v) {
+                match IpAddr::from_str(v) {
                     Ok(addr) => {
                         *out = addr;
                         Ok(true)
                     }
-                    Err(_) => Err(Error::ConfigInvalidIpv4Addr(field)),
+                    Err(_) => Err(Error::ConfigInvalidIpAddr(field)),
                 }
             } else {
-                Err(Error::ConfigInvalidIpv4Addr(field))
+                Err(Error::ConfigInvalidIpAddr(field))
             }
         } else {
             Ok(false)
