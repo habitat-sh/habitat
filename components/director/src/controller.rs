@@ -61,7 +61,6 @@ impl Controller {
         let default_ip = try!(ip()).to_string();
         let listen_ip = try!(Ipv4Addr::from_str(&default_ip));
 
-
         let mut initial_peer: Option<SocketAddrV4> = self.config.dir_sup_listen;
 
         for sd in &self.config.service_defs {
@@ -111,7 +110,8 @@ impl Controller {
             let elapsed_millis = elapsed_time.num_milliseconds();
 
             if elapsed_millis < MINIMUM_LOOP_TIME_MS {
-                thread::sleep(Duration::from_millis((MINIMUM_LOOP_TIME_MS - elapsed_millis) as u64));
+                let time = Duration::from_millis((MINIMUM_LOOP_TIME_MS - elapsed_millis) as u64);
+                thread::sleep(time);
             }
         }
         Ok(())
@@ -257,14 +257,13 @@ mod tests {
 
         let test_ip = ip().unwrap().to_string();
         {
-
             let child = &controller.children.as_ref().unwrap()[0];
             let args = child.get_cmd_args().unwrap();
             assert_eq!(args.as_slice(),
                        ["start",
                         "core/redis",
                         "foo",
-                        "--listen-peer",
+                        "--listen-gossip",
                         format!("{}:9000", test_ip).as_str(),
                         "--listen-http",
                         format!("{}:8000", test_ip).as_str(),
@@ -282,7 +281,7 @@ mod tests {
                        ["start",
                         "core/rngd",
                         "bar",
-                        "--listen-peer",
+                        "--listen-gossip",
                         // did we increment the port?
                         format!("{}:9001", test_ip).as_str(),
                         "--listen-http",
@@ -296,7 +295,6 @@ mod tests {
                         // is the peer set to the previous port?
                         format!("{}:9000", test_ip).as_str()]);
         }
-
         {
             let child = &controller.children.as_ref().unwrap()[2];
             let args = child.get_cmd_args().unwrap();
@@ -304,7 +302,7 @@ mod tests {
             assert_eq!(args.as_slice(),
                        ["start",
                         "myorigin/xyz",
-                        "--listen-peer",
+                        "--listen-gossip",
                         // did we increment the port?
                         format!("{}:9002", test_ip).as_str(),
                         "--listen-http",
@@ -333,6 +331,5 @@ mod tests {
             c.children.as_ref().unwrap()[1].starts > 1 &&
             c.children.as_ref().unwrap()[2].starts > 1
         }));
-
     }
 }

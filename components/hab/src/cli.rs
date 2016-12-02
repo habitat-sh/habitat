@@ -71,7 +71,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg USER: +takes_value "Name of the user key")
                 (@arg PEER: -p --peer +takes_value
                     "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-                    (default: 127.0.0.1:9634)")
+                    (default: 127.0.0.1:9638)")
                 (@arg RING: -r --ring +takes_value
                     "Ring key name, which will encrypt communication messages")
             )
@@ -350,7 +350,7 @@ fn sub_config_apply() -> App<'static, 'static> {
         (about: "Applies a configuration to a group of Habitat Supervisors")
         (@arg PEER: -p --peer +takes_value
             "A comma-delimited list of one or more Habitat Supervisor peers to infect \
-            (default: 127.0.0.1:9634)")
+            (default: 127.0.0.1:9638)")
         (@arg RING: -r --ring +takes_value
             "Ring key name, which will encrypt communication messages")
         (@arg SERVICE_GROUP: +required {valid_service_group}

@@ -65,14 +65,14 @@
 //!       │
 //!       │    ┌───────────────┐
 //!       │    │               │
-//!       └───▶│   Controller  │────┐    ┌────────────┐   ┌────────┐    ┌──────────┐
-//!            │               │    ├───▶│ ExecParams │──▶│  Task  │───▶│  hab-sup │
+//!       └───>│   Controller  │────┐    ┌────────────┐   ┌────────┐    ┌──────────┐
+//!            │               │    ├───>│ ExecParams │──>│  Task  │───>│  hab-sup │
 //!            └───────────────┘    │    └────────────┘   └────────┘    └──────────┘
 //!              ┌─────────────┐    │    ┌────────────┐   ┌────────┐    ┌──────────┐
-//!              │ ExecContext │────┼───▶│ ExecParams │──▶│  Task  │───▶│  hab-sup │
+//!              │ ExecContext │────┼───>│ ExecParams │──>│  Task  │───>│  hab-sup │
 //!              └─────────────┘    │    └────────────┘   └────────┘    └──────────┘
 //!                                 │    ┌────────────┐   ┌────────┐    ┌──────────┐
-//!                                 └───▶│ ExecParams │──▶│  Task  │───▶│  hab-sup │
+//!                                 └───>│ ExecParams │──>│  Task  │───>│  hab-sup │
 //!                                      └────────────┘   └────────┘    └──────────┘
 //! ```
 //! ### Config file format
@@ -143,7 +143,7 @@
 //! - Gossip port numbers are assigned starting with FIRST_GOSSIP_PORT (9000)
 //! - HTTP port numbers are assigned starting with FIRST_HTTP_PORT (8000)
 //! - If the hab-sup that's running the director is assigned ports other than
-//! the defaults (9634, 9631), there is a possibility that they could conflict
+//! the defaults (9638, 9631), there is a possibility that they could conflict
 //! with the automatically assigned port numbers of the child tasks.
 //! - The diagram below shows a hab-sup process running the director with it's
 //! default IP + port (changeable by the user). Each task that's started is
@@ -151,21 +151,21 @@
 //!
 //!                 ┌────────────────────────────┐
 //!                 │     hab-sup (Director)     │
-//!              ┌─▶│       Gossip = 9634        │ * default ports
+//!              ┌─>│       Gossip = 9638        │ * default ports
 //!              │  │       HTTP = 9631          │
 //!              │  └────────────────────────────┘
 //!              │
 //!         Peer │
 //!              │  ┌────────────────────────────┐
 //!              │  │Task 0                      │
-//!              └──│FIRST_GOSSIP_PORT (9000)    │◀─┐
+//!              └──│FIRST_GOSSIP_PORT (9000)    │<─┐
 //!                 │FIRST_HTTP_PORT (8000)      │  │
 //!                 └────────────────────────────┘  │
 //!                                                 │
 //!                                                 │ Peer
 //!                 ┌────────────────────────────┐  │
 //!                 │Task 1                      │  │
-//!              ┌─▶│FIRST_GOSSIP_PORT+1 (9001)  │──┘
+//!              ┌─>│FIRST_GOSSIP_PORT+1 (9001)  │──┘
 //!              │  │FIRST_HTTP_PORT+1 (8001)    │
 //!              │  └────────────────────────────┘
 //!              │
@@ -182,7 +182,7 @@ extern crate habitat_director as director;
 extern crate habitat_core as hcore;
 extern crate habitat_common as hcommon;
 #[macro_use]
-extern crate habitat_sup as hsup;
+extern crate habitat_sup;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;

@@ -93,7 +93,7 @@ Applies configuration to a group of Habitat supervisors.
 
         --org <ORG>      Name of service organization
     -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers to
-                         communicate with (default: 127.0.0.1:9634)
+                         communicate with (default: 127.0.0.1:9638)
     -r, --ring <RING>    Ring key name, which will encrypt communication messages
 
 **ARGS**
@@ -118,7 +118,7 @@ Upload a file to a supervisor ring.
 
         --org <ORG>      Name of service organization
     -p, --peer <PEER>    A comma-delimited list of one or more Habitat Supervisor peers to infect
-                         (default: 127.0.0.1:9634)
+                         (default: 127.0.0.1:9638)
     -r, --ring <RING>    Ring key name, which will encrypt communication messages
 
 **ARGS**
