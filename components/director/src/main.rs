@@ -182,7 +182,7 @@ extern crate habitat_director as director;
 extern crate habitat_core as hcore;
 extern crate habitat_common as hcommon;
 #[macro_use]
-extern crate habitat_sup as hsup;
+extern crate habitat_sup;
 #[macro_use]
 extern crate clap;
 extern crate env_logger;
