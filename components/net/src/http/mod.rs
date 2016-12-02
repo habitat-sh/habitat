@@ -34,5 +34,11 @@ pub fn net_err_to_http(err: ErrCode) -> StatusCode {
         ErrCode::ZMQ => StatusCode::ServiceUnavailable,
         ErrCode::DATA_STORE => StatusCode::ServiceUnavailable,
         ErrCode::AUTH_SCOPE => StatusCode::Forbidden,
+        ErrCode::WORKSPACE_SETUP => StatusCode::InternalServerError,
+        ErrCode::SECRET_KEY_FETCH => StatusCode::BadGateway,
+        ErrCode::SECRET_KEY_IMPORT => StatusCode::InternalServerError,
+        ErrCode::VCS_CLONE => StatusCode::BadGateway,
+        ErrCode::BUILD => StatusCode::InternalServerError,
+        ErrCode::POST_PROCESSOR => StatusCode::InternalServerError,
     }
 }

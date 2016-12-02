@@ -1,4 +1,5 @@
 package jobsrv;
+import "protocols/net.proto";
 import "protocols/vault.proto";
 
 enum Os {
@@ -31,6 +32,7 @@ message Job {
   required uint64 owner_id = 2;
   required JobState state = 3;
   required vault.Project project = 4;
+  optional net.NetError error = 5;
 }
 
 message JobGet {

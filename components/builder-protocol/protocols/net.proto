@@ -20,6 +20,7 @@ message Msg {
 }
 
 enum ErrCode {
+  // Generic
   BUG = 0;
   TIMEOUT = 1;
   REMOTE_REJECTED = 2;
@@ -32,6 +33,14 @@ enum ErrCode {
   ZMQ = 10;
   DATA_STORE = 11;
   AUTH_SCOPE = 12;
+
+  // Worker
+  WORKSPACE_SETUP = 1000;
+  SECRET_KEY_FETCH = 1001;
+  SECRET_KEY_IMPORT = 1002;
+  VCS_CLONE = 1003;
+  BUILD = 1004;
+  POST_PROCESSOR = 1005;
 }
 
 message NetError {

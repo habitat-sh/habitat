@@ -7,11 +7,15 @@
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 
+#![allow(box_pointers)]
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(trivial_casts)]
+#![allow(unsafe_code)]
 #![allow(unused_imports)]
+#![allow(unused_results)]
 
 use protobuf::Message as Message_imported_for_functions;
 use protobuf::ProtobufEnum as ProtobufEnum_imported_for_functions;
@@ -188,13 +192,13 @@ impl ::protobuf::Message for Account {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.id.iter() {
+        for value in &self.id {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in self.email.iter() {
+        for value in &self.email {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in self.name.iter() {
+        for value in &self.name {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -400,7 +404,7 @@ impl ::protobuf::Message for AccountGet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.name.iter() {
+        for value in &self.name {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -617,10 +621,10 @@ impl ::protobuf::Message for AccountSearch {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.key.iter() {
+        for value in &self.key {
             my_size += ::protobuf::rt::enum_size(1, *value);
         };
-        for value in self.value.iter() {
+        for value in &self.value {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -834,10 +838,10 @@ impl ::protobuf::Message for GrantFlagToTeam {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.flag.iter() {
+        for value in &self.flag {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in self.team_id.iter() {
+        for value in &self.team_id {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1051,10 +1055,10 @@ impl ::protobuf::Message for RevokeFlagFromTeam {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.flag.iter() {
+        for value in &self.flag {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in self.team_id.iter() {
+        for value in &self.team_id {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1237,7 +1241,7 @@ impl ::protobuf::Message for ListFlagGrants {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.flag.iter() {
+        for value in &self.flag {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1409,7 +1413,7 @@ impl ::protobuf::Message for FlagGrants {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.teams.iter() {
+        for value in &self.teams {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -1418,7 +1422,7 @@ impl ::protobuf::Message for FlagGrants {
     }
 
     fn write_to_with_cached_sizes(&self, os: &mut ::protobuf::CodedOutputStream) -> ::protobuf::ProtobufResult<()> {
-        for v in self.teams.iter() {
+        for v in &self.teams {
             try!(os.write_uint64(1, *v));
         };
         try!(os.write_unknown_fields(self.get_unknown_fields()));
@@ -1744,19 +1748,19 @@ impl ::protobuf::Message for Session {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.id.iter() {
+        for value in &self.id {
             my_size += ::protobuf::rt::value_size(1, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in self.email.iter() {
+        for value in &self.email {
             my_size += ::protobuf::rt::string_size(2, &value);
         };
-        for value in self.name.iter() {
+        for value in &self.name {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in self.token.iter() {
+        for value in &self.token {
             my_size += ::protobuf::rt::string_size(4, &value);
         };
-        for value in self.flags.iter() {
+        for value in &self.flags {
             my_size += ::protobuf::rt::value_size(5, *value, ::protobuf::wire_format::WireTypeVarint);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -2044,13 +2048,13 @@ impl ::protobuf::Message for SessionToken {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.token.iter() {
+        for value in &self.token {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in self.owner_id.iter() {
+        for value in &self.owner_id {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in self.provider.iter() {
+        for value in &self.provider {
             my_size += ::protobuf::rt::enum_size(3, *value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -2406,19 +2410,19 @@ impl ::protobuf::Message for SessionCreate {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.token.iter() {
+        for value in &self.token {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
-        for value in self.extern_id.iter() {
+        for value in &self.extern_id {
             my_size += ::protobuf::rt::value_size(2, *value, ::protobuf::wire_format::WireTypeVarint);
         };
-        for value in self.email.iter() {
+        for value in &self.email {
             my_size += ::protobuf::rt::string_size(3, &value);
         };
-        for value in self.name.iter() {
+        for value in &self.name {
             my_size += ::protobuf::rt::string_size(4, &value);
         };
-        for value in self.provider.iter() {
+        for value in &self.provider {
             my_size += ::protobuf::rt::enum_size(5, *value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());
@@ -2644,7 +2648,7 @@ impl ::protobuf::Message for SessionGet {
     #[allow(unused_variables)]
     fn compute_size(&self) -> u32 {
         let mut my_size = 0;
-        for value in self.token.iter() {
+        for value in &self.token {
             my_size += ::protobuf::rt::string_size(1, &value);
         };
         my_size += ::protobuf::rt::unknown_fields_size(self.get_unknown_fields());

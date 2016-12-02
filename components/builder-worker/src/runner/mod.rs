@@ -35,6 +35,7 @@ use hab_core::package::PackageIdent;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
+use protocol::net::{self, ErrCode};
 use zmq;
 
 use {PRODUCT, VERSION};
@@ -134,7 +135,7 @@ impl Runner {
     pub fn run(mut self) -> Job {
         if let Some(err) = self.setup().err() {
             error!("WORKSPACE SETUP ERR={:?}", err);
-            return self.fail();
+            return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
         }
         match self.depot_cli.fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
             Ok(key) => {
@@ -147,24 +148,24 @@ impl Runner {
                     }
                     Err(err) => {
                         error!("Unable to import secret key, err={}", err);
-                        return self.fail();
+                        return self.fail(net::err(ErrCode::SECRET_KEY_IMPORT, "wk:run:2"));
                     }
                 }
             }
             Err(err) => {
                 error!("Unable to retrieve secret key, err={}", err);
-                return self.fail();
+                return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
             }
         }
         if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
             error!("Unable to clone remote source repository, err={}", err);
-            return self.fail();
+            return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
         }
         let mut archive = match self.build() {
             Ok(archive) => archive,
             Err(err) => {
                 error!("Unable to build in studio, err={}", err);
-                return self.fail();
+                return self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
             }
         };
 
@@ -172,7 +173,7 @@ impl Runner {
         if !post_processor.run(&mut archive, &self.auth_token) {
             // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
             // If the job is killed then we can kill the shelved artifacts.
-            return self.fail();
+            return self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
         }
 
         if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
@@ -220,9 +221,10 @@ impl Runner {
         self.workspace.job
     }
 
-    fn fail(mut self) -> Job {
+    fn fail(mut self, err: net::NetError) -> Job {
         self.teardown().err().map(|e| error!("{}", e));
         self.workspace.job.set_state(JobState::Failed);
+        self.workspace.job.set_error(err);
         self.workspace.job
     }
 
