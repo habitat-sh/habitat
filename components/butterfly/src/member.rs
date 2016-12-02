@@ -196,6 +196,11 @@ impl MemberList {
         self.update_counter.load(Ordering::Relaxed)
     }
 
+    pub fn len_initial_members(&self) -> usize {
+        let im = self.initial_members.read().expect("Initial members lock is poisoned");
+        im.len()
+    }
+
     pub fn add_initial_member(&self, member: Member) {
         let mut im = self.initial_members.write().expect("Initial members lock is poisoned");
         im.push(member);
