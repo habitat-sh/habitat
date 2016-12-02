@@ -35,9 +35,9 @@ When running on a Mac OSX machine, because service and user keys generated with 
    If successful, you should see output similar to the following from where you ran the `hab` CLI:
 
        » Uploading file test.txt
-       ↑ Uploading status.json for myapp.test@myorg into ring via ["172.17.0.2:9634"]
-       Joining peer: 172.17.0.2:9634
-       Configuration applied to: 172.17.0.2:9634
+       ↑ Uploading status.json for myapp.test@myorg into ring via ["172.17.0.2:9638"]
+       Joining peer: 172.17.0.2:9638
+       Configuration applied to: 172.17.0.2:9638
        ★ Upload of test.txt complete.
 
      The output text will update as each peer in the service group receives the file.

@@ -8,8 +8,8 @@ One of the key features of Habitat is the ability to define an immutable package
 
 
 ## Apply configuration updates to an individual service
-When starting a single service, you can provide alternate configuration values to those specified in `default.toml` through the use of an environment variable 
-with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2'`. 
+When starting a single service, you can provide alternate configuration values to those specified in `default.toml` through the use of an environment variable
+with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalue2'`.
 
     HAB_MYTUTORIALAPP='message = "Habitat rocks!"' hab start <origin>/<packagename>
 
@@ -20,7 +20,7 @@ file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
     HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>
 
-The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied to one service at a time, and you have to manually interrupt (Ctrl+C) a running service before changing its configuration settings again. 
+The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied to one service at a time, and you have to manually interrupt (Ctrl+C) a running service before changing its configuration settings again.
 
 For an example of how to use an environment variable to update default configuration values, see [Run your service](/tutorials/getting-started/linux/process-build) in the Getting Started tutorial.
 
@@ -52,9 +52,9 @@ Here are some examples of how to apply configuration changes through both the sh
     Your output would look something like this:
 
        » Applying configuration
-       ↑ Applying configuration for myapp.prod into ring via ["172.17.0.3:9634"]
-       Joining peer: 172.17.0.3:9634
-       Configuration applied to: 172.17.0.3:9634
+       ↑ Applying configuration for myapp.prod into ring via ["172.17.0.3:9638"]
+       Joining peer: 172.17.0.3:9638
+       Configuration applied to: 172.17.0.3:9638
        ★ Applied configuration.
 
   The services in the myapp.prod service group will restart according to the service group's [update strategy](/docs/run-packages-update-strategy).

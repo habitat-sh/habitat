@@ -280,7 +280,7 @@ describe "Habitat CLI" do
                 end
 
                 # upload a new config to trigger a restart
-                ctx.cmd("config apply -p #{ctx.local_ip}:9634 #{package}.default 1 #{tomlfile.path}")
+                ctx.cmd("config apply -p #{ctx.local_ip}:9638 #{package}.default 1 #{tomlfile.path}")
                 loop do
                     line = stdout_err.readline()
                     puts line
@@ -299,9 +299,4 @@ describe "Habitat CLI" do
     it "sends a SIGTERM to a child process if a reconfigure hook doesn't exist" do
         start_and_config_apply("simple_service_without_reconfigure", "RECEIVED TERM")
     end
-
 end
-
-
-
-

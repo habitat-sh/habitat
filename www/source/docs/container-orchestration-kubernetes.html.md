@@ -24,4 +24,4 @@ Kubernetes supports passing [environment variables](http://kubernetes.io/docs/us
 
 ## Multi-container Pods
 
-Multi-container pod support through Habitat is still under active development. There may need to be a generated configuration file output from a CLI. Habitat's gossip protocol is on port 9634 and transmitted via UDP. It needs to be available by default to all of the containers in the pod.
+Multi-container pod support through Habitat is still under active development. There may need to be a generated configuration file output from a CLI. Habitat's gossip protocol is on port 9638 and transmitted via UDP. It needs to be available by default to all of the containers in the pod.
