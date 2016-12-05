@@ -201,6 +201,7 @@ mod inner {
             }
         } else {
             debug!("Found studio image locally.");
+            debug!("Local image id: {}", stdout);
         }
 
         let mut cmd_args: Vec<OsString> = vec!["run".into(),

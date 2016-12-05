@@ -90,7 +90,7 @@ FROM busybox:latest
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
-RUN env NO_MOUNT=true hab studio new && rm -rf /hab/studios/src/hab/cache
+RUN env NO_MOUNT=true hab studio new
 ENTRYPOINT ["/bin/hab", "studio"]
 EOF
 cd $tmp_root
