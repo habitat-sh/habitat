@@ -25,6 +25,7 @@ use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
 use hab_net::config::RouteAddrs;
 use hab_net::http::controller::*;
+use hab_net::privilege;
 use hab_net::routing::{Broker, BrokerConn};
 use hab_net::server::NetIdent;
 use hyper::mime::{Mime, TopLevel, SubLevel, Attr, Value};
@@ -370,6 +371,24 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     Ok(response)
 }
 
+fn download_latest_origin_secret_key(req: &mut Request) -> IronResult<Response> {
+    let params = req.extensions.get::<Router>().unwrap();
+    let mut conn = Broker::connect().unwrap();
+    let mut request = OriginSecretKeyGet::new();
+    let origin = params.find("origin").unwrap();
+    match try!(get_origin(&mut conn, origin)) {
+        Some(mut origin) => {
+            request.set_owner_id(origin.get_owner_id());
+            request.set_origin(origin.take_name());
+        }
+        None => return Ok(Response::with(status::NotFound)),
+    }
+    match conn.route::<OriginSecretKeyGet, OriginSecretKey>(&request) {
+        Ok(ref key) => Ok(render_json(status::Ok, key)),
+        Err(err) => Ok(render_net_error(&err)),
+    }
+}
+
 fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
     debug!("Upload Origin Secret Key {:?}", req);
     // TODO: SA - Eliminate need to clone the session and params
@@ -390,7 +409,7 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
                     request.set_origin_id(origin.get_id());
                 }
                 None => return Ok(Response::with(status::NotFound)),
-            };
+            }
             origin
         }
         None => return Ok(Response::with(status::BadRequest)),
@@ -1018,6 +1037,7 @@ fn dont_cache_response(response: &mut Response) {
 
 pub fn router(depot: Depot) -> Result<Chain> {
     let basic = Authenticated::new(&depot.config);
+    let worker = Authenticated::new(&depot.config).require(privilege::BUILD_WORKER);
     let router = router!(
         channels: get "/channels" => list_channels,
         channel_packages: get "/channels/:channel/pkgs/:origin" => list_packages,
@@ -1084,6 +1104,13 @@ pub fn router(depot: Depot) -> Result<Chain> {
         },
         origin_secret_key_create: post "/origins/:origin/secret_keys/:revision" => {
             XHandler::new(upload_origin_secret_key).before(basic.clone())
+        },
+        origin_secret_key_latest: get "/origins/:origin/secret_keys/latest" => {
+            if depot.config.insecure {
+                XHandler::new(download_latest_origin_secret_key)
+            } else {
+                XHandler::new(download_latest_origin_secret_key).before(worker.clone())
+            }
         },
         origin_invitation_create: post "/origins/:origin/users/:username/invitations" => {
             XHandler::new(invite_to_origin).before(basic.clone())

@@ -16,23 +16,29 @@ pub mod logger;
 pub mod workspace;
 pub mod postprocessor;
 
+pub use protocol::jobsrv::JobState;
+
 use std::ffi::OsString;
 use std::fs;
-use std::io::{BufRead, BufReader};
+use std::ops::{Deref, DerefMut};
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::str::FromStr;
 use std::sync::{mpsc, Arc, RwLock};
 use std::thread::{self, JoinHandle};
 
+use depot_client;
+use hab_core::{self, crypto};
 use hab_core::package::archive::PackageArchive;
 use hab_core::package::install::PackageInstall;
 use hab_core::package::PackageIdent;
 use hab_net::server::ZMQ_CONTEXT;
 use protobuf::{parse_from_bytes, Message};
 use protocol::jobsrv as proto;
+use protocol::net::{self, ErrCode};
 use zmq;
 
+use {PRODUCT, VERSION};
 use self::logger::Logger;
 use self::postprocessor::PostProcessor;
 use self::workspace::Workspace;
@@ -56,44 +62,118 @@ lazy_static! {
     static ref STUDIO_PKG: PackageIdent = PackageIdent::from_str("core/hab-studio").unwrap();
 }
 
+#[derive(Debug)]
+pub struct Job(proto::Job);
+
+impl Job {
+    pub fn new(job: proto::Job) -> Self {
+        Job(job)
+    }
+
+    pub fn vcs(&self) -> &vcs::RemoteSource {
+        if self.0.get_project().has_git() {
+            return self.0.get_project().get_git();
+        }
+        unreachable!("unknown vcs associated with job's project");
+    }
+
+    pub fn origin(&self) -> &str {
+        let items = self.0.get_project().get_id().split("/").collect::<Vec<&str>>();
+        assert!(items.len() == 2,
+                format!("Invalid project identifier - {}",
+                        self.0.get_project().get_id()));
+        items[0]
+    }
+}
+
+impl Deref for Job {
+    type Target = proto::Job;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Job {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 pub struct Runner {
-    pub workspace: Workspace,
+    workspace: Workspace,
     auth_token: String,
+    logger: Option<Logger>,
+    depot_cli: depot_client::Client,
 }
 
 impl Runner {
-    pub fn new(job: proto::Job, config: &Config) -> Self {
+    pub fn new(job: Job, config: &Config) -> Self {
+        let depot_cli =
+            depot_client::Client::new(&hab_core::url::default_depot_url(), PRODUCT, VERSION, None)
+                .unwrap();
         Runner {
             auth_token: config.auth_token.clone(),
             workspace: Workspace::new(config.data_path.clone(), job),
+            logger: None,
+            depot_cli: depot_cli,
         }
     }
 
-    pub fn run(&mut self) -> () {
+    pub fn job(&self) -> &Job {
+        &self.workspace.job
+    }
+
+    pub fn job_mut(&mut self) -> &mut Job {
+        &mut self.workspace.job
+    }
+
+    pub fn logger(&mut self) -> &mut Logger {
+        self.logger.as_mut().expect("logger not initialized")
+    }
+
+    pub fn run(mut self) -> Job {
         if let Some(err) = self.setup().err() {
             error!("WORKSPACE SETUP ERR={:?}", err);
-            return self.fail();
+            return self.fail(net::err(ErrCode::WORKSPACE_SETUP, "wk:run:1"));
         }
-        let mut logger = Logger::new(&self.workspace);
-        // JW TODO: How are we going to get the secret keys for this thing?
-        if let Some(err) = vcs::clone(&self.workspace.job, &self.workspace.src()).err() {
-            error!("CLONE ERROR={}", err);
-            return self.fail();
+        match self.depot_cli.fetch_origin_secret_key(self.job().origin(), &self.auth_token) {
+            Ok(key) => {
+                let cache = crypto::default_cache_key_path(None);
+                match crypto::SigKeyPair::write_file_from_str(&key.body, &cache) {
+                    Ok((pair, pair_type)) => {
+                        debug!("Imported {} origin key {}.",
+                               &pair_type,
+                               &pair.name_with_rev());
+                    }
+                    Err(err) => {
+                        error!("Unable to import secret key, err={}", err);
+                        return self.fail(net::err(ErrCode::SECRET_KEY_IMPORT, "wk:run:2"));
+                    }
+                }
+            }
+            Err(err) => {
+                error!("Unable to retrieve secret key, err={}", err);
+                return self.fail(net::err(ErrCode::SECRET_KEY_FETCH, "wk:run:3"));
+            }
         }
-        let mut archive = match self.build(&mut logger) {
+        if let Some(err) = self.job().vcs().clone(&self.workspace.src()).err() {
+            error!("Unable to clone remote source repository, err={}", err);
+            return self.fail(net::err(ErrCode::VCS_CLONE, "wk:run:4"));
+        }
+        let mut archive = match self.build() {
             Ok(archive) => archive,
             Err(err) => {
-                error!("STUDIO ERR={}", err);
-                return self.fail();
+                error!("Unable to build in studio, err={}", err);
+                return self.fail(net::err(ErrCode::BUILD, "wk:run:5"));
             }
         };
 
         let mut post_processor = PostProcessor::new(&self.workspace);
-
         if !post_processor.run(&mut archive, &self.auth_token) {
             // JW TODO: We should shelve the built artifacts and allow a retry on post-processing.
             // If the job is killed then we can kill the shelved artifacts.
-            return self.fail();
+            return self.fail(net::err(ErrCode::POST_PROCESSOR, "wk:run:6"));
         }
 
         if let Some(err) = fs::remove_dir_all(self.workspace.out()).err() {
@@ -104,18 +184,17 @@ impl Runner {
         self.complete()
     }
 
-    pub fn build(&self, logger: &mut Logger) -> Result<PackageArchive> {
-        let args =
-            vec![OsString::from("-s"),
-                 OsString::from(self.workspace.src()),
-                 OsString::from("-r"),
-                 OsString::from(self.workspace.studio()),
-                 OsString::from("-k"),
-                 OsString::from("core"),
-                 OsString::from("build"),
-                 OsString::from(Path::new(self.workspace.job.get_project().get_plan_path())
-                     .parent()
-                     .unwrap())];
+    fn build(&mut self) -> Result<PackageArchive> {
+        let args = vec![OsString::from("-s"),
+                        OsString::from(self.workspace.src()),
+                        OsString::from("-r"),
+                        OsString::from(self.workspace.studio()),
+                        OsString::from("-k"),
+                        OsString::from(self.job().origin()),
+                        OsString::from("build"),
+                        OsString::from(Path::new(self.job().get_project().get_plan_path())
+                            .parent()
+                            .unwrap())];
         let command = studio_cmd();
         debug!("building, cmd={:?}, args={:?}", command, args);
         let mut child = Command::new(command)
@@ -125,14 +204,7 @@ impl Runner {
             .stderr(Stdio::piped())
             .spawn()
             .expect("failed to spawn child");
-        if let Some(ref mut stdout) = child.stdout {
-            for line in BufReader::new(stdout).lines() {
-                let mut l: String = line.unwrap();
-                let eol: &str = "\n";
-                l = l + eol;
-                logger.log(l.as_bytes());
-            }
-        }
+        self.logger().pipe(&mut child);
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("build complete, status={:?}", exit_status);
         if exit_status.success() {
@@ -143,37 +215,36 @@ impl Runner {
         }
     }
 
-    pub fn job(&self) -> &proto::Job {
-        &self.workspace.job
-    }
-
-    fn complete(&mut self) -> () {
+    fn complete(mut self) -> Job {
         self.teardown().err().map(|e| error!("{}", e));
-        self.workspace.job.set_state(proto::JobState::Complete);
+        self.workspace.job.set_state(JobState::Complete);
+        self.workspace.job
     }
 
-    fn fail(&mut self) -> () {
+    fn fail(mut self, err: net::NetError) -> Job {
         self.teardown().err().map(|e| error!("{}", e));
-        self.workspace.job.set_state(proto::JobState::Failed);
+        self.workspace.job.set_state(JobState::Failed);
+        self.workspace.job.set_error(err);
+        self.workspace.job
     }
 
-    fn setup(&self) -> Result<()> {
+    fn setup(&mut self) -> Result<()> {
         if let Some(err) = fs::create_dir_all(self.workspace.src()).err() {
             return Err(Error::WorkspaceSetup(format!("{}", self.workspace.src().display()), err));
         }
+        self.logger = Some(Logger::init(&self.workspace));
         Ok(())
     }
 
-    fn teardown(&self) -> Result<()> {
-        let args =
-            vec![OsString::from("-s"),
-                 OsString::from(self.workspace.src()),
-                 OsString::from("-r"),
-                 OsString::from(self.workspace.studio()),
-                 OsString::from("rm"),
-                 OsString::from(Path::new(self.workspace.job.get_project().get_plan_path())
-                     .parent()
-                     .unwrap())];
+    fn teardown(&mut self) -> Result<()> {
+        let args = vec![OsString::from("-s"),
+                        OsString::from(self.workspace.src()),
+                        OsString::from("-r"),
+                        OsString::from(self.workspace.studio()),
+                        OsString::from("rm"),
+                        OsString::from(Path::new(self.job().get_project().get_plan_path())
+                            .parent()
+                            .unwrap())];
         let command = studio_cmd();
         debug!("removing studio, cmd={:?}, args={:?}", command, args);
         let mut child = Command::new(command)
@@ -183,6 +254,7 @@ impl Runner {
             .stderr(Stdio::piped())
             .spawn()
             .expect("failed to spawn child");
+        self.logger().pipe(&mut child);
         let exit_status = child.wait().expect("failed to wait on child");
         debug!("studio removal complete, status={:?}", exit_status);
         if exit_status.success() {
@@ -292,38 +364,38 @@ impl RunnerMgr {
         try!(self.sock.bind(INPROC_ADDR));
         rz.send(()).unwrap();
         loop {
-            let job: proto::Job = try!(self.recv_job());
+            let job = try!(self.recv_job());
             try!(self.send_ack(&job));
             try!(self.execute_job(job));
         }
     }
 
-    fn execute_job(&mut self, job: proto::Job) -> Result<()> {
-        let mut runner = {
+    fn execute_job(&mut self, job: Job) -> Result<()> {
+        let runner = {
             Runner::new(job, &self.config.read().unwrap())
         };
         debug!("executing work, job={:?}", runner.job());
-        runner.run();
-        self.send_complete(&runner.job())
+        let job = runner.run();
+        self.send_complete(&job)
     }
 
-    fn recv_job(&mut self) -> Result<proto::Job> {
+    fn recv_job(&mut self) -> Result<Job> {
         try!(self.sock.recv(&mut self.msg, 0));
         let job: proto::Job = parse_from_bytes(&self.msg).unwrap();
-        Ok(job)
+        Ok(Job::new(job))
     }
 
-    fn send_ack(&mut self, job: &proto::Job) -> Result<()> {
+    fn send_ack(&mut self, job: &Job) -> Result<()> {
         debug!("received work, job={:?}", job);
         try!(self.sock.send_str(WORK_ACK, zmq::SNDMORE));
-        try!(self.sock.send(&job.write_to_bytes().unwrap(), 0));
+        try!(self.sock.send(&*job.write_to_bytes().unwrap(), 0));
         Ok(())
     }
 
-    fn send_complete(&mut self, job: &proto::Job) -> Result<()> {
+    fn send_complete(&mut self, job: &Job) -> Result<()> {
         debug!("work complete, job={:?}", job);
         try!(self.sock.send_str(WORK_COMPLETE, zmq::SNDMORE));
-        try!(self.sock.send(&job.write_to_bytes().unwrap(), 0));
+        try!(self.sock.send(&*job.write_to_bytes().unwrap(), 0));
         Ok(())
     }
 }
@@ -335,5 +407,21 @@ fn studio_cmd() -> String {
             panic!("core/hab-studio not found! This should be available as it is a runtime \
                     dependency in the worker's plan.sh and also present in our dev Dockerfile")
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use protocol::{jobsrv, vault};
+
+    #[test]
+    fn extract_origin_from_job() {
+        let mut inner = jobsrv::Job::new();
+        let mut project = vault::Project::new();
+        project.set_id("core/nginx".to_string());
+        inner.set_project(project);
+        let job = Job::new(inner);
+        assert_eq!(job.origin(), "core");
     }
 }

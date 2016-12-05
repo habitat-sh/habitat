@@ -85,7 +85,31 @@ impl Persistable for OriginSecretKey {
     }
 }
 
+impl ToJson for OriginSecretKey {
+    fn to_json(&self) -> Json {
+        let mut m = BTreeMap::new();
+        m.insert("id".to_string(), self.get_id().to_string().to_json());
+        m.insert("origin_id".to_string(), self.get_origin_id().to_json());
+        m.insert("name".to_string(), self.get_name().to_json());
+        m.insert("revision".to_string(),
+                 self.get_revision().to_string().to_json());
+        m.insert("body".to_string(),
+                 String::from_utf8(self.get_body().to_vec()).unwrap().to_json());
+        m.insert("owner_id".to_string(),
+                 self.get_owner_id().to_string().to_json());
+        Json::Object(m)
+    }
+}
+
 impl Routable for OriginSecretKeyCreate {
+    type H = InstaId;
+
+    fn route_key(&self) -> Option<Self::H> {
+        Some(InstaId(self.get_owner_id()))
+    }
+}
+
+impl Routable for OriginSecretKeyGet {
     type H = InstaId;
 
     fn route_key(&self) -> Option<Self::H> {

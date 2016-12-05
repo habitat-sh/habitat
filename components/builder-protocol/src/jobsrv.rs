@@ -59,8 +59,11 @@ impl Routable for JobGet {
 impl ToJson for Job {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
-        m.insert("id".to_string(), self.get_id().to_json());
+        m.insert("id".to_string(), self.get_id().to_string().to_json());
         m.insert("state".to_string(), self.get_state().value().to_json());
+        if self.has_error() {
+            m.insert("error".to_string(), self.get_error().to_json());
+        }
         Json::Object(m)
     }
 }

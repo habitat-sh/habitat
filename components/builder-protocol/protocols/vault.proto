@@ -1,6 +1,5 @@
 package vault;
 
-// stored entity
 message Origin {
   required uint64 id = 1;
   required string name = 2;
@@ -27,7 +26,6 @@ message OriginMemberRemove {
   required uint64 user_id = 2;
 }
 
-// list all members of an origin
 message OriginMemberListRequest {
   required uint64 origin_id = 1;
 }
@@ -46,11 +44,6 @@ message AccountOriginListResponse {
   repeated string origins = 2;
 }
 
-// !!!NOTE!!!
-// !!!NOTE!!!
-// only account_id and origin_name are implemented
-// !!!NOTE!!!
-// !!!NOTE!!!
 message CheckOriginAccessRequest {
   oneof account_info {
     uint64 account_id = 1;
@@ -66,7 +59,6 @@ message CheckOriginAccessResponse {
   required bool has_access = 1;
 }
 
-// list all pending invitations for a given account
 message AccountInvitationListRequest {
   required uint64 account_id = 1;
 }
@@ -76,7 +68,6 @@ message AccountInvitationListResponse {
   repeated OriginInvitation invitations = 2;
 }
 
-// list all pending invitations for a given origin
 message OriginInvitationListRequest {
   required uint64 origin_id = 1;
 }
@@ -86,55 +77,37 @@ message OriginInvitationListResponse {
   repeated OriginInvitation invitations = 2;
 }
 
-// stored entity
 message OriginInvitation {
   required uint64 id = 1;
-
-  // the user/account being invited
   required uint64 account_id = 2;
   required string account_name = 3;
-
-  // the origin id that account_id is being invited to
   required uint64 origin_id = 4;
   required string origin_name = 5;
-
-  // the user that created the invitation
   required uint64 owner_id = 6;
 }
 
 message OriginInvitationCreate {
-  // the user being invited
   required uint64 account_id = 1;
   required string account_name = 2;
-
-  // the origin id that account_id is being invited to
   required uint64 origin_id = 3;
   required string origin_name = 4;
-
-  // the user that created the invitation
   required uint64 owner_id = 5;
 }
 
 message OriginInvitationAcceptRequest {
   required uint64 account_accepting_request = 1;
   required uint64 invite_id = 2;
-  // if ignore == true, then they're not joining the origin
   required bool ignore = 3;
 }
 
 message OriginInvitationAcceptResponse { }
 
-// stored entity
 message OriginSecretKey {
-  // pk for the public key
   required uint64 id = 1;
-  // the parent origin
   required uint64 origin_id = 2;
-  // key name
   required string name = 3;
   required string revision = 4;
   required bytes body = 5;
-  // account id that stored the key
   required uint64 owner_id = 6;
 }
 
@@ -144,6 +117,11 @@ message OriginSecretKeyCreate {
   required string revision = 3;
   required bytes body = 4;
   required uint64 owner_id = 5;
+}
+
+message OriginSecretKeyGet {
+  required uint64 owner_id = 1;
+  required string origin = 2;
 }
 
 message Project {

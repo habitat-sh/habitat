@@ -28,6 +28,35 @@ schemas:
                 }
             }
         }
+    - secret_key: |
+        {
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "required": true
+                },
+                "origin_id": {
+                    "type": "string",
+                    "required": true
+                },
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "revision": {
+                    "type": "string",
+                    "required": true
+                },
+                "body": {
+                    "type": "string",
+                    "required": true
+                },
+                "onwer_id": {
+                    "type": "string",
+                    "required": true
+                }
+            }
+        }
 securitySchemes:
     - oauth_2_0:
         description: Builder supports OAuth 2.0 for authenticating all API requests.
@@ -135,6 +164,23 @@ securitySchemes:
                         409:
                             description: Key already exists in Origin
         /secret_keys:
+            /latest:
+                get:
+                    description: Retrieve the latest secret key
+                    responses:
+                        200:
+                            body:
+                                application/json:
+                                    schema: secret_key
+                                    example: |
+                                        {
+                                            "id": "",
+                                            "origin_id": "",
+                                            "name": "",
+                                            "revision": "",
+                                            "body": "",
+                                            "owner_id": ""
+                                        }
         /users:
             get:
                 description: List all members of an origin

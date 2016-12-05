@@ -51,6 +51,12 @@ impl error::Error for NetError {
             ErrCode::ZMQ => "Network error.",
             ErrCode::DATA_STORE => "Database error.",
             ErrCode::AUTH_SCOPE => "Additional authorization scope(s) required for action.",
+            ErrCode::WORKSPACE_SETUP => "Worker runner unable to setup build workspace.",
+            ErrCode::SECRET_KEY_FETCH => "Worker runner unable to fetch secret key for origin.",
+            ErrCode::SECRET_KEY_IMPORT => "Worker runner unable to import secret key for origin.",
+            ErrCode::VCS_CLONE => "Worker runner unable to retrieve project source to build.",
+            ErrCode::BUILD => "Worker runner failed to build project.",
+            ErrCode::POST_PROCESSOR => "One or more post processing step failed in Worker runner.",
         }
     }
 }

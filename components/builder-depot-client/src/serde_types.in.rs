@@ -12,18 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod git;
-
-use std::path::Path;
-
-use protocol::jobsrv as proto;
-
-use error::{Error, Result};
-
-pub fn clone(job: &proto::Job, path: &Path) -> Result<()> {
-    let project = job.get_project();
-    if project.has_git() {
-        return git::clone(project.get_git(), path);
-    }
-    Err(Error::UnknownVCS)
+#[derive(Clone, Serialize, Deserialize)]
+pub struct OriginSecretKey {
+    pub id: String,
+    pub origin_id: String,
+    pub name: String,
+    pub revision: String,
+    pub body: String,
+    pub owner_id: String,
 }
