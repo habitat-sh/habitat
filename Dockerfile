@@ -47,7 +47,6 @@ RUN (adduser --system hab || true) && (addgroup --system hab || true) \
   && useradd -m -s /bin/bash -G sudo jdoe && echo jdoe:1234 | chpasswd
 
 COPY support/devshell_profile.sh /root/.bash_profile
-COPY .delivery/scripts/ssh_wrapper.sh /usr/local/bin
 COPY components/hab/install.sh /tmp
 RUN /tmp/install.sh \
   && hab install core/busybox-static \
