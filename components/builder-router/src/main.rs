@@ -44,9 +44,9 @@ fn main() {
 }
 
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
-    clap_app!(BuilderSessionSrv =>
+    clap_app!(BuilderRouteSrv =>
         (version: VERSION)
-        (about: "Manage a Habitat-Builder router")
+        (about: "Habitat builder-router")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg config: -c --config +takes_value +global

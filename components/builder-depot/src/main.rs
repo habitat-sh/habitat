@@ -23,7 +23,6 @@ extern crate env_logger;
 extern crate log;
 extern crate zmq;
 
-use std::net;
 use std::process;
 use std::str::FromStr;
 
@@ -49,9 +48,9 @@ fn main() {
 }
 
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
-    clap_app!(BldrDepot =>
+    clap_app!(BuilderDepot =>
         (version: VERSION)
-        (about: "Manage a package Depot")
+        (about: "Habitat builder-depot")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg path: -p --path +takes_value +global

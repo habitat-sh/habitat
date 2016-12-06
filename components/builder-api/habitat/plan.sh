@@ -1,6 +1,6 @@
 pkg_name=hab-builder-api
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION-BLDR")
+pkg_version=undefined
 pkg_maintainer="Jamie Winsor <reset@chef.io>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
@@ -8,10 +8,19 @@ pkg_bin_dirs=(bin)
 pkg_deps=(core/glibc core/openssl core/coreutils core/gcc-libs core/zeromq core/libsodium
   core/libarchive)
 pkg_build_deps=(core/protobuf core/protobuf-rust core/coreutils core/cacerts
-  core/rust core/gcc core/pkg-config core/node core/phantomjs)
+  core/rust core/gcc core/git core/pkg-config core/node core/phantomjs)
 pkg_expose=(9636)
 bin="bldr-api"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
+
+do_verify() {
+  pushd $PLAN_CONTEXT/../../.. > /dev/null
+  pkg_version=`git rev-list master --count`
+  pkg_dirname="${pkg_name}-${pkg_version}"
+  pkg_prefix="$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+  pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
+  popd > /dev/null
+}
 
 do_prepare() {
   rm -Rdf $HAB_CACHE_SRC_PATH/ui-$pkg_name-$pkg_version
@@ -77,10 +86,6 @@ do_strip() {
 
 # Turn the remaining default phases into no-ops
 do_download() {
-  return 0
-}
-
-do_verify() {
   return 0
 }
 
