@@ -138,6 +138,7 @@ pub enum Error {
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     TomlEncode(toml::Error),
+    TomlMergeError(String),
     TomlParser(Vec<toml::ParserError>),
     TryRecvError(mpsc::TryRecvError),
     UnknownTopology(String),
@@ -225,6 +226,7 @@ impl fmt::Display for SupError {
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TomlEncode(ref e) => format!("Failed to encode toml: {}", e),
+            Error::TomlMergeError(ref e) => format!("Failed to merge toml: {}", e),
             Error::TomlParser(ref errs) => {
                 format!("Failed to parse toml:\n{}", toml_parser_string(errs))
             }
@@ -299,6 +301,7 @@ impl error::Error for SupError {
             Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TomlEncode(_) => "Failed to encode toml!",
+            Error::TomlMergeError(_) => "Failed to merge toml!",
             Error::TomlParser(_) => "Failed to parse toml!",
             Error::TryRecvError(_) => "A channel failed to recieve a response",
             Error::UnknownTopology(_) => "Unknown topology",
