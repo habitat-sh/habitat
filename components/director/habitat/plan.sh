@@ -4,7 +4,7 @@ pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
-pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl)
+pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl core/zeromq)
 pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc)
 pkg_bin_dirs=(bin)
 bin="hab-director"
@@ -29,6 +29,7 @@ do_prepare() {
 
   export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
   export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
+  export LIBZMQ_PREFIX=$(pkg_path_for zeromq)
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
