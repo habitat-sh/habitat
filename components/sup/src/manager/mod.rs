@@ -276,11 +276,12 @@ impl Manager {
 
                 // Write out any files we received via butterfly
                 let mut service_files_updated = false;
-                for (incarnation, filename, body) in self.state
-                    .butterfly
-                    .service_files_for(&service.service_group_str(),
-                                       &service.current_service_files)
-                    .into_iter() {
+                for (incarnation, filename, body) in
+                    self.state
+                        .butterfly
+                        .service_files_for(&service.service_group_str(),
+                                           &service.current_service_files)
+                        .into_iter() {
                     let result = service.write_butterfly_service_file(filename, incarnation, body);
                     if service_files_updated == false && result == true {
                         service_files_updated = true;
@@ -292,10 +293,11 @@ impl Manager {
 
                 // Write out any service configuration we received via butterfly
                 let mut service_config_updated = false;
-                if let Some((incarnation, config)) = self.state
-                    .butterfly
-                    .service_config_for(&service.service_group_str(),
-                                        service.service_config_incarnation) {
+                if let Some((incarnation, config)) =
+                    self.state
+                        .butterfly
+                        .service_config_for(&service.service_group_str(),
+                                            service.service_config_incarnation) {
                     service_config_updated = service.write_butterfly_service_config(config);
                     service.service_config_incarnation = Some(incarnation);
                 }
@@ -327,7 +329,9 @@ impl Manager {
             }
 
             let time_to_wait = next_check - SteadyTime::now();
-            thread::sleep(Duration::from_millis(time_to_wait.num_milliseconds() as u64));
+            if time_to_wait.num_milliseconds() > 0 {
+                thread::sleep(Duration::from_millis(time_to_wait.num_milliseconds() as u64));
+            }
         }
     }
 }
