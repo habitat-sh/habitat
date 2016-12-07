@@ -13,7 +13,7 @@ pkg_svc_user="root"
 pkg_svc_group="root"
 
 do_verify() {
-  pushd $PLAN_CONTEXT/../../.. > /dev/null
+  pushd $PLAN_CONTEXT/../.. > /dev/null
   pkg_version=`git rev-list master --count`
   pkg_dirname="${pkg_name}-${pkg_version}"
   pkg_prefix="$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
