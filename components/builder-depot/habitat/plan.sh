@@ -1,14 +1,23 @@
 pkg_name=hab-depot
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION-BLDR")
+pkg_version=undefined
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
 pkg_deps=(core/glibc core/gcc-libs core/libarchive core/libsodium core/openssl core/zeromq)
-pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc core/pkg-config)
+pkg_build_deps=(core/coreutils core/cacerts core/rust core/gcc core/git core/pkg-config)
 pkg_bin_dirs=(bin)
-bin="$pkg_name"
+bin="bldr-depot"
 pkg_svc_run="$bin start -c ${pkg_svc_path}/config.toml"
+
+do_verify() {
+  pushd $PLAN_CONTEXT/../../.. > /dev/null
+  pkg_version=`git rev-list master --count`
+  pkg_dirname="${pkg_name}-${pkg_version}"
+  pkg_prefix="$HAB_PKG_PATH/${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
+  pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
+  popd > /dev/null
+}
 
 do_prepare() {
   # Can be either `--release` or `--debug` to determine cargo build strategy
@@ -56,10 +65,6 @@ do_strip() {
 
 # Turn the remaining default phases into no-ops
 do_download() {
-  return 0
-}
-
-do_verify() {
   return 0
 }
 

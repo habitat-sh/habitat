@@ -2,9 +2,9 @@ extern crate serde_codegen;
 
 use std::env;
 use std::fs::File;
-use std::io::BufReader;
-use std::io::prelude::*;
+use std::io::Write;
 use std::path::Path;
+use std::process::Command;
 
 fn main() {
     write_version_file();
@@ -12,17 +12,12 @@ fn main() {
 }
 
 fn read_version() -> String {
-    let ver_file = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .join("VERSION");
-    let f = File::open(ver_file).unwrap();
-    let mut reader = BufReader::new(f);
-    let mut ver = String::new();
-    reader.read_line(&mut ver).unwrap();
-    ver
+    let child = Command::new("git")
+        .arg("rev-parse")
+        .arg("HEAD")
+        .output()
+        .expect("failed to spawn child");
+    String::from_utf8_lossy(&child.stdout).into_owned()
 }
 
 fn codegen() {

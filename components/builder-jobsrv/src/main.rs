@@ -45,7 +45,7 @@ fn main() {
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap_app!(BuilderJobSrv =>
         (version: VERSION)
-        (about: "Manage a Habitat Builder job server")
+        (about: "Habitat builder-jobsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg config: -c --config +takes_value +global

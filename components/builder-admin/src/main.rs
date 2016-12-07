@@ -44,7 +44,7 @@ fn main() {
 }
 
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
-    clap_app!(BuilderApi =>
+    clap_app!(BuilderAdmin =>
         (version: VERSION)
         (about: "Habitat builder-admin")
         (@setting VersionlessSubcommands)

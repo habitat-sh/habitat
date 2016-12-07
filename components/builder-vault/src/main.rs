@@ -46,7 +46,7 @@ fn main() {
 fn app<'a, 'b>() -> clap::App<'a, 'b> {
     clap_app!(BuilderVault =>
         (version: VERSION)
-        (about: "Manage a Habitat-Builder vault server")
+        (about: "Habitat builder-vaultsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
         (@arg config: -c --config +takes_value +global

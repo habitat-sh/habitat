@@ -3,7 +3,7 @@ name = "habitat_builder_router"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
 description = "Habitat-Builder Database Access Library"
-build = "../build.rs"
+build = "../bldr-build.rs"
 workspace = "../../"
 
 [[bin]]

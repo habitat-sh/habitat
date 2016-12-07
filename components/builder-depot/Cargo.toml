@@ -7,7 +7,7 @@ build = "build.rs"
 workspace = "../../"
 
 [[bin]]
-name = "hab-depot"
+name = "bldr-depot"
 doc = false
 
 [dependencies]
