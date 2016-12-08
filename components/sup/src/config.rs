@@ -20,14 +20,17 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use std::io;
 use std::mem;
-use std::net::{SocketAddr, IpAddr};
+use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
+use std::ops::{Deref, DerefMut};
+use std::option;
 use std::str::FromStr;
 use std::sync::{Once, ONCE_INIT};
 
 use hcore::package::PackageIdent;
 
-use error::{Error, SupError};
+use error::{Error, Result, SupError};
 use http_gateway;
 
 static LOGKEY: &'static str = "CFG";
@@ -67,6 +70,57 @@ pub enum Command {
     ShellSh,
 }
 
+#[derive(PartialEq, Eq, Debug)]
+pub struct GossipListenAddr(SocketAddr);
+
+impl Default for GossipListenAddr {
+    fn default() -> GossipListenAddr {
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 9638)))
+    }
+}
+
+impl Deref for GossipListenAddr {
+    type Target = SocketAddr;
+
+    fn deref(&self) -> &SocketAddr {
+        &self.0
+    }
+}
+
+impl DerefMut for GossipListenAddr {
+    fn deref_mut(&mut self) -> &mut SocketAddr {
+        &mut self.0
+    }
+}
+
+impl FromStr for GossipListenAddr {
+    type Err = SupError;
+
+    fn from_str(val: &str) -> Result<Self> {
+        match SocketAddr::from_str(val) {
+            Ok(addr) => Ok(GossipListenAddr(addr)),
+            Err(_) => {
+                match IpAddr::from_str(val) {
+                    Ok(ip) => {
+                        let mut addr = GossipListenAddr::default();
+                        addr.set_ip(ip);
+                        Ok(addr)
+                    }
+                    Err(_) => Err(sup_error!(Error::IPFailed)),
+                }
+            }
+        }
+    }
+}
+
+impl ToSocketAddrs for GossipListenAddr {
+    type Iter = option::IntoIter<SocketAddr>;
+
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
+        self.0.to_socket_addrs()
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, RustcEncodable)]
 pub enum UpdateStrategy {
     None,
@@ -103,7 +157,7 @@ impl Default for Topology {
 
 impl FromStr for Command {
     type Err = SupError;
-    fn from_str(s: &str) -> Result<Command, SupError> {
+    fn from_str(s: &str) -> Result<Command> {
         match s {
             "config" => Ok(Command::Config),
             "bash" => Ok(Command::ShellBash),
@@ -125,6 +179,7 @@ impl Default for Command {
 #[derive(Default, Debug, PartialEq, Eq)]
 pub struct Config {
     pub http_listen_addr: http_gateway::ListenAddr,
+    pub gossip_listen: GossipListenAddr,
     command: Command,
     package: PackageIdent,
     local_artifact: Option<String>,
@@ -137,7 +192,6 @@ pub struct Config {
     key: String,
     email: Option<String>,
     expire_days: Option<u16>,
-    gossip_listen: String,
     userkey: Option<String>,
     servicekey: Option<String>,
     infile: Option<String>,
@@ -333,11 +387,11 @@ impl Config {
         &self.topology
     }
 
-    pub fn gossip_listen(&self) -> &str {
+    pub fn gossip_listen(&self) -> &GossipListenAddr {
         &self.gossip_listen
     }
 
-    pub fn set_gossip_listen(&mut self, gossip_listen: String) -> &mut Config {
+    pub fn set_gossip_listen(&mut self, gossip_listen: GossipListenAddr) -> &mut Config {
         self.gossip_listen = gossip_listen;
         self
     }
