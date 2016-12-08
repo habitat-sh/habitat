@@ -75,18 +75,38 @@ data "template_file" "gateway_director" {
   }
 }
 
-resource "aws_security_group" "builder_api_elb" {
-  name        = "builder-api-elb-${var.env}"
-  description = "Habitat Builder API Load Balancer"
-  vpc_id      = "${var.aws_vpc_id}"
+resource "aws_security_group" "admin_gateway" {
+  name   = "builder-admin-gateway-${var.env}"
+  vpc_id = "${var.aws_vpc_id}"
 
-  // JW TODO: remove after old clients are retired
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  ingress {
+    from_port = 8081
+    to_port   = 8081
+    protocol  = "tcp"
+
+    security_groups = [
+      "${aws_security_group.admin_gateway_elb.id}",
+    ]
+  }
+
+  tags {
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+    X-Application = "builder"
+  }
+}
+
+resource "aws_security_group" "admin_gateway_elb" {
+  name        = "builder-admin-gateway-elb-${var.env}"
+  description = "Habitat Builder Admin Gateway Load Balancer"
+  vpc_id      = "${var.aws_vpc_id}"
 
   ingress {
     from_port   = 443
@@ -144,6 +164,88 @@ resource "aws_security_group" "builder_api" {
   tags {
     X-Environment = "${var.env}"
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Application = "builder"
+  }
+}
+
+resource "aws_security_group" "builder_api_elb" {
+  name        = "builder-api-elb-${var.env}"
+  description = "Habitat Builder API Load Balancer"
+  vpc_id      = "${var.aws_vpc_id}"
+
+  // JW TODO: remove after old clients are retired
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags {
+    X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
+    X-Environment = "${var.env}"
+    X-Application = "builder"
+  }
+}
+
+resource "aws_elb" "admin_gateway" {
+  name            = "builder-admin-gateway-${var.env}"
+  security_groups = ["${aws_security_group.admin_gateway_elb.id}"]
+  subnets         = ["${var.public_subnet_id}"]
+  instances       = ["${aws_instance.monolith.*.id}"]
+
+  // We want this to be configured to have unsafe SSL Protocols and
+  // Ciphers turned off. If you take the default AWS ELB set
+  // (ELBSecurityPolicy-2015-05 at the time this comment was written),
+  // the following additional ones should be turned off:
+  //
+  // SSL Protocols
+  // * Protocol-TLSv1
+  // * Protocol-SSLv3
+  // * Protocol-TLSv1.1
+  // SSL Ciphers
+  // * AES128-GCM-SHA256
+  // * AES128-SHA256
+  // * AES128-SHA
+  // * DES-CBC3-SHA
+  //
+  // Currently these need to be disabled manually. There is an open pull
+  // request on Terraform (https://github.com/hashicorp/terraform/pull/5637)
+  // that adds this capability but has not yet been merged or released. When
+  // Terraform supports automating these settings, this comment should be
+  // removed and the appropriate configuration should be added below.
+  listener {
+    instance_port      = 8081
+    instance_protocol  = "HTTP"
+    lb_port            = 443
+    lb_protocol        = "HTTPS"
+    ssl_certificate_id = "${var.ssl_certificate_arn}"
+  }
+
+  health_check {
+    healthy_threshold   = 2
+    unhealthy_threshold = 5
+    timeout             = 5
+    target              = "HTTP:8081/v1/status"
+    interval            = 30
+  }
+
+  tags {
+    X-Environment = "${var.env}"
     X-Application = "builder"
   }
 }
