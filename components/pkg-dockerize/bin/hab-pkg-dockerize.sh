@@ -3,7 +3,7 @@
 # # Usage
 #
 # ```
-# $ hab-pkg-dockerize [PKG ...]
+# $ hab-pkg-dockerize [--repo <repo>] [--push] <PKG_IDENT>
 # ```
 #
 # # Synopsis
@@ -39,6 +39,46 @@ if [ -n "${DEBUG:-}" ]; then
   export DEBUG
 fi
 
+# parse the CLI flags and options
+parse_options() {
+
+  if [[ -z "$@" ]]; then
+    # no args given, bail out
+    print_help
+    exit_with "You must specify one or more Habitat packages to Dockerize." 1
+  fi
+
+  while test $# -gt 0; do
+    case "$1" in
+      -h|--help)
+        print_help
+        exit
+        ;;
+      --push)
+        DOCKER_PUSH="1"
+        shift
+        ;;
+      --repo*)
+        DOCKER_REGISTRY_URL="${1#*=}"
+        if [[ "$DOCKER_REGISTRY_URL" == "--repo" ]]; then
+          shift
+          DOCKER_REGISTRY_URL="$1"
+        fi
+        shift
+        ;;
+      *)
+        PKG="$1"
+        break
+        ;;
+    esac
+  done
+
+  if [ "$PKG" == "unknown" ]; then
+    print_help
+    exit_with "You must specify one or more Habitat packages to Dockerize." 1
+  fi
+}
+
 # ## Help
 
 # **Internal** Prints help
@@ -50,7 +90,28 @@ $author
 Habitat Package Dockerize - Create a Docker container from a set of Habitat packages
 
 USAGE:
-  $program [PKG ..]
+  $program [--repo <repo>] [--push] <PKG_IDENT>
+
+FLAGS:
+    --help           Prints help information
+
+OPTIONS:
+    --repo=URL       If given, prefix the tag with the URL
+    --push           Push the built images to the configured repository
+
+ARGS:
+    <PKG_IDENT>      Habitat package identifier (ex: acme/redis)
+
+EXAMPLE:
+    $program --repo docker.private.com:443 --push core/nginx
+
+    Would create and push the following images/tags:
+
+    docker.private.com:443/core/nginx                     1.10.1-20161207041036   380c892f61ab        2 minutes ago       183.7 MB
+    docker.private.com:443/core/nginx                     latest                  380c892f61ab        2 minutes ago       183.7 MB
+    docker.private.com:443/core/habitat_export_base       43691665acf57304        e965f9e803c4        13 hours ago        181.9 MB
+    docker.private.com:443/core/nginx_base                43691665acf57304        e965f9e803c4        13 hours ago        181.9 MB
+
 "
 }
 
@@ -83,7 +144,7 @@ find_system_commands() {
   fi
 }
 
-
+# Add a trailing slash to the first argument ($1)
 add_trailing_slash() {
   STR="$1"
   length=${#STR}
@@ -96,28 +157,28 @@ add_trailing_slash() {
 # clean directory with native filesystem permissions which is outside the
 # source code tree.
 build_docker_image() {
-  local ident_file="$(hab pkg path $1)/IDENT"
+  local ident_file="$(hab pkg path $PKG)/IDENT"
   if [[ ! -f "$ident_file" ]]; then
-    hab pkg install $1 # try to install it
+    hab pkg install $PKG # try to install it
   fi
 
   if [[ -n "$DOCKER_REGISTRY_URL" ]]; then
     DOCKER_REGISTRY_URL=$(add_trailing_slash "$DOCKER_REGISTRY_URL")
   fi
 
-  pkg_name=$(package_name_for $1)
+  pkg_name=$(package_name_for $PKG)
   pkg_origin=$(package_origin_for $ident_file)
   pkg_ident=$(package_ident_for $ident_file)
   pkg_version=$(version_num_for $ident_file)
 
-  BASE_PKGS=$(base_pkgs $@)
+  BASE_PKGS=$(base_pkgs $PKG)
   DOCKER_BASE_TAG="${DOCKER_REGISTRY_URL}${pkg_ident}_base:$(base_pkg_hash $BASE_PKGS)"
   DOCKER_BASE_TAG_ALT="${DOCKER_REGISTRY_URL}${pkg_origin}/habitat_export_base:$(base_pkg_hash $BASE_PKGS)"
 
   # create base layer image
   DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
   pushd $DOCKER_CONTEXT > /dev/null
-  docker_base_image $@
+  docker_base_image $PKG
   popd > /dev/null
   rm -rf "$DOCKER_CONTEXT"
 
@@ -127,7 +188,7 @@ build_docker_image() {
   # build runtime image
   DOCKER_CONTEXT="$($_mktemp_cmd -t -d "${program}-XXXX")"
   pushd $DOCKER_CONTEXT > /dev/null
-  docker_image $@
+  docker_image $PKG
   popd > /dev/null
   rm -rf "$DOCKER_CONTEXT"
 }
@@ -160,7 +221,7 @@ version_num_for() {
   cat $ident_file | awk 'BEGIN { FS = "/" }; { print $3 "-" $4 }'
 }
 
-# Collect all dependencies for requested packages
+# Collect all dependencies for the requested package
 base_pkgs() {
   local BUILD_PKGS="$@"
   for p in $BUILD_PKGS; do
@@ -178,18 +239,20 @@ docker_base_image() {
 
   if [[ -n "$(docker images -q $DOCKER_BASE_TAG 2> /dev/null)" ]]; then
     # image already exists
-    echo "base docker image $DOCKER_BASE_TAG already built; skipping rebuild"
+    echo ">> base docker image: $DOCKER_BASE_TAG already built; skipping rebuild"
     return 0;
   fi
 
   if [[ -n "$(docker images -q $DOCKER_BASE_TAG_ALT 2> /dev/null)" ]]; then
     # image already exists
-    echo "base docker image $DOCKER_BASE_TAG_ALT already built; skipping rebuild"
+    echo ">> base docker image: $DOCKER_BASE_TAG_ALT already built; skipping rebuild"
     # create a tag alias for our package
     docker tag $DOCKER_BASE_TAG_ALT $DOCKER_BASE_TAG
     DOCKER_BASE_TAG="$DOCKER_BASE_TAG_ALT"
     return 0;
   fi
+
+  echo ">> base docker image: building..."
 
   env PKGS="$BASE_PKGS" NO_MOUNT=1 hab-studio -r $DOCKER_CONTEXT/rootfs -t baseimage new
   echo "$1" > $DOCKER_CONTEXT/rootfs/.hab_pkg
@@ -204,9 +267,13 @@ EOT
 
   docker build --force-rm --no-cache -t $DOCKER_BASE_TAG .
   docker tag $DOCKER_BASE_TAG $DOCKER_BASE_TAG_ALT
+
+  echo ">> base docker image: built $DOCKER_BASE_TAG and $DOCKER_BASE_TAG_ALT"
 }
 
 docker_image() {
+  echo ">> docker image: building..."
+
   local pkg_file=$(ls /hab/cache/artifacts/$(cat $(hab pkg path $pkg_ident)/IDENT | tr '/' '-')-*)
   cp -a $pkg_file $DOCKER_CONTEXT/
   pkg_file=$(basename $pkg_file)
@@ -227,12 +294,21 @@ EOT
 
   docker build --force-rm --no-cache -t "${DOCKER_RUN_TAG}:${pkg_version}" .
   docker tag "${DOCKER_RUN_TAG}:${pkg_version}" "${DOCKER_RUN_TAG}:latest"
+
+  echo ">> docker image: built ${DOCKER_RUN_TAG}:${pkg_version} and ${DOCKER_RUN_TAG}:latest"
 }
 
+# Push the built docker images to the configured registry
 push_docker_image() {
-  if [[ -z "$DOCKER_REGISTRY_URL" ]]; then
-    return 0; # nothing to do
+  if [[ "$DOCKER_PUSH" != "1" ]]; then
+    return 0;
   fi
+
+  local repo="$DOCKER_REGISTRY_URL"
+  if [[ -z "$repo" ]]; then
+    repo="public (docker.io)"
+  fi
+  echo ">> pushing to registry: $repo"
 
   # push images/tags we created to registry
   docker push $DOCKER_BASE_TAG
@@ -253,6 +329,12 @@ push_docker_image() {
 # If set, images will be tagged with this prefix
 : ${DOCKER_REGISTRY_URL:=""}
 
+# Controls whether or not we push to the configured registry
+: ${DOCKER_PUSH:="0"}
+
+# The package to dockerize
+: ${PKG:="unknown"}
+
 # The current version of Habitat Studio
 version='@version@'
 # The author of this program
@@ -262,12 +344,6 @@ program=$(basename $0)
 
 find_system_commands
 
-if [ -z "$@" ]; then
-  print_help
-  exit_with "You must specify one or more Habitat packages to Dockerize." 1
-elif [ "$@" == "--help" ]; then
-  print_help
-else
-  build_docker_image $@
-  push_docker_image
-fi
+parse_options $@
+build_docker_image
+push_docker_image
