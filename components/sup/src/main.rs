@@ -38,7 +38,7 @@ use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use sup::config::{gcache, gconfig, Command, Config, UpdateStrategy, Topology};
+use sup::config::{gcache, gconfig, Command, Config, GossipListenAddr, UpdateStrategy, Topology};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::http_gateway;
@@ -51,8 +51,6 @@ const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"))
 
 /// CLI defaults
 static DEFAULT_GROUP: &'static str = "default";
-
-static DEFAULT_LISTEN_GOSSIP: &'static str = "0.0.0.0:9638";
 
 static RING_ENVVAR: &'static str = "HAB_RING";
 static RING_KEY_ENVVAR: &'static str = "HAB_RING_KEY";
@@ -134,8 +132,16 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
             .as_ref())
         .to_string());
 
-    config.set_gossip_listen(String::from(sub_args.value_of("listen-gossip")
-        .unwrap_or(DEFAULT_LISTEN_GOSSIP)));
+    if let Some(addr_str) = sub_args.value_of("listen-peer") {
+        outputln!("{}",
+                  Yellow.bold()
+                      .paint("--listen-peer flag deprecated, please use --listen-gossip. This \
+                              flag will be removed in a future release."));
+        config.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
+    }
+    if let Some(addr_str) = sub_args.value_of("listen-gossip") {
+        config.gossip_listen = try!(GossipListenAddr::from_str(addr_str));
+    }
     if let Some(addr_str) = sub_args.value_of("listen-http") {
         config.http_listen_addr = try!(http_gateway::ListenAddr::from_str(addr_str));
     }
@@ -276,6 +282,11 @@ fn main() {
             .long("listen-gossip")
             .value_name("ip:port")
             .help("The listen address [default: 0.0.0.0:9638]"))
+        .arg(Arg::with_name("listen-peer")
+            .long("listen-peer")
+            .value_name("ip:port")
+            .help("The listen address [default: 0.0.0.0:9638]")
+            .hidden(true))
         .arg(Arg::with_name("listen-http")
             .long("listen-http")
             .value_name("ip:port")

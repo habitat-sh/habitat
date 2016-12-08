@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::io;
+use std::net::{IpAddr, Ipv4Addr, ToSocketAddrs, SocketAddr, SocketAddrV4};
 use std::ops::{Deref, DerefMut};
+use std::option;
 use std::str::FromStr;
 use std::thread::{self, JoinHandle};
 
@@ -33,7 +35,7 @@ use manager;
 static LOGKEY: &'static str = "HG";
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct ListenAddr(pub SocketAddr);
+pub struct ListenAddr(SocketAddr);
 
 impl Default for ListenAddr {
     fn default() -> ListenAddr {
@@ -72,6 +74,14 @@ impl FromStr for ListenAddr {
                 }
             }
         }
+    }
+}
+
+impl ToSocketAddrs for ListenAddr {
+    type Iter = option::IntoIter<SocketAddr>;
+
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
+        self.0.to_socket_addrs()
     }
 }
 

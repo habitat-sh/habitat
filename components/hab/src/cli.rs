@@ -323,8 +323,6 @@ fn sub_cli_setup() -> App<'static, 'static> {
     )
 }
 
-
-
 fn sub_cli_completers() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand completers =>
         (about: "Creates command-line completers for your shell."));
