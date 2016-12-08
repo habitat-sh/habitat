@@ -10,7 +10,12 @@
 set -eu
 src_root=$(cd "$(dirname "$0")/../../"; pwd)
 
-for crate in `find components/builder-*/habitat -maxdepth 0 -type d`; do
+if [ -z ${HAB_AUTH_TOKEN+x} ]; then
+  echo "HAB_AUTH_TOKEN var is unset"
+  exit 1
+fi
+
+for crate in `find components/builder-* | grep plan.sh | xargs dirname`; do
   hab pkg build -k core -s $src_root -R $crate
   source $src_root/results/last_build.env
   hab pkg upload $src_root/results/$pkg_artifact -z $HAB_AUTH_TOKEN
