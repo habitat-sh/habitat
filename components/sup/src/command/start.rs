@@ -119,7 +119,8 @@ pub fn package() -> Result<()> {
                                                                PRODUCT,
                                                                VERSION,
                                                                Path::new(FS_ROOT_PATH),
-                                                               &cache_artifact_path(None)));
+                                                               &cache_artifact_path(None),
+                                                               false));
                         package = try!(Package::load(&new_pkg_data, None));
                     } else {
                         outputln!("Already running latest.");
@@ -140,7 +141,8 @@ pub fn package() -> Result<()> {
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
-                                        &cache_artifact_path(None)))
+                                        &cache_artifact_path(None),
+                                        false))
                 }
                 None => {
                     outputln!("Searching for {} in remote {}",
@@ -152,7 +154,8 @@ pub fn package() -> Result<()> {
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
-                                        &cache_artifact_path(None)))
+                                        &cache_artifact_path(None),
+                                        false))
                 }
             };
             let package = try!(Package::load(&new_pkg_data, None));

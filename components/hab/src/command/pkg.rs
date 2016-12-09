@@ -227,7 +227,8 @@ pub mod export {
                                         PRODUCT,
                                         VERSION,
                                         Path::new(FS_ROOT_PATH),
-                                        &cache_artifact_path(None)));
+                                        &cache_artifact_path(None),
+                                        false));
                 }
             }
             let pkg_arg = OsString::from(&ident.to_string());
