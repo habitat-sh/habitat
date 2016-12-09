@@ -388,13 +388,18 @@ fn sub_pkg_build() -> App<'static, 'static> {
 }
 
 fn sub_pkg_install() -> App<'static, 'static> {
-    clap_app!(@subcommand install =>
+    let sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
         (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-    )
+    );
+    sub.arg(Arg::with_name("IGNORE_TARGET")
+        .help("Skips target validation for package installation.")
+        .short("i")
+        .long("ignore-target")
+        .hidden(true))
 }
 
 fn file_exists(val: String) -> result::Result<(), String> {

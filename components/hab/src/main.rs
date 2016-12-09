@@ -324,6 +324,11 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = m.value_of("DEPOT_URL").unwrap_or(&env_or_default);
     let ident_or_artifacts = m.values_of("PKG_IDENT_OR_ARTIFACT").unwrap(); // Required via clap
+    let ignore_target = if m.is_present("IGNORE_TARGET") {
+        true
+    } else {
+        false
+    };
     init();
 
     for ident_or_artifact in ident_or_artifacts {
@@ -333,7 +338,8 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
                                                       PRODUCT,
                                                       VERSION,
                                                       Path::new(&fs_root),
-                                                      &cache_artifact_path(fs_root_path)));
+                                                      &cache_artifact_path(fs_root_path),
+                                                      ignore_target));
     }
     Ok(())
 }
