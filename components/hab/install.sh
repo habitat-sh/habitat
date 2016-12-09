@@ -315,7 +315,8 @@ trap 'rm -rf $tmp_dir; exit $?' INT TERM EXIT
 rm -rf "$tmp_dir"
 (umask 077 && mkdir -p $tmp_dir) || exit 1
 
-download_url="https://api.bintray.com/content/habitat/$channel/$platform/x86_64/hab-%24latest-x86_64-$platform.$file_ext"
+version=${version:-%24latest}
+download_url="https://api.bintray.com/content/habitat/$channel/$platform/x86_64/hab-$version-x86_64-$platform.$file_ext"
 bt_query="?bt_package=hab-x86_64-$platform"
 
 do_download "${download_url}${bt_query}" "${tmp_dir}/hab-latest.${file_ext}"
