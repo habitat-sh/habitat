@@ -14,13 +14,14 @@
 
 use std::collections::HashMap;
 use std::path::Path;
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
+use std::sync::mpsc::{channel, sync_channel, Receiver, Sender, SyncSender, TryRecvError};
 use std::thread;
 use std::time::Duration;
 
 use common::ui::UI;
 use depot_client;
 use hcore::package::PackageIdent;
+use hcore::service::ServiceGroup;
 use hcore::crypto::default_cache_key_path;
 use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use time::{SteadyTime, Duration as TimeDuration};
@@ -28,38 +29,50 @@ use time::{SteadyTime, Duration as TimeDuration};
 use {PRODUCT, VERSION};
 use config::{gconfig, UpdateStrategy};
 use error::Result;
+use manager::census::CensusList;
 use manager::service::Service;
 use package::Package;
 
 static LOGKEY: &'static str = "SU";
 const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60_000;
 
-type WorkerList = HashMap<PackageIdent, Receiver<Package>>;
+type WorkerList = HashMap<ServiceGroup, (Sender<Box<CensusList>>, Receiver<Package>)>;
 
-#[derive(Default)]
 pub struct ServiceUpdater {
     workers: WorkerList,
 }
 
 impl ServiceUpdater {
+    pub fn new() -> Self {
+        ServiceUpdater { workers: WorkerList::default() }
+    }
+
     pub fn add(&mut self, service: &Service) -> bool {
-        match self.workers.get(service.package.ident()) {
+        match self.workers.get(&service.service_group) {
             None => self.start_worker(service),
             Some(_) => false,
         }
     }
 
-    pub fn check_for_updated_package(&mut self, service: &mut Service) {
-        if let Some(worker) = self.workers.get_mut(&service.package.ident()) {
-            match worker.try_recv() {
-                Ok(package) => {
-                    service.package = package;
-                    service.needs_restart = true;
-                    return;
+    pub fn check_for_updated_package(&mut self,
+                                     service: &mut Service,
+                                     census_list: Box<CensusList>) {
+        if let Some(channels) = self.workers.get_mut(&service.service_group) {
+            let (ref mut tx, ref mut rx) = *channels;
+            match tx.send(census_list) {
+                Ok(()) => {
+                    match rx.try_recv() {
+                        Ok(package) => {
+                            service.package = package;
+                            service.needs_restart = true;
+                            return;
+                        }
+                        Err(TryRecvError::Empty) => return,
+                        Err(TryRecvError::Disconnected) => {}
+                    }
                 }
-                Err(TryRecvError::Empty) => return,
-                Err(TryRecvError::Disconnected) => {}
-            }
+                Err(_) => {}
+            };
         } else {
             return;
         }
@@ -72,8 +85,8 @@ impl ServiceUpdater {
         if service.update_strategy == UpdateStrategy::None {
             return false;
         }
-        let rx = Worker::new(service).start();
-        self.workers.insert(service.package.ident().clone(), rx);
+        let channels = Worker::new(service).start(service.service_group.clone());
+        self.workers.insert(service.service_group.clone(), channels);
         true
     }
 }
@@ -93,15 +106,19 @@ impl Worker {
         }
     }
 
-    pub fn start(mut self) -> Receiver<Package> {
+    pub fn start(mut self,
+                 service_group: ServiceGroup)
+                 -> (Sender<Box<CensusList>>, Receiver<Package>) {
         let (tx, rx) = sync_channel(0);
+        let (ctx, crx) = channel();
+
         thread::Builder::new()
             .name(format!("service-updater-{}-{}",
                           &self.current.origin,
                           &self.current.name))
-            .spawn(move || self.run(tx))
+            .spawn(move || self.run(tx, service_group, crx))
             .unwrap();
-        rx
+        (ctx, rx)
     }
 
     fn install(&mut self, package: &PackageIdent) -> Result<Package> {
@@ -115,7 +132,10 @@ impl Worker {
         Package::load(archive.ident().as_ref().unwrap(), None)
     }
 
-    fn run(&mut self, sender: SyncSender<Package>) {
+    fn run(&mut self,
+           sender: SyncSender<Package>,
+           service_group: ServiceGroup,
+           receiver: Receiver<Box<CensusList>>) {
         loop {
             let next_check = SteadyTime::now() +
                              TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);

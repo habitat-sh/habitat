@@ -353,7 +353,7 @@ macro_rules! trace_it {
                                                          $payload.get_service_file().get_incarnation(),
                                                          $payload.get_service_file().get_encrypted(),
                                                          $payload.get_service_file().get_filename()),
-                    Rumor_Type::Election => format!("{}-{}-{}-{}-{:?}-{:?}", $payload.get_election().get_member_id(), $payload.get_election().get_service_group(), $payload.get_election().get_term(), $payload.get_election().get_suitability(), $payload.get_election().get_status(), $payload.get_election().get_votes()),
+                    Rumor_Type::Election | Rumor_Type::ElectionUpdate => format!("{}-{}-{}-{}-{:?}-{:?}", $payload.get_election().get_member_id(), $payload.get_election().get_service_group(), $payload.get_election().get_term(), $payload.get_election().get_suitability(), $payload.get_election().get_status(), $payload.get_election().get_votes()),
                     Rumor_Type::Fake | Rumor_Type::Fake2 => format!("nothing-to-see"),
                 };
 

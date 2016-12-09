@@ -51,6 +51,7 @@ message Service {
   optional uint32 port = 6;
   repeated uint32 exposes = 7;
   optional bool initialized = 8;
+  optional string package_ident = 9;
 }
 
 message ServiceConfig {
@@ -90,6 +91,7 @@ message Rumor {
     ServiceFile = 5;
     Fake = 6;
     Fake2 = 7;
+    ElectionUpdate = 8;
   }
 
   required Type type = 1;

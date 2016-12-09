@@ -94,7 +94,7 @@ pub struct Supervisor {
 
 impl Supervisor {
     pub fn new(package_ident: PackageIdent,
-               service_group: ServiceGroup,
+               service_group: &ServiceGroup,
                runtime_config: RuntimeConfig)
                -> Supervisor {
         Supervisor {

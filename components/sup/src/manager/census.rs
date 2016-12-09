@@ -54,11 +54,17 @@ pub struct CensusEntry {
     pub ip: Option<String>,
     pub port: Option<String>,
     pub exposes: Vec<String>,
+    pub package_ident: Option<String>,
     pub leader: Option<bool>,
     pub follower: Option<bool>,
+    pub update_leader: Option<bool>,
+    pub update_follower: Option<bool>,
     pub election_is_running: Option<bool>,
     pub election_is_no_quorum: Option<bool>,
     pub election_is_finished: Option<bool>,
+    pub update_election_is_running: Option<bool>,
+    pub update_election_is_no_quorum: Option<bool>,
+    pub update_election_is_finished: Option<bool>,
     pub initialized: Option<bool>,
     pub alive: Option<bool>,
     pub suspect: Option<bool>,
@@ -174,6 +180,14 @@ impl CensusEntry {
         self.exposes = value;
     }
 
+    pub fn get_package_ident(&self) -> &str {
+        self.package_ident.as_ref().unwrap()
+    }
+
+    pub fn set_package_ident(&mut self, value: String) {
+        self.package_ident = Some(value);
+    }
+
     pub fn set_leader(&mut self, value: bool) {
         self.leader = Some(value);
     }
@@ -188,6 +202,22 @@ impl CensusEntry {
 
     pub fn get_follower(&self) -> bool {
         self.follower.unwrap_or(false)
+    }
+
+    pub fn set_update_leader(&mut self, value: bool) {
+        self.update_leader = Some(value);
+    }
+
+    pub fn get_update_leader(&self) -> bool {
+        self.update_leader.unwrap_or(false)
+    }
+
+    pub fn set_update_follower(&mut self, value: bool) {
+        self.update_follower = Some(value);
+    }
+
+    pub fn get_update_follower(&self) -> bool {
+        self.update_follower.unwrap_or(false)
     }
 
     pub fn set_election_is_running(&mut self, value: bool) {
@@ -212,6 +242,30 @@ impl CensusEntry {
 
     pub fn get_election_is_finished(&self) -> bool {
         self.election_is_finished.unwrap_or(false)
+    }
+
+    pub fn set_update_election_is_running(&mut self, value: bool) {
+        self.update_election_is_running = Some(value);
+    }
+
+    pub fn get_update_election_is_running(&self) -> bool {
+        self.update_election_is_running.unwrap_or(false)
+    }
+
+    pub fn set_update_election_is_no_quorum(&mut self, value: bool) {
+        self.update_election_is_no_quorum = Some(value);
+    }
+
+    pub fn get_update_election_is_no_quorum(&self) -> bool {
+        self.update_election_is_no_quorum.unwrap_or(false)
+    }
+
+    pub fn set_update_election_is_finished(&mut self, value: bool) {
+        self.update_election_is_finished = Some(value);
+    }
+
+    pub fn get_update_election_is_finished(&self) -> bool {
+        self.update_election_is_finished.unwrap_or(false)
     }
 
     pub fn set_initialized(&mut self, value: bool) {
@@ -274,6 +328,7 @@ impl CensusEntry {
         self.set_hostname(String::from(service_rumor.get_hostname()));
         self.set_port(format!("{}", service_rumor.get_port()));
         self.set_exposes(service_rumor.get_exposes().iter().map(|p| format!("{}", p)).collect());
+        self.set_package_ident(service_rumor.get_package_ident().to_string());
     }
 
     pub fn populate_from_member(&mut self, member: &Member) {
@@ -329,6 +384,37 @@ impl CensusEntry {
                 self.set_election_is_running(false);
                 self.set_election_is_no_quorum(false);
                 self.set_election_is_finished(true);
+            }
+        }
+    }
+
+    pub fn populate_from_update_election(&mut self, election: &ElectionRumor) {
+        match election.get_status() {
+            Election_Status::Running => {
+                self.set_update_leader(false);
+                self.set_update_follower(false);
+                self.set_update_election_is_running(true);
+                self.set_update_election_is_no_quorum(false);
+                self.set_update_election_is_finished(false);
+            }
+            Election_Status::NoQuorum => {
+                self.set_update_leader(false);
+                self.set_update_follower(false);
+                self.set_update_election_is_running(false);
+                self.set_update_election_is_no_quorum(true);
+                self.set_update_election_is_finished(false);
+            }
+            Election_Status::Finished => {
+                if self.get_member_id() == election.get_member_id() {
+                    self.set_update_leader(true);
+                    self.set_update_follower(false);
+                } else {
+                    self.set_update_leader(false);
+                    self.set_update_follower(true);
+                }
+                self.set_update_election_is_running(false);
+                self.set_update_election_is_no_quorum(false);
+                self.set_update_election_is_finished(true);
             }
         }
     }
@@ -426,6 +512,16 @@ impl CensusList {
             let census_entries = self.censuses.get_mut(election.get_service_group()).unwrap();
             for census_entry in census_entries.values_mut() {
                 census_entry.populate_from_election(election);
+            }
+        }
+    }
+
+    pub fn populate_from_update_election(&mut self, election: &ElectionRumor) {
+        if self.censuses.contains_key(election.get_service_group()) {
+            // We just checked, so we're cool
+            let census_entries = self.censuses.get_mut(election.get_service_group()).unwrap();
+            for census_entry in census_entries.values_mut() {
+                census_entry.populate_from_update_election(election);
             }
         }
     }

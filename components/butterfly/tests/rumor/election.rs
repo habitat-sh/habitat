@@ -21,9 +21,9 @@ use btest;
 fn three_members_run_election() {
     let mut net = btest::SwimNet::new(3);
     net.mesh();
-    net.add_service(0, "witcher");
-    net.add_service(1, "witcher");
-    net.add_service(2, "witcher");
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
+    net.add_service(2, "core/witcher/1.2.3/20161208121212");
 
     net.add_election(0, "witcher", 0);
     net.add_election(1, "witcher", 0);
@@ -37,9 +37,9 @@ fn three_members_run_election() {
 fn three_members_run_election_from_one_starting_rumor() {
     let mut net = btest::SwimNet::new(3);
     net.mesh();
-    net.add_service(0, "witcher");
-    net.add_service(1, "witcher");
-    net.add_service(2, "witcher");
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
+    net.add_service(2, "core/witcher/1.2.3/20161208121212");
     net.add_election(0, "witcher", 0);
     assert_wait_for_election_status!(net, [0..3], "witcher.prod", Election_Status::Finished);
     assert_wait_for_equal_election!(net, [0..3, 0..3], "witcher.prod");
@@ -49,8 +49,8 @@ fn three_members_run_election_from_one_starting_rumor() {
 fn two_members_fail_to_find_quorum() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();
-    net.add_service(0, "witcher");
-    net.add_service(1, "witcher");
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
     net.add_election(0, "witcher", 0);
     assert_wait_for_equal_election!(net, [0..2, 0..2], "witcher.prod");
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::NoQuorum);
@@ -60,14 +60,14 @@ fn two_members_fail_to_find_quorum() {
 fn two_members_find_quorum_when_a_third_comes() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();
-    net.add_service(0, "witcher");
-    net.add_service(1, "witcher");
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
     net.add_election(0, "witcher", 0);
     assert_wait_for_equal_election!(net, [0..2, 0..2], "witcher.prod");
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::NoQuorum);
 
     net.members.push(btest::start_server("2", None));
-    net.add_service(2, "witcher");
+    net.add_service(2, "core/witcher/1.2.3/20161208121212");
     net.connect(2, 0);
     assert_wait_for_election_status!(net, [0..2], "witcher.prod", Election_Status::Finished);
     assert_wait_for_equal_election!(net, [0..3, 0..3], "witcher.prod");
@@ -77,11 +77,11 @@ fn two_members_find_quorum_when_a_third_comes() {
 fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     let mut net = btest::SwimNet::new(5);
     net.mesh();
-    net.add_service(0, "witcher");
-    net.add_service(1, "witcher");
-    net.add_service(2, "witcher");
-    net.add_service(3, "witcher");
-    net.add_service(4, "witcher");
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
+    net.add_service(2, "core/witcher/1.2.3/20161208121212");
+    net.add_service(3, "core/witcher/1.2.3/20161208121212");
+    net.add_service(4, "core/witcher/1.2.3/20161208121212");
     net.add_election(0, "witcher", 0);
     assert_wait_for_election_status!(net, [0..5], "witcher.prod", Election_Status::Finished);
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
@@ -136,11 +136,11 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     let mut net = btest::SwimNet::new(5);
     net[0].member.write().expect("Member lock is poisoned").set_persistent(true);
     net[4].member.write().expect("Member lock is poisoned").set_persistent(true);
-    net.add_service(0, "witcher");
-    net.add_service(1, "witcher");
-    net.add_service(2, "witcher");
-    net.add_service(3, "witcher");
-    net.add_service(4, "witcher");
+    net.add_service(0, "core/witcher/1.2.3/20161208121212");
+    net.add_service(1, "core/witcher/1.2.3/20161208121212");
+    net.add_service(2, "core/witcher/1.2.3/20161208121212");
+    net.add_service(3, "core/witcher/1.2.3/20161208121212");
+    net.add_service(4, "core/witcher/1.2.3/20161208121212");
     net.add_election(0, "witcher", 1);
     net.connect(0, 1);
     net.connect(1, 2);

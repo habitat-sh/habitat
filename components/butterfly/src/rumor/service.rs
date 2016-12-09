@@ -21,6 +21,7 @@ use std::mem;
 use std::ops::{Deref, DerefMut};
 
 use habitat_core::service::ServiceGroup;
+use habitat_core::package::Identifiable;
 use protobuf::Message;
 
 use error::Result;
@@ -80,16 +81,23 @@ impl DerefMut for Service {
 
 impl Service {
     /// Creates a new Service.
-    pub fn new<S1, S2, S3>(member_id: S1,
-                           service_group: ServiceGroup,
-                           hostname: S2,
-                           ip: S3,
-                           exposes: Vec<u32>)
-                           -> Self
+    pub fn new<S1, S2, S3, S4, S5>(member_id: S1,
+                                   package: &S4,
+                                   group: S5,
+                                   organization: Option<String>,
+                                   hostname: S2,
+                                   ip: S3,
+                                   exposes: Vec<u32>)
+                                   -> Self
         where S1: Into<String>,
               S2: Into<String>,
-              S3: Into<String>
+              S3: Into<String>,
+              S4: Identifiable,
+              S5: Into<String>
     {
+        assert!(package.fully_qualified(),
+                "package should be fully qualified");
+        let service_group = ServiceGroup::new(package.name(), group, organization);
         let mut rumor = ProtoRumor::new();
         let from_id = member_id.into();
         let real_member_id = from_id.clone();
@@ -106,6 +114,7 @@ impl Service {
             proto.set_port(*port);
         }
         proto.set_exposes(exposes);
+        proto.set_package_ident(package.to_string());
         rumor.set_service(proto);
         Service { proto: rumor }
     }
@@ -143,15 +152,18 @@ impl Rumor for Service {
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
+    use std::str::FromStr;
 
-    use habitat_core::service::ServiceGroup;
+    use habitat_core::package::PackageIdent;
 
     use super::Service;
     use rumor::Rumor;
 
     fn create_service(member_id: &str) -> Service {
         Service::new(member_id,
-                     ServiceGroup::new("neurosis", "production", None),
+                     &PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap(),
+                     "production",
+                     None,
                      "fire.beyond",
                      "127.0.0.1",
                      vec![9090, 9091])

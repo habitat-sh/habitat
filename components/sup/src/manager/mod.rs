@@ -28,7 +28,6 @@ use butterfly::trace::Trace;
 use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::server::timing::Timing;
 use hcore::crypto::{default_cache_key_path, SymKey};
-use hcore::service::ServiceGroup;
 use time::{SteadyTime, Duration as TimeDuration};
 
 use self::service_updater::ServiceUpdater;
@@ -96,8 +95,8 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
+            updater: ServiceUpdater::new(server.clone()),
             state: State::new(server),
-            updater: ServiceUpdater::default(),
         })
     }
 
@@ -106,9 +105,11 @@ impl Manager {
                        topology: Topology,
                        update_strategy: UpdateStrategy)
                        -> Result<()> {
-        let service_group = ServiceGroup::new(package.name.clone(),
-                                              gconfig().group().to_string(),
-                                              gconfig().organization().clone());
+        let service = try!(Service::new(package.clone(),
+                                        gconfig().group(),
+                                        gconfig().organization().clone(),
+                                        topology,
+                                        update_strategy));
         let hostname = try!(util::sys::hostname());
         let ip = try!(util::sys::ip());
         // TODO: We should do this much earlier, to confirm that the ports we expose are not
@@ -119,19 +120,20 @@ impl Manager {
             exposes.push(port_num);
         }
         let service_rumor = ServiceRumor::new(self.state.butterfly.member_id(),
-                                              service_group.clone(),
+                                              package.ident(),
+                                              service.service_group.group.clone(),
+                                              service.service_group.organization.clone(),
                                               hostname,
-                                              format!("{}", ip),
+                                              ip.to_string(),
                                               exposes);
         self.state.butterfly.insert_service(service_rumor);
 
         if topology == Topology::Leader || topology == Topology::Initializer {
             // Note - eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
-            self.state.butterfly.start_election(service_group.clone(), 0, 0);
+            self.state.butterfly.start_election(service.service_group.clone(), 0, 0);
         }
 
-        let service = try!(Service::new(service_group, package, topology, update_strategy));
         self.updater.add(&service);
         self.state.services.write().expect("Services lock is poisoned!").push(service);
         Ok(())
@@ -156,6 +158,10 @@ impl Manager {
                 // We know you have an election, and this is the only key in the hash
                 let election = rumors.get("election").unwrap();
                 cl.populate_from_election(election);
+            });
+            self.state.butterfly.update_store.with_keys(|(_service_group, rumors)| {
+                let election = rumors.get("election").unwrap();
+                cl.populate_from_update_election(election);
             });
             self.state.butterfly.member_list.with_members(|member| {
                 cl.populate_from_member(member);
@@ -275,12 +281,11 @@ impl Manager {
 
                 // Write out any files we received via butterfly
                 let mut service_files_updated = false;
-                for (incarnation, filename, body) in
-                    self.state
-                        .butterfly
-                        .service_files_for(&service.service_group_str(),
-                                           &service.current_service_files)
-                        .into_iter() {
+                for (incarnation, filename, body) in self.state
+                    .butterfly
+                    .service_files_for(&service.service_group_str(),
+                                       &service.current_service_files)
+                    .into_iter() {
                     let result = service.write_butterfly_service_file(filename, incarnation, body);
                     if service_files_updated == false && result == true {
                         service_files_updated = true;
@@ -292,11 +297,10 @@ impl Manager {
 
                 // Write out any service configuration we received via butterfly
                 let mut service_config_updated = false;
-                if let Some((incarnation, config)) =
-                    self.state
-                        .butterfly
-                        .service_config_for(&service.service_group_str(),
-                                            service.service_config_incarnation) {
+                if let Some((incarnation, config)) = self.state
+                    .butterfly
+                    .service_config_for(&service.service_group_str(),
+                                        service.service_config_incarnation) {
                     service_config_updated = service.write_butterfly_service_config(config);
                     service.service_config_incarnation = Some(incarnation);
                 }
