@@ -178,7 +178,7 @@ _build_slim_release() {
   fi
   mkdir -p "$tmp_root/hab/cache/artifacts"
   cp $target_hart "$tmp_root/hab/cache/artifacts/"
-  env FS_ROOT="$tmp_root" $_hab_cmd pkg install "$target_hart"
+  env FS_ROOT="$tmp_root" $_hab_cmd pkg install "$target_hart" --ignore-target
   if [[ $(find "$tmp_root/hab/pkgs" \( -name hab -or -name hab.exe \) -type f | wc -l) -ne 1 ]]; then
     exit_with "$target_hart did not contain a \`hab' binary" 2
   fi
