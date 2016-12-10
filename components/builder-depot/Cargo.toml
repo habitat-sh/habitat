@@ -45,6 +45,9 @@ path = "../builder-dbcache"
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
 
+[dependencies.builder_core]
+path = "../builder-core"
+
 [dependencies.habitat_core]
 path = "../core"
 

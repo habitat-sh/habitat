@@ -23,6 +23,7 @@ use hab_core::package::{Identifiable, FromArchive, PackageArchive};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
+use bld_core::metrics::*;
 use hab_net::config::RouteAddrs;
 use hab_net::http::controller::*;
 use hab_net::privilege;
@@ -50,6 +51,7 @@ use config::Config;
 use error::{Error, Result};
 
 define_event_log!();
+
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 
 const PAGINATION_RANGE_DEFAULT: isize = 0;
@@ -897,6 +899,10 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
     };
     let params = req.extensions.get::<Router>().unwrap();
     let partial = params.find("query").unwrap();
+
+    debug!("search_packages called with: {}", partial);
+    Counter::SearchPackages.increment();
+    Gauge::PackageCount.set(depot.datastore.key_count().unwrap() as f64);
 
     // Note: the search call takes offset and count values
     let (packages, total_count) =
