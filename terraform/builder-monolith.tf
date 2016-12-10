@@ -10,6 +10,7 @@ resource "aws_instance" "monolith" {
     "${var.hab_sup_sg}",
     "${aws_security_group.builder_api.id}",
     "${aws_security_group.router_gateway.id}",
+    "${aws_security_group.admin_gateway.id}",
   ]
 
   connection {

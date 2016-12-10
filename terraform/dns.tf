@@ -13,3 +13,11 @@ resource "aws_route53_record" "willem" {
   ttl     = "300"
   records = ["${aws_elb.builder_api.dns_name}"]
 }
+
+resource "aws_route53_record" "admin" {
+  zone_id = "${var.dns_zone_id}"
+  name    = "admin.${var.env}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = ["${aws_elb.admin_gateway.dns_name}"]
+}

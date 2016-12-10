@@ -1,6 +1,6 @@
 pkg_origin=core
-pkg_name=builder-api-proxy
-pkg_description="HTTP Proxy service fronting the Habitat Builder API service"
+pkg_name=builder-admin-proxy
+pkg_description="HTTP Proxy service fronting the Habitat Builder Admin service"
 pkg_version=undefined
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh"
 pkg_source=nosuchfile.tar.xz

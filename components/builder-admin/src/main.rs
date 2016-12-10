@@ -51,7 +51,7 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (@setting SubcommandRequiredElseHelp)
         (@arg config: -c --config +takes_value +global
             "Filepath to configuration file. [default: /hab/svc/hab-builder-admin/config.toml]")
-        (@arg port: --port +takes_value +global "Listen port. [default: 9636]")
+        (@arg port: --port +takes_value +global "Listen port. [default: 8080]")
         (@subcommand start =>
             (about: "Run the builder-admin server")
         )
