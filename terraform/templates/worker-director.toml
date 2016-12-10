@@ -1,2 +1,2 @@
 [cfg.services.core.hab-builder-worker.${env}]
-start = "--permanent-peer --bind jobsrv:hab-builder-jobsrv.${env} --peer ${peer_ip}:9000"
+start = "--permanent-peer --bind jobsrv:hab-builder-jobsrv.${env}"

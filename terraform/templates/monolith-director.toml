@@ -5,19 +5,25 @@ start = "--permanent-peer"
 start = "--permanent-peer"
 
 [cfg.services.core.hab-builder-jobsrv.${env}]
-start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env}"
+start = "--permanent-peer --bind database:redis.${env} --bind router:hab-builder-router.${env}"
 
 [cfg.services.core.hab-builder-sessionsrv.${env}]
-start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env}"
+start = "--permanent-peer --bind database:redis.${env} --bind router:hab-builder-router.${env}"
 
 [cfg.services.core.hab-builder-vault.${env}]
-start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env}"
+start = "--permanent-peer --bind database:redis.${env} --bind router:hab-builder-router.${env}"
+
+[cfg.services.core.hab-builder-worker.${env}]
+start = "--permanent-peer --bind jobsrv::hab-builder-jobsrv.${env}"
 
 [cfg.services.core.hab-builder-api.${env}]
-start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env}"
+start = "--permanent-peer --bind database:redis.${env} --bind router:hab-builder-router.${env}"
 
 [cfg.services.core.builder-api-proxy.${env}]
-start = "--permanent-peer --bind router:hab-builder-router.${env}"
+start = "--permanent-peer --bind api:hab-builder-api.${env}"
 
 [cfg.services.core.hab-builder-admin.${env}]
-start = "--permanent-peer --bind database:redis.${env},router:hab-builder-router.${env}"
+start = "--permanent-peer --bind database:redis.${env} --bind router:hab-builder-router.${env}"
+
+[cfg.services.core.builder-admin-proxy.${env}]
+start = "--permanent-peer --bind admin:hab-builder-admin.${env}"
