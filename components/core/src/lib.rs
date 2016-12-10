@@ -30,6 +30,7 @@ extern crate tempdir;
 extern crate time;
 extern crate toml;
 extern crate url as extern_url;
+extern crate statsd;
 
 #[cfg(not(windows))]
 extern crate users as linux_users;
@@ -50,6 +51,7 @@ pub mod util;
 pub mod crypto;
 pub mod os;
 pub mod event;
+pub mod metrics;
 
 pub use os::filesystem;
 pub use os::users;
