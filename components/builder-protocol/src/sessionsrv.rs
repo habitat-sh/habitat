@@ -178,7 +178,7 @@ impl ToJson for Session {
         m.insert("token".to_string(), self.get_token().to_json());
         m.insert("email".to_string(), self.get_email().to_json());
         m.insert("name".to_string(), self.get_name().to_json());
-        m.insert("id".to_string(), self.get_id().to_json());
+        m.insert("id".to_string(), self.get_id().to_string().to_json());
         m.insert("flags".to_string(), self.get_flags().to_json());
         Json::Object(m)
     }

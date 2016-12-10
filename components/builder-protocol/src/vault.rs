@@ -47,7 +47,7 @@ impl Routable for OriginCreate {
 impl ToJson for Origin {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
-        m.insert("id".to_string(), self.get_id().to_json());
+        m.insert("id".to_string(), self.get_id().to_string().to_json());
         m.insert("name".to_string(), self.get_name().to_json());
         m.insert("owner_id".to_string(),
                  self.get_owner_id().to_string().to_json());
@@ -89,7 +89,8 @@ impl ToJson for OriginSecretKey {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
         m.insert("id".to_string(), self.get_id().to_string().to_json());
-        m.insert("origin_id".to_string(), self.get_origin_id().to_json());
+        m.insert("origin_id".to_string(),
+                 self.get_origin_id().to_string().to_json());
         m.insert("name".to_string(), self.get_name().to_json());
         m.insert("revision".to_string(),
                  self.get_revision().to_string().to_json());
@@ -141,8 +142,6 @@ impl Persistable for OriginInvitation {
 impl ToJson for OriginInvitation {
     fn to_json(&self) -> Json {
         let mut m = BTreeMap::new();
-        // NOTE: all numbers are represented as strings, because they
-        // overflow JSON number representation in some tools
         m.insert("id".to_string(), self.get_id().to_string().to_json());
         m.insert("account_id".to_string(),
                  self.get_account_id().to_string().to_json());
