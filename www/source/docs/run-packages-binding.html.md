@@ -10,7 +10,7 @@ For example, you might have a web application `foo` that depends on the value of
 
 ## Example
 
-The [Ruby on Rails sample plan](https://github.com/habitat-sh/habitat/tree/master/plans/ruby-rails-sample) illustrates this exact situation. The [configuration template](https://github.com/habitat-sh/habitat/blob/master/plans/ruby-rails-sample/config/database.yml) for the database has content like this:
+The [Ruby on Rails sample plan](https://github.com/habitat-sh/core-plans/blob/master/ruby-rails-sample) illustrates this exact situation. The [configuration template](https://github.com/habitat-sh/core-plans/blob/master/ruby-rails-sample/config/database.yml) for the database has content like this:
 
 ```
 {{#if bind.database}}
