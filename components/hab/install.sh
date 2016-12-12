@@ -274,7 +274,7 @@ do_install() {
       ;;
     "linux")
       ident="core/hab"
-      if [ ! -z "${version-}" ] && [ "${version}" != "%24latest" ]; then ident="$ident/$version"; fi
+      if [ ! -z "${version-}" ]; then ident="$ident/$version"; fi
       # Install hab release using the extracted version and add/update symlink
       "$archive_dir/hab" install "$ident"
       "$archive_dir/hab" pkg binlink "$ident" hab
@@ -285,8 +285,11 @@ do_install() {
 # Download location for the temporary files
 tmp_dir="${TMPDIR:-/tmp}/hab"
 
-# use stable channel by default
+# Use stable Bintray channel by default
 channel="stable"
+
+# Set an empty version variable, signaling we want the latest release
+version=""
 
 # ## CLI Argument Parsing
 
@@ -314,8 +317,8 @@ trap 'rm -rf $tmp_dir; exit $?' INT TERM EXIT
 rm -rf "$tmp_dir"
 (umask 077 && mkdir -p $tmp_dir) || exit 1
 
-version=${version:-%24latest}
-download_url="https://api.bintray.com/content/habitat/$channel/$platform/x86_64/hab-$version-x86_64-$platform.$file_ext"
+bt_version="$(echo ${version:-%24latest} | tr '/' '-')"
+download_url="https://api.bintray.com/content/habitat/$channel/$platform/x86_64/hab-$bt_version-x86_64-$platform.$file_ext"
 bt_query="?bt_package=hab-x86_64-$platform"
 
 do_download "${download_url}${bt_query}" "${tmp_dir}/hab-latest.${file_ext}"
