@@ -1,5 +1,93 @@
 # Habitat CHANGELOG
 
+## [0.14.0](https://github.com/habitat-sh/habitat/tree/0.14.0) (12-12-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.13.1...0.14.0)
+
+## Features & Enhancements
+
+- Clarify origin key documentation [\#1096](https://github.com/habitat-sh/habitat/issues/1096)
+- Can't start hab-depot or just confusing error messages [\#1048](https://github.com/habitat-sh/habitat/issues/1048)
+- utilize existing distributed key/value systems [\#971](https://github.com/habitat-sh/habitat/issues/971)
+- Add a switch to `hab pkg install` to ignore target validation. [\#1549](https://github.com/habitat-sh/habitat/pull/1549) ([smurawski](https://github.com/smurawski))
+- Improve Builder versioning & release process [\#1539](https://github.com/habitat-sh/habitat/pull/1539) ([reset](https://github.com/reset))
+- Tweak the Docker studio image [\#1537](https://github.com/habitat-sh/habitat/pull/1537) ([chefsalim](https://github.com/chefsalim))
+- Connect to a majority of initial peers [\#1534](https://github.com/habitat-sh/habitat/pull/1534) ([adamhjk](https://github.com/adamhjk))
+- Return a friendly error when a token has insufficient permissions [\#1530](https://github.com/habitat-sh/habitat/pull/1530) ([raskchanky](https://github.com/raskchanky))
+- Add command line completers in the studio [\#1529](https://github.com/habitat-sh/habitat/pull/1529) ([smith](https://github.com/smith))
+- slow mac builders be crampin our style [\#1526](https://github.com/habitat-sh/habitat/pull/1526) ([smurawski](https://github.com/smurawski))
+- add ability to install a specific hab version from a specified channel [\#1525](https://github.com/habitat-sh/habitat/pull/1525) ([mwrock](https://github.com/mwrock))
+- output was not being captured before, now it is. [\#1524](https://github.com/habitat-sh/habitat/pull/1524) ([smurawski](https://github.com/smurawski))
+- allow build/publish from master in AppVeyor [\#1523](https://github.com/habitat-sh/habitat/pull/1523) ([smurawski](https://github.com/smurawski))
+- Do not pull the studio docker image if you already have it. [\#1521](https://github.com/habitat-sh/habitat/pull/1521) ([smurawski](https://github.com/smurawski))
+- Hab sup cli cleanup [\#1520](https://github.com/habitat-sh/habitat/pull/1520) ([adamhjk](https://github.com/adamhjk))
+- The great clean up in ing [\#1518](https://github.com/habitat-sh/habitat/pull/1518) ([adamhjk](https://github.com/adamhjk))
+- Add `hab file` commands and encryption [\#1517](https://github.com/habitat-sh/habitat/pull/1517) ([adamhjk](https://github.com/adamhjk))
+- More Travis Fun [\#1510](https://github.com/habitat-sh/habitat/pull/1510) ([smurawski](https://github.com/smurawski))
+- Adds hab cli completers [\#1507](https://github.com/habitat-sh/habitat/pull/1507) ([burtlo](https://github.com/burtlo))
+- Get the builds green [\#1504](https://github.com/habitat-sh/habitat/pull/1504) ([smurawski](https://github.com/smurawski))
+- only build mac cli off master and only when hab or hab deps change [\#1501](https://github.com/habitat-sh/habitat/pull/1501) ([smurawski](https://github.com/smurawski))
+- Build and publish unstable `hab` CLI builds off master [\#1496](https://github.com/habitat-sh/habitat/pull/1496) ([smurawski](https://github.com/smurawski))
+- Windows `hab` CLI CI Builds to Unstable [\#1486](https://github.com/habitat-sh/habitat/pull/1486) ([smurawski](https://github.com/smurawski))
+- Add depot example URL to CLI help [\#1482](https://github.com/habitat-sh/habitat/pull/1482) ([jtimberman](https://github.com/jtimberman))
+
+## Bug fixes
+
+- Improve error message when user doesn't have read:org github permissions [\#1444](https://github.com/habitat-sh/habitat/issues/1444)
+- Improve failures when GitHub API is rate-limited [\#1086](https://github.com/habitat-sh/habitat/issues/1086)
+- core package listing won't show 50 more [\#1053](https://github.com/habitat-sh/habitat/issues/1053)
+- Copy/paste doesn't work in Try Habitat interactive console [\#957](https://github.com/habitat-sh/habitat/issues/957)
+- habitat.sh/try web pages capture all commands [\#604](https://github.com/habitat-sh/habitat/issues/604)
+- Fix unexpectedly long thread sleep in Supervisor's main loop [\#1540](https://github.com/habitat-sh/habitat/pull/1540) ([reset](https://github.com/reset))
+- \[devshell\] Fix Dockerfile post-Delivery cookbook removal. [\#1538](https://github.com/habitat-sh/habitat/pull/1538) ([fnichol](https://github.com/fnichol))
+- Add missing health data to Census [\#1532](https://github.com/habitat-sh/habitat/pull/1532) ([adamhjk](https://github.com/adamhjk))
+- Replace node based SHA strategy with sed [\#1528](https://github.com/habitat-sh/habitat/pull/1528) ([raskchanky](https://github.com/raskchanky))
+- No longer render `me` for services not running [\#1527](https://github.com/habitat-sh/habitat/pull/1527) ([adamhjk](https://github.com/adamhjk))
+- Do not pull the studio docker image if you already have it. [\#1521](https://github.com/habitat-sh/habitat/pull/1521) ([smurawski](https://github.com/smurawski))
+- Fix for broken `hab pkg exec` with multiple `pkg\_bin\_dirs` [\#1483](https://github.com/habitat-sh/habitat/pull/1483) ([smith](https://github.com/smith))
+
+**Closed issues:**
+
+- How to clone private git repositories, or: How to inject secrets into a plan.sh / the studio? [\#1543](https://github.com/habitat-sh/habitat/issues/1543)
+- Registration failed [\#1533](https://github.com/habitat-sh/habitat/issues/1533)
+- \[pre-release\] hab node status not updated when node is down [\#1531](https://github.com/habitat-sh/habitat/issues/1531)
+- sh: 1: cd: can't cd to components/director [\#883](https://github.com/habitat-sh/habitat/issues/883)
+
+**Merged pull requests:**
+
+- Update director templates [\#1553](https://github.com/habitat-sh/habitat/pull/1553) ([reset](https://github.com/reset))
+- Terraform Admin Srv [\#1552](https://github.com/habitat-sh/habitat/pull/1552) ([reset](https://github.com/reset))
+- Make install.sh version argument work [\#1550](https://github.com/habitat-sh/habitat/pull/1550) ([smith](https://github.com/smith))
+- Add listen-peer flag back as hidden flag to supervisor [\#1546](https://github.com/habitat-sh/habitat/pull/1546) ([reset](https://github.com/reset))
+- Ensure \*all\* builder components are built & published in script [\#1545](https://github.com/habitat-sh/habitat/pull/1545) ([reset](https://github.com/reset))
+- Fix version generation in api-proxy plan [\#1542](https://github.com/habitat-sh/habitat/pull/1542) ([reset](https://github.com/reset))
+- Add zmq dep to director plan [\#1541](https://github.com/habitat-sh/habitat/pull/1541) ([reset](https://github.com/reset))
+- Documentation & Director updates for recent Supervisor changes [\#1535](https://github.com/habitat-sh/habitat/pull/1535) ([reset](https://github.com/reset))
+- Support Ipv6 in builder services [\#1516](https://github.com/habitat-sh/habitat/pull/1516) ([reset](https://github.com/reset))
+- Remove delivery cookbook [\#1515](https://github.com/habitat-sh/habitat/pull/1515) ([reset](https://github.com/reset))
+- Re-implement sidecar module as http\_gateway [\#1513](https://github.com/habitat-sh/habitat/pull/1513) ([reset](https://github.com/reset))
+- Add hab-butterfly [\#1512](https://github.com/habitat-sh/habitat/pull/1512) ([adamhjk](https://github.com/adamhjk))
+- De-duplicate the list of packages on the origin detail page [\#1511](https://github.com/habitat-sh/habitat/pull/1511) ([raskchanky](https://github.com/raskchanky))
+- More infra and events for builder services [\#1509](https://github.com/habitat-sh/habitat/pull/1509) ([chefsalim](https://github.com/chefsalim))
+- Updates file to rustfmt standard [\#1508](https://github.com/habitat-sh/habitat/pull/1508) ([burtlo](https://github.com/burtlo))
+- Deploy www.habitat.sh when a PR merges to master [\#1506](https://github.com/habitat-sh/habitat/pull/1506) ([raskchanky](https://github.com/raskchanky))
+- More events infra work [\#1503](https://github.com/habitat-sh/habitat/pull/1503) ([chefsalim](https://github.com/chefsalim))
+- Integrating butterfly to the supervisor [\#1502](https://github.com/habitat-sh/habitat/pull/1502) ([adamhjk](https://github.com/adamhjk))
+- Attempt 2 at formatting bintray creds for deploy [\#1500](https://github.com/habitat-sh/habitat/pull/1500) ([reset](https://github.com/reset))
+- Disable bintray dry-run for macOS [\#1499](https://github.com/habitat-sh/habitat/pull/1499) ([reset](https://github.com/reset))
+- attempt 2 at capturing which files to upload [\#1498](https://github.com/habitat-sh/habitat/pull/1498) ([reset](https://github.com/reset))
+- Add upload pattern to files and sign bintray files [\#1497](https://github.com/habitat-sh/habitat/pull/1497) ([reset](https://github.com/reset))
+- fix syntax error in macos-pkg.sh [\#1494](https://github.com/habitat-sh/habitat/pull/1494) ([reset](https://github.com/reset))
+- use exact pattern to identify darwin zip [\#1493](https://github.com/habitat-sh/habitat/pull/1493) ([reset](https://github.com/reset))
+- Point to proper bintray package file [\#1492](https://github.com/habitat-sh/habitat/pull/1492) ([reset](https://github.com/reset))
+- Include version information for bintray [\#1491](https://github.com/habitat-sh/habitat/pull/1491) ([reset](https://github.com/reset))
+- Allow specifying organization and repo in Bintray publish tools [\#1490](https://github.com/habitat-sh/habitat/pull/1490) ([reset](https://github.com/reset))
+- Adds webinar banner and fixes navbar button hover [\#1488](https://github.com/habitat-sh/habitat/pull/1488) ([ryankeairns](https://github.com/ryankeairns))
+- Add macOS builder and bintray publish to travis matrix [\#1487](https://github.com/habitat-sh/habitat/pull/1487) ([reset](https://github.com/reset))
+- Make the supervisor run on windows [\#1485](https://github.com/habitat-sh/habitat/pull/1485) ([mwrock](https://github.com/mwrock))
+- Initial infra for builder metrics [\#1484](https://github.com/habitat-sh/habitat/pull/1484) ([chefsalim](https://github.com/chefsalim))
+- 0.14.0-dev [\#1481](https://github.com/habitat-sh/habitat/pull/1481) ([reset](https://github.com/reset))
+- Adding windows user implementations [\#1468](https://github.com/habitat-sh/habitat/pull/1468) ([mwrock](https://github.com/mwrock))
+
 ## [0.13.1](https://github.com/habitat-sh/habitat/tree/0.13.1) (11-14-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.13.0...0.13.1)
 
@@ -14,6 +102,7 @@
 
 **Merged pull requests:**
 
+- 0.13.1 [\#1480](https://github.com/habitat-sh/habitat/pull/1480) ([reset](https://github.com/reset))
 - Fix broken platform support for MacOS [\#1479](https://github.com/habitat-sh/habitat/pull/1479) ([reset](https://github.com/reset))
 - Fix string to say director instead of depot [\#1478](https://github.com/habitat-sh/habitat/pull/1478) ([smith](https://github.com/smith))
 - Add post-processing infra to builder-worker [\#1476](https://github.com/habitat-sh/habitat/pull/1476) ([chefsalim](https://github.com/chefsalim))
@@ -61,6 +150,7 @@
 
 **Merged pull requests:**
 
+- changelog and version bump for 0.13 release [\#1472](https://github.com/habitat-sh/habitat/pull/1472) ([mwrock](https://github.com/mwrock))
 - Add segment snippet to website and web app [\#1466](https://github.com/habitat-sh/habitat/pull/1466) ([ryankeairns](https://github.com/ryankeairns))
 - Fix unhandled case in build logfile name detection [\#1464](https://github.com/habitat-sh/habitat/pull/1464) ([smacfarlane](https://github.com/smacfarlane))
 - Add core/curl as runtime dep for builder-worker [\#1452](https://github.com/habitat-sh/habitat/pull/1452) ([reset](https://github.com/reset))
