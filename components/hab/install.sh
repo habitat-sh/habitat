@@ -274,7 +274,7 @@ do_install() {
       ;;
     "linux")
       ident="core/hab"
-      if [ ! -z "${version-}" ]; then ident="$ident/$version"; fi
+      if [ ! -z "${version-}" ] && [ "${version}" != "%24latest" ]; then ident="$ident/$version"; fi
       # Install hab release using the extracted version and add/update symlink
       "$archive_dir/hab" install "$ident"
       "$archive_dir/hab" pkg binlink "$ident" hab
@@ -300,7 +300,6 @@ while getopts "c:v:" opt; do
       version=$OPTARG
       ;;
     \?)
-      echo "Invalid option: -$OPTARG" >&2
       exit 1
       ;;
   esac
