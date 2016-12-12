@@ -202,7 +202,7 @@ impl ApiClient {
 /// ## Linux Platforms
 ///
 /// We need a set of root certificates when connected to SSL/TLS web endpoints and this usually
-/// boild down to using an all-in-one certificate file (such as a `cacert.pem` file) or a directory
+/// boils down to using an all-in-one certificate file (such as a `cacert.pem` file) or a directory
 /// of files which are certificates. The strategy to location or use a reasonable set of
 /// certificates is as follows:
 ///
