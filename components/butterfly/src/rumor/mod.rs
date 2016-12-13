@@ -21,7 +21,7 @@
 //! to. Each rumor is shared with every member `RUMOR_MAX` times.
 //!
 //! New rumors need to implement the `From` trait for `RumorKey`, and then can track the arrival of
-//! new rumors, and dispatch them according to thier `kind`.
+//! new rumors, and dispatch them according to their `kind`.
 
 pub mod election;
 pub mod service;
@@ -40,7 +40,6 @@ use message::swim::Rumor_Type;
 use error::{Result, Error};
 
 /// The description of a `RumorKey`.
-///
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RumorKey {
     pub kind: Rumor_Type,
@@ -72,7 +71,7 @@ pub trait Rumor: Encodable {
     fn kind(&self) -> Rumor_Type;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
-    fn merge(&mut self, mut other: Self) -> bool;
+    fn merge(&mut self, other: Self) -> bool;
     fn write_to_bytes(&self) -> Result<Vec<u8>>;
 }
 
