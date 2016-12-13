@@ -780,7 +780,7 @@ _validate_deps() {
     warn 'If this package (`acme/A`) contains shared libraries which are'
     warn 'loaded at runtime by the current Plan, then both versions of'
     warn '`acme/A` could be loaded into the same process in a potentially'
-    warn 'suprprising order. Worse, if both versions of `acme/A` are'
+    warn 'surprising order. Worse, if both versions of `acme/A` are'
     warn 'ABI-incompatible, runtime segmentation faults are more than likely.'
     warn
     warn 'In order to preserve reliability at runtime the duplicate dependency'
