@@ -29,6 +29,7 @@ pub mod service_config;
 pub mod service_file;
 
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::default::Default;
 use std::result;
 use std::sync::{Arc, RwLock};
@@ -143,12 +144,15 @@ impl<T: Rumor + Clone> RumorStore<T> {
     pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
         let mut rumors = list.entry(String::from(rumor.key())).or_insert(HashMap::new());
-        let result = if rumors.contains_key(rumor.id()) {
-            let entry = rumors.get_mut(rumor.id()).unwrap();
-            entry.merge(rumor)
-        } else {
-            rumors.insert(String::from(rumor.id()), rumor);
-            true
+        // Result reveals if there was a change so we can increment the counter if needed.
+        let result = match rumors.entry(rumor.id().into()) {
+            Entry::Occupied(mut entry) => {
+                entry.get_mut().merge(rumor)
+            },
+            Entry::Vacant(entry) => {
+                entry.insert(rumor);
+                true
+            },
         };
         if result {
             self.increment_update_counter();
