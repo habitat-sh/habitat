@@ -28,6 +28,7 @@ param (
     [switch]$Release
 )
 
+if(!$env:ChocolateyInstall) { $env:ChocolateyInstall = "$env:ProgramData\Chocolatey" }
 # Set Environment Variables for the build
 $ChocolateyHabitatLibDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\lib"
 $ChocolateyHabitatIncludeDir = "$env:ChocolateyInstall\lib\habitat_native_dependencies\builds\include"
@@ -82,6 +83,10 @@ function Invoke-Configure {
         choco install habitat_native_dependencies --confirm -s https://www.myget.org/F/habitat/api/v2  --allowemptychecksums
     }
 
+    if(!(Get-Command git -ErrorAction SilentlyContinue)) {
+        choco install git --confirm
+        $env:path = New-PathString -StartingPath $env:path -Path "c:\Program Files\git\cmd"
+    }
     choco install libzmq_vc120 --version 4.2.3 --confirm -s https://www.nuget.org/api/v2/ --allowemptychecksums
     Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.imp.lib $ChocolateyHabitatLibDir\zmq.lib -Force
     Copy-Item $env:ChocolateyInstall\lib\libzmq_vc120\build\native\bin\libzmq-x64-v120-mt-4_2_3_0.dll $ChocolateyHabitatBinDir\libzmq.dll -Force
