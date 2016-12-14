@@ -30,16 +30,33 @@ pub enum Counter {
     SearchPackages,
 }
 
-// Helper type
-type StatsFn = Box<Fn(&mut Client) + Send>;
+// Helper types
+#[derive(Debug, Clone, Copy)]
+enum MetricType {
+    Counter,
+}
 
+#[derive(Debug, Clone, Copy)]
+enum MetricOperation {
+    Increment,
+}
+
+type MetricId = &'static str;
+type MetricValue = f32;
+type MetricTuple = (MetricType, MetricOperation, MetricId, Option<MetricValue>);
+
+trait Metric {
+    fn id(&self) -> &'static str;
+}
+
+// Thread initialization using rendezvous channel pattern
 use std::sync::{Once, ONCE_INIT};
 
-static mut SENDER: *const Sender<StatsFn> = 0 as *const Sender<StatsFn>;
+static mut SENDER: *const Sender<MetricTuple> = 0 as *const Sender<MetricTuple>;
 
 static INIT: Once = ONCE_INIT;
 
-fn get_sender() -> Sender<StatsFn> {
+fn get_sender() -> Sender<MetricTuple> {
     unsafe {
         INIT.call_once(|| {
             SENDER = Box::into_raw(Box::new(do_init()));
@@ -48,25 +65,28 @@ fn get_sender() -> Sender<StatsFn> {
     }
 }
 
-fn do_init() -> Sender<StatsFn> {
-    let (tx, rx): (Sender<StatsFn>, Receiver<StatsFn>) = channel::<StatsFn>();
+fn do_init() -> Sender<MetricTuple> {
+    let (tx, rx): (Sender<MetricTuple>, Receiver<MetricTuple>) = channel::<MetricTuple>();
     let mut statsd_client = statsd_client();
     thread::spawn(move || process_receives(rx, &mut statsd_client));
     tx
 }
 
-fn process_receives(rx: Receiver<StatsFn>, statsd_client: &mut Option<Client>) {
+fn process_receives(rx: Receiver<MetricTuple>, statsd_client: &mut Option<Client>) {
     loop {
-        let statsfn: StatsFn = rx.recv().unwrap();
+        let (mtyp, mop, mid, mval): MetricTuple = rx.recv().unwrap();
+        println!("******* RECEIVED TUPLE: {:?}", (mtyp, mop, mid, mval));
         match *statsd_client {
             Some(ref mut client) => {
-                println!("******* CALLING FUNCTION");
-                statsfn(client);
+                match mtyp {
+                    MetricType::Counter => {
+                        match mop {
+                            MetricOperation::Increment => client.incr(mid),
+                        }
+                    }
+                }
             }
-            None => {
-                println!("******* RECEIVED OP, NO STATSD CLIENT");
-                ()
-            }
+            None => (),
         }
     }
 }
@@ -80,10 +100,17 @@ fn statsd_client() -> Option<Client> {
 
 impl Counter {
     pub fn increment(&self) {
-        let s = self.to_string().clone();
         get_sender()
-            .send(Box::new(move |client: &mut Client| client.incr(&s)))
+            .send((MetricType::Counter, MetricOperation::Increment, &self.id(), None))
             .unwrap();
+    }
+}
+
+impl Metric for Counter {
+    fn id(&self) -> &'static str {
+        match *self {
+            Counter::SearchPackages => "search-packages",
+        }
     }
 }
 
