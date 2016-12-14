@@ -13,6 +13,9 @@
 // limitations under the License.
 
 use std::fmt;
+use std::thread;
+use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::Mutex;
 use statsd::Client;
 use env;
 
@@ -28,6 +31,37 @@ pub enum Counter {
     SearchPackages,
 }
 
+// Supported operations
+#[derive(Debug, Clone)]
+enum Operation {
+    Increment,
+}
+
+lazy_static! {
+    static ref SEND_CHANNEL : Mutex<Sender<(String, Operation)>> = {
+        let (tx, rx) : (Sender<(String, Operation)>, Receiver<(String, Operation)>) = channel();
+        let mut statsd_client = statsd_client();
+        thread::spawn(move || {
+            process_receives(rx, &mut statsd_client)
+        });
+        Mutex::new(tx)
+    };
+}
+
+fn process_receives(rx: Receiver<(String, Operation)>, statsd_client: &mut Option<Client>) {
+    loop {
+        let (counter, op): (String, Operation) = rx.recv().unwrap();
+        match *statsd_client {
+            Some(ref mut client) => {
+                match op {
+                    Operation::Increment => client.incr(&counter),
+                }
+            }
+            None => (),
+        }
+    }
+}
+
 fn statsd_client() -> Option<Client> {
     match env::var(STATS_ENV) {
         Ok(addr) => Some(Client::new(&addr, APP_NAME).unwrap()),
@@ -37,10 +71,11 @@ fn statsd_client() -> Option<Client> {
 
 impl Counter {
     pub fn increment(&self) {
-        match statsd_client() {
-            Some(mut client) => client.incr(&self.to_string()),
-            None => (),
-        }
+        SEND_CHANNEL.lock()
+            .unwrap()
+            .clone()
+            .send((self.to_string(), Operation::Increment))
+            .unwrap();
     }
 }
 
@@ -56,7 +91,9 @@ impl fmt::Display for Counter {
 
 #[cfg(test)]
 mod test {
-    use super::{MetricsManager, Counter};
+    use super::Counter;
+    use std::time::Duration;
+    use std::thread;
 
     #[test]
     fn display_counter() {
@@ -68,5 +105,16 @@ mod test {
     #[test]
     fn increment_counter() {
         Counter::SearchPackages.increment();
+    }
+
+    #[test]
+    fn increment_counter_multiple_threads() {
+        for _ in 0..10 {
+            thread::spawn(move || {
+                Counter::SearchPackages.increment();
+            });
+        }
+
+        thread::sleep(Duration::from_millis(50))
     }
 }
