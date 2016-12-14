@@ -30,22 +30,16 @@ pub enum Counter {
     SearchPackages,
 }
 
-// Supported operations
-#[derive(Debug, Clone)]
-enum Operation {
-    Increment,
-}
-
 // Helper type
-type CounterOp = (String, Operation);
+type StatsFn = Box<Fn(&mut Client) + Send>;
 
 use std::sync::{Once, ONCE_INIT};
 
-static mut SENDER: *const Sender<CounterOp> = 0 as *const Sender<CounterOp>;
+static mut SENDER: *const Sender<StatsFn> = 0 as *const Sender<StatsFn>;
 
 static INIT: Once = ONCE_INIT;
 
-fn get_sender() -> Sender<CounterOp> {
+fn get_sender() -> Sender<StatsFn> {
     unsafe {
         INIT.call_once(|| {
             SENDER = Box::into_raw(Box::new(do_init()));
@@ -54,24 +48,20 @@ fn get_sender() -> Sender<CounterOp> {
     }
 }
 
-fn do_init() -> Sender<CounterOp> {
-    let (tx, rx): (Sender<CounterOp>, Receiver<CounterOp>) = channel();
+fn do_init() -> Sender<StatsFn> {
+    let (tx, rx): (Sender<StatsFn>, Receiver<StatsFn>) = channel::<StatsFn>();
     let mut statsd_client = statsd_client();
     thread::spawn(move || process_receives(rx, &mut statsd_client));
     tx
 }
 
-fn process_receives(rx: Receiver<CounterOp>, statsd_client: &mut Option<Client>) {
+fn process_receives(rx: Receiver<StatsFn>, statsd_client: &mut Option<Client>) {
     loop {
-        let (counter, op): (String, Operation) = rx.recv().unwrap();
+        let statsfn: StatsFn = rx.recv().unwrap();
         match *statsd_client {
             Some(ref mut client) => {
-                match op {
-                    Operation::Increment => {
-                        println!("******* INCREMENTING COUNTER");
-                        client.incr(&counter)
-                    }
-                }
+                println!("******* CALLING FUNCTION");
+                statsfn(client);
             }
             None => {
                 println!("******* RECEIVED OP, NO STATSD CLIENT");
@@ -90,8 +80,9 @@ fn statsd_client() -> Option<Client> {
 
 impl Counter {
     pub fn increment(&self) {
+        let s = self.to_string().clone();
         get_sender()
-            .send((self.to_string(), Operation::Increment))
+            .send(Box::new(move |client: &mut Client| client.incr(&s)))
             .unwrap();
     }
 }
