@@ -15,7 +15,6 @@
 use std::fmt;
 use std::thread;
 use std::sync::mpsc::{channel, Sender, Receiver};
-use std::sync::Mutex;
 use statsd::Client;
 use env;
 
@@ -37,27 +36,47 @@ enum Operation {
     Increment,
 }
 
-lazy_static! {
-    static ref SEND_CHANNEL : Mutex<Sender<(String, Operation)>> = {
-        let (tx, rx) : (Sender<(String, Operation)>, Receiver<(String, Operation)>) = channel();
-        let mut statsd_client = statsd_client();
-        thread::spawn(move || {
-            process_receives(rx, &mut statsd_client)
+// Helper type
+type CounterOp = (String, Operation);
+
+use std::sync::{Once, ONCE_INIT};
+
+static mut SENDER: *const Sender<CounterOp> = 0 as *const Sender<CounterOp>;
+
+static INIT: Once = ONCE_INIT;
+
+fn get_sender() -> Sender<CounterOp> {
+    unsafe {
+        INIT.call_once(|| {
+            SENDER = Box::into_raw(Box::new(do_init()));
         });
-        Mutex::new(tx)
-    };
+        (*SENDER).clone()
+    }
 }
 
-fn process_receives(rx: Receiver<(String, Operation)>, statsd_client: &mut Option<Client>) {
+fn do_init() -> Sender<CounterOp> {
+    let (tx, rx): (Sender<CounterOp>, Receiver<CounterOp>) = channel();
+    let mut statsd_client = statsd_client();
+    thread::spawn(move || process_receives(rx, &mut statsd_client));
+    tx
+}
+
+fn process_receives(rx: Receiver<CounterOp>, statsd_client: &mut Option<Client>) {
     loop {
         let (counter, op): (String, Operation) = rx.recv().unwrap();
         match *statsd_client {
             Some(ref mut client) => {
                 match op {
-                    Operation::Increment => client.incr(&counter),
+                    Operation::Increment => {
+                        println!("******* INCREMENTING COUNTER");
+                        client.incr(&counter)
+                    }
                 }
             }
-            None => (),
+            None => {
+                println!("******* RECEIVED OP, NO STATSD CLIENT");
+                ()
+            }
         }
     }
 }
@@ -71,9 +90,7 @@ fn statsd_client() -> Option<Client> {
 
 impl Counter {
     pub fn increment(&self) {
-        SEND_CHANNEL.lock()
-            .unwrap()
-            .clone()
+        get_sender()
             .send((self.to_string(), Operation::Increment))
             .unwrap();
     }
