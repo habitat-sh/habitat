@@ -27,7 +27,7 @@ For an example of how to use an environment variable to update default configura
 ## Apply configuration updates to a service group
 Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime using stdin from your shell or through a TOML file. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/run-packages-security#wire-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
 
-> Note: Wire encryption secures all traffic between supervisors in a ring that possess a ring key; however, if a supervisor has the ring key, it can read any configuration content passed around the ring.
+> Note: Wire encryption secures all traffic between supervisors in a ring that possess a ring key; however, if a supervisor has the ring key, it can read any configuration content passed around the ring unless it is encrypted - see that section below.
 
 ### Usage
 When submitting a configuration update to a service group, you must specify a peer in the ring to connect to, the version number of the configuration update, and the new configuration itself. Configuration updates can be either TOML passed into stdin, or passed in a TOML file that is referenced in `hab config apply`.
@@ -51,21 +51,25 @@ Here are some examples of how to apply configuration changes through both the sh
 
     Your output would look something like this:
 
-       » Applying configuration
-       ↑ Applying configuration for myapp.prod into ring via ["172.17.0.3:9638"]
-       Joining peer: 172.17.0.3:9638
-       Configuration applied to: 172.17.0.3:9638
-       ★ Applied configuration.
+       » Applying configuration for myapp.prod incarnation 1
+       Ω Creating service configuration
+       ✓ Verified this configuration is valid TOML
+       ↑ Applying to peer 172.17.0.3:9638
+       ★ Applied configuration
 
-  The services in the myapp.prod service group will restart according to the service group's [update strategy](/docs/run-packages-update-strategy).
+  The services in the myapp.prod service group will restart.
 
-      Writing new file from gossip: /hab/svc/myapp/gossip.toml
-      hab-sup(SC): Updated config.json
-      myapp(SV): Stopping
-      hab-sup(SV): myapp - process 981 died with signal 15
-      hab-sup(SV): myapp - Service exited
-      myapp(SV): Starting
-      ...
+       myapp.prod(SR): Service configuration updated from butterfly: acd2c21580748d38f64a014f964f19a0c1547955e4c86e63bf641a4e142b2200
+       hab-sup(SC): Updated myapp.conf a85c2ed271620f895abd3f8065f265e41f198973317cc548a016f3eb60c7e13c
+       myapp.prod(SV): Stopping
+       ...
+       myapp.prod(SV): Starting
+
+#### Encryption
+
+Configuration updates can be encrypted for the service group they are intended. To do so, pass the `--user` option with the name of your user key, and the `--org` option with the organization of the service group. If you have the public key for the service group, the data will be encrypted for that key, signed with your user key, and sent to the ring.
+
+It will then be stored encrypted in memory, and decrypted on disk.
 
 <hr>
 <ul class="main-content--link-nav">

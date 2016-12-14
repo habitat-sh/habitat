@@ -22,10 +22,6 @@ A service group topology is the inter-relationship of the services running withi
 
 This is the default topology, useful for services inside a group that are completely independent from one another. Note that this still means they can share the same configuration.
 
-### Initializer
-
-The initializer topology means that one member of the service group must start up fully before the others. An example is where a database leader must start and initialize a database before any other followers can start up and attempt to connect. In this situation, the supervisors running the follower services will all block and not complete start-up until the elected leader's health check returns success.
-
 ### Leader
 
 This topology allows a distributed application running on at least three Habitat nodes to use a leader/follower configuration. Leaders are elected with Habitat's out-of-the-box leader election algorithm, and followers are restarted to reflect a configuration that follows the new leader. Subsequent elections due to leader failure will update both leader and follower configuration data, as well as restart followers.

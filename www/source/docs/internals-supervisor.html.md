@@ -16,52 +16,88 @@ Supervisor rings can be very large, comprising potentially thousands of supervis
 
 Rings are further divided into _service groups_, each of which has a name. All supervisors within a service group share the same configuration and topology. It is typical to name each service group using the pattern `service_name`.`environment` and have these service group names correspond to a _view_ within the depot. In this way, the supervisors can self-update whenever the view is updated. For more information on this, please read the [continuous deployment](/docs/continuous-deployment-overview) topic.
 
-## Protocols
+## Butterfly
+
+Habitat uses a gossip protocol named "Butterfly". It is a variant of
+[SWIM](http://prakhar.me/articles/swim) for membership and failure detection
+(over UDP), and a ZeroMQ based variant of
+[Newscast](http://www.cs.unibo.it/bison/publications/ap2pc03.pdf) for
+gossip. This protocol provides failure detection, service
+discovery, and leader election to the Habitat supervisor.
+
+Butterfly is an eventually consistent system - it says, with a very high degree of probability, that a given piece of information will be received by every member of the network. It makes no guarantees as to when that state will arrive; in practice, the answer is usually "quite quickly". :)
+
+### Vocabulary
+
+* _Members_: Butterfly keeps track of "members"; each habitat supervisor is a single member.
+* _Peer_: All the members a given member is connected to are its "peers". A member is seeded with a list of "initial peers".
+* _Health_: The status of a given member, from the perspective of its peers.
+* _Rumor_: A piece of data shared with all the members of a ring; examples are election, membership, services, or configuration.
+* _Heat_: How many times a given rumor has been shared with a given member.
+* _Ring_: All the members connected to one another form a Ring.
+* _Incarnation_: A counter used to determine which message is "newer".
 
 ### Transport Protocols
 
-Supervisors communicate with each other using the [Micro Transport Protocol](https://en.wikipedia.org/wiki/Micro_Transport_Protocol), or µTP. µTP is a UDP-based variant of the BitTorrent peer-to-peer file sharing protocol that provides reliable, ordered delivery.
+Supervisors communicate with each other using UDP and ZeroMQ, over port 9638.
 
-By using a protocol that treats occasional poor network performance and member loss -- either temporary or permanent -- as a fact of life, the Habitat supervisor accounts for real-world operational characteristics and builds reliable communication semantics on top of unreliable systems. What we give up, though, is strong, immediate consistency: the Habitat ring is an eventually consistent system, as we will see shortly.
+### Information Security
 
-### Application Protocols
+Butterfly encrypts traffic on the wire using Curve25519 and a symmetric key. If a ring is configured to use transport level encryption, only members with a matching key are allowed to communicate.
 
-There are two main application protocols that run on top of the transport protocol previously described: a _membership and failure detection_ protocol and a _gossip_ protocol. Habitat implements [SWIM](http://prakhar.me/articles/swim/) for membership & failure detection, and piggybacks [Newscast](http://www.cs.unibo.it/bison/publications/ap2pc03.pdf) on top of it for disseminating information ("rumors").
+Service Configuration and Files can both be encrypted with public keys.
 
-#### Membership and Failure Detection
+### Membership and Failure Detection
 
-When a supervisor joins a ring that already has peers, it announces its arrival by gossiping a rumor about its membership to the peers it was pointed to. This rumor -- in addition to any other rumors -- is spread around the ring during the failure detection phase of the protocol.
+Butterfly servers keep track of what members are present in a ring, and are constantly checking each other for failure. Any given member is in one of three health states:
 
-In addition, each service group maintains a _census_ of all the members of that particular service group. Each census entry contains more specific information pertinent to the configuration of that service group: what package the supervisor runs, what is the IP address of the supervisor, and so on.
+* Alive: this member is responding to health checks.
+* Suspect: this member has stopped responding to our health check, and will be marked confirmed if we do not recieve proof it is still alive soon.
+* Confirmed: this member has been un-responsive long enough that we can cease attempting to check its health.
 
-Both the membership and census protocols in action can be seen when a supervisor starts up as it prints the GUIDs of both the membership entry and the census entry:
+The essential flow is:
 
-       hab-sup(MN): Starting yourorg/yourapp
-       hab-sup(GS): Supervisor 192.168.0.9: f0cc478e-6347-4372-807d-6a55373a7fc6
-       hab-sup(GS): Census yourapp.default: 3087de37-21b6-4e6e-a265-61785228772b
+* Randomize the list of all known members who are not Confirmed dead.
+* Every 3.1 seconds, pop a member off the list, and send it a "PING" message
+* If we receive an "ACK" message before 1 second elapses, the member remains Alive.
+* If we do not receive an "ACK" in 1 second, choose 5 peers (the "PINGREQ targets"), and send them a "PINGREQ(member)" message for the member who failed the PING.
+* If any of our PINGREQ targets receive an ACK, they forward it to us, and the member remains Alive.
+* If we do not receive an ACK via PINGREQ with 2.1 seconds, we mark the member as Suspect, and set an expiration timer of 9.3 seconds.
+* If we do not receive an Alive status for the member within the 9.3 second suspicion expiration window, the member is marked as Confirmed.
+* Move on to the next member, until the list is exhausted; start the process again.
 
-The failure detection protocol in Habitat serves both as a way to maintain a correct membership list in an architecture that does not have a master, as well as a rumor distribution mechanism. It works as follows.
+When a supervisor sends the PING, ACK and PINGREQ messages, it includes information about the 5 most recent members. This enables membership to be gossiped through the failure protocol itself.
 
-1. Each peer in the ring maintains its own list of other peers, and its own understanding about the state (dead/alive/suspect) of those peers.
-2. Every interval _i_ (currently, 200ms) a thread wakes up, selects a random set of peers to ping, and piggybacks a list of rumors on top. (This list of rumors is the full list from all time; thus, one can regard it as a [CmRDT](https://en.wikipedia.org/wiki/Conflict-free_replicated_data_type).)
-3. One of two things happens:
-   1. The pinged peer responds with an ACK and sends back a list of their rumors. Each peer processes the rumors they haven't seen.
-   2. The pinged peer is unreachable. Either it is hard-unreachable (fails immediately), or soft-unreachable (connection hangs until some timeout, at which point it is a hard failure). A failure causes a move into the `ping-req`, or failure confirmation, phase.
-4. Another random set of peers are selected on the next interval _i_. The process repeats until all peers in the membership list have been touched, and then the process restarts.
+This process provides several nice attributes:
 
-##### Failure Confirmation
+* It is resilient to partial network partitions
+* Due to the expiration of suspected members, confirmation of death spreads quickly
+* The amount of network traffice generated by a given node is constant, regardless of network size.
+* The protocol uses single UDP packets which fit within 512 bytes.
 
-During the _ping-req_, or failure confirmation, phase of the failure detector, some or all members will attempt to determine if the peer is truly unreachable. The originating peer picks three random peers other than the unreachable one and sends the list of rumors plus the membership list to them. Those members in turn attempt to communicate with the unreachable peer. If the peer is reachable by any of these three, then the rumor and membership list is transmitted to that peer, and the original sender is notified that all is well.
+Butterfly differs from SWIM in the following ways:
 
-However, if the peer turns out to not be reachable from any of the randomly selected three peers, the peer that times out first generates a "suspect" rumor to the whole ring, at which the entire ring attempts to send that rumor to the peer marked suspect. If the suspect peer receives this rumor and is capable of responding, it will do so by gossipping an "alive" rumor and incrementing its incarnation version in the membership list. This incarnation trumps any "suspect" rumors.
+* Rather than sending messages to update member state, we send the entire member.
+* We support encryption on the wire
+* Payloads are protocol buffers
+* We support "persistent" members - these are members who will continue to have the failure detection protocol run against them, even if they are confirmed dead. This enables the system to heal from long-lived total partitions.
+* Members who are confirmed dead, but who later receive a membership rumor about themselves being suspected or confirmed, respond by spreading an Alive rumor with a higher incarnation. This allows members who return from a partition to re-join the ring gracefully.
 
-If the "suspect" rumor also times out, then the peer is marked "confirmed" to indicate that it is truly dead, the confirmation rumor is gossipped around the membership list, and all members remove the confirmed-dead member from their list. They will never communicate with the confirmed-dead member again -- unless that member recovers, and communicates with them.
+### Gossip
 
-#### Network Partitions and Permanent Peers
+Butterfly uses ZeroMQ to disseminate rumors throughout the network. Its flow:
 
-It is possible, in a long-running network partition scenario, for members to completely disappear from the network and never recover. For example, take a single peer out of a ring size _N_ that gets partitioned off: all the other _N-1_ peers in the ring will mark that peer as suspect, and eventually confirm it as dead. The peer itself will also mark all the other _N-1_ members as dead. Even if the partition heals, the peer will never rejoin the ring, since it will believe all the other peers are dead and not communicate with them, and vice-versa.
+* Randomize the list of all known members who are not Confirmed dead.
+* Every second, take 5 members from the list.
+* Send each member every rumor that has a Heat lower than 3; update the heat for each rumor sent.
+* When the list is exhausted, start the loop again.
 
-As a countermeasure, Habitat has the concept of being able to start a supervisor as a permanent peer using the `--permanent-peer` flag. We recommend that you run a permanent peer in each possible failure domain and make it part of the ring. Permanent peers will never be marked as suspect or dead, thus providing a communications avenue of last-resort when recovering from network partitions.
+Whats good about this system:
+
+* ZeroMQ provides a scalable PULL socket, that processes incoming messages from multiple pers as a single fair-queue.
+* It has no back-chatter - messages are PUSH-ed to members, but require no receipt acknowledgement.
+* Messages are sent over TCP, given them some durability guarantees.
+* In common use, the gossip protocol becomes inactive; if there are no rumors to send to a given member, nothing is sent.
 
 ## Papers
 
