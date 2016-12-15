@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
 use std::thread;
-use std::sync::mpsc::{channel, Sender, Receiver};
+use std::sync::mpsc::{channel, sync_channel, Sender, Receiver, SyncSender};
+use std::sync::{Once, ONCE_INIT};
 use statsd::Client;
 use env;
 
@@ -49,9 +49,7 @@ trait Metric {
     fn id(&self) -> &'static str;
 }
 
-// Thread initialization using rendezvous channel pattern
-use std::sync::{Once, ONCE_INIT};
-
+// One-time initialization
 static mut SENDER: *const Sender<MetricTuple> = 0 as *const Sender<MetricTuple>;
 
 static INIT: Once = ONCE_INIT;
@@ -59,29 +57,44 @@ static INIT: Once = ONCE_INIT;
 fn get_sender() -> Sender<MetricTuple> {
     unsafe {
         INIT.call_once(|| {
-            SENDER = Box::into_raw(Box::new(do_init()));
+            SENDER = Box::into_raw(Box::new(init()));
         });
         (*SENDER).clone()
     }
 }
 
-fn do_init() -> Sender<MetricTuple> {
-    let (tx, rx): (Sender<MetricTuple>, Receiver<MetricTuple>) = channel::<MetricTuple>();
-    let mut statsd_client = statsd_client();
-    thread::spawn(move || process_receives(rx, &mut statsd_client));
-    tx
+// init creates a worker thread ready to receive and process metric events,
+// and returns a channel for use by metric senders
+fn init() -> Sender<MetricTuple> {
+    let (tx, rx) = channel::<MetricTuple>();
+    let (rztx, rzrx) = sync_channel(0); // rendezvous channel
+
+    thread::Builder::new()
+        .name("metrics".to_string())
+        .spawn(move || receive(rztx, rx))
+        .expect("couldn't start metrics thread");
+
+    match rzrx.recv() {
+        Ok(()) => tx,
+        Err(e) => panic!("metrics thread startup error, err={}", e),
+    }
 }
 
-fn process_receives(rx: Receiver<MetricTuple>, statsd_client: &mut Option<Client>) {
+// receive runs in a separate thread and processes all metrics events
+fn receive(rz: SyncSender<()>, rx: Receiver<MetricTuple>) {
+    let mut client = statsd_client();
+    rz.send(()).unwrap(); // Blocks until the matching receive is called
+
     loop {
         let (mtyp, mop, mid, mval): MetricTuple = rx.recv().unwrap();
-        println!("******* RECEIVED TUPLE: {:?}", (mtyp, mop, mid, mval));
-        match *statsd_client {
-            Some(ref mut client) => {
+        debug!("Received metrics tuple: {:?}", (mtyp, mop, mid, mval));
+
+        match client {
+            Some(ref mut cli) => {
                 match mtyp {
                     MetricType::Counter => {
                         match mop {
-                            MetricOperation::Increment => client.incr(mid),
+                            MetricOperation::Increment => cli.incr(mid),
                         }
                     }
                 }
@@ -114,26 +127,17 @@ impl Metric for Counter {
     }
 }
 
-impl fmt::Display for Counter {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            Counter::SearchPackages => "search-packages",
-        };
-
-        write!(f, "{}", msg)
-    }
-}
-
 #[cfg(test)]
 mod test {
     use super::Counter;
+    use metrics::Metric;
     use std::time::Duration;
     use std::thread;
 
     #[test]
-    fn display_counter() {
+    fn counter_id() {
         let expected = r#"search-packages"#;
-        let disp = format!("{}", Counter::SearchPackages);
+        let disp = Counter::SearchPackages.id();
         assert!(disp == expected);
     }
 
