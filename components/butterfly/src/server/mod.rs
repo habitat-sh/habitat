@@ -28,6 +28,7 @@ pub mod timing;
 
 use std::collections::{HashSet, HashMap};
 use std::fmt;
+use std::io;
 use std::net::{ToSocketAddrs, UdpSocket, SocketAddr};
 use std::result;
 use std::str::FromStr;
@@ -85,33 +86,32 @@ impl Server {
                                  ring_key: Option<SymKey>,
                                  name: Option<String>)
                                  -> Result<Server> {
-        let swim_socket_addr = match swim_addr.to_socket_addrs() {
-            Ok(mut addrs) => addrs.nth(0).unwrap(),
-            Err(e) => return Err(Error::CannotBind(e)),
-        };
-        let gossip_socket_addr = match gossip_addr.to_socket_addrs() {
-            Ok(mut addrs) => addrs.nth(0).unwrap(),
-            Err(e) => return Err(Error::CannotBind(e)),
-        };
-        Ok(Server {
-            name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
-            member_id: Arc::new(String::from(member.get_id())),
-            member: Arc::new(RwLock::new(member)),
-            member_list: MemberList::new(),
-            ring_key: Arc::new(ring_key),
-            rumor_list: RumorList::default(),
-            service_store: RumorStore::default(),
-            service_config_store: RumorStore::default(),
-            service_file_store: RumorStore::default(),
-            election_store: RumorStore::default(),
-            swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
-            gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
-            pause: Arc::new(AtomicBool::new(false)),
-            trace: Arc::new(RwLock::new(trace)),
-            swim_rounds: Arc::new(AtomicIsize::new(0)),
-            gossip_rounds: Arc::new(AtomicIsize::new(0)),
-            blacklist: Arc::new(RwLock::new(HashSet::new())),
-        })
+        let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
+        let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
+
+        match (maybe_swim_socket_addr, maybe_gossip_socket_addr) {
+            (Ok(Some(swim_socket_addr)), Ok(Some(gossip_socket_addr))) => Ok(Server {
+                name: Arc::new(name.unwrap_or(String::from(member.get_id()))),
+                member_id: Arc::new(String::from(member.get_id())),
+                member: Arc::new(RwLock::new(member)),
+                member_list: MemberList::new(),
+                ring_key: Arc::new(ring_key),
+                rumor_list: RumorList::default(),
+                service_store: RumorStore::default(),
+                service_config_store: RumorStore::default(),
+                service_file_store: RumorStore::default(),
+                election_store: RumorStore::default(),
+                swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
+                gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                pause: Arc::new(AtomicBool::new(false)),
+                trace: Arc::new(RwLock::new(trace)),
+                swim_rounds: Arc::new(AtomicIsize::new(0)),
+                gossip_rounds: Arc::new(AtomicIsize::new(0)),
+                blacklist: Arc::new(RwLock::new(HashSet::new())),
+            }),
+            (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
+            (Ok(None), _) | (_, Ok(None)) => Err(Error::CannotBind(io::Error::new(io::ErrorKind::AddrNotAvailable, "No address discovered.")))
+        }
     }
 
     /// Every iteration of the outbound protocol (which means every member has been pinged if they
@@ -670,6 +670,19 @@ mod tests {
         #[test]
         fn new() {
             start_server();
+        }
+
+        #[test]
+        fn invalid_addresses_fails() {
+            let swim_listen = "";
+            let gossip_listen = "";
+            let member = Member::new();
+            assert!(Server::new(&swim_listen[..],
+                &gossip_listen[..],
+                member,
+                Trace::default(),
+                None,
+                None).is_err())
         }
 
         #[test]
