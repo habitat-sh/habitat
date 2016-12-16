@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ffi::CStr;
 use std::net::IpAddr;
 use std::str;
 
@@ -35,8 +34,10 @@ extern "C" {
     pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
 }
 
-
+#[cfg(any(target_os="linux", target_os="macos"))]
 pub fn hostname() -> Result<String> {
+    use std::ffi::CStr;
+
     debug!("Determining host name");
     let len = 255;
     let mut buf = Vec::<u8>::with_capacity(len);
@@ -53,6 +54,16 @@ pub fn hostname() -> Result<String> {
             debug!("gethostname failure: {}", n);
             Err(sup_error!(Error::IPFailed))
         }
+    }
+}
+
+#[cfg(target_os = "windows")]
+pub fn hostname() -> Result<String> {
+    use std::env;
+
+    match env::var("COMPUTERNAME") {
+        Ok(computername) => Ok(computername),
+        Err(_) => Err(sup_error!(Error::IPFailed)),
     }
 }
 
