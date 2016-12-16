@@ -148,16 +148,17 @@ impl Service {
     }
 
     pub fn send_signal(&self, signal: u32) -> Result<()> {
-        if self.supervisor.pid.is_some() {
-            signals::send_signal(self.supervisor.pid.unwrap(), signal)
-        } else {
-            debug!("No process to send the signal to");
-            Ok(())
+        match self.supervisor.child {
+            Some(ref child) => signals::send_signal(child.id(), signal),
+            None => {
+                debug!("No process to send the signal to");
+                Ok(())
+            }
         }
     }
 
     pub fn is_down(&self) -> bool {
-        self.supervisor.pid.is_none()
+        self.supervisor.child.is_none()
     }
 
     pub fn check_process(&mut self) -> Result<()> {

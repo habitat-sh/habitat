@@ -28,6 +28,10 @@ users = "*"
 [target.'cfg(windows)'.dependencies.habitat_win_users]
 path = "../win-users"
 
+[target.'cfg(windows)'.dependencies]
+kernel32-sys = "*"
+winapi = "*"
+
 [dev-dependencies]
 hyper = "*"
 tempdir = "*"

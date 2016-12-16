@@ -21,14 +21,13 @@ use std::process::{Command, Stdio, Child};
 use std::str::FromStr;
 use std::thread;
 
-use libc::{pid_t, c_int};
+use libc;
 use time::{Duration, SteadyTime};
 
 use error::Result;
 use hcore;
 use hcore::package::PackageIdent;
 use hsup::package::Package;
-use hsup::supervisor::{WEXITSTATUS, WIFEXITED, WIFSIGNALED, WTERMSIG, Pid};
 use hsup::manager::signals;
 use super::ServiceDef;
 use super::error::Error;
@@ -38,7 +37,7 @@ static LOGKEY: &'static str = "TASK";
 
 // Functions from POSIX libc.
 extern "C" {
-    fn waitpid(pid: pid_t, status: *mut c_int, options: c_int) -> pid_t;
+    fn waitpid(pid: libc::pid_t, status: *mut libc::c_int, options: libc::c_int) -> libc::pid_t;
 }
 
 /// Where and with what command a Task runs
@@ -111,7 +110,7 @@ impl ExecParams {
 /// it's ServiceDef, ExecContext, and ExecParams.
 #[derive(Debug)]
 pub struct Task {
-    pub pid: Option<Pid>,
+    pub pid: Option<u32>,
     pub service_def: ServiceDef,
     pub exec_ctx: ExecContext,
     pub exec_params: ExecParams,
@@ -239,19 +238,19 @@ impl Task {
         }
 
         unsafe {
-            let mut status: c_int = 0;
-            let cpid = self.pid.unwrap() as pid_t;
-            match waitpid(cpid, &mut status, 1 as c_int) {
+            let mut status: libc::c_int = 0;
+            let cpid = self.pid.unwrap() as libc::pid_t;
+            match waitpid(cpid, &mut status, 1 as libc::c_int) {
                 0 => {} // Nothing returned,
                 pid if pid == cpid => {
-                    if WIFEXITED(status) {
-                        let exit_code = WEXITSTATUS(status);
+                    if libc::WIFEXITED(status) {
+                        let exit_code = libc::WEXITSTATUS(status);
                         outputln!("{} - process {} died with exit code {}",
                                   self.service_def.ident.name,
                                   pid,
                                   exit_code);
-                    } else if WIFSIGNALED(status) {
-                        let exit_signal = WTERMSIG(status);
+                    } else if libc::WIFSIGNALED(status) {
+                        let exit_signal = libc::WTERMSIG(status);
                         outputln!("{} - process {} died with signal {}",
                                   self.service_def.ident.name,
                                   pid,
@@ -266,11 +265,11 @@ impl Task {
                 }
                 // ZOMBIES! Bad zombies! We listen for zombies. ZOMBOCOM!
                 pid => {
-                    if WIFEXITED(status) {
-                        let exit_code = WEXITSTATUS(status);
+                    if libc::WIFEXITED(status) {
+                        let exit_code = libc::WEXITSTATUS(status);
                         debug!("Process {} died with exit code {}", pid, exit_code);
-                    } else if WIFSIGNALED(status) {
-                        let exit_signal = WTERMSIG(status);
+                    } else if libc::WIFSIGNALED(status) {
+                        let exit_signal = libc::WTERMSIG(status);
                         debug!("Process {} terminated with signal {}", pid, exit_signal);
                     } else {
                         debug!("Process {} died, but I don't know how.", pid);
@@ -347,7 +346,7 @@ impl Task {
     // attempt to read the pidfile for this package.
     // If the pidfile does not exist, then return None,
     // otherwise, return Some(pid, uptime_seconds).
-    pub fn read_pidfile(&self) -> Result<Option<Pid>> {
+    pub fn read_pidfile(&self) -> Result<Option<u32>> {
         let pid_file = self.pid_file();
         debug!("Reading pidfile {}", &pid_file.display());
         let mut f = try!(File::open(pid_file));

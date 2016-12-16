@@ -12,15 +12,60 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::fmt;
+use std::process::Child;
+
+use error::Result;
+
 #[allow(unused_variables)]
 #[cfg(windows)]
-mod windows;
-
-#[cfg(windows)]
-pub use self::windows::{become_command, wait_for_exit, send_signal};
+#[path = "windows.rs"]
+mod imp;
 
 #[cfg(not(windows))]
-pub mod linux;
+#[path = "linux.rs"]
+mod imp;
 
-#[cfg(not(windows))]
-pub use self::linux::{become_command, wait_for_exit, send_signal};
+pub use self::imp::{become_command, send_signal};
+
+pub struct HabChild {
+    inner: imp::Child,
+}
+
+impl HabChild {
+    pub fn from(inner: &mut Child) -> Result<HabChild> {
+        match imp::Child::new(inner) {
+            Ok(child) => Ok(HabChild { inner: child }),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn id(&self) -> u32 {
+        self.inner.id()
+    }
+
+    pub fn status(&mut self) -> Result<HabExitStatus> {
+        self.inner.status()
+    }
+}
+
+impl fmt::Debug for HabChild {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "pid: {}", self.id())
+    }
+}
+
+pub struct HabExitStatus {
+    status: Option<u32>,
+}
+
+impl HabExitStatus {
+    pub fn no_status(&self) -> bool {
+        self.status.is_none()
+    }
+}
+
+pub trait ExitStatusExt {
+    fn code(&self) -> Option<u32>;
+    fn signal(&self) -> Option<u32>;
+}
