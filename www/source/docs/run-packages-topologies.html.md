@@ -24,7 +24,7 @@ The first supervisor will block until it has quorum. You would start additional 
 
 > Note: The `--peer` service does not need to be a peer that is in the same service group; it merely needs to be in the same ring that the other member(s) are in.
 
-Once you have quorum, one member is elected a leader, the supervisors in the service group update the service's configuration in concordance with the policy defned at package build time, and the service group starts up.
+Once you have quorum, one member is elected a leader, the supervisors in the service group update the service's configuration in concordance with the policy defined at package build time, and the service group starts up.
 
 ### Defining Leader and Follower Behavior in Plans
 

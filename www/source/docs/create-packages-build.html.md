@@ -21,8 +21,8 @@ Because the secret key is used to sign your package, it should not be shared fre
 When you enter the studio environment, your origin keys are not automatically shared into it. This is to keep the studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
 
 * Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the studio like `export HAB_ORIGIN=originname`.
-* Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname`
-* Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k originname-internal,originname-test enter`
+* Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname`.
+* Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k originname-internal,originname-test enter`.
 
 The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the studio environment and override any `pkg_origin` values in the packages that you build. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
 

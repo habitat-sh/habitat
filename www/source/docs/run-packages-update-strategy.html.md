@@ -20,9 +20,9 @@ To start a supervisor with the auto-update strategy, pass the `--strategy` argum
 
 A _channel_ in a depot is a point-in-time snapshot of the state of the depot. In point of fact, it is a [materialized view](https://en.wikipedia.org/wiki/Materialized_view) of the depot, starting with the specific `origin/package/version/release` quad, and encapsulating all of the transitive dependencies of that quad. This is very useful for continuous deployment purposes:
 
-* By convention, you name the channel in the depot after the name of your service group (e.g. `myapp.production`)
-* You deliver new versions of `myapp` as Habitat packages to the depot
-* When you are ready to roll out a new version of the application, you update the channel corresponding to the intended environment
+* By convention, you name the channel in the depot after the name of your service group (e.g. `myapp.production`).
+* You deliver new versions of `myapp` as Habitat packages to the depot.
+* When you are ready to roll out a new version of the application, you update the channel corresponding to the intended environment.
 * The supervisors in that service group, configured with an appropriate update strategy, update their underlying Habitat package, optionally coordinating with one another, and restart the service.
 
 Configuring the supervisors'  update strategy URL to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.

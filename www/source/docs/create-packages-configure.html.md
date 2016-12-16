@@ -157,7 +157,7 @@ when rendered, it will look like:
       ]
     }
 
-This can be useful if you have a confugration file that is in JSON format and
+This can be useful if you have a configuration file that is in JSON format and
 has the same structure as your TOML configuration data.
 
 ### TOML

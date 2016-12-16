@@ -15,7 +15,7 @@ with the following format: `HAB_PACKAGENAME='keyname1=newvalue1 keyname2=newvalu
 
 > Note: The package name in the environment variable must be uppercase, any dashes must be replaced with underscores, and if you are overriding values in a TOML table, you must override all values in the table.
 
-For multiline environment variables, such as those in a TOML table, it's preferrable to place your changes in a .toml
+For multiline environment variables, such as those in a TOML table, it's preferable to place your changes in a .toml
 file and pass it in using `HAB_PACKAGENAME="$(cat foo.toml)"`.
 
     HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab start <origin>/<packagename>

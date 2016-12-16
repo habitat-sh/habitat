@@ -12,7 +12,7 @@ The remainder of this document describes some of the areas of the product that c
 
 ## More Topologies
 
-Habitat ships on day one with [two topologies](/docs/run-packages-topologies): standalone, and leader-follower. There are undoubtedly more that are needed in order to represent the semantics of real systems.
+Habitat ships on day one with [two topologies](/docs/run-packages-topologies): standalone and leader-follower. There are undoubtedly more that are needed in order to represent the semantics of real systems.
 
 If you have a topology to contribute, we would love to hear from you with a pull request.
 

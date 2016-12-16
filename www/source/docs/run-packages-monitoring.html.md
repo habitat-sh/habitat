@@ -4,7 +4,7 @@ description: Monitor services through the HTTP API
 ---
 
 # Monitor services through the HTTP API
-When a service starts, the supervisor exposes the status of its services health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
+When a service starts, the supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
 
 The HTTP API provides information on the following endpoints:
 
@@ -13,7 +13,7 @@ The HTTP API provides information on the following endpoints:
 * `/services/{name}/{group}/config` - Returns this service groups current configuration.
 * `/services/{name}/{group}/{organization}/config` - Same as above, but includes the organization.
 * `/services/{name}/{group}/health` - Returns the current health check for this service.
-* `/services/{name}/{group}/{organization}/health` - Same as above, but includes the organizaiton.
+* `/services/{name}/{group}/{organization}/health` - Same as above, but includes the organization.
 * `/butterfly` - Debug information about the rumors stored via Butterfly.
 
 ## Usage
