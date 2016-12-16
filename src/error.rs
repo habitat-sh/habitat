@@ -86,6 +86,12 @@ pub enum Error {
     TargetMatchError(String),
     /// Occurs when a `uname` libc call returns an error.
     UnameFailed(String),
+    /// Occurs when a `waitpid` libc call returns an error.
+    WaitpidFailed(String),
+    /// Occurs when a `GetExitCodeProcess` win32 call returns an error.
+    GetExitCodeProcessFailed(String),
+    /// Occurs when a `HabChild` constructor fails to return a process.
+    GetHabChildFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
     Utf8Error(str::Utf8Error),
 }
@@ -158,6 +164,9 @@ impl fmt::Display for Error {
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TargetMatchError(ref e) => format!("{}", e),
             Error::UnameFailed(ref e) => format!("{}", e),
+            Error::WaitpidFailed(ref e) => format!("{}", e),
+            Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
+            Error::GetHabChildFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -209,6 +218,9 @@ impl error::Error for Error {
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TargetMatchError(_) => "System target does not match package target",
             Error::UnameFailed(_) => "uname failed",
+            Error::WaitpidFailed(_) => "waitpid failed",
+            Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",
+            Error::GetHabChildFailed(_) => "Failed to return a HabChild",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
         }
     }

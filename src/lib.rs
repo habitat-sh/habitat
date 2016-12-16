@@ -36,6 +36,10 @@ extern crate users as linux_users;
 
 #[cfg(windows)]
 extern crate habitat_win_users;
+#[cfg(windows)]
+extern crate kernel32;
+#[cfg(windows)]
+extern crate winapi;
 
 pub use self::error::{Error, Result};
 
