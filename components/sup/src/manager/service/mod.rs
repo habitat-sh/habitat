@@ -52,12 +52,12 @@ pub struct Service {
     pub package: Package,
     pub service_config_incarnation: Option<u64>,
     pub service_group: ServiceGroup,
+    pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub current_service_files: HashMap<String, u64>,
     pub initialized: bool,
     last_restart_display: LastRestartDisplay,
     supervisor: Supervisor,
-    topology: Topology,
 }
 
 impl Service {

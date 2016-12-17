@@ -16,6 +16,7 @@ use std::ops::{Deref, DerefMut};
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::rumor::election::{Election as ElectionRumor, Election_Status};
@@ -27,17 +28,20 @@ static LOGKEY: &'static str = "CE";
 pub struct CensusUpdate {
     service_counter: usize,
     election_counter: usize,
+    election_update_counter: usize,
     membership_counter: usize,
 }
 
 impl CensusUpdate {
     pub fn new(service_counter: usize,
                election_counter: usize,
+               election_update_counter: usize,
                membership_counter: usize)
                -> CensusUpdate {
         CensusUpdate {
             service_counter: service_counter,
             election_counter: election_counter,
+            election_update_counter: election_update_counter,
             membership_counter: membership_counter,
         }
     }
@@ -54,7 +58,7 @@ pub struct CensusEntry {
     pub ip: Option<String>,
     pub port: Option<String>,
     pub exposes: Vec<String>,
-    pub package_ident: Option<String>,
+    pub package_ident: Option<PackageIdent>,
     pub leader: Option<bool>,
     pub follower: Option<bool>,
     pub update_leader: Option<bool>,
@@ -180,11 +184,11 @@ impl CensusEntry {
         self.exposes = value;
     }
 
-    pub fn get_package_ident(&self) -> &str {
+    pub fn get_package_ident(&self) -> &PackageIdent {
         self.package_ident.as_ref().unwrap()
     }
 
-    pub fn set_package_ident(&mut self, value: String) {
+    pub fn set_package_ident(&mut self, value: PackageIdent) {
         self.package_ident = Some(value);
     }
 
@@ -328,7 +332,8 @@ impl CensusEntry {
         self.set_hostname(String::from(service_rumor.get_hostname()));
         self.set_port(format!("{}", service_rumor.get_port()));
         self.set_exposes(service_rumor.get_exposes().iter().map(|p| format!("{}", p)).collect());
-        self.set_package_ident(service_rumor.get_package_ident().to_string());
+        self.set_package_ident(PackageIdent::from_str(service_rumor.get_package_ident())
+            .expect("Received invalid package ident in gossip data. This shouldn't be possible!"));
     }
 
     pub fn populate_from_member(&mut self, member: &Member) {
@@ -422,6 +427,10 @@ impl CensusEntry {
 
 #[derive(Debug, RustcEncodable)]
 pub struct Census {
+    // JW TODO: This needs to become an Ordered HashMap keyed on member_id. This will reduce our
+    // allocations when ordering the population to determine who should update next in a rolling
+    // update strategy. For now, we allocate a new vector every server tick by the members() and
+    // members_ordered() functions.
     population: HashMap<String, CensusEntry>,
     member_id: String,
 }
@@ -452,8 +461,37 @@ impl Census {
         self.population.get(&self.member_id)
     }
 
+    /// Return all alive members.
+    pub fn alive_members(&self) -> Vec<&CensusEntry> {
+        self.population.values().filter(|ce| ce.get_alive()).collect()
+    }
+
+    /// Return all alive members ordered by member_id.
+    pub fn alive_members_ordered(&self) -> Vec<&CensusEntry> {
+        let mut members = self.alive_members();
+        members.sort_by(|a, b| a.member_id.cmp(&b.member_id));
+        members
+    }
+
+    /// Return all members.
+    pub fn members(&self) -> Vec<&CensusEntry> {
+        self.population.values().map(|ce| ce).collect()
+    }
+
+    /// Return all members ordered by member_id.
+    pub fn members_ordered(&self) -> Vec<&CensusEntry> {
+        let mut members = self.members();
+        members.sort_by(|a, b| a.member_id.cmp(&b.member_id));
+        members
+    }
+
     pub fn get_leader(&self) -> Option<&CensusEntry> {
         self.population.values().find(|&ce| ce.get_leader())
+    }
+
+    /// Return the leader of the currently running update election or None if there is no leader.
+    pub fn get_update_leader(&self) -> Option<&CensusEntry> {
+        self.population.values().find(|&ce| ce.get_update_leader())
     }
 
     pub fn get_service_group(&self) -> String {
@@ -470,6 +508,45 @@ impl Census {
     pub fn get_service(&self) -> &str {
         let entry = self.population.values().nth(0).unwrap();
         entry.get_service()
+    }
+
+    /// Return next alive peer, the peer to your right in the ordered mebers list, or None if you
+    /// have no alive peers.
+    pub fn next_peer(&self) -> Option<&CensusEntry> {
+        let members = self.alive_members_ordered();
+        if members.len() <= 1 || self.me().is_none() {
+            return None;
+        }
+        match members.iter().position(|ce| ce.member_id == self.me().unwrap().member_id) {
+            Some(idx) => {
+                let peer = idx + 1;
+                if peer >= members.len() {
+                    Some(members[0])
+                } else {
+                    Some(members[peer])
+                }
+            }
+            None => None,
+        }
+    }
+
+    /// Return previous alive peer, the peer to your left in the ordered members list, or None if
+    /// you have no alive peers.
+    pub fn previous_peer(&self) -> Option<&CensusEntry> {
+        let members = self.alive_members_ordered();
+        if members.len() <= 1 || self.me().is_none() {
+            return None;
+        }
+        match members.iter().position(|ce| ce.member_id == self.me().unwrap().member_id) {
+            Some(idx) => {
+                if idx <= 0 {
+                    Some(members[members.len() - 1])
+                } else {
+                    Some(members[idx - 1])
+                }
+            }
+            None => None,
+        }
     }
 }
 
@@ -507,9 +584,7 @@ impl CensusList {
     }
 
     pub fn populate_from_election(&mut self, election: &ElectionRumor) {
-        if self.censuses.contains_key(election.get_service_group()) {
-            // We just checked, so we're cool
-            let census_entries = self.censuses.get_mut(election.get_service_group()).unwrap();
+        if let Some(census_entries) = self.censuses.get_mut(election.get_service_group()) {
             for census_entry in census_entries.values_mut() {
                 census_entry.populate_from_election(election);
             }
@@ -517,9 +592,7 @@ impl CensusList {
     }
 
     pub fn populate_from_update_election(&mut self, election: &ElectionRumor) {
-        if self.censuses.contains_key(election.get_service_group()) {
-            // We just checked, so we're cool
-            let census_entries = self.censuses.get_mut(election.get_service_group()).unwrap();
+        if let Some(census_entries) = self.censuses.get_mut(election.get_service_group()) {
             for census_entry in census_entries.values_mut() {
                 census_entry.populate_from_update_election(election);
             }
@@ -528,9 +601,7 @@ impl CensusList {
 
     pub fn populate_from_member(&mut self, member: &Member) {
         for (_service_group, census) in self.censuses.iter_mut() {
-            if census.contains_key(member.get_id()) {
-                // We just checked, so its coolio
-                let mut ce = census.get_mut(member.get_id()).unwrap();
+            if let Some(ce) = census.get_mut(member.get_id()) {
                 ce.populate_from_member(member);
             }
         }
@@ -538,9 +609,7 @@ impl CensusList {
 
     pub fn populate_from_health(&mut self, member: &Member, health: Health) {
         for (_service_group, census) in self.censuses.iter_mut() {
-            if census.contains_key(member.get_id()) {
-                // We just checked, so its coolio
-                let mut ce = census.get_mut(member.get_id()).unwrap();
+            if let Some(ce) = census.get_mut(member.get_id()) {
                 ce.populate_from_health(health);
             }
         }
@@ -550,9 +619,11 @@ impl CensusList {
 #[cfg(test)]
 mod tests {
     mod census_entry {
+        use std::str::FromStr;
+
         use butterfly::rumor::service::Service;
         use butterfly::member::Member;
-        use hcore::service::ServiceGroup;
+        use hcore::package::ident::PackageIdent;
 
         use manager::census::CensusEntry;
 
@@ -573,19 +644,24 @@ mod tests {
         #[test]
         fn populate_from_service_rumor() {
             let mut ce = CensusEntry::default();
+            let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
             let service = Service::new("neurosis",
-                                       ServiceGroup::new("times", "ofgrace", None),
+                                       &ident,
+                                       "times",
+                                       Some("ofgrace".to_string()),
                                        "foo.com",
                                        "162.42.150.33",
                                        vec![6060, 8080]);
             ce.populate_from_service(&service);
             assert_eq!(ce.get_member_id(), "neurosis");
-            assert_eq!(ce.get_service(), "times");
-            assert_eq!(ce.get_group(), "ofgrace");
+            assert_eq!(ce.get_service(), "overwatch");
+            assert_eq!(ce.get_group(), "times");
+            assert_eq!(ce.get_org(), "ofgrace");
             assert_eq!(ce.get_ip(), "162.42.150.33");
             assert_eq!(ce.get_port(), "6060");
             assert_eq!(ce.get_exposes(),
                        &vec![String::from("6060"), String::from("8080")]);
+            assert_eq!(ce.get_package_ident(), &ident);
         }
 
         #[test]

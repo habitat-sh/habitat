@@ -142,6 +142,7 @@ impl Manager {
     pub fn build_census(&mut self, last_update: &CensusUpdate) -> Result<(bool, CensusUpdate)> {
         let update = CensusUpdate::new(self.state.butterfly.service_store.get_update_counter(),
                                        self.state.butterfly.election_store.get_update_counter(),
+                                       self.state.butterfly.update_store.get_update_counter(),
                                        self.state.butterfly.member_list.get_update_counter());
 
         if &update != last_update {
@@ -160,6 +161,7 @@ impl Manager {
                 cl.populate_from_election(election);
             });
             self.state.butterfly.update_store.with_keys(|(_service_group, rumors)| {
+                // We know you have an election, and this is the only key in the hash
                 let election = rumors.get("election").unwrap();
                 cl.populate_from_update_election(election);
             });
@@ -211,8 +213,29 @@ impl Manager {
 
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
     pub fn check_for_updated_packages(&mut self) {
+        let member_id = {
+            self.state.butterfly.member_id().to_string()
+        };
+        let census_list = self.state.census_list.read().expect("Census list lock is poinsed!");
         for service in self.state.services.write().expect("Services lock is poisoned!").iter_mut() {
-            self.updater.check_for_updated_package(service);
+            if self.updater.check_for_updated_package(service, &census_list) {
+                let mut rumor = {
+                    let list = self.state
+                        .butterfly
+                        .service_store
+                        .list
+                        .read()
+                        .expect("Rumor store lock poisoned");
+                    list.get(&service.service_group.as_string())
+                        .and_then(|r| r.get(&member_id))
+                        .unwrap()
+                        .clone()
+                };
+                let incarnation = rumor.get_incarnation() + 1;
+                rumor.set_package_ident(service.package.to_string());
+                rumor.set_incarnation(incarnation);
+                self.state.butterfly.insert_service(rumor);
+            }
         }
     }
 
@@ -240,7 +263,7 @@ impl Manager {
         debug!("http-gateway server started");
 
         // Watch for updates
-        let mut last_census_update = CensusUpdate::new(0, 0, 0);
+        let mut last_census_update = CensusUpdate::new(0, 0, 0, 0);
 
         'services: loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
@@ -281,11 +304,12 @@ impl Manager {
 
                 // Write out any files we received via butterfly
                 let mut service_files_updated = false;
-                for (incarnation, filename, body) in self.state
-                    .butterfly
-                    .service_files_for(&service.service_group_str(),
-                                       &service.current_service_files)
-                    .into_iter() {
+                for (incarnation, filename, body) in
+                    self.state
+                        .butterfly
+                        .service_files_for(&service.service_group_str(),
+                                           &service.current_service_files)
+                        .into_iter() {
                     let result = service.write_butterfly_service_file(filename, incarnation, body);
                     if service_files_updated == false && result == true {
                         service_files_updated = true;
@@ -297,10 +321,11 @@ impl Manager {
 
                 // Write out any service configuration we received via butterfly
                 let mut service_config_updated = false;
-                if let Some((incarnation, config)) = self.state
-                    .butterfly
-                    .service_config_for(&service.service_group_str(),
-                                        service.service_config_incarnation) {
+                if let Some((incarnation, config)) =
+                    self.state
+                        .butterfly
+                        .service_config_for(&service.service_group_str(),
+                                            service.service_config_incarnation) {
                     service_config_updated = service.write_butterfly_service_config(config);
                     service.service_config_incarnation = Some(incarnation);
                 }

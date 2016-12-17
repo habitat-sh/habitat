@@ -237,7 +237,7 @@ fn main() {
             .long("strategy")
             .short("s")
             .takes_value(true)
-            .possible_values(&["none", "at-once"])
+            .possible_values(&["none", "at-once", "rolling"])
             .help("The update strategy; [default: none].")
     };
 

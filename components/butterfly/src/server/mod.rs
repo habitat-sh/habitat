@@ -486,7 +486,7 @@ impl Server {
             if self.service_store.contains_rumor(&service_group, self.member_id()) {
                 // This is safe; there is only one id for an election, and it is "election"
                 let election = rumors.get("election")
-                    .expect("Lost an election struct between looking it up and reading it.");
+                    .expect("Lost an update election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
                 if election.is_finished() && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election

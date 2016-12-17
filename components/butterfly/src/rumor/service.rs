@@ -96,7 +96,7 @@ impl Service {
               S5: Into<String>
     {
         assert!(package.fully_qualified(),
-                "package should be fully qualified");
+                "Service constructor requires a fully qualified package identifier");
         let service_group = ServiceGroup::new(package.name(), group, organization);
         let mut rumor = ProtoRumor::new();
         let from_id = member_id.into();
