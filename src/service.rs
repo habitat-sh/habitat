@@ -50,6 +50,8 @@ impl ServiceGroup {
     }
 
     pub fn as_string(&self) -> String {
+        // JW TODO: We shouldn't allocate a new string each time we call this. We should store the
+        // string internally in the struct and return slices to the string.
         format!("{}", self)
     }
 }
