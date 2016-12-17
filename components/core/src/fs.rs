@@ -18,6 +18,9 @@ use std::path::{Path, PathBuf};
 use users;
 
 use env as henv;
+use error::Result;
+use super::package::PackageInstall;
+
 
 /// The default filesystem root path
 #[cfg(not(target_os="windows"))]
@@ -256,6 +259,32 @@ pub fn find_command(command: &str) -> Option<PathBuf> {
         }
         None => None,
     }
+}
+
+/// Returns the absolute path to the given command from a given package installation.
+///
+/// If the command is not found, then `None` is returned.
+///
+/// # Failures
+///
+/// * The path entries metadata cannot be loaded
+pub fn find_command_in_pkg(command: &str,
+                           pkg_install: &PackageInstall,
+                           fs_root_path: &Path)
+                           -> Result<Option<PathBuf>> {
+    for path in try!(pkg_install.paths()) {
+        let stripped = path.strip_prefix("/").expect("Package path missing / prefix");
+        let candidate = fs_root_path.join(stripped).join(command);
+        if candidate.is_file() {
+            return Ok(Some(path.join(command)));
+        } else {
+            match find_command_with_pathext(&candidate) {
+                Some(result) => return Ok(Some(result)),
+                None => {}
+            }
+        }
+    }
+    Ok(None)
 }
 
 // Windows relies on path extensions to resolve commands like `docker` to `docker.exe`

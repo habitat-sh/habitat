@@ -21,9 +21,9 @@ pub mod binlink {
     use common::ui::{Status, UI};
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::os::filesystem;
+    use hcore::fs as hfs;
 
     use error::{Error, Result};
-    use exec::find_command_in_pkg;
 
     pub fn start(ui: &mut UI,
                  ident: &PackageIdent,
@@ -38,7 +38,7 @@ pub mod binlink {
                               &ident,
                               dst_path.display())));
         let pkg_install = try!(PackageInstall::load(&ident, Some(fs_root_path)));
-        let src = match try!(find_command_in_pkg(binary, &pkg_install, fs_root_path)) {
+        let src = match try!(hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)) {
             Some(c) => c,
             None => {
                 return Err(Error::CommandNotFoundInPkg((pkg_install.ident().to_string(),

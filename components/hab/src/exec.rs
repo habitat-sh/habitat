@@ -17,7 +17,7 @@ use std::path::{Path, PathBuf};
 use common;
 use common::ui::{Status, UI};
 use hcore;
-use hcore::fs::cache_artifact_path;
+use hcore::fs::{self, cache_artifact_path};
 use hcore::package::{PackageIdent, PackageInstall};
 use hcore::url::default_depot_url;
 
@@ -52,7 +52,7 @@ pub fn command_from_pkg(ui: &mut UI,
     let fs_root_path = Path::new("/");
     match PackageInstall::load(ident, None) {
         Ok(pi) => {
-            match try!(find_command_in_pkg(&command, &pi, fs_root_path)) {
+            match try!(fs::find_command_in_pkg(&command, &pi, fs_root_path)) {
                 Some(cmd) => Ok(cmd),
                 None => return Err(Error::ExecCommandNotFound(command.to_string())),
             }
@@ -71,24 +71,4 @@ pub fn command_from_pkg(ui: &mut UI,
         }
         Err(e) => return Err(Error::from(e)),
     }
-}
-
-/// Returns the absolute path to the given command from a given package installation.
-///
-/// If the command is not found, then `None` is returned.
-///
-/// # Failures
-///
-/// * The path entries metadata cannot be loaded
-pub fn find_command_in_pkg(command: &str,
-                           pkg_install: &PackageInstall,
-                           fs_root_path: &Path)
-                           -> Result<Option<PathBuf>> {
-    for path in try!(pkg_install.paths()) {
-        let candidate = fs_root_path.join(try!(path.strip_prefix("/"))).join(command);
-        if candidate.is_file() {
-            return Ok(Some(path.join(command)));
-        }
-    }
-    Ok(None)
 }
