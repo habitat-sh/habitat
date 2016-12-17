@@ -30,17 +30,17 @@ use package::{Identifiable, PackageIdent, PackageTarget, MetaFile};
 lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
         let mut map = HashMap::new();
-        map.insert(MetaFile::CFlags, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::CFlags)).unwrap());
-        map.insert(MetaFile::Config, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Config)).unwrap());
-        map.insert(MetaFile::Deps, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Deps)).unwrap());
-        map.insert(MetaFile::TDeps, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::TDeps)).unwrap());
-        map.insert(MetaFile::Exposes, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Exposes)).unwrap());
-        map.insert(MetaFile::Ident, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Ident)).unwrap());
-        map.insert(MetaFile::LdRunPath, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdRunPath)).unwrap());
-        map.insert(MetaFile::LdFlags, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdFlags)).unwrap());
-        map.insert(MetaFile::Manifest, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Manifest)).unwrap());
-        map.insert(MetaFile::Path, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Path)).unwrap());
-        map.insert(MetaFile::Target, Regex::new(&format!(r"^hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Target)).unwrap());
+        map.insert(MetaFile::CFlags, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::CFlags)).unwrap());
+        map.insert(MetaFile::Config, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Config)).unwrap());
+        map.insert(MetaFile::Deps, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Deps)).unwrap());
+        map.insert(MetaFile::TDeps, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::TDeps)).unwrap());
+        map.insert(MetaFile::Exposes, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Exposes)).unwrap());
+        map.insert(MetaFile::Ident, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Ident)).unwrap());
+        map.insert(MetaFile::LdRunPath, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdRunPath)).unwrap());
+        map.insert(MetaFile::LdFlags, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::LdFlags)).unwrap());
+        map.insert(MetaFile::Manifest, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Manifest)).unwrap());
+        map.insert(MetaFile::Path, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Path)).unwrap());
+        map.insert(MetaFile::Target, Regex::new(&format!(r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$", MetaFile::Target)).unwrap());
         map
     };
 }
