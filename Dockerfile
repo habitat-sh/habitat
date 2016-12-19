@@ -1,4 +1,4 @@
-FROM ubuntu:xenial
+FROM ubuntu:yakkety
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 
 ENV CARGO_HOME /cargo-cache
