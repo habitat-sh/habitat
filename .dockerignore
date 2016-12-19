@@ -10,6 +10,7 @@ plans
 results
 support
 !support/devshell_profile.sh
+!support/linux/install_dev_*.sh
 target
 terraform
 tmp

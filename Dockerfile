@@ -1,57 +1,28 @@
 FROM ubuntu:xenial
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
-    cmake \
-    curl \
-    file \
-    gdb \
-    iproute2 \
-    libarchive-dev \
-    libprotobuf-dev \
-    libsodium-dev \
-    libssl-dev \
-    libczmq-dev \
-    man \
-    musl-tools \
-    net-tools \
-    npm \
-    pkg-config \
-    protobuf-compiler \
-    redis-server \
-    software-properties-common \
-    sudo \
-    tmux \
-    vim \
-    wget
-
 ENV CARGO_HOME /cargo-cache
 ENV PATH $PATH:$CARGO_HOME/bin:/root/.cargo/bin
 
 ARG HAB_DEPOT_URL
 ENV HAB_DEPOT_URL ${HAB_DEPOT_URL:-}
 
-RUN curl -sSf https://sh.rustup.rs \
-    | env -u CARGO_HOME sh -s -- -y --no-modify-path --default-toolchain stable \
-  && env -u CARGO_HOME rustup target add x86_64-unknown-linux-musl \
-  && rustc -V \
-  && cargo --version
-RUN env -u CARGO_HOME cargo install protobuf && rm -rf /root/.cargo/registry
-
-RUN curl -sSL https://get.docker.io | sh && rm -rf /var/lib/apt/lists/* && docker -v
-RUN ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
-
-RUN (adduser --system hab || true) && (addgroup --system hab || true) \
-  && useradd -m -s /bin/bash -G sudo jdoe && echo jdoe:1234 | chpasswd
-
+COPY components/hab/install.sh \
+  support/linux/install_dev_0_ubuntu_latest.sh \
+  support/linux/install_dev_9_linux.sh \
+  /tmp/
 COPY support/devshell_profile.sh /root/.bash_profile
-COPY components/hab/install.sh /tmp
-RUN /tmp/install.sh \
-  && hab install core/busybox-static \
-  && hab install core/hab-studio \
-  && rm -rf /tmp/install.sh /hab/cache
+
+RUN sh /tmp/install_dev_0_ubuntu_latest.sh \
+  && sh /tmp/install_dev_9_linux.sh \
+  && useradd -m -s /bin/bash -G sudo jdoe && echo jdoe:1234 | chpasswd \
+  && rm -rf \
+    /tmp/install.sh \
+    /tmp/install_dev_0_ubuntu_latest.sh \
+    /tmp/install_dev_9_linux.sh \
+    /hab/cache \
+    /root/.cargo/registry \
+    /var/lib/apt/lists/*
 
 WORKDIR /src
 CMD ["bash", "-l"]
