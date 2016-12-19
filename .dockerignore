@@ -10,6 +10,7 @@ plans
 results
 support
 !support/devshell_profile.sh
+target
 terraform
 tmp
 vendor
