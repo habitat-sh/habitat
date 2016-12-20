@@ -40,7 +40,7 @@ impl Client {
             .as_mut()
             .socket(zmq::PUSH)
             .expect("Failure to create the ZMQ push socket");
-        socket.set_linger(1000)
+        socket.set_linger(-1)
             .expect("Failure to set the ZMQ push socket to not linger");
         socket.set_tcp_keepalive(0)
             .expect("Failure to set the ZMQ push socket to not use keepalive");
