@@ -39,6 +39,13 @@ use VERSION;
 static LOGKEY: &'static str = "SC";
 static ENV_VAR_PREFIX: &'static str = "HAB";
 
+/// The maximum TOML table merge depth allowed before failing the operation. The value here is
+/// somewhat arbitrary (stack size cannot be easily computed befhorehand and different libc
+/// implementations will impose different size constraints), however a parallel data structure that
+/// is deeper than this value crosses into overly complex territory when describing configuration
+/// for a single service.
+static TOML_MAX_MERGE_DEPTH: u16 = 30;
+
 /// The top level struct for all our configuration - this corresponds to the top level namespaces
 /// available in `config.toml`.
 #[derive(Debug, RustcEncodable)]
@@ -92,7 +99,7 @@ impl ServiceConfig {
         let sys = try!(self.sys.to_toml());
         top.insert(String::from("sys"), sys);
 
-        let cfg = self.cfg.to_toml();
+        let cfg = try!(self.cfg.to_toml());
         top.insert(String::from("cfg"), cfg);
 
         let svc = self.svc.to_toml();
@@ -316,41 +323,48 @@ struct Cfg {
     environment: Option<toml::Value>,
 }
 
-// Shallow merges two toml tables.
-fn toml_merge(existing: &toml::Table, ovr: &toml::Table) -> toml::Table {
-    let mut final_map = existing.clone();
-    for (ovr_key, ovr_value) in ovr.iter() {
+// Recursively merges the `other` TOML table into `me`
+fn toml_merge(me: &mut toml::Table, other: &toml::Table) -> Result<()> {
+    toml_merge_recurse(me, other, 0)
+}
 
-        // attempt to merge nested tables
-        let existing_v = existing.get(ovr_key).and_then(|v| v.as_table());
-        let ovr_v = ovr.get(ovr_key).and_then(|v| v.as_table());
-        if let None = existing.get(ovr_key) {
-            final_map.insert(ovr_key.clone(), ovr_value.clone());
-        }
-        match (existing_v, ovr_v) {
-            (Some(existing_t), Some(ovr_t)) => {
-                let new_table = toml_merge(existing_t, ovr_t);
-                let table_as_value = toml::Value::Table(new_table);
-                final_map.insert(ovr_key.clone(), table_as_value);
-                continue;
-            }
-            (Some(_), _) => {
-                // this occurs when the value type in ovr != type in existing
-                warn!("TOML structure mismatch for key {}", &ovr_key);
-                continue;
-            }
-            (_, Some(_)) => {
-                // this occurs when the value type in ovr != type in existing
-                warn!("TOML structure mismatch for key {}", &ovr_key);
-            }
-            (_, _) => (), // ovr and existing are not toml::Tables
-        }
-
-        // if we have an override value, always include it
-        final_map.insert(ovr_key.clone(), ovr_value.clone());
+fn toml_merge_recurse(me: &mut toml::Table, other: &toml::Table, depth: u16) -> Result<()> {
+    if depth > TOML_MAX_MERGE_DEPTH {
+        return Err(sup_error!(Error::TomlMergeError(format!("Max recursive merge depth of {} \
+                                                             exceeded.",
+                                                            TOML_MAX_MERGE_DEPTH))));
     }
 
-    final_map
+    for (key, other_value) in other.iter() {
+        if is_toml_value_a_table(key, me) && is_toml_value_a_table(key, other) {
+            let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
+                toml::Value::Table(ref mut t) => t,
+                _ => {
+                    return Err(sup_error!(Error::TomlMergeError(format!("Value at key {} \
+                                                                         should be a Table",
+                                                                        &key))));
+                }
+            };
+            try!(toml_merge_recurse(&mut me_at_key,
+                                    other_value.as_table().expect("TOML Value should be a Table"),
+                                    depth + 1));
+        } else {
+            me.insert(key.clone(), other_value.clone());
+        }
+    }
+    Ok(())
+}
+
+fn is_toml_value_a_table(key: &str, table: &toml::Table) -> bool {
+    match table.get(key) {
+        None => return false,
+        Some(value) => {
+            match value.as_table() {
+                Some(_) => return true,
+                None => return false,
+            }
+        }
+    }
 }
 
 impl Cfg {
@@ -368,21 +382,21 @@ impl Cfg {
         Ok(cfg)
     }
 
-    fn to_toml(&self) -> toml::Value {
+    fn to_toml(&self) -> Result<toml::Value> {
         let mut output_toml = toml::Table::new();
         if let Some(toml::Value::Table(ref default_cfg)) = self.default {
-            output_toml = toml_merge(&output_toml, default_cfg);
-        }
-        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
-            output_toml = toml_merge(&output_toml, user_cfg);
-        }
-        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
-            output_toml = toml_merge(&output_toml, gossip_cfg);
+            try!(toml_merge(&mut output_toml, default_cfg));
         }
         if let Some(toml::Value::Table(ref env_cfg)) = self.environment {
-            output_toml = toml_merge(&output_toml, env_cfg);
+            try!(toml_merge(&mut output_toml, env_cfg));
         }
-        toml::Value::Table(output_toml)
+        if let Some(toml::Value::Table(ref user_cfg)) = self.user {
+            try!(toml_merge(&mut output_toml, user_cfg));
+        }
+        if let Some(toml::Value::Table(ref gossip_cfg)) = self.gossip {
+            try!(toml_merge(&mut output_toml, gossip_cfg));
+        }
+        Ok(toml::Value::Table(output_toml))
     }
 
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
@@ -655,6 +669,7 @@ mod test {
     use regex::Regex;
     use toml;
 
+    use error::Error;
     use manager::census::{CensusEntry, CensusList};
     use config::{gcache, Config};
     use hcore::package::{PackageIdent, PackageInstall};
@@ -689,6 +704,12 @@ mod test {
         let mut cl = CensusList::new();
         cl.insert(format!("{}", member_id), ce);
         cl
+    }
+
+    fn toml_from_string(content: &str) -> toml::Table {
+        toml::Parser::new(content)
+            .parse()
+            .expect(&format!("Content should parse as TOML: {}", content))
     }
 
     #[test]
@@ -726,92 +747,148 @@ mod test {
     }
 
     #[test]
-    fn merge_into_an_empty_start() {
-        let override_config = "rando_key = \"rando_override\"
-            [server]
-            port=\"9090\"
-            [server.nested]
-            nest = true";
-        let default_toml = toml::Table::new();
-        let override_toml = toml::Parser::new(override_config).parse().unwrap();
-        {
-            let result = toml_merge(&default_toml, &override_toml);
-            assert!(result.contains_key("rando_key"));
-            assert_eq!("rando_override",
-                       result.get("rando_key").unwrap().as_str().unwrap());
-            assert!(result.contains_key("server"));
-            let server = result.get("server").unwrap().as_table().unwrap();
-            assert!(server.contains_key("port"));
-            assert_eq!("9090", server.get("port").unwrap().as_str().unwrap());
-            let nested = server.get("nested").unwrap().as_table().unwrap();
-            assert!(nested.contains_key("nest"));
-            assert_eq!(true, nested.get("nest").unwrap().as_bool().unwrap());
-        }
-    }
-    #[test]
-    fn merge_a_few_things() {
-        let default_config = "rando_key = \"thisisdefault\"
-            [server]
-            port = \"8080\"
-            shutdown-port = \"8005\"
-            redirect-port = \"8443\"
+    fn merge_with_empty_me_table() {
+        let mut me = toml_from_string("");
+        let other = toml_from_string(r#"
+            fruit = "apple"
+            veggie = "carrot"
+            "#);
+        let expected = other.clone();
+        toml_merge(&mut me, &other).unwrap();
 
-            [server.nested]
-            nest = false
-            message = \"don't override me bro\"";
-
-        let override_config = "rando_key = \"rando_override\"
-            [server]
-            port=\"9090\"
-            [server.nested]
-            nest = true";
-        let default_toml = toml::Parser::new(default_config).parse().unwrap();
-        let override_toml = toml::Parser::new(override_config).parse().unwrap();
-        {
-            let result = toml_merge(&default_toml, &override_toml);
-            assert!(result.contains_key("rando_key"));
-            assert_eq!("rando_override",
-                       result.get("rando_key").unwrap().as_str().unwrap());
-            assert!(result.contains_key("server"));
-            let server = result.get("server").unwrap().as_table().unwrap();
-            assert!(server.contains_key("port"));
-            assert_eq!("9090", server.get("port").unwrap().as_str().unwrap());
-            assert!(server.contains_key("shutdown-port"));
-            assert_eq!("8005",
-                       server.get("shutdown-port").unwrap().as_str().unwrap());
-            assert!(server.contains_key("redirect-port"));
-            assert_eq!("8443",
-                       server.get("redirect-port").unwrap().as_str().unwrap());
-            let nested = server.get("nested").unwrap().as_table().unwrap();
-            assert!(nested.contains_key("nest"));
-            assert_eq!(true, nested.get("nest").unwrap().as_bool().unwrap());
-        }
+        assert_eq!(me, expected);
     }
 
     #[test]
-    fn merge_only_keys() {
-        let default_config = "rando_key = \"thisisdefault\"
-            port = \"8080\"
-            shutdown-port = \"8005\"
-            redirect-port = \"8443\"";
+    fn merge_with_empty_other_table() {
+        let mut me = toml_from_string(r#"
+            fruit = "apple"
+            veggie = "carrot"
+            "#);
+        let other = toml_from_string("");
+        let expected = me.clone();
+        toml_merge(&mut me, &other).unwrap();
 
-        let override_config = "port=\"9090\"
-            rando_key = \"rando_override\"";
-        let default_toml = toml::Parser::new(default_config).parse().unwrap();
-        let override_toml = toml::Parser::new(override_config).parse().unwrap();
-        {
-            let result = toml_merge(&default_toml, &override_toml);
-            assert!(result.contains_key("rando_key"));
-            assert_eq!("rando_override",
-                       result.get("rando_key").unwrap().as_str().unwrap());
-            assert!(result.contains_key("port"));
-            assert_eq!("9090", result.get("port").unwrap().as_str().unwrap());
-            assert!(result.contains_key("shutdown-port"));
-            assert_eq!("8005",
-                       result.get("shutdown-port").unwrap().as_str().unwrap());
-            assert!(result.contains_key("redirect-port"));
-            assert_eq!("8443",
-                       result.get("redirect-port").unwrap().as_str().unwrap());
+        assert_eq!(me, expected);
+    }
+
+    #[test]
+    fn merge_with_shallow_tables() {
+        let mut me = toml_from_string(r#"
+            fruit = "apple"
+            veggie = "carrot"
+            awesomeness = 10
+            "#);
+        let other = toml_from_string(r#"
+            fruit = "orange"
+            awesomeness = 99
+            "#);
+        let expected = toml_from_string(r#"
+            fruit = "orange"
+            veggie = "carrot"
+            awesomeness = 99
+            "#);
+        toml_merge(&mut me, &other).unwrap();
+
+        assert_eq!(me, expected);
+    }
+
+    #[test]
+    fn merge_with_differing_value_types() {
+        let mut me = toml_from_string(r#"
+            fruit = "apple"
+            veggie = "carrot"
+            awesome_things = ["carrots", "kitties", "unicorns"]
+            heat = 42
+            "#);
+        let other = toml_from_string(r#"
+            heat = "hothothot"
+            awesome_things = "habitat"
+            "#);
+        let expected = toml_from_string(r#"
+            heat = "hothothot"
+            fruit = "apple"
+            veggie = "carrot"
+            awesome_things = "habitat"
+            "#);
+        toml_merge(&mut me, &other).unwrap();
+
+        assert_eq!(me, expected);
+    }
+
+    #[test]
+    fn merge_with_table_values() {
+        let mut me = toml_from_string(r#"
+            frubnub = "foobar"
+
+            [server]
+            some-details = "initial"
+            port = 1000
+            "#);
+        let other = toml_from_string(r#"
+            [server]
+            port = 5000
+            more-details = "yep"
+            "#);
+        let expected = toml_from_string(r#"
+            frubnub = "foobar"
+
+            [server]
+            port = 5000
+            some-details = "initial"
+            more-details = "yep"
+            "#);
+        toml_merge(&mut me, &other).unwrap();
+
+        assert_eq!(me, expected);
+    }
+
+    #[test]
+    fn merge_with_deep_table_values() {
+        let mut me = toml_from_string(r#"
+            [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
+            stew = "carrot"
+            [a.b.c.d.e.f.foxtrot]
+            fancy = "fork"
+            "#);
+        let other = toml_from_string(r#"
+            [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
+            stew = "beef"
+            [a.b.c.d.e.f.foxtrot]
+            fancy = "feast"
+            funny = "farm"
+            "#);
+        let expected = toml_from_string(r#"
+            [a.b.c.d.e.f.foxtrot]
+            funny = "farm"
+            fancy = "feast"
+            [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
+            stew = "beef"
+            "#);
+        toml_merge(&mut me, &other).unwrap();
+
+        assert_eq!(me, expected);
+    }
+
+    #[test]
+    fn merge_with_dangerously_deep_table_values() {
+        let mut me = toml_from_string(r#"
+            [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
+            stew = "carrot"
+            "#);
+        let other = toml_from_string(r#"
+            [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
+            stew = "beef"
+            "#);
+
+        match toml_merge(&mut me, &other) {
+            Err(e) => {
+                match e.err {
+                    Error::TomlMergeError(_) => assert!(true),
+                    _ => panic!("Should fail with Error::TomlMergeError"),
+                }
+            }
+            Ok(_) => panic!("Should not complete successfully"),
         }
     }
 
