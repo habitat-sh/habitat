@@ -33,8 +33,8 @@ else
 	docs_host := 127.0.0.1
 endif
 
-BIN = director hab sup
-LIB = builder-dbcache builder-protocol common core builder-depot-client http-client net butterfly
+BIN = director hab hab-butterfly sup
+LIB = butterfly builder-dbcache builder-protocol common core builder-depot-client http-client net
 SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-vault builder-worker
 ALL = $(BIN) $(LIB) $(SRV)
 VERSION := $(shell cat VERSION)
