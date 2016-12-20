@@ -36,151 +36,107 @@ has been run through the latest version of rustfmt. An easy way to install it
 and adding `$HOME/.cargo/bin` to your `PATH`.
 
 
-## Ubuntu: Xenial
+## Ubuntu: Latest (16.10/Yakkety)
 
-This installation method uses as many packages from Ubuntu as possible. If
-you'd like to build additional components from source, see the next section.
+This installation method uses as many packages from Ubuntu as possible. This
+will closely reproduce the state of the Docker-based "devshell" as it also uses
+an Ubuntu base image.
+
+First clone the codebase and enter the directory:
 
 ```
-apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    ca-certificates \
-    curl \
-    file \
-    gdb \
-    git \
-    iproute2 \
-    libarchive-dev \
-    libprotobuf-dev \
-    libsodium-dev \
-    libssl-dev \
-    libczmq-dev \
-    man \
-    musl-tools \
-    npm \
-    pkg-config \
-    protobuf-compiler \
-    sudo \
-    wget
-
-curl -sSf https://sh.rustup.rs \
-    | sh -s -- -y --default-toolchain stable \
-  && rustup target add x86_64-unknown-linux-musl \
-  && rustc -V
-source $HOME/.cargo/env
-(adduser --system hab || true) && (addgroup --system hab || true)
-ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
-
 git clone https://github.com/habitat-sh/habitat.git
-cd habitat && make
+cd habitat
 ```
 
-- these docs were tested with:
+Then, run the system preparation scripts and try to compile the project:
 
-		docker run -it ubuntu:xenial /bin/bash
+```
+cp components/hab/install.sh /tmp/
+sh support/linux/install_dev_0_ubuntu_latest.sh
+sh support/linux/install_dev_9_linux.sh
+. ~/.profile
+make
+```
+
+These docs were tested with a Docker image, created as follows:
+
+```
+docker run --rm -it ubuntu:yakkety bash
+apt-get update && apt-get install -y sudo git-core
+useradd -m -s /bin/bash -G sudo jdoe
+echo jdoe:1234 | chpasswd
+sudo su - jdoe
+```
 
 
-## Ubuntu: 14.04+
+## Ubuntu: 14.04+ (Trusty+)
 
 This can be used to build and install on older versions of Ubuntu where
 libsodium and czmq aren't available.
 
+First clone the codebase and enter the directory:
+
 ```
-apt-get update && apt-get install -y --no-install-recommends \
-    autotools-dev \
-    autoconf \
-    automake \
-    build-essential \
-    ca-certificates \
-    cmake \
-    curl \
-    file \
-    gdb \
-    git \
-    iproute2 \
-    libarchive-dev \
-    libprotobuf-dev \
-    libssl-dev \
-    libtool \
-    libunwind8-dev \
-    man \
-    musl-tools \
-    npm \
-    pkg-config \
-    protobuf-compiler \
-    sudo \
-    uuid-dev \
-    libpcre3-dev \
-    wget
-
-git clone https://github.com/jedisct1/libsodium.git
-(cd libsodium && ./autogen.sh && ./configure && make && make install)
-
-git clone git://github.com/zeromq/libzmq.git
-(cd libzmq && ./autogen.sh && ./configure --with-libsodium && make install && ldconfig)
-
-git clone https://github.com/zeromq/czmq.git
-(cd czmq && ./autogen.sh && ./configure && make install && ldconfig)
-
-curl -sSf https://sh.rustup.rs \
-    | sh -s -- -y --default-toolchain stable \
-  && rustup target add x86_64-unknown-linux-musl \
-  && rustc -V
-source $HOME/.cargo/env
-(adduser --system hab || true) && (addgroup --system hab || true)
-ln -snf /usr/bin/nodejs /usr/bin/node && npm install -g docco && echo "docco `docco -V`"
-
 git clone https://github.com/habitat-sh/habitat.git
-cd habitat && make
+cd habitat
 ```
 
-- these docs were tested with:
+Then, run the system preparation scripts and try to compile the project:
 
-		docker run -it ubuntu:14.04 /bin/bash
+```
+cp components/hab/install.sh /tmp/
+sh support/linux/install_dev_0_ubuntu_14.04.sh
+sh support/linux/install_dev_9_linux.sh
+. ~/.profile
+make
+```
+
+These docs were tested with a Docker image, created as follows:
+
+```
+docker run --rm -it ubuntu:trusty bash
+apt-get update && apt-get install -y sudo git-core
+useradd -m -s /bin/bash -G sudo jdoe
+echo jdoe:1234 | chpasswd
+sudo su - jdoe
+```
+
 
 ## Centos 7
 
+First clone the codebase and enter the directory:
+
 ```
-# Install the zeromq yum repo
-curl http://download.opensuse.org/repositories/home:/fengshuo:/zeromq/CentOS_CentOS-6/home:fengshuo:zeromq.repo > /etc/yum.repos.d/zeromq.repo
-
-# Install common development tools
-yum groupinstall -y 'Development Tools'
-# install sudo as the Rust installation needs it
-yum install -y sudo libarchive-devel protobuf-devel openssl-devel zeromq-devel libczmq1-devel gpm-libs which wget
-
-# pkg-config will be able to find libsodium with the following:
-export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-# needed for the Habitat binaries to find libsodium at runtime
-export LD_LIBRARY_PATH=/usr/local/lib
-
-# Install libsodium from source
-git clone https://github.com/jedisct1/libsodium.git
-(cd libsodium && ./autogen.sh && ./configure && make && make install)
-
-# Install Rust
-curl -sSf https://sh.rustup.rs \
-    | sh -s -- -y --default-toolchain stable \
-  && rustup target add x86_64-unknown-linux-musl \
-  && rustc -V
-source $HOME/.cargo/env
-
-# Setup hab user and group
-useradd --system hab
-groupadd --system hab
-
-# Clone the Habitat source
 git clone https://github.com/habitat-sh/habitat.git
-cd habitat && make
+cd habitat
 ```
 
-- If you have issues with libsodium at runtime, ensure that you've set `LD_LIBRARY_PATH`:
+Then, run the system preparation scripts and try to compile the project:
+
+```
+cp components/hab/install.sh /tmp/
+sh support/linux/install_dev_0_centos_7.sh
+sh support/linux/install_dev_9_linux.sh
+. ~/.profile
+make
+```
+
+If you have issues with libsodium at runtime, ensure that you've set
+`LD_LIBRARY_PATH` and `PKG_CONFIG_PATH`:
 
     export LD_LIBRARY_PATH=/usr/local/lib
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 
-- These docs were tested with:
+These docs were tested with a Docker image, created as follows:
 
-    docker run -it centos:centos7 /bin/bash
+```
+docker run --rm -it centos:7 bash
+yum install -y sudo git
+useradd -m -s /bin/bash -G wheel jdoe
+echo jdoe:1234 | chpasswd
+sudo su - jdoe
+```
 
 
 ## Windows
@@ -209,6 +165,7 @@ cd ./hab-build-script
 # Build Habitat
 invoke-psake
 ```
+
 
 ## General build notes
 
@@ -242,6 +199,7 @@ invoke-psake -tasklist test_all
 # Run tests on the current crate in progress
 invoke-psake -tasklist current_test
 ```
+
 
 #### Building the native dependencies
 

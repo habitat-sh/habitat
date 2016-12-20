@@ -13,7 +13,9 @@ COPY components/hab/install.sh \
   /tmp/
 COPY support/devshell_profile.sh /root/.bash_profile
 
-RUN sh /tmp/install_dev_0_ubuntu_latest.sh \
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends sudo \
+  && sh /tmp/install_dev_0_ubuntu_latest.sh \
   && sh /tmp/install_dev_9_linux.sh \
   && useradd -m -s /bin/bash -G sudo jdoe && echo jdoe:1234 | chpasswd \
   && rm -rf \
