@@ -17,23 +17,24 @@ use std::ffi::OsString;
 use std::path::PathBuf;
 use std::os::unix::process::CommandExt;
 use std::process::{self, Command};
+use time::{Duration, SteadyTime};
 
 use error::{Error, Result};
 
 use super::{HabExitStatus, ExitStatusExt};
-
-extern "C" {
-    fn kill(pid: i32, sig: u32) -> u32;
-    fn waitpid(pid: libc::pid_t, status: *mut libc::c_int, options: libc::c_int) -> libc::pid_t;
-}
 
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_exec_command(command, args)
 }
 
 /// send a Unix signal to a pid
-pub fn send_signal(pid: u32, sig: u32) -> u32 {
-    unsafe { kill(pid as i32, sig) }
+fn send_signal(pid: u32, sig: libc::c_int) -> Result<()> {
+    unsafe {
+        match libc::kill(pid as i32, sig) {
+            0 => Ok(()),
+            e => return Err(Error::SignalFailed(e)),
+        }
+    }
 }
 
 /// Makes an `execvp(3)` system call to become a new program.
@@ -53,11 +54,12 @@ fn become_exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 pub struct Child {
     pid: u32,
+    last_status: Option<i32>,
 }
 
 impl Child {
     pub fn new(child: &mut process::Child) -> Result<Child> {
-        Ok(Child { pid: child.id() })
+        Ok(Child { pid: child.id(), last_status: None })
     }
 
     pub fn id(&self) -> u32 {
@@ -65,13 +67,39 @@ impl Child {
     }
 
     pub fn status(&mut self) -> Result<HabExitStatus> {
-        let mut exit_status: i32 = 0;
+        match self.last_status {
+            Some(status) => Ok(HabExitStatus { status: Some(status as u32) }),
+            None => {
+                let mut exit_status: i32 = 0;
 
-        match unsafe { waitpid(self.pid as i32, &mut exit_status, libc::WNOHANG) } {
-            0 => Ok(HabExitStatus { status: None }),
-            -1 => Err(Error::WaitpidFailed(format!("Error calling waitpid on pid: {}", self.pid))),
-            _ => Ok(HabExitStatus { status: Some(exit_status as u32) }),
+                match unsafe { libc::waitpid(self.pid as i32, &mut exit_status, libc::WNOHANG) } {
+                    0 => Ok(HabExitStatus { status: None }),
+                    -1 => Err(Error::WaitpidFailed(format!("Error calling waitpid on pid: {}", self.pid))),
+                    _ => {
+                        self.last_status = Some(exit_status);
+                        Ok(HabExitStatus { status: Some(exit_status as u32) })
+                    }
+                }
+            }
         }
+    }
+
+    pub fn kill(&mut self) -> Result<i32> {
+        try!(send_signal(self.pid, libc::SIGTERM));
+
+        let stop_time = SteadyTime::now() + Duration::seconds(8);
+        loop {
+            match self.status() {
+                Ok(status) => if !status.no_status() { break; },
+                _ => {}
+            }
+
+            if SteadyTime::now() > stop_time {
+                try!(send_signal(self.pid, libc::SIGKILL));
+                return Ok(libc::SIGKILL);
+            }
+        }
+        Ok(libc::SIGTERM)
     }
 }
 
@@ -135,20 +163,37 @@ mod tests {
     }
 
     #[test]
-    fn terminated_process_returns_non_zero_exit() {
+    fn terminated_process_returns_sigterm() {
         let mut cmd = Command::new("/bin/bash");
         cmd.arg("-c").arg("while : ; do /bin/sleep 1; done");
         let mut child = cmd.spawn().unwrap();
 
         let mut hab_child = HabChild::from(&mut child).unwrap();
-        let _ = child.kill();
+        let _ = hab_child.kill();
 
         let mut exit = hab_child.status().unwrap();
         while exit.no_status() {
             exit = hab_child.status().unwrap();
         }
 
-        assert_eq!(exit.signal(), Some(libc::SIGKILL as u32))
+        assert_eq!(exit.signal(), Some(libc::SIGTERM as u32))
+    }
+
+    #[test]
+    fn calling_wait_multiple_times_after_exit_returns_same_status() {
+        let mut cmd = Command::new("/bin/bash");
+        cmd.arg("-c").arg("exit 5");
+        let mut child = cmd.spawn().unwrap();
+
+        let mut hab_child = HabChild::from(&mut child).unwrap();
+        let mut exit = hab_child.status().unwrap();
+
+        while exit.no_status() {
+            exit = hab_child.status().unwrap();
+        }
+        let next_exit = hab_child.status().unwrap();
+
+        assert_eq!(next_exit.code(), exit.code())
     }
 
     #[test]
