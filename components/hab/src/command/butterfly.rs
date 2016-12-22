@@ -22,6 +22,7 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
 }
 
+#[cfg(target_os = "linux")]
 mod inner {
     use std::ffi::OsString;
     use std::path::PathBuf;
@@ -56,5 +57,33 @@ mod inner {
         } else {
             Err(Error::ExecCommandNotFound(command.to_string_lossy().into_owned()))
         }
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+mod inner {
+    use std::ffi::OsString;
+
+    use common::ui::UI;
+
+    use error::{Error, Result};
+
+    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+        let mut args = args.iter();
+        let subcmd =
+            match (args.next().map(|a| a.to_string_lossy()).unwrap_or_default().as_ref(),
+                   args.next().map(|a| a.to_string_lossy()).unwrap_or_default().as_ref()) {
+                ("config", "apply") => "config apply",
+                ("config", _) => "config",
+                ("file", "upload") => "file upload",
+                ("file", _) => "file",
+                (_, _) => unreachable!(),
+            };
+        try!(ui.warn(format!("Running `{}` on this operating system is not currently \
+                              supported. Try running this command again on a 64-bit Linux \
+                              operating system.",
+                             &subcmd)));
+        try!(ui.br());
+        Err(Error::SubcommandNotSupported(String::from(subcmd)))
     }
 }
