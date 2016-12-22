@@ -26,7 +26,7 @@ mod imp;
 #[path = "linux.rs"]
 mod imp;
 
-pub use self::imp::{become_command, send_signal};
+pub use self::imp::{become_command};
 
 pub struct HabChild {
     inner: imp::Child,
@@ -46,6 +46,10 @@ impl HabChild {
 
     pub fn status(&mut self) -> Result<HabExitStatus> {
         self.inner.status()
+    }
+
+    pub fn kill(&mut self) -> Result<i32> {
+        self.inner.kill()
     }
 }
 
