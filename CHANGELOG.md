@@ -1,5 +1,54 @@
 # Habitat CHANGELOG
 
+## [0.15.0](https://github.com/habitat-sh/habitat/tree/0.15.0) (12-22-2016)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.14.0...0.15.0)
+
+## Features & Enhancements
+
+- Support different toml files with default configs [\#1174](https://github.com/habitat-sh/habitat/issues/1174)
+- Support for separated build and source directories [\#1132](https://github.com/habitat-sh/habitat/issues/1132)
+- Create Community Guides markdown [\#1061](https://github.com/habitat-sh/habitat/issues/1061)
+- Create Community Guides markdown [\#1061](https://github.com/habitat-sh/habitat/issues/1061)
+- studio and docker-machine cloud drivers don't really play well together [\#948](https://github.com/habitat-sh/habitat/issues/948)
+- studio and docker-machine cloud drivers don't really play well together [\#948](https://github.com/habitat-sh/habitat/issues/948)
+- Rolling Update Strategy [\#1594](https://github.com/habitat-sh/habitat/pull/1594) ([reset](https://github.com/reset))
+- \[docs\] Add building/setup instructions for native Mac. [\#1593](https://github.com/habitat-sh/habitat/pull/1593) ([fnichol](https://github.com/fnichol))
+- \\[docs\\] Add building/setup instructions for native Mac. [\#1593](https://github.com/habitat-sh/habitat/pull/1593) ([fnichol](https://github.com/fnichol))
+- Update development build instructions and upgrade devshell software versions. [\#1590](https://github.com/habitat-sh/habitat/pull/1590) ([fnichol](https://github.com/fnichol))
+- Initial prototype of a PowerShell-based Windows build system. [\#1588](https://github.com/habitat-sh/habitat/pull/1588) ([fnichol](https://github.com/fnichol))
+- \[core\] Support leading `/` in artifact metadata lookup regexes. [\#1585](https://github.com/habitat-sh/habitat/pull/1585) ([fnichol](https://github.com/fnichol))
+- fix clean vm configuration [\#1574](https://github.com/habitat-sh/habitat/pull/1574) ([mwrock](https://github.com/mwrock))
+
+## Bug fixes
+
+- some pip-installed Python modules give a CERTIFICATE\_VERIFY\_FAILED error during build [\#945](https://github.com/habitat-sh/habitat/issues/945)
+- \[hab\] Disable `config apply` & `file upload` on Mac and Windows systems. [\#1592](https://github.com/habitat-sh/habitat/pull/1592) ([fnichol](https://github.com/fnichol))
+- \[hab-butterfly\] Update zmq socket linger to `-1`. [\#1591](https://github.com/habitat-sh/habitat/pull/1591) ([fnichol](https://github.com/fnichol))
+- \[hab/install.sh\] Allow installation of specific hab releases. [\#1573](https://github.com/habitat-sh/habitat/pull/1573) ([fnichol](https://github.com/fnichol))
+- \[sup\] Reimplement recursive toml config merging. [\#1551](https://github.com/habitat-sh/habitat/pull/1551) ([fnichol](https://github.com/fnichol))
+
+**Closed issues:**
+
+- \[PROPOSAL\]: Allow passing application command line flags when running under hab-sup [\#1587](https://github.com/habitat-sh/habitat/issues/1587)
+- How to specify versions of dependencies? [\#1582](https://github.com/habitat-sh/habitat/issues/1582)
+
+**Merged pull requests:**
+
+- Removing dead signal function [\#1599](https://github.com/habitat-sh/habitat/pull/1599) ([mwrock](https://github.com/mwrock))
+- Fixed spelling mistakes [\#1597](https://github.com/habitat-sh/habitat/pull/1597) ([georgemarshall](https://github.com/georgemarshall))
+- Adding comments to sleep [\#1596](https://github.com/habitat-sh/habitat/pull/1596) ([mwrock](https://github.com/mwrock))
+- sleep 100 milliseconds to allow zmq to enqueue message before freeing the zmq socket [\#1595](https://github.com/habitat-sh/habitat/pull/1595) ([mwrock](https://github.com/mwrock))
+- Roll graceful termination into habchild [\#1589](https://github.com/habitat-sh/habitat/pull/1589) ([mwrock](https://github.com/mwrock))
+- fix find\_command\_in\_pkg on windows [\#1586](https://github.com/habitat-sh/habitat/pull/1586) ([mwrock](https://github.com/mwrock))
+- add instructions for building butterfly to the release doc [\#1584](https://github.com/habitat-sh/habitat/pull/1584) ([mwrock](https://github.com/mwrock))
+- ficks sum, grammers [\#1583](https://github.com/habitat-sh/habitat/pull/1583) ([robbkidd](https://github.com/robbkidd))
+- Bump VERSION to 0.15.0-dev. [\#1581](https://github.com/habitat-sh/habitat/pull/1581) ([fnichol](https://github.com/fnichol))
+- Ensure 64bit integers are represented as strings in JSON [\#1580](https://github.com/habitat-sh/habitat/pull/1580) ([reset](https://github.com/reset))
+- Supervisor on windows can "supervise" process for state change [\#1577](https://github.com/habitat-sh/habitat/pull/1577) ([mwrock](https://github.com/mwrock))
+- fix surprising typo [\#1576](https://github.com/habitat-sh/habitat/pull/1576) ([juliandunn](https://github.com/juliandunn))
+- Fix some spelling and a warning on nightly. [\#1575](https://github.com/habitat-sh/habitat/pull/1575) ([Hoverbear](https://github.com/Hoverbear))
+- General Safety Improvements and API updating [\#1567](https://github.com/habitat-sh/habitat/pull/1567) ([Hoverbear](https://github.com/Hoverbear))
+
 ## [0.14.0](https://github.com/habitat-sh/habitat/tree/0.14.0) (12-12-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.13.1...0.14.0)
 
@@ -54,6 +103,8 @@
 
 **Merged pull requests:**
 
+- 0.14.0 [\#1569](https://github.com/habitat-sh/habitat/pull/1569) ([reset](https://github.com/reset))
+- Fix install script [\#1568](https://github.com/habitat-sh/habitat/pull/1568) ([reset](https://github.com/reset))
 - Update director templates [\#1553](https://github.com/habitat-sh/habitat/pull/1553) ([reset](https://github.com/reset))
 - Terraform Admin Srv [\#1552](https://github.com/habitat-sh/habitat/pull/1552) ([reset](https://github.com/reset))
 - Make install.sh version argument work [\#1550](https://github.com/habitat-sh/habitat/pull/1550) ([smith](https://github.com/smith))
