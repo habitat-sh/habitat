@@ -121,12 +121,13 @@ impl Encodable for swim::Service {
         try!(s.emit_struct("service", 8, |s| {
             try!(s.emit_struct_field("member_id", 0, |s| self.get_member_id().encode(s)));
             try!(s.emit_struct_field("service_group", 1, |s| self.get_service_group().encode(s)));
-            try!(s.emit_struct_field("incarnation", 2, |s| self.get_incarnation().encode(s)));
-            try!(s.emit_struct_field("ip", 3, |s| self.get_ip().encode(s)));
-            try!(s.emit_struct_field("hostname", 4, |s| self.get_hostname().encode(s)));
-            try!(s.emit_struct_field("port", 5, |s| self.get_port().encode(s)));
-            try!(s.emit_struct_field("exposes", 6, |s| self.get_exposes().encode(s)));
-            try!(s.emit_struct_field("initialized", 7, |s| self.get_initialized().encode(s)));
+            try!(s.emit_struct_field("package", 2, |s| self.get_package_ident().encode(s)));
+            try!(s.emit_struct_field("incarnation", 3, |s| self.get_incarnation().encode(s)));
+            try!(s.emit_struct_field("ip", 4, |s| self.get_ip().encode(s)));
+            try!(s.emit_struct_field("hostname", 5, |s| self.get_hostname().encode(s)));
+            try!(s.emit_struct_field("port", 6, |s| self.get_port().encode(s)));
+            try!(s.emit_struct_field("exposes", 7, |s| self.get_exposes().encode(s)));
+            try!(s.emit_struct_field("initialized", 8, |s| self.get_initialized().encode(s)));
             Ok(())
         }));
         Ok(())

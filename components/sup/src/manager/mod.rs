@@ -28,7 +28,6 @@ use butterfly::trace::Trace;
 use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::server::timing::Timing;
 use hcore::crypto::{default_cache_key_path, SymKey};
-use hcore::service::ServiceGroup;
 use time::{SteadyTime, Duration as TimeDuration};
 
 use self::service_updater::ServiceUpdater;
@@ -96,8 +95,8 @@ impl Manager {
             server.member_list.add_initial_member(peer);
         }
         Ok(Manager {
+            updater: ServiceUpdater::new(server.clone()),
             state: State::new(server),
-            updater: ServiceUpdater::default(),
         })
     }
 
@@ -106,9 +105,11 @@ impl Manager {
                        topology: Topology,
                        update_strategy: UpdateStrategy)
                        -> Result<()> {
-        let service_group = ServiceGroup::new(package.name.clone(),
-                                              gconfig().group().to_string(),
-                                              gconfig().organization().clone());
+        let service = try!(Service::new(package.clone(),
+                                        gconfig().group(),
+                                        gconfig().organization().clone(),
+                                        topology,
+                                        update_strategy));
         let hostname = try!(util::sys::hostname());
         let ip = try!(util::sys::ip());
         // TODO: We should do this much earlier, to confirm that the ports we expose are not
@@ -119,19 +120,20 @@ impl Manager {
             exposes.push(port_num);
         }
         let service_rumor = ServiceRumor::new(self.state.butterfly.member_id(),
-                                              service_group.clone(),
+                                              package.ident(),
+                                              service.service_group.group.clone(),
+                                              service.service_group.organization.clone(),
                                               hostname,
-                                              format!("{}", ip),
+                                              ip.to_string(),
                                               exposes);
         self.state.butterfly.insert_service(service_rumor);
 
         if topology == Topology::Leader || topology == Topology::Initializer {
             // Note - eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
-            self.state.butterfly.start_election(service_group.clone(), 0, 0);
+            self.state.butterfly.start_election(service.service_group.clone(), 0, 0);
         }
 
-        let service = try!(Service::new(service_group, package, topology, update_strategy));
         self.updater.add(&service);
         self.state.services.write().expect("Services lock is poisoned!").push(service);
         Ok(())
@@ -140,6 +142,7 @@ impl Manager {
     pub fn build_census(&mut self, last_update: &CensusUpdate) -> Result<(bool, CensusUpdate)> {
         let update = CensusUpdate::new(self.state.butterfly.service_store.get_update_counter(),
                                        self.state.butterfly.election_store.get_update_counter(),
+                                       self.state.butterfly.update_store.get_update_counter(),
                                        self.state.butterfly.member_list.get_update_counter());
 
         if &update != last_update {
@@ -156,6 +159,11 @@ impl Manager {
                 // We know you have an election, and this is the only key in the hash
                 let election = rumors.get("election").unwrap();
                 cl.populate_from_election(election);
+            });
+            self.state.butterfly.update_store.with_keys(|(_service_group, rumors)| {
+                // We know you have an election, and this is the only key in the hash
+                let election = rumors.get("election").unwrap();
+                cl.populate_from_update_election(election);
             });
             self.state.butterfly.member_list.with_members(|member| {
                 cl.populate_from_member(member);
@@ -205,8 +213,29 @@ impl Manager {
 
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
     pub fn check_for_updated_packages(&mut self) {
+        let member_id = {
+            self.state.butterfly.member_id().to_string()
+        };
+        let census_list = self.state.census_list.read().expect("Census list lock is poinsed!");
         for service in self.state.services.write().expect("Services lock is poisoned!").iter_mut() {
-            self.updater.check_for_updated_package(service);
+            if self.updater.check_for_updated_package(service, &census_list) {
+                let mut rumor = {
+                    let list = self.state
+                        .butterfly
+                        .service_store
+                        .list
+                        .read()
+                        .expect("Rumor store lock poisoned");
+                    list.get(&service.service_group.as_string())
+                        .and_then(|r| r.get(&member_id))
+                        .unwrap()
+                        .clone()
+                };
+                let incarnation = rumor.get_incarnation() + 1;
+                rumor.set_package_ident(service.package.to_string());
+                rumor.set_incarnation(incarnation);
+                self.state.butterfly.insert_service(rumor);
+            }
         }
     }
 
@@ -234,7 +263,7 @@ impl Manager {
         debug!("http-gateway server started");
 
         // Watch for updates
-        let mut last_census_update = CensusUpdate::new(0, 0, 0);
+        let mut last_census_update = CensusUpdate::new(0, 0, 0, 0);
 
         'services: loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);

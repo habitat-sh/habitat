@@ -23,9 +23,11 @@
 //! the election finishing. There can, in the end, be only one.
 
 use std::ops::{Deref, DerefMut};
+use std::result;
 
 use habitat_core::service::ServiceGroup;
 use protobuf::{Message, RepeatedField};
+use rustc_serialize::{Encoder, Encodable};
 
 use error::Result;
 use message::swim::{Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
@@ -207,6 +209,76 @@ impl Rumor for Election {
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
         Ok(try!(self.proto.write_to_bytes()))
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ElectionUpdate(Election);
+
+impl ElectionUpdate {
+    pub fn new<S1: Into<String>>(member_id: S1,
+                                 service_group: ServiceGroup,
+                                 suitability: u64)
+                                 -> ElectionUpdate {
+        let mut election = Election::new(member_id, service_group, suitability);
+        election.proto.set_field_type(ProtoRumor_Type::ElectionUpdate);
+        ElectionUpdate(election)
+    }
+}
+
+impl Encodable for ElectionUpdate {
+    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
+        self.0.encode(s)
+    }
+}
+
+impl Deref for ElectionUpdate {
+    type Target = Election;
+
+    fn deref(&self) -> &Election {
+        &self.0
+    }
+}
+
+impl DerefMut for ElectionUpdate {
+    fn deref_mut(&mut self) -> &mut Election {
+        &mut self.0
+    }
+}
+
+impl From<ProtoRumor> for ElectionUpdate {
+    fn from(pr: ProtoRumor) -> ElectionUpdate {
+        let mut election = Election::from(pr);
+        election.proto.set_field_type(ProtoRumor_Type::ElectionUpdate);
+        ElectionUpdate(election)
+    }
+}
+
+impl From<ElectionUpdate> for ProtoRumor {
+    fn from(election: ElectionUpdate) -> ProtoRumor {
+        election.0.proto
+    }
+}
+
+impl Rumor for ElectionUpdate {
+    fn merge(&mut self, other: ElectionUpdate) -> bool {
+        self.0.merge(other.0)
+    }
+
+    fn kind(&self) -> ProtoRumor_Type {
+        ProtoRumor_Type::ElectionUpdate
+    }
+
+    fn id(&self) -> &str {
+        "election"
+    }
+
+    fn key(&self) -> &str {
+        self.0.key()
+    }
+
+    fn write_to_bytes(&self) -> Result<Vec<u8>> {
+        self.0.write_to_bytes()
     }
 }
 

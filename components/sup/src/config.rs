@@ -32,6 +32,7 @@ use hcore::package::PackageIdent;
 
 use error::{Error, Result, SupError};
 use http_gateway;
+pub use manager::service_updater::UpdateStrategy;
 
 static LOGKEY: &'static str = "CFG";
 
@@ -118,27 +119,6 @@ impl ToSocketAddrs for GossipListenAddr {
 
     fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
         self.0.to_socket_addrs()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, RustcEncodable)]
-pub enum UpdateStrategy {
-    None,
-    AtOnce,
-}
-
-impl UpdateStrategy {
-    pub fn from_str(strategy: &str) -> Self {
-        match strategy {
-            "none" => UpdateStrategy::None,
-            "at-once" => UpdateStrategy::AtOnce,
-            s => panic!("Invalid update strategy {}", s),
-        }
-    }
-}
-impl Default for UpdateStrategy {
-    fn default() -> UpdateStrategy {
-        UpdateStrategy::None
     }
 }
 

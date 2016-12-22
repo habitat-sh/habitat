@@ -49,9 +49,8 @@ use rumor::{Rumor, RumorStore, RumorList, RumorKey};
 use rumor::service::Service;
 use rumor::service_config::ServiceConfig;
 use rumor::service_file::ServiceFile;
-use rumor::election::Election;
+use rumor::election::{Election, ElectionUpdate};
 use message;
-use message::swim::Election_Status;
 
 /// The server struct. Is thread-safe.
 #[derive(Debug, Clone)]
@@ -66,6 +65,7 @@ pub struct Server {
     pub service_config_store: RumorStore<ServiceConfig>,
     pub service_file_store: RumorStore<ServiceFile>,
     pub election_store: RumorStore<Election>,
+    pub update_store: RumorStore<ElectionUpdate>,
     pub swim_addr: Arc<RwLock<SocketAddr>>,
     pub gossip_addr: Arc<RwLock<SocketAddr>>,
     // These are all here for testing support
@@ -101,6 +101,7 @@ impl Server {
                 service_config_store: RumorStore::default(),
                 service_file_store: RumorStore::default(),
                 election_store: RumorStore::default(),
+                update_store: RumorStore::default(),
                 swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
                 gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
                 pause: Arc::new(AtomicBool::new(false)),
@@ -438,26 +439,40 @@ impl Server {
         self.rumor_list.insert(ek);
     }
 
+    pub fn start_update_election(&self, sg: ServiceGroup, suitability: u64, term: u64) {
+        let mut e = ElectionUpdate::new(self.member_id(), sg, suitability);
+        e.set_term(term);
+        let ek = RumorKey::from(&e);
+        if !self.check_quorum(e.key()) {
+            e.no_quorum();
+        }
+        self.update_store
+            .insert(e);
+        self.rumor_list.insert(ek);
+    }
+
     /// Check to see if this server needs to restart a given election. This happens when:
     ///
     /// a) We are the leader, and we have lost quorum with the rest of the group.
     /// b) We are not the leader, and we have detected that the leader is confirmed dead.
     pub fn restart_elections(&self) {
         let mut elections_to_restart = vec![];
+        let mut update_elections_to_restart = vec![];
+
         self.election_store.with_keys(|(service_group, rumors)| {
             if self.service_store.contains_rumor(&service_group, self.member_id()) {
                 // This is safe; there is only one id for an election, and it is "election"
                 let election = rumors.get("election")
                     .expect("Lost an election struct between looking it up and reading it.");
                 // If we are finished, and the leader is dead, we should restart the election
-                if election.get_status() == Election_Status::Finished && election.get_member_id() == self.member_id() {
+                if election.is_finished() && election.get_member_id() == self.member_id() {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if self.check_quorum(election.key()) == false {
                         warn!("Restarting election with a new term as the leader has lost quorum: {:?}", election);
                         elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
 
                     }
-                } else if election.get_status() == Election_Status::Finished {
+                } else if election.is_finished() {
                     if self.member_list
                         .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
                             warn!("Restarting election with a new term as the leader is dead {}: {:?}", self.member_id(), election);
@@ -466,6 +481,30 @@ impl Server {
                 }
             }
         });
+
+        self.update_store.with_keys(|(service_group, rumors)| {
+            if self.service_store.contains_rumor(&service_group, self.member_id()) {
+                // This is safe; there is only one id for an election, and it is "election"
+                let election = rumors.get("election")
+                    .expect("Lost an update election struct between looking it up and reading it.");
+                // If we are finished, and the leader is dead, we should restart the election
+                if election.is_finished() && election.get_member_id() == self.member_id() {
+                    // If we are the leader, and we have lost quorum, we should restart the election
+                    if self.check_quorum(election.key()) == false {
+                        warn!("Restarting election with a new term as the leader has lost quorum: {:?}", election);
+                        update_elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+
+                    }
+                } else if election.is_finished() {
+                    if self.member_list
+                        .check_health_of_by_id(election.get_member_id(), Health::Confirmed) {
+                            warn!("Restarting election with a new term as the leader is dead {}: {:?}", self.member_id(), election);
+                            update_elections_to_restart.push((String::from(&service_group[..]), election.get_term()));
+                    }
+                }
+            }
+        });
+
         for (service_group, old_term) in elections_to_restart {
             let sg = match ServiceGroup::from_str(&service_group) {
                 Ok(sg) => sg,
@@ -480,6 +519,22 @@ impl Server {
             warn!("Starting a new election for {} {}", sg, term);
             self.election_store.remove(&service_group, "election");
             self.start_election(sg, 0, term);
+        }
+
+        for (service_group, old_term) in update_elections_to_restart {
+            let sg = match ServiceGroup::from_str(&service_group) {
+                Ok(sg) => sg,
+                Err(e) => {
+                    error!("Failed to process service group from string '{}': {}",
+                           service_group,
+                           e);
+                    return;
+                }
+            };
+            let term = old_term + 1;
+            warn!("Starting a new election for {} {}", sg, term);
+            self.update_store.remove(&service_group, "election");
+            self.start_update_election(sg, 0, term);
         }
     }
 
@@ -558,6 +613,78 @@ impl Server {
         }
     }
 
+    pub fn insert_update_election(&self, mut election: ElectionUpdate) {
+        let rk = RumorKey::from(&election);
+
+        // If this is an election for a service group we care about
+        if self.service_store.contains_rumor(election.get_service_group(), self.member_id()) {
+            // And the election store already has an election rumor for this election
+            if self.update_store.contains_rumor(election.key(), election.id()) {
+                let mut new_term = false;
+                self.update_store.with_rumor(election.key(), election.id(), |ce| {
+                    new_term = election.get_term() > ce.unwrap().get_term()
+                });
+                if new_term {
+                    self.update_store.remove(election.key(), election.id());
+                    let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                        Ok(sg) => sg,
+                        Err(e) => {
+                            error!("Election malformed; cannot parse service group: {}", e);
+                            return;
+                        }
+                    };
+                    self.start_update_election(sg, 0, election.get_term());
+                }
+                // If we are the member that this election is voting for, then check to see if the election
+                // is over! If it is, mark this election as final before you process it.
+                if self.member_id() == election.get_member_id() {
+                    if self.check_quorum(election.key()) {
+                        let electorate = self.get_electorate(election.key());
+                        let mut num_votes = 0;
+                        for vote in election.get_votes().iter() {
+                            if electorate.contains(vote) {
+                                num_votes += 1;
+                            }
+                        }
+                        if num_votes == electorate.len() {
+                            debug!("Election is finished: {:#?}", election);
+                            election.finish();
+                        } else {
+                            debug!("I have quorum, but election is not finished {}/{}",
+                                   num_votes,
+                                   electorate.len());
+                        }
+                    } else {
+                        election.no_quorum();
+                        warn!("Election lacks quorum: {:#?}", election);
+                    }
+                }
+            } else {
+                // Otherwise, we need to create a new election object for ourselves prior to
+                // merging.
+                let sg = match ServiceGroup::from_str(election.get_service_group()) {
+                    Ok(sg) => sg,
+                    Err(e) => {
+                        error!("Election malformed; cannot parse service group: {}", e);
+                        return;
+                    }
+                };
+                self.start_update_election(sg, 0, election.get_term());
+            }
+            if !election.is_finished() {
+                let has_quorum = self.check_quorum(election.key());
+                if has_quorum {
+                    election.running();
+                } else {
+                    election.no_quorum();
+                }
+            }
+        }
+        if self.update_store.insert(election) {
+            self.rumor_list.insert(rk);
+        }
+    }
+
     pub fn service_files_for(&self,
                              service_group: &str,
                              current_service_files: &HashMap<String, u64>)
@@ -615,11 +742,12 @@ impl Server {
 
 impl Encodable for Server {
     fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("butterfly", 4, |s| {
+        try!(s.emit_struct("butterfly", 5, |s| {
             try!(s.emit_struct_field("service", 0, |s| self.service_store.encode(s)));
             try!(s.emit_struct_field("service_config", 1, |s| self.service_config_store.encode(s)));
             try!(s.emit_struct_field("service_file", 2, |s| self.service_file_store.encode(s)));
             try!(s.emit_struct_field("election", 3, |s| self.election_store.encode(s)));
+            try!(s.emit_struct_field("election_update", 4, |s| self.update_store.encode(s)));
             Ok(())
         }));
         Ok(())

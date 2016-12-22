@@ -234,6 +234,19 @@ impl PushWorker {
                         }
                     }
                 }
+                ProtoRumor_Type::ElectionUpdate => {
+                    match self.server
+                        .update_store
+                        .write_to_bytes(&rumor_key.key, &rumor_key.id) {
+                            Ok(bytes) => bytes,
+                            Err(e) => {
+                                println!("Could not write our own rumor to bytes; abandoning \
+                                          sending rumor: {:?}",
+                                         e);
+                                continue 'rumorlist;
+                            }
+                        }
+                }
                 ProtoRumor_Type::Fake |
                 ProtoRumor_Type::Fake2 => {
                     debug!("You have fake rumors; how odd!");

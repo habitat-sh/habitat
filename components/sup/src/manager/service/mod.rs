@@ -52,20 +52,22 @@ pub struct Service {
     pub package: Package,
     pub service_config_incarnation: Option<u64>,
     pub service_group: ServiceGroup,
+    pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub current_service_files: HashMap<String, u64>,
     pub initialized: bool,
     last_restart_display: LastRestartDisplay,
     supervisor: Supervisor,
-    topology: Topology,
 }
 
 impl Service {
-    pub fn new(service_group: ServiceGroup,
-               package: Package,
+    pub fn new<S: Into<String>>(package: Package,
+               group: S,
+               organization: Option<String>,
                topology: Topology,
                update_strategy: UpdateStrategy)
                -> Result<Service> {
+        let service_group = ServiceGroup::new(package.name.clone(), group, organization);
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package.pkg_install));
         let sg = format!("{}.{}", service_group.service, service_group.group);
         outputln!(preamble sg, "Process will run as user={}, group={}",
@@ -73,7 +75,7 @@ impl Service {
                   &svc_group);
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
         let supervisor = Supervisor::new(package.ident().clone(),
-                                         service_group.clone(),
+                                         &service_group,
                                          runtime_config);
         Ok(Service {
             service_group: service_group,

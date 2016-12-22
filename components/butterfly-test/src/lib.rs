@@ -22,6 +22,7 @@ use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::thread;
 use std::ops::{Deref, DerefMut, Range};
 use std::time::Duration;
+use std::str::FromStr;
 
 use time::SteadyTime;
 
@@ -33,6 +34,7 @@ use habitat_butterfly::rumor::service_config::ServiceConfig;
 use habitat_butterfly::rumor::service_file::ServiceFile;
 use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
+use habitat_core::package::PackageIdent;
 use habitat_core::crypto::keys::sym_key::SymKey;
 use habitat_butterfly::trace::Trace;
 
@@ -408,9 +410,13 @@ impl SwimNet {
         }
     }
 
-    pub fn add_service(&mut self, member: usize, service: &str) {
+    pub fn add_service(&mut self, member: usize, package: &str) {
+        let ident = PackageIdent::from_str(package).expect("package needs to be a fully qualified package identifier");
+
         let s = Service::new(self[member].member_id(),
-                             ServiceGroup::new(service, "prod", None),
+                             &ident,
+                             "prod",
+                             None,
                              "localhost",
                              "127.0.0.1",
                              vec![4040, 4041, 4042]);

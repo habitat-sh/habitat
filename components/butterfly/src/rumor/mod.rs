@@ -145,13 +145,11 @@ impl<T: Rumor + Clone> RumorStore<T> {
         let mut rumors = list.entry(String::from(rumor.key())).or_insert(HashMap::new());
         // Result reveals if there was a change so we can increment the counter if needed.
         let result = match rumors.entry(rumor.id().into()) {
-            Entry::Occupied(mut entry) => {
-                entry.get_mut().merge(rumor)
-            },
+            Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
             Entry::Vacant(entry) => {
                 entry.insert(rumor);
                 true
-            },
+            }
         };
         if result {
             self.increment_update_counter();
