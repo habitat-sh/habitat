@@ -22,6 +22,7 @@ sudo -E apt-get install -y --no-install-recommends \
   npm \
   pkg-config \
   protobuf-compiler \
+  redis-server \
   software-properties-common \
   sudo \
   tmux \
