@@ -27,7 +27,7 @@ use super::package::PackageInstall;
 pub const FS_ROOT_PATH: &'static str = "/";
 #[cfg(target_os="windows")]
 pub const FS_ROOT_PATH: &'static str = concat!(env!("SYSTEMDRIVE"), "/");
-/// The default root path of the Habitat filesytem
+/// The default root path of the Habitat filesystem
 pub const ROOT_PATH: &'static str = "hab";
 /// The default path for any analytics related files
 pub const CACHE_ANALYTICS_PATH: &'static str = "hab/cache/analytics";
@@ -189,7 +189,7 @@ pub fn svc_var_path(service_name: &str) -> PathBuf {
 /// Returns the absolute path for a given command, if it exists, by searching the `PATH`
 /// environment variable.
 ///
-/// If the command represents an absolute path, then the `PATH` seaching will not be performed. If
+/// If the command represents an absolute path, then the `PATH` searching will not be performed. If
 /// no absolute path can be found for the command, then `None` is returned.
 ///
 /// On Windows, the PATHEXT environment variable contains common extensions for commands,

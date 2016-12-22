@@ -397,7 +397,7 @@ impl PackageInstall {
         Ok(())
     }
 
-    /// Helper fuction for walk_names. Walks the given name DirEntry for directories and recurses
+    /// Helper function for walk_names. Walks the given name DirEntry for directories and recurses
     /// into them to find release directories.
     fn walk_versions(origin: &String,
                      name: &DirEntry,

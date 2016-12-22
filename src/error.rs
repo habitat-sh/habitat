@@ -36,7 +36,7 @@ pub enum Error {
     BadKeyPath(String),
     /// Error reading raw contents of configuration file.
     ConfigFileIO(io::Error),
-    /// Parsing error while reading a configuratino file.
+    /// Parsing error while reading a configuration file.
     ConfigFileSyntax(String),
     /// Expected a valid array of values for configuration field value.
     ConfigInvalidArray(&'static str),
@@ -70,7 +70,7 @@ pub enum Error {
     MetaFileIO(io::Error),
     /// Occurs when we can't find an outbound IP address
     NoOutboundAddr,
-    /// Occurs when a suitable installed pacakge cannot be found.
+    /// Occurs when a suitable installed package cannot be found.
     PackageNotFound(package::PackageIdent),
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),

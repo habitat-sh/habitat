@@ -25,7 +25,7 @@
 //! - In general, the word `key` by itself does not indicate something as
 //! **public** or **secret**. The exceptions to this rule are as follows:
 //!     - if the word key appears in a URL, then we are referring to a public key to
-//!       conform to other API's that offer similar public key downloading functionality.
+//!       conform to other APIs that offer similar public key downloading functionality.
 //!     - the word `key` appears as part of a file suffix, where it is then considered as
 //!       a **secret key** file.
 //! - Referring to keys (by example):
@@ -34,7 +34,7 @@
 //!     - A key name with rev: `habitat-201603312016`
 //!     - A key file: `habitat-201603312016.pub`
 //!     - A key path or fully qualified key path: `/foo/bar/habitat-201603312016.pub`
-//! - An **Origin** refers to build-time operations, including signing and verifification of a
+//! - An **Origin** refers to build-time operations, including signing and verification of a
 //! Habitat artifact.
 //! - An **Organization** or **Org** refers to run-time operations such as deploying a package
 //! signed in a different origin into your own organization. This is abbreviated as "org" in
@@ -47,7 +47,7 @@
 //! - A **Box key** is used for encryption and decryption of arbitrary data. The file contains a
 //! `.box.key` file suffix. Note that box keys are not compatible with sig keys.
 //! - A **Sym key** is used for symmetric encryption, meaning that a shared secret is used to
-//! encrypt a message into a ciphertext and that same secret is used later to decryt the ciphertext
+//! encrypt a message into a ciphertext and that same secret is used later to decrypt the ciphertext
 //! into the original message.
 //! - A **Ring key** is a **sym** key used when sending messages between the Supervisors to prevent
 //! a third party from intercepting the traffic.
@@ -55,7 +55,7 @@
 //! via different revision numbers. Revision numbers appear following the key name and are in the
 //! format `{year}{month}{day}{hour24}{minute}{second}`. For all user-facing cryptographic
 //! operations (such as sign, verify, encrypt, decrypt, etc.), the latest key is tried first, and
-//! upon failure, the keys will be tred in reverse chronological order until success or there are
+//! upon failure, the keys will be tried in reverse chronological order until success or there are
 //! no more keys.
 //!
 //! ***TODO: key revisions are generated as part of a filename, but only the most recent key is
@@ -118,11 +118,11 @@
 //! staging-201603312016.sym.key
 //! ```
 //!
-//! # File fomats
+//! # File formats
 //!
 //! ## Habitat artifacts
 //!
-//! A signed Habitat artifact (a file with the extention `.hart`) has 5 plaintext lines followed by
+//! A signed Habitat artifact (a file with the extension `.hart`) has 5 plaintext lines followed by
 //! a binary blob of data, which is an unsigned, compressed tarfile. The lines are as follows:
 //!
 //! 1. The artifact format version
@@ -179,7 +179,7 @@
 //! plaintext lines.
 //!
 //! If the Habitat artifact needs to be extracted on disk without verifying its integrity or
-//! authenticity, this can be accomplised with:
+//! authenticity, this can be accomplished with:
 //!
 //! ```text
 //! tail -n +6 /tmp/somefile.hart | xzcat | tar x -C /
@@ -210,7 +210,7 @@
 //!
 //! ## Ring keys
 //!
-//! There are 3 lines, that is 3 parts that are separtated by a newline character `\n`. They are as
+//! There are 3 lines, that is 3 parts that are separated by a newline character `\n`. They are as
 //! follows:
 //!
 //! 1. Encrypted format version
