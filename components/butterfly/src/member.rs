@@ -240,7 +240,7 @@ impl MemberList {
                 let current_health = hl.get(current_member.get_id())
                     .expect("No health for a membership record should be impossible; did you use \
                              insert?");
-                // If curently healthy and the rumor is suspicion, then we are now suspicious.
+                // If currently healthy and the rumor is suspicion, then we are now suspicious.
                 if *current_health == Health::Alive && health == Health::Suspect {
                     start_suspicion = true;
                     share_rumor = true;
@@ -250,10 +250,10 @@ impl MemberList {
                     // If we are both alive, then nothing to see here.
                 } else if *current_health == Health::Alive && health == Health::Alive {
                     share_rumor = false;
-                    // If currently suspicous and the rumor is alive, then we are still suspicious
+                    // If currently suspicious and the rumor is alive, then we are still suspicious
                 } else if *current_health == Health::Suspect && health == Health::Alive {
                     share_rumor = false;
-                    // If currently suspicous and the rumor is suspicion, then nothing to see here.
+                    // If currently suspicious and the rumor is suspicion, then nothing to see here.
                 } else if *current_health == Health::Suspect && health == Health::Suspect {
                     share_rumor = false;
                     // If currently suspicious and the rumor is confirmation, then we are now confirmed

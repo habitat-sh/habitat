@@ -510,7 +510,7 @@ impl Census {
         entry.get_service()
     }
 
-    /// Return next alive peer, the peer to your right in the ordered mebers list, or None if you
+    /// Return next alive peer, the peer to your right in the ordered members list, or None if you
     /// have no alive peers.
     pub fn next_peer(&self) -> Option<&CensusEntry> {
         let members = self.alive_members_ordered();

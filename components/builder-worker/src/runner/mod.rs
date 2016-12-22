@@ -54,7 +54,7 @@ const WORK_ACK: &'static str = "A";
 const WORK_COMPLETE: &'static str = "C";
 
 lazy_static! {
-    // JW TODO: expose public API functions in the core crate to check if the Rust proccess which
+    // JW TODO: expose public API functions in the core crate to check if the Rust process which
     // is currently executing is, itself, packaged by Habitat. If so, then we should expose another
     // public API function to load the PackageInstall of a dep for the given `origin`/`name`
     // combination. If we can't, then we should fall back to the latest of core/hab-studio because

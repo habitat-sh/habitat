@@ -14,7 +14,7 @@
 
 //! Expire suspected members.
 //!
-//! This module keeps track of suspected members, and sets their stauts to confirmed if they remain
+//! This module keeps track of suspected members, and sets their status to confirmed if they remain
 //! suspect long enough.
 
 use std::thread;

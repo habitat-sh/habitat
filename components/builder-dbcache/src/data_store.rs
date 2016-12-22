@@ -61,7 +61,7 @@ pub trait Pool: Sized {
     fn init(pool: Arc<ConnectionPool>) -> Self;
 }
 
-/// Base trait for storing peristable objects into a data store. A bucket prefixes the key of all
+/// Base trait for storing persistable objects into a data store. A bucket prefixes the key of all
 /// entities with a developer-defined prefix.
 pub trait Bucket {
     /// Generates a key for the given ID within the Bucket.

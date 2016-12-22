@@ -216,7 +216,7 @@ impl Manager {
         let member_id = {
             self.state.butterfly.member_id().to_string()
         };
-        let census_list = self.state.census_list.read().expect("Census list lock is poinsed!");
+        let census_list = self.state.census_list.read().expect("Census list lock is poisoned!");
         for service in self.state.services.write().expect("Services lock is poisoned!").iter_mut() {
             if self.updater.check_for_updated_package(service, &census_list) {
                 let mut rumor = {
@@ -241,7 +241,7 @@ impl Manager {
 
     //  * Start butterfly
     //  Loop {
-    //    * Check for incoming signals; forward them; shut down if neccessary
+    //    * Check for incoming signals; forward them; shut down if necessary
     //    * Check if each service needs its package updated
     //      * Update the package
     //    * Check if the Census needs building from Butterfly, or the package changed
@@ -330,7 +330,7 @@ impl Manager {
                     service.service_config_incarnation = Some(incarnation);
                 }
 
-                // Reconfigure if neccessary
+                // Reconfigure if necessary
                 if census_updated || service_config_updated {
                     service.reconfigure(&self.state
                         .census_list

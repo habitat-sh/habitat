@@ -25,7 +25,7 @@ use error::{Error, Result};
 pub struct Config {
     /// Token for authenticating with the public builder-api
     pub auth_token: String,
-    /// Filepath where peristent application data is stored
+    /// Filepath where persistent application data is stored
     pub data_path: String,
     /// List of Job Servers to connect to
     pub job_servers: Vec<BTreeMap<String, String>>,

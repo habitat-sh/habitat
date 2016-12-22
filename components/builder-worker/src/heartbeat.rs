@@ -111,7 +111,7 @@ impl HeartbeatCli {
 pub struct HeartbeatMgr {
     /// Public socket for publishing worker state to consumers
     pub pub_sock: zmq::Socket,
-    /// Internal socket for sending and receiving message to and from a `HearbeatCli`
+    /// Internal socket for sending and receiving message to and from a `HeartbeatCli`
     pub cli_sock: zmq::Socket,
     state: PulseState,
     config: Arc<RwLock<Config>>,
@@ -167,7 +167,7 @@ impl HeartbeatMgr {
         }
         try!(self.cli_sock.bind(INPROC_ADDR));
         rz.send(()).unwrap();
-        // This hackey sleep is recommended and required by zmq for connections to establish
+        // This hacky sleep is recommended and required by zmq for connections to establish
         thread::sleep(Duration::from_millis(100));
         let mut cli_sock_msg = false;
         loop {

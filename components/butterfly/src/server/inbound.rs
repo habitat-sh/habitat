@@ -29,7 +29,7 @@ use message::swim::{Swim, Swim_Type};
 use server::{Server, outbound};
 use trace::TraceKind;
 
-/// Takes the Server and a channel to send recieved Acks to the outbound thread.
+/// Takes the Server and a channel to send received Acks to the outbound thread.
 pub struct Inbound<'a> {
     pub server: &'a Server,
     pub socket: UdpSocket,

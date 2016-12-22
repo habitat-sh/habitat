@@ -37,7 +37,7 @@ pub fn toml_vec_to_json(toml: Vec<toml::Value>) -> Json {
     Json::Array(mvec)
 }
 
-// Translates a toml table to a mustache datastructure.
+// Translates a toml table to a mustache data structure.
 pub fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> Json {
     let mut hashmap = BTreeMap::new();
     for (key, value) in toml.iter() {

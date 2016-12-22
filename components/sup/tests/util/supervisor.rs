@@ -91,7 +91,7 @@ impl Supervisor {
             panic!("Cannot get supervisor ID for Supervisor");
         };
 
-        if !sup.wait_until("Starting census health adjustor") {
+        if !sup.wait_until("Starting census health adjuster") {
             panic!("Census failed to initialize");
         }
         Supervisor {

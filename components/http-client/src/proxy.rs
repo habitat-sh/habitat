@@ -24,7 +24,7 @@ use error::{Error, Result};
 ///
 /// # Examples
 ///
-/// A proxy server with no credientials required:
+/// A proxy server with no credentials required:
 ///
 /// ```
 /// extern crate habitat_http_client;
@@ -243,7 +243,7 @@ impl ProxyBasicAuthorization {
 ///
 /// * If the value of the `http_proxy` environment variable cannot be parsed as a URL
 /// * If the URL scheme is not a valid type (currently only supported schemes are http and https)
-/// * If the URL is missing a host/domain segement
+/// * If the URL is missing a host/domain segment
 /// * If the URL is missing a port number and a default cannot be determined
 pub fn http_proxy() -> Result<Option<ProxyInfo>> {
     match env::var("http_proxy") {
@@ -331,7 +331,7 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 ///
 /// * If the value of the `https_proxy` environment variable cannot be parsed as a URL
 /// * If the URL scheme is not a valid type (currently only supported schemes are http and https)
-/// * If the URL is missing a host/domain segement
+/// * If the URL is missing a host/domain segment
 /// * If the URL is missing a port number and a default cannot be determined
 pub fn https_proxy() -> Result<Option<ProxyInfo>> {
     match env::var("https_proxy") {

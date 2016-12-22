@@ -51,7 +51,7 @@ impl Status {
             Status::Creating => ('Ω', "Creating".into(), Colour::Green),
             Status::Deleting => ('☒', "Deleting".into(), Colour::Green),
             Status::Downloading => ('↓', "Downloading".into(), Colour::Green),
-            Status::Encrypting => ('☛', "Encypting".into(), Colour::Green),
+            Status::Encrypting => ('☛', "Encrypting".into(), Colour::Green),
             Status::Installed => ('✓', "Installed".into(), Colour::Green),
             Status::Missing => ('∵', "Missing".into(), Colour::Red),
             Status::Signed => ('✓', "Signed".into(), Colour::Cyan),

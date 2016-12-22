@@ -103,7 +103,7 @@ pub fn package() -> Result<()> {
                     // It is important to pass `gconfig().package()` to `show_package()` instead
                     // of the package identifier of the loaded package. This will ensure that
                     // if the operator starts a package while specifying a version number, they
-                    // will only automaticaly receive release updates for the started package.
+                    // will only automatically receive release updates for the started package.
                     //
                     // If the operator does not specify a version number they will
                     // automatically receive updates for any releases, regardless of version

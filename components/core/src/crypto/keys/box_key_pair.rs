@@ -394,7 +394,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No public or secret keys found for")]
-    fn get_pair_for_nonexistant() {
+    fn get_pair_for_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         BoxKeyPair::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
     }
@@ -426,7 +426,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No revisions found for")]
-    fn get_latest_pair_for_nonexistant() {
+    fn get_latest_pair_for_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         BoxKeyPair::get_latest_pair_for("nope-nope", cache.path()).unwrap();
     }
@@ -444,7 +444,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No public key found at")]
-    fn get_public_key_path_nonexistant() {
+    fn get_public_key_path_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         BoxKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
@@ -462,7 +462,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No secret key found at")]
-    fn get_secret_key_path_nonexistant() {
+    fn get_secret_key_path_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         BoxKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }

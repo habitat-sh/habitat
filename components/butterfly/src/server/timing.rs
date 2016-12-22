@@ -63,7 +63,7 @@ impl Timing {
         SteadyTime::now() + TimeDuration::milliseconds(self.gossip_period_ms)
     }
 
-    /// How long is a protocl period, in millis.
+    /// How long is a protocol period, in millis.
     pub fn protocol_period_ms(&self) -> i64 {
         self.ping_ms + self.pingreq_ms
     }

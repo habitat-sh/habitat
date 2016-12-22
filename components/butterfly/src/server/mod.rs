@@ -163,7 +163,7 @@ impl Server {
         }
     }
 
-    /// Start the server, aloung with a `Timing` for outbound connections. Spawns the `inbound`,
+    /// Start the server, along with a `Timing` for outbound connections. Spawns the `inbound`,
     /// `outbound`, and `expire` threads.
     ///
     /// # Errors
@@ -313,7 +313,7 @@ impl Server {
         }
     }
 
-    /// Change the helth of a `Member`, and update its `RumorKey`.
+    /// Change the health of a `Member`, and update its `RumorKey`.
     pub fn insert_health(&self, member: &Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because

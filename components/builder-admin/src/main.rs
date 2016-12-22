@@ -82,7 +82,7 @@ fn exit_with(err: Error, code: i32) {
 ///
 /// # Failures
 ///
-/// * Fails if the admin server fails to start - canot bind to the port, etc.
+/// * Fails if the admin server fails to start - cannot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
     admin::server::run(config)
 }

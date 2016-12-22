@@ -282,7 +282,7 @@ impl SigKeyPair {
                                   new_hash);
                 return Err(Error::CryptoError(msg));
             } else {
-                // Otherwise, hashes match and we can skip writing over the exisiting file
+                // Otherwise, hashes match and we can skip writing over the existing file
                 debug!("New content hash matches existing file {} hash, removing temp key file \
                         {}.",
                        keyfile.display(),
@@ -511,7 +511,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No public or secret keys found for")]
-    fn get_pair_for_nonexistant() {
+    fn get_pair_for_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         SigKeyPair::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
     }
@@ -543,7 +543,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No revisions found for")]
-    fn get_latest_pair_for_nonexistant() {
+    fn get_latest_pair_for_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         SigKeyPair::get_latest_pair_for("nope-nope", cache.path()).unwrap();
     }
@@ -561,7 +561,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No public key found at")]
-    fn get_public_key_path_nonexistant() {
+    fn get_public_key_path_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         SigKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
@@ -579,7 +579,7 @@ mod test {
 
     #[test]
     #[should_panic(expected = "No secret key found at")]
-    fn get_secret_key_path_nonexistant() {
+    fn get_secret_key_path_nonexistent() {
         let cache = TempDir::new("key_cache").unwrap();
         SigKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
     }
@@ -629,7 +629,7 @@ mod test {
     }
 
     #[test]
-    fn write_file_from_str_with_exisiting_identical_secret() {
+    fn write_file_from_str_with_existing_identical_secret() {
         let cache = TempDir::new("key_cache").unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_KEY));
         let new_key_file = cache.path().join(VALID_KEY);
@@ -644,7 +644,7 @@ mod test {
     }
 
     #[test]
-    fn write_file_from_str_with_exisiting_identical_public() {
+    fn write_file_from_str_with_existing_identical_public() {
         let cache = TempDir::new("key_cache").unwrap();
         let content = fixture_as_string(&format!("keys/{}", VALID_PUB));
         let new_key_file = cache.path().join(VALID_PUB);

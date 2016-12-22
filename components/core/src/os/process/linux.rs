@@ -39,7 +39,7 @@ fn send_signal(pid: u32, sig: libc::c_int) -> Result<()> {
 
 /// Makes an `execvp(3)` system call to become a new program.
 ///
-/// Note that if sucessful, this function will not return.
+/// Note that if successful, this function will not return.
 ///
 /// # Failures
 ///
@@ -147,7 +147,7 @@ mod tests {
     }
 
     #[test]
-    fn succesfully_run_process_exits_zero() {
+    fn successfully_run_process_exits_zero() {
         let mut cmd = Command::new("/bin/bash");
         cmd.arg("-c").arg("a='b'");
         let mut child = cmd.spawn().unwrap();

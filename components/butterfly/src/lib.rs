@@ -20,7 +20,7 @@
 //!
 //! 1. It uses a single membership rumor with internal logic for applying the rumors state, rather
 //!    than sending differential event messages.
-//! 1. If an "Alive" membership rumor is recieved with a higher incarnation, it takes precedent
+//! 1. If an "Alive" membership rumor is received with a higher incarnation, it takes precedent
 //!    over "Confirmed" membership rumors.
 //! 1. Members can be marked "persistent", which means that they will always be taken through the
 //!    Probe cycle, regardless of their status. This allows networks to heal from partitions.

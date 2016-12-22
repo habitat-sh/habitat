@@ -2,7 +2,7 @@ PLAN_CONTEXT=$(dirname "$PLAN_CONTEXT") source ../plan.sh
 
 pkg_name=hab
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-# There is no true equivalent here (yet), so dependency arrarys will be empty.
+# There is no true equivalent here (yet), so dependency arrays will be empty.
 pkg_deps=()
 pkg_build_deps=()
 

@@ -149,7 +149,7 @@ pub enum Error {
 pub type Result<T> = result::Result<T, SupError>;
 
 impl fmt::Display for SupError {
-    // We create a string for each type of error, then create a `StructuedOutput` for it, flip
+    // We create a string for each type of error, then create a `StructuredOutput` for it, flip
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let content = match self.err {
@@ -303,7 +303,7 @@ impl error::Error for SupError {
             Error::TomlEncode(_) => "Failed to encode toml!",
             Error::TomlMergeError(_) => "Failed to merge toml!",
             Error::TomlParser(_) => "Failed to parse toml!",
-            Error::TryRecvError(_) => "A channel failed to recieve a response",
+            Error::TryRecvError(_) => "A channel failed to receive a response",
             Error::UnknownTopology(_) => "Unknown topology",
             Error::UnpackFailed => "Failed to unpack a package",
         }

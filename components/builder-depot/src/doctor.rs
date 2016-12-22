@@ -260,7 +260,7 @@ impl<'a> Doctor<'a> {
 /// the file system and re-builds all indices.
 ///
 /// Any files found within the metastore which are not valid or readable archives are moved into a
-/// gargbage directory for the user to examine.
+/// garbage directory for the user to examine.
 pub fn repair(depot: &Depot) -> Result<Report> {
     Doctor::new(depot).run()
 }

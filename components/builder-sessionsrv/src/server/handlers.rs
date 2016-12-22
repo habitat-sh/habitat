@@ -166,7 +166,7 @@ pub fn session_get(req: &mut Envelope,
     Ok(())
 }
 
-// Determine permissions and toggle feature flags on for the given Sesssion
+// Determine permissions and toggle feature flags on for the given Session
 fn set_features(state: &ServerState, session: &mut proto::Session) -> Result<()> {
     let mut flags = FeatureFlags::empty();
     // Initialize some empty flags in case we fail to obtain teams from remote

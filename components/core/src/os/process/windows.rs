@@ -33,7 +33,7 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 /// Executes a command as a child process and exits with the child's exit code.
 ///
-/// Note that if sucessful, this function will not return.
+/// Note that if successful, this function will not return.
 ///
 /// # Failures
 ///
@@ -74,7 +74,7 @@ impl Child {
     // Here we will attempt to get the handle from the pid but if the
     // process dies before we can get it, we will just wait() on the
     // std::process::Child and cache the exit_status which we will return
-    // when ststus is called.
+    // when status is called.
     pub fn new(child: &mut process::Child) -> Result<Child> {
         let (win_handle, status) = match handle_from_pid(child.id()) {
             Some(handle) => (Some(handle), Ok(None)),
@@ -182,7 +182,7 @@ mod tests {
     }
 
     #[test]
-    fn succesfully_run_process_exits_zero() {
+    fn successfully_run_process_exits_zero() {
         let mut cmd = Command::new("C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.\
                                     exe");
         cmd.arg("-noprofile").arg("-command").arg("$a='b'");

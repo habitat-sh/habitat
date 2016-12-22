@@ -165,7 +165,7 @@ extern crate rustc_serialize;
 //         {
 //             let responses = [ $( $docker.wait_until($regexp) ),+ ];
 //             let num_responses = responses.iter().fold(0, |acc, &item| { let x = if item == true { 1 } else { 0 }; acc + x });
-//             assert!(num_responses == $count, "Expected {} occurances of {}; got {}", $count, $regexp, num_responses);
+//             assert!(num_responses == $count, "Expected {} occurrences of {}; got {}", $count, $regexp, num_responses);
 //         }
 //     }
 // }
