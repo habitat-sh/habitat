@@ -17,6 +17,8 @@ pub mod apply {
     use std::path::Path;
     use std::io::{self, Read};
     use std::fs::File;
+    use std::thread;
+    use std::time;
 
     use butterfly::client::Client;
     use common::ui::{Status, UI};
@@ -89,6 +91,7 @@ pub mod apply {
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
             try!(client.send_service_config(sg.clone(), number, body.clone(), encrypted)
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
+            thread::sleep(time::Duration::from_millis(100));
         }
         try!(ui.end("Applied configuration"));
         Ok(())

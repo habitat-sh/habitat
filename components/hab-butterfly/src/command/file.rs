@@ -17,6 +17,8 @@ pub mod upload {
     use std::path::Path;
     use std::io::{self, Read};
     use std::fs::File;
+    use std::thread;
+    use std::time;
 
     use butterfly::client::Client;
     use common::ui::{Status, UI};
@@ -68,6 +70,7 @@ pub mod upload {
                                    body.clone(),
                                    encrypted)
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
+            thread::sleep(time::Duration::from_millis(100));
         }
         try!(ui.end("Uploaded file"));
 
