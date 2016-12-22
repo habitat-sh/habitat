@@ -1,9 +1,11 @@
 UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
+ifneq (${IN_DOCKER},)
+	IN_DOCKER := ${IN_DOCKER}
+else ifeq ($(UNAME_S),Darwin)
 	IN_DOCKER := true
 endif
 
-ifneq ($(IN_DOCKER),)
+ifeq ($(IN_DOCKER),true)
 	build_args := --build-arg HAB_DEPOT_URL=$(HAB_DEPOT_URL)
 	run_args := -e HAB_DEPOT_URL=$(HAB_DEPOT_URL)
 	run_args := $(run_args) -e HAB_ORIGIN=$(HAB_ORIGIN)
@@ -111,7 +113,7 @@ serve-docs: docs ## serves the project documentation from an HTTP server
 	$(docs_run) sh -c 'set -e; cd ./target/doc; python -m SimpleHTTPServer 9633;'
 .PHONY: serve-docs
 
-ifneq ($(IN_DOCKER),)
+ifeq ($(IN_DOCKER),true)
 distclean: ## fully cleans up project tree and any associated Docker images and containers
 	$(compose_cmd) stop
 	$(compose_cmd) rm -f -v

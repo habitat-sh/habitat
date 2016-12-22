@@ -1,6 +1,6 @@
 # Building Habitat from source
 
-## Mac OS X
+## Mac OS X for Linux Development
 
 These install instructions assume you want to develop, build, and run the
 various Habitat software components in a Linux environment. The Habitat core
@@ -34,6 +34,46 @@ code formatting. If you are submitting changes, please ensure that your work
 has been run through the latest version of rustfmt. An easy way to install it
 (assuming you have Rust installed as above), is to run `cargo install rustfmt`
 and adding `$HOME/.cargo/bin` to your `PATH`.
+
+
+## Mac OS X for Native Development
+
+These instructions assume you want to develop, build, and run the various
+Habitat software components in a macOS environment. While components other than
+the `hab` CLI itself aren't officially supported on Mac, it is possible and
+sometimes useful to run parts of the Habitat ecosystem without virtualization.
+
+First clone the codebase and enter the directory:
+
+```
+git clone https://github.com/habitat-sh/habitat.git
+cd habitat
+```
+
+Then, run the system preparation scripts and try to compile the project:
+
+```
+cp components/hab/install.sh /tmp/
+sh support/mac/install_dev_0_mac_latest.sh
+sh support/mac/install_dev_9_mac.sh
+. ~/.profile
+export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:$PKG_CONFIG_PATH"
+export IN_DOCKER=false
+make
+```
+
+For the builds to find the libarchive and openssl libraries, you will need to
+set the `PKG_CONFIG_PATH` environment variable as above before running `cargo
+build`, `cargo test`, etc. Additionally to use the Makefile on Mac and not have
+the tasks execute in the Docker-based devshell (see above), you will need to
+set `IN_DOCKER=false` in your environment. If you use an environment switcher
+such as [direnv](https://direnv.net/), you can set up the following in the root
+of the git repository:
+
+```
+echo 'export PKG_CONFIG_PATH="/usr/local/opt/libarchive/lib/pkgconfig:/usr/local/opt/openssl/lib/pkgconfig:$PKG_CONFIG_PATH"' > .direnv
+direnv allow
+```
 
 
 ## Ubuntu: Latest (16.10/Yakkety)
