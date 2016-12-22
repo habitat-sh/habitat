@@ -32,7 +32,7 @@ use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
 use rustc_serialize::{Encodable, Encoder};
-use time::{Duration, SteadyTime};
+use time::SteadyTime;
 
 use error::{Result, Error};
 use util;
@@ -151,34 +151,15 @@ impl Supervisor {
 
     /// Send a SIGTERM to a process, wait 8 seconds, then send SIGKILL
     pub fn stop(&mut self) -> Result<()> {
-        let wait = match self.child {
-            Some(ref child) => {
-                let ref pid = child.id();
-                outputln!(preamble & self.preamble, "Stopping");
-                try!(signals::send_signal(*pid, signals::Signal::SIGTERM as u32));
-                true
+        match self.child {
+            Some(ref mut child) => {
+                outputln!(preamble & self.preamble, "Stopping...");
+                let signal = try!(child.kill());
+                outputln!("{} - Killed with signal {}", self.preamble, signal);
             }
-            None => false,
+            None => {},
         };
-        if wait {
-            let stop_time = SteadyTime::now() + Duration::seconds(8);
-            loop {
-                try!(self.check_process());
-                if SteadyTime::now() > stop_time {
-                    outputln!(preamble & self.preamble,
-                              "Process failed to stop with SIGTERM; sending SIGKILL");
-                    if let Some(ref mut child) = self.child {
-                        try!(signals::send_signal(child.id(), signals::Signal::SIGKILL as u32));
-                    }
-                    break;
-                }
-                if self.child.is_none() {
-                    break;
-                } else {
-                    continue;
-                }
-            }
-        }
+        let _ = self.check_process();
         Ok(())
     }
 

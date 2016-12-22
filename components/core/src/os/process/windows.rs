@@ -31,10 +31,6 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_child_command(command, args)
 }
 
-pub fn send_signal(pid: u32, sig: u32) -> u32 {
-    unimplemented!();
-}
-
 /// Executes a command as a child process and exits with the child's exit code.
 ///
 /// Note that if sucessful, this function will not return.
@@ -136,6 +132,10 @@ impl Child {
         };
 
         Ok(HabExitStatus { status: Some(exit_status) })
+    }
+
+    pub fn kill(&mut self) -> Result<i32> {
+        unimplemented!();
     }
 }
 
