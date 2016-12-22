@@ -36,7 +36,6 @@ use time::SteadyTime;
 
 use error::{Result, Error};
 use util;
-use manager::signals;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
@@ -190,14 +189,6 @@ impl Supervisor {
         self.enter_state(ProcessState::Restart);
         try!(self.stop());
         try!(self.start());
-        Ok(())
-    }
-
-    /// Pass through a Unix signal to a process
-    pub fn send_unix_signal(&self, sig: signals::Signal) -> Result<()> {
-        if let Some(ref child) = self.child {
-            try!(signals::send_signal(child.id(), sig as u32));
-        }
         Ok(())
     }
 
