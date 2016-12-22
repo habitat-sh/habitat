@@ -243,7 +243,7 @@ impl Ord for PackageIdent {
 /// order, we:
 ///
 /// * Separate the version numbers from the extensions
-/// * Split the version numbers into an array of digits on any '.' characters. Digits are convered
+/// * Split the version numbers into an array of digits on any '.' characters. Digits are converted
 ///   into <u64>.
 /// * Compare the version numbers by iterating over them. If 'a' is greater or lesser than 'b', we
 ///   return that as the result. If it is equal, we move to the next digit and repeat. If one of

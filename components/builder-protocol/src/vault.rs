@@ -29,7 +29,7 @@ impl Routable for OriginGet {
     type H = String;
 
     fn route_key(&self) -> Option<Self::H> {
-        // JW TODO: This won't acurately find the origin without it. We can switch to using the ID
+        // JW TODO: This won't accurately find the origin without it. We can switch to using the ID
         // of the origin or perform a reverse lookup by storing the name->ID map on a particular
         // vault server.
         Some(self.get_name().to_string())

@@ -571,7 +571,7 @@ fn download_origin_key(req: &mut Request) -> IronResult<Response> {
         Some(revision) => revision,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    debug!("Trying to retreive origin key {}-{}", &origin, &revision);
+    debug!("Trying to retrieve origin key {}-{}", &origin, &revision);
     let origin_keyfile = depot.key_path(&origin, &revision);
     debug!("Looking for {}", &origin_keyfile.to_string_lossy());
     match origin_keyfile.metadata() {
@@ -603,7 +603,7 @@ fn download_latest_origin_key(req: &mut Request) -> IronResult<Response> {
         Some(origin) => origin,
         None => return Ok(Response::with(status::BadRequest)),
     };
-    debug!("Trying to retreive latest origin key for {}", &origin);
+    debug!("Trying to retrieve latest origin key for {}", &origin);
     let latest_rev = depot.datastore.origin_keys.latest(&origin).unwrap();
     let origin_keyfile = depot.key_path(&origin, &latest_rev);
     debug!("Looking for {}", &origin_keyfile.to_string_lossy());

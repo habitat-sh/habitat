@@ -28,13 +28,13 @@ use error::{Error, Result};
 pub struct Config {
     /// List of net addresses for routing servers to connect to.
     pub routers: Vec<SocketAddr>,
-    /// Net dddress to the persistent datastore.
+    /// Net address to the persistent datastore.
     pub datastore_addr: SocketAddr,
     /// Connection retry timeout in milliseconds for datastore.
     pub datastore_retry_ms: u64,
     /// Number of database connections to start in pool.
     pub pool_size: u32,
-    /// Router's hearbeat port to connect to.
+    /// Router's heartbeat port to connect to.
     pub heartbeat_port: u16,
     /// List of shard identifiers serviced by the running service.
     pub shards: Vec<ShardId>,

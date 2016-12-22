@@ -136,7 +136,7 @@ fn dispatch(config: Config, matches: &clap::ArgMatches) -> Result<()> {
 ///
 /// # Failures
 ///
-/// * Fails if the depot server fails to start - canot bind to the port, etc.
+/// * Fails if the depot server fails to start - cannot bind to the port, etc.
 fn start(config: Config) -> Result<()> {
     println!("Starting package Depot at {}", &config.path);
     println!("Depot listening on {}", &config.listen_addr);

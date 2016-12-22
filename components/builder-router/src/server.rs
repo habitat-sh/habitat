@@ -175,7 +175,7 @@ impl Server {
             }
         }
         try!(self.hb_sock.recv(&mut self.req, 0));
-        // JW TODO: this datastructure doesn't support a case where a shard *no longer* supports
+        // JW TODO: this data structure doesn't support a case where a shard *no longer* supports
         // shards, it only allows for additions. We need to keep track of what any given server reg
         // supports and then use the servers map as an index on top of that.
         let registration: routesrv::Registration = try!(parse_from_bytes(&self.req));

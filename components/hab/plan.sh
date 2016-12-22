@@ -5,7 +5,7 @@ pkg_version=$(cat "$PLAN_CONTEXT/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_source=nosuchfile.tar.gz
-# The result is a portible, static binary in a zero-dependency package.
+# The result is a portable, static binary in a zero-dependency package.
 pkg_deps=()
 pkg_build_deps=(
   core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl

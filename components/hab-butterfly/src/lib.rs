@@ -32,7 +32,7 @@ extern crate retry;
 extern crate rustc_serialize;
 extern crate toml;
 extern crate url;
-// Temporary depdency for gossip/rumor injection code duplication.
+// Temporary dependency for gossip/rumor injection code duplication.
 extern crate utp;
 extern crate uuid;
 extern crate walkdir;

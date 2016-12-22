@@ -76,7 +76,7 @@ if ! command -v brew >/dev/null; then
   sudo -u $SUDO_USER /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
 fi
 
-# Homebrew pacakges required to run `hab-plan-build.sh
+# Homebrew packages required to run `hab-plan-build.sh
 install_if_missing coreutils
 install_if_missing gnu-tar
 install_if_missing wget

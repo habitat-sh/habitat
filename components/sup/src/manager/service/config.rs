@@ -40,7 +40,7 @@ static LOGKEY: &'static str = "SC";
 static ENV_VAR_PREFIX: &'static str = "HAB";
 
 /// The maximum TOML table merge depth allowed before failing the operation. The value here is
-/// somewhat arbitrary (stack size cannot be easily computed befhorehand and different libc
+/// somewhat arbitrary (stack size cannot be easily computed beforehand and different libc
 /// implementations will impose different size constraints), however a parallel data structure that
 /// is deeper than this value crosses into overly complex territory when describing configuration
 /// for a single service.

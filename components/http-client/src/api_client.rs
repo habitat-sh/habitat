@@ -170,7 +170,7 @@ impl ApiClient {
         let mut rb = rb.header(self.user_agent_header.clone());
         // If the target URL is an `"http"` scheme and we're using a proxy server, then add the
         // proxy authorization header if appropriate. Note that for `"https"` targets, the proxy
-        // server will be operating in TCP tuneling mode and will be authenticated on connection to
+        // server will be operating in TCP tunneling mode and will be authenticated on connection to
         // the proxy server which is why we should not add an additional header in this latter
         // case.
         if self.target_scheme == "http" {
@@ -202,12 +202,12 @@ impl ApiClient {
 /// ## Linux Platforms
 ///
 /// We need a set of root certificates when connected to SSL/TLS web endpoints and this usually
-/// boild down to using an all-in-one certificate file (such as a `cacert.pem` file) or a directory
+/// boiled down to using an all-in-one certificate file (such as a `cacert.pem` file) or a directory
 /// of files which are certificates. The strategy to location or use a reasonable set of
 /// certificates is as follows:
 ///
 /// 1. If the `SSL_CERT_FILE` environment variable is set, then use its value for the certificates.
-///    Interally this is triggering default OpenSSL behavior for this environment variable.
+///    Internally this is triggering default OpenSSL behavior for this environment variable.
 /// 2. If the `SSL_CERT_DIR` environment variable is set, then use its value for the directory
 ///    containing certificates. Like the `SSL_CERT_FILE` case above, this triggers default OpenSSL
 ///    behavior for this environment variable.
@@ -223,7 +223,7 @@ impl ApiClient {
 ///
 /// ## Mac Platforms
 ///
-/// The Mac platoform uses a Security Framework to store and find root certificates and the hyper
+/// The Mac platform uses a Security Framework to store and find root certificates and the hyper
 /// library will default to using this on the Mac. Therefore the behavior on the Mac remains
 /// unchanged and will use the system's certificates.
 ///
@@ -265,7 +265,7 @@ fn new_hyper_client(for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Re
 ///
 /// * `<PRODUCT>`: is the provided product name
 /// * `<VERSION>`: is the provided version string which may also include a release number
-/// * `<TARGET>`: is the machine architecture and the kernel seperated by a dash in lower case
+/// * `<TARGET>`: is the machine architecture and the kernel separated by a dash in lower case
 /// * `<KERNEL_RELEASE>`: is the kernel release string from `uname`
 ///
 /// For example:

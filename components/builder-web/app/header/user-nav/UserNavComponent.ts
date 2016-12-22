@@ -49,7 +49,7 @@ export class UserNavComponent {
     constructor(private element: ElementRef) {}
 
     // This will be triggered on *any* click on the document. Toggle the menu
-    // if it's already open and clicked on outide the dropdown, or if it's not
+    // if it's already open and clicked on outside the dropdown, or if it's not
     // open and we click on this component's elements (the thing that opens the
     // dropdown)
     //

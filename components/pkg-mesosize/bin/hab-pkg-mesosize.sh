@@ -169,7 +169,7 @@ create_application_definition() {
   # what about exposing ports?
   }
 
-# The root of the filesystem. If the program is running on a seperate
+# The root of the filesystem. If the program is running on a separate
 # filesystem or chroot environment, this environment variable may need to be
 # set.
 : ${FS_ROOT:=}

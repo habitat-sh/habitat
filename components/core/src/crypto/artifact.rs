@@ -470,13 +470,13 @@ mod test {
         let src = cache.path().join("src.in");
         let dst = cache.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
-        f.write_all("harty goodness".as_bytes()).unwrap();
+        f.write_all("hearty goodness".as_bytes()).unwrap();
         sign(&src, &dst, &pair).unwrap();
 
         let mut buffer = String::new();
         let mut reader = get_archive_reader(&dst).unwrap();
         reader.read_to_string(&mut buffer).unwrap();
-        assert_eq!(buffer.as_bytes(), "harty goodness".as_bytes());
+        assert_eq!(buffer.as_bytes(), "hearty goodness".as_bytes());
     }
 
     #[test]
@@ -486,7 +486,7 @@ mod test {
         let src = cache.path().join("src.in");
         let dst = cache.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
-        f.write_all("harty goodness".as_bytes()).unwrap();
+        f.write_all("hearty goodness".as_bytes()).unwrap();
         sign(&src, &dst, &pair).unwrap();
 
         let hart_header = get_artifact_header(&dst).unwrap();

@@ -132,12 +132,12 @@ fn incarnation_updates_on_suspicion() {
     assert_eq!(sup_b.incarnation(), 1);
 }
 
-// Ressurection and partition tolerance. Start a, and b; a and b are both permanent members. a
+// Resurrection and partition tolerance. Start a, and b; a and b are both permanent members. a
 // splits from b; a is marked confirmed dead. The split is then joined, and both A and B update
 // their incarnation and are then marked alive.
 #[ignore]
 #[test]
-fn ressurection_of_permanent_members() {
+fn resurrection_of_permanent_members() {
     setup::origin_setup();
     setup::simple_service_gossip();
 

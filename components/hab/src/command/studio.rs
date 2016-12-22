@@ -52,7 +52,7 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
                        cache_key_path.display());
                 env::set_var(CACHE_KEY_PATH_ENV_VAR, cache_key_path);
                 // Prevent any inner `hab` invocations from triggering similar logic: we will be
-                // operating in the context `hab-studio` which is running with rootlike privileges.
+                // operating in the context `hab-studio` which is running with root like privileges.
                 env::remove_var("SUDO_USER");
             }
         }

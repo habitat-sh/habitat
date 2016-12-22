@@ -74,7 +74,7 @@ impl<'a> Outbound<'a> {
         }
     }
 
-    /// Run the outbound thread. Gets a list of members to pinmg, then walks the list, probing each
+    /// Run the outbound thread. Gets a list of members to ping, then walks the list, probing each
     /// member.
     ///
     /// If the probe completes before the next protocol period is scheduled, waits for the protocol
@@ -84,7 +84,7 @@ impl<'a> Outbound<'a> {
         let num_initial = self.server.member_list.len_initial_members();
         loop {
             if !have_members && num_initial != 0 {
-                // The minimum thats strictly more than half
+                // The minimum that's strictly more than half
                 let min_to_start = num_initial / 2 + 1;
 
                 if self.server.member_list.len() >= min_to_start {
@@ -157,7 +157,7 @@ impl<'a> Outbound<'a> {
     /// If the timer has not been exceeded, we park this thread for
     /// PING_RECV_QUEUE_EMPTY_SLEEP_MS, and try again.
     ///
-    /// If we don't recieve anything at all in the Ping/PingReq loop, we mark the member as Suspect.
+    /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
     fn probe(&mut self, member: Member) {
         let addr = member.swim_socket_address();
 
@@ -207,7 +207,7 @@ impl<'a> Outbound<'a> {
                         continue;
                     }
                     // If this was forwarded to us, we want to retain the address of the member who
-                    // sent the ack, not the one we recieved on the socket.
+                    // sent the ack, not the one we received on the socket.
                     if !swim.get_ack().has_forward_to() {
                         ack_from.set_address(format!("{}", real_addr.ip()));
                     }

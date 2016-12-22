@@ -37,7 +37,7 @@ pub fn render_json<T: ToJson>(status: status::Status, response: &T) -> Response 
 /// # Panics
 ///
 /// * The given encoded message was not a NetError
-/// * The given messsage could not be decoded
+/// * The given message could not be decoded
 /// * The NetError could not be encoded to JSON
 pub fn render_net_error(err: &NetError) -> Response {
     render_json(net_err_to_http(err.get_code()), err)

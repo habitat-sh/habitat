@@ -143,7 +143,7 @@ build_aci() {
   rm -rf "$ACI_CONTEXT" "$BUILD_DIR"
 }
 
-# The root of the filesystem. If the program is running on a seperate
+# The root of the filesystem. If the program is running on a separate
 # filesystem or chroot environment, this environment variable may need to be
 # set.
 : ${FS_ROOT:=}
@@ -151,7 +151,7 @@ build_aci() {
 # variable is set, this value is overridden, otherwise it is set to its default
 : ${HAB_ROOT_PATH:=$FS_ROOT/hab}
 # Directory to write ACIs to. If $HAB_RESULTS_DIR environment variable
-# is set, this value is overriden
+# is set, this value is overridden
 : ${HAB_RESULTS_DIR:=/src/results}
 
 # The current version of Habitat Studio

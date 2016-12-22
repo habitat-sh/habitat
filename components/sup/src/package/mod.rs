@@ -85,7 +85,7 @@ impl Package {
     /// A vector of ports we expose
     pub fn exposes(&self) -> Vec<String> {
         // This function really should be returning a `Result` as it could fail for a gaggle of
-        // IO-related reasons. However, in order to preseve the function contract (for now), we're
+        // IO-related reasons. However, in order to preserve the function contract (for now), we're
         // going to potentially swallow some stuff... - FIN
         match self.pkg_install.exposes() {
             Ok(vec) => vec,

@@ -40,7 +40,7 @@ rm ./core.sig.key
 mkdir -p ./release
 rm -rf ./release/*
 
-# until we pulish the newer version of bintray-publish with the cli switches
+# until we publish the newer version of bintray-publish with the cli switches
 # we have to build it here
 echo "Building bintray-publish"
 ${TRAVIS_HAB} studio build habitat/components/bintray-publish > /root/bintray-publish_build.log 2>&1

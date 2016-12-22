@@ -50,7 +50,7 @@ impl fmt::Display for Error {
             Error::UnknownVCS => format!("Job requires an unknown VCS"),
             Error::Zmq(ref e) => format!("{}", e),
             Error::WorkspaceSetup(ref p, ref e) => {
-                format!("Error while setuping up workspace at {}, err={:?}", p, e)
+                format!("Error while setting up workspace at {}, err={:?}", p, e)
             }
             Error::WorkspaceTeardown(ref p, ref e) => {
                 format!("Error while tearing down workspace at {}, err={:?}", p, e)

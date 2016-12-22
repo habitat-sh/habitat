@@ -41,7 +41,7 @@ const BUSYBOX_IDENT: &'static str = "core/busybox-static";
 /// * Are we (the Supervisor) running inside a package?
 ///     * Yes: use the BusyBox release describes in our `DEPS` metafile & return its `PATH` entries
 ///     * No
-///         * Can we find any installed BusyBox pacakge?
+///         * Can we find any installed BusyBox package?
 ///             * Yes: use the latest installed BusyBox release & return its `PATH` entries
 ///             * No
 ///                 * Is the `busybox` binary present on `$PATH`?
@@ -54,7 +54,7 @@ const BUSYBOX_IDENT: &'static str = "core/busybox-static";
 /// * If a installed package's path metadata cannot be read or returned
 /// * If a known-working package identifier string cannot be parsed
 /// * If the parent directory of a located `busybox` binary cannot be computed
-/// * If the Supervisor is not executing inside a packge, and if no BusyBox package is installed,
+/// * If the Supervisor is not executing inside a package, and if no BusyBox package is installed,
 ///   and if no `busybox` binary can be found on the `PATH`
 #[cfg(any(target_os="linux", target_os="macos"))]
 pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
@@ -99,7 +99,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                 Some(dir) => vec![dir.to_path_buf()],
                                 None => {
                                     let path = bin.to_string_lossy().into_owned();
-                                    outputln!("An unexpected error has occured. BusyBox was \
+                                    outputln!("An unexpected error has occurred. BusyBox was \
                                                found at {}, yet the parent directory could not \
                                                be computed. Aborting...",
                                               &path);
@@ -107,7 +107,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                 }
                             }
                         }
-                        // Well, we're not running out of a pacakge, there is no BusyBox package
+                        // Well, we're not running out of a package, there is no BusyBox package
                         // installed, it's not on `PATH`, what more can we do. Time to give up the
                         // chase. Too bad, we were really trying to be helpful here.
                         None => {

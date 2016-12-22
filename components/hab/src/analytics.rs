@@ -37,7 +37,7 @@
 //! Note that this module is highly documented, even inside functions with the intent of guiding a
 //! user through the implementation who may not necessarily be familiar with Rust code. Given the
 //! "must-not-impact-the-user" nature of this code, it tends to be much more explicit than regular,
-//! idomatic Rust code. But at least you can see a lot of `match` expressions in action :)
+//! idiomatic Rust code. But at least you can see a lot of `match` expressions in action :)
 //!
 //! # Subcommand Invocations
 //!
@@ -109,7 +109,7 @@
 //!
 //! The [Hit
 //! Type](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#t).
-//! This value is hard coded as `"event"` as it is a required Google Analtyics field for all Hit
+//! This value is hard coded as `"event"` as it is a required Google Analytics field for all Hit
 //! Events.
 //!
 //! ## `aip=1`
@@ -231,7 +231,7 @@ enum Event {
 }
 
 /// Selects a known pre-selected of subcommands and reports on the event of their invocation with
-/// no environment, arguments, or paramters being captured.
+/// no environment, arguments, or parameters being captured.
 ///
 /// The set of pre-selected subcommands help the project and the maintainers better confirm
 /// workflow hypotheses, have feel for adoption of subsystems, and generally have a sense about
@@ -244,7 +244,7 @@ pub fn instrument_subcommand() {
 
     // Get the first 3 program arguments after the program name argument in order to determine the
     // subcommand which will be invoked. If there aren't that many program arguments, a default of
-    // an emppty string slice is used.
+    // an empty string slice is used.
     let mut args = env::args();
     let arg1 = args.nth(1).unwrap_or_default();
     let arg2 = args.next().unwrap_or_default();
@@ -270,7 +270,7 @@ pub fn instrument_subcommand() {
                          &format!("{}--{}--{}", PRODUCT, arg1, arg2))
         }
         // Match against any pre-selected subcommands that are 3 levels deep. Since there are no
-        // more postional matches left, we ignore all further arguments, options, or flags to that
+        // more positional matches left, we ignore all further arguments, options, or flags to that
         // subcommand.
         ("origin", "key", "generate") |
         ("ring", "key", "generate") |
@@ -290,7 +290,7 @@ pub fn instrument_subcommand() {
     }
 }
 
-/// Determines the type of CLI error and reports on the occurance of an error given the subcommand
+/// Determines the type of CLI error and reports on the occurrence of an error given the subcommand
 /// which was invoked with no environment, arguments, or parameters being captured.
 ///
 /// The generic error types tied to the subcommand attempted help the project and the maintainers
@@ -334,7 +334,7 @@ pub fn instrument_clap_error(err: &clap::Error) {
 /// Explicitly opts in to reporting analytics.
 ///
 /// This function is designed to be triggered from another subcommand and can be a blocking call.
-/// That is to say that this doesn't have to work on a seperate thread of execution. As a result,
+/// That is to say that this doesn't have to work on a separate thread of execution. As a result,
 /// we can use more Rust idioms such as `try!` and `Result` to make for a much more terse and
 /// direct function body.
 ///
@@ -377,7 +377,7 @@ pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Res
 /// Explicitly opts out of reporting analytics.
 ///
 /// This function is designed to be triggered from another subcommand and can be a blocking call.
-/// That is to say that this doesn't have to work on a seperate thread of execution. As a result,
+/// That is to say that this doesn't have to work on a separate thread of execution. As a result,
 /// we can use more Rust idioms such as `try!` and `Result` to make for a much more terse and
 /// direct function body.
 ///
@@ -424,7 +424,7 @@ pub fn is_opted_in(analytics_path: &Path) -> Option<bool> {
 /// Returns true if analytics are enabled and false otherwise.
 fn analytics_enabled() -> bool {
     match is_opted_in(&hcore::fs::cache_analytics_path(None)) {
-        // If the value is explicity true or false, return the unwrapped value
+        // If the value is explicitly true or false, return the unwrapped value
         Some(val) => val,
         // In all other cases, return false which enforces the default opt-out behavior
         None => false,
@@ -434,7 +434,7 @@ fn analytics_enabled() -> bool {
 /// Creates a representation of the analytic event and sends it to the Google Analytics API.
 fn record_event(kind: Event, action: &str) {
     // Determine a suitable category value given the type of event we are capturing. We are using
-    // pattern matching over a type which means that the Rust compiler will guarentee that no enum
+    // pattern matching over a type which means that the Rust compiler will guarantee that no enum
     // types are missing in the future.
     let category = match kind {
         Event::CliError => "clierror",
@@ -486,7 +486,7 @@ fn should_send() -> bool {
 
 /// Sends the event to Google Analytics via an HTTP/POST.
 ///
-/// This function returns true if the event was sent and false if an error occured along the way.
+/// This function returns true if the event was sent and false if an error occurred along the way.
 /// The presence of a `false` return value is enough to assume that we want to save this event to
 /// disk for later retry.
 fn send_event(payload: &str) -> bool {
@@ -500,13 +500,13 @@ fn send_event(payload: &str) -> bool {
         }
     };
     // Create a new Hyper HTTP client, using a helper from the `habitat_http_client` crate. This
-    // function is reponsible for setting up the SSL context, finding suitable SSL root certificate
+    // function is responsible for setting up the SSL context, finding suitable SSL root certificate
     // files, etc. The `None` reference is for a more advanced use case which is the Rust way of
     // saying: "I'm giving you nothing for this value, as opposed to something".
     //
     // The `ApiClient::new` function returns a `Result` structure which can either be `Ok`, or
     // can contain an error (`Err`). The `Ok` pattern matching arm will return the actual
-    // "unwraped" client from the expresssion and setting the client variable binding. The `Err`
+    // "unwrapped" client from the expression and setting the client variable binding. The `Err`
     // matching arm is when something (or anything) goes wrong. In this case we absolutely do not
     // want to crash, panic this thread, or otherwise impact the real operation potentially running
     // concurrently. So, the strategy here is to report and early return.
@@ -643,7 +643,7 @@ fn read_file(file_path: &Path) -> String {
     let mut content = String::new();
     // If the file exists, then open it to get a file handle for reading. As before, this could
     // fail so we will unwrap and use the success and report and early return on any failure.
-    // As this function is guarenting that a String will be returned, and given that we can't
+    // As this function is guaranteeing that a String will be returned, and given that we can't
     // open the file with our answer (we hope), then we'll return an empty String.
     let mut file = match File::open(file_path) {
         Ok(f) => f,

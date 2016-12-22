@@ -367,7 +367,7 @@ pkg_svc_group=$pkg_svc_user
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants
 # to use these variables, so what to do? We'll set up these svc variables
 # with the `$pkg_svc_run` variable as the customer-in-mind and pass over
-# it once the Plan has been loaded. For good meaure, all of these variables
+# it once the Plan has been loaded. For good measure, all of these variables
 # will need to be set again.
 pkg_svc_path="$HAB_ROOT_PATH/svc/@__pkg_name__@"
 pkg_svc_data_path="$pkg_svc_path/data"
@@ -659,7 +659,7 @@ _get_tdeps_for() {
 
 # **Internal** Appends an entry to the given array only if the entry is not
 # already present and returns the resulting array back on stdout. In so doing,
-# this function mimicks a set when adding new entries. Note that any array can
+# this function mimics a set when adding new entries. Note that any array can
 # be passed in, including ones that already contain duplicate entries.
 #
 # ```
@@ -801,10 +801,10 @@ _validate_deps() {
   return 0
 }
 
-# **Internal** Prints a dependncy graph in a format to the `tree(1)` command.
+# **Internal** Prints a dependency graph in a format to the `tree(1)` command.
 # This is used in concert with `_validate_deps` for the purpose of output to an
 # end user.  It accepts a standard in stream as input where each line is a
-# direct dependency package identifier of some pacakge. The first function
+# direct dependency package identifier of some package. The first function
 # parameter is the leading padding depth when printing the dependency line.
 # Finally, a global internal variable, `$_dupes_qualified`, is used to display
 # which dependency entries have the duplicate versions present. An example
@@ -1189,7 +1189,7 @@ abspath() {
 # # Downloads if no local file is found
 # download_file http://example.com/file.tar.gz file.tar.gz abc123...
 # # File matches checksum: download is skipped, local file is used
-# download_file http://example.com/file.tar.gz file.tar.gz ohnoes...
+# download_file http://example.com/file.tar.gz file.tar.gz oh noes...
 # # File doesn't match checksum: local file removed, download attempted
 # ```
 #
@@ -1341,7 +1341,7 @@ fix_interpreter() {
 
 # Returns the path for the given package and interpreter by reading it
 # from the INTERPRETERS metadata in the package. The directory of the
-# interpreter needs to be specified, as an interpeter binary might
+# interpreter needs to be specified, as an interpreter binary might
 # live in `bin`, `sbin`, or `libexec`, depending on the software.
 #
 # ```
@@ -1395,18 +1395,18 @@ do_default_begin() {
 # item determine the absolute path to a suitable package release (which will be
 # on disk). Then, several package-related arrays are created:
 #
-# * `$pkg_build_deps_resolved`: A pacakge-path array of all direct build
+# * `$pkg_build_deps_resolved`: A package-path array of all direct build
 #    dependencies, declared in `$pkg_build_deps`.
 # * `$pkg_build_tdeps_resolved`: A package-path array of all direct build
-#    depenedencies and the run depedencies for each direct build dependency.
+#    dependencies and the run dependencies for each direct build dependency.
 # * `$pkg_deps_resolved`: A package-path array of all direct run dependencies,
 #    declared in `$pkg_deps`.
-# * `$pkg_tdeps_resolved`:  A package-path array of all direct run depdencies
+# * `$pkg_tdeps_resolved`:  A package-path array of all direct run dependencies
 #    and the run dependencies for each direct run dependency.
 # * `$pkg_all_deps_resolved`: A package-path array of all direct build and
-#    run depenencies, declared in `$pkg_build_deps` and `$pkg_deps`.
+#    run dependencies, declared in `$pkg_build_deps` and `$pkg_deps`.
 # * `$pkg_all_tdeps_resolved`: An ordered package-path array of all direct
-#    build and run dependencies, and the run depenencies for each direct
+#    build and run dependencies, and the run dependencies for each direct
 #    dependency. Further details below in the function.
 _resolve_dependencies() {
   build_line "Resolving dependencies"
@@ -1508,7 +1508,7 @@ _resolve_dependencies() {
 
 # **Internal**  Build `$PATH` containing each path in our own
 # `${pkg_bin_dirs[@]}` array, and then any dependency's `PATH` entry (direct
-# or transitive) if one exists. The ordering of the path is specfic to
+# or transitive) if one exists. The ordering of the path is specific to
 # `${pkg_all_tdeps_resolved[@]}` which is further explained in the
 # `_resolve_dependencies()` function.
 _set_path() {
@@ -1739,7 +1739,7 @@ do_prepare_wrapper() {
   popd > /dev/null
 }
 
-# A step that exists to be overriden. We have the software downloaded,
+# A step that exists to be overridden. We have the software downloaded,
 # unpacked, and the build environment variables set. Do what you need to do
 # before we actually run the build steps. Delegates most of the implementation
 # to the `do_default_prepare()` function.
@@ -1753,7 +1753,7 @@ do_default_prepare() {
   return 0
 }
 
-# Since `build` is one of the most overriden functions, this wrapper makes sure
+# Since `build` is one of the most overridden functions, this wrapper makes sure
 # that no matter how it is changed, our `$cwd` is
 # `$HAB_CACHE_SRC_PATH/$pkg_dirname`.
 do_build_wrapper() {
@@ -1780,7 +1780,7 @@ do_default_build() {
 #
 # 1. A `do_check()` function has been declared. By default, no such function
 #    exists, so Plan author must add one explicitly--there is no reasonably
-#    good deault here.
+#    good default here.
 # 1. A `$DO_CHECK` environment variable is set to some non-empty value. As
 #    tests can dramatically inflate the build time of a Plan, this has been
 #    left as an opt-in option.
@@ -2402,12 +2402,12 @@ do_begin
 # Determine if we have all the commands we need to work
 _find_system_commands
 
-# Enure that the origin key is available for package signing
+# Ensure that the origin key is available for package signing
 _ensure_origin_key_present
 
 _determine_hab_bin
 
-# Download and resolve the depdencies
+# Download and resolve the dependencies
 _resolve_dependencies
 
 _set_path

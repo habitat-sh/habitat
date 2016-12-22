@@ -142,7 +142,7 @@ impl BrokerConn {
     ///
     /// * `Broker` Queue became unavailable
     /// * Message was not received within the timeout
-    /// * Received an unparsable message
+    /// * Received an unparseable message
     pub fn recv(&mut self) -> Result<protocol::net::Msg> {
         let envelope = try!(self.sock.recv_msg(0));
         let msg: protocol::net::Msg = try!(parse_from_bytes(&envelope));
