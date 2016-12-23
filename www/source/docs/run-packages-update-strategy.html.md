@@ -4,17 +4,31 @@ title: Update Strategy
 
 # Update Strategy
 
-The Habitat supervisor can be configured to implement an optional _update strategy_, which describes how the supervisor and its peers within a service group should respond when a new version of a package is available.
+The Habitat supervisor can be configured to leverage an optional _update strategy_, which describes how the supervisor and its peers within a service group should respond when a new version of a package is available.
 
-To use an update strategy, the supervisor be configured to watch a [depot](/docs/concepts-depot) for new versions. Habitat provides a public depot, but you can also run one inside your own datacenter using the `core/hab-depot` package.
+To use an update strategy, the supervisor is configured to watch a [depot](/docs/concepts-depot) for new versions.
 
 ## Configuring an Update Strategy
 
-The current version of Habitat supports only one update strategy: `at-once`. This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has been published to a depot.
+Habitat supports two update strategies: `rolling` and `at-once`.
 
 To start a supervisor with the auto-update strategy, pass the `--strategy` argument to a supervisor start command, and optionally specify the depot URL:
 
-       hab start yourorigin/yourapp --strategy at-once --url https://willem.habitat.sh/v1/depot
+       hab start yourorigin/yourapp --strategy rolling --url https://willem.habitat.sh/v1/depot
+
+### Rolling Strategy
+
+This strategy ensures that all supervisors running a service within a service group are running the same version of software. An update leader is elected which all supervisors within a service group will update around. All update followers will first ensure they are running the same version of a service that their leader is running, and then, the leader will poll a depot for a newer version of the service's package.
+
+Once the update leader finds a new version it will update and wait until all other alive members in the service group have also been updated before once again attempting to find a newer version of software to update to. Updates will happen more or less one at a time until completion with the exception of a new node being introduced into the service group during the middle of an update.
+
+If your service group is also running with the `--topology leader` flag, the leader of that election will never become the update leader, so all followers within a leader topology will update first.
+
+It's important to note that because we must perform a leader election to determine an update leader, *you need to have at least 3 supervisors running a service group to take advantage of the rolling update strategy*.
+
+### At-Once Strategy
+
+This strategy does no peer coordination with other supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has been published to a depot. No coordination between supervisors is done, each supervisor will poll a remote depot on their own.
 
 ## Configuring an Update Strategy with a Depot Channel
 
@@ -29,7 +43,7 @@ Configuring the supervisors'  update strategy URL to point to a channel ensures 
 
 To start a supervisor with a strategy and pointing to a channel, modify slightly the URL to the depot:
 
-       hab start yourorigin/yourapp --strategy at-once --url https://yourdepot.example.com/v1/depot/channels/yourchannel
+       hab start yourorigin/yourapp --strategy rolling --url https://yourdepot.example.com/v1/depot/channels/yourchannel
 
 `yourchannel` represents the channel you have created in the depot.
 
