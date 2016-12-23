@@ -208,13 +208,10 @@ impl PackageArchive {
 
     fn read_deps(&mut self, file: MetaFile) -> Result<Vec<PackageIdent>> {
         let mut deps: Vec<PackageIdent> = vec![];
-        let filename = format!("{}", &file);
         match self.read_metadata(file) {
             Ok(Some(body)) => {
-                debug!("body {} = [{}]", &filename, &body);
                 let ids: Vec<String> = body.lines().map(|d| d.to_string()).collect();
                 for id in &ids {
-                    debug!("id {} = [{}]", &filename, &id);
                     let package = try!(PackageIdent::from_str(id));
                     if !package.fully_qualified() {
                         // JW TODO: use a more appropriate error to describe the invalid
@@ -276,7 +273,6 @@ impl PackageArchive {
                         }
                     }
                     Ok(None) => {
-                        debug!("content = {}", &buf);
                         // Hey, before you go - we are trimming whitespace for you. This
                         // is handy, because later on, you just want the string you want.
                         metadata.insert(matched_type.unwrap(), String::from(buf.trim()));
