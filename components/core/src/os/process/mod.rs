@@ -28,6 +28,23 @@ mod imp;
 
 pub use self::imp::{become_command};
 
+pub enum ShutdownMethod {
+    AlreadyExited,
+    GracefulTermination,
+    Killed,
+}
+
+impl fmt::Display for ShutdownMethod {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let printable = match *self {
+            ShutdownMethod::AlreadyExited => "Already Exited",
+            ShutdownMethod::GracefulTermination => "Graceful Termination",
+            ShutdownMethod::Killed => "Killed",
+        };
+        write!(f, "{}", printable)
+    }
+}
+
 pub struct HabChild {
     inner: imp::Child,
 }
@@ -48,7 +65,7 @@ impl HabChild {
         self.inner.status()
     }
 
-    pub fn kill(&mut self) -> Result<i32> {
+    pub fn kill(&mut self) -> Result<ShutdownMethod> {
         self.inner.kill()
     }
 }
