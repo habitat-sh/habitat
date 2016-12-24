@@ -153,8 +153,8 @@ impl Supervisor {
         match self.child {
             Some(ref mut child) => {
                 outputln!(preamble & self.preamble, "Stopping...");
-                let signal = try!(child.kill());
-                outputln!("{} - Killed with signal {}", self.preamble, signal);
+                let shutdown = try!(child.kill());
+                outputln!("{} - Shutdown method: {}", self.preamble, shutdown);
             }
             None => {},
         };

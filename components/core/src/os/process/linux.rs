@@ -21,7 +21,7 @@ use time::{Duration, SteadyTime};
 
 use error::{Error, Result};
 
-use super::{HabExitStatus, ExitStatusExt};
+use super::{HabExitStatus, ExitStatusExt, ShutdownMethod};
 
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     become_exec_command(command, args)
@@ -84,7 +84,7 @@ impl Child {
         }
     }
 
-    pub fn kill(&mut self) -> Result<i32> {
+    pub fn kill(&mut self) -> Result<ShutdownMethod> {
         try!(send_signal(self.pid, libc::SIGTERM));
 
         let stop_time = SteadyTime::now() + Duration::seconds(8);
@@ -96,10 +96,10 @@ impl Child {
 
             if SteadyTime::now() > stop_time {
                 try!(send_signal(self.pid, libc::SIGKILL));
-                return Ok(libc::SIGKILL);
+                return Ok(ShutdownMethod::Killed);
             }
         }
-        Ok(libc::SIGTERM)
+        Ok(ShutdownMethod::GracefulTermination)
     }
 }
 
