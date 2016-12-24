@@ -94,6 +94,8 @@ pub enum Error {
     GetExitCodeProcessFailed(String),
     /// Occurs when a `HabChild` constructor fails to return a process.
     GetHabChildFailed(String),
+    /// Occurs when a `TerminateProcess` win32 call returns an error.
+    TerminateProcessFailed(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
     Utf8Error(str::Utf8Error),
 }
@@ -170,6 +172,7 @@ impl fmt::Display for Error {
             Error::SignalFailed(ref e) => format!("Failed to send a signal to the child process: {}", e),
             Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
             Error::GetHabChildFailed(ref e) => format!("{}", e),
+            Error::TerminateProcessFailed(ref e) => format!("{}", e),
             Error::Utf8Error(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -225,6 +228,7 @@ impl error::Error for Error {
             Error::WaitpidFailed(_) => "waitpid failed",
             Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",
             Error::GetHabChildFailed(_) => "Failed to return a HabChild",
+            Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
         }
     }
