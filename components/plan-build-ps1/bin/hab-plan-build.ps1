@@ -427,6 +427,33 @@ function Invoke-BuildConfig {
 # Default implementation for the `Invoke-BuildConfig` phase.
 function Invoke-DefaultBuildConfig {
     Write-BuildLine "Writing configuration"
+    if(test-path "$PLAN_CONTEXT/config") {
+        if (!$HAB_CONFIG_EXCLUDE) {
+          # HAB_CONFIG_EXCLUDE not set, use defaults
+          $config_exclude_exts=@("*.sw?", "*~", "*.bak")
+        }
+        else {
+          $config_exclude_exts = $HAB_CONFIG_EXCLUDE -split " "
+        }
+        Get-ChildItem "$PLAN_CONTEXT/config" -Exclude $config_exclude_exts | foreach {
+          if (!(Test-Path "$pkg_prefix/config" )) {
+            mkdir "$pkg_prefix/config"
+          }
+          if($_.PSIsContainer) {
+            mkdir (Join-Path $pkg_prefix $_.FullName.Substring($PLAN_CONTEXT.Length))
+          }
+          else {
+            cp $_ (Join-Path $pkg_prefix $_.FullName.Substring($PLAN_CONTEXT.Length))
+          }
+        }
+    }
+
+    if (Test-Path "$PLAN_CONTEXT/hooks") {
+        cp "$PLAN_CONTEXT/hooks" $pkg_prefix -Recurse
+    }
+    if (Test-Path "$PLAN_CONTEXT/default.toml") {
+        cp "$PLAN_CONTEXT/default.toml" $pkg_prefix
+    }
 }
 
 # Write out the `$pkg_prefix\run` file. If a file named `hooks\run`
@@ -446,6 +473,20 @@ function Invoke-BuildService {
 # Default implementation of the `Invoke-BuildService` phase.
 function Invoke-DefaultBuildService {
     Write-BuildLine "Writing service management scripts"
+    if (Test-Path "${PLAN_CONTEXT}/hooks/run") {
+        Write-BuildLine "Using run hook $PLAN_CONTEXT/hooks/run"
+    }
+    else {
+        if (Test-Path $pkg_svc_run) {
+          Write-BuildLine "Writing $pkg_prefix/run script to run $pkg_svc_run"
+          Set-Content -Path "$pkg_prefix/run" -Value @"
+cd "$pkg_svc_path"
+
+& "$pkg_svc_run" 2>&1
+exit `$LASTEXITCODE
+"@
+        }
+    }
 }
 
 # **Internal** Write the `$pkg_prefix\MANIFEST`.
