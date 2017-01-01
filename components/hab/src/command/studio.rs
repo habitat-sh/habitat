@@ -204,6 +204,37 @@ mod inner {
             debug!("Local image id: {}", stdout);
         }
 
+        // We need to ensure that filesystem sharing has been enabled, otherwise the user will
+        // be greeted with a horrible error message that's difficult to make sense of. To
+        // mitigate this, we check the studio version. This will cause Docker to go through the
+        // mounting steps, so we can watch stderr for failure, but has the advantage of not
+        // requiring a TTY.
+
+        let current_dir = format!("{}:/src", env::current_dir().unwrap().to_string_lossy());
+        let key_cache_path =
+            format!("{}:/{}", default_cache_key_path(None).to_string_lossy(), CACHE_KEY_PATH);
+        let version_output = Command::new(&cmd)
+            .arg("run")
+            .arg("--rm")
+            .arg("--privileged")
+            .arg("--volume")
+            .arg(&key_cache_path)
+            .arg("--volume")
+            .arg(&current_dir)
+            .arg(image_identifier())
+            .arg("-V")
+            .output()
+            .expect("docker failed to start");
+
+        let stderr = String::from_utf8(version_output.stderr).unwrap();
+        if !stderr.is_empty() &&
+           (stderr.as_str().contains("Mounts denied") ||
+            stderr.as_str().contains("drive is not shared")) {
+            return Err(Error::DockerFileSharingNotEnabled);
+        }
+
+        // If we make it here, filesystem sharing has been setup correctly, so let's proceed like normal.
+
         let mut cmd_args: Vec<OsString> = vec!["run".into(),
                                                "--rm".into(),
                                                "--tty".into(),
@@ -236,12 +267,9 @@ mod inner {
         cmd_args.push("--volume".into());
         cmd_args.push("/var/run/docker.sock:/var/run/docker.sock".into());
         cmd_args.push("--volume".into());
-        cmd_args.push(format!("{}:/{}",
-                              default_cache_key_path(None).to_string_lossy(),
-                              CACHE_KEY_PATH)
-            .into());
+        cmd_args.push(key_cache_path.into());
         cmd_args.push("--volume".into());
-        cmd_args.push(format!("{}:/src", env::current_dir().unwrap().to_string_lossy()).into());
+        cmd_args.push(current_dir.into());
 
         cmd_args.push(image_identifier().into());
         cmd_args.extend_from_slice(args.as_slice());
