@@ -70,10 +70,16 @@ impl fmt::Display for Error {
             Error::DockerDaemonDown => {
                 format!("Can not connect to Docker. Is the Docker daemon running?")
             }
+            #[cfg(not(windows))]
             Error::DockerFileSharingNotEnabled => {
                 format!("File Sharing must be enabled in order to enter a studio.\nPlease enable \
                          it in the Docker preferences and share (at a minimum) your home \
                          directory.")
+            }
+            #[cfg(windows)]
+            Error::DockerFileSharingNotEnabled => {
+                format!("File Sharing must be enabled in order to enter a studio.\nPlease select \
+                         a drive to share in the Docker preferences.")
             }
             Error::DockerImageNotFound(ref e) => {
                 format!("The Docker image {} was not found in the docker registry.\nYou can \

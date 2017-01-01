@@ -211,7 +211,8 @@ mod inner {
         // requiring a TTY.
 
         let current_dir = format!("{}:/src", env::current_dir().unwrap().to_string_lossy());
-        let key_cache_path = format!("{}:/{}", default_cache_key_path(None).to_string_lossy(), CACHE_KEY_PATH);
+        let key_cache_path =
+            format!("{}:/{}", default_cache_key_path(None).to_string_lossy(), CACHE_KEY_PATH);
         let version_output = Command::new(&cmd)
             .arg("run")
             .arg("--rm")
@@ -226,7 +227,9 @@ mod inner {
             .expect("docker failed to start");
 
         let stderr = String::from_utf8(version_output.stderr).unwrap();
-        if !stderr.is_empty() && stderr.as_str().contains("Mounts denied") {
+        if !stderr.is_empty() &&
+           (stderr.as_str().contains("Mounts denied") ||
+            stderr.as_str().contains("drive is not shared")) {
             return Err(Error::DockerFileSharingNotEnabled);
         }
 
