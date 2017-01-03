@@ -41,6 +41,10 @@ pkg_shasum=TODO
 # of your package.
 # pkg_description="Some description."
 
+# Required for core plans, optional otherwise.
+# The project home page for the package.
+# pkg_upstream_url=http://example.com/project-name
+
 # Optional.
 # An array of valid software licenses that relate to this package.
 # Please choose a license from http://spdx.org/licenses/
