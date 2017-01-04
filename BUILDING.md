@@ -179,6 +179,38 @@ sudo su - jdoe
 ```
 
 
+## Arch Linux
+
+First clone the codebase and enter the directory:
+
+```
+git clone https://github.com/habitat-sh/habitat.git
+cd habitat
+```
+
+Then, run the system preparation scripts and try to compile the project:
+
+```
+cp components/hab/install.sh /tmp/
+sh support/linux/install_dev_0_arch.sh
+sh support/linux/install_dev_9_linux.sh
+. ~/.profile
+make
+```
+
+These docs were tested with a Docker image, created as follows:
+
+```
+docker run --rm -it greyltc/archlinux bash
+pacman -Syy --noconfirm
+pacman -S --noconfirm sudo git
+echo "%wheel ALL=(ALL) ALL" > /etc/sudoers.d/01_wheel
+useradd -m -s /bin/bash -G wheel jdoe
+echo jdoe:1234 | chpasswd
+sudo su - jdoe
+```
+
+
 ## Windows
 
 These instructions are based on Windows 10 1607 (Anniversary update) or newer.
