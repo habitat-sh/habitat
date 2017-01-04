@@ -11,7 +11,11 @@ rustc --version
 cargo --version
 
 # Install Docker
-if [ -f /etc/lsb-release ] \
+if [ -f /etc/arch-release ]; then
+  # According to https://docs.docker.com/engine/installation/linux/archlinux/
+  # the Docker package is managed by the Arch Linux community
+  sudo -E pacman -S --noconfirm docker
+elif [ -f /etc/lsb-release ] \
     && [ "$(. /etc/lsb-release; echo $DISTRIB_DESCRIPTION)" = "Ubuntu 16.10" ]; then
   # Until there is a 1.13 release, there is no stable Docker package for Yakkety :/
   curl -sSL https://test.docker.com | sudo -E sh
@@ -28,8 +32,16 @@ echo "Node $(node --version)"
 echo "npm $(npm --version)"
 echo "docco $(docco --version)"
 
-sudo -E adduser --system hab || true
-sudo -E addgroup --system hab || true
+if command -v useradd > /dev/null; then
+  sudo -E useradd --system --no-create-home hab || true
+else
+  sudo -E adduser --system hab || true
+fi
+if command -v groupadd > /dev/null; then
+  sudo -E groupadd --system hab || true
+else
+  sudo -E addgroup --system hab || true
+fi
 
 sudo -E sh /tmp/install.sh
 sudo -E hab install core/busybox-static core/hab-studio
