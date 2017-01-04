@@ -618,21 +618,22 @@ function _Save-Artifact {
     Remove-Item "$tarf" -Force -ErrorAction SilentlyContinue
     Remove-Item "$xzf" -Force -ErrorAction SilentlyContinue
 
-    & "$_7z_cmd" a -ttar -spf "$tarf" "$pkg_prefix"
+    # The 7z tar archiving via -spf does not produce an expandable
+    # archive that is readable by hab pkg install. By replicating the
+    # packages directory structure in a temp directory and taring that
+    # entire tree, hab pkg install is able to successfully install the
+    # generated hart file.
+    $tempBase = Join-Path $env:temp "hab"
+    $tempPkg = "$tempBase\pkgs\$pkg_origin\$pkg_name\$pkg_version"
+    if (Test-Path $tempBase) { Remove-Item $tempBase -Recurse -Force }
+    New-Item $tempPkg -ItemType Directory -Force | Out-Null
+    Copy-Item $pkg_prefix $tempPkg -Recurse
+
+    & "$_7z_cmd" a -ttar "$tarf" $tempBase
     & "$_7z_cmd" a -txz "$xzf" "$tarf"
     & "$_hab_cmd" pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
     Remove-Item "$tarf", "$xzf" -Force
-
-    <#
-        ConvertFrom-StringData -StringData (gc -raw .\results\last_build.env)
-        $t = ConvertFrom-StringData -StringData (gc -raw .\results\last_build.env)
-
-        get-content -Encoding Byte .\results\fnichol-names-0.11.0-20161128001352-x86_64-windows.hart |
-            Select-Object -Skip 5 |
-            Set-Content -Encoding Byte -Path .\results\test.tar.xz
-        7z x -txz .\results\test.tar.xz .\results\test.tar
-        7z x -ttar .\results\test.tar .\results\hab
-    #>
+    Remove-Item $tempBase -Recurse -Force
 }
 
 # **Internal** Copy the final package artifact to the `$pkg_output_path`
