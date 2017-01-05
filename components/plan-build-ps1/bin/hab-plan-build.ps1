@@ -73,8 +73,6 @@ if ($DepotUrl) {
 $env:HAB_DEPOT_URL = "$script:HAB_DEPOT_URL"
 # The value of `$env:Path` on initial start of this program
 $script:INITIAL_PATH = "$env:Path"
-# The value of `pwd` on initial start of this program
-$script:INITIAL_PWD = "$(Get-Location)"
 # The target architecture this plan will be built for
 $script:pkg_arch = "x86_64"
 # The target system (i.e. operating system variant) this plan will be built for
@@ -220,8 +218,6 @@ function _Get-SystemCommands {
     }
     Write-Debug "Setting _7z_cmd=$_7z_cmd"
 }
-
-
 
 
 function Write-BuildLine {
@@ -545,7 +541,7 @@ function Invoke-DefaultBuildService {
         Write-BuildLine "Using run hook $PLAN_CONTEXT/hooks/run"
     }
     else {
-        if (Test-Path $pkg_svc_run) {
+        if ($pkg_svc_run -ne "" -and (Test-Path $pkg_svc_run)) {
           Write-BuildLine "Writing $pkg_prefix/run script to run $pkg_svc_run"
           Set-Content -Path "$pkg_prefix/run" -Value @"
 cd "$pkg_svc_path"
@@ -766,149 +762,152 @@ if (-Not (Test-Path "$PLAN_CONTEXT\plan.ps1")) {
     }
 }
 
-# Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
-# paths in `plan.ps1`
-Set-Location "$PLAN_CONTEXT"
-# @TODO fin - is there a way to change directory only in this program without
-# affecting the calling powershell session?
-
 # We want to fail the build for both termionating and non terminating errors
 $ErrorActionPreference = "Stop"
 
-# Load the Plan
-Write-BuildLine "Loading $PLAN_CONTEXT\plan.ps1"
-. "$PLAN_CONTEXT\plan.ps1"
-Write-BuildLine "Plan loaded"
-# @TODO fin - what to do when dot souring fails? can it?
+# Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
+# paths in `plan.ps1`
+Push-Location "$PLAN_CONTEXT"
 
-# If the `HAB_ORIGIN` environment variable is set, override the value of
-# `$pkg_origin`.
-if (Test-Path Env:\HAB_ORIGIN) {
-    $script:pkg_origin = "$env:HAB_ORIGIN"
-}
+try {
+    # Load the Plan
+    Write-BuildLine "Loading $PLAN_CONTEXT\plan.ps1"
+    . "$PLAN_CONTEXT\plan.ps1"
+    Write-BuildLine "Plan loaded"
+    # @TODO fin - what to do when dot souring fails? can it?
 
-# Validate metadata
-Write-BuildLine "Validating plan metadata"
-
-foreach ($var in @("pkg_origin", "pkg_name", "pkg_version", "pkg_source")) {
-    if (-Not (Test-Path variable:script:$var)) {
-        _Exit-With "Failed to build. '$var' must be set." 1
-    } elseif ((Get-Variable $var -Scope script).Value -eq "") {
-        _Exit-With "Failed to build. '$var' must be set and non-empty." 1
+    # If the `HAB_ORIGIN` environment variable is set, override the value of
+    # `$pkg_origin`.
+    if (Test-Path Env:\HAB_ORIGIN) {
+        $script:pkg_origin = "$env:HAB_ORIGIN"
     }
+
+    # Validate metadata
+    Write-BuildLine "Validating plan metadata"
+
+    foreach ($var in @("pkg_origin", "pkg_name", "pkg_version", "pkg_source")) {
+        if (-Not (Test-Path variable:script:$var)) {
+            _Exit-With "Failed to build. '$var' must be set." 1
+        } elseif ((Get-Variable $var -Scope script).Value -eq "") {
+            _Exit-With "Failed to build. '$var' must be set and non-empty." 1
+        }
+    }
+
+    # Test to ensure package name contains only valid characters
+    if (-Not ("$pkg_name" -match '^[A-Za-z0-9_-]+$')) {
+        _Exit-With "Failed to build. Package name '$pkg_name' contains invalid characters." 1
+    }
+
+    # Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
+    # from prior pkg_svc_* variables that were set before the Plan was loaded.
+    if ("$pkg_svc_run" -ne "") {
+        $pkg_svc_run = "$pkg_svc_run".Replace("@__pkg_name__@", "$pkg_name")
+    }
+
+    # Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
+    # set by the `plan.ps1`.
+    if ("$pkg_filename" -eq "") {
+        $script:pkg_filename = "$(Split-Path $pkg_source -Leaf)"
+    }
+
+    # Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
+    # already set by the `plan.ps1`.
+    if ("$pkg_dirname" -eq "") {
+        $script:pkg_dirname = "${pkg_name}-${pkg_version}"
+    }
+
+    # Set `$pkg_prefix` if not already set by the `plan.ps1`.
+    if ("$pkg_prefix" -eq "") {
+        $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
+    }
+
+    # Determine the final output path for the package artifact
+    $script:pkg_output_path = "$(Get-Location)\results"
+
+    # Set $pkg_svc variables a second time, now that the Plan has been sourced and
+    # we have access to `$pkg_name`.
+    $script:pkg_svc_path="$HAB_ROOT_PATH\svc\$pkg_name"
+    $script:pkg_svc_data_path="$pkg_svc_path\data"
+    $script:pkg_svc_files_path="$pkg_svc_path\files"
+    $script:pkg_svc_var_path="$pkg_svc_path\var"
+    $script:pkg_svc_config_path="$pkg_svc_path\config"
+    $script:pkg_svc_static_path="$pkg_svc_path\static"
+
+    # Set the package artifact name
+    $_artifact_ext="hart"
+    $script:pkg_artifact="$HAB_CACHE_ARTIFACT_PATH\${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
+
+    # Run `do_begin`
+    Write-BuildLine "$program setup"
+    Invoke-Begin
+
+    # Determine if we have all the commands we need to work
+    _Get-SystemCommands
+
+    # Enure that the origin key is available for package signing
+    _Assert-OriginKeyPresent
+
+    _Set-HabBin
+
+    # Download and resolve the depdencies
+    _Complete-DependencyResolution
+
+    # Set the complete `Path` environment.
+    _Set-Path
+
+    # Download the source
+    New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
+    Invoke-Download
+
+    # Verify the source
+    Invoke-Verify
+
+    # Clean the cache
+    Invoke-Clean
+
+    # Unpack the source
+    Invoke-Unpack
+
+    # Set up the build environment
+    _Set-Environment
+
+    # Prepare the source
+    Invoke-PrepareWrapper
+
+    # Build the source
+    Invoke-BuildWrapper
+
+    # Check the source
+    Invoke-CheckWrapper
+
+    # Install the source
+    Invoke-InstallWrapper
+
+    # Copy the configuration
+    Invoke-BuildConfig
+
+    # Copy the service management scripts
+    Invoke-BuildService
+
+    # Write the manifest
+    _Write-Manifest
+
+    # Render the linking and dependency files
+    _Write-Metadata
+
+    # Generate the artifact and write to artifact cache
+    _Save-Artifact
+
+    # Copy produced artifact to a local relative directory
+    _Copy-BuildOutputs
+
+    # Cleanup
+    Write-BuildLine "$program cleanup"
+    Invoke-End
 }
-
-# Test to ensure package name contains only valid characters
-if (-Not ("$pkg_name" -match '^[A-Za-z0-9_-]+$')) {
-    _Exit-With "Failed to build. Package name '$pkg_name' contains invalid characters." 1
+finally {
+    Pop-Location
 }
-
-# Pass over `$pkg_svc_run` to replace any `$pkg_name` placeholder tokens
-# from prior pkg_svc_* variables that were set before the Plan was loaded.
-if ("$pkg_svc_run" -ne "") {
-    $pkg_svc_run = "$pkg_svc_run".Replace("@__pkg_name__@", "$pkg_name")
-}
-
-# Set `$pkg_filename` to the basename of `$pkg_source`, if it is not already
-# set by the `plan.ps1`.
-if ("$pkg_filename" -eq "") {
-    $script:pkg_filename = "$(Split-Path $pkg_source -Leaf)"
-}
-
-# Set `$pkg_dirname` to the `$pkg_name` and `$pkg_version`, if it is not
-# already set by the `plan.ps1`.
-if ("$pkg_dirname" -eq "") {
-    $script:pkg_dirname = "${pkg_name}-${pkg_version}"
-}
-
-# Set `$pkg_prefix` if not already set by the `plan.ps1`.
-if ("$pkg_prefix" -eq "") {
-    $script:pkg_prefix = "$HAB_PKG_PATH\$pkg_origin\$pkg_name\$pkg_version\$pkg_release"
-}
-
-# Determine the final output path for the package artifact
-$script:pkg_output_path = "$INITIAL_PWD\results"
-
-# Set $pkg_svc variables a second time, now that the Plan has been sourced and
-# we have access to `$pkg_name`.
-$script:pkg_svc_path="$HAB_ROOT_PATH\svc\$pkg_name"
-$script:pkg_svc_data_path="$pkg_svc_path\data"
-$script:pkg_svc_files_path="$pkg_svc_path\files"
-$script:pkg_svc_var_path="$pkg_svc_path\var"
-$script:pkg_svc_config_path="$pkg_svc_path\config"
-$script:pkg_svc_static_path="$pkg_svc_path\static"
-
-# Set the package artifact name
-$_artifact_ext="hart"
-$script:pkg_artifact="$HAB_CACHE_ARTIFACT_PATH\${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"
-
-# Run `do_begin`
-Write-BuildLine "$program setup"
-Invoke-Begin
-
-# Determine if we have all the commands we need to work
-_Get-SystemCommands
-
-# Enure that the origin key is available for package signing
-_Assert-OriginKeyPresent
-
-_Set-HabBin
-
-# Download and resolve the depdencies
-_Complete-DependencyResolution
-
-# Set the complete `Path` environment.
-_Set-Path
-
-# Download the source
-New-Item "$HAB_CACHE_SRC_PATH" -ItemType Directory -Force | Out-Null
-Invoke-Download
-
-# Verify the source
-Invoke-Verify
-
-# Clean the cache
-Invoke-Clean
-
-# Unpack the source
-Invoke-Unpack
-
-# Set up the build environment
-_Set-Environment
-
-# Prepare the source
-Invoke-PrepareWrapper
-
-# Build the source
-Invoke-BuildWrapper
-
-# Check the source
-Invoke-CheckWrapper
-
-# Install the source
-Invoke-InstallWrapper
-
-# Copy the configuration
-Invoke-BuildConfig
-
-# Copy the service management scripts
-Invoke-BuildService
-
-# Write the manifest
-_Write-Manifest
-
-# Render the linking and dependency files
-_Write-Metadata
-
-# Generate the artifact and write to artifact cache
-_Save-Artifact
-
-# Copy produced artifact to a local relative directory
-_Copy-BuildOutputs
-
-# Cleanup
-Write-BuildLine "$program cleanup"
-Invoke-End
 
 # Print the results
 Write-BuildLine
@@ -923,6 +922,3 @@ Write-BuildLine "Blake2b Checksum: $_pkg_blake2bsum"
 Write-BuildLine
 Write-BuildLine "I love it when a plan.ps1 comes together."
 Write-BuildLine
-
-# Return to the original directory
-Set-Location "$INITIAL_PWD"
