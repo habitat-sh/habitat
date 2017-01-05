@@ -704,6 +704,9 @@ Set-Location "$PLAN_CONTEXT"
 # @TODO fin - is there a way to change directory only in this program without
 # affecting the calling powershell session?
 
+# We want to fail the build for both termionating and non terminating errors
+$ErrorActionPreference = "Stop"
+
 # Load the Plan
 Write-BuildLine "Loading $PLAN_CONTEXT\plan.ps1"
 . "$PLAN_CONTEXT\plan.ps1"
