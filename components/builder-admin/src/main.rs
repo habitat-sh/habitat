@@ -49,11 +49,11 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (about: "Habitat builder-admin")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
-        (@arg config: -c --config +takes_value +global
-            "Filepath to configuration file. [default: /hab/svc/hab-builder-admin/config.toml]")
-        (@arg port: --port +takes_value +global "Listen port. [default: 8080]")
         (@subcommand start =>
             (about: "Run the builder-admin server")
+            (@arg config: -c --config +takes_value
+                "Filepath to configuration file. [default: /hab/svc/hab-builder-admin/config.toml]")
+            (@arg port: --port +takes_value "Listen port. [default: 8080]")
         )
     )
 }
