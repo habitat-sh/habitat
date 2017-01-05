@@ -1,4 +1,9 @@
 UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	forego := support/mac/bin/forego
+else
+	forego := support/linux/bin/forego
+endif
 ifneq (${IN_DOCKER},)
 	IN_DOCKER := ${IN_DOCKER}
 else ifeq ($(UNAME_S),Darwin)
@@ -25,8 +30,10 @@ ifeq ($(IN_DOCKER),true)
 	run := $(common_run) shell
 	bldr_run := $(common_run) -p 9636:9636 -p 8080:8080 shell
 	docs_run := $(common_run) -p 9633:9633 shell
+	forego := support/linux/bin/forego
 else
 	run :=
+	bldr_run :=
 	docs_run :=
 endif
 ifneq ($(DOCKER_HOST),)
@@ -42,9 +49,6 @@ ALL = $(BIN) $(LIB) $(SRV)
 VERSION := $(shell cat VERSION)
 
 .DEFAULT_GOAL := build-bin
-
-bldr-build: $(addprefix bldr-build-,$(SRV))
-.PHONY: bldr-build
 
 build: build-bin build-lib build-srv ## builds all the components
 build-all: build
@@ -107,6 +111,14 @@ shell: image ## launches a development shell
 	$(run)
 .PHONY: shell
 
+bldr-shell: build-srv ## launches a development shell with forwarded ports but doesn't run anything
+	$(bldr_run)
+.PHONY: bldr-shell
+
+bldr-run: build-srv ## launches a development shell running the API
+	$(bldr_run) sh -c '$(forego) start -f support/Procfile -e support/bldr.env'
+.PHONY: bldr-run
+
 serve-docs: docs ## serves the project documentation from an HTTP server
 	@echo "==> View the docs at:\n\n        http://`\
 		echo $(docs_host) | sed -e 's|^tcp://||' -e 's|:[0-9]\{1,\}$$||'`:9633/\n\n"
@@ -161,25 +173,6 @@ build-$1: image ## builds the $1 component
 
 endef
 $(foreach component,$(ALL),$(eval $(call BUILD,$(component))))
-
-define BLDR_BUILD
-bldr-build-$1: image ## builds the $1 component
-	cd components/$1 && cargo build
-.PHONY: bldr-build-$1
-
-endef
-$(foreach component,$(ALL),$(eval $(call BLDR_BUILD,$(component))))
-
-bldr-run: bldr-build
-	support/mac/bin/forego start -f support/Procfile.mac -e support/bldr.env
-
-bldr-shell: build-srv ## launches a development shell with forwarded ports but doesn't run anything
-	$(bldr_run)
-.PHONY: bldr-shell
-
-bldr-run-shell: build-srv ## launches a development shell running the API
-	$(bldr_run) sh -c '/src/support/linux/bin/forego start -f support/Procfile.linux -e support/bldr.env'
-.PHONY: bldr-run-shell
 
 define UNIT
 unit-$1: image ## executes the $1 component's unit test suite
