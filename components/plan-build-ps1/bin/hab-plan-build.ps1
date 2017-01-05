@@ -269,6 +269,70 @@ function _Complete-DependencyResolution {
 function _Set-Path {
 }
 
+# TODO: When we switch to powershell core, we must use
+# System.Security.Cryptography.SHA256 which is not an IDisposable
+function _Get-Sha256($src) {
+  $converter = New-Object -TypeName Security.Cryptography.SHA256Managed
+  try {
+    $bytes = $converter.ComputeHash(($in = (Get-Item $src).OpenRead()))
+    return ([System.BitConverter]::ToString($bytes)).Replace("-", "").ToLower()
+  }
+  finally {
+    $converter.Dispose()
+    if ($in -ne $null) { $in.Dispose() }
+  }
+}
+
+# Verifies that a file on disk matches the given shasum. If the given shasum
+# doesn't match the file's shasum then a warning is printed with the expected
+# and computed shasum values.
+#
+# ```sh
+# _verify_file file.tar.gz abc123...
+# ```
+#
+# Will return 0 if the shasums match, and 1 if they do not match. A message
+# will be printed to stderr with the expected and computed shasum values.
+function _verify_file($dst, $sha) {
+  Write-BuildLine "Verifying $dst"
+  $checksum=($(_Get-Sha256 "$HAB_CACHE_SRC_PATH/$dst"))
+  if ($sha -eq $checksum) {
+    Write-BuildLine "Checksum verified for $dst"
+  }
+  else {
+    Write-Warning "Checksum invalid for ${dst}:"
+    Write-Warning "   Expected: $sha"
+    Write-Warning "   Computed: $checksum"
+    return $false
+  }
+
+  return $true
+}
+
+function _download_file($url, $dst, $sha) {
+  Push-Location $HAB_CACHE_SRC_PATH
+  try {
+      if ((Test-Path $dst) -and $sha) {
+        Write-BuildLine "Found previous file '$dst', attempting to re-use"
+        if (_verify_file $dst $sha) {
+          Write-BuildLine "Using cached and verified '$dst'"
+          return
+        }
+        else {
+          Write-BuildLine "Clearing previous '$dst' file and re-attempting download"
+          Remove-Item $dst -Force
+        }
+      }
+
+      Write-BuildLine "Downloading '$url' to '$dst'"
+      Invoke-WebRequest $url -OutFile $dst
+      Write-BuildLine "Downloaded '$dst'"
+  }
+  finally {
+    Pop-Location
+  }
+}
+
 # Download the software from `$pkg_source` and place it in
 # `$HAB_CACHE_SRC_PATH\${$pkg_filename}`. If the source already exists in the
 # cache, verify that the checksum is what we expect, and skip the download.
@@ -279,6 +343,7 @@ function Invoke-Download {
 
 # Default implementation for the `Invoke-Download` phase.
 function Invoke-DefaultDownload {
+    _download_file $pkg_source $pkg_filename $pkg_shasum
 }
 
 # Verify that the package we have in `$HAB_CACHE_SRC_PATH\$pkg_filename` has
@@ -290,6 +355,9 @@ function Invoke-Verify {
 
 # Default implementation for the `Invoke-Verify` phase.
 function Invoke-DefaultVerify {
+    if( !(_verify_file $pkg_filename $pkg_shasum)) {
+        Write-Error "Verification Failed!"
+    }
 }
 
 # Clean up the remnants of any previous build job, ensuring it can't pollute
