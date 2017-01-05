@@ -49,10 +49,10 @@ fn app<'a, 'b>() -> clap::App<'a, 'b> {
         (about: "Habitat builder-vaultsrv")
         (@setting VersionlessSubcommands)
         (@setting SubcommandRequiredElseHelp)
-        (@arg config: -c --config +takes_value +global
-            "Filepath to configuration file. [default: /hab/svc/hab-builder-vault/config.toml]")
         (@subcommand start =>
             (about: "Run a Habitat-Builder vault server")
+            (@arg config: -c --config +takes_value +global
+                "Filepath to configuration file. [default: /hab/svc/hab-builder-vault/config.toml]")
         )
     )
 }
