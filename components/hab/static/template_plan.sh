@@ -14,7 +14,7 @@ pkg_origin={{ pkg_origin }}
 
 # Required.
 # Sets the version of the package.
-pkg_version=0.0.1
+pkg_version=0.1.0
 
 # Required.
 # A URL that specifies where to download the source from. Any valid wget url
