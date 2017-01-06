@@ -26,26 +26,34 @@ use error::{Error, Result};
 
 static LOGKEY: &'static str = "PT";
 
-/// The package identifier for BusyBox which the Supervisor is built with, or which may be
-/// independently installed
-const BUSYBOX_IDENT: &'static str = "core/busybox-static";
+/// The package identifier for the OS specific interpreter which the Supervisor is built with,
+/// or which may be independently installed
+#[cfg(any(target_os="linux", target_os="macos"))]
+const INTERPRETER_IDENT: &'static str = "core/busybox-static";
+#[cfg(any(target_os="linux", target_os="macos"))]
+const INTERPRETER_COMMAND: &'static str = "busybox";
 
-/// Returns a list of path entries, one of which should contain the BusyBox binary.
+#[cfg(target_os = "windows")]
+const INTERPRETER_IDENT: &'static str = "core/powershell";
+#[cfg(target_os = "windows")]
+const INTERPRETER_COMMAND: &'static str = "powershell";
+
+/// Returns a list of path entries, one of which should contain the interpreter binary.
 ///
 /// The Supervisor provides a minimal userland of commands to the supervised process. This includes
 /// binaries such as `chpst` which can be used by a package's `run` hook.
 ///
-/// There is a series of fallback strategies used here in order to find a usable BusyBox
+/// There is a series of fallback strategies used here in order to find a usable interpreter
 /// installation. The general strategy is the following:
 ///
 /// * Are we (the Supervisor) running inside a package?
-///     * Yes: use the BusyBox release describes in our `DEPS` metafile & return its `PATH` entries
+///     * Yes: use the interpreter release describes in our `DEPS` metafile & return its `PATH` entries
 ///     * No
-///         * Can we find any installed BusyBox package?
-///             * Yes: use the latest installed BusyBox release & return its `PATH` entries
+///         * Can we find any installed interpreter package?
+///             * Yes: use the latest installed interpreter release & return its `PATH` entries
 ///             * No
-///                 * Is the `busybox` binary present on `$PATH`?
-///                     * Yes: return the parent directory which holds the `busybox` binary
+///                 * Is the interpreter binary present on `$PATH`?
+///                     * Yes: return the parent directory which holds the interpreter binary
 ///                     * No: out of ideas, so return an error after warning the user we're done
 ///
 /// # Errors
@@ -53,20 +61,19 @@ const BUSYBOX_IDENT: &'static str = "core/busybox-static";
 /// * If an installed package should exist, but cannot be loaded
 /// * If a installed package's path metadata cannot be read or returned
 /// * If a known-working package identifier string cannot be parsed
-/// * If the parent directory of a located `busybox` binary cannot be computed
-/// * If the Supervisor is not executing inside a package, and if no BusyBox package is installed,
-///   and if no `busybox` binary can be found on the `PATH`
-#[cfg(any(target_os="linux", target_os="macos"))]
+/// * If the parent directory of a located interpreter binary cannot be computed
+/// * If the Supervisor is not executing inside a package, and if no interpreter package is installed,
+///   and if no interpreter binary can be found on the `PATH`
 pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // First, we'll check if we're running inside a package. If we are, then we should  be able to
-    // access the `../DEPS` metadata file and read it to get the specific version of BusyBox.
-    let my_busybox_dep_ident = match env::current_exe() {
+    // access the `../DEPS` metadata file and read it to get the specific version of the interpreter.
+    let my_interpreter_dep_ident = match env::current_exe() {
         Ok(p) => {
             match p.parent() {
                 Some(p) => {
                     let metafile = p.join("DEPS");
                     if metafile.is_file() {
-                        busybox_dep_from_metafile(metafile)
+                        interpreter_dep_from_metafile(metafile)
                     } else {
                         None
                     }
@@ -76,44 +83,44 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
         }
         Err(_) => None,
     };
-    let bb_paths: Vec<PathBuf> = match my_busybox_dep_ident {
+    let interpreter_paths: Vec<PathBuf> = match my_interpreter_dep_ident {
         // We've found the specific release that our supervisor was built with. Get its path
         // metadata.
         Some(ident) => {
             let pkg_install = try!(PackageInstall::load(&ident, None));
             try!(pkg_install.paths())
         }
-        // If we're not running out of a package, then see if any package of BusyBox is installed.
+        // If we're not running out of a package, then see if any package of the interpreter is installed.
         None => {
-            let ident = try!(PackageIdent::from_str(BUSYBOX_IDENT));
+            let ident = try!(PackageIdent::from_str(INTERPRETER_IDENT));
             match PackageInstall::load(&ident, None) {
-                // We found a version of BusyBox. Get its path metadata.
+                // We found a version of the interpreter. Get its path metadata.
                 Ok(pkg_install) => try!(pkg_install.paths()),
-                // Nope, no packages of BusyBox installed. Now we're going to see if the `busybox`
+                // Nope, no packages of the interpreter installed. Now we're going to see if the interpreter
                 // command is present on `PATH`.
                 Err(_) => {
-                    match find_command("busybox") {
-                        // We found `busybox` on `PATH`, so that its `dirname` and return that.
+                    match find_command(INTERPRETER_COMMAND) {
+                        // We found the interpreter on `PATH`, so that its `dirname` and return that.
                         Some(bin) => {
                             match bin.parent() {
                                 Some(dir) => vec![dir.to_path_buf()],
                                 None => {
                                     let path = bin.to_string_lossy().into_owned();
-                                    outputln!("An unexpected error has occurred. BusyBox was \
+                                    outputln!("An unexpected error has occurred. {} was \
                                                found at {}, yet the parent directory could not \
                                                be computed. Aborting...",
-                                              &path);
+                                              INTERPRETER_COMMAND, &path);
                                     return Err(sup_error!(Error::FileNotFound(path)));
                                 }
                             }
                         }
-                        // Well, we're not running out of a package, there is no BusyBox package
+                        // Well, we're not running out of a package, there is no interpreter package
                         // installed, it's not on `PATH`, what more can we do. Time to give up the
                         // chase. Too bad, we were really trying to be helpful here.
                         None => {
-                            outputln!("A BusyBox installation is required but could not be \
-                                       found. Please install 'core/busybox-static' or put the \
-                                       'busybox' command on your $PATH. Aborting...");
+                            outputln!("A interpreter installation is required but could not be \
+                                       found. Please install '{}' or put the \
+                                       interpreter's command on your $PATH. Aborting...", INTERPRETER_IDENT);
                             return Err(sup_error!(Error::PackageNotFound(ident)));
                         }
                     }
@@ -121,13 +128,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
             }
         }
     };
-    Ok(bb_paths)
-}
-
-#[cfg(target_os = "windows")]
-pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
-    let empty: Vec<PathBuf> = Vec::new();
-    Ok(empty)
+    Ok(interpreter_paths)
 }
 
 pub fn append_interpreter_and_path(orig_paths: &mut Vec<PathBuf>) -> Result<String> {
@@ -142,8 +143,8 @@ pub fn append_interpreter_and_path(orig_paths: &mut Vec<PathBuf>) -> Result<Stri
     Ok(path_str)
 }
 
-/// Returns a `PackageIdent` for a BusyBox package, assuming it exists in the provided metafile.
-fn busybox_dep_from_metafile(metafile: PathBuf) -> Option<PackageIdent> {
+/// Returns a `PackageIdent` for a interpreter package, assuming it exists in the provided metafile.
+fn interpreter_dep_from_metafile(metafile: PathBuf) -> Option<PackageIdent> {
     let f = match File::open(metafile) {
         Ok(f) => f,
         Err(_) => return None,
@@ -154,7 +155,7 @@ fn busybox_dep_from_metafile(metafile: PathBuf) -> Option<PackageIdent> {
             Ok(l) => l,
             Err(_) => return None,
         };
-        if line.contains(BUSYBOX_IDENT) {
+        if line.contains(INTERPRETER_IDENT) {
             match PackageIdent::from_str(&line) {
                 Ok(pi) => return Some(pi),
                 Err(_) => return None,
