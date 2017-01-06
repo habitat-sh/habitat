@@ -397,8 +397,7 @@ function _Set-Environment {
 function Invoke-PrepareWrapper {
     Write-BuildLine "Preparing to build"
     Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
-    Invoke-Prepare
-    Pop-Location
+    try { Invoke-Prepare } finally { Pop-Location }
 }
 
 # A step that exists to be overriden. We have the software downloaded,
@@ -419,8 +418,7 @@ function Invoke-DefaultPrepare {
 function Invoke-BuildWrapper {
     Write-BuildLine "Building"
     Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
-    Invoke-Build
-    Pop-Location
+    try { Invoke-Build } finally { Pop-Location }
 }
 
 # Build the software. Delegates most of the implementation to the
@@ -456,8 +454,7 @@ function Invoke-CheckWrapper {
     if ((_Check-Command Invoke-Check) -and (Test-Path Env:\DO_CHECK)) {
         Write-BuildLine "Running post-compile tests"
         Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
-        Invoke-Check
-        Pop-Location
+        try { Invoke-Check } finally { Pop-Location }
     }
 }
 
@@ -467,8 +464,7 @@ function Invoke-InstallWrapper {
     Write-BuildLine "Installing"
     New-Item "$pkg_prefix" -ItemType Directory -Force | Out-Null
     Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
-    Invoke-Install
-    Pop-Location
+    try { Invoke-Install } finally { Pop-Location }
 }
 
 # Install the software. Delegates most of the implementation to the
