@@ -85,7 +85,6 @@ impl<'a> Push<'a> {
                                member.get_id());
                         continue;
                     }
-
                     // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to
                     // persistent members that are confirmed dead. When the failure detector thread
                     // finds them alive again, we'll go ahead and get back to the business at hand.
@@ -115,15 +114,18 @@ impl<'a> Push<'a> {
                     let _ = guard.join().map_err(|e| println!("Push worker died: {:?}", e));
                 }
                 if SteadyTime::now() < next_gossip {
-                    let wait_time = next_gossip - SteadyTime::now();
-                    thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
+                    let wait_time = (next_gossip - SteadyTime::now()).num_milliseconds();
+                    if wait_time > 0 {
+                        thread::sleep(Duration::from_millis(wait_time as u64));
+                    }
                 }
             }
             if SteadyTime::now() < long_wait {
-                let wait_time = long_wait - SteadyTime::now();
-                thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
+                let wait_time = (long_wait - SteadyTime::now()).num_milliseconds();
+                if wait_time > 0 {
+                    thread::sleep(Duration::from_millis(wait_time as u64));
+                }
             }
-
         }
     }
 }
