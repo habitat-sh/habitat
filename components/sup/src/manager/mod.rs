@@ -356,9 +356,9 @@ impl Manager {
                 }
             }
 
-            let time_to_wait = next_check - SteadyTime::now();
-            if time_to_wait.num_milliseconds() > 0 {
-                thread::sleep(Duration::from_millis(time_to_wait.num_milliseconds() as u64));
+            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
+            if time_to_wait > 0 {
+                thread::sleep(Duration::from_millis(time_to_wait as u64));
             }
         }
     }

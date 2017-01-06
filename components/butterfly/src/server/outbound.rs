@@ -127,17 +127,20 @@ impl<'a> Outbound<'a> {
                     self.probe(member);
 
                     if SteadyTime::now() <= next_protocol_period {
-                        let wait_time = next_protocol_period - SteadyTime::now();
-                        debug!("Waiting {} until the next protocol period",
-                               wait_time.num_milliseconds());
-                        thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
+                        let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
+                        if wait_time > 0 {
+                            debug!("Waiting {} until the next protocol period", wait_time);
+                            thread::sleep(Duration::from_millis(wait_time as u64));
+                        }
                     }
                 }
             }
 
             if SteadyTime::now() <= long_wait {
-                let wait_time = long_wait - SteadyTime::now();
-                thread::sleep(Duration::from_millis(wait_time.num_milliseconds() as u64));
+                let wait_time = (long_wait - SteadyTime::now()).num_milliseconds();
+                if wait_time > 0 {
+                    thread::sleep(Duration::from_millis(wait_time as u64));
+                }
             }
         }
     }
