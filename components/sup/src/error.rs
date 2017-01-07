@@ -125,6 +125,7 @@ pub enum Error {
     JsonEncode(json::EncoderError),
     KeyNotFound(String),
     MetaFileIO(io::Error),
+    NameLookup(io::Error),
     NetParseError(net::AddrParseError),
     NoRunFile,
     NulError(ffi::NulError),
@@ -192,6 +193,7 @@ impl fmt::Display for SupError {
             Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
+            Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoRunFile => {
                 format!("No run file is present for this package; specify a run hook or \
@@ -280,6 +282,7 @@ impl error::Error for SupError {
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
+            Error::NameLookup(_) => "Error resolving a name or IP address",
             Error::NoRunFile => {
                 "No run file is present for this package; specify a run hook or $pkg_svc_run \
                  in your plan"
