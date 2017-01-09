@@ -13,6 +13,7 @@
 // limitations under the License.
 
 pub mod init {
+    use std::env;
     use std::fs::create_dir_all;
     use std::fs::{File, canonicalize};
     use std::io::Write;
@@ -53,6 +54,14 @@ pub mod init {
         let mut data = HashMap::new();
         data.insert("pkg_name".to_string(), name);
         data.insert("pkg_origin".to_string(), origin);
+
+        // Add all environment variables that start with "pkg_" as variables in
+        // the template.
+        for (key, value) in env::vars() {
+            if key.starts_with("pkg_") {
+                data.insert(key, value);
+            }
+        }
 
         // We want to render the configured variables.
         let rendered_plan = try!(handlebars.template_render(PLAN_TEMPLATE, &data));

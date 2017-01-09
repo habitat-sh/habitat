@@ -226,7 +226,9 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand init =>
                 (about: "Generates common package specific configuration files. Executing without \
                     argument will create a `habitat` directory in your current folder for the plan. \
-                    If `PKG_NAME` is specified it will create a folder with that name.")
+                    If `PKG_NAME` is specified it will create a folder with that name. \
+                    Environment variables (those starting with 'pkg_') that are set will be used \
+                    in the generated plan")
                 (aliases: &["i", "in", "ini"])
                 (@arg PKG_NAME: +takes_value "Name for the new app.")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
