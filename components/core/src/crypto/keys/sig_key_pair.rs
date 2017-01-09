@@ -15,7 +15,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use rustc_serialize::base64::{STANDARD, ToBase64};
+use rustc_serialize::base64::{STANDARD, FromBase64, ToBase64};
 use rustc_serialize::hex::ToHex;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
@@ -379,7 +379,17 @@ impl SigKeyPair {
             }
         };
         let key_body = match lines.nth(1) {
-            Some(val) => val,
+            Some(val) => {
+                // Test for valid Base64 key
+                match val.trim().as_bytes().from_base64() {
+                    Ok(_) => val,
+                    _ => {
+                        let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
+                                          content);
+                        return Err(Error::CryptoError(msg));
+                    }
+                }
+            },
             None => {
                 let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
                                   content);
@@ -717,6 +727,24 @@ mod test {
     }
 
     #[test]
+    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    fn write_file_from_str_invalid_key_secret() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n%",
+                                        cache.path()).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "write_sig_key_from_str:3 Malformed sig key string")]
+    fn write_file_from_str_invalid_key_public() {
+        let cache = TempDir::new("key_cache").unwrap();
+
+        SigKeyPair::write_file_from_str("SIG-PUB-1\nim-in-trouble-123\n\nc29tZXRoaW5n%",
+                                        cache.path()).unwrap();
+    }
+
+    #[test]
     #[should_panic(expected = "Existing key file")]
     fn write_file_from_str_key_exists_but_hashes_differ_secret() {
         let cache = TempDir::new("key_cache").unwrap();
@@ -725,7 +753,7 @@ mod test {
                  cache.path().join("origin-key-valid-20160509190508.sig.key"))
             .unwrap();
 
-        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\nsomething",
+        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
                                         cache.path())
             .unwrap();
     }
@@ -739,7 +767,7 @@ mod test {
                  cache.path().join("origin-key-valid-20160509190508.pub"))
             .unwrap();
 
-        SigKeyPair::write_file_from_str("SIG-PUB-1\norigin-key-valid-20160509190508\n\nsomething",
+        SigKeyPair::write_file_from_str("SIG-PUB-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
                                         cache.path())
             .unwrap();
     }
