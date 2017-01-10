@@ -315,7 +315,8 @@ fn sub_pkg_hash(m: &ArgMatches) -> Result<()> {
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(|v| v.into());
     let origin = try!(origin_param_or_env(&m));
-    command::plan::init::start(ui, origin, name)
+    let include_callbacks = !m.is_present("NO_CALLBACKS");
+    command::plan::init::start(ui, origin, include_callbacks, name)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {

@@ -28,7 +28,11 @@ pub mod init {
     const PLAN_TEMPLATE: &'static str = include_str!("../../static/template_plan.sh");
     const DEFAULT_TOML_TEMPLATE: &'static str = include_str!("../../static/template_default.toml");
 
-    pub fn start(ui: &mut UI, origin: String, maybe_name: Option<String>) -> Result<()> {
+    pub fn start(ui: &mut UI,
+                 origin: String,
+                 include_callbacks: bool,
+                 maybe_name: Option<String>)
+                 -> Result<()> {
         try!(ui.begin("Constructing a cozy habitat for your app..."));
         try!(ui.br());
 
@@ -38,14 +42,14 @@ pub mod init {
             None => {
                 ("habitat".into(),
                  canonicalize(".")
-                     .ok()
-                     .and_then(|path| {
-                         path.components().last().and_then(|val| {
-                             // Type gymnastics!
-                             val.as_os_str().to_os_string().into_string().ok()
-                         })
-                     })
-                     .unwrap_or("unnamed".into()))
+                    .ok()
+                    .and_then(|path| {
+                        path.components().last().and_then(|val| {
+                            // Type gymnastics!
+                            val.as_os_str().to_os_string().into_string().ok()
+                        })
+                    })
+                    .unwrap_or("unnamed".into()))
             }
         };
 
@@ -54,6 +58,9 @@ pub mod init {
         let mut data = HashMap::new();
         data.insert("pkg_name".to_string(), name);
         data.insert("pkg_origin".to_string(), origin);
+        if include_callbacks {
+            data.insert("include_callbacks".to_string(), "true".to_string());
+        }
 
         // Add all environment variables that start with "pkg_" as variables in
         // the template.

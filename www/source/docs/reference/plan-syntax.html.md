@@ -256,9 +256,6 @@ do_download()
 do_verify()
 : The default implementation tries to verify the checksum specified in the plan against the computed checksum after downloading the source tarball to disk. If the specified checksum doesn't match the computed checksum, then an error and a message specifying the mismatch will be printed to stderr. You should not need to override this behavior unless your package does not download any files.
 
-do_check()
-: The default implementation runs nothing during post-compile.  An example of a command you might use in this callback is `make test`. To use this callback, two conditions must be true. A) `do_check()` function has been declared, B) `DO_CHECK` environment variable exists and set to true, `env DO_CHECK=true`.
-
 do_clean()
 : The default implementation removes the *HAB_CACHE_SRC_PATH/$pkg_dirname* folder in case there was a previously-built version of your package installed on disk. This ensures you start with a clean build environment.
 
@@ -270,6 +267,10 @@ do_prepare()
 
 do_build()
 : The default implementation is to update the prefix path for the configure script to use $pkg_prefix and then run `make` to compile the downloaded source. This means the script in the default implementation does `./configure --prefix=$pkg_prefix && make`. You should override this behavior if you have additional configuration changes to make or other software to build and install as part of building your package.
+
+do_check()
+: The default implementation runs nothing during post-compile.  An example of a command you might use in this callback is `make test`. To use this callback, two conditions must be true. A) `do_check()` function has been declared, B) `DO_CHECK` environment variable exists and set to true, `env DO_CHECK=true`.
+
 
 do_install()
 : The default implementation is to run `make install` on the source files and place the compiled binaries or libraries in *HAB_CACHE_SRC_PATH/$pkg_dirname*, which resolves to a path like `/hab/cache/src/packagename-version/`. It uses this location because of **do_build()** using the `--prefix` option when calling the configure script. You should override this behavior if you need to perform custom installation steps, such as copying files from HAB_CACHE_SRC_PATH to specific directories in your package, or installing pre-built binaries into your package.
