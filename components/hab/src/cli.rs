@@ -232,6 +232,7 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["i", "in", "ini"])
                 (@arg PKG_NAME: +takes_value "Name for the new app.")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
+                (@arg NO_CALLBACKS: --nocallbacks -f "Do not include callback functions in template")
             )
         )
         (@subcommand ring =>
@@ -413,7 +414,11 @@ fn file_exists(val: String) -> result::Result<(), String> {
 }
 
 fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
-    if val == "-" { Ok(()) } else { file_exists(val) }
+    if val == "-" {
+        Ok(())
+    } else {
+        file_exists(val)
+    }
 }
 
 fn valid_pair_type(val: String) -> result::Result<(), String> {
