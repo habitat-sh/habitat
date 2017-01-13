@@ -51,7 +51,9 @@ rf_version="0.6.3"
 
 # Fix commit range in Travis, if set.
 # See: https://github.com/travis-ci/travis-ci/issues/4596
-TRAVIS_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
+if [ -n "${TRAVIS_COMMIT_RANGE:-}" ]; then
+  TRAVIS_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
+fi
 
 info "Checking for rustfmt"
 if ! command -v rustfmt >/dev/null; then
@@ -65,7 +67,7 @@ if [[ "$actual" != "$rf_version" ]]; then
 fi
 
 failed="$(mktemp -t "$(basename $0)-failed-XXXX")"
-trap 'rm -f $failed; exit $?' INT TERM EXIT
+trap 'code=$?; rm -f $failed; exit $code' INT TERM EXIT
 
 if [[ -n "${LINT_ALL:-}" ]]; then
   cmd="find components -type f -name '*.rs'"
