@@ -21,6 +21,7 @@ sodiumoxide = "*"
 time = "*"
 toml = "*"
 url = "*"
+statsd = "*"
 
 [target.'cfg(not(windows))'.dependencies]
 users = "*"
