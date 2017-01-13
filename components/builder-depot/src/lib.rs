@@ -17,6 +17,8 @@ extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate habitat_core as hab_core;
 extern crate habitat_net as hab_net;
+#[macro_use]
+extern crate builder_core as bld_core;
 extern crate bodyparser;
 extern crate crypto;
 #[macro_use]
