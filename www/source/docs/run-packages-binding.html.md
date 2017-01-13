@@ -10,24 +10,28 @@ For example, you might have a web application `foo` that depends on the value of
 
 ## Example
 
-The [Ruby on Rails sample plan](https://github.com/habitat-sh/habitat/tree/master/plans/ruby-rails-sample) illustrates this exact situation. The [configuration template](https://github.com/habitat-sh/habitat/blob/master/plans/ruby-rails-sample/config/database.yml) for the database has content like this:
+For an example look at the [haproxy](https://github.com/habitat-sh/core-plans/blob/master/haproxy/config/haproxy.conf) core-plan. These lines in the [haproxy.conf](https://github.com/habitat-sh/core-plans/blob/master/haproxy/config/haproxy.conf#L18-L23) illustrate how to reference a service binding. When a binding is enabled, the config will be rendered with a backend for each healthy instance in the service group.
 
-```
-{{#if bind.database}}
-{{#with bind.database.members}}  host: {{ip}}{{/with}}
-{{/if}}
-```
+~~~
+{{#if bind.has_backend }}
+{{~#each bind.backend.members}}
+{{~#if alive }}
+    server {{ip}} {{ip}}:{{port}}
+{{~/if}}
+{{~/each}}
+~~~
 
-`database` is a generic name which will be substituted with the real name
+`backend` is a generic name which will be substituted with the real name
 using the `--bind` parameter to the supervisor, for example:
 
-       hab start core/ruby-rails-sample --bind database:postgresql.qa
+       hab start core/haproxy --bind backend:example-services
 
-which would bind `database` to the `postgresql.qa` service group.
+which would bind `backend` to the `example-services` service group.
 
 You can declare bindings to multiple service groups in your templates. The arguments to `--bind` are separated by commas.
 
 The supervisor will throw an error if you have declared bindings but failed to resolve all of them with `--bind` when starting the package.
+
 
 <hr>
 <ul class="main-content--link-nav">
