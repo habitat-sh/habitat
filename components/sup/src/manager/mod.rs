@@ -87,9 +87,13 @@ impl Manager {
                                                  None));
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in gconfig().gossip_peer() {
-            let addrs: Vec<SocketAddr> = peer_addr.to_socket_addrs()
-                                                  .expect("Unable to resolve domain")
-                                                  .collect();
+            let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
+                Ok(addrs) => addrs.collect(),
+                Err(e) => {
+                    outputln!("Failed to resolve: {}", peer_addr);
+                    return Err(sup_error!(Error::NameLookup(e)));
+                }
+            };
             let addr: SocketAddr = addrs[0];
             let mut peer = Member::new();
             peer.set_address(format!("{}", addr.ip()));
@@ -307,12 +311,11 @@ impl Manager {
 
                 // Write out any files we received via butterfly
                 let mut service_files_updated = false;
-                for (incarnation, filename, body) in
-                    self.state
-                        .butterfly
-                        .service_files_for(&service.service_group_str(),
-                                           &service.current_service_files)
-                        .into_iter() {
+                for (incarnation, filename, body) in self.state
+                    .butterfly
+                    .service_files_for(&service.service_group_str(),
+                                       &service.current_service_files)
+                    .into_iter() {
                     let result = service.write_butterfly_service_file(filename, incarnation, body);
                     if service_files_updated == false && result == true {
                         service_files_updated = true;
@@ -324,11 +327,10 @@ impl Manager {
 
                 // Write out any service configuration we received via butterfly
                 let mut service_config_updated = false;
-                if let Some((incarnation, config)) =
-                    self.state
-                        .butterfly
-                        .service_config_for(&service.service_group_str(),
-                                            service.service_config_incarnation) {
+                if let Some((incarnation, config)) = self.state
+                    .butterfly
+                    .service_config_for(&service.service_group_str(),
+                                        service.service_config_incarnation) {
                     service_config_updated = service.write_butterfly_service_config(config);
                     service.service_config_incarnation = Some(incarnation);
                 }

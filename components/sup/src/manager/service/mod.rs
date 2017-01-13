@@ -62,11 +62,11 @@ pub struct Service {
 
 impl Service {
     pub fn new<S: Into<String>>(package: Package,
-               group: S,
-               organization: Option<String>,
-               topology: Topology,
-               update_strategy: UpdateStrategy)
-               -> Result<Service> {
+                                group: S,
+                                organization: Option<String>,
+                                topology: Topology,
+                                update_strategy: UpdateStrategy)
+                                -> Result<Service> {
         let service_group = ServiceGroup::new(package.name.clone(), group, organization);
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package.pkg_install));
         let sg = format!("{}.{}", service_group.service, service_group.group);
@@ -74,9 +74,7 @@ impl Service {
                   &svc_user,
                   &svc_group);
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
-        let supervisor = Supervisor::new(package.ident().clone(),
-                                         &service_group,
-                                         runtime_config);
+        let supervisor = Supervisor::new(package.ident().clone(), &service_group, runtime_config);
         Ok(Service {
             service_group: service_group,
             supervisor: supervisor,
