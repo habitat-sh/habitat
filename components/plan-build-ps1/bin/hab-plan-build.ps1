@@ -240,6 +240,37 @@ function Write-BuildLine {
     }
 }
 
+function Get-HabPackagePath {
+<#
+.SYNOPSIS
+Returns the path for the desired build or runtime direct package dependency
+on stdout from the resolved dependency set.
+
+.PARAMETER Identity
+The package identity of the path to retrieve.
+
+.EXAMPLE
+Get-HabPackagePath "acme/nginx"
+# /hab/pkgs/acme/nginx/1.8.0/20150911120000
+
+.EXAMPLE
+Get-HabPackagePath "zlib"
+# /hab/pkgs/acme/zlib/1.2.8/20151216221001
+
+.EXAMPLE
+Get-HabPackagePath "glibc/2.22"
+# /hab/pkgs/acme/glibc/2.22/20151216221001
+#>
+    param($Identity)
+
+    foreach($e in $pkg_all_deps_resolved) {
+        if("$($e.Replace("\", "/"))/".Contains("/$Identity/")) {
+          return $e
+        }
+    }
+    Write-Error "Get-HabPackagePath '$Identity' did not find a suitable installed package`nResolved package set: ${pkg_all_deps_resolved}"
+}
+
 # ## Build Phases
 #
 # Stub build phases, in the order they are executed. These can be overridden by
@@ -257,9 +288,348 @@ function Invoke-DefaultBegin {
 }
 
 function _Set-HabBin {
+  if ($env:NO_INSTALL_DEPS) {
+    Write-BuildLine "`$env:NO_INSTALL_DEPS set: no package dependencies will be installed"
+  }
+
+  if ($env:HAB_BIN) { $script:HAB_BIN=$env:HAB_BIN }
+  else { $script:HAB_BIN=$_hab_cmd }
+  Write-BuildLine "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
+}
+
+function _install-dependency($dependency) {
+  if (!$env:NO_INSTALL_DEPS) {
+    & $HAB_BIN install -u $env:HAB_DEPOT_URL $dependency
+  }
+}
+
+# **Internal** Return the path to the latest release of a package on stdout.
+#
+# ```
+# _latest_installed_package acme/nginx
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
+# _latest_installed_package acme/nginx/1.8.0
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
+# _latest_installed_package acme/nginx/1.8.0/20150911120000
+# # /hab/pkgs/acme/nginx/1.8.0/20150911120000
+# ```
+#
+# Will return the package found on disk, and $false if a package cannot be found.
+function _latest_installed_package($dependency) {
+  if (!(Test-Path "$HAB_PKG_PATH/$dependency")) {
+    Write-Warning "No installed packages of '$dependency' were found"
+    return $false
+  }
+
+  # Count the number of slashes, and use it to make a choice
+  # about what to return as the latest package.
+  $latest_package_flags = $dependency.split("/").length - 1
+  $depth = switch ($latest_package_flags) {
+    3 { 1 }
+    2 { 2 }
+    1 { 3 }
+  }
+
+  $result = try { (Get-ChildItem "$HAB_PKG_PATH/$dependency" -Recurse -Include MANIFEST)[-1].FullName } catch { }
+  if (!$result) {
+    Write-Warning "Could not find a suitable installed package for '$dependency'"
+    return $false
+  }
+  else {
+    return Split-Path $result -Parent
+  }
+}
+
+function _resolve-dependency($dependency) {
+  if (!$dependency.Contains("/")) {
+    Write-Warning "Origin required for '$dependency' in plan '$pkg_origin/$pkg_name' (example: acme/$dependency)"
+    return $false
+  }
+
+  if ($dep_path = _latest_installed_package $dependency) {
+    return $dep_path
+  }
+  else {
+    return $false
+  }
+}
+
+# **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
+# installed package which contain the set of all direct and transitive run
+# dependencies. An empty set could be returned as whitespace and/or newlines.
+# The lack of a `TDEPS` file in the desired package will be considered an
+# unset, or empty set.
+#
+# ```
+# _Get-TdepsFor /hab/pkgs/acme/a/4.2.2/20160113044458
+# # /hab/pkgs/acme/dep-b/1.2.3/20160113033619
+# # /hab/pkgs/acme/dep-c/5.0.1/20160113033507
+# # /hab/pkgs/acme/dep-d/2.0.0/20160113033539
+# # /hab/pkgs/acme/dep-e/10.0.1/20160113033453
+# # /hab/pkgs/acme/dep-f/4.2.2/20160113033338
+# # /hab/pkgs/acme/dep-g/4.2.2/20160113033319
+# ```
+#
+# Will return the contents of `TDEPS` if the file exists, otherwise an empty array.
+function _Get-TdepsFor($dependency) {
+  if (Test-Path "$dependency/TDEPS") {
+    Get-Content $dependency/TDEPS
+  }
+  else {
+    # No file, meaning an empty set
+    @()
+  }
+}
+
+# **Internal** Appends an entry to the given array only if the entry is not
+# already present and returns the resulting array back on stdout. In so doing,
+# this function mimics a set when adding new entries. Note that any array can
+# be passed in, including ones that already contain duplicate entries.
+#
+# ```
+# arr=(a b c)
+# arr=($(_return_or_append_to_set "b" "${arr[@]}"))
+# echo ${arr[@]}
+# # a b c
+# arr=($(_return_or_append_to_set "z" "${arr[@]}"))
+# echo ${arr[@]}
+# # a b c z
+# ```
+#
+# Will return 0 in any case.
+function _return_or_append_to_set($dependency, $depArray) {
+  foreach($e in $depArray) {
+    if ($e -eq $dependency) {
+      $depArray
+    }
+  }
+  $depArray + $dependency
+}
+
+function Resolve-HabPkgPath($unresolved) {
+    $unresolved.Replace("$(Resolve-Path $HAB_PKG_PATH)\", "").Replace("\", "/")
+}
+
+# **Internal** Prints a dependency graph in a format to the `tree(1)` command.
+# This is used in concert with `_validate_deps` for the purpose of output to an
+# end user.  It accepts a standard in stream as input where each line is a
+# direct dependency package identifier of some package. The first function
+# parameter is the leading padding depth when printing the dependency line.
+# Finally, a global internal variable, `$_dupes_qualified`, is used to display
+# which dependency entries have the duplicate versions present. An example
+# should help to clarify:
+#
+# ```
+# _dupes_qualified=$(cat <<EOF
+# acme/glibc/2.22/20160309153915
+# acme/glibc/2.22/20160308150809
+# acme/linux-headers/4.3/20160309153535
+# acme/linux-headers/4.3/20160308150438
+# EOF
+# )
+#
+# echo "acme/less/481/20160309165238"
+#
+# cat <<EOF | _print_recursive_deps 1
+# acme/glibc/2.22/20160309153915
+# acme/ncurses/6.0/20160308165339
+# acme/pcre/8.38/20160308165506
+# EOF
+# ```
+#
+# And the corresponding output, in this case showing the problematic
+# dependencies:
+#
+# ```
+# acme/less/481/20160309165238
+#     acme/glibc/2.22/20160309153915 (*)
+#         acme/linux-headers/4.3/20160309153535 (*)
+#     acme/ncurses/6.0/20160308165339
+#         acme/glibc/2.22/20160308150809 (*)
+#             acme/linux-headers/4.3/20160308150438 (*)
+#         acme/gcc-libs/5.2.0/20160308165030
+#             acme/glibc/2.22/20160308150809 (*)
+#                 acme/linux-headers/4.3/20160308150438 (*)
+#     acme/pcre/8.38/20160308165506
+#         acme/glibc/2.22/20160308150809 (*)
+#             acme/linux-headers/4.3/20160308150438 (*)
+#         acme/gcc-libs/5.2.0/20160308165030
+#             acme/glibc/2.22/20160308150809 (*)
+#                 acme/linux-headers/4.3/20160308150438 (*)
+# ```
+function _print_recursive_deps($dependencies, $qualified, $level) {
+  # Compute the amount of leading whitespace when display this line and any
+  # child dependencies.
+  $padn=" " * ($level * 4)
+  foreach($dep in $dependencies) {
+    $dep = Resolve-HabPkgPath $dep
+    # If this dependency is a member of the duplicated set, then add an
+    # asterisk at the end of the line, otherwise print the dependency.
+    if ($qualified.Contains($dep)) {
+      Write-Host "$padn$dep (*)"
+    }
+    else {
+      Write-Host "$padn$dep"
+    }
+    # If this dependency itself has direct dependencies, then recursively print
+    # them.
+    if (Test-Path "$HAB_PKG_PATH/$dep/DEPS") {
+      _print_recursive_deps (Get-Content "$HAB_PKG_PATH/$dep/DEPS") $qualified ($level + 1)
+    }
+  }
+}
+
+# **Internal** Validates that the computed dependencies are reasonable and that
+# the full runtime set is unique--that is, there are no duplicate entries of
+# the same `ORIGIN/NAME` tokens. An example would be a Plan which has a
+# dependency on `acme/glibc` and a dependency on `acme/pcre` which uses an
+# older version of `acme/glibc`. This leads to a package which would have 2
+# version of `acme/glibc` in the shared library `RUNPATH` (`RPATH`). Rather
+# than building a package which is destined to fail at runtime, this function
+# will fast-fail with dependency information which an end user can use to
+# resolve the situation before continuing.
+function _Assert-Deps {
+  # Build the list of full runtime deps (one per line) without the
+  # `$HAB_PKG_PATH` prefix.
+  $tdeps = $pkg_tdeps_resolved | % {
+    $_.Substring((Resolve-Path $HAB_PKG_PATH).Path.Length+1).Replace("\", "/")
+  }
+
+  $pkgNames = $tdeps | % {
+    [String]::Join("/", $_.Split("/")[0..1])
+  }
+
+  if($pkgNames -eq $null) { $pkgNames = @() }
+  # Build the list of any runtime deps that appear more than once. That is,
+  # `ORIGIN/NAME` token duplicates.
+  $uniques = $pkgNames | Select -Unique
+  if($uniques -eq $null) { $uniques = @() }
+  $dupes = Compare-object -referenceobject $uniques -differenceobject $pkgNames | Select -Unique
+
+  if($dupes) {
+    # Build a list of all fully qualified package identifiers that are members
+    # of the duplicated `ORIGIN/NAME` tokens. This will be used to star the
+    # problematic dependencies in the graph.
+    $_dupes_qualified=$dupes | % {
+        $candidate = $_.InputObject
+        $tdeps | ? {
+            $_.StartsWith($candidate)
+        }
+    }
+
+    Write-Warning ""
+    Write-Warning "The following runtime dependencies have more than one version"
+    Write-Warning "release in the full dependency chain:"
+    Write-Warning ""
+    foreach($dupe in $dupes) {
+      Write-Warning "  * $($dupe.InputObject) ( $($tdeps | ? { $_.StartsWith($dupe.InputObject) } ))"
+    }
+    Write-Warning ""
+    Write-Warning 'The current situation usually arises when a Plan has a direct '
+    Write-Warning 'dependency on one version of a package (`acme/A/7.0/20160101200001`)'
+    Write-Warning 'and has a direct dependency on another package which itself depends'
+    Write-Warning 'on another version of the same package (`acme/A/2.0/20151201060001`).'
+    Write-Warning 'If this package (`acme/A`) contains shared libraries which are'
+    Write-Warning 'loaded at runtime by the current Plan, then both versions of'
+    Write-Warning '`acme/A` could be loaded into the same process in a potentially'
+    Write-Warning 'surprising order. Worse, if both versions of `acme/A` are'
+    Write-Warning 'ABI-incompatible, runtime segmentation faults are more than likely.'
+    Write-Warning ""
+    Write-Warning 'In order to preserve reliability at runtime the duplicate dependency'
+    Write-Warning 'entries will need to be resolved before this Plan can be built.'
+    Write-Warning 'Below is an expanded graph of all `$pkg_deps` and their dependencies'
+    Write-Warning 'with the problematic lines noted.'
+    Write-Warning ""
+    Write-Warning "Computed dependency graph (Lines with '*' denote a problematic entry):"
+    Write-Host "`n$pkg_origin/$pkg_name/$pkg_version/$pkg_release"
+    _print_recursive_deps $pkg_deps_resolved $_dupes_qualified 1
+    Write-Host ""
+    _Exit-With "Computed runtime dependency check failed, aborting" 31
+  }
 }
 
 function _Complete-DependencyResolution {
+  Write-BuildLine "Resolving dependencies"
+
+  # Build `${pkg_build_deps_resolved[@]}` containing all resolved direct build
+  # dependencies.
+  $script:pkg_build_deps_resolved=@()
+  foreach($dep in $pkg_build_deps) {
+    _install-dependency $dep
+    if($resolved=(_resolve-dependency $dep)) {
+      Write-BuildLine "Resolved build dependency '$dep' to $resolved"
+      $script:pkg_build_deps_resolved+=($resolved)
+    }
+    else {
+      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+    }
+  }
+
+  # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
+  # dependencies.
+  $script:pkg_deps_resolved=@()
+  foreach($dep in $pkg_deps) {
+    _install-dependency $dep
+    if ($resolved=(_resolve-dependency $dep)) {
+      Write-BuildLine "Resolved dependency '$dep' to $resolved"
+      $script:pkg_deps_resolved+=$resolved
+    }
+    else {
+      _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+    }
+  }
+ 
+  # Build `${pkg_build_tdeps_resolved[@]}` containing all the direct build
+  # dependencies, and the run dependencies for each direct build dependency.
+
+  # Copy all direct build dependencies into a new array
+  $script:pkg_build_tdeps_resolved=$pkg_build_deps_resolved
+  # Append all non-direct (transitive) run dependencies for each direct build
+  # dependency. That's right, not a typo ;) This is how a `acme/gcc` build
+  # dependency could pull in `acme/binutils` for us, as an example. Any
+  # duplicate entries are dropped to produce a proper set.
+  foreach($dep in $pkg_build_deps_resolved) {
+    $tdeps=_Get-TdepsFor $dep
+    foreach($tdep in $tdeps) {
+      $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
+      $script:pkg_build_tdeps_resolved=(_return_or_append_to_set $tdep $pkg_build_tdeps_resolved)
+    }
+  }
+
+  # Build `${pkg_tdeps_resolved[@]}` containing all the direct run
+  # dependencies, and the run dependencies for each direct run dependency.
+
+  # Copy all direct dependencies into a new array
+  $script:pkg_tdeps_resolved=$pkg_deps_resolved
+  # Append all non-direct (transitive) run dependencies for each direct run
+  # dependency. Any duplicate entries are dropped to produce a proper set.
+  foreach($dep in $pkg_deps_resolved) {
+    $tdeps=_Get-TdepsFor $dep
+    foreach($tdep in $tdeps) {
+      $tdep=(Resolve-Path "$HAB_PKG_PATH/$tdep").Path
+      $script:pkg_tdeps_resolved=_return_or_append_to_set $tdep $pkg_tdeps_resolved
+    }
+  }
+
+  # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
+  # dependencies. The build dependencies appear before the run dependencies.
+  $script:pkg_all_deps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
+
+  # Build an ordered set of all build and run dependencies (direct and
+  # transitive). The order is important as this gets used when setting the
+  # `$PATH` ordering in the build environment. To give priority to direct
+  # dependencies over transitive ones the order of packages is the following:
+  #
+  # 1. All direct build dependencies
+  # 1. All direct run dependencies
+  # 1. All unique transitive build dependencies that aren't already added
+  # 1. All unique transitive run dependencies that aren't already added
+  $script:pkg_all_tdeps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
+  foreach($dep in ($pkg_tdeps_resolved + $pkg_build_tdeps_resolved)) {
+    $script:pkg_all_tdeps_resolved = _return_or_append_to_set $tdep $pkg_all_tdeps_resolved
+  }
+
+  _Assert-Deps
 }
 
 function _Set-Path {
@@ -642,10 +1012,19 @@ function _Write-Metadata {
     }
 
    # @TODO fin - INTERPRETERS
-   # @TODO fin - BUILD_DEPS
-   # @TODO fin - BUILD_TDEPS
-   # @TODO fin - DEPS
-   # @TODO fin - TDEPS
+    
+    $pkg_build_deps_resolved | % {
+        Resolve-HabPkgPath $_ | Out-File $pkg_prefix\BUILD_DEPS -Encoding ascii -Append
+    }
+    $pkg_build_tdeps_resolved | % {
+        Resolve-HabPkgPath $_ | Out-File $pkg_prefix\BUILD_TDEPS -Encoding ascii -Append
+    }
+    $pkg_deps_resolved | % {
+        Resolve-HabPkgPath $_ | Out-File $pkg_prefix\DEPS -Encoding ascii -Append
+    }
+    $pkg_tdeps_resolved | % {
+        Resolve-HabPkgPath $_ | Out-File $pkg_prefix\TDEPS -Encoding ascii -Append
+    }
 
    "$pkg_target" | Out-File "$pkg_prefix\TARGET" -Encoding ascii
 
@@ -691,7 +1070,7 @@ function _Save-Artifact {
 
     & "$_7z_cmd" a -ttar "$tarf" $tempBase
     & "$_7z_cmd" a -txz "$xzf" "$tarf"
-    & "$_hab_cmd" pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
+    & $HAB_BIN pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
     Remove-Item "$tarf", "$xzf" -Force
     Remove-Item $tempBase -Recurse -Force
 }
@@ -703,7 +1082,7 @@ function _Copy-BuildOutputs {
     Copy-Item "$pkg_artifact" "$pkg_output_path"
 
     $_pkg_sha256sum = (Get-FileHash "$pkg_artifact" -Algorithm SHA256).Hash.ToLower()
-    $_pkg_blake2bsum = $(& "$_hab_cmd" pkg hash "$pkg_artifact")
+    $_pkg_blake2bsum = $(& $HAB_BIN pkg hash "$pkg_artifact")
 
     @"
 pkg_origin=$pkg_origin
