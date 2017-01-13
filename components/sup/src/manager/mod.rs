@@ -17,7 +17,7 @@ pub mod service;
 pub mod signals;
 pub mod service_updater;
 
-use std::net::SocketAddr;
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::thread;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
@@ -87,7 +87,10 @@ impl Manager {
                                                  None));
         outputln!("Butterfly Member ID {}", server.member_id());
         for peer_addr in gconfig().gossip_peer() {
-            let addr: SocketAddr = peer_addr.parse().unwrap();
+            let addrs: Vec<SocketAddr> = peer_addr.to_socket_addrs()
+                                                  .expect("Unable to resolve domain")
+                                                  .collect();
+            let addr: SocketAddr = addrs[0];
             let mut peer = Member::new();
             peer.set_address(format!("{}", addr.ip()));
             peer.set_swim_port(addr.port() as i32);
