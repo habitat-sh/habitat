@@ -50,7 +50,8 @@ fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 
 fn handle_from_pid(pid: u32) -> Option<winapi::HANDLE> {
     unsafe {
-        let proc_handle = kernel32::OpenProcess(winapi::PROCESS_QUERY_LIMITED_INFORMATION | winapi::PROCESS_TERMINATE,
+        let proc_handle = kernel32::OpenProcess(winapi::PROCESS_QUERY_LIMITED_INFORMATION |
+                                                winapi::PROCESS_TERMINATE,
                                                 winapi::FALSE,
                                                 pid as winapi::DWORD);
 
@@ -82,15 +83,15 @@ impl Child {
             _ => {
                 (None,
                  {
-                    match child.wait() {
-                        Ok(exit) => Ok(Some(exit.code().unwrap() as u32)),
-                        Err(e) => {
-                            Err(format!("Failed to retrieve exit code for pid {} : {}",
-                                        child.id(),
-                                        e))
-                        }
-                    }
-                })
+                     match child.wait() {
+                         Ok(exit) => Ok(Some(exit.code().unwrap() as u32)),
+                         Err(e) => {
+                             Err(format!("Failed to retrieve exit code for pid {} : {}",
+                                         child.id(),
+                                         e))
+                         }
+                     }
+                 })
             }
         };
 
@@ -146,8 +147,8 @@ impl Child {
             ret = kernel32::SetConsoleCtrlHandler(None, winapi::TRUE);
             if ret == 0 {
                 debug!("Failed to call SetConsoleCtrlHandler on pid {}: {}",
-                           self.pid,
-                           io::Error::last_os_error());
+                       self.pid,
+                       io::Error::last_os_error());
             }
 
             if ret != 0 {
@@ -155,25 +156,25 @@ impl Child {
                 ret = kernel32::GenerateConsoleCtrlEvent(0, 0);
                 if ret == 0 {
                     debug!("Failed to send ctrl-c to pid {}: {}",
-                               self.pid,
-                               io::Error::last_os_error());
+                           self.pid,
+                           io::Error::last_os_error());
                 }
             }
         }
 
         let stop_time = SteadyTime::now() + Duration::seconds(8);
-        
+
         let result;
         loop {
             if ret == 0 || SteadyTime::now() > stop_time {
                 unsafe {
                     ret = kernel32::TerminateProcess(self.handle.unwrap(), 1);
                     if ret == 0 {
-                        result = Err(Error::TerminateProcessFailed(format!("Failed to call terminate pid {}: {}",
-                                                                           self.pid,
-                                                                           io::Error::last_os_error())));
-                    }
-                    else {
+                        result = Err(Error::TerminateProcessFailed(format!("Failed to call \
+                                                                       terminate pid {}: {}",
+                                                                      self.pid,
+                                                                      io::Error::last_os_error())));
+                    } else {
                         result = Ok(ShutdownMethod::Killed);
                     }
                     break;
@@ -181,20 +182,22 @@ impl Child {
             }
 
             match self.status() {
-                Ok(status) => if !status.no_status() {
-                    result = Ok(ShutdownMethod::GracefulTermination);
-                    break;
-                },
+                Ok(status) => {
+                    if !status.no_status() {
+                        result = Ok(ShutdownMethod::GracefulTermination);
+                        break;
+                    }
+                }
                 _ => {}
             }
-        };
+        }
 
         // turn Ctrl-C handling back on for current process
         ret = unsafe { kernel32::SetConsoleCtrlHandler(None, winapi::FALSE) };
         if ret == 0 {
             debug!("Failed to call SetConsoleCtrlHandler on pid {}: {}",
-                       self.pid,
-                       io::Error::last_os_error());
+                   self.pid,
+                   io::Error::last_os_error());
         }
 
         result
