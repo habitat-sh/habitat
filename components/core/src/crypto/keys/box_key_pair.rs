@@ -360,11 +360,10 @@ mod test {
         let pairs = BoxKeyPair::get_pairs_for("wecoyote", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ =
-            match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
-                Some(pair) => pair,
-                None => panic!("Failed to generate another keypair after waiting"),
-            };
+        let _ = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
+            Some(pair) => pair,
+            None => panic!("Failed to generate another keypair after waiting"),
+        };
         let pairs = BoxKeyPair::get_pairs_for("wecoyote", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
 
@@ -378,11 +377,10 @@ mod test {
     fn get_pair_for() {
         let cache = TempDir::new("key_cache").unwrap();
         let p1 = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
-        let p2 =
-            match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
-                Some(pair) => pair,
-                None => panic!("Failed to generate another keypair after waiting"),
-            };
+        let p2 = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
+            Some(pair) => pair,
+            None => panic!("Failed to generate another keypair after waiting"),
+        };
 
         let p1_fetched = BoxKeyPair::get_pair_for(&p1.name_with_rev(), cache.path()).unwrap();
         assert_eq!(p1.name, p1_fetched.name);
@@ -413,11 +411,10 @@ mod test {
     fn get_latest_pair_for_multiple() {
         let cache = TempDir::new("key_cache").unwrap();
         let _ = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
-        let p2 =
-            match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
-                Some(pair) => pair,
-                None => panic!("Failed to generate another keypair after waiting"),
-            };
+        let p2 = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
+            Some(pair) => pair,
+            None => panic!("Failed to generate another keypair after waiting"),
+        };
 
         let latest = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
         assert_eq!(latest.name, p2.name);

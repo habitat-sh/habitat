@@ -70,7 +70,7 @@ pub mod upload {
                                    body.clone(),
                                    encrypted)
                 .map_err(|e| Error::ButterflyError(format!("{}", e))));
-            
+
             // please take a moment to weep over the following line
             // of code. We must sleep to allow messages to be sent
             // before freeing the socket to prevent loss.

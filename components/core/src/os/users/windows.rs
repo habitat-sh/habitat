@@ -22,25 +22,25 @@ extern "C" {
 }
 
 fn get_sid_by_name(name: &str) -> Option<String> {
-  match Account::from_name(name) {
-    Some(acct) => Some(acct.sid.to_string()),
-    None => None
-  }
+    match Account::from_name(name) {
+        Some(acct) => Some(acct.sid.to_string()),
+        None => None,
+    }
 }
 
 pub fn get_uid_by_name(owner: &str) -> Option<String> {
-  get_sid_by_name(owner)
+    get_sid_by_name(owner)
 }
 
 pub fn get_gid_by_name(group: &str) -> Option<String> {
-  get_sid_by_name(group)
+    get_sid_by_name(group)
 }
 
 pub fn get_current_username() -> Option<String> {
-  match env::var("USERNAME").ok() {
-    Some(username) => Some(username.to_lowercase()),
-    None => None
-  }
+    match env::var("USERNAME").ok() {
+        Some(username) => Some(username.to_lowercase()),
+        None => None,
+    }
 }
 
 // this is a no-op on windows
@@ -68,13 +68,13 @@ mod tests {
 
     #[test]
     fn downcase_current_username() {
-      env::set_var("USERNAME", "uSer");
-      assert_eq!(get_current_username().unwrap(), "user")
+        env::set_var("USERNAME", "uSer");
+        assert_eq!(get_current_username().unwrap(), "user")
     }
 
     #[test]
     fn return_none_when_no_user() {
-      env::remove_var("USERNAME");
-      assert_eq!(get_current_username(), None)
+        env::remove_var("USERNAME");
+        assert_eq!(get_current_username(), None)
     }
 }

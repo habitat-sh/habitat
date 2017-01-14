@@ -384,12 +384,13 @@ impl SigKeyPair {
                 match val.trim().as_bytes().from_base64() {
                     Ok(_) => val,
                     _ => {
-                        let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
+                        let msg = format!("write_sig_key_from_str:3 Malformed sig key \
+                                           string:\n({})",
                                           content);
                         return Err(Error::CryptoError(msg));
                     }
                 }
-            },
+            }
             None => {
                 let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
                                   content);
@@ -487,11 +488,10 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ =
-            match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
-                Some(pair) => pair,
-                None => panic!("Failed to generate another keypair after waiting"),
-            };
+        let _ = match wait_until_ok(|| SigKeyPair::generate_pair_for_origin("unicorn", cache.path())) {
+            Some(pair) => pair,
+            None => panic!("Failed to generate another keypair after waiting"),
+        };
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
 
@@ -741,7 +741,8 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
 
         SigKeyPair::write_file_from_str("SIG-PUB-1\nim-in-trouble-123\n\nc29tZXRoaW5n%",
-                                        cache.path()).unwrap();
+                                        cache.path())
+            .unwrap();
     }
 
     #[test]
