@@ -633,6 +633,33 @@ function _Complete-DependencyResolution {
 }
 
 function _Set-Path {
+  $path_part = $null
+  foreach($path in $pkg_bin_dirs) {
+    if (!$path_part) {
+      $path_part="$pkg_prefix/$path"
+    }
+    else {
+      $path_part += ";$pkg_prefix/$path"
+    }
+  }
+  foreach($dep_path in $pkg_all_tdeps_resolved) {
+    if (Test-Path "$dep_path/PATH") {
+      $data = Get-Content "$dep_path/PATH"
+      if (!$path_part) {
+        $path_part = $data.Trim()
+      }
+      else {
+        $path_part += ";$($data.Trim())"
+      }
+    }
+  }
+  # Insert all the package PATH fragments before the default PATH to ensure
+  # package binaries are used before any userland/operating system binaries
+  if ($path_part) {
+    $env:PATH="$path_part;$INITIAL_PATH"
+  }
+
+  Write-BuildLine "Setting PATH=$env:PATH"
 }
 
 # TODO: When we switch to powershell core, we must use
