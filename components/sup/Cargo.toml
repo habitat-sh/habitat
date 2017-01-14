@@ -48,7 +48,7 @@ path = "../butterfly"
 
 [dependencies.clap]
 version = "*"
-features = ["suggestions", "color"]
+features = [ "suggestions", "color", "unstable" ]
 
 [features]
 functional = []
