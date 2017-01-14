@@ -34,13 +34,13 @@ fn validate_raw_path(path: &str) -> Result<*mut c_char> {
 pub fn chown(path: &str, uid: u32, gid: u32) -> Result<c_int> {
     let r_path = match validate_raw_path(path) {
         Ok(r) => r,
-        Err(e) => return Err(e)
+        Err(e) => return Err(e),
     };
 
     unsafe {
-      let res = libc::chown(r_path, uid, gid);
-      CString::from_raw(r_path); // necessary to prevent leaks
-      Ok(res)
+        let res = libc::chown(r_path, uid, gid);
+        CString::from_raw(r_path); // necessary to prevent leaks
+        Ok(res)
     }
 }
 
@@ -56,8 +56,8 @@ pub fn chmod(path: &str, mode: u32) -> Result<c_int> {
     let r_path = c_path.into_raw();
 
     unsafe {
-      let res = libc::chmod(r_path, mode as mode_t);
-      CString::from_raw(r_path); // necessary to prevent leaks
-      Ok(res)
+        let res = libc::chmod(r_path, mode as mode_t);
+        CString::from_raw(r_path); // necessary to prevent leaks
+        Ok(res)
     }
 }

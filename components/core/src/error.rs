@@ -169,7 +169,9 @@ impl fmt::Display for Error {
             Error::TargetMatchError(ref e) => format!("{}", e),
             Error::UnameFailed(ref e) => format!("{}", e),
             Error::WaitpidFailed(ref e) => format!("{}", e),
-            Error::SignalFailed(ref e) => format!("Failed to send a signal to the child process: {}", e),
+            Error::SignalFailed(ref e) => {
+                format!("Failed to send a signal to the child process: {}", e)
+            }
             Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
             Error::GetHabChildFailed(ref e) => format!("{}", e),
             Error::TerminateProcessFailed(ref e) => format!("{}", e),

@@ -20,26 +20,27 @@ use widestring::WideCString;
 use winapi::{HLOCAL, LPCWSTR, BOOL, PSID};
 
 extern "system" {
-  fn ConvertSidToStringSidW(Sid: PSID, StringSid: LPCWSTR) -> BOOL;
+    fn ConvertSidToStringSidW(Sid: PSID, StringSid: LPCWSTR) -> BOOL;
 }
 
 pub struct Sid {
-  pub raw: Vec<u8>
+    pub raw: Vec<u8>,
 }
 
 impl Sid {
-  pub fn to_string(&self) -> String {
-    let mut buffer: LPCWSTR = null_mut();
-    let ret = unsafe {
-      ConvertSidToStringSidW(self.raw.as_ptr() as PSID, (&mut buffer as *mut LPCWSTR) as LPCWSTR)
-    };
-    if ret == 0 {
-      panic!("Failed to convert sid to string: {}", Error::last_os_error());
+    pub fn to_string(&self) -> String {
+        let mut buffer: LPCWSTR = null_mut();
+        let ret = unsafe {
+            ConvertSidToStringSidW(self.raw.as_ptr() as PSID,
+                                   (&mut buffer as *mut LPCWSTR) as LPCWSTR)
+        };
+        if ret == 0 {
+            panic!("Failed to convert sid to string: {}",
+                   Error::last_os_error());
+        } else {
+            let widestr = unsafe { WideCString::from_ptr_str(buffer) };
+            unsafe { LocalFree(buffer as HLOCAL) };
+            widestr.to_string_lossy()
+        }
     }
-    else {
-      let widestr = unsafe { WideCString::from_ptr_str(buffer) };
-      unsafe { LocalFree(buffer as HLOCAL) };
-      widestr.to_string_lossy()
-    }
-  }
 }

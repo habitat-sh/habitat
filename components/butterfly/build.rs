@@ -52,4 +52,3 @@ fn protocol_files() -> Vec<PathBuf> {
     }
     files
 }
-

@@ -42,14 +42,14 @@ pub mod init {
             None => {
                 ("habitat".into(),
                  canonicalize(".")
-                    .ok()
-                    .and_then(|path| {
-                        path.components().last().and_then(|val| {
-                            // Type gymnastics!
-                            val.as_os_str().to_os_string().into_string().ok()
-                        })
-                    })
-                    .unwrap_or("unnamed".into()))
+                     .ok()
+                     .and_then(|path| {
+                         path.components().last().and_then(|val| {
+                             // Type gymnastics!
+                             val.as_os_str().to_os_string().into_string().ok()
+                         })
+                     })
+                     .unwrap_or("unnamed".into()))
             }
         };
 

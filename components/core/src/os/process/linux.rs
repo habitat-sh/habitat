@@ -59,7 +59,10 @@ pub struct Child {
 
 impl Child {
     pub fn new(child: &mut process::Child) -> Result<Child> {
-        Ok(Child { pid: child.id(), last_status: None })
+        Ok(Child {
+            pid: child.id(),
+            last_status: None,
+        })
     }
 
     pub fn id(&self) -> u32 {
@@ -74,7 +77,10 @@ impl Child {
 
                 match unsafe { libc::waitpid(self.pid as i32, &mut exit_status, libc::WNOHANG) } {
                     0 => Ok(HabExitStatus { status: None }),
-                    -1 => Err(Error::WaitpidFailed(format!("Error calling waitpid on pid: {}", self.pid))),
+                    -1 => {
+                        Err(Error::WaitpidFailed(format!("Error calling waitpid on pid: {}",
+                                                         self.pid)))
+                    }
                     _ => {
                         self.last_status = Some(exit_status);
                         Ok(HabExitStatus { status: Some(exit_status as u32) })
@@ -90,7 +96,11 @@ impl Child {
         let stop_time = SteadyTime::now() + Duration::seconds(8);
         loop {
             match self.status() {
-                Ok(status) => if !status.no_status() { break; },
+                Ok(status) => {
+                    if !status.no_status() {
+                        break;
+                    }
+                }
                 _ => {}
             }
 
