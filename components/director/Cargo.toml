@@ -48,6 +48,3 @@ tempdir = "*"
 
 [features]
 functional = []
-
-[profile.release]
-lto = true
