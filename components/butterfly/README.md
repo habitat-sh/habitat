@@ -1,6 +1,6 @@
 # Butterfly
 
-Buttefly is the Habitat gossip protocol. It's an implementation of
+Butterfly is the Habitat gossip protocol. It's an implementation of
 SWIM+Inf+Susp for membership, and a ZeroMQ based newscast-inspired gossip
 protocol.
 
