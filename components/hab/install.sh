@@ -283,7 +283,13 @@ do_install() {
 }
 
 # Download location for the temporary files
-tmp_dir="${TMPDIR:-/tmp}/hab"
+if [ -n "${TMPDIR:-}" ]; then
+  tmp_dir="${TMPDIR}/hab"
+elif [ -d /var/tmp ]; then
+  tmp_dir=/var/tmp/hab
+else
+  tmp_dir=/tmp/hab
+fi
 
 # Use stable Bintray channel by default
 channel="stable"
