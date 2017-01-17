@@ -47,6 +47,17 @@ const SVC_PATH: &'static str = "hab/svc";
 lazy_static! {
     static ref EUID: u32 = users::get_effective_uid();
 
+    static ref MY_CACHE_PATH: PathBuf = {
+        if *EUID == 0u32 {
+            PathBuf::from(ROOT_PATH)
+        } else {
+            match env::home_dir() {
+                Some(home) => home.join(format!(".{}", ROOT_PATH)),
+                None => PathBuf::from(ROOT_PATH),
+            }
+        }
+    };
+
     static ref MY_CACHE_ANALYTICS_PATH: PathBuf = {
         if *EUID == 0u32 {
             PathBuf::from(CACHE_ANALYTICS_PATH)
@@ -101,6 +112,14 @@ lazy_static! {
             }
         }
     };
+}
+
+/// Returns the root path to the cache, optionally taking a custom filesystem root.
+pub fn cache_path(fs_root_path: Option<&Path>) -> PathBuf {
+    match fs_root_path {
+        Some(fs_root_path) => Path::new(fs_root_path).join(&*MY_CACHE_PATH),
+        None => Path::new(FS_ROOT_PATH).join(&*MY_CACHE_PATH),
+    }
 }
 
 /// Returns the path to the analytics cache, optionally taking a custom filesystem root.
