@@ -182,18 +182,18 @@ fn services(req: &mut Request) -> IronResult<Response> {
 
 impl Into<Response> for health_check::CheckResult {
     fn into(self) -> Response {
-        let status: status::Status = self.status.into();
-        Response::with((status, self.output))
+        let status: status::Status = self.into();
+        Response::with(status)
     }
 }
 
-impl Into<status::Status> for health_check::Status {
+impl Into<status::Status> for health_check::CheckResult {
     fn into(self) -> status::Status {
         match self {
-            health_check::Status::Ok |
-            health_check::Status::Warning => status::Ok,
-            health_check::Status::Critical => status::ServiceUnavailable,
-            health_check::Status::Unknown => status::InternalServerError,
+            health_check::CheckResult::Ok |
+            health_check::CheckResult::Warning => status::Ok,
+            health_check::CheckResult::Critical => status::ServiceUnavailable,
+            health_check::CheckResult::Unknown => status::InternalServerError,
         }
     }
 }

@@ -311,12 +311,12 @@ impl Service {
     }
 
     pub fn health_check(&self) -> Result<health_check::CheckResult> {
-        self.package.health_check(&self.supervisor)
+        self.package.health_check(&self.supervisor, &self.service_group)
     }
 
     pub fn file_updated(&self) {
         if self.initialized {
-            match self.package.file_updated() {
+            match self.package.file_updated(&self.service_group) {
                 Ok(_) => outputln!(preamble self.service_group_str(), "{}", "File update hook succeeded."),
                 Err(e) => {
                     outputln!(preamble self.service_group_str(), "File update hook failed: {}", e)
@@ -327,7 +327,7 @@ impl Service {
 
     pub fn initialize(&mut self) {
         if !self.initialized {
-            match self.package.initialize() {
+            match self.package.initialize(&self.service_group) {
                 Ok(()) => {
                     outputln!(preamble self.service_group_str(), "{}", "Initializing");
                     self.initialized = true
@@ -358,7 +358,7 @@ impl Service {
         match service_config.write(&self.package) {
             Ok(true) => {
                 self.needs_restart = true;
-                match self.package.reconfigure() {
+                match self.package.reconfigure(&self.service_group) {
                     Ok(_) => {}
                     Err(e) => {
                         outputln!(preamble self.service_group_str(),

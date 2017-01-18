@@ -52,7 +52,6 @@ use ansi_term::Colour::Red;
 use handlebars;
 use hcore::package::Identifiable;
 use butterfly;
-use hyper;
 use rustc_serialize::json;
 use toml;
 
@@ -109,11 +108,11 @@ pub enum Error {
     HabitatCore(hcore::Error),
     HandlebarsTemplateFileError(handlebars::TemplateFileError),
     HandlebarsRenderError(handlebars::RenderError),
-    HealthCheck(String),
-    HookFailed(HookType, i32, String),
-    HTTP(hyper::status::StatusCode),
-    /// TODO: once discovery/etcd.rs is purged, this error can be removed
-    HyperError(hyper::error::Error),
+    /// Health check exited with an invalid status code. Valid status codes are 0, 1, 2, and 3.
+    HealthCheckBadExit(i32),
+    /// A hook failed to successfully execute. This error contains the type of hook which failed
+    /// to run and the exit code.
+    HookFailed(HookType, i32),
     InvalidBinding(String),
     InvalidKeyParameter(String),
     InvalidPidFile,
@@ -168,12 +167,12 @@ impl fmt::Display for SupError {
             Error::DepotClient(ref err) => format!("{}", err),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::HealthCheck(ref e) => format!("Health Check failed: {}", e),
-            Error::HookFailed(ref t, ref e, ref o) => {
-                format!("Hook failed to run: {}, {}, {}", t, e, o)
+            Error::HealthCheckBadExit(ref e) => {
+                format!("Health check exited with an unknown status code, {}", e)
             }
-            Error::HTTP(ref e) => format!("{}", e),
-            Error::HyperError(ref err) => format!("{}", err),
+            Error::HookFailed(ref hook, ref code) => {
+                format!("{} hook failed to run with exit code {}", hook, code)
+            }
             Error::InvalidBinding(ref binding) => {
                 format!("Invalid binding - must be ':' delimited: {}", binding)
             }
@@ -264,10 +263,8 @@ impl error::Error for SupError {
             Error::DepotClient(ref err) => err.description(),
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
-            Error::HealthCheck(_) => "Health Check returned an unknown status code",
-            Error::HookFailed(_, _, _) => "Hook failed to run",
-            Error::HTTP(_) => "Received an HTTP error",
-            Error::HyperError(ref err) => err.description(),
+            Error::HealthCheckBadExit(_) => "Health Check exited with an unknown status code",
+            Error::HookFailed(_, _) => "Hook failed to run",
             Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidKeyParameter(_) => "Key parameter error",
             Error::InvalidPort(_) => "Invalid port number in package expose metadata",
@@ -379,12 +376,6 @@ impl From<io::Error> for SupError {
 impl From<env::JoinPathsError> for SupError {
     fn from(err: env::JoinPathsError) -> SupError {
         sup_error!(Error::EnvJoinPathsError(err))
-    }
-}
-
-impl From<hyper::error::Error> for SupError {
-    fn from(err: hyper::error::Error) -> SupError {
-        sup_error!(Error::HyperError(err))
     }
 }
 
