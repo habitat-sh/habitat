@@ -85,7 +85,7 @@ pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Comm
 #[cfg(target_os = "windows")]
 pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Command {
     let mut cmd = Command::new("powershell.exe");
-    let ps_command = format!("iex $(gc {} | out-string)", path.as_ref());
+    let ps_command = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
     cmd.arg("-command")
         .arg(ps_command)
         .stdin(Stdio::null())
