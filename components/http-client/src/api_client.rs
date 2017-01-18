@@ -31,6 +31,9 @@ use net::ProxyHttpsConnector;
 use proxy::{ProxyInfo, proxy_unless_domain_exempted};
 use ssl;
 
+// Read and write TCP socket timeout for Hyper/HTTP client calls.
+const CLIENT_SOCKET_RW_TIMEOUT: u64 = 30;
+
 header! { (ProxyAuthorization, "Proxy-Authorization") => [String] }
 
 /// A generic wrapper around a Hyper HTTP client intended for API-like usage.
@@ -230,7 +233,7 @@ impl ApiClient {
 fn new_hyper_client(for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Result<HyperClient> {
     let ctx = try!(ssl_ctx(fs_root_path));
     let ssl_client = Openssl { context: Arc::new(ctx) };
-    let timeout = Some(Duration::from_secs(5));
+    let timeout = Some(Duration::from_secs(CLIENT_SOCKET_RW_TIMEOUT));
 
     match try!(proxy_unless_domain_exempted(for_domain)) {
         Some(proxy) => {
