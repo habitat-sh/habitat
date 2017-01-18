@@ -15,52 +15,21 @@
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq, Eq, RustcEncodable)]
-pub enum Status {
+pub enum CheckResult {
     Ok,
     Warning,
     Critical,
     Unknown,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, RustcEncodable)]
-pub struct CheckResult {
-    pub status: Status,
-    pub output: String,
-}
-
-impl CheckResult {
-    pub fn ok(output: String) -> Self {
-        Self::new(Status::Ok, output)
-    }
-
-    pub fn warning(output: String) -> Self {
-        Self::new(Status::Warning, output)
-    }
-
-    pub fn critical(output: String) -> Self {
-        Self::new(Status::Critical, output)
-    }
-
-    pub fn unknown(output: String) -> Self {
-        Self::new(Status::Unknown, output)
-    }
-
-    fn new(status: Status, output: String) -> Self {
-        CheckResult {
-            status: status,
-            output: output,
-        }
-    }
-}
-
 impl Display for CheckResult {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let status_code = match self.status {
-            Status::Ok => "OK",
-            Status::Warning => "WARNING",
-            Status::Critical => "CRITICAL",
-            Status::Unknown => "UNKNOWN",
+        let msg = match *self {
+            CheckResult::Ok => "OK",
+            CheckResult::Warning => "WARNING",
+            CheckResult::Critical => "CRITICAL",
+            CheckResult::Unknown => "UNKNOWN",
         };
-        write!(f, "{} - {}", status_code, self.output)
+        write!(f, "{}", msg)
     }
 }

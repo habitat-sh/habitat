@@ -25,6 +25,7 @@ use std::string::ToString;
 use std::io::prelude::*;
 
 use hcore::package::{PackageIdent, PackageInstall};
+use hcore::service::ServiceGroup;
 use hcore::util;
 
 use self::hooks::{HookTable, HOOK_PERMISSIONS};
@@ -276,12 +277,9 @@ impl Package {
     }
 
     /// Run initialization hook if present
-    pub fn initialize(&self) -> Result<()> {
+    pub fn initialize(&self, service_group: &ServiceGroup) -> Result<()> {
         if let Some(hook) = self.hooks().init_hook {
-            match hook.run() {
-                Ok(_) => Ok(()),
-                Err(e) => Err(e),
-            }
+            hook.run(service_group)
         } else {
             Ok(())
         }
@@ -289,57 +287,50 @@ impl Package {
 
     /// Run reconfigure hook if present. Return false if it is not present, to trigger default
     /// restart behavior.
-    pub fn reconfigure(&self) -> Result<bool> {
+    pub fn reconfigure(&self, service_group: &ServiceGroup) -> Result<bool> {
         if let Some(hook) = self.hooks().reconfigure_hook {
-            match hook.run() {
-                Ok(_) => Ok(true),
-                Err(e) => Err(e),
-            }
+            hook.run(service_group).map(|_| true)
         } else {
             Ok(false)
         }
     }
 
     /// Run file_updated hook if present
-    pub fn file_updated(&self) -> Result<bool> {
+    pub fn file_updated(&self, service_group: &ServiceGroup) -> Result<bool> {
         if let Some(hook) = self.hooks().file_updated_hook {
-            match hook.run() {
-                Ok(_) => Ok(true),
-                Err(e) => Err(e),
-            }
+            hook.run(service_group).map(|_| true)
         } else {
             Ok(false)
         }
     }
 
-    pub fn health_check(&self, supervisor: &Supervisor) -> Result<CheckResult> {
+    pub fn health_check(&self,
+                        supervisor: &Supervisor,
+                        service_group: &ServiceGroup)
+                        -> Result<CheckResult> {
         if let Some(hook) = self.hooks().health_check_hook {
-            match hook.run() {
-                Ok(output) => Ok(health_check::CheckResult::ok(output)),
-                Err(SupError { err: Error::HookFailed(_, 1, output), .. }) => {
-                    Ok(health_check::CheckResult::warning(output))
+            match hook.run(service_group) {
+                Ok(()) => Ok(health_check::CheckResult::Ok),
+                Err(SupError { err: Error::HookFailed(_, 1), .. }) => {
+                    Ok(health_check::CheckResult::Warning)
                 }
-                Err(SupError { err: Error::HookFailed(_, 2, output), .. }) => {
-                    Ok(health_check::CheckResult::critical(output))
+                Err(SupError { err: Error::HookFailed(_, 2), .. }) => {
+                    Ok(health_check::CheckResult::Critical)
                 }
-                Err(SupError { err: Error::HookFailed(_, 3, output), .. }) => {
-                    Ok(health_check::CheckResult::unknown(output))
+                Err(SupError { err: Error::HookFailed(_, 3), .. }) => {
+                    Ok(health_check::CheckResult::Unknown)
                 }
-                Err(SupError { err: Error::HookFailed(_, code, output), .. }) => {
-                    Err(sup_error!(Error::HealthCheck(format!("hook exited code={}, \
-                                                                    output={}",
-                                                              code,
-                                                              output))))
+                Err(SupError { err: Error::HookFailed(_, code), .. }) => {
+                    Err(sup_error!(Error::HealthCheckBadExit(code)))
                 }
                 Err(e) => Err(SupError::from(e)),
             }
         } else {
-            let (health, status) = supervisor.status();
-            let last_config = try!(self.last_config());
+            let (health, _) = supervisor.status();
             if health {
-                Ok(health_check::CheckResult::ok(format!("{}\n{}", status, last_config)))
+                Ok(health_check::CheckResult::Ok)
             } else {
-                Ok(health_check::CheckResult::critical(format!("{}\n{}", status, last_config)))
+                Ok(health_check::CheckResult::Critical)
             }
         }
     }

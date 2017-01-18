@@ -19,12 +19,10 @@ name = "functional"
 ansi_term = "*"
 env_logger = "*"
 handlebars = "*"
-hyper = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
 iron = "*"
-openssl = "0.7" # lock until hyper bumps to 0.8+
 persistent = "*"
 regex = "*"
 rustc-serialize = "*"
@@ -49,6 +47,10 @@ path = "../butterfly"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
+
+[dev-dependencies]
+hyper = "*"
+openssl = "0.7" # lock until hyper bumps to 0.8+
 
 [features]
 functional = []

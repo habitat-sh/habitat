@@ -14,12 +14,15 @@
 
 use std::fmt;
 use std::fs::{self, File};
+use std::io::BufReader;
 use std::io::prelude::*;
 use std::path::PathBuf;
+use std::process::Child;
 
 use handlebars::Handlebars;
 
 use error::{Error, Result};
+use hcore::service::ServiceGroup;
 use hcore::util;
 use package::Package;
 use manager::service::config::{ServiceConfig, never_escape_fn};
@@ -31,7 +34,7 @@ use util as sup_util;
 pub const HOOK_PERMISSIONS: u32 = 0o755;
 static LOGKEY: &'static str = "PH";
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum HookType {
     HealthCheck,
     Reconfigure,
@@ -77,47 +80,14 @@ impl Hook {
         }
     }
 
-    pub fn run(&self) -> Result<String> {
-        let mut child = try!(sup_util::create_command(self.path.clone(), &self.user, &self.group)
-            .spawn());
-        {
-            let mut c_stdout = match child.stdout {
-                Some(ref mut s) => s,
-                None => {
-                    return Err(sup_error!(Error::HookFailed(self.htype.clone(),
-                                                            -1,
-                                                            String::from("Failed"))));
-                }
-            };
-            let preamble_str = format!("{}", &self.htype);
-            let mut line = output_format!(preamble & preamble_str, "");
-            loop {
-                let mut buf = [0u8; 1]; // Our byte buffer
-                let len = try!(c_stdout.read(&mut buf));
-                match len {
-                    0 => {
-                        // 0 == EOF, so stop writing and finish progress
-                        break;
-                    }
-                    _ => {
-                        // Write the buffer to the BufWriter on the Heap
-                        let buf_string = String::from_utf8_lossy(&buf[0..len]);
-                        line.push_str(&buf_string);
-                        if line.contains("\n") {
-                            print!("{}", line);
-                            line = output_format!(preamble & preamble_str, "");
-                        }
-                    }
-                }
-            }
-        }
+    pub fn run(&self, service_group: &ServiceGroup) -> Result<()> {
+        let mut child = try!(sup_util::create_command(&self.path, &self.user, &self.group).spawn());
+        self.stream_output(service_group, &mut child);
         let exit_status = try!(child.wait());
         if exit_status.success() {
-            Ok(String::from("Finished"))
+            Ok(())
         } else {
-            Err(sup_error!(Error::HookFailed(self.htype.clone(),
-                                             exit_status.code().unwrap_or(-1),
-                                             String::from("Failed"))))
+            Err(sup_error!(Error::HookFailed(self.htype, exit_status.code().unwrap_or(-1))))
         }
     }
 
@@ -143,6 +113,31 @@ impl Hook {
             try!(util::perm::set_permissions(&self.path, HOOK_PERMISSIONS));
             Ok(())
         }
+    }
+
+    fn stream_output(&self, service_group: &ServiceGroup, process: &mut Child) {
+        let preamble_str = self.stream_preamble(service_group);
+        // JW TODO: we need to stream this to a file to be read back later in case of error. We
+        // can't store the entirity of stdout/stderr in memory because it could crash the
+        // supervisor, but we do want to save it for later to show *why* a hook failed to run
+        if let Some(ref mut stdout) = process.stdout {
+            for line in BufReader::new(stdout).lines() {
+                if let Some(ref l) = line.ok() {
+                    outputln!(preamble preamble_str, l);
+                }
+            }
+        }
+        if let Some(ref mut stderr) = process.stderr {
+            for line in BufReader::new(stderr).lines() {
+                if let Some(ref l) = line.ok() {
+                    outputln!(preamble preamble_str, l);
+                }
+            }
+        }
+    }
+
+    fn stream_preamble(&self, service_group: &ServiceGroup) -> String {
+        format!("{} hook[{}]:", service_group, self.htype)
     }
 }
 

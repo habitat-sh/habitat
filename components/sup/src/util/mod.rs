@@ -18,17 +18,16 @@ pub mod path;
 pub mod sys;
 pub mod users;
 
-use std::net::Ipv4Addr;
-use std::net::SocketAddrV4;
+use std::ffi::OsStr;
+use std::net::{Ipv4Addr, SocketAddrV4};
 use std::str::FromStr;
-use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use hcore::os;
-
 use time;
 
 use error::{Error, Result};
+
 static LOGKEY: &'static str = "UT";
 
 /// Gives us a time to stop for in seconds.
@@ -69,7 +68,7 @@ pub fn parse_ip_port_with_defaults(s: Option<&str>,
 }
 
 #[cfg(any(target_os="linux", target_os="macos"))]
-pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
+pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Command {
     let mut cmd = Command::new(path);
     use std::os::unix::process::CommandExt;
     let uid = os::users::get_uid_by_name(user).expect("Can't determine uid");
@@ -84,9 +83,9 @@ pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
 }
 
 #[cfg(target_os = "windows")]
-pub fn create_command(path: PathBuf, user: &str, group: &str) -> Command {
+pub fn create_command<S: AsRef<OsStr>>(path: S, user: &str, group: &str) -> Command {
     let mut cmd = Command::new("powershell.exe");
-    let ps_command = format!("iex $(gc {} | out-string)", path.to_str().unwrap());
+    let ps_command = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
     cmd.arg("-command")
         .arg(ps_command)
         .stdin(Stdio::null())
