@@ -1,8 +1,0 @@
-[cfg.services.core.redis.${env}]
-start = "--permanent-peer"
-
-[cfg.services.core.hab-builder-api.${env}]
-start = "--permanent-peer --bind database:redis.${env} --bind router:hab-builder-router.${env}"
-
-[cfg.services.core/hab-builder-admin.${env}]
-start = "--permanent-peer --bind router:hab-builder-router.${env}"

@@ -1,2 +1,0 @@
-[cfg.services.core.hab-builder-router.${env}]
-start = "--permanent-peer"
