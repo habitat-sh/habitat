@@ -1809,6 +1809,18 @@ do_check_wrapper() {
 do_install_wrapper() {
   build_line "Installing"
   mkdir -pv "$pkg_prefix"
+  for dir in "${pkg_lib_dirs[@]}"; do
+    mkdir -pv "$pkg_prefix/$dir"
+  done
+  for dir in "${pkg_bin_dirs[@]}"; do
+    mkdir -pv "$pkg_prefix/$dir"
+  done
+  for dir in "${pkg_include_dirs[@]}"; do
+    mkdir -pv "$pkg_prefix/$dir"
+  done
+  for dir in "${pkg_pconfig_dirs[@]}"; do
+    mkdir -pv "$pkg_prefix/$dir"
+  done
   pushd "$HAB_CACHE_SRC_PATH/$pkg_dirname" > /dev/null
   do_install
   popd > /dev/null
