@@ -272,6 +272,7 @@ pub mod manager;
 pub mod output;
 pub mod package;
 pub mod supervisor;
+pub mod templating;
 pub mod util;
 
 use std::env;
