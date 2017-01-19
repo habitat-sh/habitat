@@ -106,8 +106,8 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
-    HandlebarsTemplateFileError(handlebars::TemplateFileError),
-    HandlebarsRenderError(handlebars::RenderError),
+    TemplateFileError(handlebars::TemplateFileError),
+    TemplateRenderError(handlebars::RenderError),
     /// Health check exited with an invalid status code. Valid status codes are 0, 1, 2, and 3.
     HealthCheckBadExit(i32),
     /// A hook failed to successfully execute. This error contains the type of hook which failed
@@ -160,8 +160,8 @@ impl fmt::Display for SupError {
             Error::Permissions(ref err) => format!("{}", err),
             Error::HabitatCommon(ref err) => format!("{}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
-            Error::HandlebarsTemplateFileError(ref err) => format!("{:?}", err),
-            Error::HandlebarsRenderError(ref err) => format!("{}", err),
+            Error::TemplateFileError(ref err) => format!("{:?}", err),
+            Error::TemplateRenderError(ref err) => format!("{}", err),
             Error::CommandNotImplemented => format!("Command is not yet implemented!"),
             Error::DbInvalidPath => format!("Invalid filepath to internal datastore"),
             Error::DepotClient(ref err) => format!("{}", err),
@@ -253,8 +253,8 @@ impl error::Error for SupError {
         match self.err {
             Error::ButterflyError(ref err) => err.description(),
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
-            Error::HandlebarsRenderError(ref err) => err.description(),
-            Error::HandlebarsTemplateFileError(ref err) => err.description(),
+            Error::TemplateFileError(ref err) => err.description(),
+            Error::TemplateRenderError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
 
@@ -339,13 +339,13 @@ impl From<common::Error> for SupError {
 
 impl From<handlebars::RenderError> for SupError {
     fn from(err: handlebars::RenderError) -> SupError {
-        sup_error!(Error::HandlebarsRenderError(err))
+        sup_error!(Error::TemplateRenderError(err))
     }
 }
 
 impl From<handlebars::TemplateFileError> for SupError {
     fn from(err: handlebars::TemplateFileError) -> SupError {
-        sup_error!(Error::HandlebarsTemplateFileError(err))
+        sup_error!(Error::TemplateFileError(err))
     }
 }
 

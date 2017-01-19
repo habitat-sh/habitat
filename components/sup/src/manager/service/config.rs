@@ -20,19 +20,18 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use ansi_term::Colour::Purple;
+use hcore::package::PackageInstall;
+use hcore::crypto;
 use rustc_serialize::Encodable;
 use toml;
-use handlebars::Handlebars;
 
 use manager::census::{Census, CensusList};
 use config::gconfig;
 use error::{Error, Result};
-use hcore::package::PackageInstall;
-use hcore::crypto;
 use package::Package;
+use templating::Template;
 use util;
 use util::convert;
-use util::handlebars_helpers;
 use util::users as hab_users;
 use VERSION;
 
@@ -58,10 +57,6 @@ pub struct ServiceConfig {
     bind: Bind,
     // Set to 'true' if we have data that needs to be sent to a configuration file
     pub needs_write: bool,
-}
-
-pub fn never_escape_fn(data: &str) -> String {
-    String::from(data)
 }
 
 impl ServiceConfig {
@@ -150,15 +145,7 @@ impl ServiceConfig {
             let mut last_toml = try!(File::create(pi.svc_path().join("config.toml")));
             try!(write!(&mut last_toml, "{}", toml::encode_str(&final_toml)));
         }
-        let mut handlebars = Handlebars::new();
-
-        debug!("Registering handlebars helpers");
-        handlebars.register_helper("json", Box::new(handlebars_helpers::json_helper));
-        handlebars.register_helper("toml", Box::new(handlebars_helpers::toml_helper));
-
-        debug!("Registering configuration templates");
-        // By default, handlebars escapes HTML. We don't want that.
-        handlebars.register_escape_fn(never_escape_fn);
+        let mut template = Template::new();
 
         // Register all the templates; this makes them available as partials!
         // I suspect this will be useful, but I think we'll want to make this
@@ -167,11 +154,11 @@ impl ServiceConfig {
         for config in config_files.iter() {
             let path = pkg.config_from().join("config").join(config);
             debug!("Config template {} from {:?}", config, &path);
-            if let Err(e) = handlebars.register_template_file(config, &path) {
+            if let Err(e) = template.register_template_file(config, &path) {
                 outputln!("Error parsing config template file {}: {}",
                           path.to_string_lossy(),
                           e);
-                return Err(sup_error!(Error::HandlebarsTemplateFileError(e)));
+                return Err(sup_error!(Error::TemplateFileError(e)));
             }
         }
 
@@ -179,7 +166,7 @@ impl ServiceConfig {
         let mut should_restart = false;
         for config in config_files {
             debug!("Rendering template {}", &config);
-            let template_data = try!(handlebars.render(&config, &final_data));
+            let template_data = try!(template.render(&config, &final_data));
             let template_hash = try!(crypto::hash::hash_string(&template_data));
             let filename = pi.svc_config_path().join(&config).to_string_lossy().into_owned();
             let file_hash = match crypto::hash::hash_file(&filename) {

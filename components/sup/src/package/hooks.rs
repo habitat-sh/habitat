@@ -19,15 +19,14 @@ use std::io::prelude::*;
 use std::path::PathBuf;
 use std::process::Child;
 
-use handlebars::Handlebars;
-
-use error::{Error, Result};
 use hcore::service::ServiceGroup;
 use hcore::util;
+
+use error::{Error, Result};
+use manager::service::config::ServiceConfig;
 use package::Package;
-use manager::service::config::{ServiceConfig, never_escape_fn};
+use templating::Template;
 use util::convert;
-use util::handlebars_helpers;
 use util::users as hab_users;
 use util as sup_util;
 
@@ -94,14 +93,11 @@ impl Hook {
     pub fn compile(&self, context: Option<&ServiceConfig>) -> Result<()> {
         if let Some(ctx) = context {
             debug!("Rendering hook {:?}", self);
-            let mut handlebars = Handlebars::new();
-            handlebars.register_helper("json", Box::new(handlebars_helpers::json_helper));
-            handlebars.register_helper("toml", Box::new(handlebars_helpers::toml_helper));
-            handlebars.register_escape_fn(never_escape_fn);
-            try!(handlebars.register_template_file("hook", &self.template));
+            let mut template = Template::new();
+            try!(template.register_template_file("hook", &self.template));
             let toml = try!(ctx.to_toml());
             let svc_data = convert::toml_to_json(toml);
-            let data = try!(handlebars.render("hook", &svc_data));
+            let data = try!(template.render("hook", &svc_data));
             let mut file = try!(File::create(&self.path));
             try!(file.write_all(data.as_bytes()));
             try!(util::perm::set_owner(&self.path, &self.user, &self.group));
