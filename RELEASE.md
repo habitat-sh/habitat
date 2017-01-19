@@ -173,24 +173,6 @@ Next we will be running the same commands for hab-butterfly, hab-sup, hab-sup-st
     > cat build.manifest | while read entry; do echo "Building $(echo $entry | cut -d ' ' -f 1)"; build $(echo $entry | cut -d ' ' -f 2) || break; done
     ```
 
-### Build `hab-sub-static`
-
-1. From outside of a studio:
-
-    ```
-    $ cd ~/code
-    $ rm build.manifest
-    $ find core-plans habitat -name plan.sh | ./core-plans/bin/build-dependent-order.rb core/hab-sup-static > build.manifest
-    ```
-
-1. From within a studio:
-
-    ```
-    $ hab studio enter
-    > build habitat/components/sup/static
-    > cat build.manifest | while read entry; do echo "Building $(echo $entry | cut -d ' ' -f 1)"; build $(echo $entry | cut -d ' ' -f 2) || break; done
-    ```
-
 ### Build `hab-director`
 
 1. From outside of a studio:
