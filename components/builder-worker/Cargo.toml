@@ -15,7 +15,6 @@ env_logger = "*"
 git2 = "*"
 lazy_static = "*"
 log = "*"
-openssl = "0.7" # lock until hyper bumps to 0.8+
 protobuf = "*"
 toml = "*"
 
@@ -24,8 +23,8 @@ version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
 [dependencies.zmq]
-git = "https://github.com/habitat-sh/rust-zmq.git"
-tag = "windows_fix_pr"
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
 
 [dependencies.habitat_core]
 path = "../core"

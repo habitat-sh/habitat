@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use hyper;
 use iron::Handler;
 use iron::headers::{self, Authorization, Bearer};
 use iron::method::Method;
 use iron::middleware::{AfterMiddleware, AroundMiddleware, BeforeMiddleware};
 use iron::prelude::*;
-use iron::status;
+use iron::status::Status;
 use iron::typemap::Key;
 use unicase::UniCase;
 use protocol::sessionsrv::*;
@@ -116,7 +117,7 @@ impl Authenticated {
                     let flags = FeatureFlags::from_bits(session.get_flags()).unwrap();
                     if !flags.contains(self.features) {
                         let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:0");
-                        return Err(IronError::new(err, status::Forbidden));
+                        return Err(IronError::new(err, Status::Forbidden));
                     }
                     Ok(session)
                 } else {
@@ -148,7 +149,7 @@ impl BeforeMiddleware for Authenticated {
                 }
                 _ => {
                     let err = net::err(ErrCode::ACCESS_DENIED, "net:auth:1");
-                    return Err(IronError::new(err, status::Unauthorized));
+                    return Err(IronError::new(err, Status::Unauthorized));
                 }
             }
         };
@@ -203,7 +204,7 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                 }
             }
         }
-        Err(Error::GitHubAPI(status::Unauthorized, _)) => {
+        Err(Error::GitHubAPI(hyper::status::StatusCode::Unauthorized, _)) => {
             let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:1");
             let status = net_err_to_http(err.get_code());
             let body = json::encode(&err.to_json()).unwrap();

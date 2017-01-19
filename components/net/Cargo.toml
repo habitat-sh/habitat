@@ -8,6 +8,7 @@ workspace = "../../"
 bitflags = "*"
 fnv = "*"
 hyper = "*"
+hyper-openssl = "*"
 iron = "*"
 lazy_static = "*"
 libc = "*"
@@ -19,12 +20,12 @@ rustc-serialize = "*"
 time = "*"
 unicase = "*"
 
-[dependencies.zmq]
-git = "https://github.com/habitat-sh/rust-zmq.git"
-tag = "windows_fix_pr"
-
 [dependencies.habitat_builder_protocol]
 path = "../builder-protocol"
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
 
 [features]
 functional = []

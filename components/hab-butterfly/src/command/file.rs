@@ -13,9 +13,8 @@
 // limitations under the License.
 
 pub mod upload {
-
     use std::path::Path;
-    use std::io::{self, Read};
+    use std::io::Read;
     use std::fs::File;
     use std::thread;
     use std::time;
@@ -26,7 +25,6 @@ pub mod upload {
     use hcore::service::ServiceGroup;
 
     use error::{Error, Result};
-    //    use gossip::{self, hab_gossip};
 
     pub fn start(ui: &mut UI,
                  sg: &ServiceGroup,
@@ -78,7 +76,6 @@ pub mod upload {
             thread::sleep(time::Duration::from_millis(100));
         }
         try!(ui.end("Uploaded file"));
-
         Ok(())
     }
 }

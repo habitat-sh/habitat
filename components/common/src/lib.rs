@@ -18,7 +18,6 @@ extern crate habitat_depot_client as depot_client;
 extern crate ansi_term;
 #[macro_use]
 extern crate log;
-extern crate openssl;
 extern crate pbr;
 extern crate regex;
 extern crate retry;

@@ -320,16 +320,16 @@ fn split_version(version: &str) -> Result<(Vec<&str>, Option<String>)> {
         Some(caps) => caps,
         None => return Err(Error::InvalidPackageIdent(version.to_string())),
     };
-    let version_number = caps.at(1).unwrap();
-    let extension = match caps.at(2) {
+    let version_number = caps.get(1).unwrap();
+    let extension = match caps.get(2) {
         Some(e) => {
-            let mut estr: String = e.to_string();
+            let mut estr: String = e.as_str().to_string();
             estr.remove(0);
             Some(estr)
         }
         None => None,
     };
-    let version_parts: Vec<&str> = version_number.split('.').collect();
+    let version_parts: Vec<&str> = version_number.as_str().split('.').collect();
     Ok((version_parts, extension))
 }
 

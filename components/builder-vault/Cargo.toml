@@ -21,10 +21,6 @@ toml = "*"
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
-[dependencies.zmq]
-git = "https://github.com/habitat-sh/rust-zmq.git"
-tag = "windows_fix_pr"
-
 [dependencies.habitat_core]
 path = "../core"
 
@@ -40,6 +36,10 @@ path = "../net"
 [dependencies.redis]
 git = "https://github.com/habitat-sh/redis-rs"
 branch = "habitat"
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
 
 [replace]
 "redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }

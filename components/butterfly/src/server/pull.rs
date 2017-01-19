@@ -42,7 +42,7 @@ impl<'a> Pull<'a> {
     /// Run this thread. Creates a socket, binds to the `gossip_addr`, then processes messages as
     /// they are received. Uses a ZMQ pull socket, so inbound messages are fair-queued.
     pub fn run(&mut self) {
-        let mut socket = (**ZMQ_CONTEXT)
+        let socket = (**ZMQ_CONTEXT)
             .as_mut()
             .socket(zmq::PULL)
             .expect("Failure to create the ZMQ pull socket");
