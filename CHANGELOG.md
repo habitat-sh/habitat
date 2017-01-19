@@ -1,5 +1,68 @@
 # Habitat CHANGELOG
 
+## [0.16.0](https://github.com/habitat-sh/habitat/tree/0.16.0) (01-19-2017)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.15.0...0.16.0)
+
+## Features & Enhancements
+
+- Location for config templates [\#1173](https://github.com/habitat-sh/habitat/issues/1173)
+- Make the tutorial more clear [\#1080](https://github.com/habitat-sh/habitat/issues/1080)
+- Have `hab setup` check and use `HAB\_ORIGIN` and `HAB\_AUTH\_TOKEN` as defaults [\#1651](https://github.com/habitat-sh/habitat/pull/1651) ([fnichol](https://github.com/fnichol))
+- Add toUppercase and toLowercase Handlebars helpers [\#1650](https://github.com/habitat-sh/habitat/pull/1650) ([reset](https://github.com/reset))
+- Remove core/hab-sup-static from RELEASE.md instructions. [\#1649](https://github.com/habitat-sh/habitat/pull/1649) ([fnichol](https://github.com/fnichol))
+- Create lib, bin, include, and pkconfig dirs in prepare [\#1648](https://github.com/habitat-sh/habitat/pull/1648) ([reset](https://github.com/reset))
+- Fixed issue where shared content wasn't showing up [\#1647](https://github.com/habitat-sh/habitat/pull/1647) ([davidwrede](https://github.com/davidwrede))
+- \[sup,director\] Remove profile sections from Cargo.toml files. [\#1639](https://github.com/habitat-sh/habitat/pull/1639) ([fnichol](https://github.com/fnichol))
+- \[sup\] Use a consistent clap features set. [\#1638](https://github.com/habitat-sh/habitat/pull/1638) ([fnichol](https://github.com/fnichol))
+- Fix rustfmt/CI exit code to correctly fail. [\#1637](https://github.com/habitat-sh/habitat/pull/1637) ([fnichol](https://github.com/fnichol))
+- Add dependencies to path in windows builds [\#1636](https://github.com/habitat-sh/habitat/pull/1636) ([mwrock](https://github.com/mwrock))
+- Add dependency resolution for windows [\#1633](https://github.com/habitat-sh/habitat/pull/1633) ([mwrock](https://github.com/mwrock))
+- Add callbacks to `hab plan init` [\#1631](https://github.com/habitat-sh/habitat/pull/1631) ([smith](https://github.com/smith))
+- Enhancements to `hab plan init` [\#1629](https://github.com/habitat-sh/habitat/pull/1629) ([smith](https://github.com/smith))
+- windows supervisor uses powerhell as a hook interpreter [\#1624](https://github.com/habitat-sh/habitat/pull/1624) ([mwrock](https://github.com/mwrock))
+- \[bldr\] Use local, non-root data dirs for `make bldr-run` target. [\#1623](https://github.com/habitat-sh/habitat/pull/1623) ([fnichol](https://github.com/fnichol))
+- Ensure all pop-locations are in finally blocks [\#1622](https://github.com/habitat-sh/habitat/pull/1622) ([mwrock](https://github.com/mwrock))
+- Unify `make bldr-run` Makefile target to work on native Linux & Mac. [\#1620](https://github.com/habitat-sh/habitat/pull/1620) ([fnichol](https://github.com/fnichol))
+- Set initial version to 0.1.0 in `hab plan init` [\#1619](https://github.com/habitat-sh/habitat/pull/1619) ([smith](https://github.com/smith))
+- Implement default download and verify functions in powershell build [\#1618](https://github.com/habitat-sh/habitat/pull/1618) ([mwrock](https://github.com/mwrock))
+- Fail powershell based builds if non terminating errors occur [\#1616](https://github.com/habitat-sh/habitat/pull/1616) ([mwrock](https://github.com/mwrock))
+- Add dev support instructions for Arch Linux! [\#1614](https://github.com/habitat-sh/habitat/pull/1614) ([fnichol](https://github.com/fnichol))
+- Add infra for operational metrics [\#1613](https://github.com/habitat-sh/habitat/pull/1613) ([chefsalim](https://github.com/chefsalim))
+- pkg\_upstream\_url is required in core plans [\#1612](https://github.com/habitat-sh/habitat/pull/1612) ([jtimberman](https://github.com/jtimberman))
+- Warn users if Docker's file sharing isn't enabled. [\#1611](https://github.com/habitat-sh/habitat/pull/1611) ([raskchanky](https://github.com/raskchanky))
+- Implements powershell default build service and config functions [\#1605](https://github.com/habitat-sh/habitat/pull/1605) ([mwrock](https://github.com/mwrock))
+- implement graceful shutdown on windows [\#1603](https://github.com/habitat-sh/habitat/pull/1603) ([mwrock](https://github.com/mwrock))
+- \[core\] Remove PackageArchive metadata debugging output of files. [\#1602](https://github.com/habitat-sh/habitat/pull/1602) ([fnichol](https://github.com/fnichol))
+- Add rolling update strategy to docs [\#1601](https://github.com/habitat-sh/habitat/pull/1601) ([reset](https://github.com/reset))
+- \[devshell\] Re-add `redis-server` pkg for `make bldr-run-shell` target. [\#1598](https://github.com/habitat-sh/habitat/pull/1598) ([fnichol](https://github.com/fnichol))
+
+## Bug fixes
+
+- private hab-depot - issues uploading / downloading packages [\#1195](https://github.com/habitat-sh/habitat/issues/1195)
+- Responses to gossip requests don't originate from the port the request was received on \(9634\) [\#1146](https://github.com/habitat-sh/habitat/issues/1146)
+- Supervisor enters infinite loop with CPU spike after receiving configuration update for package [\#1127](https://github.com/habitat-sh/habitat/issues/1127)
+- \[http-client\] Set a 30-second read/write timeout on HTTP client calls. [\#1646](https://github.com/habitat-sh/habitat/pull/1646) ([fnichol](https://github.com/fnichol))
+- Fix Hook output and remove "output" from HealthCheck and Hook errors [\#1645](https://github.com/habitat-sh/habitat/pull/1645) ([reset](https://github.com/reset))
+- \[hab\] Support running out of `/var/tmp` if available. [\#1644](https://github.com/habitat-sh/habitat/pull/1644) ([fnichol](https://github.com/fnichol))
+- Fix rustfmt/CI exit code to correctly fail. [\#1637](https://github.com/habitat-sh/habitat/pull/1637) ([fnichol](https://github.com/fnichol))
+- Remove panic on bad peer input [\#1635](https://github.com/habitat-sh/habitat/pull/1635) ([adamhjk](https://github.com/adamhjk))
+- Resolve peer address before assigning it's IP to member [\#1634](https://github.com/habitat-sh/habitat/pull/1634) ([elliott-davis](https://github.com/elliott-davis))
+- Added sig key checking to core crypto [\#1630](https://github.com/habitat-sh/habitat/pull/1630) ([georgemarshall](https://github.com/georgemarshall))
+- Fix integer overflow cast causing longer than expected thread sleeps [\#1625](https://github.com/habitat-sh/habitat/pull/1625) ([reset](https://github.com/reset))
+- \[bldr\] Push common args into their subcommands to prevent mis-invoking. [\#1621](https://github.com/habitat-sh/habitat/pull/1621) ([fnichol](https://github.com/fnichol))
+- Restore the cwd location even if the build fails [\#1617](https://github.com/habitat-sh/habitat/pull/1617) ([mwrock](https://github.com/mwrock))
+- Ensure the requestor is a member of the origin, not the person invited. [\#1609](https://github.com/habitat-sh/habitat/pull/1609) ([raskchanky](https://github.com/raskchanky))
+- tar windows package artifacts from a temporary directory [\#1608](https://github.com/habitat-sh/habitat/pull/1608) ([mwrock](https://github.com/mwrock))
+- \\[devshell\\] Re-add `redis-server` pkg for `make bldr-run-shell` target. [\#1598](https://github.com/habitat-sh/habitat/pull/1598) ([fnichol](https://github.com/fnichol))
+
+**Merged pull requests:**
+
+- Remove hab-director component [\#1652](https://github.com/habitat-sh/habitat/pull/1652) ([reset](https://github.com/reset))
+- Adding r to buttefly \(fix typo\) [\#1643](https://github.com/habitat-sh/habitat/pull/1643) ([tashimi](https://github.com/tashimi))
+- maybe use more natural capitalization... [\#1628](https://github.com/habitat-sh/habitat/pull/1628) ([nathenharvey](https://github.com/nathenharvey))
+- Solicit talks for ChefConf [\#1627](https://github.com/habitat-sh/habitat/pull/1627) ([nathenharvey](https://github.com/nathenharvey))
+- Link to webinar recording [\#1626](https://github.com/habitat-sh/habitat/pull/1626) ([nathenharvey](https://github.com/nathenharvey))
+
 ## [0.15.0](https://github.com/habitat-sh/habitat/tree/0.15.0) (12-22-2016)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.14.0...0.15.0)
 
