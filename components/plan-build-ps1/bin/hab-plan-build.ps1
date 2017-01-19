@@ -578,7 +578,7 @@ function _Complete-DependencyResolution {
       _Exit-With "Resolving '$dep' failed, should this be built first?" 1
     }
   }
- 
+
   # Build `${pkg_build_tdeps_resolved[@]}` containing all the direct build
   # dependencies, and the run dependencies for each direct build dependency.
 
@@ -849,9 +849,9 @@ function Invoke-DefaultBuild {
 # ```
 function Invoke-CheckWrapper {
     if ((_Check-Command Invoke-Check) -and (Test-Path Env:\DO_CHECK)) {
-        Write-BuildLine "Running post-compile tests"
-        Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
-        try { Invoke-Check } finally { Pop-Location }
+      Write-BuildLine "Running post-compile tests"
+      Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
+      try { Invoke-Check } finally { Pop-Location }
     }
 }
 
@@ -860,6 +860,18 @@ function Invoke-CheckWrapper {
 function Invoke-InstallWrapper {
     Write-BuildLine "Installing"
     New-Item "$pkg_prefix" -ItemType Directory -Force | Out-Null
+    foreach($dir in $pkg_lib_dirs) {
+      New-Item "$pkg_prefix\$dir" -ItemType Directory -Force | Out-Null
+    }
+    foreach($dir in $pkg_bin_dirs) {
+      New-Item "$pkg_prefix\$dir" -ItemType Directory -Force | Out-Null
+    }
+    foreach($dir in $pkg_include_dirs) {
+      New-Item "$pkg_prefix\$dir" -ItemType Directory -Force | Out-Null
+    }
+    foreach($dir in $pkg_pconfig_dirs) {
+      New-Item "$pkg_prefix\$dir" -ItemType Directory -Force | Out-Null
+    }
     Push-Location "$HAB_CACHE_SRC_PATH\$pkg_dirname"
     try { Invoke-Install } finally { Pop-Location }
 }
@@ -1038,8 +1050,8 @@ function _Write-Metadata {
             Out-File "$pkg_prefix\EXPOSES" -Encoding ascii
     }
 
-   # @TODO fin - INTERPRETERS
-    
+    # @TODO fin - INTERPRETERS
+
     $pkg_build_deps_resolved | % {
         Resolve-HabPkgPath $_ | Out-File $pkg_prefix\BUILD_DEPS -Encoding ascii -Append
     }
