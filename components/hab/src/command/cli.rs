@@ -19,7 +19,7 @@ pub mod setup {
     use hcore::crypto::SigKeyPair;
     use hcore::env;
 
-    use ORIGIN_ENVVAR;
+    use {AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR};
     use analytics;
     use command;
     use config;
@@ -183,7 +183,7 @@ pub mod setup {
                               change it if you wish."));
                 Some(o)
             }
-            None => None,
+            None => env::var(AUTH_TOKEN_ENVVAR).ok(),
         };
         Ok(try!(ui.prompt_ask("GitHub access token", default.as_ref().map(|x| &**x))))
     }

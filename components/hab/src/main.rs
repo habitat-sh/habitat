@@ -40,11 +40,9 @@ use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use hab::{analytics, cli, command, config, ORIGIN_ENVVAR, PRODUCT, VERSION};
+use hab::{analytics, cli, command, config, AUTH_TOKEN_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::error::{Error, Result};
 
-/// Makes the --auth-token CLI param optional when this env var is set
-const HABITAT_AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
 
@@ -503,13 +501,13 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
 }
 
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
-/// HABITAT_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
+/// HAB_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
 /// token set. If that's empty too, then error.
 fn auth_token_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("AUTH_TOKEN") {
         Some(o) => Ok(o.to_string()),
         None => {
-            match henv::var(HABITAT_AUTH_TOKEN_ENVVAR) {
+            match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
                     let config = try!(config::load());
