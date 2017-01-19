@@ -42,3 +42,4 @@ mod exec;
 
 pub const PRODUCT: &'static str = "hab";
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";

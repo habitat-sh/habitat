@@ -19,6 +19,7 @@ pub mod setup {
     use hcore::crypto::SigKeyPair;
     use hcore::env;
 
+    use ORIGIN_ENVVAR;
     use analytics;
     use command;
     use config;
@@ -165,7 +166,7 @@ pub mod setup {
                                    &o)));
                 Some(o)
             }
-            None => env::var("USER").ok(),
+            None => env::var(ORIGIN_ENVVAR).or(env::var("USER")).ok(),
         };
         Ok(try!(ui.prompt_ask("Default origin name", default.as_ref().map(|x| &**x))))
     }

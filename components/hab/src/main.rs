@@ -40,13 +40,11 @@ use hcore::service::ServiceGroup;
 use hcore::package::PackageIdent;
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use hab::{analytics, cli, command, config, PRODUCT, VERSION};
+use hab::{analytics, cli, command, config, ORIGIN_ENVVAR, PRODUCT, VERSION};
 use hab::error::{Error, Result};
 
 /// Makes the --auth-token CLI param optional when this env var is set
 const HABITAT_AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
-/// Makes the --origin CLI param optional when this env var is set
-const HABITAT_ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
 
@@ -532,7 +530,7 @@ fn origin_param_or_env(m: &ArgMatches) -> Result<String> {
     match m.value_of("ORIGIN") {
         Some(o) => Ok(o.to_string()),
         None => {
-            match henv::var(HABITAT_ORIGIN_ENVVAR) {
+            match henv::var(ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
                     let config = try!(config::load());
