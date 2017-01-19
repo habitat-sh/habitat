@@ -13,8 +13,6 @@ sidebar_links:
     sub_links:
     - title: Supervisor
       link: "/docs/concepts-supervisor/"
-    - title: Director
-      link: "/docs/concepts-director"
     - title: Plans
       link: "/docs/concepts-plans/"
     - title: Packages
@@ -59,8 +57,6 @@ sidebar_links:
       link: "/docs/run-packages-binding/"
     - title: Update strategy
       link: "/docs/run-packages-update-strategy/"
-    - title: Run multiple packages
-      link: "/docs/run-packages-director/"
     - title: Export packages
       link: "/docs/run-packages-export/"
     - title: Monitoring

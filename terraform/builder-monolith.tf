@@ -42,37 +42,10 @@ resource "aws_instance" "monolith" {
     script = "${path.module}/scripts/bootstrap.sh"
   }
 
-  provisioner "file" {
-    source      = "${path.module}/files/hab-director.service"
-    destination = "/home/ubuntu/hab-director.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mv /home/ubuntu/hab-director.service /etc/systemd/system/hab-director.service",
-      "sudo mkdir -p /hab/etc/director",
-      "cat <<BODY > /tmp/director-config.toml",
-      "${data.template_file.monolith_director.rendered}",
-      "BODY",
-      "sudo mv /tmp/director-config.toml /hab/etc/director/config.toml",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-director",
-      "sudo systemctl enable hab-director",
-    ]
-  }
-
   tags {
     Name          = "builder-monolith-${count.index}"
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
-  }
-}
-
-data "template_file" "monolith_director" {
-  template = "${file("${path.module}/templates/monolith-director.toml")}"
-
-  vars {
-    env = "${var.env}"
   }
 }

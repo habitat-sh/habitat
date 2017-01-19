@@ -53,6 +53,3 @@ archive_dir="$(echo $archive | sed 's/.tar.gz$//')"
 sudo "$archive_dir/hab" install core/hab > /dev/null 2>&1
 sudo "$archive_dir/hab" pkg binlink core/hab hab
 sudo hab install core/hab-sup > /dev/null 2>&1
-sudo hab install core/hab-director > /dev/null 2>&1
-# JW TODO: give director the same treatment as sup in hab
-sudo hab pkg binlink core/hab-director hab-director

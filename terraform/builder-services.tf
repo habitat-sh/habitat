@@ -37,41 +37,11 @@ resource "aws_instance" "services" {
     script = "${path.module}/scripts/bootstrap.sh"
   }
 
-  provisioner "file" {
-    source      = "${path.module}/files/hab-director.service"
-    destination = "/home/ubuntu/hab-director.service"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mv /home/ubuntu/hab-director.service /etc/systemd/system/hab-director.service",
-      "sudo mkdir -p /hab/etc/director",
-      "cat <<BODY > /tmp/director-config.toml",
-      "${data.template_file.services_director.rendered}",
-      "BODY",
-      "sudo mv /tmp/director-config.toml /hab/etc/director/config.toml",
-      "sudo systemctl daemon-reload",
-      "sudo systemctl start hab-director",
-      "sudo systemctl enable hab-director",
-    ]
-  }
-
   tags {
     Name          = "builder-service-${count.index}"
     X-Contact     = "The Habitat Maintainers <humans@habitat.sh>"
     X-Environment = "${var.env}"
     X-Application = "builder"
-  }
-}
-
-data "template_file" "services_director" {
-  template = "${file("${path.module}/templates/services-director.toml")}"
-
-  vars {
-    env = "${var.env}"
-
-    // peer_ip = "${aws_instance.router.0.private_ip}"
-    peer_ip = "${aws_instance.monolith.0.private_ip}"
   }
 }
 
