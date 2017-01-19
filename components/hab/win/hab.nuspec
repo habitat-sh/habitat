@@ -16,7 +16,7 @@
     <mailingListUrl>https://forums.habitat.sh/</mailingListUrl>
     <bugTrackerUrl>https://github.com/habitat-sh/habitat/issues</bugTrackerUrl>
     <tags>hab</tags>
-    <copyright>Copyright (c) 2016 Chef Software Inc. and/or applicable contributors</copyright>
+    <copyright>Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors</copyright>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <releaseNotes>This is a pre-release build for testing only.</releaseNotes>
