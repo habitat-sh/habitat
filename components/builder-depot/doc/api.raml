@@ -252,65 +252,194 @@ securitySchemes:
                                 400:
                                 500:
 /channels:
-    get:
-        description: List all channels
-        responses:
-            200:
-                body:
-                    application/json:
-                        example: |
-                            []
-    /{name}:
-        /pkgs:
-            /{origin}:
+    /{origin}:
+        get:
+            description: List all channels for an origin
+            responses:
+                200:
+                    body:
+                        application/json:
+                            example: |
+                                ["stable", "unstable"]
+        /{channel}:
+            post:
+                description: Create a channel
+                responses:
+                    201:
+                        description: Channel successfully created
+                    400:
+                        description: Origin or channel not supplied
+                    404:
+                        description: Origin does not exist
+                    409:
+                        description: Channel already exists
+                    500:
+                        description: Server error
+            delete:
+                description: Deletes a channel
+                responses:
+                    200:
+                        description: Channel successfully deleted
+                    400:
+                        description: Origin or channel not supplied
+                    404:
+                        description: Origin or channel does not exist
+                    500:
+                        description: Server error
+            /pkgs:
                 get:
-                    description: List packages for an origin
+                    description: List all packages in a channel
                     responses:
                         200:
-                            description: Return a list of packages for an origin
+                            description: Returns a list of packages
+                            body:
+                                application/json:
+                                    example: |
+                                        {
+                                            "range_start": 0,
+                                            "range_end": 49,
+                                            "total_count": 8,
+                                            "package_list": [
+                                                {
+                                                    "origin": "core",
+                                                    "name": "glibc",
+                                                    "version": "2.22",
+                                                    "release": "20160612063629"
+                                                },
+                                                {
+                                                    "origin": "core",
+                                                    "name": "linux-headers",
+                                                    "version": "4.3",
+                                                    "release": "20160612063537"
+                                                }
+                                            ]
+                                        }
                         400:
-                            description: Origin not supplied
+                            description: Origin or channel not supplied
                         404:
-                            description: Origin does not exist
+                            description: Origin or channel does not exist
                         500:
-                            description: Datastore error
+                            description: Server error
                 /{pkg}:
                     get:
-                        description: TODO
+                        description: List all packages in a channel that match the specified identifier
                         responses:
                             200:
-                                description: Return a list of packages for an origin
+                                description: Returns a list of packages
                             400:
-                                description: Origin not supplied
+                                description: Origin or channel or identifier not supplied
                             404:
-                                description: Origin does not exist
+                                description: Origin or channel or identifier does not exist
                             500:
-                                description: Datastore error
+                                description: Server error
                     /latest:
                         get:
+                            description: Get the latest version of the package in this channel that matches the specified identifier
                             responses:
                                 200:
+                                    description: Returns a package
+                                    body:
+                                        application/json:
+                                            example: |
+                                                {
+                                                    "checksum":"7a998b6a756f7ca769ac75edf66c119d14aa911d7cfb5fd91ad3ff21ddf0d257",
+                                                    "config":"",
+                                                    "deps":[
+                                                        {
+                                                            "name":"glibc",
+                                                            "origin":"core",
+                                                            "release":"20160612063629",
+                                                            "version":"2.22"
+                                                        }
+                                                    ],
+                                                    "exposes":[
+
+                                                    ],
+                                                    "ident":{
+                                                        "name":"tree",
+                                                        "origin":"core",
+                                                        "release":"20161102210957",
+                                                        "version":"1.7.0"
+                                                    },
+                                                    "manifest":"# core / tree\n\n\n* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>\n* __Version__: 1.7.0\n* __Release__: 20161102210957\n* __Architecture__: x86_64\n* __System__: linux\n* __Target__: x86_64-linux\n* __Upstream URL__: upstream project's website or home page is not defined\n* __License__: gplv2+ \n* __Source__: [http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz](http://mama.indstate.edu/users/ice/tree/src/tree-1.7.0.tgz)\n* __SHA__: `6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12`\n* __Path__: `/hab/pkgs/core/tree/1.7.0/20161102210957`\n* __Build Dependencies__: `core/make core/gcc `\n* __Dependencies__: `core/glibc `\n* __Interpreters__: no interpreters or undefined\n\n# Plan\n\n## Build Flags\n\n```bash\nCFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCPPFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nCXXFLAGS: -I/hab/pkgs/core/glibc/2.22/20160612063629/include -I/hab/pkgs/core/make/4.2.1/20161102154828/include -I/hab/pkgs/core/gcc/5.2.0/20161031031637/include\nLDFLAGS: -L/hab/pkgs/core/glibc/2.22/20160612063629/lib -L/hab/pkgs/core/gcc/5.2.0/20161031031637/lib\nLD_RUN_PATH: /hab/pkgs/core/tree/1.7.0/20161102210957/lib:/hab/pkgs/core/glibc/2.22/20160612063629/lib\n```\n\n## Plan Source\n\n```bash\npkg_name=tree\npkg_origin=core\npkg_version=1.7.0\npkg_maintainer=\"The Habitat Maintainers <humans@habitat.sh>\"\npkg_license=('gplv2+')\npkg_source=http://mama.indstate.edu/users/ice/tree/src/tree-${pkg_version}.tgz\npkg_shasum=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12\npkg_deps=(core/glibc)\npkg_build_deps=(core/make core/gcc)\npkg_bin_dirs=(bin)\npkg_include_dirs=(include)\npkg_lib_dirs=(lib)\n\ndo_build() {\n  make\n}\n\ndo_install() {\n  sed -i \"s#prefix = /usr#prefix = ${pkg_prefix}#\" Makefile\n  make install\n}\n```",
+                                                    "tdeps":[
+                                                        {
+                                                            "name":"glibc",
+                                                            "origin":"core",
+                                                            "release":"20160612063629",
+                                                            "version":"2.22"
+                                                        },
+                                                        {
+                                                            "name":"linux-headers",
+                                                            "origin":"core",
+                                                            "release":"20160612063537",
+                                                            "version":"4.3"
+                                                        }
+                                                    ]
+                                                }
+                                400:
+                                    description: Origin or channel or identifier not supplied
                                 404:
+                                    description: Origin or channel or identifier does not exist
                                 500:
-                        /{version}:
+                                    description: Server error
+                    /{version}:
+                        get:
+                            description: List all packages in a channel that match the specified identifier and version
+                            responses:
+                                200:
+                                    description: Returns a list of packages
+                                400:
+                                    description: Origin or channel or identifier or version not supplied
+                                404:
+                                    description: Origin or channel or identifier or version does not exist
+                                500:
+                                    description: Server error
+                        /latest:
                             get:
+                                description: Get the latest version of the package in this channel that matches the specified identifier and version
                                 responses:
                                     200:
-                            /latest:
+                                        description: Returns a package
+                                    400:
+                                        description: Origin or channel or identifier or version not supplied
+                                    404:
+                                        description: Origin or channel or identifier or version does not exist
+                                    500:
+                                        description: Server error
+                        /{release}:
+                            get:
+                                description: Get the package in a channel that matches the specified identifier, version and release
+                                responses:
+                                    200:
+                                        description: Returns a package
+                                    400:
+                                        description: Origin or channel or identifier or version or release not supplied
+                                    404:
+                                        description: Origin or channel or identifier or version or release does not exist
+                                    500:
+                                        description: Server error
+                            /download:
                                 get:
+                                    description: Download the package specified
                                     responses:
                                         200:
+                                            description: Streams a binary package back to the client
+                                        400:
+                                            description: Origin or channel or identifier or version or release not supplied
                                         404:
+                                            description: Origin or channel or identifier or version or release does not exist
                                         500:
-                                /{release}:
-                                    get:
-                                        responses:
-                                            200:
-                                            404:
-                                            500:
-                                    /promote:
-                                        post:
-                                            responses:
-                                                200:
-                                                404:
-                                                500:
+                                            description: Server error
+                            /promote:
+                                put:
+                                    description: Promote a package to a specific channel
+                                    responses:
+                                        200:
+                                            description: Package successfully promoted
+                                        400:
+                                            description: Origin or channel or identifier or version or release not supplied
+                                        404:
+                                            description: Origin or channel or identifier or version or release does not exist
+                                        500:
+                                            description: Server error
