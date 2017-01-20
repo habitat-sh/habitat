@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::Arc;
 use std::path::Path;
 use std::time::Duration;
 
@@ -22,14 +21,15 @@ use hyper::client::RequestBuilder;
 use hyper::client::pool::{Config, Pool};
 use hyper::header::UserAgent;
 use hyper::http::h1::Http11Protocol;
-use hyper::net::{HttpsConnector, Openssl};
-use openssl::ssl::{SslContext, SslMethod, SSL_OP_NO_SSLV2, SSL_OP_NO_SSLV3, SSL_OP_NO_COMPRESSION};
+use hyper::net::HttpsConnector;
+use hyper_openssl::OpensslClient;
+use openssl::ssl::{SslConnectorBuilder, SslConnector, SslMethod, SslOption, SSL_OP_NO_SSLV2,
+                   SSL_OP_NO_SSLV3, SSL_OP_NO_COMPRESSION};
 use url::Url;
 
 use error::Result;
 use net::ProxyHttpsConnector;
 use proxy::{ProxyInfo, proxy_unless_domain_exempted};
-use ssl;
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
 const CLIENT_SOCKET_RW_TIMEOUT: u64 = 30;
@@ -231,8 +231,8 @@ impl ApiClient {
 /// unchanged and will use the system's certificates.
 ///
 fn new_hyper_client(for_domain: Option<&Url>, fs_root_path: Option<&Path>) -> Result<HyperClient> {
-    let ctx = try!(ssl_ctx(fs_root_path));
-    let ssl_client = Openssl { context: Arc::new(ctx) };
+    let connector = try!(ssl_connector(fs_root_path));
+    let ssl_client = OpensslClient::from(connector);
     let timeout = Some(Duration::from_secs(CLIENT_SOCKET_RW_TIMEOUT));
 
     match try!(proxy_unless_domain_exempted(for_domain)) {
@@ -292,12 +292,16 @@ fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
     Ok(UserAgent(ua))
 }
 
-fn ssl_ctx(fs_root_path: Option<&Path>) -> Result<SslContext> {
-    // The spirit of this implementation is directly from Hyper's default OpensslClient function:
-    // https://github.com/hyperium/hyper/blob/v0.9.5/src/net.rs#L653-L661
-    let mut ctx = try!(SslContext::new(SslMethod::Sslv23));
-    try!(ssl::set_ca(&mut ctx, fs_root_path));
-    ctx.set_options(SSL_OP_NO_SSLV2 | SSL_OP_NO_SSLV3 | SSL_OP_NO_COMPRESSION);
-    try!(ctx.set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH"));
-    Ok(ctx)
+fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
+    let mut conn = try!(SslConnectorBuilder::new(SslMethod::tls()));
+    let mut options = SslOption::empty();
+    options.toggle(SSL_OP_NO_SSLV2);
+    options.toggle(SSL_OP_NO_SSLV3);
+    options.toggle(SSL_OP_NO_COMPRESSION);
+    if let Some(path) = fs_root_path {
+        try!(conn.builder_mut().set_ca_file(path));
+    }
+    conn.builder_mut().set_options(options);
+    try!(conn.builder_mut().set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH"));
+    Ok(conn.build())
 }

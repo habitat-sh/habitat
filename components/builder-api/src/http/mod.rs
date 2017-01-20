@@ -25,7 +25,6 @@ use hab_net::oauth::github::GitHubClient;
 use hab_net::privilege;
 use hab_core::event::EventLogger;
 use iron::prelude::*;
-use iron::Protocol;
 use mount::Mount;
 use persistent::{self, Read};
 use staticfile::Static;
@@ -107,9 +106,9 @@ pub fn run(config: Arc<Config>) -> Result<JoinHandle<()>> {
     let handle = thread::Builder::new()
         .name("http-srv".to_string())
         .spawn(move || {
-            let _server = Iron::new(mount)
-                .listen_with(addr, HTTP_THREAD_COUNT, Protocol::Http, None)
-                .unwrap();
+            let mut server = Iron::new(mount);
+            server.threads = HTTP_THREAD_COUNT;
+            server.http(addr).unwrap();
             tx.send(()).unwrap();
         })
         .unwrap();

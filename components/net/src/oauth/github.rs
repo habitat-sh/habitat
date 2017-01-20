@@ -23,6 +23,8 @@ use hyper::{self, Url};
 use hyper::status::StatusCode;
 use hyper::header::{Authorization, Accept, Bearer, UserAgent, qitem};
 use hyper::mime::{Mime, TopLevel, SubLevel};
+use hyper::net::HttpsConnector;
+use hyper_openssl::OpensslClient;
 use protocol::{net, sessionsrv};
 use rustc_serialize::json;
 
@@ -428,10 +430,8 @@ pub enum AuthResp {
 }
 
 fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Response, net::NetError> {
-    let mut client = hyper::Client::new();
-    client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
-    client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
-    client.get(url)
+    hyper_client()
+        .get(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
         .header(Authorization(Bearer { token: token.to_owned() }))
         .header(UserAgent(USER_AGENT.to_string()))
@@ -440,14 +440,21 @@ fn http_get(url: Url, token: &str) -> StdResult<hyper::client::response::Respons
 }
 
 fn http_post(url: Url) -> StdResult<hyper::client::response::Response, net::NetError> {
-    let mut client = hyper::Client::new();
-    client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
-    client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
-    client.post(url)
+    hyper_client()
+        .post(url)
         .header(Accept(vec![qitem(Mime(TopLevel::Application, SubLevel::Json, vec![]))]))
         .header(UserAgent(USER_AGENT.to_string()))
         .send()
         .map_err(hyper_to_net_err)
+}
+
+fn hyper_client() -> hyper::Client {
+    let ssl = OpensslClient::new().unwrap();
+    let connector = HttpsConnector::new(ssl);
+    let mut client = hyper::Client::with_connector(connector);
+    client.set_read_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
+    client.set_write_timeout(Some(Duration::from_millis(HTTP_TIMEOUT)));
+    client
 }
 
 fn hyper_to_net_err(err: hyper::error::Error) -> net::NetError {

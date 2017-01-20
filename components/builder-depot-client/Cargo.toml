@@ -8,6 +8,7 @@ workspace = "../../"
 [dependencies]
 broadcast = "*"
 hyper = "*"
+hyper-openssl = ""
 log = "*"
 pbr = "*"
 rustc-serialize = "*"

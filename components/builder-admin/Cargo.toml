@@ -24,7 +24,6 @@ router = "*"
 rustc-serialize = "*"
 serde = "*"
 serde_json = "*"
-staticfile = "*"
 toml = "*"
 unicase = "*"
 urlencoded = "*"
@@ -33,9 +32,15 @@ urlencoded = "*"
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
 
+# JW TODO: Move back to a crate dependency once https://github.com/iron/staticfile/pull/91 has
+# been merged into master and released
+[dependencies.staticfile]
+git = "https://github.com/onur/staticfile"
+branch = "iron-0.5"
+
 [dependencies.zmq]
-git = "https://github.com/habitat-sh/rust-zmq.git"
-tag = "windows_fix_pr"
+git = "https://github.com/erickt/rust-zmq"
+branch = "release/v0.8"
 
 [dependencies.habitat_core]
 path = "../core"

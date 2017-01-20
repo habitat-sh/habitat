@@ -19,7 +19,6 @@ extern crate env_logger;
 extern crate hab_butterfly;
 extern crate habitat_core as hcore;
 extern crate habitat_common as common;
-extern crate handlebars;
 #[macro_use]
 extern crate log;
 

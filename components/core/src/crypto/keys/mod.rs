@@ -162,7 +162,7 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
         }
     };
     let name = match caps.name("name") {
-        Some(r) => r,
+        Some(r) => r.as_str(),
         None => {
             debug!("check_filename: Cannot parse name from {}", &filename);
             return;
@@ -170,7 +170,7 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
     };
 
     let rev = match caps.name("rev") {
-        Some(r) => r,
+        Some(r) => r.as_str(),
         None => {
             debug!("check_filename: Cannot parse rev from {}", &filename);
             return;
@@ -178,7 +178,7 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
     };
 
     let suffix = match caps.name("suffix") {
-        Some(r) => r,
+        Some(r) => r.as_str(),
         None => {
             debug!("check_filename: Cannot parse suffix from {}", &filename);
             return;
@@ -282,7 +282,7 @@ pub fn parse_name_with_rev(name_with_rev: &str) -> Result<(String, String)> {
         }
     };
     let name = match caps.name("name") {
-        Some(r) => r,
+        Some(r) => r.as_str().to_string(),
         None => {
             let msg = format!("parse_name_with_rev:2 Cannot parse name from {}",
                               &name_with_rev);
@@ -290,14 +290,14 @@ pub fn parse_name_with_rev(name_with_rev: &str) -> Result<(String, String)> {
         }
     };
     let rev = match caps.name("rev") {
-        Some(r) => r,
+        Some(r) => r.as_str().to_string(),
         None => {
             let msg = format!("parse_name_with_rev:3 Cannot parse rev from {}",
                               &name_with_rev);
             return Err(Error::CryptoError(msg));
         }
     };
-    Ok((name.to_string(), rev.to_string()))
+    Ok((name, rev))
 }
 
 /// Is the string a valid origin name?

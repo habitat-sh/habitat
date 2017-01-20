@@ -9,7 +9,8 @@ workspace = "../../"
 log = "*"
 httparse = "*"
 hyper = "*"
-openssl = "0.7" # lock until hyper bumps to 0.8+
+hyper-openssl = "*"
+openssl = "*"
 rustc-serialize = "*"
 url = "*"
 

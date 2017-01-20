@@ -50,7 +50,6 @@ features = [ "suggestions", "color", "unstable" ]
 
 [dev-dependencies]
 hyper = "*"
-openssl = "0.7" # lock until hyper bumps to 0.8+
 
 [features]
 functional = []

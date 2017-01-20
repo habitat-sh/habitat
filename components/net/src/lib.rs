@@ -18,6 +18,7 @@ extern crate fnv;
 extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate hyper;
+extern crate hyper_openssl;
 extern crate iron;
 #[macro_use]
 extern crate lazy_static;

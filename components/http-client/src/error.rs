@@ -19,7 +19,7 @@ use std::result;
 
 use hab_core;
 use hyper;
-use openssl::ssl;
+use openssl::{self, ssl};
 use url;
 
 #[derive(Debug)]
@@ -29,7 +29,8 @@ pub enum Error {
     /// Occurs when an improper http or https proxy value is given.
     InvalidProxyValue(String),
     IO(io::Error),
-    SslError(ssl::error::SslError),
+    SslError(ssl::Error),
+    SslErrorStack(openssl::error::ErrorStack),
     /// When an error occurs attempting to parse a string into a URL.
     UrlParseError(url::ParseError),
 }
@@ -44,6 +45,7 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::InvalidProxyValue(ref e) => format!("Invalid proxy value: {:?}", e),
             Error::SslError(ref e) => format!("{}", e),
+            Error::SslErrorStack(ref e) => format!("{}", e),
             Error::UrlParseError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
@@ -58,6 +60,7 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::InvalidProxyValue(_) => "Invalid proxy value",
             Error::SslError(ref err) => err.description(),
+            Error::SslErrorStack(ref err) => err.description(),
             Error::UrlParseError(ref err) => err.description(),
         }
     }
@@ -81,9 +84,15 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<ssl::error::SslError> for Error {
-    fn from(err: ssl::error::SslError) -> Error {
+impl From<ssl::Error> for Error {
+    fn from(err: ssl::Error) -> Error {
         Error::SslError(err)
+    }
+}
+
+impl From<openssl::error::ErrorStack> for Error {
+    fn from(err: openssl::error::ErrorStack) -> Error {
+        Error::SslErrorStack(err)
     }
 }
 

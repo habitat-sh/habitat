@@ -74,18 +74,17 @@ impl FromStr for ServiceGroup {
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
         let service = match caps.name("service") {
-            Some(s) => s.to_string(),
+            Some(s) => s.as_str().to_string(),
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
         let group = match caps.name("group") {
-            Some(g) => g.to_string(),
+            Some(g) => g.as_str().to_string(),
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
         let organization = match caps.name("organization") {
-            Some(o) => Some(o.to_string()),
+            Some(o) => Some(o.as_str().to_string()),
             None => None,
         };
-
         Ok(ServiceGroup::new(service, group, organization))
     }
 }

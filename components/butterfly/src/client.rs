@@ -36,7 +36,7 @@ pub struct Client {
 impl Client {
     /// Connect this client to the address, and optionally encrypt the traffic.
     pub fn new<A: ToString>(addr: A, ring_key: Option<SymKey>) -> Result<Client> {
-        let mut socket = (**ZMQ_CONTEXT)
+        let socket = (**ZMQ_CONTEXT)
             .as_mut()
             .socket(zmq::PUSH)
             .expect("Failure to create the ZMQ push socket");

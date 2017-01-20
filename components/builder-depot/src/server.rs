@@ -44,6 +44,7 @@ use protocol::vault::*;
 use router::{Params, Router};
 use rustc_serialize::json::{self, ToJson};
 use rustc_serialize::Encodable;
+use url;
 use urlencoded::UrlEncodedQuery;
 
 use super::Depot;
@@ -367,7 +368,7 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     let mut response = Response::with((status::Created,
                                        format!("/origins/{}/keys/{}", &origin, &revision)));
-    let mut base_url = req.url.clone().into_generic_url();
+    let mut base_url: url::Url = req.url.clone().into();
     base_url.set_path(&format!("key/{}-{}", &origin, &revision));
     response.headers.set(headers::Location(format!("{}", base_url)));
     Ok(response)
@@ -550,7 +551,7 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
         let mut response = Response::with((status::Created,
                                            format!("/pkgs/{}/download", object.get_ident())));
-        let mut base_url = req.url.clone().into_generic_url();
+        let mut base_url: url::Url = req.url.clone().into();
         base_url.set_path(&format!("pkgs/{}/download", object.get_ident()));
         response.headers.set(headers::Location(format!("{}", base_url)));
         Ok(response)
@@ -1018,7 +1019,7 @@ fn extract_pagination(req: &mut Request) -> result::Result<(isize, isize), Respo
 
 fn extract_query_value(key: &str, req: &mut Request) -> Option<String> {
     match req.get_ref::<UrlEncodedQuery>() {
-        Ok(map) => {
+        Ok(ref map) => {
             for (k, v) in map.iter() {
                 if key == *k {
                     if v.len() < 1 {

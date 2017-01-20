@@ -146,7 +146,7 @@ impl PushWorker {
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can loose messages.
     fn send_rumors(&self, member: Member, rumors: RumorVec) {
-        let mut socket = (**ZMQ_CONTEXT)
+        let socket = (**ZMQ_CONTEXT)
             .as_mut()
             .socket(zmq::PUSH)
             .expect("Failure to create the ZMQ push socket");
