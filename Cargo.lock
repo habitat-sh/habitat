@@ -244,6 +244,7 @@ dependencies = [
 name = "hab-graph"
 version = "0.1.0"
 dependencies = [
+ "log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "petgraph 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

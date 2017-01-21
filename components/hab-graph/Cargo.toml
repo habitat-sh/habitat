@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["Salim Alam <salam@chef.io>"]
 
 [dependencies]
+log = "*"
 petgraph = "*"
