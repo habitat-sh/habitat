@@ -264,7 +264,7 @@ Get-HabPackagePath "glibc/2.22"
     param($Identity)
 
     foreach($e in $pkg_all_deps_resolved) {
-        if("$($e.Replace("\", "/"))/".Contains("/$Identity/")) {
+        if((Resolve-HabPkgPath $e).Contains("/$Identity/")) {
           return $e
         }
     }
@@ -400,7 +400,7 @@ function _Get-TdepsFor($dependency) {
 function _return_or_append_to_set($dependency, $depArray) {
   foreach($e in $depArray) {
     if ($e -eq $dependency) {
-      $depArray
+      return $depArray
     }
   }
   $depArray + $dependency
