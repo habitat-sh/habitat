@@ -15,7 +15,6 @@
 #[macro_use]
 extern crate habitat_sup as sup;
 extern crate habitat_core as hcore;
-extern crate rustc_serialize;
 #[macro_use]
 extern crate log;
 extern crate env_logger;
@@ -38,10 +37,11 @@ use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
 use hcore::url::{DEFAULT_DEPOT_URL, DEPOT_URL_ENVVAR};
 
-use sup::config::{gcache, gconfig, Command, Config, GossipListenAddr, UpdateStrategy, Topology};
+use sup::config::{gcache, gconfig, Command, Config, GossipListenAddr};
 use sup::error::{Error, Result, SupError};
 use sup::command::*;
 use sup::http_gateway;
+use sup::manager::service::{UpdateStrategy, Topology};
 
 /// Our output key
 static LOGKEY: &'static str = "MN";

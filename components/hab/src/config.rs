@@ -23,6 +23,7 @@ use hcore::fs::{am_i_root, FS_ROOT_PATH};
 use hcore::os::users;
 use toml;
 
+pub use types::config::*;
 use error::{Error, Result};
 
 const CLI_CONFIG_PATH: &'static str = "hab/etc/cli.toml";
@@ -79,12 +80,6 @@ fn cli_config_path(use_sudo_user: bool) -> PathBuf {
     }
 
     PathBuf::from(FS_ROOT_PATH).join(CLI_CONFIG_PATH)
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, RustcEncodable)]
-pub struct Config {
-    pub auth_token: Option<String>,
-    pub origin: Option<String>,
 }
 
 impl ConfigFile for Config {

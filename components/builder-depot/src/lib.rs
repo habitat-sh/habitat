@@ -37,7 +37,7 @@ extern crate r2d2_redis;
 extern crate redis;
 #[macro_use]
 extern crate router;
-extern crate rustc_serialize;
+extern crate serde;
 extern crate serde_json;
 extern crate time;
 extern crate toml;

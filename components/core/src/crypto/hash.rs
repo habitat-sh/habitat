@@ -18,8 +18,8 @@ use std::mem;
 use std::path::Path;
 use std::ptr;
 
+use hex::ToHex;
 use libsodium_sys;
-use rustc_serialize::hex::ToHex;
 
 use error::Result;
 

@@ -18,7 +18,6 @@ extern crate hyper;
 extern crate url;
 extern crate habitat_core as core;
 extern crate uuid;
-extern crate rustc_serialize;
 
 macro_rules! poerr {
     ($expr:expr) => (

@@ -11,6 +11,7 @@ name = "bldr-api"
 doc = false
 
 [dependencies]
+base64 = "*"
 bodyparser = "*"
 env_logger = "*"
 hyper = "*"
@@ -21,10 +22,9 @@ mount = "*"
 persistent = "*"
 protobuf = "*"
 router = "*"
-rustc-serialize = "*"
 serde = "*"
 serde_json = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
 
 [dependencies.clap]
@@ -59,9 +59,6 @@ branch = "habitat"
 
 [build-dependencies]
 serde_codegen = "*"
-
-[replace]
-"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

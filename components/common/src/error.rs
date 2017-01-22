@@ -21,7 +21,6 @@ use std::string;
 
 use depot_client;
 use hcore;
-use rustc_serialize::json;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -37,8 +36,6 @@ pub enum Error {
     InvalidTomlError(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
-    JsonDecode(json::DecoderError),
-    JsonEncode(json::EncoderError),
     RootRequired,
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
@@ -67,8 +64,6 @@ impl fmt::Display for Error {
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::InvalidTomlError(ref e) => format!("Invalid TOML: {}", e),
             Error::IO(ref err) => format!("{}", err),
-            Error::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
-            Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
@@ -96,8 +91,6 @@ impl error::Error for Error {
             Error::HabitatCore(ref err) => err.description(),
             Error::InvalidTomlError(_) => "Invalid TOML",
             Error::IO(ref err) => err.description(),
-            Error::JsonDecode(_) => "JSON decoding error: {:?}",
-            Error::JsonEncode(_) => "JSON encoding error",
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation"
             }
@@ -123,18 +116,6 @@ impl From<hcore::Error> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
         Error::IO(err)
-    }
-}
-
-impl From<json::DecoderError> for Error {
-    fn from(err: json::DecoderError) -> Self {
-        Error::JsonDecode(err)
-    }
-}
-
-impl From<json::EncoderError> for Error {
-    fn from(err: json::EncoderError) -> Self {
-        Error::JsonEncode(err)
     }
 }
 

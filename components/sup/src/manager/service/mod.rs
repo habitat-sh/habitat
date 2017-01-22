@@ -26,39 +26,18 @@ use hcore::crypto::hash;
 use hcore::fs;
 use hcore::util::perm::{set_owner, set_permissions};
 
-use config::{gconfig, UpdateStrategy, Topology};
+pub use types::service::*;
+pub use self::config::ServiceConfig;
+use config::gconfig;
 use error::Result;
 use health_check;
 use manager::signals;
 use manager::census::CensusList;
-use manager::service::config::ServiceConfig;
 use package::Package;
 use supervisor::{Supervisor, RuntimeConfig};
 use util;
 
 static LOGKEY: &'static str = "SR";
-
-#[derive(Debug, PartialEq, Eq, RustcEncodable)]
-enum LastRestartDisplay {
-    None,
-    ElectionInProgress,
-    ElectionNoQuorum,
-    ElectionFinished,
-}
-
-#[derive(Debug, RustcEncodable)]
-pub struct Service {
-    pub needs_restart: bool,
-    pub package: Package,
-    pub service_config_incarnation: Option<u64>,
-    pub service_group: ServiceGroup,
-    pub topology: Topology,
-    pub update_strategy: UpdateStrategy,
-    pub current_service_files: HashMap<String, u64>,
-    pub initialized: bool,
-    last_restart_display: LastRestartDisplay,
-    supervisor: Supervisor,
-}
 
 impl Service {
     pub fn new<S: Into<String>>(package: Package,
@@ -242,7 +221,6 @@ impl Service {
             false
         }
     }
-
 
     pub fn write_butterfly_service_config(&mut self, config: String) -> bool {
         let on_disk_path = fs::svc_path(&self.service_group.service).join("gossip.toml");

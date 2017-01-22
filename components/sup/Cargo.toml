@@ -2,7 +2,7 @@
 name = "habitat_sup"
 version = "0.0.0"
 authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>"]
-build = "../build.rs"
+build = "build.rs"
 workspace = "../../"
 
 [lib]
@@ -18,18 +18,19 @@ name = "functional"
 [dependencies]
 ansi_term = "*"
 env_logger = "*"
-handlebars = "*"
+handlebars = { version = "*", features = ["serde_type", "partial4"], default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "*"
 iron = "*"
 persistent = "*"
 regex = "*"
-rustc-serialize = "*"
 router = "*"
+serde = "*"
+serde_json = "*"
 tempdir = "*"
 time = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"
 
 [dependencies.habitat_core]
@@ -47,6 +48,9 @@ path = "../butterfly"
 [dependencies.clap]
 version = "*"
 features = [ "suggestions", "color", "unstable" ]
+
+[build-dependencies]
+serde_codegen = "*"
 
 [dev-dependencies]
 hyper = "*"

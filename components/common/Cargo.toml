@@ -11,10 +11,9 @@ log = "*"
 pbr = "0.2" # lock until ready to support 0.3+ interface
 regex = "*"
 retry = "*"
-rustc-serialize = "*"
 term = "*"
 time = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 
 [dependencies.habitat_core]
 path = "../core"

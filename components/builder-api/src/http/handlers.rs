@@ -14,6 +14,7 @@
 
 //! A collection of handlers for the HTTP server's router
 
+use base64;
 use bodyparser;
 use depot::server::check_origin_access;
 use hab_core::package::Plan;
@@ -29,7 +30,6 @@ use protocol::jobsrv::{Job, JobGet, JobSpec};
 use protocol::vault::*;
 use protocol::net::{self, NetOk, ErrCode};
 use router::Router;
-use rustc_serialize::base64::FromBase64;
 
 define_event_log!();
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
@@ -47,8 +47,8 @@ pub fn github_authenticate(req: &mut Request) -> IronResult<Response> {
 
             log_event!(req,
                        Event::GithubAuthenticate {
-                           user: session.get_name(),
-                           account: &session.get_id().to_string(),
+                           user: session.get_name().to_string(),
+                           account: session.get_id().to_string(),
                        });
 
             Ok(render_json(status::Ok, &session))
@@ -86,8 +86,8 @@ pub fn job_create(req: &mut Request) -> IronResult<Response> {
         Ok(job) => {
             log_event!(req,
                        Event::JobCreate {
-                           package: &job.get_project().get_id(),
-                           account: &session.get_id().to_string(),
+                           package: job.get_project().get_id().to_string(),
+                           account: session.get_id().to_string(),
                        });
             Ok(render_json(status::Created, &job))
         }
@@ -157,8 +157,8 @@ pub fn accept_invitation(req: &mut Request) -> IronResult<Response> {
         Ok(_invites) => {
             log_event!(req,
                        Event::OriginInvitationAccept {
-                           id: &request.get_invite_id().to_string(),
-                           account: &session.get_id().to_string(),
+                           id: request.get_invite_id().to_string(),
+                           account: session.get_id().to_string(),
                        });
             Ok(Response::with(status::NoContent))
         }
@@ -184,8 +184,8 @@ pub fn ignore_invitation(req: &mut Request) -> IronResult<Response> {
         Ok(_invites) => {
             log_event!(req,
                        Event::OriginInvitationIgnore {
-                           id: &request.get_invite_id().to_string(),
-                           account: &session.get_id().to_string(),
+                           id: request.get_invite_id().to_string(),
+                           account: session.get_id().to_string(),
                        });
             Ok(Response::with(status::NoContent))
         }
@@ -242,7 +242,7 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
                           &repo,
                           &project.get_plan_path()) {
         Ok(contents) => {
-            match contents.content.from_base64() {
+            match base64::decode(&contents.content) {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => project.set_id(format!("{}/{}", origin.get_name(), plan.name)),
@@ -263,9 +263,9 @@ pub fn project_create(req: &mut Request) -> IronResult<Response> {
         Ok(response) => {
             log_event!(req,
                        Event::ProjectCreate {
-                           origin: origin.get_name(),
-                           package: request.get_project().get_id(),
-                           account: &session.get_id().to_string(),
+                           origin: origin.get_name().to_string(),
+                           package: request.get_project().get_id().to_string(),
+                           account: session.get_id().to_string(),
                        });
             Ok(render_json(status::Created, &response))
         }
@@ -334,7 +334,7 @@ pub fn project_update(req: &mut Request) -> IronResult<Response> {
                           &repo,
                           &project.get_plan_path()) {
         Ok(contents) => {
-            match contents.content.from_base64() {
+            match base64::decode(&contents.content) {
                 Ok(ref bytes) => {
                     match Plan::from_bytes(bytes) {
                         Ok(plan) => {

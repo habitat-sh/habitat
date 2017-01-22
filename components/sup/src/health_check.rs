@@ -14,7 +14,7 @@
 
 use std::fmt::{self, Display, Formatter};
 
-#[derive(Debug, Clone, PartialEq, Eq, RustcEncodable)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CheckResult {
     Ok,
     Warning,

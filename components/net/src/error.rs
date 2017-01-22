@@ -21,7 +21,7 @@ use std::result;
 use hyper;
 use protobuf;
 use protocol::net;
-use rustc_serialize::json;
+use serde_json;
 use zmq;
 
 use oauth;
@@ -31,7 +31,7 @@ pub enum Error {
     Auth(oauth::github::AuthErr),
     GitHubAPI(hyper::status::StatusCode, HashMap<String, String>),
     IO(io::Error),
-    JsonDecode(json::DecoderError),
+    Json(serde_json::Error),
     MaxHops,
     Net(net::NetError),
     HTTP(hyper::status::StatusCode),
@@ -48,11 +48,11 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::Auth(ref e) => format!("GitHub Authentication error, {}", e),
             Error::GitHubAPI(ref c, ref m) => format!("[{}] {:?}", c, m),
+            Error::HTTP(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
-            Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
+            Error::Json(ref e) => format!("{}", e),
             Error::MaxHops => format!("Received a message containing too many network hops"),
             Error::Net(ref e) => format!("{}", e),
-            Error::HTTP(ref e) => format!("{}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::RequiredConfigField(ref e) => {
                 format!("Missing required field in configuration, {}", e)
@@ -71,7 +71,7 @@ impl error::Error for Error {
             Error::GitHubAPI(_, _) => "GitHub API error.",
             Error::IO(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",
-            Error::JsonDecode(ref err) => err.description(),
+            Error::Json(ref err) => err.description(),
             Error::MaxHops => "Received a message containing too many network hops",
             Error::Net(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
@@ -85,12 +85,6 @@ impl error::Error for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::IO(err)
-    }
-}
-
-impl From<json::DecoderError> for Error {
-    fn from(err: json::DecoderError) -> Self {
-        Error::JsonDecode(err)
     }
 }
 
@@ -109,6 +103,12 @@ impl From<protobuf::ProtobufError> for Error {
 impl From<net::NetError> for Error {
     fn from(err: net::NetError) -> Error {
         Error::Net(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error {
+        Error::Json(err)
     }
 }
 

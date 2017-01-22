@@ -68,9 +68,10 @@ use hcore::package::PackageIdent;
 
 use {PRODUCT, VERSION};
 use error::{Error, Result};
-use config::{gconfig, UpdateStrategy};
+use config::gconfig;
 use package::Package;
 use manager::Manager;
+use manager::service::UpdateStrategy;
 
 static LOGKEY: &'static str = "CS";
 

@@ -14,34 +14,34 @@
 
 use std::collections::BTreeMap;
 
+use serde_json;
 use toml;
-use rustc_serialize::json::Json;
 
-pub fn toml_to_json(value: toml::Value) -> Json {
+pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
     match value {
-        toml::Value::String(s) => Json::String(format!("{}", s)),
-        toml::Value::Integer(i) => Json::I64(i as i64),
-        toml::Value::Float(i) => Json::F64(i as f64),
-        toml::Value::Boolean(b) => Json::Boolean(b),
-        toml::Value::Datetime(s) => Json::String(format!("{}", s)),
+        toml::Value::String(s) => serde_json::Value::String(format!("{}", s)),
+        toml::Value::Integer(i) => serde_json::Value::I64(i as i64),
+        toml::Value::Float(i) => serde_json::Value::F64(i as f64),
+        toml::Value::Boolean(b) => serde_json::Value::Bool(b),
+        toml::Value::Datetime(s) => serde_json::Value::String(format!("{}", s)),
         toml::Value::Array(a) => toml_vec_to_json(a),
         toml::Value::Table(t) => toml_table_to_json(t),
     }
 }
 
-pub fn toml_vec_to_json(toml: Vec<toml::Value>) -> Json {
+pub fn toml_vec_to_json(toml: Vec<toml::Value>) -> serde_json::Value {
     let mut mvec = vec![];
     for x in toml.iter() {
         mvec.push(toml_to_json(x.clone()))
     }
-    Json::Array(mvec)
+    serde_json::Value::Array(mvec)
 }
 
 // Translates a toml table to a mustache data structure.
-pub fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> Json {
+pub fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> serde_json::Value {
     let mut hashmap = BTreeMap::new();
     for (key, value) in toml.iter() {
         hashmap.insert(format!("{}", key), toml_to_json(value.clone()));
     }
-    Json::Object(hashmap)
+    serde_json::Value::Object(hashmap)
 }

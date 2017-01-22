@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+
+// JW TODO: After updating to Rust 1.15, move the types contained in this module back into
+// `http/handlers.rs`
+
 use hab_net::privilege;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -22,28 +26,10 @@ pub struct FeatureGrant {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FeatureFlagList(Vec<FeatureFlag>);
 
-impl Default for FeatureFlagList {
-    fn default() -> Self {
-        let mut list = vec![];
-        list.push(FeatureFlag::new("Admin", privilege::ADMIN.bits()));
-        list.push(FeatureFlag::new("Builder", privilege::BUILDER.bits()));
-        FeatureFlagList(list)
-    }
-}
-
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FeatureFlag {
     name: String,
     id: u32,
-}
-
-impl FeatureFlag {
-    pub fn new(name: &'static str, id: u32) -> Self {
-        FeatureFlag {
-            name: name.to_string(),
-            id: id,
-        }
-    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

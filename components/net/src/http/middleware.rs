@@ -23,7 +23,7 @@ use iron::typemap::Key;
 use unicase::UniCase;
 use protocol::sessionsrv::*;
 use protocol::net::{self, ErrCode};
-use rustc_serialize::json::{self, ToJson};
+use serde_json;
 
 use super::net_err_to_http;
 use super::super::error::Error;
@@ -122,7 +122,7 @@ impl Authenticated {
                     Ok(session)
                 } else {
                     let status = net_err_to_http(err.get_code());
-                    let body = json::encode(&err.to_json()).unwrap();
+                    let body = itry!(serde_json::to_string(&err));
                     Err(IronError::new(err, (body, status)))
                 }
             }
@@ -184,7 +184,7 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
                 Err(_) => {
                     let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:0");
                     let status = net_err_to_http(err.get_code());
-                    let body = json::encode(&err.to_json()).unwrap();
+                    let body = itry!(serde_json::to_string(&err));
                     return Err(IronError::new(err, (body, status)));
                 }
             };
@@ -198,7 +198,7 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
             match conn.route::<SessionCreate, Session>(&request) {
                 Ok(session) => Ok(session),
                 Err(err) => {
-                    let body = json::encode(&err.to_json()).unwrap();
+                    let body = itry!(serde_json::to_string(&err));
                     let status = net_err_to_http(err.get_code());
                     Err(IronError::new(err, (body, status)))
                 }
@@ -207,28 +207,28 @@ pub fn session_create(github: &GitHubClient, token: &str) -> IronResult<Session>
         Err(Error::GitHubAPI(hyper::status::StatusCode::Unauthorized, _)) => {
             let err = net::err(ErrCode::ACCESS_DENIED, "net:session-create:1");
             let status = net_err_to_http(err.get_code());
-            let body = json::encode(&err.to_json()).unwrap();
+            let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
         Err(e @ Error::GitHubAPI(_, _)) => {
             warn!("Unexpected response from GitHub, {:?}", e);
             let err = net::err(ErrCode::BAD_REMOTE_REPLY, "net:session-create:2");
             let status = net_err_to_http(err.get_code());
-            let body = json::encode(&err.to_json()).unwrap();
+            let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
-        Err(e @ Error::JsonDecode(_)) => {
+        Err(e @ Error::Json(_)) => {
             warn!("Bad response body from GitHub, {:?}", e);
             let err = net::err(ErrCode::BAD_REMOTE_REPLY, "net:session-create:3");
             let status = net_err_to_http(err.get_code());
-            let body = json::encode(&err.to_json()).unwrap();
+            let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
         Err(e) => {
             error!("Unexpected error, err={:?}", e);
             let err = net::err(ErrCode::BUG, "net:session-create:4");
             let status = net_err_to_http(err.get_code());
-            let body = json::encode(&err.to_json()).unwrap();
+            let body = itry!(serde_json::to_string(&err));
             Err(IronError::new(err, (body, status)))
         }
     }

@@ -32,7 +32,7 @@ use hcore::package::PackageIdent;
 
 use error::{Error, Result, SupError};
 use http_gateway;
-pub use manager::service_updater::UpdateStrategy;
+use manager::service::{Topology, UpdateStrategy};
 
 static LOGKEY: &'static str = "CFG";
 
@@ -119,19 +119,6 @@ impl ToSocketAddrs for GossipListenAddr {
 
     fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
         self.0.to_socket_addrs()
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, RustcEncodable, Clone, Copy)]
-pub enum Topology {
-    Standalone,
-    Leader,
-    Initializer,
-}
-
-impl Default for Topology {
-    fn default() -> Topology {
-        Topology::Standalone
     }
 }
 
@@ -487,7 +474,8 @@ impl Config {
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, Command, Topology};
+    use manager::service::Topology;
+    use super::{Config, Command};
 
     #[test]
     fn new() {

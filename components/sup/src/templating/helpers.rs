@@ -13,41 +13,40 @@
 // limitations under the License.
 
 use handlebars::{Handlebars, Helper, RenderContext, RenderError};
-use rustc_serialize::Encodable;
+use serde_json;
 use toml;
 
-pub fn json_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-    let value_to_render = try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"json\" helper")))
-        .value();
-    try!(rc.writer.write(value_to_render.pretty().to_string().into_bytes().as_ref()));
-    Ok(())
-}
+type RenderResult = Result<(), RenderError>;
 
-pub fn toml_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-    let value_to_render = try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toml\" helper")))
-        .value();
-    let mut toml_encoder = toml::Encoder::new();
-    value_to_render.encode(&mut toml_encoder).unwrap();
-    let table: toml::Table = toml_encoder.toml;
-    try!(rc.writer.write(toml::encode_str(&table).into_bytes().as_ref()));
-    Ok(())
-}
-
-pub fn to_uppercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+pub fn json_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
-        .and_then(|v| v.value().as_string())
-        .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toUppercase\" helper")));
+            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"json\"")))
+        .value();
+    try!(rc.writer.write(serde_json::to_string_pretty(param).unwrap().into_bytes().as_ref()));
+    Ok(())
+}
+
+pub fn to_uppercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+    let param = try!(h.param(0)
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderError::new("Expected a string parameter for \"toUppercase\"")));
     try!(rc.writer.write(param.to_uppercase().into_bytes().as_ref()));
     Ok(())
 }
 
-pub fn to_lowercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+pub fn to_lowercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
-        .and_then(|v| v.value().as_string())
-        .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toLowercase\" helper")));
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderError::new("Expected a string parameter for \"toLowercase\"")));
     try!(rc.writer.write(param.to_lowercase().into_bytes().as_ref()));
+    Ok(())
+}
+
+pub fn toml_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+    let param = try!(h.param(0)
+            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toml\"")))
+        .value();
+    try!(rc.writer.write(toml::encode_str(&param).into_bytes().as_ref()));
     Ok(())
 }
 

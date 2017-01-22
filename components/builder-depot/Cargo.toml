@@ -26,11 +26,10 @@ r2d2 = "*"
 regex = "*"
 router = "*"
 rust-crypto = "*"
-rustc-serialize = "*"
 serde = "*"
 serde_json = "*"
 time = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
 url = "*"
 urlencoded = "*"
@@ -73,9 +72,6 @@ serde_codegen = "*"
 [dev-dependencies]
 url = "*"
 uuid = "*"
-
-[replace]
-"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

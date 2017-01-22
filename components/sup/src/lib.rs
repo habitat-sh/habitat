@@ -47,7 +47,6 @@ extern crate handlebars;
 #[macro_use]
 extern crate log;
 extern crate tempdir;
-extern crate rustc_serialize;
 extern crate toml;
 extern crate ansi_term;
 extern crate regex;
@@ -56,6 +55,8 @@ extern crate url;
 extern crate iron;
 #[macro_use]
 extern crate router;
+extern crate serde;
+extern crate serde_json;
 extern crate time;
 extern crate persistent;
 #[macro_use]
@@ -287,3 +288,7 @@ lazy_static!{
 
 const PRODUCT: &'static str = "hab-sup";
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
+mod types {
+    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+}

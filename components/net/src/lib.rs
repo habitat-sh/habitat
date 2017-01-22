@@ -19,6 +19,7 @@ extern crate habitat_builder_protocol as protocol;
 #[macro_use]
 extern crate hyper;
 extern crate hyper_openssl;
+#[macro_use]
 extern crate iron;
 #[macro_use]
 extern crate lazy_static;
@@ -28,7 +29,8 @@ extern crate log;
 extern crate num_cpus;
 extern crate persistent;
 extern crate protobuf;
-extern crate rustc_serialize;
+extern crate serde;
+extern crate serde_json;
 extern crate time;
 extern crate unicase;
 extern crate zmq;
@@ -68,4 +70,8 @@ pub fn hostname() -> Result<String> {
             Err(Error::Sys)
         }
     }
+}
+
+mod types {
+    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 }

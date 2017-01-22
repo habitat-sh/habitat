@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
 use std::result;
 use std::str::FromStr;
 
 use protobuf::ProtobufEnum;
-use rustc_serialize::{Decoder, Decodable, Encoder, Encodable};
-use rustc_serialize::json::{Json, ToJson};
+use serde::{Serialize, Serializer};
 
 use message::{Persistable, Routable};
 use sharding::InstaId;
@@ -56,15 +54,17 @@ impl Routable for JobGet {
     }
 }
 
-impl ToJson for Job {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("id".to_string(), self.get_id().to_string().to_json());
-        m.insert("state".to_string(), self.get_state().value().to_json());
+impl Serialize for Job {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("job", 3));
+        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
+        try!(serializer.serialize_struct_elt(&mut state, "state", self.get_state()));
         if self.has_error() {
-            m.insert("error".to_string(), self.get_error().to_json());
+            try!(serializer.serialize_struct_elt(&mut state, "error", self.get_error()));
         }
-        Json::Object(m)
+        serializer.serialize_struct_end(state)
     }
 }
 
@@ -74,18 +74,11 @@ impl Default for JobState {
     }
 }
 
-impl Encodable for JobState {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_i32(self.value()));
-        Ok(())
-    }
-}
-
-impl Decodable for JobState {
-    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
-        let val = try!(d.read_i32());
-        let state = JobState::from_i32(val).unwrap_or_default();
-        Ok(state)
+impl Serialize for JobState {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        serializer.serialize_i32(self.value())
     }
 }
 

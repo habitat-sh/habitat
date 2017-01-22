@@ -42,8 +42,8 @@ use protocol::net::ErrCode;
 use protocol::sessionsrv::{Account, AccountGet};
 use protocol::vault::*;
 use router::{Params, Router};
-use rustc_serialize::json::{self, ToJson};
-use rustc_serialize::Encodable;
+use serde::Serialize;
+use serde_json;
 use url;
 use urlencoded::UrlEncodedQuery;
 
@@ -59,17 +59,7 @@ const PAGINATION_RANGE_DEFAULT: isize = 0;
 const PAGINATION_RANGE_MAX: isize = 50;
 const ONE_YEAR_IN_SECS: usize = 31536000;
 
-#[derive(RustcEncodable)]
-pub struct PackageResults<'a, T: 'a>
-    where T: Encodable
-{
-    pub range_start: isize,
-    pub range_end: isize,
-    pub total_count: isize,
-    pub package_list: &'a Vec<T>,
-}
-
-fn package_results_json<T: Encodable>(packages: &Vec<T>,
+fn package_results_json<T: Serialize>(packages: &Vec<T>,
                                       count: isize,
                                       start: isize,
                                       end: isize)
@@ -81,7 +71,7 @@ fn package_results_json<T: Encodable>(packages: &Vec<T>,
         package_list: packages,
     };
 
-    json::encode(&results).unwrap()
+    serde_json::to_string(&results).unwrap()
 }
 
 pub fn origin_create(req: &mut Request) -> IronResult<Response> {
@@ -136,7 +126,7 @@ pub fn get_origin(conn: &mut BrokerConn, origin: &str) -> IronResult<Option<Orig
             if err.get_code() == ErrCode::ENTITY_NOT_FOUND {
                 Ok(None)
             } else {
-                let body = json::encode(&err.to_json()).unwrap();
+                let body = serde_json::to_string(&err).unwrap();
                 let status = net_err_to_http(err.get_code());
                 Err(IronError::new(err, (body, status)))
             }
@@ -154,7 +144,7 @@ pub fn check_origin_access<T: ToString>(conn: &mut BrokerConn,
     match conn.route::<CheckOriginAccessRequest, CheckOriginAccessResponse>(&request) {
         Ok(response) => Ok(response.get_has_access()),
         Err(err) => {
-            let body = json::encode(&err.to_json()).unwrap();
+            let body = serde_json::to_string(&err).unwrap();
             let status = net_err_to_http(err.get_code());
             Err(IronError::new(err, (body, status)))
         }
@@ -205,10 +195,10 @@ pub fn invite_to_origin(req: &mut Request) -> IronResult<Response> {
         Ok(invitation) => {
             log_event!(req,
                        Event::OriginInvitationSend {
-                           origin: origin,
-                           user: user_to_invite,
-                           id: &invitation.get_id().to_string(),
-                           account: &session.get_id().to_string(),
+                           origin: origin.to_string(),
+                           user: user_to_invite.to_string(),
+                           id: invitation.get_id().to_string(),
+                           account: session.get_id().to_string(),
                        });
             Ok(render_json(status::Created, &invitation))
         }
@@ -361,9 +351,9 @@ fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
 
     log_event!(req,
                Event::OriginKeyUpload {
-                   origin: origin,
-                   version: revision,
-                   account: &session.get_id().to_string(),
+                   origin: origin.to_string(),
+                   version: revision.to_string(),
+                   account: session.get_id().to_string(),
                });
 
     let mut response = Response::with((status::Created,
@@ -457,9 +447,9 @@ fn upload_origin_secret_key(req: &mut Request) -> IronResult<Response> {
         Ok(_) => {
             log_event!(req,
                        Event::OriginSecretKeyUpload {
-                           origin: origin,
-                           version: request.get_revision(),
-                           account: &session.get_id().to_string(),
+                           origin: origin.to_string(),
+                           version: request.take_revision(),
+                           account: session.get_id().to_string(),
                        });
             Ok(Response::with(status::Created))
         }
@@ -542,11 +532,11 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
 
         log_event!(req,
                    Event::PackageUpload {
-                       origin: &ident.get_origin(),
-                       package: &ident.get_name(),
-                       version: &ident.get_version(),
-                       release: &ident.get_release(),
-                       account: &session.get_id().to_string(),
+                       origin: ident.get_origin().to_string(),
+                       package: ident.get_name().to_string(),
+                       version: ident.get_version().to_string(),
+                       release: ident.get_release().to_string(),
+                       account: session.get_id().to_string(),
                    });
 
         let mut response = Response::with((status::Created,
@@ -674,7 +664,7 @@ fn list_origin_keys(req: &mut Request) -> IronResult<Response> {
     let origin = params.find("origin").unwrap();
     match depot.datastore.origin_keys.all(origin) {
         Ok(revisions) => {
-            let body = json::encode(&revisions.to_json()).unwrap();
+            let body = serde_json::to_string(&revisions).unwrap();
             let mut response = Response::with((status::Ok, body));
             dont_cache_response(&mut response);
             Ok(response)
@@ -807,7 +797,7 @@ fn list_packages(req: &mut Request) -> IronResult<Response> {
 fn list_channels(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
     let channels = try!(depot.datastore.channels.all());
-    let body = json::encode(&channels).unwrap();
+    let body = serde_json::to_string(&channels).unwrap();
 
     let mut response = Response::with((status::Ok, body));
     dont_cache_response(&mut response);
@@ -932,7 +922,7 @@ fn search_packages(req: &mut Request) -> IronResult<Response> {
 }
 
 fn render_package(pkg: &depotsrv::Package, should_cache: bool) -> IronResult<Response> {
-    let body = json::encode(&pkg.to_json()).unwrap();
+    let body = serde_json::to_string(&pkg).unwrap();
     let mut response = Response::with((status::Ok, body));
     response.headers.set(ETag(pkg.get_checksum().to_string()));
     response.headers.set(ContentType(Mime(TopLevel::Application,

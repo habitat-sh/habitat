@@ -52,7 +52,6 @@ use ansi_term::Colour::Red;
 use handlebars;
 use hcore::package::Identifiable;
 use butterfly;
-use rustc_serialize::json;
 use toml;
 
 use common;
@@ -120,8 +119,6 @@ pub enum Error {
     InvalidServiceGroupString(String),
     Io(io::Error),
     IPFailed,
-    JsonDecode(json::DecoderError),
-    JsonEncode(json::EncoderError),
     KeyNotFound(String),
     MetaFileIO(io::Error),
     NameLookup(io::Error),
@@ -188,8 +185,6 @@ impl fmt::Display for SupError {
             }
             Error::Io(ref err) => format!("{}", err),
             Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
-            Error::JsonDecode(ref e) => format!("JSON decoding error: {}", e),
-            Error::JsonEncode(ref e) => format!("JSON encoding error: {}", e),
             Error::KeyNotFound(ref e) => format!("Key not found in key cache: {}", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
@@ -274,8 +269,6 @@ impl error::Error for SupError {
             }
             Error::Io(ref err) => err.description(),
             Error::IPFailed => "Failed to discover the outbound IP address",
-            Error::JsonDecode(_) => "JSON decoding error: {:?}",
-            Error::JsonEncode(_) => "JSON encoding error",
             Error::KeyNotFound(_) => "Key not found in key cache",
             Error::MetaFileIO(_) => "MetaFile could not be read or written to",
             Error::NetParseError(_) => "Can't parse IP:port",
@@ -394,18 +387,6 @@ impl From<str::Utf8Error> for SupError {
 impl From<mpsc::TryRecvError> for SupError {
     fn from(err: mpsc::TryRecvError) -> SupError {
         sup_error!(Error::TryRecvError(err))
-    }
-}
-
-impl From<json::EncoderError> for SupError {
-    fn from(err: json::EncoderError) -> Self {
-        sup_error!(Error::JsonEncode(err))
-    }
-}
-
-impl From<json::DecoderError> for SupError {
-    fn from(err: json::DecoderError) -> Self {
-        sup_error!(Error::JsonDecode(err))
     }
 }
 

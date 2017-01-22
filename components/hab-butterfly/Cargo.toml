@@ -18,10 +18,9 @@ log = "*"
 pbr = "*"
 regex = "*"
 retry = "*"
-rustc-serialize = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 temp_utp = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 url = "*"
 walkdir = "*"
 
@@ -49,7 +48,7 @@ path = "../http-client"
 
 [dependencies.uuid]
 version = "*"
-features = ["rustc-serialize", "v4"]
+features = ["v4"]
 
 [features]
 functional = []

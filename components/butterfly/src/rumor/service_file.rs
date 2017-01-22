@@ -24,16 +24,11 @@ use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
 use habitat_core::service::ServiceGroup;
 use protobuf::Message;
 
+pub use types::rumor_service_file::*;
 use error::Result;
 use message::swim::{ServiceFile as ProtoServiceFile, Rumor as ProtoRumor,
                     Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
-
-/// The service rumor
-#[derive(Debug, Clone, RustcEncodable)]
-pub struct ServiceFile {
-    pub proto: ProtoRumor,
-}
 
 impl PartialOrd for ServiceFile {
     fn partial_cmp(&self, other: &ServiceFile) -> Option<Ordering> {
@@ -56,13 +51,13 @@ impl PartialEq for ServiceFile {
 
 impl From<ProtoRumor> for ServiceFile {
     fn from(pr: ProtoRumor) -> ServiceFile {
-        ServiceFile { proto: pr }
+        ServiceFile(pr)
     }
 }
 
 impl From<ServiceFile> for ProtoRumor {
     fn from(service_file: ServiceFile) -> ProtoRumor {
-        service_file.proto
+        service_file.0
     }
 }
 
@@ -70,13 +65,13 @@ impl Deref for ServiceFile {
     type Target = ProtoServiceFile;
 
     fn deref(&self) -> &ProtoServiceFile {
-        self.proto.get_service_file()
+        self.0.get_service_file()
     }
 }
 
 impl DerefMut for ServiceFile {
     fn deref_mut(&mut self) -> &mut ProtoServiceFile {
-        self.proto.mut_service_file()
+        self.0.mut_service_file()
     }
 }
 
@@ -102,7 +97,7 @@ impl ServiceFile {
         proto.set_body(body);
 
         rumor.set_service_file(proto);
-        ServiceFile { proto: rumor }
+        ServiceFile(rumor)
     }
 
     /// Encrypt the contents of the service file
@@ -151,7 +146,7 @@ impl Rumor for ServiceFile {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.proto.write_to_bytes()))
+        Ok(try!(self.0.write_to_bytes()))
     }
 }
 

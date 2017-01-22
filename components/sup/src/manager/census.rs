@@ -22,6 +22,8 @@ use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::rumor::election::{Election as ElectionRumor, Election_Status};
 use butterfly::member::{Member, Health};
 
+pub use types::census::*;
+
 static LOGKEY: &'static str = "CE";
 
 #[derive(Debug, PartialEq, Eq)]
@@ -45,35 +47,6 @@ impl CensusUpdate {
             membership_counter: membership_counter,
         }
     }
-}
-
-#[derive(Debug, Clone, RustcDecodable, RustcEncodable, PartialEq, Eq, Default)]
-pub struct CensusEntry {
-    pub member_id: Option<String>,
-    pub service: Option<String>,
-    pub group: Option<String>,
-    pub org: Option<String>,
-    pub hostname: Option<String>,
-    pub address: Option<String>,
-    pub ip: Option<String>,
-    pub port: Option<String>,
-    pub exposes: Vec<String>,
-    pub package_ident: Option<PackageIdent>,
-    pub leader: Option<bool>,
-    pub follower: Option<bool>,
-    pub update_leader: Option<bool>,
-    pub update_follower: Option<bool>,
-    pub election_is_running: Option<bool>,
-    pub election_is_no_quorum: Option<bool>,
-    pub election_is_finished: Option<bool>,
-    pub update_election_is_running: Option<bool>,
-    pub update_election_is_no_quorum: Option<bool>,
-    pub update_election_is_finished: Option<bool>,
-    pub initialized: Option<bool>,
-    pub alive: Option<bool>,
-    pub suspect: Option<bool>,
-    pub confirmed: Option<bool>,
-    pub persistent: Option<bool>,
 }
 
 impl CensusEntry {
@@ -425,16 +398,6 @@ impl CensusEntry {
     }
 }
 
-#[derive(Debug, RustcEncodable)]
-pub struct Census {
-    // JW TODO: This needs to become an Ordered HashMap keyed on member_id. This will reduce our
-    // allocations when ordering the population to determine who should update next in a rolling
-    // update strategy. For now, we allocate a new vector every server tick by the members() and
-    // members_ordered() functions.
-    population: HashMap<String, CensusEntry>,
-    member_id: String,
-}
-
 impl Deref for Census {
     type Target = HashMap<String, CensusEntry>;
 
@@ -548,11 +511,6 @@ impl Census {
             None => None,
         }
     }
-}
-
-#[derive(Debug, RustcEncodable)]
-pub struct CensusList {
-    censuses: HashMap<String, Census>,
 }
 
 impl Deref for CensusList {

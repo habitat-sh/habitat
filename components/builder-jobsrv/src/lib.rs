@@ -21,7 +21,6 @@ extern crate linked_hash_map;
 extern crate log;
 extern crate protobuf;
 extern crate redis;
-extern crate rustc_serialize;
 extern crate toml;
 extern crate zmq;
 

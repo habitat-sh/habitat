@@ -14,8 +14,8 @@
 
 use url::{self, Url};
 use url::percent_encoding::percent_decode;
-use rustc_serialize::base64::{STANDARD, ToBase64};
 
+use base64;
 use hab_core::env;
 
 use error::{Error, Result};
@@ -165,7 +165,7 @@ impl ProxyBasicAuthorization {
     /// Returns a `String` containing the value for a `Proxy-Authorization` HTTP header.
     pub fn header_value(&self) -> String {
         format!("Basic {}",
-                format!("{}:{}", self.username, self.password).as_bytes().to_base64(STANDARD))
+                base64::encode(format!("{}:{}", self.username, self.password).as_bytes()))
     }
 }
 

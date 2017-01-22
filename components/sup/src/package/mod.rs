@@ -28,6 +28,7 @@ use hcore::package::{PackageIdent, PackageInstall};
 use hcore::service::ServiceGroup;
 use hcore::util;
 
+pub use types::package::*;
 use self::hooks::{HookTable, HOOK_PERMISSIONS};
 use config::gconfig;
 use error::{Error, Result, SupError};
@@ -43,17 +44,6 @@ const HEALTHCHECK_FILENAME: &'static str = "health_check";
 const FILEUPDATED_FILENAME: &'static str = "file_updated";
 const RECONFIGURE_FILENAME: &'static str = "reconfigure";
 const RUN_FILENAME: &'static str = "run";
-
-#[derive(Debug, Clone, RustcEncodable)]
-pub struct Package {
-    pub origin: String,
-    pub name: String,
-    pub version: String,
-    pub release: String,
-    pub deps: Vec<PackageIdent>,
-    pub tdeps: Vec<PackageIdent>,
-    pub pkg_install: PackageInstall,
-}
 
 impl Package {
     /// Verifies a package is within the package home and returns a struct representing that

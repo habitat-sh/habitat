@@ -12,22 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_builder_dbcache as dbcache;
-extern crate habitat_builder_protocol as protocol;
-extern crate habitat_core as hab_core;
-extern crate habitat_net as hab_net;
-#[macro_use]
-extern crate log;
-extern crate protobuf;
-extern crate redis;
-extern crate toml;
-#[macro_use]
-extern crate zmq;
+// JW TODO: After updating to Rust 1.15, move the types contained in this module back into
+// `sharding.rs`
 
-pub mod config;
-pub mod data_store;
-pub mod error;
-pub mod server;
-
-pub use self::config::Config;
-pub use self::error::{Error, Result};
+pub mod sharding {
+    #[derive(Clone, Copy, Debug, PartialEq, Deserialize, Serialize)]
+    pub struct InstaId(pub u64);
+}

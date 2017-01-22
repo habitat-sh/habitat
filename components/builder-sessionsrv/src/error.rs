@@ -22,7 +22,6 @@ use dbcache;
 use hyper;
 use hab_net;
 use protobuf;
-use rustc_serialize::json;
 use zmq;
 
 #[derive(Debug)]
@@ -35,7 +34,6 @@ pub enum Error {
     HyperError(hyper::error::Error),
     IO(io::Error),
     NetError(hab_net::Error),
-    JsonDecode(json::DecoderError),
     Protobuf(protobuf::ProtobufError),
     Zmq(zmq::Error),
 }
@@ -53,7 +51,6 @@ impl fmt::Display for Error {
             Error::HyperError(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
             Error::NetError(ref e) => format!("{}", e),
-            Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::Zmq(ref e) => format!("{}", e),
         };
@@ -72,7 +69,6 @@ impl error::Error for Error {
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::NetError(ref err) => err.description(),
-            Error::JsonDecode(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::Zmq(ref err) => err.description(),
         }
@@ -100,12 +96,6 @@ impl From<io::Error> for Error {
 impl From<hyper::error::Error> for Error {
     fn from(err: hyper::error::Error) -> Self {
         Error::HyperError(err)
-    }
-}
-
-impl From<json::DecoderError> for Error {
-    fn from(err: json::DecoderError) -> Self {
-        Error::JsonDecode(err)
     }
 }
 

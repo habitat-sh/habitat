@@ -6,12 +6,12 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
+base64 = "*"
 log = "*"
 httparse = "*"
 hyper = "*"
 hyper-openssl = "*"
 openssl = "*"
-rustc-serialize = "*"
 url = "*"
 
 [dependencies.habitat_core]

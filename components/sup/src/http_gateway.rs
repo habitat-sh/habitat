@@ -25,7 +25,7 @@ use iron::status;
 use iron::typemap;
 use persistent;
 use router::Router;
-use rustc_serialize::json;
+use serde_json;
 
 use config::gconfig;
 use error::{Result, Error, SupError};
@@ -123,13 +123,13 @@ impl Server {
 
 fn butterfly(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    Ok(Response::with((status::Ok, json::encode(&state.butterfly).unwrap())))
+    Ok(Response::with((status::Ok, serde_json::to_string(&state.butterfly).unwrap())))
 }
 
 fn census(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
     let data = state.census_list.read().unwrap();
-    Ok(Response::with((status::Ok, json::encode(&*data).unwrap())))
+    Ok(Response::with((status::Ok, serde_json::to_string(&*data).unwrap())))
 }
 
 fn config(req: &mut Request) -> IronResult<Response> {
@@ -177,7 +177,7 @@ fn health(req: &mut Request) -> IronResult<Response> {
 fn services(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
     let data = state.services.read().unwrap();
-    Ok(Response::with((status::Ok, json::encode(&*data).unwrap())))
+    Ok(Response::with((status::Ok, serde_json::to_string(&*data).unwrap())))
 }
 
 impl Into<Response> for health_check::CheckResult {
