@@ -22,8 +22,8 @@ use std::path::{Path, PathBuf};
 use std::result;
 use std::str::FromStr;
 
+use base64;
 use regex::Regex;
-use rustc_serialize::base64::FromBase64;
 use time;
 
 use error::{Error, Result};
@@ -36,7 +36,8 @@ use super::{PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_PERMISSIONS, PUBLIC_KEY_SUFFIX,
 
 lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
-    static ref KEYFILE_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();
+    static ref KEYFILE_RE: Regex =
+        Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();
     static ref ORIGIN_NAME_RE: Regex = Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").unwrap();
 }
 
@@ -197,7 +198,6 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
         let thiskey = format!("{}-{}", name, rev);
         candidates.insert(thiskey);
     }
-
 }
 
 /// Take a key name (ex "habitat"), and find all revisions of that
@@ -305,28 +305,21 @@ pub fn is_valid_origin_name(name: &str) -> bool {
     name.chars().count() <= 255 && ORIGIN_NAME_RE.is_match(name)
 }
 
-
-/// Read a file into a Vec<u8>
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
     let mut f = try!(File::open(keyfile));
     let mut s = String::new();
     if try!(f.read_to_string(&mut s)) <= 0 {
         return Err(Error::CryptoError("Can't read key bytes".to_string()));
     }
-    let start_index = match s.find("\n\n") {
-        Some(i) => i + 1,
-        None => {
-            return Err(Error::CryptoError(format!("Malformed key contents for: {}",
-                                                  keyfile.display())))
+    match s.lines().nth(3) {
+        Some(encoded) => {
+            let v = try!(base64::decode(encoded).map_err(|e| {
+                Error::CryptoError(format!("Can't read raw key from {}: {}", keyfile.display(), e))
+            }));
+            Ok(v)
         }
-    };
-
-    match s[start_index..].as_bytes().from_base64() {
-        Ok(keybytes) => Ok(keybytes),
-        Err(e) => {
-            return Err(Error::CryptoError(format!("Can't read raw key from {}: {}",
-                                                  keyfile.display(),
-                                                  e)))
+        None => {
+            Err(Error::CryptoError(format!("Malformed key contents for: {}", keyfile.display())))
         }
     }
 }
@@ -334,9 +327,9 @@ fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
 fn write_keypair_files(key_type: KeyType,
                        keyname: &str,
                        public_keyfile: Option<&Path>,
-                       public_content: Option<&Vec<u8>>,
+                       public_content: Option<&[u8]>,
                        secret_keyfile: Option<&Path>,
-                       secret_content: Option<&Vec<u8>>)
+                       secret_content: Option<&[u8]>)
                        -> Result<()> {
     if let Some(public_keyfile) = public_keyfile {
         let public_version = match key_type {
@@ -395,7 +388,6 @@ fn write_keypair_files(key_type: KeyType,
         try!(secret_writer.write_all(secret_content));
         try!(perm::set_permissions(secret_keyfile, SECRET_KEY_PERMISSIONS));
     }
-
     Ok(())
 }
 
@@ -404,9 +396,9 @@ mod test {
     use std::collections::HashSet;
     use std::fs::{self, File};
     use std::io::Write;
-    use tempdir::TempDir;
-    use rustc_serialize::hex::ToHex;
 
+    use hex::ToHex;
+    use tempdir::TempDir;
 
     use super::box_key_pair::BoxKeyPair;
     use super::sig_key_pair::SigKeyPair;
@@ -467,10 +459,9 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let keyfile = cache.path().join(VALID_KEY);
         fs::copy(fixture(&format!("keys/{}", VALID_KEY)), &keyfile).unwrap();
-
+        println!("keyfile {:?}", keyfile);
         let result = super::read_key_bytes(keyfile.as_path()).unwrap();
         assert_eq!(result.as_slice().to_hex(), VALID_KEY_AS_HEX);
-
     }
 
     #[test]
@@ -500,11 +491,10 @@ mod test {
         let cache = TempDir::new("key_cache").unwrap();
         let keyfile = cache.path().join("missing-newlines");
         let mut f = File::create(&keyfile).unwrap();
-        f.write_all("something\n\nI am not base64 content".as_bytes()).unwrap();
+        f.write_all("header\nsomething\n\nI am not base64 content".as_bytes()).unwrap();
 
         super::read_key_bytes(keyfile.as_path()).unwrap();
     }
-
 
     #[test]
     fn get_user_key_revisions() {
@@ -521,7 +511,6 @@ mod test {
         let revisions = super::get_key_revisions("wecoyote-foo", cache.path()).unwrap();
         assert_eq!(1, revisions.len());
     }
-
 
     #[test]
     fn get_service_key_revisions() {
@@ -543,7 +532,6 @@ mod test {
         assert_eq!(1, revisions.len());
     }
 
-
     #[test]
     fn get_ring_key_revisions() {
         let cache = TempDir::new("key_cache").unwrap();
@@ -560,7 +548,6 @@ mod test {
         let revisions = super::get_key_revisions("acme-you", cache.path()).unwrap();
         assert_eq!(1, revisions.len());
     }
-
 
     #[test]
     fn get_origin_key_revisions() {
@@ -596,7 +583,6 @@ mod test {
                               "wecoyote-foo-20160519203610.box.key".to_string(),
                               &mut candidates);
         assert_eq!(1, candidates.len());
-
     }
 
 
@@ -617,7 +603,6 @@ mod test {
                               "wecoyote-foo-20160519203610.box.key".to_string(),
                               &mut candidates);
         assert_eq!(1, candidates.len());
-
     }
 
     #[test]

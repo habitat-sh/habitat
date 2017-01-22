@@ -19,6 +19,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
+pub use types::package_ident::*;
 use package::PackageTarget;
 use error::{Error, Result};
 
@@ -59,14 +60,6 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
         }
         true
     }
-}
-
-#[derive(RustcEncodable, RustcDecodable, Eq, PartialEq, Debug, Clone, Hash)]
-pub struct PackageIdent {
-    pub origin: String,
-    pub name: String,
-    pub version: Option<String>,
-    pub release: Option<String>,
 }
 
 impl PackageIdent {

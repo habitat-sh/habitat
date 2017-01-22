@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate base64;
 extern crate errno;
+extern crate hex;
 #[cfg(test)]
 extern crate hyper;
 #[macro_use]
@@ -22,7 +24,8 @@ extern crate libarchive;
 #[macro_use]
 extern crate log;
 extern crate regex;
-extern crate rustc_serialize;
+extern crate serde;
+extern crate serde_json;
 extern crate sodiumoxide;
 extern crate libsodium_sys;
 #[cfg(test)]
@@ -57,3 +60,7 @@ pub mod event;
 
 pub use os::filesystem;
 pub use os::users;
+
+mod types {
+    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+}

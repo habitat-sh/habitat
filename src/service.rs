@@ -18,18 +18,12 @@ use std::str::FromStr;
 
 use regex::Regex;
 
+pub use types::service::*;
 use error::Error;
 
 lazy_static! {
     static ref FROM_STR_RE: Regex =
         Regex::new(r"\A(?P<service>[^.]+)\.(?P<group>[^.@]+)(@(?P<organization>.+))?\z").unwrap();
-}
-
-#[derive(Clone, Debug, Eq, Hash, PartialEq, RustcDecodable, RustcEncodable)]
-pub struct ServiceGroup {
-    pub service: String,
-    pub group: String,
-    pub organization: Option<String>,
 }
 
 impl ServiceGroup {

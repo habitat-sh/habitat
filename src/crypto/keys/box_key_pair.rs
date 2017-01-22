@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 use std::str;
 
-use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
+use base64;
 use sodiumoxide::crypto::box_;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecretKey;
@@ -139,16 +139,12 @@ impl BoxKeyPair {
     pub fn encrypt(&self, data: &[u8], receiver: &Self) -> Result<Vec<u8>> {
         let nonce = gen_nonce();
         let ciphertext = box_::seal(data, &nonce, try!(receiver.public()), try!(self.secret()));
-
-        debug!("User key [{}]", &self.name_with_rev());
-        debug!("Service key [{}]", &receiver.name_with_rev());
-        debug!("Nonce [{}]", nonce[..].to_base64(STANDARD));
         let out = format!("{}\n{}\n{}\n{}\n{}",
                           BOX_FORMAT_VERSION,
                           &self.name_with_rev(),
                           &receiver.name_with_rev(),
-                          nonce[..].to_base64(STANDARD),
-                          &ciphertext.to_base64(STANDARD));
+                          base64::encode(&nonce[..]),
+                          base64::encode(&ciphertext));
         Ok(out.into_bytes())
     }
 
@@ -186,10 +182,7 @@ impl BoxKeyPair {
         };
         let nonce = match lines.next() {
             Some(val) => {
-                let decoded = match val.as_bytes().from_base64() {
-                    Ok(b64) => b64,
-                    Err(e) => return Err(Error::CryptoError(format!("Can't decode nonce: {}", e))),
-                };
+                let decoded = try!(base64::decode(val).map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e))));
                 match Nonce::from_slice(&decoded) {
                     Some(nonce) => nonce,
                     None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
@@ -201,12 +194,7 @@ impl BoxKeyPair {
         };
         let ciphertext = match lines.next() {
             Some(val) => {
-                match val.from_base64() {
-                    Ok(b64) => b64,
-                    Err(e) => {
-                        return Err(Error::CryptoError(format!("Can't decode ciphertext: {}", e)))
-                    }
-                }
+                try!(base64::decode(val).map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e))))
             }
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read ciphertext"
@@ -240,9 +228,9 @@ impl BoxKeyPair {
         try!(write_keypair_files(KeyType::Box,
                                  &name_with_rev,
                                  Some(&public_keyfile),
-                                 Some(&pk[..].to_base64(STANDARD).into_bytes()),
+                                 Some(&base64::encode(&pk[..]).into_bytes()),
                                  Some(&secret_keyfile),
-                                 Some(&sk[..].to_base64(STANDARD).into_bytes())));
+                                 Some(&base64::encode(&sk[..]).into_bytes())));
         Ok((pk, sk))
     }
 
