@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate base64;
 extern crate habitat_core as hab_core;
 extern crate httparse;
 #[macro_use]
@@ -20,7 +21,6 @@ extern crate hyper_openssl;
 #[macro_use]
 extern crate log;
 extern crate openssl;
-extern crate rustc_serialize;
 extern crate url;
 
 pub mod api_client;
