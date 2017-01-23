@@ -21,11 +21,11 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
-use habitat_net::server::ZMQ_CONTEXT;
 use protobuf::Message;
 use time::SteadyTime;
 use zmq;
 
+use ZMQ_CONTEXT;
 use message::swim::{Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type, Member as ProtoMember,
                     Membership as ProtoMembership};
 use rumor::{RumorKey, RumorVec};

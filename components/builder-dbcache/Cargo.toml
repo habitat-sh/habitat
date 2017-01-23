@@ -11,7 +11,6 @@ log = "*"
 num_cpus = "*"
 protobuf = "*"
 r2d2 = "*"
-rustc-serialize = "*"
 time = "*"
 
 [dependencies.habitat_builder_protocol]
@@ -24,9 +23,6 @@ branch = "habitat"
 [dependencies.redis]
 git = "https://github.com/habitat-sh/redis-rs"
 branch = "habitat"
-
-[replace]
-"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

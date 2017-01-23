@@ -1,14 +1,23 @@
 extern crate pkg_config;
+extern crate serde_codegen;
 
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
     if env::var("CARGO_FEATURE_PROTOCOLS").is_ok() {
         generate_protocols();
     }
+    codegen();
+}
+
+fn codegen() {
+    let out_dir = env::var_os("OUT_DIR").unwrap();
+    let src = Path::new("src/serde_types.in.rs");
+    let dst = Path::new(&out_dir).join("serde_types.rs");
+    serde_codegen::expand(&src, &dst).unwrap();
 }
 
 fn generate_protocols() {

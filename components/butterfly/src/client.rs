@@ -18,9 +18,9 @@
 
 use habitat_core::crypto::SymKey;
 use habitat_core::service::ServiceGroup;
-use habitat_net::server::ZMQ_CONTEXT;
 use zmq;
 
+use ZMQ_CONTEXT;
 use message;
 use rumor::Rumor;
 use rumor::service_config::ServiceConfig;

@@ -22,7 +22,7 @@ extern crate hyper_openssl;
 #[macro_use]
 extern crate log;
 extern crate pbr;
-extern crate rustc_serialize;
+extern crate protobuf;
 extern crate serde;
 extern crate serde_json;
 extern crate tee;
@@ -44,28 +44,12 @@ use hyper::status::StatusCode;
 use hyper::header::{Authorization, Bearer};
 use hyper::Url;
 use protocol::{depotsrv, net};
-use rustc_serialize::{json, Decodable};
 use tee::TeeReader;
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
 
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
-
-#[derive(RustcDecodable)]
-pub struct PackageResults<T>
-    where T: Decodable
-{
-    pub range_start: isize,
-    pub range_end: isize,
-    pub total_count: isize,
-    pub package_list: Vec<T>,
-}
-
-fn package_results_from_json<T: Decodable>(encoded: &str) -> PackageResults<T> {
-    let results: PackageResults<T> = json::decode(&encoded).unwrap();
-    results
-}
 
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);
@@ -118,7 +102,11 @@ impl Client {
         let mut encoded = String::new();
         try!(res.read_to_string(&mut encoded));
         debug!("Response body: {:?}", encoded);
-        let revisions: Vec<depotsrv::OriginKeyIdent> = json::decode(&encoded).unwrap();
+        let revisions: Vec<depotsrv::OriginKeyIdent> =
+            try!(serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded))
+                .into_iter()
+                .map(|m| m.into())
+                .collect();
         Ok(revisions)
     }
 
@@ -192,7 +180,7 @@ impl Client {
         }
         let mut encoded = String::new();
         try!(res.read_to_string(&mut encoded));
-        let key = serde_json::from_str(&encoded).unwrap();
+        let key = try!(serde_json::from_str(&encoded));
         Ok(key)
     }
 
@@ -285,7 +273,7 @@ impl Client {
         let mut encoded = String::new();
         try!(res.read_to_string(&mut encoded));
         debug!("Body: {:?}", encoded);
-        let package: depotsrv::Package = json::decode(&encoded).unwrap();
+        let package: depotsrv::Package = try!(serde_json::from_str::<Package>(&encoded)).into();
         Ok(package)
     }
 
@@ -370,12 +358,9 @@ impl Client {
             StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 try!(res.read_to_string(&mut encoded));
-
                 let package_results: PackageResults<hab_core::package::PackageIdent> =
-                    package_results_from_json(&encoded);
-
+                    try!(serde_json::from_str(&encoded));
                 let packages: Vec<hab_core::package::PackageIdent> = package_results.package_list;
-
                 Ok((packages, res.status == StatusCode::PartialContent))
             }
             _ => Err(err_from_response(res)),
@@ -435,7 +420,7 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
     let mut buff = String::new();
     match response.read_to_string(&mut buff) {
         Ok(_) => {
-            match json::decode::<net::NetError>(&buff) {
+            match serde_json::from_str::<NetError>(&buff) {
                 Ok(err) => Error::APIError(response.status, err.to_string()),
                 Err(_) => Error::APIError(response.status, buff),
             }

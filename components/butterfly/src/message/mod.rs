@@ -18,7 +18,7 @@ use std::result;
 use std::str;
 
 use habitat_core::crypto::SymKey;
-use rustc_serialize::{Encoder, Encodable};
+use serde::{Serialize, Serializer};
 
 use error::Result;
 use message::swim::Wire;
@@ -46,123 +46,125 @@ pub fn unwrap_wire(payload: &[u8], ring_key: &Option<SymKey>) -> Result<Vec<u8>>
     }
 }
 
-impl Encodable for swim::Election {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("election", 6, |s| {
-            try!(s.emit_struct_field("member_id", 0, |s| self.get_member_id().encode(s)));
-            try!(s.emit_struct_field("service_group", 1, |s| self.get_service_group().encode(s)));
-            try!(s.emit_struct_field("term", 2, |s| self.get_term().encode(s)));
-            try!(s.emit_struct_field("suitability", 3, |s| self.get_suitability().encode(s)));
-            try!(s.emit_struct_field("status", 4, |s| (self.get_status() as usize).encode(s)));
-            try!(s.emit_struct_field("votes", 5, |s| self.get_votes().encode(s)));
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::Election {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("election", 6));
+        try!(serializer.serialize_struct_elt(&mut state, "member_id", self.get_member_id()));
+        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state, "term", self.get_term()));
+        try!(serializer.serialize_struct_elt(&mut state, "suitability", self.get_suitability()));
+        try!(serializer.serialize_struct_elt(&mut state, "status", self.get_status()));
+        try!(serializer.serialize_struct_elt(&mut state, "votes", self.get_votes()));
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl Encodable for swim::Member {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("member", 6, |s| {
-            try!(s.emit_struct_field("id", 0, |s| self.get_id().encode(s)));
-            try!(s.emit_struct_field("incarnation", 1, |s| self.get_incarnation().encode(s)));
-            try!(s.emit_struct_field("address", 2, |s| self.get_address().encode(s)));
-            try!(s.emit_struct_field("swim_port", 3, |s| self.get_swim_port().encode(s)));
-            try!(s.emit_struct_field("gossip_port", 4, |s| self.get_gossip_port().encode(s)));
-            try!(s.emit_struct_field("persistent", 5, |s| self.get_persistent().encode(s)));
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::Member {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("member", 6));
+        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
+        try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
+        try!(serializer.serialize_struct_elt(&mut state, "address", self.get_address()));
+        try!(serializer.serialize_struct_elt(&mut state, "swim_port", self.get_swim_port()));
+        try!(serializer.serialize_struct_elt(&mut state, "gossip_port", self.get_gossip_port()));
+        try!(serializer.serialize_struct_elt(&mut state, "persistent", self.get_persistent()));
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl Encodable for swim::Membership {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("membership", 2, |s| {
-            try!(s.emit_struct_field("member", 0, |s| self.get_member().encode(s)));
-            try!(s.emit_struct_field("health", 1, |s| (self.get_health() as usize).encode(s)));
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::Membership {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("membership", 2));
+        try!(serializer.serialize_struct_elt(&mut state, "member", self.get_member()));
+        try!(serializer.serialize_struct_elt(&mut state, "health", self.get_health()));
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl Encodable for swim::Rumor {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("rumor", 8, |s| {
-            try!(s.emit_struct_field("type", 0, |s| (self.get_field_type() as u8).encode(s)));
-            try!(s.emit_struct_field("tag", 1, |s| self.get_tag().encode(s)));
-            try!(s.emit_struct_field("from_id", 2, |s| self.get_from_id().encode(s)));
-            if self.has_member() {
-                try!(s.emit_struct_field("member", 3, |s| self.get_member().encode(s)));
-            }
-            if self.has_service() {
-                try!(s.emit_struct_field("service", 4, |s| self.get_service().encode(s)));
-            }
-            if self.has_service_config() {
-                try!(s.emit_struct_field("service_config",
-                                         5,
-                                         |s| self.get_service_config().encode(s)));
-            }
-            if self.has_service_file() {
-                try!(s.emit_struct_field("service_file", 6, |s| self.get_service_file().encode(s)));
-            }
-            if self.has_election() {
-                try!(s.emit_struct_field("election", 7, |s| self.get_election().encode(s)));
-            }
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::Rumor {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("rumor", 8));
+        try!(serializer.serialize_struct_elt(&mut state, "type", self.get_field_type()));
+        try!(serializer.serialize_struct_elt(&mut state, "tag", self.get_tag()));
+        try!(serializer.serialize_struct_elt(&mut state, "from_id", self.get_from_id()));
+        if self.has_member() {
+            try!(serializer.serialize_struct_elt(&mut state, "member", self.get_member()));
+        }
+        if self.has_service() {
+            try!(serializer.serialize_struct_elt(&mut state, "service", self.get_service()));
+        }
+        if self.has_service_config() {
+            try!(serializer.serialize_struct_elt(&mut state, "service_config", self.get_service_config()));
+        }
+        if self.has_service_file() {
+            try!(serializer.serialize_struct_elt(&mut state, "service_file", self.get_service_file()));
+        }
+        if self.has_election() {
+            try!(serializer.serialize_struct_elt(&mut state, "election", self.get_election()));
+        }
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl Encodable for swim::Service {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("service", 8, |s| {
-            try!(s.emit_struct_field("member_id", 0, |s| self.get_member_id().encode(s)));
-            try!(s.emit_struct_field("service_group", 1, |s| self.get_service_group().encode(s)));
-            try!(s.emit_struct_field("package", 2, |s| self.get_package_ident().encode(s)));
-            try!(s.emit_struct_field("incarnation", 3, |s| self.get_incarnation().encode(s)));
-            try!(s.emit_struct_field("ip", 4, |s| self.get_ip().encode(s)));
-            try!(s.emit_struct_field("hostname", 5, |s| self.get_hostname().encode(s)));
-            try!(s.emit_struct_field("port", 6, |s| self.get_port().encode(s)));
-            try!(s.emit_struct_field("exposes", 7, |s| self.get_exposes().encode(s)));
-            try!(s.emit_struct_field("initialized", 8, |s| self.get_initialized().encode(s)));
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::Service {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("service", 9));
+        try!(serializer.serialize_struct_elt(&mut state, "member_id", self.get_member_id()));
+        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state, "package", self.get_package_ident()));
+        try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
+        try!(serializer.serialize_struct_elt(&mut state, "ip", self.get_ip()));
+        try!(serializer.serialize_struct_elt(&mut state, "hostname", self.get_hostname()));
+        try!(serializer.serialize_struct_elt(&mut state, "port", self.get_port()));
+        try!(serializer.serialize_struct_elt(&mut state, "exposes", self.get_exposes()));
+        try!(serializer.serialize_struct_elt(&mut state, "initialized", self.get_initialized()));
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl Encodable for swim::ServiceConfig {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("service_config", 4, |s| {
-            try!(s.emit_struct_field("service_group", 0, |s| self.get_service_group().encode(s)));
-            try!(s.emit_struct_field("incarnation", 1, |s| self.get_incarnation().encode(s)));
-            try!(s.emit_struct_field("encrypted", 2, |s| self.get_encrypted().encode(s)));
-            match str::from_utf8(self.get_config()) {
-                Ok(c) => try!(s.emit_struct_field("config", 3, |s| c.encode(s))),
-                Err(_) => try!(s.emit_struct_field("config", 3, |s| self.get_config().encode(s))),
-            }
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::ServiceConfig {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("service_config", 4));
+        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
+        try!(serializer.serialize_struct_elt(&mut state, "encrypted", self.get_encrypted()));
+        match str::from_utf8(self.get_config()) {
+            Ok(c) => try!(serializer.serialize_struct_elt(&mut state, "config", c)),
+            Err(_) => try!(serializer.serialize_struct_elt(&mut state, "config", self.get_config())),
+        };
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl Encodable for swim::ServiceFile {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("service_file", 5, |s| {
-            try!(s.emit_struct_field("service_group", 0, |s| self.get_service_group().encode(s)));
-            try!(s.emit_struct_field("incarnation", 1, |s| self.get_incarnation().encode(s)));
-            try!(s.emit_struct_field("encrypted", 2, |s| self.get_encrypted().encode(s)));
-            try!(s.emit_struct_field("filename", 3, |s| self.get_filename().encode(s)));
-            match str::from_utf8(self.get_body()) {
-                Ok(c) => try!(s.emit_struct_field("body", 3, |s| c.encode(s))),
-                Err(_) => try!(s.emit_struct_field("body", 3, |s| self.get_body().encode(s))),
-            }
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for swim::ServiceFile {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("service_file", 5));
+        try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
+        try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
+        try!(serializer.serialize_struct_elt(&mut state, "encrypted", self.get_encrypted()));
+        try!(serializer.serialize_struct_elt(&mut state, "filename", self.get_filename()));
+        match str::from_utf8(self.get_body()) {
+            Ok(c) => try!(serializer.serialize_struct_elt(&mut state, "body", c)),
+            Err(_) => try!(serializer.serialize_struct_elt(&mut state, "body", self.get_body())),
+        };
+        serializer.serialize_struct_end(state)
+    }
+}
+
+impl Serialize for swim::Election_Status {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        serializer.serialize_u8(*self as u8)
+    }
+}
+
+impl Serialize for swim::Membership_Health {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        serializer.serialize_u8(*self as u8)
+    }
+}
+
+impl Serialize for swim::Rumor_Type {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        serializer.serialize_u8(*self as u8)
     }
 }

@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
 use std::error;
 use std::fmt;
 use std::result;
 
 use protobuf::core::ProtobufEnum;
-use rustc_serialize::{Decoder, Decodable};
-use rustc_serialize::json::{Json, ToJson};
+use serde::{Serialize, Serializer};
 
 pub use message::net::*;
 
@@ -61,51 +59,21 @@ impl error::Error for NetError {
     }
 }
 
-impl Decodable for NetError {
-    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
-        d.read_struct("NetError", 2, |d| {
-            let mut err = NetError::new();
-            let code: i32 = try!(d.read_struct_field("code", 0, |d| Decodable::decode(d)));
-            err.set_code(ErrCode::from_i32(code).unwrap());
-            err.set_msg(try!(d.read_struct_field("msg", 1, |d| Decodable::decode(d))));
-            Ok(err)
-        })
+impl Serialize for ErrCode {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        serializer.serialize_u64(self.value() as u64)
     }
 }
 
-impl ToJson for ErrCode {
-    fn to_json(&self) -> Json {
-        Json::U64(self.value() as u64)
-    }
-}
-
-impl ToJson for NetError {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("code".to_string(), self.get_code().to_json());
-        m.insert("msg".to_string(), self.get_msg().to_json());
-        Json::Object(m)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use protobuf::Message;
-    use super::*;
-    use rustc_serialize::json::{self, ToJson};
-
-    #[test]
-    fn message_id() {
-        let msg = Ping::new();
-        assert_eq!(msg.descriptor().name(), "Ping");
-    }
-
-    #[test]
-    fn net_err_json_serialization() {
-        let err = err(ErrCode::ACCESS_DENIED, "net:1:err");
-        let encoded = json::encode(&err.to_json()).unwrap();
-        let decoded: NetError = json::decode(&encoded).unwrap();
-        assert_eq!(decoded.get_code(), ErrCode::ACCESS_DENIED);
-        assert_eq!(decoded.get_msg(), "net:1:err");
+impl Serialize for NetError {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("error", 2));
+        try!(serializer.serialize_struct_elt(&mut state, "code", self.get_code()));
+        try!(serializer.serialize_struct_elt(&mut state, "msg", self.get_msg()));
+        serializer.serialize_struct_end(state)
     }
 }

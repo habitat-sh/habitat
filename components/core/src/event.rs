@@ -12,14 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use std::result;
 use std::time::{UNIX_EPOCH, SystemTime};
 use std::fmt;
-use rustc_serialize::json::{ToJson, Json};
+
+use serde::{Serialize, Serializer};
+use serde_json::value::ToJson;
+
 use fs::svc_var_path;
+
+/// Sample envelope JSON payload
+/// {
+///   "timestamp": "1479330000.13442404",
+///   "version": 1,
+///   "event": {
+///     "name": "project-create",
+///     "origin" : "myorigin"
+///     "package" : "mypackage"
+///     "account" : "133508078967455744"
+///   }
+/// }
+pub const SCHEMA_VERSION: u32 = 1;
 
 // Macros to help hooking in the event logger into an Iron chain,
 // and calling into the chained event logger.
@@ -41,44 +57,43 @@ macro_rules! log_event {
     }};
 }
 
-// Supported events
 #[derive(Debug, Clone)]
-pub enum Event<'a> {
+pub enum Event {
     ProjectCreate {
-        origin: &'a str,
-        package: &'a str,
-        account: &'a str,
+        origin: String,
+        package: String,
+        account: String,
     },
     PackageUpload {
-        origin: &'a str,
-        package: &'a str,
-        version: &'a str,
-        release: &'a str,
-        account: &'a str,
+        origin: String,
+        package: String,
+        version: String,
+        release: String,
+        account: String,
     },
     OriginKeyUpload {
-        origin: &'a str,
-        version: &'a str,
-        account: &'a str,
+        origin: String,
+        version: String,
+        account: String,
     },
     OriginSecretKeyUpload {
-        origin: &'a str,
-        version: &'a str,
-        account: &'a str,
+        origin: String,
+        version: String,
+        account: String,
     },
     OriginInvitationSend {
-        origin: &'a str,
-        user: &'a str,
-        id: &'a str,
-        account: &'a str,
+        origin: String,
+        user: String,
+        id: String,
+        account: String,
     },
-    OriginInvitationAccept { id: &'a str, account: &'a str },
-    OriginInvitationIgnore { id: &'a str, account: &'a str },
-    JobCreate { package: &'a str, account: &'a str },
-    GithubAuthenticate { user: &'a str, account: &'a str },
+    OriginInvitationAccept { id: String, account: String },
+    OriginInvitationIgnore { id: String, account: String },
+    JobCreate { package: String, account: String },
+    GithubAuthenticate { user: String, account: String },
 }
 
-impl<'a> fmt::Display for Event<'a> {
+impl fmt::Display for Event {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
@@ -98,91 +113,96 @@ impl<'a> fmt::Display for Event<'a> {
     }
 }
 
-impl<'a> ToJson for Event<'a> {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("name".to_string(), self.to_string().to_json());
-
-        match *self {
+impl Serialize for Event {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let state = match *self {
             Event::ProjectCreate { origin: ref o, package: ref p, account: ref a } => {
-                m.insert("origin".to_string(), o.to_json());
-                m.insert("package".to_string(), p.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 4));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "origin", o));
+                try!(serializer.serialize_struct_elt(&mut state, "package", p));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
-            Event::PackageUpload { origin: ref o,
-                                   package: ref p,
-                                   version: ref v,
-                                   release: ref r,
-                                   account: ref a } => {
-                m.insert("origin".to_string(), o.to_json());
-                m.insert("package".to_string(), p.to_json());
-                m.insert("version".to_string(), v.to_json());
-                m.insert("release".to_string(), r.to_json());
-                m.insert("account".to_string(), a.to_json());
+            Event::PackageUpload { origin: ref o, package: ref p, version: ref v, release: ref r, account: ref a } => {
+                let mut state = try!(serializer.serialize_struct("event", 6));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "origin", o));
+                try!(serializer.serialize_struct_elt(&mut state, "package", p));
+                try!(serializer.serialize_struct_elt(&mut state, "version", v));
+                try!(serializer.serialize_struct_elt(&mut state, "release", r));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
-            Event::OriginInvitationSend { origin: ref o,
-                                          user: ref u,
-                                          id: ref i,
-                                          account: ref a } => {
-                m.insert("origin".to_string(), o.to_json());
-                m.insert("user".to_string(), u.to_json());
-                m.insert("id".to_string(), i.to_json());
-                m.insert("account".to_string(), a.to_json());
+            Event::OriginInvitationSend { origin: ref o, user: ref u, id: ref i, account: ref a } => {
+                let mut state = try!(serializer.serialize_struct("event", 5));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "origin", o));
+                try!(serializer.serialize_struct_elt(&mut state, "user", u));
+                try!(serializer.serialize_struct_elt(&mut state, "id", i));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
             Event::OriginInvitationAccept { id: ref i, account: ref a } => {
-                m.insert("id".to_string(), i.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 3));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "id", i));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
             Event::OriginInvitationIgnore { id: ref i, account: ref a } => {
-                m.insert("id".to_string(), i.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 3));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "id", i));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
             Event::JobCreate { package: ref p, account: ref a } => {
-                m.insert("package".to_string(), p.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 3));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "package", p));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
             Event::GithubAuthenticate { user: ref u, account: ref a } => {
-                m.insert("user".to_string(), u.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 3));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "user", u));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
             Event::OriginKeyUpload { origin: ref o, version: ref v, account: ref a } => {
-                m.insert("origin".to_string(), o.to_json());
-                m.insert("version".to_string(), v.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 4));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "origin", o));
+                try!(serializer.serialize_struct_elt(&mut state, "version", v));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
             Event::OriginSecretKeyUpload { origin: ref o, version: ref v, account: ref a } => {
-                m.insert("origin".to_string(), o.to_json());
-                m.insert("version".to_string(), v.to_json());
-                m.insert("account".to_string(), a.to_json());
+                let mut state = try!(serializer.serialize_struct("event", 4));
+                try!(serializer.serialize_struct_elt(&mut state, "name", &self.to_string()));
+                try!(serializer.serialize_struct_elt(&mut state, "origin", o));
+                try!(serializer.serialize_struct_elt(&mut state, "version", v));
+                try!(serializer.serialize_struct_elt(&mut state, "account", a));
+                state
             }
         };
-        Json::Object(m)
+        serializer.serialize_struct_end(state)
     }
 }
 
-// Sample envelope JSON payload
-// {
-//   "timestamp": "1479330000.13442404",
-//   "version": 1,
-//   "event": {
-//     "name": "project-create",
-//     "origin" : "myorigin"
-//     "package" : "mypackage"
-//     "account" : "133508078967455744"
-//   }
-// }
-
-pub const SCHEMA_VERSION: u32 = 1;
-
 #[derive(Debug, Clone)]
-pub struct Envelope<'a> {
-    version: u32,
-    timestamp: String,
-    event: Event<'a>,
+pub struct Envelope {
+    pub version: u32,
+    pub timestamp: String,
+    pub event: Event,
 }
 
-impl<'a> Envelope<'a> {
-    pub fn new(event: &Event<'a>) -> Self {
+impl Envelope {
+    pub fn new(event: &Event) -> Self {
         Envelope {
             version: SCHEMA_VERSION,
             timestamp: timestamp(),
@@ -191,14 +211,15 @@ impl<'a> Envelope<'a> {
     }
 }
 
-impl<'a> ToJson for Envelope<'a> {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("version".to_string(), self.version.to_json());
-        m.insert("timestamp".to_string(), self.timestamp.to_json());
-        m.insert("event".to_string(), self.event.to_json());
-
-        Json::Object(m)
+impl Serialize for Envelope {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("envelope", 3));
+        try!(serializer.serialize_struct_elt(&mut state, "version", &self.version));
+        try!(serializer.serialize_struct_elt(&mut state, "timestamp", &self.timestamp));
+        try!(serializer.serialize_struct_elt(&mut state, "event", &self.event));
+        serializer.serialize_struct_end(state)
     }
 }
 
@@ -243,34 +264,7 @@ impl EventLogger {
 
 #[cfg(test)]
 mod test {
-    use super::{EventLogger, Envelope, Event};
-    use rustc_serialize::json::ToJson;
-
-    #[test]
-    fn event_to_json() {
-        let event: Event = Event::ProjectCreate {
-            origin: "myorigin",
-            package: "mypackage",
-            account: "myaccount",
-        };
-
-        let expected = r#"{"account":"myaccount","name":"project-create","origin":"myorigin","package":"mypackage"}"#;
-        assert!(event.to_json().to_string() == expected.to_string());
-    }
-
-    #[test]
-    fn envelope_to_json() {
-        let event: Event = Event::ProjectCreate {
-            origin: "myorigin",
-            package: "mypackage",
-            account: "myaccount",
-        };
-
-        let envelope = Envelope::new(&event);
-        let expected =
-            r#"{"event":{"account":"myaccount","name":"project-create","origin":"myorigin","package":"mypackage"}"#;
-        assert!(envelope.to_json().to_string().starts_with(expected));
-    }
+    use super::*;
 
     #[test]
     fn event_logger_path() {

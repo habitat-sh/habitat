@@ -12,79 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
 use std::fmt;
 use std::result;
 
 use hab_core;
 use hab_core::package::{self, Identifiable, FromArchive, PackageArchive};
-use rustc_serialize::{Decoder, Decodable, Encoder, Encodable};
-use rustc_serialize::json::{Json, ToJson};
-use protobuf;
+use serde::{Serialize, Serializer};
 
 use message::Persistable;
 
 pub use message::depotsrv::*;
 
-impl Decodable for OriginKeyIdent {
-    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
-        d.read_struct("OriginKeyIdent", 3, |d| {
-            let mut ident = OriginKeyIdent::new();
-            ident.set_origin(try!(d.read_struct_field("origin", 0, |d| Decodable::decode(d))));
-            ident.set_revision(try!(d.read_struct_field("revision", 1, |d| Decodable::decode(d))));
-            ident.set_location(try!(d.read_struct_field("location", 2, |d| Decodable::decode(d))));
-            Ok(ident)
-        })
-    }
-}
-
-impl Decodable for Package {
-    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
-        d.read_struct("Package", 7, |d| {
-            let mut package = Package::new();
-            package.set_ident(try!(d.read_struct_field("ident", 0, |d| Decodable::decode(d))));
-            package.set_checksum(try!(d.read_struct_field("checksum", 1, |d| Decodable::decode(d))));
-            package.set_manifest(try!(d.read_struct_field("manifest", 2, |d| Decodable::decode(d))));
-            let deps: Vec<PackageIdent> = try!(d.read_struct_field("deps", 3, |d| Decodable::decode(d)));
-            package.set_deps(protobuf::RepeatedField::from_vec(deps));
-            let tdeps: Vec<PackageIdent> = try!(d.read_struct_field("tdeps", 4, |d| Decodable::decode(d)));
-            package.set_tdeps(protobuf::RepeatedField::from_vec(tdeps));
-            package.set_exposes(try!(d.read_struct_field("exposes", 5, |d| Decodable::decode(d))));
-            if let Some(cfg) = try!(d.read_struct_field("config", 6, |d| Ok(Decodable::decode(d).ok()))) {
-                package.set_config(cfg);
-            }
-            Ok(package)
-        })
-    }
-}
-
-impl Decodable for PackageIdent {
-    fn decode<D: Decoder>(d: &mut D) -> result::Result<Self, D::Error> {
-        d.read_struct("PackageIdent", 4, |d| {
-            let mut ident = PackageIdent::new();
-            ident.set_origin(try!(d.read_struct_field("origin", 0, |d| Decodable::decode(d))));
-            ident.set_name(try!(d.read_struct_field("name", 1, |d| Decodable::decode(d))));
-            ident.set_version(try!(d.read_struct_field("version", 2, |d| Decodable::decode(d))));
-            ident.set_release(try!(d.read_struct_field("release", 3, |d| Decodable::decode(d))));
-            Ok(ident)
-        })
-    }
-}
-
-impl Encodable for PackageIdent {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("PackageIdent", 4, |s| {
-            try!(s.emit_struct_field("origin", 0, |s| self.get_origin().encode(s)));
-            try!(s.emit_struct_field("name", 1, |s| self.get_name().encode(s)));
-            if !self.get_version().is_empty() {
-                try!(s.emit_struct_field("version", 2, |s| self.get_version().encode(s)));
-            }
-            if !self.get_release().is_empty() {
-                try!(s.emit_struct_field("release", 3, |s| self.get_release().encode(s)));
-            }
-            Ok(())
-        }));
-        Ok(())
+impl Serialize for PackageIdent {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("package_ident", 4));
+        try!(serializer.serialize_struct_elt(&mut state, "origin", self.get_origin()));
+        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
+        if !self.get_version().is_empty() {
+            try!(serializer.serialize_struct_elt(&mut state, "version", self.get_version()));
+        }
+        if !self.get_release().is_empty() {
+            try!(serializer.serialize_struct_elt(&mut state, "release", self.get_release()));
+        }
+        serializer.serialize_struct_end(state)
     }
 }
 
@@ -209,20 +161,12 @@ impl Identifiable for Package {
 
     fn version(&self) -> Option<&str> {
         let ver = self.get_ident().get_version();
-        if ver.is_empty() {
-            None
-        } else {
-            Some(ver)
-        }
+        if ver.is_empty() { None } else { Some(ver) }
     }
 
     fn release(&self) -> Option<&str> {
         let rel = self.get_ident().get_release();
-        if rel.is_empty() {
-            None
-        } else {
-            Some(rel)
-        }
+        if rel.is_empty() { None } else { Some(rel) }
     }
 }
 
@@ -237,60 +181,39 @@ impl Identifiable for PackageIdent {
 
     fn version(&self) -> Option<&str> {
         let ver = self.get_version();
-        if ver.is_empty() {
-            None
-        } else {
-            Some(ver)
-        }
+        if ver.is_empty() { None } else { Some(ver) }
     }
 
     fn release(&self) -> Option<&str> {
         let rel = self.get_release();
-        if rel.is_empty() {
-            None
-        } else {
-            Some(rel)
-        }
+        if rel.is_empty() { None } else { Some(rel) }
     }
 }
 
-impl ToJson for OriginKeyIdent {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("origin".to_string(), self.get_origin().to_json());
-        m.insert("revision".to_string(), self.get_revision().to_json());
-        m.insert("location".to_string(), self.get_location().to_json());
-        Json::Object(m)
+impl Serialize for OriginKeyIdent {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("origin_key", 3));
+        try!(serializer.serialize_struct_elt(&mut state, "origin", self.get_origin()));
+        try!(serializer.serialize_struct_elt(&mut state, "revision", self.get_revision()));
+        try!(serializer.serialize_struct_elt(&mut state, "location", self.get_location()));
+        serializer.serialize_struct_end(state)
     }
 }
 
-impl ToJson for PackageIdent {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        let ver = self.get_version();
-        let rel = self.get_release();
-        m.insert("origin".to_string(), self.get_origin().to_json());
-        m.insert("name".to_string(), self.get_name().to_json());
-        if !ver.is_empty() {
-            m.insert("version".to_string(), ver.to_json());
-        }
-        if !rel.is_empty() {
-            m.insert("release".to_string(), rel.to_json());
-        }
-        Json::Object(m)
-    }
-}
-
-impl ToJson for Package {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("ident".to_string(), self.get_ident().to_json());
-        m.insert("checksum".to_string(), self.get_checksum().to_json());
-        m.insert("manifest".to_string(), self.get_manifest().to_json());
-        m.insert("deps".to_string(), self.get_deps().to_vec().to_json());
-        m.insert("tdeps".to_string(), self.get_tdeps().to_vec().to_json());
-        m.insert("exposes".to_string(), self.get_exposes().to_json());
-        m.insert("config".to_string(), self.get_config().to_json());
-        Json::Object(m)
+impl Serialize for Package {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("package", 7));
+        try!(serializer.serialize_struct_elt(&mut state, "ident", self.get_ident()));
+        try!(serializer.serialize_struct_elt(&mut state, "checksum", self.get_checksum()));
+        try!(serializer.serialize_struct_elt(&mut state, "manifest", self.get_manifest()));
+        try!(serializer.serialize_struct_elt(&mut state, "deps", self.get_deps()));
+        try!(serializer.serialize_struct_elt(&mut state, "tdeps", self.get_tdeps()));
+        try!(serializer.serialize_struct_elt(&mut state, "exposes", self.get_exposes()));
+        try!(serializer.serialize_struct_elt(&mut state, "config", self.get_config()));
+        serializer.serialize_struct_end(state)
     }
 }

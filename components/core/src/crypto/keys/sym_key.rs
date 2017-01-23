@@ -16,8 +16,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::fmt;
 
-use rustc_serialize::base64::{STANDARD, ToBase64};
-use rustc_serialize::hex::ToHex;
+use base64;
+use hex::ToHex;
 use sodiumoxide::crypto::secretbox;
 use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
 use sodiumoxide::randombytes::randombytes;
@@ -384,16 +384,13 @@ impl SymKey {
                            -> Result<((), SymSecretKey)> {
         let pk = ();
         let sk = secretbox::gen_key();
-
         let secret_keyfile = mk_key_filename(cache_key_path, name_with_rev, SECRET_SYM_KEY_SUFFIX);
-        debug!("secret ring keyfile = {}", secret_keyfile.display());
-
         try!(write_keypair_files(KeyType::Sym,
                                  &name_with_rev,
                                  None,
                                  None,
                                  Some(&secret_keyfile),
-                                 Some(&sk[..].to_base64(STANDARD).into_bytes())));
+                                 Some(&base64::encode(&sk[..]).into_bytes())));
         Ok((pk, sk))
     }
 }

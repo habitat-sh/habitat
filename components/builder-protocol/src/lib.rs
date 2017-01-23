@@ -15,7 +15,7 @@
 extern crate habitat_core as hab_core;
 extern crate protobuf;
 extern crate redis;
-extern crate rustc_serialize;
+extern crate serde;
 extern crate time;
 
 pub mod depotsrv;
@@ -32,3 +32,7 @@ mod message;
 pub use self::error::{ProtocolError, ProtocolResult};
 pub use self::message::{Message, Persistable, Routable, RouteKey};
 pub use self::sharding::InstaId;
+
+mod types {
+    include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
+}

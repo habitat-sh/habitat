@@ -15,33 +15,17 @@
 use std::fmt;
 use std::result;
 use std::str::FromStr;
-
 use error::Error;
-
 #[cfg(windows)]
 mod windows;
 
+pub use types::system::*;
 #[cfg(windows)]
 pub use self::windows::uname;
-
 #[cfg(not(windows))]
 pub mod linux;
-
 #[cfg(not(windows))]
 pub use self::linux::uname;
-
-#[allow(non_camel_case_types)]
-#[derive(Debug, Hash, Clone, RustcEncodable, RustcDecodable, Eq, PartialEq)]
-pub enum Architecture {
-    X86_64,
-}
-
-#[derive(Debug, Hash, Clone, RustcEncodable, RustcDecodable, Eq, PartialEq)]
-pub enum Platform {
-    Linux,
-    Windows,
-    MacOS,
-}
 
 #[derive(Debug)]
 pub struct Uname {

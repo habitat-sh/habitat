@@ -19,22 +19,12 @@ use std::env;
 use std::fs::{DirEntry, File};
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
-use std::result;
 use std::str::FromStr;
 
-use rustc_serialize::{Encoder, Encodable};
-
+pub use types::package_install::*;
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
 use package::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
-
-#[derive(Clone, Debug)]
-pub struct PackageInstall {
-    ident: PackageIdent,
-    fs_root_path: PathBuf,
-    package_root_path: PathBuf,
-    installed_path: PathBuf,
-}
 
 impl PackageInstall {
     /// Verifies an installation of a package is within the package path and returns a struct
@@ -429,25 +419,6 @@ impl PackageInstall {
                 PackageIdent::new(origin.clone(), name.clone(), Some(version), Some(release));
             packages.push(ident)
         }
-        Ok(())
-    }
-}
-
-impl Encodable for PackageInstall {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("package_install", 4, |s| {
-            try!(s.emit_struct_field("ident", 0, |s| self.ident.encode(s)));
-            try!(s.emit_struct_field("fs_root_path",
-                                     1,
-                                     |s| self.fs_root_path.to_string_lossy().encode(s)));
-            try!(s.emit_struct_field("package_root_path",
-                                     2,
-                                     |s| self.package_root_path.to_string_lossy().encode(s)));
-            try!(s.emit_struct_field("installed_path",
-                                     3,
-                                     |s| self.installed_path.to_string_lossy().encode(s)));
-            Ok(())
-        }));
         Ok(())
     }
 }

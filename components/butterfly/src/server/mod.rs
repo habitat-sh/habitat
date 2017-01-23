@@ -40,7 +40,7 @@ use std::thread;
 
 use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::SymKey;
-use rustc_serialize::{Encoder, Encodable};
+use serde::{Serialize, Serializer};
 
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
@@ -74,6 +74,18 @@ pub struct Server {
     pub swim_rounds: Arc<AtomicIsize>,
     pub gossip_rounds: Arc<AtomicIsize>,
     pub blacklist: Arc<RwLock<HashSet<String>>>,
+}
+
+impl Serialize for Server {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+        let mut state = try!(serializer.serialize_struct("butterfly", 5));
+        try!(serializer.serialize_struct_elt(&mut state, "service", &self.service_store));
+        try!(serializer.serialize_struct_elt(&mut state, "service_config", &self.service_config_store));
+        try!(serializer.serialize_struct_elt(&mut state, "service_file", &self.service_file_store));
+        try!(serializer.serialize_struct_elt(&mut state, "election", &self.election_store));
+        try!(serializer.serialize_struct_elt(&mut state, "election_update", &self.update_store));
+        serializer.serialize_struct_end(state)
+    }
 }
 
 impl Server {
@@ -737,20 +749,6 @@ impl Server {
 
     fn unwrap_wire(&self, payload: &[u8]) -> Result<Vec<u8>> {
         message::unwrap_wire(payload, &self.ring_key)
-    }
-}
-
-impl Encodable for Server {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("butterfly", 5, |s| {
-            try!(s.emit_struct_field("service", 0, |s| self.service_store.encode(s)));
-            try!(s.emit_struct_field("service_config", 1, |s| self.service_config_store.encode(s)));
-            try!(s.emit_struct_field("service_file", 2, |s| self.service_file_store.encode(s)));
-            try!(s.emit_struct_field("election", 3, |s| self.election_store.encode(s)));
-            try!(s.emit_struct_field("election_update", 4, |s| self.update_store.encode(s)));
-            Ok(())
-        }));
-        Ok(())
     }
 }
 

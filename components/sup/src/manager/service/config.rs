@@ -22,16 +22,15 @@ use std::io::prelude::*;
 use ansi_term::Colour::Purple;
 use hcore::package::PackageInstall;
 use hcore::crypto;
-use rustc_serialize::Encodable;
 use toml;
 
+pub use types::service_config::*;
 use manager::census::{Census, CensusList};
 use config::gconfig;
 use error::{Error, Result};
 use package::Package;
 use templating::Template;
-use util;
-use util::convert;
+use util::{self, convert};
 use util::users as hab_users;
 use VERSION;
 
@@ -44,20 +43,6 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// is deeper than this value crosses into overly complex territory when describing configuration
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
-
-/// The top level struct for all our configuration - this corresponds to the top level namespaces
-/// available in `config.toml`.
-#[derive(Debug, RustcEncodable)]
-pub struct ServiceConfig {
-    hab: Hab,
-    pkg: Pkg,
-    sys: Sys,
-    cfg: Cfg,
-    svc: Svc,
-    bind: Bind,
-    // Set to 'true' if we have data that needs to be sent to a configuration file
-    pub needs_write: bool,
-}
 
 impl ServiceConfig {
     /// Takes a new package and a new census list, and returns a ServiceConfig. This function can
@@ -203,11 +188,6 @@ impl ServiceConfig {
     }
 }
 
-#[derive(Debug, RustcEncodable)]
-struct Bind {
-    toml: toml::Table,
-}
-
 impl Bind {
     fn new(binding_cfg: Vec<String>, cl: &CensusList) -> Result<Bind> {
         let mut top = toml::Table::new();
@@ -223,7 +203,7 @@ impl Bind {
                 }
             }
         }
-        Ok(Bind { toml: top })
+        Ok(Bind(top))
     }
 
     fn split_bindings(bindings: Vec<String>) -> Result<Vec<(String, String)>> {
@@ -240,13 +220,8 @@ impl Bind {
     }
 
     fn to_toml(&self) -> toml::Value {
-        toml::Value::Table(self.toml.clone())
+        toml::Value::Table(self.0.clone())
     }
-}
-
-#[derive(Debug, RustcEncodable)]
-struct Svc {
-    toml: toml::Table,
 }
 
 impl Svc {
@@ -267,11 +242,11 @@ impl Svc {
         }
         top.insert("all".to_string(), toml::Value::Array(all));
         top.insert("named".to_string(), toml::Value::Table(named));
-        Svc { toml: top }
+        Svc(top)
     }
 
     fn to_toml(&self) -> toml::Value {
-        toml::Value::Table(self.toml.clone())
+        toml::Value::Table(self.0.clone())
     }
 }
 
@@ -300,14 +275,6 @@ fn service_entry(census: &Census) -> toml::Table {
     result.insert("members".to_string(), toml::Value::Array(members));
     result.insert("member_id".to_string(), toml::Value::Table(member_id));
     result
-}
-
-#[derive(Debug, RustcEncodable)]
-struct Cfg {
-    default: Option<toml::Value>,
-    user: Option<toml::Value>,
-    gossip: Option<toml::Value>,
-    environment: Option<toml::Value>,
 }
 
 // Recursively merges the `other` TOML table into `me`
@@ -485,35 +452,14 @@ impl Cfg {
     }
 }
 
-#[derive(Debug, RustcEncodable)]
-pub struct Pkg {
-    pub origin: String,
-    pub name: String,
-    pub version: String,
-    pub release: String,
-    pub ident: String,
-    pub deps: Vec<Pkg>,
-    pub exposes: Vec<String>,
-    pub path: String,
-    pub svc_path: String,
-    pub svc_config_path: String,
-    pub svc_data_path: String,
-    pub svc_files_path: String,
-    pub svc_static_path: String,
-    pub svc_var_path: String,
-    pub svc_user: Option<String>,
-    pub svc_group: Option<String>,
-    pub svc_user_default: String,
-    pub svc_group_default: String,
-}
-
 impl Pkg {
     fn new(pkg_install: &PackageInstall) -> Pkg {
         let ident = pkg_install.ident();
-        let pkg_deps = match pkg_install.deps() {
+        let pkg_deps = match pkg_install.tdeps() {
             Ok(deps) => deps,
             Err(_) => {
-                outputln!("Failed to load deps for {} - it will be missing from the configuration",
+                outputln!("Failed to load transitive deps for {} - it will be missing from the \
+                           configuration",
                           &ident);
                 Vec::new()
             }
@@ -580,19 +526,9 @@ impl Pkg {
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
-        let mut e = toml::Encoder::new();
-        try!(self.encode(&mut e));
-        let v = toml::Value::Table(e.toml);
+        let v = toml::encode(&self);
         Ok(v)
     }
-}
-
-#[derive(Debug, RustcEncodable)]
-pub struct Sys {
-    pub ip: String,
-    pub hostname: String,
-    pub sidecar_ip: String,
-    pub sidecar_port: u16,
 }
 
 impl Sys {
@@ -623,27 +559,18 @@ impl Sys {
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
-        let mut e = toml::Encoder::new();
-        try!(self.encode(&mut e));
-        let v = toml::Value::Table(e.toml);
+        let v = toml::encode(&self);
         Ok(v)
     }
 }
 
-#[derive(Debug, RustcEncodable)]
-pub struct Hab {
-    pub version: &'static str,
-}
-
 impl Hab {
     fn new() -> Self {
-        Hab { version: VERSION }
+        Hab { version: VERSION.to_string() }
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
-        let mut e = toml::Encoder::new();
-        try!(self.encode(&mut e));
-        let v = toml::Value::Table(e.toml);
+        let v = toml::encode(&self);
         Ok(v)
     }
 }

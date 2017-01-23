@@ -20,7 +20,6 @@ use std::result;
 use hab_core;
 use hyper;
 use protobuf;
-use rustc_serialize::json;
 use zmq;
 
 #[derive(Debug)]
@@ -30,7 +29,6 @@ pub enum Error {
     HyperError(hyper::error::Error),
     HTTP(hyper::status::StatusCode),
     IO(io::Error),
-    JsonDecode(json::DecoderError),
     Protobuf(protobuf::ProtobufError),
     RequiredConfigField(&'static str),
     Zmq(zmq::Error),
@@ -46,7 +44,6 @@ impl fmt::Display for Error {
             Error::HyperError(ref e) => format!("{}", e),
             Error::HTTP(ref e) => format!("{}", e),
             Error::IO(ref e) => format!("{}", e),
-            Error::JsonDecode(ref e) => format!("JSON decoding error, {}", e),
             Error::Protobuf(ref e) => format!("{}", e),
             Error::RequiredConfigField(ref e) => {
                 format!("Missing required field in configuration, {}", e)
@@ -65,7 +62,6 @@ impl error::Error for Error {
             Error::HyperError(ref err) => err.description(),
             Error::HTTP(_) => "Non-200 HTTP response.",
             Error::IO(ref err) => err.description(),
-            Error::JsonDecode(ref err) => err.description(),
             Error::Protobuf(ref err) => err.description(),
             Error::RequiredConfigField(_) => "Missing required field in configuration.",
             Error::Zmq(ref err) => err.description(),
@@ -88,12 +84,6 @@ impl From<hyper::error::Error> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
         Error::IO(err)
-    }
-}
-
-impl From<json::DecoderError> for Error {
-    fn from(err: json::DecoderError) -> Self {
-        Error::JsonDecode(err)
     }
 }
 

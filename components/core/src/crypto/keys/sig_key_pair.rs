@@ -15,8 +15,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use rustc_serialize::base64::{STANDARD, FromBase64, ToBase64};
-use rustc_serialize::hex::ToHex;
+use base64;
+use hex::ToHex;
 use sodiumoxide::crypto::sign;
 use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
 use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
@@ -62,9 +62,9 @@ impl SigKeyPair {
         try!(write_keypair_files(KeyType::Sig,
                                  &name_with_rev,
                                  Some(&public_keyfile),
-                                 Some(&pk[..].to_base64(STANDARD).into_bytes()),
+                                 Some(&base64::encode(&pk[..]).into_bytes()),
                                  Some(&secret_keyfile),
-                                 Some(&sk[..].to_base64(STANDARD).into_bytes())));
+                                 Some(&base64::encode(&sk[..]).into_bytes())));
         Ok((pk, sk))
     }
 
@@ -90,7 +90,7 @@ impl SigKeyPair {
     pub fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
                                                  cache_key_path: &P)
                                                  -> Result<Self> {
-        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
+        let (name, rev) = try!(parse_name_with_rev(name_with_rev));
         let pk = match Self::get_public_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
@@ -233,9 +233,6 @@ impl SigKeyPair {
                                                         cache_key_path: &P)
                                                         -> Result<(Self, PairType)> {
         let (pair_type, name_with_rev, key_body) = try!(Self::parse_key_str(content));
-        let name_with_rev = &name_with_rev;
-        let key_body = &key_body;
-
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
             PairType::Secret => SECRET_SIG_KEY_SUFFIX,
@@ -255,7 +252,7 @@ impl SigKeyPair {
                 try!(write_keypair_files(KeyType::Sig,
                                          &name_with_rev,
                                          Some(&tmpfile.path),
-                                         Some(&key_body.as_bytes().to_vec()),
+                                         Some(&key_body.as_bytes()),
                                          None,
                                          None));
             }
@@ -265,7 +262,7 @@ impl SigKeyPair {
                                          None,
                                          None,
                                          Some(&tmpfile.path),
-                                         Some(&key_body.as_bytes().to_vec())));
+                                         Some(&key_body.as_bytes())));
             }
         }
 
@@ -290,11 +287,8 @@ impl SigKeyPair {
                 try!(fs::remove_file(&tmpfile.path));
             }
         } else {
-            debug!("Moving {} to {}", tmpfile.path.display(), keyfile.display());
             try!(fs::rename(&tmpfile.path, keyfile));
         }
-
-        // Now load and return the pair to ensure everything wrote out
         Ok((try!(Self::get_pair_for(&name_with_rev, cache_key_path)), pair_type))
     }
 
@@ -340,9 +334,6 @@ impl SigKeyPair {
     /// jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==";
     ///
     ///     let (pair_type, name_with_rev, key_body) = SigKeyPair::parse_key_str(content).unwrap();
-    ///     assert_eq!(pair_type, PairType::Secret);
-    ///     assert_eq!(name_with_rev, "unicorn-20160517220007");
-    ///     assert_eq!(key_body, "jjQaaphB5+CHw7QzDWqMMuwhWmrrHH+SzQAgRrHfQ8sn4UZhUqCtqAD53NAcIY5F3agvAJzYS8CdP2ujP0EmHQ==");
     /// }
     /// ```
     ///
@@ -378,26 +369,17 @@ impl SigKeyPair {
                 return Err(Error::CryptoError(msg));
             }
         };
-        let key_body = match lines.nth(1) {
+        match lines.nth(1) {
             Some(val) => {
-                // Test for valid Base64 key
-                match val.trim().as_bytes().from_base64() {
-                    Ok(_) => val,
-                    _ => {
-                        let msg = format!("write_sig_key_from_str:3 Malformed sig key \
-                                           string:\n({})",
-                                          content);
-                        return Err(Error::CryptoError(msg));
-                    }
-                }
+                try!(base64::decode(val.trim()).map_err(|_| Error::CryptoError(format!("write_sig_key_from_str:3 Malformed sig key string:\n({})", content))));
+                Ok((pair_type, name_with_rev.to_string(), val.trim().to_string()))
             }
             None => {
                 let msg = format!("write_sig_key_from_str:3 Malformed sig key string:\n({})",
                                   content);
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
-        };
-        Ok((pair_type, name_with_rev.to_string(), key_body.to_string()))
+        }
     }
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {

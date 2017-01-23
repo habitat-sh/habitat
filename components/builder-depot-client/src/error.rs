@@ -18,6 +18,7 @@ use std::fmt;
 use std::result;
 
 use hyper;
+use serde_json;
 use url;
 
 use hab_core;
@@ -31,6 +32,7 @@ pub enum Error {
     HabitatHttpClient(hab_http::Error),
     HyperError(hyper::error::Error),
     IO(io::Error),
+    Json(serde_json::Error),
     NoFilePart,
     NoXFilename,
     UploadFailed(String),
@@ -50,6 +52,7 @@ impl fmt::Display for Error {
             Error::HabitatHttpClient(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
+            Error::Json(ref e) => format!("{}", e),
             Error::NoFilePart => {
                 format!("An invalid path was passed - we needed a filename, and this path does \
                          not have one")
@@ -76,6 +79,7 @@ impl error::Error for Error {
             Error::HabitatHttpClient(ref err) => err.description(),
             Error::HyperError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
+            Error::Json(ref err) => err.description(),
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
@@ -110,6 +114,12 @@ impl From<hyper::error::Error> for Error {
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
         Error::IO(err)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Error {
+        Error::Json(err)
     }
 }
 

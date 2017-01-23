@@ -31,22 +31,15 @@ use hcore;
 use hcore::os::process::{HabChild, ExitStatusExt};
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
-use rustc_serialize::{Encodable, Encoder};
+use serde::{Serialize, Serializer};
 use time::SteadyTime;
 
+pub use types::supervisor::*;
 use error::{Result, Error};
 use util;
 
 const PIDFILE_NAME: &'static str = "PID";
 static LOGKEY: &'static str = "SV";
-
-#[derive(Debug, RustcEncodable)]
-pub enum ProcessState {
-    Down,
-    Up,
-    Start,
-    Restart,
-}
 
 impl fmt::Display for ProcessState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -58,17 +51,6 @@ impl fmt::Display for ProcessState {
         };
         write!(f, "{}", state)
     }
-}
-
-
-/// Additional params used to start the Supervisor.
-/// These params are outside the scope of what is in
-/// Supervisor.package_ident, and aren't runtime params that are stored
-/// in the top-level Supervisor struct (such as PID etc)
-#[derive(Debug, RustcEncodable)]
-pub struct RuntimeConfig {
-    pub svc_user: String,
-    pub svc_group: String,
 }
 
 impl RuntimeConfig {
@@ -156,7 +138,7 @@ impl Supervisor {
                 let shutdown = try!(child.kill());
                 outputln!("{} - Shutdown method: {}", self.preamble, shutdown);
             }
-            None => {},
+            None => {}
         };
         let _ = self.check_process();
         Ok(())
@@ -305,26 +287,23 @@ impl Supervisor {
     }
 }
 
-impl Encodable for Supervisor {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
+impl Serialize for Supervisor {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let pid = match self.child {
             Some(ref child) => Some(child.id()),
             None => None,
         };
-
-        try!(s.emit_struct("supervisor", 7, |s| {
-            try!(s.emit_struct_field("pid", 0, |s| pid.encode(s)));
-            try!(s.emit_struct_field("package_ident", 1, |s| self.package_ident.encode(s)));
-            try!(s.emit_struct_field("preamble", 2, |s| self.preamble.encode(s)));
-            try!(s.emit_struct_field("state", 3, |s| self.state.encode(s)));
-            try!(s.emit_struct_field("state_entered",
-                                     4,
-                                     |s| self.state_entered.to_string().encode(s)));
-            try!(s.emit_struct_field("has_started", 5, |s| self.has_started.encode(s)));
-            try!(s.emit_struct_field("runtime_config", 6, |s| self.runtime_config.encode(s)));
-            Ok(())
-        }));
-        Ok(())
+        let mut state = try!(serializer.serialize_struct("supervisor", 7));
+        try!(serializer.serialize_struct_elt(&mut state, "pid", &pid));
+        try!(serializer.serialize_struct_elt(&mut state, "package", &self.package_ident));
+        try!(serializer.serialize_struct_elt(&mut state, "preamble", &self.preamble));
+        try!(serializer.serialize_struct_elt(&mut state, "state", &self.state));
+        try!(serializer.serialize_struct_elt(&mut state, "state_entered", &self.state_entered.to_string()));
+        try!(serializer.serialize_struct_elt(&mut state, "started", &self.has_started));
+        try!(serializer.serialize_struct_elt(&mut state, "runtime_config", &self.runtime_config));
+        serializer.serialize_struct_end(state)
     }
 }
 

@@ -16,7 +16,7 @@ git2 = "*"
 lazy_static = "*"
 log = "*"
 protobuf = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 
 [dependencies.clap]
 version = "*"

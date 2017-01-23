@@ -24,16 +24,11 @@ use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
 use habitat_core::service::ServiceGroup;
 use protobuf::Message;
 
+pub use types::rumor_service_config::*;
 use error::{Error, Result};
 use message::swim::{ServiceConfig as ProtoServiceConfig, Rumor as ProtoRumor,
                     Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
-
-/// The service rumor
-#[derive(Debug, Clone, RustcEncodable)]
-pub struct ServiceConfig {
-    pub proto: ProtoRumor,
-}
 
 impl PartialOrd for ServiceConfig {
     fn partial_cmp(&self, other: &ServiceConfig) -> Option<Ordering> {
@@ -56,13 +51,13 @@ impl PartialEq for ServiceConfig {
 
 impl From<ProtoRumor> for ServiceConfig {
     fn from(pr: ProtoRumor) -> ServiceConfig {
-        ServiceConfig { proto: pr }
+        ServiceConfig(pr)
     }
 }
 
 impl From<ServiceConfig> for ProtoRumor {
     fn from(service_config: ServiceConfig) -> ProtoRumor {
-        service_config.proto
+        service_config.0
     }
 }
 
@@ -70,13 +65,13 @@ impl Deref for ServiceConfig {
     type Target = ProtoServiceConfig;
 
     fn deref(&self) -> &ProtoServiceConfig {
-        self.proto.get_service_config()
+        self.0.get_service_config()
     }
 }
 
 impl DerefMut for ServiceConfig {
     fn deref_mut(&mut self) -> &mut ProtoServiceConfig {
-        self.proto.mut_service_config()
+        self.0.mut_service_config()
     }
 }
 
@@ -96,7 +91,7 @@ impl ServiceConfig {
         proto.set_config(config);
 
         rumor.set_service_config(proto);
-        ServiceConfig { proto: rumor }
+        ServiceConfig(rumor)
     }
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
@@ -145,7 +140,7 @@ impl Rumor for ServiceConfig {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.proto.write_to_bytes()))
+        Ok(try!(self.0.write_to_bytes()))
     }
 }
 

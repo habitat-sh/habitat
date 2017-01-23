@@ -32,8 +32,8 @@ use time::{SteadyTime, Duration as TimeDuration};
 
 use self::service_updater::ServiceUpdater;
 use error::{Error, Result};
-use config::{gconfig, UpdateStrategy, Topology};
-use manager::service::Service;
+use config::gconfig;
+use manager::service::{Service, UpdateStrategy, Topology};
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
 use package::Package;
@@ -311,11 +311,12 @@ impl Manager {
 
                 // Write out any files we received via butterfly
                 let mut service_files_updated = false;
-                for (incarnation, filename, body) in self.state
-                    .butterfly
-                    .service_files_for(&service.service_group_str(),
-                                       &service.current_service_files)
-                    .into_iter() {
+                for (incarnation, filename, body) in
+                    self.state
+                        .butterfly
+                        .service_files_for(&service.service_group_str(),
+                                           &service.current_service_files)
+                        .into_iter() {
                     let result = service.write_butterfly_service_file(filename, incarnation, body);
                     if service_files_updated == false && result == true {
                         service_files_updated = true;
@@ -327,10 +328,11 @@ impl Manager {
 
                 // Write out any service configuration we received via butterfly
                 let mut service_config_updated = false;
-                if let Some((incarnation, config)) = self.state
-                    .butterfly
-                    .service_config_for(&service.service_group_str(),
-                                        service.service_config_incarnation) {
+                if let Some((incarnation, config)) =
+                    self.state
+                        .butterfly
+                        .service_config_for(&service.service_group_str(),
+                                            service.service_config_incarnation) {
                     service_config_updated = service.write_butterfly_service_config(config);
                     service.service_config_incarnation = Some(incarnation);
                 }
@@ -366,5 +368,28 @@ impl Manager {
                 thread::sleep(Duration::from_millis(time_to_wait as u64));
             }
         }
+    }
+}
+
+impl Default for Topology {
+    fn default() -> Topology {
+        Topology::Standalone
+    }
+}
+
+impl UpdateStrategy {
+    pub fn from_str(strategy: &str) -> Self {
+        match strategy {
+            "none" => UpdateStrategy::None,
+            "at-once" => UpdateStrategy::AtOnce,
+            "rolling" => UpdateStrategy::Rolling,
+            s => panic!("Invalid update strategy {}", s),
+        }
+    }
+}
+
+impl Default for UpdateStrategy {
+    fn default() -> UpdateStrategy {
+        UpdateStrategy::None
     }
 }

@@ -28,7 +28,6 @@ extern crate log;
 extern crate pbr;
 extern crate regex;
 extern crate retry;
-extern crate rustc_serialize;
 extern crate toml;
 extern crate url;
 // Temporary dependency for gossip/rumor injection code duplication.

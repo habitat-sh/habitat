@@ -28,39 +28,16 @@ use hcore::fs::{CACHE_ARTIFACT_PATH, FS_ROOT_PATH};
 use time::{SteadyTime, Duration as TimeDuration};
 
 use {PRODUCT, VERSION};
-use config::{gconfig, Topology};
+use config::gconfig;
 use error::Result;
 use manager::census::CensusList;
-use manager::service::Service;
+use manager::service::{Service, Topology, UpdateStrategy};
 use package::Package;
 
 static LOGKEY: &'static str = "SU";
 const UPDATE_STRATEGY_FREQUENCY_MS: i64 = 60_000;
 
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, RustcEncodable)]
-pub enum UpdateStrategy {
-    None,
-    AtOnce,
-    Rolling,
-}
-
-impl UpdateStrategy {
-    pub fn from_str(strategy: &str) -> Self {
-        match strategy {
-            "none" => UpdateStrategy::None,
-            "at-once" => UpdateStrategy::AtOnce,
-            "rolling" => UpdateStrategy::Rolling,
-            s => panic!("Invalid update strategy {}", s),
-        }
-    }
-}
-impl Default for UpdateStrategy {
-    fn default() -> UpdateStrategy {
-        UpdateStrategy::None
-    }
-}
 
 enum UpdaterState {
     AtOnce(Receiver<Package>),

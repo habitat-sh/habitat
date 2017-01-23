@@ -14,8 +14,7 @@ doc = false
 env_logger = "*"
 log = "*"
 protobuf = "*"
-rustc-serialize = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 
 [dependencies.clap]
 version = "*"
@@ -40,9 +39,6 @@ branch = "habitat"
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[replace]
-"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
 
 [features]
 functional = []

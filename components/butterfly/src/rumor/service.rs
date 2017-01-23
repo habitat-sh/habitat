@@ -24,15 +24,10 @@ use habitat_core::service::ServiceGroup;
 use habitat_core::package::Identifiable;
 use protobuf::Message;
 
+pub use types::rumor_service::*;
 use error::Result;
 use message::swim::{Service as ProtoService, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
 use rumor::Rumor;
-
-/// The service rumor
-#[derive(Debug, Clone, RustcEncodable)]
-pub struct Service {
-    pub proto: ProtoRumor,
-}
 
 impl PartialOrd for Service {
     fn partial_cmp(&self, other: &Service) -> Option<Ordering> {
@@ -55,13 +50,13 @@ impl PartialEq for Service {
 
 impl From<ProtoRumor> for Service {
     fn from(pr: ProtoRumor) -> Service {
-        Service { proto: pr }
+        Service(pr)
     }
 }
 
 impl From<Service> for ProtoRumor {
     fn from(service: Service) -> ProtoRumor {
-        service.proto
+        service.0
     }
 }
 
@@ -69,13 +64,13 @@ impl Deref for Service {
     type Target = ProtoService;
 
     fn deref(&self) -> &ProtoService {
-        self.proto.get_service()
+        self.0.get_service()
     }
 }
 
 impl DerefMut for Service {
     fn deref_mut(&mut self) -> &mut ProtoService {
-        self.proto.mut_service()
+        self.0.mut_service()
     }
 }
 
@@ -116,7 +111,7 @@ impl Service {
         proto.set_exposes(exposes);
         proto.set_package_ident(package.to_string());
         rumor.set_service(proto);
-        Service { proto: rumor }
+        Service(rumor)
     }
 }
 
@@ -145,7 +140,7 @@ impl Rumor for Service {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.proto.write_to_bytes()))
+        Ok(try!(self.0.write_to_bytes()))
     }
 }
 

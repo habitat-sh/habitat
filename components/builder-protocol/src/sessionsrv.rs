@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::BTreeMap;
+use std::result;
 use std::str::FromStr;
 
-use rustc_serialize::json::{Json, ToJson};
+use serde::{Serialize, Serializer};
 
 use error::{ProtocolError, ProtocolResult};
 use message::{Persistable, Routable};
@@ -76,13 +76,15 @@ impl Into<Session> for Account {
     }
 }
 
-impl ToJson for Account {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("id".to_string(), self.get_id().to_string().to_json());
-        m.insert("name".to_string(), self.get_name().to_json());
-        m.insert("email".to_string(), self.get_email().to_json());
-        Json::Object(m)
+impl Serialize for Account {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("account", 3));
+        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
+        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
+        try!(serializer.serialize_struct_elt(&mut state, "email", self.get_email()));
+        serializer.serialize_struct_end(state)
     }
 }
 
@@ -126,12 +128,6 @@ impl Routable for ListFlagGrants {
     }
 }
 
-impl ToJson for FlagGrants {
-    fn to_json(&self) -> Json {
-        self.get_teams().to_json()
-    }
-}
-
 impl Routable for GrantFlagToTeam {
     type H = String;
 
@@ -172,14 +168,28 @@ impl Persistable for SessionToken {
     }
 }
 
-impl ToJson for Session {
-    fn to_json(&self) -> Json {
-        let mut m = BTreeMap::new();
-        m.insert("token".to_string(), self.get_token().to_json());
-        m.insert("email".to_string(), self.get_email().to_json());
-        m.insert("name".to_string(), self.get_name().to_json());
-        m.insert("id".to_string(), self.get_id().to_string().to_json());
-        m.insert("flags".to_string(), self.get_flags().to_json());
-        Json::Object(m)
+impl Serialize for FlagGrants {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_seq(Some(self.get_teams().len())));
+        for e in self.get_teams() {
+            try!(serializer.serialize_seq_elt(&mut state, e));
+        }
+        serializer.serialize_seq_end(state)
+    }
+}
+
+impl Serialize for Session {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("session", 5));
+        try!(serializer.serialize_struct_elt(&mut state, "token", self.get_token()));
+        try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
+        try!(serializer.serialize_struct_elt(&mut state, "name", self.get_name()));
+        try!(serializer.serialize_struct_elt(&mut state, "email", self.get_email()));
+        try!(serializer.serialize_struct_elt(&mut state, "flags", self.get_flags()));
+        serializer.serialize_struct_end(state)
     }
 }

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// JW TODO: After updating to Rust 1.15, move the types contained in this module back into
+// `http/handlers.rs`
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct JobCreateReq {
     pub project_id: String,

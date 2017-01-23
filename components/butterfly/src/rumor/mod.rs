@@ -35,7 +35,7 @@ use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use rustc_serialize::{Encoder, Encodable};
+use serde::{Serialize, Serializer};
 
 use message::swim::Rumor_Type;
 use error::{Result, Error};
@@ -68,7 +68,7 @@ impl RumorKey {
 
 /// A representation of a Rumor; implemented by all the concrete types we share as rumors. The
 /// exception is the Membership rumor, since it's not actually a rumor in the same vein.
-pub trait Rumor: Encodable {
+pub trait Rumor: Serialize {
     fn kind(&self) -> Rumor_Type;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
@@ -101,16 +101,16 @@ impl<T: Rumor + Clone> Default for RumorStore<T> {
     }
 }
 
-impl<T: Rumor> Encodable for RumorStore<T> {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        try!(s.emit_struct("RumorStore", 2, |s| {
-            try!(s.emit_struct_field("list", 0, |s| self.list.read().unwrap().encode(s)));
-            try!(s.emit_struct_field("update_counter",
-                                     1,
-                                     |s| self.update_counter.load(Ordering::Relaxed).encode(s)));
-            Ok(())
-        }));
-        Ok(())
+impl<T: Rumor> Serialize for RumorStore<T> {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("rumor_store", 2));
+        try!(serializer.serialize_struct_elt(&mut state, "list", &*(self.list.read().unwrap())));
+        try!(serializer.serialize_struct_elt(&mut state,
+                                             "update_counter",
+                                             self.update_counter.load(Ordering::Relaxed)));
+        serializer.serialize_struct_end(state)
     }
 }
 
@@ -293,15 +293,10 @@ impl RumorList {
 mod tests {
     use uuid::Uuid;
 
+    pub use types::rumor::tests::*;
     use rumor::Rumor;
     use message::swim::Rumor_Type;
     use error::Result;
-
-    #[derive(Clone, Debug, RustcEncodable)]
-    pub struct FakeRumor {
-        pub id: String,
-        pub key: String,
-    }
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
@@ -332,12 +327,6 @@ mod tests {
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
             Ok(Vec::from(format!("{}-{}", self.id, self.key).as_bytes()))
         }
-    }
-
-    #[derive(Clone, Debug, RustcEncodable)]
-    pub struct TrumpRumor {
-        pub id: String,
-        pub key: String,
     }
 
     impl Default for TrumpRumor {

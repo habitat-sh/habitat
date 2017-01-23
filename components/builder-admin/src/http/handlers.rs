@@ -27,6 +27,24 @@ use serde_json;
 
 include!(concat!(env!("OUT_DIR"), "/serde_types.rs"));
 
+impl Default for FeatureFlagList {
+    fn default() -> Self {
+        let mut list = vec![];
+        list.push(FeatureFlag::new("Admin", privilege::ADMIN.bits()));
+        list.push(FeatureFlag::new("Builder", privilege::BUILDER.bits()));
+        FeatureFlagList(list)
+    }
+}
+
+impl FeatureFlag {
+    pub fn new(name: &'static str, id: u32) -> Self {
+        FeatureFlag {
+            name: name.to_string(),
+            id: id,
+        }
+    }
+}
+
 pub fn account_show(req: &mut Request) -> IronResult<Response> {
     let params = req.extensions.get::<Router>().unwrap();
     let id = params.find("id").unwrap();

@@ -18,12 +18,13 @@ use iron::modifiers::Header;
 use iron::prelude::*;
 use iron::status;
 use protocol::net::NetError;
-use rustc_serialize::json::{self, ToJson};
+use serde::Serialize;
+use serde_json;
 
 use super::net_err_to_http;
 
-pub fn render_json<T: ToJson>(status: status::Status, response: &T) -> Response {
-    let encoded = json::encode(&response.to_json()).unwrap();
+pub fn render_json<T: Serialize>(status: status::Status, response: &T) -> Response {
+    let encoded = serde_json::to_string(response).unwrap();
     let headers = Header(ContentType(Mime(TopLevel::Application, SubLevel::Json, vec![])));
     Response::with((status, encoded, headers))
 }

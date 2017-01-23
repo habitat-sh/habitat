@@ -21,10 +21,9 @@ mount = "*"
 persistent = "*"
 protobuf = "*"
 router = "*"
-rustc-serialize = "*"
 serde = "*"
 serde_json = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 unicase = "*"
 urlencoded = "*"
 

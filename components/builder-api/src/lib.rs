@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate base64;
 extern crate bodyparser;
 extern crate habitat_builder_protocol as protocol;
 #[macro_use]
@@ -30,7 +31,6 @@ extern crate protobuf;
 extern crate redis;
 #[macro_use]
 extern crate router;
-extern crate rustc_serialize;
 extern crate serde_json;
 extern crate staticfile;
 extern crate toml;

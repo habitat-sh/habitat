@@ -21,7 +21,6 @@ extern crate hyper;
 extern crate log;
 extern crate protobuf;
 extern crate redis;
-extern crate rustc_serialize;
 extern crate time;
 extern crate toml;
 #[macro_use]

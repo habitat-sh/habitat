@@ -15,7 +15,7 @@ env_logger = "*"
 log = "*"
 protobuf = "*"
 rand = "*"
-toml = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 
 [dependencies.clap]
 version = "*"

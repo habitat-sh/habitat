@@ -23,32 +23,25 @@
 //! the election finishing. There can, in the end, be only one.
 
 use std::ops::{Deref, DerefMut};
-use std::result;
 
 use habitat_core::service::ServiceGroup;
 use protobuf::{Message, RepeatedField};
-use rustc_serialize::{Encoder, Encodable};
 
+pub use message::swim::Election_Status;
+pub use types::rumor_election::*;
 use error::Result;
 use message::swim::{Election as ProtoElection, Rumor as ProtoRumor, Rumor_Type as ProtoRumor_Type};
-pub use message::swim::Election_Status;
 use rumor::Rumor;
-
-/// An election.
-#[derive(Debug, Clone, RustcEncodable)]
-pub struct Election {
-    pub proto: ProtoRumor,
-}
 
 impl From<ProtoRumor> for Election {
     fn from(pr: ProtoRumor) -> Election {
-        Election { proto: pr }
+        Election(pr)
     }
 }
 
 impl From<Election> for ProtoRumor {
     fn from(election: Election) -> ProtoRumor {
-        election.proto
+        election.0
     }
 }
 
@@ -56,13 +49,13 @@ impl Deref for Election {
     type Target = ProtoElection;
 
     fn deref(&self) -> &ProtoElection {
-        self.proto.get_election()
+        self.0.get_election()
     }
 }
 
 impl DerefMut for Election {
     fn deref_mut(&mut self) -> &mut ProtoElection {
-        self.proto.mut_election()
+        self.0.mut_election()
     }
 }
 
@@ -89,7 +82,7 @@ impl Election {
         proto.set_votes(RepeatedField::from_vec(vec![vote_member_id]));
 
         rumor.set_election(proto);
-        Election { proto: rumor }
+        Election(rumor)
     }
 
     /// Insert a vote for the election.
@@ -208,12 +201,9 @@ impl Rumor for Election {
     }
 
     fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        Ok(try!(self.proto.write_to_bytes()))
+        Ok(try!(self.0.write_to_bytes()))
     }
 }
-
-#[derive(Debug, Clone)]
-pub struct ElectionUpdate(Election);
 
 impl ElectionUpdate {
     pub fn new<S1: Into<String>>(member_id: S1,
@@ -221,14 +211,8 @@ impl ElectionUpdate {
                                  suitability: u64)
                                  -> ElectionUpdate {
         let mut election = Election::new(member_id, service_group, suitability);
-        election.proto.set_field_type(ProtoRumor_Type::ElectionUpdate);
+        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
         ElectionUpdate(election)
-    }
-}
-
-impl Encodable for ElectionUpdate {
-    fn encode<S: Encoder>(&self, s: &mut S) -> result::Result<(), S::Error> {
-        self.0.encode(s)
     }
 }
 
@@ -249,14 +233,14 @@ impl DerefMut for ElectionUpdate {
 impl From<ProtoRumor> for ElectionUpdate {
     fn from(pr: ProtoRumor) -> ElectionUpdate {
         let mut election = Election::from(pr);
-        election.proto.set_field_type(ProtoRumor_Type::ElectionUpdate);
+        election.0.set_field_type(ProtoRumor_Type::ElectionUpdate);
         ElectionUpdate(election)
     }
 }
 
 impl From<ElectionUpdate> for ProtoRumor {
     fn from(election: ElectionUpdate) -> ProtoRumor {
-        election.0.proto
+        (election.0).0
     }
 }
 

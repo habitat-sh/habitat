@@ -20,10 +20,10 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
-use habitat_net::server::ZMQ_CONTEXT;
 use protobuf;
 use zmq;
 
+use ZMQ_CONTEXT;
 use server::Server;
 use message::swim::{Rumor, Rumor_Type};
 use trace::TraceKind;

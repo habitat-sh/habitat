@@ -14,26 +14,25 @@ path = "../butterfly-test"
 
 [build-dependencies]
 pkg-config = "0.3"
+serde_codegen = "*"
 
 [dependencies]
-protobuf = "*"
-rustc-serialize = "*"
-rand = "*"
-log = "*"
 env_logger = "*"
+log = "*"
+lazy_static = "*"
+protobuf = "*"
+rand = "*"
+serde = "*"
 time = "*"
 threadpool = "*"
 
 [dependencies.uuid]
 version = "*"
-features = ["rustc-serialize", "v4"]
+features = ["v4"]
 
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq"
 branch = "release/v0.8"
-
-[dependencies.habitat_net]
-path = "../net"
 
 [dependencies.habitat_core]
 path = "../core"

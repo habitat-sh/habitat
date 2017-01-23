@@ -8,7 +8,7 @@ workspace = "../../"
 
 [dependencies]
 protobuf = "*"
-rustc-serialize = "*"
+serde = "*"
 time = "*"
 
 [dependencies.habitat_core]
@@ -20,9 +20,7 @@ branch = "habitat"
 
 [build-dependencies]
 pkg-config = "0.3"
-
-[replace]
-"redis:0.7.0" = { git = 'https://github.com/habitat-sh/redis-rs', branch = 'habitat' }
+serde_codegen = "*"
 
 [features]
 functional = []

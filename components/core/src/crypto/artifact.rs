@@ -18,7 +18,7 @@ use std::io::prelude::*;
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
-use rustc_serialize::base64::{STANDARD, ToBase64, FromBase64};
+use base64;
 use sodiumoxide::crypto::sign;
 
 use error::{Error, Result};
@@ -41,7 +41,7 @@ pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Re
                          HART_FORMAT_VERSION,
                          pair.name_with_rev(),
                          SIG_HASH_TYPE,
-                         signature.to_base64(STANDARD)));
+                         base64::encode(&signature)));
     let mut file = try!(File::open(src));
     try!(io::copy(&mut file, &mut writer));
     Ok(())
@@ -193,12 +193,8 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
                 return Err(Error::CryptoError("Corrupt payload, can't read signature".to_string()))
             }
             Ok(_) => {
-                match buffer.trim().as_bytes().from_base64() {
-                    Ok(sig) => sig,
-                    Err(e) => {
-                        return Err(Error::CryptoError(format!("Can't decode signature: {}", e)));
-                    }
-                }
+                try!(base64::decode(buffer.trim())
+                    .map_err(|e| Error::CryptoError(format!("Can't decode signature: {}", e))))
             }
             Err(e) => return Err(Error::from(e)),
         }
@@ -211,21 +207,12 @@ pub fn verify<P1: ?Sized, P2: ?Sized>(src: &P1, cache_key_path: &P2) -> Result<(
     };
     let expected_hash = match sign::verify(signature.as_slice(), try!(pair.public())) {
         Ok(signed_data) => {
-            match String::from_utf8(signed_data) {
-                Ok(hash) => hash,
-                Err(_) => {
-                    return Err(Error::CryptoError("Error parsing artifact signature".to_string()))
-                }
-            }
+            try!(String::from_utf8(signed_data)
+                .map_err(|_| Error::CryptoError("Error parsing artifact signature".to_string())))
         }
         Err(_) => return Err(Error::CryptoError("Verification failed".to_string())),
     };
-    debug!("VERIFIED, checking signed hash against mine");
-
     let computed_hash = try!(super::hash::hash_reader(&mut reader));
-
-    debug!("Expected hash {}", expected_hash);
-    debug!("My hash {}", computed_hash);
     if computed_hash == expected_hash {
         Ok((pair.name_with_rev(), expected_hash))
     } else {
