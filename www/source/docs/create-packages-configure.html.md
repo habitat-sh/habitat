@@ -145,7 +145,7 @@ Returns the uppercase equivalent of the given string literal.
 
 Returns the absolute filepath to the package directory of the package best resolved from the given package identifier. The `pkgPathFor` helper will only resolve against dependent packages of the package the template belongs to - in other words, you will always get what you expect and the template won't leak to other packages on the system.
 
-    export JAVA_HOME="{{pkgPathFor core/jdk8}}"
+    export JAVA_HOME={{pkgPathFor "core/jre8"}}
 
 ### toJson Helper
 
