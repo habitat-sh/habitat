@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,6 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod perm;
-pub mod sys;
-pub mod toml;
+use std::str::{self, FromStr};
+
+use toml;
+
+/// Create a `toml::Table` from a byte array.
+///
+/// `None` will be returned if the byte array contains invalid UTF-8 or does not represent a
+/// `toml::Table`.
+pub fn table_from_bytes(bytes: &[u8]) -> Option<toml::Table> {
+    str::from_utf8(bytes)
+        .ok()
+        .and_then(|v| toml::Value::from_str(v).ok())
+        .and_then(|v| match v {
+            toml::Value::Table(s) => Some(s),
+            _ => None,
+        })
+}

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::cmp::{Ordering, PartialOrd};
 use std::env;
 use std::fs::{DirEntry, File};
@@ -22,9 +22,9 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 pub use types::package_install::*;
+use super::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
-use package::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 
 impl PackageInstall {
     /// Verifies an installation of a package is within the package path and returns a struct
@@ -113,6 +113,32 @@ impl PackageInstall {
 
     pub fn tdeps(&self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
+    }
+
+    /// Returns a Rust representation of the mappings defined by the `pkg_exports` plan variable.
+    ///
+    /// These mappings are used as a filter-map to generate a public configuration when the package
+    /// is started as a service. This public configuration can be retrieved by peers to assist in
+    /// configuration of themselves.
+    pub fn exports(&self) -> Result<HashMap<String, String>> {
+        match self.read_metafile(MetaFile::Exports) {
+            Ok(body) => {
+                let mut m = HashMap::<String, String>::new();
+                for line in body.lines() {
+                    let mut parts = line.split('=');
+                    let key = try!(parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
+                    let value = try!(parts.next()
+                        .and_then(|p| Some(p.to_string()))
+                        .ok_or_else(|| Error::MetaFileMalformed(MetaFile::Exports)));
+                    m.insert(key, value);
+                }
+                Ok(m)
+            }
+            Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::<String, String>::new()),
+            Err(e) => Err(e),
+        }
     }
 
     /// A vector of ports we expose
