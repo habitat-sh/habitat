@@ -40,8 +40,8 @@ function New-PathString([string]$StartingPath, [string]$Path) {
         if (-not [string]::IsNullOrEmpty($StartingPath)) {
             [string[]]$PathCollection = "$path;$StartingPath" -split ';'
             $Path = ($PathCollection |
-              Select-Object -Unique | 
-              where {-not [string]::IsNullOrEmpty($_.trim())} | 
+              Select-Object -Unique |
+              where {-not [string]::IsNullOrEmpty($_.trim())} |
               where {test-path "$_"}
               ) -join ';'
         }
@@ -54,7 +54,7 @@ function New-PathString([string]$StartingPath, [string]$Path) {
 
 function Test-AppVeyor {
     (test-path env:\APPVEYOR) -and ([bool]::Parse($env:APPVEYOR))
-} 
+}
 
 function Test-RustUp {
     (get-command -Name rustup.exe -ErrorAction SilentlyContinue) -ne $null
@@ -74,11 +74,11 @@ function Invoke-Configure {
 
     # We need the native library dependencies for `hab`
     # Until we have habitat packages on Windows, there is
-    # a chocolatey package hosted in MyGet with the native 
+    # a chocolatey package hosted in MyGet with the native
     # dependencies built.
     if ((choco list habitat_native_dependencies --local-only) -match '^1 packages installed\.$') {
         choco upgrade habitat_native_dependencies --confirm -s https://www.myget.org/F/habitat/api/v2  --allowemptychecksums
-    } 
+    }
     else {
         choco install habitat_native_dependencies --confirm -s https://www.myget.org/F/habitat/api/v2  --allowemptychecksums
     }
@@ -95,7 +95,7 @@ function Invoke-Configure {
         # We need the Visual C 2013 Runtime for the Win32 ABI Rust
         choco install 'vcredist2013' --confirm --allowemptychecksum
 
-        # We need the Visual C++ tools to build Rust crates (provides a compiler and linker) 
+        # We need the Visual C++ tools to build Rust crates (provides a compiler and linker)
         choco install 'visualcppbuildtools' --version '14.0.25123' --confirm --allowemptychecksum
 
         choco install 7zip --version '16.02.0.20160811' --confirm
@@ -107,12 +107,12 @@ function Invoke-Configure {
         rustup install stable-x86_64-pc-windows-msvc
     }
     else {
-        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.13\bin"
+        $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.14\bin"
         if (-not (get-command rustc -ErrorAction SilentlyContinue)) {
             write-host "installing rust"
-            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.13.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-13-stable.msi"
-            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-13-stable.msi" -Wait
-            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.13\bin"
+            Invoke-WebRequest -UseBasicParsing -Uri 'https://static.rust-lang.org/dist/rust-1.14.0-x86_64-pc-windows-msvc.msi' -OutFile "$env:TEMP/rust-14-stable.msi"
+            start-process -filepath MSIExec.exe -argumentlist "/qn", "/i", "$env:TEMP\rust-14-stable.msi" -Wait
+            $env:PATH = New-PathString -StartingPath $env:PATH -Path "C:\Program Files\Rust stable MSVC 1.14\bin"
             while (-not (get-command cargo -ErrorAction SilentlyContinue)) {
                 Write-Warning "`tWaiting for `cargo` to be available."
                 start-sleep -Seconds 1
@@ -145,7 +145,7 @@ function Get-CargoCommand {
 function Write-RustToolVersion {
     Write-Host ""
     Invoke-Expression "$(Get-RustcCommand) --version"
-    Invoke-Expression "$(Get-CargoCommand) --version"  
+    Invoke-Expression "$(Get-CargoCommand) --version"
     Write-Host ""
 }
 
@@ -198,7 +198,7 @@ function New-HartPackage {
         'C:\Windows\System32\vcruntime140.dll',
         'C:\ProgramData\chocolatey\lib\habitat_native_dependencies\builds\bin\*.dll'
     )
-    $pkgTempDir = "./hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease" 
+    $pkgTempDir = "./hab/pkgs/$pkgOrigin/$pkgName/$pkgVersion/$pkgRelease"
     $pkgBinDir =  "$pkgTempDir/bin"
     mkdir $pkgBinDir -Force | Out-Null
     Copy-Item $pkgFiles -Destination $pkgBinDir
