@@ -2,7 +2,19 @@
 name = "hab-graph"
 version = "0.1.0"
 authors = ["Salim Alam <salam@chef.io>"]
+workspace = "../../"
 
 [dependencies]
 log = "*"
 petgraph = "*"
+walkdir = "*"
+libarchive = "*"
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
+[build-dependencies]
+pkg-config = "0.3"
