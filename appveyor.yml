@@ -2,7 +2,7 @@
 image: Visual Studio 2015
 
 cache:
-    - C:\Program Files\Rust stable MSVC 1.13
+    - C:\Program Files\Rust stable MSVC 1.14
     - c:\cargo
 
 branches:
@@ -24,7 +24,7 @@ environment:
       hab_components: "core;http-client;builder-protocol;builder-depot-client;common;win-users;sup"
 
 build_script:
-  - ps: Update-AppveyorBuild -Version "$((gc -raw ./VERSION).trim())-$((Get-Date).ToString('yyyyMMddHHmmss'))" 
+  - ps: Update-AppveyorBuild -Version "$((gc -raw ./VERSION).trim())-$((Get-Date).ToString('yyyyMMddHHmmss'))"
   - c:\projects\habitat\support\ci\appveyor.bat
 
 artifacts:
