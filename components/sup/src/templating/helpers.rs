@@ -12,17 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::str::FromStr;
+use std::string::ToString;
+
+use hcore::package::{PackageIdent, PackageInstall, Identifiable};
+use manager::service::config::ServiceConfig;
 use handlebars::{Handlebars, Helper, RenderContext, RenderError};
 use serde_json;
 use toml;
 
 type RenderResult = Result<(), RenderError>;
 
-pub fn json_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+pub fn pkg_path_for(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"json\"")))
-        .value();
-    try!(rc.writer.write(serde_json::to_string_pretty(param).unwrap().into_bytes().as_ref()));
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderError::new("Expected a string parameter for \"pkgPathFor\"")));
+    let param = try!(PackageIdent::from_str(param).map_err(|e| {
+            RenderError::new(format!("Bad package identifier for \"pkgPathFor\", {}", e))
+        }));
+    let cfg = try!(serde_json::from_value::<ServiceConfig>(rc.context().data().clone())
+        .map_err(|_| {
+            RenderError::new("\"pkgPathFor\" can only be used on a template bound to a service \
+                              config.")
+        }));
+    let pkg = cfg.pkg
+        .deps
+        .iter()
+        .map(|pkg| PackageIdent::from_str(&pkg.ident).expect("Bad Pkg entry in ServiceConfig!"))
+        .find(|ident| ident.satisfies(&param))
+        .and_then(|i| PackageInstall::load(&i, None).ok())
+        .and_then(|i| Some(i.installed_path().to_string_lossy().into_owned()))
+        .unwrap_or("".to_string());
+    try!(rc.writer.write(pkg.into_bytes().as_ref()));
     Ok(())
 }
 
@@ -42,86 +63,18 @@ pub fn to_lowercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
     Ok(())
 }
 
-pub fn toml_helper(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+pub fn to_json(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
-            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toml\"")))
+            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\"")))
         .value();
-    try!(rc.writer.write(toml::encode_str(&param).into_bytes().as_ref()));
+    try!(rc.writer.write(serde_json::to_string_pretty(param).unwrap().into_bytes().as_ref()));
     Ok(())
 }
 
-#[cfg(test)]
-mod test {
-    use handlebars::Handlebars;
-    use std::collections::BTreeMap;
-    use super::*;
-
-    #[test]
-    fn test_handlebars_json_helper() {
-        let content = "{{json x}}".to_string();
-        let mut data = BTreeMap::new();
-        data.insert("test".into(), "something".into());
-
-        let mut handlebars = Handlebars::new();
-        handlebars.register_helper("json", Box::new(json_helper));
-        handlebars.register_template_string("t", content).unwrap();
-
-        let mut m: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
-        m.insert("x".into(), data);
-
-        let r = handlebars.render("t", &m);
-
-        assert_eq!(r.ok().unwrap(),
-                   r#"{
-  "test": "something"
-}"#
-                       .to_string());
-    }
-
-    #[test]
-    fn test_handlebars_toml_helper() {
-        let content = "{{toml x}}".to_string();
-        let mut data = BTreeMap::new();
-        data.insert("test".into(), "something".into());
-
-        let mut handlebars = Handlebars::new();
-        handlebars.register_helper("toml", Box::new(toml_helper));
-        handlebars.register_template_string("t", content).unwrap();
-
-        let mut m: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
-        m.insert("x".into(), data);
-
-        let r = handlebars.render("t", &m);
-
-        assert_eq!(r.ok().unwrap(),
-                   r#"test = "something"
-"#
-                       .to_string());
-    }
-
-    #[test]
-    fn to_uppercase_helper() {
-        let content = "{{toUppercase var}}".to_string();
-        let mut handlebars = Handlebars::new();
-        handlebars.register_helper("toUppercase", Box::new(to_uppercase));
-        handlebars.register_template_string("t", content).unwrap();
-
-        let mut m: BTreeMap<String, String> = BTreeMap::new();
-        m.insert("var".into(), "value".into());
-        let rendered = handlebars.render("t", &m).unwrap();
-        assert_eq!(rendered, "VALUE".to_string());
-    }
-
-    #[test]
-    fn to_lowercase_helper() {
-        let content = "{{toLowercase var}}".to_string();
-        let mut handlebars = Handlebars::new();
-        handlebars.register_helper("toLowercase", Box::new(to_lowercase));
-        handlebars.register_template_string("t", content).unwrap();
-
-        let mut m: BTreeMap<String, String> = BTreeMap::new();
-        m.insert("var".into(), "VALUE".into());
-        let rendered = handlebars.render("t", &m).unwrap();
-        assert_eq!(rendered, "value".to_string());
-    }
+pub fn to_toml(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+    let param = try!(h.param(0)
+            .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toToml\"")))
+        .value();
+    try!(rc.writer.write(toml::encode_str(&param).into_bytes().as_ref()));
+    Ok(())
 }

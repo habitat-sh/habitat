@@ -48,16 +48,17 @@ syntax is the same for all block expressions and looks like this:
       {{expression}}
     {{/helper}}
 
-Habitat supports the following helpers:
+Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
 
-* each
-* if
-* with
-* lookup
-* partial
-* block
-* include >
-* log
+* `if`
+* `unless`
+* `each`
+* `with`
+* `lookup`
+* `>` ([partials](http://handlebarsjs.com/partials.html))
+* `log`
+
+> Note: Habitat also has a collection of [advanced helpers](#advanced-helpers) to assist in writing configuration and hook files.
 
 The most common block helpers that you will probably use are the `if` and `with` helpers.
 
@@ -89,7 +90,6 @@ When writing your template, you can use the `with` helper to reduce duplication:
       repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
     {{/with}}
 
-
 Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Habitat services  in a leader-follower topology.
 
     {{#if svc.me.follower}}
@@ -97,7 +97,6 @@ Helpers can also be nested and used together in block expressions. Here is anoth
       slaveof {{ip}} {{port}}
      {{/with}}
     {/if}}
-
 
 Here's an example using `each` to render multiple server entries:
 
@@ -120,11 +119,37 @@ like this:
     host = host-2
     port = 3434
 
-## File format helpers
+## Advanced Helpers
 
-### JSON
+Habitat's templating flavour includes a number of useful helpers for writing configuration and hook files
 
-To output configuration data as JSON, you can use the `json` helper.
+* [`toLowercase`](#tolowercase-helper)
+* [`toUppercase`](#touppercase-helper)
+* [`pkgPathFor`](#pkgpathfor-helper)
+* [`toJson`](#tojson-helper)
+* [`toToml`](#totoml-helper)
+
+### toLowercase Helper
+
+Returns the lowercase equivalent of the given string literal.
+
+    my_value={{toLowercase "UPPER-CASE"}}
+
+### toUppercase Helper
+
+Returns the uppercase equivalent of the given string literal.
+
+    my_value={{toUppercase "lower-case"}}
+
+### pkgPathFor Helper
+
+Returns the absolute filepath to the package directory of the package best resolved from the given package identifier. The `pkgPathFor` helper will only resolve against dependent packages of the package the template belongs to - in other words, you will always get what you expect and the template won't leak to other packages on the system.
+
+    export JAVA_HOME="{{pkgPathFor core/jdk8}}"
+
+### toJson Helper
+
+To output configuration data as JSON, you can use the `toJson` helper.
 
 Given a default.toml that looks like:
 
@@ -140,7 +165,7 @@ Given a default.toml that looks like:
 
 and a template:
 
-    {{ json cfg.web }}
+    {{toJson cfg.web}}
 
 when rendered, it will look like:
 
@@ -160,9 +185,9 @@ when rendered, it will look like:
 This can be useful if you have a configuration file that is in JSON format and
 has the same structure as your TOML configuration data.
 
-### TOML
+### toToml Helper
 
-The `toml` helper can be used to output TOML.
+The `toToml` helper can be used to output TOML.
 
 Given a default.toml that looks like:
 
@@ -172,7 +197,7 @@ Given a default.toml that looks like:
 
 and a template:
 
-    {{ toml cfg.web }}
+    {{toToml cfg.web}}
 
 when rendered, it will look like:
 
