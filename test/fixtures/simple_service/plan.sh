@@ -7,6 +7,11 @@ pkg_source=nosuchfile.tar.gz
 pkg_bin_dirs=(bin)
 pkg_deps=()
 pkg_svc_run="simple_service"
+pkg_exports=(
+  [port]=srv.port
+  [bind]=srv.bind
+  [enabled]=setting
+)
 
 do_download() {
   return 0

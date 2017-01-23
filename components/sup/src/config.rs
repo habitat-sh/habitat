@@ -62,8 +62,8 @@ pub fn gconfig() -> &'static Config {
     unsafe { &*CONFIG }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
 /// An enum with the various CLI commands. Used to keep track of what command was called.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
     Config,
     Start,
@@ -209,7 +209,7 @@ impl Config {
 
     /// Return the command we used
     pub fn update_strategy(&self) -> UpdateStrategy {
-        self.update_strategy.clone()
+        self.update_strategy
     }
 
     /// Set the `Command` we used
@@ -220,7 +220,7 @@ impl Config {
 
     /// Return the command we used
     pub fn command(&self) -> Command {
-        self.command.clone()
+        self.command
     }
 
     /// Set the key
@@ -350,8 +350,8 @@ impl Config {
     }
 
     /// Return the topology
-    pub fn topology(&self) -> &Topology {
-        &self.topology
+    pub fn topology(&self) -> Topology {
+        self.topology
     }
 
     pub fn gossip_listen(&self) -> &GossipListenAddr {
@@ -480,7 +480,7 @@ mod tests {
     #[test]
     fn new() {
         let c = Config::new();
-        assert_eq!(*c.topology(), Topology::Standalone);
+        assert_eq!(c.topology(), Topology::Standalone);
     }
 
     #[test]
@@ -515,6 +515,6 @@ mod tests {
     fn topology() {
         let mut c = Config::new();
         c.set_topology(Topology::Leader);
-        assert_eq!(*c.topology(), Topology::Leader);
+        assert_eq!(c.topology(), Topology::Leader);
     }
 }

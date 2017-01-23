@@ -31,12 +31,14 @@ From: /src/yourapp/plan.sh @ line 15 :
     8: pkg_bin_dirs=(bin)
     9: pkg_build_deps=(core/make core/gcc)
     10: pkg_deps=(core/glibc)
-    11: pkg_expose=(3000)
-    12:
-    13: do_build() {
- => 14:   attach
-    15:   make
-    16: }
+    11: pkg_exports=(
+    12:   [port]=srv.port
+    13: )
+    14:
+    15: do_build() {
+ => 16:   attach
+    17:   make
+    18: }
 
 [1] yourapp(do_build)>
 ~~~

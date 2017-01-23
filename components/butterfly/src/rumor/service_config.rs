@@ -19,10 +19,12 @@
 use std::cmp::Ordering;
 use std::mem;
 use std::ops::{Deref, DerefMut};
+use std::str::{self, FromStr};
 
 use habitat_core::crypto::{BoxKeyPair, default_cache_key_path};
 use habitat_core::service::ServiceGroup;
 use protobuf::Message;
+use toml;
 
 pub use types::rumor_service_config::*;
 use error::{Error, Result};
@@ -102,16 +104,23 @@ impl ServiceConfig {
         Ok(())
     }
 
-    pub fn config(&self) -> Result<String> {
-        if self.get_encrypted() {
+    pub fn config(&self) -> Result<toml::Value> {
+        let config = if self.get_encrypted() {
             let bytes = try!(BoxKeyPair::decrypt(self.get_config(), &default_cache_key_path(None)));
-            let config = try!(String::from_utf8(bytes).map_err(Error::ServiceConfigNotUtf8));
-            Ok(config)
+            let encoded = try!(str::from_utf8(&bytes)
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)));
+            try!(self.parse_config(&encoded))
         } else {
-            let config = try!(String::from_utf8(self.get_config().to_vec())
-                .map_err(Error::ServiceConfigNotUtf8));
-            Ok(config)
-        }
+            let encoded = try!(str::from_utf8(self.get_config())
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.get_service_group().to_string(), e)));
+            try!(self.parse_config(&encoded))
+        };
+        Ok(config)
+    }
+
+    fn parse_config(&self, encoded: &str) -> Result<toml::Value> {
+        toml::Value::from_str(encoded)
+            .map_err(|e| Error::ServiceConfigDecode(self.get_service_group().to_string(), e))
     }
 }
 
@@ -147,8 +156,10 @@ impl Rumor for ServiceConfig {
 #[cfg(test)]
 mod tests {
     use std::cmp::Ordering;
+    use std::str::FromStr;
 
     use habitat_core::service::ServiceGroup;
+    use toml;
 
     use super::ServiceConfig;
     use rumor::Rumor;
@@ -224,8 +235,9 @@ mod tests {
     }
 
     #[test]
-    fn config_comes_back_as_a_string() {
-        let s1 = create_service_config("adam", "yep");
-        assert_eq!(s1.config().unwrap(), String::from("yep"));
+    fn config_comes_back_as_a_toml_value() {
+        let s1 = create_service_config("adam", "yep=1");
+        assert_eq!(s1.config().unwrap(),
+                   toml::Value::from_str("yep=1").unwrap());
     }
 }

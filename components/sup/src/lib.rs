@@ -47,7 +47,6 @@ extern crate handlebars;
 #[macro_use]
 extern crate log;
 extern crate tempdir;
-extern crate toml;
 extern crate ansi_term;
 extern crate regex;
 extern crate libc;
@@ -58,6 +57,7 @@ extern crate router;
 extern crate serde;
 extern crate serde_json;
 extern crate time;
+extern crate toml;
 extern crate persistent;
 #[macro_use]
 extern crate lazy_static;

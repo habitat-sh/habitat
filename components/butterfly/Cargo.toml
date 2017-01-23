@@ -25,6 +25,7 @@ rand = "*"
 serde = "*"
 time = "*"
 threadpool = "*"
+toml = { version = "*", features = ["serde"], default-features = false }
 
 [dependencies.uuid]
 version = "*"

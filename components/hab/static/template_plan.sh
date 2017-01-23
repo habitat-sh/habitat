@@ -125,6 +125,19 @@ pkg_svc_run="{{ pkg_svc_run }}"
 # pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 {{/if}}
 # Optional.
+# An associative array representing configuration data which should be gossiped to peers. The keys
+# in this array represent the name the value will be assigned and the values represent the toml path
+# to read the value.
+{{#if pkg_expose ~}}
+pkg_exports={{ pkg_exports }}
+{{else ~}}
+# pkg_exports=(
+#   [host]=srv.address
+#   [port]=srv.port
+#   [domain]=domain
+# )
+{{/if}}
+# Optional.
 # An array of ports this service exposes when you create a Docker image from
 # your package.
 {{#if pkg_expose ~}}

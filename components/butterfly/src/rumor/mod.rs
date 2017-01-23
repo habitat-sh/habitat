@@ -28,9 +28,15 @@ pub mod service;
 pub mod service_config;
 pub mod service_file;
 
+pub use self::election::Election;
+pub use self::service::Service;
+pub use self::service_config::ServiceConfig;
+pub use self::service_file::ServiceFile;
+
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
 use std::default::Default;
+use std::ops::Deref;
 use std::result;
 use std::sync::{Arc, RwLock};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -89,7 +95,7 @@ impl<'a, T: Rumor + Clone> From<&'a T> for RumorKey {
 #[derive(Debug, Clone)]
 pub struct RumorStore<T: Rumor> {
     pub list: Arc<RwLock<HashMap<String, HashMap<String, T>>>>,
-    pub update_counter: Arc<AtomicUsize>,
+    update_counter: Arc<AtomicUsize>,
 }
 
 impl<T: Rumor + Clone> Default for RumorStore<T> {
@@ -98,6 +104,14 @@ impl<T: Rumor + Clone> Default for RumorStore<T> {
             list: Arc::new(RwLock::new(HashMap::new())),
             update_counter: Arc::new(AtomicUsize::new(0)),
         }
+    }
+}
+
+impl<T: Rumor> Deref for RumorStore<T> {
+    type Target = RwLock<HashMap<String, HashMap<String, T>>>;
+
+    fn deref(&self) -> &Self::Target {
+        &*self.list
     }
 }
 

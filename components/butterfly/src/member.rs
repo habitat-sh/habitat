@@ -222,10 +222,11 @@ impl MemberList {
         let mut stop_suspicion: bool = false;
 
         // If we have an existing member record..
-        if let Some(current_member) = self.members
-            .read()
-            .expect("Member List read lock poisoned")
-            .get(member.get_id()) {
+        if let Some(current_member) =
+            self.members
+                .read()
+                .expect("Member List read lock poisoned")
+                .get(member.get_id()) {
             // If my incarnation is newer than the member we are being asked
             // to insert, we want to prefer our member, health and all.
             if current_member.get_incarnation() > member.get_incarnation() {
@@ -256,7 +257,8 @@ impl MemberList {
                     // If currently suspicious and the rumor is suspicion, then nothing to see here.
                 } else if *current_health == Health::Suspect && health == Health::Suspect {
                     share_rumor = false;
-                    // If currently suspicious and the rumor is confirmation, then we are now confirmed
+                    // If currently suspicious and the rumor is confirmation, then we are now
+                    // confirmed
                 } else if *current_health == Health::Suspect && health == Health::Confirmed {
                     stop_suspicion = true;
                     share_rumor = true;
@@ -345,10 +347,11 @@ impl MemberList {
     /// Updates the health of a member without touching the member itself. Returns true if the
     /// health changed, false otherwise.
     pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
-        if let Some(current_health) = self.health
-            .read()
-            .expect("Health read lock is poisoned")
-            .get(member_id) {
+        if let Some(current_health) =
+            self.health
+                .read()
+                .expect("Health read lock is poisoned")
+                .get(member_id) {
             if *current_health == health {
                 return false;
             }

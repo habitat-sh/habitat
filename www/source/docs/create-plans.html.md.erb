@@ -24,8 +24,8 @@ pkg_lib_dirs=(lib)
 pkg_include_dirs=(include)
 ~~~
 
-It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, a single run dependency on 
-`core/glibc`, build dependencies on `core/coreutils`, `core/diffutils`, `core/patch`, `core/make`, `core/gcc`, and it has the resulting libraries in `lib` 
+It has the name of the software, the version, where to download it, a checksum to verify the contents are what we expect, a single run dependency on
+`core/glibc`, build dependencies on `core/coreutils`, `core/diffutils`, `core/patch`, `core/make`, `core/gcc`, and it has the resulting libraries in `lib`
 and header files in `include`. Also, because it's a core plan, it has a description and upstream URL for the source project included.
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
@@ -152,7 +152,9 @@ pkg_deps=(core/glibc core/expat core/libiconv core/apr core/apr-util core/pcre c
 pkg_build_deps=(core/patch core/make core/gcc)
 pkg_bin_dirs=(bin)
 pkg_lib_dirs=(lib)
-pkg_expose=(80 443)
+pkg_exports=(
+  [port]=serverport
+)
 pkg_svc_run="httpd -DFOREGROUND -f $pkg_svc_config_path/httpd.conf"
 pkg_svc_user="root"
 

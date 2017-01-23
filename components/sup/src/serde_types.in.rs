@@ -18,7 +18,9 @@ pub mod census {
 
     use std::collections::HashMap;
 
+    use butterfly::rumor::service::SysInfo;
     use hcore::package::ident::PackageIdent;
+    use toml;
 
     #[derive(Debug, Deserialize, Serialize)]
     pub struct Census {
@@ -30,17 +32,20 @@ pub mod census {
         pub member_id: String,
     }
 
-    #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Default)]
+    #[derive(Debug, Clone, PartialEq, Deserialize, Serialize, Default)]
     pub struct CensusEntry {
-        pub member_id: Option<String>,
-        pub service: Option<String>,
-        pub group: Option<String>,
+        pub member_id: String,
+        pub service: String,
+        pub group: String,
         pub org: Option<String>,
-        pub hostname: Option<String>,
-        pub address: Option<String>,
-        pub ip: Option<String>,
-        pub port: Option<String>,
+        pub hostname: String,
+        pub address: String,
+        pub ip: String,
+        pub port: String,
         pub exposes: Vec<String>,
+        pub cfg: toml::Table,
+        pub sys: SysInfo,
+        #[serde(rename = "pkg")]
         pub package_ident: Option<PackageIdent>,
         pub leader: Option<bool>,
         pub follower: Option<bool>,
@@ -94,7 +99,7 @@ pub mod service {
     use package::Package;
     use supervisor::Supervisor;
 
-    #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
     pub enum LastRestartDisplay {
         None,
         ElectionInProgress,
@@ -106,7 +111,7 @@ pub mod service {
     pub struct Service {
         pub needs_restart: bool,
         pub package: Package,
-        pub service_config_incarnation: Option<u64>,
+        pub cfg_incarnation: u64,
         pub service_group: ServiceGroup,
         pub topology: Topology,
         pub update_strategy: UpdateStrategy,
@@ -116,7 +121,7 @@ pub mod service {
         pub supervisor: Supervisor,
     }
 
-    #[derive(PartialEq, Eq, Debug, Clone, Copy, Deserialize, Serialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
     pub enum Topology {
         Standalone,
         Leader,
@@ -135,6 +140,9 @@ pub mod service_config {
     // JW TODO: After updating to Rust 1.15, move the types contained in this module back into
     // `manager/service/config.rs`
 
+    use std::collections::HashMap;
+
+    use butterfly::rumor::service::SysInfo;
     use toml;
 
     /// The top level struct for all our configuration - this corresponds to the top level
@@ -175,6 +183,7 @@ pub mod service_config {
         pub ident: String,
         pub deps: Vec<Pkg>,
         pub exposes: Vec<String>,
+        pub exports: HashMap<String, String>,
         pub path: String,
         pub svc_path: String,
         pub svc_config_path: String,
@@ -189,12 +198,7 @@ pub mod service_config {
     }
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
-    pub struct Sys {
-        pub ip: String,
-        pub hostname: String,
-        pub sidecar_ip: String,
-        pub sidecar_port: u16,
-    }
+    pub struct Sys(pub SysInfo);
 
     #[derive(Clone, Debug, Deserialize, Serialize)]
     pub struct Hab {

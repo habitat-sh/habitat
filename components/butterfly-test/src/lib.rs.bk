@@ -411,15 +411,14 @@ impl SwimNet {
     }
 
     pub fn add_service(&mut self, member: usize, package: &str) {
-        let ident = PackageIdent::from_str(package)
-            .expect("package needs to be a fully qualified package identifier");
+        let ident = PackageIdent::from_str(package).expect("package needs to be a fully qualified package identifier");
 
         let s = Service::new(self[member].member_id().to_string(),
                              &ident,
-                             "prod".to_string(),
+                             "prod",
                              None,
                              vec![4040, 4041, 4042],
-                             &SysInfo::default(),
+                             SysInfo::default(),
                              None);
         self[member].insert_service(s);
     }

@@ -17,6 +17,7 @@ pub mod hooks;
 pub use self::hooks::HookType;
 
 use std;
+use std::collections::HashMap;
 use std::env;
 use std::fmt;
 use std::fs::File;
@@ -78,10 +79,11 @@ impl Package {
         // This function really should be returning a `Result` as it could fail for a gaggle of
         // IO-related reasons. However, in order to preserve the function contract (for now), we're
         // going to potentially swallow some stuff... - FIN
-        match self.pkg_install.exposes() {
-            Ok(vec) => vec,
-            Err(_) => Vec::new(),
-        }
+        self.pkg_install.exposes().unwrap_or(Vec::new())
+    }
+
+    pub fn exports(&self) -> HashMap<String, String> {
+        self.pkg_install.exports().unwrap_or(HashMap::<String, String>::new())
     }
 
     /// Returns a string with the full run path for this package. This path is composed of any

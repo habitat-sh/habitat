@@ -29,16 +29,15 @@ use butterfly::rumor::service::Service as ServiceRumor;
 use butterfly::server::timing::Timing;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use time::{SteadyTime, Duration as TimeDuration};
+use toml;
 
+pub use manager::service::{Service, ServiceConfig, UpdateStrategy, Topology};
 use self::service_updater::ServiceUpdater;
 use error::{Error, Result};
 use config::gconfig;
-use manager::service::{Service, UpdateStrategy, Topology};
 use manager::census::{CensusUpdate, CensusList, CensusEntry};
 use manager::signals::SignalEvent;
-use package::Package;
 use http_gateway;
-use util;
 
 static LOGKEY: &'static str = "MR";
 
@@ -107,35 +106,29 @@ impl Manager {
         })
     }
 
-    pub fn add_service(&mut self,
-                       package: Package,
-                       topology: Topology,
-                       update_strategy: UpdateStrategy)
-                       -> Result<()> {
-        let service = try!(Service::new(package.clone(),
-                                        gconfig().group(),
-                                        gconfig().organization().clone(),
-                                        topology,
-                                        update_strategy));
-        let hostname = try!(util::sys::hostname());
-        let ip = try!(util::sys::ip());
+    pub fn add_service(&mut self, service: Service) -> Result<()> {
+        try!(service.package.create_svc_path());
+        let census = self.state.census_list.read().expect("Census list lock is poisoned!");
+        let svc_cfg = service.load_service_config(&census)?;
+        let cfg = svc_cfg.to_exported()?;
         // TODO: We should do this much earlier, to confirm that the ports we expose are not
         //       bullshit.
         let mut exposes = Vec::new();
-        for port in package.exposes().into_iter() {
+        for port in service.package.exposes().into_iter() {
             let port_num = try!(port.parse::<u32>().map_err(|e| sup_error!(Error::InvalidPort(e))));
             exposes.push(port_num);
         }
-        let service_rumor = ServiceRumor::new(self.state.butterfly.member_id(),
-                                              package.ident(),
+
+        let service_rumor = ServiceRumor::new(self.state.butterfly.member_id().to_string(),
+                                              service.package.ident(),
                                               service.service_group.group.clone(),
                                               service.service_group.organization.clone(),
-                                              hostname,
-                                              ip.to_string(),
-                                              exposes);
+                                              exposes,
+                                              &*svc_cfg.sys,
+                                              Some(&cfg));
         self.state.butterfly.insert_service(service_rumor);
 
-        if topology == Topology::Leader || topology == Topology::Initializer {
+        if service.topology == Topology::Leader || service.topology == Topology::Initializer {
             // Note - eventually, we need to deal with suitability here. The original implementation
             // didn't have this working either.
             self.state.butterfly.start_election(service.service_group.clone(), 0, 0);
@@ -146,16 +139,85 @@ impl Manager {
         Ok(())
     }
 
-    pub fn build_census(&mut self, last_update: &CensusUpdate) -> Result<(bool, CensusUpdate)> {
-        let update = CensusUpdate::new(self.state.butterfly.service_store.get_update_counter(),
-                                       self.state.butterfly.election_store.get_update_counter(),
-                                       self.state.butterfly.update_store.get_update_counter(),
-                                       self.state.butterfly.member_list.get_update_counter());
+    pub fn run(&mut self) -> Result<()> {
+        signals::init();
 
-        if &update != last_update {
+        outputln!("Starting butterfly on {}",
+                  gconfig().gossip_listen().to_string());
+        try!(self.state.butterfly.start(Timing::default()));
+        debug!("butterfly server started");
+        outputln!("Starting http-gateway on {}", gconfig().http_listen_addr());
+        try!(http_gateway::Server::new(self.state.clone()).start());
+        debug!("http-gateway server started");
+
+        let mut last_census_update = CensusUpdate::default();
+
+        loop {
+            let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
+            if self.check_for_incoming_signals() {
+                outputln!("Habitat thanks you - shutting down!");
+                return Ok(());
+            }
+            self.check_for_updated_packages(&mut last_census_update);
+            self.restart_elections();
+            let (census_updated, ncu) = self.build_census(&last_census_update);
+            if census_updated {
+                last_census_update = ncu;
+            }
+            for mut service in self.state
+                .services
+                .write()
+                .expect("Services lock is poisoned!")
+                .iter_mut() {
+
+                self.persist_service_files(&mut service);
+                let svc_cfg_updated = self.persist_service_config(&mut service);
+
+                if svc_cfg_updated || census_updated {
+                    let svc_cfg = service.reconfigure(&self.state
+                        .census_list
+                        .read()
+                        .expect("Census list lock is poisoned!"));
+                    if svc_cfg_updated && svc_cfg.is_some() {
+                        self.update_service_rumor_cfg(&service,
+                                                      svc_cfg.as_ref().unwrap(),
+                                                      &mut last_census_update);
+                    }
+                }
+
+                service.initialize();
+                service.check_process();
+
+                if service.initialized && (service.needs_restart || service.is_down()) {
+                    match service.restart(&self.state
+                        .census_list
+                        .read()
+                        .expect("Census list lock is poisoned!")) {
+                        Ok(()) => {}
+                        Err(e) => outputln!("Cannot restart service: {}", e),
+                    }
+                }
+            }
+
+            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
+            if time_to_wait > 0 {
+                thread::sleep(Duration::from_millis(time_to_wait as u64));
+            }
+        }
+    }
+
+    // Try and build the census from the gossip data, updating the last_census_update with
+    // the resulting checkpoints. The census is our representation of the data produced
+    // by Butterfly.
+    fn build_census(&mut self, last_update: &CensusUpdate) -> (bool, CensusUpdate) {
+        let update = CensusUpdate::new(&self.state.butterfly);
+        if update != *last_update {
+            // JW TODO: We should re-use the already allocated census list and entries instead of
+            // recreating entirely new structures. We can, and should, only modify structures which
+            // have had their incarnation updated.
             let mut cl = CensusList::new();
             debug!("Updating census from butterfly data");
-            self.state.butterfly.service_store.with_keys(|(_service_group, rumors)| {
+            self.state.butterfly.service_store.with_keys(|(_group, rumors)| {
                 for (_member_id, service) in rumors.iter() {
                     let mut ce = CensusEntry::default();
                     ce.populate_from_service(service);
@@ -179,11 +241,18 @@ impl Manager {
                 }
             });
             *self.state.census_list.write().expect("Census list lock is poisoned!") = cl;
-            return Ok((true, update));
+            return (true, update);
         }
-        Ok((false, update))
+        (false, update)
     }
 
+    // Takes signals passed to `hab-sup` and either shuts down all the services, or
+    // passes the signals through. This functionality is totally going to need a refactor
+    // when we get all the way to a single-sup-per-kernel model, since passing all random
+    // signals through to all services is most certainly not what you want.
+    //
+    // This function returns true if we are supposed to shut the system down, false if we
+    // can keep going.
     fn check_for_incoming_signals(&mut self) -> bool {
         match signals::check_for_signal() {
             Some(SignalEvent::Shutdown) => {
@@ -219,7 +288,12 @@ impl Manager {
     }
 
     /// Walk each service and check if it has an updated package installed via the Update Strategy.
-    pub fn check_for_updated_packages(&mut self) {
+    /// This updates the Service to point to the new service struct, and then marks it for
+    /// restarting.
+    ///
+    /// The run loop's last updated census is a required parameter on this function to inform the
+    /// main loop that we, ourselves, updated the service counter when we updated ourselves.
+    fn check_for_updated_packages(&mut self, last_update: &mut CensusUpdate) {
         let member_id = {
             self.state.butterfly.member_id().to_string()
         };
@@ -241,155 +315,94 @@ impl Manager {
                 let incarnation = rumor.get_incarnation() + 1;
                 rumor.set_package_ident(service.package.to_string());
                 rumor.set_incarnation(incarnation);
+                match service.load_service_config(&census_list) {
+                    Ok(raw_cfg) => {
+                        match raw_cfg.to_exported() {
+                            Ok(cfg) => *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes(),
+                            Err(err) => {
+                                warn!("Error loading service config after update, err={}", err)
+                            }
+                        }
+                    }
+                    Err(err) => warn!("Error loading service config after update, err={}", err),
+                }
                 self.state.butterfly.insert_service(rumor);
+                last_update.service_counter += 1;
             }
         }
     }
 
-    //  * Start butterfly
-    //  Loop {
-    //    * Check for incoming signals; forward them; shut down if necessary
-    //    * Check if each service needs its package updated
-    //      * Update the package
-    //    * Check if the Census needs building from Butterfly, or the package changed
-    //      * Loop the services, and reconfigure the service from the Census
-    //    * Reap any dead children
-    //    * Start or restart the services
-    //  }
-    //
-    pub fn run(&mut self) -> Result<()> {
-        // Set the global signal handlers
-        signals::init();
+    /// Check if any elections need restarting.
+    fn restart_elections(&mut self) {
+        self.state.butterfly.restart_elections();
+    }
 
-        outputln!("Starting butterfly on {}",
-                  gconfig().gossip_listen().to_string());
-        try!(self.state.butterfly.start(Timing::default()));
-        debug!("butterfly server started");
-        outputln!("Starting http-gateway on {}", gconfig().http_listen_addr());
-        try!(http_gateway::Server::new(self.state.clone()).start());
-        debug!("http-gateway server started");
+    /// Write service configuration from gossip data to disk.
+    ///
+    /// Returns true if a change was made and false if there were no updates.
+    fn persist_service_config(&self, service: &mut Service) -> bool {
+        if let Some((incarnation, config)) =
+            self.state
+                .butterfly
+                .service_config_for(&service.service_group_str(), Some(service.cfg_incarnation)) {
+            service.cfg_incarnation = incarnation;
+            service.write_butterfly_service_config(config)
+        } else {
+            false
+        }
+    }
 
-        // Watch for updates
-        let mut last_census_update = CensusUpdate::new(0, 0, 0, 0);
-
-        'services: loop {
-            let next_check = SteadyTime::now() + TimeDuration::milliseconds(1000);
-            // Check for incoming signals.
-            //
-            // This takes signals passed to `hab-sup` and either shuts down all the services, or
-            // passes the signals through. This functionality is totally going to need a refactor
-            // when we get all the way to a single-sup-per-kernel model, since passing all random
-            // signals through to all services is most certainly not what you want.
-            //
-            // This function returns true if we are supposed to shut the system down, false if we
-            // can keep going.
-            if self.check_for_incoming_signals() {
-                outputln!("Habitat thanks you - shutting down!");
-                return Ok(());
+    /// Write service files from gossip data to disk.
+    ///
+    /// Returnst rue if a file was changed, added, or removed, and false if there were no updates.
+    fn persist_service_files(&self, service: &mut Service) -> bool {
+        let mut updated = false;
+        for (incarnation, filename, body) in
+            self.state
+                .butterfly
+                .service_files_for(&service.service_group_str(), &service.current_service_files)
+                .into_iter() {
+            if service.write_butterfly_service_file(filename, incarnation, body) {
+                updated = true;
             }
+        }
+        if updated {
+            service.file_updated()
+        } else {
+            false
+        }
+    }
 
-            // Check for updated packages; this updates the Service to point to the new service
-            // struct, and then marks it for restarting.
-            self.check_for_updated_packages();
-
-            // Check if any elections need restarting.
-            self.state.butterfly.restart_elections();
-
-            // Try and build the census from the gossip data, updating the last_census_update with
-            // the resulting checkpoints. The census is our representation of the data produced
-            // by Butterfly.
-            let (census_updated, ncu) = try!(self.build_census(&last_census_update));
-            if census_updated {
-                last_census_update = ncu;
-            }
-
-            for service in self.state
-                .services
-                .write()
-                .expect("Services lock is poisoned!")
-                .iter_mut() {
-
-                // Write out any files we received via butterfly
-                let mut service_files_updated = false;
-                for (incarnation, filename, body) in
-                    self.state
-                        .butterfly
-                        .service_files_for(&service.service_group_str(),
-                                           &service.current_service_files)
-                        .into_iter() {
-                    let result = service.write_butterfly_service_file(filename, incarnation, body);
-                    if service_files_updated == false && result == true {
-                        service_files_updated = true;
+    /// Update our own service rumor with a new configuration from the packages exported
+    /// configuration data.
+    ///
+    /// The run loop's last updated census is a required parameter on this function to inform the
+    /// main loop that we, ourselves, updated the service counter when we updated ourselves.
+    fn update_service_rumor_cfg(&self,
+                                service: &Service,
+                                cfg: &ServiceConfig,
+                                last_update: &mut CensusUpdate) {
+        if let Some(cfg) = cfg.to_exported().ok() {
+            let me = {
+                self.state.butterfly.member_id().to_string()
+            };
+            let mut updated = None;
+            self.state
+                .butterfly
+                .service_store
+                .with_rumor(&service.service_group.as_string(), &me, |rumor| {
+                    if let Some(rumor) = rumor {
+                        let mut rumor = rumor.clone();
+                        let incarnation = rumor.get_incarnation() + 1;
+                        rumor.set_incarnation(incarnation);
+                        *rumor.mut_cfg() = toml::encode_str(&cfg).into_bytes();
+                        updated = Some(rumor);
                     }
-                }
-                if service_files_updated {
-                    service.file_updated();
-                }
-
-                // Write out any service configuration we received via butterfly
-                let mut service_config_updated = false;
-                if let Some((incarnation, config)) =
-                    self.state
-                        .butterfly
-                        .service_config_for(&service.service_group_str(),
-                                            service.service_config_incarnation) {
-                    service_config_updated = service.write_butterfly_service_config(config);
-                    service.service_config_incarnation = Some(incarnation);
-                }
-
-                // Reconfigure if necessary
-                if census_updated || service_config_updated {
-                    service.reconfigure(&self.state
-                        .census_list
-                        .read()
-                        .expect("Census list lock is poisoned!"));
-                }
-
-                // If this service has not been initialized, do so now.
-                service.initialize();
-
-                // Reap dead children
-                let _ = service.check_process();
-
-                // Start or restart the service
-                if service.initialized && (service.needs_restart || service.is_down()) {
-                    match service.restart(&self.state
-                        .census_list
-                        .read()
-                        .expect("Census list lock is poisoned!")) {
-                        Ok(()) => {}
-                        Err(e) => outputln!("Cannot restart service: {}", e),
-                    }
-                }
-            }
-
-            let time_to_wait = (next_check - SteadyTime::now()).num_milliseconds();
-            if time_to_wait > 0 {
-                thread::sleep(Duration::from_millis(time_to_wait as u64));
+                });
+            if let Some(rumor) = updated {
+                self.state.butterfly.insert_service(rumor);
+                last_update.service_counter += 1;
             }
         }
-    }
-}
-
-impl Default for Topology {
-    fn default() -> Topology {
-        Topology::Standalone
-    }
-}
-
-impl UpdateStrategy {
-    pub fn from_str(strategy: &str) -> Self {
-        match strategy {
-            "none" => UpdateStrategy::None,
-            "at-once" => UpdateStrategy::AtOnce,
-            "rolling" => UpdateStrategy::Rolling,
-            s => panic!("Invalid update strategy {}", s),
-        }
-    }
-}
-
-impl Default for UpdateStrategy {
-    fn default() -> UpdateStrategy {
-        UpdateStrategy::None
     }
 }

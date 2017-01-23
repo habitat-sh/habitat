@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use habitat_core;
 
-use protobuf;
-use zmq;
-
-use std::io;
-use std::string::FromUtf8Error;
 use std::error;
 use std::fmt;
+use std::io;
+use std::str;
 use std::result;
+
+use habitat_core;
+use protobuf;
+use toml;
+use zmq;
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -32,7 +33,8 @@ pub enum Error {
     HabitatCore(habitat_core::error::Error),
     NonExistentRumor(String, String),
     ProtobufError(protobuf::ProtobufError),
-    ServiceConfigNotUtf8(FromUtf8Error),
+    ServiceConfigDecode(String, Vec<toml::ParserError>),
+    ServiceConfigNotUtf8(String, str::Utf8Error),
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
     SocketCloneError,
@@ -52,9 +54,11 @@ impl fmt::Display for Error {
                         rumor_id)
             }
             Error::ProtobufError(ref err) => format!("ProtoBuf Error: {}", err),
-            Error::ServiceConfigNotUtf8(ref err) => {
-                format!("Cannot decode service configuration; it is not UTF-8: {}",
-                        err)
+            Error::ServiceConfigDecode(ref sg, ref err) => {
+                format!("Cannot decode service config: group={}, {:?}", sg, err)
+            }
+            Error::ServiceConfigNotUtf8(ref sg, ref err) => {
+                format!("Cannot read service configuration: group={}, {}", sg, err)
             }
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
@@ -76,19 +80,20 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::BadMessage(ref _err) => "Bad Protobuf Message; should be Ping/Ack/PingReq",
-            Error::CannotBind(ref _err) => "Cannot bind to port",
-            Error::HabitatCore(ref _err) => "Habitat core error",
-            Error::NonExistentRumor(ref _member_id, ref _rumor_id) => {
+            Error::BadMessage(_) => "Bad Protobuf Message; should be Ping/Ack/PingReq",
+            Error::CannotBind(_) => "Cannot bind to port",
+            Error::HabitatCore(_) => "Habitat core error",
+            Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }
             Error::ProtobufError(ref err) => err.description(),
-            Error::ServiceConfigNotUtf8(ref _err) => "Cannot convert a service config to UTF-8",
-            Error::SocketSetReadTimeout(ref _err) => "Cannot set UDP socket read timeout",
-            Error::SocketSetWriteTimeout(ref _err) => "Cannot set UDP socket write timeout",
+            Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
+            Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",
+            Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
+            Error::SocketSetWriteTimeout(_) => "Cannot set UDP socket write timeout",
             Error::SocketCloneError => "Cannot clone the underlying UDP socket",
-            Error::ZmqConnectError(ref _err) => "Cannot connect ZMQ socket",
-            Error::ZmqSendError(ref _err) => "Cannot send message through ZMQ socket",
+            Error::ZmqConnectError(_) => "Cannot connect ZMQ socket",
+            Error::ZmqSendError(_) => "Cannot send message through ZMQ socket",
         }
     }
 }
