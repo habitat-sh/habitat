@@ -286,7 +286,7 @@ do_end()
 
 
 ## Hooks
-Each plan can have a `hooks` subdirectory that specifies any of the hooks or asynchronous callbacks described in this section. Each hook is a `bash` script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top of the script to specify the interpreter to be used.
+Each plan can have a `hooks` subdirectory that specifies any of the hooks or asynchronous callbacks described in this section. Each hook is a script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top to specify the interpreter to be used.
 
 file_updated
 : File location: `<plan>/hooks/file_updated`
