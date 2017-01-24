@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use std::collections::HashMap;
-use time::PreciseTime;
+use time::{PreciseTime, Duration};
 use walkdir::WalkDir;
 use hab_core::package::{FromArchive, PackageArchive};
 use protocol::depotsrv;
@@ -50,6 +50,8 @@ impl Scanner {
 
         let mut directories = vec![];
         let mut start_time = PreciseTime::now();
+        let mut generation_duration: Duration = Duration::zero();
+        let mut total_rdeps_duration: Duration = Duration::zero();
 
         for entry in WalkDir::new(&self.packages_path).follow_links(false) {
             let entry = entry.unwrap();
@@ -97,10 +99,11 @@ impl Scanner {
         println!("\nTotal packages processed: {}", self.package_max - 1);
 
         let mut end_time = PreciseTime::now();
-        println!("Time to process: {} sec", start_time.to(end_time));
+        generation_duration = start_time.to(end_time);
+        println!("Time to process: {} sec", generation_duration);
 
-        println!("Graph:\n{:?}",
-                 Dot::with_config(&self.graph, &[Config::EdgeNoLabel]));
+        // println!("Graph:\n{:?}",
+        //          Dot::with_config(&self.graph, &[Config::EdgeNoLabel]));
         println!("Is cyclic: {}\n", is_cyclic_directed(&self.graph));
 
         println!("Reverse dependencies:\n");
@@ -120,8 +123,16 @@ impl Scanner {
                 Err(e) => panic!("Error: {:?}", e),
             }
 
-            println!("Time to process: {} sec", start_time.to(end_time));
+            let rdeps_duration = start_time.to(end_time);
+            total_rdeps_duration = total_rdeps_duration + rdeps_duration;
+            println!("Time to process: {} sec", rdeps_duration);
             println!("");
         }
+
+        println!("\nStatistics:");
+        println!("\nTotal packages processed: {}", self.package_max - 1);
+        println!("Time to process packages: {} sec", generation_duration);
+        println!("Avg. time for rdeps search: {} sec",
+                 total_rdeps_duration / (self.package_max - 1) as i32);
     }
 }
