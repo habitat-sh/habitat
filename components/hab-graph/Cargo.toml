@@ -9,6 +9,7 @@ log = "*"
 petgraph = "*"
 walkdir = "*"
 libarchive = "*"
+time = "*"
 
 [dependencies.habitat_core]
 path = "../core"

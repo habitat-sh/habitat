@@ -36,6 +36,7 @@ pub fn rdeps(g: &Graph<GType, GType>, n: NodeIndex) -> Result<Vec<GType>, GraphE
     let mut bfs_set: HashSet<&usize> = bfs.iter().collect();
     let mut v: Vec<GType> = Vec::new();
 
+    bfs_set.remove(&start);
     while !bfs_set.is_empty() {
         if bfs_set.contains(&t[curr]) {
             v.push(t[curr]);
@@ -83,7 +84,7 @@ mod tests {
 
         match rdeps(&deps, a) {
             Ok(v) => {
-                static EXPECTED: &'static [usize] = &[0, 2, 4, 5];
+                static EXPECTED: &'static [usize] = &[2, 4, 5];
                 assert_eq!(v.as_slice(), EXPECTED);
             }
             Err(e) => {
@@ -93,7 +94,7 @@ mod tests {
 
         match rdeps(&deps, b) {
             Ok(v) => {
-                static EXPECTED: &'static [usize] = &[1, 2, 4, 5];
+                static EXPECTED: &'static [usize] = &[2, 4, 5];
                 assert_eq!(v.as_slice(), EXPECTED);
             }
             Err(e) => {

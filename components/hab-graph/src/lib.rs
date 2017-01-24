@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate log;
+extern crate time;
 extern crate petgraph;
 
 extern crate walkdir;
