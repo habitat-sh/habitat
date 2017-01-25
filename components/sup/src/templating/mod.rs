@@ -25,6 +25,7 @@ impl Template {
         handlebars.register_helper("pkgPathFor", Box::new(helpers::pkg_path_for));
         handlebars.register_helper("toUppercase", Box::new(helpers::to_uppercase));
         handlebars.register_helper("toLowercase", Box::new(helpers::to_lowercase));
+        handlebars.register_helper("strReplace", Box::new(helpers::str_replace));
         handlebars.register_helper("toJson", Box::new(helpers::to_json));
         handlebars.register_helper("toToml", Box::new(helpers::to_toml));
 
@@ -124,5 +125,19 @@ mod test {
         m.insert("var".into(), "VALUE".into());
         let rendered = template.render("t", &m).unwrap();
         assert_eq!(rendered, "value".to_string());
+    }
+
+    #[test]
+    fn str_replace_helper() {
+        let content = "{{strReplace var old new}}".to_string();
+        let mut template = Template::new();
+        template.register_template_string("t", content).unwrap();
+
+        let mut m: BTreeMap<String, String> = BTreeMap::new();
+        m.insert("var".into(), "this is old".into());
+        m.insert("old".into(), "old".into());
+        m.insert("new".into(), "new".into());
+        let rendered = template.render("t", &m).unwrap();
+        assert_eq!(rendered, "this is new".to_string());
     }
 }

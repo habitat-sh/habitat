@@ -125,6 +125,7 @@ Habitat's templating flavour includes a number of useful helpers for writing con
 
 * [`toLowercase`](#tolowercase-helper)
 * [`toUppercase`](#touppercase-helper)
+* [`strReplace`](#strreplace-helper)
 * [`pkgPathFor`](#pkgpathfor-helper)
 * [`toJson`](#tojson-helper)
 * [`toToml`](#totoml-helper)
@@ -140,6 +141,14 @@ Returns the lowercase equivalent of the given string literal.
 Returns the uppercase equivalent of the given string literal.
 
     my_value={{toUppercase "lower-case"}}
+
+### strReplace Helper
+
+Replaces all matches of a pattern within the given string literal.
+
+    my_value={{strReplace "this is old" "old" "new"}}
+
+This sets `my_value` to "this is new".
 
 ### pkgPathFor Helper
 

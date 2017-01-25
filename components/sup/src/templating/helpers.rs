@@ -63,6 +63,20 @@ pub fn to_lowercase(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Rende
     Ok(())
 }
 
+pub fn str_replace(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
+    let param = try!(h.param(0)
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderError::new("Expected 3 string parameters for \"strReplace\"")));
+    let old = try!(h.param(1)
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderError::new("Expected 3 string parameters for \"strReplace\"")));
+    let new = try!(h.param(2)
+        .and_then(|v| v.value().as_str())
+        .ok_or_else(|| RenderError::new("Expected 3 string parameters for \"strReplace\"")));
+    try!(rc.writer.write(param.replace(old, new).into_bytes().as_ref()));
+    Ok(())
+}
+
 pub fn to_json(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult {
     let param = try!(h.param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\"")))
