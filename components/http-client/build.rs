@@ -11,7 +11,9 @@ mod inner {
     pub fn main() {
         let src = env::var("SSL_CERT_FILE").unwrap();
         let dst = Path::new(&env::var("OUT_DIR").unwrap()).join("cacert.pem");
-        fs::copy(src, dst).unwrap();
+        if !dst.exists() {
+            fs::copy(src, dst).unwrap();
+        }
     }
 }
 
