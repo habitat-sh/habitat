@@ -8,9 +8,9 @@ use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::algo::is_cyclic_directed;
 use petgraph::dot::{Dot, Config};
-use graph::rdeps;
+use rdeps::rdeps;
 
-pub struct Scanner {
+pub struct Spider {
     packages_path: PathBuf,
     package_max: usize,
     package_map: HashMap<String, (usize, NodeIndex)>,
@@ -18,9 +18,9 @@ pub struct Scanner {
     graph: Graph<usize, usize>,
 }
 
-impl Scanner {
+impl Spider {
     pub fn new(path: &str) -> Self {
-        Scanner {
+        Spider {
             packages_path: PathBuf::from(path),
             package_max: 0,
             package_map: HashMap::new(),
@@ -44,7 +44,7 @@ impl Scanner {
         id
     }
 
-    pub fn scan(&mut self) {
+    pub fn crawl(&mut self) {
         assert!(self.package_max == 0);
 
         let mut directories = vec![];

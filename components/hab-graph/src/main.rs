@@ -8,14 +8,13 @@ extern crate walkdir;
 extern crate habitat_core as hab_core;
 extern crate habitat_builder_protocol as protocol;
 
-pub mod graph;
-pub mod scanner;
+pub mod rdeps;
+pub mod spider;
 
-use scanner::Scanner;
+use spider::Spider;
 use petgraph::Graph;
 use petgraph::dot::{Dot, Config};
 use std::io;
-
 
 fn main() {
     env_logger::init().unwrap();
@@ -30,8 +29,8 @@ fn main() {
     let b = deps.add_node(11);
     deps.extend_with_edges(&[(a, b), (b, a)]);
 
-    let mut scanner = Scanner::new("/Users/salam/Workspace/habitat/components/hab-graph/pkgs/0");
-    scanner.scan();
+    let mut spider = Spider::new("/Users/salam/Workspace/habitat/components/hab-graph/pkgs/0");
+    spider.crawl();
 
     println!("\nHit ENTER to exit");
     io::stdin().read_line(&mut s).unwrap();
