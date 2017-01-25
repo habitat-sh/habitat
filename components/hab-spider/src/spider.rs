@@ -1,3 +1,17 @@
+// Copyright (c) 2017 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use std::path::PathBuf;
 use std::collections::{HashMap, BinaryHeap};
 use std::cmp::Ordering;
@@ -8,7 +22,6 @@ use petgraph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::algo::{is_cyclic_directed, connected_components};
 
-// use petgraph::dot::{Dot, Config};
 use rdeps::rdeps;
 
 #[derive(Debug, PartialEq)]
@@ -102,10 +115,6 @@ impl Spider {
 
             match archive.ident() {
                 Ok(_) => {
-                    // TODO: Remove this check
-                    // if ident.origin != "core" {
-                    //     continue;
-                    // }
                     match depotsrv::Package::from_archive(&mut archive) {
                         Ok(o) => {
                             let name = format!("{}", o.get_ident());
@@ -131,10 +140,6 @@ impl Spider {
             }
             debug!("");
         }
-
-        // println!("Graph:\n{:?}",
-        //          Dot::with_config(&self.graph, &[Config::EdgeNoLabel]));
-        // println!("Is cyclic: {}\n", is_cyclic_directed(&self.graph));
 
         (self.graph.node_count(), self.graph.edge_count())
     }
