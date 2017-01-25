@@ -1,12 +1,53 @@
 use std::path::PathBuf;
-use std::collections::HashMap;
+use std::collections::{HashMap, BinaryHeap};
+use std::cmp::Ordering;
 use walkdir::WalkDir;
 use hab_core::package::{FromArchive, PackageArchive};
 use protocol::depotsrv;
 use petgraph::Graph;
 use petgraph::graph::NodeIndex;
+use petgraph::algo::{is_cyclic_directed, connected_components};
+
 // use petgraph::dot::{Dot, Config};
 use rdeps::rdeps;
+
+#[derive(Debug, PartialEq)]
+pub enum SearchErr {
+    NoResults,
+    TooManyResults,
+}
+
+#[derive(Debug)]
+pub struct Stats {
+    node_count: usize,
+    edge_count: usize,
+    connected_comp: usize,
+    is_cyclic: bool,
+}
+
+#[derive(Eq)]
+struct HeapEntry {
+    pkg_index: usize,
+    rdep_count: usize,
+}
+
+impl Ord for HeapEntry {
+    fn cmp(&self, other: &HeapEntry) -> Ordering {
+        self.rdep_count.cmp(&other.rdep_count)
+    }
+}
+
+impl PartialOrd for HeapEntry {
+    fn partial_cmp(&self, other: &HeapEntry) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for HeapEntry {
+    fn eq(&self, other: &HeapEntry) -> bool {
+        self.pkg_index == other.pkg_index
+    }
+}
 
 pub struct Spider {
     packages_path: PathBuf,
@@ -118,6 +159,7 @@ impl Spider {
         v
     }
 
+    // Mostly for debugging
     pub fn rdeps_dump(&self) {
         debug!("Reverse dependencies:");
 
@@ -134,5 +176,56 @@ impl Spider {
                 Err(e) => panic!("Error: {:?}", e),
             }
         }
+    }
+
+    pub fn search(&self, phrase: &str) -> Result<Vec<String>, SearchErr> {
+        let v: Vec<String> =
+            self.package_names.iter().cloned().filter(|s| s.contains(phrase)).collect();
+
+        if v.is_empty() {
+            Err(SearchErr::NoResults)
+        } else if v.len() > 9 {
+            Err(SearchErr::TooManyResults)
+        } else {
+            Ok(v)
+        }
+    }
+
+    pub fn stats(&self) -> Stats {
+        Stats {
+            node_count: self.graph.node_count(),
+            edge_count: self.graph.edge_count(),
+            connected_comp: connected_components(&self.graph),
+            is_cyclic: is_cyclic_directed(&self.graph),
+        }
+    }
+
+    pub fn top(&self) -> Vec<(String, usize)> {
+        let mut v = Vec::new();
+        let mut heap = BinaryHeap::new();
+
+        for (_, pkg_id) in &self.package_map {
+            let (index, node) = *pkg_id;
+
+            match rdeps(&self.graph, node) {
+                Ok(v) => {
+                    let he = HeapEntry {
+                        pkg_index: index,
+                        rdep_count: v.len(),
+                    };
+                    heap.push(he);
+                }
+                Err(e) => panic!("Error: {:?}", e),
+            }
+        }
+
+        let mut i = 0;
+        while (i < 10) && !heap.is_empty() {
+            let he = heap.pop().unwrap();
+            v.push((self.package_names[he.pkg_index].clone(), he.rdep_count));
+            i = i + 1;
+        }
+
+        v
     }
 }

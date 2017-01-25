@@ -31,6 +31,8 @@ fn main() {
 
     let path = matches.value_of("PATH").unwrap();
 
+    println!("Crawling packages... please wait.");
+
     let mut spider = Spider::new(&path);
     let start_time = PreciseTime::now();
     let (ncount, ecount) = spider.crawl();
@@ -40,6 +42,22 @@ fn main() {
              ncount,
              ecount,
              start_time.to(end_time));
+
+    println!("\nSearching for cacerts");
+    let v = spider.search("cacerts").unwrap();
+    for s in v {
+        println!("{}", s);
+    }
+
+    println!("\nStats:");
+    let stats = spider.stats();
+    println!("{:?}", stats);
+
+    println!("\nTop rdeps:");
+    let top = spider.top();
+    for (name, count) in top {
+        println!("{}: {}", name, count);
+    }
 
     println!("\nRdeps for core/cacerts/2016.04.20/20160612081125:");
     println!("{:?}",
