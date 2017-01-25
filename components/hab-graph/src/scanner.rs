@@ -29,16 +29,15 @@ impl Scanner {
         }
     }
 
-    fn generate_id(&mut self, name: String) -> (usize, NodeIndex) {
-        let id = if self.package_map.contains_key(&name) {
-            print!("(key exists) ");
-            *self.package_map.get(&name).unwrap()
+    fn generate_id(&mut self, name: &str) -> (usize, NodeIndex) {
+        let id = if self.package_map.contains_key(name) {
+            let val = *self.package_map.get(name).unwrap();
+            val
         } else {
-            print!("({}) ", self.package_max);
             self.package_names.push(String::from(name.clone()));
             assert_eq!(self.package_names[self.package_max], name);
             let node_index = self.graph.add_node(self.package_max);
-            self.package_map.insert(name, (self.package_max, node_index));
+            self.package_map.insert(String::from(name), (self.package_max, node_index));
             self.package_max = self.package_max + 1;
             (self.package_max - 1, node_index)
         };
@@ -72,52 +71,48 @@ impl Scanner {
                     match depotsrv::Package::from_archive(&mut archive) {
                         Ok(o) => {
                             let name = format!("{}", o.get_ident());
-                            print!("{}", name);
+                            let (pkg_id, pkg_node) = self.generate_id(&name);
 
-                            let (pkg_id, pkg_node) = self.generate_id(name);
+                            assert_eq!(pkg_id, pkg_node.index());
+                            debug!("{} ({})", name, pkg_id);
 
-                            println!("");
                             let deps = o.get_deps();
                             for dep in deps {
                                 let depname = format!("{}", dep);
-                                print!("|_ {}", depname);
-                                let (dep_id, dep_node) = self.generate_id(depname);
+                                debug!("|_ {}", depname);
+                                let (dep_id, dep_node) = self.generate_id(&depname);
                                 self.graph.extend_with_edges(&[(dep_node, pkg_node)]);
-                                println!("");
                             }
                         }
-                        Err(e) => println!("Error parsing package from archive: {:?}", e),
+                        Err(e) => error!("Error parsing package from archive: {:?}", e),
                     }
                 }
                 Err(e) => {
-                    println!("Error reading, archive={:?} error={:?}", &archive, &e);
+                    error!("Error reading, archive={:?} error={:?}", &archive, &e);
                 }
             }
-            println!("");
+            debug!("");
         }
-
-        println!("\nTotal packages processed: {}", self.package_max - 1);
 
         let mut end_time = PreciseTime::now();
         generation_duration = start_time.to(end_time);
-        println!("Time to process: {} sec", generation_duration);
 
         // println!("Graph:\n{:?}",
         //          Dot::with_config(&self.graph, &[Config::EdgeNoLabel]));
-        println!("Is cyclic: {}\n", is_cyclic_directed(&self.graph));
+        // println!("Is cyclic: {}\n", is_cyclic_directed(&self.graph));
 
-        println!("Reverse dependencies:\n");
+        debug!("Reverse dependencies:");
 
         for (pkg_name, pkg_id) in &self.package_map {
             let (id, node) = *pkg_id;
-            println!("{}", pkg_name);
+            debug!("{}", pkg_name);
 
             start_time = PreciseTime::now();
             match rdeps(&self.graph, node) {
                 Ok(v) => {
                     end_time = PreciseTime::now();
                     for n in v {
-                        println!("|_ {}", self.package_names[n]);
+                        debug!("|_ {}", self.package_names[n]);
                     }
                 }
                 Err(e) => panic!("Error: {:?}", e),
@@ -125,12 +120,12 @@ impl Scanner {
 
             let rdeps_duration = start_time.to(end_time);
             total_rdeps_duration = total_rdeps_duration + rdeps_duration;
-            println!("Time to process: {} sec", rdeps_duration);
-            println!("");
+            debug!("{} sec", rdeps_duration);
+            debug!("");
         }
 
-        println!("\nStatistics:");
-        println!("\nTotal packages processed: {}", self.package_max - 1);
+        println!("Statistics:\n");
+        println!("Total packages processed: {}", self.package_max - 1);
         println!("Time to process packages: {} sec", generation_duration);
         println!("Avg. time for rdeps search: {} sec",
                  total_rdeps_duration / (self.package_max - 1) as i32);
