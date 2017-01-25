@@ -29,7 +29,7 @@ fn main() {
     let b = deps.add_node(11);
     deps.extend_with_edges(&[(a, b), (b, a)]);
 
-    let mut spider = Spider::new("/Users/salam/Workspace/habitat/components/hab-graph/pkgs/0");
+    let mut spider = Spider::new("/Users/salam/Workspace/habitat/components/hab-spider/pkgs/0");
     spider.crawl();
 
     println!("\nHit ENTER to exit");
