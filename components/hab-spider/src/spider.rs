@@ -19,10 +19,10 @@ pub enum SearchErr {
 
 #[derive(Debug)]
 pub struct Stats {
-    node_count: usize,
-    edge_count: usize,
-    connected_comp: usize,
-    is_cyclic: bool,
+    pub node_count: usize,
+    pub edge_count: usize,
+    pub connected_comp: usize,
+    pub is_cyclic: bool,
 }
 
 #[derive(Eq)]
@@ -139,7 +139,7 @@ impl Spider {
         (self.graph.node_count(), self.graph.edge_count())
     }
 
-    pub fn rdeps(&self, name: &str) -> Vec<String> {
+    pub fn rdeps(&self, name: &str) -> Option<Vec<String>> {
         let mut v = Vec::new();
 
         match self.package_map.get(name) {
@@ -153,10 +153,10 @@ impl Spider {
                     Err(e) => panic!("Error: {:?}", e),
                 }
             }
-            None => (),
+            None => return None,
         }
 
-        v
+        Some(v)
     }
 
     // Mostly for debugging
@@ -200,7 +200,7 @@ impl Spider {
         }
     }
 
-    pub fn top(&self) -> Vec<(String, usize)> {
+    pub fn top(&self, max: usize) -> Vec<(String, usize)> {
         let mut v = Vec::new();
         let mut heap = BinaryHeap::new();
 
@@ -220,7 +220,7 @@ impl Spider {
         }
 
         let mut i = 0;
-        while (i < 10) && !heap.is_empty() {
+        while (i < max) && !heap.is_empty() {
             let he = heap.pop().unwrap();
             v.push((self.package_names[he.pkg_index].clone(), he.rdep_count));
             i = i + 1;
