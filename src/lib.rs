@@ -80,7 +80,7 @@ mod ssl {
 mod ssl {
     use std::path::Path;
 
-    use openssl::ssl::SslContext;
+    use openssl::ssl::SslContextBuilder;
 
     use error::Result;
 
