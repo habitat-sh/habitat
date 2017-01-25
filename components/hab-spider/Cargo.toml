@@ -11,6 +11,7 @@ petgraph = "*"
 walkdir = "*"
 libarchive = "*"
 time = "*"
+clap = "2"
 
 [dependencies.habitat_core]
 path = "../core"

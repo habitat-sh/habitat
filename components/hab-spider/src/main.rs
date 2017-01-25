@@ -7,31 +7,45 @@ extern crate petgraph;
 extern crate walkdir;
 extern crate habitat_core as hab_core;
 extern crate habitat_builder_protocol as protocol;
+extern crate clap;
 
 pub mod rdeps;
 pub mod spider;
 
+use clap::{Arg, App};
 use spider::Spider;
-use petgraph::Graph;
-use petgraph::dot::{Dot, Config};
 use std::io;
+use time::PreciseTime;
 
 fn main() {
     env_logger::init().unwrap();
 
-    println!("Hello, graph!");
-    println!("\nHit ENTER to start");
-    let mut s = String::new();
-    io::stdin().read_line(&mut s).unwrap();
+    let matches = App::new("hab-spider")
+        .version("0.1.0")
+        .about("Habitat package graph builder")
+        .arg(Arg::with_name("PATH")
+            .help("The path to the packages root")
+            .required(true)
+            .index(1))
+        .get_matches();
 
-    let mut deps = Graph::<usize, usize>::new();
-    let a = deps.add_node(10);
-    let b = deps.add_node(11);
-    deps.extend_with_edges(&[(a, b), (b, a)]);
+    let path = matches.value_of("PATH").unwrap();
 
-    let mut spider = Spider::new("/Users/salam/Workspace/habitat/components/hab-spider/pkgs/0");
-    spider.crawl();
+    let mut spider = Spider::new(&path);
+    let start_time = PreciseTime::now();
+    let (ncount, ecount) = spider.crawl();
+    let end_time = PreciseTime::now();
+
+    println!("OK: {} nodes, {} edges ({} sec)",
+             ncount,
+             ecount,
+             start_time.to(end_time));
+
+    println!("\nRdeps for core/cacerts/2016.04.20/20160612081125:");
+    println!("{:?}",
+             spider.rdeps("core/cacerts/2016.04.20/20160612081125"));
 
     println!("\nHit ENTER to exit");
+    let mut s = String::new();
     io::stdin().read_line(&mut s).unwrap();
 }
