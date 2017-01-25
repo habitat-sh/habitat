@@ -30,6 +30,7 @@ use url::Url;
 use error::Result;
 use net::ProxyHttpsConnector;
 use proxy::{ProxyInfo, proxy_unless_domain_exempted};
+use ssl;
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
 const CLIENT_SOCKET_RW_TIMEOUT: u64 = 30;
@@ -298,9 +299,7 @@ fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
     options.toggle(SSL_OP_NO_SSLV2);
     options.toggle(SSL_OP_NO_SSLV3);
     options.toggle(SSL_OP_NO_COMPRESSION);
-    if let Some(path) = fs_root_path {
-        try!(conn.builder_mut().set_ca_file(path));
-    }
+    try!(ssl::set_ca(conn.builder_mut(), fs_root_path));
     conn.builder_mut().set_options(options);
     try!(conn.builder_mut().set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH"));
     Ok(conn.build())
