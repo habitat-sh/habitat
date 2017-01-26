@@ -1,0 +1,76 @@
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//! Shared code for testing crates that use this database layer.
+//!
+//! The design uses a database with dynamically created schemas per test, that automatically handle
+//! running migrations (if required). Each test *must* have its schema built every time.
+
+pub mod init {
+    use std::time::Duration;
+
+    use std::sync::{Once, ONCE_INIT};
+
+    use pool::Pool;
+
+    static INIT: Once = ONCE_INIT;
+    pub fn create_database() {
+        INIT.call_once(|| {
+            let pool = Pool::new("postgresql://hab@127.0.0.1/template1",
+                                 1,
+                                 300,
+                                 Duration::from_secs(3600),
+                                 false)
+                .expect("Failed to create pool");
+            let conn = pool.get().expect("Failed to get connection");
+            let _ = conn.execute("DROP DATABASE IF EXISTS builder_db_test", &[]);
+            let _ = conn.execute("CREATE DATABASE builder_db_test", &[]);
+        })
+    }
+}
+
+/// The `with_pool` macro injects a `Pool` instance thats dynamically configured to use the test
+/// database, and set to create a new schema for the test.
+#[macro_export]
+macro_rules! with_pool {
+    ($pool:ident, $code:block) => {
+        use std::time::Duration;
+        use $crate::pool::Pool;
+
+        use $crate::test::init;
+
+        init::create_database();
+        let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
+        $code
+    }
+}
+
+
+/// The `with_migration` macro injects both a new `Pool` and a `Migration` into your test.
+#[macro_export]
+macro_rules! with_migration {
+    ($pool:ident, $migration:ident, $code:block) => {
+        use std::time::Duration;
+        use $crate::migration::Migrator;
+        use $crate::pool::Pool;
+
+        use $crate::test::init;
+
+        init::create_database();
+        let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
+        let $migration = Migrator::new(&$pool);
+        $migration.setup().expect("Migration setup failed");
+        $code
+    }
+}
