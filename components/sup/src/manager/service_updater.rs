@@ -325,7 +325,11 @@ impl Worker {
         loop {
             let next_check = SteadyTime::now() +
                              TimeDuration::milliseconds(UPDATE_STRATEGY_FREQUENCY_MS);
-            match self.depot.show_package(&self.current) {
+            // TODO fn: We don't want to reach into a global config for the package argument given
+            // to the `start` subcommand. Instead, each Service will have this peice of information
+            // but for the moment we're going to go global.
+            let initial_ident = gconfig().package();
+            match self.depot.show_package(initial_ident) {
                 Ok(remote) => {
                     let latest: PackageIdent = remote.get_ident().clone().into();
                     if latest > self.current {
