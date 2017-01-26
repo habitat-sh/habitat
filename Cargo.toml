@@ -22,4 +22,5 @@ members = [
   "components/butterfly",
   "components/butterfly-test",
   "components/hab-butterfly",
+  "components/hab-spider"
 ]
