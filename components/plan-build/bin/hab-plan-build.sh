@@ -441,23 +441,31 @@ _on_exit() {
   : ${pkg_name:=unknown}
   elapsed=$SECONDS
   elapsed=$(echo $elapsed | awk '{printf "%dm%ds", $1/60, $1%60}')
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      echo -e "   \033[1;36m${pkg_name}: \033[1;37mBuild time: $elapsed\033[0m"
-      ;;
-    *)
-      echo "   ${pkg_name}: Build time: $elapsed"
-      ;;
-  esac
-  if [[ $exit_status -ne 0 ]]; then
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    echo "   ${pkg_name}: Build time: $elapsed"
+  else
     case "${TERM:-}" in
       *term | xterm-* | rxvt | screen | screen-*)
-        echo -e "   \033[1;36m${pkg_name}: \033[1;31mExiting on error\033[0m"
+        echo -e "   \033[1;36m${pkg_name}: \033[1;37mBuild time: $elapsed\033[0m"
         ;;
       *)
-        echo "   ${pkg_name}: Exiting on error"
+        echo "   ${pkg_name}: Build time: $elapsed"
         ;;
     esac
+  fi
+  if [[ $exit_status -ne 0 ]]; then
+    if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+      echo "   ${pkg_name}: Exiting on error"
+    else
+      case "${TERM:-}" in
+        *term | xterm-* | rxvt | screen | screen-*)
+          echo -e "   \033[1;36m${pkg_name}: \033[1;31mExiting on error\033[0m"
+          ;;
+        *)
+          echo "   ${pkg_name}: Exiting on error"
+          ;;
+      esac
+    fi
   fi
   exit $exit_status
 }
@@ -516,6 +524,9 @@ _find_system_commands() {
 
   if exists wget; then
     _wget_cmd=$(command -v wget)
+    if [[ "${HAB_NONINTERACTIVE:-}" == "true" ]]; then
+      _wget_cmd="$_wget_cmd --no-verbose"
+    fi
   else
     exit_with "We require wget to download sources; aborting" 1
   fi
@@ -543,6 +554,9 @@ _find_system_commands() {
 
   if exists xz; then
     _xz_cmd=$(command -v xz)
+    if [[ "${HAB_NONINTERACTIVE:-}" != "true" ]]; then
+      _xz_cmd="$_xz_cmd --verbose"
+    fi
   else
     exit_with "We require xz to compress artifacts; aborting" 1
   fi
@@ -957,14 +971,18 @@ exists() {
 # build_line "Checksum verified - ${pkg_shasum}"
 # ```
 build_line() {
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      echo -e "   \033[1;36m${pkg_name}: \033[1;37m$1\033[0m"
-      ;;
-    *)
-      echo "   ${pkg_name}: $1"
-      ;;
-  esac
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    echo "   ${pkg_name}: $1"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        echo -e "   \033[1;36m${pkg_name}: \033[1;37m$1\033[0m"
+        ;;
+      *)
+        echo "   ${pkg_name}: $1"
+        ;;
+    esac
+  fi
   return 0
 }
 
@@ -975,14 +993,18 @@ build_line() {
 # warn "Checksum failed"
 # ```
 warn() {
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      >&2 echo -e "   \033[1;36m${pkg_name}: \033[1;33mWARN \033[1;37m$1\033[0m"
-      ;;
-    *)
-      >&2 echo "   ${pkg_name}: WARN $1"
-      ;;
-  esac
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    >&2 echo "   ${pkg_name}: WARN $1"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        >&2 echo -e "   \033[1;36m${pkg_name}: \033[1;33mWARN \033[1;37m$1\033[0m"
+        ;;
+      *)
+        >&2 echo "   ${pkg_name}: WARN $1"
+        ;;
+    esac
+  fi
   return 0
 }
 
@@ -1009,14 +1031,18 @@ debug() {
 # exit_with "Something bad went down" 55
 # ```
 exit_with() {
-  case "${TERM:-}" in
-    *term | xterm-* | rxvt | screen | screen-*)
-      echo -e "\033[1;31mERROR: \033[1;37m$1\033[0m"
-      ;;
-    *)
-      echo "ERROR: $1"
-      ;;
-  esac
+  if [[ "${HAB_NOCOLORING:-}" == "true" ]]; then
+    echo "ERROR: $1"
+  else
+    case "${TERM:-}" in
+      *term | xterm-* | rxvt | screen | screen-*)
+        echo -e "\033[1;31mERROR: \033[1;37m$1\033[0m"
+        ;;
+      *)
+        echo "ERROR: $1"
+        ;;
+    esac
+  fi
   exit $2
 }
 
@@ -2263,7 +2289,7 @@ _generate_artifact() {
   mkdir -pv "$(dirname "$pkg_artifact")"
   rm -fv $tarf $xzf $pkg_artifact
   $_tar_cmd -cf $tarf $pkg_prefix
-  $_xz_cmd --compress -6 --threads=0 --verbose $tarf
+  $_xz_cmd --compress -6 --threads=0 $tarf
   $HAB_BIN pkg sign --origin $pkg_origin $xzf $pkg_artifact
   rm -f $tarf $xzf
 }

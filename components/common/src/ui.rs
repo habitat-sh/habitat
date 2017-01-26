@@ -25,6 +25,10 @@ use term::{Terminal, TerminfoTerminal};
 use error::Result;
 use self::tty::StdStream;
 
+pub const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
+
+pub const NOCOLORING_ENVVAR: &'static str = "HAB_NOCOLORING";
+
 pub enum Status {
     Applying,
     Cached,
@@ -72,8 +76,8 @@ pub struct UI {
 }
 
 impl UI {
-    pub fn default_with(coloring: Coloring) -> Self {
-        UI { shell: Shell::default_with(coloring) }
+    pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
+        UI { shell: Shell::default_with(coloring, isatty) }
     }
 
     pub fn begin<T: ToString>(&mut self, message: T) -> Result<()> {
@@ -360,7 +364,7 @@ impl UI {
 
 impl Default for UI {
     fn default() -> Self {
-        UI::default_with(Coloring::Auto)
+        UI::default_with(Coloring::Auto, None)
     }
 }
 
@@ -379,17 +383,17 @@ impl Shell {
         }
     }
 
-    pub fn default_with(coloring: Coloring) -> Self {
-        let stdin = InputStream::from_stdin();
+    pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
+        let stdin = InputStream::from_stdin(isatty);
         debug!("InputStream(stdin): {{ is_a_terminal(): {} }}",
                stdin.is_a_terminal());
-        let stdout = OutputStream::from_stdout(coloring);
+        let stdout = OutputStream::from_stdout(coloring, isatty);
         debug!("OutputStream(stdout): {{ is_colored(): {}, supports_color(): {}, \
                 is_a_terminal(): {} }}",
                stdout.is_colored(),
                stdout.supports_color(),
                stdout.is_a_terminal());
-        let stderr = OutputStream::from_stderr(coloring);
+        let stderr = OutputStream::from_stderr(coloring, isatty);
         debug!("OutputStream(stderr): {{ is_colored(): {}, supports_color(): {}, \
                 is_a_terminal(): {} }}",
                stderr.is_colored(),
@@ -413,7 +417,7 @@ impl Shell {
 
 impl Default for Shell {
     fn default() -> Self {
-        Shell::default_with(Coloring::Auto)
+        Shell::default_with(Coloring::Auto, None)
     }
 }
 
@@ -437,8 +441,12 @@ impl InputStream {
         }
     }
 
-    pub fn from_stdin() -> Self {
-        Self::new(Box::new(io::stdin()), tty::isatty(StdStream::Stdin))
+    pub fn from_stdin(isatty: Option<bool>) -> Self {
+        Self::new(Box::new(io::stdin()),
+                  match isatty {
+                      Some(val) => val,
+                      None => tty::isatty(StdStream::Stdin),
+                  })
     }
 
     pub fn is_a_terminal(&self) -> bool {
@@ -467,16 +475,22 @@ impl OutputStream {
         }
     }
 
-    pub fn from_stdout(coloring: Coloring) -> Self {
+    pub fn from_stdout(coloring: Coloring, isatty: Option<bool>) -> Self {
         Self::new(WriteStream::create(|| Box::new(io::stdout())),
                   coloring,
-                  tty::isatty(StdStream::Stdout))
+                  match isatty {
+                      Some(val) => val,
+                      None => tty::isatty(StdStream::Stdout),
+                  })
     }
 
-    pub fn from_stderr(coloring: Coloring) -> Self {
+    pub fn from_stderr(coloring: Coloring, isatty: Option<bool>) -> Self {
         Self::new(WriteStream::create(|| Box::new(io::stderr())),
                   coloring,
-                  tty::isatty(StdStream::Stderr))
+                  match isatty {
+                      Some(val) => val,
+                      None => tty::isatty(StdStream::Stderr),
+                  })
     }
 
     pub fn supports_color(&self) -> bool {
@@ -489,7 +503,7 @@ impl OutputStream {
 
     pub fn is_colored(&self) -> bool {
         self.supports_color() &&
-        ((self.isatty && Coloring::Auto == self.coloring) || Coloring::Always == self.coloring)
+        (Coloring::Auto == self.coloring || Coloring::Always == self.coloring)
     }
 
     pub fn is_a_terminal(&self) -> bool {
