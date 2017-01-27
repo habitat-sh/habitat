@@ -46,6 +46,8 @@ pub enum Error {
     ConfigInvalidSocketAddr(&'static str),
     /// Expected a string for configuration field value.
     ConfigInvalidString(&'static str),
+    /// Expected a valid target string for configuration field value.
+    ConfigInvalidTargetString(&'static str),
     /// Crypto library error
     CryptoError(String),
     /// Occurs when a file that should exist does not or could not be read.
@@ -128,6 +130,9 @@ impl fmt::Display for Error {
             Error::ConfigInvalidString(ref f) => {
                 format!("Invalid string value in config, field={}.", f)
             }
+            Error::ConfigInvalidTargetString(ref f) => {
+                format!("Invalid target string value in config, field={}.", f)
+            }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::InvalidPackageIdent(ref e) => {
@@ -199,6 +204,9 @@ impl error::Error for Error {
             }
             Error::ConfigInvalidString(_) => {
                 "Invalid string value encountered while parsing a configuration file"
+            }
+            Error::ConfigInvalidTargetString(_) => {
+                "Invalid target string value encountered while parsing a configuration file"
             }
             Error::CryptoError(_) => "Crypto error",
             Error::FileNotFound(_) => "File not found",
