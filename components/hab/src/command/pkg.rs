@@ -562,6 +562,9 @@ pub mod upload {
             Err(depot_client::Error::APIError(StatusCode::Conflict, _)) => {
                 println!("Package already exists on remote; skipping.");
             }
+            Err(depot_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+                println!("Package platform or architecture not supported; skipping.")
+            }
             Err(depot_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
                 return Err(Error::PackageArchiveMalformed(format!("{}", archive.path.display())));
             }

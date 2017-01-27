@@ -19,7 +19,8 @@ use std::result;
 
 use bodyparser;
 use dbcache::{self, BasicSet};
-use hab_core::package::{Identifiable, FromArchive, PackageArchive};
+use hab_core::package::{Identifiable, FromArchive, PackageArchive, PackageTarget};
+use hab_core::os::system::{Architecture, Platform};
 use hab_core::crypto::keys::{self, PairType};
 use hab_core::crypto::SigKeyPair;
 use hab_core::event::*;
@@ -305,6 +306,13 @@ fn write_file(filename: &PathBuf, body: &mut Body) -> Result<bool> {
     Ok(true)
 }
 
+fn remove_file(filename: &PathBuf) -> Result<bool> {
+    info!("File removed from the Depot from {}",
+          filename.to_string_lossy());
+    try!{fs::remove_file(filename)};
+    Ok(true)
+}
+
 fn upload_origin_key(req: &mut Request) -> IronResult<Response> {
     let depot = req.get::<persistent::Read<Depot>>().unwrap();
     // TODO: SA - Eliminate need to clone the session and params
@@ -507,6 +515,23 @@ fn upload_package(req: &mut Request) -> IronResult<Response> {
     try!(write_file(&filename, &mut req.body));
     let mut archive = PackageArchive::new(filename);
     debug!("Package Archive: {:#?}", archive);
+
+    let target_from_artifact = match archive.target() {
+        Ok(target) => target,
+        Err(e) => {
+            info!("Could not read the target for {:#?}: {:#?}", archive, e);
+            remove_file(&archive.path);
+            return Ok(Response::with(status::UnprocessableEntity));
+        }
+    };
+
+    if depot.config.supported_target != target_from_artifact {
+        debug!("Unsupported package platform or architecture {}.",
+               target_from_artifact);
+        remove_file(&archive.path);
+        return Ok(Response::with(status::NotImplemented));
+    };
+
     let checksum_from_artifact = match archive.checksum() {
         Ok(cksum) => cksum,
         Err(e) => {
