@@ -28,6 +28,8 @@ use redis;
 #[derive(Debug)]
 pub enum Error {
     BadPort(String),
+    ChannelAlreadyExists(String),
+    ChannelDoesNotExist(String),
     DataStore(dbcache::Error),
     HabitatCore(hab_core::Error),
     HabitatNet(hab_net::Error),
@@ -37,6 +39,7 @@ pub enum Error {
     NoXFilename,
     NoFilePart,
     NulError(ffi::NulError),
+    PackageIsAlreadyInChannel(String, String),
     RemotePackageNotFound(package::PackageIdent),
     WriteSyncFailed,
 }
@@ -47,6 +50,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let msg = match *self {
             Error::BadPort(ref e) => format!("{} is an invalid port. Valid range 1-65535.", e),
+            Error::ChannelAlreadyExists(ref e) => format!("{} already exists.", e),
+            Error::ChannelDoesNotExist(ref e) => format!("{} does not exist.", e),
             Error::DataStore(ref e) => format!("DataStore error, {}", e),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatNet(ref e) => format!("{}", e),
@@ -65,6 +70,9 @@ impl fmt::Display for Error {
                          not have one")
             }
             Error::NulError(ref e) => format!("{}", e),
+            Error::PackageIsAlreadyInChannel(ref p, ref c) => {
+                format!("{} is already in the {} channel.", p, c)
+            }
             Error::RemotePackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package in any sources: {}", pkg)
@@ -84,6 +92,8 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::BadPort(_) => "Received an invalid port or a number outside of the valid range.",
+            Error::ChannelAlreadyExists(_) => "Channel already exists.",
+            Error::ChannelDoesNotExist(_) => "Channel does not exist.",
             Error::DataStore(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatNet(ref err) => err.description(),
@@ -95,6 +105,7 @@ impl error::Error for Error {
             Error::NulError(_) => {
                 "An attempt was made to build a CString with a null byte inside it"
             }
+            Error::PackageIsAlreadyInChannel(_, _) => "Package is already in channel",
             Error::RemotePackageNotFound(_) => "Cannot find a package in any sources",
             Error::NoXFilename => "Invalid download from a Depot - missing X-Filename header",
             Error::NoFilePart => {
