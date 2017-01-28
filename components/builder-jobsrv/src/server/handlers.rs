@@ -14,7 +14,6 @@
 
 //! A collection of handlers for the JobSrv dispatcher
 
-use dbcache::{self, InstaSet};
 use hab_net::server::Envelope;
 use protocol::net::{self, ErrCode};
 use protocol::jobsrv as proto;
@@ -28,9 +27,8 @@ pub fn job_create(req: &mut Envelope,
                   state: &mut ServerState)
                   -> Result<()> {
     let msg: proto::JobSpec = try!(req.parse_msg());
-    let mut job: proto::Job = msg.into();
-    state.datastore().jobs.write(&mut job).unwrap();
-    state.datastore().job_queue.enqueue(&job).unwrap();
+    let job: proto::Job = msg.into();
+    state.datastore().create_job(&job)?;
     try!(state.worker_mgr().notify_work());
     try!(req.reply_complete(sock, &job));
     Ok(())
@@ -38,12 +36,12 @@ pub fn job_create(req: &mut Envelope,
 
 pub fn job_get(req: &mut Envelope, sock: &mut zmq::Socket, state: &mut ServerState) -> Result<()> {
     let msg: proto::JobGet = try!(req.parse_msg());
-    match state.datastore().jobs.find(&msg.get_id()) {
-        Ok(job) => {
-            let reply: proto::Job = job.into();
-            try!(req.reply_complete(sock, &reply));
+    match state.datastore().get_job(msg.get_id()) {
+        Ok(Some(ref job)) => {
+            //let reply: proto::Job = job.into();
+            try!(req.reply_complete(sock, job));
         }
-        Err(dbcache::Error::EntityNotFound) => {
+        Ok(None) => {
             let err = net::err(ErrCode::ENTITY_NOT_FOUND, "jb:job-get:1");
             try!(req.reply_complete(sock, &err));
         }

@@ -12,20 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::SocketAddr;
-
 use num_cpus;
 
-pub trait DataStoreCfg {
-    fn default_connection_retry_ms() -> u64 {
-        5_000
-    }
-
-    fn default_pool_size() -> u32 {
-        (num_cpus::get() * 8) as u32
-    }
-
-    fn connection_retry_ms(&self) -> u64;
-    fn connection_url(&self) -> String;
-    fn pool_size(&self) -> u32;
+pub fn default_pool_size() -> u32 {
+    (num_cpus::get() * 8) as u32
 }

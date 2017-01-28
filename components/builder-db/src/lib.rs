@@ -63,12 +63,13 @@
 
 #[macro_use]
 extern crate log;
+extern crate num_cpus;
+extern crate postgres;
 extern crate r2d2;
 extern crate r2d2_postgres;
-extern crate postgres;
 
+pub mod config;
 pub mod error;
 pub mod migration;
 pub mod pool;
-pub mod data_store;
 pub mod test;

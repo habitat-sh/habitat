@@ -17,6 +17,46 @@
 //! The design uses a database with dynamically created schemas per test, that automatically handle
 //! running migrations (if required). Each test *must* have its schema built every time.
 
+pub mod postgres {
+    use std::path::PathBuf;
+    use std::process::{Child, Command, Stdio};
+    use std::sync::{Once, ONCE_INIT};
+    use std::thread;
+
+    struct Postgres {
+        inner: Child,
+    }
+
+    static POSTGRES: Once = ONCE_INIT;
+
+    pub fn start() {
+        POSTGRES.call_once(|| {
+            thread::spawn(move || {
+                let mut postgres = Postgres::new();
+                let _ = postgres.inner.wait();
+            });
+        });
+    }
+
+    impl Postgres {
+        fn new() -> Postgres {
+            let root_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("db");
+            let start_path = root_path.join("start.sh");
+            let child = Command::new("sudo")
+                .arg("-E")
+                .arg(start_path)
+                .stdin(Stdio::inherit())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .env("DB_TEST_DIR", root_path)
+                .current_dir("/tmp")
+                .spawn()
+                .expect("Failed to launch core/postgresql");
+            Postgres { inner: child }
+        }
+    }
+}
+
 pub mod init {
     use std::time::Duration;
 
@@ -48,8 +88,9 @@ macro_rules! with_pool {
         use std::time::Duration;
         use $crate::pool::Pool;
 
-        use $crate::test::init;
+        use $crate::test::{init, postgres};
 
+        postgres::start();
         init::create_database();
         let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
         $code
@@ -65,8 +106,9 @@ macro_rules! with_migration {
         use $crate::migration::Migrator;
         use $crate::pool::Pool;
 
-        use $crate::test::init;
+        use $crate::test::{init, postgres};
 
+        postgres::start();
         init::create_database();
         let $pool = Pool::new("postgresql://hab@127.0.0.1/builder_db_test", 1, 300, Duration::from_secs(3600), true).expect("Failed to create pool");
         let $migration = Migrator::new(&$pool);

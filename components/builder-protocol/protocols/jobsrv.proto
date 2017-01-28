@@ -19,6 +19,7 @@ enum JobState {
   Complete = 2;
   Rejected = 3;
   Failed = 4;
+  Dispatched = 5;
 }
 
 message Heartbeat {

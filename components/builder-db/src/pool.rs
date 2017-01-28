@@ -20,10 +20,9 @@ use std::time::Duration;
 
 use r2d2;
 use r2d2_postgres::{self, PostgresConnectionManager, TlsMode};
-use postgres::transaction::Transaction;
 use postgres;
 
-use error::{Error, Result};
+use error::Result;
 
 // We will use this to allocate test schmeas
 static GLOBAL_SCHEMA_COUNT: AtomicUsize = ATOMIC_USIZE_INIT;
@@ -80,10 +79,14 @@ impl DerefMut for Pool {
 #[derive(Copy, Clone, Debug)]
 pub struct TestConnectionCustomizer;
 
-impl r2d2::CustomizeConnection<postgres::Connection, r2d2_postgres::Error> for TestConnectionCustomizer {
-    fn on_acquire(&self, conn: &mut postgres::Connection) -> result::Result<(), r2d2_postgres::Error> {
+impl r2d2::CustomizeConnection<postgres::Connection, r2d2_postgres::Error>
+    for TestConnectionCustomizer {
+    fn on_acquire(&self,
+                  conn: &mut postgres::Connection)
+                  -> result::Result<(), r2d2_postgres::Error> {
         let schema_number = GLOBAL_SCHEMA_COUNT.fetch_add(1, Ordering::SeqCst);
-        let sql_drop_schema = format!("DROP SCHEMA IF EXISTS builder_db_test_{} CASCADE", schema_number);
+        let sql_drop_schema = format!("DROP SCHEMA IF EXISTS builder_db_test_{} CASCADE",
+                                      schema_number);
         let sql_create_schema = format!("CREATE SCHEMA builder_db_test_{}", schema_number);
         let sql_search_path = format!("SET search_path TO builder_db_test_{}", schema_number);
         conn.execute(&sql_drop_schema, &[]).map_err(r2d2_postgres::Error::Other)?;

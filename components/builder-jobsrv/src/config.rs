@@ -15,12 +15,12 @@
 //! Configuration for a Habitat JobSrv service
 
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+use std::time::Duration;
 
-use dbcache::config::DataStoreCfg;
+use db;
 use hab_core::config::{ConfigFile, ParseInto};
 use hab_net::config::{DispatcherCfg, RouteAddrs, Shards};
 use protocol::sharding::{ShardId, SHARD_COUNT};
-use redis;
 use toml;
 
 use error::{Error, Result};
@@ -32,10 +32,14 @@ pub struct Config {
     pub worker_command_addr: SocketAddr,
     /// Listening net address for heartbeat traffic from Workers.
     pub worker_heartbeat_addr: SocketAddr,
-    /// Net address to the persistent datastore.
-    pub datastore_addr: SocketAddr,
-    /// Connection retry timeout in milliseconds for datastore.
-    pub datastore_retry_ms: u64,
+    /// PostgreSQL connection URL
+    pub datastore_connection_url: String,
+    /// Timing to retry the connection to the data store if it cannot be established
+    pub datastore_connection_retry_ms: u64,
+    /// How often to cycle a connection from the pool
+    pub datastore_connection_timeout: Duration,
+    /// If the datastore connection is under test
+    pub datastore_connection_test: bool,
     /// Number of database connections to start in pool.
     pub pool_size: u32,
     /// Router's heartbeat port to connect to.
@@ -53,9 +57,11 @@ impl Default for Config {
             worker_command_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0), 5566)),
             worker_heartbeat_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(0, 0, 0, 0),
                                                                     5567)),
-            datastore_addr: SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6379)),
-            datastore_retry_ms: Self::default_connection_retry_ms(),
-            pool_size: Self::default_pool_size(),
+            datastore_connection_url: String::from("postgresql:://hab@127.0.0.1/builder_db_test"),
+            datastore_connection_retry_ms: 300,
+            datastore_connection_timeout: Duration::from_secs(3600),
+            datastore_connection_test: false,
+            pool_size: db::config::default_pool_size(),
             shards: (0..SHARD_COUNT).collect(),
             heartbeat_port: 5563,
             worker_threads: Self::default_worker_count(),
@@ -71,27 +77,27 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.routers", &mut cfg.routers));
         try!(toml.parse_into("cfg.worker_command_addr", &mut cfg.worker_command_addr));
         try!(toml.parse_into("cfg.worker_heartbeat_addr", &mut cfg.worker_heartbeat_addr));
-        try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
-        try!(toml.parse_into("cfg.datastore_retry_ms", &mut cfg.datastore_retry_ms));
+        let mut connection_user = String::new();
+        try!(toml.parse_into("cfg.datastore_connection_user", &mut connection_user));
+        let mut connection_address = String::new();
+        try!(toml.parse_into("cfg.datastore_connection_address", &mut connection_address));
+        let mut connection_db = String::new();
+        try!(toml.parse_into("cfg.datastore_connection_db", &mut connection_db));
+
+        cfg.datastore_connection_url = format!("postgresql://{}@{}/{}",
+                                               connection_user,
+                                               connection_address,
+                                               connection_db);
+        try!(toml.parse_into("cfg.datastore_connection_retry_ms",
+                             &mut cfg.datastore_connection_retry_ms));
+        let mut timeout_seconds = 0;
+        try!(toml.parse_into("cfg.datastore_connection_timeout", &mut timeout_seconds));
+        cfg.datastore_connection_timeout = Duration::from_secs(timeout_seconds);
         try!(toml.parse_into("cfg.pool_size", &mut cfg.pool_size));
         try!(toml.parse_into("cfg.heartbeat_port", &mut cfg.heartbeat_port));
         try!(toml.parse_into("cfg.shards", &mut cfg.shards));
         try!(toml.parse_into("cfg.worker_threads", &mut cfg.worker_threads));
         Ok(cfg)
-    }
-}
-
-impl DataStoreCfg for Config {
-    fn datastore_addr(&self) -> &SocketAddr {
-        &self.datastore_addr
-    }
-
-    fn connection_retry_ms(&self) -> u64 {
-        self.datastore_retry_ms
-    }
-
-    fn pool_size(&self) -> u32 {
-        self.pool_size
     }
 }
 
@@ -114,14 +120,5 @@ impl RouteAddrs for Config {
 impl Shards for Config {
     fn shards(&self) -> &Vec<u32> {
         &self.shards
-    }
-}
-
-impl<'a> redis::IntoConnectionInfo for &'a Config {
-    fn into_connection_info(self) -> redis::RedisResult<redis::ConnectionInfo> {
-        format!("redis://{}:{}",
-                self.datastore_addr.ip(),
-                self.datastore_addr.port())
-            .into_connection_info()
     }
 }
