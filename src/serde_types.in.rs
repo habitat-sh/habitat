@@ -61,11 +61,7 @@ pub mod service {
     // `service.rs`
 
     #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
-    pub struct ServiceGroup {
-        pub service: String,
-        pub group: String,
-        pub organization: Option<String>,
-    }
+    pub struct ServiceGroup(pub String);
 }
 
 pub mod system {
