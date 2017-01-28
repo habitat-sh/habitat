@@ -462,6 +462,10 @@ pub mod upload {
                                  -> Result<()> {
         let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
 
+        try!(ui.status(Status::Determining,
+                       format!("dependencies for {}", archive_path.as_ref().display())));
+        let tdeps = try!(archive.tdeps());
+
         let hart_header = try!(get_artifact_header(&archive_path.as_ref()));
 
         let key_buf = key_path.as_ref().to_path_buf();
@@ -489,7 +493,6 @@ pub mod upload {
         };
 
         try!(ui.begin(format!("Uploading {}", archive_path.as_ref().display())));
-        let tdeps = try!(archive.tdeps());
         for dep in tdeps.into_iter() {
             match depot_client.show_package(&dep) {
                 Ok(_) => try!(ui.status(Status::Using, format!("existing {}", &dep))),
