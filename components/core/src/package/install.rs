@@ -21,10 +21,15 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use toml;
+
 pub use types::package_install::*;
 use super::{Identifiable, MetaFile, PackageIdent, Target, PackageTarget};
 use error::{Error, Result};
 use fs::{self, PKG_PATH};
+use util;
+
+pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
 
 impl PackageInstall {
     /// Verifies an installation of a package is within the package path and returns a struct
@@ -42,6 +47,20 @@ impl PackageInstall {
         match package_target.validate() {
             Ok(()) => Ok(package_install),
             Err(e) => Err(e),
+        }
+    }
+
+    /// Read and return the decoded contents of the packages default configuration.
+    pub fn default_cfg(&self) -> Option<toml::Table> {
+        match File::open(self.installed_path.join(DEFAULT_CFG_FILE)) {
+            Ok(mut file) => {
+                let mut raw = String::new();
+                if file.read_to_string(&mut raw).is_err() {
+                    return None;
+                }
+                util::toml::table_from_str(&raw)
+            }
+            Err(_) => None,
         }
     }
 

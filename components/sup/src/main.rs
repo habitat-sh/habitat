@@ -299,7 +299,6 @@ fn main() {
     let result = match gconfig().command() {
         Command::ShellBash => shell_bash(),
         Command::ShellSh => shell_sh(),
-        Command::Config => configure(),
         Command::Start => start(),
     };
 
@@ -323,12 +322,6 @@ fn shell_sh() -> Result<()> {
 /// Start a bash shell
 fn shell_bash() -> Result<()> {
     shell::bash()
-}
-
-/// Show the configuration options for a service
-fn configure() -> Result<()> {
-    try!(configure::display());
-    Ok(())
 }
 
 /// Start a service

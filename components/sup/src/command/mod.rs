@@ -19,5 +19,4 @@
 //! CLI.
 
 pub mod start;
-pub mod configure;
 pub mod shell;

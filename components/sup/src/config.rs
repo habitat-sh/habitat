@@ -65,7 +65,6 @@ pub fn gconfig() -> &'static Config {
 /// An enum with the various CLI commands. Used to keep track of what command was called.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Command {
-    Config,
     Start,
     ShellBash,
     ShellSh,
@@ -126,7 +125,6 @@ impl FromStr for Command {
     type Err = SupError;
     fn from_str(s: &str) -> Result<Command> {
         match s {
-            "config" => Ok(Command::Config),
             "bash" => Ok(Command::ShellBash),
             "sh" => Ok(Command::ShellSh),
             "start" => Ok(Command::Start),

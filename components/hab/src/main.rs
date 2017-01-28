@@ -99,6 +99,7 @@ fn start(ui: &mut UI) -> Result<()> {
             match matches.subcommand() {
                 ("binlink", Some(m)) => try!(sub_pkg_binlink(ui, m)),
                 ("build", Some(m)) => try!(sub_pkg_build(ui, m)),
+                ("config", Some(m)) => try!(sub_pkg_config(m)),
                 ("exec", Some(m)) => try!(sub_pkg_exec(m, remaining_args)),
                 ("export", Some(m)) => try!(sub_pkg_export(ui, m)),
                 ("hash", Some(m)) => try!(sub_pkg_hash(m)),
@@ -195,7 +196,7 @@ fn sub_origin_key_export(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
-    let pair_type = try!(PairType::from_str(m.value_of("PAIR_TYPE").unwrap()));  // Required via clap
+    let pair_type = try!(PairType::from_str(m.value_of("PAIR_TYPE").unwrap()));
     init();
 
     command::origin::key::export::start(origin, pair_type, &default_cache_key_path(fs_root_path))
@@ -251,7 +252,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Path::new(&fs_root);
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));  // Required via clap
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
     let binary = m.value_of("BINARY").unwrap(); // Required via clap
     let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap_or(DEFAULT_BINLINK_DIR));
 
@@ -285,6 +286,14 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let reuse = m.is_present("REUSE");
 
     command::pkg::build::start(ui, plan_context, root, src, keys, reuse)
+}
+
+fn sub_pkg_config(m: &ArgMatches) -> Result<()> {
+    let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
+    let fs_root_path = Path::new(&fs_root);
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
+
+    command::pkg::config::start(&ident, &fs_root_path)
 }
 
 fn sub_pkg_exec(m: &ArgMatches, cmd_args: Vec<OsString>) -> Result<()> {
@@ -344,7 +353,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 fn sub_pkg_path(m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Path::new(&fs_root);
-    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));  // Required via clap
+    let ident = try!(PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap()));
 
     command::pkg::path::start(&ident, &fs_root_path)
 }
@@ -443,7 +452,7 @@ fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches) -> Result<()> {
     let fs_root = henv::var(FS_ROOT_ENVVAR).unwrap_or(FS_ROOT_PATH.to_string());
     let fs_root_path = Some(Path::new(&fs_root));
     let org = try!(org_param_or_env(&m));
-    let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));  // Required via clap
+    let service_group = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
     init();
 
     command::service::key::generate::start(ui,
