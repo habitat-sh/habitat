@@ -43,7 +43,7 @@ else
 endif
 
 BIN = hab hab-butterfly sup
-LIB = butterfly builder-dbcache builder-core builder-protocol common core builder-depot-client http-client net builder-db
+LIB = butterfly builder-dbcache builder-core builder-protocol common core builder-depot-client http-client net
 SRV = builder-api builder-admin builder-depot builder-router builder-jobsrv builder-sessionsrv builder-vault builder-worker
 ALL = $(BIN) $(LIB) $(SRV)
 VERSION := $(shell cat VERSION)
