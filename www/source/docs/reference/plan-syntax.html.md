@@ -138,6 +138,16 @@ pkg_svc_run
 
 > Note: You should use a [run hook](#hooks) instead if you have complex start up behavior.
 
+pkg_exports
+: Optional. An array of ports this service exposes when you create a Docker image from your package. An associative array representing configuration data which should be gossiped to peers. The keys in this array represent the name the value will be assigned and the values represent the TOML path to read the value.
+
+  ~~~
+  pkg_exports=(
+    [port]=server.port
+    [host]=server.host
+  )
+  ~~~
+
 pkg_expose
 : Optional. An array of ports this service exposes when you create a Docker image from your package.
 

@@ -41,6 +41,7 @@ use std::thread;
 use habitat_core::service::ServiceGroup;
 use habitat_core::crypto::SymKey;
 use serde::{Serialize, Serializer};
+use toml;
 
 use error::{Result, Error};
 use member::{Member, Health, MemberList};
@@ -725,21 +726,18 @@ impl Server {
     pub fn service_config_for(&self,
                               service_group: &str,
                               incarnation: Option<u64>)
-                              -> Option<(u64, String)> {
+                              -> Option<(u64, toml::Value)> {
         let mut result = None;
-        self.service_config_store
-            .with_rumor(service_group, "service_config", |maybe_sc| {
-                if let Some(sc) = maybe_sc {
-                    if incarnation.is_none() || sc.get_incarnation() > incarnation.unwrap() {
-                        match sc.config() {
-                            Ok(config) => result = Some((sc.get_incarnation(), config)),
-                            Err(e) => {
-                                warn!("Cannot decrypt service config for {}: {}", service_group, e)
-                            }
-                        }
+        self.service_config_store.with_rumor(service_group, "service_config", |maybe_sc| {
+            if let Some(sc) = maybe_sc {
+                if incarnation.is_none() || sc.get_incarnation() > incarnation.unwrap() {
+                    match sc.config() {
+                        Ok(config) => result = Some((sc.get_incarnation(), config)),
+                        Err(err) => warn!("{}", err),
                     }
                 }
-            });
+            }
+        });
         result
     }
 

@@ -49,6 +49,7 @@ extern crate protobuf;
 extern crate rand;
 extern crate serde;
 extern crate time;
+extern crate toml;
 extern crate uuid;
 extern crate zmq;
 

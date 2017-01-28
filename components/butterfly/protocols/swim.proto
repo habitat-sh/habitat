@@ -52,6 +52,9 @@ message Service {
   repeated uint32 exposes = 7;
   optional bool initialized = 8;
   optional string package_ident = 9;
+  optional bytes cfg = 10;
+  optional bytes pkg = 11;
+  optional bytes sys = 12;
 }
 
 message ServiceConfig {

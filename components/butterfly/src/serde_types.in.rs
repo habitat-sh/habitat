@@ -75,4 +75,12 @@ pub mod rumor_service {
     /// The service rumor
     #[derive(Debug, Clone, Serialize)]
     pub struct Service(pub ProtoRumor);
+
+    #[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+    pub struct SysInfo {
+        pub ip: String,
+        pub hostname: String,
+        pub http_gateway_ip: String,
+        pub http_gateway_port: u16,
+    }
 }

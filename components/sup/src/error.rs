@@ -63,6 +63,9 @@ use PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
 
+/// Our result type alias, for easy coding.
+pub type Result<T> = result::Result<T, SupError>;
+
 #[derive(Debug)]
 /// All errors in the Supervisor are kept in this struct. We store `Error`, an enum with a variant
 /// for every type of error we produce. It also stores the location the error was created.
@@ -141,10 +144,6 @@ pub enum Error {
     UnknownTopology(String),
     UnpackFailed,
 }
-
-/// Our result type alias, for easy coding.
-pub type Result<T> = result::Result<T, SupError>;
-
 impl fmt::Display for SupError {
     // We create a string for each type of error, then create a `StructuredOutput` for it, flip
     // verbose on, and print it.
@@ -252,7 +251,6 @@ impl error::Error for SupError {
             Error::TemplateRenderError(ref err) => err.description(),
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
-
             Error::CommandNotImplemented => "Command is not yet implemented!",
             Error::DbInvalidPath => "A bad filepath was provided for an internal datastore",
             Error::DepotClient(ref err) => err.description(),

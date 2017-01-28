@@ -25,6 +25,7 @@ use hcore::service::ServiceGroup;
 use hcore::crypto::hash;
 use hcore::fs;
 use hcore::util::perm::{set_owner, set_permissions};
+use toml;
 
 pub use types::service::*;
 pub use self::config::ServiceConfig;
@@ -46,12 +47,11 @@ impl Service {
                                 topology: Topology,
                                 update_strategy: UpdateStrategy)
                                 -> Result<Service> {
+        // JW TODO: we need to store the service group as a complete string and return slices
+        // of it in functions. This would allow us to avoid allocating as many strings as we
+        // are forced to here.
         let service_group = ServiceGroup::new(package.name.clone(), group, organization);
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package.pkg_install));
-        let sg = format!("{}.{}", service_group.service, service_group.group);
-        outputln!(preamble sg, "Process will run as user={}, group={}",
-                  &svc_user,
-                  &svc_group);
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
         let supervisor = Supervisor::new(package.ident().clone(), &service_group, runtime_config);
         Ok(Service {
@@ -64,7 +64,7 @@ impl Service {
             current_service_files: HashMap::new(),
             last_restart_display: LastRestartDisplay::None,
             initialized: false,
-            service_config_incarnation: None,
+            cfg_incarnation: 0,
         })
     }
 
@@ -79,9 +79,7 @@ impl Service {
     pub fn restart(&mut self, census_list: &CensusList) -> Result<()> {
         match self.topology {
             Topology::Leader | Topology::Initializer => {
-                if let Some(census) = census_list.get(&format!("{}.{}",
-                                                               self.service_group.service,
-                                                               self.service_group.group)) {
+                if let Some(census) = census_list.get(&self.service_group.to_string()) {
                     // We know perfectly well we are in this census, because we asked for
                     // our own service group *by name*
                     let me = census.me().unwrap();
@@ -140,7 +138,8 @@ impl Service {
         self.supervisor.child.is_none()
     }
 
-    pub fn check_process(&mut self) -> Result<()> {
+    /// Instructs the service's process supervisor to reap dead children.
+    pub fn check_process(&mut self) {
         self.supervisor.check_process()
     }
 
@@ -222,7 +221,8 @@ impl Service {
         }
     }
 
-    pub fn write_butterfly_service_config(&mut self, config: String) -> bool {
+    pub fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
+        let encoded = toml::encode_str(&config);
         let on_disk_path = fs::svc_path(&self.service_group.service).join("gossip.toml");
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,
@@ -233,7 +233,7 @@ impl Service {
                 String::new()
             }
         };
-        let new_checksum = hash::hash_string(&config)
+        let new_checksum = hash::hash_string(&encoded)
             .expect("We failed to hash a string in a method that can't return an error; not even \
                      sure what this means");
         if new_checksum != current_checksum {
@@ -249,7 +249,7 @@ impl Service {
                 }
             };
 
-            if let Err(e) = new_file.write_all(config.as_bytes()) {
+            if let Err(e) = new_file.write_all(encoded.as_bytes()) {
                 outputln!(preamble self.service_group_str(),
                     "Service configuration from butterfly failed to write: {}",
                     Red.bold().paint(format!("{}", e)));
@@ -292,15 +292,18 @@ impl Service {
         self.package.health_check(&self.supervisor, &self.service_group)
     }
 
-    pub fn file_updated(&self) {
+    pub fn file_updated(&self) -> bool {
         if self.initialized {
+            let sg = self.service_group_str();
             match self.package.file_updated(&self.service_group) {
-                Ok(_) => outputln!(preamble self.service_group_str(), "{}", "File update hook succeeded."),
-                Err(e) => {
-                    outputln!(preamble self.service_group_str(), "File update hook failed: {}", e)
+                Ok(_) => {
+                    outputln!(preamble sg, "{}", "File update hook succeeded.");
+                    return true;
                 }
+                Err(e) => outputln!(preamble sg, "File update hook failed: {}", e),
             }
         }
+        false
     }
 
     pub fn initialize(&mut self) {
@@ -317,22 +320,23 @@ impl Service {
         }
     }
 
-    pub fn reconfigure(&mut self, census_list: &CensusList) {
-        let sg = format!("{}", self.service_group);
-        let mut service_config =
-            match ServiceConfig::new(&sg, &self.package, census_list, gconfig().bind()) {
-                Ok(sc) => sc,
-                Err(e) => {
-                    outputln!(preamble self.service_group_str(),
-                              "Error generating Service Configuration; not reconfiguring: {}",
-                              e);
-                    return;
-                }
-            };
-        match self.package.create_svc_path() {
-            Ok(_) => {}
-            Err(e) => outputln!("Failed to create the svc path: {}", e),
-        }
+    pub fn load_service_config(&self, census: &CensusList) -> Result<ServiceConfig> {
+        ServiceConfig::new(&self.service_group_str(),
+                           &self.package,
+                           census,
+                           gconfig().bind())
+    }
+
+    pub fn reconfigure(&mut self, census_list: &CensusList) -> Option<ServiceConfig> {
+        let mut service_config = match self.load_service_config(census_list) {
+            Ok(sc) => sc,
+            Err(e) => {
+                outputln!(preamble self.service_group_str(),
+                          "Error generating Service Configuration; not reconfiguring: {}",
+                          e);
+                return None;
+            }
+        };
         match service_config.write(&self.package) {
             Ok(true) => {
                 self.needs_restart = true;
@@ -357,11 +361,35 @@ impl Service {
             outputln!("Failed to copy run hook: {}", e);
         }
         self.package.hooks().compile_all(&service_config);
+        Some(service_config)
     }
 }
 
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.package)
+    }
+}
+
+impl Default for Topology {
+    fn default() -> Topology {
+        Topology::Standalone
+    }
+}
+
+impl UpdateStrategy {
+    pub fn from_str(strategy: &str) -> Self {
+        match strategy {
+            "none" => UpdateStrategy::None,
+            "at-once" => UpdateStrategy::AtOnce,
+            "rolling" => UpdateStrategy::Rolling,
+            s => panic!("Invalid update strategy {}", s),
+        }
+    }
+}
+
+impl Default for UpdateStrategy {
+    fn default() -> UpdateStrategy {
+        UpdateStrategy::None
     }
 }

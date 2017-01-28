@@ -108,7 +108,10 @@ impl Supervisor {
 
     pub fn start(&mut self) -> Result<()> {
         if self.child.is_none() {
-            outputln!(preamble & self.preamble, "Starting");
+            outputln!(preamble self.preamble,
+                      "Starting prcoess as user={}, group={}",
+                      &self.runtime_config.svc_user,
+                      &self.runtime_config.svc_group);
             self.enter_state(ProcessState::Start);
             let mut child = try!(util::create_command(self.run_cmd(),
                                                       &self.runtime_config.svc_user,
@@ -140,7 +143,7 @@ impl Supervisor {
             }
             None => {}
         };
-        let _ = self.check_process();
+        self.check_process();
         Ok(())
     }
 
@@ -175,7 +178,7 @@ impl Supervisor {
     }
 
     /// if the child process exists, check it's status via waitpid().
-    pub fn check_process(&mut self) -> Result<()> {
+    pub fn check_process(&mut self) {
         let changed = match self.child {
             None => false,
             Some(ref mut child) => {
@@ -202,7 +205,6 @@ impl Supervisor {
                 }
             }
         };
-
         if changed {
             match self.state {
                 ProcessState::Up | ProcessState::Start | ProcessState::Restart => {
@@ -215,8 +217,6 @@ impl Supervisor {
                 }
             }
         }
-
-        Ok(())
     }
 
     pub fn run_cmd(&self) -> PathBuf {
@@ -300,7 +300,8 @@ impl Serialize for Supervisor {
         try!(serializer.serialize_struct_elt(&mut state, "package", &self.package_ident));
         try!(serializer.serialize_struct_elt(&mut state, "preamble", &self.preamble));
         try!(serializer.serialize_struct_elt(&mut state, "state", &self.state));
-        try!(serializer.serialize_struct_elt(&mut state, "state_entered", &self.state_entered.to_string()));
+        try!(serializer.serialize_struct_elt(&mut state, "state_entered",
+            &self.state_entered.to_string()));
         try!(serializer.serialize_struct_elt(&mut state, "started", &self.has_started));
         try!(serializer.serialize_struct_elt(&mut state, "runtime_config", &self.runtime_config));
         serializer.serialize_struct_end(state)

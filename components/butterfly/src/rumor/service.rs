@@ -23,6 +23,7 @@ use std::ops::{Deref, DerefMut};
 use habitat_core::service::ServiceGroup;
 use habitat_core::package::Identifiable;
 use protobuf::Message;
+use toml;
 
 pub use types::rumor_service::*;
 use error::Result;
@@ -76,40 +77,39 @@ impl DerefMut for Service {
 
 impl Service {
     /// Creates a new Service.
-    pub fn new<S1, S2, S3, S4, S5>(member_id: S1,
-                                   package: &S4,
-                                   group: S5,
-                                   organization: Option<String>,
-                                   hostname: S2,
-                                   ip: S3,
-                                   exposes: Vec<u32>)
-                                   -> Self
-        where S1: Into<String>,
-              S2: Into<String>,
-              S3: Into<String>,
-              S4: Identifiable,
-              S5: Into<String>
+    pub fn new<T>(member_id: String,
+                  package: &T,
+                  group: String,
+                  organization: Option<String>,
+                  exposes: Vec<u32>,
+                  sys: &SysInfo,
+                  cfg: Option<&toml::Table>)
+                  -> Self
+        where T: Identifiable
     {
         assert!(package.fully_qualified(),
                 "Service constructor requires a fully qualified package identifier");
         let service_group = ServiceGroup::new(package.name(), group, organization);
         let mut rumor = ProtoRumor::new();
-        let from_id = member_id.into();
-        let real_member_id = from_id.clone();
-        rumor.set_from_id(from_id);
+        rumor.set_from_id(member_id.clone());
         rumor.set_field_type(ProtoRumor_Type::Service);
 
         let mut proto = ProtoService::new();
-        proto.set_member_id(real_member_id);
-        proto.set_service_group(format!("{}", service_group));
+        proto.set_member_id(member_id);
+        proto.set_service_group(service_group.to_string());
         proto.set_incarnation(0);
-        proto.set_hostname(hostname.into());
-        proto.set_ip(ip.into());
+        proto.set_hostname(sys.hostname.clone());
+        proto.set_ip(sys.ip.clone());
         if let Some(port) = exposes.get(0) {
             proto.set_port(*port);
         }
         proto.set_exposes(exposes);
         proto.set_package_ident(package.to_string());
+        proto.set_sys(toml::encode_str(&sys).into_bytes());
+        if let Some(cfg) = cfg {
+            proto.set_cfg(toml::encode_str(cfg).into_bytes());
+        }
+
         rumor.set_service(proto);
         Service(rumor)
     }
@@ -153,15 +153,16 @@ mod tests {
 
     use super::Service;
     use rumor::Rumor;
+    use rumor::service::SysInfo;
 
     fn create_service(member_id: &str) -> Service {
-        Service::new(member_id,
+        Service::new(member_id.to_string(),
                      &PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap(),
-                     "production",
+                     "production".to_string(),
                      None,
-                     "fire.beyond",
-                     "127.0.0.1",
-                     vec![9090, 9091])
+                     vec![9090, 9091],
+                     &SysInfo::default(),
+                     None)
     }
 
     // Equality

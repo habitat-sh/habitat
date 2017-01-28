@@ -38,7 +38,6 @@ extern "C" {
 pub fn hostname() -> Result<String> {
     use std::ffi::CStr;
 
-    debug!("Determining host name");
     let len = 255;
     let mut buf = Vec::<u8>::with_capacity(len);
     let ptr = buf.as_mut_slice().as_mut_ptr();
@@ -47,11 +46,10 @@ pub fn hostname() -> Result<String> {
         0 => {
             let slice = unsafe { CStr::from_ptr(ptr as *const i8) };
             let s = try!(slice.to_str());
-            debug!("Hostname = {}", &s);
             Ok(s.to_string())
         }
         n => {
-            debug!("gethostname failure: {}", n);
+            error!("gethostname failure: {}", n);
             Err(sup_error!(Error::IPFailed))
         }
     }

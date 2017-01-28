@@ -71,7 +71,7 @@ use error::{Error, Result};
 use config::gconfig;
 use package::Package;
 use manager::Manager;
-use manager::service::UpdateStrategy;
+use manager::{Service, UpdateStrategy};
 
 static LOGKEY: &'static str = "CS";
 
@@ -171,6 +171,11 @@ fn start_package(package: Package) -> Result<()> {
     env::set_var("PATH", &run_path);
 
     let mut manager = try!(Manager::new());
-    try!(manager.add_service(package, *gconfig().topology(), gconfig().update_strategy()));
+    let service = try!(Service::new(package,
+                                    gconfig().group(),
+                                    gconfig().organization().clone(),
+                                    gconfig().topology(),
+                                    gconfig().update_strategy()));
+    try!(manager.add_service(service));
     manager.run()
 }

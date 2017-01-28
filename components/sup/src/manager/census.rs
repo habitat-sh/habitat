@@ -14,37 +14,39 @@
 
 use std::ops::{Deref, DerefMut};
 use std::collections::HashMap;
-use std::str::FromStr;
+use std::str::{self, FromStr};
 
 use hcore::package::PackageIdent;
 use hcore::service::ServiceGroup;
-use butterfly::rumor::service::Service as ServiceRumor;
-use butterfly::rumor::election::{Election as ElectionRumor, Election_Status};
+use hcore::util;
+use butterfly;
+use butterfly::rumor::{Service as ServiceRumor, Election as ElectionRumor};
+use butterfly::rumor::election::Election_Status;
+use butterfly::rumor::service::SysInfo;
 use butterfly::member::{Member, Health};
+use toml;
 
 pub use types::census::*;
 
 static LOGKEY: &'static str = "CE";
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub struct CensusUpdate {
-    service_counter: usize,
+    pub service_counter: usize,
+    service_config_counter: usize,
     election_counter: usize,
     election_update_counter: usize,
     membership_counter: usize,
 }
 
 impl CensusUpdate {
-    pub fn new(service_counter: usize,
-               election_counter: usize,
-               election_update_counter: usize,
-               membership_counter: usize)
-               -> CensusUpdate {
+    pub fn new(butterfly: &butterfly::Server) -> CensusUpdate {
         CensusUpdate {
-            service_counter: service_counter,
-            election_counter: election_counter,
-            election_update_counter: election_update_counter,
-            membership_counter: membership_counter,
+            service_counter: butterfly.service_store.get_update_counter(),
+            service_config_counter: butterfly.service_config_store.get_update_counter(),
+            election_counter: butterfly.election_store.get_update_counter(),
+            election_update_counter: butterfly.update_store.get_update_counter(),
+            membership_counter: butterfly.member_list.get_update_counter(),
         }
     }
 }
@@ -62,36 +64,27 @@ impl CensusEntry {
     }
 
     pub fn get_member_id(&self) -> &str {
-        match self.member_id.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.member_id
     }
 
     pub fn set_member_id(&mut self, value: String) {
-        self.member_id = Some(value);
+        self.member_id = value
     }
 
     pub fn get_service(&self) -> &str {
-        match self.service.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.service
     }
 
     pub fn set_service(&mut self, value: String) {
-        self.service = Some(value);
+        self.service = value;
     }
 
     pub fn get_group(&self) -> &str {
-        match self.group.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.group
     }
 
     pub fn set_group(&mut self, value: String) {
-        self.group = Some(value);
+        self.group = value;
     }
 
     pub fn get_org(&self) -> &str {
@@ -106,47 +99,35 @@ impl CensusEntry {
     }
 
     pub fn get_hostname(&self) -> &str {
-        match self.hostname.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.hostname
     }
 
     pub fn set_hostname(&mut self, value: String) {
-        self.hostname = Some(value);
+        self.hostname = value;
     }
 
     pub fn get_address(&self) -> &str {
-        match self.address.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.address
     }
 
     pub fn set_address(&mut self, value: String) {
-        self.address = Some(value);
+        self.address = value;
     }
 
     pub fn get_ip(&self) -> &str {
-        match self.ip.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.ip
     }
 
     pub fn set_ip(&mut self, value: String) {
-        self.ip = Some(value);
+        self.ip = value;
     }
 
     pub fn get_port(&self) -> &str {
-        match self.port.as_ref() {
-            Some(v) => &v,
-            None => "",
-        }
+        &self.port
     }
 
     pub fn set_port(&mut self, value: String) {
-        self.port = Some(value);
+        self.port = value;
     }
 
     pub fn get_exposes(&self) -> &Vec<String> {
@@ -285,9 +266,9 @@ impl CensusEntry {
         self.persistent.unwrap_or(false)
     }
 
-    pub fn populate_from_service(&mut self, service_rumor: &ServiceRumor) {
-        self.set_member_id(String::from(service_rumor.get_member_id()));
-        let sg = match ServiceGroup::from_str(service_rumor.get_service_group()) {
+    pub fn populate_from_service(&mut self, rumor: &ServiceRumor) {
+        self.set_member_id(String::from(rumor.get_member_id()));
+        let sg = match ServiceGroup::from_str(rumor.get_service_group()) {
             Ok(sg) => sg,
             Err(e) => {
                 outputln!("Malformed service group; cannot populate configuration data. \
@@ -301,12 +282,19 @@ impl CensusEntry {
         if sg.organization.is_some() {
             self.set_org(sg.organization.unwrap().clone());
         }
-        self.set_ip(String::from(service_rumor.get_ip()));
-        self.set_hostname(String::from(service_rumor.get_hostname()));
-        self.set_port(format!("{}", service_rumor.get_port()));
-        self.set_exposes(service_rumor.get_exposes().iter().map(|p| format!("{}", p)).collect());
-        self.set_package_ident(PackageIdent::from_str(service_rumor.get_package_ident())
-            .expect("Received invalid package ident in gossip data. This shouldn't be possible!"));
+        self.set_ip(String::from(rumor.get_ip()));
+        self.set_hostname(String::from(rumor.get_hostname()));
+        self.set_port(format!("{}", rumor.get_port()));
+        self.set_exposes(rumor.get_exposes().iter().map(|p| format!("{}", p)).collect());
+        match PackageIdent::from_str(rumor.get_package_ident()) {
+            Ok(ident) => self.set_package_ident(ident),
+            Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
+        }
+        self.cfg = util::toml::table_from_bytes(rumor.get_cfg()).unwrap_or(toml::Table::default());
+        self.sys = str::from_utf8(rumor.get_sys())
+            .ok()
+            .and_then(|v| toml::decode_str(v))
+            .unwrap_or(SysInfo::default());
     }
 
     pub fn populate_from_member(&mut self, member: &Member) {
@@ -579,17 +567,11 @@ mod tests {
     mod census_entry {
         use std::str::FromStr;
 
-        use butterfly::rumor::service::Service;
+        use butterfly::rumor::service::{Service, SysInfo};
         use butterfly::member::Member;
         use hcore::package::ident::PackageIdent;
 
         use manager::census::CensusEntry;
-
-        #[test]
-        fn default_is_empty() {
-            let ce = CensusEntry::default();
-            assert!(ce.member_id.is_none());
-        }
 
         #[test]
         fn member_id() {
@@ -603,19 +585,18 @@ mod tests {
         fn populate_from_service_rumor() {
             let mut ce = CensusEntry::default();
             let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
-            let service = Service::new("neurosis",
+            let service = Service::new("neurosis".to_string(),
                                        &ident,
-                                       "times",
+                                       "times".to_string(),
                                        Some("ofgrace".to_string()),
-                                       "foo.com",
-                                       "162.42.150.33",
-                                       vec![6060, 8080]);
+                                       vec![6060, 8080],
+                                       &SysInfo::default(),
+                                       None);
             ce.populate_from_service(&service);
             assert_eq!(ce.get_member_id(), "neurosis");
             assert_eq!(ce.get_service(), "overwatch");
             assert_eq!(ce.get_group(), "times");
             assert_eq!(ce.get_org(), "ofgrace");
-            assert_eq!(ce.get_ip(), "162.42.150.33");
             assert_eq!(ce.get_port(), "6060");
             assert_eq!(ce.get_exposes(),
                        &vec![String::from("6060"), String::from("8080")]);

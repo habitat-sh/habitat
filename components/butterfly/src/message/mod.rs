@@ -18,10 +18,13 @@ use std::result;
 use std::str;
 
 use habitat_core::crypto::SymKey;
+use habitat_core::util;
 use serde::{Serialize, Serializer};
+use toml;
 
 use error::Result;
 use message::swim::Wire;
+use rumor::service::SysInfo;
 use protobuf::{self, Message};
 
 pub fn generate_wire(payload: Vec<u8>, ring_key: &Option<SymKey>) -> Result<Vec<u8>> {
@@ -47,7 +50,9 @@ pub fn unwrap_wire(payload: &[u8], ring_key: &Option<SymKey>) -> Result<Vec<u8>>
 }
 
 impl Serialize for swim::Election {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("election", 6));
         try!(serializer.serialize_struct_elt(&mut state, "member_id", self.get_member_id()));
         try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
@@ -60,7 +65,9 @@ impl Serialize for swim::Election {
 }
 
 impl Serialize for swim::Member {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("member", 6));
         try!(serializer.serialize_struct_elt(&mut state, "id", self.get_id()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
@@ -73,7 +80,9 @@ impl Serialize for swim::Member {
 }
 
 impl Serialize for swim::Membership {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("membership", 2));
         try!(serializer.serialize_struct_elt(&mut state, "member", self.get_member()));
         try!(serializer.serialize_struct_elt(&mut state, "health", self.get_health()));
@@ -82,7 +91,9 @@ impl Serialize for swim::Membership {
 }
 
 impl Serialize for swim::Rumor {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("rumor", 8));
         try!(serializer.serialize_struct_elt(&mut state, "type", self.get_field_type()));
         try!(serializer.serialize_struct_elt(&mut state, "tag", self.get_tag()));
@@ -107,8 +118,15 @@ impl Serialize for swim::Rumor {
 }
 
 impl Serialize for swim::Service {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
-        let mut state = try!(serializer.serialize_struct("service", 9));
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
+        let mut state = try!(serializer.serialize_struct("service", 11));
+        let cfg = util::toml::table_from_bytes(self.get_cfg()).unwrap_or(toml::Table::default());
+        let sys = str::from_utf8(self.get_sys())
+            .ok()
+            .and_then(|v| toml::decode_str(v))
+            .unwrap_or(SysInfo::default());
         try!(serializer.serialize_struct_elt(&mut state, "member_id", self.get_member_id()));
         try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "package", self.get_package_ident()));
@@ -117,27 +135,35 @@ impl Serialize for swim::Service {
         try!(serializer.serialize_struct_elt(&mut state, "hostname", self.get_hostname()));
         try!(serializer.serialize_struct_elt(&mut state, "port", self.get_port()));
         try!(serializer.serialize_struct_elt(&mut state, "exposes", self.get_exposes()));
+        try!(serializer.serialize_struct_elt(&mut state, "cfg", &cfg));
+        try!(serializer.serialize_struct_elt(&mut state, "sys", &sys));
         try!(serializer.serialize_struct_elt(&mut state, "initialized", self.get_initialized()));
         serializer.serialize_struct_end(state)
     }
 }
 
 impl Serialize for swim::ServiceConfig {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("service_config", 4));
         try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
         try!(serializer.serialize_struct_elt(&mut state, "encrypted", self.get_encrypted()));
         match str::from_utf8(self.get_config()) {
             Ok(c) => try!(serializer.serialize_struct_elt(&mut state, "config", c)),
-            Err(_) => try!(serializer.serialize_struct_elt(&mut state, "config", self.get_config())),
+            Err(_) => {
+                try!(serializer.serialize_struct_elt(&mut state, "config", self.get_config()))
+            }
         };
         serializer.serialize_struct_end(state)
     }
 }
 
 impl Serialize for swim::ServiceFile {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         let mut state = try!(serializer.serialize_struct("service_file", 5));
         try!(serializer.serialize_struct_elt(&mut state, "service_group", self.get_service_group()));
         try!(serializer.serialize_struct_elt(&mut state, "incarnation", self.get_incarnation()));
@@ -152,19 +178,25 @@ impl Serialize for swim::ServiceFile {
 }
 
 impl Serialize for swim::Election_Status {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         serializer.serialize_u8(*self as u8)
     }
 }
 
 impl Serialize for swim::Membership_Health {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         serializer.serialize_u8(*self as u8)
     }
 }
 
 impl Serialize for swim::Rumor_Type {
-    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: &mut S) -> result::Result<(), S::Error>
+        where S: Serializer
+    {
         serializer.serialize_u8(*self as u8)
     }
 }

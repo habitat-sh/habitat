@@ -8,7 +8,7 @@ param (
 
 # # License and Copyright
 # ```
-# Copyright: Copyright (c) 2015 Chef Software, Inc.
+# Copyright: Copyright (c) 2017 Chef Software, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -104,6 +104,8 @@ $script:pkg_pconfig_dirs = @()
 $script:pkg_svc_run = ''
 # An array of ports to expose.
 $script:pkg_expose = @()
+# An associative array representing configuration data which should be gossiped to peers.
+$script:pkg_exports = @{}
 # The user to run the service as
 $script:pkg_svc_user = "hab"
 # The group to run the service as
@@ -1048,6 +1050,10 @@ function _Write-Metadata {
     if ($pkg_expose.Length -gt 0) {
         "$($pkg_expose -join ' ')" |
             Out-File "$pkg_prefix\EXPOSES" -Encoding ascii
+    }
+
+    foreach ($export in $pkg_exports.GetEnumerator()) {
+        "$($export.Key)=$($export.Value)" | Out-File "$pkg_prefix\EXPORTS" -Encoding ascii -Append
     }
 
     # @TODO fin - INTERPRETERS

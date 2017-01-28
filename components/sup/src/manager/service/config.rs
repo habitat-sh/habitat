@@ -15,11 +15,14 @@
 /// Collect all the configuration data that is exposed to users, and render it.
 
 use std::ascii::AsciiExt;
+use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
+use std::ops::{Deref, DerefMut};
 
 use ansi_term::Colour::Purple;
+use butterfly::rumor::service::SysInfo;
 use hcore::package::PackageInstall;
 use hcore::crypto;
 use toml;
@@ -36,7 +39,6 @@ use VERSION;
 
 static LOGKEY: &'static str = "SC";
 static ENV_VAR_PREFIX: &'static str = "HAB";
-
 /// The maximum TOML table merge depth allowed before failing the operation. The value here is
 /// somewhat arbitrary (stack size cannot be easily computed beforehand and different libc
 /// implementations will impose different size constraints), however a parallel data structure that
@@ -89,6 +91,10 @@ impl ServiceConfig {
         top.insert(String::from("bind"), bind);
 
         Ok(toml::Value::Table(top))
+    }
+
+    pub fn to_exported(&self) -> Result<toml::Table> {
+        self.cfg.to_exported(&self.pkg.exports)
     }
 
     /// Replace the `pkg` data.
@@ -226,7 +232,10 @@ impl Bind {
 
 impl Svc {
     fn new(service_group: &str, cl: &CensusList) -> Svc {
-        let mut top = service_entry(cl.get(service_group).unwrap());
+        let mut top = match cl.get(service_group) {
+            Some(ce) => service_entry(ce),
+            None => toml::Table::default(),
+        };
         let mut all: Vec<toml::Value> = Vec::new();
         let mut named = toml::Table::new();
         for (_sg, c) in cl.iter() {
@@ -277,50 +286,6 @@ fn service_entry(census: &Census) -> toml::Table {
     result
 }
 
-// Recursively merges the `other` TOML table into `me`
-fn toml_merge(me: &mut toml::Table, other: &toml::Table) -> Result<()> {
-    toml_merge_recurse(me, other, 0)
-}
-
-fn toml_merge_recurse(me: &mut toml::Table, other: &toml::Table, depth: u16) -> Result<()> {
-    if depth > TOML_MAX_MERGE_DEPTH {
-        return Err(sup_error!(Error::TomlMergeError(format!("Max recursive merge depth of {} \
-                                                             exceeded.",
-                                                            TOML_MAX_MERGE_DEPTH))));
-    }
-
-    for (key, other_value) in other.iter() {
-        if is_toml_value_a_table(key, me) && is_toml_value_a_table(key, other) {
-            let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
-                toml::Value::Table(ref mut t) => t,
-                _ => {
-                    return Err(sup_error!(Error::TomlMergeError(format!("Value at key {} \
-                                                                         should be a Table",
-                                                                        &key))));
-                }
-            };
-            try!(toml_merge_recurse(&mut me_at_key,
-                                    other_value.as_table().expect("TOML Value should be a Table"),
-                                    depth + 1));
-        } else {
-            me.insert(key.clone(), other_value.clone());
-        }
-    }
-    Ok(())
-}
-
-fn is_toml_value_a_table(key: &str, table: &toml::Table) -> bool {
-    match table.get(key) {
-        None => return false,
-        Some(value) => {
-            match value.as_table() {
-                Some(_) => return true,
-                None => return false,
-            }
-        }
-    }
-}
-
 impl Cfg {
     fn new(pkg: &Package) -> Result<Cfg> {
         let mut cfg = Cfg {
@@ -336,7 +301,7 @@ impl Cfg {
         Ok(cfg)
     }
 
-    fn to_toml(&self) -> Result<toml::Value> {
+    pub fn to_toml(&self) -> Result<toml::Value> {
         let mut output_toml = toml::Table::new();
         if let Some(toml::Value::Table(ref default_cfg)) = self.default {
             try!(toml_merge(&mut output_toml, default_cfg));
@@ -353,8 +318,22 @@ impl Cfg {
         Ok(toml::Value::Table(output_toml))
     }
 
+    fn to_exported(&self, exports: &HashMap<String, String>) -> Result<toml::Table> {
+        let mut map = toml::Table::default();
+        let cfg = try!(self.to_toml());
+        for (key, path) in exports.iter() {
+            // JW TODO: the TOML library only provides us with a
+            // function to retrieve a value with a path which returns a
+            // reference. We actually want the value for ourselves.
+            // Let's improve this later to avoid allocating twice.
+            if let Some(val) = cfg.lookup(&path) {
+                map.insert(key.clone(), val.clone());
+            }
+        }
+        Ok(map)
+    }
+
     fn load_default(&mut self, pkg: &Package) -> Result<()> {
-        // Default
         let mut file = match File::open(pkg.config_from().join("default.toml")) {
             Ok(file) => file,
             Err(e) => {
@@ -473,13 +452,22 @@ impl Pkg {
                           &d)
             }
         }
-        let exposes: Vec<String> = match pkg_install.exposes() {
+        let exposes = match pkg_install.exposes() {
             Ok(exposes) => exposes,
             Err(_) => {
                 outputln!("Failed to load exposes metadata for {} - \
                           it will be missing from the configuration",
                           &ident);
                 Vec::new()
+            }
+        };
+        let exports = match pkg_install.exports() {
+            Ok(exports) => exports,
+            Err(_) => {
+                outputln!("Failed to load exposes metadata for {} - \
+                          it will be missing from the configuration",
+                          &ident);
+                HashMap::<String, String>::default()
             }
         };
         let version = match ident.version.as_ref() {
@@ -511,6 +499,7 @@ impl Pkg {
             ident: ident.to_string(),
             deps: deps,
             exposes: exposes,
+            exports: exports,
             path: pkg_install.installed_path().to_string_lossy().into_owned(),
             svc_path: pkg_install.svc_path().to_string_lossy().into_owned(),
             svc_config_path: pkg_install.svc_config_path().to_string_lossy().into_owned(),
@@ -550,17 +539,31 @@ impl Sys {
             }
         };
 
-        Sys {
+        Sys(SysInfo {
             ip: ip,
             hostname: hostname,
-            sidecar_ip: gconfig().http_listen_addr().ip().to_string(),
-            sidecar_port: gconfig().http_listen_addr().port(),
-        }
+            http_gateway_ip: gconfig().http_listen_addr().ip().to_string(),
+            http_gateway_port: gconfig().http_listen_addr().port(),
+        })
     }
 
     fn to_toml(&self) -> Result<toml::Value> {
         let v = toml::encode(&self);
         Ok(v)
+    }
+}
+
+impl Deref for Sys {
+    type Target = SysInfo;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Sys {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -575,22 +578,66 @@ impl Hab {
     }
 }
 
+
+// Recursively merges the `other` TOML table into `me`
+pub fn toml_merge(me: &mut toml::Table, other: &toml::Table) -> Result<()> {
+    toml_merge_recurse(me, other, 0)
+}
+
+fn toml_merge_recurse(me: &mut toml::Table, other: &toml::Table, depth: u16) -> Result<()> {
+    if depth > TOML_MAX_MERGE_DEPTH {
+        return Err(sup_error!(Error::TomlMergeError(format!("Max recursive merge depth of {} \
+                                                             exceeded.",
+                                                            TOML_MAX_MERGE_DEPTH))));
+    }
+
+    for (key, other_value) in other.iter() {
+        if is_toml_value_a_table(key, me) && is_toml_value_a_table(key, other) {
+            let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
+                toml::Value::Table(ref mut t) => t,
+                _ => {
+                    return Err(sup_error!(Error::TomlMergeError(format!("Value at key {} \
+                                                                         should be a Table",
+                                                                        &key))));
+                }
+            };
+            try!(toml_merge_recurse(&mut me_at_key,
+                                    other_value.as_table().expect("TOML Value should be a Table"),
+                                    depth + 1));
+        } else {
+            me.insert(key.clone(), other_value.clone());
+        }
+    }
+    Ok(())
+}
+
+fn is_toml_value_a_table(key: &str, table: &toml::Table) -> bool {
+    match table.get(key) {
+        None => return false,
+        Some(value) => {
+            match value.as_table() {
+                Some(_) => return true,
+                None => return false,
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::path::PathBuf;
     use std::str::FromStr;
 
+    use hcore::package::{PackageIdent, PackageInstall};
     use regex::Regex;
     use toml;
 
+    use super::*;
+    use config::{gcache, Config};
     use error::Error;
     use manager::census::{CensusEntry, CensusList};
-    use config::{gcache, Config};
-    use hcore::package::{PackageIdent, PackageInstall};
     use package::Package;
-    use super::ServiceConfig;
     use VERSION;
-    use super::toml_merge;
 
     fn gen_pkg() -> Package {
         let pkg_install = PackageInstall::new_from_parts(

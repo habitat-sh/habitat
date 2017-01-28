@@ -177,6 +177,18 @@
 # pkg_expose=(80 443)
 # ```
 #
+# ### pkg_exports
+# An associative array representing configuration data which should be gossiped to peers. The keys
+# in this array represent the name the value will be assigned and the values represent the toml path
+# to read the value.
+# ```
+# pkg_exports=(
+#   [key]=token
+#   [port]=server.port
+#   [host]=server.host
+# )
+# ```
+#
 # ### pkg_origin
 # A string to use for the origin. The origin is used to denote a particular upstream of a
 # package; when we resolve dependencies, we consider a version of a package to be equal
@@ -244,6 +256,10 @@
 # pkg_deps=(glibc pcre openssl zlib)
 # pkg_svc_run="bin/haproxy -f $pkg_svc_config_path/haproxy.conf"
 # pkg_expose=(80 443)
+# pkg_exports=(
+#   [mode]=mode
+#   [port]=server.port
+# )
 #
 # do_build() {
 #   make USE_PCRE=1 \
@@ -267,7 +283,7 @@
 #
 # # License and Copyright
 # ```
-# Copyright: Copyright (c) 2015 Chef Software, Inc.
+# Copyright: Copyright (c) 2016-2017 Chef Software, Inc.
 # License: Apache License, Version 2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -358,6 +374,8 @@ pkg_pconfig_dirs=()
 pkg_svc_run=''
 # An array of ports to expose.
 pkg_expose=()
+# An associative array representing configuration data which should be gossiped to peers.
+declare -A pkg_exports
 # The user to run the service as
 pkg_svc_user=hab
 # The group to run the service as
@@ -1946,6 +1964,10 @@ _build_metadata() {
   if [[ -n "${path_part}" ]]; then
     echo $path_part > $pkg_prefix/PATH
   fi
+
+  for export in "${!pkg_exports[@]}"; do
+    echo "$export=${pkg_exports[$export]}" >> $pkg_prefix/EXPORTS
+  done
 
   local port_part=""
   for port in "${pkg_expose[@]}"; do

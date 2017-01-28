@@ -33,10 +33,6 @@ fn check_pkg_user_and_group(pkg_install: &PackageInstall) -> Result<Option<(Stri
     let svc_group = try!(pkg_install.svc_group());
     match (svc_user, svc_group) {
         (Some(user), Some(group)) => {
-            // a package has a SVC_USER and SVC_GROUP defined,
-            // these MUST exist in order to continue
-            debug!("SVC_USER = {}", &user);
-            debug!("SVC_GROUP = {}", &group);
             if let None = users::get_uid_by_name(&user) {
                 return Err(sup_error!(Error::Permissions(format!("Package requires user {} to \
                                                                   exist, but it doesn't",
