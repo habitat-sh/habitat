@@ -241,8 +241,8 @@ impl Config {
     }
 
     /// Return the email address
-    pub fn email(&self) -> &Option<String> {
-        &self.email
+    pub fn email(&self) -> Option<&str> {
+        self.email.as_ref().map(|v| &**v)
     }
 
     /// Set the user key
@@ -252,8 +252,8 @@ impl Config {
     }
 
     /// Return the user key
-    pub fn user_key(&self) -> &Option<String> {
-        &self.userkey
+    pub fn user_key(&self) -> Option<&str> {
+        self.userkey.as_ref().map(|v| &**v)
     }
 
     /// Set the service key
@@ -263,8 +263,8 @@ impl Config {
     }
 
     /// Return the service key
-    pub fn service_key(&self) -> &Option<String> {
-        &self.servicekey
+    pub fn service_key(&self) -> Option<&str> {
+        self.servicekey.as_ref().map(|v| &**v)
     }
 
     /// Set the input file to encrypt/decrypt
@@ -274,8 +274,8 @@ impl Config {
     }
 
     /// Return the input file to encrypt/decrypt
-    pub fn infile(&self) -> &Option<String> {
-        &self.infile
+    pub fn infile(&self) -> Option<&str> {
+        self.infile.as_ref().map(|v| &**v)
     }
 
     /// Set the input file to encrypt/decrypt
@@ -285,8 +285,8 @@ impl Config {
     }
 
     /// Return the input file to encrypt/decrypt
-    pub fn outfile(&self) -> &Option<String> {
-        &self.outfile
+    pub fn outfile(&self) -> Option<&str> {
+        self.outfile.as_ref().map(|v| &**v)
     }
 
     /// Set the key expire days
@@ -295,8 +295,8 @@ impl Config {
         self
     }
 
-    pub fn expire_days(&self) -> &Option<u16> {
-        &self.expire_days
+    pub fn expire_days(&self) -> Option<u16> {
+        self.expire_days
     }
 
     /// Set the path
@@ -456,8 +456,8 @@ impl Config {
         self
     }
 
-    pub fn organization(&self) -> &Option<String> {
-        &self.organization
+    pub fn organization(&self) -> Option<&str> {
+        self.organization.as_ref().map(|v| &**v)
     }
 
     /// Set the ring name
@@ -467,8 +467,8 @@ impl Config {
     }
 
     /// Return the ring name
-    pub fn ring(&self) -> &Option<String> {
-        &self.ring
+    pub fn ring(&self) -> Option<&str> {
+        self.ring.as_ref().map(|v| &**v)
     }
 }
 

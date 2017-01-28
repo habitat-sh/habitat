@@ -79,17 +79,19 @@ impl Service {
     /// Creates a new Service.
     pub fn new<T>(member_id: String,
                   package: &T,
-                  group: String,
-                  organization: Option<String>,
+                  service_group: &ServiceGroup,
                   exposes: Vec<u32>,
                   sys: &SysInfo,
                   cfg: Option<&toml::Table>)
-                  -> Self
+                  -> Result<Self>
         where T: Identifiable
     {
         assert!(package.fully_qualified(),
                 "Service constructor requires a fully qualified package identifier");
-        let service_group = ServiceGroup::new(package.name(), group, organization);
+        assert_eq!(service_group.service(),
+                   package.name(),
+                   "Service constructor requires the given package name to match the service \
+                    group's name");
         let mut rumor = ProtoRumor::new();
         rumor.set_from_id(member_id.clone());
         rumor.set_field_type(ProtoRumor_Type::Service);
@@ -111,7 +113,7 @@ impl Service {
         }
 
         rumor.set_service(proto);
-        Service(rumor)
+        Ok(Service(rumor))
     }
 }
 
@@ -149,23 +151,25 @@ mod tests {
     use std::cmp::Ordering;
     use std::str::FromStr;
 
-    use habitat_core::package::PackageIdent;
+    use habitat_core::service::ServiceGroup;
+    use habitat_core::package::{Identifiable, PackageIdent};
 
     use super::Service;
     use rumor::Rumor;
     use rumor::service::SysInfo;
 
     fn create_service(member_id: &str) -> Service {
+        let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();
+        let sg = ServiceGroup::new(pkg.name(), "production", None).unwrap();
         Service::new(member_id.to_string(),
-                     &PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap(),
-                     "production".to_string(),
-                     None,
+                     &pkg,
+                     &sg,
                      vec![9090, 9091],
                      &SysInfo::default(),
                      None)
+            .unwrap()
     }
 
-    // Equality
     #[test]
     fn identical_services_are_equal() {
         // Two different objects with the same member id, service group, and incarnation are equal
@@ -242,5 +246,19 @@ mod tests {
         let s2 = create_service("adam");
         assert_eq!(s1.merge(s2), false);
         assert_eq!(s1, s1_check);
+    }
+
+    #[test]
+    #[should_panic]
+    fn service_package_name_mismatch() {
+        let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
+        let sg = ServiceGroup::new("counter-strike", "times", Some("ofgrace")).unwrap();
+        Service::new("bad-member".to_string(),
+                     &ident,
+                     &sg,
+                     vec![],
+                     &SysInfo::default(),
+                     None)
+            .unwrap();
     }
 }

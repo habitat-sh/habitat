@@ -41,16 +41,15 @@ use util;
 static LOGKEY: &'static str = "SR";
 
 impl Service {
-    pub fn new<S: Into<String>>(package: Package,
-                                group: S,
-                                organization: Option<String>,
-                                topology: Topology,
-                                update_strategy: UpdateStrategy)
-                                -> Result<Service> {
-        // JW TODO: we need to store the service group as a complete string and return slices
-        // of it in functions. This would allow us to avoid allocating as many strings as we
-        // are forced to here.
-        let service_group = ServiceGroup::new(package.name.clone(), group, organization);
+    pub fn new<T>(package: Package,
+                  group: T,
+                  organization: Option<&str>,
+                  topology: Topology,
+                  update_strategy: UpdateStrategy)
+                  -> Result<Service>
+        where T: AsRef<str>
+    {
+        let service_group = ServiceGroup::new(&package.name, group, organization)?;
         let (svc_user, svc_group) = try!(util::users::get_user_and_group(&package.pkg_install));
         let runtime_config = RuntimeConfig::new(svc_user, svc_group);
         let supervisor = Supervisor::new(package.ident().clone(), &service_group, runtime_config);
@@ -149,7 +148,7 @@ impl Service {
                                         body: Vec<u8>)
                                         -> bool {
         self.current_service_files.insert(filename.clone(), incarnation);
-        let on_disk_path = fs::svc_files_path(&self.service_group.service).join(filename);
+        let on_disk_path = fs::svc_files_path(self.service_group.service()).join(filename);
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,
             Err(e) => {
@@ -223,7 +222,7 @@ impl Service {
 
     pub fn write_butterfly_service_config(&mut self, config: toml::Value) -> bool {
         let encoded = toml::encode_str(&config);
-        let on_disk_path = fs::svc_path(&self.service_group.service).join("gossip.toml");
+        let on_disk_path = fs::svc_path(self.service_group.service()).join("gossip.toml");
         let current_checksum = match hash::hash_file(&on_disk_path) {
             Ok(current_checksum) => current_checksum,
             Err(e) => {

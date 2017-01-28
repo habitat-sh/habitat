@@ -36,7 +36,7 @@ fn service_config_via_client() {
     let mut client = Client::new(net[0].gossip_addr(), None)
         .expect("Cannot create Butterfly Client");
     let payload = Vec::from("I want to get lost in you, tokyo".as_bytes());
-    client.send_service_config(ServiceGroup::new("witcher", "prod", None),
+    client.send_service_config(ServiceGroup::new("witcher", "prod", None).unwrap(),
                              0,
                              payload,
                              false)

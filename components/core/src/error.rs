@@ -143,7 +143,7 @@ impl fmt::Display for Error {
             Error::InvalidArchitecture(ref e) => format!("Invalid architecture: {}.", e),
             Error::InvalidPlatform(ref e) => format!("Invalid platform: {}.", e),
             Error::InvalidServiceGroup(ref e) => {
-                format!("Invalid service group: {:?}. A valid service group string is in the form \
+                format!("Invalid service group: {}. A valid service group string is in the form \
                          service.group (example: redis.production)",
                         e)
             }

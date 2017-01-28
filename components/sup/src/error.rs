@@ -144,6 +144,7 @@ pub enum Error {
     UnknownTopology(String),
     UnpackFailed,
 }
+
 impl fmt::Display for SupError {
     // We create a string for each type of error, then create a `StructuredOutput` for it, flip
     // verbose on, and print it.

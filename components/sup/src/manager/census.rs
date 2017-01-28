@@ -277,10 +277,10 @@ impl CensusEntry {
                 return;
             }
         };
-        self.set_service(sg.service.clone());
-        self.set_group(sg.group.clone());
-        if sg.organization.is_some() {
-            self.set_org(sg.organization.unwrap().clone());
+        self.set_service(sg.service().to_string());
+        self.set_group(sg.group().to_string());
+        if let Some(org) = sg.org() {
+            self.set_org(org.to_string());
         }
         self.set_ip(String::from(rumor.get_ip()));
         self.set_hostname(String::from(rumor.get_hostname()));
@@ -569,6 +569,7 @@ mod tests {
 
         use butterfly::rumor::service::{Service, SysInfo};
         use butterfly::member::Member;
+        use hcore::service::ServiceGroup;
         use hcore::package::ident::PackageIdent;
 
         use manager::census::CensusEntry;
@@ -585,13 +586,14 @@ mod tests {
         fn populate_from_service_rumor() {
             let mut ce = CensusEntry::default();
             let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
+            let sg = ServiceGroup::new("overwatch", "times", Some("ofgrace")).unwrap();
             let service = Service::new("neurosis".to_string(),
                                        &ident,
-                                       "times".to_string(),
-                                       Some("ofgrace".to_string()),
+                                       &sg,
                                        vec![6060, 8080],
                                        &SysInfo::default(),
-                                       None);
+                                       None)
+                .unwrap();
             ce.populate_from_service(&service);
             assert_eq!(ce.get_member_id(), "neurosis");
             assert_eq!(ce.get_service(), "overwatch");
