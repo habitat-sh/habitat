@@ -153,22 +153,10 @@ pub struct Config {
     url: String,
     topology: Topology,
     group: String,
-    path: String,
-    archive: String,
     bind: Vec<String>,
-    key: String,
-    email: Option<String>,
-    expire_days: Option<u16>,
-    userkey: Option<String>,
-    servicekey: Option<String>,
-    infile: Option<String>,
-    outfile: Option<String>,
     gossip_peer: Vec<String>,
     gossip_permanent: bool,
     update_strategy: UpdateStrategy,
-    service_group: String,
-    file_path: String,
-    version_number: u64,
     organization: Option<String>,
     ring: Option<String>,
     config_from: Option<String>,
@@ -191,17 +179,6 @@ impl Config {
         self.config_from.as_ref()
     }
 
-    /// Set the archive
-    pub fn set_archive(&mut self, archive: String) -> &mut Config {
-        self.archive = archive;
-        self
-    }
-
-    /// Return the archive
-    pub fn archive(&self) -> &str {
-        &self.archive
-    }
-
     pub fn set_update_strategy(&mut self, strat: UpdateStrategy) -> &mut Config {
         self.update_strategy = strat;
         self
@@ -221,93 +198,6 @@ impl Config {
     /// Return the command we used
     pub fn command(&self) -> Command {
         self.command
-    }
-
-    /// Set the key
-    pub fn set_key(&mut self, key: String) -> &mut Config {
-        self.key = key;
-        self
-    }
-
-    /// Return the key
-    pub fn key(&self) -> &str {
-        &self.key
-    }
-
-    /// Set the email address
-    pub fn set_email(&mut self, email: String) -> &mut Config {
-        self.email = Some(email);
-        self
-    }
-
-    /// Return the email address
-    pub fn email(&self) -> Option<&str> {
-        self.email.as_ref().map(|v| &**v)
-    }
-
-    /// Set the user key
-    pub fn set_user_key(&mut self, userkey: String) -> &mut Config {
-        self.userkey = Some(userkey);
-        self
-    }
-
-    /// Return the user key
-    pub fn user_key(&self) -> Option<&str> {
-        self.userkey.as_ref().map(|v| &**v)
-    }
-
-    /// Set the service key
-    pub fn set_service_key(&mut self, set_servicekey: String) -> &mut Config {
-        self.servicekey = Some(set_servicekey);
-        self
-    }
-
-    /// Return the service key
-    pub fn service_key(&self) -> Option<&str> {
-        self.servicekey.as_ref().map(|v| &**v)
-    }
-
-    /// Set the input file to encrypt/decrypt
-    pub fn set_infile(&mut self, infile: String) -> &mut Config {
-        self.infile = Some(infile);
-        self
-    }
-
-    /// Return the input file to encrypt/decrypt
-    pub fn infile(&self) -> Option<&str> {
-        self.infile.as_ref().map(|v| &**v)
-    }
-
-    /// Set the input file to encrypt/decrypt
-    pub fn set_outfile(&mut self, outfile: String) -> &mut Config {
-        self.outfile = Some(outfile);
-        self
-    }
-
-    /// Return the input file to encrypt/decrypt
-    pub fn outfile(&self) -> Option<&str> {
-        self.outfile.as_ref().map(|v| &**v)
-    }
-
-    /// Set the key expire days
-    pub fn set_expire_days(&mut self, expire_days: u16) -> &mut Config {
-        self.expire_days = Some(expire_days);
-        self
-    }
-
-    pub fn expire_days(&self) -> Option<u16> {
-        self.expire_days
-    }
-
-    /// Set the path
-    pub fn set_path(&mut self, path: String) -> &mut Config {
-        self.path = path;
-        self
-    }
-
-    /// Return the path
-    pub fn path(&self) -> &str {
-        &self.path
     }
 
     /// Set the group
@@ -390,39 +280,6 @@ impl Config {
         &self.gossip_peer
     }
 
-    /// Set the service group
-    pub fn set_service_group(&mut self, sg: String) -> &mut Config {
-        self.service_group = sg;
-        self
-    }
-
-    /// Return the service group
-    pub fn service_group(&self) -> &str {
-        &self.service_group
-    }
-
-    /// Set the file path
-    pub fn set_file_path(&mut self, fp: String) -> &mut Config {
-        self.file_path = fp;
-        self
-    }
-
-    /// Return the file path
-    pub fn file_path(&self) -> &str {
-        &self.file_path
-    }
-
-    /// Set the version number
-    pub fn set_version_number(&mut self, vn: u64) -> &mut Config {
-        self.version_number = vn;
-        self
-    }
-
-    /// Return the version number
-    pub fn version_number(&self) -> &u64 {
-        &self.version_number
-    }
-
     pub fn set_gossip_peer(&mut self, mut gp: Vec<String>) -> &mut Config {
         for p in gp.iter_mut() {
             if p.find(':').is_none() {
@@ -488,20 +345,6 @@ mod tests {
         let mut c = Config::new();
         c.set_command(Command::Start);
         assert_eq!(c.command(), Command::Start);
-    }
-
-    #[test]
-    fn key() {
-        let mut c = Config::new();
-        c.set_key(String::from("foolio"));
-        assert_eq!(c.key(), "foolio");
-    }
-
-    #[test]
-    fn path() {
-        let mut c = Config::new();
-        c.set_path(String::from("foolio"));
-        assert_eq!(c.path(), "foolio");
     }
 
     #[test]
