@@ -1246,13 +1246,16 @@ download_file() {
 # Will return 0 if the shasums match, and 1 if they do not match. A message
 # will be printed to stderr with the expected and computed shasum values.
 verify_file() {
-  build_line "Verifying $1"
-  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$1))
-  if [[ $2 = $checksum ]]; then
-    build_line "Checksum verified for $1"
+  local file="$1"
+  local expected="$2"
+
+  build_line "Verifying $file"
+  local checksum=($($_shasum_cmd $HAB_CACHE_SRC_PATH/$file))
+  if [[ $expected = $checksum ]]; then
+    build_line "Checksum verified for $file"
   else
-    warn "Checksum invalid for $1:"
-    warn "   Expected: $2"
+    warn "Checksum invalid for $file:"
+    warn "   Expected: ${expected}"
     warn "   Computed: ${checksum}"
     return 1
   fi
@@ -1273,27 +1276,22 @@ unpack_file() {
   local unpack_file="$HAB_CACHE_SRC_PATH/$1"
   # Thanks to:
   # http://stackoverflow.com/questions/17420994/bash-regex-match-string
-  if [[ -f $unpack_file ]]; then
-    pushd $HAB_CACHE_SRC_PATH > /dev/null
-    case $unpack_file in
-      *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
-        $_tar_cmd xf $unpack_file
-        ;;
-      *.bz2)  bunzip2 $unpack_file    ;;
-      *.rar)  rar x $unpack_file      ;;
-      *.gz)   gunzip $unpack_file     ;;
-      *.zip)  unzip $unpack_file      ;;
-      *.Z)    uncompress $unpack_file ;;
-      *.7z)   7z x $unpack_file       ;;
-      *)
-        warn "Error: unknown archive format '.${unpack_file##*.}'"
-        return 1
-        ;;
-    esac
-  else
-    warn "'$1' is not a valid file!"
-    return 1
-  fi
+  pushd $HAB_CACHE_SRC_PATH > /dev/null
+  case $unpack_file in
+    *.tar.bz2|*.tbz2|*.tar.gz|*.tgz|*.tar|*.xz)
+      $_tar_cmd xf $unpack_file
+      ;;
+    *.bz2)  bunzip2 $unpack_file    ;;
+    *.rar)  rar x $unpack_file      ;;
+    *.gz)   gunzip $unpack_file     ;;
+    *.zip)  unzip $unpack_file      ;;
+    *.Z)    uncompress $unpack_file ;;
+    *.7z)   7z x $unpack_file       ;;
+    *)
+      warn "Error: unknown archive format '.${unpack_file##*.}'"
+      return 1
+      ;;
+  esac
   popd > /dev/null
   return 0
 }
@@ -1569,7 +1567,15 @@ do_download() {
 
 # Default implementation for the `do_download()` phase.
 do_default_download() {
-  download_file $pkg_source $pkg_filename $pkg_shasum
+  if [[ $pkg_source == "."* ]]; then
+    # File is a local path, so is already downloaded.
+    cp -r $pkg_source $HAB_CACHE_SRC_PATH/$pkg_filename
+    return 0
+  else
+    # File needs to be fetched.
+    download_file $pkg_source $pkg_filename $pkg_shasum
+    return $?
+  fi
 }
 
 # Verify that the package we have in `$HAB_CACHE_SRC_PATH/$pkg_filename` has
@@ -1582,7 +1588,13 @@ do_verify() {
 
 # Default implementation for the `do_verify()` phase.
 do_default_verify() {
-  verify_file $pkg_filename $pkg_shasum
+  if [[ -d $pkg_filename ]]; then
+    # Since the source is a directory, we can't really verify it.
+    return 0
+  else
+    verify_file $pkg_filename $pkg_shasum
+    return $?
+  fi
 }
 
 # Clean up the remnants of any previous build job, ensuring it can't pollute
@@ -1613,7 +1625,15 @@ do_unpack() {
 
 # Default implementation for the `do_unpack()` phase.
 do_default_unpack() {
-  unpack_file $pkg_filename
+  if [[ -f $HAB_CACHE_SRC_PATH/$pkg_filename ]]; then
+    unpack_file $pkg_filename
+    return $?
+  elif [[ -d $HAB_CACHE_SRC_PATH/$pkg_filename ]]; then
+    return 0
+  else
+    warn "'$pkg_filename' is not a valid file!"
+    return 1
+  fi
 }
 
 # **Internal** Set up our build environment. First, add any library paths
@@ -2446,15 +2466,17 @@ _resolve_dependencies
 
 _set_path
 
-# Download the source
+# Ensure the cache folder is created.
 mkdir -pv "$HAB_CACHE_SRC_PATH"
+
+# Clean the cache
+do_clean
+
+# Download the source.
 do_download
 
 # Verify the source
 do_verify
-
-# Clean the cache
-do_clean
 
 # Unpack the source
 do_unpack

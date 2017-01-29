@@ -35,10 +35,10 @@ pkg_license={{ pkg_license }}
 # pkg_license=('Apache-2.0')
 {{/if}}
 # Required.
-# A URL that specifies where to download the source from. Any valid wget url
-# will work. Typically, the relative path for the URL is partially constructed
-# from the pkg_name and pkg_version values; however, this convention is not
-# required.
+# A URL that specifies where to download the source from, or a relative path.
+# Any valid wget url or relative path from the plan.sh will work. Typically,
+# the relative path for the URL is partially constructed from the pkg_name
+# and pkg_version values; however, this convention is not required.
 {{#if pkg_source ~}}
 pkg_source="{{ pkg_source }}"
 {{else ~}}
@@ -52,7 +52,7 @@ pkg_filename="{{ pkg_filename }}"
 {{else ~}}
 # pkg_filename="${pkg_name}-${pkg_version}.tar.gz"
 {{/if}}
-# Required if a valid URL is provided for pkg_source or unless do_verify() is overridden.
+# Required if a valid URL is provided for pkg_source, not required for local dirs.
 # The value for pkg_shasum is a sha-256 sum of the downloaded pkg_source. If you
 # do not have the checksum, you can easily generate it by downloading the source
 # and using the sha256sum or gsha256sum tools. Also, if you do not have
