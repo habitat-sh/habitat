@@ -109,7 +109,7 @@ impl Supervisor {
     pub fn start(&mut self) -> Result<()> {
         if self.child.is_none() {
             outputln!(preamble self.preamble,
-                      "Starting prcoess as user={}, group={}",
+                      "Starting process as user={}, group={}",
                       &self.runtime_config.svc_user,
                       &self.runtime_config.svc_group);
             self.enter_state(ProcessState::Start);
