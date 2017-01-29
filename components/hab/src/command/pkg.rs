@@ -183,17 +183,24 @@ pub mod export {
 
         pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
             match value {
-                "docker" => {
-                    let format = ExportFormat {
-                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-dockerize")),
-                        cmd: "hab-pkg-dockerize".to_string(),
-                    };
-                    Ok(format)
-                }
                 "aci" => {
                     let format = ExportFormat {
                         pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-aci")),
                         cmd: "hab-pkg-aci".to_string(),
+                    };
+                    Ok(format)
+                }
+                "deb" => {
+                    let format = ExportFormat {
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-deb")),
+                        cmd: "hab-pkg-deb".to_string(),
+                    };
+                    Ok(format)
+                }
+                "docker" => {
+                    let format = ExportFormat {
+                        pkg_ident: try!(PackageIdent::from_str("core/hab-pkg-dockerize")),
+                        cmd: "hab-pkg-dockerize".to_string(),
                     };
                     Ok(format)
                 }
