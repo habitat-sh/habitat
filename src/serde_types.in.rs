@@ -49,7 +49,7 @@ pub mod package_target {
 
     /// Describes the platform (operating system/kernel)
     /// and architecture (x86_64, i386, etc..) that a package is built for
-    #[derive(Serialize, Deserialize, Debug, Clone, Hash)]
+    #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
     pub struct PackageTarget {
         pub platform: Platform,
         pub architecture: Architecture,
