@@ -1,0 +1,26 @@
+[package]
+name = "hab-spider"
+version = "0.1.0"
+authors = ["Salim Alam <salam@chef.io>"]
+workspace = "../../"
+
+[dependencies]
+log = "*"
+env_logger = "*"
+petgraph = "*"
+walkdir = "*"
+libarchive = "*"
+time = "*"
+clap = "2"
+
+[dependencies.habitat_core]
+path = "../core"
+
+[dependencies.habitat_builder_protocol]
+path = "../builder-protocol"
+
+[build-dependencies]
+pkg-config = "0.3"
+
+[profile.release]
+debug = true
