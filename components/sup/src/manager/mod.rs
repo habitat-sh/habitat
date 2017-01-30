@@ -71,11 +71,11 @@ impl Manager {
         member.set_gossip_port(gconfig().gossip_listen().port() as i32);
 
         let ring_key = match gconfig().ring() {
-            &Some(ref ring_with_revision) => {
+            Some(ring_with_revision) => {
                 outputln!("Joining ring {}", ring_with_revision);
                 Some(try!(SymKey::get_pair_for(&ring_with_revision, &default_cache_key_path(None))))
             }
-            &None => None,
+            None => None,
         };
 
         let server = try!(butterfly::Server::new(gconfig().gossip_listen(),
@@ -121,11 +121,10 @@ impl Manager {
 
         let service_rumor = ServiceRumor::new(self.state.butterfly.member_id().to_string(),
                                               service.package.ident(),
-                                              service.service_group.group.clone(),
-                                              service.service_group.organization.clone(),
+                                              &service.service_group,
                                               exposes,
                                               &*svc_cfg.sys,
-                                              Some(&cfg));
+                                              Some(&cfg))?;
         self.state.butterfly.insert_service(service_rumor);
 
         if service.topology == Topology::Leader || service.topology == Topology::Initializer {
@@ -307,7 +306,7 @@ impl Manager {
                         .list
                         .read()
                         .expect("Rumor store lock poisoned");
-                    list.get(&service.service_group.as_string())
+                    list.get(&*service.service_group)
                         .and_then(|r| r.get(&member_id))
                         .unwrap()
                         .clone()
@@ -390,7 +389,7 @@ impl Manager {
             self.state
                 .butterfly
                 .service_store
-                .with_rumor(&service.service_group.as_string(), &me, |rumor| {
+                .with_rumor(&*service.service_group, &me, |rumor| {
                     if let Some(rumor) = rumor {
                         let mut rumor = rumor.clone();
                         let incarnation = rumor.get_incarnation() + 1;

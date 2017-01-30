@@ -113,7 +113,7 @@ impl ServiceUpdater {
                 *rx = Worker::new(service).start(&service.service_group, None);
             }
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::AwaitingElection)) => {
-                if let Some(census) = census_list.get(&service.service_group.as_string()) {
+                if let Some(census) = census_list.get(&*service.service_group) {
                     if service.topology == Topology::Leader {
                         debug!("Rolling Update, determining proper suitability because we're in \
                                 a leader topology");
@@ -140,7 +140,7 @@ impl ServiceUpdater {
                 }
             }
             Some(&mut UpdaterState::Rolling(ref mut st @ RollingState::InElection)) => {
-                if let Some(census) = census_list.get(&service.service_group.as_string()) {
+                if let Some(census) = census_list.get(&*service.service_group) {
                     match (census.me(), census.get_update_leader()) {
                         (Some(me), Some(leader)) => {
                             if me == leader {
@@ -176,7 +176,7 @@ impl ServiceUpdater {
                         }
                     }
                     LeaderState::Waiting => {
-                        match census_list.get(&service.service_group.as_string()) {
+                        match census_list.get(&*service.service_group) {
                             Some(census) => {
                                 if census.members_ordered().iter().any(|ce| {
                                     ce.package_ident.as_ref().unwrap() !=
@@ -190,7 +190,7 @@ impl ServiceUpdater {
                             }
                             None => {
                                 panic!("Expected census list to have service group '{}'!",
-                                       &service.service_group.as_string())
+                                       &*service.service_group)
                             }
                         }
                     }
@@ -202,7 +202,7 @@ impl ServiceUpdater {
             Some(&mut UpdaterState::Rolling(RollingState::Follower(ref mut state))) => {
                 match *state {
                     FollowerState::Waiting => {
-                        match census_list.get(&service.service_group.as_string()) {
+                        match census_list.get(&*service.service_group) {
                             Some(census) => {
                                 match (census.get_update_leader(),
                                        census.previous_peer(),
@@ -227,12 +227,12 @@ impl ServiceUpdater {
                             }
                             None => {
                                 panic!("Expected census list to have service group '{}'!",
-                                       &service.service_group.as_string())
+                                       &*service.service_group)
                             }
                         }
                     }
                     FollowerState::Updating(ref mut rx) => {
-                        match census_list.get(&service.service_group.as_string()) {
+                        match census_list.get(&*service.service_group) {
                             Some(census) => {
                                 match rx.try_recv() {
                                     Ok(package) => {
@@ -254,7 +254,7 @@ impl ServiceUpdater {
                             }
                             None => {
                                 panic!("Expected census list to have service group '{}'!",
-                                       &service.service_group.as_string())
+                                       &*service.service_group)
                             }
                         }
                     }

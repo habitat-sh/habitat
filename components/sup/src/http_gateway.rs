@@ -134,10 +134,10 @@ fn census(req: &mut Request) -> IronResult<Response> {
 
 fn config(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    let service_group =
-        ServiceGroup::new(req.extensions.get::<Router>().unwrap().find("svc").unwrap(),
-                          req.extensions.get::<Router>().unwrap().find("group").unwrap(),
-                          req.extensions.get::<Router>().unwrap().find("org").map(|v| v.into()));
+    let service_group = match build_service_group(req) {
+        Ok(sg) => sg,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
     let services = state.services.read().unwrap();
     match services.iter().find(|s| s.service_group == service_group) {
         Some(service) => {
@@ -155,10 +155,10 @@ fn config(req: &mut Request) -> IronResult<Response> {
 
 fn health(req: &mut Request) -> IronResult<Response> {
     let state = req.get::<persistent::Read<ManagerState>>().unwrap();
-    let service_group =
-        ServiceGroup::new(req.extensions.get::<Router>().unwrap().find("svc").unwrap(),
-                          req.extensions.get::<Router>().unwrap().find("group").unwrap(),
-                          req.extensions.get::<Router>().unwrap().find("org").map(|v| v.into()));
+    let service_group = match build_service_group(req) {
+        Ok(sg) => sg,
+        Err(_) => return Ok(Response::with(status::BadRequest)),
+    };
     let services = state.services.read().unwrap();
     match services.iter().find(|s| s.service_group == service_group) {
         Some(service) => {
@@ -196,4 +196,12 @@ impl Into<status::Status> for health_check::CheckResult {
             health_check::CheckResult::Unknown => status::InternalServerError,
         }
     }
+}
+
+fn build_service_group(req: &mut Request) -> Result<ServiceGroup> {
+    let sg =
+        ServiceGroup::new(req.extensions.get::<Router>().unwrap().find("svc").unwrap_or(""),
+                          req.extensions.get::<Router>().unwrap().find("group").unwrap_or(""),
+                          req.extensions.get::<Router>().unwrap().find("org"))?;
+    Ok(sg)
 }

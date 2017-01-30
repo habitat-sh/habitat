@@ -29,12 +29,17 @@ use super::super::{BOX_FORMAT_VERSION, PUBLIC_KEY_SUFFIX, SECRET_BOX_KEY_SUFFIX}
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
 impl BoxKeyPair {
-    pub fn generate_pair_for_service<P: AsRef<Path> + ?Sized>(org: &str,
-                                                              service_group: &str,
-                                                              cache_key_path: &P)
-                                                              -> Result<Self> {
+    pub fn generate_pair_for_service<S1, S2, P>(org: S1,
+                                                service_group: S2,
+                                                cache_key_path: P)
+                                                -> Result<Self>
+        where S1: AsRef<str>,
+              S2: AsRef<str>,
+              P: AsRef<Path>
+    {
         let revision = try!(mk_revision_string());
-        let keyname = Self::mk_key_name_for_service(org, service_group, &revision);
+        let keyname =
+            Self::mk_key_name_for_service(org.as_ref(), service_group.as_ref(), &revision);
         debug!("new service box key name = {}", &keyname);
         let (public_key, secret_key) = try!(Self::generate_pair_files(&keyname,
                                                                       cache_key_path.as_ref()));
@@ -54,60 +59,61 @@ impl BoxKeyPair {
         Ok(Self::new(name, revision, Some(public_key), Some(secret_key)))
     }
 
-    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
-                                                  cache_key_path: &P)
-                                                  -> Result<Vec<Self>> {
-        let revisions = try!(get_key_revisions(name, cache_key_path.as_ref()));
+    pub fn get_pairs_for<T, P>(name: T, cache_key_path: P) -> Result<Vec<Self>>
+        where T: AsRef<str>,
+              P: AsRef<Path>
+    {
+        let revisions = try!(get_key_revisions(name.as_ref(), cache_key_path.as_ref()));
         let mut key_pairs = Vec::new();
-        for name_with_rev in &revisions {
+        for name_with_rev in revisions {
             debug!("Attempting to read key name_with_rev {} for {}",
                    name_with_rev,
-                   name);
-            let kp = try!(Self::get_pair_for(name_with_rev, cache_key_path));
+                   name.as_ref());
+            let kp = try!(Self::get_pair_for(name_with_rev, cache_key_path.as_ref()));
             key_pairs.push(kp);
         }
         Ok(key_pairs)
     }
 
-    pub fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
-                                                 cache_key_path: &P)
-                                                 -> Result<Self> {
-        let (name, rev) = try!(parse_name_with_rev(&name_with_rev));
-        let pk = match Self::get_public_key(name_with_rev, cache_key_path.as_ref()) {
+    pub fn get_pair_for<T, P>(name_with_rev: T, cache_key_path: P) -> Result<Self>
+        where T: AsRef<str>,
+              P: AsRef<Path>
+    {
+        let (name, rev) = try!(parse_name_with_rev(name_with_rev.as_ref()));
+        let pk = match Self::get_public_key(name_with_rev.as_ref(), cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
-                // Not an error, just continue
                 debug!("Can't find public key for name_with_rev {}: {}",
-                       name_with_rev,
+                       name_with_rev.as_ref(),
                        e);
                 None
             }
         };
-        let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
+        let sk = match Self::get_secret_key(name_with_rev.as_ref(), cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
-                // Not an error, just continue
                 debug!("Can't find secret key for name_with_rev {}: {}",
-                       name_with_rev,
+                       name_with_rev.as_ref(),
                        e);
                 None
             }
         };
         if pk == None && sk == None {
             let msg = format!("No public or secret keys found for name_with_rev {}",
-                              name_with_rev);
+                              name_with_rev.as_ref());
             return Err(Error::CryptoError(msg));
         }
         Ok(Self::new(name, rev, pk, sk))
     }
 
-    pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
-                                                        cache_key_path: &P)
-                                                        -> Result<Self> {
-        let mut all = try!(Self::get_pairs_for(name, cache_key_path));
+    pub fn get_latest_pair_for<T, P>(name: T, cache_key_path: P) -> Result<Self>
+        where T: AsRef<str>,
+              P: AsRef<Path>
+    {
+        let mut all = try!(Self::get_pairs_for(name.as_ref(), cache_key_path.as_ref()));
         match all.len() {
             0 => {
-                let msg = format!("No revisions found for {} box key", name);
+                let msg = format!("No revisions found for {} box key", name.as_ref());
                 return Err(Error::CryptoError(msg));
             }
             _ => Ok(all.remove(0)),
@@ -151,10 +157,12 @@ impl BoxKeyPair {
     /// Decrypt data from a user that was received at a service
     /// Key names are embedded in the message payload which must
     /// be present while decrypting.
-    pub fn decrypt<P: AsRef<Path> + ?Sized>(payload: &[u8], cache_key_path: &P) -> Result<Vec<u8>> {
+    pub fn decrypt<P>(payload: &[u8], cache_key_path: P) -> Result<Vec<u8>>
+        where P: AsRef<Path>
+    {
         debug!("Decrypt key path = {}", cache_key_path.as_ref().display());
         let mut lines = try!(str::from_utf8(payload)).lines();
-        let _ = match lines.next() {
+        match lines.next() {
             Some(val) => {
                 if val != BOX_FORMAT_VERSION {
                     return Err(Error::CryptoError(format!("Unsupported version: {}", val)));
@@ -165,16 +173,16 @@ impl BoxKeyPair {
                 return Err(Error::CryptoError("Corrupt payload, can't read file version"
                     .to_string()));
             }
-        };
+        }
         let sender = match lines.next() {
-            Some(val) => try!(Self::get_pair_for(&val, cache_key_path)),
+            Some(val) => try!(Self::get_pair_for(val, cache_key_path.as_ref())),
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read sender key name"
                     .to_string()));
             }
         };
         let receiver = match lines.next() {
-            Some(val) => try!(Self::get_pair_for(&val, cache_key_path)),
+            Some(val) => try!(Self::get_pair_for(val, cache_key_path.as_ref())),
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read receiver key name"
                     .to_string()));
@@ -182,7 +190,8 @@ impl BoxKeyPair {
         };
         let nonce = match lines.next() {
             Some(val) => {
-                let decoded = try!(base64::decode(val).map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e))));
+                let decoded = try!(base64::decode(val)
+                    .map_err(|e| Error::CryptoError(format!("Can't decode nonce: {}", e))));
                 match Nonce::from_slice(&decoded) {
                     Some(nonce) => nonce,
                     None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
@@ -194,14 +203,14 @@ impl BoxKeyPair {
         };
         let ciphertext = match lines.next() {
             Some(val) => {
-                try!(base64::decode(val).map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e))))
+                try!(base64::decode(val)
+                    .map_err(|e| Error::CryptoError(format!("Can't decode ciphertext: {}", e))))
             }
             None => {
                 return Err(Error::CryptoError("Corrupt payload, can't read ciphertext"
                     .to_string()));
             }
         };
-
         match box_::open(&ciphertext,
                          &nonce,
                          try!(sender.public()),
@@ -234,26 +243,34 @@ impl BoxKeyPair {
         Ok((pk, sk))
     }
 
-    fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<BoxPublicKey> {
-        let public_keyfile = mk_key_filename(cache_key_path, key_with_rev, PUBLIC_KEY_SUFFIX);
+    fn get_public_key<T, P>(key_with_rev: T, cache_key_path: P) -> Result<BoxPublicKey>
+        where T: AsRef<str>,
+              P: AsRef<Path>
+    {
+        let public_keyfile =
+            mk_key_filename(cache_key_path, key_with_rev.as_ref(), PUBLIC_KEY_SUFFIX);
         let bytes = try!(read_key_bytes(&public_keyfile));
         match BoxPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
                 return Err(Error::CryptoError(format!("Can't read box public key for {}",
-                                                      key_with_rev)))
+                                                      key_with_rev.as_ref())))
             }
         }
     }
 
-    fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<BoxSecretKey> {
-        let secret_keyfile = mk_key_filename(cache_key_path, key_with_rev, SECRET_BOX_KEY_SUFFIX);
+    fn get_secret_key<T, P>(key_with_rev: T, cache_key_path: P) -> Result<BoxSecretKey>
+        where T: AsRef<str>,
+              P: AsRef<Path>
+    {
+        let secret_keyfile =
+            mk_key_filename(cache_key_path, key_with_rev.as_ref(), SECRET_BOX_KEY_SUFFIX);
         let bytes = try!(read_key_bytes(&secret_keyfile));
         match BoxSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
                 return Err(Error::CryptoError(format!("Can't read box secret key for {}",
-                                                      key_with_rev)))
+                                                      key_with_rev.as_ref())))
             }
         }
     }
@@ -348,8 +365,8 @@ mod test {
         let pairs = BoxKeyPair::get_pairs_for("wecoyote", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
-            Some(pair) => pair,
+        match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
+            Some(_) => (),
             None => panic!("Failed to generate another keypair after waiting"),
         };
         let pairs = BoxKeyPair::get_pairs_for("wecoyote", cache.path()).unwrap();
@@ -364,8 +381,8 @@ mod test {
     #[test]
     fn get_pair_for() {
         let cache = TempDir::new("key_cache").unwrap();
-        let p1 = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
-        let p2 = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
+        let p1 = BoxKeyPair::generate_pair_for_user("web", cache.path()).unwrap();
+        let p2 = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("web", cache.path())) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -398,13 +415,13 @@ mod test {
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = TempDir::new("key_cache").unwrap();
-        let _ = BoxKeyPair::generate_pair_for_user("wecoyote", cache.path()).unwrap();
-        let p2 = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("wecoyote", cache.path())) {
+        let _ = BoxKeyPair::generate_pair_for_user("web", cache.path()).unwrap();
+        let p2 = match wait_until_ok(|| BoxKeyPair::generate_pair_for_user("web", cache.path())) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
 
-        let latest = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
+        let latest = BoxKeyPair::get_latest_pair_for("web", cache.path()).unwrap();
         assert_eq!(latest.name, p2.name);
         assert_eq!(latest.rev, p2.rev);
     }

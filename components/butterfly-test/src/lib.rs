@@ -34,7 +34,7 @@ use habitat_butterfly::rumor::service_config::ServiceConfig;
 use habitat_butterfly::rumor::service_file::ServiceFile;
 use habitat_butterfly::message::swim::Election_Status;
 use habitat_core::service::ServiceGroup;
-use habitat_core::package::PackageIdent;
+use habitat_core::package::{Identifiable, PackageIdent};
 use habitat_core::crypto::keys::sym_key::SymKey;
 use habitat_butterfly::trace::Trace;
 
@@ -413,21 +413,21 @@ impl SwimNet {
     pub fn add_service(&mut self, member: usize, package: &str) {
         let ident = PackageIdent::from_str(package)
             .expect("package needs to be a fully qualified package identifier");
-
+        let sg = ServiceGroup::new(ident.name(), "prod", None).unwrap();
         let s = Service::new(self[member].member_id().to_string(),
                              &ident,
-                             "prod".to_string(),
-                             None,
+                             &sg,
                              vec![4040, 4041, 4042],
                              &SysInfo::default(),
-                             None);
+                             None)
+            .unwrap();
         self[member].insert_service(s);
     }
 
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
         let config_bytes: Vec<u8> = Vec::from(config);
         let s = ServiceConfig::new(self[member].member_id(),
-                                   ServiceGroup::new(service, "prod", None),
+                                   ServiceGroup::new(service, "prod", None).unwrap(),
                                    config_bytes);
         self[member].insert_service_config(s);
     }
@@ -435,14 +435,16 @@ impl SwimNet {
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
         let body_bytes: Vec<u8> = Vec::from(body);
         let s = ServiceFile::new(self[member].member_id(),
-                                 ServiceGroup::new(service, "prod", None),
+                                 ServiceGroup::new(service, "prod", None).unwrap(),
                                  filename,
                                  body_bytes);
         self[member].insert_service_file(s);
     }
 
     pub fn add_election(&mut self, member: usize, service: &str, suitability: u64) {
-        self[member].start_election(ServiceGroup::new(service, "prod", None), suitability, 0);
+        self[member].start_election(ServiceGroup::new(service, "prod", None).unwrap(),
+                                    suitability,
+                                    0);
     }
 }
 

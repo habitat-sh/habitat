@@ -154,7 +154,7 @@ impl<P, S> KeyPair<P, S> {
 /// file (without path, without .suffix) to the set. This function doesn't
 /// return an error on a "bad" file, the bad file key name just doesn't get
 /// added to the set.
-fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<String>) -> () {
+fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<String>) {
     let caps = match KEYFILE_RE.captures(&filename) {
         Some(c) => c,
         None => {
@@ -202,14 +202,16 @@ fn check_filename(keyname: &str, filename: String, candidates: &mut HashSet<Stri
 
 /// Take a key name (ex "habitat"), and find all revisions of that
 /// keyname in the default_cache_key_path().
-fn get_key_revisions(keyname: &str, cache_key_path: &Path) -> Result<Vec<String>> {
+fn get_key_revisions<P>(keyname: &str, cache_key_path: P) -> Result<Vec<String>>
+    where P: AsRef<Path>
+{
     // accumulator for files that match
     let mut candidates = HashSet::new();
-    let paths = match fs::read_dir(cache_key_path) {
+    let paths = match fs::read_dir(cache_key_path.as_ref()) {
         Ok(p) => p,
         Err(e) => {
             return Err(Error::CryptoError(format!("Error reading key directory {}: {}",
-                                                  cache_key_path.display(),
+                                                  cache_key_path.as_ref().display(),
                                                   e)))
         }
     };
@@ -256,8 +258,12 @@ fn get_key_revisions(keyname: &str, cache_key_path: &Path) -> Result<Vec<String>
     Ok(candidate_vec)
 }
 
-fn mk_key_filename(path: &Path, keyname: &str, suffix: &str) -> PathBuf {
-    path.join(format!("{}.{}", keyname, suffix))
+fn mk_key_filename<P, S1, S2>(path: P, keyname: S1, suffix: S2) -> PathBuf
+    where P: AsRef<Path>,
+          S1: AsRef<str>,
+          S2: AsRef<str>
+{
+    path.as_ref().join(format!("{}.{}", keyname.as_ref(), suffix.as_ref()))
 }
 
 /// generates a revision string in the form:
@@ -273,11 +279,14 @@ fn mk_revision_string() -> Result<String> {
     }
 }
 
-pub fn parse_name_with_rev(name_with_rev: &str) -> Result<(String, String)> {
-    let caps = match NAME_WITH_REV_RE.captures(name_with_rev) {
+pub fn parse_name_with_rev<T>(name_with_rev: T) -> Result<(String, String)>
+    where T: AsRef<str>
+{
+    let caps = match NAME_WITH_REV_RE.captures(name_with_rev.as_ref()) {
         Some(c) => c,
         None => {
-            let msg = format!("parse_name_with_rev:1 Cannot parse {}", &name_with_rev);
+            let msg = format!("parse_name_with_rev:1 Cannot parse {}",
+                              name_with_rev.as_ref());
             return Err(Error::CryptoError(msg));
         }
     };
@@ -285,7 +294,7 @@ pub fn parse_name_with_rev(name_with_rev: &str) -> Result<(String, String)> {
         Some(r) => r.as_str().to_string(),
         None => {
             let msg = format!("parse_name_with_rev:2 Cannot parse name from {}",
-                              &name_with_rev);
+                              name_with_rev.as_ref());
             return Err(Error::CryptoError(msg));
         }
     };
@@ -293,7 +302,7 @@ pub fn parse_name_with_rev(name_with_rev: &str) -> Result<(String, String)> {
         Some(r) => r.as_str().to_string(),
         None => {
             let msg = format!("parse_name_with_rev:3 Cannot parse rev from {}",
-                              &name_with_rev);
+                              name_with_rev.as_ref());
             return Err(Error::CryptoError(msg));
         }
     };

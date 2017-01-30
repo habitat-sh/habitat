@@ -16,7 +16,7 @@ use std::path::Path;
 use std::result;
 
 use clap::App;
-use regex::Regex;
+use hcore::service::ServiceGroup;
 
 pub fn get() -> App<'static, 'static> {
     clap_app!(hab_butterfly =>
@@ -87,10 +87,8 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
 }
 
 fn valid_service_group(val: String) -> result::Result<(), String> {
-    let regex = Regex::new(r"([A-Za-z_0-9]+)\.([A-Za-z_0-9]+)").unwrap();
-    if regex.is_match(&val) {
-        Ok(())
-    } else {
-        Err(format!("SERVICE_GROUP: '{}' is invalid", &val))
+    match ServiceGroup::validate(&val) {
+        Ok(()) => Ok(()),
+        Err(err) => Err(err.to_string()),
     }
 }

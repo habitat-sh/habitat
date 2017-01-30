@@ -167,11 +167,10 @@ mod tests {
     fn create_service_config(member_id: &str, config: &str) -> ServiceConfig {
         let config_bytes: Vec<u8> = Vec::from(config);
         ServiceConfig::new(member_id,
-                           ServiceGroup::new("neurosis", "production", None),
+                           ServiceGroup::new("neurosis", "production", None).unwrap(),
                            config_bytes)
     }
 
-    // Equality
     #[test]
     fn identical_service_config_are_equal() {
         let s1 = create_service_config("adam", "yep");

@@ -16,7 +16,6 @@ hyper = "*"
 libc = "*"
 log = "*"
 pbr = "*"
-regex = "*"
 retry = "*"
 # Temporary depdency for gossip/rumor injection code duplication.
 temp_utp = "*"

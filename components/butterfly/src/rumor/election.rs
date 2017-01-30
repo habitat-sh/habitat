@@ -274,7 +274,7 @@ mod tests {
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(member_id,
-                      ServiceGroup::new("tdep", "prod", None),
+                      ServiceGroup::new("tdep", "prod", None).unwrap(),
                       suitability)
     }
 

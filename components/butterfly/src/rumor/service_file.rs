@@ -162,12 +162,11 @@ mod tests {
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
         ServiceFile::new(member_id,
-                         ServiceGroup::new("neurosis", "production", None),
+                         ServiceGroup::new("neurosis", "production", None).unwrap(),
                          filename,
                          body_bytes)
     }
 
-    // Equality
     #[test]
     fn identical_service_file_are_equal() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");

@@ -14,12 +14,13 @@
 
 use std::fmt;
 use std::result;
+use std::ops::{Deref, DerefMut};
 use std::str::FromStr;
 
 use regex::Regex;
 
 pub use types::service::*;
-use error::Error;
+use error::{Error, Result};
 
 lazy_static! {
     static ref FROM_STR_RE: Regex =
@@ -27,35 +28,81 @@ lazy_static! {
 }
 
 impl ServiceGroup {
-    pub fn new<S1, S2>(service: S1, group: S2, organization: Option<String>) -> Self
-        where S1: Into<String>,
-              S2: Into<String>
+    pub fn new<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> Result<Self>
+        where S1: AsRef<str>,
+              S2: AsRef<str>
     {
-        ServiceGroup {
-            service: service.into(),
-            group: group.into(),
-            organization: organization,
+        let formatted = Self::format(service, group, organization);
+        try!(Self::validate(&formatted));
+        Ok(ServiceGroup(formatted))
+    }
+
+    pub fn format<S1, S2>(service: S1, group: S2, organization: Option<&str>) -> String
+        where S1: AsRef<str>,
+              S2: AsRef<str>
+    {
+        if let Some(org) = organization {
+            format!("{}.{}@{}", service.as_ref(), group.as_ref(), org)
+        } else {
+            format!("{}.{}", service.as_ref(), group.as_ref())
         }
     }
 
-    // returns ".org" if self.organization is Some, otherwise an empty string
-    pub fn dotted_org_or_empty(&self) -> String {
-        self.organization.as_ref().map_or("".to_string(), |s| format!(".{}", &s))
+    pub fn validate(value: &str) -> Result<()> {
+        let caps = FROM_STR_RE.captures(value)
+            .ok_or(Error::InvalidServiceGroup(value.to_string()))?;
+        if caps.name("service").is_none() {
+            return Err(Error::InvalidServiceGroup(value.to_string()));
+        }
+        if caps.name("group").is_none() {
+            return Err(Error::InvalidServiceGroup(value.to_string()));
+        }
+        Ok(())
     }
 
-    pub fn as_string(&self) -> String {
-        // JW TODO: We shouldn't allocate a new string each time we call this. We should store the
-        // string internally in the struct and return slices to the string.
-        format!("{}", self)
+    pub fn service(&self) -> &str {
+        FROM_STR_RE.captures(&self.0).unwrap().name("service").unwrap().as_str()
+    }
+
+    pub fn group(&self) -> &str {
+        FROM_STR_RE.captures(&self.0).unwrap().name("group").unwrap().as_str()
+    }
+
+    pub fn org(&self) -> Option<&str> {
+        FROM_STR_RE.captures(&self.0).unwrap().name("organization").and_then(|v| Some(v.as_str()))
+    }
+
+    /// Set a new organization for this Service Group.
+    ///
+    /// This is useful if the organization was lazily loaded or added after creation.
+    pub fn set_org<T: AsRef<str>>(&mut self, org: T) {
+        self.0 = Self::format(self.service(), self.group(), Some(org.as_ref()));
+    }
+}
+
+impl AsRef<str> for ServiceGroup {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Deref for ServiceGroup {
+    type Target = String;
+
+    fn deref(&self) -> &String {
+        &self.0
+    }
+}
+
+impl DerefMut for ServiceGroup {
+    fn deref_mut(&mut self) -> &mut String {
+        &mut self.0
     }
 }
 
 impl fmt::Display for ServiceGroup {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.organization.as_ref() {
-            Some(org) => write!(f, "{}.{}@{}", self.service, self.group, org),
-            None => write!(f, "{}.{}", self.service, self.group),
-        }
+        write!(f, "{}", self.0)
     }
 }
 
@@ -68,18 +115,18 @@ impl FromStr for ServiceGroup {
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
         let service = match caps.name("service") {
-            Some(s) => s.as_str().to_string(),
+            Some(s) => s.as_str(),
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
         let group = match caps.name("group") {
-            Some(g) => g.as_str().to_string(),
+            Some(g) => g.as_str(),
             None => return Err(Error::InvalidServiceGroup(value.to_string())),
         };
-        let organization = match caps.name("organization") {
-            Some(o) => Some(o.as_str().to_string()),
+        let org = match caps.name("organization") {
+            Some(o) => Some(o.as_str()),
             None => None,
         };
-        Ok(ServiceGroup::new(service, group, organization))
+        Ok(ServiceGroup(ServiceGroup::format(service, group, org)))
     }
 }
 
@@ -90,44 +137,20 @@ mod test {
     use super::ServiceGroup;
 
     #[test]
-    fn fmt_without_organization() {
-        let sg = ServiceGroup::new("kayla", "album", None);
-        assert_eq!(&sg.to_string(), "kayla.album");
+    fn service_groups_with_org() {
+        let x = ServiceGroup::from_str("foo.bar").unwrap();
+        assert_eq!(x.service(), "foo");
+        assert_eq!(x.group(), "bar");
+        assert!(x.org().is_none());
 
-        let sg = ServiceGroup::new("blue-ocean", "album-track", None);
-        assert_eq!(&sg.to_string(), "blue-ocean.album-track");
-    }
+        let y = ServiceGroup::from_str("foo.bar@baz").unwrap();
+        assert_eq!(y.service(), "foo");
+        assert_eq!(y.group(), "bar");
+        assert_eq!(y.org().unwrap(), "baz");
 
-    #[test]
-    fn fmt_with_organization() {
-        let sg = ServiceGroup::new("kayla", "album", Some("flying_colors".to_string()));
-        assert_eq!(&sg.to_string(), "kayla.album@flying_colors");
-
-        let sg = ServiceGroup::new("blue-ocean", "album-track", Some("f-l_y".to_string()));
-        assert_eq!(&sg.to_string(), "blue-ocean.album-track@f-l_y");
-    }
-
-    #[test]
-    fn from_str_without_organization() {
-        let expected = ServiceGroup::new("kayla", "album", None);
-        let actual = ServiceGroup::from_str("kayla.album").unwrap();
-        assert_eq!(expected, actual);
-
-        let expected = ServiceGroup::new("blue-ocean", "track-from_album", None);
-        let actual = ServiceGroup::from_str("blue-ocean.track-from_album").unwrap();
-        assert_eq!(expected, actual);
-    }
-
-    #[test]
-    fn from_str_with_organization() {
-        let expected = ServiceGroup::new("kayla", "album", Some("flying_colors".to_string()));
-        let actual = ServiceGroup::from_str("kayla.album@flying_colors").unwrap();
-        assert_eq!(expected, actual);
-
-        let expected =
-            ServiceGroup::new("blue-ocean", "track-from_album", Some("f-l_y".to_string()));
-        let actual = ServiceGroup::from_str("blue-ocean.track-from_album@f-l_y").unwrap();
-        assert_eq!(expected, actual);
+        assert!(ServiceGroup::from_str("foo.bar@").is_err());
+        assert!(ServiceGroup::from_str("f.oo.bar@baz").is_err());
+        assert!(ServiceGroup::from_str("foo@baz").is_err());
     }
 
     #[test]
@@ -146,28 +169,5 @@ mod test {
     #[should_panic(expected = "oh-noes")]
     fn from_str_not_enough_periods() {
         ServiceGroup::from_str("oh-noes").unwrap();
-    }
-
-    #[test]
-    fn service_groups_with_org() {
-        let x = ServiceGroup::from_str("foo.bar").unwrap();
-        assert!(x.service == "foo".to_string());
-        assert!(x.group == "bar".to_string());
-        assert!(x.organization.is_none());
-
-        let y = ServiceGroup::from_str("foo.bar@baz").unwrap();
-        assert!(y.service == "foo".to_string());
-        assert!(y.group == "bar".to_string());
-        assert!(y.organization.unwrap() == "baz");
-
-        assert!(ServiceGroup::from_str("foo.bar@").is_err());
-        assert!(ServiceGroup::from_str("f.oo.bar@baz").is_err());
-        assert!(ServiceGroup::from_str("foo@baz").is_err());
-    }
-
-    #[test]
-    fn org_or_empty() {
-        assert!("" == ServiceGroup::from_str("foo.bar").unwrap().dotted_org_or_empty());
-        assert!(".baz" == ServiceGroup::from_str("foo.bar@baz").unwrap().dotted_org_or_empty());
     }
 }

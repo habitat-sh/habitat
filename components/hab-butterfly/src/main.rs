@@ -112,21 +112,19 @@ fn sub_config_apply(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
 
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())); // Required via clap
-
-    let org = org_param_or_env(&m);
-    let mut service_pair = None;
-    if let Some(org_name) = org {
-        sg.organization = Some(org_name.clone());
-        service_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache)));
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    if let Some(org) = org_param_or_env(&m) {
+        sg.set_org(org);
     }
-
-    let user = user_param_or_env(&m);
-    let mut user_pair = None;
-    if let Some(user_name) = user {
-        user_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&user_name, &cache)));
-    }
-
+    let service_pair = if sg.org().is_some() {
+        Some(try!(BoxKeyPair::get_latest_pair_for(&sg, &cache)))
+    } else {
+        None
+    };
+    let user_pair = match user_param_or_env(&m) {
+        Some(username) => Some(try!(BoxKeyPair::get_latest_pair_for(username, &cache))),
+        None => None,
+    };
     command::config::apply::start(ui,
                                   &sg,
                                   number,
@@ -171,21 +169,19 @@ fn sub_file_upload(ui: &mut UI, m: &ArgMatches) -> Result<()> {
         None => None,
     };
 
-    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())); // Required via clap
-
-    let org = org_param_or_env(&m);
-    let mut service_pair = None;
-    if let Some(org_name) = org {
-        sg.organization = Some(org_name.clone());
-        service_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&sg.to_string(), &cache)));
+    let mut sg = try!(ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap()));
+    if let Some(org) = org_param_or_env(&m) {
+        sg.set_org(org);
     }
-
-    let user = user_param_or_env(&m);
-    let mut user_pair = None;
-    if let Some(user_name) = user {
-        user_pair = Some(try!(BoxKeyPair::get_latest_pair_for(&user_name, &cache)));
-    }
-
+    let service_pair = if sg.org().is_some() {
+        Some(try!(BoxKeyPair::get_latest_pair_for(&sg, &cache)))
+    } else {
+        None
+    };
+    let user_pair = match user_param_or_env(&m) {
+        Some(username) => Some(try!(BoxKeyPair::get_latest_pair_for(username, &cache))),
+        None => None,
+    };
     command::file::upload::start(ui,
                                  &sg,
                                  number,
