@@ -108,6 +108,7 @@ fn get_default_user_and_group() -> Result<(String, String)> {
 /// if not, we'll try and use hab/hab.
 /// If hab/hab doesn't exist, try to use (current username, current group).
 /// If that doesn't work, then give up.
+#[cfg(unix)]
 pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     if let Some((user, group)) = try!(check_pkg_user_and_group(&pkg_install)) {
         Ok((user, group))
@@ -115,4 +116,13 @@ pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, Strin
         let defaults = try!(get_default_user_and_group());
         Ok(defaults)
     }
+}
+
+/// For now we are ignoring any configured user and group
+/// because we do not start the supervisor on windows under
+/// alternate credentials
+#[cfg(windows)]
+pub fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
+    let defaults = try!(get_default_user_and_group());
+    Ok(defaults)
 }
