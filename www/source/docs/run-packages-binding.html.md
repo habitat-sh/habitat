@@ -54,7 +54,7 @@ would create a bind aliasing `database` to the `amnesia` service in the `default
 
 The service group passed to `--bind database:{service}.{group}` doesn't *need* to be the service `amnesia`. This bind can be any service as long as they export a configuration key for `port` and `ssl-port`.
 
-You can declare bindings to multiple service groups in your templates. The arguments to `--bind` are separated by commas. Your service will not start if your package has declared a required bind and a value for it was not specified by `--bind`.
+You can declare bindings to multiple service groups in your templates by using the `--bind` option multiple times on the command line. Your service will not start if your package has declared a required bind and a value for it was not specified by `--bind`.
 
 <hr>
 <ul class="main-content--link-nav">
