@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The CLI commands.
-//!
-//! The Supervisor's command line actions are defined here; one module per command. Their names map
-//! 1:1 to the actual command line arguments, with one exception - `_` is translated to `-` on the
-//! CLI.
+use std::path::Path;
 
-pub mod start;
-pub mod shell;
+use common::ui::UI;
+use hcore::crypto::SymKey;
+
+use error::Result;
+
+pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
+    try!(ui.begin("Importing ring key from standard input"));
+    let (pair, pair_type) = try!(SymKey::write_file_from_str(content, cache));
+    try!(ui.end(format!("Imported {} ring key {}.",
+                        &pair_type,
+                        &pair.name_with_rev())));
+    Ok(())
+}

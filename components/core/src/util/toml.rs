@@ -23,7 +23,12 @@ use toml;
 pub fn table_from_bytes(bytes: &[u8]) -> Option<toml::Table> {
     str::from_utf8(bytes)
         .ok()
-        .and_then(|v| toml::Value::from_str(v).ok())
+        .and_then(table_from_str)
+}
+
+pub fn table_from_str(encoded: &str) -> Option<toml::Table> {
+    toml::Value::from_str(encoded)
+        .ok()
         .and_then(|v| match v {
             toml::Value::Table(s) => Some(s),
             _ => None,

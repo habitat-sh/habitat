@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The CLI commands.
-//!
-//! The Supervisor's command line actions are defined here; one module per command. Their names map
-//! 1:1 to the actual command line arguments, with one exception - `_` is translated to `-` on the
-//! CLI.
+use std::path::Path;
 
-pub mod start;
-pub mod shell;
+use common::ui::UI;
+use hcore::crypto::SymKey;
+
+use error::Result;
+
+pub fn start(ui: &mut UI, ring: &str, cache: &Path) -> Result<()> {
+    try!(ui.begin(format!("Generating ring key for {}", &ring)));
+    let pair = try!(SymKey::generate_pair_for_ring(ring, cache));
+    try!(ui.end(format!("Generated ring key pair {}.", &pair.name_with_rev())));
+    Ok(())
+}

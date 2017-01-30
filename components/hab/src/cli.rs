@@ -89,7 +89,8 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
                     (@arg ORIGIN: +required "The origin name")
                     (@arg REVISION: "The key revision")
-                    (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                    (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                        "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 )
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
@@ -121,7 +122,8 @@ pub fn get() -> App<'static, 'static> {
                         "Upload secret key in addition to the public key")
                     (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
                         "Path to a local secret origin key file on disk")
-                    (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                    (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                        "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
                 )
             )
@@ -140,6 +142,12 @@ pub fn get() -> App<'static, 'static> {
                 (@arg DEST_DIR: -d --dest +takes_value
                     "Sets the destination directory (default: /bin)")
             )
+            (@subcommand config =>
+                (about: "Displays the default configuration options for a service")
+                (aliases: &["conf", "cfg"])
+                (@arg PKG_IDENT: +required +takes_value
+                    "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+            )
             (subcommand: sub_pkg_build())
             (@subcommand exec =>
                 (about: "Executes a command using the 'PATH' context of an installed package")
@@ -154,7 +162,8 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand export =>
                 (about: "Exports the package to the specified format")
                 (aliases: &["exp"])
-                (@arg FORMAT: +required +takes_value "The export format (ex: docker, aci, mesos, or tar)")
+                (@arg FORMAT: +required +takes_value
+                    "The export format (ex: docker, aci, mesos, or tar)")
                 (@arg PKG_IDENT: +required +takes_value
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
             )
@@ -175,13 +184,16 @@ pub fn get() -> App<'static, 'static> {
                 (about: "Search installed Habitat packages for a given file")
                 (@arg FILE: +required +takes_value
                     "File name to find")
-                (@arg FULL_RELEASES: -r "Show fully qualified package names (ex: core/busybox-static/1.24.2/20160708162350)")
+                (@arg FULL_RELEASES: -r
+                    "Show fully qualified package names \
+                    (ex: core/busybox-static/1.24.2/20160708162350)")
                 (@arg FULL_PATHS: -p "Show full path to file")
             )
             (@subcommand search =>
                 (about: "Search for a package on a Depot")
                 (@arg SEARCH_TERM: +required +takes_value "Search term")
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
             )
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")
@@ -197,7 +209,8 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand upload =>
                 (about: "Uploads a local Habitat Artifact to a Depot")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+                (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+                    "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for the Depot")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
@@ -225,14 +238,15 @@ pub fn get() -> App<'static, 'static> {
             (@setting ArgRequiredElseHelp)
             (@subcommand init =>
                 (about: "Generates common package specific configuration files. Executing without \
-                    argument will create a `habitat` directory in your current folder for the plan. \
-                    If `PKG_NAME` is specified it will create a folder with that name. \
+                    argument will create a `habitat` directory in your current folder for the \
+                    plan. If `PKG_NAME` is specified it will create a folder with that name. \
                     Environment variables (those starting with 'pkg_') that are set will be used \
                     in the generated plan")
                 (aliases: &["i", "in", "ini"])
                 (@arg PKG_NAME: +takes_value "Name for the new app.")
                 (@arg ORIGIN: --origin -o +takes_value "Origin for the new app")
-                (@arg NO_CALLBACKS: --nocallbacks -f "Do not include callback functions in template")
+                (@arg NO_CALLBACKS: --nocallbacks -f
+                    "Do not include callback functions in template")
             )
         )
         (@subcommand ring =>
@@ -271,7 +285,8 @@ pub fn get() -> App<'static, 'static> {
                 (@subcommand generate =>
                     (about: "Generates a Habitat service key")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
-                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group} "Target service group (ex: redis.default)")
+                    (@arg SERVICE_GROUP: +required +takes_value {valid_service_group}
+                        "Target service group (ex: redis.default)")
                     (@arg ORG: "The service organization")
                 )
             )
@@ -393,7 +408,8 @@ fn sub_pkg_build() -> App<'static, 'static> {
 fn sub_pkg_install() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from a Depot or locally from a Habitat Artifact")
-        (@arg DEPOT_URL: -u --url +takes_value {valid_url} "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
+        (@arg DEPOT_URL: -u --url +takes_value {valid_url}
+            "Use a specific Depot URL (ex: http://depot.example.com/v1/depot)")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")

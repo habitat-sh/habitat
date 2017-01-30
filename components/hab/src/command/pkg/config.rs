@@ -12,35 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Prints the configuration options for a service. Actually the `config` command.
+//! Prints the default configuration options for a service.
 //!
 //! # Examples
 //!
 //! ```bash
-//! $ hab-sup config redis
+//! $ hab pkg config core/redis
 //! ```
 //!
 //! Will show the `default.toml`.
 
-use std::io::prelude::*;
-use std::fs::File;
+use std::path::Path;
+
+use hcore::package::{PackageIdent, PackageInstall};
+use hcore::package::install::DEFAULT_CFG_FILE;
+use toml;
 
 use error::Result;
-use config::gconfig;
-use package::Package;
 
-/// Print the default.toml for a given package.
-///
-/// # Failures
-///
-/// * If the package cannot be found
-/// * If the default.toml does not exist, or cannot be read
-/// * If we can't read the file into a string
-pub fn display() -> Result<()> {
-    let package = try!(Package::load(gconfig().package(), None));
-    let mut file = try!(File::open(package.path().join("default.toml")));
-    let mut s = String::new();
-    try!(file.read_to_string(&mut s));
-    println!("{}", s);
+pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
+    let package = try!(PackageInstall::load(ident, Some(fs_root_path)));
+    match package.default_cfg() {
+        Some(cfg) => println!("{}", toml::encode_str(&cfg)),
+        None => println!("No '{}' found for {}", DEFAULT_CFG_FILE, &package.ident),
+    }
     Ok(())
 }

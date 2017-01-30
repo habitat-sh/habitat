@@ -31,7 +31,6 @@ use std::str::FromStr;
 use ansi_term::Colour::Yellow;
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use hcore::env as henv;
-use hcore::fs;
 use hcore::crypto::{default_cache_key_path, SymKey};
 use hcore::crypto::init as crypto_init;
 use hcore::package::{PackageArchive, PackageIdent};
@@ -67,9 +66,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
     if let Some(ref strategy) = sub_args.value_of("strategy") {
         config.set_update_strategy(UpdateStrategy::from_str(strategy));
     }
-    if let Some(ref archive) = sub_args.value_of("archive") {
-        config.set_archive(archive.to_string());
-    }
     if let Some(ref ident_or_artifact) = sub_args.value_of("pkg_ident_or_artifact") {
         if Path::new(ident_or_artifact).is_file() {
             let ident = try!(PackageArchive::new(Path::new(ident_or_artifact)).ident());
@@ -79,24 +75,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
             let ident = try!(PackageIdent::from_str(ident_or_artifact));
             config.set_package(ident);
         }
-    }
-    if let Some(key) = sub_args.value_of("key") {
-        config.set_key(key.to_string());
-    }
-    if let Some(email) = sub_args.value_of("email") {
-        config.set_email(email.to_string());
-    }
-    if let Some(user) = sub_args.value_of("user") {
-        config.set_user_key(user.to_string());
-    }
-    if let Some(service) = sub_args.value_of("service") {
-        config.set_service_key(service.to_string());
-    }
-    if let Some(infile) = sub_args.value_of("infile") {
-        config.set_infile(infile.to_string());
-    }
-    if let Some(outfile) = sub_args.value_of("outfile") {
-        config.set_outfile(outfile.to_string());
     }
     if let Some(topology) = sub_args.value_of("topology") {
         match topology.as_ref() {
@@ -112,10 +90,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
             t => return Err(sup_error!(Error::UnknownTopology(String::from(t)))),
         }
     }
-    if sub_args.value_of("expire-days").is_some() {
-        let ed = value_t!(sub_args.value_of("expire-days"), u16).unwrap_or_else(|e| e.exit());
-        config.set_expire_days(ed);
-    }
     let env_or_default = henv::var(DEPOT_URL_ENVVAR).unwrap_or(DEFAULT_DEPOT_URL.to_string());
     let url = sub_args.value_of("url").unwrap_or(&env_or_default);
     config.set_url(url.to_string());
@@ -125,12 +99,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
         None => vec![],
     };
     config.set_bind(bindings);
-    config.set_path(sub_args.value_of("path")
-        .unwrap_or(fs::svc_path(sup::PROGRAM_NAME.as_str())
-            .join("data")
-            .to_string_lossy()
-            .as_ref())
-        .to_string());
 
     if let Some(addr_str) = sub_args.value_of("listen-peer") {
         outputln!("{}",
@@ -153,13 +121,6 @@ fn config_from_args(subcommand: &str, sub_args: &ArgMatches) -> Result<()> {
     if sub_args.is_present("permanent-peer") {
         config.set_gossip_permanent(true);
     }
-    if let Some(sg) = sub_args.value_of("service-group") {
-        config.set_service_group(sg.to_string());
-    }
-    if let Some(fp) = sub_args.value_of("file-path") {
-        config.set_file_path(fp.to_string());
-    }
-    config.set_version_number(value_t!(sub_args, "version-number", u64).unwrap_or(0));
     let ring = match sub_args.value_of("ring") {
         Some(val) => Some(try!(SymKey::get_latest_pair_for(&val, &default_cache_key_path(None)))),
         None => {
@@ -338,7 +299,6 @@ fn main() {
     let result = match gconfig().command() {
         Command::ShellBash => shell_bash(),
         Command::ShellSh => shell_sh(),
-        Command::Config => configure(),
         Command::Start => start(),
     };
 
@@ -349,33 +309,22 @@ fn main() {
 }
 
 /// Exit with an error message and the right status code
-#[allow(dead_code)]
 fn exit_with(e: SupError, code: i32) {
     println!("{}", e.to_string());
     process::exit(code)
 }
 
 /// Start a sh shell
-#[allow(dead_code)]
 fn shell_sh() -> Result<()> {
     shell::sh()
 }
 
 /// Start a bash shell
-#[allow(dead_code)]
 fn shell_bash() -> Result<()> {
     shell::bash()
 }
 
-/// Show the configuration options for a service
-#[allow(dead_code)]
-fn configure() -> Result<()> {
-    try!(configure::display());
-    Ok(())
-}
-
 /// Start a service
-#[allow(dead_code)]
 fn start() -> Result<()> {
     outputln!("Starting {}",
               Yellow.bold().paint(gconfig().package().to_string()));

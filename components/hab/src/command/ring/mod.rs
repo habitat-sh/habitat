@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
+// Copyright (c) 2016 Chef Software Inc. and/or applicable contributors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The CLI commands.
-//!
-//! The Supervisor's command line actions are defined here; one module per command. Their names map
-//! 1:1 to the actual command line arguments, with one exception - `_` is translated to `-` on the
-//! CLI.
-
-pub mod start;
-pub mod shell;
+pub mod key;
