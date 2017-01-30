@@ -61,7 +61,7 @@ use std::path::{Path, PathBuf};
 
 use crypto::sha2::Sha256;
 use crypto::digest::Digest;
-use hab_core::package::{Identifiable, PackageArchive};
+use hab_core::package::{Identifiable, PackageArchive, PackageTarget};
 use hab_net::server::NetIdent;
 use iron::typemap;
 
@@ -101,11 +101,13 @@ impl Depot {
         self.packages_path()
             .join(format!("{:x}", output[0]))
             .join(format!("{:x}", output[1]))
-            .join(format!("{}-{}-{}-{}-x86_64-linux.hart",
+            .join(format!("{}-{}-{}-{}-{}-{}.hart",
                           ident.origin(),
                           ident.name(),
                           ident.version().unwrap(),
-                          ident.release().unwrap()))
+                          ident.release().unwrap(),
+                          self.config.supported_target.architecture,
+                          self.config.supported_target.platform))
     }
 
     fn key_path(&self, key: &str, rev: &str) -> PathBuf {

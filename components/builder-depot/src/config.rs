@@ -16,6 +16,7 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 
 use hab_core::config::{ConfigFile, ParseInto};
 use hab_net::config::{GitHubOAuth, RouteAddrs};
+use hab_core::package::PackageTarget;
 use redis;
 use toml;
 
@@ -48,6 +49,8 @@ pub struct Config {
     pub insecure: bool,
     /// Whether to log events for funnel metrics
     pub events_enabled: bool,
+    /// Supported targets - comma separated
+    pub supported_target: PackageTarget,
 }
 
 impl ConfigFile for Config {
@@ -60,6 +63,7 @@ impl ConfigFile for Config {
         try!(toml.parse_into("cfg.datastore_addr", &mut cfg.datastore_addr));
         try!(toml.parse_into("cfg.router_addrs", &mut cfg.routers));
         try!(toml.parse_into("cfg.events_enabled", &mut cfg.events_enabled));
+        try!(toml.parse_into("cfg.supported_target", &mut cfg.supported_target));
         Ok(cfg)
     }
 }
@@ -76,6 +80,7 @@ impl Default for Config {
             github_client_secret: DEV_GITHUB_CLIENT_SECRET.to_string(),
             insecure: false,
             events_enabled: false, // TODO: change to default to true later
+            supported_target: PackageTarget::default(),
         }
     }
 }

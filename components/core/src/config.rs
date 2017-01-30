@@ -20,6 +20,7 @@ use std::net::{IpAddr, SocketAddr};
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
+use package::PackageTarget;
 
 use toml;
 
@@ -335,6 +336,21 @@ impl ParseInto<Vec<BTreeMap<String, String>>> for toml::Value {
             }
         } else {
             Ok(false)
+        }
+    }
+}
+
+impl ParseInto<PackageTarget> for toml::Value {
+    fn parse_into(&self, field: &'static str, out: &mut PackageTarget) -> Result<bool> {
+        if let Some(val) = self.lookup(field) {
+            if let Some(v) = val.as_str() {
+                *out = PackageTarget::from_str(v).unwrap();
+                Ok(true)
+            } else {
+                Err(Error::ConfigInvalidTargetString(field))
+            }
+        } else {
+            Ok(true)
         }
     }
 }
