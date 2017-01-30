@@ -16,8 +16,7 @@
 //!
 //! Services run by the Supervisor support one or more *topologies*, which are state machines that
 //! handle the lifecycle of a service; they are members of a *group*, which is a namespace for
-//! their configuration and state; and they can *watch* another service group, incorporating that
-//! groups configuration and state into their own.
+//! their configuration and state.
 //!
 //! # Examples
 //!
@@ -34,24 +33,16 @@
 //! Will do the same, but in the `production` group.
 //!
 //! ```bash
-//! $ hab-sup start haproxy -w redis.production
-//! ```
-//!
-//! Will start the `haproxy` service, and have it watch the configuration for the `redis`
-//! `production` group (note the `.` as the separator.)
-//!
-//! ```bash
 //! $ hab-sup start acme/redis -t leader
 //! ```
 //!
 //! Will start the `redis` service using the `leader` topology.
 //!
 //! ```bash
-//! $ hab-sup start acme/redis -t leader -g production -w haproxy.default
+//! $ hab-sup start acme/redis -t leader -g production
 //! ```
 //!
-//! Will start the `redis` service using the `leader` topology in the `production` group, while
-//! watching the `haproxy` `default` group's configuration.
+//! Will start the `redis` service using the `leader` topology in the `production` group.
 //!
 //! See the [documentation on topologies](../topology) for a deeper discussion of how they function.
 //!
