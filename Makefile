@@ -103,6 +103,19 @@ clean-lib: $(addprefix clean-,$(LIB)) ## cleans the library components' project 
 clean-srv: $(addprefix clean-,$(SRV)) ## cleans the service components' project trees
 .PHONY: clean-srv
 
+fmt: fmt-bin fmt-lib fmt-srv ## formats all the components' codebases
+fmt-all: fmt
+.PHONY: fmt fmt-all
+
+fmt-bin: $(addprefix fmt-,$(BIN)) ## formats the binary components' codebases
+.PHONY: clean-bin
+
+fmt-lib: $(addprefix fmt-,$(LIB)) ## formats the library components' codebases
+.PHONY: clean-lib
+
+fmt-srv: $(addprefix fmt-,$(SRV)) ## formats the service components' codebases
+.PHONY: clean-srv
+
 help:
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
@@ -197,3 +210,11 @@ clean-$1: image ## cleans the $1 component's project tree
 
 endef
 $(foreach component,$(ALL),$(eval $(call CLEAN,$(component))))
+
+define FMT
+fmt-$1: image ## formats the $1 component
+	$(run) sh -c 'cd components/$1 && cargo fmt'
+.PHONY: fmt-$1
+
+endef
+$(foreach component,$(ALL),$(eval $(call FMT,$(component))))
