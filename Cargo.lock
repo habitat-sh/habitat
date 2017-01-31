@@ -1079,6 +1079,15 @@ version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "petgraph"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "fixedbitset 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ordermap 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "phf"
 version = "0.7.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1090,15 +1099,6 @@ dependencies = [
 name = "phf_shared"
 version = "0.7.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "petgraph"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "fixedbitset 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "ordermap 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "pkg-config"
@@ -1812,9 +1812,9 @@ dependencies = [
 "checksum pbr 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9f37516f7ab051df67430a6572735d7992fe74dde52554495eec459fb57da41f"
 "checksum persistent 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d4c9c94f2ef72dc272c6bcc8157ccf2bc7da14f4c58c69059ac2fc48492d6916"
 "checksum pest 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0a6dda33d67c26f0aac90d324ab2eb7239c819fc7b2552fe9faa4fe88441edc8"
+"checksum petgraph 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "284bb4b0b61d2b0aba0202aad4d9625a5a2e7f9840dc4353709cbcfe9ae57bbd"
 "checksum phf 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)" = "0c6afb2057bb5f846a7b75703f90bc1cef4970c35209f712925db7768e999202"
 "checksum phf_shared 0.7.20 (registry+https://github.com/rust-lang/crates.io-index)" = "286385a0e50d4147bce15b2c19f0cf84c395b0e061aaf840898a7bf664c2cfb7"
-"checksum petgraph 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)" = "284bb4b0b61d2b0aba0202aad4d9625a5a2e7f9840dc4353709cbcfe9ae57bbd"
 "checksum pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)" = "8cee804ecc7eaf201a4a207241472cc870e825206f6c031e3ee2a72fa425f2fa"
 "checksum plugin 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "1a6a0dc3910bc8db877ffed8e457763b317cf880df4ae19109b9f77d277cf6e0"
 "checksum postgres 0.13.5 (registry+https://github.com/rust-lang/crates.io-index)" = "585ca978431cddac0aa926246f18fe30a47401eabbe9bbda573dc60389c10ea1"
