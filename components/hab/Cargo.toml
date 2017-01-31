@@ -13,7 +13,7 @@ doc = false
 ansi_term = "*"
 env_logger = "*"
 hyper = "*"
-handlebars = "*"
+handlebars = { version = "*", features = ["serde_type", "partial4"], default-features = false }
 libc = "*"
 log = "*"
 pbr = "*"
